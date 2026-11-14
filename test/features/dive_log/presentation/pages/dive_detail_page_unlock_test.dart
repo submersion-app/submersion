@@ -30,6 +30,10 @@ class _FakeSave implements DiveEditSaveService {
 
   Dive stored;
   Object? failWith;
+
+  /// When set, a save waits here before it writes or fails, so a test can
+  /// act while it is running.
+  Completer<void>? hold;
   final calls = <({String diveId, Dive merged, List<String> cards})>[];
 
   @override
@@ -38,6 +42,7 @@ class _FakeSave implements DiveEditSaveService {
     required Dive Function(Dive stored) apply,
     required Iterable<String> changedCardIds,
   }) async {
+    await hold?.future;
     final error = failWith;
     if (error != null) throw error;
     final before = stored;
@@ -46,6 +51,17 @@ class _FakeSave implements DiveEditSaveService {
     stored = merged;
     return (before: before, after: merged);
   }
+}
+
+/// A dive list whose refresh after a write fails.
+class _FailingRefreshList extends PaginatedDiveListNotifier {
+  _FailingRefreshList(super.repository, super.ref);
+
+  @override
+  Future<void> refreshAfterWrite({
+    required Dive? before,
+    required Dive after,
+  }) async => throw StateError('the list could not be refreshed');
 }
 
 /// The dive page unlocked for editing in place (issue #4527), behind the
@@ -84,10 +100,15 @@ void main() {
     Completer<void>? reloadGate,
     String initialLocation = '/home/dive',
     ValueNotifier<String>? shownDiveId,
+    bool listRefreshFails = false,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
     addTearDown(tester.view.reset);
+    // One notifier for the life of the page: made in the route's builder it
+    // would be a new one, never disposed, each time the route rebuilt.
+    final shownId = shownDiveId ?? ValueNotifier(dive.id);
+    if (shownDiveId == null) addTearDown(shownId.dispose);
 
     final save = _FakeSave(stored ?? dive);
     var loads = 0;
@@ -124,7 +145,7 @@ void main() {
               // With [shownDiveId] the same page is handed another dive,
               // keeping its state, as the list pane does with its detail.
               builder: (context, state) => ValueListenableBuilder<String>(
-                valueListenable: shownDiveId ?? ValueNotifier(dive.id),
+                valueListenable: shownId,
                 builder: (context, id, _) => DiveDetailPage(
                   diveId: id,
                   embedded: embedded,
@@ -168,6 +189,11 @@ void main() {
             otherDive.id,
           ).overrideWith((ref) => (previousId: dive.id, nextId: null)),
           diveEditSaveServiceProvider.overrideWithValue(save),
+          if (listRefreshFails)
+            paginatedDiveListProvider.overrideWith(
+              (ref) =>
+                  _FailingRefreshList(ref.watch(diveRepositoryProvider), ref),
+            ),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -591,6 +617,39 @@ void main() {
       expect(page.save.calls, isEmpty);
     });
 
+    // Locking is refused while a write is running. A write that then fails
+    // must not leave the first dive's sitting open on the other dive's page.
+    testWidgets('a sitting whose save fails after the switch ends too', (
+      tester,
+    ) async {
+      final shown = ValueNotifier(dive.id);
+      addTearDown(shown.dispose);
+      final page = await pumpPage(tester, shownDiveId: shown);
+      page.save
+        ..hold = Completer<void>()
+        ..failWith = StateError('gone');
+      await unlock(tester);
+      await openNotes(tester);
+      await tester.enterText(notesField(), 'Meant for the first dive');
+      await settle(tester);
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+
+      shown.value = otherDive.id;
+      await settle(tester);
+      page.save.hold!.complete();
+      await settle(tester);
+
+      expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+      expect(find.text('Cancel'), findsNothing);
+      expect(find.text('Other notes'), findsOneWidget);
+      expect(find.text('Meant for the first dive'), findsNothing);
+      expect(
+        find.text("Couldn't save your changes. Nothing was changed."),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a save is for the dive its sitting was opened on', (
       tester,
     ) async {
@@ -606,6 +665,30 @@ void main() {
       expect(page.save.calls.single.diveId, dive.id);
     });
   });
+
+  // The write is committed by then. Saying it failed would be untrue, and
+  // would hand the diver a sitting to save a second time.
+  testWidgets(
+    'a list refresh that fails after the write is not a failed save',
+    (tester) async {
+      final page = await pumpPage(tester, listRefreshFails: true);
+      await unlock(tester);
+      await openNotes(tester);
+      await tester.enterText(notesField(), 'Saved all the same');
+      await settle(tester);
+
+      await tester.tap(find.text('Save'));
+      await settle(tester);
+
+      expect(
+        find.text("Couldn't save your changes. Nothing was changed."),
+        findsNothing,
+      );
+      expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+      expect(find.text('Saved all the same'), findsOneWidget);
+      expect(page.save.calls, hasLength(1));
+    },
+  );
 
   testWidgets('a hidden card emptied and closed is offered again', (
     tester,

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -41,7 +43,18 @@ class _DiveNotesCardEditorState extends State<DiveNotesCardEditor> {
   /// underneath notes the diver has not touched.
   void _followSession() {
     final notes = widget.session.valueOf(diveNotesField);
-    if (_controller.text != notes) _controller.text = notes;
+    if (_controller.text == notes) return;
+    // Assigning `text` would throw the caret out of a field the diver is
+    // in. It stays where it was, or at the end of a shorter note.
+    final selection = _controller.selection;
+    _controller.value = TextEditingValue(
+      text: notes,
+      selection: selection.isValid
+          ? TextSelection.collapsed(
+              offset: math.min(selection.extentOffset, notes.length),
+            )
+          : selection,
+    );
   }
 
   @override

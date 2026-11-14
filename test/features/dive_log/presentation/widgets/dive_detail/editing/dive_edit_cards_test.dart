@@ -132,6 +132,28 @@ void main() {
       expect(session.isDirty, isFalse);
     });
 
+    // Assigning the controller's text would throw the caret out of a field
+    // the diver is in.
+    testWidgets('Notes text that follows the stored dive keeps its caret', (
+      tester,
+    ) async {
+      final session = sessionOver(dive.copyWith(notes: 'Calm'));
+      await tester.pumpWidget(harness(DiveNotesCardEditor(session: session)));
+      await tester.pump();
+      final text = tester.widget<TextField>(find.byType(TextField)).controller!;
+      text.selection = const TextSelection.collapsed(offset: 2);
+
+      session.rebase(dive.copyWith(notes: 'From another device'));
+      await tester.pump();
+      expect(text.text, 'From another device');
+      expect(text.selection, const TextSelection.collapsed(offset: 2));
+
+      // Shorter than where the caret was: it goes to the end.
+      session.rebase(dive.copyWith(notes: 'C'));
+      await tester.pump();
+      expect(text.selection, const TextSelection.collapsed(offset: 1));
+    });
+
     testWidgets('edited Notes text is kept when the stored dive changes', (
       tester,
     ) async {

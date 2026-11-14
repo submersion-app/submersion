@@ -46,6 +46,9 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   /// The same page can be handed another dive, keeping its state (the list
   /// pane does this with its detail). A sitting, and the copy of a dive
   /// just saved, belong to the dive they were made for and do not follow.
+  ///
+  /// A sitting that is being written cannot be ended here. One that goes
+  /// through ends itself; one that fails is ended by [_saveAndReport].
   @override
   void didUpdateWidget(DiveDetailPage oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -65,7 +68,12 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       final dive = next.valueOrNull;
       if (dive == null) return;
       if (_justSaved != null) setState(() => _justSaved = null);
-      _editController?.storedChanged(dive);
+      // Only the sitting's own dive. While a sitting is being written the
+      // page can be handed another dive, and that sitting has not ended
+      // yet: it must not be moved onto a dive it was not opened on.
+      final controller = _editController;
+      if (controller?.session?.stored.id != dive.id) return;
+      controller?.storedChanged(dive);
     });
   }
 
@@ -82,14 +90,38 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     );
     if (result == null) return;
     if (result.after.id == widget.diveId) _justSaved = result.after;
-    await list.refreshAfterWrite(before: result.before, after: result.after);
+    // The write is committed. A refresh that fails from here on must not
+    // read as a save that failed: the diver would be told nothing was
+    // changed and handed the sitting to save a second time.
+    try {
+      await list.refreshAfterWrite(before: result.before, after: result.after);
+    } catch (error, stackTrace) {
+      _log.error(
+        'Refresh after saving dive ${result.after.id} failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      // The refresh may not have got as far as the dive itself, and the
+      // page shows its own copy until the stored dive is read back.
+      if (mounted) ref.invalidate(diveProvider(result.after.id));
+    }
   }
 
   Future<void> _saveAndReport() async {
     final messenger = ScaffoldMessenger.of(context);
     final failed = context.l10n.recordEdit_saveFailed;
-    final saved = await editController.save();
-    if (saved || !mounted || editController.saveError == null) return;
+    final controller = editController;
+    final saved = await controller.save();
+    if (saved || !mounted) return;
+    final error = controller.saveError;
+    // The page was handed another dive while this was being written, when
+    // the sitting could not be ended (see [didUpdateWidget]). It ends now,
+    // or it would stay open over a dive it does not belong to.
+    final session = controller.session;
+    if (session != null && session.stored.id != widget.diveId) {
+      controller.lock();
+    }
+    if (error == null) return;
     messenger.showSnackBar(SnackBar(content: Text(failed)));
   }
 

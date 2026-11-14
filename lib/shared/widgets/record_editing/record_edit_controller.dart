@@ -34,6 +34,10 @@ class RecordEditController<T> extends ChangeNotifier {
   /// The cards that had changes when listeners were last told.
   Set<String> _toldChangedCardIds = const {};
 
+  /// The stored record that last arrived while a save was running, when
+  /// the sitting could not follow it. A save that fails rebases onto it.
+  ({T stored})? _storedDuringSave;
+
   ({String cardId, int serial})? _revealRequest;
 
   /// Never reset, so a request in a later sitting is never mistaken for one
@@ -99,6 +103,7 @@ class RecordEditController<T> extends ChangeNotifier {
     _revealRequest = null;
     _saveError = null;
     _isSaving = false;
+    _storedDuringSave = null;
     notifyListeners();
   }
 
@@ -134,9 +139,18 @@ class RecordEditController<T> extends ChangeNotifier {
   }
 
   /// Tells the sitting the stored record changed underneath it.
+  ///
+  /// While a save is running the sitting is frozen and cannot follow. The
+  /// record is kept instead: a save that goes through ends the sitting, and
+  /// one that fails gives it back rebased onto what arrived meanwhile.
   void storedChanged(T stored) {
     final session = _session;
-    if (session == null || _isSaving || stored == session.stored) return;
+    if (session == null) return;
+    if (_isSaving) {
+      _storedDuringSave = (stored: stored);
+      return;
+    }
+    if (stored == session.stored) return;
     session.rebase(stored);
     // Cards the diver has not touched now show other values, whether or not
     // the set of changed cards moved.
@@ -153,7 +167,8 @@ class RecordEditController<T> extends ChangeNotifier {
 
   /// Writes the sitting and locks. False when nothing was saved: the page
   /// was locked, a save was already running, or the write failed (see
-  /// [saveError]); a failed save leaves the sitting exactly as it was.
+  /// [saveError]); a failed save leaves the diver's changes exactly as they
+  /// were, on top of whatever was stored while it ran ([storedChanged]).
   Future<bool> save() async {
     final session = _session;
     if (session == null || _isSaving) return false;
@@ -163,6 +178,7 @@ class RecordEditController<T> extends ChangeNotifier {
     }
     _isSaving = true;
     _saveError = null;
+    _storedDuringSave = null;
     // What is written is what the diver saw when they asked for it.
     session.freeze();
     notifyListeners();
@@ -175,6 +191,10 @@ class RecordEditController<T> extends ChangeNotifier {
       session.thaw();
       _saveError = error;
       _isSaving = false;
+      final missed = _storedDuringSave;
+      _storedDuringSave = null;
+      if (missed != null) session.rebase(missed.stored);
+      _toldChangedCardIds = session.changedCardIds;
       notifyListeners();
       return false;
     }

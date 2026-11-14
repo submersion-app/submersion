@@ -412,11 +412,12 @@ class DiveDetailSectionList extends ConsumerWidget {
     // While the record is unlocked the row keeps folding and unfolding, and
     // the pencil alone opens the section's editor.
     final session = edit?.session;
+    final isOpen = edit != null && edit.openCardIds.contains(id.name);
     final canOpen =
         edit != null &&
         session != null &&
         diveEditCards.containsKey(id) &&
-        !edit.openCardIds.contains(id.name);
+        !isOpen;
     // Open, the card's own header carries the dot; folded, the row must.
     final isChanged = canOpen && session.changedCardIds.contains(id.name);
     return SectionFold(
@@ -438,9 +439,15 @@ class DiveDetailSectionList extends ConsumerWidget {
               ],
             )
           : null,
-      onToggle: (expanded) => ref
-          .read(settingsProvider.notifier)
-          .setDiveDetailSectionExpanded(id, expanded),
+      // A card being edited stays unfolded whatever is saved, so a tap here
+      // could only change the saved choice unseen, and fold the section by
+      // surprise once the card was closed. It does nothing until then.
+      onToggle: (expanded) {
+        if (isOpen) return;
+        ref
+            .read(settingsProvider.notifier)
+            .setDiveDetailSectionExpanded(id, expanded);
+      },
       contentBuilder: (context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

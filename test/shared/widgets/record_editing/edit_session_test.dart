@@ -196,4 +196,17 @@ void main() {
     expect(session.valueOf(_notes), 'c');
     expect(told, 1);
   });
+
+  // A card's editor keeps its session for a frame after the sitting has
+  // ended. A keystroke that arrives then is dropped, not thrown.
+  test('a disposed session ignores what is set on it', () {
+    final session = EditSession(const _Rec(notes: 'a'))..dispose();
+
+    session
+      ..set(_notes, 'late')
+      ..rebase(const _Rec(notes: 'z'));
+
+    expect(session.valueOf(_notes), 'a');
+    expect(session.isDirty, isFalse);
+  });
 }

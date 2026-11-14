@@ -219,6 +219,30 @@ void main() {
     );
   });
 
+  // Sections are matched by key, so a card arriving above an open editor
+  // moves it instead of building it again, which would drop its caret.
+  testWidgets('a card added above an open editor does not rebuild it', (
+    tester,
+  ) async {
+    final untagged = dive.copyWith(tags: const []);
+    final controller = controllerOver(untagged)..openCard('notes');
+    await tester.pumpWidget(
+      harness(
+        dive: untagged,
+        settings: _RecordingSettings(_settings(shown)),
+        controller: controller,
+      ),
+    );
+    await tester.pumpAndSettle();
+    final editor = tester.state(find.byType(MarkdownNotesField));
+
+    controller.addCard('tags');
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TagFormBlock), findsOneWidget);
+    expect(tester.state(find.byType(MarkdownNotesField)), same(editor));
+  });
+
   testWidgets('an added card closed with nothing entered leaves again', (
     tester,
   ) async {
@@ -353,6 +377,31 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(settings.expandedCalls, [(DiveDetailSectionId.notes, true)]);
+    });
+
+    // An open card is unfolded for the sitting whatever the diver's setting
+    // says. A tap on its row could only change that setting unseen, and
+    // fold the section by surprise once the card was closed.
+    testWidgets('the row of an open card does not save a fold', (tester) async {
+      final settings = _RecordingSettings(folded);
+      final controller = controllerOver(dive)..openCard('notes');
+      await tester.pumpWidget(
+        harness(dive: dive, settings: settings, controller: controller),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find
+            .descendant(
+              of: find.byKey(const ValueKey('diveSectionFold_notes')),
+              matching: find.text('Notes'),
+            )
+            .first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(settings.expandedCalls, isEmpty);
+      expect(find.byType(MarkdownNotesField), findsOneWidget);
     });
 
     testWidgets('a folded section with changes shows the dot on its row', (

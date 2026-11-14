@@ -88,24 +88,33 @@ class RecordCardHeader extends StatelessWidget {
     final trailing = this.trailing;
 
     if (frame == null) {
+      // The title takes the room there is and wraps within it, so what
+      // follows sits at the row's right edge and a long title cannot
+      // overflow the card.
       return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [titleText, ?trailing],
+        children: [
+          Expanded(child: titleText),
+          ?trailing,
+        ],
       );
     }
 
     final l10n = context.l10n;
     // The title and its dot take all the room the row has left, so what
     // follows them sits at the row's right edge.
-    final leading = <Widget>[
+    final titleAndDot = <Widget>[
       Expanded(
         child: Row(
           children: [
             Flexible(child: titleText),
-            if (frame.isChanged) ...[
-              const SizedBox(width: 8),
-              const RecordChangedDot(),
-            ],
+            const SizedBox(width: 8),
+            // The dot's place is kept while there is none, so that its
+            // arrival on the first keystroke cannot wrap the title and
+            // push the open editor down a line.
+            SizedBox.square(
+              dimension: 8,
+              child: frame.isChanged ? const RecordChangedDot() : null,
+            ),
           ],
         ),
       ),
@@ -114,7 +123,7 @@ class RecordCardHeader extends StatelessWidget {
     if (frame.isOpen) {
       return Row(
         children: [
-          ...leading,
+          ...titleAndDot,
           TextButton(
             onPressed: frame.onDone,
             style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
@@ -124,22 +133,27 @@ class RecordCardHeader extends StatelessWidget {
       );
     }
 
-    return InkWell(
-      onTap: frame.onOpen,
-      child: Row(
-        children: [
-          ...leading,
-          ?trailing,
-          const SizedBox(width: 8),
-          Tooltip(
-            message: l10n.recordEdit_editCardTooltip(title),
-            child: Icon(
-              Icons.edit_outlined,
-              size: 18,
-              color: theme.colorScheme.primary,
+    // An InkWell gives the row a tap action but no role, and the row is
+    // the card's only way in: it is announced as the button it is.
+    return Semantics(
+      button: true,
+      child: InkWell(
+        onTap: frame.onOpen,
+        child: Row(
+          children: [
+            ...titleAndDot,
+            ?trailing,
+            const SizedBox(width: 8),
+            Tooltip(
+              message: l10n.recordEdit_editCardTooltip(title),
+              child: Icon(
+                Icons.edit_outlined,
+                size: 18,
+                color: theme.colorScheme.primary,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

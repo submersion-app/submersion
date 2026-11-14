@@ -65,6 +65,10 @@ String changeLogStoredLabel(AppLocalizations l, String label) =>
       _ => label,
     };
 
+/// The dive page's cards by id, which is the section's name. Built once:
+/// the History list asks for a label for every row it draws.
+final _diveSectionsByName = DiveDetailSectionId.values.asNameMap();
+
 /// "Edited: Notes, Tags" for the label of an editing sitting, naming each
 /// card by its title; null for any other label. A card id with no title in
 /// this version of the app is shown as written.
@@ -72,7 +76,7 @@ String? _recordEditLabel(AppLocalizations l, String label) {
   final edit = RecordEditLabel.decode(label);
   if (edit == null) return null;
   final diveSections = edit.table == 'dives'
-      ? DiveDetailSectionId.values.asNameMap()
+      ? _diveSectionsByName
       : const <String, DiveDetailSectionId>{};
   final cards = [
     for (final id in edit.cardIds)
