@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Builds the site catalogue the app ships, from the sources' snapshots.
 
-    python3 scripts/site_catalogue/merge.py [--without KEY ...]
-                                            [--open-only] [--out DIR]
+    python3 scripts/site_catalogue/merge.py [--without KEY ...] [--out DIR]
+    python3 scripts/site_catalogue/merge.py --open-only --out DIR
 
 Each source is downloaded on its own, by its own module, into the snapshot
 cache (run `python3 scripts/site_catalogue/src_ukho.py` and its siblings,
@@ -17,7 +17,9 @@ look like a clean run.
 
 `--open-only` writes the catalogue without the own-terms sources: the
 ODbL database alone, for the ODbL offer and for anyone redistributing
-commercially.
+commercially. It must be told where to write (`--out`): the default is the
+catalogue the app ships, which it would replace. `--out assets/data` does
+that on purpose, and takes New Jersey's metadata away with its records.
 
 It prints, per source, what was read, what each gate dropped and what was
 written, then the ids that left and joined the catalogue it replaces.

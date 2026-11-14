@@ -481,7 +481,8 @@ Layout under `scripts/`, names left to the builder:
 - **An open-only switch.** The merge can write the catalogue without any
   own-terms source: the ODbL database alone, for anyone the ODbL offer
   reaches and for anyone redistributing commercially. The shipped file is
-  the full one.
+  the full one, so the switch must be told where to write (`--out`) and
+  never replaces it by default.
 - **A report.** The merge prints, per source: rows read, rows dropped by
   each gate, records lost to overlap and to which source, records written;
   then the ids gone and new against the file it replaces. The PR

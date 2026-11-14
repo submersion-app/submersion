@@ -13,6 +13,7 @@ order the snapshots arrive in.
 import io
 import json
 import os
+import re
 import sys
 import tempfile
 import unittest
@@ -587,6 +588,31 @@ class MainTest(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("--out", output.getvalue())
         self.assertFalse(default.exists())
+
+    def test_the_readme_s_open_only_command_is_one_that_runs(self):
+        # The README tells a commercial redistributor how to build the
+        # catalogue without the own-terms sources: the command it gives
+        # must name where to write, or the merge refuses it.
+        readme = (Path(_HERE).parent.parent / "README.md").read_text("utf-8")
+        commands = [
+            command
+            for command in re.findall(r"`([^`]*)`", readme)
+            if "--open-only" in command
+        ]
+        self.assertTrue(commands)
+        for command in commands:
+            arguments = command.split("merge.py", 1)[1].split()
+            self.assertIn("--out", arguments, command)
+            self._run()
+            output = io.StringIO()
+            with redirect_stdout(output):
+                code = merge.main(
+                    ["--cache", str(self.cache), "--open-only",
+                     "--out", str(self.out)],
+                    places=_Places(),
+                    curated=_CURATED,
+                )
+            self.assertEqual(code, 0)
 
     def test_with_every_source_left_out_there_is_nothing_to_merge(self):
         self._run()
