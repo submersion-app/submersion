@@ -156,7 +156,9 @@ tested without widgets. The sheet reads a provider that streams it.
   `lib/shared/widgets/`, built from the tag dialog: square, hue slider, hex
   field with its validation and error text, Cancel and Use. `preview` is a
   builder from the current colour to a widget.
-- Tags keep their chip preview through it; their behaviour and test keys stay.
+- Tags keep their chip preview through it and their behaviour; the hex field
+  and Use button keys become the shared dialog's (`custom-color-hex`,
+  `custom-color-use`).
 - Equipment's preview is a 36 dp swatch with the custom colour name beside it.
 - It opens on the item's current colour, or the palette Blue (`#3B82F6`) when
   the item has none (my call).
