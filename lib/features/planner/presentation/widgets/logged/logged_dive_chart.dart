@@ -41,6 +41,7 @@ class _LoggedDiveLegend extends ProfileLegend {
     showPressureMarkers: false,
     showGasSwitchMarkers: false,
     showLateGasSwitches: false,
+    showCounterdiffusion: false,
     showPhotoMarkers: false,
     showPpO2: false,
     showPpN2: false,

@@ -291,7 +291,7 @@ class ChartOptionsDialog extends StatelessWidget {
         buildToggleWithSource<bool>(
           context,
           label: context.l10n.diveLog_legend_label_counterdiffusion,
-          color: counterdiffusionColor(Theme.of(context).colorScheme),
+          color: counterdiffusionIcdColor,
           isEnabled: legendState.showCounterdiffusion,
           onTap: legendNotifier.toggleCounterdiffusion,
           currentSource: legendState.counterdiffusionShowAll,

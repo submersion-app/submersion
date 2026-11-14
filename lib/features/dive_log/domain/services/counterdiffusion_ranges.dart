@@ -36,10 +36,18 @@ double netHaldaneRateBarPerMin(
 /// A sample counts as opposing when nitrogen and helium move in opposite
 /// directions in at least one compartment, by the same per-gas reading the
 /// tissue card shows ([DecoStatus.n2Exchange], [DecoStatus.heExchange]). It
-/// counts as ICD when, in at least one compartment, the tissue already holds
-/// at least as much inert gas as is breathed and still takes gas up net
-/// faster than [minNetRateBarPerMin]: then the gain comes only from one gas
-/// entering faster than the other leaves, not from ordinary uptake.
+/// counts as ICD when, in at least one compartment, the tissue holds more
+/// inert gas than is breathed (by more than
+/// [DecoStatus.gasEquilibriumToleranceBar]) and still takes gas up net faster
+/// than [minNetRateBarPerMin]: then the gain comes only from one gas entering
+/// faster than the other leaves, not from ordinary uptake. The tolerance
+/// keeps out air-saturated tissues on their first breaths of trimix at the
+/// surface, whose inert total equals the breathed one.
+///
+/// A sample's state holds until the next sample, so a run spans from its
+/// first qualifying sample to the sample after its last one. That keeps the
+/// merge gap and the minimum duration in seconds of dive, whatever the
+/// computer's sample interval.
 CounterdiffusionAnalysis counterdiffusionAnalysisOf(
   List<DecoStatus> statuses,
   List<int> timestamps, {
@@ -50,15 +58,18 @@ CounterdiffusionAnalysis counterdiffusionAnalysisOf(
   if (statuses.isEmpty || statuses.length != timestamps.length) {
     return CounterdiffusionAnalysis.none;
   }
+  // Air and nitrox dives with no residual helium cannot counterdiffuse; skip
+  // the per-compartment pass for them.
+  if (!statuses.any(_holdsHelium)) return CounterdiffusionAnalysis.none;
 
   final icdRuns = _RunBuilder(CounterdiffusionKind.netOngassing);
   final opposingRuns = _RunBuilder(CounterdiffusionKind.opposing);
-  var heliumPresent = false;
+  const tolerance = DecoStatus.gasEquilibriumToleranceBar;
 
   for (var i = 0; i < statuses.length; i++) {
     final status = statuses[i];
-    final time = timestamps[i];
-    if (!heliumPresent && _holdsHelium(status)) heliumPresent = true;
+    final start = timestamps[i];
+    final end = i + 1 < timestamps.length ? timestamps[i + 1] : start;
 
     final icdHere = <int>{};
     final opposingHere = <int>{};
@@ -74,17 +85,16 @@ CounterdiffusionAnalysis counterdiffusionAnalysisOf(
           inspiredN2Bar: inspiredN2,
           inspiredHeBar: inspiredHe,
         );
-        if (tissueTotal >= inspiredN2 + inspiredHe &&
+        if (tissueTotal > inspiredN2 + inspiredHe + tolerance &&
             rate > minNetRateBarPerMin) {
           icdHere.add(compartment.compartmentNumber);
         }
       }
     }
-    icdRuns.add(time, icdHere);
-    opposingRuns.add(time, opposingHere);
+    icdRuns.add(start, end, icdHere);
+    opposingRuns.add(start, end, opposingHere);
   }
 
-  if (!heliumPresent) return CounterdiffusionAnalysis.none;
   return CounterdiffusionAnalysis(
     icdRanges: icdRuns.build(minDurationSeconds, mergeGapSeconds),
     opposingRanges: opposingRuns.build(minDurationSeconds, mergeGapSeconds),
@@ -118,13 +128,14 @@ class _RunBuilder {
 
   _RunBuilder(this.kind);
 
-  void add(int time, Set<int> compartments) {
+  /// Adds the sample at [start], whose state holds until [end].
+  void add(int start, int end, Set<int> compartments) {
     if (compartments.isEmpty) {
       _close();
       return;
     }
-    _start ??= time;
-    _end = time;
+    _start ??= start;
+    _end = end;
     _compartments.addAll(compartments);
   }
 
@@ -152,10 +163,8 @@ class _RunBuilder {
     for (final run in _runs) {
       final last = merged.isEmpty ? null : merged.last;
       if (last != null && run.startSeconds - last.endSeconds <= mergeGap) {
-        merged[merged.length - 1] = CounterdiffusionRange(
-          startSeconds: last.startSeconds,
+        merged[merged.length - 1] = last.copyWith(
           endSeconds: run.endSeconds,
-          kind: kind,
           compartmentNumbers: ({
             ...last.compartmentNumbers,
             ...run.compartmentNumbers,

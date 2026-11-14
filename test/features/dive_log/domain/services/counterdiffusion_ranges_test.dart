@@ -76,13 +76,13 @@ void main() {
       expect(result.icdRanges, const [
         CounterdiffusionRange(
           startSeconds: 10,
-          endSeconds: 40,
+          endSeconds: 50,
           kind: CounterdiffusionKind.netOngassing,
           compartmentNumbers: [1],
         ),
       ]);
       expect(result.opposingRanges.single.startSeconds, 10);
-      expect(result.opposingRanges.single.endSeconds, 40);
+      expect(result.opposingRanges.single.endSeconds, 50);
       expect(result.heliumPresent, isTrue);
     });
 
@@ -113,12 +113,12 @@ void main() {
 
     test('a net on-gassing rate below the minimum is not ICD', () {
       // Both gases move (each beyond the 0.01 bar tolerance) and the tissue
-      // holds more than is breathed (2.0 against 1.992), but the net rate
-      // ln2 * (-0.02 / 4 + 0.012 / 1.51) is about 0.002 bar/min.
+      // holds more than is breathed (2.0 against 1.98), but the net rate
+      // ln2 * (-0.04 / 4 + 0.02 / 1.51) is about 0.002 bar/min.
       DecoStatus faint() => status(
         [comp(pN2: 0.4, pHe: 1.6)],
-        inspiredN2: 0.38,
-        inspiredHe: 1.612,
+        inspiredN2: 0.36,
+        inspiredHe: 1.62,
       );
       final statuses = [faint(), faint(), faint(), faint()];
 
@@ -158,6 +158,45 @@ void main() {
 
       expect(result.icdRanges.single.startSeconds, 0);
       expect(result.icdRanges.single.endSeconds, 65);
+    });
+
+    test('a run lasts until the next sample, so sparse sampling still '
+        'counts the time', () {
+      // One ICD sample on a computer logging every 60 s: a minute of ICD.
+      final result = counterdiffusionAnalysisOf(
+        [still(), icd(), still()],
+        const [0, 60, 120],
+      );
+
+      expect(result.icdRanges.single.startSeconds, 60);
+      expect(result.icdRanges.single.endSeconds, 120);
+    });
+
+    test('a single quiet sample between two runs is merged over at 10 s '
+        'sampling', () {
+      final statuses = [icd(), icd(), icd(), still(), icd(), icd(), icd()];
+
+      final result = counterdiffusionAnalysisOf(statuses, every10s(7));
+
+      expect(result.icdRanges.single.startSeconds, 0);
+      expect(result.icdRanges.single.endSeconds, 60);
+    });
+
+    test('air-saturated tissue on its first breaths of trimix is not ICD', () {
+      // At 1 bar both the tissue and Tx 21/35 hold 0.74 bar of inert gas:
+      // helium enters faster than nitrogen leaves, but the tissue does not
+      // hold more than is breathed.
+      DecoStatus firstBreaths() => status(
+        [comp(pN2: 0.7405, pHe: 0.0)],
+        inspiredN2: 0.4124,
+        inspiredHe: 0.3281,
+      );
+      final statuses = List.generate(6, (_) => firstBreaths());
+
+      final result = counterdiffusionAnalysisOf(statuses, every10s(6));
+
+      expect(result.icdRanges, isEmpty);
+      expect(result.opposingRanges, hasLength(1));
     });
 
     test('lists every compartment that met the kind, ascending', () {

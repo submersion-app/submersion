@@ -2829,7 +2829,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               formatCompartmentRuns(range.compartmentNumbers),
             ),
             bulletColor: icd
-                ? counterdiffusionColor(Theme.of(context).colorScheme)
+                ? counterdiffusionIcdColor
                 : counterdiffusionOpposingColor(Theme.of(context).colorScheme),
           ),
         );

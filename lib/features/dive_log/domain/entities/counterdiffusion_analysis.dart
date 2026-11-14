@@ -39,6 +39,18 @@ class CounterdiffusionRange extends Equatable {
   bool contains(int timestamp) =>
       timestamp >= startSeconds && timestamp <= endSeconds;
 
+  CounterdiffusionRange copyWith({
+    int? startSeconds,
+    int? endSeconds,
+    CounterdiffusionKind? kind,
+    List<int>? compartmentNumbers,
+  }) => CounterdiffusionRange(
+    startSeconds: startSeconds ?? this.startSeconds,
+    endSeconds: endSeconds ?? this.endSeconds,
+    kind: kind ?? this.kind,
+    compartmentNumbers: compartmentNumbers ?? this.compartmentNumbers,
+  );
+
   @override
   List<Object?> get props => [
     startSeconds,
@@ -66,6 +78,18 @@ class IcdSwitchMarker extends Equatable {
     required this.from,
     required this.to,
   });
+
+  IcdSwitchMarker copyWith({
+    int? timestamp,
+    IcdSeverity? severity,
+    GasMix? from,
+    GasMix? to,
+  }) => IcdSwitchMarker(
+    timestamp: timestamp ?? this.timestamp,
+    severity: severity ?? this.severity,
+    from: from ?? this.from,
+    to: to ?? this.to,
+  );
 
   @override
   List<Object?> get props => [timestamp, severity, from, to];

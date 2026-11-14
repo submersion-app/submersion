@@ -59271,7 +59271,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get info_term_isobaricCounterdiffusion_body =>
-      '当氮上升快于氦下降时，换气可在深度不变的情况下增加组织中的惰性气体总量。常用的五分之一规则将氮的增幅限制在氦降幅的五分之一以内。在潜水曲线上，橙色条带标出隔室所含惰性气体已多于吸入量、却仍明显吸收气体的时段。在 Bühlmann 模型中氦排出快于氮进入，因此从三混气换到高氧时很少出现条带；换气处的虚线则显示五分之一规则。';
+      '当氮上升快于氦下降时，换气可在深度不变的情况下增加组织中的惰性气体总量。常用的五分之一规则将氮的增幅限制在氦降幅的五分之一以内。';
+
+  @override
+  String get info_term_counterdiffusionProfile_label => '潜水曲线上的逆向扩散';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      '在潜水曲线上，橙色条带标出隔室所含惰性气体已多于吸入量、却仍明显吸收气体的时段。在 Bühlmann 模型中氦排出快于氮进入，因此从三混气换到高氧时很少出现条带；换气处的虚线则显示五分之一规则。';
 
   @override
   String get info_term_hypercapnia_label => '高碳酸血症';

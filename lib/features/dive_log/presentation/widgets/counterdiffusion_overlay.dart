@@ -6,12 +6,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_highli
 import 'package:submersion/features/gas_calculators/domain/icd_calculator.dart'
     show IcdSeverity;
 
-/// Fill of an ICD band: a warning orange, so it never reads as the error red
-/// of the O2 cell bands a CCR dive on a trimix diluent can show beside it.
+/// Colour of an ICD band, also its legend swatch and tooltip bullet: a
+/// warning orange, so it never reads as the error red of the O2 cell bands a
+/// CCR dive on a trimix diluent can show beside it.
 const Color counterdiffusionIcdColor = Colors.orange;
-
-/// Colour of an ICD band, also its legend swatch.
-Color counterdiffusionColor(ColorScheme scheme) => counterdiffusionIcdColor;
 
 /// Fill of an opposing band: neutral, since that exchange is normal.
 Color counterdiffusionOpposingColor(ColorScheme scheme) =>
@@ -49,7 +47,7 @@ List<VerticalRangeAnnotation> counterdiffusionBands(
   final opposingFill = counterdiffusionOpposingColor(
     scheme,
   ).withValues(alpha: 0.08);
-  final icdFill = counterdiffusionColor(scheme).withValues(alpha: 0.18);
+  final icdFill = counterdiffusionIcdColor.withValues(alpha: 0.18);
   return [
     if (showAll)
       for (final range in analysis.opposingRanges) ?band(range, opposingFill),

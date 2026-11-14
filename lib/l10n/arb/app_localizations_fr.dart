@@ -63284,7 +63284,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get info_term_isobaricCounterdiffusion_body =>
-      'Un changement de gaz peut augmenter le gaz inerte total dans les tissus sans changer de profondeur quand l\'azote monte plus vite que l\'hélium ne baisse. La vérification courante, la règle des cinquièmes, limite la hausse d\'azote au cinquième de la baisse d\'hélium. Sur le profil, une bande orange marque l\'endroit où un compartiment contient déjà plus de gaz inerte que celui respiré et en absorbe pourtant nettement. Dans le modèle de Bühlmann l\'hélium sort plus vite que l\'azote n\'entre, si bien qu\'un passage du trimix au nitrox montre rarement une bande ; la ligne pointillée au changement indique plutôt la règle des cinquièmes.';
+      'Un changement de gaz peut augmenter le gaz inerte total dans les tissus sans changer de profondeur quand l\'azote monte plus vite que l\'hélium ne baisse. La vérification courante, la règle des cinquièmes, limite la hausse d\'azote au cinquième de la baisse d\'hélium.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Contre-diffusion sur le profil';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'Sur le profil, une bande orange marque l\'endroit où un compartiment contient déjà plus de gaz inerte que celui respiré et en absorbe pourtant nettement. Dans le modèle de Bühlmann l\'hélium sort plus vite que l\'azote n\'entre, si bien qu\'un passage du trimix au nitrox montre rarement une bande ; la ligne pointillée au changement indique plutôt la règle des cinquièmes.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnie';

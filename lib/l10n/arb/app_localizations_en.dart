@@ -62157,7 +62157,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_term_isobaricCounterdiffusion_body =>
-      'A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop. On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.';
+      'A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Counterdiffusion on the profile';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnia';

@@ -63184,7 +63184,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get info_term_isobaricCounterdiffusion_body =>
-      'Un cambio de gas puede subir el gas inerte total en los tejidos sin cambiar de profundidad cuando el nitrógeno sube más rápido de lo que baja el helio. La comprobación habitual, la regla de los quintos, limita la subida de nitrógeno a un quinto de la bajada de helio. En el perfil, una banda naranja marca dónde un compartimento ya contiene más gas inerte del que se respira y aun así sigue absorbiendo gas de forma apreciable. En el modelo de Bühlmann el helio sale más rápido de lo que entra el nitrógeno, así que un cambio de trimix a nitrox rara vez muestra una banda; la línea discontinua en el cambio muestra en su lugar la regla de los quintos.';
+      'Un cambio de gas puede subir el gas inerte total en los tejidos sin cambiar de profundidad cuando el nitrógeno sube más rápido de lo que baja el helio. La comprobación habitual, la regla de los quintos, limita la subida de nitrógeno a un quinto de la bajada de helio.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Contradifusión en el perfil';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'En el perfil, una banda naranja marca dónde un compartimento ya contiene más gas inerte del que se respira y aun así sigue absorbiendo gas de forma apreciable. En el modelo de Bühlmann el helio sale más rápido de lo que entra el nitrógeno, así que un cambio de trimix a nitrox rara vez muestra una banda; la línea discontinua en el cambio muestra en su lugar la regla de los quintos.';
 
   @override
   String get info_term_hypercapnia_label => 'Hipercapnia';

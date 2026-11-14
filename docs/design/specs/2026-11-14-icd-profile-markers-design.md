@@ -58,7 +58,7 @@ whole deco. Two levels, evaluated per profile sample:
 
 | Level | Condition (at least one compartment) | Display |
 | --- | --- | --- |
-| ICD-relevant | N2 and He move in opposite directions, the net on-gassing rate exceeds a minimum, and the compartment's total inert tension is at least the total inspired inert pressure | prominent band (warning colour), default |
+| ICD-relevant | N2 and He move in opposite directions, the net on-gassing rate exceeds a minimum, and the compartment's total inert tension exceeds the total inspired inert pressure by more than the 0.01 bar equilibrium tolerance | prominent band (warning colour), default |
 | Opposing | N2 and He move in opposite directions, net off-gassing | subtle band, optional sub-setting |
 
 - The total-tension condition separates counterdiffusion from ordinary
@@ -82,7 +82,12 @@ whole deco. Two levels, evaluated per profile sample:
   behaviour; the info text explains that the profile marks noticeable
   on-gassing only.
 - Short gaps are merged and ranges below a minimum duration (about 30 s) are
-  dropped to avoid flicker.
+  dropped to avoid flicker. A sample's state holds until the next sample, so
+  a range runs from its first qualifying sample to the sample after its last
+  one; gap and duration are then seconds of dive at any sample interval.
+- The tolerance on the total-tension condition keeps out air-saturated
+  tissues on their first breaths of trimix at the surface, whose inert total
+  equals the breathed one while helium enters faster than nitrogen leaves.
 - No ranges when neither the gases nor the starting tissue state contain
   helium, when the inspired gas is unknown, or when tissue data is withheld
   (`tissue_loading_withheld_card`).
