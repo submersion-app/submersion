@@ -22914,7 +22914,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveDetailSection_buoyancy_description =>
-      'Flutuabilidade durante o mergulho, variação, lastro descartável';
+      'Flutuabilidade durante o mergulho, lastro para a próxima vez, lastro descartável';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -22929,10 +22929,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get buoyancy_verdictNeutral =>
       'Sua configuração estava quase neutra na última parada';
-
-  @override
-  String get buoyancy_verdictConvention =>
-      'Estimado pela convenção de parada de segurança a 5 m';
 
   @override
   String get buoyancy_breakdownTitle => 'Detalhe dos termos';
@@ -22987,13 +22983,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get buoyancy_chartNet => 'Líquido';
 
   @override
-  String get buoyancy_chartRig => 'Equipamento + lastro';
-
-  @override
   String get buoyancy_chartMinutes => 'Tempo (min)';
-
-  @override
-  String get buoyancy_historyTitle => 'Histórico de lastro';
 
   @override
   String get buoyancy_historyCarried => 'Levado';
@@ -23016,6 +23006,105 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get buoyancy_adjust => 'Ajustar';
+
+  @override
+  String buoyancy_readoutHeavy(String amount) {
+    return '$amount pesado demais';
+  }
+
+  @override
+  String buoyancy_readoutBuoyant(String amount) {
+    return '$amount de flutuabilidade';
+  }
+
+  @override
+  String get buoyancy_readoutNeutral => 'Quase neutro';
+
+  @override
+  String buoyancy_readoutAtFinalStop(String depth) {
+    return 'na sua última parada, a cerca de $depth';
+  }
+
+  @override
+  String buoyancy_readoutConvention(String depth) {
+    return 'estimado pela convenção de parada de segurança a $depth';
+  }
+
+  @override
+  String buoyancy_readoutAtMoment(String depth, String time) {
+    return 'a $depth, $time';
+  }
+
+  @override
+  String get buoyancy_pullingDown => 'Puxa você para baixo';
+
+  @override
+  String get buoyancy_holdingUp => 'Mantém você à tona';
+
+  @override
+  String get buoyancy_partGear => 'Equipamento';
+
+  @override
+  String get buoyancy_partBody => 'Corpo';
+
+  @override
+  String buoyancy_partLabel(String name, String amount) {
+    return '$name $amount';
+  }
+
+  @override
+  String get buoyancy_markerStart => 'Início';
+
+  @override
+  String get buoyancy_markerDeepest => 'Ponto mais fundo';
+
+  @override
+  String get buoyancy_markerFinalStop => 'Última parada';
+
+  @override
+  String buoyancy_causeSuit(String amount, String depth) {
+    return 'A compressão da roupa custou $amount de flutuabilidade a $depth';
+  }
+
+  @override
+  String buoyancy_causeGas(String amount) {
+    return 'O gás respirado deixou os cilindros $amount mais leves';
+  }
+
+  @override
+  String get buoyancy_leadTitle => 'Lastro para a próxima vez';
+
+  @override
+  String get buoyancy_leadCarried => 'Você levou';
+
+  @override
+  String get buoyancy_leadSuggested => 'O modelo sugere';
+
+  @override
+  String get buoyancy_leadNotRecorded => 'Não registrado';
+
+  @override
+  String get buoyancy_statusWell => 'Lastro adequado';
+
+  @override
+  String buoyancy_peakLiftWithin(String amount) {
+    return 'dentro dos $amount do seu wing';
+  }
+
+  @override
+  String buoyancy_peakLiftExceeds(String amount) {
+    return 'excede os $amount do seu wing';
+  }
+
+  @override
+  String buoyancy_ditchCovered(String amount) {
+    return 'você pode soltar $amount';
+  }
+
+  @override
+  String buoyancy_ditchShort(String amount) {
+    return 'você só pode soltar $amount';
+  }
 
   @override
   String get buoyancy_whatIfTitle => 'Ajustar este mergulho';
@@ -63518,7 +63607,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Ajustar abre uma folha que experimenta outra quantidade de lastro ou outra flutuabilidade do fato neste mergulho.';
+      'Passe pelo gráfico para ver o que puxava você para baixo e o que mantinha você à tona naquele momento. Ajustar abre uma folha que experimenta outra quantidade de lastro ou outra flutuabilidade do fato neste mergulho.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

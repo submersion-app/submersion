@@ -22415,7 +22415,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveDetailSection_buoyancy_description =>
-      'ציפה לאורך הצלילה, שינוי ומשקל הניתן להשלכה';
+      'ציפה לאורך הצלילה, משקולות לפעם הבאה ומשקל הניתן להשלכה';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -22430,10 +22430,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get buoyancy_verdictNeutral =>
       'התצורה שלך הייתה קרובה לניטרלית בעצירה האחרונה';
-
-  @override
-  String get buoyancy_verdictConvention =>
-      'מוערך לפי מוסכמת עצירת הבטיחות ב-5 מ\'';
 
   @override
   String get buoyancy_breakdownTitle => 'פירוט מרכיבים';
@@ -22487,13 +22483,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buoyancy_chartNet => 'נטו';
 
   @override
-  String get buoyancy_chartRig => 'ציוד + משקולות';
-
-  @override
   String get buoyancy_chartMinutes => 'זמן (דק\')';
-
-  @override
-  String get buoyancy_historyTitle => 'היסטוריית משקולות';
 
   @override
   String get buoyancy_historyCarried => 'נישא';
@@ -22516,6 +22506,105 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buoyancy_adjust => 'התאמה';
+
+  @override
+  String buoyancy_readoutHeavy(String amount) {
+    return 'כבד ב-$amount';
+  }
+
+  @override
+  String buoyancy_readoutBuoyant(String amount) {
+    return 'ציפה של $amount';
+  }
+
+  @override
+  String get buoyancy_readoutNeutral => 'קרוב לניטרלי';
+
+  @override
+  String buoyancy_readoutAtFinalStop(String depth) {
+    return 'בעצירה האחרונה שלך, בערך ב-$depth';
+  }
+
+  @override
+  String buoyancy_readoutConvention(String depth) {
+    return 'מוערך לפי מוסכמת עצירת הבטיחות ב-$depth';
+  }
+
+  @override
+  String buoyancy_readoutAtMoment(String depth, String time) {
+    return 'ב-$depth, $time';
+  }
+
+  @override
+  String get buoyancy_pullingDown => 'מושך אותך למטה';
+
+  @override
+  String get buoyancy_holdingUp => 'מחזיק אותך למעלה';
+
+  @override
+  String get buoyancy_partGear => 'ציוד';
+
+  @override
+  String get buoyancy_partBody => 'גוף';
+
+  @override
+  String buoyancy_partLabel(String name, String amount) {
+    return '$name $amount';
+  }
+
+  @override
+  String get buoyancy_markerStart => 'התחלה';
+
+  @override
+  String get buoyancy_markerDeepest => 'הנקודה העמוקה ביותר';
+
+  @override
+  String get buoyancy_markerFinalStop => 'עצירה אחרונה';
+
+  @override
+  String buoyancy_causeSuit(String amount, String depth) {
+    return 'דחיסת החליפה גרעה $amount מהציפה ב-$depth';
+  }
+
+  @override
+  String buoyancy_causeGas(String amount) {
+    return 'הגז שנשמת הפך את הבלונים לקלים ב-$amount';
+  }
+
+  @override
+  String get buoyancy_leadTitle => 'משקולות לפעם הבאה';
+
+  @override
+  String get buoyancy_leadCarried => 'נשאת';
+
+  @override
+  String get buoyancy_leadSuggested => 'המודל מציע';
+
+  @override
+  String get buoyancy_leadNotRecorded => 'לא נרשם';
+
+  @override
+  String get buoyancy_statusWell => 'משקל מתאים';
+
+  @override
+  String buoyancy_peakLiftWithin(String amount) {
+    return 'בתוך $amount של האגף שלך';
+  }
+
+  @override
+  String buoyancy_peakLiftExceeds(String amount) {
+    return 'חורג מ-$amount של האגף שלך';
+  }
+
+  @override
+  String buoyancy_ditchCovered(String amount) {
+    return 'אפשר להשליך $amount';
+  }
+
+  @override
+  String buoyancy_ditchShort(String amount) {
+    return 'אפשר להשליך רק $amount';
+  }
 
   @override
   String get buoyancy_whatIfTitle => 'התאמת צלילה זו';
@@ -62229,7 +62318,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'כוונון פותח חלונית שמנסה כמות משקולות או ציפת חליפה אחרת על הצלילה הזו.';
+      'עבור על התרשים כדי לראות מה משך אותך למטה ומה החזיק אותך למעלה באותו רגע. כוונון פותח חלונית שמנסה כמות משקולות או ציפת חליפה אחרת על הצלילה הזו.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

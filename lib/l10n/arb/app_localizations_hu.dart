@@ -22845,7 +22845,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveDetailSection_buoyancy_description =>
-      'Felhajtóerő a merülés során, ingadozás, ledobható ólom';
+      'Felhajtóerő a merülés során, ólom a következő alkalomra, ledobható ólom';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -22860,10 +22860,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get buoyancy_verdictNeutral =>
       'A konfigurációd közel semleges volt az utolsó megállónál';
-
-  @override
-  String get buoyancy_verdictConvention =>
-      'Az 5 m-es biztonsági megálló konvenciója szerint becsülve';
 
   @override
   String get buoyancy_breakdownTitle => 'Tételek részletezése';
@@ -22918,13 +22914,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buoyancy_chartNet => 'Nettó';
 
   @override
-  String get buoyancy_chartRig => 'Felszerelés + ólom';
-
-  @override
   String get buoyancy_chartMinutes => 'Idő (perc)';
-
-  @override
-  String get buoyancy_historyTitle => 'Ólomelőzmények';
 
   @override
   String get buoyancy_historyCarried => 'Vitt';
@@ -22947,6 +22937,105 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get buoyancy_adjust => 'Módosítás';
+
+  @override
+  String buoyancy_readoutHeavy(String amount) {
+    return '$amount túlsúly';
+  }
+
+  @override
+  String buoyancy_readoutBuoyant(String amount) {
+    return '$amount felhajtóerő';
+  }
+
+  @override
+  String get buoyancy_readoutNeutral => 'Közel semleges';
+
+  @override
+  String buoyancy_readoutAtFinalStop(String depth) {
+    return 'az utolsó megállónál, nagyjából $depth mélyen';
+  }
+
+  @override
+  String buoyancy_readoutConvention(String depth) {
+    return 'a biztonsági megálló konvenciója szerint becsülve ($depth)';
+  }
+
+  @override
+  String buoyancy_readoutAtMoment(String depth, String time) {
+    return '$depth, $time';
+  }
+
+  @override
+  String get buoyancy_pullingDown => 'Lefelé húz';
+
+  @override
+  String get buoyancy_holdingUp => 'Fent tart';
+
+  @override
+  String get buoyancy_partGear => 'Felszerelés';
+
+  @override
+  String get buoyancy_partBody => 'Test';
+
+  @override
+  String buoyancy_partLabel(String name, String amount) {
+    return '$name $amount';
+  }
+
+  @override
+  String get buoyancy_markerStart => 'Kezdés';
+
+  @override
+  String get buoyancy_markerDeepest => 'Legmélyebb pont';
+
+  @override
+  String get buoyancy_markerFinalStop => 'Utolsó megálló';
+
+  @override
+  String buoyancy_causeSuit(String amount, String depth) {
+    return 'A ruha összenyomódása $amount felhajtóerőbe került ($depth mélyen)';
+  }
+
+  @override
+  String buoyancy_causeGas(String amount) {
+    return 'A belélegzett gáz $amount tömeggel könnyítette a palackokat';
+  }
+
+  @override
+  String get buoyancy_leadTitle => 'Ólom a következő alkalomra';
+
+  @override
+  String get buoyancy_leadCarried => 'Nálad volt';
+
+  @override
+  String get buoyancy_leadSuggested => 'A modell javaslata';
+
+  @override
+  String get buoyancy_leadNotRecorded => 'Nincs rögzítve';
+
+  @override
+  String get buoyancy_statusWell => 'Jól súlyozott';
+
+  @override
+  String buoyancy_peakLiftWithin(String amount) {
+    return 'a szárnyad $amount értékén belül';
+  }
+
+  @override
+  String buoyancy_peakLiftExceeds(String amount) {
+    return 'meghaladja a szárnyad $amount értékét';
+  }
+
+  @override
+  String buoyancy_ditchCovered(String amount) {
+    return '$amount ledobható';
+  }
+
+  @override
+  String buoyancy_ditchShort(String amount) {
+    return 'csak $amount dobható le';
+  }
 
   @override
   String get buoyancy_whatIfTitle => 'Merülés módosítása';
@@ -63190,7 +63279,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'A Módosítás egy lapot nyit, amely más ólommennyiséget vagy ruhafelhajtóerőt próbál ki erre a merülésre.';
+      'Húzd végig a diagramon, hogy lásd, mi húzott lefelé és mi tartott fent abban a pillanatban. A Módosítás egy lapot nyit, amely más ólommennyiséget vagy ruhafelhajtóerőt próbál ki erre a merülésre.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

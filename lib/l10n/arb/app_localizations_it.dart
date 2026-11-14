@@ -22917,7 +22917,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveDetailSection_buoyancy_description =>
-      'Assetto durante l\'immersione, variazione, zavorra sganciabile';
+      'Assetto durante l\'immersione, zavorra per la prossima volta, zavorra sganciabile';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -22932,10 +22932,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get buoyancy_verdictNeutral =>
       'La tua configurazione era quasi neutra all\'ultima sosta';
-
-  @override
-  String get buoyancy_verdictConvention =>
-      'Stimato secondo la convenzione della sosta di sicurezza a 5 m';
 
   @override
   String get buoyancy_breakdownTitle => 'Dettaglio dei termini';
@@ -22990,13 +22986,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buoyancy_chartNet => 'Netto';
 
   @override
-  String get buoyancy_chartRig => 'Attrezzatura + zavorra';
-
-  @override
   String get buoyancy_chartMinutes => 'Tempo (min)';
-
-  @override
-  String get buoyancy_historyTitle => 'Cronologia zavorra';
 
   @override
   String get buoyancy_historyCarried => 'Portato';
@@ -23019,6 +23009,105 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get buoyancy_adjust => 'Regola';
+
+  @override
+  String buoyancy_readoutHeavy(String amount) {
+    return '$amount troppo pesante';
+  }
+
+  @override
+  String buoyancy_readoutBuoyant(String amount) {
+    return '$amount di spinta';
+  }
+
+  @override
+  String get buoyancy_readoutNeutral => 'Quasi neutro';
+
+  @override
+  String buoyancy_readoutAtFinalStop(String depth) {
+    return 'alla tua ultima sosta, a circa $depth';
+  }
+
+  @override
+  String buoyancy_readoutConvention(String depth) {
+    return 'stimato secondo la convenzione della sosta di sicurezza a $depth';
+  }
+
+  @override
+  String buoyancy_readoutAtMoment(String depth, String time) {
+    return 'a $depth, $time';
+  }
+
+  @override
+  String get buoyancy_pullingDown => 'Ti tira verso il basso';
+
+  @override
+  String get buoyancy_holdingUp => 'Ti tiene su';
+
+  @override
+  String get buoyancy_partGear => 'Attrezzatura';
+
+  @override
+  String get buoyancy_partBody => 'Corpo';
+
+  @override
+  String buoyancy_partLabel(String name, String amount) {
+    return '$name $amount';
+  }
+
+  @override
+  String get buoyancy_markerStart => 'Inizio';
+
+  @override
+  String get buoyancy_markerDeepest => 'Punto più profondo';
+
+  @override
+  String get buoyancy_markerFinalStop => 'Ultima sosta';
+
+  @override
+  String buoyancy_causeSuit(String amount, String depth) {
+    return 'La compressione della muta è costata $amount di spinta a $depth';
+  }
+
+  @override
+  String buoyancy_causeGas(String amount) {
+    return 'Il gas respirato ha alleggerito le bombole di $amount';
+  }
+
+  @override
+  String get buoyancy_leadTitle => 'Zavorra per la prossima volta';
+
+  @override
+  String get buoyancy_leadCarried => 'Hai portato';
+
+  @override
+  String get buoyancy_leadSuggested => 'Il modello suggerisce';
+
+  @override
+  String get buoyancy_leadNotRecorded => 'Non registrato';
+
+  @override
+  String get buoyancy_statusWell => 'Zavorra corretta';
+
+  @override
+  String buoyancy_peakLiftWithin(String amount) {
+    return 'entro i $amount del tuo GAV';
+  }
+
+  @override
+  String buoyancy_peakLiftExceeds(String amount) {
+    return 'supera i $amount del tuo GAV';
+  }
+
+  @override
+  String buoyancy_ditchCovered(String amount) {
+    return 'puoi sganciare $amount';
+  }
+
+  @override
+  String buoyancy_ditchShort(String amount) {
+    return 'puoi sganciare solo $amount';
+  }
 
   @override
   String get buoyancy_whatIfTitle => 'Regola questa immersione';
@@ -63541,7 +63630,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Regola apre un pannello che prova un\'altra quantità di zavorra o di galleggiabilità della muta su questa immersione.';
+      'Scorri sul grafico per vedere cosa ti tirava verso il basso e cosa ti teneva su in quel momento. Regola apre un pannello che prova un\'altra quantità di zavorra o di galleggiabilità della muta su questa immersione.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

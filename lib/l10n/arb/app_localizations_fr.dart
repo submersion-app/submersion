@@ -22982,7 +22982,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveDetailSection_buoyancy_description =>
-      'Flottabilité pendant la plongée, variation, lest largable';
+      'Flottabilité pendant la plongée, lest pour la prochaine fois, lest largable';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -22997,10 +22997,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get buoyancy_verdictNeutral =>
       'Votre configuration était proche de la neutralité au dernier palier';
-
-  @override
-  String get buoyancy_verdictConvention =>
-      'Estimé selon la convention du palier de sécurité à 5 m';
 
   @override
   String get buoyancy_breakdownTitle => 'Détail des termes';
@@ -23056,13 +23052,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buoyancy_chartNet => 'Net';
 
   @override
-  String get buoyancy_chartRig => 'Équipement + lest';
-
-  @override
   String get buoyancy_chartMinutes => 'Temps (min)';
-
-  @override
-  String get buoyancy_historyTitle => 'Historique de lestage';
 
   @override
   String get buoyancy_historyCarried => 'Porté';
@@ -23085,6 +23075,105 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get buoyancy_adjust => 'Ajuster';
+
+  @override
+  String buoyancy_readoutHeavy(String amount) {
+    return '$amount trop lourd';
+  }
+
+  @override
+  String buoyancy_readoutBuoyant(String amount) {
+    return '$amount de portance';
+  }
+
+  @override
+  String get buoyancy_readoutNeutral => 'Proche de la neutralité';
+
+  @override
+  String buoyancy_readoutAtFinalStop(String depth) {
+    return 'à votre dernier palier, vers $depth';
+  }
+
+  @override
+  String buoyancy_readoutConvention(String depth) {
+    return 'estimé selon la convention du palier de sécurité à $depth';
+  }
+
+  @override
+  String buoyancy_readoutAtMoment(String depth, String time) {
+    return 'à $depth, $time';
+  }
+
+  @override
+  String get buoyancy_pullingDown => 'Vous tire vers le bas';
+
+  @override
+  String get buoyancy_holdingUp => 'Vous maintient à flot';
+
+  @override
+  String get buoyancy_partGear => 'Équipement';
+
+  @override
+  String get buoyancy_partBody => 'Corps';
+
+  @override
+  String buoyancy_partLabel(String name, String amount) {
+    return '$name $amount';
+  }
+
+  @override
+  String get buoyancy_markerStart => 'Départ';
+
+  @override
+  String get buoyancy_markerDeepest => 'Point le plus profond';
+
+  @override
+  String get buoyancy_markerFinalStop => 'Dernier palier';
+
+  @override
+  String buoyancy_causeSuit(String amount, String depth) {
+    return 'La compression de la combinaison a coûté $amount de portance à $depth';
+  }
+
+  @override
+  String buoyancy_causeGas(String amount) {
+    return 'Le gaz respiré a allégé les bouteilles de $amount';
+  }
+
+  @override
+  String get buoyancy_leadTitle => 'Lest pour la prochaine fois';
+
+  @override
+  String get buoyancy_leadCarried => 'Vous portiez';
+
+  @override
+  String get buoyancy_leadSuggested => 'Le modèle suggère';
+
+  @override
+  String get buoyancy_leadNotRecorded => 'Non enregistré';
+
+  @override
+  String get buoyancy_statusWell => 'Bien lesté';
+
+  @override
+  String buoyancy_peakLiftWithin(String amount) {
+    return 'dans la limite des $amount de votre wing';
+  }
+
+  @override
+  String buoyancy_peakLiftExceeds(String amount) {
+    return 'dépasse les $amount de votre wing';
+  }
+
+  @override
+  String buoyancy_ditchCovered(String amount) {
+    return 'vous pouvez larguer $amount';
+  }
+
+  @override
+  String buoyancy_ditchShort(String amount) {
+    return 'vous ne pouvez larguer que $amount';
+  }
 
   @override
   String get buoyancy_whatIfTitle => 'Ajuster cette plongée';
@@ -63682,7 +63771,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Ajuster ouvre une feuille qui essaie une autre quantité de lest ou de flottabilité de combinaison sur cette plongée.';
+      'Parcourez le graphique pour voir ce qui vous tirait vers le bas et ce qui vous maintenait à flot à cet instant. Ajuster ouvre une feuille qui essaie une autre quantité de lest ou de flottabilité de combinaison sur cette plongée.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

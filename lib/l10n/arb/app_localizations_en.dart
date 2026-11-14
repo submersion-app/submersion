@@ -22577,7 +22577,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveDetailSection_buoyancy_description =>
-      'Buoyancy through the dive, swing, ditchable weight';
+      'Buoyancy through the dive, lead for next time, ditchable weight';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -22592,10 +22592,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get buoyancy_verdictNeutral =>
       'Your rig was close to neutral at the final stop';
-
-  @override
-  String get buoyancy_verdictConvention =>
-      'Estimated at the 5 m safety-stop convention';
 
   @override
   String get buoyancy_breakdownTitle => 'Term breakdown';
@@ -22649,13 +22645,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buoyancy_chartNet => 'Net';
 
   @override
-  String get buoyancy_chartRig => 'Rig + lead';
-
-  @override
   String get buoyancy_chartMinutes => 'Time (min)';
-
-  @override
-  String get buoyancy_historyTitle => 'Weighting history';
 
   @override
   String get buoyancy_historyCarried => 'Carried';
@@ -22678,6 +22668,105 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buoyancy_adjust => 'Adjust';
+
+  @override
+  String buoyancy_readoutHeavy(String amount) {
+    return '$amount heavy';
+  }
+
+  @override
+  String buoyancy_readoutBuoyant(String amount) {
+    return '$amount buoyant';
+  }
+
+  @override
+  String get buoyancy_readoutNeutral => 'Close to neutral';
+
+  @override
+  String buoyancy_readoutAtFinalStop(String depth) {
+    return 'at your final stop, about $depth';
+  }
+
+  @override
+  String buoyancy_readoutConvention(String depth) {
+    return 'estimated at the $depth safety-stop convention';
+  }
+
+  @override
+  String buoyancy_readoutAtMoment(String depth, String time) {
+    return 'at $depth, $time';
+  }
+
+  @override
+  String get buoyancy_pullingDown => 'Pulling you down';
+
+  @override
+  String get buoyancy_holdingUp => 'Holding you up';
+
+  @override
+  String get buoyancy_partGear => 'Gear';
+
+  @override
+  String get buoyancy_partBody => 'Body';
+
+  @override
+  String buoyancy_partLabel(String name, String amount) {
+    return '$name $amount';
+  }
+
+  @override
+  String get buoyancy_markerStart => 'Start';
+
+  @override
+  String get buoyancy_markerDeepest => 'Deepest';
+
+  @override
+  String get buoyancy_markerFinalStop => 'Final stop';
+
+  @override
+  String buoyancy_causeSuit(String amount, String depth) {
+    return 'Suit squeeze cost $amount of lift at $depth';
+  }
+
+  @override
+  String buoyancy_causeGas(String amount) {
+    return 'Gas breathed left the tanks $amount lighter';
+  }
+
+  @override
+  String get buoyancy_leadTitle => 'Lead for next time';
+
+  @override
+  String get buoyancy_leadCarried => 'You carried';
+
+  @override
+  String get buoyancy_leadSuggested => 'Model suggests';
+
+  @override
+  String get buoyancy_leadNotRecorded => 'Not recorded';
+
+  @override
+  String get buoyancy_statusWell => 'Well weighted';
+
+  @override
+  String buoyancy_peakLiftWithin(String amount) {
+    return 'within your wing\'s $amount';
+  }
+
+  @override
+  String buoyancy_peakLiftExceeds(String amount) {
+    return 'exceeds your wing\'s $amount';
+  }
+
+  @override
+  String buoyancy_ditchCovered(String amount) {
+    return 'you can ditch $amount';
+  }
+
+  @override
+  String buoyancy_ditchShort(String amount) {
+    return 'you can ditch only $amount';
+  }
 
   @override
   String get buoyancy_whatIfTitle => 'Adjust this dive';
@@ -62552,7 +62641,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Adjust opens a sheet that tries a different amount of lead or suit buoyancy against this dive.';
+      'Move across the chart to see what was pulling you down and holding you up at that moment. Adjust opens a sheet that tries a different amount of lead or suit buoyancy against this dive.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

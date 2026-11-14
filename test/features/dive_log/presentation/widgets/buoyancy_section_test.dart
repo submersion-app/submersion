@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
+import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
@@ -8,11 +9,15 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_balance_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_lead_block.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_safety_rows.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/twin_summary_rows.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import 'buoyancy_outcome_fixture.dart';
@@ -79,6 +84,18 @@ void main() {
     expect(find.textContaining('No lead recorded'), findsOneWidget);
   });
 
+  testWidgets('with no lead recorded the ditchable row does not warn', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      buoyancyOutcome(leadKg: 0.0, droppableLeadKg: 0.0, minDitchableKg: 5.0),
+    );
+    expect(find.textContaining('No lead recorded'), findsOneWidget);
+    expect(find.byIcon(Icons.warning_amber_rounded), findsNothing);
+    expect(find.textContaining('you can ditch'), findsNothing);
+  });
+
   testWidgets('no lead hint is absent once lead is known', (tester) async {
     await _pump(tester, buoyancyOutcome());
     expect(find.textContaining('No lead recorded'), findsNothing);
@@ -135,6 +152,88 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('BUOYANCY'), findsOneWidget);
   });
+
+  testWidgets('says how buoyant the diver was exactly once', (tester) async {
+    await _pump(tester, buoyancyOutcome());
+    expect(find.text('1.8 kg buoyant'), findsOneWidget);
+    expect(find.textContaining('1.8 kg'), findsOneWidget);
+    // The old sentence form of the verdict is gone.
+    expect(find.textContaining('At your final stop'), findsNothing);
+  });
+
+  testWidgets('lays out readout, chart, balance, lead, then safety rows', (
+    tester,
+  ) async {
+    await _pump(tester, buoyancyOutcome());
+    double top(Finder f) => tester.getTopLeft(f).dy;
+    final order = [
+      top(find.text('1.8 kg buoyant')),
+      top(find.byType(BuoyancyChart)),
+      top(find.byType(BuoyancyBalanceBar)),
+      top(find.byType(ExpansionTile)),
+      top(find.byType(BuoyancyLeadBlock)),
+      top(find.byType(BuoyancySafetyRows)),
+    ];
+    expect(order, [...order]..sort());
+  });
+
+  testWidgets('the start, end and swing tiles are gone', (tester) async {
+    await _pump(tester, buoyancyOutcome());
+    expect(find.text('Start of dive'), findsNothing);
+    expect(find.text('End of dive'), findsNothing);
+    expect(find.text('Buoyancy swing'), findsNothing);
+    expect(find.byType(TwinSummaryRows), findsNothing);
+  });
+
+  testWidgets('the info sheet no longer explains buoyancy swing', (
+    tester,
+  ) async {
+    await _pump(tester, buoyancyOutcome());
+    await tester.ensureVisible(find.byType(InfoButton));
+    await tester.tap(find.byType(InfoButton));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Peak lift needed'), findsWidgets);
+    expect(find.textContaining('Buoyancy swing'), findsNothing);
+  });
+
+  testWidgets('a no-profile dive reads the convention in the diver units', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      buoyancyOutcome(
+        samples: const [],
+        anchor: const TwinAnchor(
+          kind: TwinAnchorKind.convention,
+          timestamp: -1,
+          depthM: 5,
+        ),
+      ),
+    );
+    expect(
+      find.text('estimated at the 5m safety-stop convention'),
+      findsOneWidget,
+    );
+    expect(find.byType(BuoyancyChart), findsNothing);
+  });
+
+  for (final width in [300.0, 366.0]) {
+    testWidgets('nothing overflows on a ${width.round()} px card', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(Size(width, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await _pump(
+        tester,
+        buoyancyOutcome(
+          minDitchableKg: 6.0,
+          droppableLeadKg: 2.0,
+          wingLiftCapacityKg: 13.6,
+        ),
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('renders nothing when the outcome is null', (tester) async {
     await _pump(tester, null);
@@ -225,11 +324,30 @@ void main() {
       expect(c.read(profileTrackingIndexProvider('d1')), isNull);
     });
 
-    testWidgets('without a dive there is no sync', (tester) async {
+    testWidgets('without a dive the card keeps its own cursor', (tester) async {
       await _pump(tester, buoyancyOutcome());
-      final chart = tester.widget<BuoyancyChart>(find.byType(BuoyancyChart));
-      expect(chart.cursorSeconds, isNull);
-      expect(chart.onCursorSeconds, isNull);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(BuoyancySection)),
+      );
+      tester.widget<BuoyancyChart>(find.byType(BuoyancyChart)).onCursorSeconds!(
+        0,
+      );
+      await tester.pump();
+      // The readout follows the touch, and the dive's cursor is untouched.
+      expect(find.text('at 0m, 0:00'), findsOneWidget);
+      expect(container.read(profileTrackingIndexProvider('d1')), isNull);
+    });
+
+    testWidgets('the profile cursor moves the readout and the balance', (
+      tester,
+    ) async {
+      final c = await pumpSynced(tester);
+      expect(find.text('at your final stop, about 5m'), findsOneWidget);
+      // Index 0 is 0 s: the fixture's first sample, at the surface.
+      c.read(profileTrackingIndexProvider('d1').notifier).state = 0;
+      await tester.pump();
+      expect(find.text('at 0m, 0:00'), findsOneWidget);
+      expect(find.text('2.0 kg buoyant'), findsOneWidget);
     });
   });
 }
