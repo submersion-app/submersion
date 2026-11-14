@@ -17,6 +17,7 @@ import 'package:submersion/features/media/presentation/pages/photo_viewer_page.d
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/lightroom_suggestions_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
+import 'package:submersion/features/media/presentation/widgets/media_hover_region.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -63,6 +64,12 @@ class DiveMediaSection extends ConsumerStatefulWidget {
   /// photo viewer).
   final void Function(MediaItem)? onOpenDocument;
 
+  /// Invoked with the item when a mouse pointer enters its thumbnail, and
+  /// with null when the pointer leaves the item last reported (issue #4524).
+  /// A leave for any other item is not reported, so the last call always
+  /// names what is under the pointer now. Touch never hovers.
+  final void Function(MediaItem? item)? onHoverMedia;
+
   const DiveMediaSection({
     super.key,
     required this.diveId,
@@ -70,6 +77,7 @@ class DiveMediaSection extends ConsumerStatefulWidget {
     this.onScanPressed,
     this.onAddDocumentPressed,
     this.onOpenDocument,
+    this.onHoverMedia,
   });
 
   @override
@@ -92,6 +100,24 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   /// Media ids whose enrichment backfill we've already kicked off, so the
   /// post-frame trigger fires once per item rather than on every rebuild.
   final Set<String> _enrichAttempted = {};
+
+  /// The item last reported through [DiveMediaSection.onHoverMedia]. Not
+  /// build state: nothing here draws differently for it.
+  String? _hoveredMediaId;
+
+  /// Passes a thumbnail's hover on, dropping a leave that is not for the
+  /// item last reported. A removed thumbnail reports its leave after the
+  /// frame ([MediaHoverRegion]), by which time its neighbour may already
+  /// have reported an enter; that late leave must not clear the neighbour.
+  void _onTileHover(MediaItem item, bool hovered) {
+    if (hovered) {
+      _hoveredMediaId = item.id;
+      widget.onHoverMedia?.call(item);
+    } else if (_hoveredMediaId == item.id) {
+      _hoveredMediaId = null;
+      widget.onHoverMedia?.call(null);
+    }
+  }
 
   @override
   void dispose() {
@@ -546,11 +572,19 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       semanticsLabel:
                           context.l10n.media_diveMediaSection_thumbnailLabel,
                     );
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onSecondaryTapDown: (details) =>
-                          _showLocalFileContextMenu(context, item, details),
-                      child: thumbnail,
+                    return MediaHoverRegion(
+                      // By item, not by grid slot: the grid keys its cells by
+                      // index, so when an item is unlinked its neighbour takes
+                      // over the same cell, and without this the cell would
+                      // stay "hovered" for the item that left.
+                      key: ValueKey(item.id),
+                      onHoverChanged: (hovered) => _onTileHover(item, hovered),
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onSecondaryTapDown: (details) =>
+                            _showLocalFileContextMenu(context, item, details),
+                        child: thumbnail,
+                      ),
                     );
                   },
                   // coverage:ignore-end
