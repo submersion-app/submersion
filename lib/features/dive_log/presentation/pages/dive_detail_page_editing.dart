@@ -36,9 +36,23 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   void disposeEditing() => _editController?.dispose();
 
   /// The dive the cards display: the diver's working copy during a
-  /// sitting, else [stored].
-  Dive shownDive(Dive stored) =>
-      _editController?.session?.working ?? _justSaved ?? stored;
+  /// sitting, or the dive as just saved, else [stored]. Either is used only
+  /// when it is [stored]'s own dive.
+  Dive shownDive(Dive stored) {
+    final ours = _editController?.session?.working ?? _justSaved;
+    return ours != null && ours.id == stored.id ? ours : stored;
+  }
+
+  /// The same page can be handed another dive, keeping its state (the list
+  /// pane does this with its detail). A sitting, and the copy of a dive
+  /// just saved, belong to the dive they were made for and do not follow.
+  @override
+  void didUpdateWidget(DiveDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.diveId == widget.diveId) return;
+    _justSaved = null;
+    _editController?.lock();
+  }
 
   /// Keeps the sitting on top of the dive as it is stored: a card the diver
   /// has not touched follows a change that arrives underneath. Call from
@@ -63,14 +77,16 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     final sites = session.hasHeldWrites
         ? ref.read(siteListNotifierProvider.notifier)
         : null;
+    // The dive the sitting was opened on, whatever the page shows by the
+    // time the write is asked for.
     final result = await service.save(
-      diveId: widget.diveId,
+      diveId: session.stored.id,
       apply: session.applyTo,
       changedCardIds: session.changedCardIds,
       alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
     );
     if (result == null) return;
-    _justSaved = result.after;
+    if (result.after.id == widget.diveId) _justSaved = result.after;
     await list.refreshAfterWrite(before: result.before, after: result.after);
     await sites?.refresh();
   }
@@ -92,7 +108,9 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     messenger.showSnackBar(SnackBar(content: Text(l10n.recordEdit_saveFailed)));
   }
 
-  /// The lock in the locked page's top bar.
+  /// The lock in the locked page's top bar. [dive] is the dive as the
+  /// page shows it, which just after a save is ahead of the one last read:
+  /// a sitting must start from what the diver is looking at.
   Widget lockButton(Dive dive) => IconButton(
     icon: const Icon(Icons.lock_outline),
     tooltip: context.l10n.recordEdit_unlockTooltip,

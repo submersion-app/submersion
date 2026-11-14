@@ -396,6 +396,114 @@ void main() {
     expect(find.text('Calm, then current'), findsOneWidget);
   });
 
+  // Between a save and the dive being read back, the page shows the dive
+  // as it was just saved. A sitting started then must start from that too,
+  // or its editors open on values the diver has just replaced.
+  testWidgets('unlocking again before the reload starts from what was saved', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    final page = await pumpPage(tester, reloadGate: gate);
+    await unlock(tester);
+    await openNotes(tester);
+    await tester.enterText(notesField(), 'Saved once');
+    await settle(tester);
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+
+    await unlock(tester);
+    await openNotes(tester);
+
+    expect(
+      tester.widget<TextField>(notesField()).controller!.text,
+      'Saved once',
+    );
+    expect(action(tester, 'Save').onPressed, isNull, reason: 'nothing changed');
+
+    gate.complete();
+    await settle(tester);
+    expect(
+      tester.widget<TextField>(notesField()).controller!.text,
+      'Saved once',
+    );
+    expect(page.save.calls, hasLength(1));
+  });
+
+  // The same page can be handed another dive (the list pane does this with
+  // its detail). What belongs to the first dive must not follow it there.
+  group('handed another dive', () {
+    testWidgets('the page does not show the first dive\'s saved values', (
+      tester,
+    ) async {
+      final gate = Completer<void>();
+      final shown = ValueNotifier(dive.id);
+      addTearDown(shown.dispose);
+      await pumpPage(tester, reloadGate: gate, shownDiveId: shown);
+      await unlock(tester);
+      await openNotes(tester);
+      await tester.enterText(notesField(), 'Saved once');
+      await settle(tester);
+      await tester.tap(find.text('Save'));
+      await settle(tester);
+      expect(find.text('Saved once'), findsOneWidget);
+      // The other dive is already loaded, as it is after visiting it: the
+      // page then hears nothing new when it is switched to it.
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      );
+      final keepLoaded = container.listen(
+        diveProvider(otherDive.id),
+        (_, _) {},
+      );
+      addTearDown(keepLoaded.close);
+      await settle(tester);
+
+      // The first dive's reload is still waiting.
+      shown.value = otherDive.id;
+      await settle(tester);
+
+      expect(find.text('Other notes'), findsOneWidget);
+      expect(find.text('Saved once'), findsNothing);
+      gate.complete();
+      await settle(tester);
+    });
+
+    testWidgets('a sitting ends, and is never saved onto the other dive', (
+      tester,
+    ) async {
+      final shown = ValueNotifier(dive.id);
+      addTearDown(shown.dispose);
+      final page = await pumpPage(tester, shownDiveId: shown);
+      await unlock(tester);
+      await openNotes(tester);
+      await tester.enterText(notesField(), 'Meant for the first dive');
+      await settle(tester);
+
+      shown.value = otherDive.id;
+      await settle(tester);
+
+      expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+      expect(find.text('Other notes'), findsOneWidget);
+      expect(find.text('Meant for the first dive'), findsNothing);
+      expect(page.save.calls, isEmpty);
+    });
+
+    testWidgets('a save is for the dive its sitting was opened on', (
+      tester,
+    ) async {
+      final page = await pumpPage(tester);
+      await unlock(tester);
+      await openNotes(tester);
+      await tester.enterText(notesField(), 'Calm, then current');
+      await settle(tester);
+
+      await tester.tap(find.text('Save'));
+      await settle(tester);
+
+      expect(page.save.calls.single.diveId, dive.id);
+    });
+  });
+
   testWidgets('a hidden card emptied and closed is offered again', (
     tester,
   ) async {

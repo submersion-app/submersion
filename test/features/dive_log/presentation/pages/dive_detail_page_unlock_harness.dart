@@ -30,7 +30,7 @@ class FakeSave implements DiveEditSaveService {
 
   Dive stored;
   Object? failWith;
-  final calls = <({Dive merged, List<String> cards})>[];
+  final calls = <({String diveId, Dive merged, List<String> cards})>[];
 
   @override
   Future<({Dive before, Dive after})?> save({
@@ -43,7 +43,7 @@ class FakeSave implements DiveEditSaveService {
     if (error != null) throw error;
     final before = stored;
     final merged = apply(before);
-    calls.add((merged: merged, cards: changedCardIds.toList()));
+    calls.add((diveId: diveId, merged: merged, cards: changedCardIds.toList()));
     await alsoWrite?.call();
     stored = merged;
     return (before: before, after: merged);
@@ -76,6 +76,14 @@ class SpySites extends SiteListNotifier {
   Future<void> refresh() async => refreshes++;
 }
 
+/// A second dive, for tests that hand the page another one.
+final otherDive = Dive(
+  id: 'dive-2',
+  diveNumber: 2,
+  dateTime: DateTime(2023, 1, 2),
+  notes: 'Other notes',
+);
+
 /// The dive every page test here starts from.
 final dive = Dive(
   id: 'dive-1',
@@ -100,6 +108,7 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
   String initialLocation = '/home/dive',
   List<Override> extra = const [],
   bool imperial = false,
+  ValueNotifier<String>? shownDiveId,
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = size;
@@ -139,10 +148,15 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
         routes: [
           GoRoute(
             path: 'dive',
-            builder: (context, state) => DiveDetailPage(
-              diveId: dive.id,
-              embedded: embedded,
-              unlockEditing: unlockEditing,
+            // With [shownDiveId] the same page is handed another dive,
+            // keeping its state, as the list pane does with its detail.
+            builder: (context, state) => ValueListenableBuilder<String>(
+              valueListenable: shownDiveId ?? ValueNotifier(dive.id),
+              builder: (context, id, _) => DiveDetailPage(
+                diveId: id,
+                embedded: embedded,
+                unlockEditing: unlockEditing,
+              ),
             ),
           ),
         ],
@@ -173,6 +187,13 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
         diveNeighborsProvider(
           dive.id,
         ).overrideWith((ref) => (previousId: null, nextId: 'dive-2')),
+        diveProvider(otherDive.id).overrideWith((ref) async => otherDive),
+        diveDataSourcesProvider(
+          otherDive.id,
+        ).overrideWith((ref) async => <DiveDataSource>[]),
+        diveNeighborsProvider(
+          otherDive.id,
+        ).overrideWith((ref) => (previousId: dive.id, nextId: null)),
         diveEditSaveServiceProvider.overrideWithValue(save),
         ...extra,
       ],

@@ -142,8 +142,16 @@ class RecordEditController<T> extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Ends the sitting and discards whatever it held.
+  /// Ends the sitting and discards whatever it held. Refused while a save
+  /// is running: the write would carry on with nothing tracking it, and a
+  /// new sitting could start underneath it. The save ends the sitting
+  /// itself when the write is done.
   void lock() {
+    if (_isSaving) return;
+    _endSitting();
+  }
+
+  void _endSitting() {
     final session = _session;
     if (session == null) return;
     _dropSession(session);
@@ -288,7 +296,7 @@ class RecordEditController<T> extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-    lock();
+    _endSitting();
     return true;
   }
 
