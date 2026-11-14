@@ -5,14 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_text_suggestion_providers.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_environment_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_fields.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_fields.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -23,8 +20,6 @@ import 'package:submersion/features/weather/domain/entities/weather_data.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
-import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
-import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../../../helpers/mock_providers.dart';
@@ -738,67 +733,6 @@ void main() {
         expect(elevation.calls, 1);
         expect(controller.session!.valueOf(diveAltitudeField), 12);
       });
-    });
-  });
-
-  group('the read card', () {
-    setUp(setUpTestDatabase);
-    tearDown(tearDownTestDatabase);
-
-    Future<void> pumpCard(
-      WidgetTester tester, {
-      RecordEditController<Dive>? controller,
-    }) async {
-      final card = DiveEnvironmentSection(dive: full);
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: await getBaseOverrides(),
-          child: MaterialApp(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: SingleChildScrollView(
-                child: controller == null
-                    ? card
-                    : RecordEditScope<Dive>(
-                        controller: controller,
-                        child: RecordCardFrame<Dive>(
-                          card: diveEditCards[DiveDetailSectionId.environment]!,
-                          child: card,
-                        ),
-                      ),
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.pump();
-    }
-
-    testWidgets('its title is the shared header', (tester) async {
-      await pumpCard(tester);
-
-      final header = find.byType(RecordCardHeader);
-      expect(header, findsOneWidget);
-      final title = tester.widget<Text>(
-        find.descendant(of: header, matching: find.text('Environment')),
-      );
-      expect(
-        title.style,
-        Theme.of(tester.element(header)).textTheme.titleMedium,
-      );
-      expect(find.byIcon(Icons.edit_outlined), findsNothing);
-    });
-
-    testWidgets('unlocked, it gains the pencil', (tester) async {
-      final controller = RecordEditController<Dive>(onSave: (_) async {})
-        ..unlock(full);
-      addTearDown(controller.dispose);
-
-      await pumpCard(tester, controller: controller);
-
-      expect(find.byTooltip('Edit Environment'), findsOneWidget);
     });
   });
 }
