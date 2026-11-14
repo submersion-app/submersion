@@ -112,7 +112,8 @@ enum DiveDetailSectionId {
         'Map of the dive site, GPS entry/exit points and surface drift',
       navTrack => 'Measured underwater track from a navigation console',
       weights => 'Weight breakdown, total weight',
-      buoyancy => 'Buoyancy through the dive, swing, ditchable weight',
+      buoyancy =>
+        'Buoyancy through the dive, lead for next time, ditchable weight',
       tanks =>
         'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption',
       buddies => 'Buddy list with roles',

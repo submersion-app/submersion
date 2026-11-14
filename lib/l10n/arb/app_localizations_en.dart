@@ -22576,10 +22576,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your rig was close to neutral at the final stop';
 
   @override
-  String get buoyancy_verdictConvention =>
-      'Estimated at the 5 m safety-stop convention';
-
-  @override
   String get buoyancy_breakdownTitle => 'Term breakdown';
 
   @override
@@ -22629,9 +22625,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buoyancy_chartNet => 'Net';
-
-  @override
-  String get buoyancy_chartRig => 'Rig + lead';
 
   @override
   String get buoyancy_chartMinutes => 'Time (min)';

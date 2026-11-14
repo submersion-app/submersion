@@ -21772,9 +21772,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buoyancy_verdictNeutral => '在最后停留点，你的配置接近中性';
 
   @override
-  String get buoyancy_verdictConvention => '按 5 米安全停留惯例估算';
-
-  @override
   String get buoyancy_breakdownTitle => '分项明细';
 
   @override
@@ -21822,9 +21819,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buoyancy_chartNet => '净值';
-
-  @override
-  String get buoyancy_chartRig => '装备 + 配重';
 
   @override
   String get buoyancy_chartMinutes => '时间（分钟）';

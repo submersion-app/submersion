@@ -23285,10 +23285,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'كانت تهيئتك قريبة من التعادل عند المحطة الأخيرة';
 
   @override
-  String get buoyancy_verdictConvention =>
-      'مُقدَّر وفق اصطلاح محطة الأمان عند 5 أمتار';
-
-  @override
   String get buoyancy_breakdownTitle => 'تفصيل العناصر';
 
   @override
@@ -23338,9 +23334,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buoyancy_chartNet => 'الصافي';
-
-  @override
-  String get buoyancy_chartRig => 'المعدات + الرصاص';
 
   @override
   String get buoyancy_chartMinutes => 'الزمن (دقيقة)';

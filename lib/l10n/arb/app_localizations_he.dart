@@ -22413,10 +22413,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'התצורה שלך הייתה קרובה לניטרלית בעצירה האחרונה';
 
   @override
-  String get buoyancy_verdictConvention =>
-      'מוערך לפי מוסכמת עצירת הבטיחות ב-5 מ\'';
-
-  @override
   String get buoyancy_breakdownTitle => 'פירוט מרכיבים';
 
   @override
@@ -22466,9 +22462,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buoyancy_chartNet => 'נטו';
-
-  @override
-  String get buoyancy_chartRig => 'ציוד + משקולות';
 
   @override
   String get buoyancy_chartMinutes => 'זמן (דק\')';

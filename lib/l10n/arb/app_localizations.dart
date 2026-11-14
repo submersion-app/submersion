@@ -36203,12 +36203,6 @@ abstract class AppLocalizations {
   /// **'Your rig was close to neutral at the final stop'**
   String get buoyancy_verdictNeutral;
 
-  /// No description provided for @buoyancy_verdictConvention.
-  ///
-  /// In en, this message translates to:
-  /// **'Estimated at the 5 m safety-stop convention'**
-  String get buoyancy_verdictConvention;
-
   /// No description provided for @buoyancy_breakdownTitle.
   ///
   /// In en, this message translates to:
@@ -36304,12 +36298,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Net'**
   String get buoyancy_chartNet;
-
-  /// No description provided for @buoyancy_chartRig.
-  ///
-  /// In en, this message translates to:
-  /// **'Rig + lead'**
-  String get buoyancy_chartRig;
 
   /// No description provided for @buoyancy_chartMinutes.
   ///

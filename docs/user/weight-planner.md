@@ -170,10 +170,21 @@ tap **Use as planned weight** again to pick up the new figure.
 ## After the Dive
 
 A logged dive with a recorded profile gets a **Buoyancy** section in its
-details: the same simulation run against what actually happened. **Weighting
-history** compares what you carried with what the model would have suggested,
-and **Adjust** re-runs the dive with different lead. That is where "why was the
-last stop so hard to hold" gets answered.
+details: the same simulation run against what actually happened.
+
+- A readout says how heavy or buoyant you were. It describes your final stop
+  until you move across the chart, and then the moment under the cursor.
+- Under the chart, a bar splits that moment into what was pulling you down
+  (lead, cylinders, gear) and what was holding you up (suit, body). Scrub the
+  dive and the suit shrinks with depth while the cylinders lighten as you
+  breathe them down.
+- **Lead for next time** sets what you carried beside what the model suggests,
+  with the same comparison for your recent dives in that suit.
+- Two checks follow: whether your wing could hold you at your heaviest, and
+  whether you could ditch enough lead to get positive.
+- **Adjust** re-runs the dive with different lead.
+
+That is where "why was the last stop so hard to hold" gets answered.
 
 ## Limits
 

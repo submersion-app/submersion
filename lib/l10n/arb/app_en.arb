@@ -14536,7 +14536,6 @@
     }
   },
   "buoyancy_verdictNeutral": "Your rig was close to neutral at the final stop",
-  "buoyancy_verdictConvention": "Estimated at the 5 m safety-stop convention",
   "buoyancy_breakdownTitle": "Term breakdown",
   "buoyancy_suitTerm": "Suit",
   "buoyancy_leadTerm": "Lead",
@@ -14553,7 +14552,6 @@
   "buoyancy_noLeadHint": "No lead recorded: add weights to this dive, or a dry weight to your weights gear",
   "buoyancy_tankMaterialAssumedHint": "Tank material not set, so aluminum was assumed: set the material or pick a tank preset",
   "buoyancy_chartNet": "Net",
-  "buoyancy_chartRig": "Rig + lead",
   "buoyancy_chartMinutes": "Time (min)",
   "buoyancy_historyTitle": "Weighting history",
   "buoyancy_historyCarried": "Carried",

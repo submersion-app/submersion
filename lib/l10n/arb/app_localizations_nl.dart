@@ -22770,10 +22770,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Je configuratie was bijna neutraal bij de laatste stop';
 
   @override
-  String get buoyancy_verdictConvention =>
-      'Geschat volgens de 5 m-veiligheidsstopconventie';
-
-  @override
   String get buoyancy_breakdownTitle => 'Termuitsplitsing';
 
   @override
@@ -22824,9 +22820,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buoyancy_chartNet => 'Netto';
-
-  @override
-  String get buoyancy_chartRig => 'Uitrusting + lood';
 
   @override
   String get buoyancy_chartMinutes => 'Tijd (min)';

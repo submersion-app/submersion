@@ -22912,10 +22912,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sua configuração estava quase neutra na última parada';
 
   @override
-  String get buoyancy_verdictConvention =>
-      'Estimado pela convenção de parada de segurança a 5 m';
-
-  @override
   String get buoyancy_breakdownTitle => 'Detalhe dos termos';
 
   @override
@@ -22966,9 +22962,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get buoyancy_chartNet => 'Líquido';
-
-  @override
-  String get buoyancy_chartRig => 'Equipamento + lastro';
 
   @override
   String get buoyancy_chartMinutes => 'Tempo (min)';

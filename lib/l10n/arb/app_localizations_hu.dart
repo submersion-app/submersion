@@ -22842,10 +22842,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'A konfigurációd közel semleges volt az utolsó megállónál';
 
   @override
-  String get buoyancy_verdictConvention =>
-      'Az 5 m-es biztonsági megálló konvenciója szerint becsülve';
-
-  @override
   String get buoyancy_breakdownTitle => 'Tételek részletezése';
 
   @override
@@ -22896,9 +22892,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get buoyancy_chartNet => 'Nettó';
-
-  @override
-  String get buoyancy_chartRig => 'Felszerelés + ólom';
 
   @override
   String get buoyancy_chartMinutes => 'Idő (perc)';

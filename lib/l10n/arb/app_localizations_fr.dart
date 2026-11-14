@@ -22980,10 +22980,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Votre configuration était proche de la neutralité au dernier palier';
 
   @override
-  String get buoyancy_verdictConvention =>
-      'Estimé selon la convention du palier de sécurité à 5 m';
-
-  @override
   String get buoyancy_breakdownTitle => 'Détail des termes';
 
   @override
@@ -23035,9 +23031,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get buoyancy_chartNet => 'Net';
-
-  @override
-  String get buoyancy_chartRig => 'Équipement + lest';
 
   @override
   String get buoyancy_chartMinutes => 'Temps (min)';
