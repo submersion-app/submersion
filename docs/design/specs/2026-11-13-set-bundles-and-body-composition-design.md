@@ -259,7 +259,8 @@ Details by path:
   session starts.
 - **Trip gear.** Adding a set packs its effective gear and slots tank items as
   today, slots the bundle's cylinders as spec-only cylinder slots (label,
-  size, pressure, material), and adds a "Lead: 12 lb" item to the trip's
+  size, pressure, material; with no owned tank behind them the board shows
+  them as rentals), and adds a "Lead: 12 lb" item to the trip's
   checklist. Cylinders and a lead item already present are not added again.
   With no checklist on the trip the lead item is skipped and the confirmation
   says so; with several, the diver picks one.
@@ -339,19 +340,23 @@ regression and added back by `predict`, with the fitted model remembering what
 it subtracted (today a height; now the full set of body inputs) so predict
 never adds a term the fit did not remove. Age is taken at the same date each
 caller already uses to choose the body weight. An age under 16 is treated as
-unknown, since the formula is for adults.
+unknown, since the formula is for adults; so is one over 120, which can only
+be a mistyped year.
 
-When the term comes from a typed value, the breakdown labels it as measured
-body fat rather than the BMI estimate.
+When the term comes from a typed value, the breakdown row reads "Body fat
+(measured)" and drops the "estimated from BMI" source the estimated row keeps.
 
 ### Screens
 
 - **Add body weight dialog** and the **weight planner's** body inputs: an
   optional body fat % field (3 to 60). Under it, when weight, height, sex and
   birth year are all known, "Estimated: about 24%" (whole percent, clamped to
-  the same range). Otherwise a hint that the field is optional and that sex
-  and birth year in the profile enable an estimate. The body weight list shows
-  the value on entries that have one.
+  the same range). A height left blank in the dialog falls back to the last
+  one recorded. The dialog's field says it is optional, and when sex or birth
+  year is missing a line under it says where to add them; the planner shows
+  the estimate or nothing. The body weight list shows the value on entries
+  that have one. The planner prefills the last recorded body fat and can save
+  a typed one back to the profile with the weight.
 - **Diver profile, Personal info page:** optional Sex (Female, Male, not set)
   and Birth year, with a line saying they are used only to estimate body
   composition for weight prediction. (The profile is a hub of sub-pages;
@@ -389,7 +394,7 @@ These were not decided in conversation and are open to correction:
    filled in, and leaves the old set's cylinders in place.
 10. A legacy scalar weight counts as the dive having weights.
 11. The body fat estimate is shown only with all four inputs; an age under 16
-    counts as unknown; a typed value carries forward like height.
+    or over 120 counts as unknown; a typed value carries forward like height.
 12. UDDF carries included-set references only; sex and birth year stay out of
     UDDF.
 13. Computer-linked auto-apply counts gear that arrives through an included
