@@ -107,17 +107,18 @@ Part 2, body composition:
 
 ### Data model
 
-Three junction tables, each a parent-gated child of `equipment_sets` in the
-way `equipment_set_items` is (composite key, `updated_at`, own `hlc`, cascade
-from both parents). Unlike `equipment_set_items` they also carry a
-`sort_order`, because the order of presets and configurations is meaningful.
-A set's own gear keeps having no stored order.
+Three junction tables, each a parent-gated child of `equipment_sets` shaped
+like `weight_preset_entries`: an `id` primary key, a unique pair, a
+`sort_order`, `created_at`, its own `hlc`, and a cascade from both parents.
+They do not copy `equipment_set_items`' composite key, whose sync path has
+spots no test guards. The order of presets and configurations is meaningful,
+so it is stored; a set's own gear keeps having no stored order.
 
 | Table | Columns |
 | --- | --- |
-| `equipment_set_includes` | `set_id`, `included_set_id`, `sort_order` |
-| `equipment_set_weight_presets` | `set_id`, `preset_id`, `sort_order` |
-| `equipment_set_cylinder_configs` | `set_id`, `config_id`, `sort_order` |
+| `equipment_set_includes` | `id`, `set_id`, `included_set_id`, `sort_order` |
+| `equipment_set_weight_presets` | `id`, `set_id`, `preset_id`, `sort_order` |
+| `equipment_set_cylinder_configs` | `id`, `set_id`, `config_id`, `sort_order` |
 
 `EquipmentSet` gains `includedSetIds`, `weightPresetIds` and
 `cylinderConfigIds` (ordered), with `copyWith`.
@@ -248,9 +249,9 @@ Details by path:
   add-one-saved-cylinder path, which carries the gas). A cylinder is skipped
   when the plan already has one with the same role, size and mix, and the
   untouched default plan tank is replaced as described above. The planner's
-  `addTank` drops non-breathing roles; that stays. The plan is marked as
-  needing recalculation. Weights are not applied: the plan has its own
-  prediction.
+  `addTank` drops non-breathing roles; that stays. Plan results recompute on
+  every change, so nothing more is needed. Weights are not applied: the plan
+  has its own prediction.
 - **Pre-dive checklist.** A session started from a set gets one check per item
   of effective gear (as today, now with included sets), then one check for the
   lead ("Weights: 12 lb", with the breakdown) and one per cylinder (its label,
@@ -351,9 +352,10 @@ body fat rather than the BMI estimate.
   the same range). Otherwise a hint that the field is optional and that sex
   and birth year in the profile enable an estimate. The body weight list shows
   the value on entries that have one.
-- **Diver profile edit page:** optional Sex (Female, Male, not set) and Birth
-  year, with a line saying they are used only to estimate body composition for
-  weight prediction.
+- **Diver profile, Personal info page:** optional Sex (Female, Male, not set)
+  and Birth year, with a line saying they are used only to estimate body
+  composition for weight prediction. (The profile is a hub of sub-pages;
+  there is no single edit page.)
 
 ## Build order
 
