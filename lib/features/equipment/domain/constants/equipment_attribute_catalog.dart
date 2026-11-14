@@ -171,12 +171,23 @@ class EquipmentAttributeDef {
   /// Which form block renders this attribute; see [AttributeGroup].
   final AttributeGroup group;
 
+  /// Always read in its canonical metric unit, with no per-item unit picker
+  /// (issue #4534): a rebreather cylinder has no working pressure for cubic
+  /// feet to mean gas capacity at, and is sold by litres everywhere.
+  final bool metricOnly;
+
+  /// A pressure that may be a dual-scale dial, whose picker also offers
+  /// both units at once (issue #4534).
+  final bool dualScale;
+
   const EquipmentAttributeDef({
     required this.key,
     required this.kind,
     this.dimension = AttributeDimension.none,
     this.choiceKeys = const [],
     this.group = AttributeGroup.spec,
+    this.metricOnly = false,
+    this.dualScale = false,
   });
 }
 
@@ -497,11 +508,13 @@ abstract final class EquipmentAttributeCatalog {
         key: 'diluent_cylinder_l',
         kind: AttributeKind.number,
         dimension: AttributeDimension.volumeL,
+        metricOnly: true,
       ),
       EquipmentAttributeDef(
         key: 'o2_cylinder_l',
         kind: AttributeKind.number,
         dimension: AttributeDimension.volumeL,
+        metricOnly: true,
       ),
       // Shared verbatim with the camera entry: same concept, same dimension,
       // one label key.
@@ -647,6 +660,7 @@ abstract final class EquipmentAttributeCatalog {
         key: 'gauge_max_pressure_bar',
         kind: AttributeKind.number,
         dimension: AttributeDimension.pressureBar,
+        dualScale: true,
       ),
       // Shared verbatim with the camera, rebreather and DPV entries.
       EquipmentAttributeDef(

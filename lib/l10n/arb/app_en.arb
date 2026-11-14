@@ -25712,6 +25712,8 @@
   "equipment_edit_addCustomField": "Add custom field",
   "attr_flagYes": "Yes",
   "attr_flagNo": "No",
+  "attr_unitDual": "Both",
+  "attr_unitPicker": "Unit",
   "attr_figurePosition_automatic": "Automatic",
   "equipment_edit_invalidThickness": "Use 5, 5/4 or 7/5/3",
   "equipment_edit_invalidFocalLength": "Use 60 or 15-45",

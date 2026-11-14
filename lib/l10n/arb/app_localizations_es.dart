@@ -42304,6 +42304,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attr_flagNo => 'No';
 
   @override
+  String get attr_unitDual => 'Ambas';
+
+  @override
+  String get attr_unitPicker => 'Unidad';
+
+  @override
   String get attr_figurePosition_automatic => 'Automática';
 
   @override

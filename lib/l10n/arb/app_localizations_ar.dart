@@ -42830,6 +42830,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attr_flagNo => 'لا';
 
   @override
+  String get attr_unitDual => 'كلاهما';
+
+  @override
+  String get attr_unitPicker => 'الوحدة';
+
+  @override
   String get attr_figurePosition_automatic => 'تلقائي';
 
   @override

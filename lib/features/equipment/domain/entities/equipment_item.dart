@@ -70,19 +70,16 @@ class EquipmentItem extends Equatable {
   /// Curated attribute lookup helpers. Legacy field names are preserved as
   /// getters so existing consumers (weight planner, CSV export, detail page)
   /// read from the attribute store transparently.
-  String? attrText(String key) {
+  EquipmentAttribute? attr(String key) {
     for (final a in attributes) {
-      if (!a.isCustom && a.key == key) return a.valueText;
+      if (!a.isCustom && a.key == key) return a;
     }
     return null;
   }
 
-  double? attrNum(String key) {
-    for (final a in attributes) {
-      if (!a.isCustom && a.key == key) return a.valueNum;
-    }
-    return null;
-  }
+  String? attrText(String key) => attr(key)?.valueText;
+
+  double? attrNum(String key) => attr(key)?.valueNum;
 
   String? get size => attrText(EquipmentAttrKeys.size);
   String? get thickness => attrText(EquipmentAttrKeys.thicknessMm);

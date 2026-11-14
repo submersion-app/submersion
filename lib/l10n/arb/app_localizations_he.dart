@@ -41248,6 +41248,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attr_flagNo => 'לא';
 
   @override
+  String get attr_unitDual => 'שתיהן';
+
+  @override
+  String get attr_unitPicker => 'יחידה';
+
+  @override
   String get attr_figurePosition_automatic => 'אוטומטי';
 
   @override

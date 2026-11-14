@@ -12190,6 +12190,8 @@
   "equipment_edit_addCustomField": "添加自定义字段",
   "attr_flagYes": "是",
   "attr_flagNo": "否",
+  "attr_unitDual": "两者",
+  "attr_unitPicker": "单位",
   "attr_figurePosition_automatic": "自动",
   "equipment_edit_invalidThickness": "请输入 5、5/4 或 7/5/3",
   "equipment_edit_invalidFocalLength": "请输入 60 或 15-45",

@@ -66521,6 +66521,18 @@ abstract class AppLocalizations {
   /// **'No'**
   String get attr_flagNo;
 
+  /// No description provided for @attr_unitDual.
+  ///
+  /// In en, this message translates to:
+  /// **'Both'**
+  String get attr_unitDual;
+
+  /// No description provided for @attr_unitPicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get attr_unitPicker;
+
   /// No description provided for @attr_figurePosition_automatic.
   ///
   /// In en, this message translates to:

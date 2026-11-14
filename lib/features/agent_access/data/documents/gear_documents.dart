@@ -54,6 +54,7 @@ Map<String, Object?> _attributeDocument(EquipmentAttribute a) => {
   'is_custom': a.isCustom,
   'value_text': a.valueText,
   'value_num': a.valueNum,
+  'value_unit': a.valueUnit,
   'sort_order': a.sortOrder,
 };
 

@@ -68,7 +68,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // row, for the same reason as the tank columns.
     await _assertDiveIsDraftColumn();
 
-    // v367: dives.media_time_offset_seconds (issue #4539), for the same
+    // v368: dives.media_time_offset_seconds (issue #4539), for the same
     // reason.
     await _assertDiveMediaTimeOffsetColumn();
 
@@ -90,5 +90,9 @@ extension BeforeOpenChildColumns on AppDatabase {
     // diver_weight_entries.body_fat_percent (issue #4525). Every diver and
     // weight-entry read selects the whole row.
     await _assertBodyCompositionColumns();
+    // v368: equipment_attributes.value_unit (issue #4534). Every attribute
+    // read selects the whole row. A database that skipped the rung also
+    // skipped its cylinder volume repair, so healing the column runs it.
+    await _healAttributeValueUnitColumn();
   }
 }

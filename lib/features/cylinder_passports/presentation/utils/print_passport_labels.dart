@@ -12,6 +12,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_item_units.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/gear_passports/domain/entities/gear_tag_payload.dart';
@@ -126,6 +127,9 @@ Future<void> printPassportLabels(
     );
     if (payload == null) continue;
     final material = item.attrText(EquipmentAttrKeys.tankMaterial);
+    // A label goes on the cylinder, so it reads in the cylinder's own units
+    // (issue #4534).
+    final own = cylinderSpecUnits(item, units);
     labels.add(
       PassportLabelData(
         title: item.name,
@@ -135,9 +139,9 @@ Future<void> printPassportLabels(
         ].join(' '),
         specLine: [
           if (item.volumeL != null)
-            units.formatTankVolume(item.volumeL, item.workingPressureBar),
+            own.formatTankVolume(item.volumeL, item.workingPressureBar),
           if (item.workingPressureBar != null)
-            units.formatPressure(item.workingPressureBar),
+            own.formatPressure(item.workingPressureBar),
           if (material != null)
             attributeChoiceLabel(
               l10n,

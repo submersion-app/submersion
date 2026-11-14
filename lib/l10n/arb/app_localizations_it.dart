@@ -42279,6 +42279,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attr_flagNo => 'No';
 
   @override
+  String get attr_unitDual => 'Entrambe';
+
+  @override
+  String get attr_unitPicker => 'Unità';
+
+  @override
   String get attr_figurePosition_automatic => 'Automatica';
 
   @override

@@ -12190,6 +12190,8 @@
   "equipment_edit_addCustomField": "Adicionar campo personalizado",
   "attr_flagYes": "Sim",
   "attr_flagNo": "Não",
+  "attr_unitDual": "Ambas",
+  "attr_unitPicker": "Unidade",
   "attr_figurePosition_automatic": "Automática",
   "equipment_edit_invalidThickness": "Use 5, 5/4 ou 7/5/3",
   "equipment_edit_invalidFocalLength": "Use 60 ou 15-45",
