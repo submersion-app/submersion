@@ -22,7 +22,9 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 /// It takes the [ProviderContainer], not a `WidgetRef`: a thumbnail removed
 /// while hovered reports its leave after the frame, which can be after the
 /// page's widgets, and any ref of theirs, are gone. The cursor provider
-/// outlives the page, so that leave must still be able to clear it.
+/// outlives the page, so that leave must still be able to clear it. Once the
+/// container itself is disposed there is no cursor left to clear, and the
+/// handler does nothing.
 void Function(MediaItem? item) mediaHoverCursorHandler(
   ProviderContainer container,
   Dive dive,
@@ -34,7 +36,7 @@ void Function(MediaItem? item) mediaHoverCursorHandler(
     if (cursor.state != index) cursor.state = index;
   }
 
-  return (item) {
+  void onHover(MediaItem? item) {
     if (item == null) {
       write(null);
       return;
@@ -52,5 +54,16 @@ void Function(MediaItem? item) mediaHoverCursorHandler(
     );
     if (marker == null) return;
     write(indexForTimestamp(profile, marker.elapsedSeconds));
+  }
+
+  return (item) {
+    try {
+      onHover(item);
+    } on StateError {
+      // The container was disposed (the app or a test tore the provider
+      // scope down in the frame the thumbnail went away). Reading it is the
+      // only way to find that out: Riverpod keeps its disposed flag
+      // internal, and a disposed container throws a StateError on any read.
+    }
   };
 }

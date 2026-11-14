@@ -171,6 +171,94 @@ void main() {
       },
     );
 
+    // The page can go away with the pointer still on a thumbnail (keyboard
+    // navigation). The thumbnail's leave then arrives after the section's
+    // State is disposed, and must still be passed on.
+    testWidgets('removing the whole section while hovered still reports null', (
+      tester,
+    ) async {
+      final shown = ValueNotifier(true);
+      addTearDown(shown.dispose);
+      final reported = <MediaItem?>[];
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            mediaForDiveProvider('dive-1').overrideWith((ref) => [_item('a')]),
+          ],
+          child: ValueListenableBuilder<bool>(
+            valueListenable: shown,
+            builder: (context, value, _) => value
+                ? SingleChildScrollView(
+                    child: DiveMediaSection(
+                      diveId: 'dive-1',
+                      onHoverMedia: reported.add,
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final gesture = await mouse(tester);
+      await gesture.moveTo(tester.getCenter(thumbnails().at(0)));
+      await tester.pump();
+
+      shown.value = false;
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(reported.map((item) => item?.id), ['a', null]);
+    });
+
+    // The section's State can outlive one dive: the page reuses it when it
+    // moves to the next dive, with a new callback for that dive. The leave
+    // belongs to the dive that was told about the enter.
+    testWidgets(
+      'a leave goes to the callback that was told about the enter, not to '
+      'one the section was given since',
+      (tester) async {
+        final a = _item('a');
+        final first = <MediaItem?>[];
+        final second = <MediaItem?>[];
+        final callback = ValueNotifier<void Function(MediaItem?)>(first.add);
+        addTearDown(callback.dispose);
+        await tester.pumpWidget(
+          testApp(
+            locale: const Locale('en'),
+            overrides: [
+              settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+              _mediaProvider.overrideWith((ref) => [a]),
+              mediaForDiveProvider(
+                'dive-1',
+              ).overrideWith((ref) => ref.watch(_mediaProvider)),
+            ],
+            child: ValueListenableBuilder<void Function(MediaItem?)>(
+              valueListenable: callback,
+              builder: (context, value, _) => SingleChildScrollView(
+                child: DiveMediaSection(diveId: 'dive-1', onHoverMedia: value),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final gesture = await mouse(tester);
+        await gesture.moveTo(tester.getCenter(thumbnails().at(0)));
+        await tester.pump();
+        expect(first.single!.id, 'a');
+
+        callback.value = second.add;
+        ProviderScope.containerOf(
+          tester.element(find.byType(DiveMediaSection)),
+        ).read(_mediaProvider.notifier).state = const [];
+        await tester.pumpAndSettle();
+
+        expect(first.map((item) => item?.id), ['a', null]);
+        expect(second, isEmpty);
+      },
+    );
+
     testWidgets('still reports in selection mode', (tester) async {
       final reported = <MediaItem?>[];
       await tester.pumpWidget(

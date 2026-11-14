@@ -120,6 +120,26 @@ void main() {
     expect(cursor(c), _profile.length - 1);
   });
 
+  // A thumbnail removed while hovered reports its leave after the frame,
+  // which can be after the whole provider scope has been torn down.
+  test('does nothing, and does not throw, once the container is disposed', () {
+    final c = ProviderContainer(
+      overrides: [
+        activeSourceProfileProvider(dive.id).overrideWith((ref) => null),
+      ],
+    );
+    final onHover = mediaHoverCursorHandler(c, dive);
+    onHover(_photo(dive.id, elapsedSeconds: 125));
+
+    c.dispose();
+
+    expect(() => onHover(null), returnsNormally);
+    expect(
+      () => onHover(_photo(dive.id, elapsedSeconds: 125)),
+      returnsNormally,
+    );
+  });
+
   test('reads the series when hovered, not when the handler was made', () {
     final source = StateProvider<SourceProfile?>((ref) => null);
     final c = ProviderContainer(

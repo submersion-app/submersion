@@ -101,21 +101,31 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   /// post-frame trigger fires once per item rather than on every rebuild.
   final Set<String> _enrichAttempted = {};
 
-  /// The item last reported through [DiveMediaSection.onHoverMedia]. Not
-  /// build state: nothing here draws differently for it.
+  /// The item last reported through [DiveMediaSection.onHoverMedia], and the
+  /// callback it was reported to. Not build state: nothing here draws
+  /// differently for them.
   String? _hoveredMediaId;
+  void Function(MediaItem? item)? _hoverReportedTo;
 
   /// Passes a thumbnail's hover on, dropping a leave that is not for the
   /// item last reported. A removed thumbnail reports its leave after the
   /// frame ([MediaHoverRegion]), by which time its neighbour may already
   /// have reported an enter; that late leave must not clear the neighbour.
+  ///
+  /// The leave goes to the callback that was told about the enter. By the
+  /// time a late leave arrives this State may have been handed another
+  /// dive's callback (the page reuses it from dive to dive), and telling
+  /// that one would leave the first dive marked for good.
   void _onTileHover(MediaItem item, bool hovered) {
     if (hovered) {
       _hoveredMediaId = item.id;
-      widget.onHoverMedia?.call(item);
+      _hoverReportedTo = widget.onHoverMedia;
+      _hoverReportedTo?.call(item);
     } else if (_hoveredMediaId == item.id) {
+      final reportedTo = _hoverReportedTo;
       _hoveredMediaId = null;
-      widget.onHoverMedia?.call(null);
+      _hoverReportedTo = null;
+      reportedTo?.call(null);
     }
   }
 
@@ -553,16 +563,6 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                   ),
-                  // coverage:ignore-start
-                  // The itemBuilder closure only fires when the dive has
-                  // media; this widget has no tests that render media (the
-                  // suite would need a populated DB + asset resolver
-                  // pipeline), so the closure is unreachable from
-                  // flutter_test. The right-click context menu wired via
-                  // `onSecondaryTapDown` is also desktop-only — touchscreens
-                  // never fire it, and `flutter_test` lacks a trackpad
-                  // driver. Both are exercised by manual desktop smoke
-                  // tests.
                   itemBuilder: (context, item, isSelected) {
                     final thumbnail = MediaThumbnailTile(
                       item: item,
@@ -581,13 +581,18 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       onHoverChanged: (hovered) => _onTileHover(item, hovered),
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
+                        // coverage:ignore-start
+                        // The right-click context menu is desktop-only:
+                        // touchscreens never fire it and no test drives a
+                        // secondary tap here. It is exercised by manual
+                        // desktop smoke tests.
                         onSecondaryTapDown: (details) =>
                             _showLocalFileContextMenu(context, item, details),
+                        // coverage:ignore-end
                         child: thumbnail,
                       ),
                     );
                   },
-                  // coverage:ignore-end
                 );
               },
               loading: () => const SizedBox(
