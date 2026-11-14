@@ -207,15 +207,17 @@ void main() {
     expect(find.textContaining('At your final stop'), findsNothing);
   });
 
-  testWidgets('lays out readout, chart, balance, lead, then safety rows', (
+  testWidgets('lays out readout, balance, chart, lead, then safety rows', (
     tester,
   ) async {
     await _pump(tester, buoyancyOutcome());
     double top(Finder f) => tester.getTopLeft(f).dy;
+    // The balance sits above the chart, where a finger scrubbing the chart
+    // does not cover it.
     final order = [
       top(find.text('1.8 kg buoyant')),
-      top(find.byType(BuoyancyChart)),
       top(find.byType(BuoyancyBalanceBar)),
+      top(find.byType(BuoyancyChart)),
       top(find.byType(ExpansionTile)),
       top(find.byType(BuoyancyLeadBlock)),
       top(find.byType(BuoyancySafetyRows)),

@@ -306,6 +306,20 @@ void main() {
     expect(find.textContaining(' kg'), findsNothing);
   });
 
+  testWidgets('the balance bar sits above the chart, clear of a scrubbing '
+      'finger', (tester) async {
+    await _pump(tester, _outcome());
+    expect(
+      tester.getRect(find.byType(BuoyancyBalanceBar)).bottom,
+      lessThanOrEqualTo(tester.getRect(find.byType(BuoyancyChart)).top),
+    );
+    // The readout still heads the section.
+    expect(
+      tester.getRect(find.text('1.8 kg buoyant')).bottom,
+      lessThanOrEqualTo(tester.getRect(find.byType(BuoyancyBalanceBar)).top),
+    );
+  });
+
   testWidgets('a narrow card does not overflow', (tester) async {
     await tester.binding.setSurfaceSize(const Size(300, 1200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
