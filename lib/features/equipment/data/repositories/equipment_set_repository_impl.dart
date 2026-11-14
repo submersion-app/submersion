@@ -409,11 +409,22 @@ class EquipmentSetRepository {
   Future<void> deleteSet(String id) async {
     await _db.transaction(() async {
       final geofences = await getGeofencesForSet(id);
+      // What the set carried besides gear, and the rows of the sets that
+      // included it (issue #4525). They cascade with the set, and a cascade
+      // writes no tombstone: a peer that has not seen the delete would push
+      // the row straight back.
+      final listRows = await _bundleListRowsOfSet(id);
       await (_db.delete(_db.equipmentSets)..where((t) => t.id.equals(id))).go();
       for (final g in geofences) {
         await _syncRepository.logDeletion(
           entityType: 'equipmentSetGeofences',
           recordId: g.id,
+        );
+      }
+      for (final row in listRows) {
+        await _syncRepository.logDeletion(
+          entityType: row.entity,
+          recordId: row.id,
         );
       }
       await _syncRepository.logDeletion(

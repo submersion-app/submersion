@@ -29,13 +29,19 @@ class DiverWeightEntry extends Equatable {
     required this.updatedAt,
   });
 
+  /// Marks a parameter the caller did not name, so that [copyWith] can tell
+  /// "leave it" from "clear it" for a value that may be taken back off.
+  static const Object _unset = Object();
+
+  /// [bodyFatPercent] is cleared by passing null and kept by leaving it
+  /// out. The older optional fields keep theirs when given null.
   DiverWeightEntry copyWith({
     String? id,
     String? diverId,
     DateTime? measuredAt,
     double? weightKg,
     double? heightCm,
-    double? bodyFatPercent,
+    Object? bodyFatPercent = _unset,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -45,7 +51,9 @@ class DiverWeightEntry extends Equatable {
       measuredAt: measuredAt ?? this.measuredAt,
       weightKg: weightKg ?? this.weightKg,
       heightCm: heightCm ?? this.heightCm,
-      bodyFatPercent: bodyFatPercent ?? this.bodyFatPercent,
+      bodyFatPercent: identical(bodyFatPercent, _unset)
+          ? this.bodyFatPercent
+          : bodyFatPercent as double?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

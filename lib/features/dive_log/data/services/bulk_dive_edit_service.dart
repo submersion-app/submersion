@@ -8,6 +8,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_child_row_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_tank_undo_writer.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
@@ -40,6 +41,7 @@ class BulkDiveEditService {
 
   /// What a set carries besides gear (issue #4525).
   final _bundles = DiveSetBundleApplier();
+  final _childRows = DiveChildRowRepository();
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -166,7 +168,7 @@ class BulkDiveEditService {
 
     var tripDateStretches = const <TripDateStretch>[];
     final setsAdded = _setsAdded(req);
-    final setFilledWeightDiveIds = <String>[];
+    var setFilledWeightIds = const <String>[];
     // A set may fill gaps on tanks a dive already has; these are the rows
     // as they were, kept only for the dives it touches.
     final tankRowsBefore = setsAdded.isEmpty || priorTankSpecRows != null
@@ -222,9 +224,20 @@ class BulkDiveEditService {
           setIds: setsAdded,
           notify: false,
         );
+        final filledWeightDiveIds = <String>[];
         for (final MapEntry(key: id, value: wrote) in applied.entries) {
-          if (wrote.weights) setFilledWeightDiveIds.add(id);
+          if (wrote.weights) filledWeightDiveIds.add(id);
           if (wrote.tanks) filledTankDiveIds.add(id);
+        }
+        // Those dives had no weights, so every row on them now is the
+        // set's: undo removes these rows and nothing added later.
+        if (filledWeightDiveIds.isNotEmpty) {
+          setFilledWeightIds = [
+            for (final row in await (_db.select(
+              _db.diveWeights,
+            )..where((w) => w.diveId.isIn(filledWeightDiveIds))).get())
+              row.id,
+          ];
         }
         final touched = [
           for (final row in tankRowsBefore)
@@ -255,7 +268,7 @@ class BulkDiveEditService {
       priorWeights: priorWeights,
       priorSightings: priorSightings,
       tripDateStretches: tripDateStretches,
-      setFilledWeightDiveIds: setFilledWeightDiveIds,
+      setFilledWeightIds: setFilledWeightIds,
     );
   }
 
@@ -345,12 +358,11 @@ class BulkDiveEditService {
             id,
           ], _weightsFromRows(weights[id] ?? const []));
         }
-      } else if (snapshot.setFilledWeightDiveIds.isNotEmpty) {
-        // Only the dives a set gave weights to; the rest keep their rows.
-        await _diveRepo.bulkReplaceWeights(
-          snapshot.setFilledWeightDiveIds,
-          const [],
-        );
+      } else {
+        // Only the rows a set wrote; the rest of each dive's weights stay.
+        for (final id in snapshot.setFilledWeightIds) {
+          await _childRows.deleteWeight(id);
+        }
       }
       final sightings = snapshot.priorSightings;
       if (sightings != null) {

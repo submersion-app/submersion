@@ -270,6 +270,31 @@ extension _SetBundleListStore on EquipmentSetRepository {
     return (entity: list.entity, pendingIds: pending, deletedIds: deleted);
   }
 
+  /// Every list row that goes when set [setId] is deleted: its own three
+  /// lists, and the include rows of the sets that included it.
+  Future<List<({String entity, String id})>> _bundleListRowsOfSet(
+    String setId,
+  ) async {
+    final rows = <({String entity, String id})>[];
+    for (final list in const [
+      _BundleListTable.includes,
+      _BundleListTable.presets,
+      _BundleListTable.configs,
+    ]) {
+      final found = await _db
+          .customSelect(
+            'SELECT id FROM ${list.sqlTable} WHERE set_id = ?1'
+            '${identical(list, _BundleListTable.includes) ? ' OR included_set_id = ?1' : ''}',
+            variables: [Variable<String>(setId)],
+          )
+          .get();
+      rows.addAll([
+        for (final r in found) (entity: list.entity, id: r.read<String>('id')),
+      ]);
+    }
+    return rows;
+  }
+
   /// Writes all three lists of [set]. Inside the caller's transaction.
   Future<List<_BundleListWrite>> _writeBundleLists(
     String setId,

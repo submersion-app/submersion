@@ -180,4 +180,22 @@ void main() {
     expect(d2.single.id, 't2');
     expect(d2.single.volume, isNull);
   });
+
+  // Undo takes back what the edit wrote, not what the diver added since.
+  test('undo leaves a weight added to the dive after the edit', () async {
+    final snapshot = await service.apply(useSet('warm'));
+    await db
+        .into(db.diveWeights)
+        .insert(
+          DiveWeightsCompanion.insert(
+            id: 'later',
+            diveId: 'd1',
+            weightType: 'belt',
+            amountKg: 1.0,
+            createdAt: 1700000000000,
+          ),
+        );
+    await service.undo(snapshot);
+    expect(await weightsOf('d1'), [('later', 1.0)]);
+  });
 }

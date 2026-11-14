@@ -290,6 +290,14 @@ void main() {
     await repo.createSet(
       set('outer', includes: ['rig'], presets: [presetA], configs: [configA]),
     );
+    Future<Set<String>> ids(String table) async => {
+      for (final r in await db.customSelect('SELECT id FROM $table').get())
+        r.read<String>('id'),
+    };
+    final includeIds = await ids('equipment_set_includes');
+    final presetIds = await ids('equipment_set_weight_presets');
+    final configIds = await ids('equipment_set_cylinder_configs');
+
     await WeightPresetRepository().deletePreset(presetA);
     await CylinderConfigRepository().deleteConfig(configA);
     await repo.deleteSet('rig');
@@ -298,6 +306,31 @@ void main() {
     expect(stored.includedSetIds, isEmpty);
     expect(stored.weightPresetIds, isEmpty);
     expect(stored.cylinderConfigIds, isEmpty);
+
+    // The cascade writes no tombstone, and a peer that has not seen the
+    // delete would push the link straight back.
+    Future<Set<String>> tombstoned(String entity) async => {
+      for (final d in await db.select(db.deletionLog).get())
+        if (d.entityType == entity) d.recordId,
+    };
+    expect(await tombstoned('equipmentSetIncludes'), includeIds);
+    expect(await tombstoned('equipmentSetWeightPresets'), presetIds);
+    expect(await tombstoned('equipmentSetCylinderConfigs'), configIds);
+  });
+
+  test('deleting a set tombstones the lists it carried', () async {
+    await repo.createSet(set('rig'));
+    await repo.createSet(
+      set('outer', includes: ['rig'], presets: [presetA], configs: [configA]),
+    );
+    await repo.deleteSet('outer');
+    final byEntity = <String, int>{};
+    for (final d in await db.select(db.deletionLog).get()) {
+      byEntity[d.entityType] = (byEntity[d.entityType] ?? 0) + 1;
+    }
+    expect(byEntity['equipmentSetIncludes'], 1);
+    expect(byEntity['equipmentSetWeightPresets'], 1);
+    expect(byEntity['equipmentSetCylinderConfigs'], 1);
   });
 
   test('watchSetChanges ticks when a junction row changes', () async {

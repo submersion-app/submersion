@@ -279,6 +279,23 @@ const List<DiverDeleteStep> diverGearSteps = [
 /// `DiveCenterRepository.deleteDiveCenter` tombstone theirs. Built-in dive
 /// types are never synced and stay.
 const List<DiverDeleteStep> diverLibrarySteps = [
+  // What the diver's sets carry besides gear (issue #4525): they cascade
+  // with the set, the preset or the configuration, so they go first.
+  (
+    table: 'equipment_set_includes',
+    entityType: 'equipmentSetIncludes',
+    where: 'set_id IN (SELECT id FROM equipment_sets WHERE diver_id = ?1)',
+  ),
+  (
+    table: 'equipment_set_weight_presets',
+    entityType: 'equipmentSetWeightPresets',
+    where: 'set_id IN (SELECT id FROM equipment_sets WHERE diver_id = ?1)',
+  ),
+  (
+    table: 'equipment_set_cylinder_configs',
+    entityType: 'equipmentSetCylinderConfigs',
+    where: 'set_id IN (SELECT id FROM equipment_sets WHERE diver_id = ?1)',
+  ),
   (
     table: 'equipment_set_geofences',
     entityType: 'equipmentSetGeofences',
