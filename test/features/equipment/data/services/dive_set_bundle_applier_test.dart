@@ -415,6 +415,62 @@ void main() {
     expect(rows.single.amountKg, closeTo(3.63, 1e-9));
   });
 
+  // A set's lead is its diver's lead. A bulk edit or a rule that spans two
+  // profiles keeps one diver's unshared gear off the other's dives, and
+  // the weights and cylinders follow the same line.
+  group('a set and a dive of different divers', () {
+    setUp(() async {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: 'd2',
+              name: 'd2',
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'theirs',
+              diverId: const Value('d2'),
+              diveDateTime: t,
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'nobodys',
+              diveDateTime: t,
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      await set('rig', presets: ['belt8'], configs: ['al80']);
+    });
+
+    test('the set fills its own diver\'s dive and leaves the other '
+        'alone', () async {
+      final applied = await applier.applyToDives(
+        diveIds: ['dive1', 'theirs'],
+        setIds: ['rig'],
+      );
+      expect(applied['dive1']!.weights, isTrue);
+      expect(await weightsOf('theirs'), isEmpty);
+      expect(await tanksOf('theirs'), isEmpty);
+    });
+
+    test('a dive with no diver takes the set, as it takes its gear', () async {
+      await applier.apply(diveId: 'nobodys', setIds: ['rig']);
+      expect(await weightsOf('nobodys'), [closeTo(3.63, 1e-9)]);
+    });
+  });
+
   group('applyTagged', () {
     test('uses the sets tagged on the dive, lead set first, then by '
         'name', () async {

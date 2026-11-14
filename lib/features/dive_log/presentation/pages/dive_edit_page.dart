@@ -5054,7 +5054,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final items = await _bulkUsableSetItems(picked.items);
     if (!mounted) return;
     if (items.isEmpty) {
-      // Nothing to list among the gear, so the set itself is staged.
+      // Nothing to list among the gear, so the set itself is staged, when
+      // it carries weights or tanks to apply. A set with neither, whose
+      // gear cannot go on these dives, would change nothing.
+      if (!set.carriesBeyondGear) return;
       _markDirty();
       setState(
         () => _equipmentSetAdds = withStagedSet(_equipmentSetAdds, (

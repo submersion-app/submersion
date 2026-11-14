@@ -870,6 +870,47 @@ void main() {
       }
     });
 
+    // A set whose only gear cannot go on these dives, and which carries no
+    // weights or tanks either, has nothing to stage.
+    testWidgets('use-set stages nothing for a set that would apply '
+        'nothing', (tester) async {
+      const camera = EquipmentItem(
+        id: 'e2',
+        name: 'Borrowed camera',
+        type: EquipmentType.camera,
+        diverId: 'other',
+      );
+      await EquipmentRepository().createEquipment(camera);
+      await seedDive('d1');
+      final borrowed = EquipmentSet(
+        id: 's9',
+        name: 'Borrowed kit',
+        equipmentIds: const ['e2'],
+        items: const [camera],
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      await pump(
+        tester,
+        ['d1'],
+        sets: [borrowed],
+        extraOverrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+        ],
+      );
+      final useSet = find.descendant(
+        of: editorFor('Equipment'),
+        matching: find.widgetWithText(TextButton, 'Use Set'),
+      );
+      await tester.ensureVisible(useSet);
+      await tester.tap(useSet);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Borrowed kit'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('bulk-used-set-s9')), findsNothing);
+    });
+
     // Issue #4284: a set item the diver unchecks after "Use Set" stays off,
     // though on no dive unchecking it makes no remove of its own.
     testWidgets('use-set leaves off a set item the diver unchecked', (

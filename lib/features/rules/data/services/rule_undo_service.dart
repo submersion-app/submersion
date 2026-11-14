@@ -238,14 +238,17 @@ class RuleUndoService {
         return _undoDiveMembership(c, collection);
       }
       // What a set added by the run carried besides gear (issue #4525).
-      final bundle = RuleSetBundleChanges(_db);
       if (c.field == RuleSetBundleChanges.weightsField) {
-        return await bundle.undoWeights(c.targetId, c.before, c.after)
+        return await RuleSetBundleChanges(
+              _db,
+            ).undoWeights(c.targetId, c.before, c.after)
             ? _Outcome.restored
             : _Outcome.edited;
       }
       if (c.field == RuleSetBundleChanges.tanksField) {
-        return await bundle.undoTanks(c.targetId, c.before, c.after)
+        return await RuleSetBundleChanges(
+              _db,
+            ).undoTanks(c.targetId, c.before, c.after)
             ? _Outcome.restored
             : _Outcome.edited;
       }

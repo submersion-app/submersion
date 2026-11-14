@@ -211,6 +211,7 @@ void main() {
     Future<List<String>> pumpPicker(
       WidgetTester tester, {
       bool requireGear = false,
+      bool appliesWeights = true,
     }) async {
       final picked = <String>[];
       await pump(
@@ -219,6 +220,7 @@ void main() {
           body: EquipmentSetPickerSheet(
             scrollController: ScrollController(),
             requireGear: requireGear,
+            appliesWeights: appliesWeights,
             onSetSelected: (set, items) => picked.add(set.id),
           ),
         ),
@@ -247,6 +249,17 @@ void main() {
       await tester.tap(find.text('Lead only'));
       await tester.pump();
       expect(picked, ['lead']);
+    });
+
+    // The dive planner takes a set's gear and cylinders and predicts its
+    // own lead, so a set with only lead would do nothing there.
+    testWidgets('where weights are not applied, a set with only weights '
+        'cannot be picked and its lead is not advertised', (tester) async {
+      final picked = await pumpPicker(tester, appliesWeights: false);
+      expect(find.textContaining('lead'), findsNothing);
+      await tester.tap(find.text('Lead only'));
+      await tester.pump();
+      expect(picked, isEmpty);
     });
 
     testWidgets('with requireGear a set with only weights cannot be picked', (

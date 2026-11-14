@@ -8489,6 +8489,17 @@ class DiveRepository {
   Future<int> countLoggedDivesWithSet(String setId) =>
       _gearTemplates.countWithSet(setId, planned: false);
 
+  /// How many logged dives carry any of [setIds]. A dive carrying gear
+  /// under two of them, as a set and a set that includes it leave, is one
+  /// dive (issue #4525).
+  Future<int> countLoggedDivesWithAnySet(Iterable<String> setIds) async {
+    final dives = <String>{};
+    for (final setId in setIds.toSet()) {
+      dives.addAll(await _gearTemplates.loggedDiveIdsWithSet(setId));
+    }
+    return dives.length;
+  }
+
   /// How many planned dives carry set [setId].
   Future<int> countPlannedDivesWithSet(String setId) =>
       _gearTemplates.countWithSet(setId, planned: true);

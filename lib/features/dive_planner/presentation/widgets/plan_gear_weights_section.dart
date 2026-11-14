@@ -134,6 +134,8 @@ class PlanGearWeightsSection extends ConsumerWidget {
         expand: false,
         builder: (context, scrollController) => EquipmentSetPickerSheet(
           scrollController: scrollController,
+          // The plan predicts its own lead; a set's weights stay out.
+          appliesWeights: false,
           onSetSelected: (set, items) {
             Navigator.of(context).pop();
             _useSet(ref, set.id, items);

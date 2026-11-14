@@ -146,6 +146,27 @@ void main() {
     expect({for (final r in rows) r.viaSetId}, {'outer'});
   });
 
+  // The "also update N past dives" question counts dives, not set tags.
+  test('a logged dive carrying gear under two sets counts once', () async {
+    await set('rig', ['bp']);
+    await set('outer', ['cam'], includes: ['rig']);
+    for (final (gearId, setId) in [('bp', 'rig'), ('cam', 'outer')]) {
+      await db
+          .into(db.diveEquipment)
+          .insert(
+            DiveEquipmentCompanion.insert(
+              diveId: 'dive1',
+              equipmentId: gearId,
+              viaSetId: Value(setId),
+            ),
+          );
+    }
+    final dives = DiveRepository();
+    expect(await dives.countLoggedDivesWithAnySet(['rig', 'outer']), 1);
+    expect(await dives.countLoggedDivesWithAnySet(['rig']), 1);
+    expect(await dives.countLoggedDivesWithAnySet(const []), 0);
+  });
+
   test('a set with only included gear still applies in bulk', () async {
     await set('rig', ['bp']);
     await set('outer', const [], includes: ['rig']);

@@ -30,6 +30,12 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
   /// only gear is wanted, such as the weight planner's rig.
   final bool requireGear;
 
+  /// Whether the caller applies a set's weights. The dive planner takes a
+  /// set's gear and cylinders and predicts its own lead, so there a set
+  /// with only lead would do nothing: it cannot be picked, and its lead is
+  /// left out of the row.
+  final bool appliesWeights;
+
   const EquipmentSetPickerSheet({
     super.key,
     required this.scrollController,
@@ -37,6 +43,7 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
     this.title,
     this.pickEmptySets = false,
     this.requireGear = false,
+    this.appliesWeights = true,
   });
 
   @override
@@ -102,6 +109,7 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
                     set: set,
                     pickEmpty: pickEmptySets,
                     requireGear: requireGear,
+                    appliesWeights: appliesWeights,
                     onTap: (items) => onSetSelected(set, items),
                   );
                 },
@@ -127,12 +135,14 @@ class _EquipmentSetTile extends ConsumerWidget {
   final EquipmentSet set;
   final bool pickEmpty;
   final bool requireGear;
+  final bool appliesWeights;
   final void Function(List<EquipmentItem> items) onTap;
 
   const _EquipmentSetTile({
     required this.set,
     required this.pickEmpty,
     required this.requireGear,
+    required this.appliesWeights,
     required this.onTap,
   });
 
@@ -161,7 +171,7 @@ class _EquipmentSetTile extends ConsumerWidget {
                 context.l10n,
                 (kg) => ref.watch(unitFormatterProvider).formatWeight(kg),
                 gearCount: 0,
-                leadKg: summary.leadKg,
+                leadKg: appliesWeights ? summary.leadKg : 0,
                 cylinderCount: summary.cylinderCount,
               );
         final gearText = items.isEmpty

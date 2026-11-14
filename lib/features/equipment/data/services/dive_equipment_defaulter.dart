@@ -30,10 +30,11 @@ class DiveEquipmentDefaulter {
   final EquipmentRepository _equipment;
   final DiveSetBundleApplier? _bundleApplier;
 
-  /// The weights and cylinders a set carries (issue #4525). Built on first
-  /// use: the creation seams apply those themselves, once the dive's own
-  /// tanks are written.
-  DiveSetBundleApplier get _bundles => _bundleApplier ?? DiveSetBundleApplier();
+  /// The weights and cylinders a set carries (issue #4525). Built once, on
+  /// first use: only the location re-match needs it, since the creation
+  /// seams apply those themselves once the dive's own tanks are written.
+  late final DiveSetBundleApplier _bundles =
+      _bundleApplier ?? DiveSetBundleApplier();
 
   AppDatabase get _db => DatabaseService.instance.database;
 

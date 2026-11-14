@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/rules/data/services/rule_set_bundle_changes.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
@@ -62,7 +63,7 @@ describeRuleChange(
   if (c.subject == RuleSubject.dives) {
     // What a set the run added carried besides gear (issue #4525): the
     // lead as a total, the cylinders as a count.
-    if (c.field == 'weights') {
+    if (c.field == RuleSetBundleChanges.weightsField) {
       String total(Object? list) {
         final rows = (list as List?) ?? const [];
         if (rows.isEmpty) return l.rules_value_empty;
@@ -80,7 +81,7 @@ describeRuleChange(
         appended: null,
       );
     }
-    if (c.field == 'tanks') {
+    if (c.field == RuleSetBundleChanges.tanksField) {
       String count(Object? list) {
         final rows = (list as List?) ?? const [];
         return rows.isEmpty

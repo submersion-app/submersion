@@ -11,8 +11,10 @@ import 'package:submersion/features/dive_log/data/repositories/dive_child_row_re
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
 import 'package:submersion/features/equipment/data/services/set_bundle_loader.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/equipment/domain/entities/set_bundle.dart';
 import 'package:submersion/features/equipment/domain/services/set_bundle_resolver.dart';
 import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
 
@@ -74,6 +76,11 @@ class DiveSetBundleApplier {
   /// [apply] for each of [diveIds], reading the bundles once: a bulk edit
   /// or a rule run puts the same sets on every dive. A dive that fails is
   /// logged and reported as unchanged; the others still apply.
+  ///
+  /// A set's lead and cylinders are its diver's own, so they go only on
+  /// that diver's dives, as the gear half of a bulk edit keeps one
+  /// profile's unshared gear off another's dives. A set or a dive with no
+  /// diver is not held back.
   Future<Map<String, SetBundleApplied>> applyToDives({
     required List<String> diveIds,
     required List<String> setIds,
@@ -82,12 +89,23 @@ class DiveSetBundleApplier {
     final applied = <String, SetBundleApplied>{};
     if (setIds.isEmpty || diveIds.isEmpty) return applied;
     if (DatabaseService.instance.databaseOrNull == null) return applied;
-    final List<WeightEntryDraft> weights;
-    final List<CylinderConfigItem> cylinders;
+    final List<SetBundle> bundles;
+    final Map<String, String?> ownerOfSet;
+    final Map<String, String?> diverOfDive;
     try {
-      final bundles = await _loader.load(setIds);
-      weights = [for (final b in bundles) ...b.weights];
-      cylinders = _renumbered([for (final b in bundles) ...b.cylinders]);
+      bundles = await _loader.load(setIds);
+      if (bundles.every((b) => b.weights.isEmpty && b.cylinders.isEmpty)) {
+        return applied;
+      }
+      ownerOfSet = {
+        for (final set in await _sets.getAllSets(
+          ids: [for (final b in bundles) b.setId],
+        ))
+          set.id: set.diverId,
+      };
+      diverOfDive = await EquipmentVisibilityQueries(
+        _db,
+      ).diversOfDives(diveIds);
     } catch (e, stackTrace) {
       _log.warning(
         'Reading what sets $setIds carry failed',
@@ -96,10 +114,34 @@ class DiveSetBundleApplier {
       );
       return applied;
     }
-    if (weights.isEmpty && cylinders.isEmpty) return applied;
+
+    // What each diver's dives take, worked out once per diver.
+    final carriedFor =
+        <
+          String?,
+          ({List<WeightEntryDraft> weights, List<CylinderConfigItem> cylinders})
+        >{};
+    ({List<WeightEntryDraft> weights, List<CylinderConfigItem> cylinders})
+    carried(String? diverId) => carriedFor.putIfAbsent(diverId, () {
+      final own = [
+        for (final b in bundles)
+          if (diverId == null ||
+              ownerOfSet[b.setId] == null ||
+              ownerOfSet[b.setId] == diverId)
+            b,
+      ];
+      return (
+        weights: [for (final b in own) ...b.weights],
+        cylinders: _renumbered([for (final b in own) ...b.cylinders]),
+      );
+    });
 
     var changed = false;
     for (final diveId in diveIds) {
+      // A dive that has gone has nothing to fill.
+      if (!diverOfDive.containsKey(diveId)) continue;
+      final (:weights, :cylinders) = carried(diverOfDive[diveId]);
+      if (weights.isEmpty && cylinders.isEmpty) continue;
       try {
         final result = await _db.transaction(() async {
           final wroteWeights = await _fillWeights(diveId, weights);

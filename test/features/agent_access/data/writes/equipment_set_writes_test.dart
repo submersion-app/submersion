@@ -231,6 +231,46 @@ void main() {
     expect(entry.pendingRescan, isEmpty);
   });
 
+  // The save drops a member whose gear has gone; the planned dives follow
+  // what it wrote, not what was asked for.
+  test('the replay on planned dives follows what the save wrote', () async {
+    final id = await created({'name': 'Warm'});
+    await h.run([
+      members(id, add: ['wing']),
+    ]);
+    await h.dive('p1');
+    await (db.update(db.dives)..where((d) => d.id.equals('p1'))).write(
+      const DivesCompanion(isPlanned: Value(true)),
+    );
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(
+            diveId: 'p1',
+            equipmentId: 'wing',
+            viaSetId: Value(id),
+          ),
+        );
+    final entry = h.writes.named('equipment_sets')! as EquipmentSetWrites;
+    await entry.update(
+      id,
+      kDiverA,
+      const RecordUpdate(
+        relations: {
+          'equipment_ids': RelationDelta(add: {'ghost', 'fins'}),
+        },
+      ),
+    );
+    final onDive = {
+      for (final row in await (db.select(
+        db.diveEquipment,
+      )..where((r) => r.diveId.equals('p1'))).get())
+        row.equipmentId,
+    };
+    expect(onDive, {'wing', 'fins'});
+    expect(await memberIds(id), {'wing', 'fins'});
+  });
+
   test('a member the owner cannot see is blocked', () async {
     await gear('theirs', owner: kDiverB);
     final id = await created({'name': 'Warm'});

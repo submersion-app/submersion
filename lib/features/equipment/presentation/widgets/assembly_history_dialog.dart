@@ -83,18 +83,14 @@ Future<AssemblyHistoryChoice?> askSetHistory(
   WidgetRef ref, {
   required String setId,
   List<String> alsoSetIds = const [],
-}) {
-  final dives = ref.read(diveRepositoryProvider);
-  Future<int> count() async {
-    var total = 0;
-    for (final id in {setId, ...alsoSetIds}) {
-      total += await dives.countLoggedDivesWithSet(id);
-    }
-    return total;
-  }
-
-  return _askWithCount(context, count(), AssemblyHistoryChange.setMembers);
-}
+}) => _askWithCount(
+  context,
+  ref.read(diveRepositoryProvider).countLoggedDivesWithAnySet({
+    setId,
+    ...alsoSetIds,
+  }),
+  AssemblyHistoryChange.setMembers,
+);
 
 Future<AssemblyHistoryChoice?> _askWithCount(
   BuildContext context,
