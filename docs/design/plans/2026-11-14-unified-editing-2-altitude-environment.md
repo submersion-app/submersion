@@ -1030,6 +1030,7 @@ The plan was built as written, then reviewed as a whole branch. Review comments 
 ### Added
 
 - **A sitting is frozen while it is saved.** `EditSession.freeze()`, `thaw()`, `isFrozen`. `set` and `holdWrite` do nothing then, and `openCard`, `closeCard` and `addCard` are refused. `RecordEditLeaveGuard` takes no pointer or keyboard input and ignores Back until the save ends. Anything that writes to a sitting after an `await` checks `isDisposed` and `isFrozen` first.
+- **A sitting belongs to one dive.** `lock()` is refused while a save is running; the save ends the sitting itself. A sitting starts from the dive the page is showing, which just after a save is ahead of the one last read. If the page is handed another dive, the sitting ends and the copy of a dive just saved is dropped, and a save is always made for the dive its sitting was opened on.
 - **`EditField.alsoShownOn`.** Other cards that show a value without owning it. They are redrawn as it is typed. Surface pressure names Environment.
 - **`RecordEditController.layoutRecord`.** The working record as it was when the first card opened; null when none is open. The section list and the Add strip decide which cards are present from it, so a card never appears above an open editor. Cards come and go when the last editor closes. `_sectionContent` and `_buildPairCards` take it as `presence`.
 - **`EditCard.leading`**, drawn by the open card's header, so a card's icon does not vanish when it opens.
