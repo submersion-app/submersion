@@ -1459,6 +1459,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_color_white => '白色';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name（$code）';
+  }
+
+  @override
+  String get equipment_color_recent => '最近使用';
+
+  @override
   String get equipment_color_none => '无';
 
   @override
@@ -12335,6 +12343,35 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => '使用此潜水点';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return '$place附近的沉船和礁石';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby => '附近的沉船和礁石';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return '显示已标注的沉船和礁石（$count）';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return '仅显示最近的 $count 个。请搜索以查找其余结果。';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours => '这些都已在你的潜水点中。';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return '最近的 $count 个都已在你的潜水点中。请搜索以查找其余结果。';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn => '放大地图以查看所有内置潜水点';
 
   @override
   String get diveSites_list_groupBy => '分组方式';
@@ -23854,6 +23891,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_equipmentCollapsedGroups => '已折叠的装备分组';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors => '最近使用的装备颜色';
+
+  @override
   String get settings_conflict_field_listArrangementHlc => '列表排列记录';
 
   @override
@@ -31677,22 +31717,22 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => '自定义颜色';
+  String get common_color_custom => '自定义颜色';
 
   @override
-  String get tags_color_hexLabel => '十六进制代码';
+  String get common_color_hexLabel => '十六进制代码';
 
   @override
-  String get tags_color_hexError => '请输入六位 0-9 或 A-F 字符，例如 #2E8B57';
+  String get common_color_hexError => '请输入六位 0-9 或 A-F 字符，例如 #2E8B57';
 
   @override
-  String get tags_color_use => '使用';
+  String get common_color_use => '使用';
 
   @override
-  String get tags_color_hueLabel => '色相';
+  String get common_color_hueLabel => '色相';
 
   @override
-  String get tags_color_squareLabel => '饱和度和亮度';
+  String get common_color_squareLabel => '饱和度和亮度';
 
   @override
   String get tags_manage_narrowDialog_confirm => '移除';

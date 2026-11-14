@@ -135,6 +135,26 @@ void main() {
       expect(site.trust, CatalogueTrust.verified);
     });
 
+    test('a register record says so, and anything else is a dive site', () {
+      final parsed = parseSiteCatalogue(
+        _file([
+          _site({'id': 'ukho_1', 'kind': 'register'}),
+          _site({'id': 'osm_node_2'}),
+          _site({'id': 'osm_node_3', 'kind': 'site'}),
+          _site({'id': 'osm_node_4', 'kind': 'something new'}),
+          _site({'id': 'osm_node_5', 'kind': 7}),
+        ]),
+      );
+
+      expect(parsed.sites.map((s) => s.kind), [
+        CatalogueKind.register,
+        CatalogueKind.site,
+        CatalogueKind.site,
+        CatalogueKind.site,
+        CatalogueKind.site,
+      ]);
+    });
+
     test('a researched record keeps its trust level', () {
       final parsed = parseSiteCatalogue(
         _file([

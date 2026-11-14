@@ -1513,6 +1513,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_color_white => 'Wit';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Recent';
+
+  @override
   String get equipment_color_none => 'Geen';
 
   @override
@@ -12893,6 +12901,38 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => 'Deze stek gebruiken';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Wrakken en riffen bij $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby =>
+      'Wrakken en riffen in de buurt';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'In kaart gebrachte wrakken en riffen tonen ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'De dichtstbijzijnde $count worden getoond. Zoek om de rest te vinden.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'Ze staan allemaal al tussen je stekken.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'De dichtstbijzijnde $count staan al tussen je stekken. Zoek om de rest te vinden.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Zoom in om alle ingebouwde stekken te zien';
 
   @override
   String get diveSites_list_groupBy => 'Groeperen op';
@@ -25013,6 +25053,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ingeklapte uitrustingsgroepen';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Recente uitrustingskleuren';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Log van lijstordening';
 
@@ -33410,23 +33454,23 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Aangepaste kleur';
+  String get common_color_custom => 'Aangepaste kleur';
 
   @override
-  String get tags_color_hexLabel => 'Hexcode';
+  String get common_color_hexLabel => 'Hexcode';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Voer zes tekens 0-9 of A-F in, zoals #2E8B57';
 
   @override
-  String get tags_color_use => 'Gebruiken';
+  String get common_color_use => 'Gebruiken';
 
   @override
-  String get tags_color_hueLabel => 'Tint';
+  String get common_color_hueLabel => 'Tint';
 
   @override
-  String get tags_color_squareLabel => 'Verzadiging en helderheid';
+  String get common_color_squareLabel => 'Verzadiging en helderheid';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Verwijderen';

@@ -1500,6 +1500,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_color_white => 'לבן';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'אחרונים';
+
+  @override
   String get equipment_color_none => 'ללא';
 
   @override
@@ -12694,6 +12702,38 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => 'שימוש באתר זה';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'ספינות טבועות ושוניות ליד $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby =>
+      'ספינות טבועות ושוניות בקרבת מקום';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'הצגת ספינות טבועות ושוניות ממופות ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'מוצגים $count הקרובים ביותר. חפש כדי למצוא את השאר.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'כולם כבר נמצאים בין האתרים שלך.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return '$count הקרובים ביותר כבר נמצאים בין האתרים שלך. חפש כדי למצוא את השאר.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'התקרב במפה כדי לראות את כל האתרים המובנים';
 
   @override
   String get diveSites_list_groupBy => 'קיבוץ לפי';
@@ -24594,6 +24634,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'קבוצות ציוד מקופלות';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'צבעי ציוד אחרונים';
+
+  @override
   String get settings_conflict_field_listArrangementHlc => 'יומן סידור הרשימות';
 
   @override
@@ -32801,23 +32845,23 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'צבע מותאם אישית';
+  String get common_color_custom => 'צבע מותאם אישית';
 
   @override
-  String get tags_color_hexLabel => 'קוד הקסדצימלי';
+  String get common_color_hexLabel => 'קוד הקסדצימלי';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'יש להזין שישה תווים 0-9 או A-F, למשל #2E8B57';
 
   @override
-  String get tags_color_use => 'שימוש';
+  String get common_color_use => 'שימוש';
 
   @override
-  String get tags_color_hueLabel => 'גוון';
+  String get common_color_hueLabel => 'גוון';
 
   @override
-  String get tags_color_squareLabel => 'רוויה ובהירות';
+  String get common_color_squareLabel => 'רוויה ובהירות';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'הסר';

@@ -822,6 +822,10 @@
   "equipment_color_slate": "Slate",
   "equipment_color_black": "Black",
   "equipment_color_white": "White",
+  "equipment_color_customName": "{name} ({code})",
+  "@equipment_color_customName": {"description": "A custom item colour: its nearest named colour, then its code", "placeholders": {"name": {"type": "String"}, "code": {"type": "String"}}},
+  "equipment_color_recent": "Recent",
+  "@equipment_color_recent": {"description": "Heading for the custom item colours the diver used recently, in the colour sheet"},
   "equipment_color_none": "None",
   "equipment_color_sheetTitle": "Choose a color",
   "equipment_setEdit_geofencesTitle": "Geofences",
@@ -7737,6 +7741,13 @@
   "diveSites_picker_builtIn_search": "Built-in sites",
   "diveSites_picker_builtIn_showAll": "Show all {count}",
   "diveSites_picker_builtIn_useSite": "Use this site",
+  "diveSites_picker_register_nearPlace": "Wrecks and reefs near {place}",
+  "diveSites_picker_register_nearby": "Wrecks and reefs nearby",
+  "diveSites_picker_register_show": "Show charted wrecks and reefs ({count})",
+  "diveSites_picker_register_capped": "Showing the nearest {count}. Search to find the rest.",
+  "diveSites_picker_register_allYours": "All of these are already among your sites.",
+  "diveSites_picker_register_nearestYours": "The nearest {count} are already among your sites. Search to find the rest.",
+  "diveSites_map_builtIn_zoomIn": "Zoom in to see every built-in site",
   "diveSites_list_groupBy": "Group by",
   "diveSites_list_groupBy_location": "Country & region",
   "diveSites_list_groupBy_locationAndWater": "Country & body of water",
@@ -15569,6 +15580,10 @@
   "@settings_conflict_field_equipmentCollapsedGroups": {
     "description": "Label for the Equipment page's saved folded groups in a sync conflict"
   },
+  "settings_conflict_field_recentEquipmentColors": "Recent equipment colors",
+  "@settings_conflict_field_recentEquipmentColors": {
+    "description": "Label for the custom equipment colours the diver picked recently, in a sync conflict"
+  },
   "settings_conflict_field_listArrangementHlc": "List arrangement record",
   "@settings_conflict_field_listArrangementHlc": {
     "description": "Label for a saved list arrangement in a sync conflict"
@@ -19773,12 +19788,12 @@
       }
     }
   },
-  "tags_color_custom": "Custom color",
-  "tags_color_hexLabel": "Hex code",
-  "tags_color_hexError": "Enter six digits 0-9 or A-F, like #2E8B57",
-  "tags_color_use": "Use",
-  "tags_color_hueLabel": "Hue",
-  "tags_color_squareLabel": "Saturation and brightness",
+  "common_color_custom": "Custom color",
+  "common_color_hexLabel": "Hex code",
+  "common_color_hexError": "Enter six digits 0-9 or A-F, like #2E8B57",
+  "common_color_use": "Use",
+  "common_color_hueLabel": "Hue",
+  "common_color_squareLabel": "Saturation and brightness",
   "tags_manage_narrowDialog_confirm": "Remove",
   "tags_manage_narrowDialog_dives": "{count, plural, =1{This tag is on 1 dive. Turning off \"Use for dives\" removes it from that dive.} other{This tag is on {count} dives. Turning off \"Use for dives\" removes it from those dives.}}",
   "@tags_manage_narrowDialog_dives": {

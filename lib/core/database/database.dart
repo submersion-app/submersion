@@ -1690,9 +1690,14 @@ class AppDatabase extends _$AppDatabase {
     // New tables and nullable columns, so the floor does not move.
     // Renumbered from 363, which main took for the site catalogue id.
     364,
+    // v365: diver_settings.recent_equipment_colors, the custom colours the
+    // diver picked for their gear (issue #4537). A nullable column an older
+    // peer omits, so the floor does not move. Renumbered from 364, which
+    // main took for #4525.
+    365,
     // v366: equipment_attributes.value_unit, the unit an item's own number
     // reads in (issue #4534). Nullable, no backfill, so the floor does not
-    // move. Numbered 366: open work claims 365.
+    // move. Renumbered from 364 and 365, which main took.
     366,
   ];
 

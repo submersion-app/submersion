@@ -351,7 +351,7 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 21;
+  int get schemaVersion => 22;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -544,6 +544,11 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
         await m.createTable(siteCatalogueMeta);
         await _createSiteCatalogueIndex();
       }
+      // v22: a catalogue record's kind (dive site or register record), and
+      // the index that reads one kind near a point.
+      if (from < 22) {
+        await _addSiteCatalogueKind();
+      }
     },
     beforeOpen: (details) async {
       // Ladder-collision self-heal: a parallel branch that also claimed v7
@@ -706,8 +711,26 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       await customStatement(kCreateSiteCatalogueTableSql);
       await customStatement(kCreateSiteCatalogueMetaTableSql);
       await _createSiteCatalogueIndex();
+      // v22 mirror, for a database a colliding branch stamped at v22 first.
+      await _addSiteCatalogueKind();
     },
   );
+
+  /// Idempotent, so the v22 rung and the open backstop share it: adds the
+  /// kind column to a catalogue table created without it, then its index.
+  /// A table v21 has not created yet is left for the backstop, which
+  /// creates it with the column.
+  Future<void> _addSiteCatalogueKind() async {
+    final columns = await customSelect(
+      "SELECT name FROM pragma_table_info('site_catalogue')",
+    ).get();
+    final names = columns.map((c) => c.read<String>('name')).toSet();
+    if (names.isEmpty) return;
+    if (!names.contains('kind')) {
+      await customStatement(kAddSiteCatalogueKindSql);
+    }
+    await customStatement(kCreateSiteCatalogueKindIndexSql);
+  }
 
   /// Idempotent, so the v21 rung and the open backstop (which also covers
   /// a fresh create) share it.

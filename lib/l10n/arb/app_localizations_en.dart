@@ -1508,6 +1508,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_color_white => 'White';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Recent';
+
+  @override
   String get equipment_color_none => 'None';
 
   @override
@@ -12777,6 +12785,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => 'Use this site';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Wrecks and reefs near $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby => 'Wrecks and reefs nearby';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Show charted wrecks and reefs ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'Showing the nearest $count. Search to find the rest.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'All of these are already among your sites.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'The nearest $count are already among your sites. Search to find the rest.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Zoom in to see every built-in site';
 
   @override
   String get diveSites_list_groupBy => 'Group by';
@@ -24784,6 +24823,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Equipment folded groups';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Recent equipment colors';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'List arrangement record';
 
@@ -33068,22 +33111,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Custom color';
+  String get common_color_custom => 'Custom color';
 
   @override
-  String get tags_color_hexLabel => 'Hex code';
+  String get common_color_hexLabel => 'Hex code';
 
   @override
-  String get tags_color_hexError => 'Enter six digits 0-9 or A-F, like #2E8B57';
+  String get common_color_hexError =>
+      'Enter six digits 0-9 or A-F, like #2E8B57';
 
   @override
-  String get tags_color_use => 'Use';
+  String get common_color_use => 'Use';
 
   @override
-  String get tags_color_hueLabel => 'Hue';
+  String get common_color_hueLabel => 'Hue';
 
   @override
-  String get tags_color_squareLabel => 'Saturation and brightness';
+  String get common_color_squareLabel => 'Saturation and brightness';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Remove';

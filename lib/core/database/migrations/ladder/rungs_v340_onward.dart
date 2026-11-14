@@ -192,10 +192,17 @@ extension RungsFromV340 on AppDatabase {
     if (from < 364) await _assertBodyCompositionColumns();
     if (from < 364) await reportProgress();
 
+    // v365: diver_settings.recent_equipment_colors, the custom colours the
+    // diver picked for their gear (issue #4537). Nullable, no backfill.
+    // Re-asserted in beforeOpen. Renumbered from 364, which main took for
+    // #4525.
+    if (from < 365) await _assertRecentEquipmentColorsColumn();
+    if (from < 365) await reportProgress();
+
     // v366: equipment_attributes.value_unit, the unit an item's own number
     // reads in (issue #4534). Nullable, no backfill: every existing row
     // follows the diver's settings, as it did. Re-asserted in beforeOpen.
-    // Numbered 366 because open work claims 365.
+    // Numbered 366: main took 364 and 365.
     // The same rung repairs cylinder volumes an imperial diver typed in
     // cubic feet, stored as water volume until now. Data only, so the floor
     // does not move; it rewrites equipment_attributes.value_num, so

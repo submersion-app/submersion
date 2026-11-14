@@ -1,0 +1,156 @@
+[
+ {
+  "reefIdentifier": null,
+  "reefName": "Tank 47",
+  "reefComposition": "United States demilitarized M-60 Army Tank",
+  "reefStructure": "Tank",
+  "reefYear": 1994,
+  "stateAbbreviation": "AL",
+  "waterDepthFeet": 112,
+  "latitudeDMS": "29 52 36.4 N",
+  "longitudeDMS": "87 44 6.6 W"
+ },
+ {
+  "reefIdentifier": null,
+  "reefName": "70' OSV",
+  "reefComposition": "70' offshore supply vessel",
+  "reefStructure": "Vessel",
+  "reefYear": 2013,
+  "stateAbbreviation": "AL",
+  "waterDepthFeet": 109,
+  "latitudeDMS": "29 48 27.3 N",
+  "longitudeDMS": "87 59 14.6 W"
+ },
+ {
+  "reefIdentifier": "PA-44",
+  "reefName": "Betsy Ross Reef",
+  "reefComposition": "430' Liberty ship (Betsy Ross)",
+  "reefStructure": "Vessel",
+  "reefYear": null,
+  "stateAbbreviation": "SC",
+  "waterDepthFeet": 85,
+  "latitudeDMS": "32 3 17.1 N",
+  "longitudeDMS": "80 24 59.7 W"
+ },
+ {
+  "reefIdentifier": "PA-44",
+  "reefName": "Betsy Ross Reef",
+  "reefComposition": "Bridge section",
+  "reefStructure": "Other",
+  "reefYear": null,
+  "stateAbbreviation": "SC",
+  "waterDepthFeet": 69,
+  "latitudeDMS": "32 3 23.4 N",
+  "longitudeDMS": "80 24 52.8 W"
+ },
+ {
+  "reefIdentifier": "PA-44",
+  "reefName": "Betsy Ross Reef",
+  "reefComposition": "Bridge section",
+  "reefStructure": "Other",
+  "reefYear": null,
+  "stateAbbreviation": "SC",
+  "waterDepthFeet": 66,
+  "latitudeDMS": "32 3 23.2 N",
+  "longitudeDMS": "80 24 50.7 W"
+ },
+ {
+  "reefIdentifier": null,
+  "reefName": "'Ewa Deepwater Artificial Reef - Corner A",
+  "reefComposition": null,
+  "reefStructure": null,
+  "reefYear": null,
+  "stateAbbreviation": "HI",
+  "waterDepthFeet": 330,
+  "latitudeDMS": "21 16 48.9 N",
+  "longitudeDMS": "158 1 21.9 W"
+ },
+ {
+  "reefIdentifier": "PS-1047",
+  "reefName": "Port Mansfield",
+  "reefComposition": null,
+  "reefStructure": "Culverts",
+  "reefYear": 2006,
+  "stateAbbreviation": "TX",
+  "waterDepthFeet": 65,
+  "latitudeDMS": "26 31 33.6 N",
+  "longitudeDMS": "97 9 14.4 W"
+ },
+ {
+  "reefIdentifier": null,
+  "reefName": "Sixteen Fathom",
+  "reefComposition": null,
+  "reefStructure": null,
+  "reefYear": null,
+  "stateAbbreviation": "NY",
+  "waterDepthFeet": 100,
+  "latitudeDMS": "40 25 55.8 N",
+  "longitudeDMS": "73 21 35.7 W"
+ },
+ {
+  "reefIdentifier": "831",
+  "reefName": "Cape May - Laita",
+  "reefComposition": "106' Clam Dredge - \"Laita\"",
+  "reefStructure": "Ship",
+  "reefYear": 1986,
+  "stateAbbreviation": "NJ",
+  "waterDepthFeet": 69,
+  "latitudeDMS": "38 50 40.8 N",
+  "longitudeDMS": "74 42 58.2 W"
+ },
+ {
+  "reefIdentifier": "AR-460",
+  "reefName": null,
+  "reefComposition": "Pipe",
+  "reefStructure": "Consolidated Concrete",
+  "reefYear": null,
+  "stateAbbreviation": "NC",
+  "waterDepthFeet": 39,
+  "latitudeDMS": "33 49 52.1 N",
+  "longitudeDMS": "78 22 1.8 W"
+ },
+ {
+  "reefIdentifier": "MO0062",
+  "reefName": "Hoyt Vandenberg",
+  "reefComposition": "522' Former Missile Tracking Ship, the \"Hoyt Vandenberg\"",
+  "reefStructure": "Missile Tracking Ship 522'",
+  "reefYear": 2009,
+  "stateAbbreviation": "FL",
+  "waterDepthFeet": 145,
+  "latitudeDMS": "24 27 35.8 N",
+  "longitudeDMS": "81 44 11.3 W"
+ },
+ {
+  "reefIdentifier": null,
+  "reefName": "Garden Banks 189",
+  "reefComposition": null,
+  "reefStructure": "GB-189 \"A\"",
+  "reefYear": null,
+  "stateAbbreviation": "LA",
+  "waterDepthFeet": 720,
+  "latitudeDMS": "27 46 43.7 N",
+  "longitudeDMS": "93 18 34.7 W"
+ },
+ {
+  "reefIdentifier": "A-40",
+  "reefName": null,
+  "reefComposition": "Concrete Rubble",
+  "reefStructure": "Concrete Rubble",
+  "reefYear": null,
+  "stateAbbreviation": "GA",
+  "waterDepthFeet": 46,
+  "latitudeDMS": "30 55 24.0 N",
+  "longitudeDMS": "81 14 10.4 W"
+ },
+ {
+  "reefIdentifier": null,
+  "reefName": "Love Point",
+  "reefComposition": "Bridge decks, tire units",
+  "reefStructure": null,
+  "reefYear": 1967,
+  "stateAbbreviation": "MD",
+  "waterDepthFeet": 26,
+  "latitudeDMS": "39 4 4.8 N",
+  "longitudeDMS": "76 17 27.0 W"
+ }
+]

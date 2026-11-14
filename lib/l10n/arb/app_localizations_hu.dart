@@ -1521,6 +1521,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_color_white => 'Fehér';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Legutóbbiak';
+
+  @override
   String get equipment_color_none => 'Nincs';
 
   @override
@@ -12947,6 +12955,38 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => 'Merülőhely használata';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Roncsok és zátonyok $place közelében';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby =>
+      'Roncsok és zátonyok a közelben';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Térképezett roncsok és zátonyok megjelenítése ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'A legközelebbi $count látható. Keressen a többi megtalálásához.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'Mindegyik már szerepel a merülőhelyei között.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'A legközelebbi $count már szerepel a merülőhelyei között. Keressen a többi megtalálásához.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Nagyítson a térképen az összes beépített merülőhely megjelenítéséhez';
 
   @override
   String get diveSites_list_groupBy => 'Csoportosítás';
@@ -25088,6 +25128,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Összecsukott felszereléscsoportok';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Legutóbbi felszerelésszínek';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Listaelrendezési napló';
 
@@ -33472,23 +33516,23 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Egyéni szín';
+  String get common_color_custom => 'Egyéni szín';
 
   @override
-  String get tags_color_hexLabel => 'Hexakód';
+  String get common_color_hexLabel => 'Hexakód';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Adjon meg hat karaktert (0-9 vagy A-F), például #2E8B57';
 
   @override
-  String get tags_color_use => 'Használat';
+  String get common_color_use => 'Használat';
 
   @override
-  String get tags_color_hueLabel => 'Színárnyalat';
+  String get common_color_hueLabel => 'Színárnyalat';
 
   @override
-  String get tags_color_squareLabel => 'Telítettség és fényerő';
+  String get common_color_squareLabel => 'Telítettség és fényerő';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Eltávolítás';

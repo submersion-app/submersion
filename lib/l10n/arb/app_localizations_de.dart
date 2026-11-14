@@ -1521,6 +1521,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_color_white => 'Weiß';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Zuletzt verwendet';
+
+  @override
   String get equipment_color_none => 'Keine';
 
   @override
@@ -12970,6 +12978,37 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => 'Diesen Tauchplatz verwenden';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Wracks und Riffe bei $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby => 'Wracks und Riffe in der Nähe';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Verzeichnete Wracks und Riffe anzeigen ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'Die nächsten $count werden angezeigt. Suche, um die übrigen zu finden.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'Alle sind bereits unter deinen Tauchplätzen.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'Die nächsten $count sind bereits unter deinen Tauchplätzen. Suche, um die übrigen zu finden.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Hineinzoomen, um alle integrierten Tauchplätze zu sehen';
 
   @override
   String get diveSites_list_groupBy => 'Gruppieren nach';
@@ -25135,6 +25174,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Eingeklappte Ausrüstungsgruppen';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Zuletzt verwendete Ausrüstungsfarben';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Protokoll der Listenanordnung';
 
@@ -33564,23 +33607,23 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Eigene Farbe';
+  String get common_color_custom => 'Eigene Farbe';
 
   @override
-  String get tags_color_hexLabel => 'Hex-Code';
+  String get common_color_hexLabel => 'Hex-Code';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Sechs Zeichen 0-9 oder A-F eingeben, z. B. #2E8B57';
 
   @override
-  String get tags_color_use => 'Übernehmen';
+  String get common_color_use => 'Übernehmen';
 
   @override
-  String get tags_color_hueLabel => 'Farbton';
+  String get common_color_hueLabel => 'Farbton';
 
   @override
-  String get tags_color_squareLabel => 'Sättigung und Helligkeit';
+  String get common_color_squareLabel => 'Sättigung und Helligkeit';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Entfernen';

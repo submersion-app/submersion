@@ -94,6 +94,7 @@ abstract final class SyncFactGroups {
       'equipmentArrangement': 'equipment_arrangement',
       'equipmentGroupByLocation': 'equipment_group_by_location',
       'equipmentCollapsedGroups': 'equipment_collapsed_groups',
+      'recentEquipmentColors': 'recent_equipment_colors',
       'diveListViewMode': 'dive_list_view_mode',
       'siteListViewMode': 'site_list_view_mode',
       'tripListViewMode': 'trip_list_view_mode',

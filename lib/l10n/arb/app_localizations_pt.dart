@@ -1521,6 +1521,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_color_white => 'Branco';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Recentes';
+
+  @override
   String get equipment_color_none => 'Nenhuma';
 
   @override
@@ -12980,6 +12988,38 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => 'Usar este ponto';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Naufrágios e recifes perto de $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby =>
+      'Naufrágios e recifes por perto';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Mostrar naufrágios e recifes cartografados ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'Mostrando os $count mais próximos. Busque para encontrar os demais.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'Todos já estão entre os seus pontos.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'Os $count mais próximos já estão entre os seus pontos. Busque para encontrar os demais.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Aproxime o mapa para ver todos os pontos integrados';
 
   @override
   String get diveSites_list_groupBy => 'Agrupar por';
@@ -25162,6 +25202,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Grupos de equipamentos recolhidos';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Cores de equipamento recentes';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Registro de organização das listas';
 
@@ -33621,23 +33665,23 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Cor personalizada';
+  String get common_color_custom => 'Cor personalizada';
 
   @override
-  String get tags_color_hexLabel => 'Código hexadecimal';
+  String get common_color_hexLabel => 'Código hexadecimal';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Insira seis caracteres 0-9 ou A-F, como #2E8B57';
 
   @override
-  String get tags_color_use => 'Usar';
+  String get common_color_use => 'Usar';
 
   @override
-  String get tags_color_hueLabel => 'Matiz';
+  String get common_color_hueLabel => 'Matiz';
 
   @override
-  String get tags_color_squareLabel => 'Saturação e brilho';
+  String get common_color_squareLabel => 'Saturação e brilho';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Remover';

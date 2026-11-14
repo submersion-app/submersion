@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/shared/utils/color_hex.dart';
 
 /// The three shades the tag palette offers of each hue (issue #4384).
 enum TagShade { light, base, dark }
@@ -94,15 +95,6 @@ Color? parseStoredTagColor(String? stored) {
 Color drawnTagColor(String? stored) =>
     parseStoredTagColor(stored) ?? TagColors.fromHex(tagDefaultColorHex);
 
-/// [color] as `#RRGGBB` in capitals. Alpha is dropped: a tag colour is
-/// always opaque.
-String tagHexOf(Color color) {
-  String channel(double c) =>
-      (c * 255).round().toRadixString(16).padLeft(2, '0');
-  return '#${channel(color.r)}${channel(color.g)}${channel(color.b)}'
-      .toUpperCase();
-}
-
 /// The palette colour a tag storing [stored] is drawn as, or null when it
 /// is drawn in a colour off the palette.
 ///
@@ -113,21 +105,9 @@ String tagHexOf(Color color) {
 TagPaletteEntry? tagPaletteEntryFor(String? stored) {
   final drawn = drawnTagColor(stored);
   if (drawn.a < 1) return null;
-  final hex = tagHexOf(drawn);
+  final hex = colorHexOf(drawn);
   for (final entry in tagPalette) {
     if (entry.hex == hex) return entry;
   }
   return null;
-}
-
-final RegExp _hexInput = RegExp(r'^#?[0-9A-Fa-f]{6}$');
-
-/// A colour code the diver typed, as `#RRGGBB` in capitals, or null when it
-/// is not six hex digits (an optional leading `#` and surrounding space are
-/// allowed). The pattern is checked before any parse, since `int.parse`
-/// would accept a sign.
-String? parseTagHexInput(String text) {
-  final trimmed = text.trim();
-  if (!_hexInput.hasMatch(trimmed)) return null;
-  return '#${trimmed.replaceFirst('#', '').toUpperCase()}';
 }

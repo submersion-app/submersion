@@ -77,29 +77,4 @@ void main() {
       expect(tagPaletteEntryFor('#123456'), isNull);
     });
   });
-
-  group('parseTagHexInput', () {
-    test('accepts six hex digits with or without a hash, in capitals', () {
-      expect(parseTagHexInput(' #2e8b57 '), '#2E8B57');
-      expect(parseTagHexInput('2E8B57'), '#2E8B57');
-    });
-
-    test('rejects anything else', () {
-      for (final bad in [
-        '#FFF',
-        '#GGGGGG',
-        '#2E8B571',
-        '',
-        '#-00001',
-        '##2E8B57',
-      ]) {
-        expect(parseTagHexInput(bad), isNull, reason: bad);
-      }
-    });
-  });
-
-  test('tagHexOf writes capitals and drops alpha', () {
-    expect(tagHexOf(const Color(0x80FF0000)), '#FF0000');
-    expect(tagHexOf(const Color(0xFF2e8b57)), '#2E8B57');
-  });
 }

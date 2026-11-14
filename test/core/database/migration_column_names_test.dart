@@ -39,6 +39,7 @@ void main() {
     // LocalCacheDatabase's, not this database's.
     'recent_queries',
     'swiss_bathy_tile_cache',
+    'site_catalogue',
   };
 
   final patterns = [
