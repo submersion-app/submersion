@@ -82,7 +82,10 @@ agree with them.
 4. Storage: approach B.
 5. Cylinder volume in cu ft means gas capacity, everywhere.
 6. Cylinder volumes already saved as water cubic feet are repaired once, on
-   upgrade (threshold 80 L, fallback 207 bar).
+   upgrade (threshold 80 L).
+7. A cylinder with no working pressure uses the app's existing 200 bar
+   assumption everywhere (repair and form), replacing the 207 bar fallback
+   and the blocked entry first proposed, so a typed 80 reads back as "~80".
 
 ## Data model
 
@@ -124,12 +127,13 @@ agree with them.
 - Cylinder volume in cubic feet: the typed figure is rated gas capacity. The
   stored litres are the inverse of `formatTankVolume` for the working pressure
   on the form, preset-aware, so the round trip reads back the figure typed
-  (80 cu ft at 3000 psi matches the AL80 preset and stores 11.1 L). Without a
-  working pressure the volume cannot be converted: the field shows a
-  validation message asking for the working pressure, and no volume is saved
-  until there is one. When the working pressure changes on the form, the
-  stored litres are recomputed from the figure the diver typed, which stays
-  on screen unchanged.
+  (80 cu ft at 3000 psi matches the AL80 preset and stores 11.1 L). The pair
+  is `ratedCapacityCuft` / `volumeLitersFromCapacity` in
+  `lib/core/services/export/csv/codec/tank_capacity.dart`. Without a working
+  pressure the app's existing assumption applies: 200 bar, shown with "~" as
+  `formatTankVolume` already does. When the working pressure changes on the
+  form, the stored litres are recomputed from the figure the diver typed,
+  which stays on screen unchanged.
 - The same cubic-feet rule applies to an imperial diver with no unit picked:
   the field shows and takes gas capacity.
 
@@ -173,8 +177,9 @@ this feature reads cubic feet as gas capacity the AL80 would show as about
   near 85 L. Gas banks (typically 50 L) stay below the line.
 - **The repair:** `typedCuft = value_num / 28.3168` recovers what the diver
   typed; the new `value_num` is the gas-capacity inverse of that figure at the
-  item's working pressure (the same preset-aware conversion the form uses).
-  An item with no working pressure uses 207 bar (3000 psi).
+  item's working pressure (the same preset-aware conversion the form uses,
+  `volumeLitersFromCapacity`). An item with no working pressure uses the
+  app's assumed 200 bar, so it reads back as the figure typed.
 - **The unit:** the repaired row's `value_unit` is left `NULL`; the diver who
   typed it is imperial and sees cubic feet already.
 - **Sync:** this rung rewrites stored values, so per the repo's rule it joins
@@ -226,6 +231,5 @@ correction on review.
   style.
 - Where the per-dimension unit sets live (a helper next to
   `equipment_attribute_units.dart` is the natural home).
-- Localised labels for "Both" and the cubic-feet validation message, in every
-  ARB file per the repo's l10n rules.
+- Localised labels for "Both" in every ARB file per the repo's l10n rules.
 - Test layout, following TDD.
