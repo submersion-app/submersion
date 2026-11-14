@@ -1,0 +1,999 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_text_suggestion_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_environment_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_fields.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_fields.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/weather/data/services/elevation_service.dart';
+import 'package:submersion/features/weather/data/services/weather_service.dart';
+import 'package:submersion/features/weather/domain/entities/weather_data.dart';
+import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/forms/form_row.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+
+import '../../../../../../helpers/mock_providers.dart';
+import '../../../../../../helpers/test_database.dart';
+
+http.Client _noNetwork() => MockClient((_) async => http.Response('', 500));
+
+/// Answers a weather fetch from a fixed forecast, or with nothing, or by
+/// failing, and can hold the answer until released.
+class _FakeWeather extends WeatherService {
+  _FakeWeather({this.data, this.gate, this.fail = false})
+    : super(client: _noNetwork());
+
+  final WeatherData? data;
+  final Completer<void>? gate;
+  final bool fail;
+  final asked =
+      <({double latitude, double longitude, DateTime date, DateTime entry})>[];
+
+  @override
+  Future<WeatherData?> fetchWeather({
+    required double latitude,
+    required double longitude,
+    required DateTime date,
+    required DateTime entryTime,
+  }) async {
+    asked.add((
+      latitude: latitude,
+      longitude: longitude,
+      date: date,
+      entry: entryTime,
+    ));
+    await gate?.future;
+    if (fail) throw StateError('offline');
+    return data;
+  }
+}
+
+class _FakeElevation extends ElevationService {
+  _FakeElevation({this.result}) : super(client: _noNetwork());
+
+  final double? result;
+  int calls = 0;
+
+  @override
+  Future<double?> fetchElevation({
+    required double latitude,
+    required double longitude,
+  }) async {
+    calls++;
+    return result;
+  }
+}
+
+const _cardId = 'environment';
+
+const _forecast = WeatherData(
+  windSpeed: 5,
+  windDirection: CurrentDirection.northWest,
+  cloudCover: CloudCover.overcast,
+  precipitation: Precipitation.drizzle,
+  humidity: 70,
+  airTemp: 24,
+  surfacePressure: 1.009,
+);
+
+/// The Environment card of the dive page, edited in place (issue #4527).
+void main() {
+  final bare = Dive(id: 'dive', dateTime: DateTime(2024, 6, 1, 10));
+  const reef = DiveSite(
+    id: 'site-1',
+    name: 'Reef',
+    location: GeoPoint(-16.5, 145.8),
+  );
+  final full = bare.copyWith(
+    airTemp: 21,
+    windSpeed: 4,
+    windDirection: CurrentDirection.east,
+    cloudCover: CloudCover.clear,
+    precipitation: Precipitation.none,
+    humidity: 60,
+    weatherDescription: 'Fine',
+    weatherSource: WeatherSource.manual,
+    weatherFetchedAt: DateTime(2024, 6, 2),
+    currentDirection: CurrentDirection.north,
+    currentStrength: CurrentStrength.light,
+    swellHeight: 1.5,
+    surfaceConditions: 'Calm',
+    entryMethod: EntryMethod.shore,
+    exitMethod: EntryMethod.boat,
+  );
+
+  EditSession<Dive> sessionOver(Dive dive) {
+    final session = EditSession<Dive>(dive);
+    addTearDown(session.dispose);
+    return session;
+  }
+
+  group('the card and its fields', () {
+    // Each entry clears one value through its field and reads it back.
+    final clears = <String, (Dive Function(Dive), Object? Function(Dive))>{
+      'airTemp': ((d) => diveAirTempField.write(d, null), (d) => d.airTemp),
+      'windSpeed': (
+        (d) => diveWindSpeedField.write(d, null),
+        (d) => d.windSpeed,
+      ),
+      'windDirection': (
+        (d) => diveWindDirectionField.write(d, null),
+        (d) => d.windDirection,
+      ),
+      'cloudCover': (
+        (d) => diveCloudCoverField.write(d, null),
+        (d) => d.cloudCover,
+      ),
+      'precipitation': (
+        (d) => divePrecipitationField.write(d, null),
+        (d) => d.precipitation,
+      ),
+      'humidity': ((d) => diveHumidityField.write(d, null), (d) => d.humidity),
+      'weatherDescription': (
+        (d) => diveWeatherDescriptionField.write(d, null),
+        (d) => d.weatherDescription,
+      ),
+      'weatherSource': (
+        (d) => diveWeatherSourceField.write(d, null),
+        (d) => d.weatherSource,
+      ),
+      'weatherFetchedAt': (
+        (d) => diveWeatherFetchedAtField.write(d, null),
+        (d) => d.weatherFetchedAt,
+      ),
+      'currentDirection': (
+        (d) => diveCurrentDirectionField.write(d, null),
+        (d) => d.currentDirection,
+      ),
+      'currentStrength': (
+        (d) => diveCurrentStrengthField.write(d, null),
+        (d) => d.currentStrength,
+      ),
+      'swellHeight': (
+        (d) => diveSwellHeightField.write(d, null),
+        (d) => d.swellHeight,
+      ),
+      'surfaceConditions': (
+        (d) => diveSurfaceConditionsField.write(d, null),
+        (d) => d.surfaceConditions,
+      ),
+      'entryMethod': (
+        (d) => diveEntryMethodField.write(d, null),
+        (d) => d.entryMethod,
+      ),
+      'exitMethod': (
+        (d) => diveExitMethodField.write(d, null),
+        (d) => d.exitMethod,
+      ),
+    };
+
+    test('there are fifteen fields, all on the Environment card', () {
+      expect(clears, hasLength(15));
+      expect(
+        {
+          diveAirTempField.cardId,
+          diveWindSpeedField.cardId,
+          diveWindDirectionField.cardId,
+          diveCloudCoverField.cardId,
+          divePrecipitationField.cardId,
+          diveHumidityField.cardId,
+          diveWeatherDescriptionField.cardId,
+          diveWeatherSourceField.cardId,
+          diveWeatherFetchedAtField.cardId,
+          diveCurrentDirectionField.cardId,
+          diveCurrentStrengthField.cardId,
+          diveSwellHeightField.cardId,
+          diveSurfaceConditionsField.cardId,
+          diveEntryMethodField.cardId,
+          diveExitMethodField.cardId,
+        },
+        {_cardId},
+      );
+    });
+
+    test('field ids are unique', () {
+      final ids = [
+        diveAirTempField.id,
+        diveWindSpeedField.id,
+        diveWindDirectionField.id,
+        diveCloudCoverField.id,
+        divePrecipitationField.id,
+        diveHumidityField.id,
+        diveWeatherDescriptionField.id,
+        diveWeatherSourceField.id,
+        diveWeatherFetchedAtField.id,
+        diveCurrentDirectionField.id,
+        diveCurrentStrengthField.id,
+        diveSwellHeightField.id,
+        diveSurfaceConditionsField.id,
+        diveEntryMethodField.id,
+        diveExitMethodField.id,
+        diveAltitudeField.id,
+        diveSurfacePressureField.id,
+        diveNotesField.id,
+        diveTagsField.id,
+      ];
+      expect(ids.toSet(), hasLength(ids.length));
+    });
+
+    for (final entry in clears.entries) {
+      test('${entry.key} clears with null and leaves the rest alone', () {
+        final (clear, read) = entry.value;
+        expect(read(full), isNotNull);
+
+        final cleared = clear(full);
+
+        expect(read(cleared), isNull);
+        for (final other in clears.entries.where((e) => e.key != entry.key)) {
+          expect(
+            other.value.$2(cleared),
+            other.value.$2(full),
+            reason: other.key,
+          );
+        }
+      });
+    }
+
+    test('a field writes its value', () {
+      expect(diveAirTempField.write(bare, 19).airTemp, 19);
+      expect(
+        diveEntryMethodField.write(bare, EntryMethod.ladder).entryMethod,
+        EntryMethod.ladder,
+      );
+      expect(
+        diveSurfaceConditionsField.write(bare, 'Choppy').surfaceConditions,
+        'Choppy',
+      );
+    });
+
+    test('surface conditions are trimmed, and blank is null', () {
+      expect(
+        diveSurfaceConditionsField.write(bare, '  Choppy ').surfaceConditions,
+        'Choppy',
+      );
+      expect(
+        diveSurfaceConditionsField.write(full, '   ').surfaceConditions,
+        isNull,
+      );
+    });
+
+    test('the card is left out when nothing is logged', () {
+      final card = diveEditCards[DiveDetailSectionId.environment]!;
+
+      expect(card.id, _cardId);
+      expect(card.isEmpty(bare), isTrue);
+      expect(card.isEmpty(bare.copyWith(airTemp: 20)), isFalse);
+      expect(
+        card.isEmpty(bare.copyWith(exitMethod: EntryMethod.boat)),
+        isFalse,
+      );
+      // A surface pressure shows on this card too.
+      expect(card.isEmpty(bare.copyWith(surfacePressure: 1.0)), isFalse);
+    });
+  });
+
+  group('setEntryMethod', () {
+    test('an unset exit follows the entry', () {
+      final session = sessionOver(bare);
+
+      setEntryMethod(session, EntryMethod.shore);
+
+      expect(session.valueOf(diveEntryMethodField), EntryMethod.shore);
+      expect(session.valueOf(diveExitMethodField), EntryMethod.shore);
+    });
+
+    test('an exit equal to the old entry follows the new one', () {
+      final session = sessionOver(
+        bare.copyWith(
+          entryMethod: EntryMethod.shore,
+          exitMethod: EntryMethod.shore,
+        ),
+      );
+
+      setEntryMethod(session, EntryMethod.boat);
+
+      expect(session.valueOf(diveEntryMethodField), EntryMethod.boat);
+      expect(session.valueOf(diveExitMethodField), EntryMethod.boat);
+    });
+
+    test('an exit the diver set differently is kept', () {
+      final session = sessionOver(
+        bare.copyWith(
+          entryMethod: EntryMethod.shore,
+          exitMethod: EntryMethod.boat,
+        ),
+      );
+
+      setEntryMethod(session, EntryMethod.ladder);
+
+      expect(session.valueOf(diveEntryMethodField), EntryMethod.ladder);
+      expect(session.valueOf(diveExitMethodField), EntryMethod.boat);
+    });
+
+    test('clearing the entry clears a linked exit', () {
+      final session = sessionOver(
+        bare.copyWith(
+          entryMethod: EntryMethod.shore,
+          exitMethod: EntryMethod.shore,
+        ),
+      );
+
+      setEntryMethod(session, null);
+
+      expect(session.working.entryMethod, isNull);
+      expect(session.working.exitMethod, isNull);
+    });
+
+    test('setting the entry back leaves the sitting clean', () {
+      final session = sessionOver(bare);
+
+      setEntryMethod(session, EntryMethod.shore);
+      setEntryMethod(session, null);
+
+      expect(session.isDirty, isFalse);
+    });
+  });
+
+  group('applyFetchedWeather', () {
+    final now = DateTime(2024, 6, 3, 9);
+
+    test('overwrites the weather values that came back', () {
+      final session = sessionOver(full);
+
+      applyFetchedWeather(session, _forecast, now: now);
+
+      final dive = session.working;
+      expect(dive.windSpeed, 5);
+      expect(dive.windDirection, CurrentDirection.northWest);
+      expect(dive.cloudCover, CloudCover.overcast);
+      expect(dive.precipitation, Precipitation.drizzle);
+      expect(dive.humidity, 70);
+    });
+
+    test('leaves a value alone when the forecast has none for it', () {
+      final session = sessionOver(full);
+
+      applyFetchedWeather(session, const WeatherData(humidity: 70), now: now);
+
+      final dive = session.working;
+      expect(dive.humidity, 70);
+      expect(dive.windSpeed, 4);
+      expect(dive.windDirection, CurrentDirection.east);
+      expect(dive.cloudCover, CloudCover.clear);
+      expect(dive.precipitation, Precipitation.none);
+      expect(dive.weatherDescription, 'Fine');
+    });
+
+    test('a description replaces the stored one only when it has words', () {
+      final withWords = sessionOver(full);
+      applyFetchedWeather(
+        withWords,
+        const WeatherData(description: 'Rain later'),
+        now: now,
+      );
+      expect(withWords.working.weatherDescription, 'Rain later');
+
+      final empty = sessionOver(full);
+      applyFetchedWeather(empty, const WeatherData(description: ''), now: now);
+      expect(empty.working.weatherDescription, 'Fine');
+    });
+
+    test('fills air temperature and surface pressure only when empty', () {
+      final empty = sessionOver(bare);
+      applyFetchedWeather(empty, _forecast, now: now);
+      expect(empty.working.airTemp, 24);
+      expect(empty.working.surfacePressure, 1.009);
+
+      final set = sessionOver(bare.copyWith(airTemp: 21, surfacePressure: 0.9));
+      applyFetchedWeather(set, _forecast, now: now);
+      expect(set.working.airTemp, 21);
+      expect(set.working.surfacePressure, 0.9);
+    });
+
+    test('a value the diver typed this sitting counts as set', () {
+      final session = sessionOver(bare)..set(diveAirTempField, 19.0);
+
+      applyFetchedWeather(session, _forecast, now: now);
+
+      expect(session.working.airTemp, 19);
+    });
+
+    test('stamps the source and the time', () {
+      final session = sessionOver(full);
+
+      applyFetchedWeather(session, const WeatherData(), now: now);
+
+      expect(session.working.weatherSource, WeatherSource.openMeteo);
+      expect(session.working.weatherFetchedAt, now);
+    });
+
+    test('marks the Altitude card changed when it filled the pressure', () {
+      final session = sessionOver(bare);
+
+      applyFetchedWeather(session, _forecast, now: now);
+
+      expect(session.changedCardIds, {_cardId, 'altitude'});
+    });
+
+    test('touches nothing but the weather', () {
+      final session = sessionOver(full);
+
+      applyFetchedWeather(session, _forecast, now: now);
+
+      final dive = session.working;
+      expect(dive.currentDirection, CurrentDirection.north);
+      expect(dive.currentStrength, CurrentStrength.light);
+      expect(dive.swellHeight, 1.5);
+      expect(dive.surfaceConditions, 'Calm');
+      expect(dive.entryMethod, EntryMethod.shore);
+      expect(dive.exitMethod, EntryMethod.boat);
+      expect(dive.altitude, isNull);
+    });
+  });
+
+  group('the editor', () {
+    setUp(setUpTestDatabase);
+    tearDown(tearDownTestDatabase);
+
+    Future<RecordEditController<Dive>> pumpEditor(
+      WidgetTester tester,
+      Dive dive, {
+      AppSettings settings = const AppSettings(),
+      WeatherService? weather,
+      ElevationService? elevation,
+      bool showEditor = true,
+      RecordEditController<Dive>? controller,
+    }) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 1400);
+      addTearDown(tester.view.reset);
+      final edit =
+          controller ??
+          (RecordEditController<Dive>(onSave: (_) async {})
+            ..unlock(dive)
+            ..openCard(_cardId));
+      if (controller == null) addTearDown(edit.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...await getBaseOverrides(
+              settingsNotifier: MockSettingsNotifier(settings),
+            ),
+            weatherServiceProvider.overrideWithValue(weather ?? _FakeWeather()),
+            elevationServiceProvider.overrideWithValue(
+              elevation ?? _FakeElevation(),
+            ),
+            diveTextSuggestionsProvider.overrideWith(
+              (ref, field) async => const <String>[],
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: RecordEditScope<Dive>(
+                  controller: edit,
+                  child: showEditor
+                      ? DiveEnvironmentCardEditor(session: edit.session!)
+                      : const SizedBox(key: ValueKey('gone')),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      return edit;
+    }
+
+    AppLocalizations l10nOf(WidgetTester tester) =>
+        AppLocalizations.of(tester.element(find.byType(Scaffold)));
+
+    Finder fetchButton() => find.ancestor(
+      of: find.text('Fetch Weather'),
+      matching: find.byWidgetPredicate((w) => w is TextButton),
+    );
+
+    bool fetchEnabled(WidgetTester tester) =>
+        tester.widget<TextButton>(fetchButton()).onPressed != null;
+
+    /// The text field of the row labelled [label], once that row is open.
+    Finder fieldOf(String label) => find.descendant(
+      of: find.widgetWithText(FormRow, label),
+      matching: find.byType(TextFormField),
+    );
+
+    Future<void> tapFetch(WidgetTester tester) async {
+      await tester.tap(find.text('Fetch Weather'));
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('rows show in the order of the read card', (tester) async {
+      await pumpEditor(tester, full.copyWith(surfacePressure: 0.87));
+      final l10n = l10nOf(tester);
+
+      final labels = [
+        l10n.diveLog_detail_subsection_weather.toUpperCase(),
+        l10n.diveLog_edit_label_airTemp,
+        l10n.diveLog_edit_label_surfacePressure,
+        l10n.diveLog_edit_label_windSpeed,
+        l10n.diveLog_edit_label_windDirection,
+        l10n.diveLog_edit_label_cloudCover,
+        l10n.diveLog_edit_label_precipitation,
+        l10n.diveLog_edit_label_humidity,
+        l10n.diveLog_edit_label_weatherDescription,
+        l10n.diveLog_detail_subsection_diveConditions.toUpperCase(),
+        l10n.diveLog_edit_label_currentDirection,
+        l10n.diveLog_edit_label_currentStrength,
+        l10n.diveLog_edit_label_swellHeight,
+        l10n.diveLog_edit_label_surfaceConditions,
+        l10n.diveLog_edit_label_entryMethod,
+        l10n.diveLog_edit_label_exitMethod,
+      ];
+      final tops = [
+        for (final label in labels) tester.getTopLeft(find.text(label)).dy,
+      ];
+      for (var i = 1; i < tops.length; i++) {
+        expect(
+          tops[i],
+          greaterThan(tops[i - 1]),
+          reason: '${labels[i]} should sit below ${labels[i - 1]}',
+        );
+      }
+    });
+
+    testWidgets('values show in the diver\'s units and the sitting is clean', (
+      tester,
+    ) async {
+      final controller = await pumpEditor(
+        tester,
+        full,
+        settings: const AppSettings(
+          depthUnit: DepthUnit.feet,
+          temperatureUnit: TemperatureUnit.fahrenheit,
+        ),
+      );
+
+      // Worked out by hand: 21 C is 69.8 F, shown whole; 1.5 m is 4.92 ft,
+      // shown to one place.
+      expect(find.text('70 °F'), findsOneWidget);
+      expect(find.text('4.9 ft'), findsOneWidget);
+      expect(find.text('60 %'), findsOneWidget);
+      expect(controller.isDirty, isFalse);
+    });
+
+    testWidgets('typing an air temperature in Fahrenheit stores Celsius', (
+      tester,
+    ) async {
+      final controller = await pumpEditor(
+        tester,
+        full,
+        settings: const AppSettings(
+          temperatureUnit: TemperatureUnit.fahrenheit,
+        ),
+      );
+
+      final airTemp = fieldOf(l10nOf(tester).diveLog_edit_label_airTemp);
+      await tester.tap(find.text('70 °F'));
+      await tester.pump();
+      await tester.enterText(airTemp, '50');
+      await tester.pump();
+
+      expect(controller.session!.valueOf(diveAirTempField), closeTo(10, 0.001));
+    });
+
+    testWidgets('a negative humidity is refused, a negative air '
+        'temperature is not', (tester) async {
+      final controller = await pumpEditor(tester, full);
+      final l10n = l10nOf(tester);
+      final humidity = fieldOf(l10n.diveLog_edit_label_humidity);
+      final airTemp = fieldOf(l10n.diveLog_edit_label_airTemp);
+
+      await tester.tap(find.text('60 %'));
+      await tester.pump();
+      await tester.enterText(humidity, '-5');
+      await tester.pump();
+      expect(controller.invalidCardIds, {_cardId});
+      await tester.enterText(humidity, '55');
+      await tester.pump();
+      expect(controller.invalidCardIds, isEmpty);
+
+      await tester.tap(find.text('21 °C'));
+      await tester.pump();
+      await tester.enterText(airTemp, '-5');
+      await tester.pump();
+      expect(controller.invalidCardIds, isEmpty);
+      expect(controller.session!.valueOf(diveAirTempField), -5);
+    });
+
+    testWidgets('a stored surface pressure shows as a row that cannot be '
+        'typed in', (tester) async {
+      final controller = await pumpEditor(
+        tester,
+        full.copyWith(surfacePressure: 0.87),
+      );
+
+      final label = l10nOf(tester).diveLog_edit_label_surfacePressure;
+      expect(find.text('870 mbar'), findsOneWidget);
+      await tester.tap(find.text('870 mbar'));
+      await tester.pump();
+
+      expect(find.widgetWithText(FormRow, label), findsOneWidget);
+      expect(fieldOf(label), findsNothing);
+      expect(controller.isDirty, isFalse);
+    });
+
+    testWidgets('with no surface pressure there is no such row', (
+      tester,
+    ) async {
+      await pumpEditor(tester, full);
+
+      expect(
+        find.text(l10nOf(tester).diveLog_edit_label_surfacePressure),
+        findsNothing,
+      );
+    });
+
+    testWidgets('typing a description sets it, and emptying clears it', (
+      tester,
+    ) async {
+      final controller = await pumpEditor(tester, full);
+
+      final description = fieldOf(
+        l10nOf(tester).diveLog_edit_label_weatherDescription,
+      );
+      await tester.tap(find.text('Fine'));
+      await tester.pump();
+      await tester.enterText(description, 'Windy');
+      await tester.pump();
+      expect(controller.session!.valueOf(diveWeatherDescriptionField), 'Windy');
+
+      await tester.enterText(description, '');
+      await tester.pump();
+      expect(controller.session!.working.weatherDescription, isNull);
+    });
+
+    testWidgets('the entry row hints the site method when the dive has none', (
+      tester,
+    ) async {
+      const jetty = DiveSite(
+        id: 'site-1',
+        name: 'Pier',
+        entryMethods: [EntryMethod.jetty],
+      );
+      final controller = await pumpEditor(tester, bare.copyWith(site: jetty));
+
+      // Entry shows the site's method as its hint; exit has no such hint.
+      expect(find.text('Jetty/Dock'), findsOneWidget);
+      expect(find.text('Not specified'), findsWidgets);
+      expect(controller.session!.valueOf(diveEntryMethodField), isNull);
+      expect(controller.isDirty, isFalse);
+    });
+
+    testWidgets('picking an entry method carries a linked exit with it', (
+      tester,
+    ) async {
+      final controller = await pumpEditor(tester, bare);
+      final l10n = l10nOf(tester);
+
+      await tester.tap(find.text(l10n.diveLog_edit_label_entryMethod));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Shore').last);
+      await tester.pumpAndSettle();
+
+      expect(controller.session!.working.entryMethod, EntryMethod.shore);
+      expect(controller.session!.working.exitMethod, EntryMethod.shore);
+    });
+
+    testWidgets('picking an exit method leaves the entry alone', (
+      tester,
+    ) async {
+      final controller = await pumpEditor(
+        tester,
+        bare.copyWith(entryMethod: EntryMethod.shore),
+      );
+      final l10n = l10nOf(tester);
+
+      await tester.tap(find.text(l10n.diveLog_edit_label_exitMethod));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ladder').last);
+      await tester.pumpAndSettle();
+
+      expect(controller.session!.working.entryMethod, EntryMethod.shore);
+      expect(controller.session!.working.exitMethod, EntryMethod.ladder);
+    });
+
+    group('Fetch', () {
+      testWidgets('is disabled for a dive whose site has no coordinates', (
+        tester,
+      ) async {
+        await pumpEditor(
+          tester,
+          bare.copyWith(
+            site: const DiveSite(id: 's', name: 'Somewhere'),
+          ),
+        );
+        expect(fetchEnabled(tester), isFalse);
+
+        await pumpEditor(tester, bare);
+        expect(fetchEnabled(tester), isFalse);
+      });
+
+      testWidgets('asks for the site and the dive date', (tester) async {
+        final weather = _FakeWeather(data: _forecast);
+        await pumpEditor(
+          tester,
+          bare.copyWith(site: reef, entryTime: DateTime(2024, 6, 1, 14, 30)),
+          weather: weather,
+        );
+        expect(fetchEnabled(tester), isTrue);
+
+        await tapFetch(tester);
+
+        final asked = weather.asked.single;
+        expect(asked.latitude, -16.5);
+        expect(asked.longitude, 145.8);
+        expect(asked.date, DateTime(2024, 6, 1, 10));
+        expect(asked.entry, DateTime(2024, 6, 1, 14, 30));
+      });
+
+      testWidgets('fills the rows and says so', (tester) async {
+        final controller = await pumpEditor(
+          tester,
+          bare.copyWith(site: reef),
+          weather: _FakeWeather(data: _forecast),
+        );
+
+        await tapFetch(tester);
+
+        expect(find.text('Weather data loaded'), findsOneWidget);
+        // 5 m/s is 18 km/h.
+        expect(find.text('18.0 km/h'), findsOneWidget);
+        expect(find.text('24 °C'), findsOneWidget);
+        expect(find.text('70 %'), findsOneWidget);
+        expect(find.text('1009 mbar'), findsOneWidget);
+        final dive = controller.session!.working;
+        expect(dive.weatherSource, WeatherSource.openMeteo);
+        expect(dive.weatherFetchedAt, isNotNull);
+        expect(dive.cloudCover, CloudCover.overcast);
+      });
+
+      testWidgets('asks first when weather values are already set', (
+        tester,
+      ) async {
+        final weather = _FakeWeather(data: _forecast);
+        final controller = await pumpEditor(
+          tester,
+          full.copyWith(site: reef),
+          weather: weather,
+        );
+        final l10n = l10nOf(tester);
+
+        await tapFetch(tester);
+        expect(find.byType(AlertDialog), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.text(l10n.diveLog_edit_fetchWeatherConfirm),
+          ),
+          findsWidgets,
+        );
+        await tester.tap(find.text(l10n.common_action_cancel));
+        await tester.pumpAndSettle();
+
+        expect(weather.asked, isEmpty);
+        expect(controller.isDirty, isFalse);
+
+        await tapFetch(tester);
+        await tester.tap(find.text(l10n.common_action_ok));
+        await tester.pumpAndSettle();
+
+        expect(weather.asked, hasLength(1));
+        expect(controller.session!.working.humidity, 70);
+      });
+
+      testWidgets('does not ask when only an air temperature is set', (
+        tester,
+      ) async {
+        final weather = _FakeWeather(data: _forecast);
+        final controller = await pumpEditor(
+          tester,
+          bare.copyWith(site: reef, airTemp: 21),
+          weather: weather,
+        );
+
+        await tapFetch(tester);
+
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(weather.asked, hasLength(1));
+        // Filled only when empty: the typed temperature stays.
+        expect(controller.session!.working.airTemp, 21);
+      });
+
+      testWidgets('with no forecast says so and changes nothing', (
+        tester,
+      ) async {
+        final controller = await pumpEditor(
+          tester,
+          bare.copyWith(site: reef),
+          weather: _FakeWeather(),
+        );
+
+        await tapFetch(tester);
+
+        expect(
+          find.text('Weather data unavailable for this date'),
+          findsOneWidget,
+        );
+        expect(controller.isDirty, isFalse);
+        expect(fetchEnabled(tester), isTrue);
+      });
+
+      testWidgets('that fails says it is unavailable and changes nothing', (
+        tester,
+      ) async {
+        final controller = await pumpEditor(
+          tester,
+          bare.copyWith(site: reef),
+          weather: _FakeWeather(fail: true),
+        );
+
+        await tapFetch(tester);
+
+        expect(tester.takeException(), isNull);
+        expect(
+          find.text('Weather data unavailable for this date'),
+          findsOneWidget,
+        );
+        expect(controller.isDirty, isFalse);
+        expect(fetchEnabled(tester), isTrue);
+      });
+
+      testWidgets('shows busy while it runs and not after', (tester) async {
+        final gate = Completer<void>();
+        await pumpEditor(
+          tester,
+          bare.copyWith(site: reef),
+          weather: _FakeWeather(data: _forecast, gate: gate),
+        );
+
+        await tapFetch(tester);
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        expect(fetchEnabled(tester), isFalse);
+
+        gate.complete();
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+        expect(fetchEnabled(tester), isTrue);
+      });
+
+      testWidgets('that returns after the editor has gone sets nothing', (
+        tester,
+      ) async {
+        final gate = Completer<void>();
+        final dive = bare.copyWith(site: reef);
+        final controller = await pumpEditor(
+          tester,
+          dive,
+          weather: _FakeWeather(data: _forecast, gate: gate),
+        );
+        await tapFetch(tester);
+
+        await pumpEditor(
+          tester,
+          dive,
+          showEditor: false,
+          controller: controller,
+        );
+        gate.complete();
+        await tester.pump();
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(const ValueKey('gone')), findsOneWidget);
+        expect(controller.isDirty, isFalse);
+      });
+
+      testWidgets('looks the altitude up afterwards when the dive has none', (
+        tester,
+      ) async {
+        final elevation = _FakeElevation(result: 12);
+        final controller = await pumpEditor(
+          tester,
+          bare.copyWith(site: reef),
+          weather: _FakeWeather(data: _forecast),
+          elevation: elevation,
+        );
+        expect(elevation.calls, 0);
+
+        await tapFetch(tester);
+
+        expect(elevation.calls, 1);
+        expect(controller.session!.valueOf(diveAltitudeField), 12);
+      });
+    });
+  });
+
+  group('the read card', () {
+    setUp(setUpTestDatabase);
+    tearDown(tearDownTestDatabase);
+
+    Future<void> pumpCard(
+      WidgetTester tester, {
+      RecordEditController<Dive>? controller,
+    }) async {
+      final card = DiveEnvironmentSection(dive: full);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: await getBaseOverrides(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: controller == null
+                    ? card
+                    : RecordEditScope<Dive>(
+                        controller: controller,
+                        child: RecordCardFrame<Dive>(
+                          card: diveEditCards[DiveDetailSectionId.environment]!,
+                          child: card,
+                        ),
+                      ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('its title is the shared header', (tester) async {
+      await pumpCard(tester);
+
+      final header = find.byType(RecordCardHeader);
+      expect(header, findsOneWidget);
+      final title = tester.widget<Text>(
+        find.descendant(of: header, matching: find.text('Environment')),
+      );
+      expect(
+        title.style,
+        Theme.of(tester.element(header)).textTheme.titleMedium,
+      );
+      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    });
+
+    testWidgets('unlocked, it gains the pencil', (tester) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(full);
+      addTearDown(controller.dispose);
+
+      await pumpCard(tester, controller: controller);
+
+      expect(find.byTooltip('Edit Environment'), findsOneWidget);
+    });
+  });
+}

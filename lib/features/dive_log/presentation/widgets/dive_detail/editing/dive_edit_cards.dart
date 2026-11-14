@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_gates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tags_card_editor.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -65,5 +67,14 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     isEmpty: (dive) => (dive.altitude ?? 0) <= 0,
     editorBuilder: (context, session) =>
         DiveAltitudeCardEditor(session: session),
+  ),
+  DiveDetailSectionId.environment: EditCard<Dive>(
+    id: DiveDetailSectionId.environment.name,
+    title: (context) => context.l10n.diveLog_detail_section_environment,
+    // Empty for the editor when nothing is logged. The page may still show
+    // the card for satellite conditions alone: see diveCardIsShown.
+    isEmpty: (dive) => !hasLoggedEnvironmentData(dive),
+    editorBuilder: (context, session) =>
+        DiveEnvironmentCardEditor(session: session),
   ),
 };
