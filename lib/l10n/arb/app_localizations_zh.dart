@@ -27403,7 +27403,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      '在从氦气含量较高的气体切换到氮气含量较高的气体时,在ICD计算器中显示根据五分之一法则得出的评估。';
+      '在从氦气含量较高的气体切换到氮气含量较高的气体时,在ICD计算器和潜水曲线的逆向扩散图层中显示根据五分之一法则得出的评估。';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS 计算';

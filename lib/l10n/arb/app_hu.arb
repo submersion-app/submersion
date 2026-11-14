@@ -8168,7 +8168,7 @@
   "settings_decompression_endLimit_dialog_title": "END határ",
   "settings_decompression_header_icd": "Izobár ellendiffúzió",
   "settings_decompression_icdWarnings": "Figyelmeztetés ICD-kockázatra",
-  "settings_decompression_icdWarnings_subtitle": "Az ötödszabály szerinti értékelést jeleníti meg az ICD-kalkulátorban, amikor héliumban gazdagabb gázról nitrogénben gazdagabb gázra váltunk.",
+  "settings_decompression_icdWarnings_subtitle": "Az ötödszabály szerinti értékelést jeleníti meg az ICD-kalkulátorban és a profil ellendiffúziós rétegén, amikor héliumban gazdagabb gázról nitrogénben gazdagabb gázra váltunk.",
   "settings_decompression_cnsMethodTitle": "CNS-számítás",
   "settings_decompression_cnsMethodClassic": "NOAA-táblázat, lépcsős (klasszikus)",
   "settings_decompression_cnsMethodClassicDesc": "Minden 0,1 bar-os sávot a szigorúbb szélén számol. A Submersion eredeti módszere.",

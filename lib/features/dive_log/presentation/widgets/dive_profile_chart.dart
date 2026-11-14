@@ -19,6 +19,8 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency.dart';
 import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/gas_calculators/presentation/providers/icd_calculator_providers.dart'
+    show icdWarningsEnabledProvider;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart'
@@ -2813,28 +2815,23 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     // Counterdiffusion span under the cursor (#4530).
-    if (_showCounterdiffusion) {
-      final range = counterdiffusionRangeAt(
-        widget.counterdiffusion,
-        point.timestamp,
-        showAll: _counterdiffusionShowAll,
+    final counterdiffusion = _showCounterdiffusion
+        ? counterdiffusionTooltip(
+            widget.counterdiffusion,
+            point.timestamp,
+            showAll: _counterdiffusionShowAll,
+            l10n: l10n,
+            scheme: Theme.of(context).colorScheme,
+          )
+        : null;
+    if (counterdiffusion != null) {
+      rows.add(
+        TooltipRow(
+          label: counterdiffusion.label,
+          value: counterdiffusion.value,
+          bulletColor: counterdiffusion.bulletColor,
+        ),
       );
-      if (range != null) {
-        final icd = range.kind == CounterdiffusionKind.netOngassing;
-        rows.add(
-          TooltipRow(
-            label: icd
-                ? l10n.diveLog_tooltip_counterdiffusion_icd
-                : l10n.diveLog_tooltip_counterdiffusion_opposing,
-            value: l10n.diveLog_tooltip_counterdiffusion_compartments(
-              formatCompartmentRuns(range.compartmentNumbers),
-            ),
-            bulletColor: icd
-                ? counterdiffusionIcdColor
-                : counterdiffusionOpposingColor(Theme.of(context).colorScheme),
-          ),
-        );
-      }
     }
 
     // Marker info (if touching near a marker)
@@ -3111,10 +3108,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       settingsProvider.select((s) => s.profileMetricColors),
     );
     // The ICD warnings setting is the master switch for the rule-of-fifths
-    // switch markers, as it is for the ICD calculator (#4530).
-    _icdWarningsEnabled = ref.watch(
-      settingsProvider.select((s) => s.icdWarningsEnabled),
-    );
+    // switch markers, as it is for the ICD calculator (#4530): read through
+    // the calculator's own provider so both follow it the same way.
+    _icdWarningsEnabled = ref.watch(icdWarningsEnabledProvider);
     _palette = ProfileMetricPalette(
       overrides: profileMetricColors,
       temperatureAuto: Theme.of(context).colorScheme.tertiary,
@@ -4715,9 +4711,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   highlightSpan,
                   widget.highlightRange?.color,
                 ),
-                if (_showCounterdiffusion && _icdWarningsEnabled)
+                if (_showCounterdiffusion)
                   ...icdSwitchMarkerLines(
                     widget.counterdiffusion,
+                    warningsEnabled: _icdWarningsEnabled,
                     scheme: colorScheme,
                     visibleMinX: visibleMinX,
                     visibleMaxX: visibleMaxX,

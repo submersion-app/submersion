@@ -213,6 +213,12 @@ void main() {
       final result = counterdiffusionAnalysisOf(statuses, every10s(4));
 
       expect(result.icdRanges.single.compartmentNumbers, [3, 5]);
+      // Shared by the chart and the safety review, so no consumer may
+      // change it in place.
+      expect(
+        () => result.icdRanges.single.compartmentNumbers.add(9),
+        throwsUnsupportedError,
+      );
     });
 
     test('an unknown inspired gas marks nothing', () {
@@ -255,15 +261,23 @@ void main() {
     });
   });
 
-  group('netHaldaneRateBarPerMin', () {
+  group('DecoStatus.netHaldaneRateBarPerMin', () {
     test('sums both gases with ln 2 over their half-times', () {
-      final c = comp(pN2: 0.4, pHe: 1.6);
+      final s = icd();
 
       // ln2 * ((0.05 - 0.4) / 4.0 + (1.9 - 1.6) / 1.51)
       expect(
-        netHaldaneRateBarPerMin(c, inspiredN2Bar: 0.05, inspiredHeBar: 1.9),
+        s.netHaldaneRateBarPerMin(s.compartments.single),
         closeTo(0.0771, 0.0005),
       );
+      // Same sign as the tissue card's net badge reads.
+      expect(s.isOffgassing(s.compartments.single), isFalse);
+    });
+
+    test('is null when the inspired gas is unknown', () {
+      final s = status([comp(pN2: 0.4, pHe: 1.6)]);
+
+      expect(s.netHaldaneRateBarPerMin(s.compartments.single), isNull);
     });
   });
 }

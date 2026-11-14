@@ -8429,7 +8429,7 @@
   "settings_decompression_endLimit_dialog_title": "END-Grenze",
   "settings_decompression_header_icd": "Isobare Gegendiffusion",
   "settings_decompression_icdWarnings": "Vor ICD-Risiko warnen",
-  "settings_decompression_icdWarnings_subtitle": "Zeigt im ICD-Rechner eine Bewertung nach der Fünftel-Regel beim Wechsel von einem heliumreicheren zu einem stickstoffreicheren Gas.",
+  "settings_decompression_icdWarnings_subtitle": "Zeigt im ICD-Rechner und in der Gegendiffusionsanzeige des Tauchprofils eine Bewertung nach der Fünftel-Regel beim Wechsel von einem heliumreicheren zu einem stickstoffreicheren Gas.",
   "settings_decompression_cnsMethodTitle": "CNS-Berechnung",
   "settings_decompression_cnsMethodClassic": "NOAA-Tabelle, gestuft (klassisch)",
   "settings_decompression_cnsMethodClassicDesc": "Berechnet jedes 0,1-bar-Band mit dem strengeren Rand. Submersions ursprüngliche Methode.",

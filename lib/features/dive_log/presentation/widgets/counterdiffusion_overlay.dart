@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/domain/entities/counterdiffusion_an
 import 'package:submersion/features/dive_log/presentation/widgets/profile_highlight_range.dart';
 import 'package:submersion/features/gas_calculators/domain/icd_calculator.dart'
     show IcdSeverity;
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Colour of an ICD band, also its legend swatch and tooltip bullet: a
 /// warning orange, so it never reads as the error red of the O2 cell bands a
@@ -57,13 +58,16 @@ List<VerticalRangeAnnotation> counterdiffusionBands(
 
 /// Dashed vertical lines at the rule-of-fifths switches inside the visible
 /// window. fl_chart asserts on lines outside it, so those are left out.
+/// [warningsEnabled] is the ICD warnings setting, the master switch for these
+/// lines as it is for the ICD calculator: off draws none.
 List<VerticalLine> icdSwitchMarkerLines(
   CounterdiffusionAnalysis? analysis, {
+  required bool warningsEnabled,
   required ColorScheme scheme,
   required double visibleMinX,
   required double visibleMaxX,
 }) {
-  if (analysis == null) return const [];
+  if (analysis == null || !warningsEnabled) return const [];
   return [
     for (final marker in analysis.switchMarkers)
       if (marker.timestamp >= visibleMinX && marker.timestamp <= visibleMaxX)
@@ -76,7 +80,8 @@ List<VerticalLine> icdSwitchMarkerLines(
   ];
 }
 
-/// The span of [kind] under [timestamp], or null.
+/// The span under [timestamp], or null. An ICD span wins over the opposing
+/// span that covers it; opposing spans are searched only when [showAll].
 CounterdiffusionRange? counterdiffusionRangeAt(
   CounterdiffusionAnalysis? analysis,
   int timestamp, {
@@ -91,6 +96,32 @@ CounterdiffusionRange? counterdiffusionRangeAt(
     if (range.contains(timestamp)) return range;
   }
   return null;
+}
+
+/// The cursor tooltip row for the span under [timestamp] (see
+/// [counterdiffusionRangeAt]): its label, the affected compartments, and the
+/// bullet colour of its band. Null outside every shown span.
+({String label, String value, Color bulletColor})? counterdiffusionTooltip(
+  CounterdiffusionAnalysis? analysis,
+  int timestamp, {
+  required bool showAll,
+  required AppLocalizations l10n,
+  required ColorScheme scheme,
+}) {
+  final range = counterdiffusionRangeAt(analysis, timestamp, showAll: showAll);
+  if (range == null) return null;
+  final icd = range.kind == CounterdiffusionKind.netOngassing;
+  return (
+    label: icd
+        ? l10n.diveLog_tooltip_counterdiffusion_icd
+        : l10n.diveLog_tooltip_counterdiffusion_opposing,
+    value: l10n.diveLog_tooltip_counterdiffusion_compartments(
+      formatCompartmentRuns(range.compartmentNumbers),
+    ),
+    bulletColor: icd
+        ? counterdiffusionIcdColor
+        : counterdiffusionOpposingColor(scheme),
+  );
 }
 
 /// Compartment numbers as compact runs, e.g. `[3, 4, 5, 7]` as "3-5, 7".

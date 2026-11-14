@@ -119,6 +119,7 @@ InfoContent settingsSectionInfo(
         DiveTerm.surfaceGf,
         DiveTerm.lateGasSwitch,
         DiveTerm.isobaricCounterdiffusion,
+        DiveTerm.counterdiffusionProfile,
       ],
     ),
     SettingsInfoSection.conditionThresholds => termsInfo(

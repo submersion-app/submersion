@@ -8295,7 +8295,7 @@
   "settings_decompression_endLimit_dialog_title": "מגבלת END",
   "settings_decompression_header_icd": "דיפוזיה הפכית איזובארית",
   "settings_decompression_icdWarnings": "הזהר מסיכון ICD",
-  "settings_decompression_icdWarnings_subtitle": "מציג במחשבון ה-ICD הערכה לפי כלל החמישית במעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן.",
+  "settings_decompression_icdWarnings_subtitle": "מציג במחשבון ה-ICD ובשכבת הדיפוזיה הנגדית בפרופיל הערכה לפי כלל החמישית במעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן.",
   "settings_decompression_cnsMethodTitle": "חישוב CNS",
   "settings_decompression_cnsMethodClassic": "טבלת NOAA, מדורגת (קלאסי)",
   "settings_decompression_cnsMethodClassicDesc": "מחשב כל תחום של 0.1 bar לפי הקצה המחמיר שלו. השיטה המקורית של Submersion.",

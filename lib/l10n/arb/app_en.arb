@@ -16883,7 +16883,7 @@
   "settings_decompression_endLimit_dialog_title": "END Limit",
   "settings_decompression_header_icd": "Isobaric Counterdiffusion",
   "settings_decompression_icdWarnings": "Warn on ICD risk",
-  "settings_decompression_icdWarnings_subtitle": "Shows a rule-of-fifths assessment in the ICD calculator when switching from a more helium-rich to a more nitrogen-rich gas.",
+  "settings_decompression_icdWarnings_subtitle": "Shows a rule-of-fifths assessment in the ICD calculator, and on the dive profile's counterdiffusion overlay, when switching from a more helium-rich to a more nitrogen-rich gas.",
   "settings_decompression_cnsMethodTitle": "CNS calculation",
   "settings_decompression_cnsMethodClassic": "NOAA table, stepped (classic)",
   "settings_decompression_cnsMethodClassicDesc": "Charges each 0.1 bar band at its harsher edge. Submersion's original method.",

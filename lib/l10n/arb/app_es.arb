@@ -8291,7 +8291,7 @@
   "settings_decompression_endLimit_dialog_title": "Límite END",
   "settings_decompression_header_icd": "Contradifusión isobárica",
   "settings_decompression_icdWarnings": "Avisar de riesgo de ICD",
-  "settings_decompression_icdWarnings_subtitle": "Muestra una evaluación según la regla del quinto en la calculadora ICD al cambiar de un gas más rico en helio a uno más rico en nitrógeno.",
+  "settings_decompression_icdWarnings_subtitle": "Muestra una evaluación según la regla del quinto en la calculadora ICD y en la capa de contradifusión del perfil al cambiar de un gas más rico en helio a uno más rico en nitrógeno.",
   "settings_decompression_cnsMethodTitle": "Cálculo de CNS",
   "settings_decompression_cnsMethodClassic": "Tabla NOAA, escalonada (clásico)",
   "settings_decompression_cnsMethodClassicDesc": "Calcula cada banda de 0,1 bar en su extremo más estricto. Método original de Submersion.",

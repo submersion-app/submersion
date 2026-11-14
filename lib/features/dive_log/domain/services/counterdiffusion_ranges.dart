@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/gas_exchange.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
@@ -16,19 +14,6 @@ const int minCounterdiffusionDurationSeconds = 30;
 /// Runs closer together than this, in seconds, are merged into one.
 const int counterdiffusionMergeGapSeconds = 10;
 
-/// Net Haldane rate of [compartment], in bar/min, for both inert gases
-/// together: positive while it takes gas up. Unlike
-/// [DecoStatus.isOffgassing], which only needs the sign, this keeps the ln 2
-/// so the value is a real rate.
-double netHaldaneRateBarPerMin(
-  TissueCompartment compartment, {
-  required double inspiredN2Bar,
-  required double inspiredHeBar,
-}) =>
-    math.ln2 *
-    ((inspiredN2Bar - compartment.currentPN2) / compartment.halfTimeN2 +
-        (inspiredHeBar - compartment.currentPHe) / compartment.halfTimeHe);
-
 /// Where [statuses] show counterdiffusion, one status per entry of
 /// [timestamps] (seconds from dive start). Mismatched or empty inputs, and
 /// a dive with no helium in gas or tissue, give [CounterdiffusionAnalysis.none].
@@ -40,9 +25,11 @@ double netHaldaneRateBarPerMin(
 /// inert gas than is breathed (by more than
 /// [DecoStatus.gasEquilibriumToleranceBar]) and still takes gas up net faster
 /// than [minNetRateBarPerMin]: then the gain comes only from one gas entering
-/// faster than the other leaves, not from ordinary uptake. The tolerance
-/// keeps out air-saturated tissues on their first breaths of trimix at the
-/// surface, whose inert total equals the breathed one.
+/// faster than the other leaves, not from ordinary uptake. The net rate is
+/// [DecoStatus.netHaldaneRateBarPerMin], the same rate whose sign drives the
+/// tissue card's net badge. The tolerance keeps out air-saturated tissues on
+/// their first breaths of a trimix with air's 21 % O2 at the surface, whose
+/// inert total equals the breathed one.
 ///
 /// A sample's state holds until the next sample, so a run spans from its
 /// first qualifying sample to the sample after its last one. That keeps the
@@ -80,11 +67,8 @@ CounterdiffusionAnalysis counterdiffusionAnalysisOf(
         if (!_opposite(status, compartment)) continue;
         opposingHere.add(compartment.compartmentNumber);
         final tissueTotal = compartment.currentPN2 + compartment.currentPHe;
-        final rate = netHaldaneRateBarPerMin(
-          compartment,
-          inspiredN2Bar: inspiredN2,
-          inspiredHeBar: inspiredHe,
-        );
+        // Non-null: the inspired gas is known on this branch.
+        final rate = status.netHaldaneRateBarPerMin(compartment)!;
         if (tissueTotal > inspiredN2 + inspiredHe + tolerance &&
             rate > minNetRateBarPerMin) {
           icdHere.add(compartment.compartmentNumber);
@@ -118,6 +102,11 @@ bool _holdsHelium(DecoStatus status) {
   return false;
 }
 
+/// [numbers] ascending, as a list no consumer can change: the ranges are
+/// shared by the chart and the safety review.
+List<int> _sortedNumbers(Iterable<int> numbers) =>
+    List.unmodifiable(numbers.toList()..sort());
+
 /// Collects consecutive samples that meet one kind into spans.
 class _RunBuilder {
   final CounterdiffusionKind kind;
@@ -148,7 +137,7 @@ class _RunBuilder {
           startSeconds: start,
           endSeconds: end,
           kind: kind,
-          compartmentNumbers: (_compartments.toList()..sort()),
+          compartmentNumbers: _sortedNumbers(_compartments),
         ),
       );
     }
@@ -165,10 +154,10 @@ class _RunBuilder {
       if (last != null && run.startSeconds - last.endSeconds <= mergeGap) {
         merged[merged.length - 1] = last.copyWith(
           endSeconds: run.endSeconds,
-          compartmentNumbers: ({
+          compartmentNumbers: _sortedNumbers({
             ...last.compartmentNumbers,
             ...run.compartmentNumbers,
-          }.toList()..sort()),
+          }),
         );
       } else {
         merged.add(run);

@@ -8168,7 +8168,7 @@
   "settings_decompression_endLimit_dialog_title": "Limite END",
   "settings_decompression_header_icd": "Controdiffusione isobarica",
   "settings_decompression_icdWarnings": "Avvisa in caso di rischio ICD",
-  "settings_decompression_icdWarnings_subtitle": "Mostra nel calcolatore ICD una valutazione secondo la regola del quinto quando si passa da un gas più ricco di elio a uno più ricco di azoto.",
+  "settings_decompression_icdWarnings_subtitle": "Mostra nel calcolatore ICD e nel livello di controdiffusione del profilo una valutazione secondo la regola del quinto quando si passa da un gas più ricco di elio a uno più ricco di azoto.",
   "settings_decompression_cnsMethodTitle": "Calcolo del CNS",
   "settings_decompression_cnsMethodClassic": "Tabella NOAA, a gradini (classico)",
   "settings_decompression_cnsMethodClassicDesc": "Calcola ogni banda di 0,1 bar al suo estremo più severo. Metodo originale di Submersion.",

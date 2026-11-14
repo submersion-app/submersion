@@ -29118,7 +29118,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Affiche une évaluation selon la règle du cinquième dans le calculateur ICD lors d\'un passage d\'un gaz plus riche en hélium à un gaz plus riche en azote.';
+      'Affiche une évaluation selon la règle du cinquième dans le calculateur ICD et sur la couche de contre-diffusion du profil lors d\'un passage d\'un gaz plus riche en hélium à un gaz plus riche en azote.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'Calcul du CNS';

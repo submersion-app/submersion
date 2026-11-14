@@ -46197,7 +46197,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_decompression_icdWarnings_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Shows a rule-of-fifths assessment in the ICD calculator when switching from a more helium-rich to a more nitrogen-rich gas.'**
+  /// **'Shows a rule-of-fifths assessment in the ICD calculator, and on the dive profile\'s counterdiffusion overlay, when switching from a more helium-rich to a more nitrogen-rich gas.'**
   String get settings_decompression_icdWarnings_subtitle;
 
   /// Title of the CNS calculation method setting tile and its picker dialog.

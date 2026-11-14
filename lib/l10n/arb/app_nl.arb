@@ -8291,7 +8291,7 @@
   "settings_decompression_endLimit_dialog_title": "END-limiet",
   "settings_decompression_header_icd": "Isobare tegendiffusie",
   "settings_decompression_icdWarnings": "Waarschuwen bij ICD-risico",
-  "settings_decompression_icdWarnings_subtitle": "Toont in de ICD-rekenmachine een beoordeling volgens de vijfde-regel bij het overschakelen van een heliumrijker naar een stikstofrijker gas.",
+  "settings_decompression_icdWarnings_subtitle": "Toont in de ICD-rekenmachine en in de tegendiffusielaag van het profiel een beoordeling volgens de vijfde-regel bij het overschakelen van een heliumrijker naar een stikstofrijker gas.",
   "settings_decompression_cnsMethodTitle": "CNS-berekening",
   "settings_decompression_cnsMethodClassic": "NOAA-tabel, getrapt (klassiek)",
   "settings_decompression_cnsMethodClassicDesc": "Rekent elke band van 0,1 bar af op de strengere rand. Oorspronkelijke methode van Submersion.",

@@ -4,6 +4,7 @@ import 'package:submersion/features/dive_log/domain/entities/counterdiffusion_an
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/counterdiffusion_overlay.dart';
 import 'package:submersion/features/gas_calculators/domain/icd_calculator.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Issue #4530: the bands, switch markers and tooltip lookup the profile
 /// chart draws for counterdiffusion.
@@ -99,6 +100,7 @@ void main() {
     test('one dashed line per visible switch, coloured by severity', () {
       final lines = icdSwitchMarkerLines(
         analysis,
+        warningsEnabled: true,
         scheme: scheme,
         visibleMinX: 0,
         visibleMaxX: 2000,
@@ -108,6 +110,19 @@ void main() {
       expect(lines.single.x, 1910);
       expect(lines.single.color, scheme.error);
       expect(lines.single.dashArray, isNotNull);
+    });
+
+    test('ICD warnings off draws no switch line, as in the calculator', () {
+      expect(
+        icdSwitchMarkerLines(
+          analysis,
+          warningsEnabled: false,
+          scheme: scheme,
+          visibleMinX: 0,
+          visibleMaxX: 4000,
+        ),
+        isEmpty,
+      );
     });
 
     test('a caution reads orange', () {
@@ -121,6 +136,53 @@ void main() {
       expect(counterdiffusionRangeAt(analysis, 2000, showAll: false), isNull);
       expect(counterdiffusionRangeAt(analysis, 2000, showAll: true), opposing);
       expect(counterdiffusionRangeAt(null, 700, showAll: true), isNull);
+    });
+  });
+
+  group('counterdiffusionTooltip', () {
+    final l10n = lookupAppLocalizations(const Locale('en'));
+
+    test('an ICD span names its compartments with the warning bullet', () {
+      final row = counterdiffusionTooltip(
+        analysis,
+        700,
+        showAll: false,
+        l10n: l10n,
+        scheme: scheme,
+      );
+
+      expect(row, isNotNull);
+      expect(row!.label, l10n.diveLog_tooltip_counterdiffusion_icd);
+      expect(
+        row.value,
+        l10n.diveLog_tooltip_counterdiffusion_compartments('4-5'),
+      );
+      expect(row.bulletColor, counterdiffusionIcdColor);
+    });
+
+    test('an opposing span shows only with All, in the neutral tone', () {
+      final hidden = counterdiffusionTooltip(
+        analysis,
+        2000,
+        showAll: false,
+        l10n: l10n,
+        scheme: scheme,
+      );
+      final shown = counterdiffusionTooltip(
+        analysis,
+        2000,
+        showAll: true,
+        l10n: l10n,
+        scheme: scheme,
+      );
+
+      expect(hidden, isNull);
+      expect(shown!.label, l10n.diveLog_tooltip_counterdiffusion_opposing);
+      expect(
+        shown.value,
+        l10n.diveLog_tooltip_counterdiffusion_compartments('1-3, 9'),
+      );
+      expect(shown.bulletColor, counterdiffusionOpposingColor(scheme));
     });
   });
 

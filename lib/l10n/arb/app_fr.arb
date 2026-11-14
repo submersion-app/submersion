@@ -8168,7 +8168,7 @@
   "settings_decompression_endLimit_dialog_title": "Limite END",
   "settings_decompression_header_icd": "Contre-diffusion isobare",
   "settings_decompression_icdWarnings": "Avertir en cas de risque d'ICD",
-  "settings_decompression_icdWarnings_subtitle": "Affiche une évaluation selon la règle du cinquième dans le calculateur ICD lors d'un passage d'un gaz plus riche en hélium à un gaz plus riche en azote.",
+  "settings_decompression_icdWarnings_subtitle": "Affiche une évaluation selon la règle du cinquième dans le calculateur ICD et sur la couche de contre-diffusion du profil lors d'un passage d'un gaz plus riche en hélium à un gaz plus riche en azote.",
   "settings_decompression_cnsMethodTitle": "Calcul du CNS",
   "settings_decompression_cnsMethodClassic": "Table NOAA, par paliers (classique)",
   "settings_decompression_cnsMethodClassicDesc": "Calcule chaque plage de 0,1 bar à sa limite la plus stricte. Méthode d'origine de Submersion.",

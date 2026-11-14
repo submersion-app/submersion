@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart'
+    show GasMix;
 import 'package:submersion/features/dive_log/domain/services/icd_switch_markers.dart';
 import 'package:submersion/features/gas_calculators/domain/icd_calculator.dart';
 
@@ -16,6 +18,30 @@ void main() {
   double? at31(int _) => 3.1;
 
   group('icdSwitchMarkersOf', () {
+    test('a switch exactly on the limit grades as the calculator does', () {
+      // Tx 25/25 to EAN45 and Tx 10/70 to Tx 50/20 raise N2 by exactly a
+      // fifth of the helium drop: a caution in the calculator. Rebuilt from
+      // fractions without rounding, float noise read them as violations.
+      for (final (a, b) in [
+        ((o2: 25.0, he: 25.0), (o2: 45.0, he: 0.0)),
+        ((o2: 10.0, he: 70.0), (o2: 50.0, he: 20.0)),
+      ]) {
+        final markers = icdSwitchMarkersOf([
+          oc(0, o2: a.o2, he: a.he),
+          oc(600, o2: b.o2, he: b.he),
+        ], ambientPressureAt: at31);
+        final calculator = computeIcd(
+          IcdInputs(
+            gasA: GasMix(o2: a.o2, he: a.he),
+            gasB: GasMix(o2: b.o2, he: b.he),
+          ),
+        );
+
+        expect(calculator.severity, IcdSeverity.caution);
+        expect(markers.single.severity, IcdSeverity.caution);
+      }
+    });
+
     test('Tx 18/45 to EAN50 is a violation at the switch time', () {
       final markers = icdSwitchMarkersOf([
         oc(0, o2: 18, he: 45),

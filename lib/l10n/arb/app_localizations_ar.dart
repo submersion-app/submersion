@@ -29353,7 +29353,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'يعرض في حاسبة ICD تقييمًا وفق قاعدة الخُمس عند التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين.';
+      'يعرض في حاسبة ICD وفي طبقة الانتشار العكسي في مخطط الغوص تقييمًا وفق قاعدة الخُمس عند التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'حساب الـ CNS';

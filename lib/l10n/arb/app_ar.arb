@@ -8291,7 +8291,7 @@
   "settings_decompression_endLimit_dialog_title": "حد END",
   "settings_decompression_header_icd": "الانتشار المعاكس متساوي الضغط",
   "settings_decompression_icdWarnings": "التحذير من خطر ICD",
-  "settings_decompression_icdWarnings_subtitle": "يعرض في حاسبة ICD تقييمًا وفق قاعدة الخُمس عند التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين.",
+  "settings_decompression_icdWarnings_subtitle": "يعرض في حاسبة ICD وفي طبقة الانتشار العكسي في مخطط الغوص تقييمًا وفق قاعدة الخُمس عند التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين.",
   "settings_decompression_cnsMethodTitle": "حساب الـ CNS",
   "settings_decompression_cnsMethodClassic": "جدول NOAA، متدرّج (كلاسيكي)",
   "settings_decompression_cnsMethodClassicDesc": "يحسب كل نطاق 0.1 bar عند حدّه الأكثر صرامة. الطريقة الأصلية في Submersion.",

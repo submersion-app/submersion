@@ -6,12 +6,13 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_sweep.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_text.dart'
+    show safetyRuleLabel;
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/info/no_fly_info.dart';
 import 'package:submersion/features/settings/presentation/info/settings_info.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
@@ -106,7 +107,7 @@ class _SafetyReviewSettingsPageState
           ),
           for (final rule in SafetyRuleId.values)
             SwitchListTile(
-              title: Text(_ruleLabel(l10n, rule)),
+              title: Text(safetyRuleLabel(rule, l10n)),
               value: !settings.safetyReviewDisabledRules.contains(rule.dbValue),
               // Same gating as the master toggle: keep the active rule set
               // fixed while a sweep is computing over it.
@@ -211,20 +212,6 @@ class _SafetyReviewSettingsPageState
         ],
       ),
     );
-  }
-
-  String _ruleLabel(AppLocalizations l10n, SafetyRuleId rule) {
-    return switch (rule) {
-      SafetyRuleId.rapidAscent => l10n.safetySettings_rule_rapidAscent,
-      SafetyRuleId.missedDecoStop => l10n.safetySettings_rule_missedDecoStop,
-      SafetyRuleId.omittedSafetyStop =>
-        l10n.safetySettings_rule_omittedSafetyStop,
-      SafetyRuleId.sawtoothProfile => l10n.safetySettings_rule_sawtoothProfile,
-      SafetyRuleId.highSurfaceGf => l10n.safetySettings_rule_highSurfaceGf,
-      SafetyRuleId.lateGasSwitch => l10n.safetySettings_rule_lateGasSwitch,
-      SafetyRuleId.isobaricCounterdiffusion =>
-        l10n.safetySettings_rule_isobaricCounterdiffusion,
-    };
   }
 
   /// Marks every observation in the active diver's logbook as reviewed.

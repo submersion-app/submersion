@@ -51,7 +51,20 @@ List<IcdSwitchMarker> icdSwitchMarkersOf(
 }
 
 GasMix _mixOf(double fN2, double fHe) =>
-    GasMix(o2: (1 - fN2 - fHe) * 100, he: fHe * 100);
+    GasMix(o2: _percent(1 - fN2 - fHe), he: _percent(fHe));
+
+/// Steps per percent the mixes are rebuilt at: 0.0001 %, far finer than any
+/// blend is analysed to.
+const int _percentSteps = 10000;
+
+/// [fraction] as a percentage, snapped to [_percentSteps]. A fraction carries
+/// float noise ((1 - 0.55) * 100 is 45.00000000000001), which tips a switch
+/// sitting exactly on the rule-of-fifths limit, such as Tx 25/25 to EAN45,
+/// into a violation the ICD calculator grades as a caution on the same
+/// whole-number gases. Dividing the rounded steps yields the same double as
+/// the decimal the calculator is fed.
+double _percent(double fraction) =>
+    (fraction * 100 * _percentSteps).round() / _percentSteps;
 
 /// The loop's mix at [ambient] bar on [setpoint], or null when the diluent
 /// carries no inert gas to split.
@@ -61,5 +74,5 @@ GasMix? _loopMix(ProfileGasSegment loop, double setpoint, double ambient) {
   final fO2 = (setpoint / ambient).clamp(0.0, 1.0);
   final inert = 1 - fO2;
   final fHe = inert * loop.fHe / diluentInert;
-  return GasMix(o2: fO2 * 100, he: fHe * 100);
+  return GasMix(o2: _percent(fO2), he: _percent(fHe));
 }

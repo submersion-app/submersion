@@ -8456,7 +8456,7 @@
   "settings_decompression_endLimit_dialog_title": "END 限制",
   "settings_decompression_header_icd": "等压逆向扩散",
   "settings_decompression_icdWarnings": "ICD风险警告",
-  "settings_decompression_icdWarnings_subtitle": "在从氦气含量较高的气体切换到氮气含量较高的气体时,在ICD计算器中显示根据五分之一法则得出的评估。",
+  "settings_decompression_icdWarnings_subtitle": "在从氦气含量较高的气体切换到氮气含量较高的气体时,在ICD计算器和潜水曲线的逆向扩散图层中显示根据五分之一法则得出的评估。",
   "settings_decompression_cnsMethodTitle": "CNS 计算",
   "settings_decompression_cnsMethodClassic": "NOAA 表格，分级（经典）",
   "settings_decompression_cnsMethodClassicDesc": "在每个 0.1 bar 区间按其更严格的边缘计算。Submersion 最初采用的方法。",
