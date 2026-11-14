@@ -152,6 +152,37 @@ void main() {
     expect(session.isDirty, isFalse);
   });
 
+  // The diver can be in the field when its value is replaced underneath: a
+  // lookup returns, or the stored record changes. The caret stays where it
+  // was, as it does in Notes.
+  test('text replaced from the session keeps the caret', () {
+    final binding = bind();
+    binding.controller.selection = const TextSelection.collapsed(offset: 2);
+
+    session.rebase(const _Rec(altitude: 2000));
+    expect(binding.controller.text, '6562');
+    expect(
+      binding.controller.selection,
+      const TextSelection.collapsed(offset: 2),
+    );
+
+    // Shorter than where the caret was: it goes to the end.
+    session.rebase(const _Rec(altitude: 2));
+    expect(binding.controller.text, '7');
+    expect(
+      binding.controller.selection,
+      const TextSelection.collapsed(offset: 1),
+    );
+  });
+
+  test('text replaced in a field the diver is not in has no caret', () {
+    final binding = bind();
+
+    session.rebase(const _Rec(altitude: 2000));
+
+    expect(binding.controller.selection.isValid, isFalse);
+  });
+
   test('text the diver edited is kept when the stored record changes', () {
     final binding = bind();
     binding.controller.text = '100';

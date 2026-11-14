@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/text_keeping_caret.dart';
 
 /// What a field's text reads as: a value, or text that is not one.
 ///
@@ -98,7 +99,8 @@ class FieldTextBinding<T, V> {
     if (shown is FieldValue<V> && field.same(shown.value, value)) return;
     final text = format(value);
     _lastText = text;
-    controller.text = text;
+    // The diver can be in the field when its value arrives from elsewhere.
+    controller.replaceTextKeepingCaret(text);
   }
 
   void _setUnreadable(bool unreadable) {
