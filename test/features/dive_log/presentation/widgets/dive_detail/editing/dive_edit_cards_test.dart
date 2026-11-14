@@ -33,13 +33,20 @@ void main() {
   final night = _tag('night', 'Night');
 
   group('the dive cards', () {
-    test('are Notes and Tags, with ids equal to the section names', () {
+    // A card registered here gains a pencil on the dive page. Naming them
+    // makes adding one a deliberate change to this test.
+    test('are Notes, Tags and Altitude', () {
       expect(diveEditCards.keys, {
         DiveDetailSectionId.notes,
         DiveDetailSectionId.tags,
+        DiveDetailSectionId.altitude,
       });
-      expect(diveEditCards[DiveDetailSectionId.notes]!.id, 'notes');
-      expect(diveEditCards[DiveDetailSectionId.tags]!.id, 'tags');
+    });
+
+    test('every card id is its section name', () {
+      for (final MapEntry(key: section, value: card) in diveEditCards.entries) {
+        expect(card.id, section.name);
+      }
       expect(diveNotesField.cardId, 'notes');
       expect(diveTagsField.cardId, 'tags');
     });
