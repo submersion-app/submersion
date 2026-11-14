@@ -9916,6 +9916,31 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_unlockTooltip => 'Desbloquear para editar';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return 'A editar $name';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return 'Editar $card';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'Alterações não guardadas';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, oculto';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'Não foi possível guardar as alterações. Nada foi alterado.';
+
+  @override
   String get settings_manage_setupAssistant => 'Assistente de configuração';
 
   @override
@@ -62026,6 +62051,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Cilindros duplicados removidos';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'Editado: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>

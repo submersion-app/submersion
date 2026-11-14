@@ -5861,6 +5861,45 @@
       }
     }
   },
+  "recordEdit_unlockTooltip": "Unlock to edit",
+  "@recordEdit_unlockTooltip": {
+    "description": "Tooltip of the lock button in a record page's top bar."
+  },
+  "recordEdit_editingTitle": "Editing {name}",
+  "@recordEdit_editingTitle": {
+    "description": "Top bar title while a record is unlocked for editing.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recordEdit_editCardTooltip": "Edit {card}",
+  "@recordEdit_editCardTooltip": {
+    "description": "Tooltip of the pencil that opens a card for editing.",
+    "placeholders": {
+      "card": {
+        "type": "String"
+      }
+    }
+  },
+  "recordEdit_unsavedChanges": "Unsaved changes",
+  "@recordEdit_unsavedChanges": {
+    "description": "Spoken label of the dot on a card that has changes not yet saved."
+  },
+  "recordEdit_hiddenCard": "{card}, hidden",
+  "@recordEdit_hiddenCard": {
+    "description": "Spoken label of an Add strip chip for a card the diver has hidden.",
+    "placeholders": {
+      "card": {
+        "type": "String"
+      }
+    }
+  },
+  "recordEdit_saveFailed": "Couldn't save your changes. Nothing was changed.",
+  "@recordEdit_saveFailed": {
+    "description": "Message shown when saving an unlocked record fails."
+  },
   "settings_manage_setupAssistant": "Setup assistant",
   "settings_manage_setupAssistant_subtitle": "Revisit units, backups, sync and photos",
   "setup_common_back": "Back",
@@ -36678,6 +36717,19 @@
   "changeLog_label_removeDuplicateCylinders": "Removed duplicate cylinders",
   "@changeLog_label_removeDuplicateCylinders": {
     "description": "Change log entry title for merging duplicate cylinders on dives."
+  },
+  "changeLog_label_recordEdit": "Edited: {cards}",
+  "@changeLog_label_recordEdit": {
+    "description": "Change log entry title for one editing sitting. cards is a list of card titles, already joined.",
+    "placeholders": {
+      "cards": {
+        "type": "String"
+      }
+    }
+  },
+  "changeLog_label_recordEditSeparator": ", ",
+  "@changeLog_label_recordEditSeparator": {
+    "description": "Separator between card titles in changeLog_label_recordEdit, such as \", \" in English."
   },
   "changeLog_undoIncomplete": "Undo could not put everything back. The rest is in Settings > Data > Change log.",
   "@changeLog_undoIncomplete": {

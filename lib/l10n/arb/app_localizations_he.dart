@@ -9699,6 +9699,31 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_unlockTooltip => 'ביטול נעילה לעריכה';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return 'עריכת $name';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return 'עריכת $card';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'שינויים שלא נשמרו';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, מוסתר';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'לא ניתן היה לשמור את השינויים. שום דבר לא השתנה.';
+
+  @override
   String get settings_manage_setupAssistant => 'אשף ההגדרה';
 
   @override
@@ -60755,6 +60780,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get changeLog_label_removeDuplicateCylinders => 'מכלים כפולים הוסרו';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'נערך: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>
