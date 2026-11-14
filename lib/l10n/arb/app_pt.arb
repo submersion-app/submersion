@@ -18841,7 +18841,7 @@
   "equipment_setEdit_bundle_noGearHint": "Um conjunto sem equipamento não aparece como conjunto no mergulho, por isso os seus pesos e garrafas têm de ser removidos à mão.",
   "equipment_setDetail_fromSet": "De {setName}",
   "equipment_sets_leadTotal": "{weight} de lastro",
-  "equipment_sets_cylinderCount": "{count, plural, =1{1 garrafa} other{{count} garrafas}}",
+  "equipment_sets_cylinderCount": "{count, plural, =1{{count} garrafa} other{{count} garrafas}}",
   "diveLog_edit_setWeights_title": "Usar o lastro de {setName}?",
   "diveLog_edit_setWeights_body": "Este mergulho já tem {current}. O conjunto leva {setTotal}.",
   "diveLog_edit_setWeights_add": "Adicionar",

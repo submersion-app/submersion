@@ -18841,7 +18841,7 @@
   "equipment_setEdit_bundle_noGearHint": "Un ensemble sans matériel n'apparaît pas comme ensemble sur la plongée ; ses plombs et ses blocs doivent donc être retirés à la main.",
   "equipment_setDetail_fromSet": "De {setName}",
   "equipment_sets_leadTotal": "{weight} de lest",
-  "equipment_sets_cylinderCount": "{count, plural, =1{1 bloc} other{{count} blocs}}",
+  "equipment_sets_cylinderCount": "{count, plural, =1{{count} bloc} other{{count} blocs}}",
   "diveLog_edit_setWeights_title": "Utiliser le lest de {setName} ?",
   "diveLog_edit_setWeights_body": "Cette plongée a déjà {current}. L'ensemble comporte {setTotal}.",
   "diveLog_edit_setWeights_add": "Ajouter",

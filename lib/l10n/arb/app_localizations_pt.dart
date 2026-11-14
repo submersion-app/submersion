@@ -64167,7 +64167,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count garrafas',
-      one: '1 garrafa',
+      one: '$count garrafa',
     );
     return '$_temp0';
   }

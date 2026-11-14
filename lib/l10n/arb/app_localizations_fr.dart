@@ -64328,7 +64328,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count blocs',
-      one: '1 bloc',
+      one: '$count bloc',
     );
     return '$_temp0';
   }
