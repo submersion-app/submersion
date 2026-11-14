@@ -11,10 +11,15 @@ class BuoyancyHistoryStrip extends ConsumerWidget {
   final String diveId;
   final UnitFormatter units;
 
+  /// Whether to head the strip with its own title. Off where the strip sits
+  /// under a heading that already names it.
+  final bool showTitle;
+
   const BuoyancyHistoryStrip({
     super.key,
     required this.diveId,
     required this.units,
+    this.showTitle = true,
   });
 
   static const double _barMaxHeight = 44;
@@ -36,15 +41,18 @@ class BuoyancyHistoryStrip extends ConsumerWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          context.l10n.buoyancy_historyTitle.toUpperCase(),
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.outline,
-            letterSpacing: 0.5,
+        if (showTitle) ...[
+          Text(
+            context.l10n.buoyancy_historyTitle.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.outline,
+              letterSpacing: 0.5,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
+          const SizedBox(height: 8),
+        ],
         SizedBox(
           height: _barMaxHeight + 16,
           child: SingleChildScrollView(
