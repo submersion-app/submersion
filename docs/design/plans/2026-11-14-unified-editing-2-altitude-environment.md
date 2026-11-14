@@ -1010,3 +1010,44 @@ git commit -m "feat(dive-log): refuse unreadable input on the dive page and say 
 ## Pull request
 
 One, `Refs #4527`, stacked on plan 1's pull request #4536 until that merges. It touches `lib/**/presentation/` and `lib/shared/widgets/`, so it carries the pictures from Task 10 Step 6, with a line saying the unlocked page is unreachable without the build switch. Pushing and opening it waits for Eric.
+
+---
+
+## After the review
+
+The plan was built as written, then reviewed as a whole branch. Review comments on plan 1's pull request (#4536) landed at the same time and were merged in. This is what differs from the task text above, for whoever writes plans 3 and 4.
+
+### Names that changed
+
+| Above | Now |
+| --- | --- |
+| `revealRequest` is `({cardId, serial})`; a frame ignores a request made before it mounted | `({cardId, fieldId, serial})`, answered once and then withdrawn with `revealHandled(serial)`. With no field, the card's frame answers (a card added from the strip, which `addCard` now asks for). With a field, that field's `RecordNumberRow` scrolls itself in (a refused Done or Save) |
+| `RecordNumberRow` wraps its field in one that compares by formatted text | No wrapper. Typing the number the row already shows is no change; any other number is stored as typed. New `trimZeros` |
+| `setEntryMethod(session, value)` | `setEntryMethod(session, value, exitFollows:)`, with `exitFollowsEntry(dive)` for the starting state. The editor remembers when the diver has edited the exit directly |
+| Fifteen Environment fields, seventeen clear flags | Sixteen and eighteen: `diveWeatherCodeField`, `clearWeatherCode` |
+| `EnumPickerRow(placeholder:)` for the site's entry method | `EnumPickerRow(hint:)`: shown on the resting row only, never as the name of the clear option |
+
+### Added
+
+- **A sitting is frozen while it is saved.** `EditSession.freeze()`, `thaw()`, `isFrozen`. `set` and `holdWrite` do nothing then, and `openCard`, `closeCard` and `addCard` are refused. `RecordEditLeaveGuard` takes no pointer or keyboard input and ignores Back until the save ends. Anything that writes to a sitting after an `await` checks `isDisposed` and `isFrozen` first.
+- **`EditField.alsoShownOn`.** Other cards that show a value without owning it. They are redrawn as it is typed. Surface pressure names Environment.
+- **`RecordEditController.layoutRecord`.** The working record as it was when the first card opened; null when none is open. The section list and the Add strip decide which cards are present from it, so a card never appears above an open editor. Cards come and go when the last editor closes. `_sectionContent` and `_buildPairCards` take it as `presence`.
+- **`EditCard.leading`**, drawn by the open card's header, so a card's icon does not vanish when it opens.
+- **`UnitFormatter.surfacePressureDecimals`**, `fillAltitudeIfEmpty(stillWanted:)`, `EditSession.isDisposed`, `revisedCardIds`.
+- **The unsaved-changes dot keeps its place** in an open card's header while there is none.
+
+### Calls, as they turned out
+
+- Call 7 changes nothing on screen: every language's altitude range text is the same as the English one. The shared banner uses `localizedRange` all the same.
+- A fetch stores the forecast's weather code and clears an old one. The plan said to leave it as the dive form does; the read card describes the weather from that code, so an old one could contradict the rows beside it.
+- Air temperature shows one decimal when it has one, as its read card does. At no decimals 21.4 could not be rounded to 21 by typing 21.
+
+### Left open
+
+- After a fetch, the read card ignores a description the diver types, because the weather source stays Open-Meteo. Showing it would mean deciding what editing weather does to its source. Today's form behaves the same.
+- In an open card the form rows sit about 14 px in from the card's title.
+- A held write cannot be withdrawn, and overwrites: the site gets the looked-up altitude even if the diver then clears the dive's, or if the site gained one meanwhile. Plan 4 (picking a site) needs a way to release one.
+- Resizing across the 700 px pair width while a paired card is open rebuilds its editor: values are kept, focus is not.
+- The group banner shows the last readable altitude's group while the altitude text is unreadable.
+- The read-only pressure row on the Environment card does not lead to the Altitude card. A changed card that has gone back to the strip carries no dot.
+- `session.set(field, 10)` with a whole-number literal on a decimal field compiles and fails at run time. Tests spell `10.0`.
