@@ -58,9 +58,22 @@ whole deco. Two levels, evaluated per profile sample:
 
 | Level | Condition (at least one compartment) | Display |
 | --- | --- | --- |
-| ICD-relevant | N2 and He move in opposite directions and the net on-gassing rate exceeds a minimum | prominent band (warning colour), default |
+| ICD-relevant | N2 and He move in opposite directions, the net on-gassing rate exceeds a minimum, and the compartment's total inert tension is at least the total inspired inert pressure | prominent band (warning colour), default |
 | Opposing | N2 and He move in opposite directions, net off-gassing | subtle band, optional sub-setting |
 
+- The total-tension condition separates counterdiffusion from ordinary
+  uptake. When the inspired inert total exceeds the tissue's, the tissue
+  takes gas up anyway (a nitrox bottom phase with residual helium, slow
+  compartments on a deco nitrox); that is not counterdiffusion. Only when the
+  tissue holds more inert gas than is breathed, and would off-gas if both
+  gases moved at the same speed, does net on-gassing come from the gases'
+  different half-times.
+- In the Buhlmann model helium moves 2.65 times faster than nitrogen, so a
+  trimix to nitrox switch nearly always off-gasses net; model ICD appears
+  mainly after switching from a nitrogen-rich to a helium-rich gas at depth.
+  The trimix to nitrox case the rule of fifths targets is covered by the
+  gas switch markers, not the bands. The info text says so, so a missing
+  band after an EAN50 switch is not read as a bug.
 - One compartment is enough; the minimum rate filters insignificant cases.
   Starting value 0.005 bar/min, tuned against real dives during
   implementation.
@@ -77,8 +90,12 @@ whole deco. Two levels, evaluated per profile sample:
 
 ### Rule-of-fifths markers
 
-- Every gas switch is checked with `computeIcd()`; a violation becomes a
-  point marker at the switch time.
+- Every gas switch is checked with `computeIcd()`. Violations and cautions
+  (`IcdSeverity.caution`, above 80 % of the allowed rise) become point
+  markers at the switch time, coloured like the ICD calculator (violation
+  red, caution amber). Only violations raise a safety finding. Examples:
+  Tx 18/45 to EAN50 is a violation (N2 +13, allowed 9); Tx 21/35 to EAN50 a
+  caution (N2 +6, allowed 7).
 - The markers share the profile toggle with the bands. `icdWarningsEnabled`
   additionally acts as a master switch: off means no markers.
 - On CCR dives only switches to open circuit (bailout) are checked.
@@ -95,6 +112,11 @@ whole deco. Two levels, evaluated per profile sample:
 - The chart options ("Overlays") get an entry to toggle it for the current
   view. It is offered when helium is in the gases or still in the tissues,
   like ppHe and O2 cells.
+- The entry carries a two-segment choice, `ICD | All`, built with
+  `buildToggleWithSource` like the O2 cells' `mV | ppO2`. `ICD` (default)
+  shows the ICD-relevant bands only, `All` adds the opposing phases. The
+  choice is persisted to the diver settings the way the O2 cell unit is,
+  so it holds for every dive.
 
 ### Display
 
@@ -102,12 +124,16 @@ whole deco. Two levels, evaluated per profile sample:
   (`dive_profile_chart_host.dart`) and the fullscreen profile
   (`fullscreen_profile_page.dart`). Draw order, bottom to top: late gas
   switches, counterdiffusion, O2 cells, selected finding.
+- Colours: ICD-relevant bands use a warning orange, distinct from the error
+  red of the O2 cell bands, since a CCR dive on a trimix diluent can show
+  both. Opposing bands use a neutral tone at low alpha.
+- The tissue heat map marking is left out of this change; it can follow
+  once the bands have been seen on real dives.
 - `secondaryRanges` is tied to the O2 cell overlay, so counterdiffusion gets
   its own chart parameter, analogous to `gasSwitchEfficiency`.
 - Inside a band the cursor tooltip names the affected compartments, the
   directions and the net direction, e.g. "C3-C7 · N2 up, He down · net up".
 - The info sheet links the existing `DiveTerm.isobaricCounterdiffusion`.
-- Optional: the same ranges on the tissue heat map's time axis.
 
 ### Safety finding
 
@@ -115,8 +141,15 @@ whole deco. Two levels, evaluated per profile sample:
   ICD-relevant band or by a rule-of-fifths violation at a gas switch.
 - Shown as a chip in the findings lane whether or not the overlay is on;
   tapping highlights the span, it can be dismissed like other findings.
-- Own rule toggle like the other rules; the rule-of-fifths part additionally
-  follows `icdWarningsEnabled`.
+- Governed only by its own rule toggle, like every other rule: always
+  computed, filtered at display time through `safetyReviewDisabledRules`
+  (a new rule is enabled by default, no migration). It does not follow
+  `icdWarningsEnabled`: that setting is not part of the analysis
+  fingerprint, and adding it would need a fingerprint format bump that
+  older peers treat as "from a newer build". `icdWarningsEnabled` keeps
+  gating the calculator and the profile markers, which are display only.
+- Bump `SafetyReviewService.engineVersion` (11 to 12) so stored reviews are
+  recomputed with the new rule.
 - The opposing level never raises a finding.
 
 ### Computation
@@ -140,8 +173,11 @@ List<CounterdiffusionRange> counterdiffusionRanges(
 });
 ```
 
-Computed once next to the profile analysis, not in a widget, and reused by
-the chart and the safety review.
+Computed once as a field of `ProfileAnalysis` (like `gasSwitchEfficiency`),
+not in a widget, so the chart and `SafetyReviewService.review()` share it.
+The minimum rate is a real Haldane rate in bar/min
+(`ln 2 * (inspired - tension) / halfTime`, summed over N2 and He);
+`DecoStatus.isOffgassing` omits ln 2 and is only good for the sign.
 
 ## Out of scope
 
