@@ -162,8 +162,17 @@ def build(snapshots: dict, curated: list[dict], places) -> tuple[list[dict], dic
     report: dict[str, dict] = {}
     for key in sorted(snapshots):
         formed, dropped = SOURCE_STEPS[key](snapshots[key])
+        # A register can list one id on two rows. The first stands.
+        seen: set[str] = set()
+        unique = []
         for record in formed:
+            if record["id"] in seen:
+                dropped["duplicate_id"] += 1
+                continue
+            seen.add(record["id"])
             record[_ORIGIN] = key
+            unique.append(record)
+        formed = unique
         working.extend(formed)
         report[key] = {
             "read": len(snapshots[key]),

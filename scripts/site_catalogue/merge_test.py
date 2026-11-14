@@ -252,6 +252,27 @@ class BuildTest(unittest.TestCase):
             backwards[key] = list(reversed(backwards[key]))
         self.assertEqual(_build(backwards)[0], self.records)
 
+    def test_a_row_a_register_lists_twice_ships_once(self):
+        # The UKHO file has carried the same wreck id on two rows.
+        snapshots_ = _snapshots()
+        twin = dict(
+            next(r for r in snapshots_["ukho"] if r["wreck_id"] == "9438"),
+            latitude="53 30.000 N",
+        )
+        snapshots_["ukho"].append(twin)
+        records, report = _build(snapshots_)
+        self.assertEqual(
+            sum(1 for record in records if record["id"] == "ukho_9438"), 1
+        )
+        self.assertEqual(report["ukho"]["dropped"]["duplicate_id"], 1)
+        line = report["ukho"]
+        self.assertEqual(
+            line["read"], sum(line["dropped"].values()) + line["formed"]
+        )
+        # The first row stands: the position is its own.
+        wreck = {r["id"]: r for r in records}["ukho_9438"]
+        self.assertAlmostEqual(wreck["lat"], 53.033133, places=5)
+
     def test_a_source_can_be_left_out(self):
         snapshots_ = _snapshots()
         del snapshots_["ukho"]
