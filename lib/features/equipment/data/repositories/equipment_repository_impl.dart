@@ -2034,6 +2034,7 @@ class EquipmentRepository {
         isCustom: row.isCustom,
         valueText: row.valueText,
         valueNum: row.valueNum,
+        valueUnit: row.valueUnit,
         sortOrder: row.sortOrder,
       );
 
@@ -2086,7 +2087,7 @@ class EquipmentRepository {
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    final normalized = desired.where((a) => a.hasValue).map((a) {
+    final normalized = desired.where((a) => a.hasContent).map((a) {
       if (a.isCustom) {
         return a.copyWith(
           equipmentId: equipmentId,
@@ -2130,6 +2131,7 @@ class EquipmentRepository {
             existing.attrKey == attr.key &&
             existing.valueText == attr.valueText &&
             existing.valueNum == attr.valueNum &&
+            existing.valueUnit == attr.valueUnit &&
             existing.sortOrder == attr.sortOrder;
         if (unchanged) continue;
 
@@ -2143,6 +2145,7 @@ class EquipmentRepository {
                 isCustom: Value(attr.isCustom),
                 valueText: Value(attr.valueText),
                 valueNum: Value(attr.valueNum),
+                valueUnit: Value(attr.valueUnit),
                 sortOrder: Value(attr.sortOrder),
                 createdAt: Value(existing?.createdAt ?? now),
                 updatedAt: Value(now),

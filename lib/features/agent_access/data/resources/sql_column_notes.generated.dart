@@ -486,6 +486,9 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'thickness': '2,3,4,5,6 or 6mm',
     'type': 'regulator, bcd, wetsuit, etc.',
   },
+  'equipment_attributes': {
+    'value_unit': 'The unit this item\'s number is read in, an AttributeUnit name such as psi or pounds',
+  },
   'equipment_components': {
     'role': 'Free text such as "Primary second stage"',
   },

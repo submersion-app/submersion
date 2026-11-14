@@ -81,5 +81,8 @@ extension BeforeOpenChildColumns on AppDatabase {
     await _assertSiteCountryCodeColumn();
     // v363: dive_sites.catalogue_id. Every site read selects the whole row.
     await _assertSiteCatalogueIdColumn();
+    // v366: equipment_attributes.value_unit (issue #4534). Every attribute
+    // read selects the whole row.
+    await _assertAttributeValueUnitColumn();
   }
 }

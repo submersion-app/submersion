@@ -322,7 +322,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 363;
+  static const int currentSchemaVersion = 366;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1679,6 +1679,10 @@ class AppDatabase extends _$AppDatabase {
     // was adopted from. Nullable, nothing to backfill, so the floor does
     // not move. Renumbered from 362, which main took for #4461.
     363,
+    // v366: equipment_attributes.value_unit, the unit an item's own number
+    // reads in (issue #4534). Nullable, no backfill, so the floor does not
+    // move. Numbered 366: open work claims 364 and 365.
+    366,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -91,6 +91,7 @@ part 'helpers/equipment_collapsed_groups_migrations.dart';
 part 'helpers/country_flags_migrations.dart';
 part 'helpers/site_country_code_migrations.dart';
 part 'helpers/site_catalogue_id_migrations.dart';
+part 'helpers/attribute_unit_migrations.dart';
 part 'helpers/equipment_condition_migrations.dart';
 part 'helpers/equipment_location_migrations.dart';
 part 'helpers/equipment_photo_migrations.dart';

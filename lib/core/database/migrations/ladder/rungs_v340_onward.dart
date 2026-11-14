@@ -180,5 +180,12 @@ extension RungsFromV340 on AppDatabase {
     // Renumbered from 362, which main took for #4461.
     if (from < 363) await _assertSiteCatalogueIdColumn();
     if (from < 363) await reportProgress();
+
+    // v366: equipment_attributes.value_unit, the unit an item's own number
+    // reads in (issue #4534). Nullable, no backfill: every existing row
+    // follows the diver's settings, as it did. Re-asserted in beforeOpen.
+    // Numbered 366 because open work claims 364 and 365.
+    if (from < 366) await _assertAttributeValueUnitColumn();
+    if (from < 366) await reportProgress();
   }
 }
