@@ -34,6 +34,8 @@ import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/role_sheet.dart';
 import '../../../../helpers/folded_groups.dart';
+import 'package:submersion/features/weight_presets/data/repositories/weight_preset_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 
 /// Covers the bulk tri-state membership wiring in DiveEditPage: loading members
 /// for every reference collection, the add-affordance dialogs/sheets, and the
@@ -751,6 +753,57 @@ void main() {
       final rows = await db.select(db.diveEquipment).get();
       expect(rows, hasLength(4));
       expect(rows.map((r) => r.viaSetId).toSet(), {'s1'});
+    });
+
+    // Issue #4525: a set that carries only weights has no gear to list, so
+    // the set itself is staged and its weights go on dives that have none.
+    testWidgets('use-set stages a set with only weights and applies them', (
+      tester,
+    ) async {
+      await seedDive('d1');
+      await seedDive('d2');
+      final preset = await WeightPresetRepository().createPreset(
+        diverId: 'diver-1',
+        displayName: 'Belt',
+        entries: const [
+          (weightType: WeightType.belt, amountKg: 3.63, notes: '', label: ''),
+        ],
+      );
+      final created = await EquipmentSetRepository().createSet(
+        EquipmentSet(
+          id: 'lead',
+          name: 'Lead only',
+          weightPresetIds: [preset.id],
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+      );
+
+      await pump(
+        tester,
+        ['d1', 'd2'],
+        sets: [created.copyWith(items: const [])],
+      );
+      final useSet = find.descendant(
+        of: editorFor('Equipment'),
+        matching: find.widgetWithText(TextButton, 'Use Set'),
+      );
+      await tester.ensureVisible(useSet);
+      await tester.tap(useSet);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Lead only'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('bulk-used-set-lead')), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      final weights = await db.select(db.diveWeights).get();
+      expect(weights.map((w) => w.diveId).toSet(), {'d1', 'd2'});
+      expect(await db.select(db.diveEquipment).get(), isEmpty);
     });
 
     // Issue #2046: a set member another profile owns and has not shared

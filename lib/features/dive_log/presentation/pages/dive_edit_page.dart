@@ -1512,6 +1512,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// Sets staged to come off every selected dive with what they brought.
   List<BulkStagedSet> _equipmentSetRemovals = const [];
 
+  /// Sets used in this bulk edit that bring no gear, only weights or tanks
+  /// (issue #4525): with no gear row to carry them, they are staged here.
+  List<BulkStagedSet> _equipmentSetAdds = const [];
+
   /// The gear rows already on every selected dive.
   Set<String> get _equipmentOnEveryDive {
     final total = widget.bulkDiveIds?.length ?? 0;
@@ -2032,6 +2036,27 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ? AssemblyChips(itemId: item.id)
               : null,
         ),
+        if (_equipmentSetAdds.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
+            child: Wrap(
+              spacing: 8,
+              children: [
+                for (final staged in _equipmentSetAdds)
+                  InputChip(
+                    key: ValueKey('bulk-used-set-${staged.id}'),
+                    avatar: const Icon(Icons.folder_special, size: 18),
+                    label: Text(staged.name),
+                    onDeleted: () => setState(
+                      () => _equipmentSetAdds = [
+                        for (final s in _equipmentSetAdds)
+                          if (s.id != staged.id) s,
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
         BulkEquipmentSetRemovals(
           sets: _equipmentSetRemovals,
           onPick: _bulkRemoveEquipmentSet,
@@ -2174,6 +2199,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         EquipmentSetsOp(
           mode: BulkCollectionMode.remove,
           setIds: [for (final s in _equipmentSetRemovals) s.id],
+        ),
+      );
+    }
+    // A set with no gear has no gear op to ride on (issue #4525).
+    if (_equipmentSetAdds.isNotEmpty) {
+      ops.add(
+        EquipmentSetsOp(
+          mode: BulkCollectionMode.add,
+          setIds: [for (final s in _equipmentSetAdds) s.id],
         ),
       );
     }
@@ -2702,11 +2736,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       ),
       (
         title: l10n.diveLog_bulkEdit_equipmentSets,
-        delta: MembershipDelta(const [], [
-          for (final s in _equipmentSetRemovals) s.id,
-        ]),
+        delta: MembershipDelta(
+          [for (final s in _equipmentSetAdds) s.id],
+          [for (final s in _equipmentSetRemovals) s.id],
+        ),
         members: [
-          for (final s in _equipmentSetRemovals)
+          for (final s in [..._equipmentSetAdds, ..._equipmentSetRemovals])
             BulkMembershipItem(id: s.id, label: s.name),
         ],
       ),
@@ -4953,6 +4988,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final set = picked.set;
     final items = await _bulkUsableSetItems(picked.items);
     if (!mounted) return;
+    if (items.isEmpty) {
+      // Nothing to list among the gear, so the set itself is staged.
+      _markDirty();
+      setState(
+        () => _equipmentSetAdds = withStagedSet(_equipmentSetAdds, (
+          id: set.id,
+          name: set.name,
+        )),
+      );
+      return;
+    }
     setState(() {
       _bulkGear = withBulkGear(_bulkGear, items);
       // Rows already listed keep whatever the user set them to, so

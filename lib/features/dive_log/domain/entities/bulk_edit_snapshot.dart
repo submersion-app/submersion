@@ -43,6 +43,11 @@ class BulkEditSnapshot {
   /// and for undo to put back.
   final List<TripDateStretch> tripDateStretches;
 
+  /// Dives that had no weights until a set used in the edit filled them
+  /// (issue #4525); undo empties exactly these. Unused when [priorWeights]
+  /// is set, which restores every dive's weights anyway.
+  final List<String> setFilledWeightDiveIds;
+
   const BulkEditSnapshot({
     required this.priorDiveRows,
     this.priorTagIds,
@@ -56,6 +61,7 @@ class BulkEditSnapshot {
     this.priorWeights,
     this.priorSightings,
     this.tripDateStretches = const [],
+    this.setFilledWeightDiveIds = const [],
   });
 }
 
