@@ -289,6 +289,19 @@ HRESULT CreateKeys(ComPtr<IPortableDeviceKeyCollection>* keys) {
   return S_OK;
 }
 
+// True when a failure means the watch is no longer there (unplugged, or the
+// USB link dropped), as opposed to one object that will not list.
+bool IsDeviceGone(HRESULT hr) {
+  switch (hr) {
+    case HRESULT_FROM_WIN32(ERROR_DEVICE_NOT_CONNECTED):
+    case HRESULT_FROM_WIN32(ERROR_DEV_NOT_EXIST):
+    case HRESULT_FROM_WIN32(ERROR_GEN_FAILURE):
+      return true;
+    default:
+      return false;
+  }
+}
+
 }  // namespace
 
 WpdError WpdErrorFromHresult(const char* step, HRESULT hr) {
@@ -486,23 +499,40 @@ std::optional<WpdError> WpdReader::ListActivityFiles(
   if (const WpdObject* garmin = FindContainer(top, L"GARMIN")) {
     garmin_folders.push_back(garmin->id);
   }
+  // Some top-level objects never list, so a storage that fails is skipped
+  // unless the device has gone. The first skipped failure is kept: if no
+  // GARMIN folder turns up anywhere, it is returned rather than an empty
+  // listing that would read as "no new dives".
+  HRESULT skipped_storage_hr = S_OK;
   for (const auto& storage : top) {
     if (!storage.IsContainer()) continue;
     std::vector<WpdObject> children;
-    if (FAILED(ListChildren(content.Get(), properties.Get(), keys.Get(),
-                            storage.id, &children))) {
+    hr = ListChildren(content.Get(), properties.Get(), keys.Get(), storage.id,
+                      &children);
+    if (FAILED(hr)) {
+      if (IsDeviceGone(hr)) {
+        Close();
+        return WpdErrorFromHresult("Listing a device storage", hr);
+      }
+      if (SUCCEEDED(skipped_storage_hr)) skipped_storage_hr = hr;
       continue;
     }
     if (const WpdObject* garmin = FindContainer(children, L"GARMIN")) {
       garmin_folders.push_back(garmin->id);
     }
   }
+  if (garmin_folders.empty() && FAILED(skipped_storage_hr)) {
+    Close();
+    return WpdErrorFromHresult("Listing a device storage", skipped_storage_hr);
+  }
 
   for (const auto& garmin_id : garmin_folders) {
     std::vector<WpdObject> garmin_children;
-    if (FAILED(ListChildren(content.Get(), properties.Get(), keys.Get(),
-                            garmin_id, &garmin_children))) {
-      continue;
+    hr = ListChildren(content.Get(), properties.Get(), keys.Get(), garmin_id,
+                      &garmin_children);
+    if (FAILED(hr)) {
+      Close();
+      return WpdErrorFromHresult("Listing GARMIN", hr);
     }
     const WpdObject* activity = FindContainer(garmin_children, L"Activity");
     if (activity == nullptr) continue;
