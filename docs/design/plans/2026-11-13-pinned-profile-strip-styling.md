@@ -17,10 +17,10 @@
 - Depth line and fill unchanged: 1 px (`kProfileDepthLineWidth`), `GasColors.gradientColors(ProfileMetricColors.depth)`.
 - Background stays `colorScheme.surfaceContainerLow`; no tint, no divider.
 - Strip height `kPinnedStripHeight = 44`, all curve, 4 px pad above and below.
-- NDL: `ProfileMetricColors.ndl`, 1.5 px, round joins, scale `ProfileMetricBands.ndl` (0 s at the curve area's bottom, `fixedMax` 3600 s at its top, longer clamped), drawn only where NDL > 0, never bridging a gap.
-- Stop band: `decoStopBandColor` at `decoStopFillAlpha` plus a 1 px step edge; ceiling band: `ProfileMetricColors.ceiling` at `ceilingFillAlpha` plus a 1 px line; both from the surface (curve area top) down.
-- Max-depth marker: 3.5 px radius dot, `ProfileMetricColors.maxDepth`, 1 px ring in the surface colour; label 10 px w600 in the diver's depth unit, `ProfileMetricColors.maxDepth` in light, `Color(0xFFF48FB1)` in dark.
-- New layers' opacity scales with `morph` (the condense), so the hand-over never doubles the chart's bands.
+- NDL: `ProfileMetricColors.ndl`, 1.5 px, round joins, scale `ProfileMetricBands.ndl` (0 s at the curve area's bottom, `fixedMax` 3600 s at its top, longer clamped), drawn only where NDL dips below the top and is above zero, reaching out to the at-the-top sample either side, never bridging a deco gap.
+- Stop band: `decoStopBandColor` at `decoStopFillAlpha` plus a 1 px step edge; ceiling band: `ProfileMetricColors.ceiling` at `ceilingFillAlpha` plus a 1 px line; both from the surface (curve area top) down; the stop band steps square and holds each stop until the next sample (never past the curve's end).
+- Max-depth marker: 3.5 px radius dot, `ProfileMetricColors.maxDepth`, 1 px ring in the surface colour; no depth label.
+- New layers travel through the condense at full strength, like the depth line, and only cross-fade with the strip's surface.
 - Tooltip: background `tooltipBackgroundColor`, text `tooltipTextColor`, 6 px bullets, labels at 70% alpha, values w600, 11 px tabular figures, radius 6, padding 7 x 5; 4 px below the strip, left edge 10 px right of the cursor, flipped to 10 px left of it when it would pass 8 px from the strip's right edge, clamped to 8 px from both edges; ignores pointers; shown only while the cursor is set and the strip is fully condensed.
 - Units through `UnitFormatter`; every string through l10n. No em-dashes anywhere.
 
@@ -28,13 +28,15 @@
 
 - Dive with no analysis yet (analysis still loading, or null): strip draws the depth line and max-depth marker only, tooltip shows Time, Depth and ppO2 with `--` for missing values. Pinned in Task 2 and Task 3.
 - Analysis curves shorter than the chart profile (a source switch mid-load): no layer reads past a curve's end. Pinned in Task 1.
-- A profile whose deepest point is at the strip's right edge (a dive cut short at depth): label flips to the left, stays inside the strip. Pinned in Task 1.
+- An NDL held at the top for the whole dive: no NDL line at all. Pinned in Task 1.
 - An NDL of 999 min at the surface or a negative NDL in deco: clamped to the top, or treated as no line. Pinned in Task 1.
 - Cursor at the very right edge of a narrow window: tooltip stays fully on screen. Pinned in Task 2.
 
 ---
 
 ### Task 1: Painter layers
+
+> **Superseded in part.** Task 1 was built as written, then changed on review and request: the max-depth label and `maxDepthLabelOffset` were removed, the NDL line shows only below the top, the layers no longer fade with `morph`, and the cursor moved to `PinnedStripCursorPainter`. The steps below record the original build; the Global Constraints above and the spec describe what shipped.
 
 **Files:**
 - Create: `lib/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_layers.dart`

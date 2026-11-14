@@ -386,6 +386,19 @@ void main() {
       expect(values(rows), ['0:00', '--', '--', '--']);
     });
 
+    // A ceiling of zero is a cleared ceiling, not a depth: the full chart
+    // reads it as a dash too (review).
+    test('a cleared ceiling reads as a dash, not 0 m', () {
+      const v = PinnedStripValues(
+        runtimeSeconds: 61,
+        depthMeters: 6,
+        ppO2Bar: 0.8,
+        deco: StopSlot(depthMeters: 6, durationSeconds: 180),
+        ceilingMeters: 0,
+      );
+      expect(values(pinnedStripTooltipRows(v, metric, l10n)).last, '--');
+    });
+
     test('in deco with no ceiling known, the ceiling reads as a dash', () {
       const v = PinnedStripValues(
         runtimeSeconds: 61,

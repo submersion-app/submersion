@@ -180,7 +180,10 @@ List<TooltipRow> pinnedStripTooltipRows(
         ),
         TooltipRow(
           label: l10n.diveLog_tooltip_ceiling,
-          value: ceiling == null ? _missing : units.formatDepth(ceiling),
+          // Zero is a cleared ceiling, not a depth, as the chart reads it.
+          value: ceiling == null || ceiling <= 0
+              ? _missing
+              : units.formatDepth(ceiling),
           bulletColor: colorOf(ProfileMetric.ceiling),
         ),
       ],
