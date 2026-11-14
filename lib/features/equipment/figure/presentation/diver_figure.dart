@@ -19,8 +19,9 @@ enum FigureMode { pair }
 ///
 /// Below [wideBreakpoint] one side shows at a time behind a Front / Back
 /// switch, with label columns either side; from it upward the front and
-/// back sit side by side with a name pill beside each item. Items with no
-/// place on the body are tiles in a tray beneath.
+/// back sit side by side, each in its own half with name pills in columns
+/// either side of it. Items with no place on the body are tiles in a tray
+/// beneath.
 class DiverFigure extends StatefulWidget {
   const DiverFigure({
     super.key,
@@ -206,39 +207,17 @@ class _DiverFigureState extends State<DiverFigure> {
   }
 
   Widget _wide(BuildContext context, double width) {
-    // The pair's spare width is split evenly between the two margins and the
-    // gutter, so pills have room on every side of both figures.
-    final height = FigureLayout.preferredHeight(width);
-    final gutter = ((width - height) / 3).clamp(FigureLayout.gutter, 220.0);
-    final layout = FigureLayout.forSize(Size(width, height), gutter: gutter);
-    final style = FigureNameLabel.styleFor(context, pill: true);
-    final direction = Directionality.of(context);
-    final scaler = MediaQuery.textScalerOf(context);
+    // Each figure has its own half of the box, with label columns either
+    // side of it as on a phone, so no pill lies across a figure (#4553).
+    final layout = FigureLayout.forPair(Size(width, FigureLayout.maxHeight));
     final labelHeight = FigureNameLabel.heightFor(context, pill: true);
     final slots = _cachedSlots(
-      (
-        #wide,
-        widget.model,
-        width,
-        scaler,
-        direction,
-        style,
-        labelHeight,
-        widget.showNumbers,
-      ),
-      () => labelPills(
+      (#wide, widget.model, width, labelHeight),
+      () => pairLabelColumns(
         model: widget.model,
         layout: layout,
         width: width,
-        maxWidth: width / 4,
         labelHeight: labelHeight,
-        widthOf: (p) => FigureNameLabel.preferredWidth(
-          widget.labelText(p),
-          style,
-          direction,
-          textScaler: scaler,
-          number: _numberOf(p),
-        ),
       ),
     );
     return _canvas(context, width, layout, slots);

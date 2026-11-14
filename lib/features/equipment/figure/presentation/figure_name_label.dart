@@ -48,27 +48,6 @@ class FigureNameLabel extends StatelessWidget {
     return pill ? base : base.copyWith(fontSize: 11, letterSpacing: 0);
   }
 
-  /// The width a pill needs to show [text] in full on one line, at the
-  /// diver's text size. A null [number] leaves out the badge and its gap.
-  static double preferredWidth(
-    String text,
-    TextStyle style,
-    TextDirection direction, {
-    required int? number,
-    TextScaler textScaler = TextScaler.noScaling,
-  }) {
-    final width = _measure(text, style, direction, textScaler);
-    final badge = number == null
-        ? 0.0
-        : FigureNumberBadge.widthFor(
-                number,
-                badgeSize,
-                textScaler: textScaler,
-              ) +
-              _gap;
-    return badge + width + _pillPadding * 2 + 2;
-  }
-
   /// The row height a label needs for its lines at the diver's text size,
   /// never below the 40 pt tap target.
   static double heightFor(BuildContext context, {required bool pill}) {

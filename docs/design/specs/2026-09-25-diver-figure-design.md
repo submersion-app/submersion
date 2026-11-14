@@ -353,16 +353,17 @@ overflows it, and pill widths are measured at that text size.
 
 ### 8.3 Wide layout, 600 pt and wider
 
-- Both figures side by side, each at the 1:2 aspect, capped at 360 pt tall.
-  The spare width is split evenly between the two margins and the gutter
-  (the gutter between 12 and 220 pt), so pills have room on every side.
-- Each placed item gets a pill beside its anchor on the outward side (left of
-  the anchor for anchors left of the centre line, right otherwise), with a
-  short leader tick. The pill's maximum width is a quarter of the available
-  width, and it never reaches past the box edge or into the other figure.
-- Pills are placed in number order, each at the free spot nearest its anchor.
-  A pill whose name does not fit on its outward side moves across when the
-  other side has more room.
+- Both figures side by side, the front in the left half of the box and the
+  back in the right half. Each half is laid out as the phone lays out its one
+  figure: the figure centred at 36% of the half's width, at the 1:2 aspect,
+  capped at 360 pt tall.
+- Each figure's labels are pills in columns either side of it, by the phone
+  rules in 8.2 (side by anchor, centre anchors balanced, level with the
+  anchor unless that overlaps the pill above), each with a leader line to its
+  gear. A pill sits against its figure and never lies across either figure
+  or reaches into the other half; a name longer than its column ends in an
+  ellipsis. Pills placed beside their anchors lay across the body and the
+  gear drawn on it, so this replaced them (issue #4553).
 
 ### 8.4 Legend, tray, and tap linking
 
