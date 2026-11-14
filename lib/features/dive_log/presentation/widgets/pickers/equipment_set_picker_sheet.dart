@@ -6,6 +6,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/equipment/presentation/widgets/set_bundle_sections.dart';
+import 'package:submersion/features/equipment/presentation/providers/set_bundle_providers.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 
 /// Equipment set picker bottom sheet
 class EquipmentSetPickerSheet extends ConsumerWidget {
@@ -22,12 +25,18 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
   /// turns it on, since the gear the set tagged there remains (#4284).
   final bool pickEmptySets;
 
+  /// Whether a set must bring gear to be picked. A set that carries only
+  /// weights or tanks can be applied to a dive (issue #4525), but not where
+  /// only gear is wanted, such as the weight planner's rig.
+  final bool requireGear;
+
   const EquipmentSetPickerSheet({
     super.key,
     required this.scrollController,
     required this.onSetSelected,
     this.title,
     this.pickEmptySets = false,
+    this.requireGear = false,
   });
 
   @override
@@ -92,6 +101,7 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
                   return _EquipmentSetTile(
                     set: set,
                     pickEmpty: pickEmptySets,
+                    requireGear: requireGear,
                     onTap: (items) => onSetSelected(set, items),
                   );
                 },
@@ -116,11 +126,13 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
 class _EquipmentSetTile extends ConsumerWidget {
   final EquipmentSet set;
   final bool pickEmpty;
+  final bool requireGear;
   final void Function(List<EquipmentItem> items) onTap;
 
   const _EquipmentSetTile({
     required this.set,
     required this.pickEmpty,
+    required this.requireGear,
     required this.onTap,
   });
 
@@ -140,6 +152,26 @@ class _EquipmentSetTile extends ConsumerWidget {
           for (final item in setWithItems.items ?? const <EquipmentItem>[])
             if (!item.isWanted) item,
         ];
+        // The lead and cylinders the set carries besides gear (issue
+        // #4525). A set with only those is still worth applying.
+        final summary = ref.watch(setBundleSummaryProvider(set.id)).valueOrNull;
+        final carried = summary == null
+            ? ''
+            : setBundleSummaryText(
+                context.l10n,
+                (kg) => ref.watch(unitFormatterProvider).formatWeight(kg),
+                gearCount: 0,
+                leadKg: summary.leadKg,
+                cylinderCount: summary.cylinderCount,
+              );
+        final gearText = items.isEmpty
+            ? context.l10n.diveLog_equipmentSetPicker_emptySet
+            : context.l10n.diveLog_equipmentSetPicker_itemsSummary(
+                items.length,
+                items.map((e) => e.name).join(', '),
+              );
+        final canApply =
+            items.isNotEmpty || (!requireGear && carried.isNotEmpty);
         return ListTile(
           leading: CircleAvatar(
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
@@ -150,12 +182,11 @@ class _EquipmentSetTile extends ConsumerWidget {
           ),
           title: Text(set.name),
           subtitle: Text(
-            items.isEmpty
-                ? context.l10n.diveLog_equipmentSetPicker_emptySet
-                : context.l10n.diveLog_equipmentSetPicker_itemsSummary(
-                    items.length,
-                    items.map((e) => e.name).join(', '),
-                  ),
+            carried.isEmpty
+                ? gearText
+                : items.isEmpty
+                ? carried
+                : '$gearText · $carried',
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -170,7 +201,7 @@ class _EquipmentSetTile extends ConsumerWidget {
               const Icon(Icons.chevron_right),
             ],
           ),
-          onTap: items.isEmpty && !pickEmpty ? null : () => onTap(items),
+          onTap: canApply || pickEmpty ? () => onTap(items) : null,
         );
       },
       loading: () => ListTile(

@@ -18,10 +18,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 typedef _Entry = ({String id, String title, String? subtitle});
 
 /// The comma-separated headline of a bundle: gear count, lead and cylinder
-/// count, leaving out what the bundle does not have.
+/// count, leaving out what the bundle does not have. [formatWeight] is only
+/// called for a bundle with lead, so a caller with none needs no unit
+/// settings.
 String setBundleSummaryText(
   AppLocalizations l10n,
-  UnitFormatter units, {
+  String Function(double kg) formatWeight, {
   required int gearCount,
   required double leadKg,
   required int cylinderCount,
@@ -30,7 +32,7 @@ String setBundleSummaryText(
     gearCount == 1
         ? l10n.equipment_sets_itemCountSingular(gearCount)
         : l10n.equipment_sets_itemCountPlural(gearCount),
-  if (leadKg > 0) l10n.equipment_sets_leadTotal(units.formatWeight(leadKg)),
+  if (leadKg > 0) l10n.equipment_sets_leadTotal(formatWeight(leadKg)),
   if (cylinderCount > 0) l10n.equipment_sets_cylinderCount(cylinderCount),
 ].join(', ');
 
@@ -210,7 +212,7 @@ class SetBundleSections extends ConsumerWidget {
         l10n.equipment_setEdit_bundle_total(
           setBundleSummaryText(
             l10n,
-            units,
+            units.formatWeight,
             gearCount: bundle.gearIds.length,
             leadKg: bundle.totalWeightKg,
             cylinderCount: bundle.cylinders.length,

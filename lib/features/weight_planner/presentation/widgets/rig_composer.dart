@@ -113,6 +113,7 @@ class RigComposer extends ConsumerWidget {
         expand: false,
         builder: (context, scrollController) => EquipmentSetPickerSheet(
           scrollController: scrollController,
+          requireGear: true,
           onSetSelected: (set, items) {
             onGearSetAdded(set, items);
             Navigator.of(context).pop();
