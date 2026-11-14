@@ -385,6 +385,33 @@ class WriteTest(unittest.TestCase):
             self.assertFalse((directory / "site_catalogue.json").exists())
 
 
+class DeclaredSourcesTest(unittest.TestCase):
+    def _doc(self, records):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            fmt.write_catalogue(directory, records, "2026-02-01T02:12:29Z")
+            return json.loads(
+                (directory / "site_catalogue.json").read_text(encoding="utf-8")
+            )
+
+    def test_a_file_declares_and_credits_only_the_sources_it_holds(self):
+        metadata = self._doc([_record()])["metadata"]
+        self.assertEqual(list(metadata["sources"]), ["osm"])
+        notice = metadata["notice"]
+        self.assertIn("OpenStreetMap", notice)
+        self.assertIn("Open Database License", notice)
+        self.assertIn("not for navigation", notice)
+        for absent in ("Hydrographic", "Florida", "New Jersey", "Hawaii",
+                       "North Carolina", "Texas", "Wikidata"):
+            self.assertNotIn(absent, notice, absent)
+
+    def test_with_every_source_the_notice_is_the_full_one(self):
+        records = [_record(id=f"x_{key}", source=key) for key in fmt.SOURCES]
+        metadata = self._doc(records)["metadata"]
+        self.assertEqual(metadata["notice"], fmt.NOTICE)
+        self.assertEqual(metadata["sources"], fmt.SOURCES)
+
+
 class KindTest(unittest.TestCase):
     def _converted(self, kind):
         return fmt.to_catalogue_record(

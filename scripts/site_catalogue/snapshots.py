@@ -23,12 +23,22 @@ CACHE_DIR = Path(__file__).resolve().parent.parent / ".site_catalogue_cache"
 USER_AGENT = "dive-site-harvester/1.0"
 
 
+class HttpStatusError(RuntimeError):
+    """A request answered with anything but 200. [status] is the answer's
+    code, for a caller deciding whether to ask again: the message holds
+    the whole URL and is no place to look for it."""
+
+    def __init__(self, url: str, status: int):
+        super().__init__(f"{url} answered {status}")
+        self.status = status
+
+
 def http_get(
     url: str, *, params: dict | None = None, timeout: int = 120
 ) -> bytes:
-    """The body at [url]. Raises RuntimeError, naming the status, on
-    anything but a 200: a refusal stops the fetch, it is never worked
-    around."""
+    """The body at [url]. Raises HttpStatusError (a RuntimeError), naming
+    the status, on anything but a 200: a refusal stops the fetch, it is
+    never worked around."""
     if params:
         url = url + "?" + urllib.parse.urlencode(params)
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -36,10 +46,10 @@ def http_get(
         with urllib.request.urlopen(request, timeout=timeout) as response:
             status = getattr(response, "status", 200)
             if status != 200:
-                raise RuntimeError(f"{url} answered {status}")
+                raise HttpStatusError(url, status)
             return response.read()
     except urllib.error.HTTPError as error:
-        raise RuntimeError(f"{url} answered {error.code}") from error
+        raise HttpStatusError(url, error.code) from error
 
 
 def require_fields(row: dict, fields: tuple[str, ...], source: str) -> None:

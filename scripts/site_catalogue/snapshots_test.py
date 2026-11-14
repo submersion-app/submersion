@@ -108,6 +108,9 @@ class HttpTest(unittest.TestCase):
                 snapshots.http_get("https://example.org")
         self.assertIn("403", str(raised.exception))
         self.assertIn("example.org", str(raised.exception))
+        # The status itself, for a caller deciding whether to ask again:
+        # the message holds the whole URL and is no place to look for it.
+        self.assertEqual(raised.exception.status, 403)
 
 
 if __name__ == "__main__":

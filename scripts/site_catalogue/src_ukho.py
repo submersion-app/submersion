@@ -132,7 +132,21 @@ def hazard(comments: str) -> str | None:
             if _RESTRICTION.search(sentence)
         ]
         text = " ".join(sentences)
-    text = _sentence_case(text)[:_MAX_HAZARD_CHARS].rstrip()
+    text = _sentence_case(text)
+    if len(text) > _MAX_HAZARD_CHARS:
+        # Whole sentences while they fit: a restriction cut mid-word and
+        # closed with a full stop reads as the whole of it.
+        kept = ""
+        for sentence in re.split(r"(?<=[.;!?])\s+", text):
+            longer = f"{kept} {sentence}".strip()
+            if len(longer) > _MAX_HAZARD_CHARS:
+                break
+            kept = longer
+        if not kept:
+            # One sentence longer than the limit: cut at a word, and say so.
+            return text[: _MAX_HAZARD_CHARS - 4].rsplit(" ", 1)[0] + " ..."
+        text = kept
+    text = text.rstrip(";")
     return text if text.endswith((".", "!", "?")) else text + "."
 
 
@@ -198,14 +212,7 @@ def _record(row: dict) -> tuple[dict | None, str | None]:
 def records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
     """The rows that pass the gate as working records, and how many rows
     each reason dropped."""
-    kept, dropped = [], collections.Counter()
-    for row in rows:
-        record, reason = _record(row)
-        if record is None:
-            dropped[reason] += 1
-        else:
-            kept.append(record)
-    return kept, dropped
+    return rec.gate(rows, _record)
 
 
 def fetch():

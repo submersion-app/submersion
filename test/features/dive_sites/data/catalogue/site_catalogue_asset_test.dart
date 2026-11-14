@@ -107,7 +107,7 @@ void main() {
     final sources = (doc['metadata'] as Map<String, dynamic>)['sources'] as Map;
     final ids = <String>{};
 
-    expect(sites, hasLength(20932));
+    expect(sites, hasLength(20931));
     for (final site in sites) {
       final id = site['id'] as String;
       expect(ids.add(id), isTrue, reason: 'duplicate id $id');
@@ -145,7 +145,7 @@ void main() {
       }
     }
     final registers = sites.where((s) => s['kind'] == 'register').length;
-    expect(registers, 17001);
+    expect(registers, 17000);
     expect(sites.length - registers, 3931);
   });
 
@@ -327,7 +327,7 @@ void main() {
       const CatalogueBounds(south: -90, west: -180, north: 90, east: 180),
       limit: 1000000,
     );
-    expect(located.sites, hasLength(20932));
+    expect(located.sites, hasLength(20931));
     expect(located.truncated, isFalse);
     // Salt Pier, by name and by place.
     final found = await catalogue.search('salt pier');

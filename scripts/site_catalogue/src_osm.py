@@ -34,7 +34,7 @@ from site_catalogue_format import (  # noqa: E402
     normalise_depths,
     split_features,
 )
-from snapshots import http_get, write_snapshot  # noqa: E402
+from snapshots import HttpStatusError, http_get, write_snapshot  # noqa: E402
 
 KEY_SITES = "osm_sites"
 KEY_WRECKS = "osm_wrecks"
@@ -86,6 +86,8 @@ _NOT_SHIPS = frozenset({"car", "jeep", "van"})
 _WRECK_DEPTH_KEYS = ("wreck:depth", "depth", "seamark:wreck:depth")
 _DEPTH = re.compile(r"([\d.]+)\s*(m|meters?|metres?|ft|feet)?")
 _YES = ("yes", "true", "1")
+# What a busy Overpass answers with: worth asking once more.
+_BUSY = (429, 502, 504)
 
 
 def is_business(tags: dict, name: str) -> bool:
@@ -107,6 +109,14 @@ def is_business(tags: dict, name: str) -> bool:
     if _ENTRY_NAME.search(name or ""):
         return False
     return _BUSINESS_NAME.search(name or "") is not None
+
+
+def site_name(tags: dict) -> str | None:
+    """The name a scuba-tagged object ships under, or None when it has
+    none. The description stood in for a missing name before this slice;
+    it still does, so no id a diver may hold is lost."""
+    name = tags.get("name") or tags.get("name:en") or tags.get("description")
+    return name.strip() if name and name.strip() else None
 
 
 def parse_depth(text) -> float | None:
@@ -186,10 +196,8 @@ def site_records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
     kept, dropped = [], collections.Counter()
     for element in rows:
         tags = element.get("tags") or {}
-        # The description stood in for a missing name before this slice;
-        # it still does, so no id a diver may hold is lost.
-        name = tags.get("name") or tags.get("name:en") or tags.get("description")
-        if not name or not name.strip():
+        name = site_name(tags)
+        if name is None:
             dropped["no_name"] += 1
             continue
         if is_business(tags, name):
@@ -292,8 +300,8 @@ def _overpass(query: str) -> list[dict]:
     once more after a minute, then the fetch stops."""
     try:
         body = http_get(OVERPASS_URL, params={"data": query}, timeout=900)
-    except RuntimeError as error:
-        if not any(code in str(error) for code in ("429", "502", "504")):
+    except HttpStatusError as error:
+        if error.status not in _BUSY:
             raise
         time.sleep(60)
         body = http_get(OVERPASS_URL, params={"data": query}, timeout=900)
@@ -316,9 +324,11 @@ def fetch_sites(resolver=None):
     elements = _overpass(SITES_QUERY)
     for element in elements:
         tags = element.get("tags") or {}
-        name = tags.get("name") or tags.get("name:en") or tags.get("description")
+        # The sites that will ship located: the ones the geocoder is asked
+        # about.
+        name = site_name(tags)
         lat, lon = _position(element)
-        if not name or lat is None or is_business(tags, name):
+        if name is None or lat is None or is_business(tags, name):
             continue
         element["geocoded"] = list(resolver.lookup_place(lat, lon))
     return write_snapshot(KEY_SITES, OVERPASS_URL, elements)

@@ -22,7 +22,7 @@ for _path in (_HERE, os.path.dirname(_HERE)):
         sys.path.insert(0, _path)
 
 import records as rec  # noqa: E402
-from snapshots import http_get, write_snapshot  # noqa: E402
+from snapshots import HttpStatusError, http_get, write_snapshot  # noqa: E402
 
 KEY_SITES = "wikidata_sites"
 KEY_WRECKS = "wikidata_wrecks"
@@ -105,18 +105,13 @@ def with_article(rows: list[dict], article_bindings: list[dict]) -> list[dict]:
     return [row for row in rows if row["item"] in notable]
 
 
-def _whole_minutes(value: float) -> bool:
-    minutes = abs(value) * 60
-    return abs(minutes - round(minutes)) < 2e-4
-
-
 def _coarse(row: dict) -> bool:
     """Whether a position is good to a minute of arc at best: Wikidata
     says so, or both coordinates are written in whole minutes."""
     precision = row.get("precision")
     if precision is not None and precision >= _ARC_MINUTE - 1e-6:
         return True
-    return _whole_minutes(row["lat"]) and _whole_minutes(row["lon"])
+    return rec.whole_minutes(row["lat"]) and rec.whole_minutes(row["lon"])
 
 
 def _records(rows, *, kind: str, types, gate) -> tuple[list, collections.Counter]:
@@ -170,8 +165,8 @@ def _query(sparql: str) -> list[dict]:
 
     try:
         body = ask()
-    except RuntimeError as error:
-        if "429" not in str(error):
+    except HttpStatusError as error:
+        if error.status != 429:
             raise
         time.sleep(66)
         body = ask()

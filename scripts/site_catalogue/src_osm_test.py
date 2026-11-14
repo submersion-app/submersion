@@ -36,6 +36,51 @@ def _wreck(element):
     return (records[0] if records else None), next(iter(dropped), None)
 
 
+class OverpassTest(unittest.TestCase):
+    def _ask(self, *answers):
+        from unittest import mock
+
+        with mock.patch.object(src_osm, "http_get", side_effect=answers) as get, \
+                mock.patch.object(src_osm.time, "sleep") as sleep:
+            try:
+                return src_osm._overpass("[out:json];node(1);out;"), get, sleep
+            except RuntimeError as error:
+                return error, get, sleep
+
+    def _refusal(self, status, url="https://example.org"):
+        import snapshots
+
+        return snapshots.HttpStatusError(url, status)
+
+    def test_a_busy_server_is_asked_once_more(self):
+        elements, get, sleep = self._ask(
+            self._refusal(504), b'{"elements": [{"id": 1}]}'
+        )
+        self.assertEqual(elements, [{"id": 1}])
+        self.assertEqual(get.call_count, 2)
+        sleep.assert_called_once()
+
+    def test_a_refusal_is_not_retried_whatever_its_url_holds(self):
+        # A 400 for a URL that happens to contain "504".
+        error, get, sleep = self._ask(
+            self._refusal(400, "https://example.org/?data=timeout%3A504")
+        )
+        self.assertIsInstance(error, RuntimeError)
+        self.assertEqual(get.call_count, 1)
+        sleep.assert_not_called()
+
+
+class SiteNameTest(unittest.TestCase):
+    def test_the_name_a_dive_site_ships_under(self):
+        self.assertEqual(src_osm.site_name({"name": " Salt Pier "}), "Salt Pier")
+        self.assertEqual(src_osm.site_name({"name:en": "Bari Reef"}), "Bari Reef")
+        self.assertEqual(
+            src_osm.site_name({"description": "Shore entry"}), "Shore entry"
+        )
+        self.assertIsNone(src_osm.site_name({"name": "  "}))
+        self.assertIsNone(src_osm.site_name({}))
+
+
 class BusinessTest(unittest.TestCase):
     def test_what_serves_divers_is_not_a_dive_site(self):
         for tags in (

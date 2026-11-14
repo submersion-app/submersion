@@ -267,6 +267,112 @@ class MalformedRowsTest(unittest.TestCase):
         self.assertEqual([row["N"] for row in rows], [1, 2, 3, 4, 5])
 
 
+class PositionsTest(unittest.TestCase):
+    """A row's position is two numbers or nothing, before any arithmetic:
+    grouping measures distances, and the merge's own guard comes later."""
+
+    def test_a_point_that_is_not_two_numbers_is_no_position(self):
+        rows = src_reefs.geojson_rows({"features": [
+            {"properties": {"Name": "A"}, "geometry": {"coordinates": [-80.1]}},
+            {"properties": {"Name": "B"},
+             "geometry": {"coordinates": ["-80.1", "x"]}},
+            {"properties": {"Name": "C"}, "geometry": None},
+            {"properties": {"Name": "D"},
+             "geometry": {"coordinates": [-80.1, 25.5]}},
+        ]})
+        self.assertEqual(
+            [(row["_lat"], row["_lon"]) for row in rows],
+            [(None, None), (None, None), (None, None), (25.5, -80.1)],
+        )
+        rows = src_reefs.arcgis_rows({"features": [
+            {"attributes": {}, "geometry": {"x": -74.0}},
+            {"attributes": {}, "geometry": {"x": "NaN", "y": 39.5}},
+            {"attributes": {}, "geometry": {"x": -74.0, "y": 39.5}},
+        ]})
+        self.assertEqual(
+            [(row["_lat"], row["_lon"]) for row in rows],
+            [(None, None), (None, None), (39.5, -74.0)],
+        )
+
+    def test_a_snapshot_row_with_half_a_position_is_dropped_not_fatal(self):
+        # A snapshot written before the fetch checked: every parser reads
+        # the pair through the same check.
+        fwc = src_reefs.geojson_rows(_sample("fwc.geojson"))
+        broken = [dict(fwc[0], _lon=None), dict(fwc[0], _lat="north")]
+        records, dropped = src_reefs.fwc_records(fwc + broken)
+        expected, _ = src_reefs.fwc_records(fwc)
+        self.assertEqual(len(records), len(expected))
+        self.assertEqual(dropped["no_position"], 2)
+        keys = src_reefs.geojson_rows(_sample("fknms.geojson"))
+        moorings = [row for row in keys if row.get("BuoyType") == "Mooring"]
+        _, dropped = src_reefs.fknms_records([dict(moorings[0], _lon="x")])
+        self.assertEqual(dropped["no_position"], 1)
+
+    def test_a_florida_deployment_without_its_id_is_dropped(self):
+        fwc = src_reefs.geojson_rows(_sample("fwc.geojson"))
+        nameless = dict(fwc[0], DeployID=None, Name="No Number Reef")
+        records, dropped = src_reefs.fwc_records([nameless])
+        self.assertEqual(records, [])
+        self.assertEqual(dropped["no_id"], 1)
+
+    def test_an_empty_layer_is_an_error_that_names_it(self):
+        from unittest import mock
+
+        with mock.patch.object(src_reefs, "http_get", return_value=b'{"features": []}'), \
+                mock.patch.object(src_reefs.time, "sleep"):
+            with self.assertRaises(ValueError) as raised:
+                src_reefs._arcgis_pages("https://example.invalid/7", "json", 2000)
+        self.assertIn("https://example.invalid/7", str(raised.exception))
+
+    def test_a_table_name_is_quoted_whatever_it_holds(self):
+        self.assertEqual(src_reefs._identifier("ArtificialReef"), '"ArtificialReef"')
+        self.assertEqual(src_reefs._identifier('a"; drop'), '"a""; drop"')
+
+
+class FederalOrderTest(unittest.TestCase):
+    def test_a_site_s_id_does_not_depend_on_the_order_of_its_rows(self):
+        def row(name, seconds):
+            return dict(
+                reefIdentifier=None, reefName=name, reefComposition="",
+                reefStructure="Rubble", reefYear="1999",
+                stateAbbreviation="MD", waterDepthFeet="40",
+                latitudeDMS=f"38 20 {seconds} N", longitudeDMS="75 05 00 W",
+            )
+
+        north = row("Memorial Stadium (North end)", "02")
+        south = row("Memorial Stadium (South end)", "01")
+        one, _ = src_reefs.federal_records([north, south])
+        other, _ = src_reefs.federal_records([south, north])
+        self.assertEqual(len(one), 1)
+        self.assertEqual(one[0]["id"], other[0]["id"])
+        self.assertEqual(one[0]["name"], other[0]["name"])
+        self.assertEqual(one[0]["name"], "Memorial Stadium (North end)")
+
+    def test_a_marker_of_the_reef_is_not_what_the_reef_is_made_of(self):
+        def row(structure, seconds):
+            return dict(
+                reefIdentifier=None, reefName="Ten Mile Reef",
+                reefComposition="", reefStructure=structure, reefYear="1987",
+                stateAbbreviation="SC", waterDepthFeet="45",
+                latitudeDMS=f"33 26 {seconds} N", longitudeDMS="78 52 00 W",
+            )
+
+        # One row marks the reef's centre, one is a vessel sunk on it: a
+        # tie, which the file's row order used to settle.
+        for rows in (
+            [row("Center Point", "01"), row("Vessel", "02")],
+            [row("Vessel", "02"), row("Center Point", "01")],
+        ):
+            records, _ = src_reefs.federal_records(rows)
+            self.assertEqual(records[0]["description"], "Vessel, placed 1987")
+        # Markers alone say nothing of what is there.
+        records, _ = src_reefs.federal_records(
+            [row("General Location of Reef", "01"),
+             row("Southwest Marker Piling", "02")]
+        )
+        self.assertEqual(records[0]["description"], "Placed 1987")
+
+
 class NjdepMetadataTest(unittest.TestCase):
     def test_the_fetch_saves_the_layer_s_metadata_beside_its_snapshot(self):
         import tempfile

@@ -155,5 +155,30 @@ class ArticleTest(unittest.TestCase):
         self.assertEqual([row["item"] for row in kept], ["Q1", "Q3"])
 
 
+class QueryTest(unittest.TestCase):
+    def test_only_a_rate_limit_is_asked_again(self):
+        from unittest import mock
+
+        import snapshots
+
+        answer = b'{"results": {"bindings": [{"x": 1}]}}'
+        limited = snapshots.HttpStatusError("https://example.org", 429)
+        with mock.patch.object(
+            src_wikidata, "http_get", side_effect=[limited, answer]
+        ) as get, mock.patch.object(src_wikidata.time, "sleep"):
+            self.assertEqual(src_wikidata._query("select"), [{"x": 1}])
+        self.assertEqual(get.call_count, 2)
+
+        # A bad request whose URL holds the digits is not one.
+        bad = snapshots.HttpStatusError("https://example.org/?q=Q150429", 400)
+        with mock.patch.object(
+            src_wikidata, "http_get", side_effect=[bad]
+        ) as get, mock.patch.object(src_wikidata.time, "sleep") as sleep:
+            with self.assertRaises(RuntimeError):
+                src_wikidata._query("select")
+        self.assertEqual(get.call_count, 1)
+        sleep.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()

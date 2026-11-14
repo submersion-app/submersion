@@ -17,6 +17,7 @@ import sys
 import tempfile
 import unittest
 from contextlib import redirect_stdout
+from unittest import mock
 from pathlib import Path
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -351,6 +352,19 @@ class SharedPositionTest(unittest.TestCase):
         return dict(item=f"Q9{number}", label=label, lat=lat, lon=lon,
                     precision=1e-6, globe="http://www.wikidata.org/entity/Q2")
 
+    def test_names_in_another_script_are_told_apart_too(self):
+        # Folding drops every letter that is not Latin: three Cyrillic
+        # names must not count as one.
+        snapshots_ = _snapshots()
+        snapshots_["wikidata_wrecks"] += [
+            self._wreck(1, "Баржа Волга"), self._wreck(2, "Буксир Дон"),
+            self._wreck(3, "Катер Нева"),
+        ]
+        _, report = _build(snapshots_)
+        self.assertEqual(
+            report["wikidata_wrecks"]["dropped"]["shared_position"], 3
+        )
+
     def test_three_wrecks_on_one_point_are_an_area_not_three_wrecks(self):
         # A scuttled flotilla filed on one position: no one of them is
         # where the register says.
@@ -383,6 +397,27 @@ class SharedPositionTest(unittest.TestCase):
         records, report = _build(snapshots_)
         for key in ("fwc", "njdep", "noaa_reefs", "nc_dmf", "fknms"):
             self.assertNotIn("shared_position", report[key]["dropped"], key)
+
+
+class SharedIdTest(unittest.TestCase):
+    def test_an_item_in_both_wikidata_snapshots_ships_once_as_the_dive_site(self):
+        # 13 Wikidata items are a dive site and a wreck at once. The wreck
+        # query's label for one need not fold to the dive site's name, so
+        # the overlap rule cannot be what keeps the id single.
+        snapshots_ = _snapshots()
+        site = snapshots_["wikidata_sites"][0]
+        snapshots_["wikidata_wrecks"].append(
+            dict(site, label="Гуд Хоуп", lat=site["lat"] + 0.000101,
+                 lon=site["lon"] + 0.000101, precision=1e-6)
+        )
+        records, report = _build(snapshots_)
+        same = [r for r in records if r["id"] == f"wikidata_{site['item']}"]
+        self.assertEqual(len(same), 1)
+        self.assertNotIn("kind", same[0])
+        self.assertEqual(report["wikidata_wrecks"]["dropped"]["duplicate_id"], 1)
+        # What the wreck's record knew that the dive site's did not: it is
+        # a wreck. The same item, so the same record's to know.
+        self.assertEqual(same[0]["types"], ["wreck"])
 
 
 class OverlapInTheMergeTest(unittest.TestCase):
@@ -539,7 +574,11 @@ class MainTest(unittest.TestCase):
         # delete New Jersey's metadata beside it.
         self._run()
         output = io.StringIO()
-        with redirect_stdout(output):
+        # The default is pointed at a folder of this test's own: if the
+        # guard ever goes, the run must not reach the repository's files.
+        default = Path(self._tmp.name) / "default"
+        with mock.patch.object(merge, "DEFAULT_OUT", default), \
+                redirect_stdout(output):
             code = merge.main(
                 ["--cache", str(self.cache), "--open-only"],
                 places=_Places(),
@@ -547,6 +586,20 @@ class MainTest(unittest.TestCase):
             )
         self.assertEqual(code, 2)
         self.assertIn("--out", output.getvalue())
+        self.assertFalse(default.exists())
+
+    def test_with_every_source_left_out_there_is_nothing_to_merge(self):
+        self._run()
+        output = io.StringIO()
+        with redirect_stdout(output):
+            code = merge.main(
+                ["--cache", str(self.cache), "--out", str(self.out),
+                 "--without", *sorted(merge.SOURCE_STEPS)],
+                places=_Places(),
+                curated=_CURATED,
+            )
+        self.assertEqual(code, 2)
+        self.assertIn("--without", output.getvalue())
 
     def test_the_open_only_catalogue_ships_no_new_jersey_metadata(self):
         code, _ = self._run("--open-only")

@@ -179,16 +179,26 @@ def _on_the_globe(record: dict) -> bool:
     )
 
 
-def _gated(key: str, formed: list[dict], dropped, places) -> list[dict]:
+def _gated(
+    key: str, formed: list[dict], dropped, places, seen: dict[str, dict]
+) -> list[dict]:
     """A source's records after the checks every source gets: an id ships
     once, a position is on the globe, and a wreck from a source that is
-    not hydrographic lies in water."""
-    seen: set[str] = set()
+    not hydrographic lies in water.
+
+    [seen] holds the records every snapshot before this one formed, by
+    id: two snapshots of one source share their ids (a Wikidata item can
+    be a dive site and a wreck), and the first to form one keeps it,
+    learning its types from the other where it has none.
+    """
     kept = []
     for record in formed:
         # A register can list one id on two rows. The first stands.
-        if record["id"] in seen:
+        first = seen.get(record["id"])
+        if first is not None:
             dropped["duplicate_id"] += 1
+            if first[_ORIGIN] != key and not first["types"]:
+                first["types"] = list(record["types"])
             continue
         if record["lat"] is not None and not _on_the_globe(record):
             if record["kind"] == "register":
@@ -203,8 +213,8 @@ def _gated(key: str, formed: list[dict], dropped, places) -> list[dict]:
         ):
             dropped["on_land"] += 1
             continue
-        seen.add(record["id"])
         record[_ORIGIN] = key
+        seen[record["id"]] = record
         kept.append(record)
     if key not in _WRECK_REGISTERS:
         return kept
@@ -215,7 +225,10 @@ def _gated(key: str, formed: list[dict], dropped, places) -> list[dict]:
     names: dict[tuple, set[str]] = {}
     for record in kept:
         if record["kind"] == "register":
-            names.setdefault(point(record), set()).add(rec.fold_name(record["name"]))
+            # Folding drops every letter that is not Latin: a name in
+            # another script is told apart as it is written.
+            name = rec.fold_name(record["name"]) or record["name"].casefold()
+            names.setdefault(point(record), set()).add(name)
     crowded = {
         where for where, found in names.items()
         if len(found) >= _SHARED_POSITION_MIN
@@ -241,9 +254,12 @@ def build(snapshots: dict, curated: list[dict], places) -> tuple[list[dict], dic
     """
     working: list[dict] = []
     report: dict[str, dict] = {}
+    seen: dict[str, dict] = {}
+    # In key order, so of two snapshots that share an id the dive sites
+    # (osm_sites, wikidata_sites) come before the wrecks.
     for key in sorted(snapshots):
         formed, dropped = SOURCE_STEPS[key](snapshots[key])
-        formed = _gated(key, formed, dropped, places)
+        formed = _gated(key, formed, dropped, places, seen)
         working.extend(formed)
         report[key] = {
             "read": len(snapshots[key]),
@@ -373,6 +389,9 @@ def main(argv=None, *, places=None, curated=None) -> int:
             return 2
         snapshots[key] = snapshot["rows"]
         fetched.append(snapshot["fetched_at"])
+    if not snapshots:
+        print("Every source is named with --without: there is nothing to merge.")
+        return 2
 
     # NJDEP's agreement: its data is not redistributed without its metadata.
     ships_new_jersey = "njdep" in snapshots and not arguments.open_only

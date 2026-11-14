@@ -126,14 +126,7 @@ def _record(row: dict) -> tuple[dict | None, str | None]:
 def records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
     """The rows that pass the gate as working records, and how many rows
     each reason dropped."""
-    kept, dropped = [], collections.Counter()
-    for row in rows:
-        record, reason = _record(row)
-        if record is None:
-            dropped[reason] += 1
-        else:
-            kept.append(record)
-    return kept, dropped
+    return rec.gate(rows, _record)
 
 
 def fetch():

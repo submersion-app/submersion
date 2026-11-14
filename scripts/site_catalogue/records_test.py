@@ -46,6 +46,18 @@ class FoldNameTest(unittest.TestCase):
         self.assertEqual(
             records.fold_name("Arco No. 8"), records.fold_name("Arco 8")
         )
+        # A spelled-out prefix behind another prefix is still a prefix.
+        self.assertEqual(
+            records.fold_name("The M.V. Salem Express"), "salem express"
+        )
+        self.assertEqual(
+            records.fold_name("Wreck of the S.S. Thistlegorm"), "thistlegorm"
+        )
+        # Every word that alone is no name is also dropped from the front.
+        self.assertEqual(
+            records.fold_name("Scheepswrak Elisabeth"), "elisabeth"
+        )
+        self.assertEqual(records.fold_name("Skibsvrag Dannebrog"), "dannebrog")
         # A name that only begins with initials is not a prefix.
         self.assertEqual(records.fold_name("A B Seas"), "a b seas")
 
@@ -135,6 +147,25 @@ class WordListTest(unittest.TestCase):
         self.assertTrue(records.is_generic("abc"))
         self.assertTrue(records.is_generic("fishing vessel"))
         self.assertFalse(records.is_generic("thistlegorm"))
+
+
+class GateTest(unittest.TestCase):
+    def test_rows_are_kept_or_counted_under_their_reason(self):
+        def record(row):
+            return (row, None) if row > 0 else (None, "negative")
+
+        kept, dropped = records.gate([3, -1, 4, -5], record)
+        self.assertEqual(kept, [3, 4])
+        self.assertEqual(dict(dropped), {"negative": 2})
+
+
+class WholeMinutesTest(unittest.TestCase):
+    def test_a_coordinate_on_a_whole_minute_of_arc(self):
+        # 56 degrees 10 minutes, as five decimals of a degree round it.
+        self.assertTrue(records.whole_minutes(56.16667))
+        self.assertTrue(records.whole_minutes(-10.08333))
+        self.assertTrue(records.whole_minutes(12.0))
+        self.assertFalse(records.whole_minutes(56.1712))
 
 
 class UnitsTest(unittest.TestCase):

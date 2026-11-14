@@ -12,6 +12,7 @@ Two registers rarely write one wreck's name the same way ("HMS EXETER",
 (`display_name`).
 """
 
+import collections
 import math
 import re
 import unicodedata
@@ -33,13 +34,21 @@ _KEEP_UPPER = frozenset(SHIP_PREFIXES) | {
     "II", "III", "IV", "VI", "VII", "VIII", "IX", "XI", "XII",
 }
 
+# The word for a wreck in the other languages OpenStreetMap is mapped in,
+# without accents. Alone it is no name (`is_placeholder`); in front of a
+# name it is dropped when two names are compared (`fold_name`). One list,
+# so the two rules cannot drift apart.
+_FOREIGN_WRECK_NOUNS = (
+    "wrack", "schiffswrack", "bootswrack", "wrak", "scheepswrak", "vrak",
+    "skibsvrag", "skeppsvrak", "epave", "naufragio", "relitto", "pecio",
+)
+
 # Dropped from the front of a folded name, longest first.
 _FOLD_PREFIXES = tuple(
     sorted(
         [prefix.lower() for prefix in SHIP_PREFIXES]
-        + ["hmhs", "the", "wreck of the", "wreck of", "wreck", "epave",
-           "wrak", "wrack", "schiffswrack", "naufragio", "pecio", "relitto",
-           "vrak"],
+        + ["hmhs", "the", "wreck of the", "wreck of", "wreck"]
+        + list(_FOREIGN_WRECK_NOUNS),
         key=len,
         reverse=True,
     )
@@ -61,12 +70,10 @@ _PLACEHOLDER_START = re.compile(r"^(unnamed|unknown)\b", re.IGNORECASE)
 # The word for a wreck, alone, in the languages OpenStreetMap is mapped in:
 # as much a non-name as "WRECK" is in a British register. Compared without
 # accents, a leading article or "old", or a plural "s".
-_WRECK_WORDS = (
+_WRECK_WORDS = _FOREIGN_WRECK_NOUNS + (
     "shipwreck", "ship wreck", "boat wreck", "wreckage",
     "sunken barge", "sunken boat", "sunken ship", "sunken vessel",
-    "wrack", "schiffswrack", "bootswrack", "wrak", "scheepswrak",
-    "vrak", "skibsvrag", "skeppsvrak", "epave", "naufragio", "relitto",
-    "pecio", "barco hundido", "desconocido",
+    "barco hundido", "desconocido",
     "уламки", "баржа", "затонувшая баржа", "остов корабля",
 )
 _LEADING_WORD = re.compile(r"^(the|a|an|old|el|la|le|un|una|une|das|der|ein)\s+")
@@ -99,15 +106,16 @@ def fold_name(name: str) -> str:
     """
     text = re.sub(r"\(.*?\)", " ", _ascii(name).lower())
     words = re.sub(r"[^a-z0-9]+", " ", text).strip()
-    # "H.M.H.S." and "S.S." are their prefixes spelled out.
-    initials = _INITIALS.match(words)
-    if initials and initials.group(1).replace(" ", "") in _FOLD_PREFIXES:
-        words = initials.group(1).replace(" ", "") + words[initials.end(1):]
     # "No. 8" and "8" number the same hull.
     words = re.sub(r"\bno (?=\d)", "", words)
     changed = True
     while changed:
         changed = False
+        # "H.M.H.S." and "S.S." are their prefixes spelled out, at the
+        # front or behind another prefix ("The M.V. Salem Express").
+        initials = _INITIALS.match(words)
+        if initials and initials.group(1).replace(" ", "") in _FOLD_PREFIXES:
+            words = initials.group(1).replace(" ", "") + words[initials.end(1):]
         for prefix in _FOLD_PREFIXES:
             if words.startswith(prefix + " "):
                 words = words[len(prefix) + 1:]
@@ -226,6 +234,31 @@ def number(raw) -> float | None:
         return None
     # "nan" and "inf" parse, and are no more a number than "UNKNOWN".
     return value if math.isfinite(value) else None
+
+
+def whole_minutes(value: float) -> bool:
+    """Whether a decimal coordinate is a whole minute of arc written out
+    ("56.16667" is 56 degrees 10 minutes): a reported position, not a
+    surveyed one. The tolerance is what five decimals of a degree round
+    away."""
+    minutes = abs(value) * 60
+    return abs(minutes - round(minutes)) < 1e-3
+
+
+def gate(rows, record):
+    """([rows] that pass as working records, how many each reason dropped).
+
+    [record] answers (a working record, None) for a row it keeps and
+    (None, the reason) for one it drops.
+    """
+    kept, dropped = [], collections.Counter()
+    for row in rows:
+        made, reason = record(row)
+        if made is None:
+            dropped[reason] += 1
+        else:
+            kept.append(made)
+    return kept, dropped
 
 
 def fact_line(what: str | None, verb: str, when) -> str | None:

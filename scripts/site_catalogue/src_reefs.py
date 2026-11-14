@@ -128,7 +128,25 @@ _FWC_MATERIALS = {
 # "Kualoa Artificial Reef - Corner A": a marker at the corner of a reef
 # area, not a structure in it.
 _AREA_CORNER = re.compile(r"\bCorner\s+[A-Z0-9]$", re.IGNORECASE)
+# A row that marks the reef itself, by what the file calls its structure.
+_MARKER = re.compile(
+    r"\b(marker|cent(er|re) point|general location|corner)\b", re.IGNORECASE
+)
 _DMS = re.compile(r"^\s*(\d+)\s+(\d+)\s+([\d.]+)\s*([NSEW])\s*$")
+
+
+def _point(lon, lat) -> tuple[float | None, float | None]:
+    """(lat, lon) as two numbers, or (None, None): half a position, or a
+    word where a number belongs, is no position. Grouping measures
+    distances, so this is settled before any arithmetic."""
+    lon, lat = rec.number(lon), rec.number(lat)
+    return (lat, lon) if lat is not None and lon is not None else (None, None)
+
+
+def _position(row: dict) -> tuple[float | None, float | None]:
+    """A row's (lat, lon), checked again on the way out of a snapshot: one
+    written before the fetch checked holds what the layer answered."""
+    return _point(row.get("_lon"), row.get("_lat"))
 
 
 def geojson_rows(doc: dict) -> list[dict]:
@@ -136,9 +154,10 @@ def geojson_rows(doc: dict) -> list[dict]:
     point as `_lat` and `_lon`."""
     rows = []
     for feature in doc.get("features") or []:
-        coordinates = (feature.get("geometry") or {}).get("coordinates") or [None, None]
+        coordinates = (feature.get("geometry") or {}).get("coordinates")
+        pair = list(coordinates)[:2] if isinstance(coordinates, (list, tuple)) else []
         row = dict(feature.get("properties") or {})
-        row["_lon"], row["_lat"] = coordinates[0], coordinates[1]
+        row["_lat"], row["_lon"] = _point(*(pair + [None, None])[:2])
         rows.append(row)
     return rows
 
@@ -150,7 +169,7 @@ def arcgis_rows(doc: dict) -> list[dict]:
     for feature in doc.get("features") or []:
         geometry = feature.get("geometry") or {}
         row = dict(feature.get("attributes") or {})
-        row["_lon"], row["_lat"] = geometry.get("x"), geometry.get("y")
+        row["_lat"], row["_lon"] = _point(geometry.get("x"), geometry.get("y"))
         rows.append(row)
     return rows
 
@@ -183,17 +202,27 @@ def fwc_records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
     items = []
     for row in rows:
         name = (row.get("Name") or "").strip()
-        if rec.is_placeholder(name) or row.get("_lat") is None:
-            dropped["no_name" if row.get("_lat") is not None else "no_position"] += 1
+        lat, lon = _position(row)
+        if lat is None:
+            dropped["no_position"] += 1
+            continue
+        if rec.is_placeholder(name):
+            dropped["no_name"] += 1
+            continue
+        deploy_id = str(row.get("DeployID") or "").strip()
+        if not deploy_id:
+            # The site's id is its first deployment's: without one the
+            # record would ship as "fwc_".
+            dropped["no_id"] += 1
             continue
         depth = rec.number(row.get("Depth"))
         relief = rec.number(row.get("Relief"))
         items.append(
             dict(
                 name=name,
-                lat=row["_lat"],
-                lon=row["_lon"],
-                id=str(row.get("DeployID") or ""),
+                lat=lat,
+                lon=lon,
+                id=deploy_id,
                 depth=rec.feet(depth) if depth else None,
                 top=rec.feet(depth - relief)
                 if depth and relief and 0 < relief < depth
@@ -258,6 +287,10 @@ def _plain_structure(text) -> str | None:
     text = " ".join(str(text or "").split())
     if not text or text.lower() == "other" or len(text) > 30:
         return None
+    if _MARKER.search(text):
+        # "Center Point", "Southwest Marker Piling": where the reef is,
+        # not what it is made of.
+        return None
     return text if re.fullmatch(r"[A-Za-z ]+", text) else None
 
 
@@ -298,6 +331,9 @@ def federal_records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
     for state in sorted(by_state):
         sites = []
         for group in group_by_name(by_state[state]):
+            # The file's row order is not ours to rely on: the site takes
+            # its name, and so its id, from the same row every harvest.
+            group.sort(key=lambda item: (item["name"], item["lat"], item["lon"]))
             depth = _depths(item["depth"] for item in group)
             if depth is not None and depth > MAX_DEPTH_M:
                 dropped["too_deep"] += 1
@@ -369,7 +405,8 @@ def njdep_records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
         if not name or not site:
             dropped["no_name"] += 1
             continue
-        if row.get("_lat") is None or row.get("_lon") is None:
+        lat, lon = _position(row)
+        if lat is None:
             dropped["no_position"] += 1
             continue
         reef = f"{site} Reef"
@@ -384,8 +421,8 @@ def njdep_records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
                 # named reef stands on its own, with the reef as its place.
                 name=f"{reef}, {name}" if _nj_is_material(row) else name,
                 locality=reef,
-                lat=row["_lat"],
-                lon=row["_lon"],
+                lat=lat,
+                lon=lon,
                 id=int(number),
                 kind=(row.get("TYPE") or "").strip(),
                 year=_year(row.get("YEAR_DEPLOYED")),
@@ -430,7 +467,8 @@ def nc_dmf_records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
         if not number:
             dropped["no_name"] += 1
             continue
-        if row.get("_lat") is None or row.get("_lon") is None:
+        lat, lon = _position(row)
+        if lat is None:
             dropped["no_position"] += 1
             continue
         name = (row.get("REEF_NAME") or "").strip()
@@ -439,8 +477,8 @@ def nc_dmf_records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
                 id=f"ncreef_{rec.slug(number)}",
                 # The layer writes the word "None" for a reef with no name.
                 name=name if name and name.lower() != "none" else number,
-                lat=row["_lat"],
-                lon=row["_lon"],
+                lat=lat,
+                lon=lon,
                 source="nc_dmf",
                 kind="register",
                 source_ref=NC_DMF_REF,
@@ -461,14 +499,15 @@ def fknms_records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
         if row.get("BuoyType") not in _MOORINGS or not location:
             dropped["not_mooring"] += 1
             continue
-        if row.get("_lat") is None or row.get("_lon") is None:
+        lat, lon = _position(row)
+        if lat is None:
             dropped["no_position"] += 1
             continue
         depth = rec.number(row.get("Depth__ft_"))
         by_location.setdefault(location, []).append(
             dict(
-                lat=row["_lat"],
-                lon=row["_lon"],
+                lat=lat,
+                lon=lon,
                 depth=rec.feet(depth) if depth else None,
                 wreck=row.get("BuoyType") == "Mooring Wreck",
             )
@@ -526,6 +565,9 @@ def _arcgis_pages(url: str, fmt: str, page_size: int) -> list[dict]:
         # Until a page comes back empty: a server whose own limit is under
         # [page_size] answers with short pages that are not the last.
         if not page:
+            if not rows:
+                # Named here: the callers read the first row for its columns.
+                raise ValueError(f"{url} answered with no rows")
             return rows
         rows.extend(page)
         offset += len(page)
@@ -536,6 +578,12 @@ def fetch_fwc():
     rows = _arcgis_pages(FWC_URL, "geojson", 2000)
     require_fields(rows[0], ("DeployID", "Name", "Depth", "Relief", "MatCat", "DeployDate"), "fwc")
     return write_snapshot("fwc", FWC_URL, rows)
+
+
+def _identifier(name: str) -> str:
+    """[name] as a quoted SQL identifier. A table name cannot be bound as
+    a parameter, and this one comes out of a downloaded file."""
+    return '"' + str(name).replace('"', '""') + '"'
 
 
 def fetch_federal():
@@ -554,7 +602,9 @@ def fetch_federal():
             rows = [
                 {field: row[field] for field in FEDERAL_FIELDS}
                 for row in database.execute(
-                    "select {} from \"{}\"".format(", ".join(FEDERAL_FIELDS), table)
+                    "select {} from {}".format(
+                        ", ".join(FEDERAL_FIELDS), _identifier(table)
+                    )
                 )
             ]
         finally:

@@ -179,6 +179,22 @@ class RecordTest(unittest.TestCase):
         self.assertTrue(hazards[0].isupper())
         self.assertLessEqual(len(hazards), 200)
 
+    def test_a_long_hazard_is_not_cut_in_the_middle_of_a_word(self):
+        first = "Historic wreck protected under the act of 1973."
+        second = (
+            "Diving is restricted within the " + "very " * 40 + "wide zone."
+        )
+        text = src_ukho.hazard(f"{first} {second}")
+        self.assertLessEqual(len(text), 200)
+        # The sentence that fits is kept whole; the one that does not is
+        # left out, not chopped.
+        self.assertEqual(text, first)
+        # One sentence too long on its own is cut at a word and says so.
+        alone = src_ukho.hazard(second)
+        self.assertLessEqual(len(alone), 200)
+        self.assertTrue(alone.endswith(" ..."), alone[-20:])
+        self.assertNotIn("ver ...", alone)
+
     def test_an_ordinary_comment_is_not_a_hazard(self):
         row = dict(self.rows["9438"], general_comments="INTACT, ON PORT SIDE")
         self.assertIsNone(_one(row)[0]["hazards"])

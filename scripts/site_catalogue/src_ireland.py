@@ -71,13 +71,6 @@ def _decimals(text: str) -> int:
     return len(text.split(".", 1)[1]) if "." in text else 0
 
 
-def _whole_minutes(value: float) -> bool:
-    """Whether a decimal coordinate is a whole minute of arc written out
-    ("56.16667" is 56 degrees 10 minutes)."""
-    minutes = abs(value) * 60
-    return abs(minutes - round(minutes)) < 1e-3
-
-
 def _record(row: dict) -> tuple[dict | None, str | None]:
     name = _TYPE_SUFFIX.sub("", row["Wreck Name"])
     if rec.is_placeholder(name):
@@ -95,7 +88,7 @@ def _record(row: dict) -> tuple[dict | None, str | None]:
         return None, "coarse_position"
     # A reported position, whoever it is credited to: the inventory files
     # 24 scuttled U-boats on one whole-minute point.
-    if _whole_minutes(latitude) and _whole_minutes(longitude):
+    if rec.whole_minutes(latitude) and rec.whole_minutes(longitude):
         return None, "coarse_position"
     classification = row["Classification"]
     return (
@@ -121,14 +114,7 @@ def _record(row: dict) -> tuple[dict | None, str | None]:
 def records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
     """The rows that pass the gate as working records, and how many rows
     each reason dropped."""
-    kept, dropped = [], collections.Counter()
-    for row in rows:
-        record, reason = _record(row)
-        if record is None:
-            dropped[reason] += 1
-        else:
-            kept.append(record)
-    return kept, dropped
+    return rec.gate(rows, _record)
 
 
 def fetch():

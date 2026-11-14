@@ -1,7 +1,7 @@
 # Site catalogue: open-register expansion (slice 2)
 
 Date: 2026-11-14
-Status: approved 2026-11-14; first harvest shipped 20,932 records (see
+Status: approved 2026-11-14; first harvest shipped 20,931 records (see
 "Result of the first harvest")
 Program: `2026-11-13-site-catalogue-program.md`
 Issue: #4514
@@ -184,7 +184,7 @@ exact total only after the harvest is final.
 
 ### Result of the first harvest (2026-11-14)
 
-The harvest wrote 20,932 records: 3,931 dive site records and 17,001
+The harvest wrote 20,931 records: 3,931 dive site records and 17,000
 register records.
 
 | Source | Expected | Written | Why it differs |
@@ -195,7 +195,7 @@ register records.
 | Florida FWC reefs | 3,200 | 3,528 | The prototype matched names more loosely and merged more deployments |
 | Other states' reefs, federal file | 2,300 | 2,297 | |
 | OpenStreetMap wrecks | 1,050 | 840 | Wrecks that show at low tide are dropped too; 39 were named only "wreck" in another language; 109 lie on dry land |
-| Wikidata | 1,170 | 998 | 34 wrecks lie on dry land; 34 share a point with two or more others |
+| Wikidata | 1,170 | 997 | 34 wrecks lie on dry land; 34 share a point with two or more others |
 | New Jersey reefs | 600 | 615 | |
 | NOAA AWOIS | 560 | 464 | The register writes "Wreck - Visible"; 61 such rows and 87 reported removed are gated |
 | Ireland wreck inventory | 500 | 349 | 140 are the same wreck as a UKHO record, which is kept; 90 positions are whole minutes written in decimals |
@@ -236,6 +236,14 @@ for. In section 5, a curated site that steps aside for OpenStreetMap gives
 it nothing, and a survivor's own types stand. In section 10, a register
 record is not picked on its own when a dive site lies within the
 separation margin behind it, even outside the inner radius.
+
+From the code review that followed: an id two snapshots of one source
+share (13 Wikidata items are a dive site and a wreck) ships once, as the
+dive site, which learns it is a wreck. A record that matches two survivors
+goes to the better-ranked one. A federal reef site takes its name and id
+from the same row every harvest, and a row that only marks the reef
+("Center Point", "Marker Piling") is not its description. A file declares
+and credits only the sources it holds records of.
 
 At 28,369 records (the larger, rejected set), on a desktop in a debug build:
 import took 268 ms to parse and name seas and 269 ms to insert (72 ms and

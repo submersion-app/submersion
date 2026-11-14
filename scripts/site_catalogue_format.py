@@ -154,25 +154,32 @@ OWN_TERMS_SOURCES = tuple(
 KINDS = ("site", "register")
 
 
-def catalogue_sources(*, open_only: bool = False) -> dict:
-    """The sources a catalogue file declares; without the own-terms ones
+def catalogue_sources(*, open_only: bool = False, present=None) -> dict:
+    """The sources a catalogue file declares: the ones its records come
+    from ([present], every source when None), without the own-terms ones
     for the ODbL database alone."""
     return {
         key: source
         for key, source in SOURCES.items()
         if not (open_only and key in OWN_TERMS_SOURCES)
+        and (present is None or key in present)
     }
 
 
-def catalogue_notice(*, open_only: bool = False) -> str:
+def _listed(names: list[str]) -> str:
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+
+
+def catalogue_notice(*, open_only: bool = False, present=None) -> str:
     """The notice a catalogue file carries.
 
-    Every source is named with its licence. The ODbL covers the database
-    the open sources were merged into; an own-terms source's records are
-    carried beside it under their publisher's terms, and the notice says
-    which those are.
+    Every source the file holds records of ([present], every source when
+    None) is named with its licence. The ODbL covers the database the open
+    sources were merged into; an own-terms source's records are carried
+    beside it under their publisher's terms, and the notice says which
+    those are.
     """
-    sources = catalogue_sources(open_only=open_only)
+    sources = catalogue_sources(open_only=open_only, present=present)
     open_lines = [
         f"{source['name']} ({source['licence']}, {source['licence_url']})"
         for key, source in sources.items()
@@ -184,32 +191,57 @@ def catalogue_notice(*, open_only: bool = False) -> str:
         "This database is made available under the Open Database License "
         "(ODbL) 1.0, " + _ODBL + " . It was compiled from: "
         + "; ".join(open_lines) + ".",
-        _UKHO_STATEMENT,
-        "Florida records were produced by the Florida Fish and Wildlife "
-        "Conservation Commission, Fish and Wildlife Research Institute "
-        "(FWC-FWRI).",
     ]
-    if not open_only:
+    if "ukho" in sources:
+        parts.append(_UKHO_STATEMENT)
+    if "fwc" in sources:
+        parts.append(
+            "Florida records were produced by the Florida Fish and Wildlife "
+            "Conservation Commission, Fish and Wildlife Research Institute "
+            "(FWC-FWRI)."
+        )
+    own = [key for key in OWN_TERMS_SOURCES if key in sources]
+    if own:
         own_lines = [
             f"{SOURCES[key]['name']} ({SOURCES[key]['licence']}, "
             f"{SOURCES[key]['licence_url']}): {SOURCES[key]['own_terms']}"
-            for key in OWN_TERMS_SOURCES
+            for key in own
         ]
-        parts += [
+        parts.append(
             "The records of the following sources are not part of that "
             "database and are not licensed under the ODbL. They remain "
-            "under their publishers' own terms: " + " ".join(own_lines),
-            _NJDEP_STATEMENT,
-            "Records from Hawaii, North Carolina and Texas may not be used "
-            "commercially. North Carolina's records are reproduced without "
-            "alteration from the Division of Marine Fisheries' reef guide.",
+            "under their publishers' own terms: " + " ".join(own_lines)
+        )
+        if "njdep" in own:
+            parts.append(_NJDEP_STATEMENT)
+        states = [
+            state
+            for key, state in _NON_COMMERCIAL_STATES
+            if key in own
         ]
+        if states:
+            sentence = (
+                f"Records from {_listed(states)} may not be used commercially."
+            )
+            if "nc_dmf" in own:
+                sentence += (
+                    " North Carolina's records are reproduced without "
+                    "alteration from the Division of Marine Fisheries' reef "
+                    "guide."
+                )
+            parts.append(sentence)
     parts.append(
         "Positions and depths are as their sources published them. This "
         "data is not for navigation."
     )
     return " ".join(parts)
 
+
+# The own-terms sources whose terms allow non-commercial use only, as the
+# notice names their states.
+_NON_COMMERCIAL_STATES = (
+    ("hi_dar", "Hawaii"), ("nc_dmf", "North Carolina"), ("tpwd", "Texas"),
+)
 
 NOTICE = catalogue_notice()
 
@@ -481,13 +513,16 @@ def write_catalogue(
             if record.get("source") not in OWN_TERMS_SOURCES
         ]
     records = sorted(records, key=lambda record: record.get("id") or "")
+    # Only the sources the file holds records of: a catalogue built
+    # without one neither declares nor credits it.
+    present = {record.get("source") for record in records}
     doc = {
         "metadata": {
             "format": FORMAT,
             "generated_at": generated_at,
-            "notice": catalogue_notice(open_only=open_only),
+            "notice": catalogue_notice(open_only=open_only, present=present),
             "total_count": len(records),
-            "sources": catalogue_sources(open_only=open_only),
+            "sources": catalogue_sources(open_only=open_only, present=present),
         },
         "sites": records,
     }

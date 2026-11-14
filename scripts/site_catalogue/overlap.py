@@ -167,13 +167,16 @@ def resolve(
     for record in ordered:
         match = None
         if record["lat"] is not None and record["lon"] is not None:
-            for cell in _cells(record):
-                for survivor in grid.get(cell, ()):
-                    if same_site(survivor, record):
-                        match = survivor
-                        break
-                if match is not None:
-                    break
+            # Every survivor it matches, then the best-ranked of them: the
+            # first one met depends on which grid cell is looked in first.
+            matches = [
+                survivor
+                for cell in _cells(record)
+                for survivor in grid.get(cell, ())
+                if same_site(survivor, record)
+            ]
+            if matches:
+                match = min(matches, key=lambda s: (rank[_key(s)], s["id"]))
         if match is not None:
             dropped[(label(record), label(match))] += 1
             # Nothing passes to or from an own-terms record, and a curated

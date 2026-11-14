@@ -244,6 +244,23 @@ class TakingTest(unittest.TestCase):
         self.assertIsNone(survivor["description"])
         self.assertEqual(survivor["types"], [])
 
+    def test_a_record_two_survivors_match_goes_to_the_better_ranked(self):
+        # A dive site and a reef both match the wreck, from the grid cells
+        # on either side of it. The dive site takes its depth whichever
+        # cell is looked in first.
+        for site_north in (-1500, 1500):
+            osm = _site("osm", "osm_node_1", "Exeter", north=site_north)
+            reef = _r(
+                "fwc", "fwc_1", "Exeter", north=-site_north,
+                types=("artificial_reef",),
+            )
+            ukho = _r("ukho", "ukho_1", "HMS EXETER", max_depth=55.0)
+            kept, dropped = overlap.resolve([reef, ukho, osm])
+            by_id = {record["id"]: record for record in kept}
+            self.assertEqual(dict(dropped), {("ukho", "osm"): 1}, site_north)
+            self.assertEqual(by_id["osm_node_1"]["max_depth"], 55.0)
+            self.assertIsNone(by_id["fwc_1"]["max_depth"])
+
     def test_a_depth_the_survivor_has_is_never_overwritten(self):
         kept, _ = overlap.resolve([
             _site("osm", "osm_node_1", "Exeter", max_depth=20.0),
