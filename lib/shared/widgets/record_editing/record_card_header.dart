@@ -100,6 +100,9 @@ class RecordCardHeader extends StatelessWidget {
     ];
 
     if (frame == null) {
+      // The title takes the room there is and wraps within it, so what
+      // follows sits at the row's right edge and a long title cannot
+      // overflow the card.
       return Row(
         children: [
           ...beforeTitle,
@@ -144,22 +147,27 @@ class RecordCardHeader extends StatelessWidget {
       );
     }
 
-    return InkWell(
-      onTap: frame.onOpen,
-      child: Row(
-        children: [
-          ...titleAndDot,
-          ?trailing,
-          const SizedBox(width: 8),
-          Tooltip(
-            message: l10n.recordEdit_editCardTooltip(title),
-            child: Icon(
-              Icons.edit_outlined,
-              size: 18,
-              color: theme.colorScheme.primary,
+    // An InkWell gives the row a tap action but no role, and the row is
+    // the card's only way in: it is announced as the button it is.
+    return Semantics(
+      button: true,
+      child: InkWell(
+        onTap: frame.onOpen,
+        child: Row(
+          children: [
+            ...titleAndDot,
+            ?trailing,
+            const SizedBox(width: 8),
+            Tooltip(
+              message: l10n.recordEdit_editCardTooltip(title),
+              child: Icon(
+                Icons.edit_outlined,
+                size: 18,
+                color: theme.colorScheme.primary,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

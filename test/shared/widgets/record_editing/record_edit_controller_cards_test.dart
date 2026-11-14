@@ -461,6 +461,58 @@ void main() {
       controller.closeCard('notes');
       expect(controller.openCardIds, isEmpty);
     });
+
+    // The sitting is frozen meanwhile, so it cannot follow the stored
+    // record as it arrives. Given back, it must catch up, or the cards the
+    // diver never touched would show what is no longer stored.
+    test(
+      'a save that fails catches up with what was stored meanwhile',
+      () async {
+        final gate = Completer<void>();
+        final controller = _controller(
+          onSave: (_) async {
+            await gate.future;
+            throw StateError('no');
+          },
+        )..unlock(const _Rec(notes: 'a', depth: 1));
+        controller.session!.set(_notes, 'b');
+        final saving = controller.save();
+
+        controller.storedChanged(const _Rec(notes: 'a', depth: 7));
+        gate.complete();
+        expect(await saving, isFalse);
+
+        expect(controller.session!.stored, const _Rec(notes: 'a', depth: 7));
+        expect(controller.session!.working, const _Rec(notes: 'b', depth: 7));
+      },
+    );
+
+    test(
+      'what arrived during one save is not applied after a later one',
+      () async {
+        Completer<void>? gate = Completer<void>();
+        var fail = false;
+        final controller = _controller(
+          onSave: (_) async {
+            await gate?.future;
+            if (fail) throw StateError('no');
+          },
+        )..unlock(const _Rec(notes: 'a', depth: 1));
+        controller.session!.set(_notes, 'b');
+        final first = controller.save();
+        controller.storedChanged(const _Rec(notes: 'b', depth: 7));
+        gate.complete();
+        expect(await first, isTrue);
+
+        gate = null;
+        fail = true;
+        controller.unlock(const _Rec(notes: 'b', depth: 9));
+        controller.session!.set(_notes, 'c');
+        expect(await controller.save(), isFalse);
+
+        expect(controller.session!.stored, const _Rec(notes: 'b', depth: 9));
+      },
+    );
   });
 
   // A card brought in from the Add strip can land below the fold. The

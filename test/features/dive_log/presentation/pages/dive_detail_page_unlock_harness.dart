@@ -30,6 +30,10 @@ class FakeSave implements DiveEditSaveService {
 
   Dive stored;
   Object? failWith;
+
+  /// When set, a save waits here before it writes or fails, so a test can
+  /// act while it is running.
+  Completer<void>? hold;
   final calls = <({String diveId, Dive merged, List<String> cards})>[];
 
   @override
@@ -39,6 +43,7 @@ class FakeSave implements DiveEditSaveService {
     required Iterable<String> changedCardIds,
     Future<void> Function()? alsoWrite,
   }) async {
+    await hold?.future;
     final error = failWith;
     if (error != null) throw error;
     final before = stored;
@@ -113,6 +118,10 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = size;
   addTearDown(tester.view.reset);
+  // One notifier for the life of the page: made in the route's builder it
+  // would be a new one, never disposed, each time the route rebuilt.
+  final shownId = shownDiveId ?? ValueNotifier(dive.id);
+  if (shownDiveId == null) addTearDown(shownId.dispose);
 
   final save = FakeSave(stored ?? dive);
   var loads = 0;
@@ -151,7 +160,7 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
             // With [shownDiveId] the same page is handed another dive,
             // keeping its state, as the list pane does with its detail.
             builder: (context, state) => ValueListenableBuilder<String>(
-              valueListenable: shownDiveId ?? ValueNotifier(dive.id),
+              valueListenable: shownId,
               builder: (context, id, _) => DiveDetailPage(
                 diveId: id,
                 embedded: embedded,

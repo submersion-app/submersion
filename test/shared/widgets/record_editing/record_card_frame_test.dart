@@ -521,4 +521,72 @@ void main() {
       expect(find.byKey(editor), findsOneWidget);
     });
   });
+
+  group('the header', () {
+    Widget at(double width, Widget header) => MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(width: width, child: header),
+        ),
+      ),
+    );
+
+    // The first keystroke in an open card marks it changed. If the dot then
+    // took room from the title, a title that only just fitted would wrap,
+    // and everything in the card would jump down a line under the diver.
+    testWidgets('the dot arriving does not reflow the title', (tester) async {
+      // Wide enough for the title beside Done, with nothing to spare.
+      Widget open({required bool isChanged}) => at(
+        300,
+        RecordCardFrameScope(
+          data: RecordCardFrameData(
+            isOpen: true,
+            isChanged: isChanged,
+            onOpen: () {},
+            onDone: () {},
+          ),
+          child: const RecordCardHeader(title: 'Altitude Dive'),
+        ),
+      );
+
+      await tester.pumpWidget(open(isChanged: false));
+      final clean = tester.getRect(find.text('Altitude Dive'));
+      final height = tester.getSize(find.byType(RecordCardHeader)).height;
+
+      await tester.pumpWidget(open(isChanged: true));
+
+      expect(find.byType(RecordChangedDot), findsOneWidget);
+      expect(tester.getRect(find.text('Altitude Dive')), clean);
+      expect(tester.getSize(find.byType(RecordCardHeader)).height, height);
+    });
+
+    // Locked is how every card reads in a released build.
+    testWidgets('locked: a title too long for the card wraps', (tester) async {
+      const title = 'A card title that is too long';
+      await tester.pumpWidget(
+        at(200, const RecordCardHeader(title: title, trailing: Text('3'))),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(tester.getSize(find.text(title)).width, lessThanOrEqualTo(200));
+      expect(tester.getRect(find.text('3')).right, 200);
+    });
+
+    testWidgets('unlocked and closed, the row is announced as a button', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      final controller = _controller()..unlock(const _Rec());
+      await tester.pumpWidget(_host(controller));
+
+      final row = tester.getSemantics(find.text('Notes'));
+      expect(row.flagsCollection.isButton, isTrue);
+
+      semantics.dispose();
+    });
+  });
 }

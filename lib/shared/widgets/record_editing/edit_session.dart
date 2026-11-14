@@ -65,9 +65,11 @@ class EditSession<T> extends ChangeNotifier {
   /// Records [value] as the diver's value for [field]. A value the same as
   /// the stored one clears the change instead, so typing a change and then
   /// typing it back leaves the session clean. Does nothing while the
-  /// session [isFrozen].
+  /// session [isFrozen], or once it has been disposed: a card's editor
+  /// keeps its session for a frame after the sitting has ended, and a
+  /// keystroke that arrives then has nowhere to go.
   void set<V>(EditField<T, V> field, V value) {
-    if (_isFrozen) return;
+    if (_isFrozen || _isDisposed) return;
     final current = _pending[field.id];
     if (field.same(value, field.read(_stored))) {
       if (current == null) return;
@@ -95,6 +97,7 @@ class EditSession<T> extends ChangeNotifier {
   /// Tells the session the stored record changed underneath it. Untouched
   /// values follow [stored]; a pending change that now equals it is dropped.
   void rebase(T stored) {
+    if (_isDisposed) return;
     final storedChanged = stored != _stored;
     _stored = stored;
     final before = _pending.length;

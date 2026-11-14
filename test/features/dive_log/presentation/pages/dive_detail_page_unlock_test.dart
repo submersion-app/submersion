@@ -18,6 +18,17 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 import '../../../../helpers/test_database.dart';
 import 'dive_detail_page_unlock_harness.dart';
 
+/// A dive list whose refresh after a write fails.
+class _FailingRefreshList extends PaginatedDiveListNotifier {
+  _FailingRefreshList(super.repository, super.ref);
+
+  @override
+  Future<void> refreshAfterWrite({
+    required Dive? before,
+    required Dive after,
+  }) async => throw StateError('the list could not be refreshed');
+}
+
 /// The dive page unlocked for editing in place (issue #4527), behind the
 /// build switch.
 void main() {
@@ -488,6 +499,39 @@ void main() {
       expect(page.save.calls, isEmpty);
     });
 
+    // Locking is refused while a write is running. A write that then fails
+    // must not leave the first dive's sitting open on the other dive's page.
+    testWidgets('a sitting whose save fails after the switch ends too', (
+      tester,
+    ) async {
+      final shown = ValueNotifier(dive.id);
+      addTearDown(shown.dispose);
+      final page = await pumpPage(tester, shownDiveId: shown);
+      page.save
+        ..hold = Completer<void>()
+        ..failWith = StateError('gone');
+      await unlock(tester);
+      await openNotes(tester);
+      await tester.enterText(notesField(), 'Meant for the first dive');
+      await settle(tester);
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+
+      shown.value = otherDive.id;
+      await settle(tester);
+      page.save.hold!.complete();
+      await settle(tester);
+
+      expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+      expect(find.text('Cancel'), findsNothing);
+      expect(find.text('Other notes'), findsOneWidget);
+      expect(find.text('Meant for the first dive'), findsNothing);
+      expect(
+        find.text("Couldn't save your changes. Nothing was changed."),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a save is for the dive its sitting was opened on', (
       tester,
     ) async {
@@ -503,6 +547,38 @@ void main() {
       expect(page.save.calls.single.diveId, dive.id);
     });
   });
+
+  // The write is committed by then. Saying it failed would be untrue, and
+  // would hand the diver a sitting to save a second time.
+  testWidgets(
+    'a list refresh that fails after the write is not a failed save',
+    (tester) async {
+      final page = await pumpPage(
+        tester,
+        extra: [
+          paginatedDiveListProvider.overrideWith(
+            (ref) =>
+                _FailingRefreshList(ref.watch(diveRepositoryProvider), ref),
+          ),
+        ],
+      );
+      await unlock(tester);
+      await openNotes(tester);
+      await tester.enterText(notesField(), 'Saved all the same');
+      await settle(tester);
+
+      await tester.tap(find.text('Save'));
+      await settle(tester);
+
+      expect(
+        find.text("Couldn't save your changes. Nothing was changed."),
+        findsNothing,
+      );
+      expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+      expect(find.text('Saved all the same'), findsOneWidget);
+      expect(page.save.calls, hasLength(1));
+    },
+  );
 
   testWidgets('a hidden card emptied and closed is offered again', (
     tester,

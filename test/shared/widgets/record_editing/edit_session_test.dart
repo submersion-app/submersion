@@ -309,6 +309,7 @@ void main() {
     expect(session.valueOf(_notes), 'c');
     expect(told, 1);
   });
+
   // A value can show on a card that does not own it: surface pressure is
   // edited on the Altitude card and shown on Environment too.
   test('a field shown on another card moves that card as well', () {
@@ -336,5 +337,18 @@ void main() {
 
     expect(session.revisionOf('notes'), 1);
     expect(session.revisionOf('details'), 2);
+  });
+
+  // A card's editor keeps its session for a frame after the sitting has
+  // ended. A keystroke that arrives then is dropped, not thrown.
+  test('a disposed session ignores what is set on it', () {
+    final session = EditSession(const _Rec(notes: 'a'))..dispose();
+
+    session
+      ..set(_notes, 'late')
+      ..rebase(const _Rec(notes: 'z'));
+
+    expect(session.valueOf(_notes), 'a');
+    expect(session.isDirty, isFalse);
   });
 }
