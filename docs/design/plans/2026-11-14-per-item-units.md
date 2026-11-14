@@ -186,4 +186,4 @@
 
 - [ ] `dart format .`; `flutter analyze` (whole repo) clean.
 - [ ] `flutter test test/architecture/ test/shared/` and every test file touched above; all PASS.
-- [ ] Scan the diff for "—" and other forbidden dashes.
+- [ ] Scan the diff for em-dashes (U+2014) and en-dashes used as punctuation.
