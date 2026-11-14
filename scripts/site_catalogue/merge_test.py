@@ -305,9 +305,14 @@ class MainTest(unittest.TestCase):
         self.cache = Path(self._tmp.name) / "cache"
         self.out = Path(self._tmp.name) / "out"
         self.out.mkdir(exist_ok=True)
-        for key, rows in _snapshots().items():
-            if key not in leave_out:
-                snapshots.write_snapshot(key, "https://example.org", rows, self.cache)
+        # Written once per test: a second run reads the same snapshots, as
+        # a rerun of the merge does, stamps and all.
+        if not self.cache.exists():
+            for key, rows in _snapshots().items():
+                if key not in leave_out:
+                    snapshots.write_snapshot(
+                        key, "https://example.org", rows, self.cache
+                    )
         output = io.StringIO()
         with redirect_stdout(output):
             code = merge.main(
