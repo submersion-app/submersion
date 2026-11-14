@@ -13187,6 +13187,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'جميعها موجودة بالفعل ضمن مواقعك.';
 
   @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'أقرب $count موجودة بالفعل ضمن مواقعك. ابحث للعثور على البقية.';
+  }
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'قرّب الخريطة لرؤية جميع المواقع المدمجة';
 

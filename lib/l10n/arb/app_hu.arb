@@ -3896,6 +3896,7 @@
   "diveSites_picker_register_show": "Térképezett roncsok és zátonyok megjelenítése ({count})",
   "diveSites_picker_register_capped": "A legközelebbi {count} látható. Keressen a többi megtalálásához.",
   "diveSites_picker_register_allYours": "Mindegyik már szerepel a merülőhelyei között.",
+  "diveSites_picker_register_nearestYours": "A legközelebbi {count} már szerepel a merülőhelyei között. Keressen a többi megtalálásához.",
   "diveSites_map_builtIn_zoomIn": "Nagyítson a térképen az összes beépített merülőhely megjelenítéséhez",
   "diveSites_list_groupBy": "Csoportosítás",
   "diveSites_list_groupBy_location": "Ország és régió",

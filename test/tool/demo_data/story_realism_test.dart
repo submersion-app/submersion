@@ -250,6 +250,12 @@ void main() {
     // The three seeds above are a small sample: a catalogue refresh changes
     // every site pool, and with it what each seed draws. These two hold by
     // construction, so they are checked over many more.
+    //
+    // The anchor here is in October. The ten weeks before any anchor are
+    // dived at home every weekend whatever the month, so that the newest
+    // dive falls in the anchor's last week: the season rule covers the
+    // weekends between trips, and a pack anchored in winter still ends
+    // with winter weekends at home. That older rule is not changed here.
     final many = <int, StoryPlan>{};
 
     setUpAll(() {

@@ -12719,6 +12719,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'כולם כבר נמצאים בין האתרים שלך.';
 
   @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return '$count הקרובים ביותר כבר נמצאים בין האתרים שלך. חפש כדי למצוא את השאר.';
+  }
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'התקרב במפה כדי לראות את כל האתרים המובנים';
 

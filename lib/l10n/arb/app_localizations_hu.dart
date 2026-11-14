@@ -12972,6 +12972,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Mindegyik már szerepel a merülőhelyei között.';
 
   @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'A legközelebbi $count már szerepel a merülőhelyei között. Keressen a többi megtalálásához.';
+  }
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'Nagyítson a térképen az összes beépített merülőhely megjelenítéséhez';
 

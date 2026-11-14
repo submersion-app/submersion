@@ -194,6 +194,62 @@ void main() {
     expect(find.text('Show charted wrecks and reefs (1)'), findsNothing);
   });
 
+  testWidgets('with more in reach than it reads, it does not claim all of '
+      'them are the diver\'s', (tester) async {
+    // 250 in reach, the nearest 200 read, and every one of those already
+    // adopted: 50 the diver does not have were never looked at.
+    final wrecks = [
+      for (var i = 0; i < 250; i++)
+        registerSite(
+          'w$i',
+          'Wreck ${i.toString().padLeft(3, '0')}',
+          north: 100.0 + i * 10,
+        ),
+    ];
+    await pumpPicker(
+      tester,
+      catalogueSites: wrecks,
+      diveLocation: saltPier,
+      sites: [
+        for (final wreck in wrecks.take(200))
+          DiveSite(
+            id: 'mine-${wreck.id}',
+            name: wreck.name,
+            location: wreck.location,
+            catalogueId: wreck.id,
+          ),
+      ],
+    );
+
+    // The diver's own 200 sites come first in the lazy list: scroll to
+    // the section before opening it.
+    await tester.scrollUntilVisible(
+      find.text('Show charted wrecks and reefs (250)'),
+      2000,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await _open(tester, 'Show charted wrecks and reefs (250)');
+    // Opening replaces the row with the section's note, just below the
+    // label the list is already showing.
+    await tester.scrollUntilVisible(
+      find.textContaining('already among your sites'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+
+    expect(
+      find.text('All of these are already among your sites.'),
+      findsNothing,
+    );
+    expect(
+      find.text(
+        'The nearest 200 are already among your sites. Search to find the '
+        'rest.',
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('tapping a register row adopts it once and picks it', (
     tester,
   ) async {

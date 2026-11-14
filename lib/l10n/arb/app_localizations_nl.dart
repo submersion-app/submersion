@@ -12918,6 +12918,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ze staan allemaal al tussen je stekken.';
 
   @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'De dichtstbijzijnde $count staan al tussen je stekken. Zoek om de rest te vinden.';
+  }
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'Zoom in om alle ingebouwde stekken te zien';
 

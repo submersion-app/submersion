@@ -20598,6 +20598,12 @@ abstract class AppLocalizations {
   /// **'All of these are already among your sites.'**
   String get diveSites_picker_register_allYours;
 
+  /// No description provided for @diveSites_picker_register_nearestYours.
+  ///
+  /// In en, this message translates to:
+  /// **'The nearest {count} are already among your sites. Search to find the rest.'**
+  String diveSites_picker_register_nearestYours(Object count);
+
   /// No description provided for @diveSites_map_builtIn_zoomIn.
   ///
   /// In en, this message translates to:

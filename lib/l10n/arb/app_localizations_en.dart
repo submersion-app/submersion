@@ -12801,6 +12801,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'All of these are already among your sites.';
 
   @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'The nearest $count are already among your sites. Search to find the rest.';
+  }
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'Zoom in to see every built-in site';
 

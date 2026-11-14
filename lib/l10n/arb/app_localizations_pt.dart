@@ -13005,6 +13005,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Todos já estão entre os seus pontos.';
 
   @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'Os $count mais próximos já estão entre os seus pontos. Busque para encontrar os demais.';
+  }
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'Aproxime o mapa para ver todos os pontos integrados';
 

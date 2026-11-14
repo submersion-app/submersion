@@ -12994,6 +12994,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Alle sind bereits unter deinen Tauchplätzen.';
 
   @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'Die nächsten $count sind bereits unter deinen Tauchplätzen. Suche, um die übrigen zu finden.';
+  }
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'Hineinzoomen, um alle integrierten Tauchplätze zu sehen';
 

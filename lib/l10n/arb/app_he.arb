@@ -3896,6 +3896,7 @@
   "diveSites_picker_register_show": "הצגת ספינות טבועות ושוניות ממופות ({count})",
   "diveSites_picker_register_capped": "מוצגים {count} הקרובים ביותר. חפש כדי למצוא את השאר.",
   "diveSites_picker_register_allYours": "כולם כבר נמצאים בין האתרים שלך.",
+  "diveSites_picker_register_nearestYours": "{count} הקרובים ביותר כבר נמצאים בין האתרים שלך. חפש כדי למצוא את השאר.",
   "diveSites_map_builtIn_zoomIn": "התקרב במפה כדי לראות את כל האתרים המובנים",
   "diveSites_list_groupBy": "קיבוץ לפי",
   "diveSites_list_groupBy_location": "מדינה ואזור",

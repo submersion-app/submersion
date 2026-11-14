@@ -13050,6 +13050,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ils figurent tous déjà parmi tes sites.';
 
   @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'Les $count plus proches figurent déjà parmi tes sites. Fais une recherche pour trouver les autres.';
+  }
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'Zoome pour voir tous les sites intégrés';
 

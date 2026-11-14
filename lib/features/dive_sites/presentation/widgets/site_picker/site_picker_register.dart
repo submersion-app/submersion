@@ -131,14 +131,20 @@ class SitePickerRegisterSection {
         ..sort((a, b) => compareTextForSort(a.name, b.name));
     }
     if (offered.isEmpty) {
-      // Every record in reach is one the diver adopted or already has a
-      // site on: the count promised rows, so say where they went.
+      // Every record read is one the diver adopted or already has a site
+      // on: the count promised rows, so say where they went. Past the cap
+      // only the nearest were read, and the rest may not be the diver's.
+      final capped = _count > sitePickerRegisterListLimit;
       return [
         () => SiteSectionLabel(label),
         () => Padding(
           padding: const EdgeInsets.fromLTRB(72, 8, 16, 16),
           child: Text(
-            l10n.diveSites_picker_register_allYours,
+            capped
+                ? l10n.diveSites_picker_register_nearestYours(
+                    sitePickerRegisterListLimit,
+                  )
+                : l10n.diveSites_picker_register_allYours,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),

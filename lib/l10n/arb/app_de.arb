@@ -4053,6 +4053,7 @@
   "diveSites_picker_register_show": "Verzeichnete Wracks und Riffe anzeigen ({count})",
   "diveSites_picker_register_capped": "Die nächsten {count} werden angezeigt. Suche, um die übrigen zu finden.",
   "diveSites_picker_register_allYours": "Alle sind bereits unter deinen Tauchplätzen.",
+  "diveSites_picker_register_nearestYours": "Die nächsten {count} sind bereits unter deinen Tauchplätzen. Suche, um die übrigen zu finden.",
   "diveSites_map_builtIn_zoomIn": "Hineinzoomen, um alle integrierten Tauchplätze zu sehen",
   "diveSites_list_groupBy": "Gruppieren nach",
   "diveSites_list_groupBy_location": "Land und Region",
