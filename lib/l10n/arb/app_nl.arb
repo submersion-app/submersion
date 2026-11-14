@@ -3104,6 +3104,19 @@
   "diveLog_legend_label_computedEvents": "Berekende gebeurtenissen",
   "diveLog_legend_label_gasDensity": "Gasdichtheid",
   "diveLog_legend_label_lateGasSwitches": "Late gaswissels",
+  "diveLog_legend_label_counterdiffusion": "Tegendiffusie",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "Alles",
+  "diveLog_tooltip_counterdiffusion_icd": "Isobare tegendiffusie",
+  "diveLog_tooltip_counterdiffusion_opposing": "Tegengestelde gasuitwisseling",
+  "diveLog_tooltip_counterdiffusion_compartments": "Compartimenten {list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "Gaswisselingen",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Hartslag",
@@ -12315,6 +12328,16 @@
   "safetySettings_rule_omittedSafetyStop": "Overgeslagen veiligheidsstops",
   "safetySettings_rule_sawtoothProfile": "Zaagtandprofielen",
   "safetySettings_rule_lateGasSwitch": "Late gaswissel",
+  "safetySettings_rule_isobaricCounterdiffusion": "Isobare tegendiffusie",
+  "safetyReview_isobaricCounterdiffusion_title": "Isobare tegendiffusie gedurende {duration}",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "Een gaswissel brak de vijfderegel",
   "safetySettings_rule_highSurfaceGf": "Hoge gradiëntfactor bij opduiken",
   "safetySettings_analyzeAll": "Alle duiken analyseren",
   "safetySettings_analyzeAll_subtitle": "Voer de veiligheidscontrole uit op alle duiken met een profiel die nog niet geanalyseerd zijn",
@@ -18474,7 +18497,7 @@
   "info_term_salinity_label": "Watertype",
   "info_term_salinity_body": "Zout water is dichter dan zoet water, dus dezelfde druk komt in zee overeen met een iets ondiepere diepte. Duikcomputers gebruiken dit om druk in diepte om te rekenen.",
   "info_term_isobaricCounterdiffusion_label": "ICD (isobare tegendiffusie)",
-  "info_term_isobaricCounterdiffusion_body": "Een gaswissel kan het totale inerte gas in weefsels verhogen zonder dieptewijziging als stikstof sneller stijgt dan helium daalt. De gangbare check, de vijfderegel, beperkt de stikstofstijging tot een vijfde van de heliumdaling.",
+  "info_term_isobaricCounterdiffusion_body": "Een gaswissel kan het totale inerte gas in weefsels verhogen zonder dieptewijziging als stikstof sneller stijgt dan helium daalt. De gangbare check, de vijfderegel, beperkt de stikstofstijging tot een vijfde van de heliumdaling. Op het duikprofiel markeert een oranje band waar een compartiment al meer inert gas bevat dan wordt ingeademd en toch merkbaar gas opneemt. In het Bühlmann-model verlaat helium het weefsel sneller dan stikstof binnenkomt, dus een wissel van trimix naar nitrox toont zelden een band; de stippellijn bij de wissel toont in plaats daarvan de vijfderegel.",
   "info_term_hypercapnia_label": "Hypercapnie",
   "info_term_hypercapnia_body": "Een ophoping van koolstofdioxide in het lichaam. Dicht gas en zwaar werk maken die waarschijnlijker.",
   "info_term_turnPressure_label": "Keerdruk",

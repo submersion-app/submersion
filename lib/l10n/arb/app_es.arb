@@ -3104,6 +3104,19 @@
   "diveLog_legend_label_computedEvents": "Eventos calculados",
   "diveLog_legend_label_gasDensity": "Densidad del gas",
   "diveLog_legend_label_lateGasSwitches": "Cambios de gas tardíos",
+  "diveLog_legend_label_counterdiffusion": "Contradifusión",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "Todo",
+  "diveLog_tooltip_counterdiffusion_icd": "Contradifusión isobárica",
+  "diveLog_tooltip_counterdiffusion_opposing": "Intercambio de gases opuesto",
+  "diveLog_tooltip_counterdiffusion_compartments": "Compartimentos {list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "Cambios de gas",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Frecuencia cardíaca",
@@ -12315,6 +12328,16 @@
   "safetySettings_rule_omittedSafetyStop": "Paradas de seguridad omitidas",
   "safetySettings_rule_sawtoothProfile": "Perfiles en dientes de sierra",
   "safetySettings_rule_lateGasSwitch": "Cambio de gas tardío",
+  "safetySettings_rule_isobaricCounterdiffusion": "Contradifusión isobárica",
+  "safetyReview_isobaricCounterdiffusion_title": "Contradifusión isobárica durante {duration}",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "Un cambio de gas incumplió la regla de los quintos",
   "safetySettings_rule_highSurfaceGf": "Factor de gradiente alto al salir a superficie",
   "safetySettings_analyzeAll": "Analizar todas las inmersiones",
   "safetySettings_analyzeAll_subtitle": "Ejecutar la revisión de seguridad en todas las inmersiones con perfil que aún no se hayan analizado",
@@ -18474,7 +18497,7 @@
   "info_term_salinity_label": "Tipo de agua",
   "info_term_salinity_body": "El agua salada es más densa que la dulce, así que la misma presión equivale en el mar a una profundidad algo menor. Los ordenadores la usan para pasar de presión a profundidad.",
   "info_term_isobaricCounterdiffusion_label": "ICD (contradifusión isobárica)",
-  "info_term_isobaricCounterdiffusion_body": "Un cambio de gas puede subir el gas inerte total en los tejidos sin cambiar de profundidad cuando el nitrógeno sube más rápido de lo que baja el helio. La comprobación habitual, la regla de los quintos, limita la subida de nitrógeno a un quinto de la bajada de helio.",
+  "info_term_isobaricCounterdiffusion_body": "Un cambio de gas puede subir el gas inerte total en los tejidos sin cambiar de profundidad cuando el nitrógeno sube más rápido de lo que baja el helio. La comprobación habitual, la regla de los quintos, limita la subida de nitrógeno a un quinto de la bajada de helio. En el perfil, una banda naranja marca dónde un compartimento ya contiene más gas inerte del que se respira y aun así sigue absorbiendo gas de forma apreciable. En el modelo de Bühlmann el helio sale más rápido de lo que entra el nitrógeno, así que un cambio de trimix a nitrox rara vez muestra una banda; la línea discontinua en el cambio muestra en su lugar la regla de los quintos.",
   "info_term_hypercapnia_label": "Hipercapnia",
   "info_term_hypercapnia_body": "Una acumulación de dióxido de carbono en el cuerpo. El gas denso y el esfuerzo intenso la hacen más probable.",
   "info_term_turnPressure_label": "Presión de retorno",

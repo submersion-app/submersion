@@ -3104,6 +3104,19 @@
   "diveLog_legend_label_computedEvents": "الأحداث المحسوبة",
   "diveLog_legend_label_gasDensity": "كثافة الغاز",
   "diveLog_legend_label_lateGasSwitches": "تبديلات الغاز المتأخرة",
+  "diveLog_legend_label_counterdiffusion": "الانتشار العكسي",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "الكل",
+  "diveLog_tooltip_counterdiffusion_icd": "الانتشار العكسي متساوي الضغط",
+  "diveLog_tooltip_counterdiffusion_opposing": "تبادل غازي متعاكس",
+  "diveLog_tooltip_counterdiffusion_compartments": "الأنسجة {list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "تبديلات الغاز",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "معدل نبض القلب",
@@ -12315,6 +12328,16 @@
   "safetySettings_rule_omittedSafetyStop": "توقفات السلامة المُغفلة",
   "safetySettings_rule_sawtoothProfile": "ملفات بنمط سن المنشار",
   "safetySettings_rule_lateGasSwitch": "تبديل غاز متأخر",
+  "safetySettings_rule_isobaricCounterdiffusion": "الانتشار العكسي متساوي الضغط",
+  "safetyReview_isobaricCounterdiffusion_title": "انتشار عكسي متساوي الضغط لمدة {duration}",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "خالف تبديل غاز قاعدة الأخماس",
   "safetySettings_rule_highSurfaceGf": "عامل تدرج مرتفع عند الصعود",
   "safetySettings_analyzeAll": "تحليل جميع الغطسات",
   "safetySettings_analyzeAll_subtitle": "تشغيل مراجعة السلامة على كل غطسة ذات ملف لم تُحلل بعد",
@@ -18474,7 +18497,7 @@
   "info_term_salinity_label": "نوع الماء",
   "info_term_salinity_body": "الماء المالح أكثف من العذب، لذا يُقرأ الضغط نفسه في البحر كعمق أقل قليلًا. تستخدمه الحواسيب لتحويل الضغط إلى عمق.",
   "info_term_isobaricCounterdiffusion_label": "ICD (الانتشار العكسي متساوي الضغط)",
-  "info_term_isobaricCounterdiffusion_body": "قد يرفع تبديل الغاز إجمالي الغاز الخامل في الأنسجة دون تغير العمق عندما يرتفع النيتروجين أسرع مما ينخفض الهيليوم. الفحص الشائع، قاعدة الأخماس، يحد ارتفاع النيتروجين بخمس انخفاض الهيليوم.",
+  "info_term_isobaricCounterdiffusion_body": "قد يرفع تبديل الغاز إجمالي الغاز الخامل في الأنسجة دون تغير العمق عندما يرتفع النيتروجين أسرع مما ينخفض الهيليوم. الفحص الشائع، قاعدة الأخماس، يحد ارتفاع النيتروجين بخمس انخفاض الهيليوم. في مخطط الغوص يحدد شريط برتقالي المواضع التي يحمل فيها نسيج غازًا خاملًا أكثر مما يُستنشق ومع ذلك يمتص الغاز بشكل ملحوظ. في نموذج بولمان يخرج الهيليوم أسرع مما يدخل النيتروجين، لذا نادرًا ما يُظهر التبديل من التريمكس إلى النيتروكس شريطًا؛ ويُظهر الخط المتقطع عند التبديل قاعدة الأخماس بدلًا من ذلك.",
   "info_term_hypercapnia_label": "فرط ثاني أكسيد الكربون",
   "info_term_hypercapnia_body": "تراكم ثاني أكسيد الكربون في الجسم. يزيد الغاز الكثيف والجهد الشديد من احتماله.",
   "info_term_turnPressure_label": "ضغط الالتفاف",

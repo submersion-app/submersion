@@ -72,6 +72,7 @@ grouped into sections:
 | **Pressure Thresholds** | Markers where tank pressure crossed configured thresholds (for example, turn or reserve pressure). |
 | **Gas Switches** | Markers at each point where you switched to a different tank or gas. |
 | **Late gas switches** | Shades deco gas switches that came late or were missed. |
+| **Counterdiffusion** | Offered when helium is breathed or still held in the tissues, from an earlier dive too. **ICD** shades in orange where a tissue compartment already holds more inert gas than is breathed and still takes gas up noticeably: isobaric counterdiffusion. **All** also shades, faintly, every phase in which nitrogen and helium move in opposite directions, which is normal on a trimix deco. Dashed lines mark gas switches that break the rule of fifths (red) or come close to it (orange). Off by default; Settings > Default visible metrics turns it on for every dive. |
 | **Photos** | Markers where photos and videos from the dive were taken. |
 
 ### Decompression section

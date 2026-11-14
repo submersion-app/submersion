@@ -39,6 +39,7 @@ result is a short, quiet list on the dive, not a score.
 | **Sawtooth profiles** | Four or more repeated up-and-down depth changes of at least 6 m | Caution |
 | **High surfacing gradient factor** | Surfacing above your configured GF high | Informational |
 | **Late gas switch** | A deco gas switched to later than it could have been, or not at all | Significant when it added 5 minutes or more of deco, caution when it added any, otherwise informational |
+| **Isobaric counterdiffusion** | A tissue compartment that already holds more inert gas than is breathed still takes gas up, because helium enters faster than nitrogen leaves; or a gas switch breaks the rule of fifths | Caution |
 
 Each finding records when in the dive it happened and by how much, so the list
 reads like "Ascent exceeded 11 m/min for 40 s" rather than a bare label. Short

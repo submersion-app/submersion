@@ -9273,6 +9273,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Late gas switches';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Counterdiffusion';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'All';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd =>
+      'Isobaric counterdiffusion';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing =>
+      'Opposing gas exchange';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return 'Compartments $list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Gas Switches';
 
   @override
@@ -22437,6 +22459,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Late gas switch';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Isobaric counterdiffusion';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Isobaric counterdiffusion for $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'A gas switch broke the rule of fifths';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -62122,7 +62157,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_term_isobaricCounterdiffusion_body =>
-      'A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop.';
+      'A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop. On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnia';

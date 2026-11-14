@@ -2,6 +2,8 @@ import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/services/safety_finding_identity.dart';
+import 'package:submersion/features/gas_calculators/domain/icd_calculator.dart'
+    show IcdSeverity;
 
 /// Pure rules engine for the post-dive safety review.
 ///
@@ -44,7 +46,9 @@ class SafetyReviewService {
   /// known surface pressure, at altitude above all (#3925).
   /// v11: a dive's residual tissue load comes from its own diver's dives only,
   /// which changes what is graded on a dive in a shared logbook (#3923).
-  static const int engineVersion = 11;
+  /// v12: isobaric counterdiffusion, from the tissue model and from gas
+  /// switches that break the rule of fifths (#4530).
+  static const int engineVersion = 12;
 
   const SafetyReviewService();
 
@@ -68,6 +72,7 @@ class SafetyReviewService {
     findings.addAll(_sawtoothFindings(diveId, analysis, now, nextId));
     findings.addAll(_highSurfaceGfFindings(diveId, analysis, now, nextId));
     findings.addAll(_lateGasSwitchFindings(diveId, analysis, now, nextId));
+    findings.addAll(_counterdiffusionFindings(diveId, analysis, now, nextId));
 
     return idGenerator == null
         ? withDeterministicIds(diveId, findings)
@@ -104,6 +109,36 @@ class SafetyReviewService {
           engineVersion: engineVersion,
           createdAt: now,
         ),
+    ];
+  }
+
+  /// One caution per span in which the tissue model shows isobaric
+  /// counterdiffusion, and one at the instant of each gas switch that breaks
+  /// the rule of fifths (#4530). Switch cautions and phases in which the
+  /// gases only move in opposite directions stay on the chart.
+  List<SafetyFinding> _counterdiffusionFindings(
+    String diveId,
+    ProfileAnalysis analysis,
+    DateTime now,
+    String Function() nextId,
+  ) {
+    final counterdiffusion = analysis.counterdiffusion;
+    SafetyFinding finding(int start, int end) => SafetyFinding(
+      id: nextId(),
+      diveId: diveId,
+      ruleId: SafetyRuleId.isobaricCounterdiffusion,
+      severity: SafetySeverity.caution,
+      startTimestamp: start,
+      endTimestamp: end,
+      engineVersion: engineVersion,
+      createdAt: now,
+    );
+    return [
+      for (final range in counterdiffusion.icdRanges)
+        finding(range.startSeconds, range.endSeconds),
+      for (final marker in counterdiffusion.switchMarkers)
+        if (marker.severity == IcdSeverity.violation)
+          finding(marker.timestamp, marker.timestamp),
     ];
   }
 

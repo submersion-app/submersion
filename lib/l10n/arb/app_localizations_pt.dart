@@ -9421,6 +9421,26 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Trocas de gás tardias';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Contradifusão';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Tudo';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Contradifusão isobárica';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Troca gasosa oposta';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return 'Compartimentos $list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Trocas de Gás';
 
   @override
@@ -22772,6 +22792,19 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Troca de gás tardia';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Contradifusão isobárica';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Contradifusão isobárica durante $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Uma troca de gás violou a regra dos quintos';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -63084,7 +63117,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_isobaricCounterdiffusion_body =>
-      'Uma troca de gás pode subir o gás inerte total nos tecidos sem mudar de profundidade quando o azoto sobe mais depressa do que o hélio desce. A verificação habitual, a regra dos quintos, limita a subida de azoto a um quinto da descida de hélio.';
+      'Uma troca de gás pode subir o gás inerte total nos tecidos sem mudar de profundidade quando o azoto sobe mais depressa do que o hélio desce. A verificação habitual, a regra dos quintos, limita a subida de azoto a um quinto da descida de hélio. No perfil, uma faixa laranja marca onde um compartimento já contém mais gás inerte do que o respirado e ainda assim absorve gás de forma notória. No modelo de Bühlmann o hélio sai mais depressa do que o azoto entra, por isso uma troca de trimix para nitrox raramente mostra uma faixa; a linha tracejada na troca mostra antes a regra dos quintos.';
 
   @override
   String get info_term_hypercapnia_label => 'Hipercapnia';

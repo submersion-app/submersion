@@ -9420,6 +9420,28 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Cambi gas tardivi';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Controdiffusione';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Tutto';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd =>
+      'Controdiffusione isobarica';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing =>
+      'Scambio di gas opposto';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return 'Compartimenti $list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Cambi gas';
 
   @override
@@ -22775,6 +22797,19 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Cambio gas tardivo';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Controdiffusione isobarica';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Controdiffusione isobarica per $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Un cambio gas ha violato la regola dei quinti';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -63108,7 +63143,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get info_term_isobaricCounterdiffusion_body =>
-      'Un cambio gas può aumentare il gas inerte totale nei tessuti senza cambiare profondità quando l\'azoto sale più in fretta di quanto scenda l\'elio. Il controllo comune, la regola dei quinti, limita l\'aumento di azoto a un quinto del calo di elio.';
+      'Un cambio gas può aumentare il gas inerte totale nei tessuti senza cambiare profondità quando l\'azoto sale più in fretta di quanto scenda l\'elio. Il controllo comune, la regola dei quinti, limita l\'aumento di azoto a un quinto del calo di elio. Sul profilo una banda arancione segna dove un compartimento contiene già più gas inerte di quello respirato e continua comunque ad assorbirne in modo apprezzabile. Nel modello di Bühlmann l\'elio esce più in fretta di quanto entri l\'azoto, quindi un cambio da trimix a nitrox mostra raramente una banda; la linea tratteggiata al cambio mostra invece la regola dei quinti.';
 
   @override
   String get info_term_hypercapnia_label => 'Ipercapnia';

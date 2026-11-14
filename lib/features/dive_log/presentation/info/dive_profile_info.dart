@@ -42,6 +42,8 @@ List<DiveTerm> profileOverlayTerms(
       DiveTerm.gasSwitchMarkers,
     if (config.hasLateGasSwitches && state.showLateGasSwitches)
       DiveTerm.lateGasSwitch,
+    if (config.hasCounterdiffusion && state.showCounterdiffusion)
+      DiveTerm.isobaricCounterdiffusion,
     if (config.hasComputedEvents && state.showComputedEvents)
       DiveTerm.computedEvents,
   ];

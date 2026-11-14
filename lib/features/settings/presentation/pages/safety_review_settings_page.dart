@@ -222,6 +222,8 @@ class _SafetyReviewSettingsPageState
       SafetyRuleId.sawtoothProfile => l10n.safetySettings_rule_sawtoothProfile,
       SafetyRuleId.highSurfaceGf => l10n.safetySettings_rule_highSurfaceGf,
       SafetyRuleId.lateGasSwitch => l10n.safetySettings_rule_lateGasSwitch,
+      SafetyRuleId.isobaricCounterdiffusion =>
+        l10n.safetySettings_rule_isobaricCounterdiffusion,
     };
   }
 

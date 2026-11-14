@@ -9398,6 +9398,26 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Késői gázváltások';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Ellendiffúzió';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Mind';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Izobár ellendiffúzió';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Ellentétes gázcsere';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return 'Kompartmentek $list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Gázcserélések';
 
   @override
@@ -22704,6 +22724,19 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Késői gázváltás';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Izobár ellendiffúzió';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Izobár ellendiffúzió $duration hosszan';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Egy gázváltás megsértette az ötödszabályt';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -62759,7 +62792,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_term_isobaricCounterdiffusion_body =>
-      'Gázváltás mélységváltozás nélkül is növelheti a szövetek teljes inertgáz-tartalmát, ha a nitrogén gyorsabban nő, mint ahogy a hélium csökken. A szokásos ellenőrzés, az ötödszabály, a nitrogén növekedését a héliumcsökkenés egyötödére korlátozza.';
+      'Gázváltás mélységváltozás nélkül is növelheti a szövetek teljes inertgáz-tartalmát, ha a nitrogén gyorsabban nő, mint ahogy a hélium csökken. A szokásos ellenőrzés, az ötödszabály, a nitrogén növekedését a héliumcsökkenés egyötödére korlátozza. A merülési profilon narancssárga sáv jelzi, ahol egy kompartment már több inert gázt tartalmaz, mint amennyit belélegzünk, és mégis érezhetően telítődik. A Bühlmann-modellben a hélium gyorsabban távozik, mint ahogy a nitrogén belép, ezért a trimixről nitroxra váltás ritkán mutat sávot; a váltásnál lévő szaggatott vonal helyette az ötödszabályt mutatja.';
 
   @override
   String get info_term_hypercapnia_label => 'Hiperkapnia';

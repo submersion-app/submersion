@@ -14823,6 +14823,42 @@ abstract class AppLocalizations {
   /// **'Late gas switches'**
   String get diveLog_legend_label_lateGasSwitches;
 
+  /// No description provided for @diveLog_legend_label_counterdiffusion.
+  ///
+  /// In en, this message translates to:
+  /// **'Counterdiffusion'**
+  String get diveLog_legend_label_counterdiffusion;
+
+  /// No description provided for @diveLog_counterdiffusion_segment_icd.
+  ///
+  /// In en, this message translates to:
+  /// **'ICD'**
+  String get diveLog_counterdiffusion_segment_icd;
+
+  /// No description provided for @diveLog_counterdiffusion_segment_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get diveLog_counterdiffusion_segment_all;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_icd.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric counterdiffusion'**
+  String get diveLog_tooltip_counterdiffusion_icd;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_opposing.
+  ///
+  /// In en, this message translates to:
+  /// **'Opposing gas exchange'**
+  String get diveLog_tooltip_counterdiffusion_opposing;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_compartments.
+  ///
+  /// In en, this message translates to:
+  /// **'Compartments {list}'**
+  String diveLog_tooltip_counterdiffusion_compartments(String list);
+
   /// No description provided for @diveLog_legend_label_gasSwitches.
   ///
   /// In en, this message translates to:
@@ -36004,6 +36040,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Late gas switch'**
   String get safetySettings_rule_lateGasSwitch;
+
+  /// No description provided for @safetySettings_rule_isobaricCounterdiffusion.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric counterdiffusion'**
+  String get safetySettings_rule_isobaricCounterdiffusion;
+
+  /// No description provided for @safetyReview_isobaricCounterdiffusion_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric counterdiffusion for {duration}'**
+  String safetyReview_isobaricCounterdiffusion_title(String duration);
+
+  /// No description provided for @safetyReview_isobaricCounterdiffusion_switch_title.
+  ///
+  /// In en, this message translates to:
+  /// **'A gas switch broke the rule of fifths'**
+  String get safetyReview_isobaricCounterdiffusion_switch_title;
 
   /// No description provided for @safetySettings_rule_highSurfaceGf.
   ///
@@ -99061,7 +99115,7 @@ abstract class AppLocalizations {
   /// No description provided for @info_term_isobaricCounterdiffusion_body.
   ///
   /// In en, this message translates to:
-  /// **'A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop.'**
+  /// **'A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop. On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.'**
   String get info_term_isobaricCounterdiffusion_body;
 
   /// No description provided for @info_term_hypercapnia_label.

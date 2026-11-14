@@ -3217,6 +3217,19 @@
   "diveLog_legend_label_computedEvents": "计算的事件",
   "diveLog_legend_label_gasDensity": "气体密度",
   "diveLog_legend_label_lateGasSwitches": "延迟换气",
+  "diveLog_legend_label_counterdiffusion": "逆向扩散",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "全部",
+  "diveLog_tooltip_counterdiffusion_icd": "等压逆向扩散",
+  "diveLog_tooltip_counterdiffusion_opposing": "反向气体交换",
+  "diveLog_tooltip_counterdiffusion_compartments": "隔室 {list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "气体切换",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "心率",
@@ -12315,6 +12328,16 @@
   "safetySettings_rule_omittedSafetyStop": "省略的安全停留",
   "safetySettings_rule_sawtoothProfile": "锯齿形剖面",
   "safetySettings_rule_lateGasSwitch": "延迟换气",
+  "safetySettings_rule_isobaricCounterdiffusion": "等压逆向扩散",
+  "safetyReview_isobaricCounterdiffusion_title": "等压逆向扩散持续 {duration}",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "一次换气违反了五分之一规则",
   "safetySettings_rule_highSurfaceGf": "出水时梯度因子过高",
   "safetySettings_analyzeAll": "分析所有潜水",
   "safetySettings_analyzeAll_subtitle": "对所有具有剖面且尚未分析的潜水运行安全回顾",
@@ -18474,7 +18497,7 @@
   "info_term_salinity_label": "水体类型",
   "info_term_salinity_body": "海水比淡水密度大，因此同样的压力在海中对应稍浅的深度。潜水电脑据此把压力换算成深度。",
   "info_term_isobaricCounterdiffusion_label": "ICD（等压逆向扩散）",
-  "info_term_isobaricCounterdiffusion_body": "当氮上升快于氦下降时，换气可在深度不变的情况下增加组织中的惰性气体总量。常用的五分之一规则将氮的增幅限制在氦降幅的五分之一以内。",
+  "info_term_isobaricCounterdiffusion_body": "当氮上升快于氦下降时，换气可在深度不变的情况下增加组织中的惰性气体总量。常用的五分之一规则将氮的增幅限制在氦降幅的五分之一以内。在潜水曲线上，橙色条带标出隔室所含惰性气体已多于吸入量、却仍明显吸收气体的时段。在 Bühlmann 模型中氦排出快于氮进入，因此从三混气换到高氧时很少出现条带；换气处的虚线则显示五分之一规则。",
   "info_term_hypercapnia_label": "高碳酸血症",
   "info_term_hypercapnia_body": "体内二氧化碳积聚。气体密度高和用力大会使其更容易发生。",
   "info_term_turnPressure_label": "折返压力",

@@ -9549,6 +9549,27 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'تبديلات الغاز المتأخرة';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'الانتشار العكسي';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'الكل';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd =>
+      'الانتشار العكسي متساوي الضغط';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'تبادل غازي متعاكس';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return 'الأنسجة $list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'تبديلات الغاز';
 
   @override
@@ -23137,6 +23158,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'تبديل غاز متأخر';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'الانتشار العكسي متساوي الضغط';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'انتشار عكسي متساوي الضغط لمدة $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'خالف تبديل غاز قاعدة الأخماس';
 
   @override
   String get safetySettings_rule_highSurfaceGf => 'عامل تدرج مرتفع عند الصعود';
@@ -64028,7 +64062,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get info_term_isobaricCounterdiffusion_body =>
-      'قد يرفع تبديل الغاز إجمالي الغاز الخامل في الأنسجة دون تغير العمق عندما يرتفع النيتروجين أسرع مما ينخفض الهيليوم. الفحص الشائع، قاعدة الأخماس، يحد ارتفاع النيتروجين بخمس انخفاض الهيليوم.';
+      'قد يرفع تبديل الغاز إجمالي الغاز الخامل في الأنسجة دون تغير العمق عندما يرتفع النيتروجين أسرع مما ينخفض الهيليوم. الفحص الشائع، قاعدة الأخماس، يحد ارتفاع النيتروجين بخمس انخفاض الهيليوم. في مخطط الغوص يحدد شريط برتقالي المواضع التي يحمل فيها نسيج غازًا خاملًا أكثر مما يُستنشق ومع ذلك يمتص الغاز بشكل ملحوظ. في نموذج بولمان يخرج الهيليوم أسرع مما يدخل النيتروجين، لذا نادرًا ما يُظهر التبديل من التريمكس إلى النيتروكس شريطًا؛ ويُظهر الخط المتقطع عند التبديل قاعدة الأخماس بدلًا من ذلك.';
 
   @override
   String get info_term_hypercapnia_label => 'فرط ثاني أكسيد الكربون';

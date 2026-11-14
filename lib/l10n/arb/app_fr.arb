@@ -2981,6 +2981,19 @@
   "diveLog_legend_label_computedEvents": "Événements calculés",
   "diveLog_legend_label_gasDensity": "Densité du gaz",
   "diveLog_legend_label_lateGasSwitches": "Changements de gaz tardifs",
+  "diveLog_legend_label_counterdiffusion": "Contre-diffusion",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "Tout",
+  "diveLog_tooltip_counterdiffusion_icd": "Contre-diffusion isobare",
+  "diveLog_tooltip_counterdiffusion_opposing": "Échange gazeux opposé",
+  "diveLog_tooltip_counterdiffusion_compartments": "Compartiments {list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "Changements de gaz",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Fréquence cardiaque",
@@ -12315,6 +12328,16 @@
   "safetySettings_rule_omittedSafetyStop": "Paliers de sécurité omis",
   "safetySettings_rule_sawtoothProfile": "Profils en dents de scie",
   "safetySettings_rule_lateGasSwitch": "Changement de gaz tardif",
+  "safetySettings_rule_isobaricCounterdiffusion": "Contre-diffusion isobare",
+  "safetyReview_isobaricCounterdiffusion_title": "Contre-diffusion isobare pendant {duration}",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "Un changement de gaz a enfreint la règle des cinquièmes",
   "safetySettings_rule_highSurfaceGf": "Facteur de gradient élevé en surface",
   "safetySettings_analyzeAll": "Analyser toutes les plongées",
   "safetySettings_analyzeAll_subtitle": "Exécuter le bilan de sécurité sur toutes les plongées avec profil pas encore analysées",
@@ -18474,7 +18497,7 @@
   "info_term_salinity_label": "Type d'eau",
   "info_term_salinity_body": "L'eau de mer est plus dense que l'eau douce, donc une même pression correspond en mer à une profondeur un peu plus faible. Les ordinateurs s'en servent pour convertir la pression en profondeur.",
   "info_term_isobaricCounterdiffusion_label": "ICD (contre-diffusion isobare)",
-  "info_term_isobaricCounterdiffusion_body": "Un changement de gaz peut augmenter le gaz inerte total dans les tissus sans changer de profondeur quand l'azote monte plus vite que l'hélium ne baisse. La vérification courante, la règle des cinquièmes, limite la hausse d'azote au cinquième de la baisse d'hélium.",
+  "info_term_isobaricCounterdiffusion_body": "Un changement de gaz peut augmenter le gaz inerte total dans les tissus sans changer de profondeur quand l'azote monte plus vite que l'hélium ne baisse. La vérification courante, la règle des cinquièmes, limite la hausse d'azote au cinquième de la baisse d'hélium. Sur le profil, une bande orange marque l'endroit où un compartiment contient déjà plus de gaz inerte que celui respiré et en absorbe pourtant nettement. Dans le modèle de Bühlmann l'hélium sort plus vite que l'azote n'entre, si bien qu'un passage du trimix au nitrox montre rarement une bande ; la ligne pointillée au changement indique plutôt la règle des cinquièmes.",
   "info_term_hypercapnia_label": "Hypercapnie",
   "info_term_hypercapnia_body": "Une accumulation de dioxyde de carbone dans le corps. Un gaz dense et un effort intense la rendent plus probable.",
   "info_term_turnPressure_label": "Pression de demi-tour",

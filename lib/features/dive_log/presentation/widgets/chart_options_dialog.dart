@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/profile_colors/profile
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_palette.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_options_dialog_rows.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/counterdiffusion_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/legend_candidates.dart';
@@ -111,6 +112,14 @@ class ChartOptionsDialog extends StatelessWidget {
                                 .read(settingsProvider.notifier)
                                 .setO2CellUnit(unit);
                           },
+                          // Like the O2 cell unit: a viewing preference that
+                          // carries over to the next dive (#4530).
+                          onCounterdiffusionShowAllChanged: (showAll) {
+                            legendNotifier.setCounterdiffusionShowAll(showAll);
+                            ref
+                                .read(settingsProvider.notifier)
+                                .setCounterdiffusionShowAll(showAll);
+                          },
                         ),
                         const _MetricColorsLink(),
                       ],
@@ -130,6 +139,7 @@ class ChartOptionsDialog extends StatelessWidget {
     required ProfileLegendState legendState,
     required ProfileLegend legendNotifier,
     required ValueChanged<O2CellUnit> onO2CellUnitChanged,
+    required ValueChanged<bool> onCounterdiffusionShowAllChanged,
     required ProfileMetricPalette palette,
   }) {
     // A chosen pressure colour draws a single-tank dive's line and threshold
@@ -276,6 +286,17 @@ class ChartOptionsDialog extends StatelessWidget {
           color: lateSwitchLegendColor,
           isEnabled: legendState.showLateGasSwitches,
           onTap: legendNotifier.toggleLateGasSwitches,
+        ),
+      if (config.hasCounterdiffusion)
+        buildToggleWithSource<bool>(
+          context,
+          label: context.l10n.diveLog_legend_label_counterdiffusion,
+          color: counterdiffusionColor(Theme.of(context).colorScheme),
+          isEnabled: legendState.showCounterdiffusion,
+          onTap: legendNotifier.toggleCounterdiffusion,
+          currentSource: legendState.counterdiffusionShowAll,
+          onSourceChanged: onCounterdiffusionShowAllChanged,
+          segments: counterdiffusionSegments(context),
         ),
       if (config.hasPhotoMarkers)
         buildToggleItem(

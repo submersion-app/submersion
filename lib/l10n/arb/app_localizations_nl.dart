@@ -9360,6 +9360,27 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Late gaswissels';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Tegendiffusie';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Alles';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Isobare tegendiffusie';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing =>
+      'Tegengestelde gasuitwisseling';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return 'Compartimenten $list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Gaswisselingen';
 
   @override
@@ -22632,6 +22653,19 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Late gaswissel';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Isobare tegendiffusie';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Isobare tegendiffusie gedurende $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Een gaswissel brak de vijfderegel';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -62718,7 +62752,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get info_term_isobaricCounterdiffusion_body =>
-      'Een gaswissel kan het totale inerte gas in weefsels verhogen zonder dieptewijziging als stikstof sneller stijgt dan helium daalt. De gangbare check, de vijfderegel, beperkt de stikstofstijging tot een vijfde van de heliumdaling.';
+      'Een gaswissel kan het totale inerte gas in weefsels verhogen zonder dieptewijziging als stikstof sneller stijgt dan helium daalt. De gangbare check, de vijfderegel, beperkt de stikstofstijging tot een vijfde van de heliumdaling. Op het duikprofiel markeert een oranje band waar een compartiment al meer inert gas bevat dan wordt ingeademd en toch merkbaar gas opneemt. In het Bühlmann-model verlaat helium het weefsel sneller dan stikstof binnenkomt, dus een wissel van trimix naar nitrox toont zelden een band; de stippellijn bij de wissel toont in plaats daarvan de vijfderegel.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnie';

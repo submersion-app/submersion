@@ -392,6 +392,7 @@ class _DiveProfilePanelContentState
               meanDepthCurve: analysis?.meanDepthCurve,
               ttsCurve: analysis?.ttsCurve,
               gasSwitchEfficiency: analysis?.gasSwitchEfficiency,
+              counterdiffusion: analysis?.counterdiffusion,
               gtrCurve: analysis?.gtrCurve,
               cnsCurve: analysis?.cnsCurve,
               otuCurve: analysis?.otuCurve,

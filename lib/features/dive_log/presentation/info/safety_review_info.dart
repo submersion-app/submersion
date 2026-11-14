@@ -12,6 +12,7 @@ DiveTerm _termFor(SafetyRuleId rule) => switch (rule) {
   SafetyRuleId.sawtoothProfile => DiveTerm.sawtooth,
   SafetyRuleId.highSurfaceGf => DiveTerm.surfaceGf,
   SafetyRuleId.lateGasSwitch => DiveTerm.lateGasSwitch,
+  SafetyRuleId.isobaricCounterdiffusion => DiveTerm.isobaricCounterdiffusion,
 };
 
 /// The Safety review section, listing the rules behind its [rules] findings

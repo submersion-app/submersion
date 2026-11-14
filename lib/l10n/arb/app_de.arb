@@ -3130,6 +3130,19 @@
   "diveLog_legend_label_computedEvents": "Berechnete Ereignisse",
   "diveLog_legend_label_gasDensity": "Gasdichte",
   "diveLog_legend_label_lateGasSwitches": "Späte Gaswechsel",
+  "diveLog_legend_label_counterdiffusion": "Gegendiffusion",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "Alle",
+  "diveLog_tooltip_counterdiffusion_icd": "Isobare Gegendiffusion",
+  "diveLog_tooltip_counterdiffusion_opposing": "Gegenläufiger Gasaustausch",
+  "diveLog_tooltip_counterdiffusion_compartments": "Kompartimente {list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "Gaswechsel",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Herzfrequenz",
@@ -12462,6 +12475,16 @@
   "safetySettings_rule_omittedSafetyStop": "Ausgelassene Sicherheitsstopps",
   "safetySettings_rule_sawtoothProfile": "Sägezahnprofile",
   "safetySettings_rule_lateGasSwitch": "Später Gaswechsel",
+  "safetySettings_rule_isobaricCounterdiffusion": "Isobare Gegendiffusion",
+  "safetyReview_isobaricCounterdiffusion_title": "Isobare Gegendiffusion während {duration}",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "Ein Gaswechsel verletzte die Fünftelregel",
   "safetySettings_rule_highSurfaceGf": "Hoher Gradientenfaktor beim Auftauchen",
   "safetySettings_analyzeAll": "Alle Tauchgänge analysieren",
   "safetySettings_analyzeAll_subtitle": "Sicherheitsüberprüfung für alle noch nicht analysierten Tauchgänge mit Profil ausführen",
@@ -18599,7 +18622,7 @@
   "info_term_salinity_label": "Wasserart",
   "info_term_salinity_body": "Salzwasser ist dichter als Süßwasser, deshalb entspricht derselbe Druck im Meer einer etwas geringeren Tiefe. Tauchcomputer rechnen damit Druck in Tiefe um.",
   "info_term_isobaricCounterdiffusion_label": "ICD (isobare Gegendiffusion)",
-  "info_term_isobaricCounterdiffusion_body": "Ein Gaswechsel kann das gesamte Inertgas im Gewebe ohne Tiefenänderung erhöhen, wenn Stickstoff schneller steigt als Helium fällt. Die übliche Prüfung, die Fünftelregel, begrenzt den Stickstoffanstieg auf ein Fünftel des Heliumrückgangs.",
+  "info_term_isobaricCounterdiffusion_body": "Ein Gaswechsel kann das gesamte Inertgas im Gewebe ohne Tiefenänderung erhöhen, wenn Stickstoff schneller steigt als Helium fällt. Die übliche Prüfung, die Fünftelregel, begrenzt den Stickstoffanstieg auf ein Fünftel des Heliumrückgangs. Im Tauchprofil markiert ein oranges Band, wo ein Kompartiment bereits mehr Inertgas enthält, als eingeatmet wird, und trotzdem spürbar aufsättigt. Im Bühlmann-Modell fließt Helium schneller ab, als Stickstoff einströmt, daher zeigt ein Wechsel von Trimix auf Nitrox selten ein Band; die gestrichelte Linie am Wechsel zeigt stattdessen die Fünftelregel.",
   "info_term_hypercapnia_label": "Hyperkapnie",
   "info_term_hypercapnia_body": "Eine Anreicherung von Kohlendioxid im Körper. Dichtes Gas und schwere Arbeit machen sie wahrscheinlicher.",
   "info_term_turnPressure_label": "Umkehrdruck",
