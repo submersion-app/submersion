@@ -12,6 +12,7 @@ import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_row_mapper.dart';
+import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_name_key.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -211,6 +212,38 @@ class LocalSiteCatalogue implements SiteCatalogue {
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     return row == null ? null : catalogueSiteFromRow(row);
   });
+
+  @override
+  Future<List<CatalogueSite>> named(String name, {String? countryCode}) =>
+      _read(const [], (db) async {
+        final words = catalogueNameKey(name).split(' ');
+        if (words.first.isEmpty) return const [];
+        // Every word of the name narrows the rows read; whether a row's
+        // whole name is this one is decided on the folded names, which
+        // SQL cannot compare (the stored text keeps its punctuation).
+        final rows =
+            await (db.select(db.siteCatalogueEntries)..where(
+                  (t) =>
+                      t.latitude.isNotNull() &
+                      t.longitude.isNotNull() &
+                      (countryCode == null
+                          ? const Constant(true)
+                          : t.countryCode.equals(countryCode)) &
+                      words
+                          .map<Expression<bool>>(
+                            (word) => t.searchText.like(
+                              '%${_escapeLike(word)}%',
+                              escapeChar: _likeEscape,
+                            ),
+                          )
+                          .reduce((a, b) => a & b),
+                ))
+                .get();
+        return [
+          for (final row in rows)
+            if (catalogueNamesEqual(name, row.name)) catalogueSiteFromRow(row),
+        ];
+      });
 
   @override
   Future<CatalogueSource?> source(String key) => _read(null, (db) async {

@@ -2,6 +2,7 @@ import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
+import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_name_key.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -25,6 +26,7 @@ class FakeSiteCatalogue implements SiteCatalogue {
   int nearCalls = 0;
   int searchCalls = 0;
   int byIdCalls = 0;
+  int namedCalls = 0;
   int countNearCalls = 0;
   int inBoundsCalls = 0;
 
@@ -154,6 +156,18 @@ class FakeSiteCatalogue implements SiteCatalogue {
   Future<CatalogueSite?> byId(String id) async {
     byIdCalls++;
     return sites.where((site) => site.id == id).firstOrNull;
+  }
+
+  @override
+  Future<List<CatalogueSite>> named(String name, {String? countryCode}) async {
+    namedCalls++;
+    return [
+      for (final site in sites)
+        if (site.location != null &&
+            (countryCode == null || site.countryCode == countryCode) &&
+            catalogueNamesEqual(name, site.name))
+          site,
+    ];
   }
 
   @override
