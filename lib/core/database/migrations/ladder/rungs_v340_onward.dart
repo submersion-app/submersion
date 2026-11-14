@@ -198,5 +198,12 @@ extension RungsFromV340 on AppDatabase {
     // #4525.
     if (from < 365) await _assertRecentEquipmentColorsColumn();
     if (from < 365) await reportProgress();
+
+    // v366: diver_settings.default_show_counterdiffusion, the default
+    // visibility of the isobaric counterdiffusion overlay on the dive profile
+    // (issue #4530). Column only, defaulted off; re-asserted in beforeOpen.
+    // Renumbered from 365, which main took for #4537.
+    if (from < 366) await _assertDefaultShowCounterdiffusionColumn();
+    if (from < 366) await reportProgress();
   }
 }

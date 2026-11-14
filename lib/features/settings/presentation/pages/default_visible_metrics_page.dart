@@ -136,6 +136,13 @@ class DefaultVisibleMetricsPage extends ConsumerWidget {
             onChanged: notifier.setDefaultShowPpHe,
           ),
           SwitchListTile(
+            title: Text(
+              context.l10n.settings_appearance_metric_counterdiffusion,
+            ),
+            value: settings.defaultShowCounterdiffusion,
+            onChanged: notifier.setDefaultShowCounterdiffusion,
+          ),
+          SwitchListTile(
             title: Text(context.l10n.settings_appearance_metric_gasDensity),
             value: settings.defaultShowGasDensity,
             onChanged: notifier.setDefaultShowGasDensity,

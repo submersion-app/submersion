@@ -311,6 +311,7 @@ void main() {
     expect(legend.showTemperature, isFalse);
     expect(legend.showEvents, isFalse);
     expect(legend.showMaxDepthMarker, isFalse);
+    expect(legend.showCounterdiffusion, isFalse);
     // The dive log's own legend is left as the diver set it.
     expect(
       containerOf(tester).read(profileLegendProvider).showTemperature,
