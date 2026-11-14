@@ -136,6 +136,9 @@ final catalogueGapNoticeSeenProvider =
 /// that was not there, or one whose offer has grown.
 final catalogueGapNoticeCountProvider = Provider<int>((ref) {
   final pairs = ref.watch(catalogueGapPairsProvider).value ?? const [];
+  // With no pairs there is nothing to compare against what was dismissed,
+  // and the device's preferences are not read at all.
+  if (pairs.isEmpty) return 0;
   final seen = ref.watch(catalogueGapNoticeSeenProvider);
   return pairs.any((pair) => !seen.contains(pair.key)) ? pairs.length : 0;
 });

@@ -24,6 +24,7 @@ import 'package:submersion/shared/widgets/master_detail/remembered_selection.dar
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_gap_notice.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_map_content.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_summary_widget.dart';
@@ -211,6 +212,8 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
                     mode: SiteLocationLookupMode.fillMissing,
                   ),
                 );
+              } else if (value == kCatalogueReviewMenuValue) {
+                context.push(kCatalogueReviewRoute);
               } else if (value == 'refresh_place_names') {
                 unawaited(
                   showSiteLocationBackfillFlow(
@@ -255,6 +258,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
+                catalogueReviewMenuItem(context),
               ];
             },
           ),
