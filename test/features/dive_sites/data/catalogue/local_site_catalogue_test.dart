@@ -772,13 +772,6 @@ void main() {
     });
   });
 
-  test('allWithCoordinates leaves out sites without coordinates', () async {
-    final sites = await catalogue.allWithCoordinates();
-
-    expect(sites, hasLength(11));
-    expect(idsOf(sites), isNot(contains('nowhere')));
-  });
-
   test('source returns the stored source or null', () async {
     expect(
       await catalogue.source('osm'),
@@ -801,7 +794,6 @@ void main() {
     expect(await unopened.near(_saltPier, radiusMeters: 50000), isEmpty);
     expect(await unopened.search('reef'), isEmpty);
     expect(await unopened.byId('full'), isNull);
-    expect(await unopened.allWithCoordinates(), isEmpty);
     expect(await unopened.source('osm'), isNull);
     expect(
       await unopened.countNear(

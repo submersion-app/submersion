@@ -16,6 +16,7 @@ import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/local_site_catalogue.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// The shipped catalogue file itself: what the scripts wrote is what the
@@ -157,7 +158,12 @@ void main() {
 
     expect(outcome, SiteCatalogueImportOutcome.imported);
     final catalogue = LocalSiteCatalogue(database: db);
-    expect(await catalogue.allWithCoordinates(), hasLength(3311));
+    final located = await catalogue.inBounds(
+      const CatalogueBounds(south: -90, west: -180, north: 90, east: 180),
+      limit: 1000000,
+    );
+    expect(located.sites, hasLength(3311));
+    expect(located.truncated, isFalse);
     // Salt Pier, by name and by place.
     final found = await catalogue.search('salt pier');
     expect(found.map((s) => s.id), contains('osm_node_663869401'));

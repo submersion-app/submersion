@@ -25,7 +25,6 @@ class FakeSiteCatalogue implements SiteCatalogue {
   int nearCalls = 0;
   int searchCalls = 0;
   int byIdCalls = 0;
-  int allWithCoordinatesCalls = 0;
   int countNearCalls = 0;
   int inBoundsCalls = 0;
 
@@ -155,12 +154,6 @@ class FakeSiteCatalogue implements SiteCatalogue {
   Future<CatalogueSite?> byId(String id) async {
     byIdCalls++;
     return sites.where((site) => site.id == id).firstOrNull;
-  }
-
-  @override
-  Future<List<CatalogueSite>> allWithCoordinates() async {
-    allWithCoordinatesCalls++;
-    return sites.where((site) => site.hasCoordinates).toList();
   }
 
   @override

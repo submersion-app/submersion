@@ -17,7 +17,9 @@ import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/built_in_overlay_view.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_info_card.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_marker_layer.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_sites_toggle_button.dart';
@@ -329,30 +331,32 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
               BathymetryDepthOverlayLayer(location: selectedSite?.location),
               SiteFeatureMarkerLayer(siteId: selectionState.selectedId),
               // Built-in (bundled) sites layer - below the user markers so the
-              // user's own sites always draw on top. Shown only when toggled.
+              // user's own sites always draw on top. Shown only when toggled,
+              // and only the sites in view are read: the reporter tells the
+              // providers what the map shows.
+              const BuiltInOverlayBoundsReporter(),
               Consumer(
                 builder: (context, ref, _) {
                   final show = ref.watch(showBuiltInSitesProvider);
                   if (!show) return const SizedBox.shrink();
-                  final builtInAsync = ref.watch(visibleBuiltInSitesProvider);
-                  return builtInAsync.maybeWhen(
-                    data: (builtIn) => BuiltInSiteMarkerLayer(
-                      sites: builtIn,
-                      selectedCatalogueId: _selectedBuiltInId,
-                      onTap: (site) {
-                        ref
-                            .read(mapListSelectionProvider('sites').notifier)
-                            .deselect();
-                        setState(() => _selectedBuiltInId = site.id);
-                        _camera.animateTo(
-                          LatLng(
-                            site.location!.latitude,
-                            site.location!.longitude,
-                          ),
-                        );
-                      },
-                    ),
-                    orElse: () => const SizedBox.shrink(),
+                  // The last sites stay up while a moved map reads the next.
+                  final builtIn = ref.watch(visibleBuiltInSitesProvider).value;
+                  if (builtIn == null) return const SizedBox.shrink();
+                  return BuiltInSiteMarkerLayer(
+                    sites: builtIn,
+                    selectedCatalogueId: _selectedBuiltInId,
+                    onTap: (site) {
+                      ref
+                          .read(mapListSelectionProvider('sites').notifier)
+                          .deselect();
+                      setState(() => _selectedBuiltInId = site.id);
+                      _camera.animateTo(
+                        LatLng(
+                          site.location!.latitude,
+                          site.location!.longitude,
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -447,6 +451,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
           right: 8,
           child: MapCornerControls(controller: _mapController),
         ),
+        const Positioned(top: 12, left: 12, child: BuiltInOverlayCaption()),
 
         // Empty state overlay
         if (sitesWithLocation.isEmpty)
@@ -586,11 +591,17 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
   }
 
   Widget? _buildBuiltInInfoCard(BuildContext context) {
-    final async = ref.watch(visibleBuiltInSitesProvider);
-    final site = async.maybeWhen(
-      data: (list) => list.where((s) => s.id == _selectedBuiltInId).firstOrNull,
-      orElse: () => null,
-    );
+    final id = _selectedBuiltInId;
+    if (id == null) return null;
+    // From the markers in view, else by id: the card stays while the map
+    // moves the site off screen.
+    final site =
+        ref
+            .watch(visibleBuiltInSitesProvider)
+            .value
+            ?.where((s) => s.id == id)
+            .firstOrNull ??
+        ref.watch(catalogueSiteProvider(id)).value;
     if (site == null) return null;
     return BuiltInSiteInfoCard(
       site: site,

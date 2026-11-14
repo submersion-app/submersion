@@ -209,16 +209,6 @@ class LocalSiteCatalogue implements SiteCatalogue {
   });
 
   @override
-  Future<List<CatalogueSite>> allWithCoordinates() => _read(const [], (
-    db,
-  ) async {
-    final rows = await (db.select(
-      db.siteCatalogueEntries,
-    )..where((t) => t.latitude.isNotNull() & t.longitude.isNotNull())).get();
-    return rows.map(catalogueSiteFromRow).toList();
-  });
-
-  @override
   Future<CatalogueSource?> source(String key) => _read(null, (db) async {
     final row =
         await (db.select(db.siteCatalogueMeta)

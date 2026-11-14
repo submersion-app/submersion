@@ -50,9 +50,6 @@ abstract interface class SiteCatalogue {
 
   Future<CatalogueSite?> byId(String id);
 
-  /// Every site that has coordinates, for the map overlay.
-  Future<List<CatalogueSite>> allWithCoordinates();
-
   /// The source a record names in its `source`.
   Future<CatalogueSource?> source(String key);
 }
