@@ -322,7 +322,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 363;
+  static const int currentSchemaVersion = 365;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1679,6 +1679,11 @@ class AppDatabase extends _$AppDatabase {
     // was adopted from. Nullable, nothing to backfill, so the floor does
     // not move. Renumbered from 362, which main took for #4461.
     363,
+    // v365: dives.media_time_offset_seconds, the correction for a camera
+    // whose clock disagrees with the dive computer's (issue #4539). A
+    // defaulted column an older peer omits, so the floor does not move.
+    // Numbered 365 because main holds 363 and open work claims 364.
+    365,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

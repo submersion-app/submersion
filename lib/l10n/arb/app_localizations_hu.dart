@@ -25815,6 +25815,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Gázváltások kézzel szerkesztve';
 
   @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'Média időeltolása';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Kihagyva a gázstatisztikából';
 
@@ -55038,6 +55042,37 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_timeInDive_reset => 'Visszaállítás automatikusra';
+
+  @override
+  String get media_timeInDive_shiftAll =>
+      'A merülés összes médiájának eltolása';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'A merülés minden fotója és videója ugyanannyival tolódik el';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'A merülés minden fotója és videója $amount értékkel korábbra tolódik';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'A merülés minden fotója és videója $amount értékkel későbbre tolódik';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'A merülés médiái $amount értékkel korábbra vannak tolva';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'A merülés médiái $amount értékkel későbbre vannak tolva';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'Eltolás eltávolítása';
 
   @override
   String get media_info_store => 'Felhő tárhely';

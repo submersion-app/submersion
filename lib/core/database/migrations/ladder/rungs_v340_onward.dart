@@ -180,5 +180,13 @@ extension RungsFromV340 on AppDatabase {
     // Renumbered from 362, which main took for #4461.
     if (from < 363) await _assertSiteCatalogueIdColumn();
     if (from < 363) await reportProgress();
+
+    // v365: dives.media_time_offset_seconds, the correction for a camera
+    // whose clock disagrees with the dive computer's (issue #4539). Column
+    // only, defaulted to 0, so the compatibility floor does not move.
+    // Re-asserted in beforeOpen. Numbered 365: main holds 363 and open work
+    // claims 364.
+    if (from < 365) await _assertDiveMediaTimeOffsetColumn();
+    if (from < 365) await reportProgress();
   }
 }

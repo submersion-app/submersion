@@ -71,6 +71,8 @@ const Set<String> kUnmirroredDiveFields = {
   'excludedFromStats',
   'excludedFromGasStats',
   'gasSwitchesEdited',
+  // The correction for the diver's own camera (issue #4539).
+  'mediaTimeOffsetSeconds',
   // A draft is the diver's own mark at the site; a mirrored dive is a plan.
   'isDraft',
   'diveMode',

@@ -40928,6 +40928,12 @@ abstract class AppLocalizations {
   /// **'Gas switches edited by hand'**
   String get settings_conflict_field_gasSwitchesEdited;
 
+  /// No description provided for @settings_conflict_field_mediaTimeOffsetSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Media time shift'**
+  String get settings_conflict_field_mediaTimeOffsetSeconds;
+
   /// No description provided for @settings_conflict_field_excludedFromGasStats.
   ///
   /// In en, this message translates to:
@@ -86925,6 +86931,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset to automatic'**
   String get media_timeInDive_reset;
+
+  /// Set-time dialog: switch that makes Save move every photo and video on the dive, not only this one, to correct a camera clock that disagrees with the dive computer.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift all media on this dive'**
+  String get media_timeInDive_shiftAll;
+
+  /// Set-time dialog: text under the shift-all switch while the chosen time is the item's automatic one, so nothing would move yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Every photo and video on this dive moves by the same amount'**
+  String get media_timeInDive_shiftAllHint;
+
+  /// Set-time dialog: text under the shift-all switch; {amount} is how far the dive's media would move towards the dive start, as minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Every photo and video on this dive moves {amount} earlier'**
+  String media_timeInDive_shiftAllEarlier(String amount);
+
+  /// Set-time dialog: text under the shift-all switch; {amount} is how far the dive's media would move towards the dive end, as minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Every photo and video on this dive moves {amount} later'**
+  String media_timeInDive_shiftAllLater(String amount);
+
+  /// Set-time dialog: the shift this dive already applies to its media, towards the dive start; {amount} is minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Media on this dive is shifted {amount} earlier'**
+  String media_timeInDive_diveShiftEarlier(String amount);
+
+  /// Set-time dialog: the shift this dive already applies to its media, towards the dive end; {amount} is minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Media on this dive is shifted {amount} later'**
+  String media_timeInDive_diveShiftLater(String amount);
+
+  /// Set-time dialog: button that removes the dive's media time shift so its photos and videos sit by capture time again.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove shift'**
+  String get media_timeInDive_removeShift;
 
   /// No description provided for @media_info_store.
   ///

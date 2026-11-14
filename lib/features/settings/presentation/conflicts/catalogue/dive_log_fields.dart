@@ -286,6 +286,10 @@ final Map<String, ConflictField> diveLogFields = {
     (l) => l.settings_conflict_field_gasSwitchesEdited,
     FieldKind.boolean,
   ),
+  'mediaTimeOffsetSeconds': ConflictField(
+    (l) => l.settings_conflict_field_mediaTimeOffsetSeconds,
+    FieldKind.durationSeconds,
+  ),
   'gradientFactorHigh': ConflictField(
     (l) => DiveField.gradientFactorHigh.localizedDisplayName(l),
     FieldKind.percent,

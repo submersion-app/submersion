@@ -1,6 +1,11 @@
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/services/enrichment_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
+
+/// Where an item sits on its dive by its capture time alone, and the shift
+/// its dive applies to every capture time (issue #4539).
+typedef MediaAutomaticTime = ({int elapsedSeconds, int diveShiftSeconds});
 
 /// Positions a dive's linked media on the profile chart by computing and
 /// saving a [MediaEnrichment] (elapsed seconds + depth) for every item that
@@ -17,6 +22,7 @@ class DiveMediaEnricher {
     required this.loadDive,
     required this.loadMediaForDive,
     required this.saveEnrichments,
+    required this.loadPrimarySourceEntry,
     this.enrichmentService = const EnrichmentService(),
   });
 
@@ -24,6 +30,12 @@ class DiveMediaEnricher {
   /// which populates `profile`; list queries do not).
   final Future<Dive?> Function(String diveId) loadDive;
   final Future<List<MediaItem>> Function(String diveId) loadMediaForDive;
+
+  /// When a dive's primary computer began recording, the instant its profile
+  /// counts from (`DiveRepository.getPrimarySourceEntry`); null for a dive
+  /// with no such source. See [DiveMediaClock] for why the dive's own start
+  /// is not always that instant (issue #4539).
+  final Future<DateTime?> Function(String diveId) loadPrimarySourceEntry;
 
   /// Persists a whole dive's new/changed rows in one call
   /// (`MediaRepository.saveEnrichments`: one transaction, one table tick).
@@ -56,6 +68,7 @@ class DiveMediaEnricher {
     final dive = await loadDive(diveId);
     if (dive == null || dive.profile.isEmpty) return 0;
 
+    final clock = await _clockFor(dive);
     final media = await loadMediaForDive(diveId);
     final toSave = <MediaEnrichment>[];
     for (final item in media) {
@@ -65,18 +78,14 @@ class DiveMediaEnricher {
 
       // A pinned item (issue #1090) is positioned from the diver's offset,
       // never from its capture time, so a backfill converges on the pin
-      // instead of reverting it.
+      // instead of reverting it, and the dive's shift leaves it alone.
       final manual = item.manualElapsedSeconds;
       final result = manual != null
           ? enrichmentService.calculateEnrichmentAtElapsed(
               profile: dive.profile,
               elapsedSeconds: manual,
             )
-          : enrichmentService.calculateEnrichment(
-              profile: dive.profile,
-              diveStartTime: dive.effectiveEntryTime,
-              photoTime: item.takenAt,
-            );
+          : _automatic(dive, clock, item);
 
       // Mirror the gallery path: don't persist a row we couldn't actually
       // place (no depth and no usable profile match). An existing row is left
@@ -113,6 +122,41 @@ class DiveMediaEnricher {
     return toSave.length;
   }
 
+  /// Where [item] sits on its dive by its capture time alone, whatever pin it
+  /// carries, with the shift the dive applies (issue #4539). The Set-time
+  /// dialog reads this to turn the moment the diver picks for one item into
+  /// a shift for all of them.
+  ///
+  /// Null when there is nothing to measure against: no dive, no profile, or
+  /// a signature, which has no moment in the dive.
+  Future<MediaAutomaticTime?> automaticTimeFor(MediaItem item) async {
+    final diveId = item.diveId;
+    if (diveId == null || item.isSignature) return null;
+    final dive = await loadDive(diveId);
+    if (dive == null || dive.profile.isEmpty) return null;
+    final clock = await _clockFor(dive);
+    return (
+      elapsedSeconds: _automatic(dive, clock, item).elapsedSeconds,
+      diveShiftSeconds: clock.offsetSeconds,
+    );
+  }
+
+  Future<DiveMediaClock> _clockFor(Dive dive) async => DiveMediaClock.of(
+    diveStart: dive.effectiveEntryTime,
+    primarySourceEntry: await loadPrimarySourceEntry(dive.id),
+    offsetSeconds: dive.mediaTimeOffsetSeconds,
+  );
+
+  EnrichmentResult _automatic(
+    Dive dive,
+    DiveMediaClock clock,
+    MediaItem item,
+  ) => enrichmentService.calculateEnrichment(
+    profile: dive.profile,
+    diveStartTime: clock.start,
+    photoTime: clock.onDiveClock(item.takenAt),
+  );
+
   /// Whether [existing] already records exactly what [result] computes for
   /// [diveId].
   ///
@@ -143,12 +187,17 @@ class ReadOnlyDiveMediaEnricher extends DiveMediaEnricher {
         loadDive: _noDive,
         loadMediaForDive: _noMedia,
         saveEnrichments: _noSave,
+        loadPrimarySourceEntry: _noEntry,
       );
 
   static Future<Dive?> _noDive(String diveId) async => null;
   static Future<List<MediaItem>> _noMedia(String diveId) async => const [];
   static Future<void> _noSave(List<MediaEnrichment> enrichments) async {}
+  static Future<DateTime?> _noEntry(String diveId) async => null;
 
   @override
   Future<int> enrichMissingForDive(String diveId) async => 0;
+
+  @override
+  Future<MediaAutomaticTime?> automaticTimeFor(MediaItem item) async => null;
 }

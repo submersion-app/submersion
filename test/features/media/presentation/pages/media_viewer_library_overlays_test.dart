@@ -280,6 +280,7 @@ void main() {
         return _dive;
       },
       loadMediaForDive: (diveId) async => const [],
+      loadPrimarySourceEntry: (_) async => null,
       saveEnrichments: (enrichments) async {},
     );
 
@@ -307,6 +308,7 @@ void main() {
         return _dive;
       },
       loadMediaForDive: (diveId) async => const [],
+      loadPrimarySourceEntry: (_) async => null,
       saveEnrichments: (enrichments) async {},
     );
 

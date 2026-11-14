@@ -10,6 +10,7 @@ import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart'
     as domain;
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
 import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 
 /// Counters describing one scan run, for the summary snackbar and the
@@ -328,10 +329,15 @@ class LightroomScanService {
     final dive = await _diveRepository.getDiveById(diveId);
     final profile = dive?.profile ?? const [];
     if (dive != null && profile.isNotEmpty) {
+      final clock = DiveMediaClock.of(
+        diveStart: dive.effectiveEntryTime,
+        primarySourceEntry: await _diveRepository.getPrimarySourceEntry(diveId),
+        offsetSeconds: dive.mediaTimeOffsetSeconds,
+      );
       final result = _enrichmentService.calculateEnrichment(
         profile: profile,
-        diveStartTime: dive.effectiveEntryTime,
-        photoTime: asset.captureDate!,
+        diveStartTime: clock.start,
+        photoTime: clock.onDiveClock(asset.captureDate!),
       );
       if (result.depthMeters != null ||
           result.matchConfidence != domain.MatchConfidence.noProfile) {

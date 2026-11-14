@@ -25980,6 +25980,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Changements de gaz modifiés à la main';
 
   @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'Décalage horaire des médias';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Exclu des statistiques de gaz';
 
@@ -55458,6 +55462,37 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_timeInDive_reset => 'Rétablir le mode automatique';
+
+  @override
+  String get media_timeInDive_shiftAll =>
+      'Décaler tous les médias de cette plongée';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'Toutes les photos et vidéos de cette plongée sont décalées de la même durée';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'Toutes les photos et vidéos de cette plongée sont décalées de $amount plus tôt';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'Toutes les photos et vidéos de cette plongée sont décalées de $amount plus tard';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'Les médias de cette plongée sont décalés de $amount plus tôt';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'Les médias de cette plongée sont décalés de $amount plus tard';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'Supprimer le décalage';
 
   @override
   String get media_info_store => 'Stockage cloud';

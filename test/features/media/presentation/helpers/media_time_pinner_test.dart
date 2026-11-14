@@ -37,9 +37,11 @@ void main() {
     // stubbed, since the dive's profile is the only thing it needs.
     pinner = MediaTimePinner(
       repository: repository,
+      setDiveShift: DiveRepository().setMediaTimeOffsetSeconds,
       enricher: DiveMediaEnricher(
         loadDive: (_) async => dive.copyWith(id: diveId),
         loadMediaForDive: repository.getMediaForDive,
+        loadPrimarySourceEntry: (_) async => null,
         saveEnrichments: repository.saveEnrichments,
       ),
     );

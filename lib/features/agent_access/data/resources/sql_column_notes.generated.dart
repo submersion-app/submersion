@@ -438,6 +438,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'loop_o2_avg': 'Avg loop O2%',
     'loop_o2_max': 'Max loop O2%',
     'loop_o2_min': 'Loop FO2 measurements - for SCR dives',
+    'media_time_offset_seconds': 'seconds added to each photo\'s capture time before it is placed on the dive',
     'name': 'User-defined dive name',
     'otu': 'OTU accumulated this dive',
     'outing_id': 'Shared id across the sibling dives created by one mirror action',

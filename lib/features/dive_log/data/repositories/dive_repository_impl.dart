@@ -1129,6 +1129,64 @@ class DiveRepository {
     }
   }
 
+  /// Sets the seconds added to each photo's capture time before it is placed
+  /// on [diveId] (issue #4539); 0 removes the shift. Single-column update,
+  /// synced the way [setSiteSuggestionDismissed] is. Placing the media again
+  /// is the caller's job: this only records the correction.
+  Future<void> setMediaTimeOffsetSeconds(String diveId, int seconds) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion(
+          mediaTimeOffsetSeconds: Value(seconds),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set media time shift on dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// When [diveId]'s primary computer began recording, which is the instant
+  /// the dive's profile samples count from; null when the dive has no primary
+  /// source or that source recorded no entry time (issue #4539).
+  ///
+  /// The dive's own start is not that instant when a log file or the edit
+  /// form gave it at whole minutes. A primary sitting some seconds along the
+  /// timeline began that long after its zero, so the offset is taken off.
+  Future<DateTime?> getPrimarySourceEntry(String diveId) async {
+    final row =
+        await (_db.select(_db.diveDataSources)
+              ..where(
+                (t) =>
+                    t.diveId.equals(diveId) &
+                    t.isPrimary.equals(true) &
+                    t.entryTime.isNotNull(),
+              )
+              ..orderBy([
+                (t) => OrderingTerm.asc(t.entryTime),
+                (t) => OrderingTerm.asc(t.id),
+              ])
+              ..limit(1))
+            .getSingleOrNull();
+    final entry = row?.entryTime;
+    if (row == null || entry == null) return null;
+    return entry.toUtc().subtract(
+      Duration(seconds: row.timeOffsetSeconds ?? 0),
+    );
+  }
+
   /// Ids bound per [getDivesMissingEntryGps] query: one variable each, well
   /// under SQLite's 32,766-variable ceiling, since every import passes all
   /// of its dives (issue #3704).
@@ -2475,6 +2533,8 @@ class DiveRepository {
                 // A restored backup brings the diver-owned switch list
                 // flag with it (issue #32); an edit never rewrites it.
                 gasSwitchesEdited: Value(dive.gasSwitchesEdited),
+                // As is the media time shift (issue #4539).
+                mediaTimeOffsetSeconds: Value(dive.mediaTimeOffsetSeconds),
                 // CCR/SCR rebreather fields (v1.5)
                 diveMode: Value(dive.diveMode.code),
                 setpointLow: Value(dive.setpointLow),
@@ -5318,6 +5378,7 @@ class DiveRepository {
       excludedFromStats: row.excludedFromStats,
       excludedFromGasStats: row.excludedFromGasStats,
       gasSwitchesEdited: row.gasSwitchesEdited,
+      mediaTimeOffsetSeconds: row.mediaTimeOffsetSeconds,
       tags: tags,
       // CCR/SCR rebreather fields (v1.5)
       diveMode: DiveMode.fromCode(row.diveMode),
@@ -5799,6 +5860,7 @@ class DiveRepository {
       excludedFromStats: row.excludedFromStats,
       excludedFromGasStats: row.excludedFromGasStats,
       gasSwitchesEdited: row.gasSwitchesEdited,
+      mediaTimeOffsetSeconds: row.mediaTimeOffsetSeconds,
       tags: tags,
       // CCR/SCR rebreather fields (v1.5)
       diveMode: DiveMode.fromCode(row.diveMode),

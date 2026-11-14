@@ -1684,6 +1684,12 @@ class UddfFullImportService {
       if (gasSwitchesEdited?.toLowerCase() == 'true') {
         diveData['gasSwitchesEdited'] = true;
       }
+      final mediaTimeOffset = int.tryParse(
+        UddfImportParsers.getElementText(afterElement, 'mediatimeoffset') ?? '',
+      );
+      if (mediaTimeOffset != null) {
+        diveData['mediaTimeOffsetSeconds'] = mediaTimeOffset;
+      }
 
       // Parse additional weights (app-specific, beyond single weight)
       final weightsElement = afterElement.findElements('weights').firstOrNull;

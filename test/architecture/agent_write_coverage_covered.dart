@@ -182,6 +182,8 @@ final covered = <String, String>{
       'dives',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkShiftDiveTimes':
       'dives',
+  'lib/features/dive_log/data/repositories/dive_repository_impl.dart:setMediaTimeOffsetSeconds':
+      'dives',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkDeleteDives':
       'dives',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkSetSite':

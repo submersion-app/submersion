@@ -122,6 +122,7 @@ void main() {
       'is_favorite': true,
       'excluded_from_stats': true,
       'excluded_from_gas_stats': true,
+      'media_time_offset_s': -47,
       'dive_operator': 'Blue Ops',
       'boat_name': 'Marlin',
       'boat_captain': 'Rui',

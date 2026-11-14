@@ -14,6 +14,7 @@ Dive row(String id) => Dive(
   excludedFromStats: false,
   excludedFromGasStats: false,
   gasSwitchesEdited: false,
+  mediaTimeOffsetSeconds: 0,
   diveMode: 'oc',
   cnsStart: 0,
   isPlanned: false,

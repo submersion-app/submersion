@@ -25292,6 +25292,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'החלפות גז נערכו ידנית';
 
   @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds => 'הסטת זמן המדיה';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'לא נכלל בסטטיסטיקת הגז';
 
@@ -54173,6 +54176,36 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_timeInDive_reset => 'איפוס לאוטומטי';
+
+  @override
+  String get media_timeInDive_shiftAll => 'הסטת כל המדיה בצלילה הזו';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'כל התמונות והסרטונים בצלילה הזו יוסטו באותה מידה';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'כל התמונות והסרטונים בצלילה הזו יוסטו $amount אחורה';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'כל התמונות והסרטונים בצלילה הזו יוסטו $amount קדימה';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'המדיה בצלילה הזו מוסטת $amount אחורה';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'המדיה בצלילה הזו מוסטת $amount קדימה';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'הסרת ההסטה';
 
   @override
   String get media_info_store => 'אחסון בענן';

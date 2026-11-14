@@ -24491,6 +24491,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_gasSwitchesEdited => '气体切换已手动编辑';
 
   @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds => '媒体时间平移';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats => '不计入气体统计';
 
   @override
@@ -51888,6 +51891,35 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_timeInDive_reset => '重置为自动';
+
+  @override
+  String get media_timeInDive_shiftAll => '平移本次潜水的所有媒体';
+
+  @override
+  String get media_timeInDive_shiftAllHint => '本次潜水的所有照片和视频将平移相同的时间';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return '本次潜水的所有照片和视频将提前 $amount';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return '本次潜水的所有照片和视频将推后 $amount';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return '本次潜水的媒体已提前 $amount';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return '本次潜水的媒体已推后 $amount';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => '移除平移';
 
   @override
   String get media_info_store => '云存储';

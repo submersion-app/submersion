@@ -524,6 +524,15 @@ class UddfExportBuilders {
             if (dive.gasSwitchesEdited) {
               builder.element('gasswitchesedited', nest: 'true');
             }
+            // The correction for the camera's clock (issue #4539): without
+            // it a restored dive's media goes back to where the camera put
+            // it.
+            if (dive.mediaTimeOffsetSeconds != 0) {
+              builder.element(
+                'mediatimeoffset',
+                nest: dive.mediaTimeOffsetSeconds.toString(),
+              );
+            }
             if (dive.photoIds.isNotEmpty) {
               builder.element(
                 'photos',

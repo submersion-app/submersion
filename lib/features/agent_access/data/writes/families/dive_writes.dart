@@ -70,6 +70,10 @@ class DiveWrites extends WritableEntry {
     'is_favorite': const FieldCodec.flag(),
     'excluded_from_stats': const FieldCodec.flag(),
     'excluded_from_gas_stats': const FieldCodec.flag(),
+    // Seconds added to each photo's capture time before it is placed on the
+    // dive (issue #4539); 0 is no shift. A day either way covers a camera
+    // left on another date.
+    'media_time_offset_s': const FieldCodec.integer(min: -86400, max: 86400),
     'dive_operator': _text,
     'boat_name': _text,
     'boat_captain': _text,
@@ -449,6 +453,7 @@ class DiveWrites extends WritableEntry {
         isFavorite: v['is_favorite'] as bool? ?? false,
         excludedFromStats: v['excluded_from_stats'] as bool? ?? false,
         excludedFromGasStats: v['excluded_from_gas_stats'] as bool? ?? false,
+        mediaTimeOffsetSeconds: v['media_time_offset_s'] as int? ?? 0,
         diveOperator: v['dive_operator'] as String?,
         boatName: v['boat_name'] as String?,
         boatCaptain: v['boat_captain'] as String?,
@@ -491,6 +496,11 @@ class DiveWrites extends WritableEntry {
     }
     if (update.values['notes'] case final String notes) {
       await _annotations.reconcile(diveId: id, notes: notes);
+    }
+    // Its own writer, as in the app: a dive save never rewrites the shift.
+    // The media is placed again the next time the dive's media is opened.
+    if (update.values['media_time_offset_s'] case final int shift) {
+      await _r.dives.setMediaTimeOffsetSeconds(id, shift);
     }
     if (update.values.containsKey('buddy_roles')) {
       await setBuddyRoles(_r, id, update.values['buddy_roles']);

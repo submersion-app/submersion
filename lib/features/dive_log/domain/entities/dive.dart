@@ -202,6 +202,13 @@ class Dive extends Equatable {
   /// by the gas switch writer; saving a dive never rewrites it. Carried by
   /// the UDDF backup so a restored dive keeps its list.
   final bool gasSwitchesEdited;
+
+  /// Seconds added to each photo's capture time before it is placed on this
+  /// dive (issue #4539): negative for a camera running ahead of the dive
+  /// computer, positive for one behind. Set only from the media viewer's
+  /// Set-time dialog; saving a dive never rewrites it. Carried by the UDDF
+  /// backup so a restored dive keeps its media where the diver put it.
+  final int mediaTimeOffsetSeconds;
   final List<Tag> tags;
 
   // Dive mode (v1.5) - OC, CCR, or SCR
@@ -341,6 +348,7 @@ class Dive extends Equatable {
     this.excludedFromStats = false,
     this.excludedFromGasStats = false,
     this.gasSwitchesEdited = false,
+    this.mediaTimeOffsetSeconds = 0,
     this.tags = const [],
     // CCR/SCR fields (v1.5)
     this.diveMode = DiveMode.oc,
@@ -904,6 +912,7 @@ class Dive extends Equatable {
     bool? excludedFromStats,
     bool? excludedFromGasStats,
     bool? gasSwitchesEdited,
+    int? mediaTimeOffsetSeconds,
     List<Tag>? tags,
     // CCR/SCR fields
     DiveMode? diveMode,
@@ -1019,6 +1028,8 @@ class Dive extends Equatable {
       excludedFromStats: excludedFromStats ?? this.excludedFromStats,
       excludedFromGasStats: excludedFromGasStats ?? this.excludedFromGasStats,
       gasSwitchesEdited: gasSwitchesEdited ?? this.gasSwitchesEdited,
+      mediaTimeOffsetSeconds:
+          mediaTimeOffsetSeconds ?? this.mediaTimeOffsetSeconds,
       tags: tags ?? this.tags,
       // CCR/SCR fields
       diveMode: diveMode ?? this.diveMode,
@@ -1132,6 +1143,7 @@ class Dive extends Equatable {
     excludedFromStats,
     excludedFromGasStats,
     gasSwitchesEdited,
+    mediaTimeOffsetSeconds,
     tags,
     // CCR/SCR fields
     diveMode,
