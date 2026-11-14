@@ -1,6 +1,7 @@
 // Verifies Garmin USB detection against a temporary directory tree that
 // mimics one or more mounted volumes: a device is recognised by a non-empty
-// GARMIN/Activity folder, regardless of the volume's name. A fake MTP source
+// GARMIN/Activity folder beside GARMIN/GarminDevice.xml, regardless of the
+// volume's name. A fake MTP source
 // stands in for watches that connect over MTP instead (issue #4223).
 
 import 'dart:io';
@@ -24,14 +25,22 @@ void main() {
   });
 
   /// Create `<tmp>/<volume>/GARMIN/Activity` and drop [fitNames] into it (plus
-  /// any [otherNames] non-FIT files). Returns the volume root path.
+  /// any [otherNames] non-FIT files). Every Garmin also writes
+  /// `GARMIN/GarminDevice.xml`, here [deviceXml] (none when null). Returns the
+  /// volume root path.
   Future<String> makeVolume(
     String volume, {
     List<String> fitNames = const [],
     List<String> otherNames = const [],
+    String? deviceXml = '<Device></Device>',
   }) async {
     final activity = Directory(p.join(tmp.path, volume, 'GARMIN', 'Activity'));
     await activity.create(recursive: true);
+    if (deviceXml != null) {
+      await File(
+        p.join(tmp.path, volume, 'GARMIN', 'GarminDevice.xml'),
+      ).writeAsString(deviceXml);
+    }
     for (final name in fitNames) {
       await File(p.join(activity.path, name)).writeAsBytes([0, 1, 2, 3]);
     }
@@ -87,13 +96,27 @@ void main() {
       expect(devices.single.serialNumber, '3456789012');
     });
 
-    test('is null without the file', () async {
+    test('is null when the file has no unit ID', () async {
       final vol = await makeVolume('GARMIN', fitNames: ['1.fit']);
 
       final devices = await detectorFor([vol]).detect();
 
       expect(devices.single.serialNumber, isNull);
     });
+  });
+
+  test('ignores a GARMIN/Activity folder without GarminDevice.xml', () async {
+    // FIT files copied off a watch by hand, such as D:\GARMIN\Activity: a
+    // folder, not a connected watch.
+    final vol = await makeVolume(
+      'D',
+      fitNames: ['2026-11-01-10-00-00.fit'],
+      deviceXml: null,
+    );
+
+    final devices = await detectorFor([vol]).detect();
+
+    expect(devices, isEmpty);
   });
 
   test('recognises the device regardless of the volume name', () async {

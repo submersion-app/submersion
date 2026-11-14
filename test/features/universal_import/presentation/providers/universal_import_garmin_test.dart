@@ -118,7 +118,8 @@ void main() {
     return container.read(universalImportNotifierProvider.notifier);
   }
 
-  /// Create `<tmp>/<volume>/GARMIN/Activity` and populate it: the dive fixture
+  /// Create `<tmp>/<volume>/GARMIN/Activity`, beside the GarminDevice.xml every
+  /// Garmin writes, and populate it: the dive fixture
   /// [diveCopies] times, [nonDive] valid running activities, and [corrupt]
   /// junk .fit files.
   Future<String> makeGarminVolume(
@@ -129,6 +130,9 @@ void main() {
   }) async {
     final activity = Directory(p.join(tmp.path, volume, 'GARMIN', 'Activity'));
     await activity.create(recursive: true);
+    await File(
+      p.join(tmp.path, volume, 'GARMIN', 'GarminDevice.xml'),
+    ).writeAsString('<Device></Device>');
     final diveBytes = await File(_diveFixture).readAsBytes();
     for (var i = 0; i < diveCopies; i++) {
       await File(p.join(activity.path, 'dive_$i.fit')).writeAsBytes(diveBytes);

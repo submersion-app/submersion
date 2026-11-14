@@ -148,6 +148,9 @@ where CI tests them (native tests run on macOS CI; Windows CI only builds).
 - `GarminDevice` becomes a sealed class with two kinds: `GarminVolume`
   (today's case, with `activityDirPath`) and `GarminMtpWatch` (device ID,
   name, serial). `GarminDeviceDetector.detect()` returns both, volumes first.
+  A volume counts only when `GARMIN/Activity` holds FIT files and
+  `GARMIN/GarminDevice.xml`, which every Garmin writes, is beside it; a
+  `GARMIN/Activity` folder copied to a drive by hand is not a watch.
   An MTP watch's files are not counted at detection, since listing them over
   MTP is slow and detection runs whenever the Import page opens. A failing
   MTP source never hides a mounted volume. Filtering on `vid_091e` should
@@ -222,8 +225,10 @@ skipped are not offered again.
   diver chose (`?computer=<id>`), unless the connected watch's serial
   differs; else the saved Garmin with the watch's serial. A mounted watch's
   serial is the `<Id>` in `GARMIN/GarminDevice.xml`; an MTP watch's is
-  `WPD_DEVICE_SERIAL_NUMBER`, logged with its name so it can be compared
-  with the serial the FIT files carry.
+  `WPD_DEVICE_SERIAL_NUMBER`, logged with its name. WPD reports it as the
+  unit ID in hex, zero-padded to 12 digits (`0000c7067d17` on a Descent G2
+  whose FIT files carry `3339091223`), so a 12-digit hex serial is converted
+  to decimal.
 - `GarminDeviceImporter` reads only the files after the marker; over MTP
   the others are never copied off the watch. When none of them is a dive,
   the marker moves on at once and the Import page says "No new dives on the
@@ -261,8 +266,9 @@ watches can be added from Connect New Computer.
 
 - Dart unit tests (TDD), all against the fake source, with paths built with
   `p.join`:
-  - The detector lists volumes then MTP watches, and a failing MTP source
-    still lists the volumes.
+  - The detector lists volumes then MTP watches and ignores a copied
+    `GARMIN/Activity` folder without `GarminDevice.xml`. A failing MTP
+    source still lists the volumes.
   - The stager copies only `.fit` files, reports progress, skips a failing
     read, and creates its folder under the resolved temp root.
   - The notifier stages, registers cleanup, and reaches the batch flow with
@@ -288,8 +294,5 @@ watches can be added from Connect New Computer.
 
 ## Open questions
 
-- **Serial numbers.** Whether a watch's MTP serial is the unit ID its FIT
-  files carry is unconfirmed. If not, a download from the Import page or the
-  USB list finds no marker and reads every activity, while Download on a
-  saved Garmin still uses its own. The fallback is a marker kept on the PC,
-  keyed by the MTP serial.
+- **Serial numbers.** Resolved: a watch's MTP serial is the unit ID its FIT
+  files carry, in hex (see Download marker).

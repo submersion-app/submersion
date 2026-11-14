@@ -108,7 +108,8 @@ class GarminDeviceDetector {
   }
 
   /// Every connected Garmin: mounted volumes that look like one (a
-  /// non-empty `GARMIN/Activity` folder) first, then MTP watches.
+  /// non-empty `GARMIN/Activity` folder beside `GARMIN/GarminDevice.xml`)
+  /// first, then MTP watches.
   Future<List<GarminDevice>> detect() async {
     return [...await _detectVolumes(), ...await _detectMtpWatches()];
   }
@@ -158,6 +159,9 @@ class GarminDeviceDetector {
       try {
         final activityDir = Directory(p.join(root.path, 'GARMIN', 'Activity'));
         if (!await activityDir.exists()) continue;
+        // Every Garmin writes GarminDevice.xml. Without it this is a folder
+        // of FIT files copied off a watch (issue #4223), not a watch.
+        if (!await _deviceXml(root).exists()) continue;
         final fitCount = await _countFitFiles(activityDir);
         if (fitCount == 0) continue;
         devices.add(
@@ -179,13 +183,13 @@ class GarminDeviceDetector {
   }
 
   /// The `<Id>` in `GARMIN/GarminDevice.xml`: the unit ID, which the FIT
-  /// files carry as their serial number. Null when the file is missing or
+  /// files carry as their serial number. Null when the file is unreadable or
   /// has none.
   Future<String?> _unitId(Directory root) async {
     try {
-      final file = File(p.join(root.path, 'GARMIN', 'GarminDevice.xml'));
-      if (!await file.exists()) return null;
-      final match = _unitIdPattern.firstMatch(await file.readAsString());
+      final match = _unitIdPattern.firstMatch(
+        await _deviceXml(root).readAsString(),
+      );
       return match?.group(1);
     } catch (_) {
       return null;
@@ -193,6 +197,9 @@ class GarminDeviceDetector {
   }
 
   static final _unitIdPattern = RegExp(r'<Id>\s*(\d+)\s*</Id>');
+
+  static File _deviceXml(Directory root) =>
+      File(p.join(root.path, 'GARMIN', 'GarminDevice.xml'));
 
   /// All `.fit` file paths directly under [activityDirPath], sorted for a
   /// stable order. Callers filter dives from non-dive activities.
