@@ -862,6 +862,7 @@ class Dive extends Equatable {
     List<MarineSighting>? sightings,
     double? waterTemp,
     double? airTemp,
+    bool clearAirTemp = false,
     Visibility? visibility,
     double? visibilityMeters,
     double? visibilityMinMeters,
@@ -877,14 +878,22 @@ class Dive extends Equatable {
     List<String>? diverRoleIds,
     int? rating,
     CurrentDirection? currentDirection,
+    bool clearCurrentDirection = false,
     CurrentStrength? currentStrength,
+    bool clearCurrentStrength = false,
     double? swellHeight,
+    bool clearSwellHeight = false,
     String? surfaceConditions,
+    bool clearSurfaceConditions = false,
     EntryMethod? entryMethod,
+    bool clearEntryMethod = false,
     EntryMethod? exitMethod,
+    bool clearExitMethod = false,
     WaterType? waterType,
     double? altitude,
+    bool clearAltitude = false,
     double? surfacePressure,
+    bool clearSurfacePressure = false,
     Duration? surfaceInterval,
     int? gradientFactorLow,
     int? gradientFactorHigh,
@@ -939,14 +948,22 @@ class Dive extends Equatable {
     List<DiveCustomField>? customFields,
     // Weather fields
     double? windSpeed,
+    bool clearWindSpeed = false,
     CurrentDirection? windDirection,
+    bool clearWindDirection = false,
     CloudCover? cloudCover,
+    bool clearCloudCover = false,
     Precipitation? precipitation,
+    bool clearPrecipitation = false,
     double? humidity,
+    bool clearHumidity = false,
     String? weatherDescription,
+    bool clearWeatherDescription = false,
     int? weatherCode,
     WeatherSource? weatherSource,
+    bool clearWeatherSource = false,
     DateTime? weatherFetchedAt,
+    bool clearWeatherFetchedAt = false,
   }) {
     return Dive(
       id: id ?? this.id,
@@ -976,7 +993,7 @@ class Dive extends Equatable {
       photoIds: photoIds ?? this.photoIds,
       sightings: sightings ?? this.sightings,
       waterTemp: waterTemp ?? this.waterTemp,
-      airTemp: airTemp ?? this.airTemp,
+      airTemp: clearAirTemp ? null : (airTemp ?? this.airTemp),
       visibility: visibility ?? this.visibility,
       visibilityMeters: visibilityMeters ?? this.visibilityMeters,
       visibilityMinMeters: visibilityMinMeters ?? this.visibilityMinMeters,
@@ -991,15 +1008,23 @@ class Dive extends Equatable {
       buddies: buddies ?? this.buddies,
       diverRoleIds: diverRoleIds ?? this.diverRoleIds,
       rating: rating ?? this.rating,
-      currentDirection: currentDirection ?? this.currentDirection,
-      currentStrength: currentStrength ?? this.currentStrength,
-      swellHeight: swellHeight ?? this.swellHeight,
-      surfaceConditions: surfaceConditions ?? this.surfaceConditions,
-      entryMethod: entryMethod ?? this.entryMethod,
-      exitMethod: exitMethod ?? this.exitMethod,
+      currentDirection: clearCurrentDirection
+          ? null
+          : (currentDirection ?? this.currentDirection),
+      currentStrength: clearCurrentStrength
+          ? null
+          : (currentStrength ?? this.currentStrength),
+      swellHeight: clearSwellHeight ? null : (swellHeight ?? this.swellHeight),
+      surfaceConditions: clearSurfaceConditions
+          ? null
+          : (surfaceConditions ?? this.surfaceConditions),
+      entryMethod: clearEntryMethod ? null : (entryMethod ?? this.entryMethod),
+      exitMethod: clearExitMethod ? null : (exitMethod ?? this.exitMethod),
       waterType: waterType ?? this.waterType,
-      altitude: altitude ?? this.altitude,
-      surfacePressure: surfacePressure ?? this.surfacePressure,
+      altitude: clearAltitude ? null : (altitude ?? this.altitude),
+      surfacePressure: clearSurfacePressure
+          ? null
+          : (surfacePressure ?? this.surfacePressure),
       surfaceInterval: surfaceInterval ?? this.surfaceInterval,
       gradientFactorLow: gradientFactorLow ?? this.gradientFactorLow,
       gradientFactorHigh: gradientFactorHigh ?? this.gradientFactorHigh,
@@ -1048,15 +1073,25 @@ class Dive extends Equatable {
       // User-defined custom fields
       customFields: customFields ?? this.customFields,
       // Weather fields
-      windSpeed: windSpeed ?? this.windSpeed,
-      windDirection: windDirection ?? this.windDirection,
-      cloudCover: cloudCover ?? this.cloudCover,
-      precipitation: precipitation ?? this.precipitation,
-      humidity: humidity ?? this.humidity,
-      weatherDescription: weatherDescription ?? this.weatherDescription,
+      windSpeed: clearWindSpeed ? null : (windSpeed ?? this.windSpeed),
+      windDirection: clearWindDirection
+          ? null
+          : (windDirection ?? this.windDirection),
+      cloudCover: clearCloudCover ? null : (cloudCover ?? this.cloudCover),
+      precipitation: clearPrecipitation
+          ? null
+          : (precipitation ?? this.precipitation),
+      humidity: clearHumidity ? null : (humidity ?? this.humidity),
+      weatherDescription: clearWeatherDescription
+          ? null
+          : (weatherDescription ?? this.weatherDescription),
       weatherCode: weatherCode ?? this.weatherCode,
-      weatherSource: weatherSource ?? this.weatherSource,
-      weatherFetchedAt: weatherFetchedAt ?? this.weatherFetchedAt,
+      weatherSource: clearWeatherSource
+          ? null
+          : (weatherSource ?? this.weatherSource),
+      weatherFetchedAt: clearWeatherFetchedAt
+          ? null
+          : (weatherFetchedAt ?? this.weatherFetchedAt),
     );
   }
 
