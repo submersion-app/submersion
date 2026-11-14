@@ -1050,6 +1050,7 @@ class EquipmentRepository {
                 key: a.key,
                 valueText: a.valueText,
                 valueNum: a.valueNum,
+                valueUnit: a.valueUnit,
               ),
           EquipmentAttribute.curated(
             equipmentId: '',

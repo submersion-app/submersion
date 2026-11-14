@@ -260,4 +260,39 @@ void main() {
     expect(emitted, isNotEmpty);
     expect(emitted.last.valueUnit, 'psi');
   });
+
+  testWidgets(
+    'a field following the diver re-reads its figure when the diver\'s units '
+    'change',
+    (tester) async {
+      final current = EquipmentAttribute.curated(
+        equipmentId: 'g1',
+        key: gauge.key,
+        valueNum: 300,
+      );
+      await pump(tester, field(gauge, current: current));
+      expect(text(tester, gauge.key), '300');
+
+      await pump(tester, field(gauge, current: current, units: imperial));
+
+      expect(text(tester, gauge.key), '4351.1');
+      expect(find.text('psi'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'a pinned field keeps its figure when the diver\'s units change',
+    (tester) async {
+      final current = EquipmentAttribute.curated(
+        equipmentId: 'g1',
+        key: gauge.key,
+        valueNum: 275.79,
+        valueUnit: 'psi',
+      );
+      await pump(tester, field(gauge, current: current));
+      await pump(tester, field(gauge, current: current, units: imperial));
+
+      expect(text(tester, gauge.key), '4000');
+    },
+  );
 }

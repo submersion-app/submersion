@@ -85,6 +85,19 @@ class _EquipmentNumberAttributeFieldState
   void didUpdateWidget(EquipmentNumberAttributeField old) {
     super.didUpdateWidget(old);
     final typing = _typing;
+    // The diver's units changed under a field that follows them: the figure
+    // on screen is in the old unit, so re-read it from the stored value,
+    // which every edit has already reported, or a save would parse the old
+    // figure in the new unit.
+    final unit = attributeUnitInForce(_def, _base, old.units);
+    final wasTyping = unit == null
+        ? null
+        : attributeTypingUnit(unit, old.units);
+    final metric = widget.current?.valueNum;
+    if (wasTyping != typing && metric != null) {
+      _controller.text = _seed(metric);
+      return;
+    }
     if (typing != null &&
         isCylinderGasVolume(_def, typing) &&
         old.workingPressureBar != widget.workingPressureBar &&
