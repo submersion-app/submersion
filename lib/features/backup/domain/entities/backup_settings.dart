@@ -24,6 +24,17 @@ enum LastBackupDestination {
 
 /// User-configurable backup settings
 class BackupSettings extends Equatable {
+  /// The [retentionCount] that means "keep every backup" (issue #4535).
+  ///
+  /// Stored as a huge count rather than 0 or a separate flag: an older build
+  /// reads the same key as a plain count, so it keeps everything too, where
+  /// 0 would make it delete every unpinned backup.
+  static const int keepAllRetentionCount = 1 << 30;
+
+  /// The largest count a diver can type. Anything stored above it is shown
+  /// as Keep all, never as a number.
+  static const int maxCustomRetentionCount = 9999;
+
   final bool enabled;
   final BackupFrequency frequency;
   final int retentionCount;
@@ -157,6 +168,9 @@ class BackupSettings extends Equatable {
         return const Duration(days: 30);
     }
   }
+
+  /// Whether automatic removal is off: every backup is kept.
+  bool get keepsAll => retentionCount > maxCustomRetentionCount;
 
   /// Whether a backup is due based on lastBackupTime and frequency
   bool get isBackupDue {

@@ -42,6 +42,9 @@ class _FakeBackupService extends BackupService {
   bool lockCheckThrows = false;
   BackupLocation location = BackupLocation.local;
   String? lastNote;
+  bool failBackup = false;
+  bool failPin = false;
+  final pinned = <String>[];
 
   final BackupPreferences _prefs;
 
@@ -59,6 +62,7 @@ class _FakeBackupService extends BackupService {
     String? note,
   }) async {
     lastNote = note;
+    if (failBackup) throw StateError('disk full');
     return BackupRecord(
       id: 'r1',
       filename: 'submersion_backup_test.db',
@@ -69,6 +73,12 @@ class _FakeBackupService extends BackupService {
       siteCount: 0,
       type: BackupType.manual,
     );
+  }
+
+  @override
+  Future<void> pinBackup(String id) async {
+    if (failPin) throw StateError('prefs unavailable');
+    pinned.add(id);
   }
 
   @override
@@ -115,6 +125,51 @@ void main() {
         .read(backupOperationProvider.notifier)
         .performBackup(note: 'Before the trip');
     expect(service.lastNote, 'Before the trip');
+  });
+
+  group('Keep this backup (issue #4535)', () {
+    test('pins the new backup when asked', () async {
+      final container = makeContainer();
+      await container
+          .read(backupOperationProvider.notifier)
+          .performBackup(pin: true);
+      expect(service.pinned, ['r1']);
+      expect(
+        container.read(backupOperationProvider).message,
+        l10n.backup_operation_created('2.0 KB'),
+      );
+    });
+
+    test('pins nothing by default', () async {
+      final container = makeContainer();
+      await container.read(backupOperationProvider.notifier).performBackup();
+      expect(service.pinned, isEmpty);
+    });
+
+    test('a failed pin still reports the backup as made', () async {
+      service.failPin = true;
+      final container = makeContainer();
+      await container
+          .read(backupOperationProvider.notifier)
+          .performBackup(pin: true);
+      final state = container.read(backupOperationProvider);
+      expect(state.status, BackupOperationStatus.success);
+      expect(state.lastRecord?.id, 'r1');
+      expect(state.message, l10n.backup_operation_createdNotPinned('2.0 KB'));
+    });
+
+    test('a failed backup pins nothing', () async {
+      service.failBackup = true;
+      final container = makeContainer();
+      await container
+          .read(backupOperationProvider.notifier)
+          .performBackup(pin: true);
+      expect(
+        container.read(backupOperationProvider).status,
+        BackupOperationStatus.error,
+      );
+      expect(service.pinned, isEmpty);
+    });
   });
 
   // Issue #4204: the home chip counts the copy taken before an upgrade, and

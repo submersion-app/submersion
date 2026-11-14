@@ -183,7 +183,10 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
   }
 
   /// Perform a manual backup, with the diver's optional [note].
-  Future<void> performBackup({String? note}) async {
+  /// Backs up now. With [pin], the new backup is pinned right after it is
+  /// made, so no later prune removes it (issue #4535); the prune inside the
+  /// backup itself never reaches the newest record.
+  Future<void> performBackup({String? note, bool pin = false}) async {
     if (state.status == BackupOperationStatus.inProgress) return;
 
     state = BackupOperationState(
@@ -198,9 +201,13 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       final withheldFromCloud =
           record.location == BackupLocation.local &&
           await _isCloudBackupBlockedByEncryptionLock();
+      final pinFailed = pin && !await _pin(record);
       state = BackupOperationState(
         status: BackupOperationStatus.success,
-        message: withheldFromCloud
+        // A pin that did not take is the one thing left for the diver to do.
+        message: pinFailed
+            ? _l10n.backup_operation_createdNotPinned(record.formattedSize)
+            : withheldFromCloud
             ? _l10n.backup_operation_createdLocalOnlyLocked(
                 record.formattedSize,
               )
@@ -214,6 +221,18 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
         status: BackupOperationStatus.error,
         message: _l10n.backup_operation_backupFailed('$e'),
       );
+    }
+  }
+
+  /// Pins [record]; false when that failed. The backup is already written,
+  /// so a failed pin must not turn it into a reported failure.
+  Future<bool> _pin(BackupRecord record) async {
+    try {
+      await _service.pinBackup(record.id);
+      return true;
+    } catch (e, st) {
+      _log.warning('New backup not pinned', error: e, stackTrace: st);
+      return false;
     }
   }
 

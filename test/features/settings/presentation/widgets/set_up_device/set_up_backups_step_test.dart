@@ -134,6 +134,21 @@ void main() {
     expect(find.text('Same account as sync'), findsOneWidget);
   });
 
+  testWidgets('with Keep all, the schedule says every backup is kept', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      chosen: _drive,
+      prefs: {'backup_retention_count': BackupSettings.keepAllRetentionCount},
+    );
+    expect(find.text('Weekly. Every backup is kept here.'), findsOneWidget);
+    expect(
+      find.textContaining('${BackupSettings.keepAllRetentionCount}'),
+      findsNothing,
+    );
+  });
+
   testWidgets('Next with the sync account turns backups on, the copy '
       'following sync, and keeps the schedule', (tester) async {
     await pump(

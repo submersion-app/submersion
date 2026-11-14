@@ -68,7 +68,7 @@ Strings (en): `backup_retention_keepAll` "Keep all"; `backup_retention_custom` "
   - empty, `0`, `10000` show the error text and Save is disabled;
   - Cancel in the custom dialog returns null from the picker.
 - [ ] **Step 2: Run**, expect FAIL.
-- [ ] **Step 3: Implement** a `SimpleDialog` (same row style as `showBackupChoiceDialog`) and a private stateful custom-number `AlertDialog` with a `TextField` using `FilteringTextInputFormatter.digitsOnly`, `keyboardType: TextInputType.number`, prefilled with the current count when it is a custom count (not keep all), `errorText` while invalid and non-empty-after-edit, Save enabled only for 1..9999. The custom row pops the picker first, then opens the custom dialog on the same navigator context.
+- [ ] **Step 3: Implement** a `SimpleDialog` (same row style as `showBackupChoiceDialog`) and a private stateful custom-number `AlertDialog` with a `TextField` using the shared `numberInputFormatters()` and `readNumber(integer: true, allowNegative: false)` (the number-parsing architecture guard requires both), `keyboardType: TextInputType.number`, prefilled with the current count when it is a custom count (not keep all), `errorText` while invalid and non-empty-after-edit, Save enabled only for 1..9999. The custom row pops the picker first, then opens the custom dialog on the same navigator context.
 - [ ] **Step 4: Add strings** to every ARB, run `flutter gen-l10n`, then the tests, expect PASS.
 
 ### Task 3: Advanced section uses the picker and Keep-all wording

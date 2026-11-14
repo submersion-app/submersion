@@ -43,7 +43,7 @@ class BackupNowTile extends ConsumerWidget {
         if (result == null) return;
         await ref
             .read(backupOperationProvider.notifier)
-            .performBackup(note: result.note);
+            .performBackup(note: result.note, pin: result.pin);
       },
     );
   }

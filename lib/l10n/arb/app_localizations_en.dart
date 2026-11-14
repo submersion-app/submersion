@@ -2576,6 +2576,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Back Up';
 
   @override
+  String get backup_note_keep_title => 'Keep this backup';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Pinned backups are never removed automatically';
+
+  @override
   String get backup_delete_dialog_cancel => 'Cancel';
 
   @override
@@ -2753,6 +2760,32 @@ class AppLocalizationsEn extends AppLocalizations {
       'Older backups are automatically removed';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Backups are never removed automatically';
+
+  @override
+  String get backup_retention_keepAll => 'Keep all';
+
+  @override
+  String get backup_retention_custom => 'Custom number…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Custom: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Keep how many backups?';
+
+  @override
+  String get backup_retention_custom_label => 'Number of backups';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Enter a number from 1 to $max';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Count backups from all devices';
 
@@ -2764,6 +2797,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'The cloud folder keeps the last $count backups from every device. Pinned backups are kept. Each device\'s newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Keep all is on, so this device removes no backups from the cloud folder. Pinned backups are kept.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -53970,6 +54007,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String backup_operation_createdNotPinned(String size) {
+    return 'Backup created: $size. It could not be pinned, so pin it from the history.';
+  }
+
+  @override
   String backup_operation_createdLocalOnlyLocked(String size) {
     return 'Backup created: $size. It was saved on this device only: enter your encryption passphrase to upload backups to the cloud.';
   }
@@ -59710,6 +59752,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Keep all backups';
+
+  @override
   String get settings_backups_folder => 'Backup folder on this device';
 
   @override
@@ -60572,6 +60617,18 @@ class AppLocalizationsEn extends AppLocalizations {
     int count,
   ) {
     return '$frequency, while Submersion is open. The last $count are kept here.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Every backup is kept here.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, while Submersion is open. Every backup is kept here.';
   }
 
   @override
