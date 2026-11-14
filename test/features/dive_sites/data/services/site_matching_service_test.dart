@@ -394,6 +394,50 @@ void main() {
       );
     });
 
+    test('a candidate another screen adopts while the apply runs is linked, '
+        'not reported as created', () async {
+      // The apply looks for the diver's copy, finds none, and asks for an
+      // adoption; by then the picker's adoption of the same record has
+      // landed, so the adoption hands that site back and creates nothing.
+      const adopted = DiveSite(
+        id: 's-adopted',
+        name: 'Salt Pier',
+        catalogueId: 'osm_3',
+      );
+      catalogue.sites = const [
+        CatalogueSite(
+          id: 'osm_3',
+          name: 'Salt Pier',
+          location: GeoPoint(0, 0),
+          source: 'osm',
+        ),
+      ];
+      final s = service();
+      await s.computeProposals([
+        _diveAt('d1', const GeoPoint(0, 0)),
+        _diveAt('d2', _eastMeters(11)),
+      ]);
+      var lookups = 0;
+      when(
+        sites.getSiteByCatalogueId('osm_3', diverId: 'diver-1'),
+      ).thenAnswer((_) async => lookups++ == 0 ? null : adopted);
+
+      final result = await s.applyConfirmed([
+        const ConfirmedMatch('d1', 'osm_3'),
+        const ConfirmedMatch('d2', 'osm_3'),
+      ]);
+
+      expect(result.divesLinked, 2);
+      expect(result.sitesCreated, 0);
+      // The diver's rules for a new site do not run on one they had.
+      expect(result.createdSiteIds, isEmpty);
+      verify(dives.setSite('d1', 's-adopted')).called(1);
+      verify(dives.setSite('d2', 's-adopted')).called(1);
+      verifyNever(
+        sites.createSite(any, classification: anyNamed('classification')),
+      );
+    });
+
     test('empty confirmed list writes nothing', () async {
       final s = service();
       await s.computeProposals([_diveAt('d1', _eastMeters(33))]);

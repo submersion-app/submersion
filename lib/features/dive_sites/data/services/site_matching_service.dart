@@ -487,14 +487,20 @@ class SiteMatchingService {
     // Adopt the catalogue site through the one adoption path, so it gets
     // the same details and link as a site picked anywhere else, then link.
     // Altitude is filled by [_fillAltitudes] once the transaction commits.
-    final createdSite = (await _adoption.adopt(
+    final adoption = await _adoption.adopt(
       bundled,
       diverId: diverId,
       fillAltitude: false,
-    )).site;
-    _createdByExternalId[bundled.id] = createdSite.id;
-    if (createdSite.altitude == null) _locatedThisPass[createdSite.id] = point;
-    await _diveRepository.setSite(diveId, createdSite.id);
+    );
+    final site = adoption.site;
+    await _diveRepository.setSite(diveId, site.id);
+    // Another screen adopted this record after the lookup above: the site
+    // is the diver's already, and whoever made it sees to its altitude and
+    // its rules. Reporting it as created would run those rules again, over
+    // whatever the diver has changed since.
+    if (!adoption.created) return _ApplyOutcome.linked;
+    _createdByExternalId[bundled.id] = site.id;
+    if (site.altitude == null) _locatedThisPass[site.id] = point;
     return _ApplyOutcome.created;
   }
 }
