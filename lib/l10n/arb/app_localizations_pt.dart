@@ -33621,23 +33621,23 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Cor personalizada';
+  String get common_color_custom => 'Cor personalizada';
 
   @override
-  String get tags_color_hexLabel => 'Código hexadecimal';
+  String get common_color_hexLabel => 'Código hexadecimal';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Insira seis caracteres 0-9 ou A-F, como #2E8B57';
 
   @override
-  String get tags_color_use => 'Usar';
+  String get common_color_use => 'Usar';
 
   @override
-  String get tags_color_hueLabel => 'Matiz';
+  String get common_color_hueLabel => 'Matiz';
 
   @override
-  String get tags_color_squareLabel => 'Saturação e brilho';
+  String get common_color_squareLabel => 'Saturação e brilho';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Remover';

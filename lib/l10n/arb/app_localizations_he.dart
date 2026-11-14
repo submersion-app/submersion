@@ -32801,23 +32801,23 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'צבע מותאם אישית';
+  String get common_color_custom => 'צבע מותאם אישית';
 
   @override
-  String get tags_color_hexLabel => 'קוד הקסדצימלי';
+  String get common_color_hexLabel => 'קוד הקסדצימלי';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'יש להזין שישה תווים 0-9 או A-F, למשל #2E8B57';
 
   @override
-  String get tags_color_use => 'שימוש';
+  String get common_color_use => 'שימוש';
 
   @override
-  String get tags_color_hueLabel => 'גוון';
+  String get common_color_hueLabel => 'גוון';
 
   @override
-  String get tags_color_squareLabel => 'רוויה ובהירות';
+  String get common_color_squareLabel => 'רוויה ובהירות';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'הסר';

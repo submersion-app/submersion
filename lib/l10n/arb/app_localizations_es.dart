@@ -33659,23 +33659,23 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Color personalizado';
+  String get common_color_custom => 'Color personalizado';
 
   @override
-  String get tags_color_hexLabel => 'Código hexadecimal';
+  String get common_color_hexLabel => 'Código hexadecimal';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Introduce seis caracteres 0-9 o A-F, como #2E8B57';
 
   @override
-  String get tags_color_use => 'Usar';
+  String get common_color_use => 'Usar';
 
   @override
-  String get tags_color_hueLabel => 'Tono';
+  String get common_color_hueLabel => 'Tono';
 
   @override
-  String get tags_color_squareLabel => 'Saturación y brillo';
+  String get common_color_squareLabel => 'Saturación y brillo';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Quitar';

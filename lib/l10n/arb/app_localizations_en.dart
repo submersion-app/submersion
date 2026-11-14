@@ -33068,22 +33068,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Custom color';
+  String get common_color_custom => 'Custom color';
 
   @override
-  String get tags_color_hexLabel => 'Hex code';
+  String get common_color_hexLabel => 'Hex code';
 
   @override
-  String get tags_color_hexError => 'Enter six digits 0-9 or A-F, like #2E8B57';
+  String get common_color_hexError =>
+      'Enter six digits 0-9 or A-F, like #2E8B57';
 
   @override
-  String get tags_color_use => 'Use';
+  String get common_color_use => 'Use';
 
   @override
-  String get tags_color_hueLabel => 'Hue';
+  String get common_color_hueLabel => 'Hue';
 
   @override
-  String get tags_color_squareLabel => 'Saturation and brightness';
+  String get common_color_squareLabel => 'Saturation and brightness';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Remove';

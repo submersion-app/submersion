@@ -33743,23 +33743,23 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Couleur personnalisée';
+  String get common_color_custom => 'Couleur personnalisée';
 
   @override
-  String get tags_color_hexLabel => 'Code hexadécimal';
+  String get common_color_hexLabel => 'Code hexadécimal';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Saisissez six caractères 0-9 ou A-F, par exemple #2E8B57';
 
   @override
-  String get tags_color_use => 'Utiliser';
+  String get common_color_use => 'Utiliser';
 
   @override
-  String get tags_color_hueLabel => 'Teinte';
+  String get common_color_hueLabel => 'Teinte';
 
   @override
-  String get tags_color_squareLabel => 'Saturation et luminosité';
+  String get common_color_squareLabel => 'Saturation et luminosité';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Retirer';

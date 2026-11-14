@@ -33564,23 +33564,23 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Eigene Farbe';
+  String get common_color_custom => 'Eigene Farbe';
 
   @override
-  String get tags_color_hexLabel => 'Hex-Code';
+  String get common_color_hexLabel => 'Hex-Code';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Sechs Zeichen 0-9 oder A-F eingeben, z. B. #2E8B57';
 
   @override
-  String get tags_color_use => 'Übernehmen';
+  String get common_color_use => 'Übernehmen';
 
   @override
-  String get tags_color_hueLabel => 'Farbton';
+  String get common_color_hueLabel => 'Farbton';
 
   @override
-  String get tags_color_squareLabel => 'Sättigung und Helligkeit';
+  String get common_color_squareLabel => 'Sättigung und Helligkeit';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Entfernen';

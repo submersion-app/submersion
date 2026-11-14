@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/tags/presentation/widgets/hsv_color_controls.dart';
+import 'package:submersion/shared/widgets/color_picker/hsv_color_controls.dart';
 
-import '../../../../helpers/test_app.dart';
+import '../../../helpers/test_app.dart';
 
 /// The custom colour dialog's two controls (issue #4384).
 void main() {

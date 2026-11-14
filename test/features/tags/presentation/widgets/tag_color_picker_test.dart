@@ -160,7 +160,7 @@ void main() {
       await tester.tap(custom);
       await tester.pumpAndSettle();
       final field = tester.widget<TextField>(
-        find.byKey(const ValueKey('tag-color-hex')),
+        find.byKey(const ValueKey('custom-color-hex')),
       );
       expect(field.controller!.text, '#FF0000');
     });
@@ -170,11 +170,11 @@ void main() {
       await tester.tap(custom);
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.byKey(const ValueKey('tag-color-hex')),
+        find.byKey(const ValueKey('custom-color-hex')),
         '#2E8B57',
       );
       await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('tag-color-use')));
+      await tester.tap(find.byKey(const ValueKey('custom-color-use')));
       await tester.pumpAndSettle();
       expect(reported, ['#2E8B57']);
       expect(isSelected(tester, current), isTrue);

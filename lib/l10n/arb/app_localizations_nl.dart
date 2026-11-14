@@ -33410,23 +33410,23 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Aangepaste kleur';
+  String get common_color_custom => 'Aangepaste kleur';
 
   @override
-  String get tags_color_hexLabel => 'Hexcode';
+  String get common_color_hexLabel => 'Hexcode';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Voer zes tekens 0-9 of A-F in, zoals #2E8B57';
 
   @override
-  String get tags_color_use => 'Gebruiken';
+  String get common_color_use => 'Gebruiken';
 
   @override
-  String get tags_color_hueLabel => 'Tint';
+  String get common_color_hueLabel => 'Tint';
 
   @override
-  String get tags_color_squareLabel => 'Verzadiging en helderheid';
+  String get common_color_squareLabel => 'Verzadiging en helderheid';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Verwijderen';

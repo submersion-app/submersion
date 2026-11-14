@@ -33972,22 +33972,23 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'لون مخصص';
+  String get common_color_custom => 'لون مخصص';
 
   @override
-  String get tags_color_hexLabel => 'الرمز الست عشري';
+  String get common_color_hexLabel => 'الرمز الست عشري';
 
   @override
-  String get tags_color_hexError => 'أدخل ستة أحرف من 0-9 أو A-F، مثل #2E8B57';
+  String get common_color_hexError =>
+      'أدخل ستة أحرف من 0-9 أو A-F، مثل #2E8B57';
 
   @override
-  String get tags_color_use => 'استخدام';
+  String get common_color_use => 'استخدام';
 
   @override
-  String get tags_color_hueLabel => 'تدرج اللون';
+  String get common_color_hueLabel => 'تدرج اللون';
 
   @override
-  String get tags_color_squareLabel => 'التشبع والسطوع';
+  String get common_color_squareLabel => 'التشبع والسطوع';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'إزالة';

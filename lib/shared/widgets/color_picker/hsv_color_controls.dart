@@ -23,7 +23,7 @@ class SaturationValueSquare extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       container: true,
-      label: context.l10n.tags_color_squareLabel,
+      label: context.l10n.common_color_squareLabel,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final size = constraints.biggest;
@@ -96,7 +96,7 @@ class HueSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       container: true,
-      label: context.l10n.tags_color_hueLabel,
+      label: context.l10n.common_color_hueLabel,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final size = Size(constraints.maxWidth, 28);
