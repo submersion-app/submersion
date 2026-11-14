@@ -6,20 +6,15 @@ import 'package:submersion/features/dive_log/presentation/providers/buoyancy_his
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Compact carried-vs-modeled lead comparison across recent same-suit dives.
-/// Renders nothing until at least one comparable dive exists.
+/// Renders nothing until at least one comparable dive exists. It carries no
+/// title of its own: it sits under the Buoyancy card's lead heading.
 class BuoyancyHistoryStrip extends ConsumerWidget {
   final String diveId;
   final UnitFormatter units;
-
-  /// Whether to head the strip with its own title. Off where the strip sits
-  /// under a heading that already names it.
-  final bool showTitle;
-
   const BuoyancyHistoryStrip({
     super.key,
     required this.diveId,
     required this.units,
-    this.showTitle = true,
   });
 
   static const double _barMaxHeight = 44;
@@ -34,7 +29,6 @@ class BuoyancyHistoryStrip extends ConsumerWidget {
         );
     if (entries.isEmpty) return const SizedBox.shrink();
 
-    final theme = Theme.of(context);
     final maxVal = entries
         .expand((e) => [e.carriedKg, e.idealKg])
         .fold(1.0, (m, v) => v > m ? v : m);
@@ -43,16 +37,6 @@ class BuoyancyHistoryStrip extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (showTitle) ...[
-          Text(
-            context.l10n.buoyancy_historyTitle.toUpperCase(),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.outline,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
         SizedBox(
           height: _barMaxHeight + 16,
           child: SingleChildScrollView(

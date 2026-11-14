@@ -22897,9 +22897,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buoyancy_chartMinutes => 'Idő (perc)';
 
   @override
-  String get buoyancy_historyTitle => 'Ólomelőzmények';
-
-  @override
   String get buoyancy_historyCarried => 'Vitt';
 
   @override

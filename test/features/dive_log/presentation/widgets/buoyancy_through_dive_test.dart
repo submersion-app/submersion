@@ -179,6 +179,18 @@ void main() {
       expect(find.text('at your final stop, about 5m'), findsOneWidget);
     });
 
+    testWidgets('a new outcome puts the readout back at rest', (tester) async {
+      await _pump(tester, _outcome());
+      _chart(tester).onCursorSeconds!(120);
+      await tester.pump();
+      expect(find.text('at 18m, 2:00'), findsOneWidget);
+
+      // Another dive's outcome arrives in the same widget.
+      await _pump(tester, _outcome(verdictNet: -1.2));
+      expect(find.text('1.2 kg heavy'), findsOneWidget);
+      expect(find.text('at your final stop, about 5m'), findsOneWidget);
+    });
+
     testWidgets('with a host callback touches go to the host', (tester) async {
       final reported = <int?>[];
       await _pump(tester, _outcome(), onCursorSeconds: reported.add);

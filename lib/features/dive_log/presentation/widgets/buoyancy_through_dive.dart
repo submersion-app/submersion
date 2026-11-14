@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/buoyancy/twin_balance.dart';
+import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_balance_bar.dart';
@@ -41,6 +42,7 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
   // Derived from the outcome once, not on every scrub frame.
   late double _scaleKg;
   late TwinMoments _moments;
+  late List<TwinSample> _plotted;
 
   @override
   void initState() {
@@ -51,13 +53,20 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
   @override
   void didUpdateWidget(BuoyancyThroughDive oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!identical(oldWidget.outcome, widget.outcome)) _derive();
+    final newOutcome = !identical(oldWidget.outcome, widget.outcome);
+    if (newOutcome || !identical(oldWidget.units, widget.units)) _derive();
+    // A scrub position belongs to the dive it was made on.
+    if (newOutcome) _ownCursor = null;
   }
 
   void _derive() {
     final outcome = widget.outcome;
     _scaleKg = TwinBalance.scaleKg(outcome.result, outcome.outputs.verdict);
     _moments = TwinMoments.of(outcome.result, outcome.outputs.verdict);
+    _plotted = BuoyancyChart.plottableSamples(
+      outcome.result.samples,
+      widget.units,
+    );
   }
 
   int? get _cursor =>
@@ -69,7 +78,7 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
     final verdict = widget.outcome.outputs.verdict;
     final units = widget.units;
 
-    final plotted = BuoyancyChart.plottableSamples(result.samples, units);
+    final plotted = _plotted;
     final hasChart = plotted.length >= 2;
     final cursor = _cursor;
     final sample = hasChart && cursor != null
@@ -122,7 +131,7 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
     final units = widget.units;
     final amount = units.formatWeight(netKg.abs());
     final String figure;
-    if (netKg.abs() <= 0.5) {
+    if (netKg.abs() <= TwinBalance.neutralBandKg) {
       figure = l10n.buoyancy_readoutNeutral;
     } else if (netKg > 0) {
       figure = l10n.buoyancy_readoutBuoyant(amount);
@@ -134,7 +143,7 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
     if (sample != null) {
       qualifier = l10n.buoyancy_readoutAtMoment(
         units.formatDepth(sample.depthM, decimals: 0),
-        _clock(sample.timestamp),
+        formatMinutesSeconds(sample.timestamp),
       );
     } else if (anchor.kind == TwinAnchorKind.convention) {
       qualifier = l10n.buoyancy_readoutConvention(
@@ -236,11 +245,5 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
         ],
       ),
     );
-  }
-
-  static String _clock(int seconds) {
-    final m = seconds ~/ 60;
-    final s = seconds % 60;
-    return "$m:${s.toString().padLeft(2, '0')}";
   }
 }

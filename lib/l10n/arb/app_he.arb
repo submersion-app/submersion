@@ -6544,7 +6544,6 @@
   "buoyancy_tankMaterialAssumedHint": "חומר הבלון לא הוגדר, לכן הונח אלומיניום: הגדר את החומר או בחר תבנית בלון",
   "buoyancy_chartNet": "נטו",
   "buoyancy_chartMinutes": "זמן (דק')",
-  "buoyancy_historyTitle": "היסטוריית משקולות",
   "buoyancy_historyCarried": "נישא",
   "buoyancy_historyModeled": "ממודל",
   "buoyancy_historyMore": "בדרך כלל אתה נושא {delta} יותר ממה שהמודל מציע",

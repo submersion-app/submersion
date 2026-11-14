@@ -10818,7 +10818,6 @@
   "buoyancy_tankMaterialAssumedHint": "Materiale della bombola non impostato, quindi è stato ipotizzato alluminio: imposta il materiale o scegli un modello di bombola",
   "buoyancy_chartNet": "Netto",
   "buoyancy_chartMinutes": "Tempo (min)",
-  "buoyancy_historyTitle": "Cronologia zavorra",
   "buoyancy_historyCarried": "Portato",
   "buoyancy_historyModeled": "Modellato",
   "buoyancy_historyMore": "Di solito porti {delta} in più rispetto al modello",

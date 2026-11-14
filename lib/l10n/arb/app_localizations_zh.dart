@@ -21824,9 +21824,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buoyancy_chartMinutes => '时间（分钟）';
 
   @override
-  String get buoyancy_historyTitle => '配重历史';
-
-  @override
   String get buoyancy_historyCarried => '实际携带';
 
   @override

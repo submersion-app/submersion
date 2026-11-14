@@ -2369,7 +2369,6 @@
   "buoyancy_tankMaterialAssumedHint": "Material de la botella sin definir, así que se asumió aluminio: define el material o elige una plantilla de tanque",
   "buoyancy_chartNet": "Neto",
   "buoyancy_chartMinutes": "Tiempo (min)",
-  "buoyancy_historyTitle": "Historial de lastre",
   "buoyancy_historyCarried": "Llevado",
   "buoyancy_historyModeled": "Modelado",
   "buoyancy_historyMore": "Sueles llevar {delta} más de lo que sugiere el modelo",

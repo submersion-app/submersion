@@ -14553,7 +14553,6 @@
   "buoyancy_tankMaterialAssumedHint": "Tank material not set, so aluminum was assumed: set the material or pick a tank preset",
   "buoyancy_chartNet": "Net",
   "buoyancy_chartMinutes": "Time (min)",
-  "buoyancy_historyTitle": "Weighting history",
   "buoyancy_historyCarried": "Carried",
   "buoyancy_historyModeled": "Modeled",
   "buoyancy_historyMore": "You typically carry {delta} more than the model suggests",

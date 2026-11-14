@@ -2369,7 +2369,6 @@
   "buoyancy_tankMaterialAssumedHint": "Flesmateriaal niet ingesteld, dus is aluminium aangenomen: stel het materiaal in of kies een flessjabloon",
   "buoyancy_chartNet": "Netto",
   "buoyancy_chartMinutes": "Tijd (min)",
-  "buoyancy_historyTitle": "Loodgeschiedenis",
   "buoyancy_historyCarried": "Gedragen",
   "buoyancy_historyModeled": "Gemodelleerd",
   "buoyancy_historyMore": "Je draagt doorgaans {delta} meer dan het model voorstelt",

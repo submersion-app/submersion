@@ -2369,7 +2369,6 @@
   "buoyancy_tankMaterialAssumedHint": "Material do cilindro não definido, por isso assumiu-se alumínio: defina o material ou escolha um modelo de cilindro",
   "buoyancy_chartNet": "Líquido",
   "buoyancy_chartMinutes": "Tempo (min)",
-  "buoyancy_historyTitle": "Histórico de lastro",
   "buoyancy_historyCarried": "Levado",
   "buoyancy_historyModeled": "Modelado",
   "buoyancy_historyMore": "Você costuma levar {delta} a mais do que o modelo sugere",

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/buoyancy/twin_balance.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_history_strip.dart';
@@ -89,11 +90,7 @@ class BuoyancyLeadBlock extends StatelessWidget {
                 ),
               ],
             ),
-            BuoyancyHistoryStrip(
-              diveId: diveId,
-              units: units,
-              showTitle: false,
-            ),
+            BuoyancyHistoryStrip(diveId: diveId, units: units),
           ],
         ),
       ],
@@ -128,7 +125,7 @@ class BuoyancyLeadBlock extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final scheme = theme.colorScheme;
-    final well = netKg.abs() <= 0.5;
+    final well = netKg.abs() <= TwinBalance.neutralBandKg;
     final String text;
     if (well) {
       text = l10n.buoyancy_statusWell;

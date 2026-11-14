@@ -2395,7 +2395,6 @@
   "buoyancy_tankMaterialAssumedHint": "Flaschenmaterial nicht festgelegt, daher wurde Aluminium angenommen: Lege das Material fest oder wähle eine Flaschenvorlage",
   "buoyancy_chartNet": "Netto",
   "buoyancy_chartMinutes": "Zeit (min)",
-  "buoyancy_historyTitle": "Bleiverlauf",
   "buoyancy_historyCarried": "Getragen",
   "buoyancy_historyModeled": "Modelliert",
   "buoyancy_historyMore": "Du trägst typischerweise {delta} mehr als vom Modell vorgeschlagen",

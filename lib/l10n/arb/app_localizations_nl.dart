@@ -22825,9 +22825,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buoyancy_chartMinutes => 'Tijd (min)';
 
   @override
-  String get buoyancy_historyTitle => 'Loodgeschiedenis';
-
-  @override
   String get buoyancy_historyCarried => 'Gedragen';
 
   @override

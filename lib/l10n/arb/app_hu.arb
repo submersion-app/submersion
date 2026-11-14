@@ -10784,7 +10784,6 @@
   "buoyancy_tankMaterialAssumedHint": "A palack anyaga nincs megadva, ezért alumíniumot feltételeztünk: add meg az anyagot, vagy válassz palacksablont",
   "buoyancy_chartNet": "Nettó",
   "buoyancy_chartMinutes": "Idő (perc)",
-  "buoyancy_historyTitle": "Ólomelőzmények",
   "buoyancy_historyCarried": "Vitt",
   "buoyancy_historyModeled": "Modellezett",
   "buoyancy_historyMore": "Általában {delta}-mal többet viszel, mint amit a modell javasol",

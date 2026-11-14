@@ -360,6 +360,27 @@ void main() {
     });
   });
 
+  testWidgets('the time axis spans every sample, whatever their order', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: BuoyancyChart(
+            result: _result([_s(120, 5, 1.5), _s(0, 0, 2), _s(60, 10, 1)]),
+            units: units,
+          ),
+        ),
+      ),
+    );
+    final data = tester.widget<LineChart>(find.byType(LineChart)).data;
+    expect(data.minX, 0.0);
+    expect(data.maxX, 2.0);
+  });
+
   testWidgets('renders nothing for fewer than two samples', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

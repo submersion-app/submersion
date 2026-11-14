@@ -36305,12 +36305,6 @@ abstract class AppLocalizations {
   /// **'Time (min)'**
   String get buoyancy_chartMinutes;
 
-  /// No description provided for @buoyancy_historyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Weighting history'**
-  String get buoyancy_historyTitle;
-
   /// No description provided for @buoyancy_historyCarried.
   ///
   /// In en, this message translates to:

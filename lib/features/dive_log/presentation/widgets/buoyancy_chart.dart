@@ -133,8 +133,11 @@ class BuoyancyChart extends StatelessWidget {
       fontSize: _markerLabelSize,
     );
 
-    final minX = spots.first.x;
-    final maxX = spots.last.x;
+    // Taken from every spot, not the first and last, so the axis does not
+    // depend on the samples arriving in time order.
+    final xs = [for (final s in spots) s.x];
+    final minX = xs.reduce(math.min);
+    final maxX = xs.reduce(math.max);
     // Each marker snaps to the plotted spot nearest its moment, so its dot
     // lands on the line even when that exact sample was not plottable.
     final markerSpots = [for (final m in markers) _nearestSpot(spots, m)];

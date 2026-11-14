@@ -22630,9 +22630,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buoyancy_chartMinutes => 'Time (min)';
 
   @override
-  String get buoyancy_historyTitle => 'Weighting history';
-
-  @override
   String get buoyancy_historyCarried => 'Carried';
 
   @override

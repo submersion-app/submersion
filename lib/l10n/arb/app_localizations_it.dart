@@ -22970,9 +22970,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buoyancy_chartMinutes => 'Tempo (min)';
 
   @override
-  String get buoyancy_historyTitle => 'Cronologia zavorra';
-
-  @override
   String get buoyancy_historyCarried => 'Portato';
 
   @override

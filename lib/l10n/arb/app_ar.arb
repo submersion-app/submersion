@@ -2280,7 +2280,6 @@
   "buoyancy_tankMaterialAssumedHint": "لم يتم تحديد مادة الأسطوانة، لذا افتُرض أنها ألومنيوم: حدد المادة أو اختر قالب أسطوانة",
   "buoyancy_chartNet": "الصافي",
   "buoyancy_chartMinutes": "الزمن (دقيقة)",
-  "buoyancy_historyTitle": "سجل الترصيص",
   "buoyancy_historyCarried": "المحمول",
   "buoyancy_historyModeled": "المُنمذَج",
   "buoyancy_historyMore": "عادةً ما تحمل {delta} أكثر مما يقترحه النموذج",

@@ -23339,9 +23339,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buoyancy_chartMinutes => 'الزمن (دقيقة)';
 
   @override
-  String get buoyancy_historyTitle => 'سجل الترصيص';
-
-  @override
   String get buoyancy_historyCarried => 'المحمول';
 
   @override

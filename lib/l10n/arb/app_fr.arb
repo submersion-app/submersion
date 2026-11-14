@@ -10784,7 +10784,6 @@
   "buoyancy_tankMaterialAssumedHint": "Matériau du bloc non défini, aluminium supposé : définissez le matériau ou choisissez un modèle de bloc",
   "buoyancy_chartNet": "Net",
   "buoyancy_chartMinutes": "Temps (min)",
-  "buoyancy_historyTitle": "Historique de lestage",
   "buoyancy_historyCarried": "Porté",
   "buoyancy_historyModeled": "Modélisé",
   "buoyancy_historyMore": "Vous portez généralement {delta} de plus que ce que le modèle suggère",

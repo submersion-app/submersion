@@ -2450,7 +2450,6 @@
   "buoyancy_tankMaterialAssumedHint": "未设置气瓶材质，因此按铝合金估算：请设置材质或选择气瓶预设",
   "buoyancy_chartNet": "净值",
   "buoyancy_chartMinutes": "时间（分钟）",
-  "buoyancy_historyTitle": "配重历史",
   "buoyancy_historyCarried": "实际携带",
   "buoyancy_historyModeled": "模型建议",
   "buoyancy_historyMore": "你通常比模型建议多带 {delta}",

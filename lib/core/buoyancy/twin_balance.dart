@@ -23,6 +23,10 @@ class TwinBalance {
   /// A part or a change smaller than this is not worth showing.
   static const double negligibleKg = 0.05;
 
+  /// A net within this of zero reads as neutral: close enough that a diver
+  /// would trim it out with a breath.
+  static const double neutralBandKg = 0.5;
+
   /// Static term labels that describe the diver rather than their gear.
   static const Set<String> _bodyLabels = {
     'personal',
