@@ -1459,6 +1459,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_color_white => '白色';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name（$code）';
+  }
+
+  @override
   String get equipment_color_none => '无';
 
   @override

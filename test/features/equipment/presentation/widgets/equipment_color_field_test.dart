@@ -42,9 +42,10 @@ void main() {
     expect(find.byKey(const ValueKey('color-field-swatch')), findsOneWidget);
   });
 
-  testWidgets('a colour outside the palette shows its code', (tester) async {
-    await tester.pumpWidget(_field(hex: '#123456'));
-    expect(find.text('#123456'), findsOneWidget);
+  testWidgets('a colour outside the palette shows its nearest name and code '
+      '(#4537)', (tester) async {
+    await tester.pumpWidget(_field(hex: '#FF6A00'));
+    expect(find.text('Orange (#FF6A00)'), findsOneWidget);
   });
 
   testWidgets('picking a colour reports it', (tester) async {

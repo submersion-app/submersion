@@ -294,6 +294,7 @@
   "equipment_color_slate": "צפחה",
   "equipment_color_black": "שחור",
   "equipment_color_white": "לבן",
+  "equipment_color_customName": "{name} ({code})",
   "equipment_color_none": "ללא",
   "equipment_color_sheetTitle": "בחירת צבע",
   "equipment_setEdit_figureSwitch_subtitle": "הצגת הציוד של סט זה על צולל",

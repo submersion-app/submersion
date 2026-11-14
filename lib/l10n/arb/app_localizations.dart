@@ -2360,6 +2360,12 @@ abstract class AppLocalizations {
   /// **'White'**
   String get equipment_color_white;
 
+  /// A custom item colour: its nearest named colour, then its code
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({code})'**
+  String equipment_color_customName(String name, String code);
+
   /// No description provided for @equipment_color_none.
   ///
   /// In en, this message translates to:

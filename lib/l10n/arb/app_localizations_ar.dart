@@ -1566,6 +1566,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_color_white => 'أبيض';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
   String get equipment_color_none => 'بلا';
 
   @override

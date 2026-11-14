@@ -1521,6 +1521,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_color_white => 'Weiß';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
   String get equipment_color_none => 'Keine';
 
   @override

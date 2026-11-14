@@ -294,6 +294,7 @@
   "equipment_color_slate": "Ardósia",
   "equipment_color_black": "Preto",
   "equipment_color_white": "Branco",
+  "equipment_color_customName": "{name} ({code})",
   "equipment_color_none": "Nenhuma",
   "equipment_color_sheetTitle": "Escolha uma cor",
   "equipment_setEdit_figureSwitch_subtitle": "Mostrar o equipamento deste conjunto num mergulhador",
