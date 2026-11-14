@@ -32,11 +32,11 @@ const _record = CatalogueSite(
   source: 'ukho',
 );
 
-final _nearby = CataloguePair(
-  site: const DiveSite(id: 's1', name: 'Thistlegorm', location: _siteAt),
+const _nearby = CataloguePair(
+  site: DiveSite(id: 's1', name: 'Thistlegorm', location: _siteAt),
   record: _record,
   kind: CataloguePairKind.nearby,
-  fields: const {
+  fields: {
     CatalogueGapField.depth,
     CatalogueGapField.siteTypes,
     CatalogueGapField.description,
@@ -44,8 +44,8 @@ final _nearby = CataloguePair(
   distanceMeters: 40,
 );
 
-final _linked = CataloguePair(
-  site: const DiveSite(
+const _linked = CataloguePair(
+  site: DiveSite(
     id: 's1',
     name: 'Thistlegorm',
     location: _siteAt,
@@ -53,15 +53,15 @@ final _linked = CataloguePair(
   ),
   record: _record,
   kind: CataloguePairKind.linked,
-  fields: const {CatalogueGapField.depth},
+  fields: {CatalogueGapField.depth},
   distanceMeters: 40,
 );
 
-final _named = CataloguePair(
-  site: const DiveSite(id: 's1', name: 'Thistlegorm'),
+const _named = CataloguePair(
+  site: DiveSite(id: 's1', name: 'Thistlegorm'),
   record: _record,
   kind: CataloguePairKind.named,
-  fields: const {CatalogueGapField.position, CatalogueGapField.country},
+  fields: {CatalogueGapField.position, CatalogueGapField.country},
 );
 
 void main() {

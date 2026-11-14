@@ -35,18 +35,18 @@ const _linkedSite = DiveSite(
   catalogueId: 'ukho_1',
 );
 
-final _nearby = CataloguePair(
+const _nearby = CataloguePair(
   site: _unlinkedSite,
   record: _record,
   kind: CataloguePairKind.nearby,
-  fields: const {CatalogueGapField.depth},
+  fields: {CatalogueGapField.depth},
   distanceMeters: 0,
 );
-final _linked = CataloguePair(
+const _linked = CataloguePair(
   site: _linkedSite,
   record: _record,
   kind: CataloguePairKind.linked,
-  fields: const {CatalogueGapField.depth},
+  fields: {CatalogueGapField.depth},
   distanceMeters: 0,
 );
 

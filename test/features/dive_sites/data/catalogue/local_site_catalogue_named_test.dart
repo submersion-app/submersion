@@ -7,7 +7,6 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/local_site_catalogue.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
-import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 
 class _Bundle extends AssetBundle {

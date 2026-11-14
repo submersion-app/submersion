@@ -528,6 +528,35 @@ is the designer's call. The ones most worth checking:
   shows the link and answers of whichever profile's record is newest, as
   it does for notes and rating.
 
+## Rulings made during the build (2026-11-14)
+
+Calls the builder made where the design was silent or the code said
+otherwise. Each is the builder's, not the maintainer's.
+
+- **A site with a blank name** (or one of punctuation only) can pair by
+  position, as a nearby pair, and never by name.
+- **A site whose equal-named record went to a nearer site** gets no pair
+  at all in that run. It is not handed a neighbour under another name.
+- **The copy-back for library sites never clears.** It takes the newest
+  record that holds a link, and separately the newest that holds answers.
+  A cleared value cannot be told from one never set, so undoing a merge of
+  library sites on one device leaves the merged claims on the profile's
+  other device until its next answer there.
+- **Apply is a button in a bottom bar,** as on the GPS match review page,
+  not an app bar action as sketched. Tapping a row opens its comparison;
+  only the checkbox toggles the tick.
+- **The "Adds" line** shows short values as themselves (a depth range,
+  place names, type and entry names) and names long ones (position,
+  hazards, description) by their label.
+- **The comparison** shows each field's two values side by side under the
+  field's name ("Your site" and "Built-in record"), since three columns do
+  not fit a phone.
+- **The apply write is its own repository class**
+  (`SiteCatalogueFillRepository`), outside the 2,053-line site repository.
+- **Record text is trimmed** when written.
+- **29 new strings,** fewer than planned: position, depth, site types and
+  entry reuse the site editor's labels.
+
 ## Left to the builder
 
 - File, class and provider names; the route's exact path; the JSON

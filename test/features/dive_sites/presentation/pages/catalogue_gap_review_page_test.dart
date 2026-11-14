@@ -24,9 +24,9 @@ import '../../../../helpers/mock_providers.dart';
 
 const _here = GeoPoint(12.0835, -68.2826);
 
-final _saltPier = CataloguePair(
-  site: const DiveSite(id: 'pier', name: 'Salt Pier', location: _here),
-  record: const CatalogueSite(
+const _saltPier = CataloguePair(
+  site: DiveSite(id: 'pier', name: 'Salt Pier', location: _here),
+  record: CatalogueSite(
     id: 'r_pier',
     name: 'Salt Pier',
     location: _here,
@@ -36,18 +36,18 @@ final _saltPier = CataloguePair(
     source: 'osm',
   ),
   kind: CataloguePairKind.sure,
-  fields: const {CatalogueGapField.depth, CatalogueGapField.siteTypes},
+  fields: {CatalogueGapField.depth, CatalogueGapField.siteTypes},
   distanceMeters: 0,
 );
 
-final _hooker = CataloguePair(
-  site: const DiveSite(
+const _hooker = CataloguePair(
+  site: DiveSite(
     id: 'hooker',
     name: 'Hilma Hooker',
     location: _here,
     catalogueId: 'r_hooker',
   ),
-  record: const CatalogueSite(
+  record: CatalogueSite(
     id: 'r_hooker',
     name: 'Hilma Hooker',
     location: _here,
@@ -55,13 +55,13 @@ final _hooker = CataloguePair(
     source: 'osm',
   ),
   kind: CataloguePairKind.linked,
-  fields: const {CatalogueGapField.description},
+  fields: {CatalogueGapField.description},
   distanceMeters: 0,
 );
 
-final _thistlegorm = CataloguePair(
-  site: const DiveSite(id: 'wreck', name: 'Thistlegorm', location: _here),
-  record: const CatalogueSite(
+const _thistlegorm = CataloguePair(
+  site: DiveSite(id: 'wreck', name: 'Thistlegorm', location: _here),
+  record: CatalogueSite(
     id: 'r_wreck',
     name: 'SS Thistlegorm',
     location: _here,
@@ -69,13 +69,13 @@ final _thistlegorm = CataloguePair(
     source: 'ukho',
   ),
   kind: CataloguePairKind.nearby,
-  fields: const {CatalogueGapField.depth},
+  fields: {CatalogueGapField.depth},
   distanceMeters: 40,
 );
 
-final _blueHole = CataloguePair(
-  site: const DiveSite(id: 'hole', name: 'Blue Hole'),
-  record: const CatalogueSite(
+const _blueHole = CataloguePair(
+  site: DiveSite(id: 'hole', name: 'Blue Hole'),
+  record: CatalogueSite(
     id: 'r_hole',
     name: 'Blue Hole',
     location: GeoPoint(28.5722, 34.5370),
@@ -84,7 +84,7 @@ final _blueHole = CataloguePair(
     source: 'osm',
   ),
   kind: CataloguePairKind.named,
-  fields: const {CatalogueGapField.position, CatalogueGapField.country},
+  fields: {CatalogueGapField.position, CatalogueGapField.country},
 );
 
 /// A service that records what it is asked and answers when told to.

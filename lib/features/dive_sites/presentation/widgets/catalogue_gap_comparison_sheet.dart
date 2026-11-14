@@ -82,7 +82,7 @@ class _Comparison extends ConsumerStatefulWidget {
 }
 
 class _ComparisonState extends ConsumerState<_Comparison> {
-  late Set<CatalogueGapField> _fields = {...widget.initialFields};
+  late final Set<CatalogueGapField> _fields = {...widget.initialFields};
 
   void _toggle(CatalogueGapField field) {
     setState(() {

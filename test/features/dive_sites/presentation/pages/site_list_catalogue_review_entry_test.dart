@@ -49,11 +49,11 @@ class _SiteListNotifier extends StateNotifier<AsyncValue<List<DiveSite>>>
 const _site = DiveSite(id: 's1', name: 'Salt Pier', catalogueId: 'r1');
 const _rows = [SiteWithDiveCount(site: _site, diveCount: 3)];
 
-final _pair = CataloguePair(
+const _pair = CataloguePair(
   site: _site,
-  record: const CatalogueSite(id: 'r1', name: 'Salt Pier', source: 'osm'),
+  record: CatalogueSite(id: 'r1', name: 'Salt Pier', source: 'osm'),
   kind: CataloguePairKind.linked,
-  fields: const {CatalogueGapField.depth},
+  fields: {CatalogueGapField.depth},
 );
 
 const _menuEntry = 'Check sites against built-in catalogue';
