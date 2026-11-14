@@ -10155,6 +10155,30 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_unlockTooltip => 'إلغاء القفل للتعديل';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return 'تعديل $name';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return 'تعديل $card';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'تغييرات غير محفوظة';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card، مخفي';
+  }
+
+  @override
+  String get recordEdit_saveFailed => 'تعذّر حفظ التغييرات. لم يتغيّر شيء.';
+
+  @override
   String get settings_manage_setupAssistant => 'مساعد الإعداد';
 
   @override
@@ -63172,6 +63196,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'إزالة الأسطوانات المكررة';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'تم التعديل: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => '، ';
 
   @override
   String get changeLog_undoIncomplete =>
