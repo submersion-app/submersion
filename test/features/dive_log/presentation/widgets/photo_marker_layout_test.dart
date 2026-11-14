@@ -39,6 +39,96 @@ MediaEnrichment _enrichment({
 }
 
 void main() {
+  group('photoMarkerFor', () {
+    test('places a photo with a time and depth', () {
+      final marker = photoMarkerFor(
+        _media(enrichment: _enrichment(elapsedSeconds: 600, depthMeters: 18)),
+        maxProfileSeconds: 3000,
+      );
+      expect(marker!.elapsedSeconds, 600);
+      expect(marker.depthMeters, 18);
+      expect(marker.item.id, 'm1');
+    });
+
+    test('clamps a time just outside the profile to its ends', () {
+      expect(
+        photoMarkerFor(
+          _media(enrichment: _enrichment(elapsedSeconds: -30)),
+          maxProfileSeconds: 3000,
+        )!.elapsedSeconds,
+        0,
+      );
+      expect(
+        photoMarkerFor(
+          _media(enrichment: _enrichment(elapsedSeconds: 3030)),
+          maxProfileSeconds: 3000,
+        )!.elapsedSeconds,
+        3000,
+      );
+    });
+
+    test('gives no place to an item with no enrichment', () {
+      expect(photoMarkerFor(_media(), maxProfileSeconds: 3000), isNull);
+    });
+
+    test('gives no place to a signature', () {
+      expect(
+        photoMarkerFor(
+          _media(
+            sourceType: MediaSourceType.signature,
+            enrichment: _enrichment(),
+          ),
+          maxProfileSeconds: 3000,
+        ),
+        isNull,
+      );
+    });
+
+    test('gives no place to a noProfile match or a missing depth', () {
+      expect(
+        photoMarkerFor(
+          _media(
+            enrichment: _enrichment(confidence: MatchConfidence.noProfile),
+          ),
+          maxProfileSeconds: 3000,
+        ),
+        isNull,
+      );
+      expect(
+        photoMarkerFor(
+          _media(enrichment: _enrichment(depthMeters: null)),
+          maxProfileSeconds: 3000,
+        ),
+        isNull,
+      );
+    });
+
+    test('gives no place to a time far outside the dive', () {
+      expect(
+        photoMarkerFor(
+          _media(enrichment: _enrichment(elapsedSeconds: 3000 + 86400)),
+          maxProfileSeconds: 3000,
+        ),
+        isNull,
+      );
+    });
+
+    test('a manual position passes even far outside the dive window', () {
+      expect(
+        photoMarkerFor(
+          _media(
+            enrichment: _enrichment(
+              elapsedSeconds: 3000 + 86400,
+              confidence: MatchConfidence.manual,
+            ),
+          ),
+          maxProfileSeconds: 3000,
+        )!.elapsedSeconds,
+        3000,
+      );
+    });
+  });
+
   group('photoMarkersFromMedia', () {
     test('maps an enriched photo to a marker', () {
       final markers = photoMarkersFromMedia([
