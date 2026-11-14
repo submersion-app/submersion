@@ -1419,22 +1419,18 @@ class SiteRepository {
             ? const <String>[]
             : await _uncodedCountriesNaming(countryCodes);
         final searchQuery = _db.select(_db.diveSites)
-          ..where((t) {
-            var match =
-                t.name.unicodeLower().contains(needle) |
-                t.country.unicodeLower().contains(needle) |
-                t.region.unicodeLower().contains(needle) |
-                t.city.unicodeLower().contains(needle) |
-                t.island.unicodeLower().contains(needle) |
-                t.bodyOfWater.unicodeLower().contains(needle);
-            if (countryCodes.isNotEmpty) {
-              match = match | t.countryCode.isIn(countryCodes);
-            }
-            if (uncodedCountries.isNotEmpty) {
-              match = match | t.country.isIn(uncodedCountries);
-            }
-            return match;
-          })
+          ..where(
+            (t) => [
+              t.name.unicodeLower().contains(needle),
+              t.country.unicodeLower().contains(needle),
+              t.region.unicodeLower().contains(needle),
+              t.city.unicodeLower().contains(needle),
+              t.island.unicodeLower().contains(needle),
+              t.bodyOfWater.unicodeLower().contains(needle),
+              if (countryCodes.isNotEmpty) t.countryCode.isIn(countryCodes),
+              if (uncodedCountries.isNotEmpty) t.country.isIn(uncodedCountries),
+            ].reduce((a, b) => a | b),
+          )
           ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
         VisibilityFilter.applyToDiveSites(_db, searchQuery, diverId);
