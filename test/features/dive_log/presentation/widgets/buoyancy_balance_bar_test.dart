@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/buoyancy/twin_balance.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/icons/submersion_icons.dart';
+import 'package:submersion/core/theme/contrast_ratio.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_balance_bar.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -25,11 +27,13 @@ Future<void> _pump(
   double width = 800,
   Locale locale = const Locale('en'),
   AppSettings settings = const AppSettings(),
+  ThemeData? theme,
 }) async {
   await tester.binding.setSurfaceSize(Size(width, 400));
   addTearDown(() => tester.binding.setSurfaceSize(null));
   await tester.pumpWidget(
     MaterialApp(
+      theme: theme,
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -47,6 +51,12 @@ Future<void> _pump(
 
 Finder _segment(TwinBalancePartKind kind) =>
     find.byKey(ValueKey('balance-${kind.name}'));
+
+Finder _swatch(TwinBalancePartKind kind) =>
+    find.byKey(ValueKey('balance-legend-${kind.name}'));
+
+Color _fill(WidgetTester tester, Finder box) =>
+    (tester.widget<Container>(box).decoration! as BoxDecoration).color!;
 
 double _barCentre(WidgetTester tester) =>
     tester.getCenter(find.byType(BuoyancyBalanceBar)).dx;
@@ -174,6 +184,109 @@ void main() {
     await _pump(tester, _balance(), width: 21);
     expect(tester.takeException(), isNot(isA<ArgumentError>()));
     expect(_segment(TwinBalancePartKind.lead), findsNothing);
+  });
+
+  group('telling the parts apart', () {
+    testWidgets('a segment too narrow for its name shows its icon', (
+      tester,
+    ) async {
+      // At 400 px the suit segment is about 48 px: too narrow for "Suit" in
+      // the test font, wide enough for an icon.
+      await _pump(tester, _balance(), width: 400);
+      final suit = _segment(TwinBalancePartKind.suit);
+      expect(
+        find.descendant(of: suit, matching: find.text('Suit')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: suit,
+          matching: find.byIcon(SubmersionIcons.wetsuit),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a sliver too narrow for an icon stays bare', (tester) async {
+      await _pump(tester, _balance(suit: 0.3), width: 300);
+      expect(
+        find.descendant(
+          of: _segment(TwinBalancePartKind.suit),
+          matching: find.byType(Icon),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('each legend entry carries its part icon and its shade', (
+      tester,
+    ) async {
+      await _pump(tester, _balance(), width: 300);
+      for (final (kind, icon) in [
+        (TwinBalancePartKind.lead, SubmersionIcons.weightPocket),
+        (TwinBalancePartKind.tanks, SubmersionIcons.tankBackGas),
+        (TwinBalancePartKind.gear, SubmersionIcons.bcd),
+        (TwinBalancePartKind.suit, SubmersionIcons.wetsuit),
+        (TwinBalancePartKind.body, Icons.accessibility_new),
+      ]) {
+        expect(
+          find.descendant(of: _swatch(kind), matching: find.byIcon(icon)),
+          findsOneWidget,
+          reason: kind.name,
+        );
+        expect(
+          _fill(tester, _swatch(kind)),
+          _fill(tester, _segment(kind)),
+          reason: kind.name,
+        );
+      }
+    });
+
+    testWidgets('parts on the same side have different shades', (tester) async {
+      await _pump(tester, _balance());
+      final down = {
+        for (final kind in [
+          TwinBalancePartKind.lead,
+          TwinBalancePartKind.gear,
+          TwinBalancePartKind.tanks,
+        ])
+          _fill(tester, _segment(kind)),
+      };
+      expect(down, hasLength(3));
+      expect(
+        _fill(tester, _segment(TwinBalancePartKind.body)),
+        isNot(_fill(tester, _segment(TwinBalancePartKind.suit))),
+      );
+    });
+
+    for (final (name, theme) in [
+      ('light', ThemeData(brightness: Brightness.light)),
+      ('dark', ThemeData(brightness: Brightness.dark)),
+    ]) {
+      testWidgets('labels stay readable on every shade ($name)', (
+        tester,
+      ) async {
+        await _pump(tester, _balance(), theme: theme);
+        for (final kind in TwinBalancePartKind.values) {
+          final segment = _segment(kind);
+          // Whatever the segment has room for: its text or its icon.
+          final texts = tester.widgetList<Text>(
+            find.descendant(of: segment, matching: find.byType(Text)),
+          );
+          final icons = tester.widgetList<Icon>(
+            find.descendant(of: segment, matching: find.byType(Icon)),
+          );
+          final ink = texts.isNotEmpty
+              ? texts.single.style!.color!
+              : icons.single.color!;
+          expect(
+            contrastRatio(ink, _fill(tester, segment)),
+            greaterThanOrEqualTo(4.5),
+            reason: '$name ${kind.name}',
+          );
+        }
+      });
+    }
   });
 
   testWidgets('right to left keeps each caption over its own half', (

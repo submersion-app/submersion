@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/buoyancy/twin_balance.dart';
+import 'package:submersion/core/icons/submersion_icons.dart';
+import 'package:submersion/core/theme/contrast_ratio.dart';
+import 'package:submersion/core/theme/foreground_on.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -28,6 +31,19 @@ class BuoyancyBalanceBar extends StatelessWidget {
   static const double _ruleWidth = 2;
   static const double _labelPadding = 8;
   static const double _minSegmentWidth = 2;
+  static const double _iconSize = 16;
+  static const double _iconPadding = 3;
+
+  /// How far each part's fill moves from its side's container colour toward
+  /// that side's strong colour. Parts that share a side differ, so a legend
+  /// swatch can be matched to its segment by shade as well as by icon.
+  static const Map<TwinBalancePartKind, double> _tone = {
+    TwinBalancePartKind.lead: 0.0,
+    TwinBalancePartKind.body: 0.0,
+    TwinBalancePartKind.gear: 0.35,
+    TwinBalancePartKind.suit: 0.35,
+    TwinBalancePartKind.tanks: 0.7,
+  };
 
   /// Order from the centre outward: constant parts first, so the parts that
   /// change through a dive (suit, tanks) never push a constant one sideways.
@@ -181,8 +197,8 @@ class BuoyancyBalanceBar extends StatelessWidget {
             return width + _labelPadding * 2 <= widths[i];
           }
 
-          // The whole label when there is room, else the name alone so the
-          // segment can still be told apart, else nothing.
+          // The whole label when there is room, else the name alone, else
+          // the part's icon, else nothing: a sliver is named by the legend.
           final String? inBar;
           if (fits(label)) {
             inBar = label;
@@ -196,6 +212,8 @@ class BuoyancyBalanceBar extends StatelessWidget {
             width: widths[i],
             label: label,
             inBar: inBar,
+            showsIcon:
+                inBar == null && widths[i] >= _iconSize + _iconPadding * 2,
           );
         }(),
     ];
@@ -214,7 +232,11 @@ class BuoyancyBalanceBar extends StatelessWidget {
     required bool isDown,
     required TextStyle? style,
   }) {
-    final (fill, ink) = _colors(Theme.of(context).colorScheme, isDown);
+    final (fill, ink) = _colors(
+      Theme.of(context).colorScheme,
+      segment.part.kind,
+      isDown,
+    );
     final l10n = context.l10n;
     // The side is the point of the bar, so a screen reader hears it too.
     final side = isDown ? l10n.buoyancy_pullingDown : l10n.buoyancy_holdingUp;
@@ -227,7 +249,9 @@ class BuoyancyBalanceBar extends StatelessWidget {
           key: ValueKey('balance-${segment.part.kind.name}'),
           width: segment.width,
           height: _segmentHeight,
-          alignment: AlignmentDirectional.centerStart,
+          alignment: segment.showsIcon
+              ? Alignment.center
+              : AlignmentDirectional.centerStart,
           padding: segment.inBar != null
               ? const EdgeInsets.symmetric(horizontal: _labelPadding)
               : EdgeInsets.zero,
@@ -243,6 +267,8 @@ class BuoyancyBalanceBar extends StatelessWidget {
                   overflow: TextOverflow.clip,
                   style: style?.copyWith(color: ink),
                 )
+              : segment.showsIcon
+              ? Icon(_icon(segment.part.kind), size: _iconSize, color: ink)
               : null,
         ),
       ),
@@ -255,29 +281,62 @@ class BuoyancyBalanceBar extends StatelessWidget {
     required bool isDown,
   }) {
     final theme = Theme.of(context);
-    final (fill, _) = _colors(theme.colorScheme, isDown);
+    final kind = segment.part.kind;
+    final (fill, ink) = _colors(theme.colorScheme, kind, isDown);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // The segment in miniature: its shade and its icon.
         Container(
-          width: 8,
-          height: 8,
+          key: ValueKey('balance-legend-${kind.name}'),
+          width: 18,
+          height: 18,
+          alignment: Alignment.center,
           decoration: BoxDecoration(
             color: fill,
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(4),
           ),
+          child: Icon(_icon(kind), size: 12, color: ink),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 5),
         Text(segment.label, style: theme.textTheme.bodySmall),
       ],
     );
   }
 
-  /// Fill and text colour for one side. Neither side is an error, so both use
-  /// container pairs, which every theme preset keeps readable.
-  (Color, Color) _colors(ColorScheme scheme, bool isDown) => isDown
-      ? (scheme.tertiaryContainer, scheme.onTertiaryContainer)
-      : (scheme.primaryContainer, scheme.onPrimaryContainer);
+  /// Fill and foreground for one part. The side sets the hue (tertiary pulls
+  /// down, primary holds up; neither is an error) and the part sets the tone
+  /// within it.
+  (Color, Color) _colors(
+    ColorScheme scheme,
+    TwinBalancePartKind kind,
+    bool isDown,
+  ) {
+    final container = isDown
+        ? scheme.tertiaryContainer
+        : scheme.primaryContainer;
+    final onContainer = isDown
+        ? scheme.onTertiaryContainer
+        : scheme.onPrimaryContainer;
+    final tone = _tone[kind]!;
+    if (tone == 0) return (container, onContainer);
+    final strong = isDown ? scheme.tertiary : scheme.primary;
+    final fill = Color.lerp(container, strong, tone)!;
+    // The container's own foreground stops being readable as the fill moves
+    // toward the strong colour, so fall back to black or white when it does.
+    final ink = contrastRatio(onContainer, fill) >= 4.5
+        ? onContainer
+        : blackOrWhiteOn(fill);
+    return (fill, ink);
+  }
+
+  IconData _icon(TwinBalancePartKind kind) => switch (kind) {
+    TwinBalancePartKind.lead => SubmersionIcons.weightPocket,
+    TwinBalancePartKind.tanks => SubmersionIcons.tankBackGas,
+    TwinBalancePartKind.gear => SubmersionIcons.bcd,
+    TwinBalancePartKind.suit => SubmersionIcons.wetsuit,
+    TwinBalancePartKind.body => Icons.accessibility_new,
+  };
 
   String _name(AppLocalizations l10n, TwinBalancePartKind kind) =>
       switch (kind) {
@@ -300,10 +359,14 @@ class _Segment {
   /// Anything short of [label] sends the part to the legend.
   final String? inBar;
 
+  /// Whether the segment, with no room for text, still has room for its icon.
+  final bool showsIcon;
+
   const _Segment({
     required this.part,
     required this.width,
     required this.label,
     required this.inBar,
+    required this.showsIcon,
   });
 }
