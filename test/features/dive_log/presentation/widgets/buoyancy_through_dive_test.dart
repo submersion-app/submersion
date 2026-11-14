@@ -95,6 +95,16 @@ void main() {
       expect(find.text('at your final stop, about 5m'), findsOneWidget);
     });
 
+    testWidgets('the figure is a title, not a headline', (tester) async {
+      await _pump(tester, _outcome());
+      final figure = find.text('1.8 kg buoyant');
+      final theme = Theme.of(tester.element(figure)).textTheme;
+      final size = tester.widget<Text>(figure).style!.fontSize;
+      // It heads the section without outweighing the lead figures below it.
+      expect(size, theme.titleMedium!.fontSize);
+      expect(size, lessThan(theme.titleLarge!.fontSize!));
+    });
+
     testWidgets('a negative net reads heavy', (tester) async {
       await _pump(tester, _outcome(verdictNet: -1.2));
       expect(find.text('1.2 kg heavy'), findsOneWidget);

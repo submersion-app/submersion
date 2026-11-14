@@ -64,7 +64,9 @@ order:
 
 ### 1. Through the dive (readout, chart, balance bar)
 
-**Readout**, above the chart. A large figure and a quieter qualifier:
+**Readout**, above the chart. A title-sized figure and a quieter qualifier
+(the figure started as a 24-point headline, which outweighed the rest of the
+card):
 
 | State | Figure | Qualifier |
 | --- | --- | --- |

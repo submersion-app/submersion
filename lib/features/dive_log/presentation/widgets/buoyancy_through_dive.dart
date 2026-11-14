@@ -174,9 +174,11 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
       spacing: 8,
       runSpacing: 2,
       children: [
-        Text(figure, style: theme.textTheme.headlineSmall),
+        // A title, not a headline: it heads this section without outweighing
+        // the lead figures further down the card.
+        Text(figure, style: theme.textTheme.titleMedium),
         Padding(
-          padding: const EdgeInsets.only(bottom: 3),
+          padding: const EdgeInsets.only(bottom: 1),
           child: Text(
             qualifier,
             style: theme.textTheme.bodyMedium?.copyWith(
