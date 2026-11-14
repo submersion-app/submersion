@@ -299,9 +299,16 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
   /// Single-file load by path (used when a ZIP expands to exactly one
   /// member and by the classic picker path).
-  Future<void> _loadSingleFromFilePath(String filePath) async {
+  ///
+  /// With [stillWanted], nothing is loaded once it answers false: reading
+  /// takes a moment, and whoever asked may have been reset by then.
+  Future<void> _loadSingleFromFilePath(
+    String filePath, {
+    bool Function()? stillWanted,
+  }) async {
     final bytes = await File(filePath).readAsBytes();
     final detection = await _detectFormat(bytes);
+    if (stillWanted != null && !stillWanted()) return;
     state = state.copyWith(
       isLoading: false,
       files: [
@@ -463,7 +470,13 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
   /// Load many files by path: detect each (bytes read then discarded),
   /// classify CSV/unsupported as excluded, and enter the triage step.
-  Future<void> _loadBatchFromPaths(List<String> paths) async {
+  ///
+  /// With [stillWanted], nothing is loaded once it answers false, as for
+  /// [_loadSingleFromFilePath].
+  Future<void> _loadBatchFromPaths(
+    List<String> paths, {
+    bool Function()? stillWanted,
+  }) async {
     final files = <PickedImportFile>[];
     for (final path in paths) {
       final name = p.basename(path);
@@ -506,6 +519,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       }
     }
 
+    if (stillWanted != null && !stillWanted()) return;
     final firstPending = files.where(
       (f) => f.status == ImportFileStatus.pending,
     );
@@ -684,9 +698,8 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     _lastGarminRequest = request;
     final run = ++_garminRun;
     bool isCurrent() => mounted && run == _garminRun;
-    // The staging folder of a download that went stale before it could be
-    // registered with the wizard's temp folders.
-    String? orphanedDir;
+    // This download's staging folder, if it made one.
+    String? stagingDir;
     state = state.copyWith(
       isLoading: true,
       clearError: true,
@@ -702,17 +715,15 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
           if (isCurrent()) state = state.copyWith(garminProgress: progress);
         },
         onTempDir: (dirPath) {
+          stagingDir = dirPath;
           // Registered before anything can fail, so the folder is always
           // cleaned up. Also drops an earlier import's leftovers, as a
-          // fresh pick does.
+          // fresh pick does. A stale download does not register: that
+          // would delete the staging folder of the one that replaced it.
           if (isCurrent()) {
             applyExpansionExtras(
               ArchiveExpansion(filePaths: const [], tempDirPaths: [dirPath]),
             );
-          } else {
-            // Registering it would delete the staging folder of the
-            // download that replaced this one.
-            orphanedDir = dirPath;
           }
         },
       );
@@ -736,10 +747,15 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
           // skip the reset, showing these dives again without reading the
           // watch.
           state = state.copyWith(garminPendingMarker: pendingMarker);
+          // Reading the files takes a moment too, and a reset in that
+          // moment must not be undone by their arrival.
           if (divePaths.length == 1) {
-            await _loadSingleFromFilePath(divePaths.first);
+            await _loadSingleFromFilePath(
+              divePaths.first,
+              stillWanted: isCurrent,
+            );
           } else {
-            await _loadBatchFromPaths(divePaths);
+            await _loadBatchFromPaths(divePaths, stillWanted: isCurrent);
           }
       }
     } on PlatformException catch (e) {
@@ -762,9 +778,13 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       );
     } finally {
       if (isCurrent()) state = state.copyWith(clearGarminProgress: true);
-      // Only now, when this download has stopped reading it.
-      final orphaned = orphanedDir;
-      if (orphaned != null) _deleteTempDirs([orphaned]);
+      // A stale download removes its own staging folder, now that it has
+      // stopped reading it. Either it was never registered, or the reset or
+      // the newer download deleted it while this one still had files open,
+      // which fails on Windows and would leave the folder behind. Deleting
+      // a folder that is already gone is harmless.
+      final staging = stagingDir;
+      if (staging != null && !isCurrent()) _deleteTempDirs([staging]);
     }
   }
 

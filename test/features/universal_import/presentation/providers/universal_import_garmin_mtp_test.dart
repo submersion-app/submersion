@@ -4,6 +4,7 @@
 // a watch mounted as a drive, and is deleted with the wizard's other temp
 // folders.
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' show Locale;
 
@@ -237,6 +238,78 @@ void main() {
       expect(tmp.listSync(), isEmpty);
       // Nothing it reported after the reset reached the page.
       expect(progress.whereType<_Snapshot>().length, lessThanOrEqualTo(1));
+    });
+
+    /// A watch whose files are named as Garmin names them, so the download
+    /// has a marker to hold and says so just before it loads the dives.
+    FakeGarminMtpSource datedDives(int count) {
+      final watch = fakeGarminWatch();
+      return FakeGarminMtpSource(
+        devices: [watch],
+        filesByDevice: {
+          watch.id: {
+            for (var day = 1; day <= count; day++)
+              '2026-11-0$day-10-00-00.fit': diveBytes,
+          },
+        },
+      );
+    }
+
+    /// Resets the wizard at the first state for which [when] holds, as the
+    /// diver leaving and reopening it at that moment would.
+    void resetWhen(
+      UniversalImportNotifier notifier,
+      bool Function(UniversalImportState state) when,
+    ) {
+      var armed = true;
+      final remove = notifier.addListener((state) {
+        if (armed && when(state)) {
+          armed = false;
+          scheduleMicrotask(notifier.reset);
+        }
+      }, fireImmediately: false);
+      addTearDown(remove);
+    }
+
+    for (final count in [1, 2]) {
+      test('does not load its $count dive file(s) after a reset that lands '
+          'while they are being read', () async {
+        // The dives are found and the download is still the current one
+        // when it starts reading them. Reading takes a moment; a reset in
+        // that moment must win.
+        final (:notifier, progress: _) = await notifierFor(datedDives(count));
+        resetWhen(notifier, (state) => state.garminPendingMarker != null);
+
+        await notifier.importFromGarminDevice();
+        await notifier.pendingTempCleanup;
+
+        expect(notifier.state.files, isEmpty);
+        expect(notifier.state.currentStep, ImportWizardStep.fileSelection);
+        expect(notifier.state.isLoading, isFalse);
+        expect(notifier.state.garminPendingMarker, isNull);
+      });
+    }
+
+    test('removes its own staging folder when the reset could not', () async {
+      // A reset deletes the staging folder while this download may still be
+      // reading it, and on Windows a folder with a file open in it cannot be
+      // deleted. The download removes it once it has stopped reading.
+      final (:notifier, progress: _) = await notifierFor(twoDives());
+      final delete = notifier.deleteTempDir;
+      var failuresLeft = 1;
+      notifier.deleteTempDir = (dir) async {
+        if (failuresLeft-- > 0) {
+          throw FileSystemException('The folder is in use', dir.path);
+        }
+        await delete(dir);
+      };
+      resetWhen(notifier, (state) => state.zipTempDirPaths.isNotEmpty);
+
+      await notifier.importFromGarminDevice();
+      await notifier.pendingTempCleanup;
+
+      expect(notifier.state.files, isEmpty);
+      expect(tmp.listSync(), isEmpty);
     });
 
     test('is replaced by a second download, not mixed with it', () async {
