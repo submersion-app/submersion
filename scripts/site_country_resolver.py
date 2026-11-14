@@ -91,18 +91,12 @@ def resolve_place(
     return (*settle_country(code, name), island)
 
 
-def resolve_country(address: dict) -> tuple[str | None, str | None]:
-    """(ISO 3166-1 alpha-2 code, English name) for a geocoder address."""
-    code, name, _ = resolve_place(address)
-    return code, name
-
-
 def settle_country(
     code: str | None, name: str | None
 ) -> tuple[str | None, str | None]:
     """A (code, name) pair with the name-based rules applied.
 
-    Separate from `resolve_country` so an answer cached before a rule
+    Separate from `resolve_place` so an answer cached before a rule
     existed is corrected when it is read back.
     """
     if name and name.casefold() in NAMED_TERRITORIES:
@@ -146,13 +140,6 @@ class CountryResolver:
         self._cache: dict[str, list] = {}
         if cache_path.exists():
             self._cache = json.loads(cache_path.read_text(encoding="utf-8"))
-
-    def lookup(
-        self, latitude: float, longitude: float
-    ) -> tuple[str | None, str | None]:
-        """(code, English name) for a position, or (None, None) at sea."""
-        code, name, _ = self.lookup_place(latitude, longitude)
-        return code, name
 
     def lookup_place(
         self, latitude: float, longitude: float

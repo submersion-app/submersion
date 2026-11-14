@@ -33,10 +33,20 @@ class _Response:
         return self._payload
 
 
+def _country(address):
+    """The country half of `resolve_place`, for tests that are about it."""
+    return res.resolve_place(address)[:2]
+
+
+def _lookup_country(resolver, latitude, longitude):
+    """The country half of `lookup_place`."""
+    return resolver.lookup_place(latitude, longitude)[:2]
+
+
 class ResolveCountryTest(unittest.TestCase):
     def test_a_plain_answer_gives_the_country(self):
         self.assertEqual(
-            res.resolve_country(
+            _country(
                 {
                     "country": "Egypt",
                     "country_code": "eg",
@@ -49,7 +59,7 @@ class ResolveCountryTest(unittest.TestCase):
     def test_a_territory_subdivision_wins(self):
         # Measured from Nominatim for 12.08, -68.28 on 2026-11-13.
         self.assertEqual(
-            res.resolve_country(
+            _country(
                 {
                     "municipality": "Bonaire",
                     "ISO3166-2-lvl8": "BQ-BO",
@@ -65,21 +75,21 @@ class ResolveCountryTest(unittest.TestCase):
         # Curaçao, Aruba and Sint Maarten are named as countries but filed
         # under the Netherlands' code, with no subdivision code to go by.
         self.assertEqual(
-            res.resolve_country({"country": "Curacao", "country_code": "nl"}),
+            _country({"country": "Curacao", "country_code": "nl"}),
             ("CW", "Curaçao"),
         )
         self.assertEqual(
-            res.resolve_country({"country": "Aruba", "country_code": "nl"}),
+            _country({"country": "Aruba", "country_code": "nl"}),
             ("AW", "Aruba"),
         )
         self.assertEqual(
-            res.resolve_country(
+            _country(
                 {"country": "Sint Maarten", "country_code": "nl"}
             ),
             ("SX", "Sint Maarten"),
         )
         self.assertEqual(
-            res.resolve_country(
+            _country(
                 {"country": "Netherlands", "country_code": "nl"}
             ),
             ("NL", "Netherlands"),
@@ -87,7 +97,7 @@ class ResolveCountryTest(unittest.TestCase):
 
     def test_an_unknown_territory_prefix_is_an_error(self):
         with self.assertRaises(KeyError):
-            res.resolve_country(
+            _country(
                 {
                     "ISO3166-2-lvl8": "ZZ-01",
                     "country": "Nowhere",
@@ -96,11 +106,11 @@ class ResolveCountryTest(unittest.TestCase):
             )
 
     def test_no_address_gives_nothing(self):
-        self.assertEqual(res.resolve_country({}), (None, None))
+        self.assertEqual(_country({}), (None, None))
 
     def test_micronesia_goes_by_the_name_the_app_knows(self):
         self.assertEqual(
-            res.resolve_country(
+            _country(
                 {
                     "country": "Federated States of Micronesia",
                     "country_code": "fm",
@@ -113,7 +123,7 @@ class ResolveCountryTest(unittest.TestCase):
         res.NAME_OVERRIDES["XA"] = "Exampleland"
         self.addCleanup(res.NAME_OVERRIDES.pop, "XA")
         self.assertEqual(
-            res.resolve_country(
+            _country(
                 {"country": "Republic of Example", "country_code": "xa"}
             ),
             ("XA", "Exampleland"),
@@ -198,7 +208,7 @@ class CountryResolverTest(unittest.TestCase):
         )
 
         self.assertEqual(
-            resolver.lookup(12.0811, -68.2793),
+            _lookup_country(resolver, 12.0811, -68.2793),
             ("BQ", "Caribbean Netherlands"),
         )
         self.assertEqual(
@@ -274,7 +284,7 @@ class CountryResolverTest(unittest.TestCase):
             sleep=lambda _: None,
         )
 
-        self.assertEqual(resolver.lookup(12.1, -68.9), ("CW", "Curaçao"))
+        self.assertEqual(_lookup_country(resolver, 12.1, -68.9), ("CW", "Curaçao"))
 
     def test_lookup_asks_once_and_remembers(self):
         calls = []
@@ -289,8 +299,8 @@ class CountryResolverTest(unittest.TestCase):
             self.cache_path, http_get=fake_get, sleep=lambda _: None
         )
 
-        self.assertEqual(resolver.lookup(27.2, 33.8), ("EG", "Egypt"))
-        self.assertEqual(resolver.lookup(27.2, 33.8), ("EG", "Egypt"))
+        self.assertEqual(_lookup_country(resolver, 27.2, 33.8), ("EG", "Egypt"))
+        self.assertEqual(_lookup_country(resolver, 27.2, 33.8), ("EG", "Egypt"))
         self.assertEqual(len(calls), 1)
         url, params, headers = calls[0]
         self.assertIn("nominatim.openstreetmap.org/reverse", url)
@@ -316,8 +326,8 @@ class CountryResolverTest(unittest.TestCase):
             sleep=lambda _: None,
         )
 
-        self.assertEqual(resolver.lookup(29.5012, 34.9123), ("IL", "Israel"))
-        self.assertEqual(resolver.lookup(29.4951, 34.9041), ("EG", "Egypt"))
+        self.assertEqual(_lookup_country(resolver, 29.5012, 34.9123), ("IL", "Israel"))
+        self.assertEqual(_lookup_country(resolver, 29.4951, 34.9041), ("EG", "Egypt"))
 
     def test_open_sea_is_remembered_as_no_country(self):
         calls = []
@@ -330,8 +340,8 @@ class CountryResolverTest(unittest.TestCase):
             self.cache_path, http_get=fake_get, sleep=lambda _: None
         )
 
-        self.assertEqual(resolver.lookup(0.0, -30.0), (None, None))
-        self.assertEqual(resolver.lookup(0.0, -30.0), (None, None))
+        self.assertEqual(_lookup_country(resolver, 0.0, -30.0), (None, None))
+        self.assertEqual(_lookup_country(resolver, 0.0, -30.0), (None, None))
         self.assertEqual(len(calls), 1)
 
     def test_a_failed_request_is_not_remembered(self):
@@ -343,7 +353,7 @@ class CountryResolverTest(unittest.TestCase):
         )
 
         with self.assertRaises(RuntimeError):
-            resolver.lookup(27.2, 33.8)
+            _lookup_country(resolver, 27.2, 33.8)
         self.assertFalse(self.cache_path.exists())
 
 

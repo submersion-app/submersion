@@ -9,7 +9,8 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_catal
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Everything the built-in catalogue knows about one site, with one action:
-/// "Add to my sites" on the map, "Use this site" in the site picker.
+/// "Add to my sites" on the map, "Use this site" in the site picker,
+/// "Import to My Sites" on the import page.
 ///
 /// Shows only what the record has: a site that is no more than a name and
 /// a position is a name and the action.
@@ -18,8 +19,10 @@ class BuiltInSiteInfoCard extends ConsumerStatefulWidget {
   final String actionLabel;
 
   /// Runs when the action is tapped. While it runs the button is disabled,
-  /// so a second tap cannot adopt the site twice.
-  final Future<void> Function() onAction;
+  /// so a second tap cannot adopt the site twice. Null where there is
+  /// nothing left to do (a site the diver already has): the button then
+  /// only says so.
+  final Future<void> Function()? onAction;
 
   const BuiltInSiteInfoCard({
     super.key,
@@ -37,10 +40,11 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
   bool _running = false;
 
   Future<void> _run() async {
-    if (_running) return;
+    final action = widget.onAction;
+    if (_running || action == null) return;
     setState(() => _running = true);
     try {
-      await widget.onAction();
+      await action();
     } catch (error, stackTrace) {
       // Callers handle their own failures and tell the diver. One that
       // slips through must not be lost as an unhandled async error, nor
@@ -157,9 +161,16 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
                   child: Align(
                     alignment: AlignmentDirectional.centerEnd,
                     child: FilledButton.icon(
-                      icon: const Icon(Icons.add_location_alt, size: 18),
+                      icon: Icon(
+                        widget.onAction == null
+                            ? Icons.check
+                            : Icons.add_location_alt,
+                        size: 18,
+                      ),
                       label: Text(widget.actionLabel),
-                      onPressed: _running ? null : _run,
+                      onPressed: _running || widget.onAction == null
+                          ? null
+                          : _run,
                     ),
                   ),
                 ),
@@ -195,12 +206,13 @@ class _Fact extends StatelessWidget {
 }
 
 /// Shows [site]'s details in a bottom sheet with one action. Tapping the
-/// action closes the sheet, then runs [onAction].
+/// action closes the sheet, then runs [onAction]. With no [onAction] the
+/// button shows [actionLabel] and cannot be pressed.
 Future<void> showCatalogueSiteDetails(
   BuildContext context, {
   required CatalogueSite site,
   required String actionLabel,
-  required Future<void> Function() onAction,
+  required Future<void> Function()? onAction,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -211,10 +223,12 @@ Future<void> showCatalogueSiteDetails(
       child: BuiltInSiteInfoCard(
         site: site,
         actionLabel: actionLabel,
-        onAction: () async {
-          Navigator.of(sheetContext).pop();
-          await onAction();
-        },
+        onAction: onAction == null
+            ? null
+            : () async {
+                Navigator.of(sheetContext).pop();
+                await onAction();
+              },
       ),
     ),
   );

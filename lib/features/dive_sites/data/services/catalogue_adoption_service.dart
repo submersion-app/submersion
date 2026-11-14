@@ -9,6 +9,10 @@ import 'package:submersion/features/dive_sites/domain/services/catalogue_site_ma
 
 const _log = LoggerService('CatalogueAdoption');
 
+/// The language the catalogue names seas in: the sea table's own default,
+/// which is what the import asks it for.
+const _catalogueSeaLanguage = 'en';
+
 /// What adopting a catalogue site came to: the diver's site, and whether
 /// this call made it.
 ///
@@ -137,6 +141,10 @@ class CatalogueAdoptionService {
         language == null) {
       return null;
     }
+    // The catalogue's names are English already. Most divers stop here,
+    // and the sea table (over a megabyte to read and index) stays unread.
+    final languageCode = language();
+    if (languageCode == _catalogueSeaLanguage) return null;
     try {
       final seas = await load();
       if (seas == null) return null;
@@ -145,7 +153,7 @@ class CatalogueAdoptionService {
       return seas.nameAt(
         location.latitude,
         location.longitude,
-        languageCode: language(),
+        languageCode: languageCode,
       );
     } catch (error, stackTrace) {
       _log.warning(

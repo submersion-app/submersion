@@ -122,6 +122,27 @@ void main() {
       },
     );
 
+    test(
+      'is not looked up for a diver whose place names are English',
+      () async {
+        // The catalogue's sea names are English already: reading and
+        // indexing the sea table would only return the name in hand.
+        var loads = 0;
+
+        final sea = await adoptedSea(
+          inTheSea,
+          loadSeas: () async {
+            loads++;
+            return seas;
+          },
+          language: 'en',
+        );
+
+        expect(sea, 'Test Sea');
+        expect(loads, 0);
+      },
+    );
+
     test('is kept when the sea table did not give it', () async {
       // A record that came with its own body of water is not renamed.
       const lagoon = CatalogueSite(

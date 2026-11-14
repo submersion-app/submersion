@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
@@ -9,6 +10,8 @@ import 'package:submersion/features/dive_sites/domain/services/catalogue_site_vi
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+
+const _log = LoggerService('ExternalSiteSearch');
 
 /// How many catalogue matches the import page lists for one search.
 const _searchLimit = 200;
@@ -134,7 +137,9 @@ class ExternalSiteSearchNotifier
       if (generation != _generation) return;
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Search error: $e',
+        // The error as it is: the page shows it under its own translated
+        // title, so an English prefix here would only repeat that title.
+        errorMessage: '$e',
       );
     }
   }
@@ -147,7 +152,9 @@ class ExternalSiteSearchNotifier
   }
 
   /// Adopts [site] as one of the diver's sites, or finds the one they
-  /// already adopted from it. Null, with an error in the state, on failure.
+  /// already adopted from it. Null on failure, which the page reports in a
+  /// snackbar; the state keeps its results, because an error in the state
+  /// swaps the whole list for the search error screen.
   Future<CatalogueAdoption?> importSite(CatalogueSite site) async {
     try {
       final adoption = await _siteListNotifier.adoptCatalogueSite(site);
@@ -155,8 +162,12 @@ class ExternalSiteSearchNotifier
         linkedCatalogueIds: {...state.linkedCatalogueIds, site.id},
       );
       return adoption;
-    } catch (e) {
-      state = state.copyWith(errorMessage: 'Failed to import site: $e');
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Could not import catalogue site ${site.id}',
+        error: error,
+        stackTrace: stackTrace,
+      );
       return null;
     }
   }

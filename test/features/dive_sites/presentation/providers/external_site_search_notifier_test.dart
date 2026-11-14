@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_search_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -72,6 +73,29 @@ class _HeldSites extends SiteRepository {
   }) async {
     await held.future;
     return super.getAllSites(diverId: diverId, ids: ids);
+  }
+}
+
+/// A repository that cannot write a site, or cannot search, as a test asks.
+class _BrokenSites extends SiteRepository {
+  _BrokenSites({this.failCreate = false, this.failSearch = false});
+
+  final bool failCreate;
+  final bool failSearch;
+
+  @override
+  Future<DiveSite> createSite(
+    DiveSite site, {
+    SiteClassification? classification,
+  }) {
+    if (failCreate) throw StateError('disk full');
+    return super.createSite(site, classification: classification);
+  }
+
+  @override
+  Future<List<DiveSite>> searchSites(String query, {String? diverId}) {
+    if (failSearch) throw StateError('database closed');
+    return super.searchSites(query, diverId: diverId);
   }
 }
 
@@ -259,6 +283,38 @@ void main() {
 
       expect(catalogue.searchCalls, 0);
       expect(state().query, isEmpty);
+    },
+  );
+
+  test('a failed import leaves the search results on the page', () async {
+    // The page says the import failed in a snackbar. Its results must stay:
+    // an error in the state swaps the whole list for the error screen.
+    final broken = containerFor(_BrokenSites(failCreate: true));
+    addTearDown(broken.dispose);
+    final search = broken.read(externalSiteSearchProvider.notifier);
+    await search.search('blue');
+
+    final adoption = await search.importSite(_blueHole);
+
+    final after = broken.read(externalSiteSearchProvider);
+    expect(adoption, isNull);
+    expect(after.hasError, isFalse);
+    expect(after.sites.map((s) => s.id), ['osm_node_2', 'osm_node_1']);
+    expect(after.linkedCatalogueIds, isEmpty);
+  });
+
+  test(
+    'a failed search reports the error as it is, with no English prefix',
+    () async {
+      // The page puts it under a translated "Search Error" title.
+      final broken = containerFor(_BrokenSites(failSearch: true));
+      addTearDown(broken.dispose);
+
+      await broken.read(externalSiteSearchProvider.notifier).search('blue');
+
+      final after = broken.read(externalSiteSearchProvider);
+      expect(after.isLoading, isFalse);
+      expect(after.errorMessage, 'Bad state: database closed');
     },
   );
 

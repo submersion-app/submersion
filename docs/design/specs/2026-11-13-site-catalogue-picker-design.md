@@ -335,10 +335,14 @@ Dive 4 of 12  >  Site
   runs does nothing. If adoption fails, the picker stays open and says so.
 - **Details card.** `BuiltInSiteInfoCard` grows to show location, depth range,
   types, entry, hazards, description, website and the source credit, with one
-  action: "Use this site" in the picker, "Add to my sites" on the map.
+  action: "Use this site" in the picker, "Add to my sites" on the map,
+  "Import to My Sites" on the import page (added after the third review; the
+  page had a sheet of its own that showed less). For a site the diver
+  already has, the import page shows the action disabled.
 - **Search.** With text in the field, the diver's matches show as today. Below
   all of them, nearby or not, a "Built-in sites" section shows up to 50
-  catalogue matches from the whole world, those in the current area first. The catalogue query is
+  catalogue matches from the whole world, in the order the storage section
+  gives (name matches first, the current area leading). The catalogue query is
   debounced and needs at least two characters.
 - **Section label.** "More sites near <place>", where the place is the anchor
   site's island, else region, else country. With no place name it reads "More

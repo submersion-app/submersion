@@ -173,6 +173,33 @@ void main() {
     );
   });
 
+  test('a changed sea table comes with a new import revision', () {
+    // The rows an import writes depend on the sea table as well as on the
+    // catalogue file: it names each site's sea. Only the catalogue file's
+    // hash is in the version an install stores, so a sea table that changes
+    // on its own would never reach an app that has already imported. The
+    // import revision is what forces that import, and this pins the two
+    // together.
+    //
+    // If this fails because sea_areas.json changed: raise
+    // kSiteCatalogueImportRevision, then put the new revision and hash here.
+    const pinned = (
+      revision: 3,
+      seaTable:
+          '184175e914bbc5cdde973767181c50a75af59b49b1f5def95ff845eb89e659a6',
+    );
+
+    final seaTable = File(p.join('assets', 'data', 'sea_areas.json'));
+    // Line endings folded, so a checkout that rewrites them still agrees.
+    final hash = sha256
+        .convert(
+          utf8.encode(seaTable.readAsStringSync().replaceAll('\r\n', '\n')),
+        )
+        .toString();
+
+    expect((revision: kSiteCatalogueImportRevision, seaTable: hash), pinned);
+  });
+
   test('the shipped catalogue is found by island and by sea', () async {
     // What a diver types, and what the import page's Red Sea and Caribbean
     // chips search for. Before the island and the sea names these found

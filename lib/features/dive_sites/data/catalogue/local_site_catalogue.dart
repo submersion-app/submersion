@@ -40,7 +40,13 @@ class LocalSiteCatalogue implements SiteCatalogue {
     final rows = await (db.select(
       db.siteCatalogueEntries,
     )..where((t) => _inBox(t, point, radiusMeters))).get();
-    return _nearestFirst(rows, point, radiusMeters).take(limit).toList();
+    // Rows become sites only once the distance check and the limit have
+    // chosen them: decoding a row's lists is the costly part of a read.
+    return _nearestFirst(
+      rows,
+      point,
+      radiusMeters,
+    ).take(limit).map(catalogueSiteFromRow).toList();
   });
 
   @override
@@ -255,18 +261,20 @@ Expression<bool> _inBox(
   return latitude & longitude;
 }
 
-Iterable<CatalogueSite> _nearestFirst(
+/// The [rows] within [radiusMeters] of [center], nearest first. Every row
+/// comes from [_inBox], so it has coordinates.
+Iterable<SiteCatalogueRow> _nearestFirst(
   List<SiteCatalogueRow> rows,
   GeoPoint center,
   double radiusMeters,
 ) {
   final inside = [
-    for (final site in rows.map(catalogueSiteFromRow))
-      if (distanceMeters(center, site.location!) case final distance
-          when distance <= radiusMeters)
-        (site: site, distance: distance),
+    for (final row in rows)
+      if (distanceMeters(center, GeoPoint(row.latitude!, row.longitude!))
+          case final distance when distance <= radiusMeters)
+        (row: row, distance: distance),
   ]..sort((a, b) => a.distance.compareTo(b.distance));
-  return inside.map((entry) => entry.site);
+  return inside.map((entry) => entry.row);
 }
 
 /// [word] with LIKE's wildcards made literal, so a search for "100%" finds

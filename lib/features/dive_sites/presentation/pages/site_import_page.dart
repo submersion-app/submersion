@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_search_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_import_site_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -394,10 +393,6 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
               site: site,
               isImported: isImported,
               units: units,
-              sourceCredit: ref
-                  .watch(catalogueSourceProvider(site.source))
-                  .value
-                  ?.credit,
               onImport: () => _importSite(site),
             );
           }),

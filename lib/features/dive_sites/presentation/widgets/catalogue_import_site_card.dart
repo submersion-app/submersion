@@ -1,19 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_info_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One built-in catalogue site among the import page's search results: its
-/// name, place and tags, a details sheet, and the button that adopts it.
+/// name, place and tags, and the button that adopts it. Tapping the card
+/// opens the record's details.
 class CatalogueImportSiteCard extends StatelessWidget {
   final CatalogueSite site;
   final bool isImported;
   final UnitFormatter units;
-
-  /// Who to credit for the record, or null while that is unknown.
-  final String? sourceCredit;
   final VoidCallback onImport;
 
   const CatalogueImportSiteCard({
@@ -21,7 +22,6 @@ class CatalogueImportSiteCard extends StatelessWidget {
     required this.site,
     required this.isImported,
     required this.units,
-    required this.sourceCredit,
     required this.onImport,
   });
 
@@ -81,7 +81,7 @@ class CatalogueImportSiteCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _buildLocationText(),
+                            _locationText(context),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -201,158 +201,29 @@ class CatalogueImportSiteCard extends StatelessWidget {
     );
   }
 
-  String _buildLocationText() {
-    final parts = <String>[];
-    if (site.region != null && site.region!.isNotEmpty) {
-      parts.add(site.region!);
-    }
-    if (site.country != null && site.country!.isNotEmpty) {
-      parts.add(site.country!);
-    }
-    return parts.isNotEmpty ? parts.join(', ') : 'Location unknown';
+  /// Where the site is, as the picker and the details card say it (island
+  /// and locality included), or that it is not known.
+  String _locationText(BuildContext context) {
+    final line = catalogueLocationLine(site);
+    return line.isNotEmpty
+        ? line
+        : context.l10n.diveCenters_label_locationUnknown;
   }
 
+  /// The record's details, in the sheet the picker and the map use, so a
+  /// diver sees its hazards, entry, depth range and website before
+  /// importing it.
   void _showDetails(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.6,
-          minChildSize: 0.4,
-          maxChildSize: 0.9,
-          expand: false,
-          builder: (context, scrollController) {
-            return SingleChildScrollView(
-              controller: scrollController,
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Handle
-                  Center(
-                    child: Container(
-                      width: 32,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: colorScheme.onSurfaceVariant.withValues(
-                          alpha: 0.4,
-                        ),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Title
-                  Text(
-                    site.name,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _buildLocationText(),
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Description
-                  if (site.description != null &&
-                      site.description!.isNotEmpty) ...[
-                    Text(site.description!, style: theme.textTheme.bodyMedium),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Info chips
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      if (site.maxDepth != null)
-                        Chip(
-                          avatar: const Icon(Icons.arrow_downward, size: 18),
-                          label: Text(
-                            context.l10n.diveSites_import_detail_maxDepth(
-                              units.formatDepth(site.maxDepth!, decimals: 0),
-                            ),
-                          ),
-                        ),
-                      if (site.hasCoordinates)
-                        Chip(
-                          avatar: const Icon(Icons.location_on, size: 18),
-                          label: Text(
-                            units.formatCoordinates(
-                              site.location!.latitude,
-                              site.location!.longitude,
-                            ),
-                          ),
-                        ),
-                      ..._tags(context).map((f) => Chip(label: Text(f))),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Source
-                  if (sourceCredit != null) ...[
-                    Text(
-                      context.l10n.diveSites_import_detail_source(
-                        sourceCredit!,
-                      ),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // Import button
-                  if (!isImported)
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          onImport();
-                        },
-                        icon: const Icon(Icons.download),
-                        label: Text(
-                          context.l10n.diveSites_import_detail_importToMySites,
-                        ),
-                      ),
-                    )
-                  else
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.tonal(
-                        onPressed: null,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.check, color: colorScheme.primary),
-                            const SizedBox(width: 8),
-                            Text(
-                              context
-                                  .l10n
-                                  .diveSites_import_detail_alreadyImported,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+    final l10n = context.l10n;
+    unawaited(
+      showCatalogueSiteDetails(
+        context,
+        site: site,
+        actionLabel: isImported
+            ? l10n.diveSites_import_detail_alreadyImported
+            : l10n.diveSites_import_detail_importToMySites,
+        onAction: isImported ? null : () async => onImport(),
+      ),
     );
   }
 }

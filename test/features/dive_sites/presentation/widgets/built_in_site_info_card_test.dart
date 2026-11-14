@@ -106,6 +106,29 @@ void main() {
     expect(find.text('Zu meinen Tauchplätzen hinzufügen'), findsOneWidget);
   });
 
+  testWidgets('with no action the button is there but cannot be pressed', (
+    tester,
+  ) async {
+    // The import page's sheet for a site the diver already has.
+    await _pump(
+      tester,
+      const BuiltInSiteInfoCard(
+        site: _full,
+        actionLabel: 'Already Imported',
+        onAction: null,
+      ),
+    );
+
+    final button = tester.widget<FilledButton>(
+      find.ancestor(
+        of: find.text('Already Imported'),
+        matching: find.bySubtype<FilledButton>(),
+      ),
+    );
+    expect(button.onPressed, isNull);
+    expect(find.byIcon(Icons.check), findsOneWidget);
+  });
+
   testWidgets('shows depths in the diver\'s unit', (tester) async {
     await _pump(
       tester,

@@ -145,9 +145,9 @@ Use the sort icon to order by name, rating, difficulty, max depth, dive count, o
 Choose **Import** from the overflow menu on the Sites list. Type a site name, a place (a country, region or island) or a sea, or choose a quick-search chip (Caribbean, Red Sea, Thailand, Indonesia, Maldives, Philippines). Results appear in two sections:
 
 - **My Sites**: matches from your own site database, shown with a "Saved" badge. Tapping one opens its detail page.
-- **Import from Database**: results from the built-in site catalogue, up to 200 at a time; a note says when there are more, and a more specific search shows them. Tap a result card to preview its description, depth, coordinates, and tags, then tap **Import to My Sites**. A site you have already added shows **Already Imported**, in this session or any later one.
+- **Import from Database**: results from the built-in site catalogue, up to 200 at a time; a note says when there are more, and a more specific search shows them. Tap a result card to read what the catalogue holds for the site (where it is, site types, entry, depth, hazards, description, website and source), then tap **Import to My Sites**. A site you have already added shows **Already Imported**, in this session or any later one.
 
-An imported site arrives with everything the catalogue holds for it: name, description, country, region, GPS coordinates, depth, site types, entry method, and hazards. You can edit any field after import.
+An imported site arrives with everything the catalogue holds for it: name, description, country, region, island, body of water, GPS coordinates, depth, site types, entry method, and hazards. You can edit any field after import.
 
 The same overflow menu offers **Fill in missing location details** (looks up country and region for sites that have coordinates but no place names) and **Refresh place names** (looks them up again, in your chosen place-name language).
 

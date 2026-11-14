@@ -25,6 +25,11 @@ const kSiteCatalogueMetaVersion = 'version';
 /// Stored with the file's hash, so such a build imports again even though
 /// the file itself did not change.
 ///
+/// A changed sea table (`assets/data/sea_areas.json`) is such a change: it
+/// names each site's sea, and its own hash is not part of the stored
+/// version. `site_catalogue_asset_test.dart` pins the two together and
+/// fails until this goes up.
+///
 /// 2: each site's sea is named from the sea table and joins its search
 /// text. 3: the search text marks where the name ends.
 const kSiteCatalogueImportRevision = 3;
