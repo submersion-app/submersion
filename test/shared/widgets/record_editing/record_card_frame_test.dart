@@ -286,6 +286,80 @@ void main() {
     expect(find.byIcon(Icons.edit_outlined), findsNothing);
   });
 
+  // Some cards carry an icon before their title (Altitude). It stays put in
+  // every state of the header.
+  group('a header with a leading widget', () {
+    Widget host(RecordCardFrameData? data) => MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: RecordCardFrameScope(
+          data: data,
+          child: const RecordCardHeader(
+            leading: Icon(Icons.terrain),
+            title: 'Altitude',
+            trailing: Text('info'),
+          ),
+        ),
+      ),
+    );
+
+    RecordCardFrameData frame({required bool isOpen}) => RecordCardFrameData(
+      isOpen: isOpen,
+      isChanged: true,
+      onOpen: () {},
+      onDone: () {},
+    );
+
+    void expectLeadingBeforeTitle(WidgetTester tester) {
+      final leading = tester.getRect(find.byIcon(Icons.terrain));
+      final title = tester.getRect(find.text('Altitude'));
+      expect(leading.left, 0);
+      expect(leading.right, lessThanOrEqualTo(title.left));
+    }
+
+    testWidgets('locked: it sits before the title, trailing at the right', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(null));
+
+      expectLeadingBeforeTitle(tester);
+      expect(tester.getRect(find.text('info')).right, 800);
+    });
+
+    testWidgets('unlocked: it sits before the title, the pencil at the right', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(frame(isOpen: false)));
+
+      expectLeadingBeforeTitle(tester);
+      expect(tester.getRect(find.byIcon(Icons.edit_outlined)).right, 800);
+      expect(find.text('info'), findsOneWidget);
+    });
+
+    testWidgets('open: it sits before the title, Done at the right', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(frame(isOpen: true)));
+
+      expectLeadingBeforeTitle(tester);
+      expect(find.text('Done'), findsOneWidget);
+    });
+
+    testWidgets('a header with none keeps its title at the left edge', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: RecordCardHeader(title: 'Notes')),
+        ),
+      );
+
+      expect(tester.getRect(find.text('Notes')).left, 0);
+    });
+  });
+
   group('a card asked to show itself', () {
     const editor = ValueKey('editor');
 

@@ -1,5 +1,8 @@
+import 'package:flutter/material.dart';
+
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tags_card_editor.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -49,5 +52,18 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     title: (context) => context.l10n.diveLog_detail_section_tags,
     isEmpty: (dive) => dive.tags.isEmpty,
     editorBuilder: (context, session) => DiveTagsCardEditor(session: session),
+  ),
+  DiveDetailSectionId.altitude: EditCard<Dive>(
+    id: DiveDetailSectionId.altitude.name,
+    title: (context) => context.l10n.diveLog_detail_section_altitudeDive,
+    leading: (context) => Icon(
+      Icons.terrain,
+      size: 20,
+      color: Theme.of(context).colorScheme.primary,
+    ),
+    // The card is on the page only for a dive above sea level.
+    isEmpty: (dive) => (dive.altitude ?? 0) <= 0,
+    editorBuilder: (context, session) =>
+        DiveAltitudeCardEditor(session: session),
   ),
 };

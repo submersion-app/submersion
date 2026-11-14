@@ -265,6 +265,16 @@ void main() {
     });
   });
 
+  // Work that outlives a card (a lookup, a fetch) asks before writing here.
+  test('isDisposed turns true when the sitting ends', () {
+    final session = EditSession(const _Rec());
+    expect(session.isDisposed, isFalse);
+
+    session.dispose();
+
+    expect(session.isDisposed, isTrue);
+  });
+
   test('revisionOf is counted per card', () {
     final session = EditSession(const _Rec(notes: 'a'))
       ..set(_notes, 'b')

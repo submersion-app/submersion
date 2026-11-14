@@ -116,6 +116,18 @@ class EditSession<T> extends ChangeNotifier {
       await write();
     }
   }
+
+  bool _isDisposed = false;
+
+  /// Whether the sitting has ended. Work that can outlive it (a lookup, a
+  /// fetch) checks this before writing its result here.
+  bool get isDisposed => _isDisposed;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
 }
 
 /// One changed value, with its field's typed read and write captured so the

@@ -99,7 +99,10 @@ class _OpenCard<T> extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            RecordCardHeader(title: card.title(context)),
+            RecordCardHeader(
+              leading: card.leading?.call(context),
+              title: card.title(context),
+            ),
             const Divider(),
             card.editorBuilder(context, session),
           ],
