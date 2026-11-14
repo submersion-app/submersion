@@ -142,6 +142,11 @@ List<FigureLabelSlot> pairLabelColumns({
   double labelHeight = kFigureLabelHeight,
 }) {
   final half = width / 2;
+  assert(
+    (layout.front.center.dx - half / 2).abs() < 0.5 &&
+        (layout.back.center.dx - half * 1.5).abs() < 0.5,
+    'layout must be a FigureLayout.forPair of the same width',
+  );
   return [
     for (final view in FigureView.values)
       ...labelColumns(
