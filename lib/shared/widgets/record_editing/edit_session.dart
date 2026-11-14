@@ -89,6 +89,33 @@ class EditSession<T> extends ChangeNotifier {
     }
     return record;
   }
+
+  /// Writes this sitting owes to other records, by key, in the order each
+  /// key was first held.
+  final Map<String, Future<void> Function()> _heldWrites = {};
+
+  /// Whether the sitting holds a write to another record.
+  bool get hasHeldWrites => _heldWrites.isNotEmpty;
+
+  /// Holds [write] to run when the sitting is saved: a change to a record
+  /// other than [T] that belongs to this sitting, such as an altitude found
+  /// for the dive copied back to its site. A second call with the same [key]
+  /// replaces the first.
+  ///
+  /// A held write is not a change to the record, so it neither makes the
+  /// session dirty nor notifies. Discarding the session discards it.
+  void holdWrite(String key, Future<void> Function() write) {
+    _heldWrites[key] = write;
+  }
+
+  /// Runs every held write, one after another, in the order first held.
+  /// They are kept, so a save that failed can run them again. The first one
+  /// to throw stops the rest.
+  Future<void> runHeldWrites() async {
+    for (final write in _heldWrites.values.toList()) {
+      await write();
+    }
+  }
 }
 
 /// One changed value, with its field's typed read and write captured so the

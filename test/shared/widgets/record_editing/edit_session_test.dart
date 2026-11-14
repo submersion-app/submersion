@@ -191,6 +191,80 @@ void main() {
     expect(session.revisionOf('notes'), 2);
   });
 
+  // A sitting can owe a write to another record (the altitude a lookup
+  // found, copied back to the site). It is held here and run by Save.
+  group('held writes', () {
+    test('run in the order first held, and a key replaces', () async {
+      final ran = <String>[];
+      final session = EditSession(const _Rec())
+        ..holdWrite('site', () async => ran.add('site, first'))
+        ..holdWrite('other', () async => ran.add('other'))
+        ..holdWrite('site', () async => ran.add('site, second'));
+      expect(session.hasHeldWrites, isTrue);
+
+      await session.runHeldWrites();
+
+      expect(ran, ['site, second', 'other']);
+    });
+
+    test('each is awaited before the next starts', () async {
+      final ran = <String>[];
+      final session = EditSession(const _Rec())
+        ..holdWrite('slow', () async {
+          await Future<void>.delayed(Duration.zero);
+          ran.add('slow');
+        })
+        ..holdWrite('fast', () async => ran.add('fast'));
+
+      await session.runHeldWrites();
+
+      expect(ran, ['slow', 'fast']);
+    });
+
+    test('do not make the session dirty or notify', () {
+      final session = EditSession(const _Rec());
+      var told = 0;
+      session
+        ..addListener(() => told++)
+        ..holdWrite('site', () async {});
+
+      expect(session.isDirty, isFalse);
+      expect(session.changedCardIds, isEmpty);
+      expect(told, 0);
+    });
+
+    // A save that failed is tried again, and must write everything again.
+    test('are kept after running, so a save can be retried', () async {
+      var ran = 0;
+      final session = EditSession(const _Rec())
+        ..holdWrite('site', () async => ran++);
+
+      await session.runHeldWrites();
+      await session.runHeldWrites();
+
+      expect(ran, 2);
+      expect(session.hasHeldWrites, isTrue);
+    });
+
+    test('a failing write stops the rest and is rethrown', () async {
+      final ran = <String>[];
+      final session = EditSession(const _Rec())
+        ..holdWrite('bad', () async => throw StateError('no'))
+        ..holdWrite('after', () async => ran.add('after'));
+
+      await expectLater(session.runHeldWrites(), throwsStateError);
+
+      expect(ran, isEmpty);
+    });
+
+    test('a session with none runs nothing', () async {
+      final session = EditSession(const _Rec());
+
+      expect(session.hasHeldWrites, isFalse);
+      await session.runHeldWrites();
+    });
+  });
+
   test('revisionOf is counted per card', () {
     final session = EditSession(const _Rec(notes: 'a'))
       ..set(_notes, 'b')

@@ -59,14 +59,20 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     // Read now: the write may finish after the page has gone.
     final service = ref.read(diveEditSaveServiceProvider);
     final list = ref.read(paginatedDiveListProvider.notifier);
+    // The sitting's writes to other records are, so far, all to the site.
+    final sites = session.hasHeldWrites
+        ? ref.read(siteListNotifierProvider.notifier)
+        : null;
     final result = await service.save(
       diveId: widget.diveId,
       apply: session.applyTo,
       changedCardIds: session.changedCardIds,
+      alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
     );
     if (result == null) return;
     _justSaved = result.after;
     await list.refreshAfterWrite(before: result.before, after: result.after);
+    await sites?.refresh();
   }
 
   Future<void> _saveAndReport() async {

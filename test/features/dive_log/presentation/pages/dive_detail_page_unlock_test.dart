@@ -13,12 +13,14 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page
 import 'package:submersion/features/dive_log/presentation/providers/dive_edit_save_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -37,15 +39,27 @@ class _FakeSave implements DiveEditSaveService {
     required String diveId,
     required Dive Function(Dive stored) apply,
     required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
   }) async {
     final error = failWith;
     if (error != null) throw error;
     final before = stored;
     final merged = apply(before);
     calls.add((merged: merged, cards: changedCardIds.toList()));
+    await alsoWrite?.call();
     stored = merged;
     return (before: before, after: merged);
   }
+}
+
+/// Counts refreshes of the site list instead of reading sites.
+class _SpySites extends SiteListNotifier {
+  _SpySites(super.repository, super.ref);
+
+  int refreshes = 0;
+
+  @override
+  Future<void> refresh() async => refreshes++;
 }
 
 /// The dive page unlocked for editing in place (issue #4527), behind the
@@ -75,6 +89,7 @@ void main() {
     },
     Completer<void>? reloadGate,
     String initialLocation = '/home/dive',
+    List<Override> extra = const [],
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
@@ -147,6 +162,7 @@ void main() {
             dive.id,
           ).overrideWith((ref) => (previousId: null, nextId: 'dive-2')),
           diveEditSaveServiceProvider.overrideWithValue(save),
+          ...extra,
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -254,6 +270,85 @@ void main() {
     expect(page.save.calls.single.cards, ['notes']);
     expect(find.byTooltip('Unlock to edit'), findsOneWidget);
     expect(find.text('Calm, then current'), findsOneWidget);
+  });
+
+  group('a write the sitting holds for another record', () {
+    Future<void> typeNote(WidgetTester tester) async {
+      await unlock(tester);
+      await openNotes(tester);
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(MarkdownNotesField),
+          matching: find.byType(TextField),
+        ),
+        'Calm, then current',
+      );
+      await settle(tester);
+    }
+
+    RecordEditController<Dive> controller(WidgetTester tester) => tester
+        .widget<RecordEditScope<Dive>>(find.byType(RecordEditScope<Dive>))
+        .notifier!;
+
+    testWidgets('is run by the save, and the site list is read again', (
+      tester,
+    ) async {
+      _SpySites? sites;
+      final page = await pumpPage(
+        tester,
+        extra: [
+          siteListNotifierProvider.overrideWith(
+            (ref) => sites = _SpySites(ref.watch(siteRepositoryProvider), ref),
+          ),
+        ],
+      );
+      await typeNote(tester);
+      var ran = 0;
+      controller(tester).session!.holdWrite('site', () async => ran++);
+
+      await tester.tap(find.text('Save'));
+      await settle(tester);
+
+      expect(page.save.calls, hasLength(1));
+      expect(ran, 1);
+      expect(sites?.refreshes, 1);
+    });
+
+    testWidgets('is dropped when the sitting is cancelled', (tester) async {
+      await pumpPage(tester);
+      await typeNote(tester);
+      var ran = 0;
+      controller(tester).session!.holdWrite('site', () async => ran++);
+
+      await tester.tap(find.text('Cancel'));
+      await settle(tester);
+      await tester.tap(find.text('Discard'));
+      await settle(tester);
+
+      expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+      expect(ran, 0);
+    });
+
+    testWidgets('a sitting that holds none leaves the site list alone', (
+      tester,
+    ) async {
+      _SpySites? sites;
+      await pumpPage(
+        tester,
+        extra: [
+          siteListNotifierProvider.overrideWith(
+            (ref) => sites = _SpySites(ref.watch(siteRepositoryProvider), ref),
+          ),
+        ],
+      );
+      await typeNote(tester);
+
+      await tester.tap(find.text('Save'));
+      await settle(tester);
+
+      expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+      expect(sites, isNull);
+    });
   });
 
   testWidgets('typing a change and typing it back disables Save again', (
