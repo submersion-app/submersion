@@ -50,6 +50,9 @@ class _BackupNoteDialogState extends State<BackupNoteDialog> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return AlertDialog(
+      // The note field, its counter and the switch outgrow a phone on its
+      // side once the keyboard is up.
+      scrollable: true,
       title: Text(l10n.backup_note_dialog_title),
       content: Column(
         mainAxisSize: MainAxisSize.min,

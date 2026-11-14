@@ -81,8 +81,11 @@ Keep backups
   Custom number…        (shows "Custom: 365" and the check when current)
 ```
 
-- Custom number opens a dialog with a number field (digits only), prefilled
-  with the current count, accepting 1 to 9999, with an inline error otherwise.
+- Custom number opens a dialog with a number field (the shared
+  `numberInputFormatters` and `readNumber`, so locale separators read
+  correctly and anything but a whole number is refused), prefilled
+  with the current count and selected so typing replaces it, accepting 1 to
+  9999, with an inline error otherwise.
   Save is disabled while the value is invalid. A value that matches a list
   entry is simply saved.
 - Lowering the count while "Count backups from all devices" is on still goes

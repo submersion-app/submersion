@@ -77,6 +77,29 @@ void main() {
     final field = tester.widget<TextField>(find.byType(TextField));
     expect(field.maxLength, 200);
   });
+  testWidgets('a short screen scrolls the dialog instead of overflowing', (
+    tester,
+  ) async {
+    // A phone on its side with the keyboard up leaves little height.
+    tester.view.physicalSize = const Size(640, 280);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await open(tester);
+    expect(tester.takeException(), isNull);
+    await tester.scrollUntilVisible(
+      find.text('Keep this backup'),
+      40,
+      // The dialog's own scroll view, outside the note field's.
+      scrollable: find
+          .descendant(
+            of: find.byType(AlertDialog),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    expect(find.text('Keep this backup'), findsOneWidget);
+  });
+
   group('Keep this backup (issue #4535)', () {
     Finder keep() => find.widgetWithText(SwitchListTile, 'Keep this backup');
 

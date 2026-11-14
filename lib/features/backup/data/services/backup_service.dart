@@ -395,9 +395,6 @@ class BackupService {
 
     // Persist record and update last backup time
     await _preferences.addRecord(record);
-    // Other devices see a pin only through its marker (issue #3503). Never
-    // throws; reconciliation repairs a marker that did not land.
-    if (pin) await _writePinMarker(record);
     await _preferences.setLastBackupTime(record.timestamp);
     // Settings > Data health: a cloud copy the diver asked for and did not
     // get. Every backup overwrites it, so one that uploads clears it.
@@ -421,6 +418,12 @@ class BackupService {
           : LastBackupDestination.device,
       cloudAccountId: offDevice ? reachedAccountId : null,
     );
+
+    // Other devices see a pin only through its marker (issue #3503). Written
+    // after the bookkeeping above, which a slow upload must not hold up, and
+    // before the prune, whose marker reconcile then finds it in place. Never
+    // throws; reconciliation repairs a marker that did not land.
+    if (pin) await _writePinMarker(record);
 
     // Prune old backups
     await pruneOldBackups(settings.retentionCount);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
+import 'package:submersion/features/backup/presentation/widgets/backup_choice_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -8,19 +9,32 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 /// The counts offered as a single tap; any other count is typed.
 const backupRetentionChoices = [5, 10, 15, 20, 30];
 
-/// What a row of the picker stands for: a count, or "type one".
+/// What a row of the picker stands for: a count, or "type one". Compared by
+/// value, so the shared choice dialog can check the current row.
 sealed class _Pick {
   const _Pick();
 }
 
-class _Count extends _Pick {
+final class _Count extends _Pick {
   const _Count(this.count);
 
   final int count;
+
+  @override
+  bool operator ==(Object other) => other is _Count && other.count == count;
+
+  @override
+  int get hashCode => count.hashCode;
 }
 
-class _Custom extends _Pick {
+final class _Custom extends _Pick {
   const _Custom();
+
+  @override
+  bool operator ==(Object other) => other is _Custom;
+
+  @override
+  int get hashCode => (_Custom).hashCode;
 }
 
 /// Asks how many backups to keep (issue #4535): the usual counts, Keep all
@@ -31,33 +45,29 @@ Future<int?> showBackupRetentionDialog(
   BuildContext context, {
   required int selected,
 }) async {
+  final l10n = context.l10n;
   final keepsAll = BackupSettings.countKeepsAll(selected);
   final custom = !keepsAll && !backupRetentionChoices.contains(selected);
-  final pick = await showDialog<_Pick>(
-    context: context,
-    builder: (context) {
-      final l10n = context.l10n;
-      return SimpleDialog(
-        title: Text(l10n.backup_schedule_retention),
-        children: [
-          for (final n in backupRetentionChoices)
-            _row(context, '$n', n == selected, _Count(n)),
-          _row(
-            context,
-            l10n.backup_retention_keepAll,
-            keepsAll,
-            const _Count(BackupSettings.keepAllRetentionCount),
-          ),
-          _row(
-            context,
-            custom
-                ? l10n.backup_retention_customCurrent(selected)
-                : l10n.backup_retention_custom,
-            custom,
-            const _Custom(),
-          ),
-        ],
-      );
+  const keepAll = _Count(BackupSettings.keepAllRetentionCount);
+  final pick = await showBackupChoiceDialog<_Pick>(
+    context,
+    title: l10n.backup_schedule_retention,
+    values: [
+      for (final n in backupRetentionChoices) _Count(n),
+      keepAll,
+      const _Custom(),
+    ],
+    selected: keepsAll
+        ? keepAll
+        : custom
+        ? const _Custom()
+        : _Count(selected),
+    label: (pick) => switch (pick) {
+      _Count(count: BackupSettings.keepAllRetentionCount) =>
+        l10n.backup_retention_keepAll,
+      _Count(:final count) => '$count',
+      _Custom() when custom => l10n.backup_retention_customCurrent(selected),
+      _Custom() => l10n.backup_retention_custom,
     },
   );
   switch (pick) {
@@ -75,14 +85,6 @@ Future<int?> showBackupRetentionDialog(
   }
 }
 
-Widget _row(BuildContext context, String label, bool selected, _Pick pick) =>
-    ListTile(
-      title: Text(label),
-      selected: selected,
-      trailing: selected ? const Icon(Icons.check) : null,
-      onTap: () => Navigator.of(context).pop(pick),
-    );
-
 /// A number field for the count, with Save enabled only for 1 to
 /// [BackupSettings.maxCustomRetentionCount].
 class _CustomRetentionDialog extends StatefulWidget {
@@ -96,9 +98,16 @@ class _CustomRetentionDialog extends StatefulWidget {
 }
 
 class _CustomRetentionDialogState extends State<_CustomRetentionDialog> {
-  late final _controller = TextEditingController(
-    text: widget.initial?.toString() ?? '',
-  );
+  /// Starts with the current count selected, so typing replaces it.
+  late final _controller = () {
+    final text = widget.initial?.toString() ?? '';
+    return TextEditingController.fromValue(
+      TextEditingValue(
+        text: text,
+        selection: TextSelection(baseOffset: 0, extentOffset: text.length),
+      ),
+    );
+  }();
 
   /// Whether the diver has changed the field: an untouched empty field is
   /// not yet an error.

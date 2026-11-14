@@ -127,6 +127,21 @@ void main() {
     );
   });
 
+  testWidgets('the starting count is selected, so typing replaces it', (
+    tester,
+  ) async {
+    await open(tester, 10);
+    await openCustom(tester, 'Custom number…');
+    final controller = tester
+        .widget<TextField>(find.byType(TextField))
+        .controller!;
+    expect(controller.text, '10');
+    expect(
+      controller.selection,
+      const TextSelection(baseOffset: 0, extentOffset: 2),
+    );
+  });
+
   testWidgets('the field starts empty under Keep all', (tester) async {
     await open(tester, BackupSettings.keepAllRetentionCount);
     await openCustom(tester, 'Custom number…');
