@@ -305,6 +305,149 @@ void main() {
     expect(controller.session, isNull);
   });
 
+  // The write takes a moment. Nothing about the sitting may move under it.
+  group('while a save is running', () {
+    test('the sitting cannot change', () async {
+      final gate = Completer<void>();
+      String? written;
+      final controller =
+          _controller(
+              onSave: (session) async {
+                await gate.future;
+                written = session.working.notes;
+              },
+            )
+            ..unlock(const _Rec(notes: 'a'))
+            ..openCard('notes');
+      controller.session!.set(_notes, 'b');
+
+      final saving = controller.save();
+      expect(controller.isSaving, isTrue);
+      expect(controller.session!.isFrozen, isTrue);
+      controller.session!.set(_notes, 'typed during the save');
+      gate.complete();
+
+      expect(await saving, isTrue);
+      expect(written, 'b');
+    });
+
+    test('cards cannot be opened, closed or added', () async {
+      final gate = Completer<void>();
+      final controller = _controller(onSave: (_) => gate.future)
+        ..unlock(const _Rec(notes: 'a'))
+        ..openCard('notes');
+      controller.session!.set(_notes, 'b');
+      final saving = controller.save();
+      var told = 0;
+      controller.addListener(() => told++);
+
+      controller
+        ..openCard('tags')
+        ..addCard('details')
+        ..closeCard('notes');
+
+      expect(controller.openCardIds, {'notes'});
+      expect(controller.addedCardIds, isEmpty);
+      expect(told, 0);
+
+      gate.complete();
+      await saving;
+    });
+
+    test('a save that fails gives the sitting back, editable', () async {
+      final controller =
+          _controller(onSave: (_) async => throw StateError('no'))
+            ..unlock(const _Rec(notes: 'a'))
+            ..openCard('notes');
+      controller.session!.set(_notes, 'b');
+
+      expect(await controller.save(), isFalse);
+
+      expect(controller.session!.isFrozen, isFalse);
+      controller.session!.set(_notes, 'c');
+      expect(controller.session!.valueOf(_notes), 'c');
+      controller.closeCard('notes');
+      expect(controller.openCardIds, isEmpty);
+    });
+  });
+
+  // A card brought in from the Add strip can land below the fold. The
+  // controller asks for it to be shown, and its frame scrolls to it.
+  group('asking for a card to be shown', () {
+    test('addCard asks, with a serial that goes up each time', () {
+      final controller = _controller()..unlock(const _Rec());
+      expect(controller.revealRequest, isNull);
+
+      controller.addCard('tags');
+      final first = controller.revealRequest!;
+      expect(first.cardId, 'tags');
+
+      controller.addCard('details');
+
+      expect(controller.revealRequest!.cardId, 'details');
+      expect(controller.revealRequest!.serial, greaterThan(first.serial));
+    });
+
+    test('adding a card that is already there does not ask again', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..addCard('tags');
+      final first = controller.revealRequest!.serial;
+
+      controller.addCard('tags');
+
+      expect(controller.revealRequest!.serial, first);
+    });
+
+    test('opening a card from its pencil does not ask', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes');
+
+      expect(controller.revealRequest, isNull);
+    });
+
+    test('a request is withdrawn once it has been answered', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..addCard('tags');
+      final serial = controller.revealRequest!.serial;
+      var told = 0;
+      controller.addListener(() => told++);
+
+      controller.revealHandled(serial - 1);
+      expect(controller.revealRequest, isNotNull, reason: 'not this one');
+
+      controller.revealHandled(serial);
+
+      expect(controller.revealRequest, isNull);
+      expect(told, 0);
+    });
+
+    test('lock withdraws a request nobody answered', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..addCard('tags')
+        ..lock();
+
+      expect(controller.revealRequest, isNull);
+    });
+
+    test('a serial is never reused by a later sitting', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..addCard('tags');
+      final first = controller.revealRequest!.serial;
+
+      controller
+        ..lock()
+        ..unlock(const _Rec())
+        ..addCard('tags');
+
+      expect(controller.revealRequest!.serial, greaterThan(first));
+    });
+  });
+
   testWidgets('RecordEditScope hands the controller to its subtree', (
     tester,
   ) async {

@@ -94,6 +94,46 @@ RecordEditController<_Rec> _controller() {
   return controller;
 }
 
+/// A page seen through a 300 px high window, with the card 600 px down it
+/// so it starts out of sight. Like the dive page, it builds the card only
+/// once it has been added from the strip.
+Widget _tallHost(RecordEditController<_Rec> controller) {
+  return MaterialApp(
+    locale: const Locale('en'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: Scaffold(
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: SizedBox(
+          height: 300,
+          child: RecordEditScope<_Rec>(
+            controller: controller,
+            child: Builder(
+              builder: (context) {
+                final edit = RecordEditScope.maybeOf<_Rec>(context)!;
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 600),
+                      if (edit.addedCardIds.contains(_card.id))
+                        RecordCardFrame<_Rec>(
+                          card: _card,
+                          child: const SizedBox.shrink(),
+                        ),
+                      const SizedBox(height: 600),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 void main() {
   setUp(() => _ReadBody.created = 0);
 
@@ -250,5 +290,81 @@ void main() {
     expect(find.text('READ'), findsOneWidget);
     expect(find.byKey(const ValueKey('editor')), findsNothing);
     expect(find.byIcon(Icons.edit_outlined), findsNothing);
+  });
+
+  group('a card asked to show itself', () {
+    const editor = ValueKey('editor');
+
+    testWidgets('a card added from the strip scrolls into view', (
+      tester,
+    ) async {
+      final controller = _controller()..unlock(const _Rec());
+      await tester.pumpWidget(_tallHost(controller));
+      expect(find.byKey(editor), findsNothing);
+
+      controller.addCard('notes');
+      await tester.pumpAndSettle();
+
+      final rect = tester.getRect(find.byKey(editor));
+      expect(rect.top, greaterThanOrEqualTo(0));
+      expect(rect.bottom, lessThanOrEqualTo(300));
+      expect(controller.revealRequest, isNull, reason: 'answered');
+    });
+
+    testWidgets('it is shown once: scrolling away afterwards is left alone', (
+      tester,
+    ) async {
+      final controller = _controller()..unlock(const _Rec());
+      await tester.pumpWidget(_tallHost(controller));
+      controller.addCard('notes');
+      await tester.pumpAndSettle();
+
+      tester.state<ScrollableState>(find.byType(Scrollable)).position.jumpTo(0);
+      // Anything that rebuilds the page: the old request must not replay.
+      controller.session!.set(_notes, 'b');
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(find.byKey(editor)).top, greaterThan(300));
+    });
+
+    testWidgets('a request for another card does not move this one', (
+      tester,
+    ) async {
+      final controller = _controller()..unlock(const _Rec());
+      await tester.pumpWidget(_tallHost(controller));
+      controller.addCard('notes');
+      await tester.pumpAndSettle();
+      tester.state<ScrollableState>(find.byType(Scrollable)).position.jumpTo(0);
+
+      controller.addCard('tags');
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(find.byKey(editor)).top, greaterThan(300));
+    });
+
+    testWidgets('a card with no scrollable above it does nothing', (
+      tester,
+    ) async {
+      final controller = _controller()..unlock(const _Rec());
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: RecordEditScope<_Rec>(
+              controller: controller,
+              child: RecordCardFrame<_Rec>(card: _card, child: _readCard),
+            ),
+          ),
+        ),
+      );
+
+      controller.addCard('notes');
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(editor), findsOneWidget);
+    });
   });
 }

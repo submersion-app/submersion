@@ -26,6 +26,19 @@ class EditSession<T> extends ChangeNotifier {
 
   bool get isDirty => _pending.isNotEmpty;
 
+  bool _isFrozen = false;
+
+  /// Whether the sitting is being written, and so cannot change.
+  bool get isFrozen => _isFrozen;
+
+  /// Stops the sitting changing until [thaw]: a save writes what the diver
+  /// saw when they asked for it, under a label naming the cards it changed.
+  /// A value [set] meanwhile is dropped.
+  void freeze() => _isFrozen = true;
+
+  /// Lets the sitting change again, after a save that did not go through.
+  void thaw() => _isFrozen = false;
+
   /// The cards that own at least one pending change.
   Set<String> get changedCardIds => {
     for (final pending in _pending.values) pending.cardId,
@@ -39,8 +52,10 @@ class EditSession<T> extends ChangeNotifier {
 
   /// Records [value] as the diver's value for [field]. A value the same as
   /// the stored one clears the change instead, so typing a change and then
-  /// typing it back leaves the session clean.
+  /// typing it back leaves the session clean. Does nothing while the
+  /// session [isFrozen].
   void set<V>(EditField<T, V> field, V value) {
+    if (_isFrozen) return;
     final current = _pending[field.id];
     if (field.same(value, field.read(_stored))) {
       if (current == null) return;

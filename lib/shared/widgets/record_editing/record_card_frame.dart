@@ -13,7 +13,12 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 ///
 /// The tree beneath a frame keeps one shape while the card is closed, so
 /// unlocking and locking never remount [child].
-class RecordCardFrame<T> extends StatelessWidget {
+///
+/// When the controller asks for this card to be shown
+/// ([RecordEditController.revealRequest]), the frame scrolls into view and
+/// withdraws the request. That is how a card brought in from the Add strip,
+/// which may take its place below what is on screen, is seen to have opened.
+class RecordCardFrame<T> extends StatefulWidget {
   const RecordCardFrame({super.key, required this.card, required this.child});
 
   final EditCard<T> card;
@@ -22,11 +27,42 @@ class RecordCardFrame<T> extends StatelessWidget {
   final Widget child;
 
   @override
+  State<RecordCardFrame<T>> createState() => _RecordCardFrameState<T>();
+}
+
+class _RecordCardFrameState<T> extends State<RecordCardFrame<T>> {
+  /// The last request this frame answered, so one request scrolls once
+  /// however often the page rebuilds before it is withdrawn.
+  int _answeredSerial = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final controller = RecordEditScope.maybeOf<T>(context);
+    final request = controller?.revealRequest;
+    if (controller == null || request == null) return;
+    if (request.cardId != widget.card.id) return;
+    if (request.serial == _answeredSerial) return;
+    _answeredSerial = request.serial;
+    // After this frame, when the card has its place and its size.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.revealHandled(request.serial);
+      if (!mounted) return;
+      Scrollable.ensureVisible(
+        context,
+        alignment: 0.1,
+        duration: const Duration(milliseconds: 200),
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final card = widget.card;
     final controller = RecordEditScope.maybeOf<T>(context);
     final session = controller?.session;
     if (controller == null || session == null) {
-      return RecordCardFrameScope(data: null, child: child);
+      return RecordCardFrameScope(data: null, child: widget.child);
     }
 
     final isOpen = controller.openCardIds.contains(card.id);
@@ -37,7 +73,7 @@ class RecordCardFrame<T> extends StatelessWidget {
         onOpen: () => controller.openCard(card.id),
         onDone: () => controller.closeCard(card.id),
       ),
-      child: isOpen ? _OpenCard<T>(card: card, session: session) : child,
+      child: isOpen ? _OpenCard<T>(card: card, session: session) : widget.child,
     );
   }
 }

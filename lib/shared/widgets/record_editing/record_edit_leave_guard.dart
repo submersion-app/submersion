@@ -6,20 +6,30 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 /// Ends a sitting without saving, asking first when it has unsaved changes.
 ///
 /// True means the record is now locked. False means the diver chose to keep
-/// editing and nothing changed.
+/// editing and nothing changed, or a save is running: a sitting that is
+/// being written cannot be discarded, and locks by itself when the write
+/// ends.
 Future<bool> cancelSitting<T>(
   BuildContext context,
   RecordEditController<T> controller,
 ) async {
+  if (controller.isSaving) return false;
   if (controller.isDirty && !await showDiscardDialog(context)) return false;
   controller.lock();
   return true;
 }
 
-/// Stops a record page being left with unsaved changes unasked.
+/// Guards a record page's sitting: it is not left with unsaved changes
+/// unasked, and nothing happens to it while it is being saved.
 ///
 /// With changes pending, going back asks whether to discard them. With none,
 /// the page simply closes, and an unlocked record is locked on the way out.
+///
+/// While a save is running the page takes no input, from a pointer or the
+/// keyboard, and going back does nothing. Otherwise a keystroke could reach
+/// a sitting that has already been handed to the database, and a discard
+/// could lock the page while the write carries on. The save ends shortly
+/// and either locks the page or gives it back.
 class RecordEditLeaveGuard<T> extends StatelessWidget {
   const RecordEditLeaveGuard({
     super.key,
@@ -36,16 +46,23 @@ class RecordEditLeaveGuard<T> extends StatelessWidget {
       listenable: controller,
       child: child,
       builder: (context, child) => PopScope(
-        canPop: !controller.isDirty,
+        canPop: !controller.isDirty && !controller.isSaving,
         onPopInvokedWithResult: (didPop, _) async {
           if (didPop) {
             controller.lock();
             return;
           }
+          if (controller.isSaving) return;
           final navigator = Navigator.of(context);
           if (await cancelSitting(context, controller)) navigator.pop();
         },
-        child: child!,
+        // Both stay in the tree, so a save starting or ending never
+        // rebuilds the page beneath them. Excluding focus also takes it
+        // from a field that has it, which closes the keyboard.
+        child: AbsorbPointer(
+          absorbing: controller.isSaving,
+          child: ExcludeFocus(excluding: controller.isSaving, child: child!),
+        ),
       ),
     );
   }
