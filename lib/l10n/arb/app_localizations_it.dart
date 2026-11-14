@@ -12959,6 +12959,125 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveSites_list_menu_catalogueReview =>
+      'Confronta i siti con il catalogo integrato';
+
+  @override
+  String get diveSites_gapReview_title => 'Dettagli integrati per i tuoi siti';
+
+  @override
+  String diveSites_gapReview_sectionSame(Object count) {
+    return 'Stesso sito ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_sectionCheck(Object count) {
+    return 'Da controllare ($count)';
+  }
+
+  @override
+  String get diveSites_gapReview_empty =>
+      'I tuoi siti contengono già tutto ciò che il catalogo integrato ha per loro.';
+
+  @override
+  String diveSites_gapReview_apply(Object count) {
+    return 'Applica ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_adds(Object items) {
+    return 'Aggiunge: $items';
+  }
+
+  @override
+  String get diveSites_gapReview_addsLink => 'collegamento';
+
+  @override
+  String diveSites_gapReview_nearby(Object distance, Object name) {
+    return 'A $distance da «$name»';
+  }
+
+  @override
+  String diveSites_gapReview_named(Object name, Object place) {
+    return 'Senza posizione. «$name», $place';
+  }
+
+  @override
+  String diveSites_gapReview_namedNoPlace(Object name) {
+    return 'Senza posizione. «$name»';
+  }
+
+  @override
+  String get diveSites_gapReview_compare => 'Confronta con la voce integrata';
+
+  @override
+  String diveSites_gapReview_applied(Object filled, Object linked) {
+    return 'Siti collegati: $linked. Siti con dettagli completati: $filled.';
+  }
+
+  @override
+  String diveSites_gapReview_appliedSome(
+    Object failed,
+    Object filled,
+    Object linked,
+  ) {
+    return 'Siti collegati: $linked. Siti con dettagli completati: $filled. Non applicati: $failed.';
+  }
+
+  @override
+  String get diveSites_gapReview_error => 'Impossibile applicare le modifiche';
+
+  @override
+  String get diveSites_gapCompare_yours => 'Il tuo sito';
+
+  @override
+  String get diveSites_gapCompare_record => 'Voce integrata';
+
+  @override
+  String get diveSites_gapCompare_empty => '(vuoto)';
+
+  @override
+  String get diveSites_gapCompare_staysYours => 'resta il tuo';
+
+  @override
+  String diveSites_gapCompare_apart(Object distance) {
+    return 'a $distance di distanza';
+  }
+
+  @override
+  String diveSites_gapCompare_fill(Object count) {
+    return 'Completa ($count)';
+  }
+
+  @override
+  String get diveSites_gapCompare_linkOnly => 'Solo collegare';
+
+  @override
+  String get diveSites_gapCompare_notSame => 'Non è lo stesso sito';
+
+  @override
+  String get diveSites_gapCompare_noThanks => 'No, grazie';
+
+  @override
+  String get diveSites_gapField_name => 'Nome';
+
+  @override
+  String diveSites_gapNotice_text(Object count) {
+    return 'Sono disponibili dettagli integrati per i tuoi siti ($count)';
+  }
+
+  @override
+  String get diveSites_gapNotice_review => 'Controlla';
+
+  @override
+  String get diveSites_gapLine_linked =>
+      'Il catalogo integrato ha altri dettagli per questo sito.';
+
+  @override
+  String get diveSites_gapLine_unlinked =>
+      'Questo sito potrebbe essere nel catalogo integrato.';
+
+  @override
   String get diveSites_picker_builtIn_adoptError =>
       'Impossibile aggiungere questo sito';
 

@@ -12869,6 +12869,127 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveSites_list_menu_catalogueReview =>
+      'Stekken vergelijken met ingebouwde catalogus';
+
+  @override
+  String get diveSites_gapReview_title => 'Ingebouwde gegevens voor je stekken';
+
+  @override
+  String diveSites_gapReview_sectionSame(Object count) {
+    return 'Dezelfde stek ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_sectionCheck(Object count) {
+    return 'Controleer deze ($count)';
+  }
+
+  @override
+  String get diveSites_gapReview_empty =>
+      'Je stekken bevatten al alles wat de ingebouwde catalogus erover heeft.';
+
+  @override
+  String diveSites_gapReview_apply(Object count) {
+    return 'Toepassen ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_adds(Object items) {
+    return 'Voegt toe: $items';
+  }
+
+  @override
+  String get diveSites_gapReview_addsLink => 'koppeling';
+
+  @override
+  String diveSites_gapReview_nearby(Object distance, Object name) {
+    return '$distance van ‘$name’';
+  }
+
+  @override
+  String diveSites_gapReview_named(Object name, Object place) {
+    return 'Geen positie. ‘$name’, $place';
+  }
+
+  @override
+  String diveSites_gapReview_namedNoPlace(Object name) {
+    return 'Geen positie. ‘$name’';
+  }
+
+  @override
+  String get diveSites_gapReview_compare =>
+      'Vergelijken met het ingebouwde record';
+
+  @override
+  String diveSites_gapReview_applied(Object filled, Object linked) {
+    return 'Gekoppelde stekken: $linked. Stekken met aangevulde gegevens: $filled.';
+  }
+
+  @override
+  String diveSites_gapReview_appliedSome(
+    Object failed,
+    Object filled,
+    Object linked,
+  ) {
+    return 'Gekoppelde stekken: $linked. Stekken met aangevulde gegevens: $filled. Niet toegepast: $failed.';
+  }
+
+  @override
+  String get diveSites_gapReview_error =>
+      'De wijzigingen konden niet worden toegepast';
+
+  @override
+  String get diveSites_gapCompare_yours => 'Jouw stek';
+
+  @override
+  String get diveSites_gapCompare_record => 'Ingebouwd record';
+
+  @override
+  String get diveSites_gapCompare_empty => '(leeg)';
+
+  @override
+  String get diveSites_gapCompare_staysYours => 'die van jou blijft';
+
+  @override
+  String diveSites_gapCompare_apart(Object distance) {
+    return '$distance uit elkaar';
+  }
+
+  @override
+  String diveSites_gapCompare_fill(Object count) {
+    return 'Aanvullen ($count)';
+  }
+
+  @override
+  String get diveSites_gapCompare_linkOnly => 'Alleen koppelen';
+
+  @override
+  String get diveSites_gapCompare_notSame => 'Niet dezelfde stek';
+
+  @override
+  String get diveSites_gapCompare_noThanks => 'Nee, bedankt';
+
+  @override
+  String get diveSites_gapField_name => 'Naam';
+
+  @override
+  String diveSites_gapNotice_text(Object count) {
+    return 'Er zijn ingebouwde gegevens beschikbaar voor je stekken ($count)';
+  }
+
+  @override
+  String get diveSites_gapNotice_review => 'Bekijken';
+
+  @override
+  String get diveSites_gapLine_linked =>
+      'De ingebouwde catalogus heeft meer gegevens over deze stek.';
+
+  @override
+  String get diveSites_gapLine_unlinked =>
+      'Deze stek staat mogelijk in de ingebouwde catalogus.';
+
+  @override
   String get diveSites_picker_builtIn_adoptError =>
       'Stek kon niet worden toegevoegd';
 

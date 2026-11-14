@@ -12922,6 +12922,127 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveSites_list_menu_catalogueReview =>
+      'Merülőhelyek összevetése a beépített katalógussal';
+
+  @override
+  String get diveSites_gapReview_title => 'Beépített adatok a merülőhelyeihez';
+
+  @override
+  String diveSites_gapReview_sectionSame(Object count) {
+    return 'Ugyanaz a merülőhely ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_sectionCheck(Object count) {
+    return 'Ellenőrizendők ($count)';
+  }
+
+  @override
+  String get diveSites_gapReview_empty =>
+      'A merülőhelyei már mindent tartalmaznak, amit a beépített katalógus tud róluk.';
+
+  @override
+  String diveSites_gapReview_apply(Object count) {
+    return 'Alkalmaz ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_adds(Object items) {
+    return 'Hozzáadja: $items';
+  }
+
+  @override
+  String get diveSites_gapReview_addsLink => 'hivatkozás';
+
+  @override
+  String diveSites_gapReview_nearby(Object distance, Object name) {
+    return '$distance távolságra ettől: „$name”';
+  }
+
+  @override
+  String diveSites_gapReview_named(Object name, Object place) {
+    return 'Nincs pozíció. „$name”, $place';
+  }
+
+  @override
+  String diveSites_gapReview_namedNoPlace(Object name) {
+    return 'Nincs pozíció. „$name”';
+  }
+
+  @override
+  String get diveSites_gapReview_compare =>
+      'Összevetés a beépített bejegyzéssel';
+
+  @override
+  String diveSites_gapReview_applied(Object filled, Object linked) {
+    return 'Összekapcsolt merülőhelyek: $linked. Kiegészített merülőhelyek: $filled.';
+  }
+
+  @override
+  String diveSites_gapReview_appliedSome(
+    Object failed,
+    Object filled,
+    Object linked,
+  ) {
+    return 'Összekapcsolt merülőhelyek: $linked. Kiegészített merülőhelyek: $filled. Nem alkalmazva: $failed.';
+  }
+
+  @override
+  String get diveSites_gapReview_error =>
+      'A módosításokat nem sikerült alkalmazni';
+
+  @override
+  String get diveSites_gapCompare_yours => 'Az Ön merülőhelye';
+
+  @override
+  String get diveSites_gapCompare_record => 'Beépített bejegyzés';
+
+  @override
+  String get diveSites_gapCompare_empty => '(üres)';
+
+  @override
+  String get diveSites_gapCompare_staysYours => 'az Öné megmarad';
+
+  @override
+  String diveSites_gapCompare_apart(Object distance) {
+    return '$distance távolságra egymástól';
+  }
+
+  @override
+  String diveSites_gapCompare_fill(Object count) {
+    return 'Kitöltés ($count)';
+  }
+
+  @override
+  String get diveSites_gapCompare_linkOnly => 'Csak összekapcsolás';
+
+  @override
+  String get diveSites_gapCompare_notSame => 'Nem ugyanaz a merülőhely';
+
+  @override
+  String get diveSites_gapCompare_noThanks => 'Köszönöm, nem';
+
+  @override
+  String get diveSites_gapField_name => 'Név';
+
+  @override
+  String diveSites_gapNotice_text(Object count) {
+    return 'Beépített adatok érhetők el a merülőhelyeihez ($count)';
+  }
+
+  @override
+  String get diveSites_gapNotice_review => 'Áttekintés';
+
+  @override
+  String get diveSites_gapLine_linked =>
+      'A beépített katalógusban további adatok vannak erről a merülőhelyről.';
+
+  @override
+  String get diveSites_gapLine_unlinked =>
+      'Lehet, hogy ez a merülőhely szerepel a beépített katalógusban.';
+
+  @override
   String get diveSites_picker_builtIn_adoptError =>
       'A merülőhely hozzáadása nem sikerült';
 

@@ -12312,6 +12312,121 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveSites_list_menu_catalogueReview => '与内置目录比对潜水点';
+
+  @override
+  String get diveSites_gapReview_title => '你的潜水点的内置详情';
+
+  @override
+  String diveSites_gapReview_sectionSame(Object count) {
+    return '同一潜水点（$count）';
+  }
+
+  @override
+  String diveSites_gapReview_sectionCheck(Object count) {
+    return '请核对（$count）';
+  }
+
+  @override
+  String get diveSites_gapReview_empty => '你的潜水点已包含内置目录中的全部相关信息。';
+
+  @override
+  String diveSites_gapReview_apply(Object count) {
+    return '应用（$count）';
+  }
+
+  @override
+  String diveSites_gapReview_adds(Object items) {
+    return '将添加：$items';
+  }
+
+  @override
+  String get diveSites_gapReview_addsLink => '链接';
+
+  @override
+  String diveSites_gapReview_nearby(Object distance, Object name) {
+    return '距“$name”$distance';
+  }
+
+  @override
+  String diveSites_gapReview_named(Object name, Object place) {
+    return '无位置。“$name”，$place';
+  }
+
+  @override
+  String diveSites_gapReview_namedNoPlace(Object name) {
+    return '无位置。“$name”';
+  }
+
+  @override
+  String get diveSites_gapReview_compare => '与内置记录比较';
+
+  @override
+  String diveSites_gapReview_applied(Object filled, Object linked) {
+    return '已链接的潜水点：$linked。已补全详情的潜水点：$filled。';
+  }
+
+  @override
+  String diveSites_gapReview_appliedSome(
+    Object failed,
+    Object filled,
+    Object linked,
+  ) {
+    return '已链接的潜水点：$linked。已补全详情的潜水点：$filled。未应用：$failed。';
+  }
+
+  @override
+  String get diveSites_gapReview_error => '无法应用更改';
+
+  @override
+  String get diveSites_gapCompare_yours => '你的潜水点';
+
+  @override
+  String get diveSites_gapCompare_record => '内置记录';
+
+  @override
+  String get diveSites_gapCompare_empty => '（空）';
+
+  @override
+  String get diveSites_gapCompare_staysYours => '保留你的';
+
+  @override
+  String diveSites_gapCompare_apart(Object distance) {
+    return '相距 $distance';
+  }
+
+  @override
+  String diveSites_gapCompare_fill(Object count) {
+    return '补全（$count）';
+  }
+
+  @override
+  String get diveSites_gapCompare_linkOnly => '仅链接';
+
+  @override
+  String get diveSites_gapCompare_notSame => '不是同一潜水点';
+
+  @override
+  String get diveSites_gapCompare_noThanks => '不用了';
+
+  @override
+  String get diveSites_gapField_name => '名称';
+
+  @override
+  String diveSites_gapNotice_text(Object count) {
+    return '你的潜水点有可用的内置详情（$count）';
+  }
+
+  @override
+  String get diveSites_gapNotice_review => '查看';
+
+  @override
+  String get diveSites_gapLine_linked => '内置目录中有此潜水点的更多详情。';
+
+  @override
+  String get diveSites_gapLine_unlinked => '内置目录中可能有此潜水点。';
+
+  @override
   String get diveSites_picker_builtIn_adoptError => '无法添加此潜水点';
 
   @override

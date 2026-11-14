@@ -13140,6 +13140,125 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveSites_list_menu_catalogueReview =>
+      'مطابقة المواقع مع الكتالوج المدمج';
+
+  @override
+  String get diveSites_gapReview_title => 'تفاصيل مدمجة لمواقعك';
+
+  @override
+  String diveSites_gapReview_sectionSame(Object count) {
+    return 'الموقع نفسه ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_sectionCheck(Object count) {
+    return 'تحقّق من هذه ($count)';
+  }
+
+  @override
+  String get diveSites_gapReview_empty =>
+      'مواقعك تحتوي بالفعل على كل ما لدى الكتالوج المدمج عنها.';
+
+  @override
+  String diveSites_gapReview_apply(Object count) {
+    return 'تطبيق ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_adds(Object items) {
+    return 'يضيف: $items';
+  }
+
+  @override
+  String get diveSites_gapReview_addsLink => 'رابط';
+
+  @override
+  String diveSites_gapReview_nearby(Object distance, Object name) {
+    return 'على بُعد $distance من \"$name\"';
+  }
+
+  @override
+  String diveSites_gapReview_named(Object name, Object place) {
+    return 'بلا إحداثيات. \"$name\"، $place';
+  }
+
+  @override
+  String diveSites_gapReview_namedNoPlace(Object name) {
+    return 'بلا إحداثيات. \"$name\"';
+  }
+
+  @override
+  String get diveSites_gapReview_compare => 'قارن مع السجل المدمج';
+
+  @override
+  String diveSites_gapReview_applied(Object filled, Object linked) {
+    return 'المواقع المرتبطة: $linked. المواقع التي أُكملت تفاصيلها: $filled.';
+  }
+
+  @override
+  String diveSites_gapReview_appliedSome(
+    Object failed,
+    Object filled,
+    Object linked,
+  ) {
+    return 'المواقع المرتبطة: $linked. المواقع التي أُكملت تفاصيلها: $filled. لم تُطبَّق: $failed.';
+  }
+
+  @override
+  String get diveSites_gapReview_error => 'تعذّر تطبيق التغييرات';
+
+  @override
+  String get diveSites_gapCompare_yours => 'موقعك';
+
+  @override
+  String get diveSites_gapCompare_record => 'السجل المدمج';
+
+  @override
+  String get diveSites_gapCompare_empty => '(فارغ)';
+
+  @override
+  String get diveSites_gapCompare_staysYours => 'تبقى قيمتك';
+
+  @override
+  String diveSites_gapCompare_apart(Object distance) {
+    return 'المسافة بينهما $distance';
+  }
+
+  @override
+  String diveSites_gapCompare_fill(Object count) {
+    return 'إكمال ($count)';
+  }
+
+  @override
+  String get diveSites_gapCompare_linkOnly => 'ربط فقط';
+
+  @override
+  String get diveSites_gapCompare_notSame => 'ليس الموقع نفسه';
+
+  @override
+  String get diveSites_gapCompare_noThanks => 'لا، شكرًا';
+
+  @override
+  String get diveSites_gapField_name => 'الاسم';
+
+  @override
+  String diveSites_gapNotice_text(Object count) {
+    return 'تتوفر تفاصيل مدمجة لمواقعك ($count)';
+  }
+
+  @override
+  String get diveSites_gapNotice_review => 'مراجعة';
+
+  @override
+  String get diveSites_gapLine_linked =>
+      'لدى الكتالوج المدمج تفاصيل إضافية عن هذا الموقع.';
+
+  @override
+  String get diveSites_gapLine_unlinked =>
+      'قد يكون هذا الموقع موجودًا في الكتالوج المدمج.';
+
+  @override
   String get diveSites_picker_builtIn_adoptError => 'تعذّرت إضافة هذا الموقع';
 
   @override
