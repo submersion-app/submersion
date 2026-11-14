@@ -169,16 +169,29 @@ void main() {
     expect(find.byKey(const ValueKey('selection_delete')), findsNothing);
     expect(find.byIcon(Icons.delete_outline), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('selection_action_unlink')));
-    await tester.pumpAndSettle();
-    expect(find.text('Unlink 1 items?'), findsOneWidget);
-    await tester.tap(find.text('Unlink'));
-    await tester.runAsync(() async {
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-      await tester.pump();
+    // From the Unlink action to the final read, everything runs inside one
+    // runAsync. Database calls queue one behind another, and a call made in
+    // the tester's fake-async zone only moves when the tester flushes
+    // microtasks. The unlink is the tail of the handler that opens the
+    // confirmation, so tapped from the test body its writes sat in that zone
+    // while the pump after it started re-reads in the real one. On a slow
+    // runner the two interleaved, a continuation landed after the last
+    // flush, and the test hung for its whole two minutes. Started in the
+    // real zone, the handler has nothing to interleave with.
+    final row = await tester.runAsync(() async {
+      await tester.tap(find.byKey(const ValueKey('selection_action_unlink')));
+      await tester.pumpAndSettle();
+      expect(find.text('Unlink 1 items?'), findsOneWidget);
+      await tester.tap(find.text('Unlink'));
+      for (var attempt = 0; attempt < 50; attempt++) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await tester.pump();
+        if (await repo.getMediaById('m1') == null) return null;
+      }
+      return repo.getMediaById('m1');
     });
 
-    expect(await repo.getMediaById('m1'), isNull);
+    expect(row, isNull);
   });
 
   testWidgets('a failed unlink reports an unlink error and keeps the row', (
@@ -231,7 +244,8 @@ void main() {
 
     expect(find.textContaining('Failed to unlink:'), findsOneWidget);
     expect(find.textContaining('Failed to delete:'), findsNothing);
-    // The row survives a failed unlink.
-    expect(await repo.getMediaById('m1'), isNotNull);
+    // The row survives a failed unlink. Read in the real zone, for the
+    // reason given in the test above.
+    expect(await tester.runAsync(() => repo.getMediaById('m1')), isNotNull);
   });
 }

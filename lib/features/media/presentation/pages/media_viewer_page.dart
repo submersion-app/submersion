@@ -265,6 +265,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     MediaItem item,
     List<DiveProfilePoint> profile,
   ) async {
+    final pinner = ref.read(mediaTimePinnerProvider);
     final choice = await showSetMediaTimeDialog(
       context,
       profile: profile,
@@ -274,9 +275,10 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       ),
       isPinned: item.manualElapsedSeconds != null,
       settings: ref.read(settingsProvider),
+      automatic: pinner.automaticTimeFor(item),
     );
     if (choice == null || !mounted) return;
-    await ref.read(mediaTimePinnerProvider).apply(item, choice);
+    await pinner.apply(item, choice);
   }
 
   /// Computes and saves the missing [MediaEnrichment] rows for [diveId], the

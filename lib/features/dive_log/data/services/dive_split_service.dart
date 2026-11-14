@@ -158,6 +158,10 @@ class DiveSplitService {
                   diveNumber: const Value(null),
                   siteId: const Value(null),
                   notes: const Value(''),
+                  // The shift corrects the camera against the original
+                  // dive's computer; this dive runs on another clock, and
+                  // the media stays behind (issue #4539).
+                  mediaTimeOffsetSeconds: const Value(0),
                   computerId: Value(source.computerId),
                   diveComputerModel: Value(source.computerModel),
                   diveComputerSerial: Value(source.computerSerial),

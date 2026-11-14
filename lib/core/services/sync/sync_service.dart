@@ -1502,7 +1502,7 @@ class SyncService {
   /// publishes a UDDF import's 1 to 10 rating or a 0 (issue #4415); that
   /// one is not repaired here but as the serializer writes each dive row
   /// (`withDiveRatingInScale`), which conflict resolution also goes through.
-  /// One below v367 publishes a cylinder volume typed in cubic feet and
+  /// One below v368 publishes a cylinder volume typed in cubic feet and
   /// stored as water volume (issue #4534).
   Future<void> _repairLegacyPeerRows({Iterable<String>? touchedDiveIds}) async {
     try {

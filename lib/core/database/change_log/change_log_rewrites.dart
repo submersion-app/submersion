@@ -21,11 +21,11 @@ const Map<String, int> changeLogRewrittenColumns = {
   // changeLogRewrittenValues repairs, so 358 is never compared: a logged
   // rating is put on the scale rather than refused, whenever it was logged.
   'dives.rating': 358,
-  // v367 rewrote cylinder volumes an imperial diver typed in cubic feet,
+  // v368 rewrote cylinder volumes an imperial diver typed in cubic feet,
   // stored as water volume (issue #4534). Whether a logged value was one
   // depends on its key and its item's type, which a value repair cannot
   // see, so a value logged before it is refused.
-  'equipment_attributes.value_num': 367,
+  'equipment_attributes.value_num': 368,
 };
 
 /// Puts a logged value into the shape a rung has since given its column.

@@ -68,6 +68,10 @@ extension BeforeOpenChildColumns on AppDatabase {
     // row, for the same reason as the tank columns.
     await _assertDiveIsDraftColumn();
 
+    // v368: dives.media_time_offset_seconds (issue #4539), for the same
+    // reason.
+    await _assertDiveMediaTimeOffsetColumn();
+
     // v350: sightings.abundance (issue #4337). Every sighting read selects
     // the whole row, for the same reason as the tank columns.
     await _assertSightingAbundanceColumn();
@@ -86,7 +90,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // diver_weight_entries.body_fat_percent (issue #4525). Every diver and
     // weight-entry read selects the whole row.
     await _assertBodyCompositionColumns();
-    // v367: equipment_attributes.value_unit (issue #4534). Every attribute
+    // v368: equipment_attributes.value_unit (issue #4534). Every attribute
     // read selects the whole row.
     await _assertAttributeValueUnitColumn();
   }

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unified editing pattern mockup</title>
+<style>
+  :root {
+    --bg-primary: #f5f5f7; --bg-secondary: #ffffff; --bg-tertiary: #e5e5e7; --border: #d1d1d6;
+    --text-primary: #1d1d1f; --text-secondary: #6e6e73; --text-tertiary: #aeaeb2;
+    --accent: #0071e3; --warning: #ff9f0a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1d1d1f; --bg-secondary: #2d2d2f; --bg-tertiary: #3d3d3f; --border: #424245;
+      --text-primary: #f5f5f7; --text-secondary: #a1a1a6; --text-tertiary: #636366;
+      --accent: #0a84ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 28px 16px 48px; background: var(--bg-primary); color: var(--text-primary);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.5; }
+  main { max-width: 1180px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 6px; }
+  h2 { font-size: 1.1rem; margin: 30px 0 4px; }
+  p.lead { color: var(--text-secondary); margin: 0 0 6px; max-width: 760px; }
+  .row { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; margin: 14px 0 8px; }
+  .frame { width: 272px; padding: 10px; border-radius: 16px; background: var(--bg-secondary); border: 1px solid var(--border); }
+  .cap h3 { font-size: .95rem; margin: 10px 2px 3px; }
+  .cap p { font-size: .8rem; color: var(--text-secondary); margin: 0 2px; line-height: 1.4; }
+  .phone { width: 250px; height: 520px; border-radius: 22px; border: 1px solid var(--border); background: var(--bg-primary);
+    overflow: hidden; position: relative; font-size: 11.5px; line-height: 1.35; }
+  .phone::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 40px;
+    background: linear-gradient(transparent, var(--bg-primary)); pointer-events: none; }
+  .bar { height: 40px; display: flex; align-items: center; padding: 0 10px; gap: 9px; background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border); font-weight: 600; white-space: nowrap; }
+  .bar.edit { gap: 6px; background: color-mix(in srgb, var(--accent) 14%, var(--bg-secondary)); border-bottom: 2px solid var(--accent); }
+  .sp { flex: 1; }
+  .txtbtn { color: var(--accent); font-weight: 600; }
+  .savebtn { background: var(--accent); color: #fff; border-radius: 99px; padding: 3px 12px; font-weight: 600; }
+  .savebtn.off { background: var(--bg-tertiary); color: var(--text-tertiary); }
+  .strip { display: flex; gap: 6px; align-items: center; padding: 6px 8px; background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border); overflow: hidden; white-space: nowrap; }
+  .strip b { font-size: 10.5px; color: var(--text-secondary); font-weight: 600; }
+  .chip { border: 1px solid var(--accent); color: var(--accent); border-radius: 99px; padding: 2px 9px; font-size: 10.5px;
+    white-space: nowrap; display: inline-block; }
+  .chip.hid { border-style: dashed; border-color: var(--text-tertiary); color: var(--text-secondary); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .body { padding: 8px; display: flex; flex-direction: column; gap: 7px; }
+  .hero { padding: 4px 4px 2px; }
+  .hero .t { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .hero .s { color: var(--text-secondary); }
+  .stats { display: flex; gap: 14px; margin-top: 4px; font-weight: 600; }
+  .c { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; }
+  .c.open { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .c.dim { opacity: .5; }
+  .ch { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 12px; margin-bottom: 5px; }
+  .ico { color: var(--accent); display: inline-flex; }
+  .mut { color: var(--text-tertiary); font-weight: 400; font-size: 10.5px; }
+  .kv { display: flex; justify-content: space-between; padding: 2px 0; }
+  .kv span:first-child { color: var(--text-secondary); }
+  .new { color: var(--accent); font-weight: 600; }
+  .f { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 3px 0; }
+  .f label { color: var(--text-secondary); }
+  .in { border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px; min-width: 108px; background: var(--bg-primary); }
+  .in.empty { color: var(--text-tertiary); border-style: dashed; }
+  .ta { border: 1px solid var(--accent); border-radius: 6px; padding: 5px 7px; min-height: 58px; background: var(--bg-primary); }
+  .ta.idle { border-color: var(--border); color: var(--text-tertiary); min-height: 46px; }
+  .caret { display: inline-block; width: 1px; height: 12px; background: var(--accent); vertical-align: -2px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--warning); display: inline-block; }
+  .line { color: var(--text-secondary); display: flex; }
+  svg.chart { display: block; width: 100%; height: 46px; }
+  footer { color: var(--text-secondary); font-size: .8rem; margin-top: 28px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Unified editing pattern</h1>
+  <p class="lead">The look chosen in the design of 2026-11-14, shown on a dive page at phone width, shortened to a few cards. Structure only: colours, fonts and icons come from the app's theme.</p>
+
+  <h2>An existing dive</h2>
+  <p class="lead">Locked, unlocked, a card opened, and changes waiting for Save.</p>
+  <div class="row" id="row1"></div>
+
+  <h2>Cards that are not on the page</h2>
+  <p class="lead">Empty and hidden cards sit in a strip under the top bar. A chip adds its card at its place in the section order.</p>
+  <div class="row" id="row2"></div>
+
+  <h2>A new dive</h2>
+  <p class="lead">Opens already unlocked, with the Dive card and a starter set laid out.</p>
+  <div class="row" id="row3"></div>
+
+  <footer>Companion to 2026-11-14-unified-editing-pattern-design.md.</footer>
+</main>
+<script>
+(function () {
+  function svg(d, w) {
+    return '<svg viewBox="0 0 24 24" width="' + w + '" height="' + w + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+  }
+  var I = {
+    lock: svg('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', 15),
+    pencil: '<span class="ico">' + svg('<path d="M4 20h4L19 9l-4-4L4 16v4z"/>', 12) + '</span>',
+    star: svg('<path d="M12 4l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z"/>', 15),
+    hist: svg('<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>', 15),
+    dots: svg('<circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>', 15),
+    back: svg('<path d="M15 5l-7 7 7 7"/>', 15)
+  };
+  var chart = '<svg class="chart" viewBox="0 0 220 46" preserveAspectRatio="none"><path d="M0 4 L18 27 L40 38 L80 40 L120 33 L150 27 L178 15 L196 13 L210 6 L220 4" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>';
+  var noteText = 'Sharks stacked up on the corner at the hook-in. Strong incoming current.';
+
+  function barLocked() {
+    return '<div class="bar">' + I.back + '<span>Dive 214</span><span class="sp"></span>' + I.star + I.hist +
+      '<span class="ico">' + I.lock + '</span>' + I.dots + '</div>';
+  }
+  function barEdit(title, canSave) {
+    return '<div class="bar edit"><span class="txtbtn">Cancel</span><span class="sp"></span><span>' + title +
+      '</span><span class="sp"></span>' + I.dots + '<span class="savebtn' + (canSave ? '' : ' off') + '">Save</span></div>';
+  }
+  function strip(names, hidden) {
+    return '<div class="strip"><b>Add</b>' + names.map(function (n) { return '<span class="chip">' + n + '</span>'; }).join('') +
+      (hidden || []).map(function (n) { return '<span class="chip hid">' + n + '</span>'; }).join('') + '</div>';
+  }
+  function head(t, o) {
+    o = o || {};
+    return '<div class="ch"><span>' + t + '</span>' + (o.changed ? '<span class="dot"></span>' : '') + '<span class="sp"></span>' +
+      (o.calc ? '<span class="mut">Calculated</span>' : '') + (o.done ? '<span class="txtbtn">Done</span>' : '') +
+      (o.pencil ? I.pencil : '') + '</div>';
+  }
+  function kv(k, v, isNew) { return '<div class="kv"><span>' + k + '</span><span' + (isNew ? ' class="new"' : '') + '>' + v + '</span></div>'; }
+  function field(k, v) { return '<div class="f"><label>' + k + '</label><span class="in' + (v ? '' : ' empty') + '">' + (v || 'Add') + '</span></div>'; }
+  function hero(p) {
+    return '<div class="hero"><div class="t"><span>Blue Corner</span>' + (p ? I.pencil : '') + '</div>' +
+      '<div class="s">Palau &middot; 12 Mar 2024 &middot; 09:42</div>' +
+      '<div class="stats"><span>28.4 m</span><span>52 min</span><span>27 &deg;C</span></div></div>';
+  }
+  function profile(p) { return '<div class="c">' + head('Profile', { pencil: p }) + chart + '</div>'; }
+  function detailsRead(o) {
+    o = o || {};
+    return '<div class="c">' + head('Details', o) + kv('Type', 'Drift, boat') + kv('Entry', '09:42') + kv('Exit', '10:34') +
+      kv('Water', 'Salt') + (o.changed ? kv('Visibility', '25 m', true) : '') + '</div>';
+  }
+  function detailsOpen() {
+    return '<div class="c open">' + head('Details', { done: true }) + field('Type', 'Drift, boat') + field('Entry', '09:42') +
+      field('Exit', '10:34') + field('Water', 'Salt') + field('Visibility') + field('Current') + field('Entry method') + '</div>';
+  }
+  function notesRead(p) { return '<div class="c">' + head('Notes', { pencil: p }) + '<div>' + noteText + '</div></div>'; }
+  function deco(dim) {
+    return '<div class="c' + (dim ? ' dim' : '') + '">' + head('Deco status', { calc: dim }) + kv('Stops', 'None required') +
+      kv('Surfaced at', 'GF 58%') + '</div>';
+  }
+  function frame(title, text, inner) {
+    return '<div class="frame"><div class="phone">' + inner + '</div><div class="cap"><h3>' + title + '</h3><p>' + text + '</p></div></div>';
+  }
+  function body(parts) { return '<div class="body">' + parts.join('') + '</div>'; }
+
+  document.getElementById('row1').innerHTML =
+    frame('Locked', 'No control that writes. Favourite is shown as a state. History and the lock sit in the top bar.',
+      barLocked() + body([hero(false), profile(false), detailsRead(), notesRead(false), deco(false)])) +
+    frame('Unlocked', 'The bar swaps to Cancel and Save. Cards that can change gain a pencil; calculated cards fade back. Nothing moves.',
+      barEdit('Editing dive 214', false) + body([hero(true), profile(true), detailsRead({ pencil: true }), notesRead(true), deco(true)])) +
+    frame('A card opened', 'Tap a card header and its fields appear in place, including ones with no value yet (dashed).',
+      barEdit('Editing dive 214', false) + body([hero(true), profile(true), detailsOpen(), notesRead(true), deco(true)])) +
+    frame('Changes waiting for Save', 'A changed card carries a dot and Save lights up. Save writes the sitting and locks; Cancel discards it and locks.',
+      barEdit('Editing dive 214', true) + body([hero(true), profile(true), detailsRead({ pencil: true, changed: true }),
+        '<div class="c open">' + head('Notes', { done: true, changed: true }) + '<div class="ta">' + noteText +
+        ' Grey reef count around 30; one eagle ray off the wall.<span class="caret"></span></div></div>', deco(true)]));
+
+  var tagsOpen = '<div class="c open">' + head('Tags', { done: true, changed: true }) + '<div class="chips" style="margin-bottom:6px">' +
+    '<span class="chip">sharks</span><span class="chip">drift</span></div><div class="in" style="display:block;border-color:var(--accent);color:var(--text-tertiary);padding:4px 7px">Add a tag<span class="caret"></span></div></div>';
+  document.getElementById('row2').innerHTML =
+    frame('The Add strip', 'This dive has no equipment, tags or custom fields, and Buddies is hidden by the diver (dashed chip).',
+      barEdit('Editing dive 214', false) + strip(['Equipment', 'Tags', 'Custom fields'], ['Buddies']) +
+      body([hero(true), profile(true), detailsRead({ pencil: true }), notesRead(true), deco(true)])) +
+    frame('After tapping Tags', 'The chip leaves the strip. The Tags card opens between Details and Notes, and the page scrolls to it.',
+      barEdit('Editing dive 214', true) + strip(['Equipment', 'Custom fields'], ['Buddies']) +
+      body([hero(true), profile(true), detailsRead({ pencil: true }), tagsOpen, notesRead(true), deco(true)]));
+
+  var dive = '<div class="c">' + head('Dive') + field('Site') + field('Entry', '14 Nov, 09:30') + field('Exit') + field('Max depth') + field('Type') + '</div>';
+  var tanks = '<div class="c">' + head('Tanks') + field('Tank 1', 'AL80, air') + '<div class="line"><span class="sp"></span><span class="txtbtn">Add tank</span></div></div>';
+  var buddies = '<div class="c">' + head('Buddies') + '<div class="line"><span>No one yet</span><span class="sp"></span><span class="txtbtn">Add buddy</span></div></div>';
+  var notesNew = '<div class="c">' + head('Notes') + '<div class="ta idle">What do you want to remember?</div></div>';
+  document.getElementById('row3').innerHTML =
+    frame('New dive', 'The Dive card plus the starter set: Tanks, Buddies and Notes. Every other card is a chip in the strip.',
+      barEdit('New dive', true) + strip(['Equipment', 'Weights', 'Sightings', 'Tags']) + body([dive, tanks, buddies, notesNew]));
+})();
+</script>
+</body>
+</html>

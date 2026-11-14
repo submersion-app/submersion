@@ -2599,6 +2599,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Back-up maken';
 
   @override
+  String get backup_note_keep_title => 'Deze back-up bewaren';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Vastgemaakte back-ups worden nooit automatisch verwijderd';
+
+  @override
   String get backup_delete_dialog_cancel => 'Annuleren';
 
   @override
@@ -2779,6 +2786,32 @@ class AppLocalizationsNl extends AppLocalizations {
       'Oudere back-ups worden automatisch verwijderd';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Back-ups worden nooit automatisch verwijderd';
+
+  @override
+  String get backup_retention_keepAll => 'Alles bewaren';
+
+  @override
+  String get backup_retention_custom => 'Aangepast aantal…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Aangepast: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Hoeveel back-ups bewaren?';
+
+  @override
+  String get backup_retention_custom_label => 'Aantal back-ups';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Voer een getal van 1 tot $max in';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Back-ups van alle apparaten meetellen';
 
@@ -2790,6 +2823,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'De cloudmap bewaart de laatste $count back-ups van alle apparaten. Vastgemaakte back-ups blijven bewaard. Ook de nieuwste back-up van elk apparaat blijft bewaard, tenzij die ouder is dan 6 maanden. Gebruiken andere apparaten dit ook, dan geldt het kleinste aantal. Werk eerst de app op elk apparaat bij, zodat hun vastgemaakte back-ups zichtbaar zijn.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Alles bewaren staat aan, dus dit apparaat verwijdert geen back-ups uit de cloudmap. Vastgemaakte back-ups blijven bewaard.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9903,6 +9940,31 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recordEdit_unlockTooltip => 'Ontgrendelen om te bewerken';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return '$name bewerken';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return '$card bewerken';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'Niet-opgeslagen wijzigingen';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, verborgen';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'Kon de wijzigingen niet opslaan. Er is niets gewijzigd.';
 
   @override
   String get settings_manage_setupAssistant => 'Configuratie-assistent';
@@ -25853,6 +25915,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Gaswissels handmatig bewerkt';
+
+  @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'Tijdverschuiving van media';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>
@@ -55097,6 +55163,37 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_timeInDive_reset => 'Terugzetten naar automatisch';
 
   @override
+  String get media_timeInDive_shiftAll =>
+      'Alle media van deze duik verschuiven';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'Alle foto\'s en video\'s van deze duik verschuiven evenveel';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'Alle foto\'s en video\'s van deze duik komen $amount eerder te staan';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'Alle foto\'s en video\'s van deze duik komen $amount later te staan';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'De media van deze duik zijn $amount eerder gezet';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'De media van deze duik zijn $amount later gezet';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'Verschuiving verwijderen';
+
+  @override
   String get media_info_store => 'Cloudopslag';
 
   @override
@@ -60388,6 +60485,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Alle back-ups bewaren';
+
+  @override
   String get settings_backups_folder => 'Back-upmap op dit apparaat';
 
   @override
@@ -61272,6 +61372,18 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Elke back-up wordt hier bewaard.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, zolang Submersion open is. Elke back-up wordt hier bewaard.';
+  }
+
+  @override
   String settings_setUpDevice_backups_copy(String account) {
     return 'Ook een kopie in $account bewaren';
   }
@@ -61837,6 +61949,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Dubbele flessen verwijderd';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'Bewerkt: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>

@@ -802,6 +802,35 @@ void main() {
       expect(media.diveId, 't');
     });
 
+    // The secondary's media moves to the target, and the shift that media
+    // is placed by moves with it (issue #4539).
+    test('the shift of the dive that owns the media carries', () async {
+      await seedConsolidatableFixture();
+      await diveRepo.setMediaTimeOffsetSeconds('s', -47);
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final target = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('t'))).getSingle();
+      expect(target.mediaTimeOffsetSeconds, -47);
+    });
+
+    // The target's own media is placed by its zero; taking the secondary's
+    // shift would move it.
+    test('a target that owns media keeps its own shift', () async {
+      await seedConsolidatableFixture();
+      await seedMedia('media-t', diveId: 't');
+      await diveRepo.setMediaTimeOffsetSeconds('s', -47);
+
+      await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+      final target = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('t'))).getSingle();
+      expect(target.mediaTimeOffsetSeconds, 0);
+    });
+
     test(
       'scenario 7: rejects a same-computer selection; nothing written',
       () async {

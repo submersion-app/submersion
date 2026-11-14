@@ -9,6 +9,7 @@ import 'package:submersion/features/tags/presentation/tag_dives_navigation.dart'
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 /// The Tags card.
 class DiveTagsSection extends ConsumerWidget {
@@ -24,20 +25,14 @@ class DiveTagsSection extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  context.l10n.diveLog_detail_section_tags,
-                  style: Theme.of(context).textTheme.titleMedium,
+            RecordCardHeader(
+              title: context.l10n.diveLog_detail_section_tags,
+              trailing: Text(
+                context.l10n.diveLog_detail_tagCount(dive.tags.length),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-                Text(
-                  context.l10n.diveLog_detail_tagCount(dive.tags.length),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+              ),
             ),
             const Divider(),
             Wrap(
@@ -84,10 +79,7 @@ class DiveNotesSection extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              context.l10n.diveLog_detail_section_notes,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            RecordCardHeader(title: context.l10n.diveLog_detail_section_notes),
             const Divider(),
             if (dive.notes.isNotEmpty)
               MarkdownNotesView(

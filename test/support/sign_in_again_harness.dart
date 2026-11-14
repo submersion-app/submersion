@@ -114,7 +114,7 @@ class FakeBackupOp extends StateNotifier<BackupOperationState>
   int performCalls = 0;
 
   @override
-  Future<void> performBackup({String? note}) async {
+  Future<void> performBackup({String? note, bool pin = false}) async {
     performCalls++;
     log.add('backup');
   }

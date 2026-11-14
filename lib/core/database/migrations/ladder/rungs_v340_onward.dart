@@ -206,17 +206,25 @@ extension RungsFromV340 on AppDatabase {
     if (from < 366) await _assertDefaultShowCounterdiffusionColumn();
     if (from < 366) await reportProgress();
 
-    // v367: equipment_attributes.value_unit, the unit an item's own number
+    // v367: dives.media_time_offset_seconds, the correction for a camera
+    // whose clock disagrees with the dive computer's (issue #4539). Column
+    // only, defaulted to 0, so the compatibility floor does not move.
+    // Re-asserted in beforeOpen. Renumbered from 366, which main took for
+    // #4530.
+    if (from < 367) await _assertDiveMediaTimeOffsetColumn();
+    if (from < 367) await reportProgress();
+
+    // v368: equipment_attributes.value_unit, the unit an item's own number
     // reads in (issue #4534). Nullable, no backfill: every existing row
     // follows the diver's settings, as it did. Re-asserted in beforeOpen.
     // The same rung repairs cylinder volumes an imperial diver typed in
     // cubic feet, stored as water volume until now. Data only, so the floor
     // does not move; it rewrites equipment_attributes.value_num, so
     // changeLogRewrittenColumns lists it, and it repeats after each sync
-    // apply for rows a peer below v367 still sends. Renumbered from 366,
-    // which main took for #4530.
-    if (from < 367) await _assertAttributeValueUnitColumn();
-    if (from < 367) await _repairCylinderVolumeCubicFeet();
-    if (from < 367) await reportProgress();
+    // apply for rows a peer below v368 still sends. Renumbered from 366 and
+    // 367, which main took.
+    if (from < 368) await _assertAttributeValueUnitColumn();
+    if (from < 368) await _repairCylinderVolumeCubicFeet();
+    if (from < 368) await reportProgress();
   }
 }

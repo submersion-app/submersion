@@ -346,7 +346,7 @@ void main() {
 
     test(
       'a legacy cuft cylinder that only makes sense as typed cubic feet reads '
-      'back as gas capacity, as the v367 repair reads it',
+      'back as gas capacity, as the v368 repair reads it',
       () {
         // A file written before #4534 from a library with the old bug: the
         // AL80 typed as 77.4 cu ft was stored as ~2192 L and written back out

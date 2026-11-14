@@ -15,6 +15,7 @@ import 'package:submersion/features/media/data/services/photo_picker_service.dar
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
@@ -66,8 +67,10 @@ class MediaImportService {
     LinkedGalleryAssets linkedGalleryAssets = const LinkedGalleryAssets(),
     CloudIdentifierSource? cloudIdentifiers,
     GearPhotoRepository? gearPhotos,
+    Future<DateTime?> Function(String diveId)? primarySourceEntry,
   }) : _mediaRepository = mediaRepository,
        _gearPhotos = gearPhotos,
+       _primarySourceEntry = primarySourceEntry,
        _enrichmentService = enrichmentService,
        _documentsDirectory =
            documentsDirectory ?? getApplicationDocumentsDirectory,
@@ -75,6 +78,11 @@ class MediaImportService {
        _cloudIdentifiers = cloudIdentifiers;
 
   final Future<Directory> Function() _documentsDirectory;
+
+  /// When a dive's primary computer began recording, the instant its profile
+  /// counts from (`DiveRepository.getPrimarySourceEntry`, issue #4539).
+  /// Without one a photo is placed from the dive's own start.
+  final Future<DateTime?> Function(String diveId)? _primarySourceEntry;
 
   /// Gear photo dedupe reads (issue #3355); the default reads the database.
   final GearPhotoRepository? _gearPhotos;
@@ -236,6 +244,13 @@ class MediaImportService {
     }
 
     final cloudIds = await _cloudIdsFor(newAssets);
+    // One read for the whole pick; a dive with no profile places nothing.
+    final clock = dive.profile.isEmpty || newAssets.isEmpty
+        ? null
+        : DiveMediaClock.forDive(
+            dive,
+            primarySourceEntry: await _readPrimarySourceEntry(dive.id),
+          );
     for (final asset in newAssets) {
       try {
         // Create MediaItem
@@ -252,6 +267,7 @@ class MediaImportService {
         final enrichment = _calculateEnrichment(
           asset: asset,
           dive: dive,
+          clock: clock,
           mediaId: saved.id,
         );
 
@@ -458,23 +474,41 @@ class MediaImportService {
     );
   }
 
+  /// The dive's primary source entry, or null when it cannot be read.
+  ///
+  /// Placing a photo is secondary to linking it. A read that fails costs the
+  /// seconds the entry would have restored, which the next backfill puts
+  /// back, and never the import itself.
+  Future<DateTime?> _readPrimarySourceEntry(String diveId) async {
+    try {
+      return await _primarySourceEntry?.call(diveId);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to read primary source entry for dive $diveId; '
+        'placing its new media from the dive start',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
   MediaEnrichment? _calculateEnrichment({
     required AssetInfo asset,
     required Dive dive,
+    required DiveMediaClock? clock,
     required String mediaId,
   }) {
-    // Need dive start time and profile (use effectiveEntryTime which handles the fallback)
-    final diveStartTime = dive.effectiveEntryTime;
     final profile = dive.profile;
 
-    if (profile.isEmpty) {
+    if (profile.isEmpty || clock == null) {
       _log.info('No profile data for dive ${dive.id}, skipping enrichment');
       return null;
     }
 
     final result = _enrichmentService.calculateEnrichment(
       profile: profile,
-      diveStartTime: diveStartTime,
+      diveStartTime: clock.countsFrom,
       photoTime: asset.createDateTime,
     );
 

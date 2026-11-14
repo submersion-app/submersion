@@ -199,7 +199,7 @@ CsvAttribute? parseAttributePair(
       match.group(2)!.trim() == VolumeUnit.cubicFeet.symbol) {
     // A file written before #4534 wrote a cylinder as water cubic feet. From
     // a library with the old bug, a cylinder typed in cubic feet comes back
-    // as an impossible water volume; it is read as the v367 repair reads the
+    // as an impossible water volume; it is read as the v368 repair reads the
     // stored row, the figure typed as gas capacity, so the import does not
     // bring the bug back.
     final figure = double.parse(match.group(1)!);

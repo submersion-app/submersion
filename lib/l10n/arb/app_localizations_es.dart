@@ -2611,6 +2611,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Hacer copia';
 
   @override
+  String get backup_note_keep_title => 'Conservar esta copia';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Las copias ancladas nunca se eliminan automáticamente';
+
+  @override
   String get backup_delete_dialog_cancel => 'Cancelar';
 
   @override
@@ -2795,6 +2802,32 @@ class AppLocalizationsEs extends AppLocalizations {
       'Las copias más antiguas se eliminan automáticamente';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Las copias nunca se eliminan automáticamente';
+
+  @override
+  String get backup_retention_keepAll => 'Conservar todas';
+
+  @override
+  String get backup_retention_custom => 'Número personalizado…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Personalizado: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => '¿Cuántas copias conservar?';
+
+  @override
+  String get backup_retention_custom_label => 'Número de copias';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Introduce un número del 1 al $max';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Contar las copias de todos los dispositivos';
 
@@ -2806,6 +2839,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'La carpeta en la nube conserva las últimas $count copias de seguridad de todos los dispositivos. Las copias ancladas se conservan. También se conserva la copia más reciente de cada dispositivo, salvo que tenga más de 6 meses. Si otros dispositivos también lo usan, gana el número más pequeño. Actualiza primero la app en todos los dispositivos para que se vean sus copias ancladas.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Conservar todas está activado, así que este dispositivo no elimina copias de la carpeta en la nube. Las copias ancladas se conservan.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9968,6 +10005,31 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recordEdit_unlockTooltip => 'Desbloquear para editar';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return 'Editando $name';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return 'Editar $card';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'Cambios sin guardar';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, oculto';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'No se pudieron guardar los cambios. No se realizó ningún cambio.';
 
   @override
   String get settings_manage_setupAssistant => 'Asistente de configuración';
@@ -26013,6 +26075,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Cambios de gas editados a mano';
+
+  @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'Desplazamiento horario del contenido multimedia';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>
@@ -55495,6 +55561,37 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_timeInDive_reset => 'Restablecer a automático';
 
   @override
+  String get media_timeInDive_shiftAll =>
+      'Desplazar todo el contenido multimedia de esta inmersión';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'Todas las fotos y vídeos de esta inmersión se desplazan lo mismo';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'Todas las fotos y vídeos de esta inmersión se desplazan $amount antes';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'Todas las fotos y vídeos de esta inmersión se desplazan $amount después';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'El contenido multimedia de esta inmersión está desplazado $amount antes';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'El contenido multimedia de esta inmersión está desplazado $amount después';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'Quitar desplazamiento';
+
+  @override
   String get media_info_store => 'Almacén en la nube';
 
   @override
@@ -60813,6 +60910,9 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Conservar todas las copias';
+
+  @override
   String get settings_backups_folder => 'Carpeta de copias en este dispositivo';
 
   @override
@@ -61697,6 +61797,18 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Aquí se guardan todas las copias.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, mientras Submersion está abierto. Aquí se guardan todas las copias.';
+  }
+
+  @override
   String settings_setUpDevice_backups_copy(String account) {
     return 'Guardar también una copia en $account';
   }
@@ -62265,6 +62377,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Botellas duplicadas eliminadas';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'Editado: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>

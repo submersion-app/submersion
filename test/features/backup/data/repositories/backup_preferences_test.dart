@@ -195,6 +195,39 @@ void main() {
     });
   });
 
+  group('Keep all (issue #4535)', () {
+    Future<BackupPreferences> withCount(int count) async {
+      SharedPreferences.setMockInitialValues({'backup_retention_count': count});
+      return BackupPreferences(await SharedPreferences.getInstance());
+    }
+
+    test('a count above the custom maximum reads as Keep all', () async {
+      // Shown as Keep all, so it must prune as Keep all too, not as a
+      // finite limit of 10000.
+      final prefs = await withCount(BackupSettings.maxCustomRetentionCount + 1);
+      expect(
+        prefs.getSettings().retentionCount,
+        BackupSettings.keepAllRetentionCount,
+      );
+    });
+
+    test('the sentinel reads back unchanged', () async {
+      final prefs = await withCount(BackupSettings.keepAllRetentionCount);
+      expect(
+        prefs.getSettings().retentionCount,
+        BackupSettings.keepAllRetentionCount,
+      );
+    });
+
+    test('a typed count reads back unchanged', () async {
+      final prefs = await withCount(BackupSettings.maxCustomRetentionCount);
+      expect(
+        prefs.getSettings().retentionCount,
+        BackupSettings.maxCustomRetentionCount,
+      );
+    });
+  });
+
   group('BackupPreferences cross-device retention (#3503)', () {
     test('is off by default', () {
       final settings = backupPreferences.getSettings();

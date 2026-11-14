@@ -2483,6 +2483,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_note_dialog_confirm => '备份';
 
   @override
+  String get backup_note_keep_title => '保留此备份';
+
+  @override
+  String get backup_note_keep_subtitle => '已置顶的备份永远不会被自动删除';
+
+  @override
   String get backup_delete_dialog_cancel => '取消';
 
   @override
@@ -2651,6 +2657,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_schedule_retention_subtitle => '旧备份将自动删除';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle => '备份永远不会被自动删除';
+
+  @override
+  String get backup_retention_keepAll => '全部保留';
+
+  @override
+  String get backup_retention_custom => '自定义数量…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return '自定义：$count';
+  }
+
+  @override
+  String get backup_retention_custom_title => '保留多少个备份？';
+
+  @override
+  String get backup_retention_custom_label => '备份数量';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return '请输入 1 到 $max 之间的数字';
+  }
+
+  @override
   String get backup_retention_allDevices_title => '统计所有设备的备份';
 
   @override
@@ -2660,6 +2691,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return '云文件夹保留所有设备最近的 $count 个备份。已置顶的备份会被保留。 每台设备最新的备份也会保留，除非已超过 6 个月。如果其他设备也开启此项，以最小的数字为准。请先在所有设备上更新应用，以便识别它们置顶的备份。';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      '已开启全部保留，因此此设备不会从云文件夹中删除任何备份。已置顶的备份会被保留。';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9450,6 +9485,30 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recordEdit_unlockTooltip => '解锁以编辑';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return '正在编辑 $name';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return '编辑$card';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => '未保存的更改';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card，已隐藏';
+  }
+
+  @override
+  String get recordEdit_saveFailed => '无法保存更改。未做任何更改。';
 
   @override
   String get settings_manage_setupAssistant => '设置向导';
@@ -24589,6 +24648,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_gasSwitchesEdited => '气体切换已手动编辑';
+
+  @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds => '媒体时间平移';
 
   @override
   String get settings_conflict_field_excludedFromGasStats => '不计入气体统计';
@@ -51996,6 +52058,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_timeInDive_reset => '重置为自动';
 
   @override
+  String get media_timeInDive_shiftAll => '平移本次潜水的所有媒体';
+
+  @override
+  String get media_timeInDive_shiftAllHint => '本次潜水的所有照片和视频将平移相同的时间';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return '本次潜水的所有照片和视频将提前 $amount';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return '本次潜水的所有照片和视频将推后 $amount';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return '本次潜水的媒体已提前 $amount';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return '本次潜水的媒体已推后 $amount';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => '移除平移';
+
+  @override
   String get media_info_store => '云存储';
 
   @override
@@ -57051,6 +57142,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => '保留全部备份';
+
+  @override
   String get settings_backups_folder => '此设备上的备份文件夹';
 
   @override
@@ -57874,6 +57968,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency。此处保留所有备份。';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency，在 Submersion 打开时进行。此处保留所有备份。';
+  }
+
+  @override
   String settings_setUpDevice_backups_copy(String account) {
     return '同时在 $account 中保留一份副本';
   }
@@ -58407,6 +58513,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get changeLog_label_removeDuplicateCylinders => '已移除重复气瓶';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return '已编辑：$cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => '、';
 
   @override
   String get changeLog_undoIncomplete => '撤销未能恢复全部内容。其余内容见 设置 > 数据 > 更改日志。';

@@ -1604,6 +1604,10 @@
   "backup_note_label": "Note (optional)",
   "backup_note_hint": "e.g. Before the Cozumel trip",
   "backup_note_dialog_confirm": "Back Up",
+  "backup_note_keep_title": "Keep this backup",
+  "@backup_note_keep_title": {"description": "Back up now dialog: switch that pins the new backup"},
+  "backup_note_keep_subtitle": "Pinned backups are never removed automatically",
+  "@backup_note_keep_subtitle": {"description": "Back up now dialog: subtitle of the Keep this backup switch"},
   "backup_delete_dialog_cancel": "Cancel",
   "backup_delete_dialog_content": "This backup will be permanently deleted. This cannot be undone.",
   "backup_delete_dialog_content_otherDevice": "This backup is only in your cloud storage, and nothing shows this device made it. It may be another device's only copy, or one this device made before a reinstall. Deleting it cannot be undone.",
@@ -1698,10 +1702,26 @@
     }
   },
   "backup_schedule_retention_subtitle": "Older backups are automatically removed",
+  "backup_schedule_retention_keepAll_subtitle": "Backups are never removed automatically",
+  "@backup_schedule_retention_keepAll_subtitle": {"description": "Advanced: Keep tile subtitle when every backup is kept (issue #4535)"},
+  "backup_retention_keepAll": "Keep all",
+  "@backup_retention_keepAll": {"description": "Keep backups picker: the row that turns automatic removal off"},
+  "backup_retention_custom": "Custom number…",
+  "@backup_retention_custom": {"description": "Keep backups picker: the row that opens a number field"},
+  "backup_retention_customCurrent": "Custom: {count}",
+  "@backup_retention_customCurrent": {"description": "Keep backups picker: the custom row when the current count is a typed one", "placeholders": {"count": {"type": "int"}}},
+  "backup_retention_custom_title": "Keep how many backups?",
+  "@backup_retention_custom_title": {"description": "Title of the dialog for typing a backup count"},
+  "backup_retention_custom_label": "Number of backups",
+  "@backup_retention_custom_label": {"description": "Label of the number field in the custom backup count dialog"},
+  "backup_retention_custom_error": "Enter a number from 1 to {max}",
+  "@backup_retention_custom_error": {"description": "Error under the custom backup count field", "placeholders": {"max": {"type": "int"}}},
   "backup_retention_allDevices_title": "Count backups from all devices",
   "backup_retention_allDevices_off": "Off: this device removes only the backups it made",
   "backup_retention_allDevices_on": "The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. Each device's newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.",
   "@backup_retention_allDevices_on": {"placeholders": {"count": {"type": "int"}}},
+  "backup_retention_allDevices_onKeepAll": "Keep all is on, so this device removes no backups from the cloud folder. Pinned backups are kept.",
+  "@backup_retention_allDevices_onKeepAll": {"description": "Count backups from all devices, on, while Keep all is chosen"},
   "backup_retention_cloudFootprint": "{count, plural, one{{count} backup in the cloud folder uses {size}} other{{count} backups in the cloud folder use {size}}}",
   "@backup_retention_cloudFootprint": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}}},
   "backup_retention_confirm_title": "{count, plural, one{Remove {count} backup?} other{Remove {count} backups?}}",
@@ -5896,6 +5916,45 @@
         "type": "int"
       }
     }
+  },
+  "recordEdit_unlockTooltip": "Unlock to edit",
+  "@recordEdit_unlockTooltip": {
+    "description": "Tooltip of the lock button in a record page's top bar."
+  },
+  "recordEdit_editingTitle": "Editing {name}",
+  "@recordEdit_editingTitle": {
+    "description": "Top bar title while a record is unlocked for editing.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recordEdit_editCardTooltip": "Edit {card}",
+  "@recordEdit_editCardTooltip": {
+    "description": "Tooltip of the pencil that opens a card for editing.",
+    "placeholders": {
+      "card": {
+        "type": "String"
+      }
+    }
+  },
+  "recordEdit_unsavedChanges": "Unsaved changes",
+  "@recordEdit_unsavedChanges": {
+    "description": "Spoken label of the dot on a card that has changes not yet saved."
+  },
+  "recordEdit_hiddenCard": "{card}, hidden",
+  "@recordEdit_hiddenCard": {
+    "description": "Spoken label of an Add strip chip for a card the diver has hidden.",
+    "placeholders": {
+      "card": {
+        "type": "String"
+      }
+    }
+  },
+  "recordEdit_saveFailed": "Couldn't save your changes. Nothing was changed.",
+  "@recordEdit_saveFailed": {
+    "description": "Message shown when saving an unlocked record fails."
   },
   "settings_manage_setupAssistant": "Setup assistant",
   "settings_manage_setupAssistant_subtitle": "Revisit units, backups, sync and photos",
@@ -15849,6 +15908,7 @@
   "settings_conflict_field_evidence": "Evidence",
   "settings_conflict_field_evidenceFingerprint": "Evidence fingerprint",
   "settings_conflict_field_gasSwitchesEdited": "Gas switches edited by hand",
+  "settings_conflict_field_mediaTimeOffsetSeconds": "Media time shift",
   "settings_conflict_field_excludedFromGasStats": "Left out of gas statistics",
   "settings_conflict_field_excludedFromStats": "Left out of statistics",
   "settings_conflict_field_exitLatitude": "Exit latitude",
@@ -33173,6 +33233,54 @@
   "@media_timeInDive_reset": {
     "description": "Set-time dialog: button that removes the diver's pin so the position derives from the capture time again."
   },
+  "media_timeInDive_shiftAll": "Shift all media on this dive",
+  "@media_timeInDive_shiftAll": {
+    "description": "Set-time dialog: switch that makes Save move every photo and video on the dive, not only this one, to correct a camera clock that disagrees with the dive computer."
+  },
+  "media_timeInDive_shiftAllHint": "Every photo and video on this dive moves by the same amount",
+  "@media_timeInDive_shiftAllHint": {
+    "description": "Set-time dialog: text under the shift-all switch while the chosen time is the item's automatic one, so nothing would move yet."
+  },
+  "media_timeInDive_shiftAllEarlier": "Every photo and video on this dive moves {amount} earlier",
+  "@media_timeInDive_shiftAllEarlier": {
+    "description": "Set-time dialog: text under the shift-all switch; {amount} is how far the dive's media would move towards the dive start, as minutes:seconds.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "media_timeInDive_shiftAllLater": "Every photo and video on this dive moves {amount} later",
+  "@media_timeInDive_shiftAllLater": {
+    "description": "Set-time dialog: text under the shift-all switch; {amount} is how far the dive's media would move towards the dive end, as minutes:seconds.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "media_timeInDive_diveShiftEarlier": "Media on this dive is shifted {amount} earlier",
+  "@media_timeInDive_diveShiftEarlier": {
+    "description": "Set-time dialog: the shift this dive already applies to its media, towards the dive start; {amount} is minutes:seconds.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "media_timeInDive_diveShiftLater": "Media on this dive is shifted {amount} later",
+  "@media_timeInDive_diveShiftLater": {
+    "description": "Set-time dialog: the shift this dive already applies to its media, towards the dive end; {amount} is minutes:seconds.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "media_timeInDive_removeShift": "Remove shift",
+  "@media_timeInDive_removeShift": {
+    "description": "Set-time dialog: button that removes the dive's media time shift so its photos and videos sit by capture time again."
+  },
   "media_info_store": "Cloud store",
   "media_info_storeNotConnected": "No cloud store connected",
   "media_info_notEligible": "This source is not eligible for backup",
@@ -36257,6 +36365,8 @@
   "@settings_backups_restoreFile": {"description": "Restore the library from a backup file the diver picks"},
   "settings_backups_keepLast": "Keep the last {count} backups",
   "@settings_backups_keepLast": {"description": "Advanced: how many backups are kept before older ones are removed", "placeholders": {"count": {"type": "int"}}},
+  "settings_backups_keepAll": "Keep all backups",
+  "@settings_backups_keepAll": {"description": "Advanced: Keep tile title when every backup is kept (issue #4535)"},
   "settings_backups_folder": "Backup folder on this device",
   "@settings_backups_folder": {"description": "Advanced: the folder on this device that backups are written to"},
   "settings_backups_useDefault": "Use default",
@@ -36588,6 +36698,10 @@
   "@settings_setUpDevice_backups_autoDetail": {"description": "Subtitle of Back up automatically in step 3; frequency is like Weekly", "placeholders": {"frequency": {"type": "String"}, "count": {"type": "int"}}},
   "settings_setUpDevice_backups_autoDetailDesktop": "{frequency}, while Submersion is open. The last {count} are kept here.",
   "@settings_setUpDevice_backups_autoDetailDesktop": {"description": "Subtitle of Back up automatically in step 3 on a computer; frequency is like Weekly", "placeholders": {"frequency": {"type": "String"}, "count": {"type": "int"}}},
+  "settings_setUpDevice_backups_autoDetailKeepAll": "{frequency}. Every backup is kept here.",
+  "@settings_setUpDevice_backups_autoDetailKeepAll": {"description": "Subtitle of Back up automatically in step 3 when every backup is kept; frequency is like Weekly", "placeholders": {"frequency": {"type": "String"}}},
+  "settings_setUpDevice_backups_autoDetailDesktopKeepAll": "{frequency}, while Submersion is open. Every backup is kept here.",
+  "@settings_setUpDevice_backups_autoDetailDesktopKeepAll": {"description": "Subtitle of Back up automatically in step 3 on a computer when every backup is kept; frequency is like Weekly", "placeholders": {"frequency": {"type": "String"}}},
   "settings_setUpDevice_backups_copy": "Also keep a copy in {account}",
   "@settings_setUpDevice_backups_copy": {"description": "Step 3 switch: also copy each backup to an account", "placeholders": {"account": {"type": "String"}}},
   "settings_setUpDevice_backups_noAccount": "A copy off this device needs an account or a backup folder.",
@@ -36843,6 +36957,19 @@
   "changeLog_label_removeDuplicateCylinders": "Removed duplicate cylinders",
   "@changeLog_label_removeDuplicateCylinders": {
     "description": "Change log entry title for merging duplicate cylinders on dives."
+  },
+  "changeLog_label_recordEdit": "Edited: {cards}",
+  "@changeLog_label_recordEdit": {
+    "description": "Change log entry title for one editing sitting. cards is a list of card titles, already joined.",
+    "placeholders": {
+      "cards": {
+        "type": "String"
+      }
+    }
+  },
+  "changeLog_label_recordEditSeparator": ", ",
+  "@changeLog_label_recordEditSeparator": {
+    "description": "Separator between card titles in changeLog_label_recordEdit, such as \", \" in English."
   },
   "changeLog_undoIncomplete": "Undo could not put everything back. The rest is in Settings > Data > Change log.",
   "@changeLog_undoIncomplete": {

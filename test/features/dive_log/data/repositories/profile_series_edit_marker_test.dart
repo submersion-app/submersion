@@ -377,7 +377,7 @@ void main() {
       await seedSource('comp-a');
       final ids = await reactivateOriginal('comp-a');
 
-      await series.relinkComputer('comp-1', [diveId], sourceIds: ['comp-a']);
+      await series.relinkComputer('comp-1', [diveId], sourceIds: {'comp-a'});
 
       final rows = await rowsById();
       expect(rows[ids.edit]!.computerId, isNull);

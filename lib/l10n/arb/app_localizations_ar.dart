@@ -2675,6 +2675,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_note_dialog_confirm => 'نسخ احتياطي';
 
   @override
+  String get backup_note_keep_title => 'الاحتفاظ بهذه النسخة';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'لا تتم إزالة النسخ المثبتة تلقائياً أبداً';
+
+  @override
   String get backup_delete_dialog_cancel => 'إلغاء';
 
   @override
@@ -2854,6 +2861,33 @@ class AppLocalizationsAr extends AppLocalizations {
       'تتم إزالة النسخ الاحتياطية القديمة تلقائياً';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'لا تتم إزالة النسخ الاحتياطية تلقائياً أبداً';
+
+  @override
+  String get backup_retention_keepAll => 'الاحتفاظ بالكل';
+
+  @override
+  String get backup_retention_custom => 'عدد مخصص…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'مخصص: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title =>
+      'كم نسخة احتياطية تريد الاحتفاظ بها؟';
+
+  @override
+  String get backup_retention_custom_label => 'عدد النسخ الاحتياطية';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'أدخل رقماً من 1 إلى $max';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'احتساب النسخ الاحتياطية من كل الأجهزة';
 
@@ -2865,6 +2899,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'يحتفظ مجلد السحابة بأحدث النسخ الاحتياطية من كل الأجهزة، وعددها $count. تُحفظ النسخ المثبتة. تُحفظ أيضًا أحدث نسخة من كل جهاز ما لم يمضِ عليها أكثر من 6 أشهر. إذا استخدمت أجهزة أخرى هذا الخيار أيضًا، فالعدد الأصغر هو المعتمد. حدّث التطبيق على كل الأجهزة أولًا حتى تظهر النسخ المثبتة عليها.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'خيار الاحتفاظ بالكل مفعّل، لذا لا يزيل هذا الجهاز أي نسخ احتياطية من مجلد السحابة. تُحفظ النسخ المثبتة.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -10115,6 +10153,30 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recordEdit_unlockTooltip => 'إلغاء القفل للتعديل';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return 'تعديل $name';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return 'تعديل $card';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'تغييرات غير محفوظة';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card، مخفي';
+  }
+
+  @override
+  String get recordEdit_saveFailed => 'تعذّر حفظ التغييرات. لم يتغيّر شيء.';
 
   @override
   String get settings_manage_setupAssistant => 'مساعد الإعداد';
@@ -26340,6 +26402,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'تبديلات الغاز معدّلة يدويًا';
+
+  @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'إزاحة وقت الوسائط';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>
@@ -56235,6 +56301,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_timeInDive_reset => 'إعادة التعيين إلى التلقائي';
 
   @override
+  String get media_timeInDive_shiftAll => 'إزاحة جميع وسائط هذه الغوصة';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'تُزاح جميع صور ومقاطع فيديو هذه الغوصة بالمقدار نفسه';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'تُزاح جميع صور ومقاطع فيديو هذه الغوصة $amount للخلف';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'تُزاح جميع صور ومقاطع فيديو هذه الغوصة $amount للأمام';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'وسائط هذه الغوصة مُزاحة $amount للخلف';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'وسائط هذه الغوصة مُزاحة $amount للأمام';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'إزالة الإزاحة';
+
+  @override
   String get media_info_store => 'التخزين السحابي';
 
   @override
@@ -61592,6 +61688,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'الاحتفاظ بكل النسخ الاحتياطية';
+
+  @override
   String get settings_backups_folder => 'مجلد النسخ الاحتياطي على هذا الجهاز';
 
   @override
@@ -62559,6 +62658,18 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. تُحفظ هنا كل النسخ.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency، أثناء فتح Submersion. تُحفظ هنا كل النسخ.';
+  }
+
+  @override
   String settings_setUpDevice_backups_copy(String account) {
     return 'الاحتفاظ أيضًا بنسخة في $account';
   }
@@ -63125,6 +63236,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'إزالة الأسطوانات المكررة';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'تم التعديل: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => '، ';
 
   @override
   String get changeLog_undoIncomplete =>

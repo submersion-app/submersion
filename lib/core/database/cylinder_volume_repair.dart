@@ -4,14 +4,14 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 
 /// Above this many litres a cylinder's stored volume can only be cubic feet
-/// typed as water (v367, issue #4534): no scuba cylinder is this large, while
+/// typed as water (v368, issue #4534): no scuba cylinder is this large, while
 /// the smallest imperial figure stored that way (a 3 cu ft spare air) lands
 /// near 85 L. Gas banks, typically 50 L, stay below it.
 const double cylinderVolumeRepairThresholdLiters = 80;
 
 /// The unit a save stores with attribute [key]: [valueUnit] as given, or
 /// `liters` for a cylinder volume above the repair line, which a diver
-/// entered on purpose since v367 and [repairCylinderVolumeCubicFeet] must
+/// entered on purpose since v368 and [repairCylinderVolumeCubicFeet] must
 /// never touch when it repeats after a sync apply. Every writer of attribute
 /// rows (the repository, the agent's plan) applies it, so they agree.
 String? stampedCylinderVolumeUnit(
@@ -25,7 +25,7 @@ String? stampedCylinderVolumeUnit(
         : null);
 
 /// Rewrites every cylinder volume an imperial diver typed in cubic feet
-/// before v367, and returns how many it rewrote.
+/// before v368, and returns how many it rewrote.
 ///
 /// The equipment form read the figure as cubic feet of WATER, so an AL80
 /// typed as 77.4 was stored as about 2192 L. The stored litres convert back
@@ -36,11 +36,11 @@ String? stampedCylinderVolumeUnit(
 ///
 /// A row with a `value_unit` was saved by a build that knows cubic feet
 /// mean gas capacity, so it is never touched: a cylinder above the line
-/// saved since v367 is stamped `liters` (`EquipmentRepository.saveAttributes`)
+/// saved since v368 is stamped `liters` (`EquipmentRepository.saveAttributes`)
 /// and stays as entered when the repair repeats after a sync apply.
 ///
 /// The sync stamp (`updated_at`, `hlc`) does not move: every device runs this
-/// same rewrite, and a row that arrives later from a peer below v367 is
+/// same rewrite, and a row that arrives later from a peer below v368 is
 /// repaired after the apply (`SyncService._repairLegacyPeerRows`).
 ///
 /// Raw SQL, as the other ladder helpers, so it keeps compiling against any

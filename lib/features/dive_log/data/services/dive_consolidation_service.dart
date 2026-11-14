@@ -821,10 +821,15 @@ class DiveConsolidationService {
       // an earlier file import logged without its site or runtime when the
       // file is re-imported and consolidated (#1809). The column rules live
       // in dive_consolidation_field_fill.dart (#2932).
-      final fieldFill = consolidationFieldFill(targetRow, [
-        for (final secondary in plan.secondaries)
-          snapshot.diveRows.firstWhere((r) => r.id == secondary.id),
-      ], targetHasProfile: plan.primary.profile.isNotEmpty);
+      final fieldFill = consolidationFieldFill(
+        targetRow,
+        [
+          for (final secondary in plan.secondaries)
+            snapshot.diveRows.firstWhere((r) => r.id == secondary.id),
+        ],
+        targetHasProfile: plan.primary.profile.isNotEmpty,
+        diveIdsWithMedia: snapshot.mediaDiveIds.values.toSet(),
+      );
       // The events above came across under fresh ids, so annotation links in
       // Notes a secondary fills in follow them (#4109).
       if (fieldFill['notes'] case final Variable<String> notes) {

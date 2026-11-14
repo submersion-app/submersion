@@ -2604,6 +2604,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Mentés';
 
   @override
+  String get backup_note_keep_title => 'A mentés megtartása';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'A rögzített mentések soha nem kerülnek automatikusan eltávolításra';
+
+  @override
   String get backup_delete_dialog_cancel => 'Mégse';
 
   @override
@@ -2786,6 +2793,32 @@ class AppLocalizationsHu extends AppLocalizations {
       'A régebbi mentések automatikusan eltávolításra kerülnek';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'A mentések soha nem kerülnek automatikusan eltávolításra';
+
+  @override
+  String get backup_retention_keepAll => 'Összes megtartása';
+
+  @override
+  String get backup_retention_custom => 'Egyéni szám…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Egyéni: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Hány mentést tartson meg?';
+
+  @override
+  String get backup_retention_custom_label => 'Mentések száma';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Adjon meg egy számot 1 és $max között';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Az összes eszköz mentéseinek számolása';
 
@@ -2797,6 +2830,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'A felhőmappa az összes eszközről az utolsó $count biztonsági mentést tartja meg. A rögzített mentések megmaradnak. Minden eszköz legutóbbi mentése is megmarad, hacsak nem régebbi 6 hónapnál. Ha más eszközök is ezt használják, a legkisebb szám érvényes. Először minden eszközön frissíteni kell az alkalmazást, hogy a rögzítéseik láthatók legyenek.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Az Összes megtartása be van kapcsolva, így ez az eszköz nem távolít el mentést a felhőmappából. A rögzített mentések megmaradnak.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9942,6 +9979,31 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recordEdit_unlockTooltip => 'Feloldás a szerkesztéshez';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return '$name szerkesztése';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return '$card szerkesztése';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'Nem mentett módosítások';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, rejtett';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'Nem sikerült menteni a módosításokat. Semmi sem változott.';
 
   @override
   String get settings_manage_setupAssistant => 'Beállítási varázsló';
@@ -25919,6 +25981,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Gázváltások kézzel szerkesztve';
+
+  @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'Média időeltolása';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>
@@ -55152,6 +55218,37 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_timeInDive_reset => 'Visszaállítás automatikusra';
 
   @override
+  String get media_timeInDive_shiftAll =>
+      'A merülés összes médiájának eltolása';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'A merülés minden fotója és videója ugyanannyival tolódik el';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'A merülés minden fotója és videója $amount értékkel korábbra tolódik';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'A merülés minden fotója és videója $amount értékkel későbbre tolódik';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'A merülés médiái $amount értékkel korábbra vannak tolva';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'A merülés médiái $amount értékkel későbbre vannak tolva';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'Eltolás eltávolítása';
+
+  @override
   String get media_info_store => 'Felhő tárhely';
 
   @override
@@ -60451,6 +60548,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Összes mentés megtartása';
+
+  @override
   String get settings_backups_folder => 'Mentési mappa ezen az eszközön';
 
   @override
@@ -61322,6 +61422,18 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Itt minden mentés megmarad.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, amíg a Submersion meg van nyitva. Itt minden mentés megmarad.';
+  }
+
+  @override
   String settings_setUpDevice_backups_copy(String account) {
     return 'Másolat megőrzése itt is: $account';
   }
@@ -61887,6 +61999,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Ismétlődő palackok eltávolítva';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'Szerkesztve: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>

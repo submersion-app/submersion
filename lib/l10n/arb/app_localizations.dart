@@ -4042,6 +4042,18 @@ abstract class AppLocalizations {
   /// **'Back Up'**
   String get backup_note_dialog_confirm;
 
+  /// Back up now dialog: switch that pins the new backup
+  ///
+  /// In en, this message translates to:
+  /// **'Keep this backup'**
+  String get backup_note_keep_title;
+
+  /// Back up now dialog: subtitle of the Keep this backup switch
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned backups are never removed automatically'**
+  String get backup_note_keep_subtitle;
+
   /// No description provided for @backup_delete_dialog_cancel.
   ///
   /// In en, this message translates to:
@@ -4348,6 +4360,48 @@ abstract class AppLocalizations {
   /// **'Older backups are automatically removed'**
   String get backup_schedule_retention_subtitle;
 
+  /// Advanced: Keep tile subtitle when every backup is kept (issue #4535)
+  ///
+  /// In en, this message translates to:
+  /// **'Backups are never removed automatically'**
+  String get backup_schedule_retention_keepAll_subtitle;
+
+  /// Keep backups picker: the row that turns automatic removal off
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all'**
+  String get backup_retention_keepAll;
+
+  /// Keep backups picker: the row that opens a number field
+  ///
+  /// In en, this message translates to:
+  /// **'Custom number…'**
+  String get backup_retention_custom;
+
+  /// Keep backups picker: the custom row when the current count is a typed one
+  ///
+  /// In en, this message translates to:
+  /// **'Custom: {count}'**
+  String backup_retention_customCurrent(int count);
+
+  /// Title of the dialog for typing a backup count
+  ///
+  /// In en, this message translates to:
+  /// **'Keep how many backups?'**
+  String get backup_retention_custom_title;
+
+  /// Label of the number field in the custom backup count dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Number of backups'**
+  String get backup_retention_custom_label;
+
+  /// Error under the custom backup count field
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number from 1 to {max}'**
+  String backup_retention_custom_error(int max);
+
   /// No description provided for @backup_retention_allDevices_title.
   ///
   /// In en, this message translates to:
@@ -4365,6 +4419,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. Each device\'s newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.'**
   String backup_retention_allDevices_on(int count);
+
+  /// Count backups from all devices, on, while Keep all is chosen
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all is on, so this device removes no backups from the cloud folder. Pinned backups are kept.'**
+  String get backup_retention_allDevices_onKeepAll;
 
   /// No description provided for @backup_retention_cloudFootprint.
   ///
@@ -15654,6 +15714,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{1 issue} other{{count} issues}}'**
   String forms_section_issues(int count);
+
+  /// Tooltip of the lock button in a record page's top bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to edit'**
+  String get recordEdit_unlockTooltip;
+
+  /// Top bar title while a record is unlocked for editing.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing {name}'**
+  String recordEdit_editingTitle(String name);
+
+  /// Tooltip of the pencil that opens a card for editing.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {card}'**
+  String recordEdit_editCardTooltip(String card);
+
+  /// Spoken label of the dot on a card that has changes not yet saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved changes'**
+  String get recordEdit_unsavedChanges;
+
+  /// Spoken label of an Add strip chip for a card the diver has hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'{card}, hidden'**
+  String recordEdit_hiddenCard(String card);
+
+  /// Message shown when saving an unlocked record fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save your changes. Nothing was changed.'**
+  String get recordEdit_saveFailed;
 
   /// No description provided for @settings_manage_setupAssistant.
   ///
@@ -41087,6 +41183,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas switches edited by hand'**
   String get settings_conflict_field_gasSwitchesEdited;
+
+  /// No description provided for @settings_conflict_field_mediaTimeOffsetSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Media time shift'**
+  String get settings_conflict_field_mediaTimeOffsetSeconds;
 
   /// No description provided for @settings_conflict_field_excludedFromGasStats.
   ///
@@ -87098,6 +87200,48 @@ abstract class AppLocalizations {
   /// **'Reset to automatic'**
   String get media_timeInDive_reset;
 
+  /// Set-time dialog: switch that makes Save move every photo and video on the dive, not only this one, to correct a camera clock that disagrees with the dive computer.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift all media on this dive'**
+  String get media_timeInDive_shiftAll;
+
+  /// Set-time dialog: text under the shift-all switch while the chosen time is the item's automatic one, so nothing would move yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Every photo and video on this dive moves by the same amount'**
+  String get media_timeInDive_shiftAllHint;
+
+  /// Set-time dialog: text under the shift-all switch; {amount} is how far the dive's media would move towards the dive start, as minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Every photo and video on this dive moves {amount} earlier'**
+  String media_timeInDive_shiftAllEarlier(String amount);
+
+  /// Set-time dialog: text under the shift-all switch; {amount} is how far the dive's media would move towards the dive end, as minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Every photo and video on this dive moves {amount} later'**
+  String media_timeInDive_shiftAllLater(String amount);
+
+  /// Set-time dialog: the shift this dive already applies to its media, towards the dive start; {amount} is minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Media on this dive is shifted {amount} earlier'**
+  String media_timeInDive_diveShiftEarlier(String amount);
+
+  /// Set-time dialog: the shift this dive already applies to its media, towards the dive end; {amount} is minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Media on this dive is shifted {amount} later'**
+  String media_timeInDive_diveShiftLater(String amount);
+
+  /// Set-time dialog: button that removes the dive's media time shift so its photos and videos sit by capture time again.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove shift'**
+  String get media_timeInDive_removeShift;
+
   /// No description provided for @media_info_store.
   ///
   /// In en, this message translates to:
@@ -95741,6 +95885,12 @@ abstract class AppLocalizations {
   /// **'Keep the last {count} backups'**
   String settings_backups_keepLast(int count);
 
+  /// Advanced: Keep tile title when every backup is kept (issue #4535)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all backups'**
+  String get settings_backups_keepAll;
+
   /// Advanced: the folder on this device that backups are written to
   ///
   /// In en, this message translates to:
@@ -96804,6 +96954,20 @@ abstract class AppLocalizations {
     int count,
   );
 
+  /// Subtitle of Back up automatically in step 3 when every backup is kept; frequency is like Weekly
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency}. Every backup is kept here.'**
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency);
+
+  /// Subtitle of Back up automatically in step 3 on a computer when every backup is kept; frequency is like Weekly
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency}, while Submersion is open. Every backup is kept here.'**
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  );
+
   /// Step 3 switch: also copy each backup to an account
   ///
   /// In en, this message translates to:
@@ -97691,6 +97855,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed duplicate cylinders'**
   String get changeLog_label_removeDuplicateCylinders;
+
+  /// Change log entry title for one editing sitting. cards is a list of card titles, already joined.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited: {cards}'**
+  String changeLog_label_recordEdit(String cards);
+
+  /// Separator between card titles in changeLog_label_recordEdit, such as ", " in English.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get changeLog_label_recordEditSeparator;
 
   /// Snackbar shown when an Undo that reverts a change log operation left some records unrestored.
   ///

@@ -2107,7 +2107,7 @@ class EquipmentRepository {
         equipmentId: equipmentId,
         id: EquipmentAttribute.curatedId(equipmentId, a.key),
         // A cylinder this large was entered on purpose, never typed as water
-        // cubic feet: the stamp keeps the v367 repair, which repeats after
+        // cubic feet: the stamp keeps the v368 repair, which repeats after
         // every sync apply, away from it (issue #4534).
         valueUnit: stampedCylinderVolumeUnit(a.key, a.valueNum, a.valueUnit),
       );

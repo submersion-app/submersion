@@ -328,7 +328,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 367;
+  static const int currentSchemaVersion = 368;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1700,11 +1700,16 @@ class AppDatabase extends _$AppDatabase {
     // (issue #4530). Additive and defaulted off; the floor does not move.
     // Renumbered from 365, which main took for #4537.
     366,
-    // v367: equipment_attributes.value_unit, the unit an item's own number
+    // v367: dives.media_time_offset_seconds, the correction for a camera
+    // whose clock disagrees with the dive computer's (issue #4539). A
+    // defaulted column an older peer omits, so the floor does not move.
+    // Renumbered from 366, which main took for #4530.
+    367,
+    // v368: equipment_attributes.value_unit, the unit an item's own number
     // reads in, and the repair of cylinder volumes saved as water cubic feet
     // (issue #4534). Nullable column plus a data repair, so the floor does
-    // not move. Renumbered from 366, which main took for #4530.
-    367,
+    // not move. Renumbered from 366 and 367, which main took.
+    368,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

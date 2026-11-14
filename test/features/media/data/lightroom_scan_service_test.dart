@@ -1,5 +1,8 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/database/database.dart'
+    show AppDatabase, DiveDataSourcesCompanion;
 import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/services/lightroom/lightroom_models.dart';
@@ -125,7 +128,34 @@ class _PagingLightroomApi extends LightroomApiClient {
   }
 }
 
+/// Counts the reads a scan makes to place media on a dive, forwarding them
+/// to a real repository. A scan of dives it is handed uses no other method.
+class _CountingDiveRepository implements DiveRepository {
+  _CountingDiveRepository(this._inner);
+
+  final DiveRepository _inner;
+  final diveLoads = <String>[];
+  final sourceEntryReads = <String>[];
+
+  @override
+  Future<Dive?> getDiveById(String id) {
+    diveLoads.add(id);
+    return _inner.getDiveById(id);
+  }
+
+  @override
+  Future<DateTime?> getPrimarySourceEntry(String diveId) {
+    sourceEntryReads.add(diveId);
+    return _inner.getPrimarySourceEntry(diveId);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} is not stubbed');
+}
+
 void main() {
+  late AppDatabase db;
   late MediaRepository mediaRepository;
   late DiveRepository diveRepository;
   late LightroomConnectorState state;
@@ -141,7 +171,7 @@ void main() {
   );
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     mediaRepository = MediaRepository();
@@ -357,6 +387,145 @@ void main() {
     expect(item.enrichment, isNotNull);
     expect(item.enrichment!.depthMeters, 18.0);
     expect(enqueued, [item.id]);
+  });
+
+  // Issue #4539: the dive is logged at 10:00:00, its computer began at
+  // 10:00:30, and the camera runs 30 seconds ahead. A shot stamped 10:31:00
+  // was taken at the computer's 10:30:30, 1800 s into the profile.
+  test("places a new asset on the dive's media clock", () async {
+    final dive = await createDive(
+      entry: DateTime.utc(2026, 7, 1, 10),
+      exit: DateTime.utc(2026, 7, 1, 11),
+    );
+    await ProfileSeriesRepository().insertSeries(
+      diveId: dive.id,
+      samples: [
+        for (final (ts, depth) in const [(0, 0.0), (1800, 18.0), (3600, 0.0)])
+          ProfileSample(timestamp: ts, depth: depth),
+      ],
+    );
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion.insert(
+            id: 'src1',
+            diveId: dive.id,
+            isPrimary: const Value(true),
+            entryTime: Value(DateTime.utc(2026, 7, 1, 10, 0, 30)),
+            importedAt: DateTime.utc(2026, 7, 2),
+            createdAt: DateTime.utc(2026, 7, 2),
+          ),
+        );
+    await diveRepository.setMediaTimeOffsetSeconds(dive.id, -30);
+
+    final api = _FakeLightroomApi(
+      assets: [
+        LightroomAsset(
+          id: 'lr1',
+          subtype: 'image',
+          captureDate: DateTime.utc(2026, 7, 1, 10, 31),
+          fileName: 'reef.jpg',
+        ),
+      ],
+    );
+    await service(api).scanDives(account: account, dives: [dive], state: state);
+
+    final item = (await mediaRepository.getMediaForDive(dive.id)).single;
+    expect(item.enrichment!.elapsedSeconds, 1800);
+    expect(item.enrichment!.depthMeters, 18.0);
+  });
+
+  // The camera runs six hours ahead, so it stamped the dive's 10:30 as
+  // 16:30. Matched on the dive's own clock that asset is nowhere near the
+  // dive; matched on the clock it is placed by, it is in the middle of it.
+  test("matches an asset on the dive's media clock", () async {
+    final dive = await createDive(
+      entry: DateTime.utc(2026, 7, 1, 10),
+      exit: DateTime.utc(2026, 7, 1, 11),
+    );
+    await ProfileSeriesRepository().insertSeries(
+      diveId: dive.id,
+      samples: [
+        for (final (ts, depth) in const [(0, 0.0), (1800, 18.0), (3600, 0.0)])
+          ProfileSample(timestamp: ts, depth: depth),
+      ],
+    );
+    await diveRepository.setMediaTimeOffsetSeconds(dive.id, -21600);
+    final shifted = (await diveRepository.getDiveById(dive.id))!;
+
+    final api = _FakeLightroomApi(
+      assets: [
+        LightroomAsset(
+          id: 'onCameraClock',
+          subtype: 'image',
+          captureDate: DateTime.utc(2026, 7, 1, 16, 30),
+          fileName: 'reef.jpg',
+        ),
+        // Inside the dive's own window, which is not when this camera says
+        // the dive happened.
+        LightroomAsset(
+          id: 'onDiveClock',
+          subtype: 'image',
+          captureDate: DateTime.utc(2026, 7, 1, 10, 30),
+          fileName: 'other.jpg',
+        ),
+      ],
+    );
+    final summary = await service(
+      api,
+    ).scanDives(account: account, dives: [shifted], state: state);
+
+    expect(summary.attached, 1);
+    final item = (await mediaRepository.getMediaForDive(dive.id)).single;
+    expect(item.remoteAssetId, 'onCameraClock');
+    expect(item.enrichment!.elapsedSeconds, 1800);
+    expect(item.enrichment!.depthMeters, 18.0);
+  });
+
+  // A card of photos from one dive must not load that dive, profile and
+  // all, once per photo.
+  test('a scan reads each dive it places media on once', () async {
+    final counting = _CountingDiveRepository(diveRepository);
+    final dive = await createDive(
+      entry: DateTime.utc(2026, 7, 1, 10),
+      exit: DateTime.utc(2026, 7, 1, 11),
+    );
+    await ProfileSeriesRepository().insertSeries(
+      diveId: dive.id,
+      samples: [
+        for (final (ts, depth) in const [(0, 0.0), (1800, 18.0), (3600, 0.0)])
+          ProfileSample(timestamp: ts, depth: depth),
+      ],
+    );
+    final api = _FakeLightroomApi(
+      assets: [
+        for (final minute in const [10, 20, 30])
+          LightroomAsset(
+            id: 'lr$minute',
+            subtype: 'image',
+            captureDate: DateTime.utc(2026, 7, 1, 10, minute),
+            fileName: 'reef$minute.jpg',
+          ),
+      ],
+    );
+
+    final summary = await LightroomScanService(
+      api: api,
+      mediaRepository: mediaRepository,
+      diveRepository: counting,
+      enqueueUpload: enqueued.add,
+      now: () => DateTime.utc(2026, 7, 11, 12),
+    ).scanDives(account: account, dives: [dive], state: state);
+
+    expect(summary.attached, 3);
+    expect(counting.diveLoads, [dive.id]);
+    expect(counting.sourceEntryReads, [dive.id]);
+    final media = await mediaRepository.getMediaForDive(dive.id);
+    expect(media.map((m) => m.enrichment?.elapsedSeconds).toSet(), {
+      600,
+      1200,
+      1800,
+    });
   });
 
   test('video asset attaches with duration and enqueues', () async {
