@@ -42,22 +42,33 @@ _POSITION = """
   OPTIONAL { ?item rdfs:label ?label FILTER(LANG(?label) = "en") }
 }"""
 _SELECT = "SELECT DISTINCT ?item ?label ?lat ?lon ?precision ?globe WHERE {"
-_HAS_ARTICLE = """
-  ?article schema:about ?item ; schema:isPartOf ?wiki .
-  ?wiki wikibase:wikiGroup "wikipedia" ."""
+# The items of a set that have a Wikipedia article in any language. The
+# optimizer is told to keep the order written: left to itself it starts
+# from every Wikipedia article there is and times out.
+_ARTICLES = """SELECT DISTINCT ?item WHERE {
+  hint:Query hint:optimizer "None" .
+  %s
+  ?item wdt:P625 [] .
+  ?article schema:about ?item .
+  ?article schema:isPartOf ?wiki .
+  ?wiki wikibase:wikiGroup "wikipedia" .
+}"""
+
+# Shipwrecks (Q852190), and ships whose significant event (P793) is a
+# shipwrecking (Q906512) or a scuttling (Q1786766).
+_WRECK_SETS = (
+    "?item wdt:P31 wd:Q852190 .",
+    "VALUES ?event { wd:Q906512 wd:Q1786766 } ?item wdt:P793 ?event .",
+)
 
 # Instances of "underwater diving site" (Q26205080) and its subclasses.
 SITE_QUERY = _SELECT + " ?item wdt:P31/wdt:P279* wd:Q26205080 ." + _POSITION
-# Shipwrecks (Q852190), and ships whose significant event (P793) is a
-# shipwrecking (Q906512) or a scuttling (Q1786766), with a Wikipedia
-# article in any language.
-WRECK_QUERIES = (
-    _SELECT + " ?item wdt:P31 wd:Q852190 ." + _HAS_ARTICLE + _POSITION,
-    _SELECT
-    + " VALUES ?event { wd:Q906512 wd:Q1786766 } ?item wdt:P793 ?event ."
-    + _HAS_ARTICLE
-    + _POSITION,
+# Positions and articles are asked for separately and joined here: in one
+# query the service times out.
+WRECK_POSITION_QUERIES = tuple(
+    _SELECT + " " + wrecks + _POSITION for wrecks in _WRECK_SETS
 )
+WRECK_ARTICLE_QUERIES = tuple(_ARTICLES % wrecks for wrecks in _WRECK_SETS)
 
 
 def rows_from_bindings(bindings: list[dict]) -> list[dict]:
@@ -82,6 +93,16 @@ def rows_from_bindings(bindings: list[dict]) -> list[dict]:
         if held is None or (row["precision"] or 1e9) < (held["precision"] or 1e9):
             rows[item] = row
     return list(rows.values())
+
+
+def with_article(rows: list[dict], article_bindings: list[dict]) -> list[dict]:
+    """The [rows] whose item has a Wikipedia article: it is in the answer
+    to an article query."""
+    notable = {
+        binding["item"]["value"].rsplit("/", 1)[-1]
+        for binding in article_bindings
+    }
+    return [row for row in rows if row["item"] in notable]
 
 
 def _whole_minutes(value: float) -> bool:
@@ -158,14 +179,20 @@ def _query(sparql: str) -> list[dict]:
 
 
 def fetch():
-    """Downloads the dive sites and the notable wrecks."""
+    """Downloads the dive sites and the notable wrecks. Five queries, a
+    little over a minute apart."""
     sites = rows_from_bindings(_query(SITE_QUERY))
     paths = [write_snapshot(KEY_SITES, SPARQL_URL, sites)]
-    bindings: list[dict] = []
-    for query in WRECK_QUERIES:
+    positions: list[dict] = []
+    articles: list[dict] = []
+    for query in WRECK_POSITION_QUERIES:
         time.sleep(66)
-        bindings.extend(_query(query))
-    paths.append(write_snapshot(KEY_WRECKS, SPARQL_URL, rows_from_bindings(bindings)))
+        positions.extend(_query(query))
+    for query in WRECK_ARTICLE_QUERIES:
+        time.sleep(66)
+        articles.extend(_query(query))
+    wrecks = with_article(rows_from_bindings(positions), articles)
+    paths.append(write_snapshot(KEY_WRECKS, SPARQL_URL, wrecks))
     return paths
 
 

@@ -122,14 +122,37 @@ class WreckRecordsTest(unittest.TestCase):
 
 
 class QueryTest(unittest.TestCase):
-    def test_the_wreck_queries_ask_only_for_items_with_an_article(self):
-        for query in src_wikidata.WRECK_QUERIES:
-            self.assertIn('wikibase:wikiGroup "wikipedia"', query)
+    def test_wreck_positions_and_articles_are_asked_for_separately(self):
+        # Joined in one query, the service times out.
+        self.assertEqual(len(src_wikidata.WRECK_POSITION_QUERIES), 2)
+        self.assertEqual(len(src_wikidata.WRECK_ARTICLE_QUERIES), 2)
+        for query in src_wikidata.WRECK_POSITION_QUERIES:
             self.assertIn("wikibase:geoPrecision", query)
-        self.assertIn("wd:Q852190", src_wikidata.WRECK_QUERIES[0])
-        self.assertIn("wd:Q906512", src_wikidata.WRECK_QUERIES[1])
+            self.assertNotIn("wikiGroup", query)
+        for query in src_wikidata.WRECK_ARTICLE_QUERIES:
+            self.assertIn('wikibase:wikiGroup "wikipedia"', query)
+            self.assertNotIn("geoPrecision", query)
+        for queries in (src_wikidata.WRECK_POSITION_QUERIES,
+                        src_wikidata.WRECK_ARTICLE_QUERIES):
+            self.assertIn("wd:Q852190", queries[0])
+            self.assertIn("wd:Q906512", queries[1])
+            self.assertIn("wd:Q1786766", queries[1])
+
+    def test_the_site_query_asks_for_the_dive_site_class(self):
         self.assertIn("wd:Q26205080", src_wikidata.SITE_QUERY)
         self.assertNotIn("wikiGroup", src_wikidata.SITE_QUERY)
+
+
+class ArticleTest(unittest.TestCase):
+    def test_only_wrecks_with_a_wikipedia_article_are_kept(self):
+        rows = [_row(item="Q1"), _row(item="Q2"), _row(item="Q3")]
+        articles = [
+            {"item": {"value": "http://www.wikidata.org/entity/Q1"}},
+            {"item": {"value": "http://www.wikidata.org/entity/Q3"}},
+            {"item": {"value": "http://www.wikidata.org/entity/Q9"}},
+        ]
+        kept = src_wikidata.with_article(rows, articles)
+        self.assertEqual([row["item"] for row in kept], ["Q1", "Q3"])
 
 
 if __name__ == "__main__":
