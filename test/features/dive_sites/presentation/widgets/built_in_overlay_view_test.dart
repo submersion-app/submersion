@@ -97,6 +97,48 @@ void main() {
     expect(settled.contains(const GeoPoint(12, -68)), isFalse);
   });
 
+  testWidgets('the view is forgotten when the map leaves the screen', (
+    tester,
+  ) async {
+    // Kept, the next map would first read the sites of wherever this one
+    // was looking.
+    final onScreen = ValueNotifier(true);
+    addTearDown(onScreen.dispose);
+    late ProviderContainer container;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [showBuiltInSitesProvider.overrideWith((ref) => true)],
+        child: MaterialApp(
+          home: Scaffold(
+            body: ValueListenableBuilder<bool>(
+              valueListenable: onScreen,
+              builder: (context, shown, _) {
+                container = ProviderScope.containerOf(context);
+                if (!shown) return const SizedBox.shrink();
+                return const FlutterMap(
+                  options: MapOptions(
+                    initialCenter: LatLng(12, -68),
+                    initialZoom: 9,
+                  ),
+                  children: [BuiltInOverlayBoundsReporter()],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(container.read(builtInOverlayBoundsProvider), isNotNull);
+
+    onScreen.value = false;
+    await tester.pump();
+    await tester.pump();
+
+    expect(container.read(builtInOverlayBoundsProvider), isNull);
+  });
+
   testWidgets('with the overlay off nothing is reported', (tester) async {
     final h = await _pumpMap(tester, show: false);
     await tester.pump(const Duration(milliseconds: 500));

@@ -17,9 +17,11 @@ final showBuiltInSitesProvider = StateProvider<bool>((ref) => false);
 /// What the Sites map shows, as the map last reported it, or null until a
 /// map with the overlay on has reported. The catalogue holds tens of
 /// thousands of records, so the overlay reads only the ones in view.
-final builtInOverlayBoundsProvider = StateProvider<CatalogueBounds?>(
-  (ref) => null,
-);
+///
+/// Gone with the map (the reporter keeps it alive): the next map starts
+/// from nothing, not from the sites of wherever the last one looked.
+final builtInOverlayBoundsProvider =
+    StateProvider.autoDispose<CatalogueBounds?>((ref) => null);
 
 /// The built-in catalogue sites in the bounds the map reported.
 // no-tick: local cache data with no change tick; read again through

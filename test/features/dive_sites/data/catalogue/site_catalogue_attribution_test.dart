@@ -136,13 +136,18 @@ void main() {
     expect(SiteCatalogueAttribution.packageName, 'Dive site data');
   });
 
-  test('these tests register the credit once between them', () async {
-    // Last in the file: the registry is app-wide, and what a test adds to
-    // it stays for whatever runs next.
-    final entries = await LicenseRegistry.licenses
-        .where((entry) => entry.packages.contains('Dive site data'))
-        .toList();
+  test('reading the credit leaves the app-wide registry as it was', () async {
+    // The registry is shared by every test in the isolate, and what is
+    // added to it stays: the tests above read the entry itself.
+    Future<int> registered() async =>
+        (await LicenseRegistry.licenses
+                .where((entry) => entry.packages.contains('Dive site data'))
+                .toList())
+            .length;
+    final before = await registered();
 
-    expect(entries, hasLength(1));
+    await licenceText();
+
+    expect(await registered(), before);
   });
 }

@@ -128,6 +128,20 @@ void main() {
       expect(result.truncated, isTrue);
     });
 
+    test('nearest is by distance over the ground, not by degrees', () async {
+      // At 60 north a degree of longitude is half a degree of latitude:
+      // one degree east is 56 km away, nine tenths of a degree north 100.
+      const high = CatalogueBounds(south: 58, west: -3, north: 62, east: 3);
+      final catalogue = await catalogueOf([
+        at('site_north', 60.9, 0),
+        at('site_east', 60, 1),
+      ]);
+
+      final result = await catalogue.inBounds(high, limit: 1);
+
+      expect(idsOf(result.sites), ['site_east']);
+    });
+
     test('a box across the antimeridian holds both sides', () async {
       const seam = CatalogueBounds(
         south: -18,

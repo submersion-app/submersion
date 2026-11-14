@@ -49,6 +49,8 @@ class _BuiltInOverlayBoundsReporterState
   @override
   Widget build(BuildContext context) {
     final show = ref.watch(showBuiltInSitesProvider);
+    // Held for as long as this map is on screen, whoever else reads it.
+    ref.listen(builtInOverlayBoundsProvider, (_, _) {});
     final bounds = catalogueBoundsOf(MapCamera.of(context));
     _timer?.cancel();
     if (!show) {
@@ -94,6 +96,24 @@ CatalogueBounds catalogueBoundsOf(MapCamera camera) {
 
 /// The width of the world at zoom 0, in logical pixels.
 const _tilePixels = 256;
+
+/// [BuiltInOverlayCaption] where both Sites maps put it: the top left of
+/// the map's stack, kept clear of the controls card docked top right, and
+/// wrapping where its language is long.
+class BuiltInOverlayCaptionSlot extends StatelessWidget {
+  const BuiltInOverlayCaptionSlot({super.key});
+
+  /// The controls card's width with its margin, and a gap.
+  static const _controlsInset = 128.0;
+
+  @override
+  Widget build(BuildContext context) => const Positioned(
+    top: 12,
+    left: 12,
+    right: _controlsInset,
+    child: Align(alignment: Alignment.topLeft, child: BuiltInOverlayCaption()),
+  );
+}
 
 /// Says to zoom in when the map's view holds more built-in sites than it
 /// marks. Nothing with the overlay off, or when every site in view is

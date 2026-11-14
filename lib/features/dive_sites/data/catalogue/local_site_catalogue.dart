@@ -93,7 +93,7 @@ class LocalSiteCatalogue implements SiteCatalogue {
     final sites =
         await (db.select(db.siteCatalogueEntries)
               ..where((t) => inside(t, CatalogueKind.site))
-              ..orderBy([(t) => OrderingTerm.asc(_farFrom(bounds.center))])
+              ..orderBy([(t) => OrderingTerm.asc(_farFrom(t, bounds.center))])
               ..limit(limit + 1))
             .get();
     if (sites.length > limit) {
@@ -106,7 +106,7 @@ class LocalSiteCatalogue implements SiteCatalogue {
     final registers =
         await (db.select(db.siteCatalogueEntries)
               ..where((t) => inside(t, CatalogueKind.register))
-              ..orderBy([(t) => OrderingTerm.asc(_farFrom(bounds.center))])
+              ..orderBy([(t) => OrderingTerm.asc(_farFrom(t, bounds.center))])
               ..limit(room + 1))
             .get();
     return (
@@ -302,16 +302,21 @@ Expression<bool> _inBounds(
   return latitude & longitude;
 }
 
-/// How far a row is from [center], in squared degrees, the short way round
-/// the globe: enough to order the rows of one map by.
-Expression<double> _farFrom(GeoPoint center) {
-  final lat = center.latitude;
-  final lon = center.longitude;
-  return CustomExpression<double>(
-    '((latitude - ($lat)) * (latitude - ($lat)) + '
-    'min(abs(longitude - ($lon)), 360 - abs(longitude - ($lon))) * '
-    'min(abs(longitude - ($lon)), 360 - abs(longitude - ($lon))))',
-  );
+/// How far a row is from [center], the short way round the globe: squared
+/// degrees, with a degree of longitude counted at the width it has at the
+/// centre's latitude. Enough to order the rows of one map by.
+///
+/// The centre is bound, never written into the statement.
+Expression<double> _farFrom($SiteCatalogueEntriesTable t, GeoPoint center) {
+  final north = t.latitude - Variable<double>(center.latitude);
+  final around = (t.longitude - Variable<double>(center.longitude)).abs();
+  final east =
+      FunctionCallExpression<double>('min', [
+        around,
+        const Constant<double>(360) - around,
+      ]) *
+      Variable<double>(math.cos(center.latitude * math.pi / 180));
+  return north * north + east * east;
 }
 
 /// By name as a reader expects it: the search text begins with the folded

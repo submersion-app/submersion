@@ -44,12 +44,18 @@ class SitePickerRegisterSection {
   final double _radiusMeters;
 
   int _count = 0;
+
+  /// The anchor [_count] and [_sites] were read for. A different one has
+  /// not been counted yet, so nothing is shown for it.
+  GeoPoint? _countedFor;
   bool _open = false;
   List<CatalogueSite> _sites = const [];
 
   /// Whether the diver opened the section and it read records to show
-  /// (rows, or the note that all of them are already the diver's).
-  bool get isOpen => _open && _sites.isNotEmpty;
+  /// (rows, or the note that all of them are already the diver's) for
+  /// the anchor the picker is at.
+  bool get isOpen =>
+      _open && _sites.isNotEmpty && _countedFor == _currentAnchor();
 
   /// Counts the register records around [anchor], and reads them again if
   /// the section is open. Call when the anchor or the catalogue changes.
@@ -67,6 +73,7 @@ class SitePickerRegisterSection {
     _setState(() {
       _count = count;
       _sites = sites;
+      _countedFor = anchor;
     });
   }
 
@@ -84,6 +91,7 @@ class SitePickerRegisterSection {
     _setState(() {
       _open = true;
       _sites = sites;
+      _countedFor = anchor;
     });
   }
 
@@ -104,7 +112,9 @@ class SitePickerRegisterSection {
     required void Function(CatalogueSite site) onTap,
     required void Function(CatalogueSite site) onDetails,
   }) {
-    if (anchor == null || _count == 0) return const [];
+    if (anchor == null || anchor != _countedFor || _count == 0) {
+      return const [];
+    }
     final l10n = context.l10n;
     final place = anchorIsInferred ? placeLabel : null;
     final label = place != null
