@@ -193,8 +193,8 @@ this feature reads cubic feet as gas capacity the AL80 would show as about
 
 - Gear documents include `value_unit`.
 - Equipment writes accept `value_unit` on curated number attributes and reject
-  a value outside the dimension's set (and `dual` anywhere but the gauge
-  range). `value_num` stays metric, so an agent never converts.
+  a value outside the field's set (and `dual` anywhere but the gauge range),
+  and on custom fields. `value_num` stays metric, so an agent never converts.
 - Column notes and schema docs describe the new column.
 
 ## Builder's calls (settled after the builder check)
@@ -220,10 +220,13 @@ correction on review.
   blender cylinder picker, the agent write confirm dialog. The foreign
   passport page keeps the diver's units too: the tag payload does not carry
   the owner's units, and changing that is a tag format change.
-- **Agent writes and `value_unit`**: an attribute written without the
-  `value_unit` key keeps the stored unit (the same rule as sync); an explicit
-  null clears it. A curated number row may be written with `value_unit` and
-  no number, matching what the form allows. The schema docs say so.
+- **Agent writes and `value_unit`**: the attribute list is replaced whole,
+  `value_unit` included, exactly as `value_text` and `value_num` are, so an
+  attribute written without it clears it. (Revised during the build: the
+  write codec cannot tell a left-out key from a null one, and the gear
+  documents the agent reads already carry `value_unit` to echo back.) A
+  curated number row may be written with `value_unit` and no number,
+  matching what the form allows. The schema docs say so.
 
 ## Left to the builder
 
