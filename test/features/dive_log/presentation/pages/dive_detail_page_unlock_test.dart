@@ -29,6 +29,15 @@ class _FailingRefreshList extends PaginatedDiveListNotifier {
   }) async => throw StateError('the list could not be refreshed');
 }
 
+/// A site list that cannot be read again.
+class _FailingSites extends SiteListNotifier {
+  _FailingSites(super.repository, super.ref);
+
+  @override
+  Future<void> refresh() async =>
+      throw StateError('the sites could not be read again');
+}
+
 /// The dive page unlocked for editing in place (issue #4527), behind the
 /// build switch.
 void main() {
@@ -182,6 +191,35 @@ void main() {
 
       expect(find.byTooltip('Unlock to edit'), findsOneWidget);
       expect(sites, isNull);
+    });
+
+    // As with the dive list: the dive and the held write are both committed
+    // by then, so this is not a save that failed.
+    testWidgets('a site list that cannot be read again is not a failed save', (
+      tester,
+    ) async {
+      final page = await pumpPage(
+        tester,
+        extra: [
+          siteListNotifierProvider.overrideWith(
+            (ref) => _FailingSites(ref.watch(siteRepositoryProvider), ref),
+          ),
+        ],
+      );
+      await typeNote(tester);
+      var ran = 0;
+      controller(tester).session!.holdWrite('site', () async => ran++);
+
+      await tester.tap(find.text('Save'));
+      await settle(tester);
+
+      expect(ran, 1);
+      expect(
+        find.text("Couldn't save your changes. Nothing was changed."),
+        findsNothing,
+      );
+      expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+      expect(page.save.calls, hasLength(1));
     });
   });
 

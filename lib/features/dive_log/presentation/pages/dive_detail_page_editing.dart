@@ -110,7 +110,17 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       // page shows its own copy until the stored dive is read back.
       if (mounted) ref.invalidate(diveProvider(result.after.id));
     }
-    await sites?.refresh();
+    // On its own, so that a dive list that could not be refreshed does not
+    // leave the site list stale as well.
+    try {
+      await sites?.refresh();
+    } catch (error, stackTrace) {
+      _log.error(
+        'Site refresh after saving dive ${result.after.id} failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   Future<void> _saveAndReport() async {
