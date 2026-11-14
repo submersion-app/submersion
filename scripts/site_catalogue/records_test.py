@@ -62,6 +62,10 @@ class DisplayNameTest(unittest.TestCase):
         self.assertEqual(records.display_name("HMSM B2"), "HMSM B2")
         self.assertEqual(records.display_name("U-534"), "U-534")
 
+    def test_a_name_that_is_only_a_designation_is_left_alone(self):
+        self.assertEqual(records.display_name("70' OSV"), "70' OSV")
+        self.assertEqual(records.display_name("F2"), "F2")
+
     def test_an_ordinal_is_not_a_designation(self):
         self.assertEqual(
             records.display_name("MV 2ND CHANCE"), "MV 2nd Chance"

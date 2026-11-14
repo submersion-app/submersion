@@ -143,6 +143,10 @@ def display_name(raw: str) -> str:
     text = " ".join((raw or "").split())
     if any(char.islower() for char in text):
         return text
+    # Three letters or fewer is an abbreviation ("70' OSV"), not a name
+    # shouted in capitals.
+    if sum(map(len, _LETTERS.findall(text))) <= 3:
+        return text
     parts = re.split(r"(\(.*?\))", text)
     out = []
     for part in parts:

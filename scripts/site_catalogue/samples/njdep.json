@@ -1,0 +1,179 @@
+{
+ "features": [
+  {
+   "attributes": {
+    "OBJECTID": 738,
+    "UNIQUE_ID": 830,
+    "ID_NUM": 2,
+    "REEF_SITE": "Cape May",
+    "NAME": "Barge",
+    "MATERIAL": "Barge (broken up)",
+    "TYPE": "Ship",
+    "SPONSOR": null,
+    "DATE_DEPLOYED": null,
+    "YEAR_DEPLOYED": null,
+    "LONDD": -74.68466699999999,
+    "LATDD": 38.871167,
+    "VESSEL_LENGTH": null,
+    "VOLUME_YDS": 1500,
+    "LONDDM": "074 41.08002000W",
+    "LATDDM": "38 52.27002000N",
+    "GLOBALID": "{FE6DB062-8454-4706-A39D-9598C5CF898C}"
+   },
+   "geometry": {
+    "x": -74.68466699986853,
+    "y": 38.87116700031558
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 739,
+    "UNIQUE_ID": 831,
+    "ID_NUM": 3,
+    "REEF_SITE": "Cape May",
+    "NAME": "Laita",
+    "MATERIAL": "106' Clam Dredge - \"Laita\"",
+    "TYPE": "Ship",
+    "SPONSOR": null,
+    "DATE_DEPLOYED": 529819200000,
+    "YEAR_DEPLOYED": "1986",
+    "LONDD": -74.716167,
+    "LATDD": 38.844667,
+    "VESSEL_LENGTH": 106,
+    "VOLUME_YDS": 1502,
+    "LONDDM": "074 42.97002000W",
+    "LATDDM": "38 50.68002000N",
+    "GLOBALID": "{E4F506A2-4AE6-4282-B9E6-CDC0BE8FF587}"
+   },
+   "geometry": {
+    "x": -74.71616699990707,
+    "y": 38.844667000158566
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 816,
+    "UNIQUE_ID": 957,
+    "ID_NUM": 123,
+    "REEF_SITE": "Cape May",
+    "NAME": "Subway Car",
+    "MATERIAL": "Subway Car (55'x9'x11')",
+    "TYPE": "Subway car",
+    "SPONSOR": null,
+    "DATE_DEPLOYED": 1219636800000,
+    "YEAR_DEPLOYED": "2008",
+    "LONDD": -74.707167,
+    "LATDD": 38.8575,
+    "VESSEL_LENGTH": null,
+    "VOLUME_YDS": 202,
+    "LONDDM": "074 42.43002000W",
+    "LATDDM": "38 51.45000000N",
+    "GLOBALID": "{11D81375-E913-4EC3-AF60-88AF7D273025}"
+   },
+   "geometry": {
+    "x": -74.70716699963478,
+    "y": 38.85750000029798
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 994,
+    "UNIQUE_ID": 1038,
+    "ID_NUM": 206,
+    "REEF_SITE": "Cape May",
+    "NAME": "Stainless Steel Subway Car",
+    "MATERIAL": "Subway Car (55'x9'x11') (13 subway cars)",
+    "TYPE": "Subway car",
+    "SPONSOR": null,
+    "DATE_DEPLOYED": 1219636800000,
+    "YEAR_DEPLOYED": "2008",
+    "LONDD": -74.70733299999999,
+    "LATDD": 38.8575,
+    "VESSEL_LENGTH": null,
+    "VOLUME_YDS": 202,
+    "LONDDM": "074 42.43998000W",
+    "LATDDM": "38 51.45000000N",
+    "GLOBALID": "{88732658-7843-48C7-BF82-17069AA0B0E9}"
+   },
+   "geometry": {
+    "x": -74.70733300010907,
+    "y": 38.85750000033104
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 995,
+    "UNIQUE_ID": 1039,
+    "ID_NUM": 207,
+    "REEF_SITE": "Cape May",
+    "NAME": "Stainless Steel Subway Car",
+    "MATERIAL": "Subway Car (55'x9'x11')",
+    "TYPE": "Subway car",
+    "SPONSOR": null,
+    "DATE_DEPLOYED": 1219636800000,
+    "YEAR_DEPLOYED": "2008",
+    "LONDD": -74.70750000000001,
+    "LATDD": 38.857333,
+    "VESSEL_LENGTH": null,
+    "VOLUME_YDS": 202,
+    "LONDDM": "074 42.45000000W",
+    "LATDDM": "38 51.43998000N",
+    "GLOBALID": "{E86E0A54-83DF-457F-9116-C4900CEE8D89}"
+   },
+   "geometry": {
+    "x": -74.70750000045835,
+    "y": 38.85733300015057
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 830,
+    "UNIQUE_ID": 972,
+    "ID_NUM": 138,
+    "REEF_SITE": "Cape May",
+    "NAME": "Subway Car",
+    "MATERIAL": "Subway Car (Redbird I)",
+    "TYPE": "Subway car",
+    "SPONSOR": null,
+    "DATE_DEPLOYED": 1057204800000,
+    "YEAR_DEPLOYED": "2003",
+    "LONDD": -74.670333,
+    "LATDD": 38.8915,
+    "VESSEL_LENGTH": null,
+    "VOLUME_YDS": 150,
+    "LONDDM": "074 40.21998000W",
+    "LATDDM": "38 53.49000000N",
+    "GLOBALID": "{27D6A338-13B3-4DE8-9481-14AF9AE9F2AC}"
+   },
+   "geometry": {
+    "x": -74.67033300002589,
+    "y": 38.891500000059985
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 13,
+    "UNIQUE_ID": 136,
+    "ID_NUM": 138,
+    "REEF_SITE": "Atlantic City",
+    "NAME": "Captain Applegate",
+    "MATERIAL": "170' Tanker - \"Jet Trader\" (Renamed - \"Captain Applegate\")",
+    "TYPE": "Ship",
+    "SPONSOR": null,
+    "DATE_DEPLOYED": 1125633600000,
+    "YEAR_DEPLOYED": "2005",
+    "LONDD": -74.2085,
+    "LATDD": 39.230833,
+    "VESSEL_LENGTH": 170,
+    "VOLUME_YDS": 3826,
+    "LONDDM": "074 12.51000000W",
+    "LATDDM": "39 13.84998000N",
+    "GLOBALID": "{038ABB61-5332-461C-BAA2-09096A42589B}"
+   },
+   "geometry": {
+    "x": -74.20849999988721,
+    "y": 39.23083299990391
+   }
+  }
+ ]
+}
