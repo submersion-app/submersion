@@ -520,8 +520,26 @@ void main() {
       await gearOn('dive1', 'bp', 'rig');
       await gearOn('dive1', 'reg', 'rig');
       await gearOn('dive1', 'cam', 'outer');
-      await applier.applyTagged(diveId: 'dive1', retagAbsorbed: true);
+      // The creation seams name the sets they just put on.
+      await applier.applyTagged(
+        diveId: 'dive1',
+        alsoSetIds: const ['rig', 'outer'],
+        retagAbsorbed: true,
+      );
       expect((await tagsOf('dive1')).values.toSet(), {'outer'});
+      expect(await weightsOf('dive1'), [closeTo(3.63, 1e-9)]);
+    });
+
+    // A file import writes the tags the dive was logged with before this
+    // runs. Those are history: only the sets named as just applied move.
+    test('retagAbsorbed leaves a tag the dive already carried', () async {
+      await set('rig', gear: ['bp', 'reg'], presets: ['belt8']);
+      await set('outer', gear: ['cam'], includes: ['rig']);
+      await gearOn('dive1', 'bp', 'rig');
+      await gearOn('dive1', 'cam', 'outer');
+      await applier.applyTagged(diveId: 'dive1', retagAbsorbed: true);
+      expect(await tagsOf('dive1'), {'bp': 'rig', 'cam': 'outer'});
+      // The lead still counts once.
       expect(await weightsOf('dive1'), [closeTo(3.63, 1e-9)]);
     });
 

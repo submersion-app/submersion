@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -34,6 +35,7 @@ void main() {
   Future<void> pumpPage(
     WidgetTester tester, {
     DiverBodyProfile bodyProfile = (sex: null, ageYears: null),
+    Diver? diver,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -42,6 +44,8 @@ void main() {
           ...base,
           validatedCurrentDiverIdProvider.overrideWith((ref) async => diverId),
           diverBodyProfileProvider.overrideWith((ref) async => bodyProfile),
+          if (diver != null)
+            currentDiverProvider.overrideWith((ref) async => diver),
         ],
         child: const BodyWeightEditPage(),
       ),
@@ -280,6 +284,34 @@ void main() {
         ),
         findsOneWidget,
       );
+      expect(find.textContaining('Estimated: about'), findsNothing);
+    });
+
+    // The adult formula does not cover a junior diver, so their age reads
+    // as unknown. Both fields are filled in all the same: there is nothing
+    // to add, and no estimate to show.
+    testWidgets('a birth year the estimate cannot use asks for nothing', (
+      tester,
+    ) async {
+      final at = DateTime(2026, 6, 1);
+      await pumpPage(
+        tester,
+        bodyProfile: (sex: DiverSex.male, ageYears: null),
+        diver: Diver(
+          id: diverId,
+          name: 'Eric',
+          sex: DiverSex.male,
+          birthYear: DateTime.now().year - 12,
+          createdAt: at,
+          updatedAt: at,
+        ),
+      );
+      await openDialog(tester);
+      await tester.enterText(field('Weight (kg)'), '45');
+      await tester.enterText(field('Height (cm)'), '150');
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Add sex and birth year'), findsNothing);
       expect(find.textContaining('Estimated: about'), findsNothing);
     });
 

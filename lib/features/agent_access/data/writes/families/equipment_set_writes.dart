@@ -148,9 +148,8 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
       if (refused.isNotEmpty) {
         return PlanBlock(
           BlockReason.invalidValue,
-          'included_set_ids: ${refused.join(', ')} cannot be included. A set '
-          'cannot include itself, a set that includes other sets, or '
-          'anything while another set includes it.',
+          'included_set_ids: ${refused.join(', ')} cannot be included. '
+          '$_nestingRule',
         );
       }
     }
@@ -239,6 +238,11 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
     );
   }
 
+  /// One level of nesting, as the set editor allows (issue #4525).
+  static const _nestingRule =
+      'A set cannot include itself, a set that includes other sets, or '
+      'anything while another set includes it.';
+
   /// The diver's other sets marked default.
   Future<int> _otherDefaults(String id, String? ownerId) async {
     final others = ownerId == null
@@ -312,7 +316,19 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
       // Read before the save: the sets that include this one carry its
       // gear on their dives too.
       final allSets = await sets.getAllSets(diverId: current.diverId);
-      await sets.updateSet(after);
+      try {
+        await sets.updateSet(after);
+      } on ArgumentError catch (e) {
+        if (e.name != 'includedSetIds') rethrow;
+        // The plan checks nesting against stored sets, so an earlier
+        // operation in the same change set can make an include illegal by
+        // the time this one applies. The repository refuses it; say why.
+        throw AgentToolException(
+          AgentToolErrorCode.invalidArgument,
+          'included_set_ids: ${e.invalidValue} ${e.message}. $_nestingRule',
+          details: {'id': id},
+        );
+      }
       // Planned dives follow the gear the set applies, as the editor's
       // "from now on" does; an agent never rewrites logged dives (issue
       // #4283). That gear is the set's own and that of the sets it

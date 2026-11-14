@@ -524,8 +524,30 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       added = true;
     }
     if (!added) return;
+    // Segments written on the default tank (a quick plan's) follow it out,
+    // as [removeTank] moves a removed tank's segments: onto the set's main
+    // cylinder, which is not always the first it lists.
+    var segments = state.segments;
+    if (onlyDefault) {
+      final replacedId = state.tanks.single.id;
+      final main = tanks.firstWhere(
+        (t) => mainSupplyRoles.contains(t.role),
+        orElse: () => tanks.first,
+      );
+      segments = [
+        for (final s in state.segments)
+          s.tankId == replacedId
+              ? s.copyWith(tankId: main.id, gasMix: main.gasMix)
+              : s,
+      ];
+    }
     state = _withMissionSegments(
-      state.copyWith(tanks: tanks, isDirty: true, updatedAt: DateTime.now()),
+      state.copyWith(
+        tanks: tanks,
+        segments: segments,
+        isDirty: true,
+        updatedAt: DateTime.now(),
+      ),
     );
   }
 

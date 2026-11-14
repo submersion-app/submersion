@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_set_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../records/record_harness.dart';
@@ -558,6 +559,38 @@ void main() {
         link(rig, 'included_set_ids', add: [third]),
       ]);
       expect(inner.items.single.block, isNotNull);
+    });
+
+    // The plan reads stored sets, so two legal-looking operations in one
+    // change set can still nest two deep. The repository stops the second,
+    // and the refusal has to say why.
+    test('a nesting made earlier in the same change set is refused with '
+        'the reason', () async {
+      final a = await created({'name': 'A'});
+      final b = await created({'name': 'B'});
+      final c = await created({'name': 'C'});
+
+      await expectLater(
+        h.run([
+          link(a, 'included_set_ids', add: [b]),
+          link(b, 'included_set_ids', add: [c]),
+        ]),
+        throwsA(
+          isA<AgentToolException>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              contains('included_set_ids'),
+              contains('Nothing was changed'),
+            ),
+          ),
+        ),
+      );
+      // The first operation went back with the second.
+      expect(
+        await listOf('equipment_set_includes', 'included_set_id', a),
+        isEmpty,
+      );
     });
   });
 }

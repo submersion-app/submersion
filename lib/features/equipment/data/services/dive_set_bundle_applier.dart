@@ -168,9 +168,11 @@ class DiveSetBundleApplier {
   /// leaving a tag, because their gear was already on the dive under
   /// another set's), then the tagged sets by name.
   ///
-  /// With [retagAbsorbed], gear tagged with a set that another of them
-  /// includes takes the outer set's tag, so a dive just created shows one
-  /// set. Left off for a dive that already existed: its tags are history.
+  /// With [retagAbsorbed], gear tagged with a NAMED set ([leadSetId] or one
+  /// of [alsoSetIds]) that another of them includes takes the outer set's
+  /// tag, so a dive just created shows one set. A tag the dive brought with
+  /// it, as a file import writes before this runs, is history and stays;
+  /// for the same reason it is left off for a dive that already existed.
   Future<SetBundleApplied> applyTagged({
     required String diveId,
     String? leadSetId,
@@ -196,7 +198,13 @@ class DiveSetBundleApplier {
         for (final row in tagged) row.read<String>('id'),
       }.toList();
       if (setIds.isEmpty) return _nothingApplied;
-      if (retagAbsorbed) await _retagAbsorbed(diveId, setIds);
+      if (retagAbsorbed) {
+        await _retagAbsorbed(
+          diveId,
+          setIds,
+          justApplied: {?leadSetId, ...alsoSetIds},
+        );
+      }
       return await apply(diveId: diveId, setIds: setIds, notify: notify);
     } catch (e, stackTrace) {
       _log.warning(
@@ -253,12 +261,15 @@ class DiveSetBundleApplier {
     List<WeightEntryDraft> weights,
   ) async {
     if (weights.isEmpty) return false;
-    final dive = await (_db.select(
-      _db.dives,
-    )..where((d) => d.id.equals(diveId))).getSingleOrNull();
+    // Only the legacy scalar is needed, which is how older dives record
+    // their lead; a dive row is wide, and this runs once per dive.
+    final dive =
+        await (_db.selectOnly(_db.dives)
+              ..addColumns([_db.dives.weightAmount])
+              ..where(_db.dives.id.equals(diveId)))
+            .getSingleOrNull();
     if (dive == null) return false;
-    // The legacy scalar is how older dives record their lead.
-    if ((dive.weightAmount ?? 0) > 0) return false;
+    if ((dive.read(_db.dives.weightAmount) ?? 0) > 0) return false;
     if ((await _weightsOf(diveId)).isNotEmpty) return false;
     await _dives.bulkAddWeights(
       [diveId],
@@ -391,29 +402,28 @@ class DiveSetBundleApplier {
   static String _key(WeightType type, String label, String notes, double kg) =>
       '${type.name}|$label|$notes|${kg.toStringAsFixed(6)}';
 
-  static List<DiveWeight> _sorted(List<DiveWeight> weights) =>
-      [...weights]..sort(
-        (a, b) => _key(
-          a.weightType,
-          a.label,
-          a.notes,
-          a.amountKg,
-        ).compareTo(_key(b.weightType, b.label, b.notes, b.amountKg)),
-      );
+  static List<T> _sortedBy<T>(List<T> items, String Function(T) key) =>
+      [...items]..sort((a, b) => key(a).compareTo(key(b)));
+
+  static List<DiveWeight> _sorted(List<DiveWeight> weights) => _sortedBy(
+    weights,
+    (w) => _key(w.weightType, w.label, w.notes, w.amountKg),
+  );
 
   static List<WeightEntryDraft> _sortedDrafts(List<WeightEntryDraft> drafts) =>
-      [...drafts]..sort(
-        (a, b) => _key(
-          a.weightType,
-          a.label,
-          a.notes,
-          a.amountKg,
-        ).compareTo(_key(b.weightType, b.label, b.notes, b.amountKg)),
+      _sortedBy(
+        drafts,
+        (w) => _key(w.weightType, w.label, w.notes, w.amountKg),
       );
 
-  /// Moves the tags of sets that another of [setIds] includes to that outer
-  /// set.
-  Future<void> _retagAbsorbed(String diveId, List<String> setIds) async {
+  /// Moves the tags of the [justApplied] sets that another of [setIds]
+  /// includes to that outer set.
+  Future<void> _retagAbsorbed(
+    String diveId,
+    List<String> setIds, {
+    required Set<String> justApplied,
+  }) async {
+    if (justApplied.isEmpty) return;
     final sets = await _sets.getAllSets(ids: setIds);
     // Only a set that stands may take another's gear: of two sets that
     // include each other, the resolver keeps one.
@@ -422,7 +432,7 @@ class DiveSetBundleApplier {
       for (final set in sets)
         if (standing.contains(set.id))
           for (final included in set.includedSetIds)
-            if (included != set.id && setIds.contains(included))
+            if (included != set.id && justApplied.contains(included))
               included: set.id,
     };
     if (outerOf.isEmpty) return;

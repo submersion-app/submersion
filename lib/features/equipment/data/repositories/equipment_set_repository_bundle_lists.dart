@@ -210,14 +210,20 @@ extension _SetBundleListStore on EquipmentSetRepository {
 
   /// Reconciles one list of [setId] to [desired]. Runs inside the caller's
   /// transaction; the returned ids get their sync bookkeeping after it.
+  ///
+  /// [desired] is filtered to the targets that still exist, unless the
+  /// caller already did so and says so with [alreadyLive].
   Future<_BundleListWrite> _writeList(
     _BundleListTable list,
     String setId,
     List<String> desired,
-    int now,
-  ) async {
+    int now, {
+    bool alreadyLive = false,
+  }) async {
     final table = _drift(list);
-    final live = await _existingIn(list.targetSqlTable, desired);
+    final live = alreadyLive
+        ? desired
+        : await _existingIn(list.targetSqlTable, desired);
     final existing = (await _rowsOf(list, [setId]))[setId] ?? const [];
     final byRef = {for (final row in existing) row.ref: row};
     final pending = <String>[];
@@ -307,7 +313,14 @@ extension _SetBundleListStore on EquipmentSetRepository {
     );
     await _assertNesting(setId, set.diverId, includes);
     return [
-      await _writeList(_BundleListTable.includes, setId, includes, now),
+      // Filtered above, for the nesting check.
+      await _writeList(
+        _BundleListTable.includes,
+        setId,
+        includes,
+        now,
+        alreadyLive: true,
+      ),
       await _writeList(
         _BundleListTable.presets,
         setId,

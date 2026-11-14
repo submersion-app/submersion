@@ -480,11 +480,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                       .value
                       ?.map((e) => e.id)
                       .toSet();
-                  final unshared = [
-                    if (visibleIds != null)
-                      for (final item in existingSet?.items ?? const [])
-                        if (!visibleIds.contains(item.id)) item,
-                  ];
+                  final unshared = unsharedSetMembers(existingSet, visibleIds);
 
                   // The live figure (issue #2326): the ticked items that have
                   // a row here, in the order the page lists them, so its

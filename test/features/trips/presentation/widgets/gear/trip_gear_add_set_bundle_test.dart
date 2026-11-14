@@ -93,7 +93,7 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  Future<void> addSet(WidgetTester tester) async {
+  Future<void> addSet(WidgetTester tester, {String named = 'Reef rig'}) async {
     tester.view.physicalSize = const Size(800, 1400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -133,7 +133,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('An equipment set'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Reef rig').last);
+    await tester.tap(find.text(named).last);
     await tester.pumpAndSettle();
   }
 
@@ -157,8 +157,34 @@ void main() {
     expect(slots.single.volume, closeTo(11.1, 1e-9));
     // In the diver's weight unit, kilograms by default.
     expect(await leadItems(), ['Lead: 4.0 kg']);
-    // The regulator and the cylinder slot.
-    expect(find.text('Packed 2 items from Reef rig'), findsOneWidget);
+    // The regulator, the cylinder slot and the lead item.
+    expect(find.text('Packed 3 items from Reef rig'), findsOneWidget);
+  });
+
+  // The lead is the one thing this set puts on the trip, so the message
+  // must not say everything was already packed.
+  testWidgets('a set with only lead reports the lead item it added', (
+    tester,
+  ) async {
+    final presets = await WeightPresetRepository().getPresets(diverId: 'd1');
+    await EquipmentSetRepository().createSet(
+      EquipmentSet(
+        id: 'lead',
+        diverId: 'd1',
+        name: 'Lead only',
+        weightPresetIds: [presets.single.id],
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await TripChecklistsRepository().createChecklist(
+      tripId: 'trip1',
+      name: 'Dive gear',
+    );
+    await addSet(tester, named: 'Lead only');
+
+    expect(await leadItems(), ['Lead: 4.0 kg']);
+    expect(find.text('Packed 1 item from Lead only'), findsOneWidget);
   });
 
   testWidgets('with several checklists it asks which one takes the lead', (

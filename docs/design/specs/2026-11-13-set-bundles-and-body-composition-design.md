@@ -178,7 +178,10 @@ set's lead and cylinders count once, as part of the outer bundle.
   exactly what the absorbed set filled in, they are replaced by the picked
   set's without a question.
 - An unattended pass does not re-tag gear that an earlier pass put on an
-  existing dive.
+  existing dive. The same holds for tags a dive arrives with: a file import
+  writes the sets the dive was logged with, and only the sets the import
+  itself applies (the default or location set, the computer's sets) are
+  folded into one.
 
 ### What applying a set does
 
@@ -252,7 +255,9 @@ Details by path:
   plan's tank list with `tankFromItem` (the planner's existing
   add-one-saved-cylinder path, which carries the gas). A cylinder is skipped
   when the plan already has one with the same role, size and mix, and the
-  untouched default plan tank is replaced as described above. The planner's
+  untouched default plan tank is replaced as described above. Segments
+  already written on that tank (a quick plan's) move to the set's main
+  cylinder, as they move to a fallback when a tank is removed. The planner's
   `addTank` drops non-breathing roles; that stays. Plan results recompute on
   every change, so nothing more is needed. Weights are not applied: the plan
   has its own prediction.
@@ -267,7 +272,9 @@ Details by path:
   them as rentals), and adds a "Lead: 12 lb" item to the trip's
   checklist. Cylinders and a lead item already present are not added again.
   With no checklist on the trip the lead item is skipped and the confirmation
-  says so; with several, the diver picks one.
+  says so; with several, the diver picks one. The confirmation's count takes
+  in the lead item with the gear and slots, so a set that carries only lead
+  reports the one item it added.
 - **Weight planner.** Effective gear only; a set with no gear is not offered.
 
 ### Set pages

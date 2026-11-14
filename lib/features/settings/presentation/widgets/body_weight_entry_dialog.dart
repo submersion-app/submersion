@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/buoyancy/body_composition.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -98,7 +99,14 @@ class _BodyWeightEntryDialogState extends ConsumerState<BodyWeightEntryDialog> {
     final profile = ref.watch(diverBodyProfileProvider).valueOrNull;
     if (profile == null) return null;
     if (profile.sex == null || profile.ageYears == null) {
-      return context.l10n.bodyWeight_bodyFatEstimateHint;
+      // A birth year the adult formula does not cover (a junior diver)
+      // reads as no age. It is entered all the same, so there is nothing
+      // to ask for and no estimate to show.
+      final birthYearGiven =
+          ref.watch(currentDiverProvider).valueOrNull?.birthYear != null;
+      return profile.sex != null && birthYearGiven
+          ? null
+          : context.l10n.bodyWeight_bodyFatEstimateHint;
     }
     final weight = _number(_weightController);
     final estimate = BodyComposition.displayEstimate(

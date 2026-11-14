@@ -283,6 +283,9 @@ Future<int?> _apply(
       addedCount += applied.slotted;
       leadSkipped = applied.lead == TripLeadOutcome.noChecklist;
       if (applied.lead == TripLeadOutcome.added) {
+        // The lead item is something the set put on the trip too: without
+        // it a set that carries only lead would report nothing to pack.
+        addedCount += 1;
         container.invalidate(tripChecklistProvider);
         container.invalidate(tripChecklistAllItemsProvider);
       }

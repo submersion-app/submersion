@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 import 'package:submersion/features/equipment/presentation/helpers/equipment_set_form_values.dart';
@@ -167,6 +169,33 @@ void main() {
       expect(opened.lists.weightPresetIds, ['p1']);
       expect(opened.lists.cylinderConfigIds, ['c1']);
       expect(opened.retainingEquipment((id) => id == 'a').lists, opened.lists);
+    });
+  });
+
+  // A set's loaded items are what it applies, the gear of the sets it
+  // includes too (issue #4525). Only its own members can be "no longer
+  // shared" members of it.
+  group('unsharedSetMembers', () {
+    final at = DateTime(2026, 11, 1);
+    EquipmentItem item(String id) =>
+        EquipmentItem(id: id, name: id, type: EquipmentType.regulator);
+    final set = EquipmentSet(
+      id: 'outer',
+      name: 'Outer',
+      equipmentIds: const ['own', 'ownHidden'],
+      includedSetIds: const ['rig'],
+      items: [item('own'), item('ownHidden'), item('includedHidden')],
+      createdAt: at,
+      updatedAt: at,
+    );
+
+    test('lists the set\'s own members the diver cannot see', () {
+      expect(unsharedSetMembers(set, {'own'}).map((i) => i.id), ['ownHidden']);
+    });
+
+    test('lists nothing until the visible gear is known, or for no set', () {
+      expect(unsharedSetMembers(set, null), isEmpty);
+      expect(unsharedSetMembers(null, {'own'}), isEmpty);
     });
   });
 }

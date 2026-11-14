@@ -71,6 +71,29 @@ void main() {
     },
   );
 
+  // The quick plan writes its segments on the default tank. When a set
+  // takes that tank's place, the segments must breathe the set's main
+  // cylinder, not a tank the plan no longer has.
+  test('segments on the replaced default tank move to the set\'s main '
+      'cylinder', () async {
+    final container = await makeContainer();
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
+    expect(container.read(divePlanNotifierProvider).segments, isNotEmpty);
+
+    // The stage comes first in the set; the dive is still breathed from
+    // the back gas.
+    notifier.addSetCylinders([
+      cylinder('s', role: TankRole.stage, volume: 5.7, o2: 50),
+      cylinder('a'),
+    ]);
+
+    final state = container.read(divePlanNotifierProvider);
+    final backGas = state.tanks.singleWhere((x) => x.role == TankRole.backGas);
+    expect(state.segments.map((s) => s.tankId).toSet(), {backGas.id});
+    expect(state.segments.map((s) => s.gasMix.o2).toSet(), {32});
+  });
+
   // The default tank stands in for the diver's main gas. A set that brings
   // only a stage or a deco cylinder has not said what that is.
   test('a set with no main cylinder leaves the default tank and adds '
