@@ -10,6 +10,7 @@ import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/local_site_catalogue.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -494,6 +495,283 @@ void main() {
     });
   });
 
+  group('by kind', () {
+    // Around Scapa Flow: two dive sites and three charted wrecks, each a
+    // known distance north of the point, plus one wreck far away.
+    const scapa = GeoPoint(58.9, -3.1);
+    Map<String, Object?> at(
+      String id,
+      String name,
+      double northMeters, {
+      bool register = false,
+      double lon = -3.1,
+    }) => {
+      'id': id,
+      'name': name,
+      'lat': 58.9 + northMeters / 111194.93,
+      'lon': lon,
+      if (register) 'kind': 'register',
+      'source': 'osm',
+      'trust': 'verified',
+    };
+
+    Future<LocalSiteCatalogue> scapaCatalogue() => catalogueOf([
+      at('site_far', 'Inganess Bay', 9000),
+      at('site_near', 'Churchill Barrier', 2000),
+      at('wreck_near', 'SMS Karlsruhe', 100, register: true),
+      at('wreck_mid', 'SMS Brummer', 1400, register: true),
+      at('wreck_far', 'SMS Dresden', 4000, register: true),
+      at('wreck_away', 'SMS Elsewhere', 400000, register: true),
+    ]);
+
+    test('near returns one kind when asked for it, both when not', () async {
+      final catalogue = await scapaCatalogue();
+
+      expect(
+        idsOf(
+          await catalogue.near(
+            scapa,
+            radiusMeters: 50000,
+            kind: CatalogueKind.site,
+          ),
+        ),
+        ['site_near', 'site_far'],
+      );
+      expect(
+        idsOf(
+          await catalogue.near(
+            scapa,
+            radiusMeters: 50000,
+            kind: CatalogueKind.register,
+          ),
+        ),
+        ['wreck_near', 'wreck_mid', 'wreck_far'],
+      );
+      expect(idsOf(await catalogue.near(scapa, radiusMeters: 50000)), [
+        'wreck_near',
+        'wreck_mid',
+        'site_near',
+        'wreck_far',
+        'site_far',
+      ]);
+    });
+
+    test('the limit applies within the kind asked for', () async {
+      final catalogue = await scapaCatalogue();
+
+      expect(
+        idsOf(
+          await catalogue.near(
+            scapa,
+            radiusMeters: 50000,
+            limit: 1,
+            kind: CatalogueKind.site,
+          ),
+        ),
+        ['site_near'],
+      );
+    });
+
+    test('countNear counts one kind by real distance', () async {
+      final catalogue = await scapaCatalogue();
+
+      expect(
+        await catalogue.countNear(
+          scapa,
+          radiusMeters: 50000,
+          kind: CatalogueKind.register,
+        ),
+        3,
+      );
+      expect(
+        await catalogue.countNear(
+          scapa,
+          radiusMeters: 500,
+          kind: CatalogueKind.register,
+        ),
+        1,
+      );
+      expect(
+        await catalogue.countNear(
+          scapa,
+          radiusMeters: 50000,
+          kind: CatalogueKind.site,
+        ),
+        2,
+      );
+    });
+
+    test('countNear leaves out the corners of the box', () async {
+      // 1,300 m north and 1,300 m east: inside the box of a 1,500 m
+      // circle, 1,838 m from its centre.
+      final catalogue = await catalogueOf([
+        at('corner', 'Corner Wreck', 1300, register: true, lon: -3.0774),
+      ]);
+
+      expect(
+        await catalogue.countNear(
+          scapa,
+          radiusMeters: 1500,
+          kind: CatalogueKind.register,
+        ),
+        0,
+      );
+      expect(
+        await catalogue.countNear(
+          scapa,
+          radiusMeters: 2000,
+          kind: CatalogueKind.register,
+        ),
+        1,
+      );
+    });
+
+    test('search puts dive sites before register records that match '
+        'as well', () async {
+      final catalogue = await catalogueOf([
+        at('wreck_a', 'Alpha Reef', 400000, register: true),
+        at('site_b', 'Beta Reef', 400000),
+        at('wreck_c', 'Gamma Reef', 400000, register: true),
+        at('site_d', 'Delta Reef', 400000),
+      ]);
+
+      expect(idsOf(await catalogue.search('reef')), [
+        'site_b',
+        'site_d',
+        'wreck_a',
+        'wreck_c',
+      ]);
+    });
+
+    test('a register record named for the word still comes before a dive '
+        'site that is only in a place of that name', () async {
+      final catalogue = await catalogueOf([
+        {...at('site', 'Somewhere', 400000), 'region': 'Orkney'},
+        at('wreck', 'Orkney Trader', 400000, register: true),
+      ]);
+
+      expect(idsOf(await catalogue.search('orkney')), ['wreck', 'site']);
+    });
+
+    test('in a search the area still leads within each kind', () async {
+      final catalogue = await catalogueOf([
+        at('site_away', 'Away Reef', 400000),
+        at('wreck_here', 'Here Reef', 100, register: true),
+        at('site_here', 'Local Reef', 200),
+      ]);
+
+      expect(idsOf(await catalogue.search('reef', areaFirst: scapa)), [
+        'site_here',
+        'wreck_here',
+        'site_away',
+      ]);
+    });
+  });
+
+  group('inBounds', () {
+    const box = CatalogueBounds(south: 58, west: -4, north: 60, east: -2);
+    Map<String, Object?> at(
+      String id,
+      double lat,
+      double lon, {
+      bool register = false,
+    }) => {
+      'id': id,
+      'name': id,
+      'lat': lat,
+      'lon': lon,
+      if (register) 'kind': 'register',
+      'source': 'osm',
+      'trust': 'verified',
+    };
+
+    test('returns the sites in the box and no others', () async {
+      final catalogue = await catalogueOf([
+        at('inside', 59, -3),
+        at('wreck_inside', 59.5, -2.5, register: true),
+        at('north', 61, -3),
+        at('west', 59, -5),
+        {'id': 'nowhere', 'name': 'x', 'source': 'osm', 'trust': 'verified'},
+      ]);
+
+      final result = await catalogue.inBounds(box);
+
+      expect(idsOf(result.sites).toSet(), {'inside', 'wreck_inside'});
+      expect(result.truncated, isFalse);
+    });
+
+    test('over the limit, dive sites come first, then the register '
+        'records nearest the centre', () async {
+      final catalogue = await catalogueOf([
+        at('wreck_edge', 59.9, -2.1, register: true),
+        at('wreck_centre', 59.01, -3.01, register: true),
+        at('site_a', 58.2, -3.8),
+        at('site_b', 59.8, -2.2),
+        at('wreck_mid', 59.4, -3.4, register: true),
+      ]);
+
+      final result = await catalogue.inBounds(box, limit: 3);
+
+      expect(idsOf(result.sites).toSet(), {'site_a', 'site_b', 'wreck_centre'});
+      expect(result.truncated, isTrue);
+
+      final all = await catalogue.inBounds(box, limit: 5);
+      expect(all.sites, hasLength(5));
+      expect(all.truncated, isFalse);
+    });
+
+    test('more dive sites than the limit is cut short too', () async {
+      final catalogue = await catalogueOf([
+        at('site_a', 58.2, -3.8),
+        at('site_b', 59.8, -2.2),
+        at('site_c', 59, -3),
+      ]);
+
+      final result = await catalogue.inBounds(box, limit: 2);
+
+      expect(result.sites, hasLength(2));
+      expect(result.truncated, isTrue);
+    });
+
+    test('a box across the antimeridian holds both sides', () async {
+      const seam = CatalogueBounds(
+        south: -18,
+        west: 179,
+        north: -16,
+        east: -179,
+      );
+      final catalogue = await catalogueOf([
+        at('fiji_west', -16.8, 179.95),
+        at('fiji_east', -16.8, -179.95),
+        at('fiji_far', -16.8, 178.0),
+        at('wreck_east', -17, -179.5, register: true),
+      ]);
+
+      final result = await catalogue.inBounds(seam);
+
+      expect(idsOf(result.sites).toSet(), {
+        'fiji_west',
+        'fiji_east',
+        'wreck_east',
+      });
+      expect(seam.center.longitude.abs(), closeTo(180, 0.001));
+    });
+
+    test('the whole world is one box', () async {
+      const world = CatalogueBounds(
+        south: -90,
+        west: -180,
+        north: 90,
+        east: 180,
+      );
+
+      final result = await catalogue.inBounds(world, limit: 1000);
+
+      expect(result.sites, hasLength(11));
+      expect(idsOf(result.sites), isNot(contains('nowhere')));
+    });
+  });
+
   test('allWithCoordinates leaves out sites without coordinates', () async {
     final sites = await catalogue.allWithCoordinates();
 
@@ -525,5 +803,18 @@ void main() {
     expect(await unopened.byId('full'), isNull);
     expect(await unopened.allWithCoordinates(), isEmpty);
     expect(await unopened.source('osm'), isNull);
+    expect(
+      await unopened.countNear(
+        _saltPier,
+        radiusMeters: 50000,
+        kind: CatalogueKind.register,
+      ),
+      0,
+    );
+    final bounds = await unopened.inBounds(
+      const CatalogueBounds(south: 0, west: 0, north: 1, east: 1),
+    );
+    expect(bounds.sites, isEmpty);
+    expect(bounds.truncated, isFalse);
   });
 }

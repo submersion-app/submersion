@@ -12,6 +12,7 @@ import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_row_mapper.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/repositories/site_catalogue.dart';
@@ -37,10 +38,11 @@ class LocalSiteCatalogue implements SiteCatalogue {
     GeoPoint point, {
     required double radiusMeters,
     int limit = 500,
+    CatalogueKind? kind,
   }) => _read(const [], (db) async {
     final rows = await (db.select(
       db.siteCatalogueEntries,
-    )..where((t) => _inBox(t, point, radiusMeters))).get();
+    )..where((t) => _ofKind(t, kind, _inBox(t, point, radiusMeters)))).get();
     // Rows become sites only once the distance check and the limit have
     // chosen them: decoding a row's lists is the costly part of a read.
     return _nearestFirst(
@@ -48,6 +50,68 @@ class LocalSiteCatalogue implements SiteCatalogue {
       point,
       radiusMeters,
     ).take(limit).map(catalogueSiteFromRow).toList();
+  });
+
+  @override
+  Future<int> countNear(
+    GeoPoint point, {
+    required double radiusMeters,
+    required CatalogueKind kind,
+  }) => _read(0, (db) async {
+    final t = db.siteCatalogueEntries;
+    // Only the two coordinates are read: the box is what the index
+    // answers, and its corners are cut here without decoding a row.
+    final rows =
+        await (db.selectOnly(t)
+              ..addColumns([t.latitude, t.longitude])
+              ..where(_ofKind(t, kind, _inBox(t, point, radiusMeters))))
+            .get();
+    return rows
+        .where(
+          (row) =>
+              distanceMeters(
+                point,
+                GeoPoint(row.read(t.latitude)!, row.read(t.longitude)!),
+              ) <=
+              radiusMeters,
+        )
+        .length;
+  });
+
+  @override
+  Future<CatalogueBoundsResult> inBounds(
+    CatalogueBounds bounds, {
+    int limit = 1500,
+  }) => _read((sites: const <CatalogueSite>[], truncated: false), (db) async {
+    Expression<bool> inside($SiteCatalogueEntriesTable t, CatalogueKind kind) =>
+        _ofKind(t, kind, _inBounds(t, bounds));
+
+    // One more than the limit is asked for, to learn that there was more.
+    final sites =
+        await (db.select(db.siteCatalogueEntries)
+              ..where((t) => inside(t, CatalogueKind.site))
+              ..limit(limit + 1))
+            .get();
+    if (sites.length > limit) {
+      return (
+        sites: sites.take(limit).map(catalogueSiteFromRow).toList(),
+        truncated: true,
+      );
+    }
+    final room = limit - sites.length;
+    final registers =
+        await (db.select(db.siteCatalogueEntries)
+              ..where((t) => inside(t, CatalogueKind.register))
+              ..orderBy([(t) => OrderingTerm.asc(_farFrom(bounds.center))])
+              ..limit(room + 1))
+            .get();
+    return (
+      sites: [
+        ...sites,
+        ...registers.take(room),
+      ].map(catalogueSiteFromRow).toList(),
+      truncated: registers.length > room,
+    );
   });
 
   @override
@@ -91,7 +155,7 @@ class LocalSiteCatalogue implements SiteCatalogue {
                 ..where(
                   (t) => matches(t) & _inBox(t, areaFirst, areaRadiusMeters),
                 )
-                ..orderBy(_byName))
+                ..orderBy([_sitesFirst, ..._byName]))
               .get();
       inArea.addAll(
         rows.where(
@@ -113,6 +177,7 @@ class LocalSiteCatalogue implements SiteCatalogue {
               ..where(matches)
               ..orderBy([
                 (t) => OrderingTerm.desc(_inName(t, words)),
+                _sitesFirst,
                 ..._byName,
               ])
               // Enough to fill the page even if every area match repeats.
@@ -124,7 +189,8 @@ class LocalSiteCatalogue implements SiteCatalogue {
     ];
 
     // Sites the diver named come before sites that are only in a place, a
-    // sea or a country of that name; within each, the dive's area leads.
+    // sea or a country of that name; within each, the dive's area leads,
+    // and both queries already put dive sites before register records.
     bool byName(SiteCatalogueRow row) => _nameMatches(row.searchText, words);
     return [
       ...inArea.where(byName),
@@ -214,6 +280,44 @@ bool _nameMatches(String searchText, List<String> words) {
   if (nameEnd < 0) return false;
   final name = searchText.substring(0, nameEnd);
   return words.every(name.contains);
+}
+
+/// Dive sites before register records: a search for a country or a sea
+/// lists the places people dive there before its charted wrecks.
+OrderingTerm _sitesFirst($SiteCatalogueEntriesTable t) =>
+    OrderingTerm.asc(t.kind.equals(CatalogueKind.register.name));
+
+/// [filter], narrowed to records of [kind] when one is asked for.
+Expression<bool> _ofKind(
+  $SiteCatalogueEntriesTable t,
+  CatalogueKind? kind,
+  Expression<bool> filter,
+) => kind == null ? filter : t.kind.equals(kind.name) & filter;
+
+/// Rows whose coordinates fall in [bounds], either side of the
+/// antimeridian when the box crosses it.
+Expression<bool> _inBounds(
+  $SiteCatalogueEntriesTable t,
+  CatalogueBounds bounds,
+) {
+  final latitude = t.latitude.isBetweenValues(bounds.south, bounds.north);
+  final longitude = bounds.crossesAntimeridian
+      ? t.longitude.isBiggerOrEqualValue(bounds.west) |
+            t.longitude.isSmallerOrEqualValue(bounds.east)
+      : t.longitude.isBetweenValues(bounds.west, bounds.east);
+  return latitude & longitude;
+}
+
+/// How far a row is from [center], in squared degrees, the short way round
+/// the globe: enough to order the rows of one map by.
+Expression<double> _farFrom(GeoPoint center) {
+  final lat = center.latitude;
+  final lon = center.longitude;
+  return CustomExpression<double>(
+    '((latitude - ($lat)) * (latitude - ($lat)) + '
+    'min(abs(longitude - ($lon)), 360 - abs(longitude - ($lon))) * '
+    'min(abs(longitude - ($lon)), 360 - abs(longitude - ($lon))))',
+  );
 }
 
 /// By name as a reader expects it: the search text begins with the folded
