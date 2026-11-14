@@ -6,7 +6,6 @@ import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_p
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_gap_display.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_gap_providers.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_gap_comparison_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -48,7 +47,7 @@ class SiteCatalogueOfferLine extends ConsumerWidget {
               padding: EdgeInsets.zero,
               visualDensity: VisualDensity.compact,
             ),
-            onPressed: () => _review(context, ref, pair),
+            onPressed: () => _review(context, pair),
             child: Text(l10n.diveSites_gapNotice_review),
           ),
         ],
@@ -62,17 +61,13 @@ class SiteCatalogueOfferLine extends ConsumerWidget {
 /// Everything after the sheet goes through the provider container, not
 /// this widget: the diver may leave the site's page while a write is under
 /// way, and the write and what follows it must still finish.
-Future<void> _review(
-  BuildContext context,
-  WidgetRef ref,
-  CataloguePair pair,
-) async {
+Future<void> _review(BuildContext context, CataloguePair pair) async {
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final container = ProviderScope.containerOf(context, listen: false);
   final result = await showCatalogueGapComparison(context, pair: pair);
   // Closed without acting: nothing to remember outside the review list.
-  if (result == null || result is ComparisonKept) return;
+  if (result is ComparisonKept) return;
 
   final service = container.read(catalogueGapServiceProvider);
   try {
@@ -92,12 +87,10 @@ Future<void> _review(
       case ComparisonNoThanks():
         await service.declineAll(pair, diverId: diverId);
       case ComparisonKept():
+        // Answered above; the switch has to name every result.
         break;
     }
-    // The pairs are found again by their own change ticks; the site list
-    // some screens hold in memory is told here.
-    container.invalidate(catalogueGapPairsProvider);
-    container.invalidate(siteListNotifierProvider);
+    catalogueGapWritten(container);
   } catch (_) {
     // The service has logged it.
     messenger.showSnackBar(

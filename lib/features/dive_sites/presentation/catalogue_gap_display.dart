@@ -90,23 +90,33 @@ const _namedOnly = {
 };
 
 /// One line saying what applying [pair] would add: the link first when the
-/// site has none, then each offered field, a short value as itself and a
-/// long one by its name.
+/// site has none, then each field, a short value as itself and a long one
+/// by its name.
+///
+/// [fields] are the ones the diver left ticked, every offered one when
+/// null. A site already linked with none left ticked gains nothing:
+/// applying it turns the record's details down, and the line says that.
 String catalogueGapAddsLine(
   CataloguePair pair,
   UnitFormatter units,
-  AppLocalizations l10n,
-) {
+  AppLocalizations l10n, {
+  Set<CatalogueGapField>? fields,
+}) {
+  final chosen = fields ?? pair.fields;
   final items = <String>[
     if (pair.addsLink) l10n.diveSites_gapReview_addsLink,
+    // In the order the record offers them, whatever order they were chosen.
     for (final field in pair.fields)
-      if (_namedOnly.contains(field))
-        catalogueGapFieldLabel(field, l10n)
-      else
-        switch (catalogueGapFieldValue(field, pair.record, units, l10n)) {
-          '' => catalogueGapFieldLabel(field, l10n),
-          final value => value,
-        },
+      if (chosen.contains(field))
+        if (_namedOnly.contains(field))
+          catalogueGapFieldLabel(field, l10n)
+        else
+          switch (catalogueGapFieldValue(field, pair.record, units, l10n)) {
+            '' => catalogueGapFieldLabel(field, l10n),
+            final value => value,
+          },
   ];
-  return l10n.diveSites_gapReview_adds(items.join(', '));
+  return items.isEmpty
+      ? l10n.diveSites_gapCompare_noThanks
+      : l10n.diveSites_gapReview_adds(items.join(', '));
 }

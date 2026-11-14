@@ -430,7 +430,10 @@ notes and rating already do.
   that row.
 - `applyLibrarySiteNotes` copies them onto the row on the profile's other
   devices, as it copies notes and rating. A notes record that holds no
-  link or answers never clears the row's.
+  link or answers never clears the row's. The other way round, a record
+  that holds a link or answers and neither notes nor a rating supplies the
+  row's notes only where no other record does: a second profile linking a
+  site does not blank the notes of the first.
 - The fields a fill writes on a library site are shared fields. They are
   stamped for the library as `applyLocationDetails` stamps them and reach
   every member through its documents. Another member whose own site view
@@ -528,6 +531,11 @@ is the designer's call. The ones most worth checking:
 - On a device with two profiles in one library, a library site's row
   shows the link and answers of whichever profile's record is newest, as
   it does for notes and rating.
+- On such a device, a profile that has notes of its own for a library
+  site and then links it becomes the newest record, and the row shows
+  that profile's notes from then on, as after any edit of theirs. A
+  record carries one timestamp for all it holds; telling a catalogue
+  write from a notes write would need a second one.
 
 ## Rulings made during the build (2026-11-14)
 
@@ -571,6 +579,44 @@ otherwise. Each is the builder's, not the maintainer's.
 - **Record text is trimmed** when written.
 - **29 new strings,** fewer than planned: position, depth, site types and
   entry reuse the site editor's labels.
+
+### Added by the second review (2026-11-14)
+
+A second review of the whole branch, at a higher effort, reported 18
+findings. All are fixed. The calls it led to:
+
+- **A site with no position needs exactly one namesake among all the
+  records of its name,** counted before any is ruled out as taken. When
+  that one already belongs to another of the diver's sites, the site gets
+  no pair: it is most likely a second copy of that site, and is not handed
+  a different place that shares the name.
+- **Names are compared with accents removed in either spelling,** as one
+  character or as a letter followed by a combining mark.
+- **The exact-name read answers every name in one statement**
+  (`SiteCatalogue.namedMany`, replacing `named`). The name key is worked
+  out inside the query by a registered SQL function,
+  `catalogue_name_key`, so it runs on the database's worker and uses the
+  same rule as the pairing.
+- **A library site the profile has hidden does not claim its record.**
+- **A library site's row and the profile's record are written in one
+  transaction.** A link only this device knew would never reach the
+  profile's other devices.
+- **Applying does not wait for altitude lookups.** They run after it
+  answers, one after another, and a failure is logged.
+- **Applying one site is an ordinary edit in the change log,** not a bulk
+  edit of one.
+- **The review list remembers the details un-ticked for a row,** not the
+  ones chosen. A detail the record gains afterwards is offered like any
+  other and is never turned down without having been shown.
+- **A row's "Adds" line names only the details still ticked.** A linked
+  site with none left ticked reads "No thanks", which is what applying it
+  does.
+- **After any write the list takes no other until the pairs have been
+  found again.** Until then it still shows rows the write dealt with.
+- **A write that outlives the page still finishes its follow-up.** The
+  pairs are found again and the site list is refreshed through the
+  provider container, not through the page's own state.
+- **Each tick is named after its site for a screen reader.**
 
 ## Left to the builder
 

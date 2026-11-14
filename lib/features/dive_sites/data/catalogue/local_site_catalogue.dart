@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
@@ -22,6 +23,10 @@ const _log = LoggerService('LocalSiteCatalogue');
 
 /// The escape character for LIKE patterns built from typed text.
 const _likeEscape = r'\';
+
+/// How many names one statement asks for: under SQLite's limit on bound
+/// values with room to spare.
+const _namesPerStatement = 500;
 
 /// The built-in site catalogue, read from the local cache database the
 /// importer fills.
@@ -214,35 +219,34 @@ class LocalSiteCatalogue implements SiteCatalogue {
   });
 
   @override
-  Future<List<CatalogueSite>> named(String name, {String? countryCode}) =>
-      _read(const [], (db) async {
-        final words = catalogueNameKey(name).split(' ');
-        if (words.first.isEmpty) return const [];
-        // Every word of the name narrows the rows read; whether a row's
-        // whole name is this one is decided on the folded names, which
-        // SQL cannot compare (the stored text keeps its punctuation).
-        final rows =
-            await (db.select(db.siteCatalogueEntries)..where(
-                  (t) =>
-                      t.latitude.isNotNull() &
-                      t.longitude.isNotNull() &
-                      (countryCode == null
-                          ? const Constant(true)
-                          : t.countryCode.equals(countryCode)) &
-                      words
-                          .map<Expression<bool>>(
-                            (word) => t.searchText.like(
-                              '%${_escapeLike(word)}%',
-                              escapeChar: _likeEscape,
-                            ),
-                          )
-                          .reduce((a, b) => a & b),
-                ))
-                .get();
-        return [
-          for (final row in rows)
-            if (catalogueNamesEqual(name, row.name)) catalogueSiteFromRow(row),
-        ];
+  Future<Map<String, List<CatalogueSite>>> namedMany(Iterable<String> names) =>
+      _read(const {}, (db) async {
+        final wanted = {for (final name in names) catalogueNameKey(name)}
+          ..remove('');
+        if (wanted.isEmpty) return const {};
+        // The key of each record's name is worked out inside the
+        // statement, on the worker isolate, so one pass over the table
+        // answers every name and only the matching rows come back.
+        final found = <String, List<CatalogueSite>>{};
+        for (final keys in wanted.slices(_namesPerStatement)) {
+          final rows =
+              await (db.select(db.siteCatalogueEntries)..where(
+                    (t) =>
+                        t.latitude.isNotNull() &
+                        t.longitude.isNotNull() &
+                        FunctionCallExpression<String>(
+                          kCatalogueNameKeyFunction,
+                          [t.name],
+                        ).isIn(keys),
+                  ))
+                  .get();
+          for (final row in rows) {
+            (found[catalogueNameKey(row.name)] ??= []).add(
+              catalogueSiteFromRow(row),
+            );
+          }
+        }
+        return found;
       });
 
   @override

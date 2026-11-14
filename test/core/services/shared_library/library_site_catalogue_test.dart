@@ -328,6 +328,49 @@ void main() {
       },
     );
 
+    test("a profile's link does not hide another profile's notes", () async {
+      await member('d1');
+      await diver('d2');
+      await member('d2', memberId: 'm2');
+      await librarySite();
+      await SharedLibraryStore().putSiteNotes(
+        diverId: 'd1',
+        siteId: 's',
+        notes: 'd1 notes',
+        rating: 5,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      // d2 links the site. Their record is the newest, and it says nothing
+      // about notes: it exists for the link alone.
+      await put('d2', link: 'r1', answers: null);
+
+      final site = await afterApply();
+
+      expect(site.notes, 'd1 notes');
+      expect(site.rating, 5);
+      expect(site.catalogueId, 'r1');
+    });
+
+    test('notes cleared by the only profile are still cleared here', () async {
+      await member('d1');
+      // As this device last knew the site.
+      await librarySite(notes: 'out of date', rating: 2);
+      // As personal sync brings the record: the notes cleared, a link kept.
+      await SharedLibraryStore().putSiteNotes(
+        diverId: 'd1',
+        siteId: 's',
+        notes: '',
+        rating: null,
+      );
+      await put('d1', link: 'r1', answers: null);
+
+      final site = await afterApply();
+
+      expect(site.notes, '');
+      expect(site.rating, isNull);
+      expect(site.catalogueId, 'r1');
+    });
+
     test('a personal site is never touched', () async {
       await SiteRepository().createSite(
         const DiveSite(id: 's', name: 'Mine', diverId: 'd1'),

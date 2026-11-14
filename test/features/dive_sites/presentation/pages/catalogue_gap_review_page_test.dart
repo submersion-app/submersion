@@ -4,9 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_sites/data/repositories/site_catalogue_fill_repository.dart';
-import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
-import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/data/services/catalogue_gap_service.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_gap_field.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_pair.dart';
@@ -19,7 +16,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-import '../../../../helpers/fake_site_catalogue.dart';
+import '../../../../helpers/fake_catalogue_gap_service.dart';
 import '../../../../helpers/mock_providers.dart';
 
 const _here = GeoPoint(12.0835, -68.2826);
@@ -87,58 +84,17 @@ const _blueHole = CataloguePair(
   fields: {CatalogueGapField.position, CatalogueGapField.country},
 );
 
-/// A service that records what it is asked and answers when told to.
-class _Service extends CatalogueGapService {
-  _Service()
-    : super(
-        siteRepository: SiteRepository(),
-        catalogue: FakeSiteCatalogue(),
-        classification: SiteClassificationRepository(),
-        fills: SiteCatalogueFillRepository(),
-      );
-
-  final applied = <List<CatalogueApplyRequest>>[];
-  CatalogueApplyResult result = const CatalogueApplyResult(
-    linked: 1,
-    filled: 2,
-  );
-
-  /// When set, an apply waits for it.
-  Completer<void>? gate;
-  Object? failure;
-
-  final notSame = <String>[];
-  final declined = <String>[];
-
-  @override
-  Future<void> answerNotSame(
-    CataloguePair pair, {
-    required String? diverId,
-  }) async => notSame.add(pair.site.id);
-
-  @override
-  Future<void> declineAll(
-    CataloguePair pair, {
-    required String? diverId,
-  }) async => declined.add(pair.site.id);
-
-  @override
-  Future<CatalogueApplyResult> apply(
-    List<CatalogueApplyRequest> requests, {
-    required String? diverId,
-  }) async {
-    applied.add(requests);
-    await gate?.future;
-    if (failure != null) throw failure!;
-    return result;
-  }
-}
-
 final _pairs = StateProvider<List<CataloguePair>?>((ref) => null);
 
 void main() {
-  late _Service service;
+  late FakeCatalogueGapService service;
   late ProviderContainer container;
+
+  /// How many times the pairs have been looked for.
+  var searches = 0;
+
+  /// When set, a search for the pairs waits for it before it answers.
+  Completer<void>? searchGate;
 
   Future<void> pump(
     WidgetTester tester, {
@@ -146,7 +102,9 @@ void main() {
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
-    service = _Service();
+    service = FakeCatalogueGapService();
+    searches = 0;
+    searchGate = null;
     container = ProviderContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
@@ -154,12 +112,13 @@ void main() {
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
         catalogueGapServiceProvider.overrideWithValue(service),
         _pairs.overrideWith((ref) => pairs),
-        catalogueGapPairsProvider.overrideWith((ref) {
+        catalogueGapPairsProvider.overrideWith((ref) async {
           final now = ref.watch(_pairs);
+          searches++;
           // Null stands for a catalogue that has not been read yet.
-          return now == null
-              ? Completer<List<CataloguePair>>().future
-              : Future.value(now);
+          if (now == null) return Completer<List<CataloguePair>>().future;
+          await searchGate?.future;
+          return now;
         }),
       ],
     );
@@ -242,6 +201,8 @@ void main() {
     tester,
   ) async {
     await pump(tester, pairs: [_saltPier, _hooker, _thistlegorm]);
+
+    service.result = const CatalogueApplyResult(linked: 1, filled: 2);
 
     await tester.tap(find.text('Apply (2)'));
     await tester.pumpAndSettle();
@@ -349,7 +310,7 @@ void main() {
     await tester.pump();
     container
         .read(catalogueGapReviewProvider.notifier)
-        .setFields('wreck', const {});
+        .setFields(_thistlegorm, const {});
     expect(ticked(tester, 'Thistlegorm'), isTrue);
 
     // A catalogue import lands: the same site now pairs with another record.
@@ -388,11 +349,153 @@ void main() {
     expect(ticked(tester, 'Thistlegorm'), isFalse);
   });
 
+  testWidgets('Apply stays off until the pairs have been found again', (
+    tester,
+  ) async {
+    await pump(tester, pairs: [_saltPier]);
+    searchGate = Completer<void>();
+
+    await tester.tap(find.text('Apply (1)'));
+    for (var i = 0; i < 3; i++) {
+      await tester.pump(const Duration(milliseconds: 10));
+    }
+    // The write is done, and the list still shows the row it applied: a
+    // second tap would send that row again.
+    expect(service.applied, hasLength(1));
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNull,
+    );
+
+    searchGate!.complete();
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNotNull,
+    );
+  });
+
+  testWidgets('an apply still running when the page goes finds the pairs '
+      'again', (tester) async {
+    await pump(tester, pairs: [_saltPier]);
+    service.gate = Completer<void>();
+
+    await tester.tap(find.text('Apply (1)'));
+    await tester.pump();
+    // The diver leaves: the page goes, and its ticks with it.
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: Scaffold(body: Text('elsewhere'))),
+      ),
+    );
+    await tester.pump();
+    final before = searches;
+    service.gate!.complete();
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(service.applied, hasLength(1));
+    await container.read(catalogueGapPairsProvider.future);
+    expect(searches, before + 1);
+  });
+
+  testWidgets('the rows are built as they scroll into view', (tester) async {
+    await pump(tester, pairs: [_saltPier, _thistlegorm]);
+
+    expect(
+      tester.widget<ListView>(find.byType(ListView)).childrenDelegate,
+      isA<SliverChildBuilderDelegate>(),
+    );
+  });
+
+  testWidgets('a tick is named after its site for a screen reader', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester, pairs: [_saltPier]);
+
+    expect(tester.getSemantics(checkboxFor('Salt Pier')).label, 'Salt Pier');
+    semantics.dispose();
+  });
+
   group('the comparison', () {
     Future<void> openRow(WidgetTester tester, String siteName) async {
       await tester.tap(find.text(siteName));
       await tester.pumpAndSettle();
     }
+
+    /// Un-ticks [fieldLabel] in the open comparison and closes it without
+    /// applying.
+    Future<void> untickAndClose(WidgetTester tester, String fieldLabel) async {
+      await tester.tap(find.text(fieldLabel));
+      await tester.pump();
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the row names only the details still ticked', (tester) async {
+      await pump(tester, pairs: [_saltPier]);
+      expect(find.text('Adds: link, 5m–15m, Reef'), findsOneWidget);
+
+      await openRow(tester, 'Salt Pier');
+      await untickAndClose(tester, 'Site types');
+
+      expect(find.text('Adds: link, 5m–15m'), findsOneWidget);
+    });
+
+    testWidgets('a detail the record gains later is filled, not turned down '
+        'unseen', (tester) async {
+      await pump(tester, pairs: [_saltPier]);
+      await openRow(tester, 'Salt Pier');
+      await untickAndClose(tester, 'Site types');
+
+      // A catalogue import lands: the record now has a description too.
+      final grown = CataloguePair(
+        site: _saltPier.site,
+        record: const CatalogueSite(
+          id: 'r_pier',
+          name: 'Salt Pier',
+          location: _here,
+          maxDepth: 15,
+          minDepth: 5,
+          typeIds: ['reef'],
+          description: 'Pillars covered in sponges',
+          source: 'osm',
+        ),
+        kind: CataloguePairKind.sure,
+        fields: const {
+          CatalogueGapField.depth,
+          CatalogueGapField.siteTypes,
+          CatalogueGapField.description,
+        },
+        distanceMeters: 0,
+      );
+      container.read(_pairs.notifier).state = [grown];
+      await tester.pumpAndSettle();
+      // What the diver un-ticked stays un-ticked.
+      expect(find.text('Adds: link, 5m–15m, Description'), findsOneWidget);
+
+      await tester.tap(find.text('Apply (1)'));
+      await tester.pumpAndSettle();
+
+      expect(service.applied.single.single.fields, {
+        CatalogueGapField.depth,
+        CatalogueGapField.description,
+      });
+    });
+
+    testWidgets('a linked site with every detail un-ticked says what '
+        'applying it does', (tester) async {
+      await pump(tester, pairs: [_hooker]);
+
+      await openRow(tester, 'Hilma Hooker');
+      await untickAndClose(tester, 'Description');
+
+      expect(find.textContaining('Adds:'), findsNothing);
+      expect(find.text('No thanks'), findsOneWidget);
+    });
 
     testWidgets('opens from a row with every offered field ticked', (
       tester,

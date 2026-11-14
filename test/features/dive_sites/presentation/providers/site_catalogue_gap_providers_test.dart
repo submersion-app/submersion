@@ -3,10 +3,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_sites/data/repositories/site_catalogue_fill_repository.dart';
-import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
-import 'package:submersion/features/dive_sites/data/services/catalogue_gap_service.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_gap_field.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_pair.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
@@ -16,7 +13,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_catal
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-import '../../../../helpers/fake_site_catalogue.dart';
+import '../../../../helpers/fake_catalogue_gap_service.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -29,31 +26,6 @@ CataloguePair _pair(
   kind: CataloguePairKind.linked,
   fields: fields,
 );
-
-/// A service that answers with whatever list the test last set.
-class _Service extends CatalogueGapService {
-  _Service()
-    : super(
-        siteRepository: SiteRepository(),
-        catalogue: FakeSiteCatalogue(),
-        classification: SiteClassificationRepository(),
-        fills: SiteCatalogueFillRepository(),
-      );
-
-  List<CataloguePair> pairs = const [];
-  final asked = <String?>[];
-  final cancelChecks = <bool Function()>[];
-
-  @override
-  Future<List<CataloguePair>> findPairs({
-    required String? diverId,
-    bool Function()? isCancelled,
-  }) async {
-    asked.add(diverId);
-    if (isCancelled != null) cancelChecks.add(isCancelled);
-    return pairs;
-  }
-}
 
 /// Preferences whose writes land only when the test says so, the way a
 /// slow platform channel would let them.
@@ -270,11 +242,11 @@ void main() {
   });
 
   group('finding the pairs', () {
-    late _Service service;
+    late FakeCatalogueGapService service;
 
     setUp(() async {
       await setUpTestDatabase();
-      service = _Service();
+      service = FakeCatalogueGapService();
     });
 
     tearDown(tearDownTestDatabase);

@@ -4,17 +4,16 @@ import 'package:submersion/features/dive_sites/data/services/catalogue_gap_servi
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_gap_field.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_pair.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_gap_providers.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 /// What the review list shows: the pairs, which rows are ticked, and the
-/// fields chosen for a row in its comparison.
+/// fields un-ticked for a row in its comparison.
 class CatalogueGapReviewState {
   const CatalogueGapReviewState({
     this.pairs = const [],
     this.ticked = const {},
-    this.fieldChoices = const {},
-    this.isApplying = false,
+    this.untickedFields = const {},
+    this.isWriting = false,
   });
 
   final List<CataloguePair> pairs;
@@ -22,27 +21,35 @@ class CatalogueGapReviewState {
   /// The site ids of the ticked rows.
   final Set<String> ticked;
 
-  /// By site id, the fields the diver kept ticked in the comparison. A row
-  /// with no entry applies every field it offers.
-  final Map<String, Set<CatalogueGapField>> fieldChoices;
-  final bool isApplying;
+  /// By site id, the fields the diver un-ticked in the comparison. A row
+  /// applies every field it offers but these.
+  ///
+  /// Kept as what was turned away, not what was chosen: a field the record
+  /// gains after the diver looked is then offered like any other, and is
+  /// never turned down without having been shown.
+  final Map<String, Set<CatalogueGapField>> untickedFields;
+
+  /// A write is under way and the pairs have not been found again since:
+  /// an apply, or an answer. The list still shows rows the write has dealt
+  /// with, so nothing more is sent until it has caught up.
+  final bool isWriting;
 
   int get tickedCount => ticked.length;
 
   /// The fields applying [pair] would fill.
   Set<CatalogueGapField> fieldsFor(CataloguePair pair) =>
-      fieldChoices[pair.site.id]?.intersection(pair.fields) ?? pair.fields;
+      pair.fields.difference(untickedFields[pair.site.id] ?? const {});
 
   CatalogueGapReviewState copyWith({
     List<CataloguePair>? pairs,
     Set<String>? ticked,
-    Map<String, Set<CatalogueGapField>>? fieldChoices,
-    bool? isApplying,
+    Map<String, Set<CatalogueGapField>>? untickedFields,
+    bool? isWriting,
   }) => CatalogueGapReviewState(
     pairs: pairs ?? this.pairs,
     ticked: ticked ?? this.ticked,
-    fieldChoices: fieldChoices ?? this.fieldChoices,
-    isApplying: isApplying ?? this.isApplying,
+    untickedFields: untickedFields ?? this.untickedFields,
+    isWriting: isWriting ?? this.isWriting,
   );
 }
 
@@ -54,25 +61,29 @@ class CatalogueGapReviewState {
 /// row they un-ticked, and drops what belonged to pairs that have gone.
 class CatalogueGapReviewNotifier
     extends StateNotifier<CatalogueGapReviewState> {
-  CatalogueGapReviewNotifier(this._ref)
-    : super(const CatalogueGapReviewState()) {
-    _ref.listen<AsyncValue<List<CataloguePair>>>(
+  CatalogueGapReviewNotifier(Ref ref)
+    : _container = ref.container,
+      super(const CatalogueGapReviewState()) {
+    ref.listen<AsyncValue<List<CataloguePair>>>(
       catalogueGapPairsProvider,
       (_, next) => _take(next),
       fireImmediately: true,
     );
   }
 
-  final Ref _ref;
+  /// Every read goes through the container, not the provider's own Ref.
+  /// The diver may leave the page while a write is under way: the Ref is
+  /// then no use, and the write and what follows it must still finish.
+  final ProviderContainer _container;
   static final _log = LoggerService.forClass(CatalogueGapReviewNotifier);
 
   /// The pairs already seeded, as site id and record id: a pair seen
   /// before keeps whatever tick the diver left it with.
-  final Set<String> _seeded = {};
+  Set<String> _seeded = const {};
 
-  /// The record each listed site was last paired with. A tick and a choice
-  /// of fields are a decision about that record: when a site turns up
-  /// paired with another one, both are dropped and the pair is seeded
+  /// The record each listed site was last paired with. A tick and the
+  /// fields un-ticked are a decision about that record: when a site turns
+  /// up paired with another one, both are dropped and the pair is seeded
   /// afresh.
   Map<String, String> _recordBySite = const {};
 
@@ -91,19 +102,19 @@ class CatalogueGapReviewNotifier
       for (final entry in recordBySite.entries)
         if ((_recordBySite[entry.key] ?? entry.value) == entry.value) entry.key,
     };
+    final seededBefore = _seeded;
     _recordBySite = recordBySite;
-    final ticked = state.ticked.intersection(present);
-    for (final pair in pairs) {
-      if (_seeded.add(_seedKey(pair)) && pair.preTicked) {
-        ticked.add(pair.site.id);
-      }
-    }
-    _seeded.retainAll({for (final pair in pairs) _seedKey(pair)});
+    _seeded = {for (final pair in pairs) _seedKey(pair)};
     state = state.copyWith(
       pairs: pairs,
-      ticked: ticked,
-      fieldChoices: {
-        for (final entry in state.fieldChoices.entries)
+      ticked: {
+        ...state.ticked.intersection(present),
+        for (final pair in pairs)
+          if (pair.preTicked && !seededBefore.contains(_seedKey(pair)))
+            pair.site.id,
+      },
+      untickedFields: {
+        for (final entry in state.untickedFields.entries)
           if (present.contains(entry.key)) entry.key: entry.value,
       },
     );
@@ -115,16 +126,20 @@ class CatalogueGapReviewNotifier
     state = state.copyWith(ticked: ticked);
   }
 
-  /// Keeps the fields the diver chose for a row in its comparison. The
-  /// row's tick then applies exactly these.
-  void setFields(String siteId, Set<CatalogueGapField> fields) {
+  /// Keeps what the diver chose for [pair] in its comparison: [fields] are
+  /// the ones left ticked. The row's tick then applies those, and any the
+  /// record comes to offer later.
+  void setFields(CataloguePair pair, Set<CatalogueGapField> fields) {
     state = state.copyWith(
-      fieldChoices: {...state.fieldChoices, siteId: fields},
+      untickedFields: {
+        ...state.untickedFields,
+        pair.site.id: pair.fields.difference(fields),
+      },
     );
   }
 
   /// Applies every ticked row. Null when there is nothing to do: nothing
-  /// is ticked, or an apply is already running.
+  /// is ticked, or a write is already running.
   Future<CatalogueApplyResult?> applyTicked() => _apply([
     for (final pair in state.pairs)
       if (state.ticked.contains(pair.site.id))
@@ -137,53 +152,65 @@ class CatalogueGapReviewNotifier
     Set<CatalogueGapField> fields,
   ) => _apply([CatalogueApplyRequest(pair, fields)]);
 
-  Future<CatalogueApplyResult?> _apply(
-    List<CatalogueApplyRequest> requests,
+  Future<CatalogueApplyResult?> _apply(List<CatalogueApplyRequest> requests) =>
+      requests.isEmpty
+      ? Future.value()
+      : _write((service, diverId) => service.apply(requests, diverId: diverId));
+
+  /// Remembers that [pair]'s record is a different place.
+  Future<void> notSame(CataloguePair pair) => _write(
+    (service, diverId) => service.answerNotSame(pair, diverId: diverId),
+  );
+
+  /// Turns down everything [pair] offers.
+  Future<void> noThanks(CataloguePair pair) =>
+      _write((service, diverId) => service.declineAll(pair, diverId: diverId));
+
+  /// Runs one write and has the pairs found again before the list takes
+  /// another. Null, with nothing written, when a write is already running.
+  Future<T?> _write<T>(
+    Future<T> Function(CatalogueGapService service, String? diverId) write,
   ) async {
-    if (state.isApplying || requests.isEmpty) return null;
-    state = state.copyWith(isApplying: true);
+    if (state.isWriting) return null;
+    state = state.copyWith(isWriting: true);
     try {
-      final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
-      final result = await _ref
-          .read(catalogueGapServiceProvider)
-          .apply(requests, diverId: diverId);
-      _afterWrite();
+      final diverId = await _container.read(
+        validatedCurrentDiverIdProvider.future,
+      );
+      final result = await write(
+        _container.read(catalogueGapServiceProvider),
+        diverId,
+      );
+      await _afterWrite();
       return result;
     } catch (error, stackTrace) {
       _log.error(
-        'Could not apply catalogue pairs',
+        'Could not write to a site from the catalogue review',
         error: error,
         stackTrace: stackTrace,
       );
       rethrow;
     } finally {
-      if (mounted) state = state.copyWith(isApplying: false);
+      if (mounted) state = state.copyWith(isWriting: false);
     }
   }
 
-  /// Remembers that [pair]'s record is a different place.
-  Future<void> notSame(CataloguePair pair) async {
-    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
-    await _ref
-        .read(catalogueGapServiceProvider)
-        .answerNotSame(pair, diverId: diverId);
-    _afterWrite();
-  }
-
-  /// Turns down everything [pair] offers.
-  Future<void> noThanks(CataloguePair pair) async {
-    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
-    await _ref
-        .read(catalogueGapServiceProvider)
-        .declineAll(pair, diverId: diverId);
-    _afterWrite();
-  }
-
-  /// The pairs are found again by their own change ticks; the site list
-  /// some screens hold in memory is told here.
-  void _afterWrite() {
-    _ref.invalidate(catalogueGapPairsProvider);
-    _ref.invalidate(siteListNotifierProvider);
+  /// Has the pairs found again and, while the list is still on screen,
+  /// waits for them: until then it shows rows the write has dealt with,
+  /// and they must not be sent a second time.
+  Future<void> _afterWrite() async {
+    catalogueGapWritten(_container);
+    if (!mounted) return;
+    try {
+      await _container.read(catalogueGapPairsProvider.future);
+    } catch (error, stackTrace) {
+      // The write itself went through. The list keeps the rows it had.
+      _log.warning(
+        'Could not find the catalogue pairs again after a write',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 }
 

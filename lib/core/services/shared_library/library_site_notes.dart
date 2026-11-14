@@ -10,10 +10,23 @@ import 'package:submersion/core/database/database.dart';
 ///
 /// A record with no link, or no answers, never clears the row's: a profile
 /// that only wrote notes has said nothing about the catalogue.
+///
+/// The same holds the other way round. A record that holds a link or
+/// answers and neither notes nor a rating was most likely made for the
+/// catalogue alone, by a profile that has said nothing about notes. It
+/// supplies the row's notes only where no other record does, so a second
+/// profile linking a site does not blank the notes of the first. Where it
+/// is the site's only record, empty notes are what it says, and notes its
+/// profile cleared on another device are cleared here too.
 Future<void> applyLibrarySiteNotes(AppDatabase db) async {
   const ofThisSite =
       'FROM library_site_notes n WHERE n.site_id = dive_sites.id';
-  const newest = '$ofThisSite ORDER BY n.updated_at DESC LIMIT 1';
+  // False sorts first: the records that say something about notes.
+  const forTheCatalogueAlone =
+      "(n.notes = '' AND n.rating IS NULL AND "
+      '(n.catalogue_id IS NOT NULL OR n.catalogue_answers IS NOT NULL))';
+  const newest =
+      '$ofThisSite ORDER BY $forTheCatalogueAlone, n.updated_at DESC LIMIT 1';
   String newestWith(String column) =>
       'COALESCE((SELECT n.$column $ofThisSite AND n.$column IS NOT NULL '
       'ORDER BY n.updated_at DESC LIMIT 1), $column)';

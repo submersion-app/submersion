@@ -50,12 +50,14 @@ abstract interface class SiteCatalogue {
 
   Future<CatalogueSite?> byId(String id);
 
-  /// Every located record whose name is [name], give or take case, accents,
-  /// punctuation and spacing (`catalogueNamesEqual`), in [countryCode] when
-  /// one is given. Unlike [search] it matches the whole name and has no
-  /// limit: it answers "is this site of the diver's in the catalogue?".
-  /// A blank name matches nothing.
-  Future<List<CatalogueSite>> named(String name, {String? countryCode});
+  /// The located records that carry one of [names], give or take case,
+  /// accents, punctuation and spacing, grouped by `catalogueNameKey`. A
+  /// name no record carries has no entry, and a blank name is not asked.
+  ///
+  /// Unlike [search] it matches whole names and has no limit: it answers
+  /// "which of these sites of the diver's are in the catalogue?" for all
+  /// of them in one read, however many there are.
+  Future<Map<String, List<CatalogueSite>>> namedMany(Iterable<String> names);
 
   /// The source a record names in its `source`.
   Future<CatalogueSource?> source(String key);

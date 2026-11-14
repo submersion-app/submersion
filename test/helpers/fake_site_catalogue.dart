@@ -26,7 +26,10 @@ class FakeSiteCatalogue implements SiteCatalogue {
   int nearCalls = 0;
   int searchCalls = 0;
   int byIdCalls = 0;
-  int namedCalls = 0;
+  int namedManyCalls = 0;
+
+  /// The names of every [namedMany] call, in order.
+  final List<Set<String>> namesAsked = [];
   int countNearCalls = 0;
   int inBoundsCalls = 0;
 
@@ -159,15 +162,21 @@ class FakeSiteCatalogue implements SiteCatalogue {
   }
 
   @override
-  Future<List<CatalogueSite>> named(String name, {String? countryCode}) async {
-    namedCalls++;
-    return [
-      for (final site in sites)
-        if (site.location != null &&
-            (countryCode == null || site.countryCode == countryCode) &&
-            catalogueNamesEqual(name, site.name))
-          site,
-    ];
+  Future<Map<String, List<CatalogueSite>>> namedMany(
+    Iterable<String> names,
+  ) async {
+    namedManyCalls++;
+    namesAsked.add(names.toSet());
+    final wanted = {for (final name in names) catalogueNameKey(name)}
+      ..remove('');
+    final found = <String, List<CatalogueSite>>{};
+    for (final site in sites) {
+      final key = catalogueNameKey(site.name);
+      if (site.location != null && wanted.contains(key)) {
+        (found[key] ??= []).add(site);
+      }
+    }
+    return found;
   }
 
   @override

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart'
-    show AppDatabase, SharedLibraryMembershipsCompanion;
+    show AppDatabase, SharedLibraryMembershipsCompanion, SiteHidesCompanion;
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_catalogue_answers.dart';
@@ -143,6 +143,35 @@ void main() {
       expect(await sites.getSiteByCatalogueId('r1', diverId: 'd2'), isNull);
     },
   );
+
+  test('a library site the diver has hidden claims nothing for them', () async {
+    await joinLibrary('d1', 'lib1');
+    await joinLibrary('d2', 'lib1');
+    await sites.createSite(
+      const DiveSite(
+        id: 'club',
+        name: 'Club Wreck',
+        sharedLibraryId: 'lib1',
+        catalogueId: 'r1',
+        catalogueAnswers: SiteCatalogueAnswers(also: {'r2'}),
+      ),
+    );
+    await db
+        .into(db.siteHides)
+        .insert(
+          SiteHidesCompanion.insert(
+            id: 'h1',
+            siteId: 'club',
+            diverId: 'd1',
+            createdAt: kSharedTs,
+          ),
+        );
+
+    expect(await sites.getSiteByCatalogueId('r1', diverId: 'd1'), isNull);
+    expect(await sites.getSiteByCatalogueId('r2', diverId: 'd1'), isNull);
+    // Another member, who has not hidden it, still sees it claimed.
+    expect((await sites.getSiteByCatalogueId('r1', diverId: 'd2'))!.id, 'club');
+  });
 
   test("a diver's own site wins over a library site", () async {
     await joinLibrary('d1', 'lib1');

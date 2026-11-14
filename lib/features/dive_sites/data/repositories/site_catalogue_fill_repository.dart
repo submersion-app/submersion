@@ -176,6 +176,17 @@ class SiteCatalogueFillRepository {
           recordId: siteId,
           localUpdatedAt: now,
         );
+        // A library site's link and answers are this profile's own and
+        // travel in its own record. Kept in the same transaction as the
+        // row: a link only this device knew would never reach the others.
+        if (site.isLibrarySite) {
+          await _stamper.keepCatalogue(
+            siteId,
+            catalogueId: linking ? record.id : site.catalogueId,
+            answers: answers,
+            actingDiverId: actingDiverId,
+          );
+        }
         return CatalogueFillWrite(
           CatalogueFillOutcome.applied,
           linked: linking,
@@ -188,18 +199,11 @@ class SiteCatalogueFillRepository {
       if (was != null && was.isLibrarySite) {
         final after = await _sites.getSiteById(siteId);
         if (after != null) {
-          // The filled fields are shared: they go to the library. The link
-          // and the answers are this profile's own, and travel with it.
+          // The filled fields are shared: they go to the library.
           await _stamper.stamp(siteId, {
             ...LibraryEditStamper.changedFields(was, after),
             if (typesAdded) 'siteTypes',
           }, actingDiverId: actingDiverId);
-          await _stamper.keepCatalogue(
-            siteId,
-            catalogueId: after.catalogueId,
-            answers: after.catalogueAnswers,
-            actingDiverId: actingDiverId,
-          );
         }
       }
       SyncEventBus.notifyLocalChange();
@@ -234,20 +238,15 @@ class SiteCatalogueFillRepository {
         return;
       }
       final now = DateTime.now().millisecondsSinceEpoch;
-      String? link;
-      var librarySite = false;
-      var answers = SiteCatalogueAnswers.empty;
       final changed = await _db.transaction(() async {
         final row = await (_db.select(
           _db.diveSites,
         )..where((t) => t.id.equals(siteId))).getSingleOrNull();
         if (row == null) return false;
         final current = SiteCatalogueAnswers.decode(row.catalogueAnswers);
-        answers = change(current);
+        final answers = change(current);
         final next = answers.encode();
         if (next == current.encode()) return false;
-        link = row.catalogueId;
-        librarySite = row.sharedLibraryId != null;
         await (_db.update(
           _db.diveSites,
         )..where((t) => t.id.equals(siteId))).write(
@@ -261,17 +260,18 @@ class SiteCatalogueFillRepository {
           recordId: siteId,
           localUpdatedAt: now,
         );
+        // With the row, as in [applyFill]: the answer is the profile's own.
+        if (row.sharedLibraryId != null) {
+          await _stamper.keepCatalogue(
+            siteId,
+            catalogueId: row.catalogueId,
+            answers: answers,
+            actingDiverId: actingDiverId,
+          );
+        }
         return true;
       });
       if (!changed) return;
-      if (librarySite) {
-        await _stamper.keepCatalogue(
-          siteId,
-          catalogueId: link,
-          answers: answers,
-          actingDiverId: actingDiverId,
-        );
-      }
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(

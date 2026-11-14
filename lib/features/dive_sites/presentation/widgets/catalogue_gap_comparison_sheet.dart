@@ -45,7 +45,7 @@ class ComparisonNoThanks extends CatalogueComparisonResult {
 /// caller acts on it; dismissing it answers [ComparisonKept] with the ticks
 /// as they stood. [initialFields] are the fields ticked to start, every
 /// offered one when null.
-Future<CatalogueComparisonResult?> showCatalogueGapComparison(
+Future<CatalogueComparisonResult> showCatalogueGapComparison(
   BuildContext context, {
   required CataloguePair pair,
   Set<CatalogueGapField>? initialFields,

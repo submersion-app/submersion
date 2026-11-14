@@ -4,10 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_sites/data/repositories/site_catalogue_fill_repository.dart';
-import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
-import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
-import 'package:submersion/features/dive_sites/data/services/catalogue_gap_service.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_gap_field.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_pair.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
@@ -18,7 +14,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-import '../../../../helpers/fake_site_catalogue.dart';
+import '../../../../helpers/fake_catalogue_gap_service.dart';
 import '../../../../helpers/mock_providers.dart';
 
 const _here = GeoPoint(27.8138, 33.92);
@@ -52,51 +48,10 @@ const _linked = CataloguePair(
   distanceMeters: 0,
 );
 
-class _Service extends CatalogueGapService {
-  _Service()
-    : super(
-        siteRepository: SiteRepository(),
-        catalogue: FakeSiteCatalogue(),
-        classification: SiteClassificationRepository(),
-        fills: SiteCatalogueFillRepository(),
-      );
-
-  final applied = <CatalogueApplyRequest>[];
-  final notSame = <String>[];
-  final declined = <String>[];
-  Object? failure;
-
-  /// When set, an apply waits for it.
-  Completer<void>? gate;
-
-  @override
-  Future<CatalogueApplyResult> apply(
-    List<CatalogueApplyRequest> requests, {
-    required String? diverId,
-  }) async {
-    await gate?.future;
-    if (failure != null) throw failure!;
-    applied.addAll(requests);
-    return const CatalogueApplyResult(linked: 1, filled: 1);
-  }
-
-  @override
-  Future<void> answerNotSame(
-    CataloguePair pair, {
-    required String? diverId,
-  }) async => notSame.add(pair.site.id);
-
-  @override
-  Future<void> declineAll(
-    CataloguePair pair, {
-    required String? diverId,
-  }) async => declined.add(pair.site.id);
-}
-
 final _pairs = StateProvider<List<CataloguePair>>((ref) => const []);
 
 void main() {
-  late _Service service;
+  late FakeCatalogueGapService service;
   late ProviderContainer container;
 
   /// How many times the pairs have been looked for.
@@ -112,7 +67,7 @@ void main() {
     addTearDown(tester.view.reset);
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
-    service = _Service();
+    service = FakeCatalogueGapService();
     container = ProviderContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
@@ -182,8 +137,8 @@ void main() {
     await tester.tap(find.text('Fill in (1)'));
     await tester.pumpAndSettle();
 
-    expect(service.applied.single.pair.site.id, 's1');
-    expect(service.applied.single.fields, {CatalogueGapField.depth});
+    expect(service.applied.single.single.pair.site.id, 's1');
+    expect(service.applied.single.single.fields, {CatalogueGapField.depth});
     expect(
       find.text('Sites linked: 1. Sites with details filled: 1.'),
       findsOneWidget,
@@ -255,7 +210,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    expect(service.applied.single.pair.site.id, 's1');
+    expect(service.applied.single.single.pair.site.id, 's1');
     // The pairs are looked for again, as after any apply.
     final before = searches;
     await container.read(catalogueGapPairsProvider.future);

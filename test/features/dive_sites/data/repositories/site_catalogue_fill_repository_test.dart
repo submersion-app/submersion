@@ -39,9 +39,29 @@ const _record = CatalogueSite(
 
 /// A stamper that decides who may edit and records what it was told.
 class _Stamper extends LibraryEditStamper {
-  _Stamper({this.allow = true});
+  _Stamper({this.allow = true, this.keepFails = false});
 
   final bool allow;
+
+  /// Whether keeping the link and answers for the profile fails.
+  final bool keepFails;
+
+  @override
+  Future<void> keepCatalogue(
+    String siteId, {
+    required String? catalogueId,
+    required SiteCatalogueAnswers answers,
+    String? actingDiverId,
+  }) {
+    if (keepFails) throw StateError('disk full');
+    return super.keepCatalogue(
+      siteId,
+      catalogueId: catalogueId,
+      answers: answers,
+      actingDiverId: actingDiverId,
+    );
+  }
+
   final List<({String siteId, Set<String> fields})> stamped = [];
 
   @override
@@ -508,6 +528,52 @@ void main() {
       );
       expect(await pendingCount(db, 'diveSites', 'club'), 0);
     });
+
+    test(
+      'is not linked when its link cannot be kept for the profile',
+      () async {
+        await seedLibrarySite();
+        fills = SiteCatalogueFillRepository(stamper: _Stamper(keepFails: true));
+
+        await expectLater(
+          fills.applyFill(
+            siteId: 'club',
+            record: _record,
+            fields: {CatalogueGapField.depth},
+            actingDiverId: 'd1',
+          ),
+          throwsStateError,
+        );
+
+        // The row and the profile's record are written together or not at
+        // all: a link only this device knows would never reach the others.
+        final site = await stored('club');
+        expect(site.catalogueId, isNull);
+        expect(site.maxDepth, isNull);
+      },
+    );
+
+    test(
+      'takes no answer when the answer cannot be kept for the profile',
+      () async {
+        await seedLibrarySite();
+        fills = SiteCatalogueFillRepository(stamper: _Stamper(keepFails: true));
+
+        await expectLater(
+          fills.updateAnswers(
+            'club',
+            (current) => current.withNotSame('r1'),
+            actingDiverId: 'd1',
+          ),
+          throwsStateError,
+        );
+
+        expect(
+          (await stored('club')).catalogueAnswers,
+          SiteCatalogueAnswers.empty,
+        );
+      },
+    );
 
     test('that may not be edited is left alone', () async {
       await seedLibrarySite();

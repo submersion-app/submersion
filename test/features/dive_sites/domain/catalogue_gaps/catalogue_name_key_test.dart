@@ -29,6 +29,43 @@ void main() {
     expect(catalogueNamesEqual('沉船', '珊瑚礁'), isFalse);
   });
 
+  test('an accent typed as a separate mark is the same accent', () {
+    // "Cancun" with a combining acute after the u, as some files store it.
+    final decomposed = 'Cancu${String.fromCharCode(0x301)}n';
+
+    expect(catalogueNameKey(decomposed), 'cancun');
+    expect(catalogueNamesEqual(decomposed, 'Cancún'), isTrue);
+  });
+
+  test('marks that belong to another script stay in the word', () {
+    // Thai vowel and tone marks are combining characters; dropping or
+    // splitting on them would make different words alike.
+    final kohTao = String.fromCharCodes([
+      0x0E40,
+      0x0E01,
+      0x0E32,
+      0x0E30,
+      0x0E40,
+      0x0E15,
+      0x0E48,
+      0x0E32,
+    ]);
+    final other = String.fromCharCodes([
+      0x0E40,
+      0x0E01,
+      0x0E32,
+      0x0E30,
+      0x0E40,
+      0x0E15,
+      0x0E49,
+      0x0E32,
+    ]);
+
+    expect(catalogueNameKey(kohTao), kohTao);
+    expect(catalogueNamesEqual(kohTao, kohTao), isTrue);
+    expect(catalogueNamesEqual(kohTao, other), isFalse);
+  });
+
   test('the key is the folded name', () {
     expect(catalogueNameKey('  Salt-Pier (South) '), 'salt pier south');
   });

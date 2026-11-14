@@ -66,6 +66,30 @@ void main() {
       );
     });
 
+    test('names only the chosen details when some are left out', () {
+      expect(
+        catalogueGapAddsLine(
+          _pair({CatalogueGapField.depth, CatalogueGapField.siteTypes}),
+          metric,
+          l10n,
+          fields: {CatalogueGapField.depth},
+        ),
+        'Adds: link, 5m–15m',
+      );
+    });
+
+    test('a linked site with nothing chosen is being turned down', () {
+      expect(
+        catalogueGapAddsLine(
+          _pair({CatalogueGapField.depth}, link: 'r1'),
+          metric,
+          l10n,
+          fields: const {},
+        ),
+        'No thanks',
+      );
+    });
+
     test('a pair that only links says so', () {
       expect(catalogueGapAddsLine(_pair({}), metric, l10n), 'Adds: link');
     });

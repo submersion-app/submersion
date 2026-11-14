@@ -205,7 +205,7 @@ Each row says what it would add. Tap **Apply** to act on the ticked rows. A row 
 
 Only empty fields are filled. A depth, a description or a position you already have is never replaced, however different the catalogue's is, and your site's name, notes and rating are never touched. A site that is not yet linked gains its link to the record, which shows the source at the top of its page and stops the catalogue offering you that site again.
 
-Tap a row to compare your site with the record field by field. Untick any detail you do not want, then tap **Fill in**; a detail you turn down is not offered again from that record. With every detail unticked, **Link only** links the site and fills nothing. Two answers take a match off the list for good:
+Tap a row to compare your site with the record field by field. Untick any detail you do not want, then tap **Fill in**; a detail you turn down is not offered again from that record. With every detail unticked, **Link only** links the site and fills nothing. Close the comparison without applying and the row keeps your choice: it names only the details still ticked, and **Apply** fills only those. Two answers take a match off the list for good:
 
 - **Not the same site**, when the record is a different place. The record stays in the catalogue, where you can still find it by name.
 - **No thanks**, on a site already linked, when you want none of the new details.

@@ -301,6 +301,43 @@ void main() {
       );
     });
 
+    test('a namesake another site already has leaves the name ambiguous', () {
+      // The diver's other "Blue Hole" is linked to Dahab's record. This
+      // one, with no position, is not handed Belize's for being the only
+      // one left.
+      expect(
+        _pair(
+          [_site('s1', 'Blue Hole', at: null)],
+          named: {
+            's1': [
+              _record('dahab', 'Blue Hole'),
+              _record('belize', 'Blue Hole', at: const GeoPoint(17.3, -87.5)),
+            ],
+          },
+          claimed: {'dahab'},
+        ),
+        isEmpty,
+      );
+    });
+
+    test('a namesake a located site just took leaves it ambiguous too', () {
+      final dahab = _record('dahab', 'Blue Hole');
+      final pairs = _pair(
+        [_site('located', 'Blue Hole'), _site('bare', 'Blue Hole', at: null)],
+        near: {
+          'located': [dahab],
+        },
+        named: {
+          'bare': [
+            dahab,
+            _record('belize', 'Blue Hole', at: const GeoPoint(17.3, -87.5)),
+          ],
+        },
+      );
+
+      expect([for (final p in pairs) p.site.id], ['located']);
+    });
+
     test('a record without a position is not a candidate', () {
       expect(
         _pair(

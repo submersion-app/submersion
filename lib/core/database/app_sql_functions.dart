@@ -25,6 +25,7 @@ import 'package:sqlite3/common.dart'
     show AllowedArgumentCount, CommonDatabase, SqliteArguments;
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_name_key.dart';
 import 'package:submersion/features/insights/data/tank_configuration_sql.dart';
 
 /// `unicode_lower(text)`: [text] lower-cased by Dart's `toLowerCase`, the
@@ -47,6 +48,13 @@ const String kRowDigestFunction = 'row_digest';
 /// `diveAmbientBarSql`, which resolves the dive's effective water type.
 const String kDiveAmbientBarFunction = 'dive_ambient_bar';
 
+/// `catalogue_name_key(text)`: a site name reduced to what tells one name
+/// from another, by [catalogueNameKey]. It lets one statement find the
+/// built-in catalogue's records for many of the diver's site names at once,
+/// with the folding done on the worker isolate and not row by row on the
+/// UI's. NULL stays NULL.
+const String kCatalogueNameKeyFunction = 'catalogue_name_key';
+
 /// Registers the app's SQL functions on [db].
 void registerAppSqlFunctions(CommonDatabase db) {
   db.createFunction(
@@ -63,11 +71,22 @@ void registerAppSqlFunctions(CommonDatabase db) {
   );
   registerTankConfigurationFunctions(db);
   db.createFunction(
+    functionName: kCatalogueNameKeyFunction,
+    function: _catalogueNameKey,
+    argumentCount: const AllowedArgumentCount(1),
+    deterministic: true,
+  );
+  db.createFunction(
     functionName: kDiveAmbientBarFunction,
     function: _diveAmbientBar,
     argumentCount: const AllowedArgumentCount(4),
     deterministic: true,
   );
+}
+
+Object? _catalogueNameKey(SqliteArguments arguments) {
+  final value = arguments[0];
+  return value == null ? null : catalogueNameKey(value.toString());
 }
 
 /// Held once: [_diveAmbientBar] runs for every row of a statement.

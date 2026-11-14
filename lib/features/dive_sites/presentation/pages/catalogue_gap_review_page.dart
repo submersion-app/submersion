@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/data/services/catalogue_gap_service.dart';
+import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_gap_field.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_pair.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_gap_display.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
@@ -54,7 +55,7 @@ class CatalogueGapReviewPage extends ConsumerWidget {
       try {
         switch (result) {
           case ComparisonKept(:final fields):
-            notifier.setFields(pair.site.id, fields);
+            notifier.setFields(pair, fields);
           case ComparisonApply(:final fields):
             final applied = await notifier.applyOne(pair, fields);
             if (applied != null && context.mounted) report(applied);
@@ -62,8 +63,6 @@ class CatalogueGapReviewPage extends ConsumerWidget {
             await notifier.notSame(pair);
           case ComparisonNoThanks():
             await notifier.noThanks(pair);
-          case null:
-            break;
         }
       } catch (_) {
         if (context.mounted) say(l10n.diveSites_gapReview_error);
@@ -78,29 +77,40 @@ class CatalogueGapReviewPage extends ConsumerWidget {
       for (final pair in state.pairs)
         if (!pair.preTicked) pair,
     ];
-
-    List<Widget> section(String title, List<CataloguePair> pairs) => [
-      if (pairs.isNotEmpty) ...[
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-        ),
-        for (final pair in pairs)
-          _PairRow(
-            pair: pair,
-            ticked: state.ticked.contains(pair.site.id),
-            units: units,
-            enabled: !state.isApplying,
-            onToggle: () => notifier.toggle(pair.site.id),
-            onOpen: () => openComparison(pair),
-          ),
+    // The list top to bottom: a section's title, then its pairs. Only the
+    // rows on screen are built from it.
+    final entries = <Object>[
+      if (same.isNotEmpty) ...[
+        l10n.diveSites_gapReview_sectionSame(same.length),
+        ...same,
+      ],
+      if (check.isNotEmpty) ...[
+        l10n.diveSites_gapReview_sectionCheck(check.length),
+        ...check,
       ],
     ];
+
+    Widget entry(BuildContext context, int index) => switch (entries[index]) {
+      final CataloguePair pair => _PairRow(
+        pair: pair,
+        fields: state.fieldsFor(pair),
+        ticked: state.ticked.contains(pair.site.id),
+        units: units,
+        enabled: !state.isWriting,
+        onToggle: () => notifier.toggle(pair.site.id),
+        onOpen: () => openComparison(pair),
+      ),
+      // Whatever is not a pair is a section's title.
+      final title => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+        child: Text(
+          '$title',
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ),
+    };
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.diveSites_gapReview_title)),
@@ -116,18 +126,10 @@ class CatalogueGapReviewPage extends ConsumerWidget {
                 ),
               ),
             )
-          : ListView(
-              children: [
-                ...section(
-                  l10n.diveSites_gapReview_sectionSame(same.length),
-                  same,
-                ),
-                ...section(
-                  l10n.diveSites_gapReview_sectionCheck(check.length),
-                  check,
-                ),
-                const SizedBox(height: 16),
-              ],
+          : ListView.builder(
+              padding: const EdgeInsets.only(bottom: 16),
+              itemCount: entries.length,
+              itemBuilder: entry,
             ),
       bottomNavigationBar: state.pairs.isEmpty
           ? null
@@ -135,7 +137,7 @@ class CatalogueGapReviewPage extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 child: FilledButton(
-                  onPressed: state.tickedCount == 0 || state.isApplying
+                  onPressed: state.tickedCount == 0 || state.isWriting
                       ? null
                       : applyTicked,
                   child: Text(
@@ -149,10 +151,11 @@ class CatalogueGapReviewPage extends ConsumerWidget {
 }
 
 /// One pair: a tick, the site's name, how the record was found when that
-/// needs saying, and what it would add.
+/// needs saying, and what applying it would add.
 class _PairRow extends StatelessWidget {
   const _PairRow({
     required this.pair,
+    required this.fields,
     required this.ticked,
     required this.units,
     required this.enabled,
@@ -161,6 +164,10 @@ class _PairRow extends StatelessWidget {
   });
 
   final CataloguePair pair;
+
+  /// The fields the row's tick would fill: the offered ones less those the
+  /// diver un-ticked in the comparison.
+  final Set<CatalogueGapField> fields;
   final bool ticked;
   final UnitFormatter units;
   final bool enabled;
@@ -193,6 +200,9 @@ class _PairRow extends StatelessWidget {
     return ListTile(
       leading: Checkbox(
         value: ticked,
+        // The tick is its own stop for a screen reader, apart from the
+        // row: unnamed, every one of them reads as just "tick box".
+        semanticLabel: pair.site.name,
         onChanged: enabled ? (_) => onToggle() : null,
       ),
       title: Text(pair.site.name),
@@ -200,7 +210,7 @@ class _PairRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (found != null) Text(found),
-          Text(catalogueGapAddsLine(pair, units, l10n)),
+          Text(catalogueGapAddsLine(pair, units, l10n, fields: fields)),
         ],
       ),
       isThreeLine: found != null,

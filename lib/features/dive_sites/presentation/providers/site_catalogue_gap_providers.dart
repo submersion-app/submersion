@@ -68,6 +68,17 @@ final catalogueGapPairsProvider = FutureProvider<List<CataloguePair>>((
   return service.findPairs(diverId: diverId, isCancelled: () => superseded);
 });
 
+/// What follows every write made from a catalogue pair: the pairs are
+/// found again, and the site list some screens hold in memory is told.
+///
+/// Takes the container, not a Ref. The diver may leave the screen that
+/// started the write while it is under way, and this must still happen
+/// once that screen's own state has gone.
+void catalogueGapWritten(ProviderContainer container) {
+  container.invalidate(catalogueGapPairsProvider);
+  container.invalidate(siteListNotifierProvider);
+}
+
 /// The pair for one site, or null: none, or the pairs are not found yet.
 final catalogueGapPairForSiteProvider = Provider.family<CataloguePair?, String>(
   (ref, siteId) => ref

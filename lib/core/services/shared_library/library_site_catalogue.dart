@@ -18,7 +18,8 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 /// nothing else holds: an empty record would be copied back over them.
 /// Where another profile has one, the row shows that profile's private
 /// notes, and the new record starts empty: they are not this profile's
-/// to carry.
+/// to carry. The copy back onto the row (`applyLibrarySiteNotes`) passes
+/// over such a record for the notes, so they stay on the row.
 Future<void> putLibrarySiteCatalogue(
   AppDatabase db,
   SyncRepository sync, {

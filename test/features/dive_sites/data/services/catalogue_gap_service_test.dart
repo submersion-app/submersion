@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/geocoding/sea_area_index.dart';
@@ -87,6 +89,9 @@ void main() {
   late FakeSiteCatalogue catalogue;
   final elevationAsked = <GeoPoint>[];
 
+  /// How many bulk change-log actions were opened.
+  var bulkRuns = 0;
+
   CatalogueGapService service({
     LibraryEditStamper? stamper,
     Future<double?> Function(GeoPoint point)? fetchElevation,
@@ -109,7 +114,10 @@ void main() {
     placeNameLanguage: placeNameLanguage,
     // The change log needs the app's own triggers; a pass-through scope
     // keeps this test about the service.
-    runBulk: <T>(body) => body(),
+    runBulk: <T>(body) {
+      bulkRuns++;
+      return body();
+    },
   );
 
   setUp(() async {
@@ -121,6 +129,7 @@ void main() {
       _blueHoleEgypt,
     ]);
     elevationAsked.clear();
+    bulkRuns = 0;
     await seedDivers(db, ['d1', 'd2']);
   });
 
@@ -297,27 +306,42 @@ void main() {
     test('a diver with no sites asks the catalogue nothing', () async {
       expect(await pairs(), isEmpty);
       expect(
-        catalogue.nearCalls + catalogue.namedCalls + catalogue.byIdCalls,
+        catalogue.nearCalls + catalogue.namedManyCalls + catalogue.byIdCalls,
         0,
       );
     });
 
-    test('each site costs one catalogue read', () async {
+    test('a located or linked site costs one catalogue read', () async {
       await mine('a', 'Salt Pier', at: _pier);
-      await mine('b', 'Blue Hole');
       await mine(
         'c',
         'Salt Pier',
         at: const GeoPoint(40, 10),
         link: 'osm_pier',
       );
-      await mine('d', '   ');
 
       await pairs();
 
       expect(catalogue.nearCalls, 1);
-      expect(catalogue.namedCalls, 1);
       expect(catalogue.byIdCalls, 1);
+      expect(catalogue.namedManyCalls, 0);
+    });
+
+    test('sites with no position are all answered by one read', () async {
+      await mine('a', 'Blue Hole', country: 'Egypt');
+      await mine('b', 'Salt Pier');
+      await mine('c', 'Somewhere Else');
+      await mine('d', '   ');
+
+      final found = {for (final p in await pairs()) p.site.id: p.record.id};
+
+      expect(catalogue.namedManyCalls, 1);
+      expect(catalogue.namesAsked.single, {
+        'Blue Hole',
+        'Salt Pier',
+        'Somewhere Else',
+      });
+      expect(found, {'a': 'osm_bh', 'b': 'osm_pier'});
     });
   });
 
@@ -391,16 +415,66 @@ void main() {
       expect((await sites.getSiteById('b'))!.catalogueId, 'ukho_1');
     });
 
+    test('the result does not wait for the altitude lookups', () async {
+      await mine('s1', 'Blue Hole', country: 'Egypt');
+      final pair = (await pairs()).single;
+      final lookup = Completer<double?>();
+      final gaps = service(fetchElevation: (_) => lookup.future);
+
+      final result = await gaps.apply([
+        CatalogueApplyRequest(pair, pair.fields),
+      ], diverId: 'd1');
+
+      // The write is done and reported while the lookup is still out.
+      expect(result.linked, 1);
+      expect((await sites.getSiteById('s1'))!.location, _blueHole);
+      expect((await sites.getSiteById('s1'))!.altitude, isNull);
+
+      lookup.complete(7);
+      await gaps.altitudeFills;
+      expect((await sites.getSiteById('s1'))!.altitude, 7);
+    });
+
+    group('one change-log action', () {
+      test('is opened for a list of pairs', () async {
+        await mine('a', 'Salt Pier', at: _pier40m);
+        await mine('b', 'Thistlegorm', at: _wreck40m);
+        final found = await pairs();
+
+        await service().apply([
+          for (final pair in found) CatalogueApplyRequest(pair, pair.fields),
+        ], diverId: 'd1');
+
+        expect(bulkRuns, 1);
+      });
+
+      test('is not opened for one pair on its own', () async {
+        await mine('a', 'Salt Pier', at: _pier40m);
+        final pair = (await pairs()).single;
+
+        await service().apply([
+          CatalogueApplyRequest(pair, pair.fields),
+        ], diverId: 'd1');
+
+        expect(bulkRuns, 0);
+        expect((await sites.getSiteById('a'))!.catalogueId, 'osm_pier');
+      });
+    });
+
     test('a site given a position has its altitude looked up once', () async {
       await mine('s1', 'Blue Hole', country: 'Egypt');
       final pair = (await pairs()).single;
 
-      await service(
+      final gaps = service(
         fetchElevation: (point) async {
           elevationAsked.add(point);
           return 12;
         },
-      ).apply([CatalogueApplyRequest(pair, pair.fields)], diverId: 'd1');
+      );
+      await gaps.apply([
+        CatalogueApplyRequest(pair, pair.fields),
+      ], diverId: 'd1');
+      await gaps.altitudeFills;
 
       final site = (await sites.getSiteById('s1'))!;
       expect(site.location, _blueHole);
@@ -412,9 +486,14 @@ void main() {
       await mine('s1', 'Blue Hole', country: 'Egypt');
       final pair = (await pairs()).single;
 
-      final result = await service(
+      final gaps = service(
         fetchElevation: (_) async => throw StateError('offline'),
-      ).apply([CatalogueApplyRequest(pair, pair.fields)], diverId: 'd1');
+      );
+      final result = await gaps.apply([
+        CatalogueApplyRequest(pair, pair.fields),
+      ], diverId: 'd1');
+      // The failure stays inside the lookup: nothing is thrown later.
+      await gaps.altitudeFills;
 
       expect(result.linked, 1);
       expect(result.notApplied, 0);
@@ -433,9 +512,11 @@ void main() {
       );
       final pair = (await pairs()).single;
 
-      await service().apply([
+      final gaps = service();
+      await gaps.apply([
         CatalogueApplyRequest(pair, pair.fields),
       ], diverId: 'd1');
+      await gaps.altitudeFills;
 
       expect((await sites.getSiteById('s1'))!.location, _blueHole);
       expect((await sites.getSiteById('s1'))!.altitude, 300);
@@ -448,9 +529,11 @@ void main() {
         await mine('s1', 'Salt Pier', at: _pier40m);
         final pair = (await pairs()).single;
 
-        await service().apply([
+        final gaps = service();
+        await gaps.apply([
           CatalogueApplyRequest(pair, pair.fields),
         ], diverId: 'd1');
+        await gaps.altitudeFills;
 
         expect(elevationAsked, isEmpty);
       },

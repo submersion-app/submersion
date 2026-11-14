@@ -159,8 +159,12 @@ List<CataloguePair> pairSitesWithCatalogue({
   }, CataloguePairKind.nearby);
 
   // Unlinked sites without a position: exactly one record of the name, in
-  // the site's country when it names one. By site id, so a record two such
-  // sites are after goes to the same one every time.
+  // the site's country when it names one. A namesake another site already
+  // has, or one a located site has just taken, still counts as a record of
+  // the name: with it the name does not pick out one place, and the site
+  // is not handed whichever namesake is left. Only a record the site said
+  // it is not is set aside first. By site id, so a record two such sites
+  // are after goes to the same one every time.
   final bare =
       sites
           .where((site) => site.catalogueId == null && site.location == null)
@@ -168,18 +172,18 @@ List<CataloguePair> pairSitesWithCatalogue({
         ..sort((a, b) => a.id.compareTo(b.id));
   for (final site in bare) {
     final country = site.countryCode ?? countryCodeFor(site.country);
-    final matches = [
+    final namesakes = [
       for (final record in candidates.named[site.id] ?? const <CatalogueSite>[])
         if (record.location != null &&
-            open(site, record) &&
-            !taken.contains(record.id) &&
+            !site.catalogueAnswers.notSame.contains(record.id) &&
             (country == null || record.countryCode == country) &&
             catalogueNamesEqual(site.name, record.name))
           record,
     ];
-    if (matches.length != 1) continue;
-    taken.add(matches.single.id);
-    pairs.add(pairOf(site, matches.single, CataloguePairKind.named));
+    if (namesakes.length != 1) continue;
+    final record = namesakes.single;
+    if (claimed.contains(record.id) || !taken.add(record.id)) continue;
+    pairs.add(pairOf(site, record, CataloguePairKind.named));
   }
 
   int group(CataloguePair pair) => switch (pair.kind) {

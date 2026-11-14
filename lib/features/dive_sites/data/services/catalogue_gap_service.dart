@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show visibleForTesting;
+
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/geocoding/sea_area_index.dart';
@@ -90,6 +92,11 @@ class CatalogueGapService {
   final Future<SeaAreaIndex?> Function()? loadSeas;
   final String Function()? placeNameLanguage;
 
+  /// The altitude lookups started so far, one batch after another. They
+  /// never fail; a test waits on this to see what they wrote.
+  @visibleForTesting
+  Future<void> altitudeFills = Future.value();
+
   static Future<T> _changeLogBulk<T>(Future<T> Function() body) =>
       ChangeLogScope.bulk(
         DatabaseService.instance.databaseOrNull,
@@ -102,8 +109,10 @@ class CatalogueGapService {
   /// The sites taking part are the diver's own and the shared library
   /// sites they may edit. Another profile's shared site never takes part,
   /// though a record it is linked to counts as claimed. One catalogue read
-  /// per site: its record when linked, the records around it when it has a
-  /// position, the records of its name when it has none.
+  /// per site that is linked (its record) or has a position (the records
+  /// around it), and one read in all for the sites that have neither (the
+  /// records of their names): a logbook brought in from another app can
+  /// hold hundreds of those.
   ///
   /// [isCancelled] lets the caller give up on a search a newer one has
   /// replaced: it is asked before each site's read, and a cancelled search
@@ -131,7 +140,7 @@ class CatalogueGapService {
 
     final linked = <String, CatalogueSite>{};
     final near = <String, List<CatalogueSite>>{};
-    final named = <String, List<CatalogueSite>>{};
+    final bare = <DiveSite>[];
     for (final site in taking) {
       if (isCancelled?.call() ?? false) return const [];
       final link = site.catalogueId;
@@ -146,7 +155,18 @@ class CatalogueGapService {
           limit: 50,
         );
       } else if (catalogueNameKey(site.name).isNotEmpty) {
-        named[site.id] = await _catalogue.named(site.name);
+        bare.add(site);
+      }
+    }
+    final named = <String, List<CatalogueSite>>{};
+    if (bare.isNotEmpty) {
+      if (isCancelled?.call() ?? false) return const [];
+      final byNameKey = await _catalogue.namedMany({
+        for (final site in bare) site.name,
+      });
+      for (final site in bare) {
+        final records = byNameKey[catalogueNameKey(site.name)];
+        if (records != null) named[site.id] = records;
       }
     }
     if (linked.isEmpty &&
@@ -173,8 +193,12 @@ class CatalogueGapService {
     );
   }
 
-  /// Applies [requests] as one bulk action. A pair that cannot be applied
-  /// is counted and the rest still go through.
+  /// Applies [requests], several of them as one bulk action in the change
+  /// log. A pair that cannot be applied is counted and the rest still go
+  /// through.
+  ///
+  /// The result does not wait for the altitude of a site that was given a
+  /// position: that lookup needs the network, and follows by itself.
   Future<CatalogueApplyResult> apply(
     List<CatalogueApplyRequest> requests, {
     required String? diverId,
@@ -185,7 +209,7 @@ class CatalogueGapService {
     var notApplied = 0;
     final located = <String, GeoPoint>{};
 
-    await _runBulk(() async {
+    Future<void> applyAll() async {
       for (final request in requests) {
         final pair = request.pair;
         final fields = request.fields.intersection(pair.fields);
@@ -226,9 +250,16 @@ class CatalogueGapService {
           );
         }
       }
-    });
+    }
 
-    await _fillAltitudes(located);
+    // One pair, from a site's page or one comparison, is an ordinary edit.
+    if (requests.length == 1) {
+      await applyAll();
+    } else {
+      await _runBulk(applyAll);
+    }
+
+    altitudeFills = altitudeFills.then((_) => _fillAltitudes(located));
     return CatalogueApplyResult(
       linked: linked,
       filled: filled,

@@ -25,6 +25,9 @@ class SiteCatalogueClaims {
   /// shared library the diver belongs to that is linked to it; one of
   /// either that stands for it since a merge. The oldest wins within each
   /// step, so every caller agrees on one.
+  ///
+  /// A library site the diver has hidden claims nothing for them: it is
+  /// in none of their lists, and a dive must not be assigned to it.
   Future<domain.DiveSite?> claimant(
     String catalogueId, {
     String? diverId,
@@ -33,11 +36,17 @@ class SiteCatalogueClaims {
         diverId == null ? t.diverId.isNull() : t.diverId.equals(diverId);
     Expression<bool> inALibraryOfTheirs($DiveSitesTable t) {
       final memberships = _db.sharedLibraryMemberships;
+      final hides = _db.siteHides;
       return t.sharedLibraryId.isInQuery(
-        _db.selectOnly(memberships)
-          ..addColumns([memberships.libraryId])
-          ..where(memberships.diverId.equals(diverId!)),
-      );
+            _db.selectOnly(memberships)
+              ..addColumns([memberships.libraryId])
+              ..where(memberships.diverId.equals(diverId!)),
+          ) &
+          t.id.isNotInQuery(
+            _db.selectOnly(hides)
+              ..addColumns([hides.siteId])
+              ..where(hides.diverId.equals(diverId)),
+          );
     }
 
     Future<List<DiveSite>> oldestFirst(
