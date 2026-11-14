@@ -213,10 +213,13 @@ class BuoyancyBalanceBar extends StatelessWidget {
     required TextStyle? style,
   }) {
     final (fill, ink) = _colors(Theme.of(context).colorScheme, isDown);
+    final l10n = context.l10n;
+    // The side is the point of the bar, so a screen reader hears it too.
+    final side = isDown ? l10n.buoyancy_pullingDown : l10n.buoyancy_holdingUp;
     return Tooltip(
       message: segment.label,
       child: Semantics(
-        label: segment.label,
+        label: '$side: ${segment.label}',
         excludeSemantics: true,
         child: Container(
           key: ValueKey('balance-${segment.part.kind.name}'),

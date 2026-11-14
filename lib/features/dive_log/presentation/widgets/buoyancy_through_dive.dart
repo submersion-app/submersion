@@ -101,7 +101,10 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
             cursorSeconds: cursor,
             onCursorSeconds:
                 widget.onCursorSeconds ??
-                (seconds) => setState(() => _ownCursor = seconds),
+                (seconds) {
+                  // fl_chart can report a pointer exit after this is gone.
+                  if (mounted) setState(() => _ownCursor = seconds);
+                },
             markers: _markers(context.l10n),
             restSeconds: _moments.finalStopSeconds,
           ),

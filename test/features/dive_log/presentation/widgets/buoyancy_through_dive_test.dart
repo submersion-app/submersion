@@ -191,6 +191,17 @@ void main() {
       expect(find.text('at your final stop, about 5m'), findsOneWidget);
     });
 
+    testWidgets('a touch that arrives after the section is gone is ignored', (
+      tester,
+    ) async {
+      await _pump(tester, _outcome());
+      final late = _chart(tester).onCursorSeconds!;
+      await tester.pumpWidget(const SizedBox.shrink());
+      // fl_chart can deliver a pointer exit after its host is disposed.
+      late(null);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('with a host callback touches go to the host', (tester) async {
       final reported = <int?>[];
       await _pump(tester, _outcome(), onCursorSeconds: reported.add);

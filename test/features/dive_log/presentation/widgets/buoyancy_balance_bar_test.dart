@@ -192,6 +192,22 @@ void main() {
     expect(find.text('Lead 13.2 lbs'), findsOneWidget);
   });
 
+  testWidgets('a screen reader hears which side each part is on', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await _pump(tester, _balance());
+    expect(
+      find.bySemanticsLabel('Pulling you down: Lead 6.0 kg'),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel('Holding you up: Body 5.0 kg'),
+      findsOneWidget,
+    );
+    handle.dispose();
+  });
+
   testWidgets('each segment has a tooltip naming the part', (tester) async {
     await _pump(tester, _balance());
     expect(find.byTooltip('Lead 6.0 kg'), findsOneWidget);

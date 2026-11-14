@@ -317,7 +317,8 @@ time is `m:ss`. Cause notes are `bodySmall` with a leading 16 px icon
 **Files:**
 - Create: `lib/features/dive_log/presentation/widgets/buoyancy_lead_block.dart`
 - Modify: `lib/features/dive_log/presentation/widgets/buoyancy_history_strip.dart`
-  (add `final bool showTitle`, default true)
+  (drop its title; review removed the `showTitle` switch first planned here,
+  since this block is the only user of the strip)
 - Test: `test/features/dive_log/presentation/widgets/buoyancy_lead_block_test.dart`
 
 **Interfaces:**
@@ -332,7 +333,7 @@ Figures: `buoyancy_leadCarried` over `formatWeight(input.leadKg)`, an arrow
 icon, `buoyancy_leadSuggested` over `formatWeight(outputs.idealLeadKg)`,
 figures in `titleLarge`. When `input.leadKg <= 0`: the carried figure is
 `buoyancy_leadNotRecorded` and there is no chip. The history strip
-(`showTitle: false`) sits in a `Wrap` after the figures, so it drops below
+sits in a `Wrap` after the figures, so it drops below
 them on a narrow card.
 
 - [ ] **Step 1: Write failing tests:**
