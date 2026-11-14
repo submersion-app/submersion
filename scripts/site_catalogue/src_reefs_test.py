@@ -133,12 +133,17 @@ class FederalTest(unittest.TestCase):
         self.assertTrue(port["id"].startswith("usreef_tx_port_mansfield_"))
 
     def test_hawaii_is_its_own_source_and_keeps_the_depth_limit(self):
-        self.assertEqual(self.dropped["too_deep"], 2)  # Hawaii, Louisiana
-        row = dict(
-            _sample("federal_reefs.json")[5], waterDepthFeet=60
+        # The sample's Hawaii row is a corner marker; Louisiana's is deep.
+        self.assertEqual(self.dropped["area_corner"], 1)
+        self.assertEqual(self.dropped["too_deep"], 1)
+        base = dict(
+            _sample("federal_reefs.json")[5],
+            reefName="Kualoa Artificial Reef - Small Barge",
         )
-        records, _ = src_reefs.federal_records([row])
+        records, _ = src_reefs.federal_records([dict(base, waterDepthFeet=60)])
         self.assertEqual(records[0]["source"], "hi_dar")
+        _, dropped = src_reefs.federal_records([dict(base, waterDepthFeet=330)])
+        self.assertEqual(dict(dropped), {"too_deep": 1})
 
     def test_two_sites_of_one_name_in_one_state_keep_ids_of_their_own(self):
         base = _sample("federal_reefs.json")[0]
