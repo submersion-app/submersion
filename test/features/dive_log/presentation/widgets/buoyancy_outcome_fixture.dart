@@ -15,6 +15,17 @@ BuoyancyTwinOutcome buoyancyOutcome({
   double? wingLiftCapacityKg,
   double verdictNet = 1.8,
   List<TwinTankInput> tanks = const [],
+  List<TwinSample> samples = const [
+    TwinSample(timestamp: 0, depthM: 0, suitKg: 3, tanksKg: 0, netKg: 2),
+    TwinSample(timestamp: 60, depthM: 5, suitKg: 3, tanksKg: 0, netKg: 1.8),
+  ],
+  TwinAnchor anchor = const TwinAnchor(
+    kind: TwinAnchorKind.detectedStop,
+    timestamp: 60,
+    depthM: 5,
+  ),
+  TwinSuitKind suitKind = TwinSuitKind.wetsuit,
+  double drysuitGasLiters = 0,
 }) {
   final env = DiveEnvironment.forConditions(waterType: WaterType.salt);
   final input = TwinInput(
@@ -23,8 +34,8 @@ BuoyancyTwinOutcome buoyancyOutcome({
       TwinProfileSample(timestamp: 60, depthM: 5),
     ],
     tanks: tanks,
-    suit: const TwinSuitInput(
-      kind: TwinSuitKind.wetsuit,
+    suit: TwinSuitInput(
+      kind: suitKind,
       anchorKg: 3.0,
       source: TermSource.typeDefault,
     ),
@@ -36,27 +47,21 @@ BuoyancyTwinOutcome buoyancyOutcome({
     environment: env,
   );
   final result = BuoyancyTwinResult(
-    samples: const [
-      TwinSample(timestamp: 0, depthM: 0, suitKg: 3, tanksKg: 0, netKg: 2),
-      TwinSample(timestamp: 60, depthM: 5, suitKg: 3, tanksKg: 0, netKg: 1.8),
-    ],
+    samples: samples,
     staticKg: 5.0,
     suitSurfaceKg: 3.9,
-    drysuitGasLiters: 0,
+    drysuitGasLiters: drysuitGasLiters,
     pressuresEstimated: false,
     input: input,
   );
   final verdict = TwinVerdict(
-    anchor: const TwinAnchor(
-      kind: TwinAnchorKind.detectedStop,
-      timestamp: 60,
-      depthM: 5,
-    ),
+    anchor: anchor,
     netKg: verdictNet,
     terms: [
-      const TwinStaticTerm(
+      // Sized so the terms sum to the verdict's net, as the analyzer's do.
+      TwinStaticTerm(
         label: 'suit',
-        kg: 3.0,
+        kg: verdictNet - 5.0 + leadKg,
         source: TermSource.typeDefault,
       ),
       const TwinStaticTerm(
@@ -75,7 +80,7 @@ BuoyancyTwinOutcome buoyancyOutcome({
     droppableLeadKg: droppableLeadKg,
     idealLeadKg: leadKg + verdictNet,
     verdict: verdict,
-    drysuitGasLiters: 0,
+    drysuitGasLiters: drysuitGasLiters,
   );
   return BuoyancyTwinOutcome(
     result: result,
