@@ -11,19 +11,21 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
-import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 
+import '../../../../helpers/fake_site_catalogue.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 import 'site_match_review_notifier_test.mocks.dart';
 
-@GenerateMocks([SiteRepository, DiveSiteApiService, DiveRepository])
+@GenerateMocks([SiteRepository, DiveRepository])
 GeoPoint _eastMeters(double m) => GeoPoint(0, m / 111320.0);
 
 Dive _dive(String id, GeoPoint where) => Dive(
@@ -42,7 +44,7 @@ Future<void> _settle() async {
 
 void main() {
   late MockSiteRepository sites;
-  late MockDiveSiteApiService api;
+  late FakeSiteCatalogue catalogue;
   late MockDiveRepository dives;
 
   // The notifier builds its service with the production transaction runner
@@ -57,7 +59,11 @@ void main() {
 
   ProviderContainer makeContainer(List<Dive> eligible) {
     sites = MockSiteRepository();
-    api = MockDiveSiteApiService();
+    // No catalogue site has been adopted yet, unless a test says so.
+    when(
+      sites.getSiteByCatalogueId(any, diverId: anyNamed('diverId')),
+    ).thenAnswer((_) async => null);
+    catalogue = FakeSiteCatalogue();
     dives = MockDiveRepository();
     when(
       dives.getDivesNeedingSiteMatch(
@@ -116,19 +122,11 @@ void main() {
     when(
       sites.watchSitesChanges(),
     ).thenAnswer((_) => const Stream<void>.empty());
-    when(
-      api.searchNearby(
-        latitude: anyNamed('latitude'),
-        longitude: anyNamed('longitude'),
-        radiusKm: anyNamed('radiusKm'),
-      ),
-    ).thenAnswer((_) async => const DiveSiteSearchResult(sites: []));
-
     final container = ProviderContainer(
       overrides: [
         diveRepositoryProvider.overrideWithValue(dives),
         siteRepositoryProvider.overrideWithValue(sites),
-        diveSiteApiServiceProvider.overrideWithValue(api),
+        siteCatalogueProvider.overrideWithValue(catalogue),
         validatedCurrentDiverIdProvider.overrideWith((ref) => 'diver-1'),
         // DiveListNotifier reads currentDiverIdProvider in its constructor;
         // mock it so confirm()'s post-apply refresh can build the notifier.
@@ -291,25 +289,14 @@ void main() {
         final s = inv.positionalArguments.first as DiveSite;
         return s.copyWith(id: 'new-${s.name}');
       });
-      when(
-        api.searchNearby(
-          latitude: anyNamed('latitude'),
-          longitude: anyNamed('longitude'),
-          radiusKm: anyNamed('radiusKm'),
+      catalogue.sites = const [
+        CatalogueSite(
+          id: 'osm_1',
+          name: 'Wreck',
+          location: GeoPoint(0, 0),
+          source: 'osm',
         ),
-      ).thenAnswer(
-        (_) async => const DiveSiteSearchResult(
-          sites: [
-            ExternalDiveSite(
-              externalId: 'osm_1',
-              name: 'Wreck',
-              latitude: 0,
-              longitude: 0,
-              source: 'OpenStreetMap',
-            ),
-          ],
-        ),
-      );
+      ];
       await _settle();
 
       final notifier = container.read(siteMatchReviewProvider(null).notifier);

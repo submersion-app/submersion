@@ -11005,6 +11005,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Noch keine Tauchplätze';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'In der Nähe der Tauchplätze anderer Tauchgänge';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Nach Entfernung sortiert';
 
   @override
@@ -12629,6 +12633,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'Die ersten $count Tauchplätze werden angezeigt. Suche genauer, um die übrigen zu sehen.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'Details für $name anzeigen';
   }
@@ -12929,6 +12938,38 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'In der Nähe';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'Aus dem integrierten Tauchplatzkatalog. Quelle: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'Tauchplatz konnte nicht hinzugefügt werden';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Details zum Tauchplatz';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'Weitere Tauchplätze bei $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby =>
+      'Weitere Tauchplätze in der Nähe';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Integrierte Tauchplätze';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Alle $count anzeigen';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Diesen Tauchplatz verwenden';
 
   @override
   String get diveSites_list_groupBy => 'Gruppieren nach';
@@ -25108,6 +25149,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'Anfang des Kartenfarbverlaufs';
+
+  @override
+  String get settings_conflict_field_catalogueId =>
+      'Verknüpfung mit integriertem Katalog';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>

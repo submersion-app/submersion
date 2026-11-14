@@ -423,6 +423,15 @@ class UddfEntityImporter {
        _placeNameLanguage = placeNameLanguage,
        _importedFiles = importedFiles ?? ImportedFileRepository();
 
+  /// A payload site's link to the built-in catalogue record it was adopted
+  /// from, or null when the file carries none.
+  static String? _catalogueIdOf(Map<String, dynamic> siteData) {
+    final value = siteData['catalogueId'];
+    if (value is! String) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
   /// Parse a value that may be either an enum instance or a string matching
   /// an enum name. Returns null if the value is null or unrecognised.
   /// A site's entry or exit methods from an import payload value (stored
@@ -2102,6 +2111,7 @@ class UddfEntityImporter {
       // UPDATE so a failure can't leave the row half-overwritten.
       final waterType = siteData['waterType'] as String?;
       final bodyOfWater = siteData['bodyOfWater'] as String?;
+      final fileCatalogueId = _catalogueIdOf(siteData);
       await repository.updateSiteWithImportedMetadata(
         overwrittenSite,
         DiveSitesCompanion(
@@ -2110,6 +2120,12 @@ class UddfEntityImporter {
               : const Value.absent(),
           bodyOfWater: bodyOfWater != null
               ? Value(bodyOfWater)
+              : const Value.absent(),
+          // An ordinary update never writes the catalogue link, so it goes
+          // through the patch: only onto a site that has none. A site
+          // already linked keeps its own record.
+          catalogueId: existing.catalogueId == null && fileCatalogueId != null
+              ? Value(fileCatalogueId)
               : const Value.absent(),
         ),
       );
@@ -2197,6 +2213,8 @@ class UddfEntityImporter {
         // A site's typical way out (issue #2201); null means the
         // same as the entry, so an absent cell stays null.
         exitMethods: decodeEntryMethods(siteData['exitMethod'] as String?),
+        // The built-in catalogue record the site was adopted from.
+        catalogueId: _catalogueIdOf(siteData),
       );
 
       final createdSite = await repository.createSite(newSite);

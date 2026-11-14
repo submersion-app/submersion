@@ -83,9 +83,14 @@ The story:
   the rest worldwide, with their dive centres. The diver logs in US units.
 
 The New Jersey sites come from `scripts/dive_sites_curated.json`, which the
-site harvester merges into `assets/data/dive_sites.json` on every harvest
+site harvester merges into `assets/data/site_catalogue.json` on every harvest
 (`scripts/curated_sites.py`), because OpenStreetMap has no New Jersey ocean
 sites.
+
+A destination picks its sites by the catalogue's ISO country code
+(`siteCountryCode`: Bonaire is `BQ`) and its dive centres by the country
+text of `assets/data/dive_centers.json`, which is still in the local
+language (`country`: "Nederland").
 - 60 to 100 fictional people: home regulars, a technical team, guides, other
   guests and instructors.
 - A full kit bought as the story needs it, with regulators built from their

@@ -19,16 +19,18 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/domain/models/entry_exit_suggestion.dart';
 import 'package:submersion/features/dive_sites/domain/utils/location_options.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_sites/query/site_filter_query.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
@@ -603,6 +605,18 @@ class SiteListNotifier
     return newSite;
   }
 
+  /// Makes the current diver's site from the built-in catalogue [site], or
+  /// returns the one they already adopted from it. The result says which,
+  /// so a caller runs its "after create" rules only on a new site.
+  Future<CatalogueAdoption> adoptCatalogueSite(CatalogueSite site) async {
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    final adoption = await _ref
+        .read(catalogueAdoptionServiceProvider)
+        .adopt(site, diverId: validatedId);
+    if (adoption.created) await _loadSites();
+    return adoption;
+  }
+
   /// Updates [site]. Its types and tags change only when a [classification]
   /// is passed (issue #1765).
   Future<void> updateSite(
@@ -795,203 +809,6 @@ final siteListNotifierProvider =
     ) {
       final repository = ref.watch(siteRepositoryProvider);
       return SiteListNotifier(repository, ref);
-    });
-
-// ============================================================================
-// External Dive Site API Providers
-// ============================================================================
-
-/// Provider for the dive site API service.
-final diveSiteApiServiceProvider = Provider<DiveSiteApiService>((ref) {
-  return DiveSiteApiService();
-});
-
-/// State for external dive site search.
-class ExternalSiteSearchState {
-  final String query;
-  final bool isLoading;
-  final DiveSiteSearchResult? result;
-  final String? errorMessage;
-  final List<domain.DiveSite> localSites;
-
-  const ExternalSiteSearchState({
-    this.query = '',
-    this.isLoading = false,
-    this.result,
-    this.errorMessage,
-    this.localSites = const [],
-  });
-
-  ExternalSiteSearchState copyWith({
-    String? query,
-    bool? isLoading,
-    DiveSiteSearchResult? result,
-    String? errorMessage,
-    bool clearError = false,
-    List<domain.DiveSite>? localSites,
-  }) {
-    return ExternalSiteSearchState(
-      query: query ?? this.query,
-      isLoading: isLoading ?? this.isLoading,
-      result: result ?? this.result,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      localSites: localSites ?? this.localSites,
-    );
-  }
-
-  List<ExternalDiveSite> get sites => result?.sites ?? [];
-  bool get hasResults => sites.isNotEmpty || localSites.isNotEmpty;
-  bool get hasError => errorMessage != null;
-  bool get hasLocalResults => localSites.isNotEmpty;
-  bool get hasExternalResults => sites.isNotEmpty;
-}
-
-/// Notifier for searching external dive site APIs.
-class ExternalSiteSearchNotifier
-    extends StateNotifier<ExternalSiteSearchState> {
-  final DiveSiteApiService _apiService;
-  final SiteListNotifier _siteListNotifier;
-  final SiteRepository _siteRepository;
-  final Ref _ref;
-
-  ExternalSiteSearchNotifier(
-    this._apiService,
-    this._siteListNotifier,
-    this._siteRepository,
-    this._ref,
-  ) : super(const ExternalSiteSearchState());
-
-  /// Search for dive sites by query.
-  Future<void> search(String query) async {
-    if (query.trim().isEmpty) {
-      state = const ExternalSiteSearchState();
-      return;
-    }
-
-    state = state.copyWith(query: query, isLoading: true, clearError: true);
-
-    try {
-      // Search local database first
-      final validatedDiverId = await _ref.read(
-        validatedCurrentDiverIdProvider.future,
-      );
-      final localResults = await _siteRepository.searchSites(
-        query,
-        diverId: validatedDiverId,
-      );
-
-      // Search external sources (API/bundled)
-      final result = await _apiService.searchSites(query);
-
-      if (result.isSuccess) {
-        state = state.copyWith(
-          isLoading: false,
-          result: result,
-          localSites: localResults,
-        );
-      } else {
-        // Even if external search fails, show local results
-        state = state.copyWith(
-          isLoading: false,
-          result: result,
-          localSites: localResults,
-          errorMessage: localResults.isEmpty
-              ? (result.errorMessage ?? 'Search failed')
-              : null,
-        );
-      }
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Search error: $e',
-      );
-    }
-  }
-
-  /// Search for dive sites by country.
-  Future<void> searchByCountry(String country) async {
-    state = state.copyWith(query: country, isLoading: true, clearError: true);
-
-    try {
-      // Search local database first
-      final validatedDiverId = await _ref.read(
-        validatedCurrentDiverIdProvider.future,
-      );
-      final localResults = await _siteRepository.searchSites(
-        country,
-        diverId: validatedDiverId,
-      );
-
-      final result = await _apiService.searchByCountry(country);
-
-      if (result.isSuccess) {
-        state = state.copyWith(
-          isLoading: false,
-          result: result,
-          localSites: localResults,
-        );
-      } else {
-        state = state.copyWith(
-          isLoading: false,
-          result: result,
-          localSites: localResults,
-          errorMessage: localResults.isEmpty
-              ? (result.errorMessage ?? 'Search failed')
-              : null,
-        );
-      }
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Search error: $e',
-      );
-    }
-  }
-
-  /// Import an external dive site into the local database.
-  Future<domain.DiveSite?> importSite(ExternalDiveSite externalSite) async {
-    try {
-      // Get the validated diver ID
-      final validatedDiverId = await _ref.read(
-        validatedCurrentDiverIdProvider.future,
-      );
-
-      // Convert to local dive site
-      final site = externalSite.toDiveSite(diverId: validatedDiverId);
-
-      // Save to database, with its bundled features as site types (#1765)
-      final savedSite = await _siteListNotifier.addSite(
-        site,
-        classification: SiteClassification(typeIds: externalSite.siteTypeIds),
-      );
-
-      return savedSite;
-    } catch (e) {
-      state = state.copyWith(errorMessage: 'Failed to import site: $e');
-      return null;
-    }
-  }
-
-  /// Clear search results.
-  void clear() {
-    state = const ExternalSiteSearchState();
-  }
-}
-
-/// Provider for external site search.
-final externalSiteSearchProvider =
-    StateNotifierProvider<ExternalSiteSearchNotifier, ExternalSiteSearchState>((
-      ref,
-    ) {
-      final apiService = ref.watch(diveSiteApiServiceProvider);
-      final siteListNotifier = ref.watch(siteListNotifierProvider.notifier);
-      final siteRepository = ref.watch(siteRepositoryProvider);
-      return ExternalSiteSearchNotifier(
-        apiService,
-        siteListNotifier,
-        siteRepository,
-        ref,
-      );
     });
 
 // ============================================================================

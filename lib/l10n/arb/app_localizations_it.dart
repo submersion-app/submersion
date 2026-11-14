@@ -11017,6 +11017,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Nessun sito di immersione';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'Vicino ai siti delle tue altre immersioni';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Ordinati per distanza';
 
   @override
@@ -12645,6 +12649,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'Vengono mostrati i primi $count siti. Restringi la ricerca per vedere gli altri.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'Visualizza dettagli per $name';
   }
@@ -12943,6 +12952,37 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'Nelle vicinanze';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'Dal catalogo integrato dei siti. Fonte: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'Impossibile aggiungere questo sito';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Dettagli del sito';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'Altri siti vicino a $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'Altri siti nelle vicinanze';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Siti integrati';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Mostra tutti e $count';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Usa questo sito';
 
   @override
   String get diveSites_list_groupBy => 'Raggruppa per';
@@ -25145,6 +25185,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'Inizio della sfumatura delle schede';
+
+  @override
+  String get settings_conflict_field_catalogueId =>
+      'Collegamento al catalogo integrato';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>

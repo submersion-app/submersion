@@ -11164,6 +11164,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'لا توجد مواقع غوص بعد';
 
   @override
+  String get diveLog_sitePicker_sortedByArea => 'بالقرب من مواقع غطساتك الأخرى';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'مرتبة حسب المسافة';
 
   @override
@@ -12799,6 +12802,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'تُعرض أول $count مواقع. ابحث بعبارة أدق لرؤية البقية.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'عرض تفاصيل $name';
   }
@@ -13125,6 +13133,36 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'قريب';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'من كتالوج المواقع المدمج. المصدر: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError => 'تعذّرت إضافة هذا الموقع';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'تفاصيل الموقع';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'مواقع أخرى بالقرب من $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'مواقع أخرى قريبة';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'المواقع المدمجة';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'استخدام هذا الموقع';
 
   @override
   String get diveSites_list_groupBy => 'التجميع حسب';
@@ -25508,6 +25546,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'بداية تدرج ألوان البطاقات';
+
+  @override
+  String get settings_conflict_field_catalogueId => 'رابط الكتالوج المدمج';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>

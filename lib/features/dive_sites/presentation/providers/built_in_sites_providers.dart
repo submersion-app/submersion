@@ -1,24 +1,25 @@
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
-import 'package:submersion/features/dive_sites/domain/services/built_in_site_dedup.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/services/catalogue_site_visibility.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 
-/// All built-in (bundled) dive sites with coordinates.
-/// Static for the app lifetime; loaded once via the service cache.
-final builtInSitesProvider = FutureProvider<List<ExternalDiveSite>>((
-  ref,
-) async {
-  final service = ref.watch(diveSiteApiServiceProvider);
-  return service.allSitesWithCoordinates();
+/// Every built-in catalogue site that has coordinates, for the map.
+// no-tick: local cache data with no change tick; read again through
+// siteCatalogueRevisionProvider when an import replaces the catalogue.
+final builtInSitesProvider = FutureProvider<List<CatalogueSite>>((ref) {
+  ref.watch(siteCatalogueRevisionProvider);
+  return ref.watch(siteCatalogueProvider).allWithCoordinates();
 });
 
 /// Whether built-in site markers are shown on the Sites map.
 /// In-memory only (matches the heat-map toggle convention); resets each launch.
 final showBuiltInSitesProvider = StateProvider<bool>((ref) => false);
 
-/// Built-in sites with the user's already-owned sites deduped out.
-/// Recomputes when either the built-in list or the user's sites change.
-final visibleBuiltInSitesProvider = FutureProvider<List<ExternalDiveSite>>((
+/// Built-in sites worth showing beside the diver's own: not ones they
+/// adopted, and not ones a site they made by hand already sits on.
+/// Recomputes when either the catalogue or the diver's sites change.
+final visibleBuiltInSitesProvider = FutureProvider<List<CatalogueSite>>((
   ref,
 ) async {
   // Start both queries before awaiting so they run in parallel, reducing
@@ -27,5 +28,9 @@ final visibleBuiltInSitesProvider = FutureProvider<List<ExternalDiveSite>>((
   final userSitesFuture = ref.watch(sitesWithCountsProvider.future);
   final builtIn = await builtInFuture;
   final userSites = await userSitesFuture;
-  return visibleBuiltInSites(builtIn, userSites.map((s) => s.site).toList());
+  return offerableCatalogueSites(
+    builtIn,
+    userSites.map((s) => s.site).toList(),
+    byPosition: true,
+  );
 });

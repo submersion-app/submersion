@@ -88,6 +88,11 @@ final Map<String, ConflictField> siteTripFields = {
     (l) => l.settings_conflict_field_completedAt,
     FieldKind.dateTime,
   ),
+  // The built-in catalogue record a site was adopted from.
+  'catalogueId': ConflictField(
+    (l) => l.settings_conflict_field_catalogueId,
+    FieldKind.shortText,
+  ),
   // A site's ISO country code (issue #4426).
   'countryCode': ConflictField(
     (l) => l.settings_conflict_field_countryCode,

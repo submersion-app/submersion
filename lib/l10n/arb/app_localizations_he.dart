@@ -10768,6 +10768,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'אין עדיין אתרי צלילה';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'ליד האתרים של הצלילות האחרות שלך';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'ממוין לפי מרחק';
 
   @override
@@ -12365,6 +12369,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'מוצגים $count האתרים הראשונים. חפש משהו מדויק יותר כדי לראות את השאר.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'צפה בפרטים עבור $name';
   }
@@ -12654,6 +12663,37 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'בקרבת מקום';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'מתוך קטלוג האתרים המובנה. מקור: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'לא ניתן היה להוסיף את האתר';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'פרטי האתר';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'אתרים נוספים ליד $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'אתרים נוספים בקרבת מקום';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'אתרים מובנים';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'הצגת כל ה-$count';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'שימוש באתר זה';
 
   @override
   String get diveSites_list_groupBy => 'קיבוץ לפי';
@@ -24565,6 +24605,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'תחילת מעבר הצבעים של הכרטיסים';
+
+  @override
+  String get settings_conflict_field_catalogueId => 'קישור לקטלוג המובנה';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>

@@ -10942,6 +10942,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Nog geen duikstekken';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'Bij de stekken van je andere duiken';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Gesorteerd op afstand';
 
   @override
@@ -12558,6 +12562,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'De eerste $count stekken worden getoond. Zoek specifieker om de rest te zien.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'Details bekijken voor $name';
   }
@@ -12853,6 +12862,37 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'In de buurt';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'Uit de ingebouwde stekkencatalogus. Bron: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'Stek kon niet worden toegevoegd';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Details van de stek';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'Meer stekken bij $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'Meer stekken in de buurt';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Ingebouwde stekken';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Alle $count tonen';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Deze stek gebruiken';
 
   @override
   String get diveSites_list_groupBy => 'Groeperen op';
@@ -24987,6 +25027,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'Begin van het kaartkleurverloop';
+
+  @override
+  String get settings_conflict_field_catalogueId =>
+      'Koppeling met ingebouwde catalogus';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>

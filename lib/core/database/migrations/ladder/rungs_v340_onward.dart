@@ -173,5 +173,12 @@ extension RungsFromV340 on AppDatabase {
     // backfill: the app fills it on demand. Re-asserted in beforeOpen.
     if (from < 362) await _assertDiveDecoStatusTable();
     if (from < 362) await reportProgress();
+
+    // v363: dive_sites.catalogue_id, the built-in catalogue record a site
+    // was adopted from. Nullable and offline, with nothing to backfill, so
+    // the floor does not move. The column is re-asserted in beforeOpen.
+    // Renumbered from 362, which main took for #4461.
+    if (from < 363) await _assertSiteCatalogueIdColumn();
+    if (from < 363) await reportProgress();
   }
 }

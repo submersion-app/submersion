@@ -9,8 +9,8 @@ import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
-import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
-import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
+import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -322,12 +322,15 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
                   return builtInAsync.maybeWhen(
                     data: (builtIn) => BuiltInSiteMarkerLayer(
                       sites: builtIn,
-                      selectedExternalId: _selectedBuiltInId,
+                      selectedCatalogueId: _selectedBuiltInId,
                       onTap: (site) {
                         widget.onItemSelected(null);
-                        setState(() => _selectedBuiltInId = site.externalId);
+                        setState(() => _selectedBuiltInId = site.id);
                         _camera.animateTo(
-                          LatLng(site.latitude!, site.longitude!),
+                          LatLng(
+                            site.location!.latitude,
+                            site.location!.longitude,
+                          ),
                         );
                       },
                     ),
@@ -586,31 +589,28 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
   Widget? _buildBuiltInInfoCard(BuildContext context) {
     final async = ref.watch(visibleBuiltInSitesProvider);
     final site = async.maybeWhen(
-      data: (list) =>
-          list.where((s) => s.externalId == _selectedBuiltInId).firstOrNull,
+      data: (list) => list.where((s) => s.id == _selectedBuiltInId).firstOrNull,
       orElse: () => null,
     );
     if (site == null) return null;
-    return BuiltInSiteInfoCard(site: site, onAdd: () => _addBuiltInSite(site));
+    return BuiltInSiteInfoCard(
+      site: site,
+      actionLabel: context.l10n.diveSites_map_builtInSites_add,
+      onAction: () => _addBuiltInSite(site),
+    );
   }
 
-  Future<void> _addBuiltInSite(ExternalDiveSite site) async {
+  Future<void> _addBuiltInSite(CatalogueSite site) async {
     // Read now: adding a built-in site is creating a site by hand (#3513),
     // and it gets its rules even if the diver leaves meanwhile.
     final rulesAfterCreate = captureRulesAfterCreate(context, ref);
-    final String addedId;
+    final CatalogueAdoption adoption;
     try {
-      addedId =
-          (await ref
-                  .read(siteListNotifierProvider.notifier)
-                  .addSite(
-                    site.toDiveSite(),
-                    // Its bundled features as site types (issue #1765).
-                    classification: SiteClassification(
-                      typeIds: site.siteTypeIds,
-                    ),
-                  ))
-              .id;
+      adoption = (await ref
+          .read(siteListNotifierProvider.notifier)
+          // The one adoption path: full details, its site types
+          // and the link back to the catalogue record.
+          .adoptCatalogueSite(site));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -630,7 +630,13 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
         SnackBar(content: Text(context.l10n.diveSites_map_builtInSites_added)),
       );
     }
-    await rulesAfterCreate(subject: RuleSubject.sites, ids: [addedId]);
+    // Only a site this tap created (see CatalogueAdoption.created).
+    if (adoption.created) {
+      await rulesAfterCreate(
+        subject: RuleSubject.sites,
+        ids: [adoption.site.id],
+      );
+    }
   }
 
   /// Where [sites] sit on the map, skipping any without coordinates.

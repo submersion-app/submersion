@@ -11015,6 +11015,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Aún no hay puntos de buceo';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'Cerca de los sitios de tus otras inmersiones';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Ordenados por distancia';
 
   @override
@@ -12640,6 +12644,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'Se muestran los primeros $count sitios. Haz una búsqueda más específica para ver el resto.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'Ver detalles de $name';
   }
@@ -12939,6 +12948,37 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'Cerca';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'Del catálogo integrado de sitios. Fuente: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'No se pudo añadir este sitio';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Detalles del sitio';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'Más sitios cerca de $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'Más sitios cercanos';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Sitios integrados';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Mostrar los $count';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Usar este sitio';
 
   @override
   String get diveSites_list_groupBy => 'Agrupar por';
@@ -25143,6 +25183,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'Inicio del degradado de tarjetas';
+
+  @override
+  String get settings_conflict_field_catalogueId =>
+      'Enlace al catálogo integrado';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>

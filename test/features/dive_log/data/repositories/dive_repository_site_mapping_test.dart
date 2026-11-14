@@ -49,6 +49,7 @@ void main() {
     entryMethods: [EntryMethod.shore],
     exitMethods: [EntryMethod.ladder],
     isShared: true,
+    catalogueId: 'osm_node_1',
   );
 
   Dive diveAt(DiveSite site) => Dive(

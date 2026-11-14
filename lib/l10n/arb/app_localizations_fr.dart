@@ -11053,6 +11053,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Aucun site de plongée';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'Près des sites de vos autres plongées';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Trié par distance';
 
   @override
@@ -12686,6 +12690,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'Les $count premiers sites sont affichés. Précise ta recherche pour voir les autres.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'Voir les détails de $name';
   }
@@ -12986,6 +12995,37 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'À proximité';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'Issu du catalogue de sites intégré. Source : $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'Impossible d\'ajouter ce site';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Détails du site';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'Autres sites près de $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'Autres sites à proximité';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Sites intégrés';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Afficher les $count';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Utiliser ce site';
 
   @override
   String get diveSites_list_groupBy => 'Grouper par';
@@ -25210,6 +25250,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'Début du dégradé des cartes';
+
+  @override
+  String get settings_conflict_field_catalogueId =>
+      'Lien vers le catalogue intégré';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
