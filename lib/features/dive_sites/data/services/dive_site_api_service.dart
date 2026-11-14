@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart' show rootBundle;
 
+import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -37,6 +39,12 @@ class ExternalDiveSite {
   /// Whether this site has valid coordinates.
   bool get hasCoordinates => latitude != null && longitude != null;
 
+  /// The ISO code of the country this site's [country] text names, or null
+  /// (issue #4520). The bundled data keeps OpenStreetMap's names: a name in
+  /// the country's own language ("ประเทศไทย"), a code ("DE"), or several
+  /// names joined by slashes ("Schweiz/Suisse/Svizzera/Svizra").
+  String? get countryCode => countryCodeFor(country);
+
   /// Convert to a DiveSite entity for import.
   DiveSite toDiveSite({String? diverId}) {
     return DiveSite(
@@ -47,6 +55,7 @@ class ExternalDiveSite {
       location: hasCoordinates ? GeoPoint(latitude!, longitude!) : null,
       maxDepth: maxDepth,
       country: country,
+      countryCode: countryCode,
       region: region ?? ocean,
       notes: 'Imported from $source',
     );
@@ -110,6 +119,11 @@ class DiveSiteSearchResult {
 /// Service for searching dive sites from the bundled database.
 class DiveSiteApiService {
   static final _log = LoggerService.forClass(DiveSiteApiService);
+
+  /// Reads the bundled asset on first use; [sites] stands in for it in
+  /// tests.
+  DiveSiteApiService({@visibleForTesting List<ExternalDiveSite>? sites})
+    : _bundledSites = sites;
 
   /// Cached bundled dive sites to avoid reloading.
   List<ExternalDiveSite>? _bundledSites;
@@ -188,7 +202,9 @@ class DiveSiteApiService {
     }
   }
 
-  /// Search bundled dive sites by query.
+  /// Search bundled dive sites by query: part of a site's name, country,
+  /// region, ocean or description, or a country the query names in any
+  /// language (issue #4520).
   Future<DiveSiteSearchResult> _searchBundledSites(String query) async {
     final sites = await _loadBundledSites();
     if (sites.isEmpty) {
@@ -196,6 +212,7 @@ class DiveSiteApiService {
     }
 
     final lowerQuery = query.toLowerCase().trim();
+    final countryCodes = countryCodesMatching(query);
     final matchedSites = sites.where((site) {
       final name = site.name.toLowerCase();
       final country = site.country?.toLowerCase() ?? '';
@@ -208,7 +225,7 @@ class DiveSiteApiService {
           region.contains(lowerQuery) ||
           ocean.contains(lowerQuery) ||
           description.contains(lowerQuery) ||
-          lowerQuery.contains(name.split(' ').first);
+          countryCodes.contains(site.countryCode);
     }).toList();
 
     if (matchedSites.isEmpty) {

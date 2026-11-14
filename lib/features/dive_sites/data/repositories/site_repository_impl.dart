@@ -8,6 +8,7 @@ import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -1403,7 +1404,9 @@ class SiteRepository {
   ///
   /// Each column is folded by `unicode_lower` to meet the Dart-lowered
   /// needle: LIKE folds ASCII only, so "österreich" missed "Österreich"
-  /// (#3377).
+  /// (#3377). A query naming a country in any language also matches the
+  /// sites stored with that country's code, so "Thailand" finds a site whose
+  /// country reads "ประเทศไทย" (#4520).
   Future<List<domain.DiveSite>> searchSites(
     String query, {
     String? diverId,
@@ -1411,15 +1414,22 @@ class SiteRepository {
     try {
       return await PerfTimer.measure('searchSites', () async {
         final needle = query.toLowerCase();
+        final countryCodes = countryCodesMatching(query);
+        final uncodedCountries = countryCodes.isEmpty
+            ? const <String>[]
+            : await _uncodedCountriesNaming(countryCodes);
         final searchQuery = _db.select(_db.diveSites)
           ..where(
-            (t) =>
-                t.name.unicodeLower().contains(needle) |
-                t.country.unicodeLower().contains(needle) |
-                t.region.unicodeLower().contains(needle) |
-                t.city.unicodeLower().contains(needle) |
-                t.island.unicodeLower().contains(needle) |
-                t.bodyOfWater.unicodeLower().contains(needle),
+            (t) => [
+              t.name.unicodeLower().contains(needle),
+              t.country.unicodeLower().contains(needle),
+              t.region.unicodeLower().contains(needle),
+              t.city.unicodeLower().contains(needle),
+              t.island.unicodeLower().contains(needle),
+              t.bodyOfWater.unicodeLower().contains(needle),
+              if (countryCodes.isNotEmpty) t.countryCode.isIn(countryCodes),
+              if (uncodedCountries.isNotEmpty) t.country.isIn(uncodedCountries),
+            ].reduce((a, b) => a | b),
           )
           ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
@@ -1436,6 +1446,24 @@ class SiteRepository {
       );
       rethrow;
     }
+  }
+
+  /// Stored country texts with no code beside them that name one of [codes]
+  /// (#4520). The v361 backfill ran once, so a name the recognizer learned
+  /// later ("ประเทศไทย") is still stored without its code.
+  Future<List<String>> _uncodedCountriesNaming(Set<String> codes) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT country FROM dive_sites '
+          'WHERE country_code IS NULL AND country IS NOT NULL',
+          readsFrom: {_db.diveSites},
+        )
+        .get();
+    return [
+      for (final row in rows)
+        if (codes.contains(countryCodeFor(row.read<String>('country'))))
+          row.read<String>('country'),
+    ];
   }
 
   /// Dive count per site. Kept for callers that only need the count; the

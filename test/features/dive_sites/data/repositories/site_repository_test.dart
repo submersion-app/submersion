@@ -185,6 +185,49 @@ void main() {
       ]);
     });
 
+    test('search finds a country stored in its own language by its name '
+        'in another (#4520)', () async {
+      await repository.createSite(
+        const DiveSite(id: 'c-th', name: 'Sail Rock', country: 'ประเทศไทย'),
+      );
+      await repository.createSite(
+        const DiveSite(id: 'c-co', name: 'La source', country: 'Colombia'),
+      );
+      for (final query in ['Thailand', 'Thaïlande', 'thai']) {
+        expect((await repository.searchSites(query)).map((s) => s.id), [
+          'c-th',
+        ], reason: query);
+      }
+    });
+
+    test('search finds a country stored before its name was readable, with '
+        'no code (#4520)', () async {
+      // The v361 backfill could not read these names, so they kept no code.
+      final now = DateTime.now().millisecondsSinceEpoch;
+      for (final (id, country) in [
+        ('u-th', 'ประเทศไทย'),
+        ('u-ch', 'Schweiz/Suisse/Svizzera/Svizra'),
+      ]) {
+        await database
+            .into(database.diveSites)
+            .insert(
+              db.DiveSitesCompanion.insert(
+                id: id,
+                name: 'Uncoded $id',
+                createdAt: now,
+                updatedAt: now,
+                country: Value(country),
+              ),
+            );
+      }
+      expect((await repository.searchSites('Thailand')).map((s) => s.id), [
+        'u-th',
+      ]);
+      expect((await repository.searchSites('Switzerland')).map((s) => s.id), [
+        'u-ch',
+      ]);
+    });
+
     group('createSite', () {
       test(
         'should create a new site with generated ID when ID is empty',
