@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -10,6 +11,12 @@ typedef RecordSave<T> = Future<void> Function(EditSession<T> session);
 /// A page opens locked. [unlock] starts a sitting over the stored record;
 /// [save] writes it and locks again; [lock] discards it. The lock is never
 /// stored: every controller starts locked.
+///
+/// It notifies when the lock, the open or added cards, the saving state, or
+/// the set of cards with changes changes, and when the stored record changes
+/// underneath. It does not notify for each further change to a card that
+/// already has one: a page listening here must not rebuild on every
+/// keystroke. An editor that needs every value listens to [session].
 class RecordEditController<T> extends ChangeNotifier {
   RecordEditController({required this.onSave});
 
@@ -20,6 +27,9 @@ class RecordEditController<T> extends ChangeNotifier {
   Object? _saveError;
   final Set<String> _openCardIds = {};
   final Set<String> _addedCardIds = {};
+
+  /// The cards that had changes when listeners were last told.
+  Set<String> _toldChangedCardIds = const {};
 
   bool get isUnlocked => _session != null;
 
@@ -41,7 +51,8 @@ class RecordEditController<T> extends ChangeNotifier {
 
   void unlock(T stored) {
     if (isUnlocked) return;
-    _session = EditSession<T>(stored)..addListener(notifyListeners);
+    _toldChangedCardIds = const {};
+    _session = EditSession<T>(stored)..addListener(_onSessionChanged);
     notifyListeners();
   }
 
@@ -84,8 +95,20 @@ class RecordEditController<T> extends ChangeNotifier {
 
   /// Tells the sitting the stored record changed underneath it.
   void storedChanged(T stored) {
-    if (_isSaving) return;
-    _session?.rebase(stored);
+    final session = _session;
+    if (session == null || _isSaving || stored == session.stored) return;
+    session.rebase(stored);
+    // Cards the diver has not touched now show other values, whether or not
+    // the set of changed cards moved.
+    _toldChangedCardIds = session.changedCardIds;
+    notifyListeners();
+  }
+
+  void _onSessionChanged() {
+    final changed = _session?.changedCardIds ?? const <String>{};
+    if (setEquals(changed, _toldChangedCardIds)) return;
+    _toldChangedCardIds = changed;
+    notifyListeners();
   }
 
   /// Writes the sitting and locks. False when nothing was saved: the page
@@ -118,7 +141,7 @@ class RecordEditController<T> extends ChangeNotifier {
 
   void _dropSession(EditSession<T> session) {
     session
-      ..removeListener(notifyListeners)
+      ..removeListener(_onSessionChanged)
       ..dispose();
     _session = null;
   }

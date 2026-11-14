@@ -97,6 +97,37 @@ void main() {
     expect(controller.isDirty, isTrue);
   });
 
+  // A page rebuilds when its controller notifies. Typing must not do that
+  // on every keystroke: only a change in which cards have changes does.
+  test('more changes on a card already changed do not notify again', () {
+    final controller = _controller()..unlock(const _Rec(notes: 'a'));
+    var told = 0;
+    controller.addListener(() => told++);
+
+    controller.session!.set(_notes, 'b');
+    expect(told, 1);
+
+    controller.session!.set(_notes, 'bc');
+    controller.session!.set(_notes, 'bcd');
+    expect(told, 1);
+
+    controller.session!.set(_notes, 'a');
+    expect(told, 2);
+    expect(controller.isDirty, isFalse);
+  });
+
+  test('storedChanged notifies once when the stored record differs', () {
+    final controller = _controller()..unlock(const _Rec(notes: 'a', depth: 1));
+    var told = 0;
+    controller.addListener(() => told++);
+
+    controller.storedChanged(const _Rec(notes: 'a', depth: 1));
+    expect(told, 0);
+
+    controller.storedChanged(const _Rec(notes: 'a', depth: 2));
+    expect(told, 1);
+  });
+
   test('openCard and closeCard track the open cards', () {
     final controller = _controller()..unlock(const _Rec());
 
