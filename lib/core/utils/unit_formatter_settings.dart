@@ -78,3 +78,101 @@ Object unitFormatterSettingsKey(UnitFormatterSettings s) => (
   s.maxO2DepthMeters,
   s.ccrDiluentModPpO2,
 );
+
+/// [UnitFormatterSettings] with a pressure or volume unit of its own over
+/// everything else from a base, for a reader that formats one item in that
+/// item's own units (a cylinder kept in psi, issue #4534).
+class UnitFormatterSettingsOverride implements UnitFormatterSettings {
+  const UnitFormatterSettingsOverride(
+    this._base, {
+    PressureUnit? pressureUnit,
+    VolumeUnit? volumeUnit,
+  }) : _pressureUnit = pressureUnit,
+       _volumeUnit = volumeUnit;
+
+  final UnitFormatterSettings _base;
+  final PressureUnit? _pressureUnit;
+  final VolumeUnit? _volumeUnit;
+
+  @override
+  DepthUnit get depthUnit => _base.depthUnit;
+
+  @override
+  TemperatureUnit get temperatureUnit => _base.temperatureUnit;
+
+  @override
+  PressureUnit get pressureUnit => _pressureUnit ?? _base.pressureUnit;
+
+  @override
+  VolumeUnit get volumeUnit => _volumeUnit ?? _base.volumeUnit;
+
+  @override
+  WeightUnit get weightUnit => _base.weightUnit;
+
+  @override
+  AltitudeUnit get altitudeUnit => _base.altitudeUnit;
+
+  @override
+  DistanceUnit get distanceUnit => _base.distanceUnit;
+
+  @override
+  CoordinateFormat get coordinateFormat => _base.coordinateFormat;
+
+  @override
+  TimeFormat get timeFormat => _base.timeFormat;
+
+  @override
+  DateFormatPreference get dateFormat => _base.dateFormat;
+
+  @override
+  String get locale => _base.locale;
+
+  @override
+  GasModel get gasModel => _base.gasModel;
+
+  @override
+  GasConsumptionDisplay get gasConsumptionDisplay =>
+      _base.gasConsumptionDisplay;
+
+  @override
+  String get defaultCurrency => _base.defaultCurrency;
+
+  @override
+  double get defaultStartPressure => _base.defaultStartPressure;
+
+  @override
+  int get gfHigh => _base.gfHigh;
+
+  @override
+  double get endLimit => _base.endLimit;
+
+  @override
+  bool get o2Narcotic => _base.o2Narcotic;
+
+  @override
+  double get ppO2MaxWorking => _base.ppO2MaxWorking;
+
+  @override
+  double get ppO2MaxDeco => _base.ppO2MaxDeco;
+
+  @override
+  bool get ppO2DecoBandsEnabled => _base.ppO2DecoBandsEnabled;
+
+  @override
+  double get ppO2DecoBand1 => _base.ppO2DecoBand1;
+
+  @override
+  double get ppO2DecoBand2 => _base.ppO2DecoBand2;
+
+  @override
+  double get ppO2DecoBand3 => _base.ppO2DecoBand3;
+
+  @override
+  bool get maxO2DepthEnabled => _base.maxO2DepthEnabled;
+
+  @override
+  double get maxO2DepthMeters => _base.maxO2DepthMeters;
+
+  @override
+  double get ccrDiluentModPpO2 => _base.ccrDiluentModPpO2;
+}

@@ -2,8 +2,10 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 import 'package:submersion/core/utils/per_minute.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// A unit one equipment number can be read and typed in (issue #4534).
@@ -231,4 +233,44 @@ String attributeUnitLabel(
       _ => depth,
     },
   };
+}
+
+/// [units] reading volume and pressure the way [item]'s own cylinder spec
+/// does, for readers that format a cylinder's volume and working pressure
+/// through [UnitFormatter] (the passport card and printed labels). Anything
+/// else they show keeps the diver's units.
+UnitFormatter cylinderSpecUnits(EquipmentItem item, UnitFormatter units) {
+  EquipmentAttribute? own(String key) {
+    for (final a in item.attributes) {
+      if (!a.isCustom && a.key == key) return a;
+    }
+    return null;
+  }
+
+  final volumeDef = EquipmentAttributeCatalog.defFor(EquipmentAttrKeys.volumeL);
+  final pressureDef = EquipmentAttributeCatalog.defFor(
+    EquipmentAttrKeys.workingPressureBar,
+  );
+  final volume = volumeDef == null
+      ? null
+      : parseAttributeUnit(volumeDef, own(volumeDef.key)?.valueUnit);
+  final pressure = pressureDef == null
+      ? null
+      : parseAttributeUnit(pressureDef, own(pressureDef.key)?.valueUnit);
+  if (volume == null && pressure == null) return units;
+  return UnitFormatter(
+    UnitFormatterSettingsOverride(
+      units.settings,
+      volumeUnit: switch (volume) {
+        AttributeUnit.liters => VolumeUnit.liters,
+        AttributeUnit.cubicFeet => VolumeUnit.cubicFeet,
+        _ => null,
+      },
+      pressureUnit: switch (pressure) {
+        AttributeUnit.bar => PressureUnit.bar,
+        AttributeUnit.psi => PressureUnit.psi,
+        _ => null,
+      },
+    ),
+  );
 }
