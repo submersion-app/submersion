@@ -7,6 +7,8 @@ import 'package:submersion/features/dive_computer/data/repositories/dive_compute
 import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/tank_presets/data/repositories/tank_preset_repository.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
@@ -35,6 +37,55 @@ class GearCylinderSeeder implements DemoSeeder {
   Future<void> seed(DemoSeedContext ctx) async {
     await _computers(ctx);
     await _cylinders(ctx);
+    await _setBundles(ctx);
+  }
+
+  /// What the sets carry besides gear (issue #4525): the single-tank sets
+  /// take their lead, the doubles take their cylinders, and one set is made
+  /// of two others. Runs last, once the presets and configurations exist.
+  Future<void> _setBundles(DemoSeedContext ctx) async {
+    final sets = EquipmentSetRepository();
+    final presets = await WeightPresetRepository().getPresets(
+      diverId: DemoSeedContext.diverId,
+    );
+    final configs = await CylinderConfigRepository().getAllConfigs(
+      diverId: DemoSeedContext.diverId,
+    );
+    String presetNamed(String name) =>
+        presets.firstWhere((p) => p.displayName == name).id;
+
+    Future<void> give(
+      String key, {
+      List<String> weightPresetIds = const [],
+      List<String> cylinderConfigIds = const [],
+    }) async {
+      final set = (await sets.getSetById(ctx.equipmentSets[key]!))!;
+      await sets.updateSet(
+        set.copyWith(
+          weightPresetIds: weightPresetIds,
+          cylinderConfigIds: cylinderConfigIds,
+        ),
+      );
+    }
+
+    await give('warm', weightPresetIds: [presetNamed('Warm water')]);
+    await give('lake', weightPresetIds: [presetNamed('Drysuit at home')]);
+    await give('tech', cylinderConfigIds: [configs.first.id]);
+
+    final created = ctx.timeline.boughtOn('stage-2')!;
+    await sets.createSet(
+      EquipmentSet(
+        id: 'demo-set-warm-camera',
+        diverId: DemoSeedContext.diverId,
+        name: 'Warm water with camera',
+        includedSetIds: [
+          ctx.equipmentSets['warm']!,
+          ctx.equipmentSets['camera']!,
+        ],
+        createdAt: created,
+        updatedAt: created,
+      ),
+    );
   }
 
   Future<void> _computers(DemoSeedContext ctx) async {

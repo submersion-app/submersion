@@ -14,6 +14,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set_geof
     as domain;
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 
+part 'equipment_set_repository_bundle_lists.dart';
+
 /// [EquipmentSetRepository.getSetNamesById], or an empty map when the read
 /// fails, so a printed logbook still exports with its sets unnamed rather
 /// than not at all (#2031).
@@ -73,6 +75,10 @@ class EquipmentSetRepository {
           TableUpdateQuery.onTable(_db.equipment),
           TableUpdateQuery.onTable(_db.equipmentAttributes),
           TableUpdateQuery.onTable(_db.equipmentSetGeofences),
+          // What a set carries besides gear (issue #4525).
+          TableUpdateQuery.onTable(_db.equipmentSetIncludes),
+          TableUpdateQuery.onTable(_db.equipmentSetWeightPresets),
+          TableUpdateQuery.onTable(_db.equipmentSetCylinderConfigs),
         ]),
       )
       .debounce(changeTickDebounce);
@@ -126,10 +132,11 @@ class EquipmentSetRepository {
 
     final rows = await query.get();
 
+    final lists = await _bundleListsFor([for (final row in rows) row.id]);
     final sets = <domain.EquipmentSet>[];
     for (final row in sortedByText(rows, (r) => r.name)) {
       final equipmentIds = await getEquipmentIdsInSet(row.id);
-      sets.add(_mapRowToSet(row, equipmentIds));
+      sets.add(_mapRowToSet(row, equipmentIds, lists[row.id]));
     }
     return sets;
   }
@@ -157,10 +164,18 @@ class EquipmentSetRepository {
     if (row == null) return null;
 
     final equipmentIds = await getEquipmentIdsInSet(id);
-    var set = _mapRowToSet(row, equipmentIds);
+    final lists = (await _bundleListsFor([id]))[id];
+    var set = _mapRowToSet(row, equipmentIds, lists);
 
     if (includeItems) {
-      final items = await _equipmentRepo.getEquipmentByIds(equipmentIds);
+      // The gear the set applies: its own plus that of the sets it includes
+      // (issue #4525). equipmentIds stays the set's own.
+      final effective = await _effectiveIds(
+        id,
+        equipmentIds,
+        set.includedSetIds,
+      );
+      final items = await _equipmentRepo.getEquipmentByIds(effective);
       set = set.copyWith(items: items);
     }
     if (includeGeofences) {
@@ -175,6 +190,33 @@ class EquipmentSetRepository {
       ..where((t) => t.setId.equals(setId));
     final rows = await query.get();
     return rows.map((r) => r.equipmentId).toList();
+  }
+
+  /// The gear set [setId] applies: that of the sets it includes, then its
+  /// own, without duplicates (issue #4525). One level deep.
+  Future<List<String>> getEffectiveEquipmentIds(String setId) async {
+    final lists = (await _bundleListsFor([setId]))[setId] ?? _noBundleLists;
+    return _effectiveIds(
+      setId,
+      await getEquipmentIdsInSet(setId),
+      lists.includes,
+    );
+  }
+
+  Future<List<String>> _effectiveIds(
+    String setId,
+    List<String> ownIds,
+    List<String> includedSetIds,
+  ) async {
+    final seen = <String>{};
+    return [
+      for (final included in includedSetIds)
+        if (included != setId)
+          for (final id in await getEquipmentIdsInSet(included))
+            if (seen.add(id)) id,
+      for (final id in ownIds)
+        if (seen.add(id)) id,
+    ];
   }
 
   /// The sets holding [equipmentId], only [diverId]'s own when given (a
@@ -203,6 +245,7 @@ class EquipmentSetRepository {
     final id = set.id.isEmpty ? _uuid.v4() : set.id;
     final now = DateTime.now().millisecondsSinceEpoch;
     late final List<String> members;
+    late final List<_BundleListWrite> listWrites;
 
     await _db.transaction(() async {
       await _db
@@ -231,6 +274,7 @@ class EquipmentSetRepository {
               ),
             );
       }
+      listWrites = await _writeBundleLists(id, set, now);
     });
 
     await _syncRepository.markRecordPending(
@@ -245,11 +289,16 @@ class EquipmentSetRepository {
         localUpdatedAt: now,
       );
     }
+    await _recordBundleListWrites(listWrites, now);
     SyncEventBus.notifyLocalChange();
 
+    final lists = (await _bundleListsFor([id]))[id] ?? _noBundleLists;
     return set.copyWith(
       id: id,
       equipmentIds: members,
+      includedSetIds: lists.includes,
+      weightPresetIds: lists.presets,
+      cylinderConfigIds: lists.configs,
       createdAt: DateTime.fromMillisecondsSinceEpoch(now),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
     );
@@ -276,6 +325,7 @@ class EquipmentSetRepository {
     final now = DateTime.now().millisecondsSinceEpoch;
     final added = <String>[];
     final removed = <String>[];
+    late final List<_BundleListWrite> listWrites;
 
     await _db.transaction(() async {
       await (_db.update(
@@ -321,6 +371,7 @@ class EquipmentSetRepository {
             ))
             .go();
       }
+      listWrites = await _writeBundleLists(set.id, set, now);
     });
 
     await _syncRepository.markRecordPending(
@@ -328,6 +379,7 @@ class EquipmentSetRepository {
       recordId: set.id,
       localUpdatedAt: now,
     );
+    await _recordBundleListWrites(listWrites, now);
     for (final equipmentId in added) {
       await _syncRepository.markRecordPending(
         entityType: 'equipmentSetItems',
@@ -621,14 +673,19 @@ class EquipmentSetRepository {
 
   domain.EquipmentSet _mapRowToSet(
     EquipmentSet row,
-    List<String> equipmentIds,
-  ) {
+    List<String> equipmentIds, [
+    _BundleLists? lists,
+  ]) {
+    final bundle = lists ?? _noBundleLists;
     return domain.EquipmentSet(
       id: row.id,
       diverId: row.diverId,
       name: row.name,
       description: row.description,
       equipmentIds: equipmentIds,
+      includedSetIds: bundle.includes,
+      weightPresetIds: bundle.presets,
+      cylinderConfigIds: bundle.configs,
       isDefault: row.isDefault,
       autoApplyOnComputerImport: row.autoApplyOnComputerImport,
       showFigure: row.showFigure,

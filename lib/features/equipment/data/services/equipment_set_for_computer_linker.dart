@@ -75,22 +75,30 @@ class EquipmentSetForComputerLinker {
       final diverId = dive?.diverId;
       if (diverId == null) return false;
 
-      // One joined query for "opted-in sets, owned by this diver, that
-      // contain one of these computers" rather than a set-membership
-      // lookup followed by a separate opt-in filter.
+      // One query for "opted-in sets, owned by this diver, that contain
+      // one of these computers" rather than a set-membership lookup
+      // followed by a separate opt-in filter. A set also contains what the
+      // sets it includes hold (issue #4525).
       final placeholders = computerEquipmentIds.map((_) => '?').join(',');
+      final computers = [
+        for (final id in computerEquipmentIds) Variable<String>(id),
+      ];
       final rows = await _db
           .customSelect(
             'SELECT DISTINCT s.id FROM equipment_sets s '
-            'JOIN equipment_set_items i ON i.set_id = s.id '
-            'WHERE i.equipment_id IN ($placeholders) '
-            'AND s.auto_apply_on_computer_import = 1 '
-            'AND s.diver_id = ?',
-            variables: [
-              for (final id in computerEquipmentIds) Variable<String>(id),
-              Variable<String>(diverId),
-            ],
-            readsFrom: {_db.equipmentSets, _db.equipmentSetItems},
+            'WHERE s.auto_apply_on_computer_import = 1 '
+            'AND s.diver_id = ? AND ('
+            'EXISTS (SELECT 1 FROM equipment_set_items i '
+            'WHERE i.set_id = s.id AND i.equipment_id IN ($placeholders)) '
+            'OR EXISTS (SELECT 1 FROM equipment_set_includes inc '
+            'JOIN equipment_set_items i ON i.set_id = inc.included_set_id '
+            'WHERE inc.set_id = s.id AND i.equipment_id IN ($placeholders)))',
+            variables: [Variable<String>(diverId), ...computers, ...computers],
+            readsFrom: {
+              _db.equipmentSets,
+              _db.equipmentSetItems,
+              _db.equipmentSetIncludes,
+            },
           )
           .get();
       final setIds = rows.map((row) => row.read<String>('id')).toSet();
@@ -100,7 +108,7 @@ class EquipmentSetForComputerLinker {
         // A member no longer shared with this diver stays in the set but is
         // not applied (issue #2046).
         final setEquipmentIds = await _equipment.usableSetMemberIds(
-          await _sets.getEquipmentIdsInSet(setId),
+          await _sets.getEffectiveEquipmentIds(setId),
           diverId,
         );
         if (setEquipmentIds.isEmpty) continue;

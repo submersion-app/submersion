@@ -91,14 +91,21 @@ class GearTemplateDiveQueries {
     return row.read<int>('n');
   }
 
-  /// The members set [setId] holds now.
+  /// The gear set [setId] applies now: its own members and those of the
+  /// sets it includes (issue #4525), one level deep.
   Future<Set<String>> membersOfSet(String setId) async {
-    final rows =
-        await (_db.selectOnly(_db.equipmentSetItems)
-              ..addColumns([_db.equipmentSetItems.equipmentId])
-              ..where(_db.equipmentSetItems.setId.equals(setId)))
-            .get();
-    return {for (final r in rows) r.read(_db.equipmentSetItems.equipmentId)!};
+    final rows = await _db
+        .customSelect(
+          'SELECT equipment_id FROM equipment_set_items WHERE set_id = ?1 '
+          'UNION '
+          'SELECT i.equipment_id FROM equipment_set_items i '
+          'JOIN equipment_set_includes inc ON inc.included_set_id = i.set_id '
+          'WHERE inc.set_id = ?1 AND inc.included_set_id != ?1',
+          variables: [Variable<String>(setId)],
+          readsFrom: {_db.equipmentSetItems, _db.equipmentSetIncludes},
+        )
+        .get();
+    return {for (final r in rows) r.read<String>('equipment_id')};
   }
 
   /// The diver set [setId] belongs to, null for an ownerless set.

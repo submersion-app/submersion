@@ -70,13 +70,13 @@ class DiveEquipmentDefaulter {
       sets: candidateSets,
       geofences: geofences,
     );
-    if (best == null || best.equipmentIds.isEmpty) return false;
+    if (best == null) return false;
+    // The set's own gear and that of the sets it includes (issue #4525).
+    final gearIds = await _sets.getEffectiveEquipmentIds(best.id);
+    if (gearIds.isEmpty) return false;
     // A member no longer shared with this diver stays in the set but is
     // not applied (issue #2046).
-    final memberIds = await _equipment.usableSetMemberIds(
-      best.equipmentIds,
-      diverId,
-    );
+    final memberIds = await _equipment.usableSetMemberIds(gearIds, diverId);
     if (memberIds.isEmpty) return false;
 
     // Tag every row with the set that won so the dive remembers it and
@@ -139,7 +139,7 @@ class DiveEquipmentDefaulter {
       );
       if (fenced == null || fenced.id == defaultSet.id) return false;
       final memberIds = await _equipment.usableSetMemberIds(
-        fenced.equipmentIds,
+        await _sets.getEffectiveEquipmentIds(fenced.id),
         diverId,
       );
       if (memberIds.isEmpty) return false;
