@@ -15,7 +15,6 @@ InfoContent buoyancyInfo(
     summary: l10n.info_diveLog_buoyancy_summary,
     terms: diveTermEntries(l10n, units, [
       DiveTerm.netBuoyancy,
-      DiveTerm.buoyancySwing,
       DiveTerm.peakLift,
       DiveTerm.minDitchable,
       if (hasDrysuitGas) DiveTerm.drysuitGas,

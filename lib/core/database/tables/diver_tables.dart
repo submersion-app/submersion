@@ -66,7 +66,7 @@ class Divers extends Table {
   IntColumn get priorDiveTimeSeconds => integer().nullable()();
   IntColumn get divingSince => integer().nullable()(); // year, e.g. 1990
 
-  /// v363 body composition inputs (issue #4525), used only to estimate
+  /// v364 body composition inputs (issue #4525), used only to estimate
   /// body fat for the weight prediction. DiverSex.name, or null when not
   /// given.
   TextColumn get sex => text().nullable()();

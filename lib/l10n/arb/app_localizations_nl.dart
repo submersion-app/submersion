@@ -10942,6 +10942,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Nog geen duikstekken';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'Bij de stekken van je andere duiken';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Gesorteerd op afstand';
 
   @override
@@ -12558,6 +12562,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'De eerste $count stekken worden getoond. Zoek specifieker om de rest te zien.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'Details bekijken voor $name';
   }
@@ -12853,6 +12862,37 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'In de buurt';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'Uit de ingebouwde stekkencatalogus. Bron: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'Stek kon niet worden toegevoegd';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Details van de stek';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'Meer stekken bij $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'Meer stekken in de buurt';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Ingebouwde stekken';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Alle $count tonen';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Deze stek gebruiken';
 
   @override
   String get diveSites_list_groupBy => 'Groeperen op';
@@ -22732,7 +22772,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveDetailSection_buoyancy_description =>
-      'Drijfvermogen tijdens de duik, variatie, afwerpbaar lood';
+      'Drijfvermogen tijdens de duik, lood voor de volgende keer, afwerpbaar lood';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -22747,10 +22787,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get buoyancy_verdictNeutral =>
       'Je configuratie was bijna neutraal bij de laatste stop';
-
-  @override
-  String get buoyancy_verdictConvention =>
-      'Geschat volgens de 5 m-veiligheidsstopconventie';
 
   @override
   String get buoyancy_breakdownTitle => 'Termuitsplitsing';
@@ -22805,13 +22841,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buoyancy_chartNet => 'Netto';
 
   @override
-  String get buoyancy_chartRig => 'Uitrusting + lood';
-
-  @override
   String get buoyancy_chartMinutes => 'Tijd (min)';
-
-  @override
-  String get buoyancy_historyTitle => 'Loodgeschiedenis';
 
   @override
   String get buoyancy_historyCarried => 'Gedragen';
@@ -22834,6 +22864,105 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buoyancy_adjust => 'Aanpassen';
+
+  @override
+  String buoyancy_readoutHeavy(String amount) {
+    return '$amount te zwaar';
+  }
+
+  @override
+  String buoyancy_readoutBuoyant(String amount) {
+    return '$amount opdrijvend vermogen';
+  }
+
+  @override
+  String get buoyancy_readoutNeutral => 'Bijna neutraal';
+
+  @override
+  String buoyancy_readoutAtFinalStop(String depth) {
+    return 'bij je laatste stop, rond $depth';
+  }
+
+  @override
+  String buoyancy_readoutConvention(String depth) {
+    return 'geschat volgens de veiligheidsstopconventie op $depth';
+  }
+
+  @override
+  String buoyancy_readoutAtMoment(String depth, String time) {
+    return 'op $depth, $time';
+  }
+
+  @override
+  String get buoyancy_pullingDown => 'Trekt je omlaag';
+
+  @override
+  String get buoyancy_holdingUp => 'Houdt je omhoog';
+
+  @override
+  String get buoyancy_partGear => 'Uitrusting';
+
+  @override
+  String get buoyancy_partBody => 'Lichaam';
+
+  @override
+  String buoyancy_partLabel(String name, String amount) {
+    return '$name $amount';
+  }
+
+  @override
+  String get buoyancy_markerStart => 'Start';
+
+  @override
+  String get buoyancy_markerDeepest => 'Diepste punt';
+
+  @override
+  String get buoyancy_markerFinalStop => 'Laatste stop';
+
+  @override
+  String buoyancy_causeSuit(String amount, String depth) {
+    return 'Pakcompressie kostte $amount drijfvermogen op $depth';
+  }
+
+  @override
+  String buoyancy_causeGas(String amount) {
+    return 'Het geademde gas maakte de flessen $amount lichter';
+  }
+
+  @override
+  String get buoyancy_leadTitle => 'Lood voor de volgende keer';
+
+  @override
+  String get buoyancy_leadCarried => 'Je droeg';
+
+  @override
+  String get buoyancy_leadSuggested => 'Model stelt voor';
+
+  @override
+  String get buoyancy_leadNotRecorded => 'Niet vastgelegd';
+
+  @override
+  String get buoyancy_statusWell => 'Goed uitgelood';
+
+  @override
+  String buoyancy_peakLiftWithin(String amount) {
+    return 'binnen de $amount van je wing';
+  }
+
+  @override
+  String buoyancy_peakLiftExceeds(String amount) {
+    return 'overschrijdt de $amount van je wing';
+  }
+
+  @override
+  String buoyancy_ditchCovered(String amount) {
+    return 'je kunt $amount afwerpen';
+  }
+
+  @override
+  String buoyancy_ditchShort(String amount) {
+    return 'je kunt maar $amount afwerpen';
+  }
 
   @override
   String get buoyancy_whatIfTitle => 'Deze duik aanpassen';
@@ -24987,6 +25116,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'Begin van het kaartkleurverloop';
+
+  @override
+  String get settings_conflict_field_catalogueId =>
+      'Koppeling met ingebouwde catalogus';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
@@ -36872,6 +37005,17 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String diveComputer_discovery_usbNoResults(String query) {
     return 'Geen apparaten gevonden voor \"$query\"';
+  }
+
+  @override
+  String diveComputer_discovery_usbModelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count modellen',
+      one: '$count model',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -63094,7 +63238,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Aanpassen opent een blad dat een andere hoeveelheid lood of pakdrijfvermogen op deze duik doorrekent.';
+      'Beweeg over de grafiek om te zien wat je op dat moment omlaag trok en wat je omhoog hield. Aanpassen opent een blad dat een andere hoeveelheid lood of pakdrijfvermogen op deze duik doorrekent.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

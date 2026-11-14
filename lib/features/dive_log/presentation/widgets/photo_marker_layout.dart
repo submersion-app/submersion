@@ -21,39 +21,51 @@ class PhotoChartMarker {
   });
 }
 
-/// Builds chart markers from a dive's media list, time-sorted. Photos and
-/// videos with a usable profile position are included; elapsed time is
-/// clamped to the profile range to absorb entry/exit clock skew, but only
-/// inside the [MediaDiveWindow] tolerance: a capture time days outside the
-/// dive is dropped rather than pinned to the exit (issue #1090). A manual
+/// Where [item] sits on a profile [maxProfileSeconds] long, or null when it
+/// has no place there. The one rule for it: the chart's camera chips and the
+/// media hover in dive details (issue #4524) both ask here, so they cannot
+/// disagree about an item.
+///
+/// Photos and videos with a usable profile position have a place; a
+/// signature or a document never does. Elapsed time is clamped to the
+/// profile range to absorb entry/exit clock skew, but only inside the
+/// [MediaDiveWindow] tolerance: a capture time days outside the dive has no
+/// place rather than being pinned to the exit (issue #1090). A manual
 /// position always passes.
+PhotoChartMarker? photoMarkerFor(
+  MediaItem item, {
+  required int maxProfileSeconds,
+}) {
+  // Photos AND videos get markers: underwater libraries are often mostly
+  // short clips, and enrichment gives both the same (time, depth) position.
+  // Signatures and documents are categorically not dive-moment media. A
+  // document can still carry an enrichment (the backfill positions whatever
+  // is attached to the dive by its date), so it is excluded by type.
+  if (item.isSignature || item.isDocument) return null;
+  final enrichment = item.enrichment;
+  if (enrichment == null) return null;
+  if (enrichment.matchConfidence == MatchConfidence.noProfile) return null;
+  if (!enrichment.isWithinDiveWindow(maxProfileSeconds)) return null;
+  final seconds = enrichment.elapsedSeconds;
+  final depth = enrichment.depthMeters;
+  if (seconds == null || depth == null) return null;
+  return PhotoChartMarker(
+    item: item,
+    elapsedSeconds: math.min(math.max(seconds, 0), maxProfileSeconds),
+    depthMeters: depth,
+  );
+}
+
+/// Builds chart markers from a dive's media list, time-sorted: every item
+/// [photoMarkerFor] gives a place.
 List<PhotoChartMarker> photoMarkersFromMedia(
   List<MediaItem> media, {
   required int maxProfileSeconds,
 }) {
-  final markers = <PhotoChartMarker>[];
-  for (final item in media) {
-    // Photos AND videos get markers — underwater libraries are often mostly
-    // short clips, and enrichment gives both the same (time, depth) position.
-    // Only signatures are categorically not dive-moment media.
-    if (item.isSignature) continue;
-    final enrichment = item.enrichment;
-    if (enrichment == null) continue;
-    if (enrichment.matchConfidence == MatchConfidence.noProfile) continue;
-    if (!enrichment.isWithinDiveWindow(maxProfileSeconds)) continue;
-    final seconds = enrichment.elapsedSeconds;
-    final depth = enrichment.depthMeters;
-    if (seconds == null || depth == null) continue;
-    markers.add(
-      PhotoChartMarker(
-        item: item,
-        elapsedSeconds: math.min(math.max(seconds, 0), maxProfileSeconds),
-        depthMeters: depth,
-      ),
-    );
-  }
-  markers.sort((a, b) => a.elapsedSeconds.compareTo(b.elapsedSeconds));
-  return markers;
+  return [
+    for (final item in media)
+      ?photoMarkerFor(item, maxProfileSeconds: maxProfileSeconds),
+  ]..sort((a, b) => a.elapsedSeconds.compareTo(b.elapsedSeconds));
 }
 
 /// Markers that would overlap at the current zoom, rendered as one chip

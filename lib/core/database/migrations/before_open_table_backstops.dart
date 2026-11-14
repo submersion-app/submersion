@@ -53,7 +53,7 @@ extension TableBackstopsFromV217 on AppDatabase {
     await _assertDerivedMetricsGasUseColumns();
     // v362 backstop: the computed deco verdicts (local, idempotent).
     await _assertDiveDecoStatusTable();
-    // v363 backstop: what an equipment set carries besides gear (issue
+    // v364 backstop: what an equipment set carries besides gear (issue
     // #4525), same restore/sync-adopt reasoning.
     await _assertSetBundleTables();
 

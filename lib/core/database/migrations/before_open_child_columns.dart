@@ -79,8 +79,10 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v361: dive_sites.country_code (issue #4426). Every site read selects
     // the whole row. Column only: the backfill runs in the rung.
     await _assertSiteCountryCodeColumn();
+    // v363: dive_sites.catalogue_id. Every site read selects the whole row.
+    await _assertSiteCatalogueIdColumn();
 
-    // v363: divers.sex, divers.birth_year and
+    // v364: divers.sex, divers.birth_year and
     // diver_weight_entries.body_fat_percent (issue #4525). Every diver and
     // weight-entry read selects the whole row.
     await _assertBodyCompositionColumns();

@@ -79,30 +79,33 @@ MatchCandidateView _cand(String id, {bool existing = true}) =>
       region: 'Red Sea',
     );
 
-Widget _harness(SiteMatchReviewState seeded, {ApplyResult? confirmResult}) =>
-    ProviderScope(
-      overrides: [
-        // The embedded map reads the tile style from settingsProvider.
-        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-        siteMatchReviewProvider(null).overrideWith(
-          (ref) => _notifier = _SeededNotifier(
-            ref,
-            seeded,
-            confirmResult: confirmResult,
-          ),
-        ),
-        locationServiceProvider.overrideWithValue(
-          FakeLocationService(const PlaceLookup.empty()),
-        ),
-      ],
-      child: const MaterialApp(
-        // Same reason as elsewhere: these tests assert English strings.
-        locale: Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: SiteMatchReviewPage(),
+Widget _harness(
+  SiteMatchReviewState seeded, {
+  ApplyResult? confirmResult,
+  Locale locale = const Locale('en'),
+}) => ProviderScope(
+  overrides: [
+    // The embedded map reads the tile style from settingsProvider.
+    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    siteMatchReviewProvider(null).overrideWith(
+      (ref) => _notifier = _SeededNotifier(
+        ref,
+        seeded,
+        confirmResult: confirmResult,
       ),
-    );
+    ),
+    locationServiceProvider.overrideWithValue(
+      FakeLocationService(const PlaceLookup.empty()),
+    ),
+  ],
+  child: MaterialApp(
+    // Same reason as elsewhere: these tests assert English strings.
+    locale: locale,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: const SiteMatchReviewPage(),
+  ),
+);
 
 void main() {
   testWidgets('loading shows progress', (tester) async {
@@ -404,6 +407,41 @@ void main() {
     expect(find.textContaining('Advanced'), findsWidgets);
     expect(find.text('wreck'), findsOneWidget);
     expect(find.text('Deep blue hole.'), findsOneWidget);
+  });
+
+  testWidgets('a built-in candidate shows its site types translated', (
+    tester,
+  ) async {
+    const tugs = MatchCandidateView(
+      id: 'osm_4',
+      name: 'The Tugs',
+      isExisting: false,
+      distanceMeters: 42,
+      location: GeoPoint(0, 0.0003),
+      // A type this build does not know is shown as it came.
+      typeIds: ['wreck', 'ice_cave'],
+      features: ['sharks'],
+    );
+    final seeded = SiteMatchReviewState(
+      isLoading: false,
+      proposals: [
+        MatchProposal(
+          dive: _dive(7),
+          status: ProposalStatus.clear,
+          candidates: [tugs],
+          recommendedCandidateId: 'osm_4',
+        ),
+      ],
+      focusedDiveId: 'd7',
+      selections: const {'d7': 'osm_4'},
+    );
+    await tester.pumpWidget(_harness(seeded, locale: const Locale('de')));
+    await tester.pump();
+
+    expect(find.text('Wrack'), findsOneWidget);
+    expect(find.text('ice_cave'), findsOneWidget);
+    expect(find.text('sharks'), findsOneWidget);
+    expect(find.text('Wreck'), findsNothing);
   });
 
   testWidgets('tapping a candidate card selects it', (tester) async {

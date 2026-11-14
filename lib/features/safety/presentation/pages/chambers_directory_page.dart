@@ -100,8 +100,7 @@ class _ChambersDirectoryPageState extends ConsumerState<ChambersDirectoryPage> {
     );
   }
 
-  /// Case-insensitive substring match across name, city, and country, the same
-  /// shape `DiveSiteApiService` uses to filter its bundled sites.
+  /// Case-insensitive substring match across name, city, and country.
   List<ChamberListing> _filter(List<ChamberListing> listings, String query) {
     final needle = query.trim().toLowerCase();
     if (needle.isEmpty) return listings;

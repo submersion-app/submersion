@@ -11015,6 +11015,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Aún no hay puntos de buceo';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'Cerca de los sitios de tus otras inmersiones';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Ordenados por distancia';
 
   @override
@@ -12640,6 +12644,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'Se muestran los primeros $count sitios. Haz una búsqueda más específica para ver el resto.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'Ver detalles de $name';
   }
@@ -12939,6 +12948,37 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'Cerca';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'Del catálogo integrado de sitios. Fuente: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'No se pudo añadir este sitio';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Detalles del sitio';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'Más sitios cerca de $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'Más sitios cercanos';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Sitios integrados';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Mostrar los $count';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Usar este sitio';
 
   @override
   String get diveSites_list_groupBy => 'Agrupar por';
@@ -22869,7 +22909,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveDetailSection_buoyancy_description =>
-      'Flotabilidad durante la inmersión, variación, lastre soltable';
+      'Flotabilidad durante la inmersión, lastre para la próxima vez, lastre soltable';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -22884,10 +22924,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get buoyancy_verdictNeutral =>
       'Tu configuración estaba casi neutra en la última parada';
-
-  @override
-  String get buoyancy_verdictConvention =>
-      'Estimado en la convención de parada de seguridad a 5 m';
 
   @override
   String get buoyancy_breakdownTitle => 'Desglose de términos';
@@ -22943,13 +22979,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buoyancy_chartNet => 'Neto';
 
   @override
-  String get buoyancy_chartRig => 'Equipo + lastre';
-
-  @override
   String get buoyancy_chartMinutes => 'Tiempo (min)';
-
-  @override
-  String get buoyancy_historyTitle => 'Historial de lastre';
 
   @override
   String get buoyancy_historyCarried => 'Llevado';
@@ -22972,6 +23002,105 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get buoyancy_adjust => 'Ajustar';
+
+  @override
+  String buoyancy_readoutHeavy(String amount) {
+    return '$amount sobrelastrado';
+  }
+
+  @override
+  String buoyancy_readoutBuoyant(String amount) {
+    return '$amount de flotabilidad';
+  }
+
+  @override
+  String get buoyancy_readoutNeutral => 'Casi neutro';
+
+  @override
+  String buoyancy_readoutAtFinalStop(String depth) {
+    return 'en tu última parada, a unos $depth';
+  }
+
+  @override
+  String buoyancy_readoutConvention(String depth) {
+    return 'estimado según la convención de parada de seguridad a $depth';
+  }
+
+  @override
+  String buoyancy_readoutAtMoment(String depth, String time) {
+    return 'a $depth, $time';
+  }
+
+  @override
+  String get buoyancy_pullingDown => 'Tira de ti hacia abajo';
+
+  @override
+  String get buoyancy_holdingUp => 'Te mantiene a flote';
+
+  @override
+  String get buoyancy_partGear => 'Equipo';
+
+  @override
+  String get buoyancy_partBody => 'Cuerpo';
+
+  @override
+  String buoyancy_partLabel(String name, String amount) {
+    return '$name $amount';
+  }
+
+  @override
+  String get buoyancy_markerStart => 'Inicio';
+
+  @override
+  String get buoyancy_markerDeepest => 'Punto más profundo';
+
+  @override
+  String get buoyancy_markerFinalStop => 'Última parada';
+
+  @override
+  String buoyancy_causeSuit(String amount, String depth) {
+    return 'La compresión del traje quitó $amount de flotabilidad a $depth';
+  }
+
+  @override
+  String buoyancy_causeGas(String amount) {
+    return 'El gas respirado dejó los tanques $amount más ligeros';
+  }
+
+  @override
+  String get buoyancy_leadTitle => 'Lastre para la próxima vez';
+
+  @override
+  String get buoyancy_leadCarried => 'Llevaste';
+
+  @override
+  String get buoyancy_leadSuggested => 'El modelo sugiere';
+
+  @override
+  String get buoyancy_leadNotRecorded => 'Sin registrar';
+
+  @override
+  String get buoyancy_statusWell => 'Bien lastrado';
+
+  @override
+  String buoyancy_peakLiftWithin(String amount) {
+    return 'dentro de los $amount de tu wing';
+  }
+
+  @override
+  String buoyancy_peakLiftExceeds(String amount) {
+    return 'supera los $amount de tu wing';
+  }
+
+  @override
+  String buoyancy_ditchCovered(String amount) {
+    return 'puedes soltar $amount';
+  }
+
+  @override
+  String buoyancy_ditchShort(String amount) {
+    return 'solo puedes soltar $amount';
+  }
 
   @override
   String get buoyancy_whatIfTitle => 'Ajustar esta inmersión';
@@ -25143,6 +25272,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'Inicio del degradado de tarjetas';
+
+  @override
+  String get settings_conflict_field_catalogueId =>
+      'Enlace al catálogo integrado';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
@@ -37142,6 +37275,17 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String diveComputer_discovery_usbNoResults(String query) {
     return 'No se encontraron dispositivos para \"$query\"';
+  }
+
+  @override
+  String diveComputer_discovery_usbModelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count modelos',
+      one: '$count modelo',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -63528,7 +63672,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Ajustar abre una hoja que prueba otra cantidad de lastre u otra flotabilidad del traje en esta inmersión.';
+      'Pasa por el gráfico para ver qué tiraba de ti hacia abajo y qué te mantenía a flote en ese momento. Ajustar abre una hoja que prueba otra cantidad de lastre u otra flotabilidad del traje en esta inmersión.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

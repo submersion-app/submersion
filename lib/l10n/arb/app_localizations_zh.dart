@@ -10451,6 +10451,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sitePicker_noSites => '暂无潜水点';
 
   @override
+  String get diveLog_sitePicker_sortedByArea => '靠近你其他潜水的潜水点';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => '按距离排序';
 
   @override
@@ -12020,6 +12023,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return '仅显示前 $count 个潜水点。请缩小搜索范围以查看其余结果。';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return '查看 $name 的详情';
   }
@@ -12297,6 +12305,36 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => '附近';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return '来自内置潜水点目录。来源：$source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError => '无法添加此潜水点';
+
+  @override
+  String get diveSites_picker_builtIn_details => '潜水点详情';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return '$place附近的更多潜水点';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => '附近的更多潜水点';
+
+  @override
+  String get diveSites_picker_builtIn_search => '内置潜水点';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return '显示全部 $count 个';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => '使用此潜水点';
 
   @override
   String get diveSites_list_groupBy => '分组方式';
@@ -21735,7 +21773,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_buoyancy_name => '浮力';
 
   @override
-  String get diveDetailSection_buoyancy_description => '整个潜水过程的浮力、变化和可抛弃配重';
+  String get diveDetailSection_buoyancy_description => '整个潜水过程的浮力、下次的配重和可抛弃配重';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -21749,9 +21787,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buoyancy_verdictNeutral => '在最后停留点，你的配置接近中性';
-
-  @override
-  String get buoyancy_verdictConvention => '按 5 米安全停留惯例估算';
 
   @override
   String get buoyancy_breakdownTitle => '分项明细';
@@ -21803,13 +21838,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buoyancy_chartNet => '净值';
 
   @override
-  String get buoyancy_chartRig => '装备 + 配重';
-
-  @override
   String get buoyancy_chartMinutes => '时间（分钟）';
-
-  @override
-  String get buoyancy_historyTitle => '配重历史';
 
   @override
   String get buoyancy_historyCarried => '实际携带';
@@ -21832,6 +21861,105 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buoyancy_adjust => '调整';
+
+  @override
+  String buoyancy_readoutHeavy(String amount) {
+    return '超重 $amount';
+  }
+
+  @override
+  String buoyancy_readoutBuoyant(String amount) {
+    return '正浮力 $amount';
+  }
+
+  @override
+  String get buoyancy_readoutNeutral => '接近中性';
+
+  @override
+  String buoyancy_readoutAtFinalStop(String depth) {
+    return '在最后停留点，约 $depth';
+  }
+
+  @override
+  String buoyancy_readoutConvention(String depth) {
+    return '按 $depth 安全停留惯例估算';
+  }
+
+  @override
+  String buoyancy_readoutAtMoment(String depth, String time) {
+    return '在 $depth，$time';
+  }
+
+  @override
+  String get buoyancy_pullingDown => '把你往下拉';
+
+  @override
+  String get buoyancy_holdingUp => '把你往上托';
+
+  @override
+  String get buoyancy_partGear => '装备';
+
+  @override
+  String get buoyancy_partBody => '身体';
+
+  @override
+  String buoyancy_partLabel(String name, String amount) {
+    return '$name $amount';
+  }
+
+  @override
+  String get buoyancy_markerStart => '开始';
+
+  @override
+  String get buoyancy_markerDeepest => '最深点';
+
+  @override
+  String get buoyancy_markerFinalStop => '最后停留点';
+
+  @override
+  String buoyancy_causeSuit(String amount, String depth) {
+    return '潜水服受压在 $depth 处损失了 $amount 浮力';
+  }
+
+  @override
+  String buoyancy_causeGas(String amount) {
+    return '消耗的气体让气瓶轻了 $amount';
+  }
+
+  @override
+  String get buoyancy_leadTitle => '下次的配重';
+
+  @override
+  String get buoyancy_leadCarried => '你携带了';
+
+  @override
+  String get buoyancy_leadSuggested => '模型建议';
+
+  @override
+  String get buoyancy_leadNotRecorded => '未记录';
+
+  @override
+  String get buoyancy_statusWell => '配重合适';
+
+  @override
+  String buoyancy_peakLiftWithin(String amount) {
+    return '在浮力背心的 $amount 之内';
+  }
+
+  @override
+  String buoyancy_peakLiftExceeds(String amount) {
+    return '超过浮力背心的 $amount';
+  }
+
+  @override
+  String buoyancy_ditchCovered(String amount) {
+    return '你可抛弃 $amount';
+  }
+
+  @override
+  String buoyancy_ditchShort(String amount) {
+    return '你只能抛弃 $amount';
+  }
 
   @override
   String get buoyancy_whatIfTitle => '调整此次潜水';
@@ -23822,6 +23950,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_cardColorGradientStart => '卡片渐变起点';
+
+  @override
+  String get settings_conflict_field_catalogueId => '内置目录链接';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 => 'CCR 稀释气 MOD 的 ppO2';
@@ -34905,6 +35036,16 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveComputer_discovery_usbNoResults(String query) {
     return '未找到与「$query」匹配的设备';
+  }
+
+  @override
+  String diveComputer_discovery_usbModelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个型号',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -59565,7 +59706,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      '“调整”会打开一个面板，用不同的配重或潜水服浮力重新计算本次潜水。';
+      '在图表上移动，查看那一刻是什么把你往下拉、什么把你往上托。“调整”会打开一个面板，用不同的配重或潜水服浮力重新计算本次潜水。';
 
   @override
   String get info_diveLog_waterConditions_summary =>

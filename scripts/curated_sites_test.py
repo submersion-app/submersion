@@ -22,6 +22,8 @@ _spec = importlib.util.spec_from_file_location(
 curated_sites = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(curated_sites)
 
+_CATALOGUE = os.path.join(_HERE, "..", "assets", "data", "site_catalogue.json")
+
 
 def _curated(**overrides):
     entry = {
@@ -45,47 +47,125 @@ def _harvested(**overrides):
     site = {
         "id": "osm_node_1",
         "name": "Somewhere Reef",
+        "lat": 12.0,
+        "lon": -68.0,
+        "country_code": "BQ",
+        "country": "Caribbean Netherlands",
         "description": "Dive Site",
-        "latitude": 12.0,
-        "longitude": -68.0,
-        "country": "Nederland",
-        "region": None,
-        "website": None,
+        "source": "osm",
+        "source_ref": "https://www.openstreetmap.org/node/1",
+        "trust": "verified",
     }
     site.update(overrides)
     return site
 
 
+def _in_the_states(latitude, longitude):
+    return ("US", "United States", None)
+
+
 class MergeTest(unittest.TestCase):
-    def test_appends_curated_sites_with_only_catalogue_fields(self):
-        merged = curated_sites.merge_curated([_harvested()], [_curated()])
+    def test_appends_curated_sites_as_catalogue_records(self):
+        merged = curated_sites.merge_curated(
+            [_harvested()], [_curated()], _in_the_states
+        )
 
         self.assertEqual(len(merged), 2)
         self.assertEqual(
-            set(merged[1].keys()),
-            set(curated_sites.CATALOGUE_FIELDS),
+            merged[1],
+            {
+                "id": "curated_nj_example_wreck",
+                "name": "Example Wreck",
+                "lat": 40.05,
+                "lon": -73.95,
+                "country_code": "US",
+                "country": "United States",
+                "region": "New Jersey",
+                "max_depth_m": 30,
+                "types": ["wreck"],
+                "description": "A freighter lying in about 30 m; a boat dive.",
+                "source": "curated",
+                "source_ref": "https://example.gov/wrecks",
+                "trust": "verified",
+            },
         )
-        self.assertEqual(merged[1]["id"], "curated_nj_example_wreck")
+
+    def test_a_kind_that_is_not_a_site_type_stays_a_feature(self):
+        merged = curated_sites.merge_curated(
+            [], [_curated(kind="drift")], _in_the_states
+        )
+
+        self.assertNotIn("types", merged[0])
+        self.assertEqual(merged[0]["features"], ["drift"])
+
+    def test_a_site_too_far_offshore_to_geocode_keeps_its_own_country(self):
+        merged = curated_sites.merge_curated(
+            [], [_curated()], lambda latitude, longitude: (None, None, None)
+        )
+
+        self.assertEqual(merged[0]["country_code"], "US")
+        self.assertEqual(merged[0]["country"], "United States")
+
+    def test_a_site_on_an_island_territory_carries_the_island(self):
+        # As a harvested site there does: a search for "Bonaire" must find
+        # the curated sites of Bonaire too.
+        merged = curated_sites.merge_curated(
+            [],
+            [_curated()],
+            lambda latitude, longitude: (
+                "BQ",
+                "Caribbean Netherlands",
+                "Bonaire",
+            ),
+        )
+
+        self.assertEqual(merged[0]["country_code"], "BQ")
+        self.assertEqual(merged[0]["island"], "Bonaire")
+
+    def test_a_site_in_a_plain_country_has_no_island(self):
+        merged = curated_sites.merge_curated(
+            [], [_curated()], _in_the_states
+        )
+
+        self.assertNotIn("island", merged[0])
+
+    def test_a_shore_kind_is_the_entry_not_a_type(self):
+        merged = curated_sites.merge_curated(
+            [], [_curated(kind="shore")], _in_the_states
+        )
+
+        self.assertEqual(merged[0]["entry"], ["shore"])
+        self.assertNotIn("types", merged[0])
+        self.assertNotIn("features", merged[0])
 
     def test_a_curated_id_already_present_is_not_added_twice(self):
         merged = curated_sites.merge_curated(
             [_harvested(id="curated_nj_example_wreck")],
             [_curated()],
+            _in_the_states,
         )
 
         self.assertEqual(len(merged), 1)
 
     def test_a_site_openstreetmap_gained_nearby_replaces_the_curated_one(self):
-        osm = _harvested(name="example wreck", latitude=40.051, longitude=-73.951)
+        osm = _harvested(name="example wreck", lat=40.051, lon=-73.951)
 
-        merged = curated_sites.merge_curated([osm], [_curated()])
+        merged = curated_sites.merge_curated([osm], [_curated()], _in_the_states)
 
         self.assertEqual([s["id"] for s in merged], ["osm_node_1"])
 
     def test_the_same_name_far_away_is_another_site(self):
-        osm = _harvested(name="Example Wreck", latitude=12.0, longitude=-68.0)
+        osm = _harvested(name="Example Wreck", lat=12.0, lon=-68.0)
 
-        merged = curated_sites.merge_curated([osm], [_curated()])
+        merged = curated_sites.merge_curated([osm], [_curated()], _in_the_states)
+
+        self.assertEqual(len(merged), 2)
+
+    def test_a_harvested_site_without_coordinates_never_replaces_one(self):
+        osm = _harvested(name="Example Wreck")
+        del osm["lat"], osm["lon"]
+
+        merged = curated_sites.merge_curated([osm], [_curated()], _in_the_states)
 
         self.assertEqual(len(merged), 2)
 
@@ -93,6 +173,11 @@ class MergeTest(unittest.TestCase):
 class ValidateTest(unittest.TestCase):
     def test_a_good_entry_passes(self):
         self.assertEqual(curated_sites.validate([_curated()]), [])
+
+    def test_a_country_without_a_known_code_is_a_problem(self):
+        problems = curated_sites.validate([_curated(country="Atlantis")])
+
+        self.assertIn("no code for country 'Atlantis'", "\n".join(problems))
 
     def test_each_problem_is_named(self):
         problems = curated_sites.validate(
@@ -121,14 +206,19 @@ class ShippedDataTest(unittest.TestCase):
         self.assertEqual(curated_sites.validate(curated), [])
 
     def test_the_bundled_catalogue_carries_every_curated_site(self):
-        path = os.path.join(_HERE, "..", "assets", "data", "dive_sites.json")
-        with open(path, encoding="utf-8") as f:
+        with open(_CATALOGUE, encoding="utf-8") as f:
             bundled = {s["id"]: s for s in json.load(f)["sites"]}
 
         for entry in curated_sites.load_curated():
             self.assertIn(entry["id"], bundled)
-            for field in curated_sites.CATALOGUE_FIELDS:
-                self.assertEqual(bundled[entry["id"]][field], entry[field])
+            site = bundled[entry["id"]]
+            self.assertEqual(site["name"], entry["name"])
+            self.assertEqual(site["lat"], entry["latitude"])
+            self.assertEqual(site["lon"], entry["longitude"])
+            self.assertEqual(site["description"], entry["description"])
+            self.assertEqual(site["source"], "curated")
+            self.assertEqual(site["source_ref"], entry["source"])
+            self.assertEqual(site["max_depth_m"], entry["depthM"])
 
     def test_the_harvester_merges_curated_sites_into_its_output(self):
         path = os.path.join(_HERE, "dive_site_harvester.py")

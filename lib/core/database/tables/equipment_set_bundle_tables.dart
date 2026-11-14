@@ -14,7 +14,7 @@ import 'package:submersion/core/database/tables/cylinder_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/weight_tables.dart';
 
-/// A set that another set includes (v363). The outer set's gear is its own
+/// A set that another set includes (v364). The outer set's gear is its own
 /// plus that of every set it includes. One level only: a set that includes
 /// sets is never itself included. A parent-gated child of `equipment_sets`
 /// keyed by its own id, like `weight_preset_entries`; the pair is unique.
@@ -41,7 +41,7 @@ class EquipmentSetIncludes extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// A weight preset an equipment set applies with its gear (v363). The
+/// A weight preset an equipment set applies with its gear (v364). The
 /// preset's entries are copied onto the dive; nothing links back.
 @DataClassName('EquipmentSetWeightPresetRow')
 class EquipmentSetWeightPresets extends Table {
@@ -62,7 +62,7 @@ class EquipmentSetWeightPresets extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// A cylinder configuration an equipment set applies with its gear (v363).
+/// A cylinder configuration an equipment set applies with its gear (v364).
 /// Its cylinders are merged into the dive's tanks; nothing links back.
 @DataClassName('EquipmentSetCylinderConfigRow')
 class EquipmentSetCylinderConfigs extends Table {

@@ -142,18 +142,39 @@ Use the sort icon to order by name, rating, difficulty, max depth, dive count, o
 
 ## Importing sites
 
-Choose **Import** from the overflow menu on the Sites list. Type a place name or choose a quick-search chip (Caribbean, Red Sea, Thailand, Indonesia, Maldives, Philippines). Results appear in two sections:
+Choose **Import** from the overflow menu on the Sites list. Type a site name, a place (a country in any language, a region or an island) or a sea, or choose a quick-search chip (Caribbean, Red Sea, Thailand, Indonesia, Maldives, Philippines). Results appear in two sections:
 
 - **My Sites**: matches from your own site database, shown with a "Saved" badge. Tapping one opens its detail page.
-- **Import from Database**: results from the bundled global site database. Tap a result card to preview its description, depth, coordinates, and feature tags, then tap **Import to My Sites**.
+- **Import from Database**: results from the built-in site catalogue, up to 200 at a time; a note says when there are more, and a more specific search shows them. Tap a result card to read what the catalogue holds for the site (where it is, site types, entry, depth, hazards, description, website and source), then tap **Import to My Sites**. A site you have already added shows **Already Imported**, in this session or any later one.
 
-Imported sites populate name, description, country, region, GPS coordinates, max depth, and any feature tags from the source record. You can edit any field after import.
+An imported site arrives with everything the catalogue holds for it: name, description, country, region, island, body of water, GPS coordinates, depth, site types, entry method, and hazards. You can edit any field after import.
 
 The same overflow menu offers **Fill in missing location details** (looks up country and region for sites that have coordinates but no place names) and **Refresh place names** (looks them up again, in your chosen place-name language).
 
 ## Picking a site for a dive
 
 Wherever you choose a site (on a dive, a planned dive, or a trip day), the same sheet opens: a search bar that matches every location field, a **Nearby** section when your location is known, and your sites grouped under collapsible country and region headings.
+
+### Built-in sites in the picker
+
+When you choose a site for a dive, the sheet also offers sites from the built-in catalogue, so a site you have not logged before rarely needs typing in:
+
+- **More sites nearby** lists built-in sites within 50 km (31 mi) of the dive. It shows the first five, with **Show all** for the rest.
+- Typing two or more characters adds a **Built-in sites** section with matches from the whole catalogue. The search matches a site's name, its country, region or island, and its sea ("Red Sea"). A country can be typed in any language: "Thaïlande" and "Ägypten" find the sites of Thailand and Egypt. Sites whose own name matches come first, then sites matched by place or sea; within each, those in the dive's area lead.
+
+Tap a built-in site to add it to your sites and select it in one step. It arrives with the catalogue's details, and the dive takes the site's entry method and water type as it does for any site. Tap the **Site details** button on a row to read about a site before you pick it.
+
+A built-in site you have already added is no longer offered, and neither is one that sits within 150 m (490 ft) of a site you created yourself.
+
+### Area memory
+
+Most dive computers record no GPS position, so a downloaded dive often has no location of its own. Submersion then takes the dive's area from the dives around it: the site of the nearest dive on the same trip, or of a dive within three days. The section reads **More sites near** followed by the place (for example, **More sites near Bonaire**), and lists that area's sites by name.
+
+In practice you name the first dive of a trip by searching, and the rest of the trip's dives open with that area's sites ready to tap. If no nearby dive has a site yet, the sheet uses your device's location.
+
+### Where the built-in sites come from
+
+The built-in catalogue contains information from OpenStreetMap, which is made available under the Open Database License (ODbL). The credit is on the licenses page (**Settings > About > Open Source Licenses**, under **Dive site data**), and a site you added from the catalogue shows its source at the top of its page.
 
 ## Merging duplicate sites
 

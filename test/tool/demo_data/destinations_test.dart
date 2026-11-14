@@ -30,6 +30,31 @@ void main() {
     }
   });
 
+  test('every destination names the country code of its sites', () {
+    for (final d in all) {
+      expect(d.siteCountryCode, matches(RegExp(r'^[A-Z]{2}$')), reason: d.key);
+      for (final s in catalogSitesFor(d, catalog)) {
+        expect(s.countryCode, d.siteCountryCode, reason: '${d.key}: ${s.id}');
+      }
+    }
+  });
+
+  test('Bonaire is in the Caribbean Netherlands, not the Netherlands', () {
+    final bonaire = all.singleWhere((d) => d.key == 'bonaire');
+
+    expect(bonaire.siteCountryCode, 'BQ');
+    expect(catalogSitesFor(bonaire, catalog), isNotEmpty);
+  });
+
+  test('a catalogue site carries its English country and its code', () {
+    final saltPier = catalog.sites.singleWhere(
+      (s) => s.id == 'osm_node_663869401',
+    );
+
+    expect(saltPier.countryCode, 'BQ');
+    expect(saltPier.country, 'Caribbean Netherlands');
+  });
+
   test('shops and tour operators are never picked as dive sites', () {
     final centreNames = {for (final c in catalog.centers) c.name};
     for (final d in all) {

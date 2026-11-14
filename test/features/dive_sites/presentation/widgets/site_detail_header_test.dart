@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_header.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -26,12 +28,18 @@ void main() {
     List<SiteTypeEntity> types = const [],
     double? width,
     bool flags = true,
+    CatalogueSite? catalogueSite,
+    CatalogueSource? catalogueSource,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           siteTypesForSiteProvider(site.id).overrideWith((_) async => types),
           showCountryFlagsProvider.overrideWithValue(flags),
+          catalogueSiteProvider.overrideWith((ref, id) async => catalogueSite),
+          catalogueSourceProvider.overrideWith(
+            (ref, key) async => catalogueSource,
+          ),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -190,5 +198,104 @@ void main() {
     await pumpHeader(tester, bare);
 
     expect(find.byType(Chip), findsNothing);
+  });
+  group('a site adopted from the built-in catalogue', () {
+    const osm = CatalogueSource(
+      key: 'osm',
+      name: 'OpenStreetMap',
+      licence: 'ODbL-1.0',
+      credit: 'OpenStreetMap contributors',
+    );
+    const adopted = DiveSite(
+      id: 's1',
+      name: 'Salt Pier',
+      catalogueId: 'osm_node_1',
+    );
+
+    testWidgets('credits where it came from', (tester) async {
+      await pumpHeader(
+        tester,
+        adopted,
+        catalogueSite: const CatalogueSite(
+          id: 'osm_node_1',
+          name: 'Salt Pier',
+          source: 'osm',
+        ),
+        catalogueSource: osm,
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'From the built-in site catalogue. Source: OpenStreetMap '
+          'contributors',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Website'), findsNothing);
+    });
+
+    testWidgets('links the website the catalogue holds', (tester) async {
+      await pumpHeader(
+        tester,
+        adopted,
+        catalogueSite: const CatalogueSite(
+          id: 'osm_node_1',
+          name: 'Salt Pier',
+          website: 'https://example.org/salt-pier',
+          source: 'osm',
+        ),
+        catalogueSource: osm,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Website'), findsOneWidget);
+    });
+
+    testWidgets('does not link a website that is not a web address', (
+      tester,
+    ) async {
+      await pumpHeader(
+        tester,
+        adopted,
+        catalogueSite: const CatalogueSite(
+          id: 'osm_node_1',
+          name: 'Salt Pier',
+          website: 'intent://scan/#Intent;scheme=zxing;end',
+          source: 'osm',
+        ),
+        catalogueSource: osm,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('built-in site catalogue'), findsOneWidget);
+      expect(find.text('Website'), findsNothing);
+    });
+
+    testWidgets('shows nothing once the catalogue dropped the record', (
+      tester,
+    ) async {
+      await pumpHeader(tester, adopted, catalogueSource: osm);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('built-in site catalogue'), findsNothing);
+      expect(find.text('Website'), findsNothing);
+    });
+
+    testWidgets('a site made by hand has no credit', (tester) async {
+      await pumpHeader(
+        tester,
+        const DiveSite(id: 's2', name: 'My Reef'),
+        catalogueSite: const CatalogueSite(
+          id: 'osm_node_1',
+          name: 'Salt Pier',
+          source: 'osm',
+        ),
+        catalogueSource: osm,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('built-in site catalogue'), findsNothing);
+    });
   });
 }

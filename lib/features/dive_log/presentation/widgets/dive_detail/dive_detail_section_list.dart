@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_estimated_profile_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_equipment_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_gas_cards.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_media_hover.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_sac_segments_section.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_gates.dart';
@@ -300,6 +301,8 @@ class DiveDetailSectionList extends ConsumerWidget {
           onAddPressed: () => actions.addPhotos(dive),
           onAddDocumentPressed: () => actions.addDocument(dive),
           onOpenDocument: actions.openDocument,
+          // Hovering a thumbnail marks its moment on the profile (#4524).
+          onHoverMedia: mediaHoverCursorHandler(ref.container, dive),
         );
       case DiveDetailSectionId.tags:
         if (dive.tags.isEmpty) return null;

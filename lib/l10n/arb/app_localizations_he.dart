@@ -10768,6 +10768,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'אין עדיין אתרי צלילה';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'ליד האתרים של הצלילות האחרות שלך';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'ממוין לפי מרחק';
 
   @override
@@ -12365,6 +12369,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'מוצגים $count האתרים הראשונים. חפש משהו מדויק יותר כדי לראות את השאר.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'צפה בפרטים עבור $name';
   }
@@ -12654,6 +12663,37 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'בקרבת מקום';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'מתוך קטלוג האתרים המובנה. מקור: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'לא ניתן היה להוסיף את האתר';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'פרטי האתר';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'אתרים נוספים ליד $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'אתרים נוספים בקרבת מקום';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'אתרים מובנים';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'הצגת כל ה-$count';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'שימוש באתר זה';
 
   @override
   String get diveSites_list_groupBy => 'קיבוץ לפי';
@@ -22375,7 +22415,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveDetailSection_buoyancy_description =>
-      'ציפה לאורך הצלילה, שינוי ומשקל הניתן להשלכה';
+      'ציפה לאורך הצלילה, משקולות לפעם הבאה ומשקל הניתן להשלכה';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -22390,10 +22430,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get buoyancy_verdictNeutral =>
       'התצורה שלך הייתה קרובה לניטרלית בעצירה האחרונה';
-
-  @override
-  String get buoyancy_verdictConvention =>
-      'מוערך לפי מוסכמת עצירת הבטיחות ב-5 מ\'';
 
   @override
   String get buoyancy_breakdownTitle => 'פירוט מרכיבים';
@@ -22447,13 +22483,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buoyancy_chartNet => 'נטו';
 
   @override
-  String get buoyancy_chartRig => 'ציוד + משקולות';
-
-  @override
   String get buoyancy_chartMinutes => 'זמן (דק\')';
-
-  @override
-  String get buoyancy_historyTitle => 'היסטוריית משקולות';
 
   @override
   String get buoyancy_historyCarried => 'נישא';
@@ -22476,6 +22506,105 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buoyancy_adjust => 'התאמה';
+
+  @override
+  String buoyancy_readoutHeavy(String amount) {
+    return 'כבד ב-$amount';
+  }
+
+  @override
+  String buoyancy_readoutBuoyant(String amount) {
+    return 'ציפה של $amount';
+  }
+
+  @override
+  String get buoyancy_readoutNeutral => 'קרוב לניטרלי';
+
+  @override
+  String buoyancy_readoutAtFinalStop(String depth) {
+    return 'בעצירה האחרונה שלך, בערך ב-$depth';
+  }
+
+  @override
+  String buoyancy_readoutConvention(String depth) {
+    return 'מוערך לפי מוסכמת עצירת הבטיחות ב-$depth';
+  }
+
+  @override
+  String buoyancy_readoutAtMoment(String depth, String time) {
+    return 'ב-$depth, $time';
+  }
+
+  @override
+  String get buoyancy_pullingDown => 'מושך אותך למטה';
+
+  @override
+  String get buoyancy_holdingUp => 'מחזיק אותך למעלה';
+
+  @override
+  String get buoyancy_partGear => 'ציוד';
+
+  @override
+  String get buoyancy_partBody => 'גוף';
+
+  @override
+  String buoyancy_partLabel(String name, String amount) {
+    return '$name $amount';
+  }
+
+  @override
+  String get buoyancy_markerStart => 'התחלה';
+
+  @override
+  String get buoyancy_markerDeepest => 'הנקודה העמוקה ביותר';
+
+  @override
+  String get buoyancy_markerFinalStop => 'עצירה אחרונה';
+
+  @override
+  String buoyancy_causeSuit(String amount, String depth) {
+    return 'דחיסת החליפה גרעה $amount מהציפה ב-$depth';
+  }
+
+  @override
+  String buoyancy_causeGas(String amount) {
+    return 'הגז שנשמת הפך את הבלונים לקלים ב-$amount';
+  }
+
+  @override
+  String get buoyancy_leadTitle => 'משקולות לפעם הבאה';
+
+  @override
+  String get buoyancy_leadCarried => 'נשאת';
+
+  @override
+  String get buoyancy_leadSuggested => 'המודל מציע';
+
+  @override
+  String get buoyancy_leadNotRecorded => 'לא נרשם';
+
+  @override
+  String get buoyancy_statusWell => 'משקל מתאים';
+
+  @override
+  String buoyancy_peakLiftWithin(String amount) {
+    return 'בתוך $amount של האגף שלך';
+  }
+
+  @override
+  String buoyancy_peakLiftExceeds(String amount) {
+    return 'חורג מ-$amount של האגף שלך';
+  }
+
+  @override
+  String buoyancy_ditchCovered(String amount) {
+    return 'אפשר להשליך $amount';
+  }
+
+  @override
+  String buoyancy_ditchShort(String amount) {
+    return 'אפשר להשליך רק $amount';
+  }
 
   @override
   String get buoyancy_whatIfTitle => 'התאמת צלילה זו';
@@ -24565,6 +24694,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'תחילת מעבר הצבעים של הכרטיסים';
+
+  @override
+  String get settings_conflict_field_catalogueId => 'קישור לקטלוג המובנה';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
@@ -36215,6 +36347,17 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveComputer_discovery_usbNoResults(String query) {
     return 'לא נמצאו מכשירים עבור \"$query\"';
+  }
+
+  @override
+  String diveComputer_discovery_usbModelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count דגמים',
+      one: 'דגם אחד',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -62175,7 +62318,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'כוונון פותח חלונית שמנסה כמות משקולות או ציפת חליפה אחרת על הצלילה הזו.';
+      'עבור על התרשים כדי לראות מה משך אותך למטה ומה החזיק אותך למעלה באותו רגע. כוונון פותח חלונית שמנסה כמות משקולות או ציפת חליפה אחרת על הצלילה הזו.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

@@ -121,6 +121,11 @@ class UddfExportBuilders {
         if (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) {
           builder.element('parkinginfo', nest: site.parkingInfo);
         }
+        // The built-in catalogue record the site was adopted from. Nothing
+        // else in the file can rebuild it.
+        if (site.catalogueId != null && site.catalogueId!.isNotEmpty) {
+          builder.element('catalogueid', nest: site.catalogueId);
+        }
         if (site.description.isNotEmpty) {
           builder.element('notes', nest: site.description);
         }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_chart.dart';
@@ -36,6 +37,39 @@ TwinSample _s(int t, double depth, double net) =>
 
 void main() {
   const units = UnitFormatter(AppSettings());
+
+  group('BuoyancyChart.labelledMarkers', () {
+    test('keeps required labels and drops a colliding optional one', () {
+      // Start at the left edge, Deepest right beside it, Final stop far right.
+      final kept = BuoyancyChart.labelledMarkers(
+        xPx: [0, 20, 300],
+        labelWidthPx: [30, 45, 50],
+        optional: [false, true, false],
+        plotWidthPx: 320,
+      );
+      expect(kept, {0, 2});
+    });
+
+    test('keeps an optional label that has room', () {
+      final kept = BuoyancyChart.labelledMarkers(
+        xPx: [0, 150, 300],
+        labelWidthPx: [30, 45, 50],
+        optional: [false, true, false],
+        plotWidthPx: 320,
+      );
+      expect(kept, {0, 1, 2});
+    });
+
+    test('a required label is kept even when two collide', () {
+      final kept = BuoyancyChart.labelledMarkers(
+        xPx: [0, 10],
+        labelWidthPx: [60, 60],
+        optional: [false, false],
+        plotWidthPx: 320,
+      );
+      expect(kept, {0, 1});
+    });
+  });
 
   group('BuoyancyChart.spotsFor', () {
     test('one spot per sample, x in minutes', () {
@@ -103,6 +137,9 @@ void main() {
       WidgetTester tester, {
       int? cursorSeconds,
       ValueChanged<int?>? onCursorSeconds,
+      List<BuoyancyChartMarker> markers = const [],
+      int? restSeconds,
+      UnitFormatter formatter = units,
     }) => tester.pumpWidget(
       MaterialApp(
         locale: const Locale('en'),
@@ -113,9 +150,11 @@ void main() {
             width: 400,
             child: BuoyancyChart(
               result: result,
-              units: units,
+              units: formatter,
               cursorSeconds: cursorSeconds,
               onCursorSeconds: onCursorSeconds,
+              markers: markers,
+              restSeconds: restSeconds,
             ),
           ),
         ),
@@ -229,12 +268,181 @@ void main() {
       expect(reported, [120]);
     });
 
+    testWidgets('the cursor line rests on restSeconds with no cursor', (
+      tester,
+    ) async {
+      await pumpChart(tester, restSeconds: 180);
+      expect(verticalLines(tester).single.x, 3.0);
+    });
+
+    testWidgets('a cursor outside the dive stays on the edge of the plot', (
+      tester,
+    ) async {
+      // The samples run from 0 to 180 s.
+      await pumpChart(tester, cursorSeconds: 600);
+      expect(verticalLines(tester).single.x, 3.0);
+      await pumpChart(tester, cursorSeconds: -30);
+      expect(verticalLines(tester).single.x, 0.0);
+    });
+
+    testWidgets('cursorSeconds wins over restSeconds', (tester) async {
+      await pumpChart(tester, cursorSeconds: 60, restSeconds: 180);
+      expect(verticalLines(tester).single.x, 1.0);
+    });
+
+    testWidgets('the touch tooltip produces no items', (tester) async {
+      await pumpChart(tester, onCursorSeconds: (_) {});
+      final bar = barOf(tester);
+      final items = touchData(
+        tester,
+      ).touchTooltipData.getTooltipItems([LineBarSpot(bar, 0, bar.spots[1])]);
+      expect(items, [null]);
+    });
+
+    testWidgets('the y axis title carries the weight unit', (tester) async {
+      await pumpChart(
+        tester,
+        formatter: const UnitFormatter(
+          AppSettings(weightUnit: WeightUnit.pounds),
+        ),
+      );
+      expect(find.text('Net (lbs)'), findsOneWidget);
+    });
+
+    group('markers', () {
+      const markers = [
+        BuoyancyChartMarker(seconds: 0, label: 'Start'),
+        BuoyancyChartMarker(seconds: 120, label: 'Deepest', optional: true),
+        BuoyancyChartMarker(seconds: 180, label: 'Final stop'),
+      ];
+
+      testWidgets('each marker adds a dashed line, before the cursor', (
+        tester,
+      ) async {
+        await pumpChart(tester, markers: markers, cursorSeconds: 60);
+        final lines = verticalLines(tester);
+        expect(lines.map((l) => l.x), [0.0, 2.0, 3.0, 1.0]);
+        expect(lines.take(3).every((l) => l.dashArray != null), isTrue);
+        expect(lines.last.dashArray, isNull);
+      });
+
+      testWidgets('marker lines carry their labels', (tester) async {
+        await pumpChart(tester, markers: markers);
+        final lines = verticalLines(tester);
+        expect(lines[0].label.show, isTrue);
+        expect(lines[0].label.labelResolver(lines[0]), 'Start');
+        expect(lines[2].label.labelResolver(lines[2]), 'Final stop');
+      });
+
+      testWidgets('a dot is drawn at each marker and nowhere else', (
+        tester,
+      ) async {
+        await pumpChart(tester, markers: markers);
+        final bar = barOf(tester);
+        expect(bar.dotData.show, isTrue);
+        final shown = [
+          for (final spot in bar.spots) bar.dotData.checkToShowDot(spot, bar),
+        ];
+        // Samples at 0, 60, 120 and 180 s; markers at 0, 120 and 180.
+        expect(shown, [true, false, true, true]);
+      });
+
+      testWidgets('a plot with no width still labels every marker', (
+        tester,
+      ) async {
+        // 60 px is all axis: the reserved left margin leaves no plot to
+        // measure label collisions against, so no label is dropped.
+        await tester.pumpWidget(
+          MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Align(
+                alignment: Alignment.topLeft,
+                child: SizedBox(
+                  width: 60,
+                  child: BuoyancyChart(
+                    result: result,
+                    units: units,
+                    markers: markers,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        expect(tester.takeException(), isNull);
+        final lines = verticalLines(tester);
+        expect(lines.map((l) => l.label.show), [true, true, true]);
+      });
+
+      testWidgets('no dots without markers', (tester) async {
+        await pumpChart(tester);
+        expect(barOf(tester).dotData.show, isFalse);
+      });
+
+      testWidgets('markers leave headroom above the line for their labels', (
+        tester,
+      ) async {
+        await pumpChart(tester, markers: markers);
+        final data = tester.widget<LineChart>(find.byType(LineChart)).data;
+        // The data peaks at 2.0 kg.
+        expect(data.maxY, greaterThan(2.0));
+      });
+    });
+
     testWidgets('without a callback the chart takes no touch callback', (
       tester,
     ) async {
       await pumpChart(tester);
       expect(touchData(tester).touchCallback, isNull);
     });
+  });
+
+  testWidgets('shades heavy and buoyant in the balance bar colours', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        locale: Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: _ChartHost()),
+      ),
+    );
+    final scheme = Theme.of(tester.element(find.byType(LineChart))).colorScheme;
+    final bar = tester
+        .widget<LineChart>(find.byType(LineChart))
+        .data
+        .lineBarsData
+        .single;
+    // Below the line down to zero is the buoyant region; above it up to zero
+    // is the heavy one. Heavy is not an error, so it does not borrow red.
+    expect(bar.belowBarData.color!.withValues(alpha: 1), scheme.primary);
+    expect(bar.aboveBarData.color!.withValues(alpha: 1), scheme.tertiary);
+    expect(bar.aboveBarData.color!.withValues(alpha: 1), isNot(scheme.error));
+  });
+
+  testWidgets('the time axis spans every sample, whatever their order', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: BuoyancyChart(
+            result: _result([_s(120, 5, 1.5), _s(0, 0, 2), _s(60, 10, 1)]),
+            units: units,
+          ),
+        ),
+      ),
+    );
+    final data = tester.widget<LineChart>(find.byType(LineChart)).data;
+    expect(data.minX, 0.0);
+    expect(data.maxX, 2.0);
   });
 
   testWidgets('renders nothing for fewer than two samples', (tester) async {

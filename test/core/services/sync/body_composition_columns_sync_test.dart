@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' as db;
 
 /// The sync serializer sends diver and weight-entry rows as their Drift
-/// `toJson` and applies them with `fromJson`, so the v363 body composition
+/// `toJson` and applies them with `fromJson`, so the v364 body composition
 /// columns (issue #4525) travel with no serializer change. These pin that,
 /// and that a row from an older peer without the keys still applies.
 void main() {

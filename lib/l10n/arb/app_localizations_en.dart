@@ -10840,6 +10840,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'No dive sites yet';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'Near the sites of your other dives';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Sorted by distance';
 
   @override
@@ -12445,6 +12449,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'Showing the first $count sites. Search for something more specific to see the rest.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'View details for $name';
   }
@@ -12738,6 +12747,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'Nearby';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'From the built-in site catalogue. Source: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError => 'Could not add this site';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Site details';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'More sites near $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'More sites nearby';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Built-in sites';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Show all $count';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Use this site';
 
   @override
   String get diveSites_list_groupBy => 'Group by';
@@ -22538,7 +22577,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveDetailSection_buoyancy_description =>
-      'Buoyancy through the dive, swing, ditchable weight';
+      'Buoyancy through the dive, lead for next time, ditchable weight';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -22553,10 +22592,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get buoyancy_verdictNeutral =>
       'Your rig was close to neutral at the final stop';
-
-  @override
-  String get buoyancy_verdictConvention =>
-      'Estimated at the 5 m safety-stop convention';
 
   @override
   String get buoyancy_breakdownTitle => 'Term breakdown';
@@ -22610,13 +22645,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buoyancy_chartNet => 'Net';
 
   @override
-  String get buoyancy_chartRig => 'Rig + lead';
-
-  @override
   String get buoyancy_chartMinutes => 'Time (min)';
-
-  @override
-  String get buoyancy_historyTitle => 'Weighting history';
 
   @override
   String get buoyancy_historyCarried => 'Carried';
@@ -22639,6 +22668,105 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buoyancy_adjust => 'Adjust';
+
+  @override
+  String buoyancy_readoutHeavy(String amount) {
+    return '$amount heavy';
+  }
+
+  @override
+  String buoyancy_readoutBuoyant(String amount) {
+    return '$amount buoyant';
+  }
+
+  @override
+  String get buoyancy_readoutNeutral => 'Close to neutral';
+
+  @override
+  String buoyancy_readoutAtFinalStop(String depth) {
+    return 'at your final stop, about $depth';
+  }
+
+  @override
+  String buoyancy_readoutConvention(String depth) {
+    return 'estimated at the $depth safety-stop convention';
+  }
+
+  @override
+  String buoyancy_readoutAtMoment(String depth, String time) {
+    return 'at $depth, $time';
+  }
+
+  @override
+  String get buoyancy_pullingDown => 'Pulling you down';
+
+  @override
+  String get buoyancy_holdingUp => 'Holding you up';
+
+  @override
+  String get buoyancy_partGear => 'Gear';
+
+  @override
+  String get buoyancy_partBody => 'Body';
+
+  @override
+  String buoyancy_partLabel(String name, String amount) {
+    return '$name $amount';
+  }
+
+  @override
+  String get buoyancy_markerStart => 'Start';
+
+  @override
+  String get buoyancy_markerDeepest => 'Deepest';
+
+  @override
+  String get buoyancy_markerFinalStop => 'Final stop';
+
+  @override
+  String buoyancy_causeSuit(String amount, String depth) {
+    return 'Suit squeeze cost $amount of lift at $depth';
+  }
+
+  @override
+  String buoyancy_causeGas(String amount) {
+    return 'Gas breathed left the tanks $amount lighter';
+  }
+
+  @override
+  String get buoyancy_leadTitle => 'Lead for next time';
+
+  @override
+  String get buoyancy_leadCarried => 'You carried';
+
+  @override
+  String get buoyancy_leadSuggested => 'Model suggests';
+
+  @override
+  String get buoyancy_leadNotRecorded => 'Not recorded';
+
+  @override
+  String get buoyancy_statusWell => 'Well weighted';
+
+  @override
+  String buoyancy_peakLiftWithin(String amount) {
+    return 'within your wing\'s $amount';
+  }
+
+  @override
+  String buoyancy_peakLiftExceeds(String amount) {
+    return 'exceeds your wing\'s $amount';
+  }
+
+  @override
+  String buoyancy_ditchCovered(String amount) {
+    return 'you can ditch $amount';
+  }
+
+  @override
+  String buoyancy_ditchShort(String amount) {
+    return 'you can ditch only $amount';
+  }
 
   @override
   String get buoyancy_whatIfTitle => 'Adjust this dive';
@@ -24759,6 +24887,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'Card color gradient start';
+
+  @override
+  String get settings_conflict_field_catalogueId => 'Built-in catalogue link';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
@@ -36499,6 +36630,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String diveComputer_discovery_usbNoResults(String query) {
     return 'No devices matching \"$query\"';
+  }
+
+  @override
+  String diveComputer_discovery_usbModelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count models',
+      one: '$count model',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -62499,7 +62641,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Adjust opens a sheet that tries a different amount of lead or suit buoyancy against this dive.';
+      'Move across the chart to see what was pulling you down and holding you up at that moment. Adjust opens a sheet that tries a different amount of lead or suit buoyancy against this dive.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

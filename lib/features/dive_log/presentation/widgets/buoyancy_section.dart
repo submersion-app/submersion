@@ -12,24 +12,26 @@ import 'package:submersion/features/dive_log/presentation/info/buoyancy_info.dar
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_chart.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_history_strip.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_lead_block.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_safety_rows.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_through_dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_what_if_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
-import 'package:submersion/shared/widgets/twin_summary_rows.dart';
 
-/// Dive-detail section presenting the modeled net buoyancy through the dive:
-/// a plain-language final-stop verdict, an expandable term breakdown, and
-/// summary metrics. Self-suppresses (renders nothing) until it has an outcome,
-/// or when the dive is unmodelable.
+/// Dive-detail section presenting the modeled net buoyancy of a dive in the
+/// order a diver asks about it: what buoyancy did through the dive and why
+/// (readout, chart and the balance of parts under the cursor), the term
+/// breakdown, the lead for next time, then the safety checks.
+/// Self-suppresses (renders nothing) until it has an outcome, or when the
+/// dive is unmodelable.
 class BuoyancySection extends ConsumerWidget {
   final String diveId;
   final UnitFormatter units;
 
-  /// The dive whose profile cursor the chart follows, both ways (#4423).
-  /// Without it the chart keeps only its own tooltip.
+  /// The dive whose profile cursor the card follows, both ways (#4423).
+  /// Without it the card follows its own chart's touch.
   final Dive? dive;
 
   const BuoyancySection({
@@ -50,11 +52,11 @@ class BuoyancySection extends ConsumerWidget {
       return _card(
         context,
         outcome,
-        BuoyancyChart(result: outcome.result, units: units),
+        BuoyancyThroughDive(outcome: outcome, units: units),
       );
     }
-    // The cursor is watched by the chart alone, so scrubbing anywhere on the
-    // dive rebuilds the chart rather than the whole card.
+    // The cursor is watched by this part alone, so scrubbing anywhere on the
+    // dive rebuilds the readout, chart and balance rather than the whole card.
     return _card(
       context,
       outcome,
@@ -64,8 +66,8 @@ class BuoyancySection extends ConsumerWidget {
           // (#543), so it converts to and from seconds against that series.
           final profile = watchChartProfile(ref, synced);
           final cursor = ref.watch(profileTrackingIndexProvider(diveId));
-          return BuoyancyChart(
-            result: outcome.result,
+          return BuoyancyThroughDive(
+            outcome: outcome,
             units: units,
             cursorSeconds:
                 cursor != null && cursor >= 0 && cursor < profile.length
@@ -82,7 +84,7 @@ class BuoyancySection extends ConsumerWidget {
   Widget _card(
     BuildContext context,
     BuoyancyTwinOutcome outcome,
-    Widget chart,
+    Widget throughDive,
   ) {
     final theme = Theme.of(context);
     final o = outcome.outputs;
@@ -131,49 +133,23 @@ class BuoyancySection extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 12),
-            _verdict(context, o),
-            if (o.verdict.anchor.kind == TwinAnchorKind.convention) ...[
-              const SizedBox(height: 4),
-              Text(
-                context.l10n.buoyancy_verdictConvention,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.outline,
-                ),
-              ),
-            ],
-            const SizedBox(height: 12),
-            chart,
-            const SizedBox(height: 12),
+            throughDive,
+            const SizedBox(height: 4),
             _breakdown(context, o),
-            const SizedBox(height: 12),
-            TwinSummaryRows(
+            const Divider(height: 24),
+            BuoyancyLeadBlock(diveId: diveId, outcome: outcome, units: units),
+            const Divider(height: 24),
+            BuoyancySafetyRows(
               outputs: o,
               units: units,
               wingLiftCapacityKg: outcome.wingLiftCapacityKg,
+              leadRecorded: outcome.result.input.leadKg > 0,
             ),
-            const SizedBox(height: 16),
-            BuoyancyHistoryStrip(diveId: diveId, units: units),
             ..._hints(context, outcome),
           ],
         ),
       ),
     );
-  }
-
-  Widget _verdict(BuildContext context, TwinOutputs o) {
-    final l10n = context.l10n;
-    final net = o.verdict.netKg;
-    final amount = units.formatWeight(net.abs());
-    final depth = units.formatDepth(o.verdict.anchor.depthM);
-    final String text;
-    if (net.abs() <= 0.5) {
-      text = l10n.buoyancy_verdictNeutral;
-    } else if (net > 0) {
-      text = l10n.buoyancy_verdictBuoyant(depth, amount);
-    } else {
-      text = l10n.buoyancy_verdictHeavy(depth, amount);
-    }
-    return Text(text, style: Theme.of(context).textTheme.titleMedium);
   }
 
   Widget _breakdown(BuildContext context, TwinOutputs o) {

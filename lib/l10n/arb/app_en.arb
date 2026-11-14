@@ -6312,6 +6312,7 @@
   "diveLog_sitePicker_errorLoading": "Error loading sites: {error}",
   "diveLog_sitePicker_newDiveSite": "New Dive Site",
   "diveLog_sitePicker_noSites": "No dive sites yet",
+  "diveLog_sitePicker_sortedByArea": "Near the sites of your other dives",
   "diveLog_sitePicker_sortedByDistance": "Sorted by distance",
   "diveLog_sitePicker_title": "Select Dive Site",
   "diveLog_sort_title": "Sort Dives",
@@ -7587,6 +7588,7 @@
   "diveSites_import_search_hint": "Search dive sites (e.g., \"Blue Hole\", \"Thailand\")",
   "diveSites_import_section_importFromDatabase": "Import from Database ({count})",
   "diveSites_import_section_mySites": "My Sites ({count})",
+  "diveSites_import_section_truncated": "Showing the first {count} sites. Search for something more specific to see the rest.",
   "diveSites_import_semantics_viewDetails": "View details for {name}",
   "diveSites_import_semantics_viewSavedSite": "View saved site {name}",
   "diveSites_import_snackbar_failed": "Failed to import site",
@@ -7727,6 +7729,14 @@
     }
   },
   "diveSites_picker_nearby": "Nearby",
+  "diveSites_catalogue_credit": "From the built-in site catalogue. Source: {source}",
+  "diveSites_picker_builtIn_adoptError": "Could not add this site",
+  "diveSites_picker_builtIn_details": "Site details",
+  "diveSites_picker_builtIn_nearPlace": "More sites near {place}",
+  "diveSites_picker_builtIn_nearby": "More sites nearby",
+  "diveSites_picker_builtIn_search": "Built-in sites",
+  "diveSites_picker_builtIn_showAll": "Show all {count}",
+  "diveSites_picker_builtIn_useSite": "Use this site",
   "diveSites_list_groupBy": "Group by",
   "diveSites_list_groupBy_location": "Country & region",
   "diveSites_list_groupBy_locationAndWater": "Country & body of water",
@@ -14507,7 +14517,7 @@
   "diveDetailSection_weights_name": "Weights",
   "diveDetailSection_weights_description": "Weight breakdown, total weight",
   "diveDetailSection_buoyancy_name": "Buoyancy",
-  "diveDetailSection_buoyancy_description": "Buoyancy through the dive, swing, ditchable weight",
+  "diveDetailSection_buoyancy_description": "Buoyancy through the dive, lead for next time, ditchable weight",
   "buoyancy_verdictBuoyant": "At your final stop (~{depth}) you were about {amount} buoyant",
   "@buoyancy_verdictBuoyant": {
     "placeholders": {
@@ -14531,7 +14541,6 @@
     }
   },
   "buoyancy_verdictNeutral": "Your rig was close to neutral at the final stop",
-  "buoyancy_verdictConvention": "Estimated at the 5 m safety-stop convention",
   "buoyancy_breakdownTitle": "Term breakdown",
   "buoyancy_suitTerm": "Suit",
   "buoyancy_leadTerm": "Lead",
@@ -14548,9 +14557,7 @@
   "buoyancy_noLeadHint": "No lead recorded: add weights to this dive, or a dry weight to your weights gear",
   "buoyancy_tankMaterialAssumedHint": "Tank material not set, so aluminum was assumed: set the material or pick a tank preset",
   "buoyancy_chartNet": "Net",
-  "buoyancy_chartRig": "Rig + lead",
   "buoyancy_chartMinutes": "Time (min)",
-  "buoyancy_historyTitle": "Weighting history",
   "buoyancy_historyCarried": "Carried",
   "buoyancy_historyModeled": "Modeled",
   "buoyancy_historyMore": "You typically carry {delta} more than the model suggests",
@@ -14571,6 +14578,124 @@
   },
   "buoyancy_throughDive": "Through the dive",
   "buoyancy_adjust": "Adjust",
+  "buoyancy_readoutHeavy": "{amount} heavy",
+  "@buoyancy_readoutHeavy": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_readoutBuoyant": "{amount} buoyant",
+  "@buoyancy_readoutBuoyant": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_readoutNeutral": "Close to neutral",
+  "buoyancy_readoutAtFinalStop": "at your final stop, about {depth}",
+  "@buoyancy_readoutAtFinalStop": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_readoutConvention": "estimated at the {depth} safety-stop convention",
+  "@buoyancy_readoutConvention": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_readoutAtMoment": "at {depth}, {time}",
+  "@buoyancy_readoutAtMoment": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_pullingDown": "Pulling you down",
+  "buoyancy_holdingUp": "Holding you up",
+  "buoyancy_partGear": "Gear",
+  "buoyancy_partBody": "Body",
+  "buoyancy_partLabel": "{name} {amount}",
+  "@buoyancy_partLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_markerStart": "Start",
+  "buoyancy_markerDeepest": "Deepest",
+  "buoyancy_markerFinalStop": "Final stop",
+  "buoyancy_causeSuit": "Suit squeeze cost {amount} of lift at {depth}",
+  "@buoyancy_causeSuit": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_causeGas": "Gas breathed left the tanks {amount} lighter",
+  "@buoyancy_causeGas": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_leadTitle": "Lead for next time",
+  "buoyancy_leadCarried": "You carried",
+  "buoyancy_leadSuggested": "Model suggests",
+  "buoyancy_leadNotRecorded": "Not recorded",
+  "buoyancy_statusWell": "Well weighted",
+  "buoyancy_peakLiftWithin": "within your wing's {amount}",
+  "@buoyancy_peakLiftWithin": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_peakLiftExceeds": "exceeds your wing's {amount}",
+  "@buoyancy_peakLiftExceeds": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_ditchCovered": "you can ditch {amount}",
+  "@buoyancy_ditchCovered": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_ditchShort": "you can ditch only {amount}",
+  "@buoyancy_ditchShort": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "buoyancy_whatIfTitle": "Adjust this dive",
   "buoyancy_whatIfLead": "Lead",
   "buoyancy_whatIfSuit": "Suit buoyancy",
@@ -15486,6 +15611,7 @@
   "settings_conflict_field_cardColorGradientEnd": "Card color gradient end",
   "settings_conflict_field_cardColorGradientPreset": "Card color gradient",
   "settings_conflict_field_cardColorGradientStart": "Card color gradient start",
+  "settings_conflict_field_catalogueId": "Built-in catalogue link",
   "settings_conflict_field_ccrDiluentModPpO2": "CCR diluent MOD ppO2",
   "settings_conflict_field_ccrSetpointHigh": "CCR high setpoint",
   "settings_conflict_field_ccrSetpointLow": "CCR low setpoint",
@@ -22276,6 +22402,15 @@
     "placeholders": {
       "query": {
         "type": "String"
+      }
+    }
+  },
+  "diveComputer_discovery_usbModelCount": "{count, plural, one{{count} model} other{{count} models}}",
+  "@diveComputer_discovery_usbModelCount": {
+    "description": "Model count beside a manufacturer's foldable heading in the USB list of Connect New Computer",
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },
@@ -37021,7 +37156,7 @@
   "info_diveLog_details_summary": "The logged facts of this dive, with values worked out from the profile where nothing was entered.",
   "info_diveLog_altitude_summary": "This dive was at altitude, where lower air pressure at the surface makes the decompression model more conservative.",
   "info_diveLog_buoyancy_summary": "A model of net buoyancy through the dive, from the profile, the gas breathed and the gear logged with the dive.",
-  "info_diveLog_buoyancy_howToUse": "Adjust opens a sheet that tries a different amount of lead or suit buoyancy against this dive.",
+  "info_diveLog_buoyancy_howToUse": "Move across the chart to see what was pulling you down and holding you up at that moment. Adjust opens a sheet that tries a different amount of lead or suit buoyancy against this dive.",
   "info_diveLog_waterConditions_summary": "Sea temperature and coral heat stress near the site around the dive date, from NOAA Coral Reef Watch satellite data.",
   "info_diveLab_compare_summary": "How this dive compares with its linked plan or saved scenarios on the numbers that matter for decompression.",
   "info_diveLab_compare_howToUse": "Tap the card to open the Dive Lab and try other choices against this dive.",

@@ -11164,6 +11164,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'لا توجد مواقع غوص بعد';
 
   @override
+  String get diveLog_sitePicker_sortedByArea => 'بالقرب من مواقع غطساتك الأخرى';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'مرتبة حسب المسافة';
 
   @override
@@ -12799,6 +12802,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'تُعرض أول $count مواقع. ابحث بعبارة أدق لرؤية البقية.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'عرض تفاصيل $name';
   }
@@ -13125,6 +13133,36 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'قريب';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'من كتالوج المواقع المدمج. المصدر: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError => 'تعذّرت إضافة هذا الموقع';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'تفاصيل الموقع';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'مواقع أخرى بالقرب من $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'مواقع أخرى قريبة';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'المواقع المدمجة';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'استخدام هذا الموقع';
 
   @override
   String get diveSites_list_groupBy => 'التجميع حسب';
@@ -23247,7 +23285,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveDetailSection_buoyancy_description =>
-      'الطفو خلال الغطسة، التغيّر، والوزن القابل للإسقاط';
+      'الطفو خلال الغطسة، الرصاص للمرة القادمة، والوزن القابل للإسقاط';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -23262,10 +23300,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get buoyancy_verdictNeutral =>
       'كانت تهيئتك قريبة من التعادل عند المحطة الأخيرة';
-
-  @override
-  String get buoyancy_verdictConvention =>
-      'مُقدَّر وفق اصطلاح محطة الأمان عند 5 أمتار';
 
   @override
   String get buoyancy_breakdownTitle => 'تفصيل العناصر';
@@ -23319,13 +23353,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buoyancy_chartNet => 'الصافي';
 
   @override
-  String get buoyancy_chartRig => 'المعدات + الرصاص';
-
-  @override
   String get buoyancy_chartMinutes => 'الزمن (دقيقة)';
-
-  @override
-  String get buoyancy_historyTitle => 'سجل الترصيص';
 
   @override
   String get buoyancy_historyCarried => 'المحمول';
@@ -23348,6 +23376,105 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buoyancy_adjust => 'تعديل';
+
+  @override
+  String buoyancy_readoutHeavy(String amount) {
+    return 'أثقل بمقدار $amount';
+  }
+
+  @override
+  String buoyancy_readoutBuoyant(String amount) {
+    return 'طفو بمقدار $amount';
+  }
+
+  @override
+  String get buoyancy_readoutNeutral => 'قريب من التعادل';
+
+  @override
+  String buoyancy_readoutAtFinalStop(String depth) {
+    return 'عند محطتك الأخيرة، نحو $depth';
+  }
+
+  @override
+  String buoyancy_readoutConvention(String depth) {
+    return 'مُقدَّر وفق اصطلاح محطة الأمان عند $depth';
+  }
+
+  @override
+  String buoyancy_readoutAtMoment(String depth, String time) {
+    return 'عند $depth، $time';
+  }
+
+  @override
+  String get buoyancy_pullingDown => 'يسحبك إلى الأسفل';
+
+  @override
+  String get buoyancy_holdingUp => 'يرفعك إلى الأعلى';
+
+  @override
+  String get buoyancy_partGear => 'المعدات';
+
+  @override
+  String get buoyancy_partBody => 'الجسم';
+
+  @override
+  String buoyancy_partLabel(String name, String amount) {
+    return '$name $amount';
+  }
+
+  @override
+  String get buoyancy_markerStart => 'البداية';
+
+  @override
+  String get buoyancy_markerDeepest => 'أعمق نقطة';
+
+  @override
+  String get buoyancy_markerFinalStop => 'المحطة الأخيرة';
+
+  @override
+  String buoyancy_causeSuit(String amount, String depth) {
+    return 'انضغاط البدلة أفقدك $amount من الطفو عند $depth';
+  }
+
+  @override
+  String buoyancy_causeGas(String amount) {
+    return 'الغاز المُتنفَّس جعل الأسطوانات أخف بمقدار $amount';
+  }
+
+  @override
+  String get buoyancy_leadTitle => 'الرصاص للمرة القادمة';
+
+  @override
+  String get buoyancy_leadCarried => 'حملتَ';
+
+  @override
+  String get buoyancy_leadSuggested => 'يقترح النموذج';
+
+  @override
+  String get buoyancy_leadNotRecorded => 'غير مسجَّل';
+
+  @override
+  String get buoyancy_statusWell => 'وزن مناسب';
+
+  @override
+  String buoyancy_peakLiftWithin(String amount) {
+    return 'ضمن $amount لجناحك';
+  }
+
+  @override
+  String buoyancy_peakLiftExceeds(String amount) {
+    return 'يتجاوز $amount لجناحك';
+  }
+
+  @override
+  String buoyancy_ditchCovered(String amount) {
+    return 'يمكنك إسقاط $amount';
+  }
+
+  @override
+  String buoyancy_ditchShort(String amount) {
+    return 'يمكنك إسقاط $amount فقط';
+  }
 
   @override
   String get buoyancy_whatIfTitle => 'تعديل هذه الغطسة';
@@ -25508,6 +25635,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'بداية تدرج ألوان البطاقات';
+
+  @override
+  String get settings_conflict_field_catalogueId => 'رابط الكتالوج المدمج';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
@@ -37651,6 +37781,21 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String diveComputer_discovery_usbNoResults(String query) {
     return 'لا توجد أجهزة مطابقة لـ \"$query\"';
+  }
+
+  @override
+  String diveComputer_discovery_usbModelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count طراز',
+      many: '$count طرازًا',
+      few: '$count طرازات',
+      two: 'طرازان',
+      one: 'طراز واحد',
+      zero: 'لا طرازات',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -64402,7 +64547,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'يفتح زر الضبط لوحة تجرب كمية مختلفة من الرصاص أو طفو البدلة على هذه الغطسة.';
+      'مرِّر على المخطط لترى ما كان يسحبك إلى الأسفل وما كان يرفعك في تلك اللحظة. يفتح زر الضبط لوحة تجرب كمية مختلفة من الرصاص أو طفو البدلة على هذه الغطسة.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

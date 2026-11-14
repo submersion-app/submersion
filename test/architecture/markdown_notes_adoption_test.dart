@@ -139,9 +139,10 @@ void main() {
     'lib/features/equipment/presentation/widgets/service_history_section.dart '
             'record.notes':
         'service record notes are a short log entry',
-    'lib/features/dive_sites/presentation/pages/site_import_page.dart '
+    'lib/features/dive_sites/presentation/widgets/built_in_site_info_card.dart '
             'site.description':
-        'a description from an external site database, before import',
+        'a description from the built-in site catalogue, before the site is '
+        'adopted: source text, not the diver\'s Markdown',
     'lib/features/dive_sites/presentation/pages/site_match_review_page.dart '
             'c.description':
         'a description from an external site database, before import',

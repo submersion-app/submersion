@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Schema goes from 362 to 363 in one bump covering both parts. Tables live in `lib/core/database/tables/`, the helper in `lib/core/database/migrations/helpers/`, the rung in `lib/core/database/migrations/ladder/rungs_v340_onward.dart`, backstops in a `before_open` part file. `database.dart` only registers tables.
+- Schema goes from 362 to 364 in one bump covering both parts. Tables live in `lib/core/database/tables/`, the helper in `lib/core/database/migrations/helpers/`, the rung in `lib/core/database/migrations/ladder/rungs_v340_onward.dart`, backstops in a `before_open` part file. `database.dart` only registers tables.
 - No file over 800 lines. `equipment_set_edit_page.dart` is 799 and `dive_edit_page.dart` is 7000 with part files: new code for both goes in new files.
 - Every displayed weight, volume and pressure goes through `UnitFormatter`. Stored values are metric.
 - Every new string is added to every ARB locale and the generated l10n is refreshed.
@@ -41,7 +41,7 @@ Created:
 | File | Responsibility |
 | --- | --- |
 | `lib/core/database/tables/equipment_set_bundle_tables.dart` | The three junction tables. |
-| `lib/core/database/migrations/helpers/set_bundle_migrations.dart` | v363 creation of the tables and the three new columns. |
+| `lib/core/database/migrations/helpers/set_bundle_migrations.dart` | v364 creation of the tables and the three new columns. |
 | `lib/features/equipment/domain/entities/set_bundle.dart` | `SetBundle` value object. |
 | `lib/features/equipment/domain/services/set_bundle_resolver.dart` | Pure resolution, nesting rule, absorption. |
 | `lib/features/equipment/data/services/set_bundle_loader.dart` | Loads sets, presets and configurations and resolves bundles. |
@@ -77,19 +77,19 @@ App control was declined for this work, so screenshots are widget-test renders (
 - [ ] **Step 2:** Run `flutter test test/tmp_shots/shots_test.dart --update-goldens`. Expected: all pass and write PNGs under `test/tmp_shots/goldens/`.
 - [ ] **Step 3:** Open each PNG and check it shows real text and icons, not boxes. Copy them to `.dart_tool/shots/before/` named `<nn>-<screen>-before.png`, then delete `test/tmp_shots/`. Confirm `git status --porcelain` is empty.
 
-### Task 1: Schema v363
+### Task 1: Schema v364
 
 **Files:**
 - Create: `lib/core/database/tables/equipment_set_bundle_tables.dart`
 - Create: `lib/core/database/migrations/helpers/set_bundle_migrations.dart`
 - Modify: `lib/core/database/tables/diver_tables.dart` (after `divingSince`, line 67), `lib/core/database/tables/weight_tables.dart` (`DiverWeightEntries`, after `heightCm`)
-- Modify: `lib/core/database/database.dart` (register the three tables beside 116-118; `currentSchemaVersion = 363` at 325; append `363` to `migrationVersions` after 1677)
+- Modify: `lib/core/database/database.dart` (register the three tables beside 116-118; `currentSchemaVersion = 364` at 325; append `364` to `migrationVersions` after 1677)
 - Modify: `lib/core/database/migrations/app_database_migrations.dart` (new `part` line in 57-137)
 - Modify: `lib/core/database/migrations/ladder/rungs_v340_onward.dart` (after the v362 rung at 174-175)
 - Modify: `lib/core/database/migrations/before_open_table_backstops.dart` and `before_open_child_columns.dart` (never `before_open.dart`, which is 799 lines)
 - Modify: `tool/demo_data/src/seeders/gear_seeder.dart` (206-235): give one demo set an included set, a weight preset and a cylinder configuration, so `test/tool/demo_data/coverage_test.dart` finds rows. If the seeder order makes presets unavailable there, add the three tables to `demoCoverageExclusions` in `tool/demo_data/src/checks/coverage_check.dart:8` with a reason instead.
 - Regenerate: `lib/features/agent_access/data/resources/sql_column_notes.generated.dart` with `dart run tool/generate_sql_column_notes.dart`
-- Test: `test/core/database/migration_v363_set_bundles_test.dart` (copy the shape of `migration_v362_dive_deco_status_test.dart`)
+- Test: `test/core/database/migration_v364_set_bundles_test.dart` (copy the shape of `migration_v362_dive_deco_status_test.dart`)
 
 **Interfaces:**
 - Produces three Drift tables, each with an `id` primary key (the plain-id sync path `weight_preset_entries` uses, not the composite-key path of `equipment_set_items`, which has unguarded spots in `compositeHlcKeys`, `_baseTables` paging and `fetchRecord`):
@@ -103,7 +103,7 @@ App control was declined for this work, so screenshots are widget-test renders (
   The sync entity names equal the getters. Each table has a doc comment, since the SQL notes are generated from it.
 - New columns: `Divers.sex` (`text().nullable()`), `Divers.birthYear` (`integer().nullable()`), `DiverWeightEntries.bodyFatPercent` (`real().nullable()`).
 - Helper functions: `_assertSetBundleTables()` returns early unless `equipment_sets`, `weight_presets` and `cylinder_configs` exist, creates each table behind `_tableExists` with `Migrator(this).createTable(...)`, then `CREATE UNIQUE INDEX IF NOT EXISTS idx_<table>_pair ON <table>(set_id, <ref column>)` for each. `_assertBodyCompositionColumns()` uses `_addColumnIfMissing` for `divers.sex TEXT`, `divers.birth_year INTEGER`, `diver_weight_entries.body_fat_percent REAL`, each behind `_tableExists`.
-- Rung: `if (from < 363) await _assertSetBundleTables(); if (from < 363) await _assertBodyCompositionColumns(); if (from < 363) await reportProgress();` with a comment naming issue #4525 and that it is table-and-column only with no backfill.
+- Rung: `if (from < 364) await _assertSetBundleTables(); if (from < 364) await _assertBodyCompositionColumns(); if (from < 364) await reportProgress();` with a comment naming issue #4525 and that it is table-and-column only with no backfill.
 - Nullable columns and new tables do not raise `minimumCompatibleSchemaVersion`.
 
 - [ ] **Step 1: Write the failing test:** `a fresh database has the three tables and the three columns`, `a database at 362 gains them on upgrade`, `the pair index rejects the same preset twice in one set`, `deleting a set, a weight preset or a cylinder configuration removes its junction rows`, `running the helpers twice is harmless`.
@@ -134,7 +134,7 @@ App control was declined for this work, so screenshots are widget-test renders (
 - [ ] **Step 2: Run** `set_bundle_lists_sync_test.dart`. Expected: fails (unknown entity type).
 - [ ] **Step 3: Implement.** Add the ARB keys to all 11 locales and run `flutter gen-l10n`.
 - [ ] **Step 4: Run each alone:** the two new tests; `test/core/database/change_log/change_log_policy_test.dart`; in `test/core/services/sync/`: `sync_hlc_target_registration_test.dart`, `child_hlc_test.dart`, `child_column_clears_test.dart`, `pending_child_export_test.dart`, `sync_base_streaming_parity_test.dart`, `base_publish_streaming_parity_test.dart`, `sync_data_serializer_record_ids_test.dart`, `sync_parent_refs_completeness_test.dart`; `test/architecture/child_write_restamps_test.dart`; `test/features/settings/presentation/conflicts/conflict_field_catalogue_coverage_test.dart`; `test/features/settings/presentation/widgets/conflict_reference_labels_test.dart`; `test/features/agent_access/data/records/record_catalog_guard_test.dart`; `test/features/agent_access/data/records/profile_records_test.dart`; `test/l10n/arb_parity_test.dart` and `untranslated_english_values_test.dart`. Then `flutter analyze` for the whole repository. Expected: pass and clean.
-- [ ] **Step 5: Commit** `feat(equipment): schema v363 for set bundles and body composition`.
+- [ ] **Step 5: Commit** `feat(equipment): schema v364 for set bundles and body composition`.
 
 ### Task 2: Set entity lists, bundle and resolver
 

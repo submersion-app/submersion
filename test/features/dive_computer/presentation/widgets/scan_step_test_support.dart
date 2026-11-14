@@ -84,11 +84,13 @@ class TestDiscoveryNotifier extends DiscoveryNotifier {
 /// Pumps [ScanStepWidget] inside a localized MaterialApp with the platform
 /// dependent providers replaced by fakes.
 ///
+/// [onDeviceSelected] receives the device a tap picks.
 /// [discoveryNotifier] replaces the default [TestDiscoveryNotifier], for a
 /// test that needs the scan itself to run.
 Widget buildScanStepTestWidget({
   Map<String, List<DeviceModel>> usbDevices = const {},
   DiscoveryNotifier Function()? discoveryNotifier,
+  void Function(DiscoveredDevice device)? onDeviceSelected,
 }) {
   return ProviderScope(
     overrides: [
@@ -103,7 +105,9 @@ Widget buildScanStepTestWidget({
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: ScanStepWidget(onDeviceSelected: (_) {})),
+      home: Scaffold(
+        body: ScanStepWidget(onDeviceSelected: onDeviceSelected ?? (_) {}),
+      ),
     ),
   );
 }

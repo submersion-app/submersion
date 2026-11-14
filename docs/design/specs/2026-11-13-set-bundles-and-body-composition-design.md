@@ -80,7 +80,7 @@ Part 2, body composition:
   `lib/core/database/tables/`, a helper in `migrations/helpers/`, a rung in
   `migrations/ladder/rungs_v340_onward.dart`, and backstops in a part file
   (`before_open.dart` is at the 800-line guard). `database.dart` only
-  registers tables. One schema bump (v363 at the time of writing) covers both
+  registers tables. One schema bump (v364 at the time of writing) covers both
   parts.
 - New synced tables and columns join sync, the conflict catalogue, the change
   log policy and the agent-access documents, as the precedents do (v196 weight

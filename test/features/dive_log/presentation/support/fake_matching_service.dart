@@ -1,12 +1,14 @@
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
-import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
+import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_suggestion_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+
+import '../../../../helpers/fake_site_catalogue.dart';
 
 /// Records apply calls instead of touching a database. The base constructor
 /// only stores its dependencies, so zero-arg repositories are safe here.
@@ -14,7 +16,8 @@ class FakeMatchingService extends SiteMatchingService {
   FakeMatchingService()
     : super(
         siteRepository: SiteRepository(),
-        apiService: DiveSiteApiService(),
+        catalogue: FakeSiteCatalogue(),
+        adoption: CatalogueAdoptionService(siteRepository: SiteRepository()),
         diveRepository: DiveRepository(),
         mediaRepository: MediaRepository(),
         diverId: 'diver-1',

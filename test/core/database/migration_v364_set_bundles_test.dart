@@ -7,7 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// v363 adds the three junction tables that let an equipment set carry
+/// v364 adds the three junction tables that let an equipment set carry
 /// other sets, weight presets and cylinder configurations, and the body
 /// composition columns on divers and their weight entries (#4525).
 const _junctions = {
@@ -113,9 +113,9 @@ Future<int> _count(AppDatabase db, String table) async {
 }
 
 void main() {
-  test('v363 is at or below the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(363));
-    expect(AppDatabase.migrationVersions, contains(363));
+  test('v364 is at or below the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(364));
+    expect(AppDatabase.migrationVersions, contains(364));
     expect(AppDatabase.migrationStepCount(362), greaterThanOrEqualTo(1));
   });
 
@@ -147,8 +147,8 @@ void main() {
   test('a database already at the current version gains them', () async {
     // Only the beforeOpen backstops can add them there (a restore or a
     // sync-adopt never runs onUpgrade). Build that database by opening a
-    // real one, taking the v363 tables and columns back out, and reopening.
-    final dir = await Directory.systemTemp.createTemp('v363_backstop');
+    // real one, taking the v364 tables and columns back out, and reopening.
+    final dir = await Directory.systemTemp.createTemp('v364_backstop');
     addTearDown(() => dir.delete(recursive: true));
     final file = File(p.join(dir.path, 'submersion.db'));
 

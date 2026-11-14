@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -6,6 +7,8 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_rating_stars.dart';
+import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/country_flag.dart';
@@ -123,6 +126,57 @@ class SiteDetailHeader extends ConsumerWidget {
               ),
             ),
           ],
+          if (site.catalogueId != null)
+            _CatalogueLine(catalogueId: site.catalogueId!),
+        ],
+      ),
+    );
+  }
+}
+
+/// Where a site adopted from the built-in catalogue came from: the source
+/// to credit, and the site's website when the catalogue holds one.
+///
+/// Read through the site's link, not stored on the site, so it follows the
+/// catalogue. Nothing shows for a record a later catalogue dropped.
+class _CatalogueLine extends ConsumerWidget {
+  const _CatalogueLine({required this.catalogueId});
+
+  final String catalogueId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final record = ref.watch(catalogueSiteProvider(catalogueId)).value;
+    if (record == null) return const SizedBox.shrink();
+    final source = ref.watch(catalogueSourceProvider(record.source)).value;
+    if (source == null) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final website = catalogueWebsiteUri(record.website);
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8,
+        children: [
+          Text(
+            l10n.diveSites_catalogue_credit(source.credit),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          if (website != null)
+            TextButton.icon(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+              ),
+              onPressed: () =>
+                  launchUrl(website, mode: LaunchMode.externalApplication),
+              icon: const Icon(Icons.open_in_new, size: 16),
+              label: Text(l10n.diveCenters_label_website),
+            ),
         ],
       ),
     );

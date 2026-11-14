@@ -3,7 +3,7 @@ part of '../app_database_migrations.dart';
 /// What an equipment set carries besides gear, and the body composition
 /// inputs of the weight prediction (issue #4525).
 extension SetBundleMigrations on AppDatabase {
-  /// v363: the three junction tables under `equipment_sets`, each with a
+  /// v364: the three junction tables under `equipment_sets`, each with a
   /// unique pair. Idempotent; called from the rung and the beforeOpen
   /// backstop. Skipped on a partial fixture missing any parent table.
   Future<void> _assertSetBundleTables() async {
@@ -34,7 +34,7 @@ extension SetBundleMigrations on AppDatabase {
     );
   }
 
-  /// v363: divers.sex, divers.birth_year and
+  /// v364: divers.sex, divers.birth_year and
   /// diver_weight_entries.body_fat_percent. All nullable, and null means
   /// "not given", so no existing row is rewritten.
   Future<void> _assertBodyCompositionColumns() async {

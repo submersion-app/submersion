@@ -37,6 +37,10 @@ class DiveSites extends Table {
   /// The country's ISO 3166-1 alpha-2 code (v361, issue #4426): from the
   /// geocoder when the location is geocoded, else read from [country].
   TextColumn get countryCode => text().nullable()();
+
+  /// The id of the built-in catalogue record this site was adopted from
+  /// (v363). Null for a site the diver made by hand.
+  TextColumn get catalogueId => text().nullable()();
   TextColumn get region => text().nullable()();
   RealColumn get rating => real().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();

@@ -11005,6 +11005,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Noch keine Tauchplätze';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'In der Nähe der Tauchplätze anderer Tauchgänge';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Nach Entfernung sortiert';
 
   @override
@@ -12629,6 +12633,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'Die ersten $count Tauchplätze werden angezeigt. Suche genauer, um die übrigen zu sehen.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'Details für $name anzeigen';
   }
@@ -12929,6 +12938,38 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'In der Nähe';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'Aus dem integrierten Tauchplatzkatalog. Quelle: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'Tauchplatz konnte nicht hinzugefügt werden';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Details zum Tauchplatz';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'Weitere Tauchplätze bei $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby =>
+      'Weitere Tauchplätze in der Nähe';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Integrierte Tauchplätze';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Alle $count anzeigen';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Diesen Tauchplatz verwenden';
 
   @override
   String get diveSites_list_groupBy => 'Gruppieren nach';
@@ -22846,7 +22887,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveDetailSection_buoyancy_description =>
-      'Auftrieb im Tauchgangverlauf, Schwankung, abwerfbares Blei';
+      'Auftrieb im Tauchgangverlauf, Blei fürs nächste Mal, abwerfbares Blei';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -22861,10 +22902,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get buoyancy_verdictNeutral =>
       'Am letzten Stopp war deine Konfiguration nahezu neutral';
-
-  @override
-  String get buoyancy_verdictConvention =>
-      'Geschätzt an der 5-m-Sicherheitsstopp-Konvention';
 
   @override
   String get buoyancy_breakdownTitle => 'Term-Aufschlüsselung';
@@ -22919,13 +22956,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buoyancy_chartNet => 'Netto';
 
   @override
-  String get buoyancy_chartRig => 'Rig + Blei';
-
-  @override
   String get buoyancy_chartMinutes => 'Zeit (min)';
-
-  @override
-  String get buoyancy_historyTitle => 'Bleiverlauf';
 
   @override
   String get buoyancy_historyCarried => 'Getragen';
@@ -22948,6 +22979,105 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get buoyancy_adjust => 'Anpassen';
+
+  @override
+  String buoyancy_readoutHeavy(String amount) {
+    return '$amount zu schwer';
+  }
+
+  @override
+  String buoyancy_readoutBuoyant(String amount) {
+    return '$amount Auftrieb';
+  }
+
+  @override
+  String get buoyancy_readoutNeutral => 'Nahezu neutral';
+
+  @override
+  String buoyancy_readoutAtFinalStop(String depth) {
+    return 'an deinem letzten Stopp, etwa $depth';
+  }
+
+  @override
+  String buoyancy_readoutConvention(String depth) {
+    return 'geschätzt nach der Sicherheitsstopp-Konvention bei $depth';
+  }
+
+  @override
+  String buoyancy_readoutAtMoment(String depth, String time) {
+    return 'bei $depth, $time';
+  }
+
+  @override
+  String get buoyancy_pullingDown => 'Zieht dich nach unten';
+
+  @override
+  String get buoyancy_holdingUp => 'Hält dich oben';
+
+  @override
+  String get buoyancy_partGear => 'Ausrüstung';
+
+  @override
+  String get buoyancy_partBody => 'Körper';
+
+  @override
+  String buoyancy_partLabel(String name, String amount) {
+    return '$name $amount';
+  }
+
+  @override
+  String get buoyancy_markerStart => 'Start';
+
+  @override
+  String get buoyancy_markerDeepest => 'Tiefster Punkt';
+
+  @override
+  String get buoyancy_markerFinalStop => 'Letzter Stopp';
+
+  @override
+  String buoyancy_causeSuit(String amount, String depth) {
+    return 'Die Anzugkompression kostete $amount Auftrieb bei $depth';
+  }
+
+  @override
+  String buoyancy_causeGas(String amount) {
+    return 'Das veratmete Gas machte die Flaschen $amount leichter';
+  }
+
+  @override
+  String get buoyancy_leadTitle => 'Blei fürs nächste Mal';
+
+  @override
+  String get buoyancy_leadCarried => 'Getragen';
+
+  @override
+  String get buoyancy_leadSuggested => 'Modell schlägt vor';
+
+  @override
+  String get buoyancy_leadNotRecorded => 'Nicht erfasst';
+
+  @override
+  String get buoyancy_statusWell => 'Richtig bebleit';
+
+  @override
+  String buoyancy_peakLiftWithin(String amount) {
+    return 'innerhalb der $amount deines Wings';
+  }
+
+  @override
+  String buoyancy_peakLiftExceeds(String amount) {
+    return 'übersteigt die $amount deines Wings';
+  }
+
+  @override
+  String buoyancy_ditchCovered(String amount) {
+    return 'du kannst $amount abwerfen';
+  }
+
+  @override
+  String buoyancy_ditchShort(String amount) {
+    return 'du kannst nur $amount abwerfen';
+  }
 
   @override
   String get buoyancy_whatIfTitle => 'Diesen Tauchgang anpassen';
@@ -25108,6 +25238,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'Anfang des Kartenfarbverlaufs';
+
+  @override
+  String get settings_conflict_field_catalogueId =>
+      'Verknüpfung mit integriertem Katalog';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
@@ -37046,6 +37180,17 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String diveComputer_discovery_usbNoResults(String query) {
     return 'Keine Geräte für \"$query\"';
+  }
+
+  @override
+  String diveComputer_discovery_usbModelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Modelle',
+      one: '$count Modell',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -63351,7 +63496,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Anpassen öffnet ein Blatt, das eine andere Bleimenge oder einen anderen Anzugauftrieb an diesem Tauchgang durchrechnet.';
+      'Fahre über das Diagramm, um zu sehen, was dich in diesem Moment nach unten zog und was dich oben hielt. Anpassen öffnet ein Blatt, das eine andere Bleimenge oder einen anderen Anzugauftrieb an diesem Tauchgang durchrechnet.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

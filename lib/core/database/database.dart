@@ -118,7 +118,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     EquipmentSets,
     EquipmentSetItems,
     EquipmentSetGeofences,
-    // What a set carries besides gear (v363, issue #4525)
+    // What a set carries besides gear (v364, issue #4525)
     EquipmentSetIncludes,
     EquipmentSetWeightPresets,
     EquipmentSetCylinderConfigs,
@@ -328,7 +328,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 363;
+  static const int currentSchemaVersion = 364;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1681,10 +1681,15 @@ class AppDatabase extends _$AppDatabase {
     // language's deco field reads (issue #4461). A table with no hlc, never
     // synced, so the floor does not move.
     362,
-    // v363: the three equipment-set junction tables and the nullable body
+    // v363: dive_sites.catalogue_id, the built-in catalogue record a site
+    // was adopted from. Nullable, nothing to backfill, so the floor does
+    // not move. Renumbered from 362, which main took for #4461.
+    363,
+    // v364: the three equipment-set junction tables and the nullable body
     // composition columns on divers and their weight entries (issue #4525).
     // New tables and nullable columns, so the floor does not move.
-    363,
+    // Renumbered from 363, which main took for the site catalogue id.
+    364,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

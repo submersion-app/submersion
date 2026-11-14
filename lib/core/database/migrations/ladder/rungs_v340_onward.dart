@@ -174,14 +174,22 @@ extension RungsFromV340 on AppDatabase {
     if (from < 362) await _assertDiveDecoStatusTable();
     if (from < 362) await reportProgress();
 
-    // v363: what an equipment set carries besides gear (included sets,
+    // v363: dive_sites.catalogue_id, the built-in catalogue record a site
+    // was adopted from. Nullable and offline, with nothing to backfill, so
+    // the floor does not move. The column is re-asserted in beforeOpen.
+    // Renumbered from 362, which main took for #4461.
+    if (from < 363) await _assertSiteCatalogueIdColumn();
+    if (from < 363) await reportProgress();
+
+    // v364: what an equipment set carries besides gear (included sets,
     // weight presets, cylinder configurations) and the body composition
     // columns of the weight prediction (issue #4525). Tables and nullable
     // columns only, no backfill: a set with none of the three and a diver
     // with no body data are the correct starting state. Re-asserted in
-    // beforeOpen.
-    if (from < 363) await _assertSetBundleTables();
-    if (from < 363) await _assertBodyCompositionColumns();
-    if (from < 363) await reportProgress();
+    // beforeOpen. Renumbered from 363, which main took for the site
+    // catalogue id.
+    if (from < 364) await _assertSetBundleTables();
+    if (from < 364) await _assertBodyCompositionColumns();
+    if (from < 364) await reportProgress();
   }
 }

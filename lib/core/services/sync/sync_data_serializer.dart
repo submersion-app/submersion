@@ -5066,7 +5066,7 @@ class SyncDataSerializer {
     });
   }
 
-  /// The three lists an equipment set carries besides gear (v363, issue
+  /// The three lists an equipment set carries besides gear (v364, issue
   /// #4525), as entity type to (table, column naming what the set lists).
   static const Map<String, (String, String)> _setBundleListTables = {
     'equipmentSetIncludes': ('equipment_set_includes', 'included_set_id'),

@@ -17409,6 +17409,12 @@ abstract class AppLocalizations {
   /// **'No dive sites yet'**
   String get diveLog_sitePicker_noSites;
 
+  /// No description provided for @diveLog_sitePicker_sortedByArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Near the sites of your other dives'**
+  String get diveLog_sitePicker_sortedByArea;
+
   /// No description provided for @diveLog_sitePicker_sortedByDistance.
   ///
   /// In en, this message translates to:
@@ -20144,6 +20150,12 @@ abstract class AppLocalizations {
   /// **'My Sites ({count})'**
   String diveSites_import_section_mySites(Object count);
 
+  /// No description provided for @diveSites_import_section_truncated.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the first {count} sites. Search for something more specific to see the rest.'**
+  String diveSites_import_section_truncated(Object count);
+
   /// No description provided for @diveSites_import_semantics_viewDetails.
   ///
   /// In en, this message translates to:
@@ -20507,6 +20519,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nearby'**
   String get diveSites_picker_nearby;
+
+  /// No description provided for @diveSites_catalogue_credit.
+  ///
+  /// In en, this message translates to:
+  /// **'From the built-in site catalogue. Source: {source}'**
+  String diveSites_catalogue_credit(Object source);
+
+  /// No description provided for @diveSites_picker_builtIn_adoptError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not add this site'**
+  String get diveSites_picker_builtIn_adoptError;
+
+  /// No description provided for @diveSites_picker_builtIn_details.
+  ///
+  /// In en, this message translates to:
+  /// **'Site details'**
+  String get diveSites_picker_builtIn_details;
+
+  /// No description provided for @diveSites_picker_builtIn_nearPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'More sites near {place}'**
+  String diveSites_picker_builtIn_nearPlace(Object place);
+
+  /// No description provided for @diveSites_picker_builtIn_nearby.
+  ///
+  /// In en, this message translates to:
+  /// **'More sites nearby'**
+  String get diveSites_picker_builtIn_nearby;
+
+  /// No description provided for @diveSites_picker_builtIn_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in sites'**
+  String get diveSites_picker_builtIn_search;
+
+  /// No description provided for @diveSites_picker_builtIn_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all {count}'**
+  String diveSites_picker_builtIn_showAll(Object count);
+
+  /// No description provided for @diveSites_picker_builtIn_useSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this site'**
+  String get diveSites_picker_builtIn_useSite;
 
   /// No description provided for @diveSites_list_groupBy.
   ///
@@ -36152,7 +36212,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_buoyancy_description.
   ///
   /// In en, this message translates to:
-  /// **'Buoyancy through the dive, swing, ditchable weight'**
+  /// **'Buoyancy through the dive, lead for next time, ditchable weight'**
   String get diveDetailSection_buoyancy_description;
 
   /// No description provided for @buoyancy_verdictBuoyant.
@@ -36172,12 +36232,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your rig was close to neutral at the final stop'**
   String get buoyancy_verdictNeutral;
-
-  /// No description provided for @buoyancy_verdictConvention.
-  ///
-  /// In en, this message translates to:
-  /// **'Estimated at the 5 m safety-stop convention'**
-  String get buoyancy_verdictConvention;
 
   /// No description provided for @buoyancy_breakdownTitle.
   ///
@@ -36275,23 +36329,11 @@ abstract class AppLocalizations {
   /// **'Net'**
   String get buoyancy_chartNet;
 
-  /// No description provided for @buoyancy_chartRig.
-  ///
-  /// In en, this message translates to:
-  /// **'Rig + lead'**
-  String get buoyancy_chartRig;
-
   /// No description provided for @buoyancy_chartMinutes.
   ///
   /// In en, this message translates to:
   /// **'Time (min)'**
   String get buoyancy_chartMinutes;
-
-  /// No description provided for @buoyancy_historyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Weighting history'**
-  String get buoyancy_historyTitle;
 
   /// No description provided for @buoyancy_historyCarried.
   ///
@@ -36328,6 +36370,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Adjust'**
   String get buoyancy_adjust;
+
+  /// No description provided for @buoyancy_readoutHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} heavy'**
+  String buoyancy_readoutHeavy(String amount);
+
+  /// No description provided for @buoyancy_readoutBuoyant.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} buoyant'**
+  String buoyancy_readoutBuoyant(String amount);
+
+  /// No description provided for @buoyancy_readoutNeutral.
+  ///
+  /// In en, this message translates to:
+  /// **'Close to neutral'**
+  String get buoyancy_readoutNeutral;
+
+  /// No description provided for @buoyancy_readoutAtFinalStop.
+  ///
+  /// In en, this message translates to:
+  /// **'at your final stop, about {depth}'**
+  String buoyancy_readoutAtFinalStop(String depth);
+
+  /// No description provided for @buoyancy_readoutConvention.
+  ///
+  /// In en, this message translates to:
+  /// **'estimated at the {depth} safety-stop convention'**
+  String buoyancy_readoutConvention(String depth);
+
+  /// No description provided for @buoyancy_readoutAtMoment.
+  ///
+  /// In en, this message translates to:
+  /// **'at {depth}, {time}'**
+  String buoyancy_readoutAtMoment(String depth, String time);
+
+  /// No description provided for @buoyancy_pullingDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Pulling you down'**
+  String get buoyancy_pullingDown;
+
+  /// No description provided for @buoyancy_holdingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Holding you up'**
+  String get buoyancy_holdingUp;
+
+  /// No description provided for @buoyancy_partGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get buoyancy_partGear;
+
+  /// No description provided for @buoyancy_partBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Body'**
+  String get buoyancy_partBody;
+
+  /// No description provided for @buoyancy_partLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} {amount}'**
+  String buoyancy_partLabel(String name, String amount);
+
+  /// No description provided for @buoyancy_markerStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get buoyancy_markerStart;
+
+  /// No description provided for @buoyancy_markerDeepest.
+  ///
+  /// In en, this message translates to:
+  /// **'Deepest'**
+  String get buoyancy_markerDeepest;
+
+  /// No description provided for @buoyancy_markerFinalStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Final stop'**
+  String get buoyancy_markerFinalStop;
+
+  /// No description provided for @buoyancy_causeSuit.
+  ///
+  /// In en, this message translates to:
+  /// **'Suit squeeze cost {amount} of lift at {depth}'**
+  String buoyancy_causeSuit(String amount, String depth);
+
+  /// No description provided for @buoyancy_causeGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas breathed left the tanks {amount} lighter'**
+  String buoyancy_causeGas(String amount);
+
+  /// No description provided for @buoyancy_leadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead for next time'**
+  String get buoyancy_leadTitle;
+
+  /// No description provided for @buoyancy_leadCarried.
+  ///
+  /// In en, this message translates to:
+  /// **'You carried'**
+  String get buoyancy_leadCarried;
+
+  /// No description provided for @buoyancy_leadSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Model suggests'**
+  String get buoyancy_leadSuggested;
+
+  /// No description provided for @buoyancy_leadNotRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get buoyancy_leadNotRecorded;
+
+  /// No description provided for @buoyancy_statusWell.
+  ///
+  /// In en, this message translates to:
+  /// **'Well weighted'**
+  String get buoyancy_statusWell;
+
+  /// No description provided for @buoyancy_peakLiftWithin.
+  ///
+  /// In en, this message translates to:
+  /// **'within your wing\'s {amount}'**
+  String buoyancy_peakLiftWithin(String amount);
+
+  /// No description provided for @buoyancy_peakLiftExceeds.
+  ///
+  /// In en, this message translates to:
+  /// **'exceeds your wing\'s {amount}'**
+  String buoyancy_peakLiftExceeds(String amount);
+
+  /// No description provided for @buoyancy_ditchCovered.
+  ///
+  /// In en, this message translates to:
+  /// **'you can ditch {amount}'**
+  String buoyancy_ditchCovered(String amount);
+
+  /// No description provided for @buoyancy_ditchShort.
+  ///
+  /// In en, this message translates to:
+  /// **'you can ditch only {amount}'**
+  String buoyancy_ditchShort(String amount);
 
   /// No description provided for @buoyancy_whatIfTitle.
   ///
@@ -39661,6 +39853,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Card color gradient start'**
   String get settings_conflict_field_cardColorGradientStart;
+
+  /// No description provided for @settings_conflict_field_catalogueId.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in catalogue link'**
+  String get settings_conflict_field_catalogueId;
 
   /// No description provided for @settings_conflict_field_ccrDiluentModPpO2.
   ///
@@ -58226,6 +58424,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No devices matching \"{query}\"'**
   String diveComputer_discovery_usbNoResults(String query);
+
+  /// Model count beside a manufacturer's foldable heading in the USB list of Connect New Computer
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} model} other{{count} models}}'**
+  String diveComputer_discovery_usbModelCount(int count);
 
   /// No description provided for @diveComputer_discovery_usbSearchHint.
   ///
@@ -99748,7 +99952,7 @@ abstract class AppLocalizations {
   /// No description provided for @info_diveLog_buoyancy_howToUse.
   ///
   /// In en, this message translates to:
-  /// **'Adjust opens a sheet that tries a different amount of lead or suit buoyancy against this dive.'**
+  /// **'Move across the chart to see what was pulling you down and holding you up at that moment. Adjust opens a sheet that tries a different amount of lead or suit buoyancy against this dive.'**
   String get info_diveLog_buoyancy_howToUse;
 
   /// No description provided for @info_diveLog_waterConditions_summary.
