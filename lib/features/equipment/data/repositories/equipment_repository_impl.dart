@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/cylinder_volume_repair.dart';
@@ -2102,12 +2101,7 @@ class EquipmentRepository {
         // A cylinder this large was entered on purpose, never typed as water
         // cubic feet: the stamp keeps the v366 repair, which repeats after
         // every sync apply, away from it (issue #4534).
-        valueUnit:
-            a.valueUnit ??
-            (a.key == EquipmentAttrKeys.volumeL &&
-                    (a.valueNum ?? 0) > cylinderVolumeRepairThresholdLiters
-                ? VolumeUnit.liters.name
-                : null),
+        valueUnit: stampedCylinderVolumeUnit(a.key, a.valueNum, a.valueUnit),
       );
     }).toList();
 

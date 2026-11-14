@@ -5,6 +5,7 @@ import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart'
 import 'package:submersion/core/services/export/csv/codec/csv_list_codec.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
 import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/constants/focal_length.dart';
@@ -95,12 +96,14 @@ String formatAttributePair(
   }
   if (unit == AttributeUnit.liters &&
       formatter.settings.volumeUnit != VolumeUnit.liters) {
-    return '$key=${trimFixed(number, 1)} ${VolumeUnit.liters.symbol}';
+    return '$key=${trimFixed(number, UnitFormatter.tankVolumeLiterDecimals(number))} '
+        '${VolumeUnit.liters.symbol}';
   }
   final display = attributeDisplayFromMetric(def.dimension, formatter, number);
   final symbol = attributeUnitSymbol(def.dimension, formatter);
-  // A cylinder's water volume in cuft is a fraction of one; three places
-  // keep it within 0.03 L of the stored litres.
+  // A plain volume in cuft (a lift bag; a cylinder is written as gas
+  // capacity above) can be a fraction of one; three places keep it within
+  // 0.03 L of the stored litres.
   final decimals =
       def.dimension == AttributeDimension.volumeL &&
           symbol == VolumeUnit.cubicFeet.symbol

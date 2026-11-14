@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:submersion/core/constants/enums.dart'
     show EquipmentStatus, EquipmentType;
+import 'package:submersion/core/database/cylinder_volume_repair.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
@@ -38,9 +39,25 @@ class _AttributeListCodec extends ObjectListCodec {
         maxItems: 60,
       );
 
+  /// The list as a save stores it, so a plan compares like with like: a
+  /// large cylinder volume is stamped in litres (issue #4534).
   @override
-  Object parseValue(Object raw) =>
-      jsonEncode(_ordered(ObjectListCodec.items(super.parseValue(raw))));
+  Object parseValue(Object raw) => jsonEncode(
+    _ordered([
+      for (final item in ObjectListCodec.items(super.parseValue(raw)))
+        if (item['is_custom'] == true)
+          item
+        else
+          {
+            ...item,
+            'value_unit': stampedCylinderVolumeUnit(
+              item['key']! as String,
+              (item['value_num'] as num?)?.toDouble(),
+              item['value_unit'] as String?,
+            ),
+          },
+    ]),
+  );
 }
 
 List<Map<String, Object?>> _ordered(List<Map<String, Object?>> items) => [

@@ -390,6 +390,22 @@ void main() {
       expect(attr['value_unit'], 'psi');
     });
 
+    test(
+      'a large cylinder written without a unit plans no change again',
+      () async {
+        final tank = await created({'name': 'Bank', 'type': 'tank'});
+        final write = updateOp('equipment', tank, {
+          'attributes': [
+            {'key': 'volume_l', 'value_num': 100},
+          ],
+        });
+        await h.apply(await h.preview([write]));
+
+        final again = await h.preview([write]);
+        expect(again.unchanged.single.id, tank);
+      },
+    );
+
     test('must be one the field offers', () async {
       final tank = await created({'name': 'AL80', 'type': 'tank'});
       final plan = await h.preview([

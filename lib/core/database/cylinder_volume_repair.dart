@@ -9,6 +9,21 @@ import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 /// near 85 L. Gas banks, typically 50 L, stay below it.
 const double cylinderVolumeRepairThresholdLiters = 80;
 
+/// The unit a save stores with attribute [key]: [valueUnit] as given, or
+/// `liters` for a cylinder volume above the repair line, which a diver
+/// entered on purpose since v366 and [repairCylinderVolumeCubicFeet] must
+/// never touch when it repeats after a sync apply. Every writer of attribute
+/// rows (the repository, the agent's plan) applies it, so they agree.
+String? stampedCylinderVolumeUnit(
+  String key,
+  double? valueNum,
+  String? valueUnit,
+) =>
+    valueUnit ??
+    (key == 'volume_l' && (valueNum ?? 0) > cylinderVolumeRepairThresholdLiters
+        ? VolumeUnit.liters.name
+        : null);
+
 /// Rewrites every cylinder volume an imperial diver typed in cubic feet
 /// before v366, and returns how many it rewrote.
 ///

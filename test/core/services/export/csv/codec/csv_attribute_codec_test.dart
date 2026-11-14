@@ -344,6 +344,13 @@ void main() {
       expect(back.valueNum, closeTo(11.1, 0.03));
     });
 
+    test('a small rebreather bottle keeps both its digits', () {
+      expect(
+        formatAttributePair(_num('o2_cylinder_l', 0.85), imperial),
+        'o2_cylinder=0.85 L',
+      );
+    });
+
     test('a rebreather cylinder is written in litres for any diver', () {
       expect(
         formatAttributePair(_num('diluent_cylinder_l', 3), imperial),
