@@ -20,6 +20,9 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/data/repositories/trip_date_stretch.dart';
 import 'package:submersion/core/text/markdown/notes_markdown.dart';
+import 'package:submersion/features/equipment/data/services/dive_set_bundle_applier.dart';
+import 'package:submersion/features/rules/data/services/rule_set_bundle_changes.dart';
+import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 
 /// Applies one dive action of a logbook rule (#3513) through the bulk edit
 /// primitives, writing only the dives it changes and recording each change.
@@ -39,6 +42,9 @@ class DiveRuleApplier {
   final DiveRoleLinkRepository _roleLinks = DiveRoleLinkRepository();
   final TagRepository _tags = TagRepository();
   final SyncRepository _sync = SyncRepository();
+
+  /// What a set carries besides gear (issue #4525).
+  final DiveSetBundleApplier _bundles = DiveSetBundleApplier();
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -208,7 +214,59 @@ class DiveRuleApplier {
     return AppliedAction([
       for (final id in changed)
         ruleChange(rule, id, gear.name, before[id], after[id]),
+      if (a.mode == MembershipMode.add)
+        ...await _setBundles(rule, targets, setIds),
     ], skippedMissingRef: missing);
+  }
+
+  /// The weights and cylinders [setIds] carry, applied to [diveIds] once
+  /// their gear is on (issue #4525): only where a dive has no weights, and
+  /// never beside or over a tank it already has. Each dive it changes is
+  /// recorded under its own field, so the history shows it and undo can
+  /// take it back.
+  Future<List<RuleChange>> _setBundles(
+    Rule rule,
+    List<String> diveIds,
+    List<String> setIds,
+  ) async {
+    final recorded = RuleSetBundleChanges(_db);
+    final changes = <RuleChange>[];
+    for (final chunk in ruleIdChunks(diveIds)) {
+      final weightsBefore = await recorded.weights(chunk);
+      final tanksBefore = await recorded.tanks(chunk);
+      final filled = <String>[];
+      final merged = <String>[];
+      for (final id in chunk) {
+        final applied = await _bundles.apply(
+          diveId: id,
+          setIds: setIds,
+          notify: false,
+        );
+        if (applied.weights) filled.add(id);
+        if (applied.tanks) merged.add(id);
+      }
+      final weightsAfter = await recorded.weights(filled);
+      final tanksAfter = await recorded.tanks(merged);
+      changes.addAll([
+        for (final id in filled)
+          ruleChange(
+            rule,
+            id,
+            RuleSetBundleChanges.weightsField,
+            weightsBefore[id],
+            weightsAfter[id],
+          ),
+        for (final id in merged)
+          ruleChange(
+            rule,
+            id,
+            RuleSetBundleChanges.tanksField,
+            tanksBefore[id],
+            tanksAfter[id],
+          ),
+      ]);
+    }
+    return changes;
   }
 
   bool _wouldChange(

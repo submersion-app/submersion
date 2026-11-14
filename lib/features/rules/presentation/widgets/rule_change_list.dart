@@ -60,6 +60,41 @@ describeRuleChange(
     );
   }
   if (c.subject == RuleSubject.dives) {
+    // What a set the run added carried besides gear (issue #4525): the
+    // lead as a total, the cylinders as a count.
+    if (c.field == 'weights') {
+      String total(Object? list) {
+        final rows = (list as List?) ?? const [];
+        if (rows.isEmpty) return l.rules_value_empty;
+        final kg = rows.fold<double>(
+          0,
+          (sum, w) => sum + (((w as Map)['kg'] as num?) ?? 0),
+        );
+        return u.formatWeight(kg);
+      }
+
+      return (
+        field: l.rules_change_weights,
+        before: total(c.before),
+        after: total(c.after),
+        appended: null,
+      );
+    }
+    if (c.field == 'tanks') {
+      String count(Object? list) {
+        final rows = (list as List?) ?? const [];
+        return rows.isEmpty
+            ? l.rules_value_empty
+            : l.equipment_sets_cylinderCount(rows.length);
+      }
+
+      return (
+        field: l.rules_change_tanks,
+        before: count(c.before),
+        after: count(c.after),
+        appended: null,
+      );
+    }
     final collection = DiveCollection.values.asNameMap()[c.field];
     if (collection != null) {
       final subject = diveCollectionSubject(collection);

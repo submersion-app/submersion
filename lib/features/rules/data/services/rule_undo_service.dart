@@ -17,6 +17,7 @@ import 'package:submersion/features/rules/data/services/site_rule_applier.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
+import 'package:submersion/features/rules/data/services/rule_set_bundle_changes.dart';
 
 /// What undoing a run did.
 class RuleUndoResult {
@@ -235,6 +236,18 @@ class RuleUndoService {
     if (c.subject == RuleSubject.dives) {
       if (DiveCollection.values.asNameMap()[c.field] case final collection?) {
         return _undoDiveMembership(c, collection);
+      }
+      // What a set added by the run carried besides gear (issue #4525).
+      final bundle = RuleSetBundleChanges(_db);
+      if (c.field == RuleSetBundleChanges.weightsField) {
+        return await bundle.undoWeights(c.targetId, c.before, c.after)
+            ? _Outcome.restored
+            : _Outcome.edited;
+      }
+      if (c.field == RuleSetBundleChanges.tanksField) {
+        return await bundle.undoTanks(c.targetId, c.before, c.after)
+            ? _Outcome.restored
+            : _Outcome.edited;
       }
     } else if (SiteCollection.values.asNameMap()[c.field]
         case final collection?) {
