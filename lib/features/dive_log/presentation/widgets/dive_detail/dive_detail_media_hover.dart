@@ -1,6 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
@@ -17,7 +16,13 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 ///
 /// An item with no place on the profile ([photoMarkerFor]: a document, an
 /// unmatched photo, a capture time far outside the dive) writes nothing, and
-/// neither does a dive with no profile.
+/// neither does a dive with no profile. The leave that follows such an enter
+/// writes nothing either: something else may own the cursor then (profile
+/// playback drives the same one), and it is not this hover's to clear.
+///
+/// The returned handler remembers whether its last enter set the cursor, so
+/// an enter and its leave must go to the same handler; the media section
+/// sees to that.
 ///
 /// It takes the [ProviderContainer], not a `WidgetRef`: a thumbnail removed
 /// while hovered reports its leave after the frame, which can be after the
@@ -29,18 +34,17 @@ void Function(MediaItem? item) mediaHoverCursorHandler(
   ProviderContainer container,
   Dive dive,
 ) {
-  void write(int? index) {
-    final cursor = container.read(
-      profileTrackingIndexProvider(dive.id).notifier,
-    );
-    if (cursor.state != index) cursor.state = index;
-  }
+  // Whether the cursor is where this handler's last enter put it.
+  var setCursor = false;
 
   void onHover(MediaItem? item) {
     if (item == null) {
-      write(null);
+      if (!setCursor) return;
+      setCursor = false;
+      setProfileCursorSecondsIn(container, dive.id, const [], null);
       return;
     }
+    setCursor = false;
     // The series the chart draws, as watchChartProfile resolves it (#543),
     // read now rather than when the handler was made: the diver may have
     // switched source since.
@@ -53,7 +57,13 @@ void Function(MediaItem? item) mediaHoverCursorHandler(
       maxProfileSeconds: profile.last.timestamp,
     );
     if (marker == null) return;
-    write(indexForTimestamp(profile, marker.elapsedSeconds));
+    setProfileCursorSecondsIn(
+      container,
+      dive.id,
+      profile,
+      marker.elapsedSeconds,
+    );
+    setCursor = true;
   }
 
   return (item) {

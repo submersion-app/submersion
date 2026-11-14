@@ -20,8 +20,19 @@ void setProfileCursorSeconds(
   String diveId,
   List<DiveProfilePoint> chartProfile,
   int? seconds,
+) => setProfileCursorSecondsIn(ref.container, diveId, chartProfile, seconds);
+
+/// [setProfileCursorSeconds] for a caller that holds the [ProviderContainer]
+/// rather than a widget's ref, because it can run after that widget is gone.
+void setProfileCursorSecondsIn(
+  ProviderContainer container,
+  String diveId,
+  List<DiveProfilePoint> chartProfile,
+  int? seconds,
 ) {
-  final notifier = ref.read(profileTrackingIndexProvider(diveId).notifier);
+  final notifier = container.read(
+    profileTrackingIndexProvider(diveId).notifier,
+  );
   final index = seconds == null
       ? null
       : indexForTimestamp(chartProfile, seconds);

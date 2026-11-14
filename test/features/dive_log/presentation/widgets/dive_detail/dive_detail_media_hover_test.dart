@@ -85,6 +85,19 @@ void main() {
     expect(cursor(c), 7);
   });
 
+  // Something else may own the cursor (profile playback drives the same
+  // one). Crossing a thumbnail that never set it must not clear it.
+  test('leaving an item that set nothing leaves the cursor as it is', () {
+    final c = container();
+    c.read(profileTrackingIndexProvider(dive.id).notifier).state = 7;
+    final onHover = mediaHoverCursorHandler(c, dive);
+
+    onHover(_photo(dive.id));
+    onHover(null);
+
+    expect(cursor(c), 7);
+  });
+
   test('a dive with no profile does nothing', () {
     final c = container();
     final bare = dive.copyWith(profile: const []);
