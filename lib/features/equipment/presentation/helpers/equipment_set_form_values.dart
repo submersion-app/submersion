@@ -3,6 +3,46 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 
+/// The three ordered lists a set carries besides its gear (issue #4525):
+/// the sets it includes, its weight presets and its cylinder configurations.
+/// Order matters, so a reorder is a change.
+class SetBundleListValues extends Equatable {
+  final List<String> includedSetIds;
+  final List<String> weightPresetIds;
+  final List<String> cylinderConfigIds;
+
+  const SetBundleListValues({
+    this.includedSetIds = const [],
+    this.weightPresetIds = const [],
+    this.cylinderConfigIds = const [],
+  });
+
+  static const empty = SetBundleListValues();
+
+  factory SetBundleListValues.of(EquipmentSet set) => SetBundleListValues(
+    includedSetIds: set.includedSetIds,
+    weightPresetIds: set.weightPresetIds,
+    cylinderConfigIds: set.cylinderConfigIds,
+  );
+
+  SetBundleListValues copyWith({
+    List<String>? includedSetIds,
+    List<String>? weightPresetIds,
+    List<String>? cylinderConfigIds,
+  }) => SetBundleListValues(
+    includedSetIds: includedSetIds ?? this.includedSetIds,
+    weightPresetIds: weightPresetIds ?? this.weightPresetIds,
+    cylinderConfigIds: cylinderConfigIds ?? this.cylinderConfigIds,
+  );
+
+  @override
+  List<Object?> get props => [
+    includedSetIds,
+    weightPresetIds,
+    cylinderConfigIds,
+  ];
+}
+
 /// What the set form would save, compared with what it opened with to tell
 /// whether Back would lose anything (issue #2156). A change put back as it
 /// was is no change.
@@ -18,6 +58,7 @@ class EquipmentSetFormValues extends Equatable {
   final bool autoApplyOnComputerImport;
   final bool showFigure;
   final List<EquipmentSetGeofence> geofences;
+  final SetBundleListValues lists;
 
   const EquipmentSetFormValues({
     required this.name,
@@ -27,6 +68,7 @@ class EquipmentSetFormValues extends Equatable {
     required this.autoApplyOnComputerImport,
     required this.showFigure,
     required this.geofences,
+    this.lists = SetBundleListValues.empty,
   });
 
   /// A new set's form before anything is entered.
@@ -49,6 +91,7 @@ class EquipmentSetFormValues extends Equatable {
     autoApplyOnComputerImport: set.autoApplyOnComputerImport,
     showFigure: set.showFigure,
     geofences: set.geofences,
+    lists: SetBundleListValues.of(set),
   );
 
   /// These values with only the members [keep] accepts, for when the form
@@ -63,6 +106,7 @@ class EquipmentSetFormValues extends Equatable {
         autoApplyOnComputerImport: autoApplyOnComputerImport,
         showFigure: showFigure,
         geofences: geofences,
+        lists: lists,
       );
 
   @override
@@ -77,5 +121,6 @@ class EquipmentSetFormValues extends Equatable {
       for (final g in geofences)
         (g.id, g.label, g.latitude, g.longitude, g.radiusMeters),
     ],
+    lists,
   ];
 }

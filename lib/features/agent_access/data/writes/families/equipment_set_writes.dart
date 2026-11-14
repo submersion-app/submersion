@@ -14,6 +14,7 @@ import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 import 'package:submersion/features/equipment/domain/entities/set_history_rewrite.dart';
+import 'package:submersion/features/equipment/domain/services/set_bundle_resolver.dart';
 
 /// Equipment sets, through the repository the sets page uses: members the
 /// owner can use, one default per diver, the figure, and the places a set
@@ -53,11 +54,25 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
   @override
   final Map<String, RelationSpec> relations = const {
     'equipment_ids': RelationSpec(refEntity: 'equipment'),
+    // What the set applies besides its own gear (issue #4525).
+    'included_set_ids': RelationSpec(refEntity: 'equipment_sets'),
+    'weight_preset_ids': RelationSpec(refEntity: 'weight_presets'),
+    'cylinder_config_ids': RelationSpec(refEntity: 'cylinder_configs'),
   };
 
   @override
-  Future<Set<String>> currentRelation(String id, String relation) async =>
-      (await _r.equipmentSets.getEquipmentIdsInSet(id)).toSet();
+  Future<Set<String>> currentRelation(String id, String relation) async {
+    if (relation == 'equipment_ids') {
+      return (await _r.equipmentSets.getEquipmentIdsInSet(id)).toSet();
+    }
+    final set = await _r.equipmentSets.getSetById(id);
+    return switch (relation) {
+      'included_set_ids' => {...?set?.includedSetIds},
+      'weight_preset_ids' => {...?set?.weightPresetIds},
+      'cylinder_config_ids' => {...?set?.cylinderConfigIds},
+      _ => const {},
+    };
+  }
 
   /// The geofences a read lists only on request, so a plan compares them.
   @override
@@ -105,6 +120,37 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
           BlockReason.invalidValue,
           'equipment_ids: ${out.join(', ')} is not in the kit (retired, sold '
           'or wanted).',
+        );
+      }
+    }
+    final included =
+        check.relations['included_set_ids']?.add ?? const <String>{};
+    if (included.isNotEmpty) {
+      // One level of nesting, as the set editor allows (issue #4525).
+      final all = await _r.equipmentSets.getAllSets();
+      final byId = {for (final s in all) s.id: s};
+      final now = DateTime.now();
+      final outer =
+          byId[check.id] ??
+          EquipmentSet(
+            id: check.id ?? '',
+            diverId: check.ownerId,
+            name: '',
+            createdAt: now,
+            updatedAt: now,
+          );
+      final refused = [
+        for (final id in included)
+          if (byId[id] case final candidate?
+              when !SetBundleResolver.canInclude(outer, candidate, all))
+            id,
+      ];
+      if (refused.isNotEmpty) {
+        return PlanBlock(
+          BlockReason.invalidValue,
+          'included_set_ids: ${refused.join(', ')} cannot be included. A set '
+          'cannot include itself, a set that includes other sets, or '
+          'anything while another set includes it.',
         );
       }
     }
@@ -205,6 +251,19 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
         ));
     final v = update.values;
     final members = update.relations['equipment_ids'];
+    // Each list keeps its order: what is removed leaves, what is added
+    // goes on the end.
+    List<String> listOf(String relation, List<String> stored) {
+      final change = update.relations[relation];
+      return [
+        ...stored.where((e) => !(change?.remove.contains(e) ?? false)),
+        for (final e in change?.add ?? const <String>{})
+          if (!stored.contains(e)) e,
+      ];
+    }
+
+    bool changes(String relation) =>
+        !(update.relations[relation]?.isEmpty ?? true);
     if (v.keys.any(
           const {
             'name',
@@ -212,7 +271,10 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
             'auto_apply_on_computer_import',
           }.contains,
         ) ||
-        (members != null && !members.isEmpty)) {
+        (members != null && !members.isEmpty) ||
+        changes('included_set_ids') ||
+        changes('weight_preset_ids') ||
+        changes('cylinder_config_ids')) {
       final ids = current.equipmentIds.toSet();
       final diff = await sets.updateSet(
         EquipmentSet(
@@ -227,6 +289,12 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
             for (final e in members?.add ?? const <String>{})
               if (!ids.contains(e)) e,
           ],
+          includedSetIds: listOf('included_set_ids', current.includedSetIds),
+          weightPresetIds: listOf('weight_preset_ids', current.weightPresetIds),
+          cylinderConfigIds: listOf(
+            'cylinder_config_ids',
+            current.cylinderConfigIds,
+          ),
           isDefault: current.isDefault,
           autoApplyOnComputerImport:
               v['auto_apply_on_computer_import'] as bool? ??

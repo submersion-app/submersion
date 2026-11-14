@@ -296,4 +296,158 @@ void main() {
 
     expect(plan.items.single.block!.reason, BlockReason.invalidValue);
   });
+
+  group('what a set carries besides gear (issue #4525)', () {
+    Future<List<String>> listOf(String table, String column, String id) async {
+      final rows = await db
+          .customSelect(
+            'SELECT $column AS ref FROM $table WHERE set_id = ? '
+            'ORDER BY sort_order',
+            variables: [Variable.withString(id)],
+          )
+          .get();
+      return [for (final r in rows) r.read<String>('ref')];
+    }
+
+    Map<String, Object?> link(
+      String id,
+      String relation, {
+      List<String> add = const [],
+      List<String> remove = const [],
+    }) => {
+      'op': 'update',
+      'entity': 'equipment_sets',
+      'id': id,
+      'relations': {
+        relation: {'add': add, 'remove': remove},
+      },
+    };
+
+    setUp(() async {
+      for (final id in ['p1', 'p2']) {
+        await db
+            .into(db.weightPresets)
+            .insert(
+              WeightPresetsCompanion.insert(
+                id: id,
+                displayName: id,
+                diverId: const Value(kDiverA),
+                createdAt: t,
+                updatedAt: t,
+              ),
+            );
+      }
+      await db
+          .into(db.cylinderConfigs)
+          .insert(
+            CylinderConfigsCompanion.insert(
+              id: 'c1',
+              name: 'AL80',
+              diverId: const Value(kDiverA),
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+    });
+
+    test('weight presets, configurations and sets are linked and '
+        'unlinked', () async {
+      final rig = await created({'name': 'Rig'});
+      final outer = await created({'name': 'Outer'});
+
+      await h.run([
+        {
+          'op': 'update',
+          'entity': 'equipment_sets',
+          'id': outer,
+          'relations': {
+            'weight_preset_ids': {
+              'add': ['p1', 'p2'],
+            },
+            'cylinder_config_ids': {
+              'add': ['c1'],
+            },
+            'included_set_ids': {
+              'add': [rig],
+            },
+          },
+        },
+      ]);
+      expect(
+        (await listOf(
+          'equipment_set_weight_presets',
+          'preset_id',
+          outer,
+        )).toSet(),
+        {'p1', 'p2'},
+      );
+      expect(
+        await listOf('equipment_set_cylinder_configs', 'config_id', outer),
+        ['c1'],
+      );
+      expect(await listOf('equipment_set_includes', 'included_set_id', outer), [
+        rig,
+      ]);
+      final document = (await h.one('equipment_sets', outer))!;
+      expect(document['included_set_ids'], [rig]);
+      expect(document['cylinder_config_ids'], ['c1']);
+
+      await h.run([
+        link(outer, 'weight_preset_ids', remove: ['p1']),
+      ]);
+      expect(await listOf('equipment_set_weight_presets', 'preset_id', outer), [
+        'p2',
+      ]);
+    });
+
+    test('an unrelated update keeps the lists', () async {
+      final outer = await created({'name': 'Outer'});
+      await h.run([
+        link(outer, 'weight_preset_ids', add: ['p1']),
+      ]);
+      await h.run([
+        {
+          'op': 'update',
+          'entity': 'equipment_sets',
+          'id': outer,
+          'fields': {'name': 'Renamed'},
+          'relations': {
+            'equipment_ids': {
+              'add': ['wing'],
+            },
+          },
+        },
+      ]);
+      expect((await h.one('equipment_sets', outer))!['name'], 'Renamed');
+      expect(await listOf('equipment_set_weight_presets', 'preset_id', outer), [
+        'p1',
+      ]);
+      expect(await memberIds(outer), {'wing'});
+    });
+
+    test('including a set that already includes sets is blocked', () async {
+      final rig = await created({'name': 'Rig'});
+      final outer = await created({'name': 'Outer'});
+      final third = await created({'name': 'Third'});
+      await h.run([
+        link(outer, 'included_set_ids', add: [rig]),
+      ]);
+
+      final nested = await h.preview([
+        link(third, 'included_set_ids', add: [outer]),
+      ]);
+      expect(nested.items.single.block, isNotNull);
+
+      final itself = await h.preview([
+        link(third, 'included_set_ids', add: [third]),
+      ]);
+      expect(itself.items.single.block, isNotNull);
+
+      // Rig is included by Outer, so it cannot gain includes of its own.
+      final inner = await h.preview([
+        link(rig, 'included_set_ids', add: [third]),
+      ]);
+      expect(inner.items.single.block, isNotNull);
+    });
+  });
 }

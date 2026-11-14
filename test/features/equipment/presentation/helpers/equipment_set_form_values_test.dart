@@ -111,4 +111,62 @@ void main() {
   test('blank matches a new form', () {
     expect(EquipmentSetFormValues.blank, values(name: '', ids: const {}));
   });
+
+  group('bundle lists (issue #4525)', () {
+    EquipmentSetFormValues withLists(SetBundleListValues lists) =>
+        EquipmentSetFormValues(
+          name: 'Cold Water',
+          description: '',
+          equipmentIds: const {'a'},
+          isDefault: false,
+          autoApplyOnComputerImport: false,
+          showFigure: true,
+          geofences: const [],
+          lists: lists,
+        );
+
+    test('a list change is a change', () {
+      expect(
+        withLists(const SetBundleListValues(weightPresetIds: ['p1'])),
+        isNot(withLists(SetBundleListValues.empty)),
+      );
+      expect(
+        withLists(const SetBundleListValues(includedSetIds: ['s'])),
+        isNot(withLists(SetBundleListValues.empty)),
+      );
+      expect(
+        withLists(const SetBundleListValues(cylinderConfigIds: ['c'])),
+        isNot(withLists(SetBundleListValues.empty)),
+      );
+    });
+
+    test('a reorder is a change', () {
+      expect(
+        withLists(const SetBundleListValues(weightPresetIds: ['p1', 'p2'])),
+        isNot(
+          withLists(const SetBundleListValues(weightPresetIds: ['p2', 'p1'])),
+        ),
+      );
+    });
+
+    test('the form opens with the set\'s lists and keeps them when gear '
+        'is pruned', () {
+      final opened = EquipmentSetFormValues.of(
+        EquipmentSet(
+          id: 's1',
+          name: 'Cold Water',
+          equipmentIds: const ['a', 'b'],
+          includedSetIds: const ['rig'],
+          weightPresetIds: const ['p1'],
+          cylinderConfigIds: const ['c1'],
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      expect(opened.lists.includedSetIds, ['rig']);
+      expect(opened.lists.weightPresetIds, ['p1']);
+      expect(opened.lists.cylinderConfigIds, ['c1']);
+      expect(opened.retainingEquipment((id) => id == 'a').lists, opened.lists);
+    });
+  });
 }
