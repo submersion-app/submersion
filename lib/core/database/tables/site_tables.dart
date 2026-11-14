@@ -41,6 +41,11 @@ class DiveSites extends Table {
   /// The id of the built-in catalogue record this site was adopted from
   /// (v363). Null for a site the diver made by hand.
   TextColumn get catalogueId => text().nullable()();
+
+  /// What the diver has settled about catalogue records for this site
+  /// (v365), as JSON: records it also stands for, records that are a
+  /// different place, and details turned down. Null when there is nothing.
+  TextColumn get catalogueAnswers => text().nullable()();
   TextColumn get region => text().nullable()();
   RealColumn get rating => real().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();

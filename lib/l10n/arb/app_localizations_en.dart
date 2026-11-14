@@ -24923,6 +24923,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_catalogueId => 'Built-in catalogue link';
 
   @override
+  String get settings_conflict_field_catalogueAnswers =>
+      'Built-in catalogue answers';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'CCR diluent MOD ppO2';
 

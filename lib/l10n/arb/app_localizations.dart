@@ -39902,6 +39902,12 @@ abstract class AppLocalizations {
   /// **'Built-in catalogue link'**
   String get settings_conflict_field_catalogueId;
 
+  /// No description provided for @settings_conflict_field_catalogueAnswers.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in catalogue answers'**
+  String get settings_conflict_field_catalogueAnswers;
+
   /// No description provided for @settings_conflict_field_ccrDiluentModPpO2.
   ///
   /// In en, this message translates to:

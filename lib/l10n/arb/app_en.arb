@@ -15619,6 +15619,7 @@
   "settings_conflict_field_cardColorGradientPreset": "Card color gradient",
   "settings_conflict_field_cardColorGradientStart": "Card color gradient start",
   "settings_conflict_field_catalogueId": "Built-in catalogue link",
+  "settings_conflict_field_catalogueAnswers": "Built-in catalogue answers",
   "settings_conflict_field_ccrDiluentModPpO2": "CCR diluent MOD ppO2",
   "settings_conflict_field_ccrSetpointHigh": "CCR high setpoint",
   "settings_conflict_field_ccrSetpointLow": "CCR low setpoint",

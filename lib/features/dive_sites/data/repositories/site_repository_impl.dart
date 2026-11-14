@@ -229,6 +229,7 @@ class SiteRepository {
                 isShared: Value(site.isShared),
                 sharedLibraryId: Value(site.sharedLibraryId),
                 catalogueId: Value(site.catalogueId),
+                catalogueAnswers: Value(site.catalogueAnswers.encode()),
                 createdAt: Value(now),
                 updatedAt: Value(now),
               ),
@@ -351,10 +352,10 @@ class SiteRepository {
         entryMethod: Value(encodeEntryMethods(site.entryMethods)),
         exitMethod: Value(encodeEntryMethods(site.exitMethods)),
         isShared: Value(site.isShared),
-        // catalogueId is deliberately not written here, like
-        // sharedLibraryId: the site edit page saves an entity built fresh
-        // from its form, so writing the link would erase it on every edit.
-        // It is set by createSite and carried by a merge.
+        // catalogueId and catalogueAnswers are deliberately not written
+        // here, like sharedLibraryId: the site edit page saves an entity
+        // built fresh from its form, so writing them would erase both on
+        // every edit. They are set by createSite and carried by a merge.
         updatedAt: Value(now),
       );
       if (metadataPatch != null) {
@@ -373,6 +374,12 @@ class SiteRepository {
         if (metadataPatch.catalogueId.present) {
           companion = companion.copyWith(
             catalogueId: metadataPatch.catalogueId,
+          );
+        }
+        // The diver's answers about catalogue records come the same way.
+        if (metadataPatch.catalogueAnswers.present) {
+          companion = companion.copyWith(
+            catalogueAnswers: metadataPatch.catalogueAnswers,
           );
         }
       }
@@ -1293,6 +1300,7 @@ class SiteRepository {
                   exitMethod: Value(encodeEntryMethods(site.exitMethods)),
                   isShared: Value(site.isShared),
                   catalogueId: Value(site.catalogueId),
+                  catalogueAnswers: Value(site.catalogueAnswers.encode()),
                   createdAt: Value(ts?.createdAt ?? now),
                   updatedAt: Value(ts?.updatedAt ?? now),
                 ),
@@ -1745,6 +1753,7 @@ class SiteRepository {
         isShared: Value(site.isShared),
         sharedLibraryId: Value(site.sharedLibraryId),
         catalogueId: Value(site.catalogueId),
+        catalogueAnswers: Value(site.catalogueAnswers.encode()),
         updatedAt: Value(now),
       ),
     );

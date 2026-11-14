@@ -25275,6 +25275,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Verknüpfung mit integriertem Katalog';
 
   @override
+  String get settings_conflict_field_catalogueAnswers =>
+      'Antworten zum integrierten Katalog';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'CCR-Diluent-MOD-ppO2';
 

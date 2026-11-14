@@ -25230,6 +25230,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Beépített katalógus hivatkozása';
 
   @override
+  String get settings_conflict_field_catalogueAnswers =>
+      'Válaszok a beépített katalógusról';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'CCR-diluens MOD ppO2-je';
 

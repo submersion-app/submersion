@@ -24731,6 +24731,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_catalogueId => 'קישור לקטלוג המובנה';
 
   @override
+  String get settings_conflict_field_catalogueAnswers =>
+      'תשובות לגבי הקטלוג המובנה';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'ppO2 של MOD המדלל ב-CCR';
 

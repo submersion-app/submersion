@@ -556,6 +556,10 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'equipment_id': 'the item an equipment incident attributes to',
     'observation_id': 'the gear check-in that recorded the fault behind this report',
   },
+  'library_site_notes': {
+    'catalogue_answers': 'What this profile has settled about catalogue records for the library site, as JSON, in the form of dive_sites.catalogue_answers',
+    'catalogue_id': 'The built-in catalogue record this profile linked the library site to',
+  },
   'media': {
     'cloud_asset_id': 'PhotoKit\'s cloud identifier for a gallery link (media sync program spec 6.2), which names the same photo on every device sharing an iCloud Photos library',
     'color_adjustment': 'the diver\'s hand colour adjustment for this photo or video, as ColorAdjustment JSON',

@@ -86,5 +86,9 @@ extension BeforeOpenChildColumns on AppDatabase {
     // diver_weight_entries.body_fat_percent (issue #4525). Every diver and
     // weight-entry read selects the whole row.
     await _assertBodyCompositionColumns();
+
+    // v365: dive_sites.catalogue_answers and the catalogue columns of
+    // library_site_notes. Every read of either table selects the whole row.
+    await _assertSiteCatalogueAnswersColumns();
   }
 }

@@ -25671,6 +25671,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_catalogueId => 'رابط الكتالوج المدمج';
 
   @override
+  String get settings_conflict_field_catalogueAnswers =>
+      'إجابات الكتالوج المدمج';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'ppO2 لأقصى عمق تشغيل لمخفف CCR';
 

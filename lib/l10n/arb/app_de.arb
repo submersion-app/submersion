@@ -7612,6 +7612,7 @@
   "settings_conflict_field_cardColorGradientPreset": "Kartenfarbverlauf",
   "settings_conflict_field_cardColorGradientStart": "Anfang des Kartenfarbverlaufs",
   "settings_conflict_field_catalogueId": "Verknüpfung mit integriertem Katalog",
+  "settings_conflict_field_catalogueAnswers": "Antworten zum integrierten Katalog",
   "settings_conflict_field_ccrDiluentModPpO2": "CCR-Diluent-MOD-ppO2",
   "settings_conflict_field_ccrSetpointHigh": "Hoher CCR-Setpoint",
   "settings_conflict_field_ccrSetpointLow": "Niedriger CCR-Setpoint",

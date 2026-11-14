@@ -25154,6 +25154,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Koppeling met ingebouwde catalogus';
 
   @override
+  String get settings_conflict_field_catalogueAnswers =>
+      'Antwoorden over ingebouwde catalogus';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'ppO2 voor de MOD van het CCR-diluent';
 

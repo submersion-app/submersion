@@ -191,5 +191,13 @@ extension RungsFromV340 on AppDatabase {
     if (from < 364) await _assertSetBundleTables();
     if (from < 364) await _assertBodyCompositionColumns();
     if (from < 364) await reportProgress();
+
+    // v365: dive_sites.catalogue_answers, what a diver has settled about
+    // built-in catalogue records for a site, and the link and answers a
+    // profile keeps for a shared library site in library_site_notes.
+    // Nullable, with nothing to backfill, so the floor does not move. The
+    // columns are re-asserted in beforeOpen.
+    if (from < 365) await _assertSiteCatalogueAnswersColumns();
+    if (from < 365) await reportProgress();
   }
 }

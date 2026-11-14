@@ -93,6 +93,11 @@ final Map<String, ConflictField> siteTripFields = {
     (l) => l.settings_conflict_field_catalogueId,
     FieldKind.shortText,
   ),
+  // What a diver settled about catalogue records for a site.
+  'catalogueAnswers': ConflictField(
+    (l) => l.settings_conflict_field_catalogueAnswers,
+    FieldKind.shortText,
+  ),
   // A site's ISO country code (issue #4426).
   'countryCode': ConflictField(
     (l) => l.settings_conflict_field_countryCode,

@@ -25309,6 +25309,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Enlace al catálogo integrado';
 
   @override
+  String get settings_conflict_field_catalogueAnswers =>
+      'Respuestas sobre el catálogo integrado';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'ppO2 de MOD del diluyente CCR';
 
