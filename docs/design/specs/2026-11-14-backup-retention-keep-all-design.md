@@ -109,12 +109,12 @@ All new strings are added to every ARB file.
 
 - A `SwitchListTile` "Keep this backup" with subtitle "Pinned backups are
   never removed automatically", under the note field, off by default.
-- `BackupNoteResult` gains `pin`. The caller pins the new record through the
-  same path the history tile's pin button uses, so a cloud copy gets its pin
-  marker (#3503).
-- The pin is applied after the backup is made; the prune that runs inside
-  `performBackup` only removes records past the count, and the newest record
-  is never past it, so the new backup cannot be pruned before it is pinned.
+- `BackupNoteResult` gains `pin`, passed through
+  `BackupOperationNotifier.performBackup` to `BackupService.performBackup`.
+  The service creates the record already pinned and writes its cloud pin
+  marker (#3503) right after recording it, so no prune, the backup's own
+  included, ever sees it unpinned and there is no separate pin step to fail.
+  An automatic backup ignores `pin`.
 
 ## Left to the builder
 

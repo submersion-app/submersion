@@ -240,9 +240,13 @@ class BackupService {
   /// [note] is the diver's optional description: it is stamped into the file
   /// and kept on the record. An automatic backup never carries one, so it is
   /// ignored when [isAutomatic] is set.
+  ///
+  /// [pin] records the backup pinned from the start, so no prune, this one's
+  /// included, can remove it (issue #4535). Ignored for an automatic backup.
   Future<BackupRecord> performBackup({
     bool isAutomatic = false,
     String? note,
+    bool pin = false,
   }) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.backup);
     _log.info('Starting backup (automatic: $isAutomatic)');
@@ -261,6 +265,7 @@ class BackupService {
         lease.target,
         isAutomatic: isAutomatic,
         note: isAutomatic ? null : normalizeBackupNote(note),
+        pin: pin && !isAutomatic,
         toChosenFolder: toChosenFolder,
       );
     } finally {
@@ -273,6 +278,7 @@ class BackupService {
     required bool isAutomatic,
     required bool toChosenFolder,
     String? note,
+    bool pin = false,
   }) async {
     final filename = await _generateFilename();
     final encKey = await _activeBackupKey();
@@ -382,12 +388,16 @@ class BackupService {
       cloudAccountId: cloudFileId == null ? null : uploadAccountId,
       localPath: ref,
       isAutomatic: isAutomatic,
+      pinned: pin,
       note: note,
       extraCloudCopies: extras.copies,
     );
 
     // Persist record and update last backup time
     await _preferences.addRecord(record);
+    // Other devices see a pin only through its marker (issue #3503). Never
+    // throws; reconciliation repairs a marker that did not land.
+    if (pin) await _writePinMarker(record);
     await _preferences.setLastBackupTime(record.timestamp);
     // Settings > Data health: a cloud copy the diver asked for and did not
     // get. Every backup overwrites it, so one that uploads clears it.

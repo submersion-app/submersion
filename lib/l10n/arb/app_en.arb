@@ -32691,8 +32691,6 @@
     "description": "Title of the system save dialog for the cylinder fills CSV"
   },
   "backup_operation_created": "Backup created: {size}",
-  "backup_operation_createdNotPinned": "Backup created: {size}. It could not be pinned, so pin it from the history.",
-  "@backup_operation_createdNotPinned": {"description": "Shown when the backup was made but pinning it failed", "placeholders": {"size": {"type": "String"}}},
   "backup_operation_createdLocalOnlyLocked": "Backup created: {size}. It was saved on this device only: enter your encryption passphrase to upload backups to the cloud.",
   "backup_operation_backupFailed": "Backup failed: {error}",
   "backup_operation_restoring": "Restoring backup...",

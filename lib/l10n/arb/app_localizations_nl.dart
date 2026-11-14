@@ -54516,11 +54516,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String backup_operation_createdNotPinned(String size) {
-    return 'Back-up gemaakt: $size. Vastmaken is niet gelukt; maak hem vast vanuit de geschiedenis.';
-  }
-
-  @override
   String backup_operation_createdLocalOnlyLocked(String size) {
     return 'Back-up gemaakt: $size. Deze is alleen op dit apparaat opgeslagen: voer je wachtwoordzin voor versleuteling in om back-ups naar de cloud te uploaden.';
   }

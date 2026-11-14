@@ -28,7 +28,7 @@ record through `BackupService.pinBackup`.
 - Custom input of empty, `0`, `10000`, or letters is rejected with Save disabled; `0365` saves 365 (Task 2).
 - A custom count equal to a list value (e.g. 20) checks the list row, not the Custom row (Task 2).
 - Switching from Keep all to 30 with "Count backups from all devices" on is treated as lowering (Task 3).
-- A pin failure after a successful backup still reports the backup as created (Task 5).
+- A backup kept with "Keep this backup" survives later prunes even at a count of 1 (Task 5).
 
 ---
 
@@ -111,16 +111,16 @@ Strings (en): `settings_setUpDevice_backups_autoDetailKeepAll` "{frequency}. Eve
 - Modify: all ARB files
 
 **Interfaces:**
-- Produces: `BackupNoteResult(String? note, {bool pin = false})` with `final bool pin`; `BackupOperationNotifier.performBackup({String? note, bool pin = false})`.
-- Consumes: `BackupService.pinBackup(String id)`.
+- Produces: `BackupNoteResult(String? note, {bool pin = false})` with `final bool pin`; `BackupOperationNotifier.performBackup({String? note, bool pin = false})`; `BackupService.performBackup({bool isAutomatic, String? note, bool pin = false})`, which records the backup pinned and writes its pin marker (code review round 2 moved the pin here from a second step).
 
-Strings (en): `backup_note_keep_title` "Keep this backup"; `backup_note_keep_subtitle` "Pinned backups are never removed automatically"; `backup_operation_createdNotPinned` "Backup created: {size}. It could not be pinned, so pin it from the history."
+Strings (en): `backup_note_keep_title` "Keep this backup"; `backup_note_keep_subtitle` "Pinned backups are never removed automatically".
 
 - [ ] **Step 1: Failing tests**:
   - dialog: the switch is off by default; Back Up returns `pin == false`; toggled on, returns `pin == true` with the note;
-  - notifier: `performBackup(pin: true)` calls `pinBackup('r1')` once; `pin: false` never calls it; a `pinBackup` that throws leaves status success with the createdNotPinned message; a failed backup never calls `pinBackup`.
+  - notifier: `performBackup(pin: true)` hands `pin` to the service;
+  - service: `performBackup(pin: true)` records the backup pinned; an automatic backup is never pinned; a pinned backup outlives later prunes at a count of 1.
 - [ ] **Step 2: Run**, expect FAIL.
-- [ ] **Step 3: Implement**: a `SwitchListTile` under the note field in a `Column(mainAxisSize: min)`; the notifier pins after `_service.performBackup` returns, inside its own try so a pin error only changes the message; `BackupNowTile` passes `pin: result.pin`.
+- [ ] **Step 3: Implement**: a `SwitchListTile` under the note field in a `Column(mainAxisSize: min)`; the service sets `pinned` on the new record and calls `_writePinMarker` after `addRecord`; `BackupNowTile` passes `pin: result.pin`.
 - [ ] **Step 4: Run**, expect PASS.
 
 ### Task 6: Checks and commit

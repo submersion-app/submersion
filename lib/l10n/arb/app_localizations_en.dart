@@ -54007,11 +54007,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String backup_operation_createdNotPinned(String size) {
-    return 'Backup created: $size. It could not be pinned, so pin it from the history.';
-  }
-
-  @override
   String backup_operation_createdLocalOnlyLocked(String size) {
     return 'Backup created: $size. It was saved on this device only: enter your encryption passphrase to upload backups to the cloud.';
   }

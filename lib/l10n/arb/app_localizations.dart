@@ -86227,12 +86227,6 @@ abstract class AppLocalizations {
   /// **'Backup created: {size}'**
   String backup_operation_created(String size);
 
-  /// Shown when the backup was made but pinning it failed
-  ///
-  /// In en, this message translates to:
-  /// **'Backup created: {size}. It could not be pinned, so pin it from the history.'**
-  String backup_operation_createdNotPinned(String size);
-
   /// No description provided for @backup_operation_createdLocalOnlyLocked.
   ///
   /// In en, this message translates to:

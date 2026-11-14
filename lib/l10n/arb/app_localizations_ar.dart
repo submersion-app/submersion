@@ -55647,11 +55647,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String backup_operation_createdNotPinned(String size) {
-    return 'تم إنشاء نسخة احتياطية: $size. تعذر تثبيتها، لذا ثبّتها من السجل.';
-  }
-
-  @override
   String backup_operation_createdLocalOnlyLocked(String size) {
     return 'تم إنشاء نسخة احتياطية: $size. حُفظت على هذا الجهاز فقط: أدخل عبارة مرور التشفير لرفع النسخ الاحتياطية إلى السحابة.';
   }

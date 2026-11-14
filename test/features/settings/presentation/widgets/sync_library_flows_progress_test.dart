@@ -58,6 +58,7 @@ class _FakeBackupService extends BackupService {
   Future<BackupRecord> performBackup({
     bool isAutomatic = false,
     String? note,
+    bool pin = false,
   }) async {
     performBackupCalls++;
     await gate?.future;

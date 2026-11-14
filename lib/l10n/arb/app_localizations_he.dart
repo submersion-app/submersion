@@ -53707,11 +53707,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String backup_operation_createdNotPinned(String size) {
-    return 'נוצר גיבוי: $size. לא ניתן היה להצמיד אותו, לכן הצמד אותו מההיסטוריה.';
-  }
-
-  @override
   String backup_operation_createdLocalOnlyLocked(String size) {
     return 'נוצר גיבוי: $size. הוא נשמר במכשיר זה בלבד: יש להזין את משפט הסיסמה של ההצפנה כדי להעלות גיבויים לענן.';
   }

@@ -43,8 +43,7 @@ class _FakeBackupService extends BackupService {
   BackupLocation location = BackupLocation.local;
   String? lastNote;
   bool failBackup = false;
-  bool failPin = false;
-  final pinned = <String>[];
+  bool? lastPin;
 
   final BackupPreferences _prefs;
 
@@ -60,8 +59,10 @@ class _FakeBackupService extends BackupService {
   Future<BackupRecord> performBackup({
     bool isAutomatic = false,
     String? note,
+    bool pin = false,
   }) async {
     lastNote = note;
+    lastPin = pin;
     if (failBackup) throw StateError('disk full');
     return BackupRecord(
       id: 'r1',
@@ -73,12 +74,6 @@ class _FakeBackupService extends BackupService {
       siteCount: 0,
       type: BackupType.manual,
     );
-  }
-
-  @override
-  Future<void> pinBackup(String id) async {
-    if (failPin) throw StateError('prefs unavailable');
-    pinned.add(id);
   }
 
   @override
@@ -128,12 +123,12 @@ void main() {
   });
 
   group('Keep this backup (issue #4535)', () {
-    test('pins the new backup when asked', () async {
+    test('hands the pin to the service', () async {
       final container = makeContainer();
       await container
           .read(backupOperationProvider.notifier)
           .performBackup(pin: true);
-      expect(service.pinned, ['r1']);
+      expect(service.lastPin, isTrue);
       expect(
         container.read(backupOperationProvider).message,
         l10n.backup_operation_created('2.0 KB'),
@@ -143,22 +138,10 @@ void main() {
     test('pins nothing by default', () async {
       final container = makeContainer();
       await container.read(backupOperationProvider.notifier).performBackup();
-      expect(service.pinned, isEmpty);
+      expect(service.lastPin, isFalse);
     });
 
-    test('a failed pin still reports the backup as made', () async {
-      service.failPin = true;
-      final container = makeContainer();
-      await container
-          .read(backupOperationProvider.notifier)
-          .performBackup(pin: true);
-      final state = container.read(backupOperationProvider);
-      expect(state.status, BackupOperationStatus.success);
-      expect(state.lastRecord?.id, 'r1');
-      expect(state.message, l10n.backup_operation_createdNotPinned('2.0 KB'));
-    });
-
-    test('a failed backup pins nothing', () async {
+    test('a failed backup is reported as failed', () async {
       service.failBackup = true;
       final container = makeContainer();
       await container
@@ -168,7 +151,6 @@ void main() {
         container.read(backupOperationProvider).status,
         BackupOperationStatus.error,
       );
-      expect(service.pinned, isEmpty);
     });
   });
 

@@ -54988,11 +54988,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String backup_operation_createdNotPinned(String size) {
-    return 'Sauvegarde créée : $size. Elle n\'a pas pu être épinglée ; épinglez-la depuis l\'historique.';
-  }
-
-  @override
   String backup_operation_createdLocalOnlyLocked(String size) {
     return 'Sauvegarde créée : $size. Elle a été enregistrée uniquement sur cet appareil : saisissez votre phrase secrète de chiffrement pour envoyer les sauvegardes dans le cloud.';
   }

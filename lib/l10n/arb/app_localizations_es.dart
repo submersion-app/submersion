@@ -54910,11 +54910,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String backup_operation_createdNotPinned(String size) {
-    return 'Copia de seguridad creada: $size. No se pudo anclar; ánclala desde el historial.';
-  }
-
-  @override
   String backup_operation_createdLocalOnlyLocked(String size) {
     return 'Copia de seguridad creada: $size. Solo se guardó en este dispositivo: introduce tu frase de acceso de cifrado para subir las copias de seguridad a la nube.';
   }

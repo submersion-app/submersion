@@ -550,6 +550,53 @@ void main() {
       });
     });
 
+    group('Keep this backup (issue #4535)', () {
+      test('a pinned backup is recorded pinned', () async {
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+        final record = await service.performBackup(pin: true);
+        expect(record.pinned, isTrue);
+        expect(preferences.getHistory().single.pinned, isTrue);
+      });
+
+      test('a backup is unpinned by default', () async {
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+        final record = await service.performBackup();
+        expect(record.pinned, isFalse);
+      });
+
+      test('an automatic backup is never pinned', () async {
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+        final record = await service.performBackup(
+          isAutomatic: true,
+          pin: true,
+        );
+        expect(record.pinned, isFalse);
+      });
+
+      test('a pinned backup outlives the prunes of later backups', () async {
+        await preferences.setRetentionCount(1);
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+        final kept = await service.performBackup(pin: true);
+        await service.performBackup(isAutomatic: true);
+        await service.performBackup(isAutomatic: true);
+        final ids = preferences.getHistory().map((r) => r.id);
+        expect(ids, contains(kept.id));
+        expect(ids, hasLength(2));
+      });
+    });
+
     group('restore re-baselines sync', () {
       test('restoreFromFile replaces the DB and re-baselines sync, preserving '
           'the live device id', () async {

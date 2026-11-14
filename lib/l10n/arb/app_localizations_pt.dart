@@ -54850,11 +54850,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String backup_operation_createdNotPinned(String size) {
-    return 'Backup criado: $size. Não foi possível fixá-lo; fixe-o a partir do histórico.';
-  }
-
-  @override
   String backup_operation_createdLocalOnlyLocked(String size) {
     return 'Backup criado: $size. Foi guardado apenas neste dispositivo: digite sua frase-senha de criptografia para enviar os backups para a nuvem.';
   }

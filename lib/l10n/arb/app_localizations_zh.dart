@@ -51446,11 +51446,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String backup_operation_createdNotPinned(String size) {
-    return '已创建备份：$size。无法置顶，请在历史记录中置顶。';
-  }
-
-  @override
   String backup_operation_createdLocalOnlyLocked(String size) {
     return '已创建备份：$size。备份仅保存在此设备上：请输入加密口令，以便将备份上传到云端。';
   }
