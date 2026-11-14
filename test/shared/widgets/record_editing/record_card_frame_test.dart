@@ -148,6 +148,34 @@ void main() {
     expect(_ReadBody.created, 1);
   });
 
+  // The header's own right edge is where the pencil and Done belong, with
+  // whatever the card shows while reading just before the pencil.
+  testWidgets('the pencil sits at the right edge, after the trailing', (
+    tester,
+  ) async {
+    final controller = _controller()..unlock(const _Rec());
+    await tester.pumpWidget(_host(controller));
+
+    final header = tester.getRect(find.byType(RecordCardHeader));
+    final pencil = tester.getRect(find.byIcon(Icons.edit_outlined));
+    final trailing = tester.getRect(find.text('3 tags'));
+    expect(pencil.right, header.right);
+    expect(trailing.right, lessThan(pencil.left));
+    expect(pencil.left - trailing.right, lessThan(16));
+    expect(tester.getRect(find.text('Notes')).left, header.left);
+  });
+
+  testWidgets('Done sits at the right edge of an open card', (tester) async {
+    final controller = _controller()
+      ..unlock(const _Rec())
+      ..openCard('notes');
+    await tester.pumpWidget(_host(controller));
+
+    final header = tester.getRect(find.byType(RecordCardHeader));
+    final done = tester.getRect(find.widgetWithText(TextButton, 'Done'));
+    expect(done.right, header.right);
+  });
+
   testWidgets('tapping the header opens the editor in place', (tester) async {
     final controller = _controller()..unlock(const _Rec());
     await tester.pumpWidget(_host(controller));

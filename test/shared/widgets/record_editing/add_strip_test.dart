@@ -46,6 +46,18 @@ void main() {
     );
   });
 
+  testWidgets('spans the page and starts at its left edge', (tester) async {
+    await tester.pumpWidget(
+      _host(const [AddStripEntry(cardId: 'tags', label: 'Tags')]),
+    );
+
+    final strip = tester.getRect(find.byType(AddStrip));
+    final page = tester.getRect(find.byType(Scaffold));
+    expect(strip.left, page.left);
+    expect(strip.width, page.width);
+    expect(tester.getTopLeft(find.text('Add')).dx, lessThan(32));
+  });
+
   testWidgets('a tap reports the card id', (tester) async {
     final added = <String>[];
     await tester.pumpWidget(

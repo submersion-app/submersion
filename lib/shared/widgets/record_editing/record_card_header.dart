@@ -75,23 +75,30 @@ class RecordCardHeader extends StatelessWidget {
     }
 
     final l10n = context.l10n;
+    // The title and its dot take all the room the row has left, so what
+    // follows them sits at the row's right edge.
     final leading = <Widget>[
-      Flexible(child: titleText),
-      if (frame.isChanged) ...[
-        const SizedBox(width: 8),
-        Semantics(
-          label: l10n.recordEdit_unsavedChanges,
-          child: Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: StatusColors.of(context).warn.accent,
-              shape: BoxShape.circle,
-            ),
-          ),
+      Expanded(
+        child: Row(
+          children: [
+            Flexible(child: titleText),
+            if (frame.isChanged) ...[
+              const SizedBox(width: 8),
+              Semantics(
+                label: l10n.recordEdit_unsavedChanges,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: StatusColors.of(context).warn.accent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
-      ],
-      const Spacer(),
+      ),
     ];
 
     if (frame.isOpen) {

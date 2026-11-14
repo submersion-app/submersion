@@ -45,6 +45,10 @@ class RecordEditBar extends StatelessWidget implements PreferredSizeWidget {
         scheme.primary.withValues(alpha: 0.14),
         scheme.surface,
       ),
+      // The bar brings its own pale background, so it brings the foreground
+      // that reads on it. A theme's app bar foreground is chosen for that
+      // theme's app bar colour, which on several presets is light on dark.
+      foregroundColor: scheme.onSurface,
       shape: Border(bottom: BorderSide(color: scheme.primary, width: 2)),
       // Cancel sits in the title row, not in `leading`, so a long
       // translation takes the width it needs instead of a fixed slot.

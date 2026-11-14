@@ -45,22 +45,27 @@ class AddStrip extends StatelessWidget {
         color: scheme.surface,
         border: Border(bottom: BorderSide(color: scheme.outlineVariant)),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Row(
-          children: [
-            Text(
-              context.l10n.common_action_add,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
+      // Full width, so the strip and its rule span the page and the chips
+      // start at its left edge whatever the parent's alignment.
+      child: SizedBox(
+        width: double.infinity,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Row(
+            children: [
+              Text(
+                context.l10n.common_action_add,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
-            ),
-            for (final entry in entries) ...[
-              const SizedBox(width: 8),
-              _AddChip(entry: entry, onAdd: onAdd),
+              for (final entry in entries) ...[
+                const SizedBox(width: 8),
+                _AddChip(entry: entry, onAdd: onAdd),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

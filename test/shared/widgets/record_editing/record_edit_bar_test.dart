@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/core/theme/contrast_ratio.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
@@ -120,5 +123,30 @@ void main() {
       expect(bar.backgroundColor!.a, 1.0);
       expect(bar.backgroundColor, isNot(theme.colorScheme.surface));
     });
+  }
+
+  // Several presets give the app bar a coloured background with a light
+  // foreground. This bar brings its own pale background, so it must bring
+  // a foreground that reads on it too (#736, #1231).
+  for (final preset in AppThemeRegistry.presets) {
+    for (final theme in [preset.lightTheme, preset.darkTheme]) {
+      testWidgets('the bar text reads on its background '
+          '(${preset.id}, ${theme.brightness.name})', (tester) async {
+        await tester.pumpWidget(_host(theme: theme));
+
+        final background = tester
+            .widget<AppBar>(find.byType(AppBar))
+            .backgroundColor!;
+        for (final label in ['Editing dive 214', 'Cancel', 'Save']) {
+          final text = tester.renderObject<RenderParagraph>(find.text(label));
+          final color = text.text.style!.color!;
+          expect(
+            contrastRatio(color, background),
+            greaterThanOrEqualTo(4.5),
+            reason: '$label on the bar',
+          );
+        }
+      });
+    }
   }
 }
