@@ -45,7 +45,9 @@ void main() {
     expect(find.byType(InfoButton), findsWidgets);
   });
 
-  testWidgets('renders master toggle on and seven rule switches', (tester) async {
+  testWidgets('renders master toggle on and seven rule switches', (
+    tester,
+  ) async {
     await tester.binding.setSurfaceSize(const Size(400, 1600));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 

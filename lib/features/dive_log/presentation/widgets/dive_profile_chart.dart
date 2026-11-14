@@ -1006,6 +1006,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showLateGasSwitches = true;
   bool _showCounterdiffusion = false;
   bool _counterdiffusionShowAll = false;
+  bool _icdWarningsEnabled = true;
   bool _showCns = false;
   bool _showOtu = false;
 
@@ -3109,6 +3110,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final profileMetricColors = ref.watch(
       settingsProvider.select((s) => s.profileMetricColors),
     );
+    // The ICD warnings setting is the master switch for the rule-of-fifths
+    // switch markers, as it is for the ICD calculator (#4530).
+    _icdWarningsEnabled = ref.watch(
+      settingsProvider.select((s) => s.icdWarningsEnabled),
+    );
     _palette = ProfileMetricPalette(
       overrides: profileMetricColors,
       temperatureAuto: Theme.of(context).colorScheme.tertiary,
@@ -4709,7 +4715,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   highlightSpan,
                   widget.highlightRange?.color,
                 ),
-                if (_showCounterdiffusion)
+                if (_showCounterdiffusion && _icdWarningsEnabled)
                   ...icdSwitchMarkerLines(
                     widget.counterdiffusion,
                     scheme: colorScheme,
