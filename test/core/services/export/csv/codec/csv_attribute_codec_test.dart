@@ -344,6 +344,21 @@ void main() {
       expect(back.valueNum, closeTo(11.1, 0.03));
     });
 
+    test(
+      'a legacy cuft cylinder that only makes sense as typed cubic feet reads '
+      'back as gas capacity, as the v366 repair reads it',
+      () {
+        // A file written before #4534 from a library with the old bug: the
+        // AL80 typed as 77.4 cu ft was stored as ~2192 L and written back out
+        // as 77.4 water cuft.
+        final back = parseAttributePair(
+          'volume=77.4 cuft',
+          workingPressureBar: 206.843,
+        )!;
+        expect(back.valueNum, 11.1);
+      },
+    );
+
     test('a small rebreather bottle keeps both its digits', () {
       expect(
         formatAttributePair(_num('o2_cylinder_l', 0.85), imperial),

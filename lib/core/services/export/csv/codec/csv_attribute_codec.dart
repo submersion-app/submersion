@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/database/cylinder_volume_repair.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_date_formats.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_list_codec.dart';
@@ -190,6 +191,26 @@ CsvAttribute? parseAttributePair(
         double.parse(match.group(1)!),
         workingPressureBar,
       ),
+    );
+  }
+  if (unitDef != null &&
+      match != null &&
+      unitDef.key == EquipmentAttrKeys.volumeL &&
+      match.group(2)!.trim() == VolumeUnit.cubicFeet.symbol) {
+    // A file written before #4534 wrote a cylinder as water cubic feet. From
+    // a library with the old bug, a cylinder typed in cubic feet comes back
+    // as an impossible water volume; it is read as the v366 repair reads the
+    // stored row, the figure typed as gas capacity, so the import does not
+    // bring the bug back.
+    final figure = double.parse(match.group(1)!);
+    final water = VolumeUnit.cubicFeet.convert(figure, VolumeUnit.liters);
+    return (
+      key: unitDef.key,
+      isCustom: false,
+      valueText: null,
+      valueNum: water > cylinderVolumeRepairThresholdLiters
+          ? volumeLitersFromCapacity(figure, workingPressureBar)
+          : water,
     );
   }
   if (unitDef != null && match != null) {
