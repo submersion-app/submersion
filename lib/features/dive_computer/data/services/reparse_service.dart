@@ -878,7 +878,9 @@ class ReparseService {
   /// too, and what tells them apart is the recording itself. Where the
   /// source has a series on its computer's strand, demoted beneath or, on a
   /// dive re-parsed before #3189, live beside, the one with no computer is
-  /// the edit. Alone, it is the recording, orphaned.
+  /// the edit. Alone, it is the recording, orphaned. Where a computer
+  /// delete took the recording's computer too, the pair is alike in every
+  /// column ([ProfileSeriesRepository.liveTwinIdsOf]) and both are kept.
   ///
   /// One shape stays unreadable: an unmarked orphan live over a duplicate a
   /// re-parse already wrote beneath it is an edit over its generation in
@@ -895,7 +897,10 @@ class ReparseService {
       computerId: computerId,
       sources: sources,
     );
-    final byShape = ProfileSeriesRepository.liveEditIdsOf(series);
+    final byShape = {
+      ...ProfileSeriesRepository.liveEditIdsOf(series),
+      ...ProfileSeriesRepository.liveTwinIdsOf(series),
+    };
     final hasRecording =
         computerId != null &&
         series.any((s) => s.computerId == computerId && owns(s));

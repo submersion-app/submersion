@@ -247,6 +247,46 @@ void main() {
       ));
     });
 
+    test('is kept with its live twin when both lost their computer', () async {
+      // The dive below, after its computer was deleted: the recording beside
+      // the edit has no computer either, and nothing tells the two apart.
+      // One is the edit, so both stay and the fresh parse lands beneath.
+      await twoComputerDive();
+      final edit = await insertSeries(
+        sourceId: 'src-a',
+        isPrimary: true,
+        depth: 25.0,
+      );
+      final recording = await insertSeries(
+        sourceId: 'src-a',
+        isPrimary: true,
+        now: 500,
+      );
+
+      await reparse('src-a');
+
+      final after = await seriesById();
+      expect(after[edit], (
+        sourceId: 'src-a',
+        computerId: null,
+        isPrimary: true,
+      ));
+      expect(after[recording], (
+        sourceId: 'src-a',
+        computerId: null,
+        isPrimary: true,
+      ));
+      final fresh = after.entries.where(
+        (e) =>
+            e.key != edit && e.key != recording && e.value.sourceId == 'src-a',
+      );
+      expect(fresh.single.value, (
+        sourceId: 'src-a',
+        computerId: 'comp-a',
+        isPrimary: false,
+      ));
+    });
+
     test('is kept when the recording it corrects is live beside it', () async {
       // A dive re-parsed before #3189: that re-parse put the recording back
       // live beside the edit instead of beneath it. The recording is there

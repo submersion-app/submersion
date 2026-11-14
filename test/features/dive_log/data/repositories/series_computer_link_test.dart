@@ -236,6 +236,39 @@ void main() {
       expect(computerOf(file), isNull);
     });
 
+    test('relinkComputer leaves two live unmarked series of one source '
+        'alone', () async {
+      // A dive re-parsed before #3189 holds its recording live beside the
+      // edit, and a computer delete strips the recording's computer: the two
+      // are alike in every column. One of them is the edit, so neither is
+      // stamped onto the strand a re-parse replaces. The demoted series of
+      // the same source is still the computer's own.
+      await insertComputerDataSource('d-mine');
+      Future<String> series({required bool isPrimary}) =>
+          profileSeries.insertSeries(
+            diveId: 'd-mine',
+            sourceId: 'ds-1',
+            isPrimary: isPrimary,
+            samples: one,
+            now: 1000,
+          );
+      final edit = await series(isPrimary: true);
+      final recording = await series(isPrimary: true);
+
+      expect(
+        await profileSeries.relinkComputer(
+          'comp-a',
+          ['d-mine'],
+          sourceIds: const {'ds-1'},
+          now: 2000,
+        ),
+        0,
+      );
+      final rows = await profileSeries.getRowsForDives(['d-mine']);
+      expect(rows.firstWhere((r) => r.id == edit).computerId, isNull);
+      expect(rows.firstWhere((r) => r.id == recording).computerId, isNull);
+    });
+
     test('relinkComputer takes a live series marked as a parse whatever lies '
         'beneath it', () async {
       // The mark is final (issue #4386): only an unmarked live series is

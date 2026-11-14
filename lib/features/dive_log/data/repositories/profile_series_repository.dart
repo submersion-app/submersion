@@ -758,6 +758,31 @@ class ProfileSeriesRepository {
     };
   }
 
+  /// The unmarked live series of [series] that have no computer and share
+  /// their source with another such series.
+  ///
+  /// A dive re-parsed before #3189 holds its recording live beside the edit
+  /// that corrects it, and a computer delete strips the recording's computer.
+  /// The two are then alike in every column, and one of them is the edit, so
+  /// a relink stamps neither and a re-parse replaces neither (issue #4529).
+  /// Not part of [liveEditIdsOf]: a reader that wants the dive's one edit
+  /// cannot take two.
+  static Set<String> liveTwinIdsOf(List<ProfileSeriesIdentity> series) {
+    bool candidate(ProfileSeriesIdentity s) =>
+        s.isPrimary &&
+        s.isEdit == null &&
+        s.computerId == null &&
+        s.sourceId != null;
+    return {
+      for (final s in series)
+        if (candidate(s) &&
+            series.any(
+              (o) => o.id != s.id && candidate(o) && o.sourceId == s.sourceId,
+            ))
+          s.id,
+    };
+  }
+
   /// The depth summary of the profile [diveId] shows, null with no readable
   /// live samples.
   Future<ProfileDepthSummary?> liveDepthSummary(String diveId) async =>
@@ -1109,7 +1134,8 @@ class ProfileSeriesRepository {
   /// A manual edit is left alone, by the one rule every reader shares: a
   /// series marked as an edit, live or demoted (issue #4386), and an
   /// unmarked live one [liveEditIdsOf] reads as an edit by the generation
-  /// demoted beneath it. `saveEditedProfile` gives an edit a null computer
+  /// demoted beneath it, or that [liveTwinIdsOf] cannot tell from the
+  /// recording beside it. `saveEditedProfile` gives an edit a null computer
   /// on purpose, not because a computer delete stripped one. Stamping it
   /// would hand it to the next re-parse of the dive, which replaces what its
   /// source owns, and a series is deleted whole: the correction would be
@@ -1138,12 +1164,12 @@ class ProfileSeriesRepository {
     final seriesByDive = await _identitiesByDive(diveIds);
     final soleComputerSourceDives = await _divesWithOneComputerSource(diveIds);
     List<String> takenOf(String diveId, List<ProfileSeriesIdentity> series) {
-      final liveEdits = liveEditIdsOf(series);
+      final spared = {...liveEditIdsOf(series), ...liveTwinIdsOf(series)};
       return [
         for (final s in series)
           if (s.computerId == null &&
               s.isEdit != true &&
-              !liveEdits.contains(s.id) &&
+              !spared.contains(s.id) &&
               (s.sourceId == null
                   ? soleComputerSourceDives.contains(diveId)
                   : sourceIds.contains(s.sourceId)))
