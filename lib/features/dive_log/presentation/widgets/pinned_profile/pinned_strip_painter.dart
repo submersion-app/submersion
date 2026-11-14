@@ -265,10 +265,11 @@ class PinnedStripPainter extends CustomPainter {
         edge.lineTo(o.dx, o.dy);
       }
       // The last stop, too, holds until the next sample before it lifts,
-      // so a stop logged on a single sample still shows.
+      // so a stop logged on a single sample still shows; never past the
+      // curve's own end, where it has no value.
       var endX = points.last.dx;
       final next = run.last.index + 1;
-      if (stepped && next < profile.length) {
+      if (stepped && next < profile.length && next < curve.length) {
         endX = m.project(profile[next].timestamp, 0).dx;
         fill.lineTo(endX, points.last.dy);
         edge.lineTo(endX, points.last.dy);
