@@ -29,6 +29,7 @@ SHIP_PREFIXES = (
 # Designations that stay upper case in a recased name, beyond the prefixes.
 _KEEP_UPPER = frozenset(SHIP_PREFIXES) | {
     "TB", "LCT", "LST", "LCU", "LCI", "LCM", "MTB", "MGB", "ML", "HMY",
+    "HMSM", "HMHS",
     "II", "III", "IV", "VI", "VII", "VIII", "IX", "XI", "XII",
 }
 
@@ -60,6 +61,9 @@ GENERIC_NAMES = frozenset(
 )
 
 KINDS = ("site", "register")
+
+# A run of letters, accented ones included.
+_LETTERS = re.compile(r"[^\W\d_]+")
 
 
 def _ascii(text: str) -> str:
@@ -110,18 +114,19 @@ def is_generic(folded: str) -> bool:
 
 
 def _recase_word(word: str, next_word: str | None) -> str:
-    bare = re.sub(r"[^A-Za-z0-9]", "", word)
+    bare = re.sub(r"[\W_]", "", word)
     if bare.upper() in _KEEP_UPPER:
         return word
-    # "U 11", "U-534", "LCT7074": a short designation with its number.
-    letters = re.sub(r"[^A-Za-z]", "", word)
-    if len(letters) <= 3 and re.search(r"\d", word) and "-" not in word[1:2]:
-        if not re.search(r"[A-Za-z]{4,}", word):
-            return word
-    if len(letters) == 1 and next_word and next_word[:1].isdigit():
+    if re.fullmatch(r"\d+(ST|ND|RD|TH)", word):
+        return word.lower()
+    # "U-534", "LCT7074", "F2": a short designation with its number.
+    letters = _LETTERS.findall(word)
+    if re.search(r"\d", word) and sum(map(len, letters)) <= 3:
         return word
-    return re.sub(
-        r"[A-Za-z]+",
+    # "U 11": a single letter before its number.
+    if len(bare) == 1 and next_word and next_word[:1].isdigit():
+        return word
+    return _LETTERS.sub(
         lambda match: match.group(0)[0].upper() + match.group(0)[1:].lower(),
         word,
     )
@@ -171,6 +176,24 @@ def number(raw) -> float | None:
         return float(str(raw).strip())
     except ValueError:
         return None
+
+
+def fact_line(what: str | None, verb: str, when) -> str | None:
+    """One short factual line about a register record, in our words:
+    "Steam ship, lost 1916". [when] is a year or a date that begins with
+    one. None when the register states neither."""
+    what = " ".join((what or "").split())
+    match = re.match(r"\s*(\d{4})", str(when if when is not None else ""))
+    year = int(match.group(1)) if match else None
+    if year is not None and not 1000 <= year <= 2100:
+        year = None
+    if what and year:
+        return f"{what[0].upper()}{what[1:]}, {verb} {year}"
+    if what:
+        return what[0].upper() + what[1:]
+    if year:
+        return f"{verb[0].upper()}{verb[1:]} {year}"
+    return None
 
 
 def feet(value: float) -> float:

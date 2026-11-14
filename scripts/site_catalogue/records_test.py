@@ -51,10 +51,21 @@ class DisplayNameTest(unittest.TestCase):
         )
         self.assertEqual(records.display_name("JEAN-PIERRE"), "Jean-Pierre")
 
+    def test_accented_capitals_are_letters_too(self):
+        self.assertEqual(records.display_name("NOEMÍ I"), "Noemí I")
+        self.assertEqual(records.display_name("ÎLE D'OUESSANT"), "Île D'Ouessant")
+
     def test_designations_stay_as_written(self):
         self.assertEqual(records.display_name("U 11"), "U 11")
         self.assertEqual(records.display_name("TB. TECE-1"), "TB. Tece-1")
         self.assertEqual(records.display_name("LCT 7074"), "LCT 7074")
+        self.assertEqual(records.display_name("HMSM B2"), "HMSM B2")
+        self.assertEqual(records.display_name("U-534"), "U-534")
+
+    def test_an_ordinal_is_not_a_designation(self):
+        self.assertEqual(
+            records.display_name("MV 2ND CHANCE"), "MV 2nd Chance"
+        )
 
     def test_the_register_s_doubt_is_lower_cased(self):
         self.assertEqual(
@@ -104,6 +115,28 @@ class UnitsTest(unittest.TestCase):
         self.assertEqual(records.number(" 7 "), 7.0)
         for raw in ("", None, "UNKNOWN", "n/a", "N"):
             self.assertIsNone(records.number(raw), raw)
+
+
+class FactLineTest(unittest.TestCase):
+    def test_what_it_is_and_when(self):
+        self.assertEqual(
+            records.fact_line("steam ship", "lost", "19160902"),
+            "Steam ship, lost 1916",
+        )
+        self.assertEqual(records.fact_line("Trawler", "lost", ""), "Trawler")
+        self.assertEqual(records.fact_line(None, "lost", 1977), "Lost 1977")
+        self.assertEqual(
+            records.fact_line("concrete modules", "placed", "2014"),
+            "Concrete modules, placed 2014",
+        )
+
+    def test_nothing_stated_is_no_line(self):
+        self.assertIsNone(records.fact_line("", "lost", None))
+        self.assertIsNone(records.fact_line("  ", "lost", "0"))
+
+    def test_a_year_that_cannot_be_one_is_left_out(self):
+        self.assertEqual(records.fact_line("Barge", "lost", "0000"), "Barge")
+        self.assertEqual(records.fact_line("Barge", "lost", "9999"), "Barge")
 
 
 class WorkingTest(unittest.TestCase):
