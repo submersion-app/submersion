@@ -263,7 +263,10 @@ class BuoyancyChart extends StatelessWidget {
                   // line and fill are the primary colour, which would hide it.
                   if (lineIndex != null)
                     VerticalLine(
-                      x: lineIndex / 60.0,
+                      // Held inside the plot: a cursor on a moment the model
+                      // has no sample for rests on the nearest edge, as the
+                      // host's readout does.
+                      x: (lineIndex / 60.0).clamp(minX, maxX),
                       color: theme.colorScheme.onSurfaceVariant,
                       strokeWidth: 1.5,
                     ),

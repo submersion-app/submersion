@@ -229,6 +229,14 @@ void main() {
       expect(chart.restSeconds, 180);
     });
 
+    testWidgets('scrubbing reuses the same marker list', (tester) async {
+      await _pump(tester, _outcome());
+      final before = _chart(tester).markers;
+      _chart(tester).onCursorSeconds!(120);
+      await tester.pump();
+      expect(identical(_chart(tester).markers, before), isTrue);
+    });
+
     testWidgets('fewer than two samples: no chart, readout and bar remain', (
       tester,
     ) async {

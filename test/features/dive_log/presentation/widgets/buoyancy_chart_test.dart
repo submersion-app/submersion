@@ -275,6 +275,16 @@ void main() {
       expect(verticalLines(tester).single.x, 3.0);
     });
 
+    testWidgets('a cursor outside the dive stays on the edge of the plot', (
+      tester,
+    ) async {
+      // The samples run from 0 to 180 s.
+      await pumpChart(tester, cursorSeconds: 600);
+      expect(verticalLines(tester).single.x, 3.0);
+      await pumpChart(tester, cursorSeconds: -30);
+      expect(verticalLines(tester).single.x, 0.0);
+    });
+
     testWidgets('cursorSeconds wins over restSeconds', (tester) async {
       await pumpChart(tester, cursorSeconds: 60, restSeconds: 180);
       expect(verticalLines(tester).single.x, 1.0);

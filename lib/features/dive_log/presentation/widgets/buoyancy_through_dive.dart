@@ -44,6 +44,10 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
   late TwinMoments _moments;
   late List<TwinSample> _plotted;
 
+  // Built on first use, since the labels need the locale; dropped whenever
+  // the outcome or the locale changes.
+  List<BuoyancyChartMarker>? _markerCache;
+
   @override
   void initState() {
     super.initState();
@@ -59,8 +63,15 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
     if (newOutcome) _ownCursor = null;
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _markerCache = null;
+  }
+
   void _derive() {
     final outcome = widget.outcome;
+    _markerCache = null;
     _scaleKg = TwinBalance.scaleKg(outcome.result, outcome.outputs.verdict);
     _moments = TwinMoments.of(outcome.result, outcome.outputs.verdict);
     _plotted = BuoyancyChart.plottableSamples(
@@ -105,7 +116,7 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
                   // fl_chart can report a pointer exit after this is gone.
                   if (mounted) setState(() => _ownCursor = seconds);
                 },
-            markers: _markers(context.l10n),
+            markers: _markerCache ??= _markers(context.l10n),
             restSeconds: _moments.finalStopSeconds,
           ),
         ],
