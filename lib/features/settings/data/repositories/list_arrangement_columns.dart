@@ -22,6 +22,7 @@ extension ListArrangementColumns on DiverSettingsCompanion {
         equipmentArrangement: Value(arrangements.equipmentArrangement),
         equipmentGroupByLocation: Value(arrangements.equipmentGroupByLocation),
         equipmentCollapsedGroups: Value(arrangements.equipmentCollapsedGroups),
+        recentEquipmentColors: Value(arrangements.recentEquipmentColors),
       );
 }
 
@@ -41,4 +42,5 @@ ListArrangements listArrangementsFromRow(DiverSetting row) => ListArrangements(
   equipmentArrangement: row.equipmentArrangement,
   equipmentGroupByLocation: row.equipmentGroupByLocation,
   equipmentCollapsedGroups: row.equipmentCollapsedGroups,
+  recentEquipmentColors: row.recentEquipmentColors,
 );

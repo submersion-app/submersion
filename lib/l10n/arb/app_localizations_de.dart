@@ -1521,6 +1521,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_color_white => 'Weiß';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Zuletzt verwendet';
+
+  @override
   String get equipment_color_none => 'Keine';
 
   @override
@@ -2603,6 +2611,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Sichern';
 
   @override
+  String get backup_note_keep_title => 'Diese Sicherung behalten';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Angeheftete Sicherungen werden nie automatisch entfernt';
+
+  @override
   String get backup_delete_dialog_cancel => 'Abbrechen';
 
   @override
@@ -2783,6 +2798,32 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ältere Sicherungen werden automatisch entfernt';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Sicherungen werden nie automatisch entfernt';
+
+  @override
+  String get backup_retention_keepAll => 'Alle behalten';
+
+  @override
+  String get backup_retention_custom => 'Eigene Anzahl…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Eigene: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Wie viele Sicherungen behalten?';
+
+  @override
+  String get backup_retention_custom_label => 'Anzahl der Sicherungen';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Eine Zahl von 1 bis $max eingeben';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Sicherungen aller Geräte zählen';
 
@@ -2794,6 +2835,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'Der Cloud-Ordner behält die letzten $count Sicherungen aller Geräte. Angeheftete Sicherungen bleiben erhalten. Die neueste Sicherung jedes Geräts bleibt ebenfalls erhalten, sofern sie nicht älter als 6 Monate ist. Nutzen auch andere Geräte diese Einstellung, gilt die kleinste Zahl. Aktualisiere zuerst die App auf allen Geräten, damit deren angeheftete Sicherungen erkannt werden.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      '„Alle behalten“ ist aktiv, daher entfernt dieses Gerät keine Sicherungen aus dem Cloud-Ordner. Angeheftete Sicherungen bleiben erhalten.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9412,6 +9457,48 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Späte Gaswechsel';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Gegendiffusion';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Alle';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Gegendiffusion (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing =>
+      'Gegenläufiger Austausch';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'Gasaustausch';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, netto $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'ein';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'aus';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'gemischt';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Gaswechsel';
 
   @override
@@ -9908,6 +9995,31 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recordEdit_unlockTooltip => 'Zum Bearbeiten entsperren';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return '$name bearbeiten';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return '$card bearbeiten';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'Nicht gespeicherte Änderungen';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, ausgeblendet';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'Die Änderungen konnten nicht gespeichert werden. Es wurde nichts geändert.';
 
   @override
   String get settings_manage_setupAssistant => 'Einrichtungsassistent';
@@ -22523,6 +22635,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Verstanden';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'Profil zeigt isobare Gegendiffusion';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planungs-Hinweis bestätigt';
 
@@ -22896,6 +23012,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Später Gaswechsel';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Isobare Gegendiffusion';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Isobare Gegendiffusion während $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Ein Gaswechsel verletzte die Fünftelregel';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23473,6 +23602,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Ceiling';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Isobare Gegendiffusion';
 
   @override
   String get settings_appearance_metric_events => 'Ereignisse';
@@ -25286,6 +25419,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentCollapsedGroups =>
       'Eingeklappte Ausrüstungsgruppen';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Zuletzt verwendete Ausrüstungsfarben';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>
@@ -29095,7 +29232,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Zeigt im ICD-Rechner eine Bewertung nach der Fünftel-Regel beim Wechsel von einem heliumreicheren zu einem stickstoffreicheren Gas.';
+      'Zeigt im ICD-Rechner und in der Gegendiffusionsanzeige des Tauchprofils eine Bewertung nach der Fünftel-Regel beim Wechsel von einem heliumreicheren zu einem stickstoffreicheren Gas.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS-Berechnung';
@@ -33721,23 +33858,23 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Eigene Farbe';
+  String get common_color_custom => 'Eigene Farbe';
 
   @override
-  String get tags_color_hexLabel => 'Hex-Code';
+  String get common_color_hexLabel => 'Hex-Code';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Sechs Zeichen 0-9 oder A-F eingeben, z. B. #2E8B57';
 
   @override
-  String get tags_color_use => 'Übernehmen';
+  String get common_color_use => 'Übernehmen';
 
   @override
-  String get tags_color_hueLabel => 'Farbton';
+  String get common_color_hueLabel => 'Farbton';
 
   @override
-  String get tags_color_squareLabel => 'Sättigung und Helligkeit';
+  String get common_color_squareLabel => 'Sättigung und Helligkeit';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Entfernen';
@@ -60682,6 +60819,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Alle Sicherungen behalten';
+
+  @override
   String get settings_backups_folder => 'Sicherungsordner auf diesem Gerät';
 
   @override
@@ -61569,6 +61709,18 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Jede Sicherung wird hier aufbewahrt.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, solange Submersion geöffnet ist. Jede Sicherung wird hier aufbewahrt.';
+  }
+
+  @override
   String settings_setUpDevice_backups_copy(String account) {
     return 'Auch eine Kopie in $account aufbewahren';
   }
@@ -62136,6 +62288,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Doppelte Flaschen entfernt';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'Bearbeitet: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>
@@ -63126,6 +63286,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'Ein Gaswechsel kann das gesamte Inertgas im Gewebe ohne Tiefenänderung erhöhen, wenn Stickstoff schneller steigt als Helium fällt. Die übliche Prüfung, die Fünftelregel, begrenzt den Stickstoffanstieg auf ein Fünftel des Heliumrückgangs.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Gegendiffusion im Tauchprofil';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'Im Tauchprofil markiert ein oranges Band, wo ein Kompartiment bereits mehr Inertgas enthält, als eingeatmet wird, und trotzdem spürbar aufsättigt. Im Bühlmann-Modell fließt Helium schneller ab, als Stickstoff einströmt, daher zeigt ein Wechsel von Trimix auf Nitrox selten ein Band; die gestrichelte Linie am Wechsel zeigt stattdessen die Fünftelregel.';
 
   @override
   String get info_term_hypercapnia_label => 'Hyperkapnie';

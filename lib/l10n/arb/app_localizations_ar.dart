@@ -1566,6 +1566,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_color_white => 'أبيض';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'الأخيرة';
+
+  @override
   String get equipment_color_none => 'بلا';
 
   @override
@@ -2667,6 +2675,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_note_dialog_confirm => 'نسخ احتياطي';
 
   @override
+  String get backup_note_keep_title => 'الاحتفاظ بهذه النسخة';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'لا تتم إزالة النسخ المثبتة تلقائياً أبداً';
+
+  @override
   String get backup_delete_dialog_cancel => 'إلغاء';
 
   @override
@@ -2846,6 +2861,33 @@ class AppLocalizationsAr extends AppLocalizations {
       'تتم إزالة النسخ الاحتياطية القديمة تلقائياً';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'لا تتم إزالة النسخ الاحتياطية تلقائياً أبداً';
+
+  @override
+  String get backup_retention_keepAll => 'الاحتفاظ بالكل';
+
+  @override
+  String get backup_retention_custom => 'عدد مخصص…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'مخصص: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title =>
+      'كم نسخة احتياطية تريد الاحتفاظ بها؟';
+
+  @override
+  String get backup_retention_custom_label => 'عدد النسخ الاحتياطية';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'أدخل رقماً من 1 إلى $max';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'احتساب النسخ الاحتياطية من كل الأجهزة';
 
@@ -2857,6 +2899,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'يحتفظ مجلد السحابة بأحدث النسخ الاحتياطية من كل الأجهزة، وعددها $count. تُحفظ النسخ المثبتة. تُحفظ أيضًا أحدث نسخة من كل جهاز ما لم يمضِ عليها أكثر من 6 أشهر. إذا استخدمت أجهزة أخرى هذا الخيار أيضًا، فالعدد الأصغر هو المعتمد. حدّث التطبيق على كل الأجهزة أولًا حتى تظهر النسخ المثبتة عليها.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'خيار الاحتفاظ بالكل مفعّل، لذا لا يزيل هذا الجهاز أي نسخ احتياطية من مجلد السحابة. تُحفظ النسخ المثبتة.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9549,6 +9595,47 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'تبديلات الغاز المتأخرة';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'الانتشار العكسي';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'الكل';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'انتشار عكسي (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'تبادل متعاكس';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'تبادل الغازات';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2، He $he، الصافي $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'داخل';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'خارج';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'مختلط';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'تبديلات الغاز';
 
   @override
@@ -10066,6 +10153,30 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recordEdit_unlockTooltip => 'إلغاء القفل للتعديل';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return 'تعديل $name';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return 'تعديل $card';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'تغييرات غير محفوظة';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card، مخفي';
+  }
+
+  @override
+  String get recordEdit_saveFailed => 'تعذّر حفظ التغييرات. لم يتغيّر شيء.';
 
   @override
   String get settings_manage_setupAssistant => 'مساعد الإعداد';
@@ -22901,6 +23012,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'فهمت';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'الملف يعرض الانتشار العكسي متساوي الضغط';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'تم قبول تنبيه التخطيط';
 
@@ -23283,6 +23398,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'تبديل غاز متأخر';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'الانتشار العكسي متساوي الضغط';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'انتشار عكسي متساوي الضغط لمدة $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'خالف تبديل غاز قاعدة الأخماس';
 
   @override
   String get safetySettings_rule_highSurfaceGf => 'عامل تدرج مرتفع عند الصعود';
@@ -23864,6 +23992,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'السقف';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'الانتشار العكسي متساوي الضغط';
 
   @override
   String get settings_appearance_metric_events => 'الأحداث';
@@ -25681,6 +25813,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentCollapsedGroups =>
       'مجموعات المعدات المطوية';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'ألوان المعدات الأخيرة';
 
   @override
   String get settings_conflict_field_listArrangementHlc => 'سجل ترتيب القوائم';
@@ -29466,7 +29602,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'يعرض في حاسبة ICD تقييمًا وفق قاعدة الخُمس عند التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين.';
+      'يعرض في حاسبة ICD وفي طبقة الانتشار العكسي في مخطط الغوص تقييمًا وفق قاعدة الخُمس عند التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'حساب الـ CNS';
@@ -34126,22 +34262,23 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'لون مخصص';
+  String get common_color_custom => 'لون مخصص';
 
   @override
-  String get tags_color_hexLabel => 'الرمز الست عشري';
+  String get common_color_hexLabel => 'الرمز الست عشري';
 
   @override
-  String get tags_color_hexError => 'أدخل ستة أحرف من 0-9 أو A-F، مثل #2E8B57';
+  String get common_color_hexError =>
+      'أدخل ستة أحرف من 0-9 أو A-F، مثل #2E8B57';
 
   @override
-  String get tags_color_use => 'استخدام';
+  String get common_color_use => 'استخدام';
 
   @override
-  String get tags_color_hueLabel => 'تدرج اللون';
+  String get common_color_hueLabel => 'تدرج اللون';
 
   @override
-  String get tags_color_squareLabel => 'التشبع والسطوع';
+  String get common_color_squareLabel => 'التشبع والسطوع';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'إزالة';
@@ -61634,6 +61771,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'الاحتفاظ بكل النسخ الاحتياطية';
+
+  @override
   String get settings_backups_folder => 'مجلد النسخ الاحتياطي على هذا الجهاز';
 
   @override
@@ -62601,6 +62741,18 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. تُحفظ هنا كل النسخ.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency، أثناء فتح Submersion. تُحفظ هنا كل النسخ.';
+  }
+
+  @override
   String settings_setUpDevice_backups_copy(String account) {
     return 'الاحتفاظ أيضًا بنسخة في $account';
   }
@@ -63167,6 +63319,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'إزالة الأسطوانات المكررة';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'تم التعديل: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => '، ';
 
   @override
   String get changeLog_undoIncomplete =>
@@ -64175,6 +64335,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'قد يرفع تبديل الغاز إجمالي الغاز الخامل في الأنسجة دون تغير العمق عندما يرتفع النيتروجين أسرع مما ينخفض الهيليوم. الفحص الشائع، قاعدة الأخماس، يحد ارتفاع النيتروجين بخمس انخفاض الهيليوم.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'الانتشار العكسي في مخطط الغوص';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'في مخطط الغوص يحدد شريط برتقالي المواضع التي يحمل فيها نسيج غازًا خاملًا أكثر مما يُستنشق ومع ذلك يمتص الغاز بشكل ملحوظ. في نموذج بولمان يخرج الهيليوم أسرع مما يدخل النيتروجين، لذا نادرًا ما يُظهر التبديل من التريمكس إلى النيتروكس شريطًا؛ ويُظهر الخط المتقطع عند التبديل قاعدة الأخماس بدلًا من ذلك.';
 
   @override
   String get info_term_hypercapnia_label => 'فرط ثاني أكسيد الكربون';

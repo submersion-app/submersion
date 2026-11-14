@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/change_log/domain/change_log_entities.dart';
@@ -35,6 +37,7 @@ IconData changeLogSourceIcon(ChangeLogSource source) => switch (source) {
 
 /// A label the app stored by key, translated; any other is shown as written.
 String changeLogStoredLabel(AppLocalizations l, String label) =>
+    _recordEditLabel(l, label) ??
     switch (label) {
       ChangeLogLabels.bulkEdit => l.changeLog_label_bulkEdit,
       ChangeLogLabels.bulkDelete => l.changeLog_label_bulkDelete,
@@ -61,6 +64,28 @@ String changeLogStoredLabel(AppLocalizations l, String label) =>
         l.changeLog_label_removeDuplicateCylinders,
       _ => label,
     };
+
+/// The dive page's cards by id, which is the section's name. Built once:
+/// the History list asks for a label for every row it draws.
+final _diveSectionsByName = DiveDetailSectionId.values.asNameMap();
+
+/// "Edited: Notes, Tags" for the label of an editing sitting, naming each
+/// card by its title; null for any other label. A card id with no title in
+/// this version of the app is shown as written.
+String? _recordEditLabel(AppLocalizations l, String label) {
+  final edit = RecordEditLabel.decode(label);
+  if (edit == null) return null;
+  final diveSections = edit.table == 'dives'
+      ? _diveSectionsByName
+      : const <String, DiveDetailSectionId>{};
+  final cards = [
+    for (final id in edit.cardIds)
+      diveSections[id]?.localizedDisplayName(l) ?? id,
+  ];
+  return l.changeLog_label_recordEdit(
+    cards.join(l.changeLog_label_recordEditSeparator),
+  );
+}
 
 /// What to call a kind of record when it has no name of its own.
 String changeLogTableLabel(AppLocalizations l, String table) => switch (table) {
@@ -137,5 +162,9 @@ String changeLogSubtitle(
           : changeLogStoredLabel(l, operation.label!),
     _ => changeLogSourceLabel(l, operation.source),
   };
-  return '${units.formatTime(operation.endedAt)} · $origin';
+  final label = operation.label;
+  // A sitting on one record is titled by the record, so its label, which
+  // names the cards it changed, is read here.
+  final edited = label == null ? null : _recordEditLabel(l, label);
+  return [units.formatTime(operation.endedAt), origin, ?edited].join(' · ');
 }

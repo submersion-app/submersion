@@ -1524,6 +1524,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_color_white => 'Bianco';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Recenti';
+
+  @override
   String get equipment_color_none => 'Nessuno';
 
   @override
@@ -2605,6 +2613,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Esegui backup';
 
   @override
+  String get backup_note_keep_title => 'Conserva questo backup';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'I backup fissati non vengono mai rimossi automaticamente';
+
+  @override
   String get backup_delete_dialog_cancel => 'Annulla';
 
   @override
@@ -2786,6 +2801,32 @@ class AppLocalizationsIt extends AppLocalizations {
       'I backup più vecchi vengono rimossi automaticamente';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'I backup non vengono mai rimossi automaticamente';
+
+  @override
+  String get backup_retention_keepAll => 'Conserva tutti';
+
+  @override
+  String get backup_retention_custom => 'Numero personalizzato…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Personalizzato: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Quanti backup conservare?';
+
+  @override
+  String get backup_retention_custom_label => 'Numero di backup';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Inserisci un numero da 1 a $max';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Conta i backup di tutti i dispositivi';
 
@@ -2797,6 +2838,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'La cartella cloud conserva gli ultimi $count backup di tutti i dispositivi. I backup fissati vengono conservati. Anche il backup più recente di ogni dispositivo viene conservato, a meno che non abbia più di 6 mesi. Se anche altri dispositivi usano questa opzione, vale il numero più piccolo. Aggiorna prima l\'app su tutti i dispositivi, così i loro backup fissati vengono riconosciuti.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Conserva tutti è attivo, quindi questo dispositivo non rimuove backup dalla cartella cloud. I backup fissati vengono conservati.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9420,6 +9465,47 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Cambi gas tardivi';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Controdiffusione';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Tutto';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Controdiffusione (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Scambio opposto';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'Scambio gassoso';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, netto $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'entra';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'esce';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'misto';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Cambi gas';
 
   @override
@@ -9918,6 +10004,31 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recordEdit_unlockTooltip => 'Sblocca per modificare';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return 'Modifica di $name';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return 'Modifica $card';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'Modifiche non salvate';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, nascosto';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'Impossibile salvare le modifiche. Non è stato modificato nulla.';
 
   @override
   String get settings_manage_setupAssistant => 'Assistente di configurazione';
@@ -22549,6 +22660,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Ho capito';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'Il profilo mostra la controdiffusione isobarica';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Avviso di pianificazione accettato';
 
@@ -22922,6 +23037,19 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Cambio gas tardivo';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Controdiffusione isobarica';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Controdiffusione isobarica per $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Un cambio gas ha violato la regola dei quinti';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23502,6 +23630,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Ceiling';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Controdiffusione isobarica';
 
   @override
   String get settings_appearance_metric_events => 'Eventi';
@@ -25317,6 +25449,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentCollapsedGroups =>
       'Gruppi di attrezzatura compressi';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Colori recenti dell\'attrezzatura';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>
@@ -29168,7 +29304,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Mostra nel calcolatore ICD una valutazione secondo la regola del quinto quando si passa da un gas più ricco di elio a uno più ricco di azoto.';
+      'Mostra nel calcolatore ICD e nel livello di controdiffusione del profilo una valutazione secondo la regola del quinto quando si passa da un gas più ricco di elio a uno più ricco di azoto.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'Calcolo del CNS';
@@ -33805,23 +33941,23 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Colore personalizzato';
+  String get common_color_custom => 'Colore personalizzato';
 
   @override
-  String get tags_color_hexLabel => 'Codice esadecimale';
+  String get common_color_hexLabel => 'Codice esadecimale';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Inserisci sei caratteri 0-9 o A-F, ad esempio #2E8B57';
 
   @override
-  String get tags_color_use => 'Usa';
+  String get common_color_use => 'Usa';
 
   @override
-  String get tags_color_hueLabel => 'Tonalità';
+  String get common_color_hueLabel => 'Tonalità';
 
   @override
-  String get tags_color_squareLabel => 'Saturazione e luminosità';
+  String get common_color_squareLabel => 'Saturazione e luminosità';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Rimuovi';
@@ -60813,6 +60949,9 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Conserva tutti i backup';
+
+  @override
   String get settings_backups_folder =>
       'Cartella dei backup su questo dispositivo';
 
@@ -61698,6 +61837,18 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Qui vengono conservati tutti i backup.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, mentre Submersion è aperto. Qui vengono conservati tutti i backup.';
+  }
+
+  @override
   String settings_setUpDevice_backups_copy(String account) {
     return 'Conserva anche una copia in $account';
   }
@@ -62265,6 +62416,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Bombole duplicate rimosse';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'Modificato: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>
@@ -63256,6 +63415,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'Un cambio gas può aumentare il gas inerte totale nei tessuti senza cambiare profondità quando l\'azoto sale più in fretta di quanto scenda l\'elio. Il controllo comune, la regola dei quinti, limita l\'aumento di azoto a un quinto del calo di elio.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Controdiffusione sul profilo';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'Sul profilo una banda arancione segna dove un compartimento contiene già più gas inerte di quello respirato e continua comunque ad assorbirne in modo apprezzabile. Nel modello di Bühlmann l\'elio esce più in fretta di quanto entri l\'azoto, quindi un cambio da trimix a nitrox mostra raramente una banda; la linea tratteggiata al cambio mostra invece la regola dei quinti.';
 
   @override
   String get info_term_hypercapnia_label => 'Ipercapnia';

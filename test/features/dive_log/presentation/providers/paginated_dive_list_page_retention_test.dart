@@ -313,6 +313,44 @@ void main() {
         );
       },
     );
+
+    test(
+      'refreshAfterWrite shows a dive written elsewhere without waiting',
+      () async {
+        final diver = await setUpCurrentDiver();
+        final dives = await seedDives(diver.id, 3);
+
+        final container = makeContainer();
+        addTearDown(container.dispose);
+        final sub = container.listen(paginatedDiveListProvider, (_, _) {});
+        addTearDown(sub.close);
+        await loadPages(container, 1);
+        // Hold the dive's own provider open, as an open detail page does.
+        final diveSub = container.listen(
+          diveProvider(dives.first.id),
+          (_, _) {},
+        );
+        addTearDown(diveSub.close);
+        await container.read(diveProvider(dives.first.id).future);
+
+        // An editing sitting writes inside its own transaction, then asks
+        // the notifier for the refresh alone.
+        final changed = dives.first.copyWith(name: 'Saved elsewhere');
+        await diveRepo.updateDive(changed);
+        await container
+            .read(paginatedDiveListProvider.notifier)
+            .refreshAfterWrite(before: dives.first, after: changed);
+
+        // No wait for the change-tick debounce: the row is already current.
+        final state = container.read(paginatedDiveListProvider).value!;
+        expect(
+          state.dives.firstWhere((d) => d.id == changed.id).name,
+          'Saved elsewhere',
+        );
+        final reread = await container.read(diveProvider(changed.id).future);
+        expect(reread!.name, 'Saved elsewhere');
+      },
+    );
   });
 
   group('PaginatedDiveListNotifier load-more failures', () {

@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/presentation/profile_colors/profile
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_palette.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/counterdiffusion_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/legend_candidates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
@@ -188,6 +189,12 @@ List<ActiveLegendEntry> activeLegendEntries(
     state.showLateGasSwitches,
     l10n.diveLog_legend_label_lateGasSwitches,
     lateSwitchLegendColor,
+  );
+  add(
+    config.hasCounterdiffusion,
+    state.showCounterdiffusion,
+    l10n.diveLog_legend_label_counterdiffusion,
+    counterdiffusionIcdColor,
   );
   add(
     config.hasPhotoMarkers,

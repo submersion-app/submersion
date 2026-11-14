@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
@@ -103,13 +105,30 @@ class DecoStatus extends Equatable {
   /// pressure is lower still. N2 and He each move at their own half-time rate,
   /// so the direction is the sign of their combined Haldane rate.
   bool? isOffgassing(TissueCompartment compartment) {
+    final netRate = _netRateOverLn2(compartment);
+    if (netRate == null) return null;
+    return netRate < _netRateNoiseFloor;
+  }
+
+  /// Net Haldane rate of [compartment], in bar/min, for both inert gases
+  /// together: positive while it takes gas up, or null when the inspired gas
+  /// is unknown. Unlike [isOffgassing], which only needs the sign, this keeps
+  /// the ln 2 so the value is a real rate, the one the profile's isobaric
+  /// counterdiffusion bands compare against a minimum (issue #4530).
+  double? netHaldaneRateBarPerMin(TissueCompartment compartment) {
+    final netRate = _netRateOverLn2(compartment);
+    return netRate == null ? null : math.ln2 * netRate;
+  }
+
+  /// The combined Haldane rate of [compartment] divided by ln 2, so only its
+  /// sign and relative size are meaningful; null when the inspired gas is
+  /// unknown.
+  double? _netRateOverLn2(TissueCompartment compartment) {
     final pN2 = inspiredN2Bar;
     final pHe = inspiredHeBar;
     if (pN2 == null || pHe == null) return null;
-    final netRate =
-        (pN2 - compartment.currentPN2) / compartment.halfTimeN2 +
+    return (pN2 - compartment.currentPN2) / compartment.halfTimeN2 +
         (pHe - compartment.currentPHe) / compartment.halfTimeHe;
-    return netRate < _netRateNoiseFloor;
   }
 
   /// Distance, in bar, between a compartment's tension and the inspired

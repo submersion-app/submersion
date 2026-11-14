@@ -87,7 +87,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // weight-entry read selects the whole row.
     await _assertBodyCompositionColumns();
 
-    // v365: dive_sites.catalogue_answers and the catalogue columns of
+    // v367: dive_sites.catalogue_answers and the catalogue columns of
     // library_site_notes. Every read of either table selects the whole row.
     await _assertSiteCatalogueAnswersColumns();
   }

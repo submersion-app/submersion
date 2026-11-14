@@ -1521,6 +1521,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_color_white => 'Fehér';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Legutóbbiak';
+
+  @override
   String get equipment_color_none => 'Nincs';
 
   @override
@@ -2596,6 +2604,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Mentés';
 
   @override
+  String get backup_note_keep_title => 'A mentés megtartása';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'A rögzített mentések soha nem kerülnek automatikusan eltávolításra';
+
+  @override
   String get backup_delete_dialog_cancel => 'Mégse';
 
   @override
@@ -2778,6 +2793,32 @@ class AppLocalizationsHu extends AppLocalizations {
       'A régebbi mentések automatikusan eltávolításra kerülnek';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'A mentések soha nem kerülnek automatikusan eltávolításra';
+
+  @override
+  String get backup_retention_keepAll => 'Összes megtartása';
+
+  @override
+  String get backup_retention_custom => 'Egyéni szám…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Egyéni: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Hány mentést tartson meg?';
+
+  @override
+  String get backup_retention_custom_label => 'Mentések száma';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Adjon meg egy számot 1 és $max között';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Az összes eszköz mentéseinek számolása';
 
@@ -2789,6 +2830,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'A felhőmappa az összes eszközről az utolsó $count biztonsági mentést tartja meg. A rögzített mentések megmaradnak. Minden eszköz legutóbbi mentése is megmarad, hacsak nem régebbi 6 hónapnál. Ha más eszközök is ezt használják, a legkisebb szám érvényes. Először minden eszközön frissíteni kell az alkalmazást, hogy a rögzítéseik láthatók legyenek.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Az Összes megtartása be van kapcsolva, így ez az eszköz nem távolít el mentést a felhőmappából. A rögzített mentések megmaradnak.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9398,6 +9443,47 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Késői gázváltások';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Ellendiffúzió';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Mind';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Ellendiffúzió (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Ellentétes csere';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'Gázcsere';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, nettó $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'be';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'ki';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'vegyes';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Gázcserélések';
 
   @override
@@ -9893,6 +9979,31 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recordEdit_unlockTooltip => 'Feloldás a szerkesztéshez';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return '$name szerkesztése';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return '$card szerkesztése';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'Nem mentett módosítások';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, rejtett';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'Nem sikerült menteni a módosításokat. Semmi sem változott.';
 
   @override
   String get settings_manage_setupAssistant => 'Beállítási varázsló';
@@ -22477,6 +22588,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Megértettem';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'A profil mutatja az izobár ellendiffúziót';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Tervezési figyelmeztetés elfogadva';
 
@@ -22853,6 +22968,19 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Késői gázváltás';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Izobár ellendiffúzió';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Izobár ellendiffúzió $duration hosszan';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Egy gázváltás megsértette az ötödszabályt';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23432,6 +23560,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Plafon';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Izobár ellendiffúzió';
 
   @override
   String get settings_appearance_metric_events => 'Események';
@@ -25239,6 +25371,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentCollapsedGroups =>
       'Összecsukott felszereléscsoportok';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Legutóbbi felszerelésszínek';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>
@@ -29022,7 +29158,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Az ötödszabály szerinti értékelést jeleníti meg az ICD-kalkulátorban, amikor héliumban gazdagabb gázról nitrogénben gazdagabb gázra váltunk.';
+      'Az ötödszabály szerinti értékelést jeleníti meg az ICD-kalkulátorban és a profil ellendiffúziós rétegén, amikor héliumban gazdagabb gázról nitrogénben gazdagabb gázra váltunk.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS-számítás';
@@ -33629,23 +33765,23 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Egyéni szín';
+  String get common_color_custom => 'Egyéni szín';
 
   @override
-  String get tags_color_hexLabel => 'Hexakód';
+  String get common_color_hexLabel => 'Hexakód';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Adjon meg hat karaktert (0-9 vagy A-F), például #2E8B57';
 
   @override
-  String get tags_color_use => 'Használat';
+  String get common_color_use => 'Használat';
 
   @override
-  String get tags_color_hueLabel => 'Színárnyalat';
+  String get common_color_hueLabel => 'Színárnyalat';
 
   @override
-  String get tags_color_squareLabel => 'Telítettség és fényerő';
+  String get common_color_squareLabel => 'Telítettség és fényerő';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Eltávolítás';
@@ -60496,6 +60632,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Összes mentés megtartása';
+
+  @override
   String get settings_backups_folder => 'Mentési mappa ezen az eszközön';
 
   @override
@@ -61367,6 +61506,18 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Itt minden mentés megmarad.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, amíg a Submersion meg van nyitva. Itt minden mentés megmarad.';
+  }
+
+  @override
   String settings_setUpDevice_backups_copy(String account) {
     return 'Másolat megőrzése itt is: $account';
   }
@@ -61932,6 +62083,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Ismétlődő palackok eltávolítva';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'Szerkesztve: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>
@@ -62909,6 +63068,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'Gázváltás mélységváltozás nélkül is növelheti a szövetek teljes inertgáz-tartalmát, ha a nitrogén gyorsabban nő, mint ahogy a hélium csökken. A szokásos ellenőrzés, az ötödszabály, a nitrogén növekedését a héliumcsökkenés egyötödére korlátozza.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Ellendiffúzió a profilon';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'A merülési profilon narancssárga sáv jelzi, ahol egy kompartment már több inert gázt tartalmaz, mint amennyit belélegzünk, és mégis érezhetően telítődik. A Bühlmann-modellben a hélium gyorsabban távozik, mint ahogy a nitrogén belép, ezért a trimixről nitroxra váltás ritkán mutat sávot; a váltásnál lévő szaggatott vonal helyette az ötödszabályt mutatja.';
 
   @override
   String get info_term_hypercapnia_label => 'Hiperkapnia';

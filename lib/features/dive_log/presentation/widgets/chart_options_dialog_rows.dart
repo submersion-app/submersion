@@ -57,6 +57,13 @@ List<(O2CellUnit, String)> o2CellUnitSegments(BuildContext context) => [
   (O2CellUnit.millivolts, context.l10n.units_profileMetric_millivolts),
 ];
 
+/// The counterdiffusion overlay's two views (#4530): ICD spans only, or all
+/// phases in which nitrogen and helium move in opposite directions.
+List<(bool, String)> counterdiffusionSegments(BuildContext context) => [
+  (false, context.l10n.diveLog_counterdiffusion_segment_icd),
+  (true, context.l10n.diveLog_counterdiffusion_segment_all),
+];
+
 /// A toggle row with a segmented mode switch on the right. Generic over the
 /// mode enum so every computer-vs-calculated data-source toggle (deco stops,
 /// NDL, TTS, CNS) shares one row implementation.

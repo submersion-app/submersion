@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/models/sort_state_codec.dart';
@@ -5,6 +7,7 @@ import 'package:submersion/features/certifications/presentation/utils/certificat
 import 'package:submersion/features/dive_sites/domain/utils/site_grouping.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_fold_keys.dart';
+import 'package:submersion/features/equipment/domain/models/recent_equipment_colors.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/domain/list_arrangements.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -87,6 +90,21 @@ extension ListArrangementWrites on SettingsNotifier {
       ),
     ),
   );
+
+  /// Applies [change] to the diver's remembered custom gear colours (issue
+  /// #4537). Like the folded keys, the change runs against the saved list
+  /// once settings have loaded, so a colour picked during the load adds to
+  /// it rather than replacing it. A change that leaves the list as it was
+  /// (a palette colour, the colour already first) writes nothing, so it
+  /// neither saves the row nor stamps the arrangement clock.
+  Future<void> updateRecentEquipmentColors(
+    List<String> Function(List<String> current) change,
+  ) => updateListArrangements((a) {
+    final current = decodeRecentEquipmentColors(a.recentEquipmentColors);
+    final next = change(current);
+    if (listEquals(next, current)) return a;
+    return a.copyWith(recentEquipmentColors: encodeRecentEquipmentColors(next));
+  });
 
   /// Applies [change] to the diver's gear arrangement and saves it.
   ///

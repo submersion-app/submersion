@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Tests first for every task. Run one test file per `flutter test` invocation, with output redirected to a `.txt` file in the session scratchpad. Never run the whole suite locally.
-- Main schema goes 364 to 365. Renumber if main has moved. Tables in `lib/core/database/tables/`, rungs in `lib/core/database/migrations/ladder/`, the backstop in `before_open_child_columns.dart`. Nothing new in `database.dart` beyond the version constant and the `migrationVersions` entry.
+- Main schema goes 364 to 365. Renumber if main has moved. (It had: the step shipped as 367, and the test file is `migration_v367_site_catalogue_answers_test.dart`.) Tables in `lib/core/database/tables/`, rungs in `lib/core/database/migrations/ladder/`, the backstop in `before_open_child_columns.dart`. Nothing new in `database.dart` beyond the version constant and the `migrationVersions` entry.
 - After changing a table, run `dart run build_runner build --delete-conflicting-outputs` unfiltered (never `--build-filter`), then `dart run tool/generate_sql_column_notes.dart`.
 - New repository code does not go into `site_repository_impl.dart` (2,053 lines), `site_list_content.dart` (1,838) or `shared_library_store.dart` (834) beyond one-line insertions and the edits to existing methods named below.
 - The pairing distance is 150 m, one constant: `kCataloguePairRadiusMeters`.

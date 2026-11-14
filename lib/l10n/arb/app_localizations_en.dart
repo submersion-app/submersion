@@ -1508,6 +1508,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_color_white => 'White';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Recent';
+
+  @override
   String get equipment_color_none => 'None';
 
   @override
@@ -2576,6 +2584,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Back Up';
 
   @override
+  String get backup_note_keep_title => 'Keep this backup';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Pinned backups are never removed automatically';
+
+  @override
   String get backup_delete_dialog_cancel => 'Cancel';
 
   @override
@@ -2753,6 +2768,32 @@ class AppLocalizationsEn extends AppLocalizations {
       'Older backups are automatically removed';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Backups are never removed automatically';
+
+  @override
+  String get backup_retention_keepAll => 'Keep all';
+
+  @override
+  String get backup_retention_custom => 'Custom number…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Custom: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Keep how many backups?';
+
+  @override
+  String get backup_retention_custom_label => 'Number of backups';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Enter a number from 1 to $max';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Count backups from all devices';
 
@@ -2764,6 +2805,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'The cloud folder keeps the last $count backups from every device. Pinned backups are kept. Each device\'s newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Keep all is on, so this device removes no backups from the cloud folder. Pinned backups are kept.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9273,6 +9318,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Late gas switches';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Counterdiffusion';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'All';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Counterdiffusion (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Opposing exchange';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'Gas exchange';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, net $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'in';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'out';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'mixed';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Gas Switches';
 
   @override
@@ -9760,6 +9846,31 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recordEdit_unlockTooltip => 'Unlock to edit';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return 'Editing $name';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return 'Edit $card';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'Unsaved changes';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, hidden';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'Couldn\'t save your changes. Nothing was changed.';
 
   @override
   String get settings_manage_setupAssistant => 'Setup assistant';
@@ -22215,6 +22326,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'I Understand';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'Profile shows isobaric counterdiffusion';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planning disclaimer accepted';
 
@@ -22583,6 +22698,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Late gas switch';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Isobaric counterdiffusion';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Isobaric counterdiffusion for $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'A gas switch broke the rule of fifths';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23157,6 +23285,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Ceiling';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Isobaric counterdiffusion';
 
   @override
   String get settings_appearance_metric_events => 'Events';
@@ -24932,6 +25064,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentCollapsedGroups =>
       'Equipment folded groups';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Recent equipment colors';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>
@@ -28667,7 +28803,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Shows a rule-of-fifths assessment in the ICD calculator when switching from a more helium-rich to a more nitrogen-rich gas.';
+      'Shows a rule-of-fifths assessment in the ICD calculator, and on the dive profile\'s counterdiffusion overlay, when switching from a more helium-rich to a more nitrogen-rich gas.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS calculation';
@@ -33222,22 +33358,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Custom color';
+  String get common_color_custom => 'Custom color';
 
   @override
-  String get tags_color_hexLabel => 'Hex code';
+  String get common_color_hexLabel => 'Hex code';
 
   @override
-  String get tags_color_hexError => 'Enter six digits 0-9 or A-F, like #2E8B57';
+  String get common_color_hexError =>
+      'Enter six digits 0-9 or A-F, like #2E8B57';
 
   @override
-  String get tags_color_use => 'Use';
+  String get common_color_use => 'Use';
 
   @override
-  String get tags_color_hueLabel => 'Hue';
+  String get common_color_hueLabel => 'Hue';
 
   @override
-  String get tags_color_squareLabel => 'Saturation and brightness';
+  String get common_color_squareLabel => 'Saturation and brightness';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Remove';
@@ -59864,6 +60001,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Keep all backups';
+
+  @override
   String get settings_backups_folder => 'Backup folder on this device';
 
   @override
@@ -60729,6 +60869,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Every backup is kept here.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, while Submersion is open. Every backup is kept here.';
+  }
+
+  @override
   String settings_setUpDevice_backups_copy(String account) {
     return 'Also keep a copy in $account';
   }
@@ -61290,6 +61442,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Removed duplicate cylinders';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'Edited: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>
@@ -62269,6 +62429,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Counterdiffusion on the profile';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnia';

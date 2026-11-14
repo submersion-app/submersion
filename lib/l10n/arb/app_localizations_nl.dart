@@ -1513,6 +1513,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_color_white => 'Wit';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Recent';
+
+  @override
   String get equipment_color_none => 'Geen';
 
   @override
@@ -2591,6 +2599,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Back-up maken';
 
   @override
+  String get backup_note_keep_title => 'Deze back-up bewaren';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Vastgemaakte back-ups worden nooit automatisch verwijderd';
+
+  @override
   String get backup_delete_dialog_cancel => 'Annuleren';
 
   @override
@@ -2771,6 +2786,32 @@ class AppLocalizationsNl extends AppLocalizations {
       'Oudere back-ups worden automatisch verwijderd';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Back-ups worden nooit automatisch verwijderd';
+
+  @override
+  String get backup_retention_keepAll => 'Alles bewaren';
+
+  @override
+  String get backup_retention_custom => 'Aangepast aantal…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Aangepast: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Hoeveel back-ups bewaren?';
+
+  @override
+  String get backup_retention_custom_label => 'Aantal back-ups';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Voer een getal van 1 tot $max in';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Back-ups van alle apparaten meetellen';
 
@@ -2782,6 +2823,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'De cloudmap bewaart de laatste $count back-ups van alle apparaten. Vastgemaakte back-ups blijven bewaard. Ook de nieuwste back-up van elk apparaat blijft bewaard, tenzij die ouder is dan 6 maanden. Gebruiken andere apparaten dit ook, dan geldt het kleinste aantal. Werk eerst de app op elk apparaat bij, zodat hun vastgemaakte back-ups zichtbaar zijn.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Alles bewaren staat aan, dus dit apparaat verwijdert geen back-ups uit de cloudmap. Vastgemaakte back-ups blijven bewaard.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9360,6 +9405,48 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Late gaswissels';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Tegendiffusie';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Alles';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Tegendiffusie (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing =>
+      'Tegengestelde uitwisseling';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'Gasuitwisseling';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, netto $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'in';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'uit';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'gemengd';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Gaswisselingen';
 
   @override
@@ -9853,6 +9940,31 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recordEdit_unlockTooltip => 'Ontgrendelen om te bewerken';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return '$name bewerken';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return '$card bewerken';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'Niet-opgeslagen wijzigingen';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, verborgen';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'Kon de wijzigingen niet opslaan. Er is niets gewijzigd.';
 
   @override
   String get settings_manage_setupAssistant => 'Configuratie-assistent';
@@ -22409,6 +22521,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Begrepen';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'Profiel toont isobare tegendiffusie';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planningswaarschuwing geaccepteerd';
 
@@ -22781,6 +22897,19 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Late gaswissel';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Isobare tegendiffusie';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Isobare tegendiffusie gedurende $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Een gaswissel brak de vijfderegel';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23358,6 +23487,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Plafond';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Isobare tegendiffusie';
 
   @override
   String get settings_appearance_metric_events => 'Gebeurtenissen';
@@ -25164,6 +25297,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentCollapsedGroups =>
       'Ingeklapte uitrustingsgroepen';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Recente uitrustingskleuren';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>
@@ -28968,7 +29105,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Toont in de ICD-rekenmachine een beoordeling volgens de vijfde-regel bij het overschakelen van een heliumrijker naar een stikstofrijker gas.';
+      'Toont in de ICD-rekenmachine en in de tegendiffusielaag van het profiel een beoordeling volgens de vijfde-regel bij het overschakelen van een heliumrijker naar een stikstofrijker gas.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS-berekening';
@@ -33567,23 +33704,23 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Aangepaste kleur';
+  String get common_color_custom => 'Aangepaste kleur';
 
   @override
-  String get tags_color_hexLabel => 'Hexcode';
+  String get common_color_hexLabel => 'Hexcode';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Voer zes tekens 0-9 of A-F in, zoals #2E8B57';
 
   @override
-  String get tags_color_use => 'Gebruiken';
+  String get common_color_use => 'Gebruiken';
 
   @override
-  String get tags_color_hueLabel => 'Tint';
+  String get common_color_hueLabel => 'Tint';
 
   @override
-  String get tags_color_squareLabel => 'Verzadiging en helderheid';
+  String get common_color_squareLabel => 'Verzadiging en helderheid';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Verwijderen';
@@ -60432,6 +60569,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Alle back-ups bewaren';
+
+  @override
   String get settings_backups_folder => 'Back-upmap op dit apparaat';
 
   @override
@@ -61316,6 +61456,18 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Elke back-up wordt hier bewaard.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, zolang Submersion open is. Elke back-up wordt hier bewaard.';
+  }
+
+  @override
   String settings_setUpDevice_backups_copy(String account) {
     return 'Ook een kopie in $account bewaren';
   }
@@ -61881,6 +62033,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Dubbele flessen verwijderd';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'Bewerkt: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>
@@ -62868,6 +63028,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'Een gaswissel kan het totale inerte gas in weefsels verhogen zonder dieptewijziging als stikstof sneller stijgt dan helium daalt. De gangbare check, de vijfderegel, beperkt de stikstofstijging tot een vijfde van de heliumdaling.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Tegendiffusie op het profiel';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'Op het duikprofiel markeert een oranje band waar een compartiment al meer inert gas bevat dan wordt ingeademd en toch merkbaar gas opneemt. In het Bühlmann-model verlaat helium het weefsel sneller dan stikstof binnenkomt, dus een wissel van trimix naar nitrox toont zelden een band; de stippellijn bij de wissel toont in plaats daarvan de vijfderegel.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnie';

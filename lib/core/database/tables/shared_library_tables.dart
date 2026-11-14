@@ -200,12 +200,12 @@ class LibrarySiteNotes extends Table {
   RealColumn get rating => real().nullable()();
 
   /// The built-in catalogue record this profile linked the library site to
-  /// (v365). The site's own row never enters personal sync, so the link
+  /// (v367). The site's own row never enters personal sync, so the link
   /// travels here.
   TextColumn get catalogueId => text().nullable()();
 
   /// What this profile has settled about catalogue records for the library
-  /// site (v365), as JSON, in the form of dive_sites.catalogue_answers.
+  /// site (v367), as JSON, in the form of dive_sites.catalogue_answers.
   TextColumn get catalogueAnswers => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();

@@ -909,9 +909,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Default settings have some metrics enabled. The exact count depends
-      // on default AppSettings. Find the pattern "X of 22" -- one entry per
+      // on default AppSettings. Find the pattern "X of 23" -- one entry per
       // SwitchListTile on DefaultVisibleMetricsPage.
-      expect(find.textContaining('of 22'), findsOneWidget);
+      expect(find.textContaining('of 23'), findsOneWidget);
     });
   });
 

@@ -102,6 +102,7 @@ void main() {
           'equipmentArrangement',
           'equipmentGroupByLocation',
           'equipmentCollapsedGroups',
+          'recentEquipmentColors',
           'diveListViewMode',
           'courseListViewMode',
           'groupTripsInDiveList',

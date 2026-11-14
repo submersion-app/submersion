@@ -119,17 +119,26 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
         SwitchListTile(
           secondary: const Icon(Icons.schedule),
           title: Text(l10n.settings_backups_auto),
-          subtitle: Text(
-            device == DeviceKind.computer
-                ? l10n.settings_setUpDevice_backups_autoDetailDesktop(
-                    frequency,
-                    settings.retentionCount,
-                  )
-                : l10n.settings_setUpDevice_backups_autoDetail(
-                    frequency,
-                    settings.retentionCount,
-                  ),
-          ),
+          subtitle: Text(switch ((
+            device == DeviceKind.computer,
+            settings.keepsAll,
+          )) {
+            (true, true) =>
+              l10n.settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+                frequency,
+              ),
+            (true, false) =>
+              l10n.settings_setUpDevice_backups_autoDetailDesktop(
+                frequency,
+                settings.retentionCount,
+              ),
+            (false, true) =>
+              l10n.settings_setUpDevice_backups_autoDetailKeepAll(frequency),
+            (false, false) => l10n.settings_setUpDevice_backups_autoDetail(
+              frequency,
+              settings.retentionCount,
+            ),
+          }),
           value: _auto,
           onChanged: _busy
               ? null

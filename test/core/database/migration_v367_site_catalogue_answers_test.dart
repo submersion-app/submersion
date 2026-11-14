@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v365: dive_sites.catalogue_answers, and the catalogue link and
+/// Schema v367: dive_sites.catalogue_answers, and the catalogue link and
 /// answers a profile keeps for a shared library site in library_site_notes.
 /// All nullable and never backfilled.
 void main() {
@@ -61,14 +61,14 @@ void main() {
     );
   }
 
-  test('v365 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(365));
-    expect(AppDatabase.migrationVersions, contains(365));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(365));
+  test('v367 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(367));
+    expect(AppDatabase.migrationVersions, contains(367));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(367));
   });
 
   test('upgrading adds the columns and leaves existing rows empty', () async {
-    final db = AppDatabase(dbAt(364, withColumns: false));
+    final db = AppDatabase(dbAt(366, withColumns: false));
     addTearDown(db.close);
 
     await expectColumns(db);
@@ -88,7 +88,7 @@ void main() {
   });
 
   test('values already stored are kept', () async {
-    final db = AppDatabase(dbAt(364, withColumns: true));
+    final db = AppDatabase(dbAt(366, withColumns: true));
     addTearDown(db.close);
 
     final site = await db
@@ -116,7 +116,7 @@ void main() {
   });
 
   test('a database without either table upgrades without failing', () async {
-    final db = AppDatabase(dbAt(364, withColumns: false, withTables: false));
+    final db = AppDatabase(dbAt(366, withColumns: false, withTables: false));
     addTearDown(db.close);
 
     await db.customSelect('SELECT 1').get();

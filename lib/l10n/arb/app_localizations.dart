@@ -2360,6 +2360,18 @@ abstract class AppLocalizations {
   /// **'White'**
   String get equipment_color_white;
 
+  /// A custom item colour: its nearest named colour, then its code
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({code})'**
+  String equipment_color_customName(String name, String code);
+
+  /// Heading for the custom item colours the diver used recently, in the colour sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get equipment_color_recent;
+
   /// No description provided for @equipment_color_none.
   ///
   /// In en, this message translates to:
@@ -4030,6 +4042,18 @@ abstract class AppLocalizations {
   /// **'Back Up'**
   String get backup_note_dialog_confirm;
 
+  /// Back up now dialog: switch that pins the new backup
+  ///
+  /// In en, this message translates to:
+  /// **'Keep this backup'**
+  String get backup_note_keep_title;
+
+  /// Back up now dialog: subtitle of the Keep this backup switch
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned backups are never removed automatically'**
+  String get backup_note_keep_subtitle;
+
   /// No description provided for @backup_delete_dialog_cancel.
   ///
   /// In en, this message translates to:
@@ -4336,6 +4360,48 @@ abstract class AppLocalizations {
   /// **'Older backups are automatically removed'**
   String get backup_schedule_retention_subtitle;
 
+  /// Advanced: Keep tile subtitle when every backup is kept (issue #4535)
+  ///
+  /// In en, this message translates to:
+  /// **'Backups are never removed automatically'**
+  String get backup_schedule_retention_keepAll_subtitle;
+
+  /// Keep backups picker: the row that turns automatic removal off
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all'**
+  String get backup_retention_keepAll;
+
+  /// Keep backups picker: the row that opens a number field
+  ///
+  /// In en, this message translates to:
+  /// **'Custom number…'**
+  String get backup_retention_custom;
+
+  /// Keep backups picker: the custom row when the current count is a typed one
+  ///
+  /// In en, this message translates to:
+  /// **'Custom: {count}'**
+  String backup_retention_customCurrent(int count);
+
+  /// Title of the dialog for typing a backup count
+  ///
+  /// In en, this message translates to:
+  /// **'Keep how many backups?'**
+  String get backup_retention_custom_title;
+
+  /// Label of the number field in the custom backup count dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Number of backups'**
+  String get backup_retention_custom_label;
+
+  /// Error under the custom backup count field
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number from 1 to {max}'**
+  String backup_retention_custom_error(int max);
+
   /// No description provided for @backup_retention_allDevices_title.
   ///
   /// In en, this message translates to:
@@ -4353,6 +4419,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. Each device\'s newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.'**
   String backup_retention_allDevices_on(int count);
+
+  /// Count backups from all devices, on, while Keep all is chosen
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all is on, so this device removes no backups from the cloud folder. Pinned backups are kept.'**
+  String get backup_retention_allDevices_onKeepAll;
 
   /// No description provided for @backup_retention_cloudFootprint.
   ///
@@ -14823,6 +14895,76 @@ abstract class AppLocalizations {
   /// **'Late gas switches'**
   String get diveLog_legend_label_lateGasSwitches;
 
+  /// No description provided for @diveLog_legend_label_counterdiffusion.
+  ///
+  /// In en, this message translates to:
+  /// **'Counterdiffusion'**
+  String get diveLog_legend_label_counterdiffusion;
+
+  /// No description provided for @diveLog_counterdiffusion_segment_icd.
+  ///
+  /// In en, this message translates to:
+  /// **'ICD'**
+  String get diveLog_counterdiffusion_segment_icd;
+
+  /// No description provided for @diveLog_counterdiffusion_segment_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get diveLog_counterdiffusion_segment_all;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_icd.
+  ///
+  /// In en, this message translates to:
+  /// **'Counterdiffusion (ICD)'**
+  String get diveLog_tooltip_counterdiffusion_icd;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_opposing.
+  ///
+  /// In en, this message translates to:
+  /// **'Opposing exchange'**
+  String get diveLog_tooltip_counterdiffusion_opposing;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_exchange.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas exchange'**
+  String get diveLog_tooltip_counterdiffusion_exchange;
+
+  /// Counterdiffusion tooltip: how nitrogen, helium and both together move in the span's compartments. Each value is the in, out or mixed word.
+  ///
+  /// In en, this message translates to:
+  /// **'N₂ {n2}, He {he}, net {net}'**
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  );
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_in.
+  ///
+  /// In en, this message translates to:
+  /// **'in'**
+  String get diveLog_tooltip_counterdiffusion_in;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_out.
+  ///
+  /// In en, this message translates to:
+  /// **'out'**
+  String get diveLog_tooltip_counterdiffusion_out;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_mixed.
+  ///
+  /// In en, this message translates to:
+  /// **'mixed'**
+  String get diveLog_tooltip_counterdiffusion_mixed;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_compartments.
+  ///
+  /// In en, this message translates to:
+  /// **'#{list}'**
+  String diveLog_tooltip_counterdiffusion_compartments(String list);
+
   /// No description provided for @diveLog_legend_label_gasSwitches.
   ///
   /// In en, this message translates to:
@@ -15572,6 +15714,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{1 issue} other{{count} issues}}'**
   String forms_section_issues(int count);
+
+  /// Tooltip of the lock button in a record page's top bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to edit'**
+  String get recordEdit_unlockTooltip;
+
+  /// Top bar title while a record is unlocked for editing.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing {name}'**
+  String recordEdit_editingTitle(String name);
+
+  /// Tooltip of the pencil that opens a card for editing.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {card}'**
+  String recordEdit_editCardTooltip(String card);
+
+  /// Spoken label of the dot on a card that has changes not yet saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved changes'**
+  String get recordEdit_unsavedChanges;
+
+  /// Spoken label of an Add strip chip for a card the diver has hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'{card}, hidden'**
+  String recordEdit_hiddenCard(String card);
+
+  /// Message shown when saving an unlocked record fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save your changes. Nothing was changed.'**
+  String get recordEdit_saveFailed;
 
   /// No description provided for @settings_manage_setupAssistant.
   ///
@@ -35649,6 +35827,12 @@ abstract class AppLocalizations {
   /// **'I Understand'**
   String get planning_disclaimer_dialog_confirm;
 
+  /// No description provided for @settings_conflict_field_defaultShowCounterdiffusion.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile shows isobaric counterdiffusion'**
+  String get settings_conflict_field_defaultShowCounterdiffusion;
+
   /// No description provided for @settings_conflict_field_hasAcceptedPlanningDisclaimer.
   ///
   /// In en, this message translates to:
@@ -36218,6 +36402,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Late gas switch'**
   String get safetySettings_rule_lateGasSwitch;
+
+  /// No description provided for @safetySettings_rule_isobaricCounterdiffusion.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric counterdiffusion'**
+  String get safetySettings_rule_isobaricCounterdiffusion;
+
+  /// No description provided for @safetyReview_isobaricCounterdiffusion_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric counterdiffusion for {duration}'**
+  String safetyReview_isobaricCounterdiffusion_title(String duration);
+
+  /// No description provided for @safetyReview_isobaricCounterdiffusion_switch_title.
+  ///
+  /// In en, this message translates to:
+  /// **'A gas switch broke the rule of fifths'**
+  String get safetyReview_isobaricCounterdiffusion_switch_title;
 
   /// No description provided for @safetySettings_rule_highSurfaceGf.
   ///
@@ -37148,6 +37350,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ceiling'**
   String get settings_appearance_metric_ceiling;
+
+  /// No description provided for @settings_appearance_metric_counterdiffusion.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric counterdiffusion'**
+  String get settings_appearance_metric_counterdiffusion;
 
   /// No description provided for @settings_appearance_metric_events.
   ///
@@ -39881,6 +40089,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment folded groups'**
   String get settings_conflict_field_equipmentCollapsedGroups;
+
+  /// Label for the custom equipment colours the diver picked recently, in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Recent equipment colors'**
+  String get settings_conflict_field_recentEquipmentColors;
 
   /// Label for a saved list arrangement in a sync conflict
   ///
@@ -46357,7 +46571,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_decompression_icdWarnings_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Shows a rule-of-fifths assessment in the ICD calculator when switching from a more helium-rich to a more nitrogen-rich gas.'**
+  /// **'Shows a rule-of-fifths assessment in the ICD calculator, and on the dive profile\'s counterdiffusion overlay, when switching from a more helium-rich to a more nitrogen-rich gas.'**
   String get settings_decompression_icdWarnings_subtitle;
 
   /// Title of the CNS calculation method setting tile and its picker dialog.
@@ -53554,41 +53768,41 @@ abstract class AppLocalizations {
   /// **'Current color, {code}'**
   String tags_color_current(String code);
 
-  /// No description provided for @tags_color_custom.
+  /// No description provided for @common_color_custom.
   ///
   /// In en, this message translates to:
   /// **'Custom color'**
-  String get tags_color_custom;
+  String get common_color_custom;
 
-  /// No description provided for @tags_color_hexLabel.
+  /// No description provided for @common_color_hexLabel.
   ///
   /// In en, this message translates to:
   /// **'Hex code'**
-  String get tags_color_hexLabel;
+  String get common_color_hexLabel;
 
-  /// No description provided for @tags_color_hexError.
+  /// No description provided for @common_color_hexError.
   ///
   /// In en, this message translates to:
   /// **'Enter six digits 0-9 or A-F, like #2E8B57'**
-  String get tags_color_hexError;
+  String get common_color_hexError;
 
-  /// No description provided for @tags_color_use.
+  /// No description provided for @common_color_use.
   ///
   /// In en, this message translates to:
   /// **'Use'**
-  String get tags_color_use;
+  String get common_color_use;
 
-  /// No description provided for @tags_color_hueLabel.
+  /// No description provided for @common_color_hueLabel.
   ///
   /// In en, this message translates to:
   /// **'Hue'**
-  String get tags_color_hueLabel;
+  String get common_color_hueLabel;
 
-  /// No description provided for @tags_color_squareLabel.
+  /// No description provided for @common_color_squareLabel.
   ///
   /// In en, this message translates to:
   /// **'Saturation and brightness'**
-  String get tags_color_squareLabel;
+  String get common_color_squareLabel;
 
   /// No description provided for @tags_manage_narrowDialog_confirm.
   ///
@@ -95795,6 +96009,12 @@ abstract class AppLocalizations {
   /// **'Keep the last {count} backups'**
   String settings_backups_keepLast(int count);
 
+  /// Advanced: Keep tile title when every backup is kept (issue #4535)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all backups'**
+  String get settings_backups_keepAll;
+
   /// Advanced: the folder on this device that backups are written to
   ///
   /// In en, this message translates to:
@@ -96858,6 +97078,20 @@ abstract class AppLocalizations {
     int count,
   );
 
+  /// Subtitle of Back up automatically in step 3 when every backup is kept; frequency is like Weekly
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency}. Every backup is kept here.'**
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency);
+
+  /// Subtitle of Back up automatically in step 3 on a computer when every backup is kept; frequency is like Weekly
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency}, while Submersion is open. Every backup is kept here.'**
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  );
+
   /// Step 3 switch: also copy each backup to an account
   ///
   /// In en, this message translates to:
@@ -97745,6 +97979,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed duplicate cylinders'**
   String get changeLog_label_removeDuplicateCylinders;
+
+  /// Change log entry title for one editing sitting. cards is a list of card titles, already joined.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited: {cards}'**
+  String changeLog_label_recordEdit(String cards);
+
+  /// Separator between card titles in changeLog_label_recordEdit, such as ", " in English.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get changeLog_label_recordEditSeparator;
 
   /// Snackbar shown when an Undo that reverts a change log operation left some records unrestored.
   ///
@@ -99277,6 +99523,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop.'**
   String get info_term_isobaricCounterdiffusion_body;
+
+  /// No description provided for @info_term_counterdiffusionProfile_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Counterdiffusion on the profile'**
+  String get info_term_counterdiffusionProfile_label;
+
+  /// No description provided for @info_term_counterdiffusionProfile_body.
+  ///
+  /// In en, this message translates to:
+  /// **'On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.'**
+  String get info_term_counterdiffusionProfile_body;
 
   /// No description provided for @info_term_hypercapnia_label.
   ///

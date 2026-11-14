@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_color_queries.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
@@ -95,6 +96,7 @@ class EquipmentRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   EquipmentVisibilityQueries get _visibility => EquipmentVisibilityQueries(_db);
+  EquipmentColorQueries get _colors => EquipmentColorQueries(_db);
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(EquipmentRepository);
 
@@ -338,6 +340,11 @@ class EquipmentRepository {
   /// The subset of [ids] visible to [diverId] (owned or shared).
   Future<Set<String>> visibleIdsAmong(Iterable<String> ids, String diverId) =>
       _visibility.visibleIdsAmong(ids, diverId);
+
+  /// The off-palette colours on [diverId]'s own gear, newest first (issue
+  /// #4537); see [EquipmentColorQueries.gearColors].
+  Future<List<String>> getGearColors(String? diverId) =>
+      _colors.gearColors(diverId);
 
   /// Create new equipment. With [notify] false the caller notifies sync once
   /// its own transaction commits, as [createEquipmentWithTags] does.

@@ -440,6 +440,7 @@ class DiveProfileChartHost extends ConsumerWidget {
         meanDepthCurve: analysis?.meanDepthCurve,
         ttsCurve: analysis?.ttsCurve,
         gasSwitchEfficiency: analysis?.gasSwitchEfficiency,
+        counterdiffusion: analysis?.counterdiffusion,
         gtrCurve: analysis?.gtrCurve,
         cnsCurve: analysis?.cnsCurve,
         otuCurve: analysis?.otuCurve,

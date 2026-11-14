@@ -118,6 +118,8 @@ InfoContent settingsSectionInfo(
         DiveTerm.sawtooth,
         DiveTerm.surfaceGf,
         DiveTerm.lateGasSwitch,
+        DiveTerm.isobaricCounterdiffusion,
+        DiveTerm.counterdiffusionProfile,
       ],
     ),
     SettingsInfoSection.conditionThresholds => termsInfo(

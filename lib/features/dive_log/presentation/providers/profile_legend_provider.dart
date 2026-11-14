@@ -88,6 +88,15 @@ class ProfileLegendState {
   /// device-local [AppSettings.o2CellUnit].
   final O2CellUnit o2CellUnit;
 
+  /// Isobaric counterdiffusion overlay on the profile (issue #4530). Seeds
+  /// from the persisted [AppSettings.defaultShowCounterdiffusion] default.
+  final bool showCounterdiffusion;
+
+  /// Whether the counterdiffusion overlay draws every range rather than only
+  /// the flagged ones. Seeds from the device-local
+  /// [AppSettings.counterdiffusionShowAll].
+  final bool counterdiffusionShowAll;
+
   // Per-metric data source preferences (session overrides).
   // The ceiling line has no source toggle: every import path stores only the
   // computer's stepped stop depth in `ceiling`, so a "computer" ceiling line
@@ -159,6 +168,8 @@ class ProfileLegendState {
     this.showOtu = false,
     this.showO2Cells = false,
     this.o2CellUnit = O2CellUnit.ppO2,
+    this.showCounterdiffusion = false,
+    this.counterdiffusionShowAll = false,
     this.showGtr = false,
     // Same per-metric default as AppSettings (#1859); build() seeds from
     // settings, so these only apply to reset() and a state built without them.
@@ -210,6 +221,7 @@ class ProfileLegendState {
     if (showCns) count++;
     if (showOtu) count++;
     if (showO2Cells) count++;
+    if (showCounterdiffusion) count++;
     if (showGtr) count++;
     count += showTankPressure.values.where((v) => v).length;
     return count;
@@ -259,6 +271,8 @@ class ProfileLegendState {
     bool? showOtu,
     bool? showO2Cells,
     O2CellUnit? o2CellUnit,
+    bool? showCounterdiffusion,
+    bool? counterdiffusionShowAll,
     bool? showGtr,
     MetricDataSource? ndlSource,
     MetricDataSource? ttsSource,
@@ -307,6 +321,9 @@ class ProfileLegendState {
       showOtu: showOtu ?? this.showOtu,
       showO2Cells: showO2Cells ?? this.showO2Cells,
       o2CellUnit: o2CellUnit ?? this.o2CellUnit,
+      showCounterdiffusion: showCounterdiffusion ?? this.showCounterdiffusion,
+      counterdiffusionShowAll:
+          counterdiffusionShowAll ?? this.counterdiffusionShowAll,
       showGtr: showGtr ?? this.showGtr,
       ndlSource: ndlSource ?? this.ndlSource,
       ttsSource: ttsSource ?? this.ttsSource,
@@ -360,6 +377,8 @@ class ProfileLegendState {
           showOtu == other.showOtu &&
           showO2Cells == other.showO2Cells &&
           o2CellUnit == other.o2CellUnit &&
+          showCounterdiffusion == other.showCounterdiffusion &&
+          counterdiffusionShowAll == other.counterdiffusionShowAll &&
           showGtr == other.showGtr &&
           ndlSource == other.ndlSource &&
           ttsSource == other.ttsSource &&
@@ -407,6 +426,8 @@ class ProfileLegendState {
     showOtu,
     showO2Cells,
     o2CellUnit,
+    showCounterdiffusion,
+    counterdiffusionShowAll,
     showGtr,
     ndlSource,
     ttsSource,
@@ -457,6 +478,7 @@ class ProfileLegend extends _$ProfileLegend {
           defaultShowPhotoMarkers: s.defaultShowPhotoMarkers,
           defaultShowGasTimeline: s.defaultShowGasTimeline,
           defaultShowO2CellMv: s.defaultShowO2CellMv,
+          defaultShowCounterdiffusion: s.defaultShowCounterdiffusion,
           showNdlOnProfile: s.showNdlOnProfile,
           defaultShowPpO2: s.defaultShowPpO2,
           defaultShowPpN2: s.defaultShowPpN2,
@@ -486,6 +508,12 @@ class ProfileLegend extends _$ProfileLegend {
       settingsProvider.select((s) => s.o2CellUnit),
       (_, unit) => state = state.copyWith(o2CellUnit: unit),
     );
+    // Written from the chart options dialog the same way, so it is seeded
+    // once and kept in sync in place rather than watched.
+    ref.listen(
+      settingsProvider.select((s) => s.counterdiffusionShowAll),
+      (_, showAll) => state = state.copyWith(counterdiffusionShowAll: showAll),
+    );
     return ProfileLegendState(
       // rightAxisMetric is null initially - uses setting default via fallback
       showTemperature: settings.defaultShowTemperature,
@@ -505,6 +533,10 @@ class ProfileLegend extends _$ProfileLegend {
       showGas: settings.defaultShowGasTimeline,
       showO2Cells: settings.defaultShowO2CellMv,
       o2CellUnit: ref.read(settingsProvider).o2CellUnit,
+      showCounterdiffusion: settings.defaultShowCounterdiffusion,
+      counterdiffusionShowAll: ref
+          .read(settingsProvider)
+          .counterdiffusionShowAll,
       showNdl: settings.showNdlOnProfile,
       showPpO2: settings.defaultShowPpO2,
       showPpN2: settings.defaultShowPpN2,
@@ -712,6 +744,14 @@ class ProfileLegend extends _$ProfileLegend {
 
   void setO2CellUnit(O2CellUnit unit) {
     state = state.copyWith(o2CellUnit: unit);
+  }
+
+  void toggleCounterdiffusion() {
+    state = state.copyWith(showCounterdiffusion: !state.showCounterdiffusion);
+  }
+
+  void setCounterdiffusionShowAll(bool showAll) {
+    state = state.copyWith(counterdiffusionShowAll: showAll);
   }
 
   // Data source set methods (for SegmentedButton)

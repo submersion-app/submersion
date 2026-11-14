@@ -822,6 +822,10 @@
   "equipment_color_slate": "Slate",
   "equipment_color_black": "Black",
   "equipment_color_white": "White",
+  "equipment_color_customName": "{name} ({code})",
+  "@equipment_color_customName": {"description": "A custom item colour: its nearest named colour, then its code", "placeholders": {"name": {"type": "String"}, "code": {"type": "String"}}},
+  "equipment_color_recent": "Recent",
+  "@equipment_color_recent": {"description": "Heading for the custom item colours the diver used recently, in the colour sheet"},
   "equipment_color_none": "None",
   "equipment_color_sheetTitle": "Choose a color",
   "equipment_setEdit_geofencesTitle": "Geofences",
@@ -1600,6 +1604,10 @@
   "backup_note_label": "Note (optional)",
   "backup_note_hint": "e.g. Before the Cozumel trip",
   "backup_note_dialog_confirm": "Back Up",
+  "backup_note_keep_title": "Keep this backup",
+  "@backup_note_keep_title": {"description": "Back up now dialog: switch that pins the new backup"},
+  "backup_note_keep_subtitle": "Pinned backups are never removed automatically",
+  "@backup_note_keep_subtitle": {"description": "Back up now dialog: subtitle of the Keep this backup switch"},
   "backup_delete_dialog_cancel": "Cancel",
   "backup_delete_dialog_content": "This backup will be permanently deleted. This cannot be undone.",
   "backup_delete_dialog_content_otherDevice": "This backup is only in your cloud storage, and nothing shows this device made it. It may be another device's only copy, or one this device made before a reinstall. Deleting it cannot be undone.",
@@ -1694,10 +1702,26 @@
     }
   },
   "backup_schedule_retention_subtitle": "Older backups are automatically removed",
+  "backup_schedule_retention_keepAll_subtitle": "Backups are never removed automatically",
+  "@backup_schedule_retention_keepAll_subtitle": {"description": "Advanced: Keep tile subtitle when every backup is kept (issue #4535)"},
+  "backup_retention_keepAll": "Keep all",
+  "@backup_retention_keepAll": {"description": "Keep backups picker: the row that turns automatic removal off"},
+  "backup_retention_custom": "Custom number…",
+  "@backup_retention_custom": {"description": "Keep backups picker: the row that opens a number field"},
+  "backup_retention_customCurrent": "Custom: {count}",
+  "@backup_retention_customCurrent": {"description": "Keep backups picker: the custom row when the current count is a typed one", "placeholders": {"count": {"type": "int"}}},
+  "backup_retention_custom_title": "Keep how many backups?",
+  "@backup_retention_custom_title": {"description": "Title of the dialog for typing a backup count"},
+  "backup_retention_custom_label": "Number of backups",
+  "@backup_retention_custom_label": {"description": "Label of the number field in the custom backup count dialog"},
+  "backup_retention_custom_error": "Enter a number from 1 to {max}",
+  "@backup_retention_custom_error": {"description": "Error under the custom backup count field", "placeholders": {"max": {"type": "int"}}},
   "backup_retention_allDevices_title": "Count backups from all devices",
   "backup_retention_allDevices_off": "Off: this device removes only the backups it made",
   "backup_retention_allDevices_on": "The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. Each device's newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.",
   "@backup_retention_allDevices_on": {"placeholders": {"count": {"type": "int"}}},
+  "backup_retention_allDevices_onKeepAll": "Keep all is on, so this device removes no backups from the cloud folder. Pinned backups are kept.",
+  "@backup_retention_allDevices_onKeepAll": {"description": "Count backups from all devices, on, while Keep all is chosen"},
   "backup_retention_cloudFootprint": "{count, plural, one{{count} backup in the cloud folder uses {size}} other{{count} backups in the cloud folder use {size}}}",
   "@backup_retention_cloudFootprint": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}}},
   "backup_retention_confirm_title": "{count, plural, one{Remove {count} backup?} other{Remove {count} backups?}}",
@@ -5547,6 +5571,38 @@
   "diveLog_legend_label_computedEvents": "Computed events",
   "diveLog_legend_label_gasDensity": "Gas Density",
   "diveLog_legend_label_lateGasSwitches": "Late gas switches",
+  "diveLog_legend_label_counterdiffusion": "Counterdiffusion",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "All",
+  "diveLog_tooltip_counterdiffusion_icd": "Counterdiffusion (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "Opposing exchange",
+  "diveLog_tooltip_counterdiffusion_exchange": "Gas exchange",
+  "diveLog_tooltip_counterdiffusion_directions": "N₂ {n2}, He {he}, net {net}",
+  "@diveLog_tooltip_counterdiffusion_directions": {
+    "description": "Counterdiffusion tooltip: how nitrogen, helium and both together move in the span's compartments. Each value is the in, out or mixed word.",
+    "placeholders": {
+      "n2": {
+        "type": "String"
+      },
+      "he": {
+        "type": "String"
+      },
+      "net": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_tooltip_counterdiffusion_in": "in",
+  "diveLog_tooltip_counterdiffusion_out": "out",
+  "diveLog_tooltip_counterdiffusion_mixed": "mixed",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "Gas Switches",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Heart Rate",
@@ -5860,6 +5916,45 @@
         "type": "int"
       }
     }
+  },
+  "recordEdit_unlockTooltip": "Unlock to edit",
+  "@recordEdit_unlockTooltip": {
+    "description": "Tooltip of the lock button in a record page's top bar."
+  },
+  "recordEdit_editingTitle": "Editing {name}",
+  "@recordEdit_editingTitle": {
+    "description": "Top bar title while a record is unlocked for editing.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recordEdit_editCardTooltip": "Edit {card}",
+  "@recordEdit_editCardTooltip": {
+    "description": "Tooltip of the pencil that opens a card for editing.",
+    "placeholders": {
+      "card": {
+        "type": "String"
+      }
+    }
+  },
+  "recordEdit_unsavedChanges": "Unsaved changes",
+  "@recordEdit_unsavedChanges": {
+    "description": "Spoken label of the dot on a card that has changes not yet saved."
+  },
+  "recordEdit_hiddenCard": "{card}, hidden",
+  "@recordEdit_hiddenCard": {
+    "description": "Spoken label of an Add strip chip for a card the diver has hidden.",
+    "placeholders": {
+      "card": {
+        "type": "String"
+      }
+    }
+  },
+  "recordEdit_saveFailed": "Couldn't save your changes. Nothing was changed.",
+  "@recordEdit_saveFailed": {
+    "description": "Message shown when saving an unlocked record fails."
   },
   "settings_manage_setupAssistant": "Setup assistant",
   "settings_manage_setupAssistant_subtitle": "Revisit units, backups, sync and photos",
@@ -14244,6 +14339,7 @@
   "planning_disclaimer_dialog_title": "Planning Tools Disclaimer",
   "planning_disclaimer_dialog_body": "The tools in this section are for planning purposes only. They do not replace your dive training or your dive computer. Always verify every calculation yourself before using it for a safety decision.",
   "planning_disclaimer_dialog_confirm": "I Understand",
+  "settings_conflict_field_defaultShowCounterdiffusion": "Profile shows isobaric counterdiffusion",
   "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Planning disclaimer accepted",
   "planning_section_tools": "Tools",
   "planning_summary_prompt": "Select a tool to get started",
@@ -14483,6 +14579,16 @@
   "safetySettings_rule_omittedSafetyStop": "Omitted safety stops",
   "safetySettings_rule_sawtoothProfile": "Sawtooth profiles",
   "safetySettings_rule_lateGasSwitch": "Late gas switch",
+  "safetySettings_rule_isobaricCounterdiffusion": "Isobaric counterdiffusion",
+  "safetyReview_isobaricCounterdiffusion_title": "Isobaric counterdiffusion for {duration}",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "A gas switch broke the rule of fifths",
   "safetySettings_rule_highSurfaceGf": "High surfacing gradient factor",
   "safetySettings_analyzeAll": "Analyze all dives",
   "safetySettings_analyzeAll_subtitle": "Run the safety review over every dive with a profile that has not been analyzed yet",
@@ -14807,6 +14913,7 @@
   "settings_appearance_pinProfileOnScroll": "Pin profile when scrolling",
   "settings_appearance_pinProfileOnScroll_subtitle": "Keep a thin, scrubbable profile at the top of dive details",
   "settings_appearance_metric_ceiling": "Ceiling",
+  "settings_appearance_metric_counterdiffusion": "Isobaric counterdiffusion",
   "settings_appearance_metric_events": "Events",
   "settings_appearance_metric_estimatedTankPressure": "Estimated Tank Pressure",
   "@settings_appearance_metric_estimatedTankPressure": {
@@ -15604,6 +15711,10 @@
   "settings_conflict_field_equipmentCollapsedGroups": "Equipment folded groups",
   "@settings_conflict_field_equipmentCollapsedGroups": {
     "description": "Label for the Equipment page's saved folded groups in a sync conflict"
+  },
+  "settings_conflict_field_recentEquipmentColors": "Recent equipment colors",
+  "@settings_conflict_field_recentEquipmentColors": {
+    "description": "Label for the custom equipment colours the diver picked recently, in a sync conflict"
   },
   "settings_conflict_field_listArrangementHlc": "List arrangement record",
   "@settings_conflict_field_listArrangementHlc": {
@@ -16895,7 +17006,7 @@
   "settings_decompression_endLimit_dialog_title": "END Limit",
   "settings_decompression_header_icd": "Isobaric Counterdiffusion",
   "settings_decompression_icdWarnings": "Warn on ICD risk",
-  "settings_decompression_icdWarnings_subtitle": "Shows a rule-of-fifths assessment in the ICD calculator when switching from a more helium-rich to a more nitrogen-rich gas.",
+  "settings_decompression_icdWarnings_subtitle": "Shows a rule-of-fifths assessment in the ICD calculator, and on the dive profile's counterdiffusion overlay, when switching from a more helium-rich to a more nitrogen-rich gas.",
   "settings_decompression_cnsMethodTitle": "CNS calculation",
   "settings_decompression_cnsMethodClassic": "NOAA table, stepped (classic)",
   "settings_decompression_cnsMethodClassicDesc": "Charges each 0.1 bar band at its harsher edge. Submersion's original method.",
@@ -19810,12 +19921,12 @@
       }
     }
   },
-  "tags_color_custom": "Custom color",
-  "tags_color_hexLabel": "Hex code",
-  "tags_color_hexError": "Enter six digits 0-9 or A-F, like #2E8B57",
-  "tags_color_use": "Use",
-  "tags_color_hueLabel": "Hue",
-  "tags_color_squareLabel": "Saturation and brightness",
+  "common_color_custom": "Custom color",
+  "common_color_hexLabel": "Hex code",
+  "common_color_hexError": "Enter six digits 0-9 or A-F, like #2E8B57",
+  "common_color_use": "Use",
+  "common_color_hueLabel": "Hue",
+  "common_color_squareLabel": "Saturation and brightness",
   "tags_manage_narrowDialog_confirm": "Remove",
   "tags_manage_narrowDialog_dives": "{count, plural, =1{This tag is on 1 dive. Turning off \"Use for dives\" removes it from that dive.} other{This tag is on {count} dives. Turning off \"Use for dives\" removes it from those dives.}}",
   "@tags_manage_narrowDialog_dives": {
@@ -36233,6 +36344,8 @@
   "@settings_backups_restoreFile": {"description": "Restore the library from a backup file the diver picks"},
   "settings_backups_keepLast": "Keep the last {count} backups",
   "@settings_backups_keepLast": {"description": "Advanced: how many backups are kept before older ones are removed", "placeholders": {"count": {"type": "int"}}},
+  "settings_backups_keepAll": "Keep all backups",
+  "@settings_backups_keepAll": {"description": "Advanced: Keep tile title when every backup is kept (issue #4535)"},
   "settings_backups_folder": "Backup folder on this device",
   "@settings_backups_folder": {"description": "Advanced: the folder on this device that backups are written to"},
   "settings_backups_useDefault": "Use default",
@@ -36564,6 +36677,10 @@
   "@settings_setUpDevice_backups_autoDetail": {"description": "Subtitle of Back up automatically in step 3; frequency is like Weekly", "placeholders": {"frequency": {"type": "String"}, "count": {"type": "int"}}},
   "settings_setUpDevice_backups_autoDetailDesktop": "{frequency}, while Submersion is open. The last {count} are kept here.",
   "@settings_setUpDevice_backups_autoDetailDesktop": {"description": "Subtitle of Back up automatically in step 3 on a computer; frequency is like Weekly", "placeholders": {"frequency": {"type": "String"}, "count": {"type": "int"}}},
+  "settings_setUpDevice_backups_autoDetailKeepAll": "{frequency}. Every backup is kept here.",
+  "@settings_setUpDevice_backups_autoDetailKeepAll": {"description": "Subtitle of Back up automatically in step 3 when every backup is kept; frequency is like Weekly", "placeholders": {"frequency": {"type": "String"}}},
+  "settings_setUpDevice_backups_autoDetailDesktopKeepAll": "{frequency}, while Submersion is open. Every backup is kept here.",
+  "@settings_setUpDevice_backups_autoDetailDesktopKeepAll": {"description": "Subtitle of Back up automatically in step 3 on a computer when every backup is kept; frequency is like Weekly", "placeholders": {"frequency": {"type": "String"}}},
   "settings_setUpDevice_backups_copy": "Also keep a copy in {account}",
   "@settings_setUpDevice_backups_copy": {"description": "Step 3 switch: also copy each backup to an account", "placeholders": {"account": {"type": "String"}}},
   "settings_setUpDevice_backups_noAccount": "A copy off this device needs an account or a backup folder.",
@@ -36819,6 +36936,19 @@
   "changeLog_label_removeDuplicateCylinders": "Removed duplicate cylinders",
   "@changeLog_label_removeDuplicateCylinders": {
     "description": "Change log entry title for merging duplicate cylinders on dives."
+  },
+  "changeLog_label_recordEdit": "Edited: {cards}",
+  "@changeLog_label_recordEdit": {
+    "description": "Change log entry title for one editing sitting. cards is a list of card titles, already joined.",
+    "placeholders": {
+      "cards": {
+        "type": "String"
+      }
+    }
+  },
+  "changeLog_label_recordEditSeparator": ", ",
+  "@changeLog_label_recordEditSeparator": {
+    "description": "Separator between card titles in changeLog_label_recordEdit, such as \", \" in English."
   },
   "changeLog_undoIncomplete": "Undo could not put everything back. The rest is in Settings > Data > Change log.",
   "@changeLog_undoIncomplete": {
@@ -37132,6 +37262,8 @@
   "info_term_salinity_body": "Salt water is denser than fresh water, so the same pressure reads as a slightly shallower depth in the sea. Computers use it to turn pressure into depth.",
   "info_term_isobaricCounterdiffusion_label": "ICD (isobaric counterdiffusion)",
   "info_term_isobaricCounterdiffusion_body": "A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop.",
+  "info_term_counterdiffusionProfile_label": "Counterdiffusion on the profile",
+  "info_term_counterdiffusionProfile_body": "On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.",
   "info_term_hypercapnia_label": "Hypercapnia",
   "info_term_hypercapnia_body": "A build-up of carbon dioxide in the body. Dense gas and hard work make it more likely.",
   "info_term_turnPressure_label": "Turn pressure",

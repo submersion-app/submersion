@@ -1459,6 +1459,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_color_white => '白色';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name（$code）';
+  }
+
+  @override
+  String get equipment_color_recent => '最近使用';
+
+  @override
   String get equipment_color_none => '无';
 
   @override
@@ -2475,6 +2483,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_note_dialog_confirm => '备份';
 
   @override
+  String get backup_note_keep_title => '保留此备份';
+
+  @override
+  String get backup_note_keep_subtitle => '已置顶的备份永远不会被自动删除';
+
+  @override
   String get backup_delete_dialog_cancel => '取消';
 
   @override
@@ -2643,6 +2657,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_schedule_retention_subtitle => '旧备份将自动删除';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle => '备份永远不会被自动删除';
+
+  @override
+  String get backup_retention_keepAll => '全部保留';
+
+  @override
+  String get backup_retention_custom => '自定义数量…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return '自定义：$count';
+  }
+
+  @override
+  String get backup_retention_custom_title => '保留多少个备份？';
+
+  @override
+  String get backup_retention_custom_label => '备份数量';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return '请输入 1 到 $max 之间的数字';
+  }
+
+  @override
   String get backup_retention_allDevices_title => '统计所有设备的备份';
 
   @override
@@ -2652,6 +2691,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return '云文件夹保留所有设备最近的 $count 个备份。已置顶的备份会被保留。 每台设备最新的备份也会保留，除非已超过 6 个月。如果其他设备也开启此项，以最小的数字为准。请先在所有设备上更新应用，以便识别它们置顶的备份。';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      '已开启全部保留，因此此设备不会从云文件夹中删除任何备份。已置顶的备份会被保留。';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -8934,6 +8977,47 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => '延迟换气';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => '逆向扩散';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => '全部';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => '逆向扩散 (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => '反向交换';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => '气体交换';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2，He $he，净 $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => '进';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => '出';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => '不一';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => '气体切换';
 
   @override
@@ -9401,6 +9485,30 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recordEdit_unlockTooltip => '解锁以编辑';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return '正在编辑 $name';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return '编辑$card';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => '未保存的更改';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card，已隐藏';
+  }
+
+  @override
+  String get recordEdit_saveFailed => '无法保存更改。未做任何更改。';
 
   @override
   String get settings_manage_setupAssistant => '设置向导';
@@ -21433,6 +21541,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => '我已了解';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      '剖面显示等压逆向扩散';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer => '已接受计划提示';
 
   @override
@@ -21783,6 +21895,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => '延迟换气';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion => '等压逆向扩散';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return '等压逆向扩散持续 $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      '一次换气违反了五分之一规则';
 
   @override
   String get safetySettings_rule_highSurfaceGf => '出水时梯度因子过高';
@@ -22317,6 +22441,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => '上升限制';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion => '等压逆向扩散';
 
   @override
   String get settings_appearance_metric_events => '事件';
@@ -23996,6 +24123,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_equipmentCollapsedGroups => '已折叠的装备分组';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors => '最近使用的装备颜色';
 
   @override
   String get settings_conflict_field_listArrangementHlc => '列表排列记录';
@@ -27511,7 +27641,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      '在从氦气含量较高的气体切换到氮气含量较高的气体时,在ICD计算器中显示根据五分之一法则得出的评估。';
+      '在从氦气含量较高的气体切换到氮气含量较高的气体时,在ICD计算器和潜水曲线的逆向扩散图层中显示根据五分之一法则得出的评估。';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS 计算';
@@ -31824,22 +31954,22 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => '自定义颜色';
+  String get common_color_custom => '自定义颜色';
 
   @override
-  String get tags_color_hexLabel => '十六进制代码';
+  String get common_color_hexLabel => '十六进制代码';
 
   @override
-  String get tags_color_hexError => '请输入六位 0-9 或 A-F 字符，例如 #2E8B57';
+  String get common_color_hexError => '请输入六位 0-9 或 A-F 字符，例如 #2E8B57';
 
   @override
-  String get tags_color_use => '使用';
+  String get common_color_use => '使用';
 
   @override
-  String get tags_color_hueLabel => '色相';
+  String get common_color_hueLabel => '色相';
 
   @override
-  String get tags_color_squareLabel => '饱和度和亮度';
+  String get common_color_squareLabel => '饱和度和亮度';
 
   @override
   String get tags_manage_narrowDialog_confirm => '移除';
@@ -57092,6 +57222,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => '保留全部备份';
+
+  @override
   String get settings_backups_folder => '此设备上的备份文件夹';
 
   @override
@@ -57915,6 +58048,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency。此处保留所有备份。';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency，在 Submersion 打开时进行。此处保留所有备份。';
+  }
+
+  @override
   String settings_setUpDevice_backups_copy(String account) {
     return '同时在 $account 中保留一份副本';
   }
@@ -58448,6 +58593,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get changeLog_label_removeDuplicateCylinders => '已移除重复气瓶';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return '已编辑：$cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => '、';
 
   @override
   String get changeLog_undoIncomplete => '撤销未能恢复全部内容。其余内容见 设置 > 数据 > 更改日志。';
@@ -59380,6 +59533,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       '当氮上升快于氦下降时，换气可在深度不变的情况下增加组织中的惰性气体总量。常用的五分之一规则将氮的增幅限制在氦降幅的五分之一以内。';
+
+  @override
+  String get info_term_counterdiffusionProfile_label => '潜水曲线上的逆向扩散';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      '在潜水曲线上，橙色条带标出隔室所含惰性气体已多于吸入量、却仍明显吸收气体的时段。在 Bühlmann 模型中氦排出快于氮进入，因此从三混气换到高氧时很少出现条带；换气处的虚线则显示五分之一规则。';
 
   @override
   String get info_term_hypercapnia_label => '高碳酸血症';

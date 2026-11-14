@@ -1500,6 +1500,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_color_white => 'לבן';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'אחרונים';
+
+  @override
   String get equipment_color_none => 'ללא';
 
   @override
@@ -2565,6 +2573,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_note_dialog_confirm => 'גבה';
 
   @override
+  String get backup_note_keep_title => 'שמור גיבוי זה';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'גיבויים מוצמדים לעולם אינם מוסרים אוטומטית';
+
+  @override
   String get backup_delete_dialog_cancel => 'ביטול';
 
   @override
@@ -2741,6 +2756,32 @@ class AppLocalizationsHe extends AppLocalizations {
       'גיבויים ישנים יותר מוסרים אוטומטית';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'גיבויים לעולם אינם מוסרים אוטומטית';
+
+  @override
+  String get backup_retention_keepAll => 'שמור הכול';
+
+  @override
+  String get backup_retention_custom => 'מספר מותאם אישית…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'מותאם אישית: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'כמה גיבויים לשמור?';
+
+  @override
+  String get backup_retention_custom_label => 'מספר הגיבויים';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'הזן מספר בין 1 ל-$max';
+  }
+
+  @override
   String get backup_retention_allDevices_title => 'ספירת גיבויים מכל המכשירים';
 
   @override
@@ -2751,6 +2792,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'תיקיית הענן שומרת את $count הגיבויים האחרונים מכל המכשירים. גיבויים מוצמדים נשמרים. גם הגיבוי האחרון של כל מכשיר נשמר, אלא אם הוא בן יותר מ־6 חודשים. אם גם מכשירים אחרים משתמשים בזה, המספר הקטן ביותר קובע. עדכנו קודם את האפליקציה בכל המכשירים כדי שההצמדות שלהם ייראו.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'האפשרות \'שמור הכול\' פעילה, ולכן מכשיר זה אינו מסיר גיבויים מתיקיית הענן. גיבויים מוצמדים נשמרים.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9212,6 +9257,47 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'החלפות גז מאוחרות';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'דיפוזיה נגדית';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'הכול';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'דיפוזיה נגדית (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'חילוף מנוגד';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'חילוף גזים';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, נטו $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'נכנס';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'יוצא';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'מעורב';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'החלפות גז';
 
   @override
@@ -9697,6 +9783,31 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recordEdit_unlockTooltip => 'ביטול נעילה לעריכה';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return 'עריכת $name';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return 'עריכת $card';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'שינויים שלא נשמרו';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, מוסתר';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'לא ניתן היה לשמור את השינויים. שום דבר לא השתנה.';
 
   @override
   String get settings_manage_setupAssistant => 'אשף ההגדרה';
@@ -22059,6 +22170,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'הבנתי';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'הפרופיל מציג דיפוזיה נגדית איזוברית';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'אזהרת תכנון אושרה';
 
@@ -22423,6 +22538,19 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'החלפת גז מאוחרת';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'דיפוזיה נגדית איזוברית';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'דיפוזיה נגדית איזוברית במשך $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'החלפת גז הפרה את כלל החמישיות';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -22991,6 +23119,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'תקרה';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'דיפוזיה נגדית איזוברית';
 
   @override
   String get settings_appearance_metric_events => 'אירועים';
@@ -24743,6 +24875,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentCollapsedGroups =>
       'קבוצות ציוד מקופלות';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'צבעי ציוד אחרונים';
 
   @override
   String get settings_conflict_field_listArrangementHlc => 'יומן סידור הרשימות';
@@ -28433,7 +28569,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'מציג במחשבון ה-ICD הערכה לפי כלל החמישית במעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן.';
+      'מציג במחשבון ה-ICD ובשכבת הדיפוזיה הנגדית בפרופיל הערכה לפי כלל החמישית במעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'חישוב CNS';
@@ -32956,23 +33092,23 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'צבע מותאם אישית';
+  String get common_color_custom => 'צבע מותאם אישית';
 
   @override
-  String get tags_color_hexLabel => 'קוד הקסדצימלי';
+  String get common_color_hexLabel => 'קוד הקסדצימלי';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'יש להזין שישה תווים 0-9 או A-F, למשל #2E8B57';
 
   @override
-  String get tags_color_use => 'שימוש';
+  String get common_color_use => 'שימוש';
 
   @override
-  String get tags_color_hueLabel => 'גוון';
+  String get common_color_hueLabel => 'גוון';
 
   @override
-  String get tags_color_squareLabel => 'רוויה ובהירות';
+  String get common_color_squareLabel => 'רוויה ובהירות';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'הסר';
@@ -59544,6 +59680,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'שמירת כל הגיבויים';
+
+  @override
   String get settings_backups_folder => 'תיקיית הגיבוי במכשיר הזה';
 
   @override
@@ -60419,6 +60558,18 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. כל הגיבויים נשמרים כאן.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, כל עוד Submersion פתוח. כל הגיבויים נשמרים כאן.';
+  }
+
+  @override
   String settings_setUpDevice_backups_copy(String account) {
     return 'לשמור גם עותק ב-$account';
   }
@@ -60972,6 +61123,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get changeLog_label_removeDuplicateCylinders => 'מכלים כפולים הוסרו';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'נערך: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>
@@ -61947,6 +62106,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'החלפת גז יכולה להעלות את סך הגז האינרטי ברקמות בלי שינוי עומק כשהחנקן עולה מהר יותר משההליום יורד. הבדיקה המקובלת, כלל החמישיות, מגבילה את עליית החנקן לחמישית מירידת ההליום.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label => 'דיפוזיה נגדית בפרופיל';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'בפרופיל הצלילה פס כתום מסמן היכן מדור מכיל כבר יותר גז אינרטי ממה שנשאף ועדיין קולט גז באופן מורגש. במודל בולמן ההליום יוצא מהר יותר משהחנקן נכנס, ולכן מעבר מטרימיקס לניטרוקס מראה פס לעתים רחוקות; הקו המקווקו במעבר מראה במקום זאת את כלל החמישיות.';
 
   @override
   String get info_term_hypercapnia_label => 'היפרקפניה';

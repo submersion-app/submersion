@@ -50,6 +50,7 @@ class _Backups extends Fake implements BackupService {
   Future<BackupRecord> performBackup({
     bool isAutomatic = false,
     String? note,
+    bool pin = false,
   }) async {
     this.note = note;
     return BackupRecord(

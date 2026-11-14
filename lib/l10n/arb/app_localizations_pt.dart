@@ -1521,6 +1521,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_color_white => 'Branco';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Recentes';
+
+  @override
   String get equipment_color_none => 'Nenhuma';
 
   @override
@@ -2602,6 +2610,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Fazer backup';
 
   @override
+  String get backup_note_keep_title => 'Manter este backup';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Os backups fixados nunca são removidos automaticamente';
+
+  @override
   String get backup_delete_dialog_cancel => 'Cancelar';
 
   @override
@@ -2785,6 +2800,32 @@ class AppLocalizationsPt extends AppLocalizations {
       'Backups mais antigos são removidos automaticamente';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Os backups nunca são removidos automaticamente';
+
+  @override
+  String get backup_retention_keepAll => 'Manter todos';
+
+  @override
+  String get backup_retention_custom => 'Número personalizado…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Personalizado: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Quantos backups manter?';
+
+  @override
+  String get backup_retention_custom_label => 'Número de backups';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Insira um número de 1 a $max';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Contar backups de todos os dispositivos';
 
@@ -2796,6 +2837,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'A pasta na nuvem mantém os últimos $count backups de todos os dispositivos. Os backups fixados são mantidos. O backup mais recente de cada dispositivo também é mantido, a menos que tenha mais de 6 meses. Se outros dispositivos também usarem isto, vale o número mais pequeno. Atualize primeiro a app em todos os dispositivos para que os backups fixados neles sejam vistos.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Manter todos está ativado, por isso este dispositivo não remove backups da pasta na nuvem. Os backups fixados são mantidos.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9421,6 +9466,47 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Trocas de gás tardias';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Contradifusão';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Tudo';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Contradifusão (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Troca oposta';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'Troca gasosa';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, líquido $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'entra';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'sai';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'misto';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Trocas de Gás';
 
   @override
@@ -9914,6 +10000,31 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recordEdit_unlockTooltip => 'Desbloquear para editar';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return 'A editar $name';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return 'Editar $card';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'Alterações não guardadas';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, oculto';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'Não foi possível guardar as alterações. Nada foi alterado.';
 
   @override
   String get settings_manage_setupAssistant => 'Assistente de configuração';
@@ -22548,6 +22659,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Entendi';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'Perfil mostra a contradifusão isobárica';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Aviso de planejamento aceito';
 
@@ -22921,6 +23036,19 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Troca de gás tardia';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Contradifusão isobárica';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Contradifusão isobárica durante $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Uma troca de gás violou a regra dos quintos';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23500,6 +23628,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Teto';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Contradifusão isobárica';
 
   @override
   String get settings_appearance_metric_events => 'Eventos';
@@ -25313,6 +25445,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentCollapsedGroups =>
       'Grupos de equipamentos recolhidos';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Cores de equipamento recentes';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>
@@ -29140,7 +29276,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Mostra na calculadora de ICD uma avaliação pela regra do quinto ao trocar de um gás mais rico em hélio para um mais rico em nitrogênio.';
+      'Mostra na calculadora de ICD e na camada de contradifusão do perfil uma avaliação pela regra do quinto ao trocar de um gás mais rico em hélio para um mais rico em nitrogênio.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'Cálculo de CNS';
@@ -33778,23 +33914,23 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Cor personalizada';
+  String get common_color_custom => 'Cor personalizada';
 
   @override
-  String get tags_color_hexLabel => 'Código hexadecimal';
+  String get common_color_hexLabel => 'Código hexadecimal';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Insira seis caracteres 0-9 ou A-F, como #2E8B57';
 
   @override
-  String get tags_color_use => 'Usar';
+  String get common_color_use => 'Usar';
 
   @override
-  String get tags_color_hueLabel => 'Matiz';
+  String get common_color_hueLabel => 'Matiz';
 
   @override
-  String get tags_color_squareLabel => 'Saturação e brilho';
+  String get common_color_squareLabel => 'Saturação e brilho';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Remover';
@@ -60794,6 +60930,9 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Manter todos os backups';
+
+  @override
   String get settings_backups_folder => 'Pasta de backup neste dispositivo';
 
   @override
@@ -61679,6 +61818,18 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Todos os backups ficam guardados aqui.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, enquanto o Submersion está aberto. Todos os backups ficam guardados aqui.';
+  }
+
+  @override
   String settings_setUpDevice_backups_copy(String account) {
     return 'Guardar também uma cópia em $account';
   }
@@ -62246,6 +62397,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Cilindros duplicados removidos';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'Editado: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>
@@ -63234,6 +63393,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'Uma troca de gás pode subir o gás inerte total nos tecidos sem mudar de profundidade quando o azoto sobe mais depressa do que o hélio desce. A verificação habitual, a regra dos quintos, limita a subida de azoto a um quinto da descida de hélio.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Contradifusão no perfil';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'No perfil, uma faixa laranja marca onde um compartimento já contém mais gás inerte do que o respirado e ainda assim absorve gás de forma notória. No modelo de Buhlmann o hélio sai mais depressa do que o azoto entra, por isso uma troca de trimix para nitrox raramente mostra uma faixa; a linha tracejada na troca mostra antes a regra dos quintos.';
 
   @override
   String get info_term_hypercapnia_label => 'Hipercapnia';
