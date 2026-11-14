@@ -66,7 +66,8 @@ class DiveMediaSection extends ConsumerStatefulWidget {
 
   /// Invoked with the item when a mouse pointer enters its thumbnail, and
   /// with null when the pointer leaves the item last reported (issue #4524).
-  /// A leave for any other item is not reported, so the last call always
+  /// Every item reported is followed by a null before the next item, and a
+  /// leave for any other item is not reported, so the last call always
   /// names what is under the pointer now. Touch never hovers.
   final void Function(MediaItem? item)? onHoverMedia;
 
@@ -118,6 +119,12 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   /// that one would leave the first dive marked for good.
   void _onTileHover(MediaItem item, bool hovered) {
     if (hovered) {
+      // Another thumbnail still marked hovered has not reported its leave
+      // yet (it is the late one). Close it now, so every callback told
+      // about an enter hears the leave that ends it.
+      if (_hoveredMediaId != null && _hoveredMediaId != item.id) {
+        _hoverReportedTo?.call(null);
+      }
       _hoveredMediaId = item.id;
       _hoverReportedTo = widget.onHoverMedia;
       _hoverReportedTo?.call(item);

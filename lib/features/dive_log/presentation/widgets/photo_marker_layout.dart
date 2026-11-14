@@ -26,19 +26,22 @@ class PhotoChartMarker {
 /// media hover in dive details (issue #4524) both ask here, so they cannot
 /// disagree about an item.
 ///
-/// Photos and videos with a usable profile position have a place; elapsed
-/// time is clamped to the profile range to absorb entry/exit clock skew, but
-/// only inside the [MediaDiveWindow] tolerance: a capture time days outside
-/// the dive has no place rather than being pinned to the exit (issue #1090).
-/// A manual position always passes.
+/// Photos and videos with a usable profile position have a place; a
+/// signature or a document never does. Elapsed time is clamped to the
+/// profile range to absorb entry/exit clock skew, but only inside the
+/// [MediaDiveWindow] tolerance: a capture time days outside the dive has no
+/// place rather than being pinned to the exit (issue #1090). A manual
+/// position always passes.
 PhotoChartMarker? photoMarkerFor(
   MediaItem item, {
   required int maxProfileSeconds,
 }) {
   // Photos AND videos get markers: underwater libraries are often mostly
   // short clips, and enrichment gives both the same (time, depth) position.
-  // Only signatures are categorically not dive-moment media.
-  if (item.isSignature) return null;
+  // Signatures and documents are categorically not dive-moment media. A
+  // document can still carry an enrichment (the backfill positions whatever
+  // is attached to the dive by its date), so it is excluded by type.
+  if (item.isSignature || item.isDocument) return null;
   final enrichment = item.enrichment;
   if (enrichment == null) return null;
   if (enrichment.matchConfidence == MatchConfidence.noProfile) return null;

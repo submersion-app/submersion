@@ -37,26 +37,33 @@ void Function(MediaItem? item) mediaHoverCursorHandler(
   // Whether the cursor is where this handler's last enter put it.
   var setCursor = false;
 
+  // Clears the cursor, but only if this handler's last enter set it.
+  void release() {
+    if (!setCursor) return;
+    setCursor = false;
+    setProfileCursorSecondsIn(container, dive.id, const [], null);
+  }
+
   void onHover(MediaItem? item) {
     if (item == null) {
-      if (!setCursor) return;
-      setCursor = false;
-      setProfileCursorSecondsIn(container, dive.id, const [], null);
+      release();
       return;
     }
-    setCursor = false;
     // The series the chart draws, as watchChartProfile resolves it (#543),
     // read now rather than when the handler was made: the diver may have
     // switched source since.
     final profile =
         container.read(activeSourceProfileProvider(dive.id))?.points ??
         dive.profile;
-    if (profile.isEmpty) return;
-    final marker = photoMarkerFor(
-      item,
-      maxProfileSeconds: profile.last.timestamp,
-    );
-    if (marker == null) return;
+    final marker = profile.isEmpty
+        ? null
+        : photoMarkerFor(item, maxProfileSeconds: profile.last.timestamp);
+    if (marker == null) {
+      // No place for this item. An enter is not always preceded by the
+      // previous item's leave, so the mark that item set goes now.
+      release();
+      return;
+    }
     setProfileCursorSecondsIn(
       container,
       dive.id,

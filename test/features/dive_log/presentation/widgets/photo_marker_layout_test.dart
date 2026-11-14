@@ -84,6 +84,20 @@ void main() {
       );
     });
 
+    // A document can carry an enrichment (the backfill positions anything
+    // attached to the dive by its date), but it is not a moment in the dive.
+    test('gives no place to a document, even an enriched one', () {
+      final document = _media(
+        type: MediaType.document,
+        enrichment: _enrichment(),
+      );
+      expect(photoMarkerFor(document, maxProfileSeconds: 3000), isNull);
+      expect(
+        photoMarkersFromMedia([document], maxProfileSeconds: 3000),
+        isEmpty,
+      );
+    });
+
     test('gives no place to a noProfile match or a missing depth', () {
       expect(
         photoMarkerFor(

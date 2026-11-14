@@ -152,8 +152,13 @@ void main() {
     // A removed thumbnail reports its leave after the frame. Flutter happens
     // to run that before it re-checks what is under the pointer, but nothing
     // promises the order, so the section must not depend on it.
+    //
+    // An enter that arrives while another thumbnail is still marked hovered
+    // closes that one first, so whoever was told about it always hears its
+    // leave; the late leave itself is then dropped.
     testWidgets(
-      'a late leave from another thumbnail does not clear the one now hovered',
+      'an enter while another thumbnail is still hovered reports that '
+      'one\'s leave first, and its own late leave is dropped',
       (tester) async {
         final reported = <MediaItem?>[];
         await tester.pumpWidget(
@@ -167,7 +172,7 @@ void main() {
         second.onHoverChanged(true);
         first.onHoverChanged(false);
 
-        expect(reported.map((item) => item?.id), ['a', 'b']);
+        expect(reported.map((item) => item?.id), ['a', null, 'b']);
       },
     );
 

@@ -98,6 +98,19 @@ void main() {
     expect(cursor(c), 7);
   });
 
+  // An enter is not always preceded by the previous item's leave. The mark
+  // this handler set must not outlive a move onto an item that has no place.
+  test('moving straight onto an item with no place clears the mark the '
+      'previous item set', () {
+    final c = container();
+    final onHover = mediaHoverCursorHandler(c, dive);
+
+    onHover(_photo(dive.id, elapsedSeconds: 125));
+    onHover(_photo(dive.id));
+
+    expect(cursor(c), isNull);
+  });
+
   test('a dive with no profile does nothing', () {
     final c = container();
     final bare = dive.copyWith(profile: const []);
