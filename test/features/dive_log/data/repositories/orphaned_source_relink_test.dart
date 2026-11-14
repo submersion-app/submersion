@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
@@ -408,10 +410,11 @@ void main() {
       expect((await diveRow(ambiguousDive)).computerId, isNull);
     });
 
-    test('leaves the profile of a dive read by two computers unattributed, '
-        'whichever is linked first', () async {
-      // Profiles carry no serial of their own, so with two computer sources
-      // on the dive neither may claim them, however the run is ordered.
+    test('leaves a profile that names no source unattributed on a dive read '
+        'by two computers, whichever is linked first', () async {
+      // A profile carries no serial of its own, so one that names no source
+      // either may be claimed by neither of the dive's two computer sources,
+      // however the run is ordered.
       await insertComputer(id: 'a-perdix', serialNumber: 'SN-12345');
       await insertComputer(id: 'b-teric', model: 'Teric', serialNumber: 'T1');
       final diveId = await insertDive();
@@ -479,6 +482,92 @@ void main() {
           rows.firstWhere((r) => r.id == id).computerId;
       expect(computerOf(perdixSeries), 'a-perdix');
       expect(computerOf(tericSeries), 'b-teric');
+    });
+
+    test('a deleted and re-added computer has one series per source again '
+        'after a re-parse (issue #4529)', () async {
+      // The steps of the issue, through the real delete: it clears the
+      // computer on the source and its series and leaves each series its
+      // source, which is all the relink and the re-parse have to go by.
+      final oldId = await insertComputer(id: 'old', serialNumber: 'SN-12345');
+      await insertComputer(id: 'teric', model: 'Teric', serialNumber: 'T1');
+      final diveId = await insertDive(computerId: oldId);
+      final perdix = await insertDownloadedSource(
+        diveId: diveId,
+        computerId: oldId,
+        computerSerial: 'SN-12345',
+      );
+      final teric = await insertDownloadedSource(
+        diveId: diveId,
+        computerId: 'teric',
+        isPrimary: false,
+        computerModel: 'Shearwater Teric',
+        computerSerial: 'T1',
+        product: 'Teric',
+      );
+      const samples = [ProfileSample(timestamp: 0, depth: 10.0)];
+      final perdixSeries = await profileSeries.insertSeries(
+        diveId: diveId,
+        sourceId: perdix,
+        computerId: oldId,
+        samples: samples,
+        now: 1000,
+      );
+      final tericSeries = await profileSeries.insertSeries(
+        diveId: diveId,
+        sourceId: teric,
+        computerId: 'teric',
+        isPrimary: false,
+        samples: samples,
+        now: 1000,
+      );
+
+      await repository.deleteComputer(oldId);
+      final created = await repository.createComputer(newComputer());
+
+      Future<List<DiveProfileSeriesRow>> ofSource(String sourceId) async => [
+        for (final r in await profileSeries.getRowsForDives([diveId]))
+          if (r.sourceId == sourceId) r,
+      ];
+      expect((await ofSource(perdix)).single.id, perdixSeries);
+      expect((await ofSource(perdix)).single.computerId, created.id);
+
+      await ReparseService(db: db).applyParsedUpdate(
+        diveId: diveId,
+        sourceRowId: perdix,
+        parsed: pigeon.ParsedDive(
+          fingerprint: 'fp',
+          dateTimeYear: 2026,
+          dateTimeMonth: 1,
+          dateTimeDay: 15,
+          dateTimeHour: 10,
+          dateTimeMinute: 0,
+          dateTimeSecond: 0,
+          maxDepthMeters: 12.0,
+          avgDepthMeters: 8.0,
+          durationSeconds: 3000,
+          samples: [
+            pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0.0),
+            pigeon.ProfileSample(timeSeconds: 30, depthMeters: 12.0),
+          ],
+          tanks: [],
+          gasMixes: [],
+          events: [],
+        ),
+        descriptorVendor: 'Shearwater',
+        descriptorProduct: 'Perdix',
+        descriptorModel: 42,
+        libdivecomputerVersion: '0.8.0',
+      );
+
+      final fresh = (await ofSource(perdix)).single;
+      expect(fresh.id, isNot(perdixSeries));
+      expect(fresh.computerId, created.id);
+      expect(fresh.isPrimary, isTrue);
+      final other = (await ofSource(teric)).single;
+      expect(other.id, tericSeries);
+      expect(other.computerId, 'teric');
+      expect(other.isPrimary, isFalse);
     });
 
     test(

@@ -217,6 +217,44 @@ void main() {
       expect(after.values.where((v) => v.isPrimary), hasLength(1));
     });
 
+    test('is kept when the recording it corrects is live beside it', () async {
+      // A dive re-parsed before #3189: that re-parse put the recording back
+      // live beside the edit instead of beneath it. The recording is there
+      // on the computer's strand, so the series with no computer cannot be
+      // it, and nothing lies demoted to say so by shape.
+      await twoComputerDive();
+      final edit = await insertSeries(
+        sourceId: 'src-a',
+        isPrimary: true,
+        depth: 25.0,
+      );
+      final recording = await insertSeries(
+        sourceId: 'src-a',
+        computerId: 'comp-a',
+        isPrimary: true,
+        now: 500,
+      );
+
+      await reparse('src-a');
+
+      final after = await seriesById();
+      expect(after[edit], (
+        sourceId: 'src-a',
+        computerId: null,
+        isPrimary: true,
+      ));
+      expect(after.containsKey(recording), isFalse);
+      final fresh = after.entries.where(
+        (e) => e.key != edit && e.value.sourceId == 'src-a',
+      );
+      expect(fresh.single.value.isPrimary, isFalse);
+      expect(after.values.where((v) => v.isPrimary), hasLength(1));
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('dive-1'))).getSingle();
+      expect(dive.maxDepth, 25.0);
+    });
+
     test(
       'is kept when it is a marked edit demoted beneath the original',
       () async {

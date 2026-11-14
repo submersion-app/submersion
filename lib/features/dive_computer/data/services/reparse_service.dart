@@ -254,7 +254,6 @@ class ReparseService {
           liveEditKept: keptEdits.anyLive,
           parsed: parsed,
           isPrimary: sourceRow.isPrimary,
-          beneathEdit: beneathEdit,
           timeOffset: sourceRow.timeOffsetSeconds ?? 0,
         );
       }
@@ -803,7 +802,6 @@ class ReparseService {
     required bool liveEditKept,
     required pigeon.ParsedDive parsed,
     required bool isPrimary,
-    required bool beneathEdit,
     required int timeOffset,
   }) async {
     final replaced = [
@@ -819,7 +817,7 @@ class ReparseService {
     ];
     await _profileSeries.deleteByIds([for (final s in replaced) s.id]);
 
-    // Re-insert from parsed samples. [beneathEdit] lands them demoted, the
+    // Re-insert from parsed samples. [liveEditKept] lands them demoted, the
     // rule DiveReimportService._replaceProfile follows for a file. Inserted
     // primary they would sit live beside the edit and, stamped newer, outrank
     // it on the next primary swap (issue #3189). A series that was live stays
@@ -831,7 +829,7 @@ class ReparseService {
         diveId: diveId,
         computerId: computerId,
         sourceId: sourceId,
-        isPrimary: (isPrimary || wasLive) && !beneathEdit && !liveEditKept,
+        isPrimary: (isPrimary || wasLive) && !liveEditKept,
         isEdit: false,
         samples: [
           for (final s in parsed.samples) _sampleFromParsed(s, timeOffset),
@@ -876,24 +874,42 @@ class ReparseService {
   /// [ProfileSeriesRepository.liveEditIdsOf] reads it as one by its shape
   /// (issue #3189): an edit of a source with a computer names that source
   /// and no computer, the shape a computer delete leaves on its recording
-  /// too, and only the generation demoted beneath tells them apart.
+  /// too, and what tells them apart is the recording itself. Where the
+  /// source has a series on its computer's strand, demoted beneath or, on a
+  /// dive re-parsed before #3189, live beside, the one with no computer is
+  /// the edit. Alone, it is the recording, orphaned.
+  ///
+  /// One shape stays unreadable: an unmarked orphan live over a duplicate a
+  /// re-parse already wrote beneath it is an edit over its generation in
+  /// every column, so it is kept, the direction that loses nothing.
   static ({Set<String> ids, bool anyLive}) _keptEdits(
     List<ProfileSeriesIdentity> series,
     String sourceId,
     String? computerId,
     List<({String id, String? computerId})> sources,
   ) {
+    bool owns(ProfileSeriesIdentity s) => _ownsSeries(
+      s,
+      sourceId: sourceId,
+      computerId: computerId,
+      sources: sources,
+    );
     final byShape = ProfileSeriesRepository.liveEditIdsOf(series);
+    final hasRecording =
+        computerId != null &&
+        series.any((s) => s.computerId == computerId && owns(s));
+    bool besideRecording(ProfileSeriesIdentity s) =>
+        hasRecording &&
+        s.isPrimary &&
+        s.isEdit == null &&
+        s.computerId == null &&
+        s.sourceId == sourceId;
     final edits = [
       for (final s in series)
-        if ((s.isEdit == true || byShape.contains(s.id)) &&
-            ((s.computerId == null && s.sourceId == null) ||
-                _ownsSeries(
-                  s,
-                  sourceId: sourceId,
-                  computerId: computerId,
-                  sources: sources,
-                )))
+        if ((s.isEdit == true ||
+                byShape.contains(s.id) ||
+                besideRecording(s)) &&
+            ((s.computerId == null && s.sourceId == null) || owns(s)))
           s,
     ];
     return (
