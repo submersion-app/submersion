@@ -185,7 +185,13 @@ extension RungsFromV340 on AppDatabase {
     // reads in (issue #4534). Nullable, no backfill: every existing row
     // follows the diver's settings, as it did. Re-asserted in beforeOpen.
     // Numbered 366 because open work claims 364 and 365.
+    // The same rung repairs cylinder volumes an imperial diver typed in
+    // cubic feet, stored as water volume until now. Data only, so the floor
+    // does not move; it rewrites equipment_attributes.value_num, so
+    // changeLogRewrittenColumns lists it, and it repeats after each sync
+    // apply for rows a peer below v366 still sends.
     if (from < 366) await _assertAttributeValueUnitColumn();
+    if (from < 366) await _repairCylinderVolumeCubicFeet();
     if (from < 366) await reportProgress();
   }
 }

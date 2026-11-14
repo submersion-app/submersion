@@ -7,4 +7,14 @@ extension AttributeUnitMigrations on AppDatabase {
   /// from both the v366 rung and the beforeOpen backstop.
   Future<void> _assertAttributeValueUnitColumn() =>
       _addColumnIfMissing('equipment_attributes', 'value_unit', 'TEXT');
+
+  /// v366: [repairCylinderVolumeCubicFeet] (issue #4534). Guarded on the
+  /// tables, as the other helpers are, for migration fixtures that build
+  /// only part of the schema.
+  Future<void> _repairCylinderVolumeCubicFeet() async {
+    if (await _columnExists('equipment_attributes', 'value_num') &&
+        await _columnExists('equipment', 'type')) {
+      await repairCylinderVolumeCubicFeet(this);
+    }
+  }
 }
