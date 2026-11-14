@@ -439,6 +439,9 @@ void main() {
     await tester.enterText(notesField(), 'Something else');
     await settle(tester);
 
+    // The harness restores the view too; said here because this is where
+    // the size is changed again.
+    addTearDown(tester.view.reset);
     tester.view.physicalSize = const Size(1400, 1000);
     await settle(tester);
 
