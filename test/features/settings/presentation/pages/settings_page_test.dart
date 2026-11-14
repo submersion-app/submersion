@@ -201,8 +201,16 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(defaultShowO2CellMv: value);
 
   @override
+  Future<void> setDefaultShowCounterdiffusion(bool value) async =>
+      state = state.copyWith(defaultShowCounterdiffusion: value);
+
+  @override
   Future<void> setO2CellUnit(O2CellUnit value) async =>
       state = state.copyWith(o2CellUnit: value);
+
+  @override
+  Future<void> setCounterdiffusionShowAll(bool value) async =>
+      state = state.copyWith(counterdiffusionShowAll: value);
 
   @override
   Future<void> setDefaultShowGtr(bool value) async =>

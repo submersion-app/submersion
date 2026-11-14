@@ -12261,6 +12261,9 @@ class SyncDataSerializer {
       // v161: seed it so payloads predating the column hydrate instead of
       // throwing in DiverSetting.fromJson.
       'defaultShowO2CellMv': false,
+      // v364: seed it so payloads predating the column hydrate instead of
+      // throwing in DiverSetting.fromJson (issue #4530).
+      'defaultShowCounterdiffusion': false,
       // v177: GTR settings; seed them so payloads predating the columns
       // hydrate instead of throwing in DiverSetting.fromJson.
       'defaultShowGtr': false,

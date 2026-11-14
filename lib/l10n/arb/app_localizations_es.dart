@@ -22386,6 +22386,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Entendido';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'El perfil muestra la contradifusión isobárica';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Aviso de planificación aceptado';
 
@@ -23346,6 +23350,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Techo';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Contradifusión isobárica';
 
   @override
   String get settings_appearance_metric_events => 'Eventos';

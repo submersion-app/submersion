@@ -35429,6 +35429,12 @@ abstract class AppLocalizations {
   /// **'I Understand'**
   String get planning_disclaimer_dialog_confirm;
 
+  /// No description provided for @settings_conflict_field_defaultShowCounterdiffusion.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile shows isobaric counterdiffusion'**
+  String get settings_conflict_field_defaultShowCounterdiffusion;
+
   /// No description provided for @settings_conflict_field_hasAcceptedPlanningDisclaimer.
   ///
   /// In en, this message translates to:
@@ -36928,6 +36934,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ceiling'**
   String get settings_appearance_metric_ceiling;
+
+  /// No description provided for @settings_appearance_metric_counterdiffusion.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric counterdiffusion'**
+  String get settings_appearance_metric_counterdiffusion;
 
   /// No description provided for @settings_appearance_metric_events.
   ///

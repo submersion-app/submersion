@@ -22324,6 +22324,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Megértettem';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'A profil mutatja az izobár ellendiffúziót';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Tervezési figyelmeztetés elfogadva';
 
@@ -23279,6 +23283,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Plafon';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Izobár ellendiffúzió';
 
   @override
   String get settings_appearance_metric_events => 'Események';

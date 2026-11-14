@@ -21289,6 +21289,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => '我已了解';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      '剖面显示等压逆向扩散';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer => '已接受计划提示';
 
   @override
@@ -22173,6 +22177,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => '上升限制';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion => '等压逆向扩散';
 
   @override
   String get settings_appearance_metric_events => '事件';

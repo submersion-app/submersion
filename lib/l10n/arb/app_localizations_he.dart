@@ -21908,6 +21908,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'הבנתי';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'הפרופיל מציג דיפוזיה נגדית איזוברית';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'אזהרת תכנון אושרה';
 
@@ -22840,6 +22844,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'תקרה';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'דיפוזיה נגדית איזוברית';
 
   @override
   String get settings_appearance_metric_events => 'אירועים';

@@ -22751,6 +22751,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'فهمت';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'الملف يعرض الانتشار العكسي متساوي الضغط';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'تم قبول تنبيه التخطيط';
 
@@ -23714,6 +23718,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'السقف';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'الانتشار العكسي متساوي الضغط';
 
   @override
   String get settings_appearance_metric_events => 'الأحداث';

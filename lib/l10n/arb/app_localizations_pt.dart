@@ -22395,6 +22395,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Entendi';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'Perfil mostra a contradifusão isobárica';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Aviso de planejamento aceito';
 
@@ -23347,6 +23351,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Teto';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Contradifusão isobárica';
 
   @override
   String get settings_appearance_metric_events => 'Eventos';
