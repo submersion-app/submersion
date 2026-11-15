@@ -322,10 +322,12 @@ DiverFigure({
 
 The figures are drawn by `DiverFigurePainter` (unchanged). Labels are
 widgets placed over it, positioned by two pure functions that take the model,
-a `FigureLayout`, and each label's measured width, so both are unit-tested
-without widgets:
+a `FigureLayout`, the width of the box and the label row height, so both are
+unit-tested without widgets. Neither measures a name: each label fills its
+column's width and sits against its figure.
 
-- `labelColumns(model, view, layout, columnWidth)` for the phone layout.
+- `labelColumns(model, view, layout, width, left)` for the phone layout, with
+  the columns spanning `width` from `left`.
 - `pairLabelColumns(model, layout, width)` for the wide layout: the phone
   columns once for each figure, in its own half of the box (issue #4553).
 
@@ -333,7 +335,7 @@ Each label is a small number badge followed by the item's name, truncated
 with an ellipsis: up to two lines, in a phone column or a pill.
 Every label has a tap target at least 40 pt tall, measured in tests on both
 platforms; the row grows with the diver's text size so large text never
-overflows it, and pill widths are measured at that text size.
+overflows it.
 
 ### 8.2 Phone layout, under 600 pt wide
 

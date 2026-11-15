@@ -7,9 +7,9 @@ import 'package:submersion/features/equipment/figure/presentation/figure_palette
 /// A number badge and an item's name, the whole slot tappable. A null
 /// [number] shows the name alone, for a figure drawn without numbers.
 ///
-/// [pill] draws a rounded background on one line (the wide layout); without
-/// it the label is plain text in a column (the phone layout), which may wrap
-/// to two lines. [alignEnd] pushes the content to the right edge, for labels
+/// [pill] draws a rounded background (the wide layout); without it the label
+/// is plain text in a column (the phone layout). Either may wrap the name to
+/// two lines. [alignEnd] pushes the content to the right edge, for labels
 /// left of their gear.
 class FigureNameLabel extends StatelessWidget {
   const FigureNameLabel({
