@@ -9,7 +9,6 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_list_content.dart';
-import 'package:submersion/features/insights/presentation/widgets/observations_strip.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_conditions_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_equipment_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_gas_page.dart';
@@ -44,8 +43,7 @@ class InsightsPage extends ConsumerWidget {
               showAppBar: false,
             ),
         detailBuilder: (context, categoryId) => _buildCategoryPage(categoryId),
-        summaryBuilder: (context) =>
-            const InsightsOverviewPage(embedded: true, showObservations: true),
+        summaryBuilder: (context) => const InsightsOverviewPage(embedded: true),
         mobileDetailRoute: (id) => '/insights/$id',
       );
     }
@@ -115,11 +113,8 @@ class InsightsMobileContent extends ConsumerWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
               children: [
-                // Observations lead the list (#2381); an empty strip is
-                // zero-size, so the categories sit where they always did.
-                const ObservationsStrip(
-                  padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-                ),
+                // Observations live on the Overview page (#4559), so the
+                // categories start at the top of a phone screen.
                 for (final (index, category) in insightsCategoriesOf(
                   context,
                 ).indexed) ...[

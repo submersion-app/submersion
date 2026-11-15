@@ -15,9 +15,9 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 import '../widgets/observation_test_harness.dart';
 
-/// Where the observations strip sits on the Insights landing (#2381): above
-/// the phone category list, and at the top of the desktop Overview summary
-/// only.
+/// Where the observations strip sits in Insights: the Overview page leads
+/// with it on every layout (#4559), and the phone landing list shows none, so
+/// its categories start at the top of the screen.
 void main() {
   setUp(() async {
     await setUpTestDatabase();
@@ -52,29 +52,19 @@ void main() {
   }
 
   group('phone landing', () {
-    testWidgets('the strip leads the category list', (tester) async {
+    testWidgets('shows no observations strip', (tester) async {
       await pump(
         tester,
         const InsightsMobileContent(),
         strip([gapObservation(lastDiveId: 'a'), categoryObservation('gas')]),
       );
-      final stripTop = tester.getTopLeft(find.byType(ObservationsStrip)).dy;
-      final overviewTop = tester.getTopLeft(find.text('Overview')).dy;
-      expect(stripTop, lessThan(overviewTop));
-      expect(find.text('Observations'), findsOneWidget);
-    });
-
-    testWidgets('an empty strip takes no space', (tester) async {
-      await pump(tester, const InsightsMobileContent(), strip(const []));
-      // A zero-height list child reads as offstage to the default finder;
-      // the list still stretches it to full width, so only height counts.
-      final finder = find.byType(ObservationsStrip, skipOffstage: false);
-      expect(tester.getSize(finder).height, 0);
+      expect(find.byType(ObservationsStrip, skipOffstage: false), findsNothing);
       expect(find.text('Observations'), findsNothing);
+      expect(find.text('Overview'), findsOneWidget);
     });
   });
 
-  group('desktop Overview summary', () {
+  group('Overview page', () {
     final fixture = DiveStatistics(
       totalDives: 42,
       totalTimeSeconds: 108000,
@@ -90,24 +80,7 @@ void main() {
       diveTypeDistributionProvider.overrideWith((ref) async => []),
     ];
 
-    testWidgets('the summary leads with the strip', (tester) async {
-      await pump(
-        tester,
-        const Scaffold(
-          body: InsightsOverviewPage(embedded: true, showObservations: true),
-        ),
-        [
-          ...stats(),
-          ...strip([gapObservation()]),
-        ],
-      );
-      final stripTop = tester.getTopLeft(find.byType(ObservationsStrip)).dy;
-      expect(stripTop, lessThan(tester.getTopLeft(find.text('42')).dy));
-    });
-
-    testWidgets('the Overview category detail does not repeat it', (
-      tester,
-    ) async {
+    testWidgets('leads with the strip', (tester) async {
       await pump(
         tester,
         const Scaffold(body: InsightsOverviewPage(embedded: true)),
@@ -116,7 +89,22 @@ void main() {
           ...strip([gapObservation()]),
         ],
       );
-      expect(find.byType(ObservationsStrip), findsNothing);
+      final stripTop = tester.getTopLeft(find.byType(ObservationsStrip)).dy;
+      expect(stripTop, lessThan(tester.getTopLeft(find.text('42')).dy));
+      expect(find.text('Observations'), findsOneWidget);
+    });
+
+    testWidgets('an empty strip takes no space on the Overview', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        const Scaffold(body: InsightsOverviewPage(embedded: true)),
+        [...stats(), ...strip(const [])],
+      );
+      expect(find.text('Observations'), findsNothing);
+      final finder = find.byType(ObservationsStrip, skipOffstage: false);
+      expect(tester.getSize(finder).height, 0);
     });
   });
 }
