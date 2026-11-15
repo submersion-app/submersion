@@ -203,7 +203,6 @@ class DiveDetailsDerivedRows extends ConsumerWidget {
     UnitFormatter units,
   ) {
     final display = ref.watch(gasConsumptionDisplayProvider);
-    final sitting = RecordEditScope.maybeOf<Dive>(context)?.isUnlocked ?? false;
     final sac = dive.sac;
     final rmv = display.showsRmv
         ? dive.rmvFor(ref.watch(gasModelProvider))
@@ -224,13 +223,7 @@ class DiveDetailsDerivedRows extends ConsumerWidget {
         ),
       if (display.showsRmv && rmv == null && sac != null) ...[
         if (!display.showsSac) sacRow(),
-        SacVolumeHint(
-          volumeSymbol: units.volumeSymbol,
-          // The volume is entered on the dive form. During a sitting that
-          // form would open as a second editor over the diver's unsaved
-          // changes, so the hint is a plain note until the sitting ends.
-          onTap: sitting ? null : () => context.push('/dives/${dive.id}/edit'),
-        ),
+        _VolumeHint(diveId: dive.id, volumeSymbol: units.volumeSymbol),
       ],
     ];
     if (rows.isEmpty) return const SizedBox.shrink();
@@ -308,6 +301,29 @@ class DiveDetailsDerivedRows extends ConsumerWidget {
               : null,
         ),
       ),
+    );
+  }
+}
+
+/// Why SAC is shown per pressure unit: no cylinder has a volume. It leads
+/// to the dive form, where the volume is entered.
+///
+/// During a sitting that form would open as a second editor over the
+/// diver's unsaved changes, so the hint is a plain note until the sitting
+/// ends. It is a widget of its own so that it alone, and not every row
+/// around it, is rebuilt as the page is locked and unlocked.
+class _VolumeHint extends StatelessWidget {
+  const _VolumeHint({required this.diveId, required this.volumeSymbol});
+
+  final String diveId;
+  final String volumeSymbol;
+
+  @override
+  Widget build(BuildContext context) {
+    final sitting = RecordEditScope.maybeOf<Dive>(context)?.isUnlocked ?? false;
+    return SacVolumeHint(
+      volumeSymbol: volumeSymbol,
+      onTap: sitting ? null : () => context.push('/dives/$diveId/edit'),
     );
   }
 }

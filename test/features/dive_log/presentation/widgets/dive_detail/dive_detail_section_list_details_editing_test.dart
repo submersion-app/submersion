@@ -8,11 +8,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_details_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_environment_section.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_list.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_tide_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_fields.dart';
@@ -33,6 +30,7 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_database.dart';
+import 'dive_detail_section_list_harness.dart';
 
 AppSettings _settings(
   List<DiveDetailSectionId> visible, {
@@ -108,23 +106,7 @@ void main() {
     Dive? tideFor,
     ReefHealth? satellite,
   }) {
-    final list = DiveDetailSectionList(
-      dive: dive,
-      profileSection: const SizedBox.shrink(),
-      safetyReviewKey: GlobalKey(),
-      notesKey: GlobalKey(),
-      retention: DiveDetailAnalysisRetention(),
-      actions: DiveDetailActions(
-        setPrimarySource: (_) {},
-        splitSource: (_, _) {},
-        removeSource: (_, _, _) {},
-        separateSegments: (_, _) {},
-        scanGallery: (_) {},
-        addPhotos: (_) {},
-        addDocument: (_) {},
-        openDocument: (_) {},
-      ),
-    );
+    final list = sectionListFor(dive);
     return ProviderScope(
       overrides: [
         settingsProvider.overrideWith((ref) => MockSettingsNotifier(settings)),

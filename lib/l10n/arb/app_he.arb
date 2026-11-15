@@ -2853,6 +2853,7 @@
   "diveLog_edit_trainingCoursesHint": "קישור צלילה זו לקורס הכשרה אחד או יותר",
   "diveLog_edit_tripSuggested": "מוצע: {name}",
   "diveLog_edit_tripUse": "שימוש",
+  "diveLog_edit_newRecordNotAdded": "נשמר, אבל לא ניתן היה להוסיף אותו לצלילה הזו. יש לבחור אותו מהרשימה.",
   "diveLog_edit_useSet": "שימוש בסט",
   "diveLog_edit_removeSet": "הסרת סט",
   "diveLog_bulkEdit_setsToRemove": "סטים להסרה",

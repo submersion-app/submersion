@@ -3004,6 +3004,7 @@
   "diveLog_edit_trainingCoursesHint": "Diesen Tauchgang mit einem oder mehreren Ausbildungskursen verknüpfen",
   "diveLog_edit_tripSuggested": "Vorgeschlagen: {name}",
   "diveLog_edit_tripUse": "Verwenden",
+  "diveLog_edit_newRecordNotAdded": "Gespeichert, konnte aber nicht zu diesem Tauchgang hinzugefügt werden. Bitte aus der Liste auswählen.",
   "diveLog_edit_useSet": "Set verwenden",
   "diveLog_edit_removeSet": "Set entfernen",
   "diveLog_bulkEdit_setsToRemove": "Zu entfernende Sets",

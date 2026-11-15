@@ -8995,6 +8995,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_tripUse => 'Utiliser';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'Enregistré, mais impossible de l\'ajouter à cette plongée. Choisissez-le dans la liste.';
+
+  @override
   String get diveLog_edit_useSet => 'Utiliser un ensemble';
 
   @override

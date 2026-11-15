@@ -37,8 +37,9 @@ const double _underRowInset = 14;
 /// Reads back a record the diver has just made, to put it on the dive.
 ///
 /// The record exists whether or not this read works. When the read fails,
-/// or finds nothing, the dive is left as it was and the diver is told, so
-/// they can pick the new record from the list instead. [messenger] and
+/// or finds nothing, the dive is left as it was and the diver is told that
+/// it was saved and to pick it from the list: asked to try again, they
+/// would make it a second time. [messenger] and
 /// [sorry] are read before the page that made the record was opened.
 Future<V?> _readBack<V>(
   Future<V?> Function() read, {
@@ -138,7 +139,7 @@ class _DiveTripRowState extends ConsumerState<DiveTripRow> {
     // Read now: the lookup below can run after the row has gone.
     final trips = ref.read(tripRepositoryProvider);
     final messenger = ScaffoldMessenger.of(context);
-    final sorry = context.l10n.common_error_tryAgain;
+    final sorry = context.l10n.diveLog_edit_newRecordNotAdded;
     final result = await _showPickerSheet(
       context,
       (sheetContext, scroll) => TripPickerSheet(
@@ -282,7 +283,7 @@ class _DiveCenterRowState extends ConsumerState<DiveCenterRow> {
     // Read now: the lookup below can run after the row has gone.
     final centers = ref.read(diveCenterRepositoryProvider);
     final messenger = ScaffoldMessenger.of(context);
-    final sorry = context.l10n.common_error_tryAgain;
+    final sorry = context.l10n.diveLog_edit_newRecordNotAdded;
     final result = await _showPickerSheet(
       context,
       (sheetContext, scroll) => DiveCenterPickerSheet(

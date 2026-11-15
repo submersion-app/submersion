@@ -8789,6 +8789,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_tripUse => 'שימוש';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'נשמר, אבל לא ניתן היה להוסיף אותו לצלילה הזו. יש לבחור אותו מהרשימה.';
+
+  @override
   String get diveLog_edit_useSet => 'שימוש בסט';
 
   @override

@@ -5,9 +5,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_course_rows.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_details_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_details_derived_rows.dart';
@@ -409,6 +414,120 @@ void main() {
       await tester.pump();
 
       expect(hint(tester).onTap, isNotNull);
+    });
+  });
+
+  // Rows the card shows and nothing on it edits, as they were before they
+  // moved into DiveDetailsDerivedRows.
+  group('the rows nothing edits, one by one', () {
+    Future<void> pumpDerived(
+      WidgetTester tester,
+      Dive dive, {
+      List<BuddyWithRole> buddies = const [],
+      List<DiveComputer> computers = const [],
+      Duration? interval,
+    }) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...await getBaseOverrides(),
+            buddiesForDiveProvider(
+              dive.id,
+            ).overrideWith((ref) async => buddies),
+            computersForDiveProvider(
+              dive.id,
+            ).overrideWith((ref) async => computers),
+            surfaceIntervalProvider(
+              dive.id,
+            ).overrideWith((ref) async => interval),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: DiveDetailsDerivedRows(dive: dive)),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('a dive with no buddies shows its imported buddy and dive '
+        'master text', (tester) async {
+      await pumpDerived(
+        tester,
+        bare.copyWith(buddy: ' Sam ', diveMaster: 'Ali'),
+      );
+
+      expect(rowValue(tester, l.diveLog_detail_label_buddy), 'Sam');
+      expect(rowValue(tester, l.diveLog_detail_label_diveMaster), 'Ali');
+    });
+
+    testWidgets('a computer named on the dive shows its serial and firmware', (
+      tester,
+    ) async {
+      await pumpDerived(
+        tester,
+        bare.copyWith(
+          diveComputerModel: 'Perdix 2',
+          diveComputerSerial: 'A1B2',
+          diveComputerFirmware: '93',
+        ),
+      );
+
+      expect(rowValue(tester, l.diveLog_detail_label_diveComputer), 'Perdix 2');
+      expect(rowValue(tester, l.diveLog_detail_label_serialNumber), 'A1B2');
+      expect(rowValue(tester, l.diveLog_detail_label_firmwareVersion), '93');
+    });
+
+    testWidgets('a linked computer is a row that leads to it, with its '
+        'serial under its name', (tester) async {
+      await pumpDerived(
+        tester,
+        bare,
+        computers: [
+          DiveComputer(
+            id: 'pc',
+            name: 'Perdix 2',
+            serialNumber: 'A1B2',
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+        ],
+      );
+
+      expect(find.byType(DiveDetailLinkRow), findsOneWidget);
+      expect(find.text(l.diveLog_detail_serialNumber('A1B2')), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is Semantics &&
+              w.properties.button == true &&
+              w.properties.label ==
+                  l.diveLog_detail_semantics_viewDiveComputer('Perdix 2'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('with none imported, the surface interval is worked out', (
+      tester,
+    ) async {
+      await pumpDerived(tester, bare, interval: const Duration(hours: 2));
+
+      expect(
+        rowValue(tester, l.diveLog_detail_label_surfaceInterval),
+        isNotNull,
+      );
+    });
+
+    testWidgets('with neither, there is no surface interval row', (
+      tester,
+    ) async {
+      await pumpDerived(tester, bare);
+
+      expect(rowValue(tester, l.diveLog_detail_label_surfaceInterval), isNull);
     });
   });
 

@@ -33,13 +33,30 @@ class DiveSittingFollowUp {
     : _messenger = ScaffoldMessenger.of(context),
       _l10n = context.l10n,
       _units = ref.read(unitFormatterProvider),
-      _mode = ref.read(visibilityInputModeProvider.notifier),
+      _mode = _modeOrNull(ref),
       _container = ProviderScope.containerOf(context, listen: false);
 
   final ScaffoldMessengerState _messenger;
   final AppLocalizations _l10n;
   final UnitFormatter _units;
-  final VisibilityInputModeNotifier _mode;
+
+  /// Null when it cannot be had on this device: remembering the input is a
+  /// convenience, and must never stop the save it follows.
+  final VisibilityInputModeNotifier? _mode;
+
+  static VisibilityInputModeNotifier? _modeOrNull(WidgetRef ref) {
+    try {
+      return ref.read(visibilityInputModeProvider.notifier);
+    } catch (error, stackTrace) {
+      _log.warning(
+        'The visibility input mode cannot be remembered on this device',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
   final ProviderContainer _container;
 
   /// [before] and [after] are the dive as the save found it and as it left
@@ -107,10 +124,12 @@ class DiveSittingFollowUp {
   /// The next new dive opens with the input this visibility was entered
   /// in (#3226). Only a new value counts, never one carried through.
   Future<void> _rememberVisibilityInput(Dive before, Dive after) async {
+    final remembering = _mode;
+    if (remembering == null) return;
     final saved = StoredVisibility.of(after);
     if (saved == StoredVisibility.of(before)) return;
     final mode = saved.modeToRemember;
     if (mode == null) return;
-    await _mode.remember(mode);
+    await remembering.remember(mode);
   }
 }

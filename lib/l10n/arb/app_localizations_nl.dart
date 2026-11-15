@@ -8920,6 +8920,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_tripUse => 'Gebruiken';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'Opgeslagen, maar het kon niet aan deze duik worden toegevoegd. Kies het uit de lijst.';
+
+  @override
   String get diveLog_edit_useSet => 'Set gebruiken';
 
   @override

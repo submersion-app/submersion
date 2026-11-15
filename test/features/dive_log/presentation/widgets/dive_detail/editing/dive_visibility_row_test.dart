@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/visibility_inp
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../../../helpers/mock_providers.dart';
@@ -38,6 +39,9 @@ void main() {
   setUp(setUpTestDatabase);
   tearDown(tearDownTestDatabase);
 
+  final rowSession = ValueNotifier<EditSession<Dive>?>(null);
+  tearDownAll(rowSession.dispose);
+
   Future<RecordEditController<Dive>> pumpRow(
     WidgetTester tester,
     Dive dive, {
@@ -47,6 +51,7 @@ void main() {
     List<Override> extra = const [],
     RecordEditController<Dive>? ownController,
   }) async {
+    rowSession.value = null;
     final overrides = await getBaseOverrides(
       settingsNotifier: notifier ?? MockSettingsNotifier(settings),
     );
@@ -80,7 +85,14 @@ void main() {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        DiveVisibilityRow(session: controller.session!),
+                        // The controller's sitting, unless a test hands
+                        // the row another one.
+                        ValueListenableBuilder<EditSession<Dive>?>(
+                          valueListenable: rowSession,
+                          builder: (context, other, _) => DiveVisibilityRow(
+                            session: other ?? controller.session!,
+                          ),
+                        ),
                         const TextField(key: ValueKey('elsewhere')),
                         const SizedBox(height: 900),
                       ],
@@ -618,6 +630,33 @@ void main() {
       expect(value(controller), StoredVisibility.none);
       expect(controller.isDirty, isFalse);
     });
+  });
+
+  testWidgets('handed another sitting, the row shows that sitting and drops '
+      'its old mark', (tester) async {
+    final controller = await pumpRow(
+      tester,
+      bare.copyWith(visibilityMeters: 12),
+    );
+    await focus(tester);
+    await tester.enterText(find.byType(TextFormField), 'x');
+    await tester.pump();
+    expect(controller.invalidCardIds, {_cardId});
+
+    // The same row, handed a sitting on a dive stored with a range.
+    final other = EditSession<Dive>(
+      bare.copyWith(
+        visibilityMinMeters: good.minM,
+        visibilityMaxMeters: good.maxM,
+      ),
+    );
+    addTearDown(other.dispose);
+    rowSession.value = other;
+    await tester.pump();
+
+    expect(controller.invalidCardIds, isEmpty);
+    // It opens in the input the new sitting's value was entered in.
+    expect(selectedChip(tester), 'Good');
   });
 
   testWidgets('a row whose first build failed leaves the ended sitting '

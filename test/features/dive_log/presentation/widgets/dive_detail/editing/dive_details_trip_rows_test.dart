@@ -316,7 +316,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text(l.common_error_tryAgain), findsOneWidget);
+      expect(find.text(l.diveLog_edit_newRecordNotAdded), findsOneWidget);
+      // Not an invitation to make it a second time.
+      expect(find.text(l.common_error_tryAgain), findsNothing);
       expect(controller.isDirty, isFalse);
     });
 
@@ -332,7 +334,9 @@ void main() {
       await tester.tap(find.text('save the trip'));
       await tester.pumpAndSettle();
 
-      expect(find.text(l.common_error_tryAgain), findsOneWidget);
+      expect(find.text(l.diveLog_edit_newRecordNotAdded), findsOneWidget);
+      // Not an invitation to make it a second time.
+      expect(find.text(l.common_error_tryAgain), findsNothing);
       expect(controller.isDirty, isFalse);
     });
 
@@ -557,7 +561,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text(l.common_error_tryAgain), findsOneWidget);
+      expect(find.text(l.diveLog_edit_newRecordNotAdded), findsOneWidget);
+      // Not an invitation to make it a second time.
+      expect(find.text(l.common_error_tryAgain), findsNothing);
       expect(controller.isDirty, isFalse);
     });
 
@@ -594,7 +600,9 @@ void main() {
       await tester.tap(find.text('save the center'));
       await tester.pumpAndSettle();
 
-      expect(find.text(l.common_error_tryAgain), findsOneWidget);
+      expect(find.text(l.diveLog_edit_newRecordNotAdded), findsOneWidget);
+      // Not an invitation to make it a second time.
+      expect(find.text(l.common_error_tryAgain), findsNothing);
       expect(controller.isDirty, isFalse);
     });
 

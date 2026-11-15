@@ -5406,6 +5406,8 @@
   },
   "diveLog_edit_tripSuggested": "Suggested: {name}",
   "diveLog_edit_tripUse": "Use",
+  "diveLog_edit_newRecordNotAdded": "Saved, but it couldn't be added to this dive. Pick it from the list.",
+  "@diveLog_edit_newRecordNotAdded": {"description": "Shown when a trip or dive center the diver just created from the Details card's picker could not be read back to put on the dive. The record exists; the diver should pick it rather than make it again."},
   "diveLog_edit_useSet": "Use Set",
   "diveLog_edit_removeSet": "Remove Set",
   "@diveLog_edit_removeSet": {"description": "Bulk edit: button that stages an equipment set to remove from every selected dive"},

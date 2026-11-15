@@ -420,6 +420,32 @@ void main() {
       expect(remembered(tester), VisibilityInputMode.precise);
     });
 
+    testWidgets('a device whose input mode cannot be read still saves', (
+      tester,
+    ) async {
+      final page = await pumpPage(
+        tester,
+        visible: visible,
+        size: tall,
+        extra: [
+          visibilityInputModeProvider.overrideWith(
+            (ref) => throw StateError('no preferences on this device'),
+          ),
+        ],
+      );
+      await unlock(tester);
+      await tester.tap(find.byTooltip('Edit Notes'));
+      await settle(tester);
+      controller(tester).session!.set(diveNotesField, 'Current');
+      await settle(tester);
+
+      await save(tester);
+
+      expect(page.save.calls.single.merged.notes, 'Current');
+      expect(find.text(saveFailed), findsNothing);
+      expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+    });
+
     testWidgets('a mode that cannot be remembered is not a failed save', (
       tester,
     ) async {
