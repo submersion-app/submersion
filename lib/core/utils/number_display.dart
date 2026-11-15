@@ -59,11 +59,10 @@ String formatDecimalForDisplay(double value) {
 /// rounding, so 4.96 reads "5". A non-finite value renders as empty text.
 String formatRatingForDisplay(double rating) {
   if (!rating.isFinite) return '';
-  final fixed = rating.toStringAsFixed(1);
-  final text = fixed.endsWith('.0')
-      ? fixed.substring(0, fixed.length - 2)
-      : fixed;
-  return localiseNumberSeparators(text);
+  return localiseDoubleText(
+    double.parse(rating.toStringAsFixed(1)),
+    stripTrailingZero: true,
+  );
 }
 
 /// [value] floored to [fractionDigits] decimals, the safe side for a limit
