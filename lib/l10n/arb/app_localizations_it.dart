@@ -3077,30 +3077,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Ricerca di subacquei. Il tuo compagno deve avere questa schermata aperta e Submersion 1.8.4 o successivo.';
 
   @override
-  String get buddySwap_nearby_heading =>
-      'Subacquei vicini con Submersion aperto';
-
-  @override
-  String get buddySwap_nearby_tapToSwap => 'Tocca per scambiare';
-
-  @override
-  String get buddySwap_nearby_looking => 'Ricerca di altri…';
-
-  @override
   String get buddySwap_nearby_failed =>
       'Impossibile cercare subacquei nelle vicinanze. Gli altri modi per scambiare qui sotto funzionano ancora.';
-
-  @override
-  String get buddySwap_nearby_hint =>
-      'Non vedi il tuo compagno? Entrambi dovete avere questa schermata aperta e Submersion 1.8.4 o successivo.';
-
-  @override
-  String buddySwap_sharing(String summary) {
-    return 'Condividi: $summary';
-  }
-
-  @override
-  String get buddySwap_sharing_change => 'Modifica';
 
   @override
   String buddySwap_dives(int count) {

@@ -4732,47 +4732,11 @@ abstract class AppLocalizations {
   /// **'Looking for divers. Your buddy needs this screen open and Submersion 1.8.4 or later.'**
   String get buddySwap_nearby_status;
 
-  /// No description provided for @buddySwap_nearby_heading.
-  ///
-  /// In en, this message translates to:
-  /// **'Divers nearby with Submersion open'**
-  String get buddySwap_nearby_heading;
-
-  /// No description provided for @buddySwap_nearby_tapToSwap.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap to swap'**
-  String get buddySwap_nearby_tapToSwap;
-
-  /// No description provided for @buddySwap_nearby_looking.
-  ///
-  /// In en, this message translates to:
-  /// **'Looking for more…'**
-  String get buddySwap_nearby_looking;
-
   /// No description provided for @buddySwap_nearby_failed.
   ///
   /// In en, this message translates to:
   /// **'Could not look for nearby divers. The other ways to swap below still work.'**
   String get buddySwap_nearby_failed;
-
-  /// No description provided for @buddySwap_nearby_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Don\'t see your buddy? Both of you need this screen open and Submersion 1.8.4 or later.'**
-  String get buddySwap_nearby_hint;
-
-  /// No description provided for @buddySwap_sharing.
-  ///
-  /// In en, this message translates to:
-  /// **'Sharing: {summary}'**
-  String buddySwap_sharing(String summary);
-
-  /// No description provided for @buddySwap_sharing_change.
-  ///
-  /// In en, this message translates to:
-  /// **'Change'**
-  String get buddySwap_sharing_change;
 
   /// No description provided for @buddySwap_dives.
   ///

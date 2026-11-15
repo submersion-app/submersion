@@ -3071,30 +3071,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'Suche nach Tauchern. Dein Buddy braucht diesen Bildschirm geöffnet und Submersion 1.8.4 oder neuer.';
 
   @override
-  String get buddySwap_nearby_heading =>
-      'Taucher in der Nähe mit geöffnetem Submersion';
-
-  @override
-  String get buddySwap_nearby_tapToSwap => 'Zum Tauschen tippen';
-
-  @override
-  String get buddySwap_nearby_looking => 'Suche nach weiteren…';
-
-  @override
   String get buddySwap_nearby_failed =>
       'Taucher in der Nähe konnten nicht gesucht werden. Die anderen Wege zum Tauschen unten funktionieren weiterhin.';
-
-  @override
-  String get buddySwap_nearby_hint =>
-      'Du siehst deinen Buddy nicht? Ihr braucht beide diesen Bildschirm geöffnet und Submersion 1.8.4 oder neuer.';
-
-  @override
-  String buddySwap_sharing(String summary) {
-    return 'Geteilt: $summary';
-  }
-
-  @override
-  String get buddySwap_sharing_change => 'Ändern';
 
   @override
   String buddySwap_dives(int count) {

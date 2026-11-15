@@ -3065,29 +3065,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Búvárok keresése. A társadnál nyitva kell lennie ennek a képernyőnek, és Submersion 1.8.4 vagy újabb kell.';
 
   @override
-  String get buddySwap_nearby_heading => 'Közeli búvárok nyitott Submersionnel';
-
-  @override
-  String get buddySwap_nearby_tapToSwap => 'Koppints a cseréhez';
-
-  @override
-  String get buddySwap_nearby_looking => 'További keresése…';
-
-  @override
   String get buddySwap_nearby_failed =>
       'Nem sikerült a közeli búvárokat keresni. Az alábbi többi cseremód továbbra is működik.';
-
-  @override
-  String get buddySwap_nearby_hint =>
-      'Nem látod a társad? Mindkettőtöknél nyitva kell lennie ennek a képernyőnek, és Submersion 1.8.4 vagy újabb kell.';
-
-  @override
-  String buddySwap_sharing(String summary) {
-    return 'Megosztva: $summary';
-  }
-
-  @override
-  String get buddySwap_sharing_change => 'Módosítás';
 
   @override
   String buddySwap_dives(int count) {

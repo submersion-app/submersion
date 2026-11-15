@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
 import 'package:submersion/features/buddies/presentation/widgets/swap/card_summary.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 
@@ -27,7 +26,7 @@ class YourCardSection extends ConsumerWidget {
     if (card == null) {
       content = Text(l10n.buddySwap_cardFailed);
     } else {
-      final formatter = UnitFormatter(ref.watch(settingsProvider));
+      final formatter = ref.watch(unitFormatterProvider);
       final chips = buddyCardChips(card, l10n, formatter.formatDate);
       content = Column(
         crossAxisAlignment: CrossAxisAlignment.start,

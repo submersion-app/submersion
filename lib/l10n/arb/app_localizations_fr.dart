@@ -3086,30 +3086,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Recherche de plongeurs. Votre binôme doit ouvrir cet écran et avoir Submersion 1.8.4 ou plus récent.';
 
   @override
-  String get buddySwap_nearby_heading =>
-      'Plongeurs à proximité avec Submersion ouvert';
-
-  @override
-  String get buddySwap_nearby_tapToSwap => 'Touchez pour échanger';
-
-  @override
-  String get buddySwap_nearby_looking => 'Recherche d\'autres plongeurs…';
-
-  @override
   String get buddySwap_nearby_failed =>
       'Impossible de chercher des plongeurs à proximité. Les autres façons d\'échanger ci-dessous fonctionnent toujours.';
-
-  @override
-  String get buddySwap_nearby_hint =>
-      'Vous ne voyez pas votre binôme ? Vous devez tous les deux ouvrir cet écran et avoir Submersion 1.8.4 ou plus récent.';
-
-  @override
-  String buddySwap_sharing(String summary) {
-    return 'Partagé : $summary';
-  }
-
-  @override
-  String get buddySwap_sharing_change => 'Modifier';
 
   @override
   String buddySwap_dives(int count) {

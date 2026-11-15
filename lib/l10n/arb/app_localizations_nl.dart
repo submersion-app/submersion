@@ -3058,30 +3058,8 @@ class AppLocalizationsNl extends AppLocalizations {
       'Duikers zoeken. Je buddy heeft dit scherm open nodig en Submersion 1.8.4 of nieuwer.';
 
   @override
-  String get buddySwap_nearby_heading =>
-      'Duikers in de buurt met Submersion open';
-
-  @override
-  String get buddySwap_nearby_tapToSwap => 'Tik om te ruilen';
-
-  @override
-  String get buddySwap_nearby_looking => 'Zoeken naar meer…';
-
-  @override
   String get buddySwap_nearby_failed =>
       'Kon niet naar duikers in de buurt zoeken. De andere manieren om te wisselen hieronder werken nog.';
-
-  @override
-  String get buddySwap_nearby_hint =>
-      'Zie je je buddy niet? Jullie hebben allebei dit scherm open nodig en Submersion 1.8.4 of nieuwer.';
-
-  @override
-  String buddySwap_sharing(String summary) {
-    return 'Gedeeld: $summary';
-  }
-
-  @override
-  String get buddySwap_sharing_change => 'Wijzigen';
 
   @override
   String buddySwap_dives(int count) {

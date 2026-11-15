@@ -3075,30 +3075,8 @@ class AppLocalizationsPt extends AppLocalizations {
       'A procurar mergulhadores. O seu parceiro precisa deste ecrã aberto e do Submersion 1.8.4 ou posterior.';
 
   @override
-  String get buddySwap_nearby_heading =>
-      'Mergulhadores próximos com o Submersion aberto';
-
-  @override
-  String get buddySwap_nearby_tapToSwap => 'Toque para trocar';
-
-  @override
-  String get buddySwap_nearby_looking => 'A procurar mais…';
-
-  @override
   String get buddySwap_nearby_failed =>
       'Não foi possível procurar mergulhadores por perto. As outras formas de trocar abaixo continuam a funcionar.';
-
-  @override
-  String get buddySwap_nearby_hint =>
-      'Não vê o seu parceiro? Ambos precisam deste ecrã aberto e do Submersion 1.8.4 ou posterior.';
-
-  @override
-  String buddySwap_sharing(String summary) {
-    return 'Partilha: $summary';
-  }
-
-  @override
-  String get buddySwap_sharing_change => 'Alterar';
 
   @override
   String buddySwap_dives(int count) {

@@ -3156,29 +3156,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'جارٍ البحث عن غواصين. يحتاج رفيقك إلى فتح هذه الشاشة واستخدام Submersion 1.8.4 أو أحدث.';
 
   @override
-  String get buddySwap_nearby_heading => 'غواصون قريبون يفتحون Submersion';
-
-  @override
-  String get buddySwap_nearby_tapToSwap => 'انقر للتبادل';
-
-  @override
-  String get buddySwap_nearby_looking => 'جارٍ البحث عن المزيد…';
-
-  @override
   String get buddySwap_nearby_failed =>
       'تعذّر البحث عن الغواصين القريبين. لا تزال طرق التبادل الأخرى أدناه تعمل.';
-
-  @override
-  String get buddySwap_nearby_hint =>
-      'لا ترى رفيقك؟ يجب أن تفتحا هذه الشاشة كلاكما وأن يكون لديكما Submersion 1.8.4 أو أحدث.';
-
-  @override
-  String buddySwap_sharing(String summary) {
-    return 'المشاركة: $summary';
-  }
-
-  @override
-  String get buddySwap_sharing_change => 'تغيير';
 
   @override
   String buddySwap_dives(int count) {

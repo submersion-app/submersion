@@ -3026,29 +3026,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'מחפש צוללים. השותף שלך צריך שהמסך הזה יהיה פתוח ו-Submersion 1.8.4 ואילך.';
 
   @override
-  String get buddySwap_nearby_heading => 'צוללים בקרבת מקום עם Submersion פתוח';
-
-  @override
-  String get buddySwap_nearby_tapToSwap => 'הקש להחלפה';
-
-  @override
-  String get buddySwap_nearby_looking => 'מחפש עוד…';
-
-  @override
   String get buddySwap_nearby_failed =>
       'לא ניתן היה לחפש צוללים בקרבת מקום. שאר דרכי ההחלפה למטה עדיין עובדות.';
-
-  @override
-  String get buddySwap_nearby_hint =>
-      'לא רואה את השותף שלך? שניכם צריכים שהמסך הזה יהיה פתוח ו-Submersion 1.8.4 ואילך.';
-
-  @override
-  String buddySwap_sharing(String summary) {
-    return 'משותף: $summary';
-  }
-
-  @override
-  String get buddySwap_sharing_change => 'שינוי';
 
   @override
   String buddySwap_dives(int count) {
