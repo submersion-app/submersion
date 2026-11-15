@@ -28,8 +28,14 @@ DiveSite _site({
   String name = 'Blue Hole',
   double lat = 12.34,
   double lng = 98.76,
+  double? rating,
 }) {
-  return DiveSite(id: id, name: name, location: GeoPoint(lat, lng));
+  return DiveSite(
+    id: id,
+    name: name,
+    location: GeoPoint(lat, lng),
+    rating: rating,
+  );
 }
 
 Future<void> _pump(
@@ -144,6 +150,19 @@ void main() {
 
     expect(find.byType(FlutterMap), findsOneWidget);
     expect(find.text('Blue Hole'), findsOneWidget);
+  });
+
+  testWidgets('the info card shows a whole-star rating without ".0" (#4573)', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      sites: [SiteWithDiveCount(site: _site(rating: 4), diveCount: 3)],
+      selectedId: 'site-1',
+    );
+
+    expect(find.textContaining('\u2605 4'), findsOneWidget);
+    expect(find.textContaining('4.0'), findsNothing);
   });
 
   // A selected marker fills with primary, which dark themes make a light

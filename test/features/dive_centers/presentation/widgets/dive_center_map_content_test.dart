@@ -24,12 +24,14 @@ DiveCenter _makeCenter({
   required String name,
   double? latitude,
   double? longitude,
+  double? rating,
 }) {
   return DiveCenter(
     id: id,
     name: name,
     latitude: latitude,
     longitude: longitude,
+    rating: rating,
     createdAt: _now,
     updatedAt: _now,
   );
@@ -176,6 +178,32 @@ void main() {
     await tester.pump();
 
     expect(find.byType(FlutterMap), findsWidgets);
+  });
+
+  testWidgets('the info card shows a whole-star rating without ".0" (#4573)', (
+    tester,
+  ) async {
+    final centers = [
+      _makeCenter(
+        id: 'dc1',
+        name: 'Rated Center',
+        latitude: 10.0,
+        longitude: 20.0,
+        rating: 4,
+      ),
+    ];
+    final overrides = await _buildOverrides(centers: centers);
+
+    await tester.pumpWidget(
+      _host(
+        overrides,
+        DiveCenterMapContent(selectedId: 'dc1', onItemSelected: (_) {}),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.textContaining('\u2605 4'), findsOneWidget);
+    expect(find.textContaining('4.0'), findsNothing);
   });
 
   // A selected marker fills with primary, which dark themes make a light

@@ -117,6 +117,20 @@ Finder _onScreen(WidgetTester tester, Finder finder) {
 }
 
 void main() {
+  testWidgets('the info card shows a whole-star rating without ".0" (#4573)', (
+    tester,
+  ) async {
+    await _pumpPage(tester, [_southWest.copyWith(rating: 4), _northEast]);
+
+    await tester.tap(_onScreen(tester, _markerFor('South West Divers')));
+    // Let the camera move finish and flush the map's double-tap timer.
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.textContaining('\u2605 4'), findsOneWidget);
+    expect(find.textContaining('4.0'), findsNothing);
+  });
+
   testWidgets('renders the DiveCenterMapPage FlutterMap with a center', (
     tester,
   ) async {

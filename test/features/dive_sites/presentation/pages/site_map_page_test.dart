@@ -184,6 +184,21 @@ void main() {
     expect(find.text('Blue Hole'), findsOneWidget);
   });
 
+  testWidgets('the info card shows a whole-star rating without ".0" (#4573)', (
+    tester,
+  ) async {
+    await _pumpPage(
+      tester,
+      const SiteMapPage(initialSiteId: 'site-1'),
+      sites: [SiteWithDiveCount(site: _site.copyWith(rating: 4), diveCount: 3)],
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.textContaining('\u2605 4'), findsOneWidget);
+    expect(find.textContaining('4.0'), findsNothing);
+  });
+
   testWidgets('the 2D/3D toggle is docked on the right of the map pane', (
     tester,
   ) async {

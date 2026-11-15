@@ -236,6 +236,63 @@ void main() {
     expect(find.text('Ask for Ana'), findsOneWidget);
   });
 
+  group('a whole-star rating reads without ".0" (#4573)', () {
+    Future<void> pumpRated(
+      WidgetTester tester, {
+      required bool embedded,
+    }) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(600, 2000);
+      addTearDown(tester.view.reset);
+      final center = DiveCenter(
+        id: 'center-rated',
+        name: 'Reef Divers',
+        rating: 4,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            diveCenterByIdProvider(
+              center.id,
+            ).overrideWith((ref) async => center),
+            diveCenterDiveCountProvider(
+              center.id,
+            ).overrideWith((ref) async => 0),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveCenterDetailPage(
+                centerId: center.id,
+                embedded: embedded,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+    }
+
+    testWidgets('in the page body', (tester) async {
+      await pumpRated(tester, embedded: false);
+      expect(find.text('4'), findsOneWidget);
+      expect(find.text('4.0'), findsNothing);
+    });
+
+    testWidgets('in the embedded header as well as the body', (tester) async {
+      await pumpRated(tester, embedded: true);
+      expect(find.text('4'), findsNWidgets(2));
+      expect(find.text('4.0'), findsNothing);
+    });
+  });
+
   testWidgets('a long press on a contact row copies it, with a message', (
     tester,
   ) async {
