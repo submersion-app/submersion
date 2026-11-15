@@ -1263,3 +1263,42 @@ One, `Refs #4527`. It touches `lib/**/presentation/` and `lib/shared/widgets/`, 
 - **Plan 7.** "Mark as logged", "Surfaced" and "Mark as complete" on the banners become whole-record operations; they read the stored dive already (`DiveDetailHeaderBlock.stored`).
 - **Plan 8 (new dive).** The header card is the essential card. `setPlanned`'s `nextNumber` is the same suggestion the new dive needs when it is not planned; a prefilled site goes through `assignDiveSite`.
 - **Any plan giving a card an editor:** add it to `diveEditCards`; Task 11's rule then hands it the working dive.
+
+---
+
+## After the review
+
+The plan was built as written in this session, then reviewed as a whole branch by a fresh reviewer. This is what differs from the task text above, for whoever writes plan 5.
+
+### Names that changed, or were added
+
+| Above | Now |
+| --- | --- |
+| `RecordEditController.save` awaits `session.settled()` | Only when work is tracked: `EditSession.isSettled`. With nothing tracked the write starts at once, as before |
+| `RecordNumberRow.apply` | Also on `FieldTextBinding.apply`, through which the row writes |
+| `RecordCardPencil` | And `RecordPencilIcon`, the pencil both it and `RecordCardHeader` draw |
+| `exitFollows(session)` reads the stored dive | Settled the first time the sitting asks, from the dive as it then is, and settled again by a site from what it set; false for the rest of the sitting once the exit is edited directly |
+| `pickedInstant(picked, current)` | `pickedInstant(picked, current, stored:)`: the stored instant first, so a time moved and moved back is no change; a new day at the same time of day keeps the seconds |
+| `DiveTimeRow` is a `StatelessWidget` | A `ConsumerWidget` (it formats its own value), with `stored:` |
+| `SiteSuggestionSitting(session, layout: layoutRecord ?? working)` | `layout` is the controller's `layoutRecord`, null while no card is open |
+| `readDiveSiteAssigner(ref)` | `readDiveSiteAssigner(context)`: built from the provider container, as its reads can answer after the widget has gone |
+| `diveCardIsOnPage(ref, id, layout:, working:)` | Gains `stored:`; the section list and the Add strip both pass it, and what a card works out (satellite conditions) is asked of it |
+| The header block tests in `widgets/dive_detail/` | `dive_detail_page_unlock_header_block_test.dart`, through the unlock harness, which gained `sources:` |
+| Task 11's tests in a new file | In `dive_detail_section_list_details_editing_test.dart`, where plan 3's "until Done" tests now read "until Save" |
+| `resolveCandidate` tests in `site_matching_service_test.dart` | `site_matching_service_resolve_test.dart`, so neither file passes 800 lines |
+
+### Decided while building
+
+- The locked bar shows a filled heart on a favourite dive and nothing on any other. At phone width, with editing offered, favourite is neither in the bar nor in the menu.
+- Unlocking still moves the hero down by the Add strip's height on a page that fits, as #4566 left it; the spec says unlocking moves nothing.
+- `setRuntime` notes the exit before a typed runtime first moved it; a runtime emptied or zero gives that exit back, unless the diver picked an exit since.
+- The site suggestion keeps its place, disabled, while a sitting is saved.
+
+### Left open
+
+- Runtime and bottom time round in the editor and truncate in the hero, so 43 min 40 s reads 43 there and 44 in the open card.
+- A location added from the suggestion during a sitting is written without the altitude lookup the immediate path runs after it.
+- Save waits for tracked work with no time limit.
+- The altitude take-back restores the stored altitude, not the value before the lookup: a stored altitude the diver cleared comes back.
+- The estimated exit, shown as the exit row's placeholder, reads much like a recorded exit.
+- Tests not written: the site picker opening on the dive's GPS or area, once per tap; a held location actually written by Save; a species refresh that throws; a primary data source hiding the planned switch; the hero's site tap while unlocked; the stored site picked back after two others.
