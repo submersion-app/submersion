@@ -105,6 +105,52 @@ void main() {
       expect(sighted.map((s) => s.id), [species.id]);
     });
 
+    test('orders species from several chunks as getAllSpecies does', () async {
+      // Three dives past one chunk apart, each sighting a different species,
+      // so the rows arrive from separate queries in no useful order.
+      final turtle = await repository.createSpecies(
+        commonName: 'Zebra Turtle',
+        category: SpeciesCategory.turtle,
+      );
+      final fishB = await repository.createSpecies(
+        commonName: 'Blenny',
+        category: SpeciesCategory.fish,
+      );
+      final fishA = await repository.createSpecies(
+        commonName: 'Angelfish',
+        category: SpeciesCategory.fish,
+      );
+      for (final (dive, species) in [
+        ('first', turtle),
+        ('second', fishB),
+        ('third', fishA),
+      ]) {
+        await insertTestDive(id: dive);
+        await repository.addSighting(diveId: dive, speciesId: species.id);
+      }
+      final ids = [
+        'first',
+        for (var i = 0; i < 900; i++) 'gap-a-$i',
+        'second',
+        for (var i = 0; i < 900; i++) 'gap-b-$i',
+        'third',
+      ];
+
+      final sighted = await repository.getSpeciesSightedOnDives(ids);
+
+      expect(
+        sighted.map((s) => s.id),
+        (await repository.getAllSpecies(
+          ids: [turtle.id, fishB.id, fishA.id],
+        )).map((s) => s.id),
+      );
+      expect(sighted.map((s) => s.commonName), [
+        'Angelfish',
+        'Blenny',
+        'Zebra Turtle',
+      ]);
+    });
+
     test('returns nothing for no dives', () async {
       expect(await repository.getSpeciesSightedOnDives([]), isEmpty);
     });
