@@ -43,6 +43,12 @@ class RigTerms {
 /// model. Pure data assembly; no database or Riverpod dependency, so it is
 /// unit-testable and can run inside a `compute` isolate boundary.
 class BuoyancyTwinAssembler {
+  /// Whether [dive] has anything to model: a tank or an exposure suit.
+  /// [assemble] returns null exactly when this is false. Cheap, so a surface
+  /// can offer the buoyancy line without running the simulation (#4593).
+  static bool isModelable(Dive dive) =>
+      dive.tanks.isNotEmpty || _exposureSuit(dive.equipment) != null;
+
   /// Returns null when there is nothing to model (no tanks and no exposure
   /// suit -- e.g. an apnea dive).
   static TwinInput? assemble({
@@ -51,8 +57,7 @@ class BuoyancyTwinAssembler {
     required FittedWeightModel model,
     required double? bodyWeightKg,
   }) {
-    final suitItem = _exposureSuit(dive.equipment);
-    if (dive.tanks.isEmpty && suitItem == null) return null;
+    if (!isModelable(dive)) return null;
 
     final tanks = <TwinTankInput>[];
     for (final t in dive.tanks) {
