@@ -113,7 +113,15 @@ void main() {
       expect(ids.add(id), isTrue, reason: 'duplicate id $id');
       expect(site['name'], isNotEmpty, reason: id);
       expect(sources.containsKey(site['source']), isTrue, reason: id);
-      expect(site['trust'], 'verified', reason: id);
+      // Gathered by research (curated and researched sites) or read from
+      // a register: the app marks the first "Not verified".
+      expect(
+        site['trust'],
+        const {'curated', 'research'}.contains(site['source'])
+            ? 'researched'
+            : 'verified',
+        reason: id,
+      );
       expect(site.containsKey('lat'), site.containsKey('lon'), reason: id);
       // Empty values are left out, never written as null.
       expect(site.values, everyElement(isNotNull), reason: id);
