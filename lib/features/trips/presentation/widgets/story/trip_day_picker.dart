@@ -68,8 +68,12 @@ class _TripDayPickerState extends State<TripDayPicker> {
   final _scroll = ScrollController();
 
   /// One focus node per tile. Only the selected tile's is a tab stop.
+  ///
+  /// A day's node is held by its date, not its place in the strip, and its
+  /// tile is keyed by date too: days added or removed in front of it (a dive
+  /// logged before the trip's start) move the focus with its day.
   final _tripFocus = FocusNode(debugLabel: 'trip picker: trip');
-  final _dayFocus = <FocusNode>[];
+  final _dayFocus = <DateTime, FocusNode>{};
 
   /// The day tiles' width and the space they scroll in, from the last
   /// layout, for bringing the selected day into view.
@@ -94,27 +98,42 @@ class _TripDayPickerState extends State<TripDayPicker> {
 
   /// One node per day, and the tab stop on the selected tile.
   void _syncFocusNodes() {
-    final count = widget.days.length;
-    if (_dayFocus.length > count) {
-      final dropped = _dayFocus.sublist(count);
-      _dayFocus.length = count;
+    final dates = {for (final day in widget.days) day.date};
+    final dropped = [
+      for (final MapEntry(key: date, value: node) in _dayFocus.entries)
+        if (!dates.contains(date)) node,
+    ];
+    if (dropped.isNotEmpty) {
+      _dayFocus.removeWhere((date, _) => !dates.contains(date));
+      // Asked now: once this build unmounts their tiles, they have let go.
+      final hadFocus = dropped.any((node) => node.hasFocus);
       // Their tiles are still mounted until this build is over.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         for (final node in dropped) {
           node.dispose();
         }
+        // The day that had the focus is gone: hand it to the tab stop, so
+        // the keyboard stays in the strip.
+        if (hadFocus && mounted) _tabStop.requestFocus();
       });
     }
-    while (_dayFocus.length < count) {
-      _dayFocus.add(
-        FocusNode(debugLabel: 'trip picker: day ${_dayFocus.length + 1}'),
+    for (final date in dates) {
+      _dayFocus.putIfAbsent(
+        date,
+        () => FocusNode(debugLabel: 'trip picker: $date'),
       );
     }
-    final selected = _selectedIndex;
-    _tripFocus.skipTraversal = selected >= 0;
-    for (var i = 0; i < count; i++) {
-      _dayFocus[i].skipTraversal = i != selected;
+    final selected = widget.selectedDate;
+    _tripFocus.skipTraversal = _selectedIndex >= 0;
+    for (final MapEntry(key: date, value: node) in _dayFocus.entries) {
+      node.skipTraversal = date != selected;
     }
+  }
+
+  /// The selected tile's node: the strip's one tab stop.
+  FocusNode get _tabStop {
+    final index = _selectedIndex;
+    return index < 0 ? _tripFocus : _dayFocus[widget.days[index].date]!;
   }
 
   void _updateMore() {
@@ -150,7 +169,7 @@ class _TripDayPickerState extends State<TripDayPicker> {
     _scroll.dispose();
     _more.dispose();
     _tripFocus.dispose();
-    for (final node in _dayFocus) {
+    for (final node in _dayFocus.values) {
       node.dispose();
     }
     super.dispose();
@@ -190,8 +209,9 @@ class _TripDayPickerState extends State<TripDayPicker> {
   void _step(int delta) {
     final next = _selectedIndex + delta;
     if (next < -1 || next >= widget.days.length) return;
-    widget.onSelect(next < 0 ? null : widget.days[next].date);
-    (next < 0 ? _tripFocus : _dayFocus[next]).requestFocus();
+    final date = next < 0 ? null : widget.days[next].date;
+    widget.onSelect(date);
+    (date == null ? _tripFocus : _dayFocus[date]!).requestFocus();
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
@@ -282,13 +302,16 @@ class _TripDayPickerState extends State<TripDayPicker> {
                             children: [
                               for (var i = 0; i < count; i++)
                                 SizedBox(
+                                  // By date: a tile, and the focus it may
+                                  // hold, moves with its day.
+                                  key: ValueKey(widget.days[i].date),
                                   width: tileWidth,
                                   child: _DayTile(
                                     day: widget.days[i],
                                     shapes: widget.model.days[i],
                                     model: widget.model,
                                     selected: i == selectedIndex,
-                                    focusNode: _dayFocus[i],
+                                    focusNode: _dayFocus[widget.days[i].date]!,
                                     chartHeight: widget.chartHeight,
                                     onTap: () =>
                                         widget.onSelect(widget.days[i].date),

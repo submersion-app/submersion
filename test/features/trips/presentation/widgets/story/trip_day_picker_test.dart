@@ -437,6 +437,95 @@ void main() {
       expect(selections.last, six.story.days[1].date);
     });
 
+    testWidgets('focus stays on its day when days are added in front', (
+      tester,
+    ) async {
+      // A dive logged two days before the trip adds two leading days.
+      final longer = _trip(DateTime(2026, 10, 26), [1, 1, 1, 3, 3, 2, 1, 0]);
+      final shown = ValueNotifier(six);
+      addTearDown(shown.dispose);
+      final selected = six.story.days[2].date;
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: ValueListenableBuilder(
+                valueListenable: shown,
+                builder: (_, trip, _) => TripDayPicker(
+                  days: trip.story.days,
+                  model: trip.model,
+                  selectedDate: selected,
+                  onSelect: selections.add,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(focusIsIn(tester, TripDayPicker.dayTileKey(3)), isTrue);
+
+      shown.value = longer;
+      await tester.pump();
+      await tester.pump();
+
+      // The same date is day 5 now, and the focus went with it.
+      expect(longer.story.days[4].date, selected);
+      expect(focusIsIn(tester, TripDayPicker.dayTileKey(5)), isTrue);
+      // An arrow key still moves on from the day that has focus.
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      expect(selections.last, longer.story.days[5].date);
+    });
+
+    testWidgets('when the focused day goes, the focus stays in the strip', (
+      tester,
+    ) async {
+      final shown = ValueNotifier(six);
+      addTearDown(shown.dispose);
+      final selected = six.story.days[5].date;
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: ValueListenableBuilder(
+                valueListenable: shown,
+                builder: (_, trip, _) => TripDayPicker(
+                  days: trip.story.days,
+                  model: trip.model,
+                  selectedDate: selected,
+                  onSelect: selections.add,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(focusIsIn(tester, TripDayPicker.dayTileKey(6)), isTrue);
+
+      // The trip is cut to its first three days: day 6 is gone.
+      shown.value = _trip(DateTime(2026, 10, 28), [1, 3, 3]);
+      await tester.pump();
+      await tester.pump();
+
+      // With no day of its own selected, the Trip tile is the tab stop.
+      expect(focusIsIn(tester, TripDayPicker.tripTileKey), isTrue);
+    });
+
     testWidgets('a trip that loses days keeps a tab stop', (tester) async {
       final days = ValueNotifier(fourteen.story.days);
       addTearDown(days.dispose);
