@@ -10,6 +10,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/pinned_strip_layer_animator.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer_data.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_line_painter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_lift.dart';
@@ -50,6 +54,7 @@ void main() {
     WidgetTester tester, {
     bool insideScrollView = false,
     ThemeData? theme,
+    StripLayerState layers = StripLayerState.none,
   }) async {
     final base = await getBaseOverrides();
     const strip = SizedBox(width: stripWidth);
@@ -85,7 +90,7 @@ void main() {
                     )
                   : SizedBox(
                       width: stripWidth,
-                      child: PinnedProfileStrip(dive: dive),
+                      child: PinnedProfileStrip(dive: dive, layers: layers),
                     ),
             ),
           ),
@@ -714,6 +719,96 @@ void main() {
     // While the surface fades in, so does the outline.
     await pumpMorphing(tester, condense: 0, background: 0.5, theme: theme);
     expect(outline(tester).side.color.a, closeTo(0.5, 1e-6));
+  });
+
+  // Issue #4562: the cards in view add layers, and line layers grow it.
+  group('card layers', () {
+    const temperature = PinnedStripLayerData(
+      lines: [
+        StripLine(
+          layer: StripLayer.temperature,
+          key: 'temperature',
+          color: Colors.orange,
+          runs: [
+            [StripPoint(0, 24), StripPoint(1500, 18)],
+          ],
+          min: 18,
+          max: 24,
+        ),
+      ],
+    );
+    StripLayerState state({double grow = 1}) => StripLayerState(
+      data: temperature,
+      strengths: const {StripLayer.temperature: 1},
+      grow: grow,
+      active: const {StripLayer.temperature},
+    );
+
+    testWidgets('fully grown it is 72 px tall', (tester) async {
+      await pump(tester, layers: state());
+      expect(
+        tester.getSize(find.byType(PinnedProfileStrip)).height,
+        kPinnedStripGrownHeight,
+      );
+    });
+
+    testWidgets('half grown it is half way between', (tester) async {
+      await pump(tester, layers: state(grow: 0.5));
+      expect(tester.getSize(find.byType(PinnedProfileStrip)).height, 58);
+    });
+
+    testWidgets('with no layers it stays 44 px', (tester) async {
+      await pump(tester);
+      expect(
+        tester.getSize(find.byType(PinnedProfileStrip)).height,
+        kPinnedStripHeight,
+      );
+    });
+
+    testWidgets('its depth curve fills the grown height', (tester) async {
+      await pump(tester, layers: state());
+      final painter = tester
+          .widgetList<CustomPaint>(find.byType(CustomPaint))
+          .map((c) => c.painter)
+          .whereType<PinnedStripPainter>()
+          .single;
+      expect(painter.curveHeight, kPinnedStripGrownHeight);
+    });
+
+    testWidgets('draws the layer lines over the depth line', (tester) async {
+      await pump(tester, layers: state());
+      final lines = tester
+          .widgetList<CustomPaint>(find.byType(CustomPaint))
+          .map((c) => c.painter)
+          .whereType<StripLinePainter>();
+      expect(lines, hasLength(1));
+    });
+
+    testWidgets('the tooltip reads the active layer at the cursor', (
+      tester,
+    ) async {
+      final c = await pump(tester, layers: state());
+      // Index 75 is 750 s, half way: 21 degrees.
+      await setCursor(c, tester, 75);
+      expect(find.text('Temp'), findsOneWidget);
+      expect(find.text('21°C'), findsOneWidget);
+    });
+
+    testWidgets('the semantics value reads the layer row too', (tester) async {
+      final handle = tester.ensureSemantics();
+      final c = await pump(tester, layers: state());
+      await setCursor(c, tester, 75);
+      final node = tester.getSemantics(
+        find
+            .descendant(
+              of: find.byType(PinnedProfileStrip),
+              matching: find.byType(Semantics),
+            )
+            .first,
+      );
+      expect(node.value, contains('Temp 21°C'));
+      handle.dispose();
+    });
   });
 
   testWidgets('the strip has a semantics label', (tester) async {
