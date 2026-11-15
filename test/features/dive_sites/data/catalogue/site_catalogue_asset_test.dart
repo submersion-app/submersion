@@ -74,6 +74,18 @@ void main() {
     }
   });
 
+  test('the shipped file carries the Texas credit line and the federal '
+      "reef file's stated terms", () {
+    final metadata = doc['metadata'] as Map<String, dynamic>;
+    final sources = metadata['sources'] as Map<String, dynamic>;
+    const texasLine =
+        'Information courtesy Texas Parks and Wildlife Department © 2022';
+
+    expect((sources['tpwd'] as Map)['credit'], texasLine);
+    expect((sources['noaa_reefs'] as Map)['licence'], 'No licence stated');
+    expect(metadata['notice'], contains(texasLine));
+  });
+
   test('the sources outside the ODbL database say so, and only they', () {
     final sources =
         (doc['metadata'] as Map<String, dynamic>)['sources']
