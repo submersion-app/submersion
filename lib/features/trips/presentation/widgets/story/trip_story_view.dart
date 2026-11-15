@@ -6,13 +6,12 @@ import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_day_map_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_cylinders_summary_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/today_anchored_scroll_view.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_flight_countdown_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_stat_strip.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_under_way_cards.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
@@ -151,16 +150,7 @@ class TripStoryView extends ConsumerWidget {
     // cylinders, and how long until the no-fly window before the flight home.
     // When the story opens at today they open with it.
     final underWay = <Widget>[
-      SliverToBoxAdapter(child: TripCylindersSummaryCard(trip: trip)),
-      // Return-flight dive-window countdown, shown while the trip is
-      // underway. The card hides itself once the flight departs.
-      if (trip.returnFlightAt != null && trip.isInProgress)
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          sliver: SliverToBoxAdapter(
-            child: TripFlightCountdownCard(tripId: trip.id),
-          ),
-        ),
+      SliverToBoxAdapter(child: TripUnderWayCards(trip: trip)),
     ];
     final vessel = <Widget>[
       if (trip.isLiveaboard)

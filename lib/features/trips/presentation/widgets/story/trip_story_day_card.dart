@@ -8,11 +8,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
-import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
-import 'package:submersion/features/marine_life/presentation/sighting_abundance_display.dart';
-import 'package:submersion/features/marine_life/presentation/species_display.dart';
-import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/domain/services/day_conditions.dart';
@@ -21,6 +16,7 @@ import 'package:submersion/features/trips/presentation/widgets/day/day_format.da
 import 'package:submersion/features/trips/presentation/widgets/day/today_card_shape.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/day_rhythm_bar.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_day_map.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_day_sections.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_plan.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -199,9 +195,11 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
               ],
               if (day.media.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                _SectionCaption(text: context.l10n.trips_photos_sectionTitle),
+                TripDaySectionCaption(
+                  text: context.l10n.trips_photos_sectionTitle,
+                ),
                 const SizedBox(height: 6),
-                _PhotoStrip(
+                TripDayPhotoStrip(
                   tripId: tripId,
                   media: day.media,
                   totalCount: day.mediaCount,
@@ -209,11 +207,11 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
               ],
               if (day.sightings.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                _SectionCaption(
+                TripDaySectionCaption(
                   text: context.l10n.trips_detail_stat_speciesSeen,
                 ),
                 const SizedBox(height: 6),
-                _SightingChips(day: day),
+                TripDaySightingChips(day: day),
               ],
             ],
           ),
@@ -253,27 +251,6 @@ class _DaySummaryBand extends StatelessWidget {
             DayConditionsLine(conditions: conditions, units: units),
           ],
         ],
-      ),
-    );
-  }
-}
-
-/// Tiny muted heading over a tail-of-card cluster (photos, species) so those
-/// strips stop reading as unlabeled debris after the dive rows.
-class _SectionCaption extends StatelessWidget {
-  final String text;
-
-  const _SectionCaption({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Text(
-      text,
-      style: theme.textTheme.labelSmall?.copyWith(
-        color: theme.colorScheme.onSurfaceVariant,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.5,
       ),
     );
   }
@@ -326,133 +303,6 @@ class _DayStatStrip extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-      ],
-    );
-  }
-}
-
-class _PhotoStrip extends StatelessWidget {
-  final String tripId;
-  final List<MediaItem> media;
-  final int totalCount;
-
-  const _PhotoStrip({
-    required this.tripId,
-    required this.media,
-    required this.totalCount,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final remaining = totalCount - media.length;
-    return SizedBox(
-      height: 64,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: media.length + (remaining > 0 ? 1 : 0),
-        separatorBuilder: (_, _) => const SizedBox(width: 6),
-        itemBuilder: (context, index) {
-          if (index >= media.length) {
-            return _MoreThumbnail(count: remaining, tripId: tripId);
-          }
-          // MediaItemView renders the image without a semantic label, so label
-          // the tap target as a button that opens the trip gallery.
-          return Semantics(
-            button: true,
-            label: context.l10n.trips_story_openGallery,
-            excludeSemantics: true,
-            child: GestureDetector(
-              onTap: () => context.push('/trips/$tripId/gallery'),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: SizedBox(
-                  width: 64,
-                  height: 64,
-                  child: MediaItemView(
-                    item: media[index],
-                    thumbnail: true,
-                    targetSize: const Size(128, 128),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _MoreThumbnail extends StatelessWidget {
-  final int count;
-  final String tripId;
-
-  const _MoreThumbnail({required this.count, required this.tripId});
-
-  @override
-  Widget build(BuildContext context) {
-    // The bare "+N" is a context-free accessible name; label it as a button
-    // that opens the trip gallery.
-    return Semantics(
-      button: true,
-      label: context.l10n.trips_story_openGallery,
-      excludeSemantics: true,
-      child: GestureDetector(
-        onTap: () => context.push('/trips/$tripId/gallery'),
-        child: Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          alignment: Alignment.center,
-          child: Text('+$count', style: Theme.of(context).textTheme.labelLarge),
-        ),
-      ),
-    );
-  }
-}
-
-class _SightingChips extends StatelessWidget {
-  final TripStoryDay day;
-
-  const _SightingChips({required this.day});
-
-  @override
-  Widget build(BuildContext context) {
-    // Merge the same species across the day's dives, keyed by the stable
-    // speciesId so distinct species that share a common name stay separate.
-    // Amounts combine as a dive merge does (issue #4337): exact counts add
-    // up, Seen gives way, otherwise the larger REEF group wins.
-    final l10n = context.l10n;
-    final merged = <String, ({String name, SightingAmount amount})>{};
-    for (final sighting in day.sightings) {
-      final existing = merged[sighting.speciesId];
-      merged[sighting.speciesId] = (
-        name: localizedSpeciesName(
-          l10n,
-          sighting.speciesId,
-          sighting.speciesName,
-        ),
-        amount: existing == null
-            ? sighting.amount
-            : SightingAbundance.combine(existing.amount, sighting.amount),
-      );
-    }
-    return Wrap(
-      spacing: 6,
-      runSpacing: 4,
-      children: [
-        for (final entry in merged.values)
-          Chip(
-            label: Text(switch (sightingAmountLabel(l10n, entry.amount)) {
-              null => entry.name,
-              final amount => '${entry.name} $amount',
-            }),
-            visualDensity: VisualDensity.compact,
           ),
       ],
     );

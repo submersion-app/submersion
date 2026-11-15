@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
-import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
-import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dart';
+import 'package:submersion/features/trips/presentation/widgets/day/day_subtitle.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/day_weather_badge.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/today_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -58,27 +57,7 @@ class TripStoryDayHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final itinerary = day.itineraryDay;
-    // Trim and drop blanks before joining: the itinerary edit sheet normalizes
-    // an empty port to null, but sync and import payloads write the nullable
-    // column directly, and a site name is equally free to be blank. Joining
-    // either verbatim would render a doubled separator ("Dive Day -  - Site").
-    // A surface day has no itinerary and no dives by definition, so it owns the
-    // subtitle outright - it reads in the same slot where an itinerary day
-    // leads with its day type ("Dive Day", "Travel Day"). A dive day planned
-    // at 0 dives reads the same way: its stored type contradicts the plan.
-    // A rest day with a dive logged reads as a dive day (#2875).
-    final surfaceLabel = day.isSurface || day.isPlannedRest;
-    final subtitleParts = <String>[
-      if (surfaceLabel) context.l10n.trips_story_surfaceDay,
-      if (itinerary != null && !surfaceLabel)
-        shownDayType(
-          itinerary,
-          hasDives: day.dives.isNotEmpty,
-        ).localizedName(context),
-      if (itinerary?.portName != null) itinerary!.portName!,
-      ...day.siteNames,
-    ].map((part) => part.trim()).where((part) => part.isNotEmpty).toList();
+    final subtitleParts = tripDaySubtitleParts(context, day);
 
     final weather = TripStoryDayWeather.resolve(
       logged: day.weather,
