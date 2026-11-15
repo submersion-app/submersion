@@ -352,5 +352,85 @@ class ScaleTest(unittest.TestCase):
         self.assertEqual(_ids(kept), ["ukho_1"])
 
 
+def _researched(record_id, name, **extra):
+    return _site("research", record_id, name, **extra)
+
+
+class ResearchedTest(unittest.TestCase):
+    """A researched record never stands beside a record from any other
+    source that is the same site, and never gives or takes a field."""
+
+    def _resolve(self, *records):
+        survivors, lost = overlap.resolve(list(records))
+        return {r["id"]: r for r in survivors}, lost
+
+    def test_research_left_out_beside_dive_site_within_150m(self):
+        for source in ("osm", "curated", "fknms", "wikidata"):
+            kept, lost = self._resolve(
+                _site(source, f"{source}_1", "Coral Garden"),
+                _researched("research_x_1", "Liberty Wreck", north=140),
+            )
+            self.assertNotIn("research_x_1", kept, source)
+            self.assertEqual(lost[("research", source)], 1)
+
+    def test_research_beside_dive_site_beyond_150m_kept(self):
+        kept, _ = self._resolve(
+            _site("osm", "osm_1", "Coral Garden"),
+            _researched("research_x_1", "Liberty Wreck", north=160),
+        )
+        self.assertIn("research_x_1", kept)
+
+    def test_research_left_out_same_name_within_2km(self):
+        kept, _ = self._resolve(
+            _r("ukho", "ukho_1", "Liberty"),
+            _researched("research_x_1", "Liberty", north=1500),
+        )
+        self.assertNotIn("research_x_1", kept)
+        self.assertIn("ukho_1", kept)
+
+    def test_research_beside_register_150m_kept(self):
+        kept, _ = self._resolve(
+            _r("ukho", "ukho_1", "Some Steamer"),
+            _researched("research_x_1", "Drop Off", north=120),
+        )
+        self.assertIn("research_x_1", kept)
+
+    def test_research_gives_and_takes_nothing(self):
+        winner = _site("osm", "osm_1", "Liberty")
+        loser = _researched("research_x_1", "Liberty", north=50,
+                            max_depth=30.0, description="Shore dive.",
+                            types=("wreck",))
+        kept, _ = self._resolve(winner, loser)
+        self.assertIsNone(kept["osm_1"]["max_depth"])
+        self.assertIsNone(kept["osm_1"]["description"])
+        self.assertEqual(kept["osm_1"]["types"], [])
+
+    def test_two_researched_records_are_never_merged(self):
+        kept, _ = self._resolve(
+            _researched("research_x_1", "Liberty"),
+            _researched("research_x_2", "Liberty", north=50),
+        )
+        self.assertEqual(set(kept), {"research_x_1", "research_x_2"})
+
+    def test_research_ranks_last(self):
+        self.assertEqual(overlap.RANK[-1], ("research", "site"))
+
+    def test_curated_overlap_unchanged(self):
+        kept, _ = self._resolve(
+            _site("curated", "curated_1", "Pocopson", types=("wreck",)),
+            _r("ukho", "ukho_1", "Pocopson", north=500, max_depth=15.0),
+        )
+        self.assertEqual(kept["curated_1"]["max_depth"], 15.0)
+
+    def test_losses_are_reported_record_by_record(self):
+        losses = {}
+        overlap.resolve(
+            [_site("osm", "osm_1", "Coral Garden"),
+             _researched("research_x_1", "Liberty", north=10)],
+            on_loss=lambda loser, winner: losses.__setitem__(loser["id"], winner["id"]),
+        )
+        self.assertEqual(losses, {"research_x_1": "osm_1"})
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -20,6 +20,11 @@ Two things never happen:
 - A field passes between an own-terms record and any other. Where an
   own-terms record is the same site as another record, it is left out
   whole.
+- A researched record stands beside a record of any other source that is
+  the same site, or beside any dive site record within 150 m, or passes
+  a field either way. It ranks last, so it is the one left out.
+  Researched records are never merged with each other: the research
+  checker refuses two within 150 m.
 """
 
 import collections
@@ -48,13 +53,18 @@ RANK = [
     ("nms_ie", "register"),
     ("osm", "register"),
     ("wikidata", "register"),
-] + [(source, "register") for source in OWN_TERMS_SOURCES]
+] + [(source, "register") for source in OWN_TERMS_SOURCES] + [
+    ("research", "site"),
+]
 
 SAME_NAME_KM = 2.0
 GENERIC_NAME_KM = 0.2
 SAME_WRECK_KM = 0.1
 # A curated site steps aside for an OpenStreetMap dive site this close.
 CURATED_KM = 1.0
+# A researched site steps aside for any dive site record this close.
+RESEARCH_KM = 0.15
+_RESEARCH = "research"
 
 # Sources whose records are dive site ids a diver may already hold.
 _HELD = frozenset({("osm", "site"), ("curated", "site")})
@@ -84,6 +94,12 @@ def same_site(a: dict, b: dict) -> bool:
     if None in (a["lat"], a["lon"], b["lat"], b["lon"]):
         return False
     distance = km(a["lat"], a["lon"], b["lat"], b["lon"])
+
+    researched = (a["source"] == _RESEARCH) + (b["source"] == _RESEARCH)
+    if researched == 2:
+        return False
+    if researched == 1 and a["kind"] == b["kind"] == "site" and distance <= RESEARCH_KM:
+        return True
 
     if _key(a) in _HELD and _key(b) in _HELD:
         # Never among themselves: the one existing rule is a curated site
@@ -143,11 +159,12 @@ def _cells(record: dict):
 
 
 def resolve(
-    records: list[dict], label=lambda record: record["source"]
+    records: list[dict], label=lambda record: record["source"], on_loss=None
 ) -> tuple[list[dict], collections.Counter]:
     """The records that ship, and how many each source lost to which:
     a count per (loser, winner), each named by [label] (its source unless
-    the caller counts by something finer).
+    the caller counts by something finer). [on_loss], when given, is told
+    each record left out and the record it lost to.
 
     The answer does not depend on the order of [records], and the input
     records are not changed.
@@ -179,12 +196,15 @@ def resolve(
                 match = min(matches, key=lambda s: (rank[_key(s)], s["id"]))
         if match is not None:
             dropped[(label(record), label(match))] += 1
-            # Nothing passes to or from an own-terms record, and a curated
-            # site that steps aside for OpenStreetMap gives nothing, as it
-            # never has.
+            if on_loss is not None:
+                on_loss(record, match)
+            # Nothing passes to or from an own-terms or a researched
+            # record, and a curated site that steps aside for
+            # OpenStreetMap gives nothing, as it never has.
             if not (
                 _own_terms(record)
                 or _own_terms(match)
+                or _RESEARCH in (record["source"], match["source"])
                 or (_key(record) in _HELD and _key(match) in _HELD)
             ):
                 _take(match, record)

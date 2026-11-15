@@ -57,6 +57,12 @@ class EntryTest(unittest.TestCase):
         for raw in ("stone", "yes", "", None):
             self.assertEqual(fmt.map_entry(raw), [])
 
+    def test_the_app_s_own_entry_names_map_to_themselves(self):
+        self.assertEqual(
+            fmt.map_entry("boat, giantStride, backRoll"),
+            ["boat", "giantStride", "backRoll"],
+        )
+
     def test_an_entry_named_twice_is_listed_once(self):
         self.assertEqual(fmt.map_entry("stair;ladder"), ["ladder"])
 

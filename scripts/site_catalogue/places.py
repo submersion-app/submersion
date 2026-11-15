@@ -377,6 +377,15 @@ class Places:
             self._names[code] = english_name(code, candidates, self._known)
         return self._names[code]
 
+    def country_name(self, code: str) -> str | None:
+        """The English name the catalogue gives [code], or None for a code
+        no unit carries. A researched site the lookup cannot place takes
+        its researcher's code, and this names it."""
+        if code in self._preferred:
+            return self._preferred[code]
+        units = self._by_code.get(code)
+        return self._name(code, units[0]) if units else None
+
     def _region(self, lat: float, lon: float, code: str | None):
         properties = self._regions.containing(lat, lon)
         if properties is None:

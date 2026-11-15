@@ -312,6 +312,8 @@ _ENTRY_ALIASES = {
     "steps": "ladder",
     "ladder": "ladder",
     "pier": "jetty",
+    # The app's own names, which researched sites are written in.
+    **{method.lower(): method for method in ENTRY_METHODS},
 }
 
 _ENTRY_SPLIT = re.compile(r"[:;,/]|\bor\b")

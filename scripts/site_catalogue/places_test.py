@@ -175,6 +175,15 @@ class PlaceTest(unittest.TestCase):
         place = _places(preferred={"FR": "Frankreich"}).place(45, 5)
         self.assertEqual(place.country, "Frankreich")
 
+    def test_a_code_s_country_name(self):
+        self.assertEqual(_places().country_name("PF"), "French Polynesia")
+        self.assertEqual(_places().country_name("FR"), "France")
+        self.assertEqual(
+            _places(preferred={"FR": "Frankreich"}).country_name("FR"),
+            "Frankreich",
+        )
+        self.assertIsNone(_places().country_name("ZZ"))
+
     def test_a_lake_is_fresh_water(self):
         self.assertTrue(_places().place(46.2, 6.5).fresh)
         self.assertFalse(_places().place(45, 5).fresh)

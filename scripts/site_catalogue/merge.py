@@ -23,6 +23,12 @@ that on purpose, and takes New Jersey's metadata away with its records.
 
 It prints, per source, what was read, what each gate dropped and what was
 written, then the ids that left and joined the catalogue it replaces.
+
+Researched sites are read from `research/sites.json` on every run, as the
+curated file is (src_research.py). A researched record that the file
+being replaced ships may leave only by a withdrawal written in its
+evidence entry: otherwise the merge stops, naming it, so a diver who
+adopted it is never left without word.
 """
 
 import argparse
@@ -42,12 +48,14 @@ import src_awois  # noqa: E402
 import src_ireland  # noqa: E402
 import src_osm  # noqa: E402
 import src_reefs  # noqa: E402
+import src_research  # noqa: E402
 import src_ukho  # noqa: E402
 import src_wikidata  # noqa: E402
 from curated_sites import CURATED_COUNTRY_CODES, load_curated  # noqa: E402
 from overlap import resolve  # noqa: E402
 from site_catalogue_format import (  # noqa: E402
     CATALOGUE_FILE,
+    RESEARCHED_SOURCES,
     map_entry,
     to_catalogue_record,
     write_catalogue,
@@ -92,6 +100,7 @@ _SHARED_POSITION_MIN = 3
 
 _ORIGIN = "_origin"
 _CURATED = "curated"
+_RESEARCH = "research"
 # How many ids of each kind the report lists before it only counts.
 _LISTED_IDS = 40
 
@@ -141,6 +150,17 @@ def _catalogue_record(record: dict, places, curated_countries: dict) -> dict:
         code = CURATED_COUNTRY_CODES.get(country)
         if code is None:
             country = None
+    hint = record.get("country_hint")
+    if hint is not None:
+        if code is None:
+            # Too far out for the lookup: the researcher's country.
+            code, country = hint, places.country_name(hint)
+        elif code != hint:
+            raise ValueError(
+                f"{record['id']}: researched in {hint}, but its position "
+                f"lies in {code}; check the hemisphere and the order of "
+                "latitude and longitude"
+            )
     return to_catalogue_record(
         {
             "id": record["id"],
@@ -165,6 +185,7 @@ def _catalogue_record(record: dict, places, curated_countries: dict) -> dict:
         country_code=code,
         country=country,
         kind=record["kind"],
+        trust="researched" if record["source"] in RESEARCHED_SOURCES else "verified",
     )
 
 
@@ -244,7 +265,13 @@ def _gated(
     return alone
 
 
-def build(snapshots: dict, curated: list[dict], places) -> tuple[list[dict], dict]:
+def build(
+    snapshots: dict,
+    curated: list[dict],
+    places,
+    research: "src_research.ResearchBatch | None" = None,
+    previous_ids: set[str] | None = None,
+) -> tuple[list[dict], dict]:
     """The catalogue's records, and a report of what became of each
     source's rows.
 
@@ -253,7 +280,13 @@ def build(snapshots: dict, curated: list[dict], places) -> tuple[list[dict], dic
     `read`, the rows each gate `dropped`, the records `formed`, those lost
     to `overlap` with another source (and `lost_to` which), and those
     `written`.
+
+    [research] is the evidence file's batch; its withdrawals also take
+    curated records out. [previous_ids] are the ids of the catalogue being
+    replaced: a researched id among them that would leave without a
+    withdrawal raises ValueError naming it.
     """
+    research = research or src_research.ResearchBatch()
     working: list[dict] = []
     report: dict[str, dict] = {}
     seen: dict[str, dict] = {}
@@ -268,13 +301,54 @@ def build(snapshots: dict, curated: list[dict], places) -> tuple[list[dict], dic
             "dropped": dict(sorted(dropped.items())),
             "formed": len(formed),
         }
-    for entry in curated:
+    kept_curated = [e for e in curated if e["id"] not in research.withdrawn]
+    for entry in kept_curated:
         record = _curated_working(entry)
         record[_ORIGIN] = _CURATED
         working.append(record)
-    report[_CURATED] = {"read": len(curated), "dropped": {}, "formed": len(curated)}
+    withdrawn_curated = len(curated) - len(kept_curated)
+    report[_CURATED] = {
+        "read": len(curated),
+        "dropped": {"withdrawn": withdrawn_curated} if withdrawn_curated else {},
+        "formed": len(kept_curated),
+    }
+    for record in research.records:
+        working.append(dict(record, **{_ORIGIN: _RESEARCH}))
+    report[_RESEARCH] = {
+        "read": research.read,
+        "dropped": {
+            reason: count
+            for reason, count in sorted(research.counts.items())
+            if reason != "approved" and count
+        },
+        "formed": len(research.records),
+    }
 
-    survivors, lost = resolve(working, label=lambda record: record[_ORIGIN])
+    beaten: dict[str, str] = {}
+    survivors, lost = resolve(
+        working,
+        label=lambda record: record[_ORIGIN],
+        on_loss=lambda loser, winner: beaten.__setitem__(loser["id"], winner["id"]),
+    )
+    shipped = {record["id"] for record in survivors}
+    silent = sorted(
+        site_id
+        for site_id in previous_ids or ()
+        if site_id.startswith(_RESEARCH + "_")
+        and site_id not in shipped
+        and site_id not in research.withdrawn
+    )
+    if silent:
+        raise ValueError(
+            "Researched records the catalogue ships would leave without a "
+            "withdrawal (write one in research/sites.json): "
+            + "; ".join(
+                f"{site_id} (same site as {beaten[site_id]})"
+                if site_id in beaten
+                else site_id
+                for site_id in silent
+            )
+        )
     written: dict[str, int] = {}
     for record in survivors:
         written[record[_ORIGIN]] = written.get(record[_ORIGIN], 0) + 1
@@ -352,9 +426,9 @@ def _existing_ids(directory: Path) -> set[str] | None:
     return {site["id"] for site in doc.get("sites") or [] if "id" in site}
 
 
-def main(argv=None, *, places=None, curated=None) -> int:
-    """Runs the merge. [places] and [curated] stand in for the offline
-    lookup and the curated file in tests."""
+def main(argv=None, *, places=None, curated=None, research=None) -> int:
+    """Runs the merge. [places], [curated] and [research] stand in for the
+    offline lookup, the curated file and the evidence file in tests."""
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument(
         "--without", nargs="+", default=[], metavar="KEY",
@@ -421,12 +495,25 @@ def main(argv=None, *, places=None, curated=None) -> int:
     if curated is None:
         curated = load_curated()
 
-    catalogue, report = build(snapshots, curated, places)
+    if research is None:
+        research = src_research.load_batch()
+
     old_ids = _existing_ids(arguments.out)
+    try:
+        catalogue, report = build(
+            snapshots, curated, places, research=research, previous_ids=old_ids
+        )
+    except ValueError as error:
+        print(error)
+        return 2
     # Stamped with the newest download, so the same snapshots always write
     # the same bytes.
     write_catalogue(
-        arguments.out, catalogue, max(fetched), open_only=arguments.open_only
+        arguments.out,
+        catalogue,
+        max(fetched),
+        open_only=arguments.open_only,
+        withdrawn=research.withdrawn,
     )
     shipped_metadata = arguments.out / NJDEP_METADATA_SHIPPED
     if ships_new_jersey:
@@ -437,6 +524,14 @@ def main(argv=None, *, places=None, curated=None) -> int:
         report,
         None if old_ids is None else id_changes(old_ids, {r["id"] for r in catalogue}),
     )
+    print(f"\nWithdrawn: {len(research.withdrawn)}")
+    for site_id, withdrawal in sorted(research.withdrawn.items()):
+        replaced = withdrawal.get("replaced_by")
+        print(
+            f"  {site_id} ({withdrawal['reason']}, {withdrawal['date']}"
+            + (f", replaced by {replaced}" if replaced else "")
+            + ")"
+        )
     return 0
 
 
