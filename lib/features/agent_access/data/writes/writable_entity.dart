@@ -179,12 +179,17 @@ class AppliedChange {
     required this.kind,
     required this.id,
     this.parentId,
+    this.diverId,
     this.changed = const {},
   });
 
   final ChangeKind kind;
   final String id;
   final String? parentId;
+
+  /// The profile the record belonged to, which a delete can no longer read
+  /// from the row.
+  final String? diverId;
   final Set<String> changed;
 }
 

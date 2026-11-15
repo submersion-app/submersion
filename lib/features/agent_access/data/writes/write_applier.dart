@@ -131,6 +131,7 @@ class WriteApplier {
           kind: item.kind,
           id: id,
           parentId: item.parentId,
+          diverId: item.diverId,
           changed: switch (item.kind) {
             ChangeKind.create => item.values.keys.toSet(),
             ChangeKind.update => item.fields.keys.toSet(),
