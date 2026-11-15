@@ -328,6 +328,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      // The observations strip leads the page (#4559), so the records can
+      // sit below the test window; scroll to the row as a diver would.
+      await tester.ensureVisible(find.text('Deepest Dive'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Deepest Dive'));
       await tester.pumpAndSettle();
 
@@ -486,6 +490,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      // The observations strip leads the page (#4559), so the site list can
+      // sit below the test window; scroll to the row as a diver would.
+      await tester.ensureVisible(find.text('Mystery Cave'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Mystery Cave'));
       await tester.pumpAndSettle();
 

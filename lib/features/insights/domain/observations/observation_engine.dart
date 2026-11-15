@@ -67,7 +67,7 @@ int compareObservations(Observation a, Observation b) {
   return a.fingerprint.compareTo(b.fingerprint);
 }
 
-/// The landing strip: the first three of [ranked], skipping any that would
+/// The Overview strip: the first three of [ranked], skipping any that would
 /// show one kind a third time.
 List<Observation> selectStrip(List<Observation> ranked) {
   final perKind = <ObservationKind, int>{};
