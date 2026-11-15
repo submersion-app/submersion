@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -52,6 +53,8 @@ void main() {
     WidgetTester tester, {
     required bool lineOn,
     required bool modelable,
+    ProfileRightAxisMetric defaultRightAxis =
+        ProfileRightAxisMetric.temperature,
   }) async {
     var runs = 0;
     late ChartBuoyancyInputs inputs;
@@ -60,8 +63,12 @@ void main() {
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith(
-            (ref) =>
-                _TestSettingsNotifier(AppSettings(defaultShowBuoyancy: lineOn)),
+            (ref) => _TestSettingsNotifier(
+              AppSettings(
+                defaultShowBuoyancy: lineOn,
+                defaultRightAxisMetric: defaultRightAxis,
+              ),
+            ),
           ),
           buoyancyModelableProvider(
             diveId,
@@ -95,6 +102,21 @@ void main() {
     expect(got.runs, 1);
     expect(got.inputs.curve, hasLength(3));
     expect(got.inputs.curve!.every((v) => v != null), isTrue);
+  });
+
+  testWidgets('runs the model for a buoyancy right axis with the line off', (
+    tester,
+  ) async {
+    // Every other right-axis metric reads without its line shown; without
+    // the curve this axis would silently fall back to another metric.
+    final got = await pump(
+      tester,
+      lineOn: false,
+      modelable: true,
+      defaultRightAxis: ProfileRightAxisMetric.buoyancy,
+    );
+    expect(got.runs, 1);
+    expect(got.inputs.curve, hasLength(3));
   });
 
   testWidgets('an unmodelable dive offers nothing and runs nothing', (

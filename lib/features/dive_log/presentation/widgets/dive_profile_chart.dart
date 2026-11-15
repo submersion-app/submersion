@@ -2558,8 +2558,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // Net buoyancy (issue #4593): the value, its sign and its side in words,
     // with the bullet in that side's colour.
     if (_showBuoyancy && widget.buoyancyCurve != null) {
-      final curve = widget.buoyancyCurve!;
-      final kg = spot.spotIndex < curve.length ? curve[spot.spotIndex] : null;
+      final kg = _curveValueAt(widget.buoyancyCurve, spot.spotIndex);
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_buoyancy,
@@ -4045,6 +4044,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       identityHashCode(widget.o2SensorCurves),
       identityHashCode(widget.o2CellMvCurves),
       vpBucket,
+      // The buoyancy neutral rule spans the time axis, which an overlaid
+      // computer can widen without touching the profile (#4593).
+      bounds.totalMinTime,
+      bounds.totalMaxTime,
     ]);
     _markersSig = _sigOf([
       commonSig,

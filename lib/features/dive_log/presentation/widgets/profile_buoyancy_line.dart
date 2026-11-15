@@ -36,13 +36,17 @@ const double _axisPadFraction = 0.1;
 /// Always contains 0, so the neutral rule is on the plot even for a dive
 /// that is heavy throughout. Null when fewer than two finite values exist.
 ({double min, double max})? buoyancyAxisRange(List<double?> curveKg) {
-  final values = [
-    for (final v in curveKg)
-      if (v != null && v.isFinite) v,
-  ];
-  if (values.length < 2) return null;
-  var lo = math.min(values.reduce(math.min), 0.0);
-  var hi = math.max(values.reduce(math.max), 0.0);
+  // One pass with no copy: the chart asks for this on every analysis rebuild.
+  var count = 0;
+  var lo = 0.0;
+  var hi = 0.0;
+  for (final v in curveKg) {
+    if (v == null || !v.isFinite) continue;
+    count++;
+    if (v < lo) lo = v;
+    if (v > hi) hi = v;
+  }
+  if (count < 2) return null;
   final pad = (hi - lo) * _axisPadFraction;
   lo -= pad;
   hi += pad;

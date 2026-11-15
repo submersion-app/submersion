@@ -46,6 +46,8 @@ Widget _harness({
   List<double?>? buoyancyCurve,
   bool buoyancyAvailable = true,
   void Function(List<TooltipRow>? rows)? onTooltipData,
+  List<DiveProfilePoint>? profile,
+  List<ChartSourceOverlay>? overlays,
 }) {
   return ProviderScope(
     overrides: [
@@ -60,7 +62,8 @@ Widget _harness({
           width: 600,
           height: 360,
           child: DiveProfileChart(
-            profile: _profile(),
+            profile: profile ?? _profile(),
+            overlays: overlays,
             buoyancyCurve: buoyancyCurve,
             buoyancyAvailable: buoyancyAvailable,
             tooltipPresentation: TooltipPresentation.external,
@@ -95,6 +98,45 @@ void main() {
     expect(bars.where((b) => b.color == _heavy), hasLength(1));
     expect(bars.where((b) => b.color == _buoyant), hasLength(1));
     expect(bars.where(_isNeutralRule), hasLength(1));
+  });
+
+  testWidgets('the neutral rule follows the time axis as overlays change', (
+    tester,
+  ) async {
+    // An overlaid computer that logged longer widens the time axis without
+    // touching the active profile or the curve, so the cached rule must not
+    // keep the old extent.
+    final profile = _profile();
+    final curve = _crossingCurve();
+    const settings = AppSettings(defaultShowBuoyancy: true);
+    await tester.pumpWidget(
+      _harness(settings: settings, profile: profile, buoyancyCurve: curve),
+    );
+    await tester.pumpAndSettle();
+    expect(_bars(tester).firstWhere(_isNeutralRule).spots.last.x, 570);
+
+    final longer = List.generate(
+      41,
+      (i) => DiveProfilePoint(timestamp: i * 30, depth: 5),
+    );
+    await tester.pumpWidget(
+      _harness(
+        settings: settings,
+        profile: profile,
+        buoyancyCurve: curve,
+        overlays: [
+          ChartSourceOverlay(
+            sourceId: 'src-b',
+            name: 'Overlay',
+            color: Colors.purple,
+            computerId: 'comp-b',
+            points: longer,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(_bars(tester).firstWhere(_isNeutralRule).spots.last.x, 1200);
   });
 
   testWidgets('draws nothing when off', (tester) async {

@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart' show compute;
-
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
@@ -8,8 +6,6 @@ import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twi
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
-import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 
 /// Whether the buoyancy model can run for [diveId] at all: it has a tank or
 /// an exposure suit (issue #4593).
@@ -44,20 +40,15 @@ final chartBuoyancyTwinProvider = FutureProvider.autoDispose
         return outcome?.result;
       }
 
-      final dive = await ref.watch(diveProvider(diveId).future);
+      final (dive, tankPressures) = await (
+        ref.watch(diveProvider(diveId).future),
+        ref.watch(activeSourceTankPressuresProvider(diveId).future),
+      ).wait;
       if (dive == null) return null;
-      final tankPressures = await ref.watch(
-        activeSourceTankPressuresProvider(diveId).future,
-      );
-      final model = await ref.watch(weightCalibrationProvider.future);
-      final latestWeight = await ref.watch(latestDiverWeightProvider.future);
-
-      final input = BuoyancyTwinAssembler.assemble(
-        dive: dive.copyWith(profile: active.points),
+      return runBuoyancyTwinFor(
+        ref,
+        dive: dive,
+        profile: active.points,
         tankPressures: tankPressures,
-        model: model,
-        bodyWeightKg: latestWeight?.weightKg,
       );
-      if (input == null) return null;
-      return compute(runBuoyancyTwin, input);
     });
