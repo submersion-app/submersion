@@ -88,14 +88,15 @@ List<GasSwitch> _inTimeOrder(Iterable<GasSwitch> switches) =>
 
 /// Reads the switches that apply to the dive's primary computer
 /// (`GasSwitch.shownInEditor`), once per sitting, and keeps the write the
-/// edits below hold: through [writer], with the loaded ids, taking the
+/// edits below hold: through the writer [writer] makes when the write runs
+/// (it reaches the database as it is made), with the loaded ids, taking the
 /// current list and only the switches whose cylinder is on the dive as it
 /// is written. A switch on a cylinder already removed in the sitting is
 /// dropped at once ([dropGasSwitchesWithoutTank]). Tracked.
 void loadGasSwitches(
   EditSession<Dive> session, {
   required Future<List<GasSwitch>> Function() read,
-  required DiverGasSwitchWriter writer,
+  required DiverGasSwitchWriter Function() writer,
 }) {
   if (!session.firstTime(gasSwitchesKey)) return;
   session.track(() async {
@@ -130,11 +131,14 @@ void loadGasSwitches(
   }());
 }
 
-Future<void> _write(EditSession<Dive> session, DiverGasSwitchWriter writer) {
+Future<void> _write(
+  EditSession<Dive> session,
+  DiverGasSwitchWriter Function() writer,
+) {
   final held = sittingGasSwitches(session)!;
   final diveId = session.stored.id;
   final tankIds = {for (final t in session.working.tanks) t.id};
-  return writer.save(
+  return writer().save(
     diveId: diveId,
     switches: [
       for (final g in held.current)

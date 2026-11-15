@@ -63,7 +63,11 @@ void main() {
 
   Future<EditSession<Dive>> loaded(Dive d, [List<GasSwitch>? switches]) async {
     final s = EditSession(d);
-    loadGasSwitches(s, read: () async => switches ?? stored, writer: writer);
+    loadGasSwitches(
+      s,
+      read: () async => switches ?? stored,
+      writer: () => writer,
+    );
     await s.settled();
     return s;
   }
@@ -77,8 +81,8 @@ void main() {
       return [...stored, sw('x', 600, 'b', computer: 'theirs')];
     }
 
-    loadGasSwitches(s, read: read, writer: writer);
-    loadGasSwitches(s, read: read, writer: writer);
+    loadGasSwitches(s, read: read, writer: () => writer);
+    loadGasSwitches(s, read: read, writer: () => writer);
     await s.settled();
     expect(reads, 1);
     expect(
@@ -143,7 +147,7 @@ void main() {
       'out', () async {
     final s = EditSession(dive);
     removeSittingTank(s, 'b');
-    loadGasSwitches(s, read: () async => stored, writer: writer);
+    loadGasSwitches(s, read: () async => stored, writer: () => writer);
     await s.settled();
     expect([for (final g in sittingGasSwitches(s)!.current) g.id], ['s1']);
   });
@@ -252,7 +256,7 @@ void main() {
   test('a read answering after Cancel sets nothing', () async {
     final gate = Completer<List<GasSwitch>>();
     final s = EditSession(dive);
-    loadGasSwitches(s, read: () => gate.future, writer: writer);
+    loadGasSwitches(s, read: () => gate.future, writer: () => writer);
     s.dispose();
     gate.complete(stored);
     await Future<void>.delayed(Duration.zero);

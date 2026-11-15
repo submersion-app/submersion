@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
@@ -8,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_tank_link.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 const _log = LoggerService('DiveTankRules');
@@ -16,6 +18,25 @@ const _uuid = Uuid();
 /// Reads a trip's slots as they stood at a moment of the dive.
 typedef TripSlotReader =
     Future<List<TripCylinderState>> Function(String tripId, DateTime at);
+
+/// A [TripSlotReader] over [container] for dive [diveId], never counting the
+/// dive's own use (`_tripCylinderKeyFor`). The provider is auto-disposed, so
+/// a listener holds it while the read is in flight; the container outlives
+/// the widget that asked.
+TripSlotReader tripSlotReader(ProviderContainer container, String diveId) =>
+    (tripId, at) async {
+      final provider = tripCylinderStatesAtProvider((
+        tripId: tripId,
+        atMillis: at.millisecondsSinceEpoch,
+        excludeDiveId: diveId,
+      ));
+      final hold = container.listen(provider, (_, _) {});
+      try {
+        return await container.read(provider.future);
+      } finally {
+        hold.close();
+      }
+    };
 
 /// The cylinders linked to a slot by a suggestion, not by the diver.
 const _suggestedKey = 'tankSlotsSuggested';

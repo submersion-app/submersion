@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weight_name_text.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 /// The Weights card.
 class DiveWeightSection extends ConsumerWidget {
@@ -51,20 +52,15 @@ class DiveWeightSection extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  context.l10n.diveLog_detail_section_weight,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Text(
-                  '${context.l10n.diveLog_detail_label_total} ${units.formatWeight(totalWeight)}',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ],
+            // The shared title row: unlocked, it gains the pencil.
+            RecordCardHeader(
+              title: context.l10n.diveLog_detail_section_weight,
+              trailing: Text(
+                '${context.l10n.diveLog_detail_label_total} ${units.formatWeight(totalWeight)}',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
             ),
             const Divider(),
             ...displayWeights.map(

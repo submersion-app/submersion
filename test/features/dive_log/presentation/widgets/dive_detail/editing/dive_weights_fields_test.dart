@@ -163,7 +163,7 @@ void main() {
           createdAt: t0,
         ),
       ],
-      writer: _NoWriter(),
+      writer: _NoWriter.new,
     );
     await s.settled();
     final last = LastDiveAtCenter(

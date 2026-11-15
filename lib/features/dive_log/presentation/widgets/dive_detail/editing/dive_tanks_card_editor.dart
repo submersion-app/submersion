@@ -82,7 +82,7 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
         for (final g in await repository.getGasSwitchesForDive(diveId))
           g.gasSwitch,
       ],
-      writer: DiverGasSwitchWriter(),
+      writer: DiverGasSwitchWriter.new,
     );
   }
 
@@ -111,24 +111,10 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
 
   EditSession<Dive> get _session => widget.session;
 
-  TripSlotReader _slotReader() {
-    final container = ProviderScope.containerOf(context, listen: false);
-    final diveId = _session.stored.id;
-    return (tripId, at) async {
-      final provider = tripCylinderStatesAtProvider((
-        tripId: tripId,
-        atMillis: at.millisecondsSinceEpoch,
-        excludeDiveId: diveId,
-      ));
-      // Held open while the read is in flight: the provider is auto-disposed.
-      final hold = container.listen(provider, (_, _) {});
-      try {
-        return await container.read(provider.future);
-      } finally {
-        hold.close();
-      }
-    };
-  }
+  TripSlotReader _slotReader() => tripSlotReader(
+    ProviderScope.containerOf(context, listen: false),
+    _session.stored.id,
+  );
 
   void _addTank() {
     final settings = ref.read(settingsProvider);

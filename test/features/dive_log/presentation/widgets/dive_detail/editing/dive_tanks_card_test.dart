@@ -89,7 +89,7 @@ void main() {
     loadGasSwitches(
       controller.session!,
       read: () async => switches,
-      writer: _NoWriter(),
+      writer: _NoWriter.new,
     );
     await tester.pumpWidget(
       ProviderScope(

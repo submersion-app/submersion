@@ -14,10 +14,15 @@ class ObservationStatusChip extends ConsumerWidget {
   final EquipmentItem equipment;
   final Dive dive;
 
+  /// Shows the state only: no tap, as on a dive page that is locked
+  /// (issue #4527). A check-in writes, so it waits for the unlock.
+  final bool readOnly;
+
   const ObservationStatusChip({
     super.key,
     required this.equipment,
     required this.dive,
+    this.readOnly = false,
   });
 
   @override
@@ -51,11 +56,15 @@ class ObservationStatusChip extends ConsumerWidget {
       icon: Icon(icon, color: color, size: 20),
       tooltip: tooltip,
       visualDensity: VisualDensity.compact,
-      onPressed: () => showEquipmentObservationSheet(
-        context,
-        equipment: equipment,
-        dive: dive,
-      ),
+      // Read-only keeps the chip's colour: it still says how the gear did.
+      disabledColor: color,
+      onPressed: readOnly
+          ? null
+          : () => showEquipmentObservationSheet(
+              context,
+              equipment: equipment,
+              dive: dive,
+            ),
     );
   }
 }

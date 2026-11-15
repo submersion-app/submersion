@@ -127,12 +127,23 @@ class DiveDetailSectionList extends ConsumerWidget {
     // one in or take one out (issue #4527, plan 4).
     final stored = edit?.session?.stored ?? dive;
 
+    // A gauge dive leaves out the cards about gas. With editing offered, a
+    // card with no editor asks the stored dive, so a mode picked in a
+    // sitting does not take one away before Save; the Cylinders card asks
+    // its own emptiness, which counts a gauge dive, so it can be reached
+    // from the Add strip to change the mode back (issue #4527, plan 5).
+    bool gaugeHides(DiveDetailSectionId id) {
+      if (!id.hiddenInGaugeMode) return false;
+      if (edit == null) return dive.isGauge;
+      if (diveEditCards.containsKey(id)) return false;
+      return stored.isGauge;
+    }
+
     // Visible sections in configured order, minus gauge-hidden ones.
     final visible = [
       for (final section in sections)
-        if (section.shownFor(gauge: dive.isGauge) ||
-            (added.contains(section.id.name) &&
-                !(dive.isGauge && section.id.hiddenInGaugeMode)))
+        if ((section.visible || added.contains(section.id.name)) &&
+            !gaugeHides(section.id))
           section.id,
     ];
     final visibleIds = visible.toSet();
@@ -361,13 +372,13 @@ class DiveDetailSectionList extends ConsumerWidget {
         );
         return hasRoutes ? NavTrackSection(dive: dive) : null;
       case DiveDetailSectionId.weights:
-        if (!diveHasWeights(dive)) return null;
+        if (!_onPage(ref, id, presence, stored)) return null;
         return DiveWeightSection(dive: dive);
       case DiveDetailSectionId.buoyancy:
         if (!diveHasBuoyancyInputs(dive)) return null;
         return DiveDetailBuoyancySection(dive: dive);
       case DiveDetailSectionId.tanks:
-        if (dive.tanks.isEmpty) return null;
+        if (!_onPage(ref, id, presence, stored)) return null;
         return DiveDetailCylindersSection(dive: dive);
       case DiveDetailSectionId.buddies:
         return DiveBuddiesSection(dive: dive);
@@ -376,7 +387,7 @@ class DiveDetailSectionList extends ConsumerWidget {
         // dive as stored, as every card with no editor.
         return DiveSignaturesSection(dive: dive);
       case DiveDetailSectionId.equipment:
-        if (dive.equipment.isEmpty) return null;
+        if (!_onPage(ref, id, presence, stored)) return null;
         return DiveEquipmentSection(dive: dive);
       case DiveDetailSectionId.sightings:
         return DiveSightingsSection(dive: dive, topGap: topGap);
@@ -611,19 +622,44 @@ class DiveDetailSectionList extends ConsumerWidget {
           DiveTideSection(dive: dive),
         );
 
+      // Cylinders and Weight can be edited: they draw the sitting's dive
+      // and count as present while open. Gas consumption and Buoyancy are
+      // worked out, and draw the dive as stored.
       case DiveDetailSectionId.tanks:
-        if (dive.tanks.isEmpty || !watchHasSacSegments(ref, dive, retention)) {
+        final hasTanks = _onPage(
+          ref,
+          DiveDetailSectionId.tanks,
+          presence,
+          stored,
+        );
+        final tanksOpen = open.contains(DiveDetailSectionId.tanks.name);
+        if ((!hasTanks && !tanksOpen) ||
+            !watchHasSacSegments(ref, dive, retention)) {
           return null;
         }
         return _PairCards(
-          DiveDetailCylindersSection(dive: dive),
+          // Open with nothing to show yet: its frame draws the editor.
+          hasTanks
+              ? DiveDetailCylindersSection(dive: this.dive)
+              : const SizedBox.shrink(),
           DiveSacSegmentsSection(dive: dive, retention: retention),
         );
 
       case DiveDetailSectionId.weights:
-        if (!diveHasWeights(dive) || !watchHasBuoyancy(ref, dive)) return null;
+        final hasWeights = _onPage(
+          ref,
+          DiveDetailSectionId.weights,
+          presence,
+          stored,
+        );
+        final weightsOpen = open.contains(DiveDetailSectionId.weights.name);
+        if ((!hasWeights && !weightsOpen) || !watchHasBuoyancy(ref, dive)) {
+          return null;
+        }
         return _PairCards(
-          DiveWeightSection(dive: dive),
+          hasWeights
+              ? DiveWeightSection(dive: this.dive)
+              : const SizedBox.shrink(),
           DiveDetailBuoyancySection(dive: dive),
         );
 
