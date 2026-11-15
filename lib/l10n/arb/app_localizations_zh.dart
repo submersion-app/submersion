@@ -27019,15 +27019,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get dataHealth_feature_backup => '备份';
-
-  @override
-  String get dataHealth_feature_sync => '同步';
-
-  @override
-  String get dataHealth_feature_libraries => '潜点库';
-
-  @override
   String get dataHealth_level_healthy => '正常';
 
   @override
@@ -27038,11 +27029,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataHealth_level_notSetUp => '未设置';
-
-  @override
-  String dataHealth_semantics(String feature, String status) {
-    return '$feature：$status';
-  }
 
   @override
   String get dataHealth_backup_autoOff => '建议：开启自动备份';
@@ -27293,9 +27279,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_section_data_tagline => '备份、同步与照片';
-
-  @override
-  String get dataHealth_feature_photos => '照片';
 
   @override
   String get settings_data_backups_status_never => '尚未备份';

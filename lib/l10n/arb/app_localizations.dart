@@ -45598,24 +45598,6 @@ abstract class AppLocalizations {
   /// **'{count}m ago'**
   String settings_data_syncTime_minutesAgo(Object count);
 
-  /// No description provided for @dataHealth_feature_backup.
-  ///
-  /// In en, this message translates to:
-  /// **'Backups'**
-  String get dataHealth_feature_backup;
-
-  /// No description provided for @dataHealth_feature_sync.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync'**
-  String get dataHealth_feature_sync;
-
-  /// No description provided for @dataHealth_feature_libraries.
-  ///
-  /// In en, this message translates to:
-  /// **'Libraries'**
-  String get dataHealth_feature_libraries;
-
   /// No description provided for @dataHealth_level_healthy.
   ///
   /// In en, this message translates to:
@@ -45639,12 +45621,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not set up'**
   String get dataHealth_level_notSetUp;
-
-  /// No description provided for @dataHealth_semantics.
-  ///
-  /// In en, this message translates to:
-  /// **'{feature}: {status}'**
-  String dataHealth_semantics(String feature, String status);
 
   /// No description provided for @dataHealth_backup_autoOff.
   ///
@@ -46065,12 +46041,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Backups, sync and photos'**
   String get settings_section_data_tagline;
-
-  /// No description provided for @dataHealth_feature_photos.
-  ///
-  /// In en, this message translates to:
-  /// **'Photos'**
-  String get dataHealth_feature_photos;
 
   /// No description provided for @settings_data_backups_status_never.
   ///

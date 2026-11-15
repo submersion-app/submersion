@@ -28497,15 +28497,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get dataHealth_feature_backup => 'Mentések';
-
-  @override
-  String get dataHealth_feature_sync => 'Szinkronizálás';
-
-  @override
-  String get dataHealth_feature_libraries => 'Könyvtárak';
-
-  @override
   String get dataHealth_level_healthy => 'Rendben';
 
   @override
@@ -28516,11 +28507,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dataHealth_level_notSetUp => 'Nincs beállítva';
-
-  @override
-  String dataHealth_semantics(String feature, String status) {
-    return '$feature: $status';
-  }
 
   @override
   String get dataHealth_backup_autoOff =>
@@ -28791,9 +28777,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_section_data_tagline =>
       'Biztonsági mentések, szinkronizálás és fotók';
-
-  @override
-  String get dataHealth_feature_photos => 'Fotók';
 
   @override
   String get settings_data_backups_status_never =>

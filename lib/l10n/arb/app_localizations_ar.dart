@@ -28916,15 +28916,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get dataHealth_feature_backup => 'النسخ الاحتياطية';
-
-  @override
-  String get dataHealth_feature_sync => 'المزامنة';
-
-  @override
-  String get dataHealth_feature_libraries => 'المكتبات';
-
-  @override
   String get dataHealth_level_healthy => 'سليم';
 
   @override
@@ -28935,11 +28926,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dataHealth_level_notSetUp => 'غير مُعد';
-
-  @override
-  String dataHealth_semantics(String feature, String status) {
-    return '$feature: $status';
-  }
 
   @override
   String get dataHealth_backup_autoOff =>
@@ -29208,9 +29194,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_section_data_tagline =>
       'النسخ الاحتياطية والمزامنة والصور';
-
-  @override
-  String get dataHealth_feature_photos => 'الصور';
 
   @override
   String get settings_data_backups_status_never => 'لم يتم النسخ الاحتياطي بعد';
