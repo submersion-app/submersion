@@ -85,6 +85,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     final sites = session.hasHeldWrites
         ? ref.read(siteListNotifierProvider.notifier)
         : null;
+    final followUp = DiveSittingFollowUp.read(context, ref);
     // The dive the sitting was opened on, whatever the page shows by the
     // time the write is asked for.
     final result = await service.save(
@@ -121,6 +122,12 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
         stackTrace: stackTrace,
       );
     }
+    // What else the sitting owes: each step guards itself.
+    await followUp.run(
+      before: result.before,
+      after: result.after,
+      tripDateStretches: result.tripDateStretches,
+    );
   }
 
   Future<void> _saveAndReport() async {

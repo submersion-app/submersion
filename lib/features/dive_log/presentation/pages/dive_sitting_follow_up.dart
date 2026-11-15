@@ -1,0 +1,108 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/visibility_input_mode_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
+import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_date_stretch_message.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+const _log = LoggerService('DiveSittingFollowUp');
+
+/// What a saved editing sitting on a dive still owes once its write has
+/// gone through: a word about a trip whose dates it moved, a fresh read of
+/// the courses it changed, and the visibility input to offer next time.
+///
+/// Made before the write, because everything it needs comes from the page
+/// and the write can finish after the page has gone.
+///
+/// By the time [run] is called the sitting is committed. Each step is
+/// therefore on its own: one that fails is logged and the rest still run,
+/// and none of it can make a save that went through read as one that
+/// failed.
+class DiveSittingFollowUp {
+  DiveSittingFollowUp.read(BuildContext context, WidgetRef ref)
+    : _messenger = ScaffoldMessenger.of(context),
+      _l10n = context.l10n,
+      _units = ref.read(unitFormatterProvider),
+      _mode = ref.read(visibilityInputModeProvider.notifier),
+      _container = ProviderScope.containerOf(context, listen: false);
+
+  final ScaffoldMessengerState _messenger;
+  final AppLocalizations _l10n;
+  final UnitFormatter _units;
+  final VisibilityInputModeNotifier _mode;
+  final ProviderContainer _container;
+
+  /// [before] and [after] are the dive as the save found it and as it left
+  /// it; [tripDateStretches] the trips whose dates it moved.
+  Future<void> run({
+    required Dive before,
+    required Dive after,
+    required List<TripDateStretch> tripDateStretches,
+  }) async {
+    _guarded('name the stretched trip', () => _sayTripMoved(tripDateStretches));
+    _guarded('refresh the courses', () => _refreshCourses(before, after));
+    try {
+      await _rememberVisibilityInput(before, after);
+    } catch (error, stackTrace) {
+      _report('remember the visibility input', after, error, stackTrace);
+    }
+  }
+
+  void _guarded(String what, VoidCallback step) {
+    try {
+      step();
+    } catch (error, stackTrace) {
+      _log.error(
+        'After a saved sitting, could not $what',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  void _report(String what, Dive dive, Object error, StackTrace stackTrace) {
+    _log.error(
+      'After saving dive ${dive.id}, could not $what',
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
+
+  /// A dive put on a trip, or moved to another day on one, stretched that
+  /// trip to cover it (#3351). The diver is told which, and its new dates.
+  void _sayTripMoved(List<TripDateStretch> stretches) {
+    final message = tripDateStretchMessage(_l10n, _units, stretches);
+    if (message == null) return;
+    _messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// Every course the dive joined or left counts its dives again (#2515).
+  void _refreshCourses(Dive before, Dive after) {
+    final was = before.courseIds.toSet();
+    final now = after.courseIds.toSet();
+    if (setEquals(was, now)) return;
+    _container.invalidate(coursesForDiveProvider(after.id));
+    for (final courseId in was.union(now)) {
+      _container.invalidate(courseDivesProvider(courseId));
+      _container.invalidate(courseDiveCountProvider(courseId));
+    }
+  }
+
+  /// The next new dive opens with the input this visibility was entered
+  /// in (#3226). Only a new value counts, never one carried through.
+  Future<void> _rememberVisibilityInput(Dive before, Dive after) async {
+    final saved = StoredVisibility.of(after);
+    if (saved == StoredVisibility.of(before)) return;
+    final mode = saved.modeToRemember;
+    if (mode == null) return;
+    await _mode.remember(mode);
+  }
+}
