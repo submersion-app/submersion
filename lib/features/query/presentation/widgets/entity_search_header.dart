@@ -38,6 +38,7 @@ class EntitySearchHeader extends ConsumerStatefulWidget {
     required this.onChanged,
     this.hintText,
     this.alwaysShown = false,
+    this.extraRows,
   });
 
   final QuerySubject subject;
@@ -53,6 +54,12 @@ class EntitySearchHeader extends ConsumerStatefulWidget {
   /// rather than hides.
   final bool alwaysShown;
 
+  /// Rows of the list's own beneath "Search everything", shown with it
+  /// (the field focused, with text in it): other places the typed text can
+  /// be taken. Given the text as typed, and the tree it parses to, which
+  /// is null while the text does not parse. No rows when null.
+  final List<Widget> Function(String text, QueryNode? parsed)? extraRows;
+
   @override
   ConsumerState<EntitySearchHeader> createState() => _EntitySearchHeaderState();
 }
@@ -66,6 +73,10 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
 
   /// What the diver typed, parsed or not: what Search everything sends.
   String _text = '';
+
+  /// Whether [_text] parses. While it does not, [_local] is still the
+  /// tree of the last text that did.
+  bool _textParses = true;
 
   /// Empties the field after Close, whose write the field cannot see when
   /// the committed tree was already null.
@@ -196,6 +207,8 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
                   fieldKey: entitySearchFieldKey(widget.subject),
                   focusNode: _focus,
                   onTextChanged: (text) => setState(() => _text = text),
+                  onValidityChanged: (valid) =>
+                      setState(() => _textParses = valid),
                   textOverride: _override,
                   onEscape: _close,
                 ),
@@ -209,7 +222,10 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
             ],
           ),
         ),
-        if (showEverywhere) SearchEverywhereRow(text: _text),
+        if (showEverywhere) ...[
+          SearchEverywhereRow(text: _text),
+          ...?widget.extraRows?.call(_text, _textParses ? _local : null),
+        ],
       ],
     );
   }
