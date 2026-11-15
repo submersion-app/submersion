@@ -9,6 +9,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
 import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
 import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
@@ -358,20 +359,15 @@ class SpeciesRepository {
   /// order as [getAllSpecies].
   ///
   /// A UDDF export declares these so every `speciesref` its dives carry
-  /// resolves (issue #4578). The dive ids are queried in chunks, like
-  /// [getSightingsForDives], to stay under SQLite's bound-variable limit.
+  /// resolves (issue #4578). The dive ids bind one SQL variable each, so a
+  /// whole logbook is read in [seriesIdChunks] runs.
   Future<List<domain.Species>> getSpeciesSightedOnDives(
     List<String> diveIds,
   ) async {
     if (diveIds.isEmpty) return const [];
 
-    const chunkSize = 900; // safely under SQLite's 999 bound-variable limit
     final byId = <String, Specy>{};
-    for (var start = 0; start < diveIds.length; start += chunkSize) {
-      final end = (start + chunkSize < diveIds.length)
-          ? start + chunkSize
-          : diveIds.length;
-      final chunk = diveIds.sublist(start, end);
+    for (final chunk in seriesIdChunks(diveIds)) {
       final sighted = _db.selectOnly(_db.sightings)
         ..addColumns([_db.sightings.speciesId])
         ..where(_db.sightings.diveId.isIn(chunk));
