@@ -76,6 +76,7 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_detail_pa
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_merge_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/catalogue_gap_review_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/catalogue_site_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_import_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_map_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_match_review_page.dart';
@@ -697,6 +698,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       const <String>[];
                   return SiteMergePage(siteIds: siteIds);
                 },
+              ),
+              // A built-in catalogue record's own page. Before ':siteId',
+              // which would otherwise read "catalogue" as a site id.
+              GoRoute(
+                path: 'catalogue/:catalogueId',
+                name: 'catalogueSite',
+                builder: (context, state) => CatalogueSitePage(
+                  catalogueId: state.pathParameters['catalogueId']!,
+                ),
               ),
               GoRoute(
                 path: ':siteId',

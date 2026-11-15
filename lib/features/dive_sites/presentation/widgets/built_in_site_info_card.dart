@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_page/catalogue_page_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Everything the built-in catalogue knows about one site, with one action:
@@ -105,7 +106,7 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
                 child: Wrap(
                   spacing: 6,
                   runSpacing: 4,
-                  children: [for (final fact in facts) _Fact(fact)],
+                  children: [for (final fact in facts) CatalogueFactChip(fact)],
                 ),
               ),
             if (site.hazards != null)
@@ -208,28 +209,6 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// One short fact about the site: a type, an entry, a depth.
-class _Fact extends StatelessWidget {
-  const _Fact(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        child: Text(text, style: theme.textTheme.labelMedium),
       ),
     );
   }

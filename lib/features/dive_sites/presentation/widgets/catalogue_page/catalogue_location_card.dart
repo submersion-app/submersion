@@ -1,0 +1,158 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/catalogue_site_page_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_page/catalogue_page_card.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+
+/// Where a built-in site is: its place names and its coordinates, each row
+/// only when the record has it. Tapping the coordinates copies them.
+///
+/// The sea is named in the diver's place-name language, as the site would
+/// have it once added. The other place names are the catalogue's own.
+class CatalogueLocationCard extends ConsumerWidget {
+  const CatalogueLocationCard({super.key, required this.site});
+
+  final CatalogueSite site;
+
+  /// Whether [site] has a place name or a position for this card to show.
+  static bool hasContent(CatalogueSite site) =>
+      site.location != null ||
+      [
+        site.country,
+        site.region,
+        site.locality,
+        site.island,
+        site.bodyOfWater,
+      ].any((part) => part?.trim().isNotEmpty ?? false);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final units = ref.watch(unitFormatterProvider);
+    final sea =
+        ref.watch(catalogueSeaNameProvider(site.id)).value ?? site.bodyOfWater;
+    final location = site.location;
+    final coordinates = location == null
+        ? null
+        : units.formatCoordinates(location.latitude, location.longitude);
+
+    final rows = [
+      _row(
+        context,
+        Icons.flag,
+        l10n.diveSites_detail_location_country,
+        site.country,
+      ),
+      _row(
+        context,
+        Icons.place,
+        l10n.diveSites_detail_location_region,
+        site.region,
+      ),
+      _row(
+        context,
+        Icons.location_city,
+        l10n.diveSites_detail_location_city,
+        site.locality,
+      ),
+      _row(
+        context,
+        Icons.landscape,
+        l10n.diveSites_detail_location_island,
+        site.island,
+      ),
+      _row(
+        context,
+        Icons.waves,
+        l10n.diveSites_detail_location_bodyOfWater,
+        sea,
+      ),
+      _row(
+        context,
+        Icons.gps_fixed,
+        l10n.diveSites_detail_location_gpsCoordinates,
+        coordinates,
+        onTap: coordinates == null
+            ? null
+            : () {
+                Clipboard.setData(ClipboardData(text: coordinates));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.diveSites_detail_coordinatesCopied),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+      ),
+    ].whereType<Widget>().toList();
+    if (rows.isEmpty) return const SizedBox.shrink();
+
+    return CataloguePageCard(
+      icon: Icons.map,
+      title: l10n.diveSites_detail_section_location,
+      children: [
+        DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: rows,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// One row, or null when the record has no [value] for it.
+  Widget? _row(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String? value, {
+    VoidCallback? onTap,
+  }) {
+    final text = value?.trim() ?? '';
+    if (text.isEmpty) return null;
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurfaceVariant;
+    final row = DetailRow(
+      icon: icon,
+      iconSize: 18,
+      iconColor: muted,
+      label: label,
+      labelStyle: theme.textTheme.bodySmall?.copyWith(color: muted),
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      value: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ),
+          if (onTap != null) ...[
+            const SizedBox(width: 4),
+            Icon(Icons.copy, size: 16, color: muted),
+          ],
+        ],
+      ),
+    );
+    if (onTap == null) return row;
+    return Semantics(
+      button: true,
+      label: context.l10n.diveSites_detail_semantics_copyToClipboard(label),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: row,
+      ),
+    );
+  }
+}
