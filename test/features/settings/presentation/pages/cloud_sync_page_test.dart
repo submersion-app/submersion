@@ -58,6 +58,9 @@ import 'package:submersion/core/services/nearby/nearby_link_manager.dart'
     show NearbySyncProgress;
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
 
 import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -471,6 +474,8 @@ void main() {
     List<AccountGroup> accountGroups = const [],
     // A browser (issue #4121): no radios for device-to-device sync.
     bool browser = false,
+    // Sync health as the marks read it (#4561); computed when null.
+    FeatureHealth? syncHealth,
   }) async {
     final base = await getBaseOverrides();
     final fakeRepo = _FakeSyncRepository();
@@ -492,6 +497,8 @@ void main() {
               DeviceCapabilities.web,
             ),
           syncStateProvider.overrideWith((ref) => fakeSync),
+          if (syncHealth != null)
+            syncHealthProvider.overrideWithValue(syncHealth),
           syncRepositoryProvider.overrideWithValue(fakeRepo),
           accountGroupsProvider.overrideWith((ref) async => accountGroups),
           syncBehaviorProvider.overrideWith(
@@ -2122,6 +2129,90 @@ void main() {
     testWidgets('natively there are no browser rows', (tester) async {
       await pumpPage(tester, selectedProvider: CloudProviderType.s3);
       expect(find.byType(WebSyncRows), findsNothing);
+    });
+  });
+
+  // Issue #4561: every sync item with a problem carries the sync mark, and
+  // the mark is the page's only status colour.
+  group('CloudSyncPage - health marks', () {
+    FeatureHealth sync(HealthReason reason, {int? count}) =>
+        pickHealth(DataFeature.sync, [
+          FeatureHealth(
+            feature: DataFeature.sync,
+            level: HealthLevel.attention,
+            reason: reason,
+            count: count,
+          ),
+        ]);
+
+    Finder markIn(Finder of) =>
+        find.descendant(of: of, matching: find.byType(HealthSymbol));
+
+    testWidgets('auto-sync off marks Keep in step', (tester) async {
+      await pumpPage(
+        tester,
+        selectedProvider: CloudProviderType.googledrive,
+        syncHealth: sync(HealthReason.syncAutoOff),
+      );
+      expect(
+        markIn(find.byKey(const Key('sync-keep-in-step'))),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('sync off marks the not set up row', (tester) async {
+      await pumpPage(tester, syncHealth: sync(HealthReason.syncOff));
+      expect(
+        markIn(find.byKey(const Key('sync-using-not-set-up'))),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('never synced marks the status card', (tester) async {
+      await pumpPage(
+        tester,
+        selectedProvider: CloudProviderType.googledrive,
+        syncHealth: sync(HealthReason.syncNeverSynced),
+      );
+      expect(markIn(find.byType(Card).first), findsOneWidget);
+    });
+
+    testWidgets('a successful sync keeps its icon shape, not its colour', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        syncState: const SyncState(status: SyncStatus.success),
+      );
+      expect(tester.widget<Icon>(find.byIcon(Icons.cloud_done)).color, isNull);
+    });
+
+    testWidgets('a sync error keeps its icon shape, not its colour', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        syncState: const SyncState(status: SyncStatus.error),
+      );
+      expect(tester.widget<Icon>(find.byIcon(Icons.cloud_off)).color, isNull);
+    });
+
+    testWidgets('conflicts mark the header, which is not orange', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        selectedProvider: CloudProviderType.googledrive,
+        syncState: const SyncState(conflicts: 2),
+        syncHealth: sync(HealthReason.syncConflicts, count: 2),
+      );
+      final header = find.text('Conflicts (2)');
+      expect(header, findsOneWidget);
+      expect(tester.widget<Text>(header).style?.color, isNot(Colors.orange));
+      expect(
+        markIn(find.ancestor(of: header, matching: find.byType(Row)).first),
+        findsOneWidget,
+      );
     });
   });
 }

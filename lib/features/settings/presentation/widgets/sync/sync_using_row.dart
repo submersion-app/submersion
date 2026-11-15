@@ -12,6 +12,8 @@ import 'package:submersion/features/settings/presentation/widgets/settings_pane_
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_marked_title.dart';
 
 /// The kinds sync can run on.
 const syncAccountKinds = {
@@ -77,7 +79,12 @@ class SyncUsingRow extends ConsumerWidget {
       return ListTile(
         key: const Key('sync-using-not-set-up'),
         leading: const Icon(Icons.cloud_off_outlined),
-        title: Text(l10n.settings_sync_notSetUp),
+        // Marked while sync is off, the reason Data is amber (#4561).
+        title: HealthMarkedTitle(
+          title: Text(l10n.settings_sync_notSetUp),
+          feature: DataFeature.sync,
+          reasons: const {HealthReason.syncOff},
+        ),
         subtitle: TileSubtitleAction(
           label: l10n.settings_data_setUp,
           semanticsLabel: l10n.settings_data_setUpFeature(
