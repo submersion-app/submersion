@@ -47,7 +47,10 @@ class SiteSuggestionBanner extends StatelessWidget {
   final VoidCallback? onChooseNearby;
   final VoidCallback? onCreate;
   final VoidCallback? onAddLocation;
-  final VoidCallback onDismiss;
+
+  /// Null disables the close button: a locked dive page shows the
+  /// suggestion but takes no action on it.
+  final VoidCallback? onDismiss;
 
   @override
   Widget build(BuildContext context) {

@@ -5,15 +5,51 @@ import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/site_suggestion_actions.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_site_assignment.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_site_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_banner.dart';
+import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_suggestion_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/quick_site_from_gps_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+
+/// How the page showing a [SiteSuggestionCard] edits the dive (issue #4527).
+sealed class SiteSuggestionEditing {
+  const SiteSuggestionEditing();
+}
+
+/// No unlock on this page: the card writes at once, as it always has.
+final class SiteSuggestionNoEditing extends SiteSuggestionEditing {
+  const SiteSuggestionNoEditing();
+}
+
+/// A locked dive page: the card keeps its place, and every button and its
+/// close are disabled. A locked page shows no control that writes.
+final class SiteSuggestionLocked extends SiteSuggestionEditing {
+  const SiteSuggestionLocked();
+}
+
+/// An editing sitting: the card's actions go to [session], held until Save.
+///
+/// [layout] is the dive the page lays itself out from while a card is open
+/// (`RecordEditController.layoutRecord`), or null while none is, when the
+/// page follows the sitting. With one open the card keeps its place even
+/// once its suggestion no longer applies, its buttons disabled, so the open
+/// editor below it does not move.
+final class SiteSuggestionSitting extends SiteSuggestionEditing {
+  const SiteSuggestionSitting(this.session, {this.layout});
+
+  final EditSession<Dive> session;
+  final Dive? layout;
+}
 
 /// Watches the site suggestion for [diveId] and renders the banner with its
 /// actions wired. Renders nothing when there is no suggestion, so callers
@@ -25,6 +61,7 @@ class SiteSuggestionCard extends ConsumerWidget {
     required this.currentSite,
     this.onSiteChanged,
     this.refreshLists,
+    this.editing = const SiteSuggestionNoEditing(),
   });
 
   final String diveId;
@@ -47,12 +84,43 @@ class SiteSuggestionCard extends ConsumerWidget {
   /// Refreshes the dive and site lists after a write. Injectable for tests.
   final Future<void> Function()? refreshLists;
 
+  /// How the page edits the dive. With a sitting, [currentSite] is not
+  /// read: the card follows the sitting.
+  final SiteSuggestionEditing editing;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final editing = this.editing;
+    if (editing is SiteSuggestionSitting) {
+      return ListenableBuilder(
+        listenable: editing.session,
+        builder: (context, _) => _buildFor(context, ref, editing),
+      );
+    }
+    return _buildFor(context, ref, null);
+  }
+
+  Widget _buildFor(
+    BuildContext context,
+    WidgetRef ref,
+    SiteSuggestionSitting? sitting,
+  ) {
     final suggestion = ref.watch(siteSuggestionForDiveProvider(diveId)).value;
     if (suggestion == null) return const SizedBox.shrink();
 
     final proposal = suggestion.proposal;
+    final session = sitting?.session;
+    // The site the card's place is decided from: during a sitting, the dive
+    // the page is laid out from.
+    final currentSite = sitting == null
+        ? this.currentSite
+        : (sitting.layout ?? session!.working).site;
+    final applies = session == null || _appliesTo(session, suggestion);
+    // With no card open the page follows the sitting, and so does this.
+    if (sitting != null && sitting.layout == null && !applies) {
+      return const SizedBox.shrink();
+    }
+    final live = editing is! SiteSuggestionLocked && applies;
     // The suggestion describes what is persisted, but an edit form can hold a
     // site the diver has not saved yet. If that one already has coordinates,
     // or is simply a different site, the banner would offer to place a site
@@ -78,6 +146,40 @@ class SiteSuggestionCard extends ConsumerWidget {
       suggestion: suggestion,
       diveRepository: ref.read(diveRepositoryProvider),
     );
+    if (session != null) {
+      return _sittingBanner(
+        context,
+        ref,
+        session,
+        suggestion,
+        actions,
+        hasSite: hasSite,
+        siteName: siteName,
+        recommended: recommended,
+        units: units,
+        live: live,
+      );
+    }
+    if (!live) {
+      return SiteSuggestionBanner(
+        pointSource: suggestion.pointSource,
+        fromDraft: proposal.dive.isDraft,
+        coordinates: units.formatCoordinates(
+          suggestion.point.latitude,
+          suggestion.point.longitude,
+        ),
+        status: proposal.status,
+        hasSite: hasSite,
+        siteName: siteName,
+        candidateCount: proposal.candidates.length,
+        recommendedDistanceMeters: recommended?.distanceMeters,
+        onAssign: null,
+        onChooseNearby: null,
+        onCreate: null,
+        onAddLocation: null,
+        onDismiss: null,
+      );
+    }
 
     return SiteSuggestionBanner(
       pointSource: suggestion.pointSource,
@@ -134,7 +236,7 @@ class SiteSuggestionCard extends ConsumerWidget {
               // itself did land.
               final site =
                   await actions.linkedSite() ??
-                  currentSite!.copyWith(location: suggestion.point);
+                  currentSite.copyWith(location: suggestion.point);
               return (site, l10n.diveLog_edit_addedGps(site.name));
             }),
       onDismiss: () => _run(context, ref, (_) async {
@@ -142,6 +244,137 @@ class SiteSuggestionCard extends ConsumerWidget {
         return null;
       }),
     );
+  }
+
+  /// Whether the suggestion still applies to the dive of [session]: it has
+  /// the site the suggestion is about, that site has no location in the
+  /// sitting, and nothing the card does has been held already.
+  static bool _appliesTo(EditSession<Dive> session, SiteSuggestion suggestion) {
+    if (session.isDisposed || session.isFrozen) return false;
+    final site = session.valueOf(diveSiteField);
+    if (site?.id != suggestion.proposal.dive.site?.id) return false;
+    if (site?.hasCoordinates ?? false) return false;
+    if (session.isHeld(siteSuggestionDismissKey)) return false;
+    return site == null || !session.isHeld(siteLocationChangeKey(site.id));
+  }
+
+  /// The banner during a sitting: each action goes to [session] and is held
+  /// until Save. A site the action creates (a catalogue site adopted, a site
+  /// made in the dialog) exists at once; only the dive's link waits.
+  Widget _sittingBanner(
+    BuildContext context,
+    WidgetRef ref,
+    EditSession<Dive> session,
+    SiteSuggestion suggestion,
+    SiteSuggestionActions actions, {
+    required bool hasSite,
+    required String siteName,
+    required MatchCandidateView? recommended,
+    required UnitFormatter units,
+    required bool live,
+  }) {
+    final proposal = suggestion.proposal;
+    final site = proposal.dive.site;
+    return SiteSuggestionBanner(
+      pointSource: suggestion.pointSource,
+      fromDraft: proposal.dive.isDraft,
+      coordinates: units.formatCoordinates(
+        suggestion.point.latitude,
+        suggestion.point.longitude,
+      ),
+      status: proposal.status,
+      hasSite: hasSite,
+      siteName: siteName,
+      candidateCount: proposal.candidates.length,
+      recommendedDistanceMeters: recommended?.distanceMeters,
+      onAssign: !live || recommended == null
+          ? null
+          : () {
+              final rulesAfterCreate = captureRulesAfterCreate(context, ref);
+              _pickInSitting(context, session, () async {
+                final resolved = await actions.resolve(recommended.id);
+                await rulesAfterCreate(
+                  subject: RuleSubject.sites,
+                  ids: resolved.createdSiteIds,
+                );
+                return resolved.site;
+              });
+            },
+      onChooseNearby: !live
+          ? null
+          : () => pickSiteForSitting(context, ref, session),
+      onCreate: !live
+          ? null
+          : () => _createInSitting(context, ref, session, actions, suggestion),
+      onAddLocation: !live || site == null
+          ? null
+          : () {
+              final sites = ref.read(siteRepositoryProvider);
+              final point = suggestion.point;
+              session.holdChange(
+                siteLocationChangeKey(site.id),
+                cardId: diveHeaderCardId,
+                write: () => sites.updateSiteCoordinates(site.id, point),
+              );
+            },
+      onDismiss: !live
+          ? null
+          : () {
+              final dives = ref.read(diveRepositoryProvider);
+              session.holdChange(
+                siteSuggestionDismissKey,
+                cardId: diveHeaderCardId,
+                write: () => dives.setSiteSuggestionDismissed(diveId, true),
+              );
+            },
+    );
+  }
+
+  Future<void> _createInSitting(
+    BuildContext context,
+    WidgetRef ref,
+    EditSession<Dive> session,
+    SiteSuggestionActions actions,
+    SiteSuggestion suggestion,
+  ) async {
+    final draft = await QuickSiteFromGpsDialog.show(
+      context,
+      latitude: suggestion.point.latitude,
+      longitude: suggestion.point.longitude,
+    );
+    if (draft == null || !context.mounted) return;
+    final rulesAfterCreate = captureRulesAfterCreate(context, ref);
+    await _pickInSitting(context, session, () async {
+      final created = await actions.createUnlinked(draft);
+      await rulesAfterCreate(subject: RuleSubject.sites, ids: [created.id]);
+      return created;
+    });
+  }
+
+  /// Puts the site [find] answers with on the dive of [session], with its
+  /// rules, if the sitting is still open and still has the site the action
+  /// was for. A failure says so and sets nothing.
+  Future<void> _pickInSitting(
+    BuildContext context,
+    EditSession<Dive> session,
+    Future<DiveSite?> Function() find,
+  ) async {
+    // Read now: the card may be gone by the time the site comes back.
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final assign = readDiveSiteAssigner(context);
+    final siteBefore = session.valueOf(diveSiteField)?.id;
+    try {
+      final site = await find();
+      if (site == null || session.isDisposed || session.isFrozen) return;
+      if (session.valueOf(diveSiteField)?.id != siteBefore) return;
+      assign(session, site);
+    } catch (_) {
+      if (!context.mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.siteMatchReview_applyError)),
+      );
+    }
   }
 
   Future<void> _create(

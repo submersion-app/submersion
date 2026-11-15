@@ -7,14 +7,20 @@ import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_site_assignment.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_suggestion_providers.dart';
+import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/rules/data/services/rule_engine.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../media/presentation/support/media_widget_harness.dart';
 import '../support/fake_matching_service.dart';
@@ -107,6 +113,7 @@ void main() {
     DiveSite? currentSite,
     void Function(DiveSite)? onSiteChanged,
     List<String>? rulesLog,
+    SiteSuggestionEditing editing = const SiteSuggestionNoEditing(),
   }) => mediaTestApp(
     overrides: [
       siteSuggestionForDiveProvider(
@@ -117,6 +124,9 @@ void main() {
       // these tests have no database for the real engine.
       ruleEngineProvider.overrideWithValue(_RecordingEngine(rulesLog ?? [])),
       validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+      // A site picked in a sitting reads what dive types it stands for.
+      siteTypesForSiteProvider.overrideWith((ref, id) async => const []),
+      diveTypesProvider.overrideWith((ref) async => const []),
     ],
     home: Scaffold(
       body: SiteSuggestionCard(
@@ -124,6 +134,7 @@ void main() {
         currentSite: currentSite,
         onSiteChanged: onSiteChanged,
         refreshLists: () async => refreshed++,
+        editing: editing,
       ),
     ),
   );
@@ -443,4 +454,262 @@ void main() {
     expect(reportedCount, 0, reason: 'no setState into a disposed host');
     expect(refreshed, 0, reason: 'no ref use after dispose');
   });
+
+  // The dive page offers unlock-to-edit (issue #4527, plan 4).
+  group('on a locked page', () {
+    final clear = suggestionFor(
+      FakeMatchingService(),
+      recommended: 's1',
+      candidates: const [
+        MatchCandidateView(
+          id: 's1',
+          name: 'Blue Hole',
+          isExisting: true,
+          distanceMeters: 40,
+          location: GeoPoint(0, 0),
+        ),
+      ],
+    );
+
+    testWidgets('it is shown, and every button and its close are disabled', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        await host(clear, editing: const SiteSuggestionLocked()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Assign Blue Hole'), findsOneWidget);
+      final live = find.byWidgetPredicate(
+        (w) =>
+            (w is ButtonStyleButton && w.onPressed != null) ||
+            (w is IconButton && w.onPressed != null),
+      );
+      expect(live, findsNothing);
+      await tester.tap(find.byIcon(Icons.close), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(dives.dismissed, isEmpty);
+    });
+
+    testWidgets('it is as tall as with editing off', (tester) async {
+      await tester.pumpWidget(await host(clear));
+      await tester.pumpAndSettle();
+      final open = tester.getSize(find.byType(SiteSuggestionCard)).height;
+
+      await tester.pumpWidget(
+        await host(clear, editing: const SiteSuggestionLocked()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.getSize(find.byType(SiteSuggestionCard)).height, open);
+    });
+  });
+
+  group('during a sitting', () {
+    final bare = Dive(
+      id: 'd1',
+      diveNumber: 1,
+      dateTime: DateTime(2026, 1, 1),
+      maxDepth: 18,
+    );
+    const bareSite = DiveSite(id: 'bare', name: 'Typed Twice');
+    late EditSession<Dive> session;
+
+    SiteSuggestion assignable(FakeMatchingService on) => suggestionFor(
+      on,
+      recommended: 's1',
+      candidates: const [
+        MatchCandidateView(
+          id: 's1',
+          name: 'Blue Hole',
+          isExisting: true,
+          distanceMeters: 40,
+          location: GeoPoint(0, 0),
+        ),
+      ],
+    );
+
+    setUp(() => session = EditSession(bare));
+
+    testWidgets('assign puts the site in the sitting and writes no link', (
+      tester,
+    ) async {
+      service.resolvesTo['s1'] = const DiveSite(id: 's1', name: 'Blue Hole');
+      await tester.pumpWidget(
+        await host(
+          assignable(service),
+          editing: SiteSuggestionSitting(session),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('Assign Blue Hole'));
+      await tester.pumpAndSettle();
+
+      expect(service.resolved.single.candidateId, 's1');
+      expect(service.applied, isEmpty);
+      expect(session.valueOf(diveSiteField)?.id, 's1');
+      expect(refreshed, 0);
+    });
+
+    testWidgets('assigning a catalogue site runs the new site\'s rules', (
+      tester,
+    ) async {
+      final log = <String>[];
+      service.resolvesTo['s1'] = const DiveSite(id: 'new', name: 'Blue Hole');
+      service.createdBy['s1'] = const ['new'];
+      await tester.pumpWidget(
+        await host(
+          assignable(service),
+          editing: SiteSuggestionSitting(session),
+          rulesLog: log,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('Assign Blue Hole'));
+      await tester.pumpAndSettle();
+
+      expect(log, ['rules']);
+      expect(session.valueOf(diveSiteField)?.id, 'new');
+    });
+
+    testWidgets('add location is held as a change of the header', (
+      tester,
+    ) async {
+      session = EditSession(bare.copyWith(site: bareSite));
+      await tester.pumpWidget(
+        await host(
+          suggestionFor(service, site: bareSite),
+          currentSite: bareSite,
+          editing: SiteSuggestionSitting(session),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('Add location to Typed Twice'));
+      await tester.pumpAndSettle();
+
+      expect(session.isHeld(siteLocationChangeKey('bare')), isTrue);
+      expect(session.changedCardIds, {diveHeaderCardId});
+      expect(service.applied, isEmpty);
+      expect(find.textContaining('Add location'), findsNothing);
+    });
+
+    testWidgets('dismiss is held, and the dive is not written', (tester) async {
+      await tester.pumpWidget(
+        await host(
+          suggestionFor(service, status: ProposalStatus.none),
+          editing: SiteSuggestionSitting(session),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+
+      expect(session.isHeld(siteSuggestionDismissKey), isTrue);
+      expect(dives.dismissed, isEmpty);
+      expect(find.text('Create Site'), findsNothing);
+    });
+
+    testWidgets('create makes the site at once and holds the link', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        await host(
+          suggestionFor(service, status: ProposalStatus.none),
+          editing: SiteSuggestionSitting(session),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Create Site'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField).first, 'Wall');
+      await tester.tap(find.widgetWithText(FilledButton, 'Create Site').last);
+      await tester.pumpAndSettle();
+
+      expect(service.createdUnlinked.single.name, 'Wall');
+      expect(service.created, isEmpty);
+      expect(session.valueOf(diveSiteField)?.id, 'made');
+    });
+
+    testWidgets('with the header open an assigned suggestion stays, '
+        'disabled', (tester) async {
+      service.resolvesTo['s1'] = const DiveSite(id: 's1', name: 'Blue Hole');
+      await tester.pumpWidget(
+        await host(
+          assignable(service),
+          editing: SiteSuggestionSitting(session, layout: bare),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('Assign Blue Hole'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Assign Blue Hole'), findsOneWidget);
+      final live = find.byWidgetPredicate(
+        (w) => w is ButtonStyleButton && w.onPressed != null,
+      );
+      expect(live, findsNothing);
+    });
+
+    testWidgets('a site that comes back after Cancel sets nothing', (
+      tester,
+    ) async {
+      final blocking = _BlockingResolveService();
+      await tester.pumpWidget(
+        await host(
+          assignable(blocking),
+          editing: SiteSuggestionSitting(session),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('Assign Blue Hole'));
+      await tester.pump();
+      session.dispose();
+      blocking.gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(session.valueOf(diveSiteField), isNull);
+    });
+
+    testWidgets('a failure says so and sets nothing', (tester) async {
+      service.failWith = StateError('offline');
+      await tester.pumpWidget(
+        await host(
+          assignable(service),
+          editing: SiteSuggestionSitting(session),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('Assign Blue Hole'));
+      await tester.pumpAndSettle();
+
+      expect(session.isDirty, isFalse);
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(SiteSuggestionCard)),
+      );
+      expect(find.text(l10n.siteMatchReview_applyError), findsOneWidget);
+    });
+  });
+}
+
+/// Holds a resolve open so the test can end the sitting mid-write.
+class _BlockingResolveService extends FakeMatchingService {
+  final gate = Completer<void>();
+
+  @override
+  Future<({DiveSite site, List<String> createdSiteIds})> resolveCandidate(
+    String diveId,
+    String candidateId,
+  ) async {
+    await gate.future;
+    return super.resolveCandidate(diveId, candidateId);
+  }
 }
