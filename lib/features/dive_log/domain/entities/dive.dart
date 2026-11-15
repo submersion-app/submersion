@@ -857,8 +857,11 @@ class Dive extends Equatable {
     DiveSite? site,
     bool clearSite = false,
     DiveCenter? diveCenter,
+    bool clearDiveCenter = false,
     Trip? trip,
+    bool clearTrip = false,
     String? tripId,
+    bool clearTripId = false,
     List<DiveTank>? tanks,
     List<DiveProfilePoint>? profile,
     Duration? profileSpan,
@@ -870,29 +873,46 @@ class Dive extends Equatable {
     List<MarineSighting>? sightings,
     double? waterTemp,
     double? airTemp,
+    bool clearAirTemp = false,
     Visibility? visibility,
+    bool clearVisibility = false,
     double? visibilityMeters,
+    bool clearVisibilityMeters = false,
     double? visibilityMinMeters,
+    bool clearVisibilityMinMeters = false,
     double? visibilityMaxMeters,
+    bool clearVisibilityMaxMeters = false,
     List<String>? diveTypeIds,
     DiveTypeEntity? diveType,
     String? buddy,
     String? diveMaster,
     String? diveOperator,
+    bool clearDiveOperator = false,
     String? boatName,
+    bool clearBoatName = false,
     String? boatCaptain,
+    bool clearBoatCaptain = false,
     List<BuddyWithRole>? buddies,
     List<String>? diverRoleIds,
     int? rating,
     CurrentDirection? currentDirection,
+    bool clearCurrentDirection = false,
     CurrentStrength? currentStrength,
+    bool clearCurrentStrength = false,
     double? swellHeight,
+    bool clearSwellHeight = false,
     String? surfaceConditions,
+    bool clearSurfaceConditions = false,
     EntryMethod? entryMethod,
+    bool clearEntryMethod = false,
     EntryMethod? exitMethod,
+    bool clearExitMethod = false,
     WaterType? waterType,
+    bool clearWaterType = false,
     double? altitude,
+    bool clearAltitude = false,
     double? surfacePressure,
+    bool clearSurfacePressure = false,
     Duration? surfaceInterval,
     int? gradientFactorLow,
     int? gradientFactorHigh,
@@ -948,14 +968,23 @@ class Dive extends Equatable {
     List<DiveCustomField>? customFields,
     // Weather fields
     double? windSpeed,
+    bool clearWindSpeed = false,
     CurrentDirection? windDirection,
+    bool clearWindDirection = false,
     CloudCover? cloudCover,
+    bool clearCloudCover = false,
     Precipitation? precipitation,
+    bool clearPrecipitation = false,
     double? humidity,
+    bool clearHumidity = false,
     String? weatherDescription,
+    bool clearWeatherDescription = false,
     int? weatherCode,
+    bool clearWeatherCode = false,
     WeatherSource? weatherSource,
+    bool clearWeatherSource = false,
     DateTime? weatherFetchedAt,
+    bool clearWeatherFetchedAt = false,
   }) {
     return Dive(
       id: id ?? this.id,
@@ -972,9 +1001,9 @@ class Dive extends Equatable {
       entryLocation: entryLocation ?? this.entryLocation,
       exitLocation: exitLocation ?? this.exitLocation,
       site: clearSite ? null : (site ?? this.site),
-      diveCenter: diveCenter ?? this.diveCenter,
-      trip: trip ?? this.trip,
-      tripId: tripId ?? this.tripId,
+      diveCenter: clearDiveCenter ? null : (diveCenter ?? this.diveCenter),
+      trip: clearTrip ? null : (trip ?? this.trip),
+      tripId: clearTripId ? null : (tripId ?? this.tripId),
       tanks: tanks ?? this.tanks,
       profile: profile ?? this.profile,
       profileSpan: profileSpan ?? this.profileSpan,
@@ -985,30 +1014,46 @@ class Dive extends Equatable {
       photoIds: photoIds ?? this.photoIds,
       sightings: sightings ?? this.sightings,
       waterTemp: waterTemp ?? this.waterTemp,
-      airTemp: airTemp ?? this.airTemp,
-      visibility: visibility ?? this.visibility,
-      visibilityMeters: visibilityMeters ?? this.visibilityMeters,
-      visibilityMinMeters: visibilityMinMeters ?? this.visibilityMinMeters,
-      visibilityMaxMeters: visibilityMaxMeters ?? this.visibilityMaxMeters,
+      airTemp: clearAirTemp ? null : (airTemp ?? this.airTemp),
+      visibility: clearVisibility ? null : (visibility ?? this.visibility),
+      visibilityMeters: clearVisibilityMeters
+          ? null
+          : (visibilityMeters ?? this.visibilityMeters),
+      visibilityMinMeters: clearVisibilityMinMeters
+          ? null
+          : (visibilityMinMeters ?? this.visibilityMinMeters),
+      visibilityMaxMeters: clearVisibilityMaxMeters
+          ? null
+          : (visibilityMaxMeters ?? this.visibilityMaxMeters),
       diveTypeIds: diveTypeIds ?? this.diveTypeIds,
       diveType: diveType ?? this.diveType,
       buddy: buddy ?? this.buddy,
       diveMaster: diveMaster ?? this.diveMaster,
-      diveOperator: diveOperator ?? this.diveOperator,
-      boatName: boatName ?? this.boatName,
-      boatCaptain: boatCaptain ?? this.boatCaptain,
+      diveOperator: clearDiveOperator
+          ? null
+          : (diveOperator ?? this.diveOperator),
+      boatName: clearBoatName ? null : (boatName ?? this.boatName),
+      boatCaptain: clearBoatCaptain ? null : (boatCaptain ?? this.boatCaptain),
       buddies: buddies ?? this.buddies,
       diverRoleIds: diverRoleIds ?? this.diverRoleIds,
       rating: rating ?? this.rating,
-      currentDirection: currentDirection ?? this.currentDirection,
-      currentStrength: currentStrength ?? this.currentStrength,
-      swellHeight: swellHeight ?? this.swellHeight,
-      surfaceConditions: surfaceConditions ?? this.surfaceConditions,
-      entryMethod: entryMethod ?? this.entryMethod,
-      exitMethod: exitMethod ?? this.exitMethod,
-      waterType: waterType ?? this.waterType,
-      altitude: altitude ?? this.altitude,
-      surfacePressure: surfacePressure ?? this.surfacePressure,
+      currentDirection: clearCurrentDirection
+          ? null
+          : (currentDirection ?? this.currentDirection),
+      currentStrength: clearCurrentStrength
+          ? null
+          : (currentStrength ?? this.currentStrength),
+      swellHeight: clearSwellHeight ? null : (swellHeight ?? this.swellHeight),
+      surfaceConditions: clearSurfaceConditions
+          ? null
+          : (surfaceConditions ?? this.surfaceConditions),
+      entryMethod: clearEntryMethod ? null : (entryMethod ?? this.entryMethod),
+      exitMethod: clearExitMethod ? null : (exitMethod ?? this.exitMethod),
+      waterType: clearWaterType ? null : (waterType ?? this.waterType),
+      altitude: clearAltitude ? null : (altitude ?? this.altitude),
+      surfacePressure: clearSurfacePressure
+          ? null
+          : (surfacePressure ?? this.surfacePressure),
       surfaceInterval: surfaceInterval ?? this.surfaceInterval,
       gradientFactorLow: gradientFactorLow ?? this.gradientFactorLow,
       gradientFactorHigh: gradientFactorHigh ?? this.gradientFactorHigh,
@@ -1059,15 +1104,25 @@ class Dive extends Equatable {
       // User-defined custom fields
       customFields: customFields ?? this.customFields,
       // Weather fields
-      windSpeed: windSpeed ?? this.windSpeed,
-      windDirection: windDirection ?? this.windDirection,
-      cloudCover: cloudCover ?? this.cloudCover,
-      precipitation: precipitation ?? this.precipitation,
-      humidity: humidity ?? this.humidity,
-      weatherDescription: weatherDescription ?? this.weatherDescription,
-      weatherCode: weatherCode ?? this.weatherCode,
-      weatherSource: weatherSource ?? this.weatherSource,
-      weatherFetchedAt: weatherFetchedAt ?? this.weatherFetchedAt,
+      windSpeed: clearWindSpeed ? null : (windSpeed ?? this.windSpeed),
+      windDirection: clearWindDirection
+          ? null
+          : (windDirection ?? this.windDirection),
+      cloudCover: clearCloudCover ? null : (cloudCover ?? this.cloudCover),
+      precipitation: clearPrecipitation
+          ? null
+          : (precipitation ?? this.precipitation),
+      humidity: clearHumidity ? null : (humidity ?? this.humidity),
+      weatherDescription: clearWeatherDescription
+          ? null
+          : (weatherDescription ?? this.weatherDescription),
+      weatherCode: clearWeatherCode ? null : (weatherCode ?? this.weatherCode),
+      weatherSource: clearWeatherSource
+          ? null
+          : (weatherSource ?? this.weatherSource),
+      weatherFetchedAt: clearWeatherFetchedAt
+          ? null
+          : (weatherFetchedAt ?? this.weatherFetchedAt),
     );
   }
 

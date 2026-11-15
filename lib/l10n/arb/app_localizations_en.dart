@@ -8841,6 +8841,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_tripUse => 'Use';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'Saved, but it couldn\'t be added to this dive. Pick it from the list.';
+
+  @override
   String get diveLog_edit_useSet => 'Use Set';
 
   @override
@@ -9871,6 +9875,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get recordEdit_saveFailed =>
       'Couldn\'t save your changes. Nothing was changed.';
+
+  @override
+  String get recordEdit_fixInvalid =>
+      'Some values can\'t be read. Fix them before saving.';
 
   @override
   String get settings_manage_setupAssistant => 'Setup assistant';

@@ -14,16 +14,31 @@ import 'package:submersion/features/weather/presentation/widgets/weather_descrip
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 /// The Environment card: what the diver logged about the weather and the
 /// dive conditions, then the satellite water conditions on the dive date.
 ///
 /// Each subsection shows only when it has something to say, so callers gate
-/// the card as a whole on [watchHasEnvironmentData].
+/// the card as a whole on `diveCardIsShown`.
+///
+/// The satellite conditions are not something the diver logged: they are
+/// worked out from the dive's site, date and water type. While a card is
+/// being edited they are worked out from [satelliteFor], the dive the page's
+/// layout is held to, so that a value picked in an open editor (fresh water,
+/// which has none) cannot empty this card and move the page under it.
 class DiveEnvironmentSection extends ConsumerWidget {
-  const DiveEnvironmentSection({super.key, required this.dive});
+  const DiveEnvironmentSection({
+    super.key,
+    required this.dive,
+    this.satelliteFor,
+  });
 
   final Dive dive;
+
+  /// The dive the satellite conditions are looked up for. Null means
+  /// [dive].
+  final Dive? satelliteFor;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,7 +61,7 @@ class DiveEnvironmentSection extends ConsumerWidget {
         dive.effectiveEntryMethod != null ||
         dive.exitMethod != null;
 
-    final satellite = watchSatelliteWaterConditions(ref, dive);
+    final satellite = watchSatelliteWaterConditions(ref, satelliteFor ?? dive);
 
     return Card(
       child: Padding(
@@ -55,9 +70,8 @@ class DiveEnvironmentSection extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                context.l10n.diveLog_detail_section_environment,
-                style: Theme.of(context).textTheme.titleMedium,
+              RecordCardHeader(
+                title: context.l10n.diveLog_detail_section_environment,
               ),
               const Divider(),
               if (hasWeather) ...[

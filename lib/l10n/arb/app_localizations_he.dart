@@ -8789,6 +8789,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_tripUse => 'שימוש';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'נשמר, אבל לא ניתן היה להוסיף אותו לצלילה הזו. יש לבחור אותו מהרשימה.';
+
+  @override
   String get diveLog_edit_useSet => 'שימוש בסט';
 
   @override
@@ -9808,6 +9812,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get recordEdit_saveFailed =>
       'לא ניתן היה לשמור את השינויים. שום דבר לא השתנה.';
+
+  @override
+  String get recordEdit_fixInvalid =>
+      'לא ניתן לקרוא חלק מהערכים. תקן אותם לפני השמירה.';
 
   @override
   String get settings_manage_setupAssistant => 'אשף ההגדרה';

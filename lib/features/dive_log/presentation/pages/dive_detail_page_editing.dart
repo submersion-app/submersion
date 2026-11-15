@@ -81,12 +81,18 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     // Read now: the write may finish after the page has gone.
     final service = ref.read(diveEditSaveServiceProvider);
     final list = ref.read(paginatedDiveListProvider.notifier);
+    // The sitting's writes to other records are, so far, all to the site.
+    final sites = session.hasHeldWrites
+        ? ref.read(siteListNotifierProvider.notifier)
+        : null;
+    final followUp = DiveSittingFollowUp.read(context, ref);
     // The dive the sitting was opened on, whatever the page shows by the
     // time the write is asked for.
     final result = await service.save(
       diveId: session.stored.id,
       apply: session.applyTo,
       changedCardIds: session.changedCardIds,
+      alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
     );
     if (result == null) return;
     if (result.after.id == widget.diveId) _justSaved = result.after;
@@ -105,14 +111,39 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       // page shows its own copy until the stored dive is read back.
       if (mounted) ref.invalidate(diveProvider(result.after.id));
     }
+    // On its own, so that a dive list that could not be refreshed does not
+    // leave the site list stale as well.
+    try {
+      await sites?.refresh();
+    } catch (error, stackTrace) {
+      _log.error(
+        'Site refresh after saving dive ${result.after.id} failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+    // What else the sitting owes: each step guards itself.
+    await followUp.run(
+      before: result.before,
+      after: result.after,
+      tripDateStretches: result.tripDateStretches,
+    );
   }
 
   Future<void> _saveAndReport() async {
     final messenger = ScaffoldMessenger.of(context);
-    final failed = context.l10n.recordEdit_saveFailed;
+    final l10n = context.l10n;
     final controller = editController;
     final saved = await controller.save();
     if (saved || !mounted) return;
+    // Refused for a field that holds text which is not a value: the card is
+    // scrolled into view and its field says what is wrong with it.
+    if (controller.refusedForInvalidInput) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.recordEdit_fixInvalid)),
+      );
+      return;
+    }
     final error = controller.saveError;
     // The page was handed another dive while this was being written, when
     // the sitting could not be ended (see [didUpdateWidget]). It ends now,
@@ -122,7 +153,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       controller.lock();
     }
     if (error == null) return;
-    messenger.showSnackBar(SnackBar(content: Text(failed)));
+    messenger.showSnackBar(SnackBar(content: Text(l10n.recordEdit_saveFailed)));
   }
 
   /// The lock in the locked page's top bar. [dive] is the dive as the
@@ -145,12 +176,21 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     final l10n = context.l10n;
     final added = editController.addedCardIds;
     final open = editController.openCardIds;
+    // As the section list does: while an editor is open no card comes in,
+    // so none leaves the strip. One emptied and closed has left the page,
+    // and is offered here again.
+    final presence = editController.layoutRecord ?? working;
     return [
       for (final section in sections)
         if (diveEditCards[section.id] case final card?)
           if (!open.contains(card.id) &&
               !(working.isGauge && section.id.hiddenInGaugeMode) &&
-              (card.isEmpty(working) ||
+              (!diveCardIsOnPage(
+                    ref,
+                    section.id,
+                    layout: presence,
+                    working: working,
+                  ) ||
                   (!section.visible && !added.contains(card.id))))
             AddStripEntry(
               cardId: card.id,

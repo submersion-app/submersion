@@ -4,6 +4,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/reveal_answering.dart';
 
 /// Wraps one card of a record page so it can be edited in place.
 ///
@@ -30,30 +31,18 @@ class RecordCardFrame<T> extends StatefulWidget {
   State<RecordCardFrame<T>> createState() => _RecordCardFrameState<T>();
 }
 
-class _RecordCardFrameState<T> extends State<RecordCardFrame<T>> {
-  /// The last request this frame answered, so one request scrolls once
-  /// however often the page rebuilds before it is withdrawn.
-  int _answeredSerial = 0;
-
+class _RecordCardFrameState<T> extends State<RecordCardFrame<T>>
+    with RevealAnswering<RecordCardFrame<T>> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final controller = RecordEditScope.maybeOf<T>(context);
-    final request = controller?.revealRequest;
-    if (controller == null || request == null) return;
-    if (request.cardId != widget.card.id) return;
-    if (request.serial == _answeredSerial) return;
-    _answeredSerial = request.serial;
-    // After this frame, when the card has its place and its size.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.revealHandled(request.serial);
-      if (!mounted) return;
-      Scrollable.ensureVisible(
-        context,
-        alignment: 0.1,
-        duration: const Duration(milliseconds: 200),
-      );
-    });
+    answerReveal<T>(
+      RecordEditScope.maybeOf<T>(context),
+      // A request that names a field is for that field's row to answer.
+      isMine: (request) =>
+          request.cardId == widget.card.id && request.fieldId == null,
+      alignment: 0.1,
+    );
   }
 
   @override
@@ -103,7 +92,10 @@ class _OpenCard<T> extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            RecordCardHeader(title: card.title(context)),
+            RecordCardHeader(
+              leading: card.leading?.call(context),
+              title: card.title(context),
+            ),
             const Divider(),
             card.editorBuilder(context, session),
           ],

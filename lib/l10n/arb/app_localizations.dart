@@ -14055,6 +14055,12 @@ abstract class AppLocalizations {
   /// **'Use'**
   String get diveLog_edit_tripUse;
 
+  /// Shown when a trip or dive center the diver just created from the Details card's picker could not be read back to put on the dive. The record exists; the diver should pick it rather than make it again.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved, but it couldn\'t be added to this dive. Pick it from the list.'**
+  String get diveLog_edit_newRecordNotAdded;
+
   /// No description provided for @diveLog_edit_useSet.
   ///
   /// In en, this message translates to:
@@ -15750,6 +15756,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t save your changes. Nothing was changed.'**
   String get recordEdit_saveFailed;
+
+  /// Message shown when Save is refused because a field holds text that is not a valid value.
+  ///
+  /// In en, this message translates to:
+  /// **'Some values can\'t be read. Fix them before saving.'**
+  String get recordEdit_fixInvalid;
 
   /// No description provided for @settings_manage_setupAssistant.
   ///

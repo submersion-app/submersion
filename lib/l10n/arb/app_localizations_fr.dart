@@ -8995,6 +8995,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_tripUse => 'Utiliser';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'Enregistré, mais impossible de l\'ajouter à cette plongée. Choisissez-le dans la liste.';
+
+  @override
   String get diveLog_edit_useSet => 'Utiliser un ensemble';
 
   @override
@@ -10062,6 +10066,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get recordEdit_saveFailed =>
       'Impossible d\'enregistrer vos modifications. Rien n\'a été modifié.';
+
+  @override
+  String get recordEdit_fixInvalid =>
+      'Certaines valeurs sont illisibles. Corrigez-les avant d\'enregistrer.';
 
   @override
   String get settings_manage_setupAssistant => 'Assistant de configuration';

@@ -8948,6 +8948,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_tripUse => 'Használás';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'Mentve, de nem sikerült hozzáadni ehhez a merüléshez. Válaszd ki a listából.';
+
+  @override
   String get diveLog_edit_useSet => 'Készlet használata';
 
   @override
@@ -10004,6 +10008,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get recordEdit_saveFailed =>
       'Nem sikerült menteni a módosításokat. Semmi sem változott.';
+
+  @override
+  String get recordEdit_fixInvalid =>
+      'Néhány érték nem olvasható. Javítsa ki őket mentés előtt.';
 
   @override
   String get settings_manage_setupAssistant => 'Beállítási varázsló';

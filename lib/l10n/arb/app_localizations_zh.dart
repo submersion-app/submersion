@@ -8521,6 +8521,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_tripUse => '使用';
 
   @override
+  String get diveLog_edit_newRecordNotAdded => '已保存，但无法添加到此潜水。请从列表中选择。';
+
+  @override
   String get diveLog_edit_useSet => '使用套装';
 
   @override
@@ -9509,6 +9512,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get recordEdit_saveFailed => '无法保存更改。未做任何更改。';
+
+  @override
+  String get recordEdit_fixInvalid => '部分数值无法识别。请更正后再保存。';
 
   @override
   String get settings_manage_setupAssistant => '设置向导';

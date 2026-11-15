@@ -13,6 +13,7 @@ class EditField<T, V> {
     required this.read,
     required this.write,
     this.equals,
+    this.alsoShownOn = const {},
   });
 
   /// Unique within a record type, such as `'notes'`.
@@ -20,6 +21,10 @@ class EditField<T, V> {
 
   /// The card that owns this value. A change marks that card as changed.
   final String cardId;
+
+  /// Other cards that show this value without owning it. They are not
+  /// marked as changed, but they are redrawn when it changes.
+  final Set<String> alsoShownOn;
 
   final V Function(T record) read;
 

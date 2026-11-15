@@ -8920,6 +8920,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_tripUse => 'Gebruiken';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'Opgeslagen, maar het kon niet aan deze duik worden toegevoegd. Kies het uit de lijst.';
+
+  @override
   String get diveLog_edit_useSet => 'Set gebruiken';
 
   @override
@@ -9965,6 +9969,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get recordEdit_saveFailed =>
       'Kon de wijzigingen niet opslaan. Er is niets gewijzigd.';
+
+  @override
+  String get recordEdit_fixInvalid =>
+      'Sommige waarden kunnen niet worden gelezen. Corrigeer ze voordat je opslaat.';
 
   @override
   String get settings_manage_setupAssistant => 'Configuratie-assistent';

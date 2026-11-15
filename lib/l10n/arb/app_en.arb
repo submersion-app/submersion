@@ -5406,6 +5406,8 @@
   },
   "diveLog_edit_tripSuggested": "Suggested: {name}",
   "diveLog_edit_tripUse": "Use",
+  "diveLog_edit_newRecordNotAdded": "Saved, but it couldn't be added to this dive. Pick it from the list.",
+  "@diveLog_edit_newRecordNotAdded": {"description": "Shown when a trip or dive center the diver just created from the Details card's picker could not be read back to put on the dive. The record exists; the diver should pick it rather than make it again."},
   "diveLog_edit_useSet": "Use Set",
   "diveLog_edit_removeSet": "Remove Set",
   "@diveLog_edit_removeSet": {"description": "Bulk edit: button that stages an equipment set to remove from every selected dive"},
@@ -5955,6 +5957,10 @@
   "recordEdit_saveFailed": "Couldn't save your changes. Nothing was changed.",
   "@recordEdit_saveFailed": {
     "description": "Message shown when saving an unlocked record fails."
+  },
+  "recordEdit_fixInvalid": "Some values can't be read. Fix them before saving.",
+  "@recordEdit_fixInvalid": {
+    "description": "Message shown when Save is refused because a field holds text that is not a valid value."
   },
   "settings_manage_setupAssistant": "Setup assistant",
   "settings_manage_setupAssistant_subtitle": "Revisit units, backups, sync and photos",

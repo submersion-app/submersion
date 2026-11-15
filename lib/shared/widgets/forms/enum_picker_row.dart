@@ -16,6 +16,7 @@ class EnumPickerRow<T> extends StatelessWidget {
     required this.onChanged,
     this.allowClear = true,
     this.placeholder,
+    this.hint,
   });
 
   final String label;
@@ -26,7 +27,16 @@ class EnumPickerRow<T> extends StatelessWidget {
   /// Called with the picked value, or null when "Not specified" is chosen.
   final ValueChanged<T?> onChanged;
   final bool allowClear;
+
+  /// What the resting row shows, and the sheet's clear option is called,
+  /// while nothing is picked. Defaults to "Not specified".
   final String? placeholder;
+
+  /// What the resting row shows instead of [placeholder] while nothing is
+  /// picked: a value that applies anyway, such as one inherited from
+  /// elsewhere. It is not a choice, so the sheet's clear option keeps
+  /// [placeholder] as its name.
+  final String? hint;
 
   Future<void> _openSheet(BuildContext context) async {
     final result = await showModalBottomSheet<_EnumChoice<T>>(
@@ -77,7 +87,8 @@ class EnumPickerRow<T> extends StatelessWidget {
     return FormRow.picker(
       label: label,
       value: value == null ? null : displayName(value as T),
-      placeholder: placeholder ?? context.l10n.diveLog_edit_notSpecified,
+      placeholder:
+          hint ?? placeholder ?? context.l10n.diveLog_edit_notSpecified,
       onTap: () => _openSheet(context),
     );
   }

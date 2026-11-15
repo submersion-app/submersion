@@ -8969,6 +8969,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_tripUse => 'Verwenden';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'Gespeichert, konnte aber nicht zu diesem Tauchgang hinzugefügt werden. Bitte aus der Liste auswählen.';
+
+  @override
   String get diveLog_edit_useSet => 'Set verwenden';
 
   @override
@@ -10020,6 +10024,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get recordEdit_saveFailed =>
       'Die Änderungen konnten nicht gespeichert werden. Es wurde nichts geändert.';
+
+  @override
+  String get recordEdit_fixInvalid =>
+      'Einige Werte können nicht gelesen werden. Korrigiere sie vor dem Speichern.';
 
   @override
   String get settings_manage_setupAssistant => 'Einrichtungsassistent';

@@ -9116,6 +9116,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_tripUse => 'استخدام';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'تم الحفظ، لكن تعذّرت إضافته إلى هذه الغطسة. اختره من القائمة.';
+
+  @override
   String get diveLog_edit_useSet => 'استخدام طقم';
 
   @override
@@ -10177,6 +10181,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recordEdit_saveFailed => 'تعذّر حفظ التغييرات. لم يتغيّر شيء.';
+
+  @override
+  String get recordEdit_fixInvalid =>
+      'تعذّرت قراءة بعض القيم. صحّحها قبل الحفظ.';
 
   @override
   String get settings_manage_setupAssistant => 'مساعد الإعداد';
