@@ -41,6 +41,7 @@ import 'package:submersion/features/settings/presentation/pages/lightroom_settin
 import 'package:submersion/features/shared_library/presentation/pages/connect_shared_library_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/shared_library_members_page.dart';
 import 'package:submersion/features/settings/presentation/pages/profile_metric_colors_page.dart';
+import 'package:submersion/features/settings/presentation/pages/raw_dive_data_page.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -1030,6 +1031,27 @@ void main() {
       final widget = route!.builder!(capturedContext, state);
       expect(widget.runtimeType.toString(), 'CloudSyncPage');
     });
+  });
+
+  // Settings > Data > Data tools > Raw dive computer data (issue #4590).
+  testWidgets('rawDiveData builds the raw dive computer data page at '
+      '/settings/raw-dive-data', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+    final context = tester.element(find.byType(SizedBox));
+    final config = router.configuration;
+    final route = _findRouteByName(config.routes, 'rawDiveData');
+    expect(route, isNotNull);
+    expect(route!.path, 'raw-dive-data');
+
+    final state = GoRouterState(
+      config,
+      uri: Uri.parse('/settings/raw-dive-data'),
+      matchedLocation: '/settings/raw-dive-data',
+      fullPath: '/settings/raw-dive-data',
+      pathParameters: const {},
+      pageKey: const ValueKey('/settings/raw-dive-data'),
+    );
+    expect(route.builder!(context, state), isA<RawDiveDataPage>());
   });
 
   group('app_router checklist templates routes', () {
