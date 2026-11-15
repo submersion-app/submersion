@@ -30819,19 +30819,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_profile_verticalDistance_seaLevel => '海平面';
 
   @override
-  String insights_profile_verticalDistance_next(
-    String landmark,
-    String distance,
-  ) {
-    return '下一个：$landmark，还差 $distance';
+  String insights_profile_verticalDistance_next(String landmark) {
+    return '下一个：$landmark';
   }
 
   @override
-  String insights_profile_verticalDistance_landmarkLabel(
-    String landmark,
-    String height,
-  ) {
-    return '$landmark $height';
+  String insights_profile_verticalDistance_toGo(String distance) {
+    return '还差 $distance';
   }
 
   @override

@@ -26,9 +26,13 @@ const double _maxScaleWidth = 440;
 /// The vertical scale and its readout strip (issue #4569).
 ///
 /// Pointing at a bar selects a level: hovering follows the pointer, a click
-/// or a tap pins it, and press-and-hold then drag scrubs along the bar. No
-/// drag recognizer is attached, so an ordinary swipe always reaches the
-/// page's scroll view.
+/// or a tap pins it, and press-and-hold then drag scrubs along the bar. A
+/// tap anywhere else on the card unpins. No drag recognizer is attached, so
+/// an ordinary swipe always reaches the page's scroll view.
+///
+/// The selection lives in a [ValueNotifier] that only the painter's hairline
+/// and the strip listen to, so a pointer move repaints those two and never
+/// rebuilds the labels, headlines or semantics.
 class VerticalDistanceScale extends ConsumerStatefulWidget {
   const VerticalDistanceScale({super.key, required this.timeline});
 
@@ -40,7 +44,7 @@ class VerticalDistanceScale extends ConsumerStatefulWidget {
 }
 
 class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
-  VerticalSelection _selection = const VerticalIdle();
+  final _selection = ValueNotifier<VerticalSelection>(const VerticalIdle());
   late VerticalScaleLayout _layout = _layoutFor(widget.timeline);
 
   static VerticalScaleLayout _layoutFor(VerticalDistanceTimeline t) =>
@@ -54,46 +58,77 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
     super.didUpdateWidget(old);
     if (old.timeline != widget.timeline) {
       _layout = _layoutFor(widget.timeline);
-      _selection = const VerticalIdle();
+      _selection.value = const VerticalIdle();
     }
   }
 
+  @override
+  void dispose() {
+    _selection.dispose();
+    super.dispose();
+  }
+
   void _set(VerticalSelection next) {
-    if (!identical(next, _selection)) setState(() => _selection = next);
+    if (!identical(next, _selection.value)) _selection.value = next;
   }
 
   @override
   Widget build(BuildContext context) {
     final units = ref.watch(unitFormatterProvider);
     final l10n = context.l10n;
-    final probe = _selection.probe;
-    final crossing = probe == null || probe.ahead
-        ? null
-        : widget.timeline.crossingAt(probe.meters);
+    final timeline = widget.timeline;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LayoutBuilder(
-          builder: (context, constraints) => Center(
-            child: _scale(
-              context,
-              units,
-              math.min(constraints.maxWidth, _maxScaleWidth),
+    // Taps the scale or a button claim first; any other tap on the card
+    // reaches this and unpins.
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTapUp: (_) => _set(tapSelection(_selection.value, null)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          LayoutBuilder(
+            builder: (context, constraints) => Center(
+              child: _scale(
+                context,
+                units,
+                math.min(constraints.maxWidth, _maxScaleWidth),
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 8),
-        VerticalDistanceStrip(
-          key: const Key('verticalStrip'),
-          text: _stripText(l10n, units, probe, crossing),
-          selected: probe != null,
-          pinned: _selection is VerticalPinned,
-          onOpen: crossing == null
-              ? null
-              : () => context.push('/dives/${crossing.diveId}'),
-        ),
-      ],
+          const SizedBox(height: 8),
+          ValueListenableBuilder<VerticalSelection>(
+            valueListenable: _selection,
+            builder: (context, selection, _) {
+              final probe = selection.probe;
+              final crossing = probe == null || probe.ahead
+                  ? null
+                  : timeline.crossingAt(probe.meters);
+              return VerticalDistanceStrip(
+                key: const Key('verticalStrip'),
+                text: _stripText(l10n, units, probe, crossing),
+                selected: probe != null,
+                pinned: selection is VerticalPinned,
+                onOpen: crossing == null
+                    ? null
+                    : () => context.push('/dives/${crossing.diveId}'),
+              );
+            },
+          ),
+          if (timeline.estimatedDives > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                l10n.insights_profile_verticalDistance_estimated(
+                  timeline.estimatedDives,
+                  timeline.countedDives,
+                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -115,7 +150,7 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
           child: CustomPaint(
             painter: VerticalScalePainter(
               geometry: g,
-              probe: _selection.probe,
+              selection: _selection,
               ascentColor: Colors.green,
               descentColor: Colors.blue,
               lineColor: theme.colorScheme.outline,
@@ -149,17 +184,20 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
       height: kVerticalScaleHeight,
       child: MouseRegion(
         onHover: (e) =>
-            _set(hoverSelection(_selection, g.probeAt(e.localPosition))),
-        onExit: (_) => _set(exitSelection(_selection)),
+            _set(hoverSelection(_selection.value, g.probeAt(e.localPosition))),
+        onExit: (_) => _set(exitSelection(_selection.value)),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTapUp: (e) =>
-              _set(tapSelection(_selection, g.probeAt(e.localPosition))),
+              _set(tapSelection(_selection.value, g.probeAt(e.localPosition))),
           onLongPressStart: (e) =>
-              _set(tapSelection(_selection, g.probeAt(e.localPosition))),
+              _set(tapSelection(_selection.value, g.probeAt(e.localPosition))),
+          // A scrub reads the bar's height only, so a thumb drifting off the
+          // bar sideways keeps scrubbing instead of freezing or jumping to a
+          // label.
           onLongPressMoveUpdate: (e) {
-            final p = g.probeAt(e.localPosition);
-            if (p != null) _set(tapSelection(_selection, p));
+            final p = g.levelAt(e.localPosition.dy);
+            if (p != null) _set(tapSelection(_selection.value, p));
           },
           child: Stack(
             children: [
@@ -169,9 +207,15 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
                   label: l10n.insights_profile_verticalDistance_semantics(
                     units.formatDepthWhole(total),
                     verticalLandmarkName(l10n, nextUp),
-                    units.formatDepthWhole(nextUp.meters - total),
+                    units.formatDepthWhole(
+                      nextUp.meters - total,
+                      roundUp: true,
+                    ),
                     verticalLandmarkName(l10n, nextDown),
-                    units.formatDepthWhole(nextDown.meters - total),
+                    units.formatDepthWhole(
+                      nextDown.meters - total,
+                      roundUp: true,
+                    ),
                   ),
                   child: ExcludeSemantics(child: visuals),
                 ),
@@ -223,23 +267,31 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
     VerticalScaleMark m,
   ) {
     final theme = Theme.of(context);
+    final style = theme.textTheme.labelSmall?.copyWith(
+      color: m.passed
+          ? theme.colorScheme.onSurface
+          : theme.colorScheme.onSurfaceVariant,
+    );
+    // The name gives way on a narrow screen; the figure never does.
     return PositionedDirectional(
       start: 0,
       end: g.columnInset,
       top: g.yFor(d, m.labelOffsetPx) - 8,
-      child: Text(
-        context.l10n.insights_profile_verticalDistance_landmarkLabel(
-          verticalLandmarkName(context.l10n, m.landmark),
-          units.formatDepthWhole(m.landmark.meters),
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        textAlign: TextAlign.end,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: m.passed
-              ? theme.colorScheme.onSurface
-              : theme.colorScheme.onSurfaceVariant,
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Flexible(
+            child: Text(
+              verticalLandmarkName(context.l10n, m.landmark),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+              style: style,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(units.formatDepthWhole(m.landmark.meters), style: style),
+        ],
       ),
     );
   }
@@ -285,13 +337,20 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
                 : l10n.insights_profile_verticalDistance_totalDescent,
             style: muted,
           ),
+          // The name gives way on a narrow screen; the distance has a line
+          // of its own and never does.
           Text(
             l10n.insights_profile_verticalDistance_next(
               verticalLandmarkName(l10n, next),
-              units.formatDepthWhole(next.meters - total),
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
+            style: muted,
+          ),
+          Text(
+            l10n.insights_profile_verticalDistance_toGo(
+              units.formatDepthWhole(next.meters - total, roundUp: true),
+            ),
             style: muted,
           ),
         ],
@@ -315,7 +374,10 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
     if (probe.ahead && landmark != null) {
       return l10n.insights_profile_verticalDistance_stripAhead(
         verticalLandmarkName(l10n, landmark),
-        units.formatDepthWhole(landmark.meters - widget.timeline.totalMeters),
+        units.formatDepthWhole(
+          landmark.meters - widget.timeline.totalMeters,
+          roundUp: true,
+        ),
       );
     }
     final date = crossing == null ? '--' : _date(units, crossing);

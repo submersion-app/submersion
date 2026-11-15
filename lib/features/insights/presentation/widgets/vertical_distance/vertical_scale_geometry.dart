@@ -54,13 +54,11 @@ class VerticalScaleGeometry {
   /// The level under [position], in the box's own coordinates, or null when
   /// it is on nothing that has a reading.
   ///
-  /// On the bar: the next landmark within 6 px of its tick, then a passed
-  /// landmark within 4 px, then the plain level, up to the bar's end. On a
-  /// landmark's label: that landmark.
+  /// On the bar: whichever is nearer of the next landmark within 6 px of its
+  /// tick and a passed landmark within 4 px, then the plain level, up to the
+  /// bar's end. On a landmark's label: that landmark.
   VerticalProbe? probeAt(Offset position) {
-    final direction = position.dy < seaY
-        ? VerticalLeg.ascent
-        : VerticalLeg.descent;
+    final direction = _legAt(position.dy);
     final offset = (position.dy - seaY).abs();
     final marks = layout.marksOn(direction);
 
@@ -79,15 +77,30 @@ class VerticalScaleGeometry {
     if (!_inBarColumn(position.dx)) return null;
 
     final next = marks.last;
-    if ((next.offsetPx - offset).abs() <= 6) return _forMark(direction, next);
+    final toNext = (next.offsetPx - offset).abs();
     final snapped = layout.snap(direction, offset);
+    final toSnapped = snapped == null
+        ? double.infinity
+        : (snapped.offsetPx - offset).abs();
+    if (toNext <= 6 && toNext < toSnapped) return _forMark(direction, next);
     if (snapped != null) return _forMark(direction, snapped);
+    return levelAt(position.dy);
+  }
+
+  /// The plain level at height [y] along the bar, ignoring where the pointer
+  /// is sideways and any landmark: what a press-and-hold scrub reads, so a
+  /// thumb that drifts off the bar keeps scrubbing. Null past the bar's end.
+  VerticalProbe? levelAt(double y) {
+    final offset = (y - seaY).abs();
     if (offset > layout.barPx) return null;
     final meters = layout.metersAt(offset);
     return meters > 0
-        ? VerticalProbe(direction: direction, meters: meters)
+        ? VerticalProbe(direction: _legAt(y), meters: meters)
         : null;
   }
+
+  VerticalLeg _legAt(double y) =>
+      y < seaY ? VerticalLeg.ascent : VerticalLeg.descent;
 
   VerticalProbe _forMark(VerticalLeg d, VerticalScaleMark m) => VerticalProbe(
     direction: d,

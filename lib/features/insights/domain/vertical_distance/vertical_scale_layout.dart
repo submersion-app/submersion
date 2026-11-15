@@ -57,20 +57,21 @@ class VerticalScaleLayout {
     final extent = math.max(nextUp.meters, nextDown.meters);
     final pxPerMeter = halfHeightPx / (extent * (1 + headroom));
 
-    List<VerticalScaleMark> marksFor(VerticalLeg d, VerticalLandmark next) =>
-        _placeMarks(
-          passed: passedLandmarks(d, total),
-          next: next,
-          pxPerMeter: pxPerMeter,
-          minGap: minLabelGapPx,
-        );
+    final placed = _placeLabels(
+      ascentPassed: passedLandmarks(VerticalLeg.ascent, total),
+      ascentNext: nextUp,
+      descentPassed: passedLandmarks(VerticalLeg.descent, total),
+      descentNext: nextDown,
+      pxPerMeter: pxPerMeter,
+      minGap: minLabelGapPx,
+    );
 
     return VerticalScaleLayout._(
       totalMeters: total,
       extentMeters: extent,
       pxPerMeter: pxPerMeter,
-      ascentMarks: marksFor(VerticalLeg.ascent, nextUp),
-      descentMarks: marksFor(VerticalLeg.descent, nextDown),
+      ascentMarks: placed.ascent,
+      descentMarks: placed.descent,
     );
   }
 
@@ -120,54 +121,92 @@ class VerticalScaleLayout {
   }
 }
 
-/// Places one side's ticks and decides which labels are drawn.
+/// Places both sides' ticks and decides which labels are drawn.
 ///
-/// The next landmark is always labelled where it is. The most recently
-/// passed one is always labelled too, moved toward sea level if it would
-/// crowd the next one's label. The rest are visited from the largest down
-/// and labelled only when they clear every label already placed.
-List<VerticalScaleMark> _placeMarks({
-  required List<VerticalLandmark> passed,
-  required VerticalLandmark next,
+/// Labels are placed in one signed space, ascent above sea level and
+/// descent below it, so two labels on opposite sides of sea level clear
+/// each other too. No label sits within half a gap of sea level, where it
+/// would straddle the line.
+///
+/// Each side's next landmark is always labelled where it is. Each side's
+/// most recently passed one comes next, moved toward sea level if it would
+/// crowd its next landmark's label. The rest, from both sides, are visited
+/// from the farthest from sea level inward and labelled only when they
+/// clear every label already placed.
+({List<VerticalScaleMark> ascent, List<VerticalScaleMark> descent})
+_placeLabels({
+  required List<VerticalLandmark> ascentPassed,
+  required VerticalLandmark ascentNext,
+  required List<VerticalLandmark> descentPassed,
+  required VerticalLandmark descentNext,
   required double pxPerMeter,
   required double minGap,
 }) {
-  final nextOffset = next.meters * pxPerMeter;
-  final placed = <double>[nextOffset];
-  final labelAt = <int, double>{};
+  final floor = minGap / 2;
+  final placed = <double>[];
+  bool clear(double signed) =>
+      signed.abs() >= floor &&
+      placed.every((p) => (p - signed).abs() >= minGap);
 
-  bool clear(double at) => placed.every((p) => (p - at).abs() >= minGap);
+  final sides = [
+    (passed: ascentPassed, next: ascentNext, sign: 1.0),
+    (passed: descentPassed, next: descentNext, sign: -1.0),
+  ];
+  final labelAt = [<int, double>{}, <int, double>{}];
 
-  for (var i = passed.length - 1; i >= 0; i--) {
-    final offset = passed[i].meters * pxPerMeter;
-    if (i == passed.length - 1) {
-      final at = math.max(0.0, math.min(offset, nextOffset - minGap));
-      // Even moved, a mark at sea level can only be labelled if it clears.
-      if (nextOffset - at >= minGap) {
-        labelAt[i] = at;
-        placed.add(at);
-      }
-    } else if (clear(offset)) {
-      labelAt[i] = offset;
-      placed.add(offset);
+  for (final side in sides) {
+    placed.add(side.sign * side.next.meters * pxPerMeter);
+  }
+
+  for (var s = 0; s < sides.length; s++) {
+    final side = sides[s];
+    if (side.passed.isEmpty) continue;
+    final i = side.passed.length - 1;
+    final nextOffset = side.next.meters * pxPerMeter;
+    final at = math.min(
+      side.passed[i].meters * pxPerMeter,
+      nextOffset - minGap,
+    );
+    if (clear(side.sign * at)) {
+      labelAt[s][i] = at;
+      placed.add(side.sign * at);
     }
   }
 
-  return [
-    for (var i = 0; i < passed.length; i++)
+  final rest = [
+    for (var s = 0; s < sides.length; s++)
+      for (var i = 0; i < sides[s].passed.length - 1; i++)
+        (side: s, index: i, offset: sides[s].passed[i].meters * pxPerMeter),
+  ]..sort((a, b) => b.offset.compareTo(a.offset));
+  for (final m in rest) {
+    final signed = sides[m.side].sign * m.offset;
+    if (clear(signed)) {
+      labelAt[m.side][m.index] = m.offset;
+      placed.add(signed);
+    }
+  }
+
+  List<VerticalScaleMark> marks(int s) {
+    final side = sides[s];
+    final nextOffset = side.next.meters * pxPerMeter;
+    return [
+      for (var i = 0; i < side.passed.length; i++)
+        VerticalScaleMark(
+          landmark: side.passed[i],
+          offsetPx: side.passed[i].meters * pxPerMeter,
+          passed: true,
+          labelled: labelAt[s].containsKey(i),
+          labelOffsetPx: labelAt[s][i] ?? side.passed[i].meters * pxPerMeter,
+        ),
       VerticalScaleMark(
-        landmark: passed[i],
-        offsetPx: passed[i].meters * pxPerMeter,
-        passed: true,
-        labelled: labelAt.containsKey(i),
-        labelOffsetPx: labelAt[i] ?? passed[i].meters * pxPerMeter,
+        landmark: side.next,
+        offsetPx: nextOffset,
+        passed: false,
+        labelled: true,
+        labelOffsetPx: nextOffset,
       ),
-    VerticalScaleMark(
-      landmark: next,
-      offsetPx: nextOffset,
-      passed: false,
-      labelled: true,
-      labelOffsetPx: nextOffset,
-    ),
-  ];
+    ];
+  }
+
+  return (ascent: marks(0), descent: marks(1));
 }

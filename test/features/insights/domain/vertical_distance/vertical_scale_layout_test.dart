@@ -109,6 +109,30 @@ void main() {
       }
     });
 
+    test('labels on opposite sides of sea level keep their gap', () {
+      // Total 5,115: the Eiffel Tower (330) sits 12 px above sea level and
+      // the 40 m recreational limit 1.5 px below it, on the line itself.
+      final l = VerticalScaleLayout.compute(
+        totalMeters: 5115,
+        halfHeightPx: 240,
+      );
+      final signed = [
+        for (final m in l.ascentMarks)
+          if (m.labelled) m.labelOffsetPx,
+        for (final m in l.descentMarks)
+          if (m.labelled) -m.labelOffsetPx,
+      ]..sort();
+      for (var i = 1; i < signed.length; i++) {
+        expect(signed[i] - signed[i - 1], greaterThanOrEqualTo(18 - 1e-9));
+      }
+      for (final s in signed) {
+        expect(s.abs(), greaterThanOrEqualTo(9 - 1e-9));
+      }
+      final limit = l.descentMarks.first;
+      expect(limit.landmark.id, VerticalLandmarkId.recreationalLimit);
+      expect(limit.labelled, isFalse);
+    });
+
     test('across a sweep of totals, labels stay apart and above sea level', () {
       final totals = [
         for (var t = 0.0; t < 30000; t += 37) t,
@@ -119,20 +143,22 @@ void main() {
           totalMeters: total,
           halfHeightPx: 240,
         );
-        for (final marks in [l.ascentMarks, l.descentMarks]) {
-          final offsets = [
-            for (final m in marks)
-              if (m.labelled) m.labelOffsetPx,
-          ]..sort();
-          expect(offsets.first, greaterThanOrEqualTo(0), reason: 't=$total');
-          expect(offsets.last, lessThanOrEqualTo(240), reason: 't=$total');
-          for (var i = 1; i < offsets.length; i++) {
-            expect(
-              offsets[i] - offsets[i - 1],
-              greaterThanOrEqualTo(18 - 1e-9),
-              reason: 't=$total',
-            );
-          }
+        final signed = [
+          for (final m in l.ascentMarks)
+            if (m.labelled) m.labelOffsetPx,
+          for (final m in l.descentMarks)
+            if (m.labelled) -m.labelOffsetPx,
+        ]..sort();
+        for (final s in signed) {
+          expect(s.abs(), greaterThanOrEqualTo(9 - 1e-9), reason: 't=$total');
+          expect(s.abs(), lessThanOrEqualTo(240), reason: 't=$total');
+        }
+        for (var i = 1; i < signed.length; i++) {
+          expect(
+            signed[i] - signed[i - 1],
+            greaterThanOrEqualTo(18 - 1e-9),
+            reason: 't=$total',
+          );
         }
       }
     });

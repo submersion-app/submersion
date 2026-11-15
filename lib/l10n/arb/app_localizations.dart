@@ -52059,20 +52059,14 @@ abstract class AppLocalizations {
   /// No description provided for @insights_profile_verticalDistance_next.
   ///
   /// In en, this message translates to:
-  /// **'Next: {landmark}, {distance} to go'**
-  String insights_profile_verticalDistance_next(
-    String landmark,
-    String distance,
-  );
+  /// **'Next: {landmark}'**
+  String insights_profile_verticalDistance_next(String landmark);
 
-  /// No description provided for @insights_profile_verticalDistance_landmarkLabel.
+  /// No description provided for @insights_profile_verticalDistance_toGo.
   ///
   /// In en, this message translates to:
-  /// **'{landmark} {height}'**
-  String insights_profile_verticalDistance_landmarkLabel(
-    String landmark,
-    String height,
-  );
+  /// **'{distance} to go'**
+  String insights_profile_verticalDistance_toGo(String distance);
 
   /// No description provided for @insights_profile_verticalDistance_multiple.
   ///

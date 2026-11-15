@@ -32645,19 +32645,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_profile_verticalDistance_seaLevel => 'Meeresspiegel';
 
   @override
-  String insights_profile_verticalDistance_next(
-    String landmark,
-    String distance,
-  ) {
-    return 'Als Nächstes: $landmark, noch $distance';
+  String insights_profile_verticalDistance_next(String landmark) {
+    return 'Als Nächstes: $landmark';
   }
 
   @override
-  String insights_profile_verticalDistance_landmarkLabel(
-    String landmark,
-    String height,
-  ) {
-    return '$landmark $height';
+  String insights_profile_verticalDistance_toGo(String distance) {
+    return 'noch $distance';
   }
 
   @override

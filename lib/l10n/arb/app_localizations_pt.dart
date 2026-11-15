@@ -32700,19 +32700,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_profile_verticalDistance_seaLevel => 'Nível do mar';
 
   @override
-  String insights_profile_verticalDistance_next(
-    String landmark,
-    String distance,
-  ) {
-    return 'Seguinte: $landmark, faltam $distance';
+  String insights_profile_verticalDistance_next(String landmark) {
+    return 'Seguinte: $landmark';
   }
 
   @override
-  String insights_profile_verticalDistance_landmarkLabel(
-    String landmark,
-    String height,
-  ) {
-    return '$landmark $height';
+  String insights_profile_verticalDistance_toGo(String distance) {
+    return 'faltam $distance';
   }
 
   @override

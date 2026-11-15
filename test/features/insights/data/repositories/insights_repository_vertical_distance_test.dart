@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,6 +28,19 @@ class _BrokenCache extends VerticalDistanceCacheRepository {
   @override
   Future<void> putAll(Map<String, VerticalDistanceCacheEntry> entries) async =>
       throw StateError('cache write failed');
+}
+
+/// A cache that records each write.
+class _CountingCache extends VerticalDistanceCacheRepository {
+  _CountingCache(LocalCacheDatabase db) : super(database: db);
+
+  final writes = <Map<String, VerticalDistanceCacheEntry>>[];
+
+  @override
+  Future<void> putAll(Map<String, VerticalDistanceCacheEntry> entries) async {
+    writes.add(entries);
+    await super.putAll(entries);
+  }
 }
 
 /// Each dive's vertical distance from the repository, in dive order (issue
@@ -265,6 +280,54 @@ void main() {
 
     expect(t.totalMeters, 35);
     expect(t.estimatedDives, 1);
+  });
+
+  test('a profile with no usable depth counts as estimated', () async {
+    await dive('a', at: day1, maxDepth: 12);
+    await profile('a', [(0, 0.0), (60, 0.0), (120, 0.0)]);
+
+    final t = await timeline();
+
+    expect(t.totalMeters, 12);
+    expect(t.estimatedDives, 1);
+  });
+
+  test(
+    'a profile that cannot be decoded is estimated, and not re-read',
+    () async {
+      await dive('a', at: day1, maxDepth: 15);
+      final id = await profile('a', to20);
+      await db.customUpdate(
+        'UPDATE dive_profile_series SET samples = ? WHERE id = ?',
+        variables: [
+          Variable(Uint8List.fromList([1, 2, 3])),
+          Variable(id),
+        ],
+        updates: {db.diveProfileSeries},
+      );
+
+      final t = await timeline();
+
+      expect(t.totalMeters, 15);
+      expect(t.estimatedDives, 1);
+      // Cached as nothing measured, so the next read decodes nothing.
+      expect((await cache.getEntries({'a'}))['a']!.meters, 0);
+    },
+  );
+
+  test('the cache is written after each chunk, not only at the end', () async {
+    final previous = InsightsRepository.seriesDiveChunkSize;
+    InsightsRepository.seriesDiveChunkSize = 1;
+    addTearDown(() => InsightsRepository.seriesDiveChunkSize = previous);
+    for (final (id, at) in [('a', day1), ('b', day2), ('c', day3)]) {
+      await dive(id, at: at);
+      await profile(id, to20);
+    }
+    final counting = _CountingCache(local);
+
+    await timeline(using: counting);
+
+    expect(counting.writes, hasLength(3));
   });
 
   test('no dives give the empty timeline', () async {

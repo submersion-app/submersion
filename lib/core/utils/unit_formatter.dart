@@ -70,10 +70,14 @@ class UnitFormatter {
   /// A long vertical distance given in metres, in whole display units with
   /// grouped digits: "6,380 m" or "20,932 ft" (issue #4569). Converted before
   /// rounding, and grouped in the active locale like [formatAltitude].
-  String formatDepthWhole(double? meters) {
+  ///
+  /// [roundUp] is for a distance still to go, which must never read 0 while
+  /// any of it is left.
+  String formatDepthWhole(double? meters, {bool roundUp = false}) {
     if (meters == null) return '--';
     final converted = DepthUnit.meters.convert(meters, settings.depthUnit);
-    final formatted = NumberFormat('#,##0').format(converted.round());
+    final whole = roundUp ? (converted - 1e-9).ceil() : converted.round();
+    final formatted = NumberFormat('#,##0').format(whole);
     return '$formatted ${settings.depthUnit.symbol}';
   }
 

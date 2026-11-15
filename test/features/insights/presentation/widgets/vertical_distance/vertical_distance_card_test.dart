@@ -151,7 +151,8 @@ void main() {
     expect(find.text('6,380 m'), findsNWidgets(2));
     expect(find.text('total ascent'), findsOneWidget);
     expect(find.text('total descent'), findsOneWidget);
-    expect(find.text('Next: Aconcagua, 581 m to go'), findsOneWidget);
+    expect(find.text('Next: Aconcagua'), findsOneWidget);
+    expect(find.text('581 m to go'), findsOneWidget);
   });
 
   testWidgets('on feet every figure is in feet', (tester) async {
@@ -160,7 +161,8 @@ void main() {
     expect(find.text('20,932 ft'), findsNWidgets(2));
     // Denali, the most recently passed and so always labelled: 6,190 m =
     // 20,308 ft.
-    expect(find.text('Denali 20,308 ft'), findsOneWidget);
+    expect(find.text('Denali'), findsOneWidget);
+    expect(find.text('20,308 ft'), findsOneWidget);
     // No figure anywhere reads in metres.
     final metres = RegExp(r'\d m\b');
     expect(
@@ -325,6 +327,65 @@ void main() {
     await pump(tester, width: 320);
     expect(tester.takeException(), isNull);
     expect(find.byKey(_scaleKey), findsOneWidget);
+    // A long name gives way before its figure does: the whale's 2,992 m
+    // stays whole even where the name is cut short.
+    expect(find.text('2,992 m'), findsOneWidget);
+  });
+
+  testWidgets('on a phone the headline keeps its distance whole', (
+    tester,
+  ) async {
+    await pump(tester, width: 320);
+    // Next down is the deepest shipwreck (6,865), 485 m away.
+    expect(find.text('485 m to go'), findsOneWidget);
+    expect(find.text('Next: Deepest shipwreck'), findsOneWidget);
+  });
+
+  testWidgets('on a phone a pinned level leaves the strip room for its date', (
+    tester,
+  ) async {
+    await pump(tester, width: 320);
+    await tester.tapAt(at(tester, 100));
+    await tester.pump();
+
+    // The border marks the pin; no chip takes the text's room.
+    expect(find.text('Pinned'), findsNothing);
+    // The test font draws every glyph as a full square, so the text cannot
+    // be measured as a reader sees it. Check the room it gets instead:
+    // 180 px is two lines of about 30 characters each in the app's font,
+    // enough for a level and a date in every locale.
+    final text = find.descendant(
+      of: find.byKey(_stripKey),
+      matching: find.byType(Text),
+    );
+    expect(tester.getSize(text.first).width, greaterThanOrEqualTo(180));
+    expect(find.byKey(_openKey), findsOneWidget);
+  });
+
+  testWidgets('a scrub keeps reading the bar when the thumb drifts sideways', (
+    tester,
+  ) async {
+    await pump(tester);
+    final g = await tester.startGesture(at(tester, 50));
+    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 100));
+    await g.moveTo(at(tester, 130) + const Offset(60, 0));
+    await tester.pump();
+    await g.up();
+    await tester.pump();
+
+    final meters = layout.metersAt(130);
+    expect(stripText(tester), startsWith(units.formatDepthWhole(meters)));
+  });
+
+  testWidgets('a tap anywhere else on the card unpins', (tester) async {
+    await pump(tester);
+    await tester.tapAt(at(tester, 100));
+    await tester.pump();
+    expect(find.text('Pinned'), findsOneWidget);
+
+    await tester.tap(find.text('5 of 58 dives counted from max depth'));
+    await tester.pump();
+    expect(stripText(tester), 'Point at a bar to see when you got there');
   });
 
   testWidgets('lays out right to left', (tester) async {

@@ -32,6 +32,14 @@ void main() {
     expect(metric.formatDepthWhole(12.5), '13 m');
   });
 
+  test('a distance still to go rounds up, so it never reads 0', () {
+    expect(metric.formatDepthWhole(0.3, roundUp: true), '1 m');
+    expect(metric.formatDepthWhole(580.2, roundUp: true), '581 m');
+    expect(metric.formatDepthWhole(581, roundUp: true), '581 m');
+    // 100 m = 328.08 ft.
+    expect(imperial.formatDepthWhole(100, roundUp: true), '329 ft');
+  });
+
   test('null renders a placeholder', () {
     expect(metric.formatDepthWhole(null), '--');
   });

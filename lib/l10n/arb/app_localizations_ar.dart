@@ -33028,19 +33028,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_profile_verticalDistance_seaLevel => 'مستوى سطح البحر';
 
   @override
-  String insights_profile_verticalDistance_next(
-    String landmark,
-    String distance,
-  ) {
-    return 'التالي: $landmark، يتبقى $distance';
+  String insights_profile_verticalDistance_next(String landmark) {
+    return 'التالي: $landmark';
   }
 
   @override
-  String insights_profile_verticalDistance_landmarkLabel(
-    String landmark,
-    String height,
-  ) {
-    return '$landmark $height';
+  String insights_profile_verticalDistance_toGo(String distance) {
+    return 'يتبقى $distance';
   }
 
   @override

@@ -82,13 +82,17 @@ extension InsightsRepositoryVerticalDistance on InsightsRepository {
     double? profileMeters,
   ) {
     final floor = maxDepth ?? 0;
+    // A profile with nothing measured in it (every depth unusable, or a blob
+    // that would not decode) is no profile: the dive counts its max depth and
+    // says so.
+    final measured = profileMeters != null && profileMeters > 0;
     return DiveVerticalDistance(
       diveId: id,
       startMillis: startMillis,
-      meters: profileMeters == null
-          ? floor
-          : (profileMeters > floor ? profileMeters : floor),
-      estimated: profileMeters == null,
+      meters: measured
+          ? (profileMeters > floor ? profileMeters : floor)
+          : floor,
+      estimated: !measured,
     );
   }
 
@@ -158,20 +162,34 @@ extension InsightsRepositoryVerticalDistance on InsightsRepository {
       }
     }
 
-    final computed = <String, double>{};
+    // Each chunk is written as soon as it is worked out, so a first load of
+    // a large library that is interrupted keeps what it finished. A dive
+    // whose blobs would not decode is cached as 0, measured nothing, so it
+    // is not decoded again until its profile changes.
     for (final chunk in InsightsRepository._diveChunks(misses)) {
-      final blobs = await _primaryBlobs(chunk);
-      if (blobs.isEmpty) continue;
-      computed.addAll(await compute(verticalDistanceByDiveFromBlobs, blobs));
-    }
-    figures.addAll(computed);
-
-    if (computed.isNotEmpty) {
+      final Map<String, double> computed;
       try {
-        await cache.putAll({
-          for (final MapEntry(key: id, value: meters) in computed.entries)
-            id: (meters: meters, inputsHash: hashes[id]!),
-        });
+        final blobs = await _primaryBlobs(chunk);
+        computed = blobs.isEmpty
+            ? const {}
+            : await compute(verticalDistanceByDiveFromBlobs, blobs);
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to work out vertical distances',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        rethrow;
+      }
+      final entries = {
+        for (final id in chunk)
+          id: (meters: computed[id] ?? 0.0, inputsHash: hashes[id]!),
+      };
+      for (final MapEntry(key: id, value: e) in entries.entries) {
+        figures[id] = e.meters;
+      }
+      try {
+        await cache.putAll(entries);
       } catch (e, stackTrace) {
         _log.error(
           'Failed to write the vertical distance cache',

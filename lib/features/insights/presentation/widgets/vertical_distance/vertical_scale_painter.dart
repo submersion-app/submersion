@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/insights/domain/vertical_distance/vertical_landmarks.dart';
@@ -9,17 +10,19 @@ import 'package:submersion/features/insights/presentation/widgets/vertical_dista
 /// hairline at the selected level. Labels and headlines are widgets laid
 /// over it, so text follows the theme and the reading direction.
 class VerticalScalePainter extends CustomPainter {
-  const VerticalScalePainter({
+  VerticalScalePainter({
     required this.geometry,
-    required this.probe,
+    required this.selection,
     required this.ascentColor,
     required this.descentColor,
     required this.lineColor,
     required this.hairlineColor,
-  });
+  }) : super(repaint: selection);
 
   final VerticalScaleGeometry geometry;
-  final VerticalProbe? probe;
+
+  /// Repaints the hairline on its own, without a rebuild.
+  final ValueListenable<VerticalSelection> selection;
   final Color ascentColor;
   final Color descentColor;
   final Color lineColor;
@@ -76,7 +79,7 @@ class VerticalScalePainter extends CustomPainter {
       }
     }
 
-    final p = probe;
+    final p = selection.value.probe;
     if (p != null) {
       final y = g.yFor(p.direction, g.layout.offsetFor(p.meters));
       canvas.drawLine(
@@ -103,7 +106,7 @@ class VerticalScalePainter extends CustomPainter {
       old.geometry.layout != geometry.layout ||
       old.geometry.width != geometry.width ||
       old.geometry.labelsOnLeft != geometry.labelsOnLeft ||
-      old.probe != probe ||
+      old.selection != selection ||
       old.ascentColor != ascentColor ||
       old.descentColor != descentColor ||
       old.lineColor != lineColor ||

@@ -41,25 +41,7 @@ class VerticalDistanceCard extends ConsumerWidget {
               message: l10n.insights_profile_verticalDistance_empty,
             );
           }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              VerticalDistanceScale(timeline: timeline),
-              if (timeline.estimatedDives > 0)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    l10n.insights_profile_verticalDistance_estimated(
-                      timeline.estimatedDives,
-                      timeline.countedDives,
-                    ),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-            ],
-          );
+          return VerticalDistanceScale(timeline: timeline);
         },
         loading: () => const SizedBox(
           height: kVerticalScaleHeight + 56,
