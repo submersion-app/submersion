@@ -141,7 +141,13 @@ void main() {
 
   group('tideTimeStepHours', () {
     test('uses a finer step on a wide plot', () {
-      expect(tideTimeStepHours(plotWidth: 600, labelWidth: 40), 2);
+      expect(tideTimeStepHours(plotWidth: 700, labelWidth: 40), 2);
+    });
+
+    test('counts both ends of a window that starts on a round hour', () {
+      // A day with a 2-hour step can hold 13 ticks, not 12: twelve labels
+      // fit 600 px with their gaps (576), thirteen do not (624).
+      expect(tideTimeStepHours(plotWidth: 600, labelWidth: 40), 3);
     });
 
     test('uses a coarser step on a narrow plot', () {

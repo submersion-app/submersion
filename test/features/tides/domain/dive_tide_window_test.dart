@@ -5,6 +5,8 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/tides/domain/services/dive_tide_window.dart';
 
 const _bonaire = GeoPoint(12.15, -68.27); // UTC-4, no DST
+// Reykjavik keeps UTC all year, so its wall clock reads the instant.
+const _reykjavik = GeoPoint(64.15, -21.95);
 final _calculator = TideCalculator(
   constituents: {
     'M2': const TideConstituent(name: 'M2', amplitude: 1.0, phase: 0.0),
@@ -79,6 +81,45 @@ void main() {
     expect(moved.predictions, window.predictions);
     expect(moved.extremes, window.extremes);
     expect(window.copyWith(), window);
+  });
+
+  test('keeps an extreme that falls exactly on the window start', () async {
+    // Find a real high, then put the dive 12 hours after it so the window
+    // opens on that very instant: the engine's extreme search needs a
+    // sample either side of a turn, which the window's first sample lacks.
+    final extremes = _calculator.findExtremes(
+      start: DateTime.utc(2026, 3, 28),
+      end: DateTime.utc(2026, 3, 29),
+    );
+    final edge = extremes.first.time;
+
+    final window = await loadDiveTideWindow(
+      calculator: _calculator,
+      entryWallClock: edge.add(diveTideWindowHalfSpan),
+      location: _reykjavik,
+    );
+
+    expect(window.start, edge);
+    expect(
+      window.extremes.any(
+        (e) => e.time.difference(edge).abs() < const Duration(minutes: 1),
+      ),
+      isTrue,
+      reason: 'the extreme at the window start was dropped',
+    );
+    // Nothing further out than the minute an extreme is shown to.
+    for (final extreme in window.extremes) {
+      expect(
+        extreme.time.isBefore(
+          window.start.subtract(const Duration(minutes: 1)),
+        ),
+        isFalse,
+      );
+      expect(
+        extreme.time.isAfter(window.end.add(const Duration(minutes: 1))),
+        isFalse,
+      );
+    }
   });
 
   group('DiveTideWindow.heightAt', () {

@@ -90,15 +90,31 @@ Future<DiveTideWindow> loadDiveTideWindow({
   final entry = diveEntryInstant(entryWallClock, location).toUtc();
   final start = entry.subtract(halfSpan);
   final end = entry.add(halfSpan);
-  final (predictions, extremes) = await (
+  // The extreme search needs a sample either side of a turn, so it looks a
+  // little past each end; a high or low exactly on an end is kept. Each
+  // turn's time is refined between samples, and a search started elsewhere
+  // can place the same turn a few milliseconds apart, so a turn within a
+  // minute of an end (the precision it is shown at) counts as inside.
+  const margin = Duration(minutes: 30);
+  const tolerance = Duration(minutes: 1);
+  final earliest = start.subtract(tolerance);
+  final latest = end.add(tolerance);
+  final (predictions, found) = await (
     calculator.predictAsync(start: start, end: end),
-    calculator.findExtremesAsync(start: start, end: end),
+    calculator.findExtremesAsync(
+      start: start.subtract(margin),
+      end: end.add(margin),
+    ),
   ).wait;
   return DiveTideWindow(
     entry: entry,
     start: start,
     end: end,
     predictions: predictions,
-    extremes: extremes,
+    extremes: [
+      for (final extreme in found)
+        if (!extreme.time.isBefore(earliest) && !extreme.time.isAfter(latest))
+          extreme,
+    ],
   );
 }

@@ -90,6 +90,9 @@ List<DateTime> wallClockHourTicks({
 
 /// The hour step for a day-long time axis [plotWidth] wide whose labels are
 /// [labelWidth] wide: the finest step whose labels still fit side by side.
+///
+/// A window that starts on a step boundary has a tick at each end, so the
+/// count includes both.
 int tideTimeStepHours({
   required double plotWidth,
   required double labelWidth,
@@ -97,7 +100,7 @@ int tideTimeStepHours({
 }) {
   const gap = 8.0;
   for (final step in const [2, 3, 4, 6]) {
-    final labels = windowHours ~/ step;
+    final labels = windowHours ~/ step + 1;
     if (labels * (labelWidth + gap) <= plotWidth) return step;
   }
   return 12;
