@@ -93,6 +93,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       apply: session.applyTo,
       changedCardIds: session.changedCardIds,
       alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
+      alsoWriteIsAChange: session.hasHeldChanges,
     );
     if (result == null) return;
     if (result.after.id == widget.diveId) _justSaved = result.after;

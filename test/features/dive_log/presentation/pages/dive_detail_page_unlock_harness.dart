@@ -37,6 +37,9 @@ class FakeSave implements DiveEditSaveService {
   Completer<void>? hold;
   final calls = <({String diveId, Dive merged, List<String> cards})>[];
 
+  /// Whether each save was told its held writes are a change of their own.
+  final heldChangeFlags = <bool>[];
+
   /// What the next save reports as the trips whose dates it moved.
   List<TripDateStretch> tripDateStretches = const [];
 
@@ -47,6 +50,7 @@ class FakeSave implements DiveEditSaveService {
     required Dive Function(Dive stored) apply,
     required Iterable<String> changedCardIds,
     Future<void> Function()? alsoWrite,
+    bool alsoWriteIsAChange = false,
   }) async {
     await hold?.future;
     final error = failWith;
@@ -54,6 +58,7 @@ class FakeSave implements DiveEditSaveService {
     final before = stored;
     final merged = apply(before);
     calls.add((diveId: diveId, merged: merged, cards: changedCardIds.toList()));
+    heldChangeFlags.add(alsoWriteIsAChange);
     await alsoWrite?.call();
     stored = merged;
     return (
