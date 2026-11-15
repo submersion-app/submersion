@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_edit_sa
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 import 'package:submersion/features/weather/data/services/weather_service.dart';
 import 'package:submersion/features/weather/domain/entities/weather_data.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -36,8 +37,12 @@ class FakeSave implements DiveEditSaveService {
   Completer<void>? hold;
   final calls = <({String diveId, Dive merged, List<String> cards})>[];
 
+  /// What the next save reports as the trips whose dates it moved.
+  List<TripDateStretch> tripDateStretches = const [];
+
   @override
-  Future<({Dive before, Dive after})?> save({
+  Future<({Dive before, Dive after, List<TripDateStretch> tripDateStretches})?>
+  save({
     required String diveId,
     required Dive Function(Dive stored) apply,
     required Iterable<String> changedCardIds,
@@ -51,7 +56,11 @@ class FakeSave implements DiveEditSaveService {
     calls.add((diveId: diveId, merged: merged, cards: changedCardIds.toList()));
     await alsoWrite?.call();
     stored = merged;
-    return (before: before, after: merged);
+    return (
+      before: before,
+      after: merged,
+      tripDateStretches: tripDateStretches,
+    );
   }
 }
 

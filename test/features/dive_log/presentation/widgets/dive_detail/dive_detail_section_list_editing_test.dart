@@ -6,12 +6,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_altitude_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_details_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_environment_section.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_list.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_card_marker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_card_editor.dart';
@@ -30,6 +27,7 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_database.dart';
+import 'dive_detail_section_list_harness.dart';
 
 /// A settings notifier that records what the section list asks it to save.
 class _RecordingSettings extends StateNotifier<AppSettings>
@@ -126,23 +124,7 @@ void main() {
     RecordEditController<Dive>? controller,
     double above = 0,
   }) {
-    final list = DiveDetailSectionList(
-      dive: dive,
-      profileSection: const SizedBox.shrink(),
-      safetyReviewKey: GlobalKey(),
-      notesKey: GlobalKey(),
-      retention: DiveDetailAnalysisRetention(),
-      actions: DiveDetailActions(
-        setPrimarySource: (_) {},
-        splitSource: (_, _) {},
-        removeSource: (_, _, _) {},
-        separateSegments: (_, _) {},
-        scanGallery: (_) {},
-        addPhotos: (_) {},
-        addDocument: (_) {},
-        openDocument: (_) {},
-      ),
-    );
+    final list = sectionListFor(dive);
     return ProviderScope(
       overrides: [
         settingsProvider.overrideWith((ref) => settings),

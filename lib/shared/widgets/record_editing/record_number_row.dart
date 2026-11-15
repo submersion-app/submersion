@@ -7,8 +7,26 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
-import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_field_marks.dart';
 import 'package:submersion/shared/widgets/record_editing/reveal_answering.dart';
+
+/// The stored value a number typed into a row stands for.
+///
+/// A number the row put on show itself stands for the value behind it,
+/// which may carry more than the row can show: [onShow], the value it last
+/// showed, then [stored], so typing that number back clears the change. A
+/// number the diver typed stands for itself: [fromDisplay] of it.
+double storedValueOfTyped(
+  double typed, {
+  required double? onShow,
+  required double? stored,
+  required double? Function(double value) shownNumber,
+  required double Function(double typed) fromDisplay,
+}) {
+  if (onShow != null && typed == shownNumber(onShow)) return onShow;
+  if (stored != null && typed == shownNumber(stored)) return stored;
+  return fromDisplay(typed);
+}
 
 /// A number row of a card editor, bound to one field of the sitting.
 ///
@@ -24,7 +42,7 @@ import 'package:submersion/shared/widgets/record_editing/reveal_answering.dart';
 /// where both show as "100", and so is 100 typed over that 100.4.
 ///
 /// Text that is not a number never reaches the sitting. The row shows its
-/// own message and tells the page's [RecordEditController], which keeps the
+/// own message and tells the page's `RecordEditController`, which keeps the
 /// card open and refuses to save until it is fixed, and asks the row to
 /// scroll itself into view when it has had to refuse.
 class RecordNumberRow<T> extends StatefulWidget {
@@ -73,11 +91,16 @@ class RecordNumberRow<T> extends StatefulWidget {
 }
 
 class _RecordNumberRowState<T> extends State<RecordNumberRow<T>>
-    with RevealAnswering<RecordNumberRow<T>> {
+    with
+        RevealAnswering<RecordNumberRow<T>>,
+        RecordFieldMarks<T, RecordNumberRow<T>> {
   late FieldTextBinding<T, double?> _binding = _bind();
 
-  /// The page's controller, kept so the mark can be cleared in [dispose].
-  RecordEditController<T>? _controller;
+  @override
+  String get markCardId => widget.field.cardId;
+
+  @override
+  String get markFieldId => widget.field.id;
 
   /// The value whose number this row last put on show itself: the one it
   /// opened with, or one that arrived from elsewhere since. Null when that
@@ -95,7 +118,7 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>>
         return _format(stored);
       },
       parse: _parse,
-      onUnreadableChanged: _report,
+      onUnreadableChanged: reportUnreadable,
     );
   }
 
@@ -125,44 +148,16 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>>
       case NumberInvalid():
         return const FieldUnreadable();
       case NumberValue(value: final typed):
-        // A number the row put on show itself stands for the value behind
-        // it, which may carry more than the row can show: the one it last
-        // showed, then the stored one, so typing that back clears the
-        // change. A number the diver typed stands for itself.
-        final onShow = _onShow;
-        if (onShow != null && typed == _shownNumber(onShow)) {
-          return FieldValue(onShow);
-        }
-        final stored = widget.field.read(widget.session.stored);
-        if (stored != null && typed == _shownNumber(stored)) {
-          return FieldValue(stored);
-        }
-        return FieldValue(widget.fromDisplay?.call(typed) ?? typed);
+        return FieldValue(
+          storedValueOfTyped(
+            typed,
+            onShow: _onShow,
+            stored: widget.field.read(widget.session.stored),
+            shownNumber: _shownNumber,
+            fromDisplay: (shown) => widget.fromDisplay?.call(shown) ?? shown,
+          ),
+        );
     }
-  }
-
-  void _report(bool unreadable) {
-    _controller?.setFieldInvalid(
-      widget.field.cardId,
-      widget.field.id,
-      invalid: unreadable,
-    );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final controller = RecordEditScope.maybeOf<T>(context);
-    _controller = controller;
-    // Asked for by name when a Done or a Save was refused because this
-    // row's text cannot be read.
-    answerReveal<T>(
-      controller,
-      isMine: (request) =>
-          request.cardId == widget.field.cardId &&
-          request.fieldId == widget.field.id,
-      alignment: 0.3,
-    );
   }
 
   @override
@@ -171,7 +166,7 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>>
     if (oldWidget.session != widget.session ||
         oldWidget.field.id != widget.field.id ||
         oldWidget.field.cardId != widget.field.cardId) {
-      _clearMark(oldWidget);
+      withdrawMark(cardId: oldWidget.field.cardId, fieldId: oldWidget.field.id);
       _binding.dispose();
       _binding = _bind();
       return;
@@ -189,19 +184,8 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>>
     }
   }
 
-  /// Withdraws this row's unreadable mark, as reported for [row]'s field.
-  void _clearMark(RecordNumberRow<T> row) {
-    if (!_binding.isUnreadable) return;
-    _controller?.setFieldInvalid(
-      row.field.cardId,
-      row.field.id,
-      invalid: false,
-    );
-  }
-
   @override
   void dispose() {
-    _clearMark(widget);
     _binding.dispose();
     super.dispose();
   }

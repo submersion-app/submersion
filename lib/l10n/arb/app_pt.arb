@@ -2978,6 +2978,7 @@
   "diveLog_edit_trainingCoursesHint": "Vincular este mergulho a um ou mais cursos de treinamento",
   "diveLog_edit_tripSuggested": "Sugerido: {name}",
   "diveLog_edit_tripUse": "Usar",
+  "diveLog_edit_newRecordNotAdded": "Guardado, mas não foi possível adicioná-lo a este mergulho. Escolhe-o na lista.",
   "diveLog_edit_useSet": "Usar Conjunto",
   "diveLog_edit_removeSet": "Remover Conjunto",
   "diveLog_bulkEdit_setsToRemove": "Conjuntos a remover",

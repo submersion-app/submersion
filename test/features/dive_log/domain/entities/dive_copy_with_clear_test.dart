@@ -1,11 +1,27 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 /// `copyWith` keeps the old value when it is passed null, so emptying a
-/// field needs a flag of its own. These are the values the Altitude and
-/// Environment cards edit one at a time (issue #4527).
+/// field needs a flag of its own. These are the values the Altitude,
+/// Environment and Details cards edit one at a time (issue #4527).
 void main() {
+  final trip = Trip(
+    id: 'trip',
+    name: 'Red Sea',
+    startDate: DateTime(2024),
+    endDate: DateTime(2024, 1, 7),
+    createdAt: DateTime(2024),
+    updatedAt: DateTime(2024),
+  );
+  final center = DiveCenter(
+    id: 'center',
+    name: 'Blue Hole Divers',
+    createdAt: DateTime(2024),
+    updatedAt: DateTime(2024),
+  );
   final full = Dive(
     id: 'dive',
     dateTime: DateTime(2024),
@@ -27,6 +43,17 @@ void main() {
     weatherSource: WeatherSource.openMeteo,
     weatherFetchedAt: DateTime(2024, 1, 2),
     weatherCode: 61,
+    diveCenter: center,
+    trip: trip,
+    tripId: trip.id,
+    visibility: Visibility.good,
+    visibilityMeters: 12,
+    visibilityMinMeters: 10,
+    visibilityMaxMeters: 20,
+    diveOperator: 'Emperor',
+    boatName: 'Elite',
+    boatCaptain: 'Sam',
+    waterType: WaterType.salt,
   );
 
   // Each entry clears one value and reads it back.
@@ -91,10 +118,42 @@ void main() {
       (d) => d.copyWith(clearWeatherCode: true),
       (d) => d.weatherCode,
     ),
+    'diveCenter': (
+      (d) => d.copyWith(clearDiveCenter: true),
+      (d) => d.diveCenter,
+    ),
+    'trip': ((d) => d.copyWith(clearTrip: true), (d) => d.trip),
+    'tripId': ((d) => d.copyWith(clearTripId: true), (d) => d.tripId),
+    'visibility': (
+      (d) => d.copyWith(clearVisibility: true),
+      (d) => d.visibility,
+    ),
+    'visibilityMeters': (
+      (d) => d.copyWith(clearVisibilityMeters: true),
+      (d) => d.visibilityMeters,
+    ),
+    'visibilityMinMeters': (
+      (d) => d.copyWith(clearVisibilityMinMeters: true),
+      (d) => d.visibilityMinMeters,
+    ),
+    'visibilityMaxMeters': (
+      (d) => d.copyWith(clearVisibilityMaxMeters: true),
+      (d) => d.visibilityMaxMeters,
+    ),
+    'diveOperator': (
+      (d) => d.copyWith(clearDiveOperator: true),
+      (d) => d.diveOperator,
+    ),
+    'boatName': ((d) => d.copyWith(clearBoatName: true), (d) => d.boatName),
+    'boatCaptain': (
+      (d) => d.copyWith(clearBoatCaptain: true),
+      (d) => d.boatCaptain,
+    ),
+    'waterType': ((d) => d.copyWith(clearWaterType: true), (d) => d.waterType),
   };
 
-  test('the table covers all eighteen values', () {
-    expect(cases, hasLength(18));
+  test('the table covers all twenty-nine values', () {
+    expect(cases, hasLength(29));
   });
 
   for (final entry in cases.entries) {
@@ -117,6 +176,22 @@ void main() {
 
   test('a clear flag wins over a value passed with it', () {
     expect(full.copyWith(altitude: 5, clearAltitude: true).altitude, isNull);
+  });
+
+  test('clearing the trip needs both flags', () {
+    final cleared = full.copyWith(clearTrip: true, clearTripId: true);
+    expect(cleared.trip, isNull);
+    expect(cleared.tripId, isNull);
+    // The trap: the writer saves `tripId ?? trip?.id`, so clearing the trip
+    // alone would put the old one back.
+    expect(full.copyWith(clearTrip: true).tripId, trip.id);
+  });
+
+  test('a clear flag wins over a water type passed with it', () {
+    expect(
+      full.copyWith(waterType: WaterType.fresh, clearWaterType: true).waterType,
+      isNull,
+    );
   });
 
   test('a value passed without the flag still replaces the old one', () {

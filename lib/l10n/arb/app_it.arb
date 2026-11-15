@@ -2853,6 +2853,7 @@
   "diveLog_edit_trainingCoursesHint": "Collega questa immersione a uno o più corsi di addestramento",
   "diveLog_edit_tripSuggested": "Suggerito: {name}",
   "diveLog_edit_tripUse": "Usa",
+  "diveLog_edit_newRecordNotAdded": "Salvato, ma non è stato possibile aggiungerlo a questa immersione. Sceglilo dall'elenco.",
   "diveLog_edit_useSet": "Usa set",
   "diveLog_edit_removeSet": "Rimuovi set",
   "diveLog_bulkEdit_setsToRemove": "Set da rimuovere",

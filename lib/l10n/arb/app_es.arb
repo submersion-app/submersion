@@ -2978,6 +2978,7 @@
   "diveLog_edit_trainingCoursesHint": "Vincular esta inmersión a uno o más cursos de formación",
   "diveLog_edit_tripSuggested": "Sugerido: {name}",
   "diveLog_edit_tripUse": "Usar",
+  "diveLog_edit_newRecordNotAdded": "Se guardó, pero no se pudo añadir a esta inmersión. Elígelo en la lista.",
   "diveLog_edit_useSet": "Usar conjunto",
   "diveLog_edit_removeSet": "Quitar conjunto",
   "diveLog_bulkEdit_setsToRemove": "Conjuntos a quitar",

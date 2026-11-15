@@ -13,12 +13,22 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 /// conditions, which come from a provider. A section with no in-place editor
 /// is always counted as shown.
 ///
+/// The satellite conditions are worked out from the dive's site, date and
+/// water type, none of which the Environment card edits. [satelliteFor] is
+/// the dive they are looked up for when that is not [dive]: see
+/// [diveCardIsOnPage].
+///
 /// Watches providers, so call it from a widget's `build`.
-bool diveCardIsShown(WidgetRef ref, DiveDetailSectionId id, Dive dive) {
+bool diveCardIsShown(
+  WidgetRef ref,
+  DiveDetailSectionId id,
+  Dive dive, {
+  Dive? satelliteFor,
+}) {
   final card = diveEditCards[id];
   if (card == null || !card.isEmpty(dive)) return true;
   return id == DiveDetailSectionId.environment &&
-      watchSatelliteWaterConditions(ref, dive) != null;
+      watchSatelliteWaterConditions(ref, satelliteFor ?? dive) != null;
 }
 
 /// Whether [id]'s card is on the page during a sitting, when it is not open.
@@ -29,6 +39,12 @@ bool diveCardIsShown(WidgetRef ref, DiveDetailSectionId id, Dive dive) {
 /// is now. A card is on the page only when both have something for it: one
 /// that has gained its first value waits for the editors to close, and one
 /// emptied since has nothing to draw.
+///
+/// What a card works out, as distinct from what the diver logged on it, is
+/// asked of [layout] both times: the Environment card's satellite conditions
+/// go with a freshwater dive, and the water type is picked on another card.
+/// Asked of [working], picking it would take the Environment card off the
+/// page under an open editor.
 ///
 /// The section list and the Add strip both ask this, so a card is always
 /// either on the page or offered in the strip, never neither.
@@ -41,5 +57,6 @@ bool diveCardIsOnPage(
   required Dive working,
 }) {
   if (!diveCardIsShown(ref, id, layout)) return false;
-  return identical(layout, working) || diveCardIsShown(ref, id, working);
+  return identical(layout, working) ||
+      diveCardIsShown(ref, id, working, satelliteFor: layout);
 }

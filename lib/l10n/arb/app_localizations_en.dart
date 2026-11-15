@@ -8841,6 +8841,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_tripUse => 'Use';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'Saved, but it couldn\'t be added to this dive. Pick it from the list.';
+
+  @override
   String get diveLog_edit_useSet => 'Use Set';
 
   @override
