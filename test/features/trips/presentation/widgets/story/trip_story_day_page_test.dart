@@ -667,6 +667,131 @@ void main() {
     });
   });
 
+  group('on a wide pane', () {
+    TripStoryDay richDay() {
+      final base = _pastDay(['d1', 'd2', 'd3']);
+      return TripStoryDay(
+        date: base.date,
+        dayNumber: base.dayNumber,
+        kind: base.kind,
+        dives: base.dives,
+        media: [_media('m1')],
+        mediaCount: 1,
+        sightings: [_sighting('s1', 'Turtle')],
+      );
+    }
+
+    final pins = [_pin('d1', 1), _pin('d2', 2)];
+
+    testWidgets('at 640 wide the map sits beside the dives', (tester) async {
+      await pumpPage(
+        tester,
+        richDay(),
+        mapPoints: pins,
+        viewSize: const Size(640, 1400),
+      );
+
+      expect(find.byKey(TripStoryDayPage.twoColumnsKey), findsOneWidget);
+      final map = tester.getRect(find.byType(FlutterMap));
+      final card = tester.getRect(find.byType(DiveListItem).first);
+      expect(card.left, greaterThan(map.right));
+      expect((card.top - map.top).abs(), lessThan(40));
+      expect(map.height, 230);
+      // The head stays full width above both columns.
+      expect(
+        tester.getRect(find.byType(TripStoryDayHead)).bottom,
+        lessThanOrEqualTo(map.top),
+      );
+    });
+
+    testWidgets('photos and species sit under the map, not under the dives', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        richDay(),
+        mapPoints: pins,
+        viewSize: const Size(640, 1400),
+      );
+
+      final map = tester.getRect(find.byType(FlutterMap));
+      final card = tester.getRect(find.byType(DiveListItem).first);
+      for (final finder in [
+        find.byType(DayRhythmBar),
+        find.byType(TripDayPhotoStrip),
+        find.byType(TripDaySightingChips),
+      ]) {
+        final rect = tester.getRect(finder);
+        expect(rect.top, greaterThanOrEqualTo(map.bottom));
+        expect(rect.left, lessThan(card.left));
+      }
+    });
+
+    testWidgets('at 599 wide it is one column', (tester) async {
+      await pumpPage(
+        tester,
+        richDay(),
+        mapPoints: pins,
+        viewSize: const Size(599, 1400),
+      );
+
+      expect(find.byKey(TripStoryDayPage.twoColumnsKey), findsNothing);
+      expect(tester.getSize(find.byType(FlutterMap)).height, 180);
+    });
+
+    testWidgets('a day with no map points is one column at any width', (
+      tester,
+    ) async {
+      await pumpPage(tester, richDay(), viewSize: const Size(900, 1400));
+
+      expect(find.byKey(TripStoryDayPage.twoColumnsKey), findsNothing);
+    });
+
+    testWidgets('a mapped day with no dives is one column', (tester) async {
+      final day = TripStoryDay(
+        date: DateTime(2026, 3, 8),
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        itineraryDay: _itin(notes: 'Harbour day'),
+      );
+      await pumpPage(
+        tester,
+        day,
+        mapPoints: [_pin('none', 1)],
+        viewSize: const Size(900, 1400),
+      );
+
+      expect(find.byKey(TripStoryDayPage.twoColumnsKey), findsNothing);
+      expect(find.byType(FlutterMap), findsOneWidget);
+    });
+
+    testWidgets('a pin tap lights a card that is already in view', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        richDay(),
+        mapPoints: pins,
+        viewSize: const Size(640, 700),
+      );
+      final position = tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position;
+
+      await tester.tap(find.byKey(const Key('day-map-pin-d2')));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widgetList<DiveListItem>(find.byType(DiveListItem))
+            .firstWhere((w) => w.summary.id == 'd2')
+            .isHighlighted,
+        isTrue,
+      );
+      expect(position.pixels, 0);
+    });
+  });
+
   group('plan and conditions', () {
     ItineraryDay planned(int dives, {String notes = '', String? port}) =>
         _itin(notes: notes, port: port).copyWith(plannedDives: dives);

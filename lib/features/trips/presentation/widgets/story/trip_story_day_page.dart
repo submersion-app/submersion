@@ -53,6 +53,7 @@ class TripStoryDayPage extends ConsumerStatefulWidget {
   static const double twoColumnMinWidth = 600;
 
   static const noDivesKey = Key('trip-day-no-dives');
+  static const twoColumnsKey = Key('trip-day-two-columns');
 
   @override
   ConsumerState<TripStoryDayPage> createState() => _TripStoryDayPageState();
@@ -103,12 +104,12 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
     final hasPlan = TripStoryDayPlan.hasContent(day, hasHistory: hasHistory);
     final conditions = DayConditions.fromDives(day.dives);
 
-    final map = widget.mapPoints.isEmpty
+    Widget? mapOf(double height) => widget.mapPoints.isEmpty
         ? null
         : ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: SizedBox(
-              height: 180,
+              height: height,
               child: TripDayMap(
                 day: day,
                 points: widget.mapPoints,
@@ -126,76 +127,131 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
             ),
           );
 
-    final sections = <Widget>[
-      ?map,
-      // The plan reads first: what the day was meant to be, then what it
-      // became.
-      if (hasPlan)
-        TripStoryDayPlan(day: day, units: units, hasHistory: hasHistory),
-      if (day.dives.isNotEmpty)
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            DayRhythmBar(dives: day.dives, units: units),
-            if (!conditions.isEmpty) ...[
-              const SizedBox(height: 8),
-              DayConditionsLine(conditions: conditions, units: units),
-            ],
-          ],
-        ),
-      if (day.dives.isNotEmpty) _dives(context),
-      if (day.media.isNotEmpty)
-        _captioned(
-          l10n.trips_photos_sectionTitle,
-          TripDayPhotoStrip(
-            tripId: trip.id,
-            media: day.media,
-            totalCount: day.mediaCount,
-          ),
-        ),
-      if (day.sightings.isNotEmpty)
-        _captioned(
-          l10n.trips_detail_stat_speciesSeen,
-          TripDaySightingChips(day: day),
-        ),
-      if (day.dives.isEmpty && !hasPlan)
-        Text(
-          l10n.trips_story_noDivesThisDay,
-          key: TripStoryDayPage.noDivesKey,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-    ];
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(top: 12, bottom: 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // The cards pad themselves, as they do on the Trip page.
-          if (day.kind == TripStoryDayKind.today && trip.isInProgress)
-            TripUnderWayCards(trip: trip),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TripStoryDayHead(
-                  day: day,
-                  dayCount: widget.story.days.length,
-                  storedWeather: widget.storedWeather,
-                ),
-                for (final section in sections) ...[
-                  const SizedBox(height: 16),
-                  section,
-                ],
+    // The plan reads first: what the day was meant to be, then what it
+    // became.
+    final plan = hasPlan
+        ? TripStoryDayPlan(day: day, units: units, hasHistory: hasHistory)
+        : null;
+    final timeline = day.dives.isEmpty
+        ? null
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DayRhythmBar(dives: day.dives, units: units),
+              if (!conditions.isEmpty) ...[
+                const SizedBox(height: 8),
+                DayConditionsLine(conditions: conditions, units: units),
               ],
+            ],
+          );
+    final photos = day.media.isEmpty
+        ? null
+        : _captioned(
+            l10n.trips_photos_sectionTitle,
+            TripDayPhotoStrip(
+              tripId: trip.id,
+              media: day.media,
+              totalCount: day.mediaCount,
             ),
+          );
+    final species = day.sightings.isEmpty
+        ? null
+        : _captioned(
+            l10n.trips_detail_stat_speciesSeen,
+            TripDaySightingChips(day: day),
+          );
+    final noDives = day.dives.isEmpty && !hasPlan
+        ? Text(
+            l10n.trips_story_noDivesThisDay,
+            key: TripStoryDayPage.noDivesKey,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          )
+        : null;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Beside each other only when there is room and both sides have
+        // something: a map with no dives beside it would face an empty
+        // column. Measured, not asked of the platform, so a narrow desktop
+        // window gets the single column too.
+        final twoColumns =
+            constraints.maxWidth >= TripStoryDayPage.twoColumnMinWidth &&
+            widget.mapPoints.isNotEmpty &&
+            day.dives.isNotEmpty;
+        final Widget body = twoColumns
+            ? Row(
+                key: TripStoryDayPage.twoColumnsKey,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _stacked([
+                      mapOf(230),
+                      plan,
+                      timeline,
+                      photos,
+                      species,
+                    ]),
+                  ),
+                  const SizedBox(width: 16),
+                  // A tapped pin lights up a card that is already in view.
+                  Expanded(child: _dives(context)),
+                ],
+              )
+            : _stacked([
+                mapOf(180),
+                plan,
+                timeline,
+                if (day.dives.isNotEmpty) _dives(context),
+                photos,
+                species,
+                noDives,
+              ]);
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.only(top: 12, bottom: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // The cards pad themselves, as they do on the Trip page.
+              if (day.kind == TripStoryDayKind.today && trip.isInProgress)
+                TripUnderWayCards(trip: trip),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TripStoryDayHead(
+                      day: day,
+                      dayCount: widget.story.days.length,
+                      storedWeather: widget.storedWeather,
+                    ),
+                    const SizedBox(height: 16),
+                    body,
+                  ],
+                ),
+              ),
+            ],
           ),
+        );
+      },
+    );
+  }
+
+  /// The sections that exist, one under the other, 16 apart.
+  Widget _stacked(List<Widget?> sections) {
+    final present = sections.nonNulls.toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final (index, section) in present.indexed) ...[
+          if (index > 0) const SizedBox(height: 16),
+          section,
         ],
-      ),
+      ],
     );
   }
 
