@@ -78,6 +78,7 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/domain/services/rental_memory_resolver.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/apply_last_dive_confirm_dialog.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_picker.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_memory_card.dart';
@@ -5976,24 +5977,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Future<void> _applyLastDiveAtCenter(LastDiveAtCenter last) async {
     final l10n = context.l10n;
     if (applyLastDiveNeedsConfirm(weights: _weights, tanks: _tanks)) {
-      final replace = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(l10n.diveCenters_rental_applyConfirmTitle),
-          content: Text(l10n.diveCenters_rental_applyConfirmBody),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(l10n.common_action_cancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text(l10n.diveCenters_rental_applyConfirmReplace),
-            ),
-          ],
-        ),
-      );
-      if (replace != true || !mounted) return;
+      final replace = await confirmApplyLastDive(context);
+      if (!replace || !mounted) return;
     }
     final settings = ref.read(settingsProvider);
     setState(() {

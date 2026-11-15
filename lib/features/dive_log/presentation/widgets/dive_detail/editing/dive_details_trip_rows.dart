@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/domain/services/dive_center_picker_ranking.dart';
+import 'package:submersion/features/dive_centers/domain/services/rental_memory_resolver.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/apply_last_dive_confirm_dialog.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_picker.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/rental_memory_card.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_fields.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_rules.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_fields.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_weights_fields.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/features/trips/presentation/helpers/new_trip_from_selection.dart';
@@ -131,8 +137,21 @@ class DiveTripRow extends ConsumerStatefulWidget {
 }
 
 class _DiveTripRowState extends ConsumerState<DiveTripRow> {
-  void _set(EditSession<Dive> session, Trip? trip) =>
-      _setIfStillEditing(this, session, diveTripField, trip);
+  /// Puts [trip] on the dive. A slot belongs to one trip, so a change of
+  /// trip clears every cylinder's slot link and suggests slots on the new
+  /// one, as the dive form does (`_setTrip`; issue #4527, plan 5).
+  void _set(EditSession<Dive> session, Trip? trip) {
+    final was = session.valueOf(diveTripField)?.id;
+    _setIfStillEditing(this, session, diveTripField, trip);
+    if (!mounted || session.valueOf(diveTripField)?.id == was) return;
+    tanksAfterTripChange(
+      session,
+      readSlots: tripSlotReader(
+        ProviderScope.containerOf(context, listen: false),
+        session.stored.id,
+      ),
+    );
+  }
 
   Future<void> _pick() async {
     final session = widget.session;
@@ -277,6 +296,29 @@ class _DiveCenterRowState extends ConsumerState<DiveCenterRow> {
   void _set(EditSession<Dive> session, DiveCenter? center) =>
       _setIfStillEditing(this, session, diveCenterField, center);
 
+  /// The weights and cylinders of the diver's last dive at the center
+  /// replace the sitting's, asking first when it holds any (issue #2075).
+  Future<void> _applyLastDive(
+    EditSession<Dive> session,
+    LastDiveAtCenter last,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final applied = context.l10n.diveCenters_rental_applied;
+    final startPressure = ref.read(
+      settingsProvider.select((s) => s.defaultStartPressure),
+    );
+    if (applyLastDiveNeedsConfirm(
+      weights: session.valueOf(diveWeightsField),
+      tanks: session.valueOf(diveTanksField),
+    )) {
+      final replace = await confirmApplyLastDive(context);
+      if (!replace || !mounted) return;
+    }
+    if (session.isDisposed || session.isFrozen) return;
+    applyLastDiveInSitting(session, last, defaultStartPressure: startPressure);
+    messenger.showSnackBar(SnackBar(content: Text(applied)));
+  }
+
   Future<void> _pick() async {
     final session = widget.session;
     final dive = session.working;
@@ -337,6 +379,23 @@ class _DiveCenterRowState extends ConsumerState<DiveCenterRow> {
               clearTooltip: l10n.common_action_remove,
             ),
             if (where != null) _Caption(where),
+            // What the diver rented here last time, and a way to copy that
+            // dive's weights and cylinders. Its rental notes are the
+            // center's own records, written at once (issue #4527, plan 5).
+            if (center != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  _underRowInset,
+                  0,
+                  _underRowInset,
+                  10,
+                ),
+                child: RentalMemoryCard(
+                  center: center,
+                  currentDiveId: session.stored.id,
+                  onApplyLastDive: (last) => _applyLastDive(session, last),
+                ),
+              ),
           ],
         );
       },

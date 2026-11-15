@@ -16,12 +16,11 @@ import 'package:submersion/features/dive_log/presentation/providers/active_sourc
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/sac_volume_hint.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_volume_hint.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
-import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// What the Details card says about a dive left out of statistics, or null
 /// for a dive that is counted. The master switch wins: it already implies
@@ -223,7 +222,7 @@ class DiveDetailsDerivedRows extends ConsumerWidget {
         ),
       if (display.showsRmv && rmv == null && sac != null) ...[
         if (!display.showsSac) sacRow(),
-        _VolumeHint(diveId: dive.id, volumeSymbol: units.volumeSymbol),
+        DiveVolumeHint(diveId: dive.id, volumeSymbol: units.volumeSymbol),
       ],
     ];
     if (rows.isEmpty) return const SizedBox.shrink();
@@ -301,29 +300,6 @@ class DiveDetailsDerivedRows extends ConsumerWidget {
               : null,
         ),
       ),
-    );
-  }
-}
-
-/// Why SAC is shown per pressure unit: no cylinder has a volume. It leads
-/// to the dive form, where the volume is entered.
-///
-/// During a sitting that form would open as a second editor over the
-/// diver's unsaved changes, so the hint is a plain note until the sitting
-/// ends. It is a widget of its own so that it alone, and not every row
-/// around it, is rebuilt as the page is locked and unlocked.
-class _VolumeHint extends StatelessWidget {
-  const _VolumeHint({required this.diveId, required this.volumeSymbol});
-
-  final String diveId;
-  final String volumeSymbol;
-
-  @override
-  Widget build(BuildContext context) {
-    final sitting = RecordEditScope.maybeOf<Dive>(context)?.isUnlocked ?? false;
-    return SacVolumeHint(
-      volumeSymbol: volumeSymbol,
-      onTap: sitting ? null : () => context.push('/dives/$diveId/edit'),
     );
   }
 }
