@@ -92,6 +92,8 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
         ? ref.read(siteListNotifierProvider.notifier)
         : null;
     final followUp = DiveSittingFollowUp.read(context, ref);
+    // Read now: the sitting is disposed once the write has gone through.
+    final changedCardIds = session.changedCardIds;
     // The dive the sitting was opened on, whatever the page shows by the
     // time the write is asked for.
     final result = await service.save(
@@ -136,6 +138,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       before: result.before,
       after: result.after,
       tripDateStretches: result.tripDateStretches,
+      changedCardIds: changedCardIds,
     );
   }
 
@@ -192,8 +195,10 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     return [
       for (final section in sections)
         if (diveEditCards[section.id] case final card?)
+          // A gauge dive's Cylinders card is offered here too: its own
+          // emptiness counts a gauge dive, and its editor is where the mode
+          // is changed back (issue #4527, plan 5).
           if (!open.contains(card.id) &&
-              !(working.isGauge && section.id.hiddenInGaugeMode) &&
               (!diveCardIsOnPage(
                     ref,
                     section.id,
