@@ -7,6 +7,8 @@ import 'package:submersion/features/settings/presentation/providers/account_grou
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_using_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 
 void main() {
   // Issue #3780: a tap that cannot open the account sheet says why.
@@ -21,6 +23,10 @@ void main() {
             (ref) => Future<List<AccountGroup>>.error(StateError('keychain')),
           ),
           selectedCloudProviderTypeProvider.overrideWith((ref) => null),
+          // The row reads sync health for its mark (#4561).
+          syncHealthProvider.overrideWithValue(
+            pickHealth(DataFeature.sync, const []),
+          ),
         ],
         child: const MaterialApp(
           locale: Locale('en'),

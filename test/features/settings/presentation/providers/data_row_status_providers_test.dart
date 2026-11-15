@@ -1,6 +1,7 @@
 // Issue #3482: the row status providers read the same health list as the
-// strip plus small overridable leaf inputs, never build the media runtime,
-// never probe an account, and never leave a row on "Checking..." forever.
+// row symbols plus small overridable leaf inputs, never build the media
+// runtime themselves, never probe an account, and never leave a row on
+// "Checking..." forever.
 
 import 'dart:async';
 import 'dart:io';
@@ -139,7 +140,7 @@ MediaHealthInputs _inputs({required bool attached}) => MediaHealthInputs(
   storeAttachedHere: attached,
   storeAnnounced: attached,
   lightroomConnected: false,
-  mediaSetupItems: 0,
+  storeSetupItems: 0,
   transfersWaitingWithReason: false,
 );
 
@@ -405,8 +406,8 @@ void main() {
     });
 
     test('a failed refresh keeps the last attach state', () {
-      // Riverpod keeps the previous value on a refresh error, and the strip
-      // reads it; the row must read the same snapshot.
+      // Riverpod keeps the previous value on a refresh error, and the health
+      // model reads it; the row must read the same snapshot.
       expect(attachedHereOf(_inputs(attached: true), hasError: true), isTrue);
       expect(attachedHereOf(null, hasError: true), isFalse);
       expect(attachedHereOf(null, hasError: false), isNull);

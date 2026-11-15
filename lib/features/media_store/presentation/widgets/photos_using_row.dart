@@ -13,6 +13,9 @@ import 'package:submersion/features/settings/presentation/widgets/accounts/accou
 import 'package:submersion/features/settings/presentation/widgets/webdav_trust_certificate_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/domain/data_health/media_health.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_marked_title.dart';
 
 /// "Copies in {account}" with Change, or "Not set up" with Set up (spec
 /// section 8.3). Choosing an account attaches this device's copies there:
@@ -63,13 +66,19 @@ class _PhotosUsingRowState extends ConsumerState<PhotosUsingRow> {
                   ? Icons.cloud_outlined
                   : Icons.cloud_off_outlined,
             ),
-      title: Text(
-        !hasCopies
-            ? l10n.settings_sync_notSetUp
-            : label != null
-            ? l10n.settings_photos_copiesIn(label)
-            // Attached through a store this device cannot name yet.
-            : l10n.settings_photos_cloudHeader,
+      // Marked while a store setup item waits (#4561).
+      title: HealthMarkedTitle(
+        title: Text(
+          !hasCopies
+              ? l10n.settings_sync_notSetUp
+              : label != null
+              ? l10n.settings_photos_copiesIn(label)
+              // Attached through a store this device cannot name yet.
+              : l10n.settings_photos_cloudHeader,
+        ),
+        feature: DataFeature.media,
+        reasons: const {HealthReason.mediaFinishSetup},
+        subjectId: mediaSetupStore,
       ),
       subtitle: TileSubtitleAction(
         actionKey: const Key('photos-using-change'),

@@ -35,6 +35,7 @@ import 'package:submersion/features/settings/presentation/widgets/encryption_set
 import 'package:submersion/features/settings/presentation/widgets/web/web_sync_rows.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_marked_title.dart';
 
 part 'cloud_sync_page_banners.dart';
 
@@ -102,7 +103,11 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
           const Divider(),
           SwitchListTile(
             key: const Key('sync-keep-in-step'),
-            title: Text(context.l10n.settings_sync_keepInStep),
+            title: HealthMarkedTitle(
+              title: Text(context.l10n.settings_sync_keepInStep),
+              feature: DataFeature.sync,
+              reasons: const {HealthReason.syncAutoOff},
+            ),
             subtitle: Text(context.l10n.settings_cloudSync_autoSync_subtitle),
             value: behaviorSettings.autoSyncEnabled,
             onChanged: isCustomFolderMode
@@ -190,7 +195,24 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(title, style: theme.textTheme.titleMedium),
+                          // The card holds what sync is doing; the mark says
+                          // what needs the diver (#4561).
+                          HealthMarkedTitle(
+                            title: Text(
+                              title,
+                              style: theme.textTheme.titleMedium,
+                            ),
+                            feature: DataFeature.sync,
+                            reasons: const {
+                              HealthReason.syncSignedOut,
+                              HealthReason.syncNeedsPassphrase,
+                              HealthReason.syncAwaitingAdoption,
+                              HealthReason.syncFailed,
+                              HealthReason.syncOffline,
+                              HealthReason.syncNeverSynced,
+                              HealthReason.syncPeersHeld,
+                            },
+                          ),
                           if (message != null)
                             Text(message, style: theme.textTheme.bodySmall),
                         ],
@@ -261,12 +283,14 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
           height: 32,
           child: CircularProgressIndicator(strokeWidth: 2),
         );
+      // Shapes only: the health mark is the page's one status colour
+      // (#4561).
       case SyncStatus.success:
-        return const Icon(Icons.cloud_done, size: 32, color: Colors.green);
+        return const Icon(Icons.cloud_done, size: 32);
       case SyncStatus.error:
-        return const Icon(Icons.cloud_off, size: 32, color: Colors.red);
+        return const Icon(Icons.cloud_off, size: 32);
       case SyncStatus.hasConflicts:
-        return const Icon(Icons.warning, size: 32, color: Colors.orange);
+        return const Icon(Icons.warning, size: 32);
     }
   }
 
@@ -460,15 +484,19 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              const Icon(Icons.warning, color: Colors.orange, size: 20),
+              const Icon(Icons.warning, size: 20),
               const SizedBox(width: 8),
-              Text(
-                context.l10n.settings_cloudSync_header_conflicts(
-                  syncState.conflicts,
+              Expanded(
+                child: HealthMarkedTitle(
+                  title: Text(
+                    context.l10n.settings_cloudSync_header_conflicts(
+                      syncState.conflicts,
+                    ),
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  feature: DataFeature.sync,
+                  reasons: const {HealthReason.syncConflicts},
                 ),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(color: Colors.orange),
               ),
             ],
           ),

@@ -8,6 +8,7 @@ import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/photos_copies_provider.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 import 'package:submersion/features/settings/domain/data_health/media_health.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
@@ -267,7 +268,7 @@ void main() {
           signIn({AccountUsageKind.lightroom}),
           signIn({AccountUsageKind.databaseSync}),
         ]),
-        4,
+        (store: 3, lightroom: 1),
       );
     });
 
@@ -282,7 +283,7 @@ void main() {
             AccountUsageKind.mediaStorage,
           }, route: '/settings/cloud-sync'),
         ]),
-        1,
+        (store: 1, lightroom: 0),
       );
     });
 
@@ -291,7 +292,7 @@ void main() {
         countMediaSetupItems([
           signIn({AccountUsageKind.mediaStorage}, dismissed: true),
         ]),
-        0,
+        (store: 0, lightroom: 0),
       );
     });
   });
@@ -305,8 +306,11 @@ void main() {
       DatabaseService.instance.resetForTesting();
     });
 
+    // #4561 reversed the old rule on purpose: an attached store that cannot
+    // be opened is a finding, so the runtime is resolved for reachability.
+    // The suspended flag is still never read here.
     test(
-      'never builds the media runtime, even with a store attached',
+      'never reads the suspended flag, even with a store attached',
       () async {
         await MediaStoreAttachState(
           prefs: prefs,
@@ -330,8 +334,9 @@ void main() {
                 ),
               ),
             ),
-            // Building this awaits mediaStoreRuntimeProvider: a keychain read,
-            // a store build and a queue drain. Settings > Data must not.
+            photosStoreReachableProvider.overrideWith((ref) => true),
+            // The marker mismatch behind a suspension already shows as the
+            // mediaStoreReconnect setup item.
             mediaTransfersSuspendedProvider.overrideWith((ref) {
               runtimeAsked = true;
               return Stream.value(false);
@@ -350,6 +355,77 @@ void main() {
         expect(inputs.transfersWaitingWithReason, isTrue);
       },
     );
+  });
+
+  group('media store reachability (#4561)', () {
+    setUp(() async {
+      await setUpTestDatabase();
+    });
+
+    tearDown(() {
+      DatabaseService.instance.resetForTesting();
+    });
+
+    Future<MediaHealthInputs> inputsFor({
+      required bool attached,
+      bool? reachable,
+      void Function()? onReachableRead,
+    }) async {
+      if (attached) {
+        await MediaStoreAttachState(
+          prefs: prefs,
+        ).setAttached('store-1', providerType: CloudProviderType.s3);
+      }
+      final c = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          mediaStoreAttachStateProvider.overrideWithValue(
+            MediaStoreAttachState(prefs: prefs),
+          ),
+          pendingSetupItemsProvider.overrideWith((ref) async => const []),
+          lightroomDeviceStatusProvider.overrideWith(
+            (ref) async => LightroomDeviceStatus.notConnected,
+          ),
+          mediaTransferSummaryProvider.overrideWith(
+            (ref) => Stream.value(const MediaTransferSummary()),
+          ),
+          photosStoreReachableProvider.overrideWith((ref) {
+            onReachableRead?.call();
+            return reachable;
+          }),
+          photosCopiesProvider.overrideWith(
+            (ref) async =>
+                (attached: attached, store: null, group: null, label: 'B2'),
+          ),
+        ],
+      );
+      addTearDown(c.dispose);
+      final sub = c.listen(mediaHealthInputsProvider, (_, _) {});
+      addTearDown(sub.close);
+      return c.read(mediaHealthInputsProvider.future);
+    }
+
+    test('an attached store that cannot be opened is unreachable', () async {
+      final i = await inputsFor(attached: true, reachable: false);
+      expect(i.storeUnreachable, isTrue);
+      expect(i.storeLabel, 'B2');
+    });
+
+    test('still checking is never unreachable', () async {
+      final i = await inputsFor(attached: true, reachable: null);
+      expect(i.storeUnreachable, isFalse);
+    });
+
+    test('without an attached store reachability is not read', () async {
+      var read = false;
+      final i = await inputsFor(
+        attached: false,
+        reachable: false,
+        onReachableRead: () => read = true,
+      );
+      expect(i.storeUnreachable, isFalse);
+      expect(read, isFalse);
+    });
   });
 
   group('media Lightroom input', () {

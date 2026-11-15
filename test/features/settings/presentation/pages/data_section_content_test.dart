@@ -1,8 +1,8 @@
-// Issues #3390 and #3394: Settings > Data opens with a status strip and a
-// facts line, drops every card, and marks the four feature rows with the
-// same health symbol as the strip. Issue #3482: the rows read as outcomes
-// with one-sentence statuses under "Your data", and the rarely used rows
-// fold under "Advanced".
+// Issues #3390 and #3394: Settings > Data opens with a facts line and drops
+// every card; since #4561 the four feature rows are the status, each leading
+// with its health symbol, with no strip above them. Issue #3482: the rows
+// read as outcomes with one-sentence statuses under "Your data", and the
+// rarely used rows fold under "Advanced".
 // On a master-detail window its rows open in the detail pane (#3467).
 
 import 'dart:io';
@@ -13,6 +13,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/services/accounts/account_group.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/platform/web_database_status.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
@@ -23,13 +26,13 @@ import 'package:submersion/features/settings/presentation/providers/account_grou
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/sign_in_again_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/web_forget_device_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_facts_line.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_row_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_device_card.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
-import 'package:submersion/features/settings/presentation/widgets/data_health/data_health_strip.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -37,6 +40,8 @@ import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/demo_mode/presentation/widgets/demo_enter_dialog.dart';
+import 'package:submersion/features/settings/domain/data_health/data_row_status.dart';
+import 'package:submersion/features/settings/presentation/providers/data_row_status_providers.dart';
 
 import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -83,6 +88,10 @@ void main() {
     bool browser = false,
     // What a browser's Forget this device runs (issue #4187).
     Future<void> Function()? forget,
+    // The account Sign in again offers (issue #3811).
+    AccountGroup? signInGroup,
+    // A row still loading its inputs (#4561 review).
+    DataRowStatus? librariesStatus,
   }) async {
     // MediaQuery follows the view, which the layout breakpoints read.
     tester.view.devicePixelRatio = 1;
@@ -149,6 +158,12 @@ void main() {
               DeviceCapabilities.web,
             ),
           if (forget != null) webForgetDeviceProvider.overrideWithValue(forget),
+          for (final feature in DataFeature.values)
+            signInAgainGroupProvider(
+              feature,
+            ).overrideWith((ref) async => signInGroup),
+          if (librariesStatus != null)
+            librariesRowStatusProvider.overrideWithValue(librariesStatus),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -182,26 +197,149 @@ void main() {
     );
   });
 
-  testWidgets('the dashboard sits above the Your data header', (tester) async {
+  // Issue #4561: no strip and no attention lines; each feature row is its
+  // status, said once.
+  testWidgets('the rows are the status, with no strip above', (tester) async {
     await pumpData(tester);
 
+    expect(find.byKey(const Key('dataHealth_attentionLine')), findsNothing);
+    final header = tester.getTopLeft(find.text('Your data')).dy;
     expect(
-      tester.getTopLeft(find.byType(DataHealthStrip)).dy,
-      lessThan(tester.getTopLeft(find.text('Your data')).dy),
+      find
+          .byType(HealthSymbol)
+          .evaluate()
+          .where((e) => tester.getTopLeft(find.byWidget(e.widget)).dy < header),
+      isEmpty,
     );
   });
 
-  testWidgets('row marks match the strip', (tester) async {
+  testWidgets('each feature row leads with its status', (tester) async {
     await pumpData(tester);
 
     final backupMark = tester.widget<HealthSymbol>(markBeside('Backups'));
-    expect((backupMark.level, backupMark.size), (HealthLevel.healthy, 16));
+    expect((backupMark.level, backupMark.size), (HealthLevel.healthy, 24));
     expect(
       tester.widget<HealthSymbol>(markBeside('Shared site libraries')).level,
       HealthLevel.attention,
     );
-    expect(markBeside('Photos & videos'), findsNothing);
+    expect(
+      tester.widget<HealthSymbol>(markBeside('Photos & videos')).level,
+      HealthLevel.notSetUp,
+    );
     expect(markBeside('Database storage'), findsNothing);
+    expect(markBeside('Connected accounts'), findsNothing);
+  });
+
+  // A feature whose inputs are still loading reads as not set up in the
+  // health model; its row says "Checking" and keeps its own icon rather
+  // than showing the hollow not-set-up dash.
+  testWidgets('a row still checking keeps its icon, not the dash', (
+    tester,
+  ) async {
+    await pumpData(
+      tester,
+      dataHealth: [
+        health[0],
+        health[1],
+        const FeatureHealth(
+          feature: DataFeature.sharedLibraries,
+          level: HealthLevel.notSetUp,
+          reason: HealthReason.notSetUp,
+        ),
+        health[3],
+      ],
+      librariesStatus: const DataRowStatus(DataRowStatusKind.checking),
+    );
+
+    expect(markBeside('Shared site libraries'), findsNothing);
+    expect(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text('Shared site libraries'),
+          matching: find.byType(ListTile),
+        ),
+        matching: find.byIcon(Icons.groups_outlined),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('an amber row says why', (tester) async {
+    await pumpData(tester);
+
+    expect(find.text('Club Sites: your edits are on hold'), findsOneWidget);
+  });
+
+  group('Sign in again in its row (#3811, #4561)', () {
+    const google = AccountGroup(
+      key: 'googledrive',
+      kind: AccountKind.googledrive,
+      label: 'Google Drive',
+      address: '',
+      rows: [],
+      status: AccountStatus.needsSignIn,
+      usages: [],
+      usagesKnown: true,
+      locations: {},
+      roles: {},
+      usageRoles: {},
+      rowStatuses: {},
+    );
+
+    List<FeatureHealth> withSync(HealthReason reason) => [
+      health[0],
+      FeatureHealth(
+        feature: DataFeature.sync,
+        level: HealthLevel.failing,
+        reason: reason,
+      ),
+      health[2],
+      health[3],
+    ];
+
+    Finder inRow(String title, Finder f) => find.descendant(
+      of: find.ancestor(of: find.text(title), matching: find.byType(ListTile)),
+      matching: f,
+    );
+
+    testWidgets('a signed-out sync row offers it beside its reason', (
+      tester,
+    ) async {
+      await pumpData(
+        tester,
+        dataHealth: withSync(HealthReason.syncSignedOut),
+        signInGroup: google,
+      );
+
+      expect(
+        inRow('Sync between devices', find.text('Sign in again')),
+        findsOneWidget,
+      );
+      expect(find.text('Sync paused: sign in again'), findsOneWidget);
+    });
+
+    testWidgets('a row sign-in would not fix does not', (tester) async {
+      await pumpData(
+        tester,
+        dataHealth: withSync(HealthReason.syncFailed),
+        signInGroup: google,
+      );
+
+      expect(find.text('Sign in again'), findsNothing);
+    });
+
+    testWidgets('it fits a narrow phone at large text', (tester) async {
+      await pumpData(
+        tester,
+        dataHealth: withSync(HealthReason.syncSignedOut),
+        signInGroup: google,
+        size: const Size(320, 3200),
+        textScale: 2,
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Sign in again'), findsOneWidget);
+    });
   });
 
   testWidgets('sync row names the only peer', (tester) async {
@@ -227,8 +365,8 @@ void main() {
   testWidgets('sync row reads off with no provider and offers set up', (
     tester,
   ) async {
-    // Signing out keeps the last sync timestamp, so the row must follow the
-    // strip, not the timestamp.
+    // Signing out keeps the last sync timestamp, so the row must follow
+    // health, not the timestamp; amber, it says why (#4561).
     await pumpData(
       tester,
       dataHealth: [
@@ -245,12 +383,12 @@ void main() {
       peers: const ["Eric's iPhone"],
     );
 
-    expect(find.text('Only on this device'), findsOneWidget);
+    expect(find.text('Recommended: turn on cloud sync'), findsOneWidget);
     expect(find.textContaining('In step'), findsNothing);
     await tester.tap(
       find.descendant(
         of: find.ancestor(
-          of: find.text('Only on this device'),
+          of: find.text('Recommended: turn on cloud sync'),
           matching: find.byType(ListTile),
         ),
         matching: find.text('Set up'),
@@ -283,7 +421,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.ancestor(
-          of: find.text('Only on this device'),
+          of: find.text('Recommended: turn on cloud sync'),
           matching: find.byType(ListTile),
         ),
         matching: find.text('Set up'),
@@ -394,7 +532,7 @@ void main() {
   ) async {
     await pumpData(tester);
     final container = ProviderScope.containerOf(
-      tester.element(find.byType(DataHealthStrip)),
+      tester.element(find.byType(DataSectionContent)),
     );
     expect(
       container.read(backupSettingsProvider).lastScheduledFailureAt,
@@ -470,16 +608,12 @@ void main() {
       find.descendant(of: find.byType(DataSectionContent), matching: f);
 
   group('the set up card', () {
-    testWidgets('sits between the strip and the facts line', (tester) async {
+    testWidgets('sits above the facts line', (tester) async {
       await pumpData(tester, setUp: setUpProgressOf(accountHere: true));
 
       final card = inDataPage(find.byType(SetUpDeviceCard));
       expect(card, findsOneWidget);
       expect(tester.widget<SetUpDeviceCard>(card).compact, isFalse);
-      expect(
-        tester.getTopLeft(find.byType(DataHealthStrip)).dy,
-        lessThan(tester.getTopLeft(card).dy),
-      );
       expect(
         tester.getTopLeft(card).dy,
         lessThan(tester.getTopLeft(find.byType(DataFactsLine)).dy),
@@ -545,7 +679,7 @@ void main() {
     });
   });
 
-  testWidgets('a Lightroom-only photos row draws no healthy mark', (
+  testWidgets('a Lightroom-only photos row reads as not set up', (
     tester,
   ) async {
     // Lightroom alone makes media health healthy, but no copies are kept;
@@ -565,7 +699,10 @@ void main() {
     );
 
     expect(find.text('Copies are not kept in the cloud'), findsOneWidget);
-    expect(markBeside('Photos & videos'), findsNothing);
+    expect(
+      tester.widget<HealthSymbol>(markBeside('Photos & videos')).level,
+      HealthLevel.notSetUp,
+    );
   });
 
   group('demo mode (#3708)', () {
@@ -679,8 +816,8 @@ void main() {
         }
         expect(find.text('Unavailable in demo mode'), findsNWidgets(6));
         expect(find.byType(SetUpDeviceCard), findsNothing);
-        // The health strip would only recommend sealed backups and sync.
-        expect(find.byType(DataHealthStrip), findsNothing);
+        // No status for the user's real data while demo data shows.
+        expect(find.byType(HealthSymbol), findsNothing);
       },
     );
 

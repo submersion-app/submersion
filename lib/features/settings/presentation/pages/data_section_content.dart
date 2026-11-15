@@ -13,7 +13,9 @@ import 'package:submersion/features/settings/presentation/providers/data_row_sta
 import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_facts_line.dart';
-import 'package:submersion/features/settings/presentation/widgets/data_health/data_health_strip.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again_button.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_text.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_row_status_text.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_row_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_device_card.dart';
@@ -28,10 +30,11 @@ import 'package:submersion/features/demo_mode/presentation/widgets/demo_enter_di
 import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_confirm.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-/// Settings > Data: the health strip, the Set up this device card and the
-/// facts line (#3390, #3482), then the "Your data" rows, each with the
-/// strip's health mark (#3394) and a one-sentence status, then the rarely
-/// used rows under "Advanced" (#3482), demo mode's among them (#3736).
+/// Settings > Data: the Set up this device card and the facts line (#3482),
+/// then the "Your data" rows, each leading with its feature's health symbol
+/// and one sentence, the reason when it is amber or red (#4561), then the
+/// rarely used rows under "Advanced" (#3482), demo mode's among them
+/// (#3736).
 class DataSectionContent extends ConsumerStatefulWidget {
   const DataSectionContent({super.key});
 
@@ -98,18 +101,39 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       required String route,
       DataFeature? healthOf,
       SetUpStep? setUpStep,
-    }) => DataRowTile(
-      icon: icon,
-      title: title,
-      subtitle: dataRowStatusText(l10n, status, now),
-      route: route,
-      enabled: !demoActive,
-      health: healthOf == null || !status.showsHealthMark
+    }) {
+      final h = healthOf == null ? null : health[healthOf];
+      // A row still checking keeps its icon: health reads a feature whose
+      // inputs are loading as not set up, which the dash would misreport.
+      // A photos-off row reads as not set up whatever Lightroom alone says.
+      final level = h == null || status.kind == DataRowStatusKind.checking
           ? null
-          : health[healthOf],
-      offersSetUp: status.offersSetUp,
-      setUpRoute: setUpStep == null ? null : setUpStepRoute(setUpStep),
-    );
+          : status.showsHealthMark
+          ? h.level
+          : HealthLevel.notSetUp;
+      // An amber or red row says why it is that colour (#4561).
+      final warns =
+          level == HealthLevel.attention || level == HealthLevel.failing;
+      return DataRowTile(
+        icon: icon,
+        title: title,
+        subtitle: warns
+            ? healthReasonText(l10n, h!, now)
+            : dataRowStatusText(l10n, status, now),
+        route: route,
+        enabled: !demoActive,
+        healthLevel: level,
+        // Signing in removes the reason, so the action runs from this page.
+        statusAction: h != null && warns && offersSignInAgain(h)
+            ? SignInAgainButton(
+                feature: h.feature,
+                onPressed: (group) => signInAgain(context, ref, group),
+              )
+            : null,
+        offersSetUp: status.offersSetUp,
+        setUpRoute: setUpStep == null ? null : setUpStepRoute(setUpStep),
+      );
+    }
 
     final caps = ref.watch(deviceCapabilitiesProvider);
     // Null natively and before a browser's database is open.
@@ -134,13 +158,9 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // In demo mode the strip could only recommend sealed backups and
-          // sync, so it goes with the set-up card.
-          if (!demoActive) ...[
-            const DataHealthStrip(),
-            const SizedBox(height: 12),
+          // In demo mode the card could only set up sealed backups and sync.
+          if (!demoActive)
             const SetUpDeviceCard(margin: EdgeInsets.only(bottom: 12)),
-          ],
           const DataFactsLine(),
           const SizedBox(height: 12),
           const Divider(height: 1),

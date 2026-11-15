@@ -39,26 +39,9 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('no mark for a feature that is not set up', (tester) async {
-    await pumpTile(
-      tester,
-      const DataRowTile(
-        icon: Icons.photo,
-        title: 'Photos & videos',
-        subtitle: 'Copies are not kept in the cloud',
-        route: '/feature',
-        health: FeatureHealth(
-          feature: DataFeature.media,
-          level: HealthLevel.notSetUp,
-          reason: HealthReason.notSetUp,
-        ),
-      ),
-    );
-    expect(find.byType(HealthSymbol), findsNothing);
-    expect(find.text('Copies are not kept in the cloud'), findsOneWidget);
-  });
-
-  testWidgets('a 16 dp mark for any other level', (tester) async {
+  // Issue #4561: the row is the feature's status, so the symbol takes the
+  // leading slot and the title carries no second mark.
+  testWidgets('the status symbol leads the row', (tester) async {
     await pumpTile(
       tester,
       const DataRowTile(
@@ -66,15 +49,117 @@ void main() {
         title: 'Backups',
         subtitle: 'Not backed up yet',
         route: '/feature',
-        health: FeatureHealth(
-          feature: DataFeature.backup,
-          level: HealthLevel.attention,
-          reason: HealthReason.backupNever,
-        ),
+        healthLevel: HealthLevel.attention,
       ),
     );
     final mark = tester.widget<HealthSymbol>(find.byType(HealthSymbol));
-    expect((mark.level, mark.size), (HealthLevel.attention, 16));
+    expect((mark.level, mark.size), (HealthLevel.attention, 24));
+    expect(
+      tester.widget<ListTile>(find.byType(ListTile)).leading,
+      isA<HealthSymbol>(),
+    );
+    expect(find.byIcon(Icons.backup), findsNothing);
+  });
+
+  testWidgets('not set up leads with the hollow symbol', (tester) async {
+    await pumpTile(
+      tester,
+      const DataRowTile(
+        icon: Icons.photo,
+        title: 'Photos & videos',
+        subtitle: 'Copies are not kept in the cloud',
+        route: '/feature',
+        healthLevel: HealthLevel.notSetUp,
+      ),
+    );
+    expect(
+      tester.widget<HealthSymbol>(find.byType(HealthSymbol)).level,
+      HealthLevel.notSetUp,
+    );
+  });
+
+  testWidgets('a row with no health keeps its icon', (tester) async {
+    await pumpTile(
+      tester,
+      const DataRowTile(
+        icon: Icons.history,
+        title: 'Change log',
+        subtitle: 'Every edit',
+        route: '/feature',
+      ),
+    );
+    expect(find.byType(HealthSymbol), findsNothing);
+    expect(find.byIcon(Icons.history), findsOneWidget);
+  });
+
+  testWidgets('a disabled row keeps its icon and shows no status', (
+    tester,
+  ) async {
+    await pumpTile(
+      tester,
+      const DataRowTile(
+        icon: Icons.backup,
+        title: 'Backups',
+        subtitle: 'Not backed up yet',
+        route: '/feature',
+        healthLevel: HealthLevel.failing,
+        enabled: false,
+      ),
+    );
+    expect(find.byType(HealthSymbol), findsNothing);
+    expect(find.byIcon(Icons.backup), findsOneWidget);
+  });
+
+  group('status action', () {
+    const action = Key('action');
+    const tile = DataRowTile(
+      icon: Icons.sync,
+      title: 'Sync between devices',
+      subtitle: 'Sync paused: sign in again',
+      route: '/feature',
+      healthLevel: HealthLevel.failing,
+      statusAction: TextButton(
+        key: action,
+        onPressed: null,
+        child: Text('Sign in again'),
+      ),
+    );
+
+    testWidgets('sits beside the sentence while it fits', (tester) async {
+      await pumpTile(tester, tile);
+      expect(
+        tester.getTopLeft(find.byKey(action)).dy,
+        lessThan(tester.getBottomLeft(find.text(tile.subtitle)).dy),
+      );
+    });
+
+    testWidgets('goes under the sentence on a narrow phone at large text', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(320, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: const TextScaler.linear(2)),
+              child: const Scaffold(body: tile),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getTopLeft(find.byKey(action)).dy,
+        greaterThanOrEqualTo(tester.getBottomLeft(find.text(tile.subtitle)).dy),
+      );
+    });
   });
 
   testWidgets('Set up opens the set up route, the row opens its own', (

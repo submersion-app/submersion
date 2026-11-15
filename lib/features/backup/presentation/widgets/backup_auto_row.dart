@@ -7,6 +7,8 @@ import 'package:submersion/features/backup/presentation/widgets/backup_choice_di
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_marked_title.dart';
 
 /// "Back up automatically", with how often in its subtitle; tapping the
 /// frequency changes it (spec section 8.2).
@@ -20,7 +22,12 @@ class BackupAutoRow extends ConsumerWidget {
     final notifier = ref.read(backupSettingsProvider.notifier);
     return SwitchListTile(
       secondary: const Icon(Icons.schedule),
-      title: Text(l10n.settings_backups_auto),
+      // Marked while off, the reason Settings > Data is amber (#4561).
+      title: HealthMarkedTitle(
+        title: Text(l10n.settings_backups_auto),
+        feature: DataFeature.backup,
+        reasons: const {HealthReason.backupAutoOff},
+      ),
       value: settings.enabled,
       onChanged: notifier.setEnabled,
       subtitle: settings.enabled

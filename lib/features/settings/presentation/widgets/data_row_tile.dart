@@ -7,14 +7,16 @@ import 'package:submersion/features/settings/presentation/widgets/settings_pane_
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
-/// One row of Settings > Data (issue #3482): an icon, the feature's name
-/// with its health mark, a one-sentence status with a "Set up" action under
-/// it for a feature that is not set up, and a chevron. The whole row opens
-/// [route] (or runs [onTap]); the button opens [setUpRoute], or [route] when
-/// none is given. A row that is not [enabled] is greyed out and says it is
-/// unavailable in demo mode (issue #3708). A row with neither [route] nor
-/// [onTap] only informs: no chevron and nothing to tap (a browser's
-/// database storage, issue #4121).
+/// One row of Settings > Data (issue #3482): an icon, the feature's name, a
+/// one-sentence status with a "Set up" action under it for a feature that is
+/// not set up, and a chevron. A feature row is its status (#4561): the health
+/// symbol takes the icon's place and [statusAction] (Sign in again) sits
+/// beside the sentence, or under it where it would leave the sentence no
+/// room. The whole row opens [route] (or runs [onTap]); the button opens
+/// [setUpRoute], or [route] when none is given. A row that is not [enabled]
+/// is greyed out with its plain icon and says it is unavailable in demo mode
+/// (issue #3708). A row with neither [route] nor [onTap] only informs: no
+/// chevron and nothing to tap (a browser's database storage, issue #4121).
 class DataRowTile extends StatelessWidget {
   const DataRowTile({
     super.key,
@@ -23,7 +25,8 @@ class DataRowTile extends StatelessWidget {
     required this.subtitle,
     this.route,
     this.onTap,
-    this.health,
+    this.healthLevel,
+    this.statusAction,
     this.offersSetUp = false,
     this.setUpRoute,
     this.enabled = true,
@@ -39,18 +42,25 @@ class DataRowTile extends StatelessWidget {
   final VoidCallback? onTap;
   final bool enabled;
 
-  /// Drawn as a 16 dp mark beside the title unless the feature is not set up.
-  final FeatureHealth? health;
+  /// The feature's status, drawn in the leading slot. Null for a row that
+  /// has none (accounts, change log, the Advanced rows).
+  final HealthLevel? healthLevel;
+
+  /// An action that belongs to the status sentence (Sign in again).
+  final Widget? statusAction;
 
   final bool offersSetUp;
   final String? setUpRoute;
 
+  /// Logical width, at normal text size, below which [statusAction] goes
+  /// under the sentence.
+  static const double _minWidthBeside = 300;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final h = health;
+    final level = healthLevel;
     final target = route;
-    final showMark = enabled && h != null && h.level != HealthLevel.notSetUp;
     if (!enabled) {
       return ListTile(
         enabled: false,
@@ -60,22 +70,39 @@ class DataRowTile extends StatelessWidget {
         subtitle: Text(l10n.demo_row_unavailable),
       );
     }
+    final action = statusAction;
+    final Widget status = action == null
+        ? Text(subtitle)
+        : LayoutBuilder(
+            builder: (context, constraints) {
+              // Beside the sentence while it fits, under it on a narrow
+              // phone at large text.
+              final textScale = MediaQuery.textScalerOf(context).scale(1);
+              final beside =
+                  constraints.maxWidth / textScale >= _minWidthBeside;
+              return beside
+                  ? Row(
+                      children: [
+                        Expanded(child: Text(subtitle)),
+                        action,
+                      ],
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [Text(subtitle), action],
+                    );
+            },
+          );
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon),
-      title: showMark
-          ? Row(
-              children: [
-                Flexible(child: Text(title)),
-                const SizedBox(width: 8),
-                HealthSymbol(
-                  level: h.level,
-                  size: 16,
-                  semanticLabel: healthSemanticsLabel(l10n, h),
-                ),
-              ],
-            )
-          : Text(title),
+      leading: level == null
+          ? Icon(icon)
+          : HealthSymbol(
+              level: level,
+              size: 24,
+              semanticLabel: healthLevelLabel(l10n, level),
+            ),
+      title: Text(title),
       // The Set up action sits on its own line under the status, never in
       // trailing, where a translated label would squeeze the title (#2717).
       subtitle: offersSetUp
@@ -83,7 +110,7 @@ class DataRowTile extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(subtitle),
+                status,
                 TileSubtitleAction(
                   label: l10n.settings_data_setUp,
                   // Several rows offer Set up; name the one this acts on.
@@ -93,7 +120,7 @@ class DataRowTile extends StatelessWidget {
                 ),
               ],
             )
-          : Text(subtitle),
+          : status,
       trailing: route == null && onTap == null
           ? null
           : const Icon(Icons.chevron_right),

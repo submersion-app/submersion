@@ -16,6 +16,7 @@ void main() {
     bool lastCloudCopyNeedsSignIn = false,
     bool copyAccountNeedsSignIn = false,
     bool lastExtraCopyMissing = false,
+    List<String> extraCopyMissingIds = const [],
     bool hasCustomLocation = false,
     bool syncConfigured = false,
     bool noBackup = false,
@@ -31,6 +32,7 @@ void main() {
     lastCloudCopyNeedsSignIn: lastCloudCopyNeedsSignIn,
     copyAccountNeedsSignIn: copyAccountNeedsSignIn,
     lastExtraCopyMissing: lastExtraCopyMissing,
+    extraCopyMissingIds: extraCopyMissingIds,
     hasCustomLocation: hasCustomLocation,
     syncConfigured: syncConfigured,
   );
@@ -292,7 +294,9 @@ void main() {
         level: HealthLevel.attention,
         reason: HealthReason.syncAutoOff,
       );
-      expect(pickHealth(DataFeature.sync, const [a, b]), a);
+      // The headline now carries the candidates as findings, so compare the
+      // reason the tie is decided on.
+      expect(pickHealth(DataFeature.sync, const [a, b]).reason, a.reason);
     });
   });
 
@@ -329,6 +333,85 @@ void main() {
         HealthLevel.healthy,
         HealthReason.ok,
       );
+    });
+  });
+
+  group('findings (#4561)', () {
+    List<HealthReason> reasons(FeatureHealth h) => [
+      for (final f in h.findings) f.reason,
+    ];
+
+    test('auto off keeps its headline and lists the copy findings', () {
+      final h = evaluateBackupHealth(
+        inputs(autoEnabled: false, cloudBackupEnabled: false),
+        now,
+      );
+      expect(h.reason, HealthReason.backupAutoOff);
+      expect(reasons(h), [
+        HealthReason.backupAutoOff,
+        HealthReason.backupNoOffDeviceCopy,
+      ]);
+    });
+
+    test('auto off lists no schedule findings', () {
+      final h = evaluateBackupHealth(
+        inputs(
+          autoEnabled: false,
+          noBackup: true,
+          lastScheduledFailureAt: now.subtract(const Duration(days: 1)),
+          syncConfigured: true,
+        ),
+        now,
+      );
+      expect(reasons(h), [HealthReason.backupAutoOff]);
+    });
+
+    test('auto off with a copy sign-in marks both the copy and the switch', () {
+      final h = evaluateBackupHealth(
+        inputs(
+          autoEnabled: false,
+          lastCloudCopyMissing: true,
+          lastCloudCopyNeedsSignIn: true,
+        ),
+        now,
+      );
+      expect(h.reason, HealthReason.backupCloudSignIn);
+      expect(reasons(h), [
+        HealthReason.backupCloudSignIn,
+        HealthReason.backupAutoOff,
+      ]);
+    });
+
+    test('one extra copy finding per account that missed it', () {
+      final h = evaluateBackupHealth(
+        inputs(lastExtraCopyMissing: true, extraCopyMissingIds: ['x', 'y']),
+        now,
+      );
+      final extras = h.findings
+          .where((f) => f.reason == HealthReason.backupExtraCopyMissing)
+          .map((f) => f.subjectId)
+          .toList();
+      expect(extras, ['x', 'y']);
+      expect(h.reason, HealthReason.backupExtraCopyMissing);
+    });
+
+    test('auto on lists every candidate', () {
+      final h = evaluateBackupHealth(
+        inputs(
+          lastBackupAt: now.subtract(const Duration(days: 30)),
+          cloudBackupEnabled: false,
+        ),
+        now,
+      );
+      expect(h.reason, HealthReason.backupOverdue);
+      expect(reasons(h), [
+        HealthReason.backupOverdue,
+        HealthReason.backupNoOffDeviceCopy,
+      ]);
+    });
+
+    test('healthy has no findings', () {
+      expect(evaluateBackupHealth(inputs(), now).findings, isEmpty);
     });
   });
 }

@@ -22,6 +22,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 
 import '../../../../support/fake_keychain_storage.dart';
 
@@ -110,6 +112,10 @@ class PhotosPageHarness {
     PhotosCopies Function()? copies,
     MediaTransferSummary summary = const MediaTransferSummary(),
     List<dynamic> extraOverrides = const [],
+    // Whether the attached store opens here; null while still checking.
+    bool? reachable = true,
+    // Media health as the page's marks read it (#4561); healthy by default.
+    FeatureHealth? mediaHealth,
   }) => ProviderScope(
     overrides: [
       mediaStoreRuntimeProvider.overrideWith((ref) async => null),
@@ -128,7 +134,10 @@ class PhotosPageHarness {
               label: statusHint,
             ),
       ),
-      photosStoreReachableProvider.overrideWithValue(true),
+      photosStoreReachableProvider.overrideWithValue(reachable),
+      mediaHealthProvider.overrideWithValue(
+        mediaHealth ?? pickHealth(DataFeature.media, const []),
+      ),
       mediaUploadProgressProvider.overrideWith(
         (ref) async => (copied: 0, total: 0),
       ),

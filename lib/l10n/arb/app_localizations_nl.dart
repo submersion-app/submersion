@@ -28452,15 +28452,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get dataHealth_feature_backup => 'Back-ups';
-
-  @override
-  String get dataHealth_feature_sync => 'Synchronisatie';
-
-  @override
-  String get dataHealth_feature_libraries => 'Bibliotheken';
-
-  @override
   String get dataHealth_level_healthy => 'In orde';
 
   @override
@@ -28471,11 +28462,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dataHealth_level_notSetUp => 'Niet ingesteld';
-
-  @override
-  String dataHealth_semantics(String feature, String status) {
-    return '$feature: $status';
-  }
 
   @override
   String get dataHealth_backup_autoOff =>
@@ -28744,9 +28730,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_section_data_tagline =>
       'Back-ups, synchronisatie en foto\'s';
-
-  @override
-  String get dataHealth_feature_photos => 'Foto\'s';
 
   @override
   String get settings_data_backups_status_never => 'Nog geen back-up';

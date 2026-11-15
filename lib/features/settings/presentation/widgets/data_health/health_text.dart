@@ -1,22 +1,6 @@
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// The page each feature's strip item, attention line and row opens.
-String dataFeatureRoute(DataFeature feature) => switch (feature) {
-  DataFeature.backup => '/settings/backup',
-  DataFeature.sync => '/settings/cloud-sync',
-  DataFeature.sharedLibraries => '/settings/shared-libraries',
-  DataFeature.media => '/settings/photos-media',
-};
-
-String dataFeatureLabel(AppLocalizations l10n, DataFeature feature) =>
-    switch (feature) {
-      DataFeature.backup => l10n.dataHealth_feature_backup,
-      DataFeature.sync => l10n.dataHealth_feature_sync,
-      DataFeature.sharedLibraries => l10n.dataHealth_feature_libraries,
-      DataFeature.media => l10n.dataHealth_feature_photos,
-    };
-
 String healthLevelLabel(AppLocalizations l10n, HealthLevel level) =>
     switch (level) {
       HealthLevel.healthy => l10n.dataHealth_level_healthy,
@@ -24,14 +8,6 @@ String healthLevelLabel(AppLocalizations l10n, HealthLevel level) =>
       HealthLevel.failing => l10n.dataHealth_level_failing,
       HealthLevel.notSetUp => l10n.dataHealth_level_notSetUp,
     };
-
-/// "Backup: Needs attention", read by screen readers for a strip item and a
-/// row mark alike.
-String healthSemanticsLabel(AppLocalizations l10n, FeatureHealth health) =>
-    l10n.dataHealth_semantics(
-      dataFeatureLabel(l10n, health.feature),
-      healthLevelLabel(l10n, health.level),
-    );
 
 /// "3h ago" style relative time, shared with the backup row's subtitle.
 String relativeAgo(AppLocalizations l10n, DateTime at, DateTime now) {
@@ -42,9 +18,9 @@ String relativeAgo(AppLocalizations l10n, DateTime at, DateTime now) {
   return l10n.backup_time_daysAgo(diff.inDays);
 }
 
-/// The one-line reason shown under the strip for a feature that is failing
-/// or needs attention. Healthy and not set up have no line, so they read as
-/// an empty string.
+/// The one-line reason a Data row and a page mark give for a feature that
+/// is failing or needs attention. Healthy and not set up have no line, so
+/// they read as an empty string.
 String healthReasonText(
   AppLocalizations l10n,
   FeatureHealth health,
@@ -88,5 +64,10 @@ String healthReasonText(
     ),
     HealthReason.mediaFinishSetup => l10n.dataHealth_media_finishSetup,
     HealthReason.mediaTransfersPaused => l10n.dataHealth_media_transfersPaused,
+    // The Photos status line's own words, so the row and the page agree.
+    HealthReason.mediaStoreUnreachable =>
+      name.isEmpty
+          ? l10n.settings_photos_status_pausedUnreachable
+          : l10n.settings_photos_status_unreachable(name),
   };
 }

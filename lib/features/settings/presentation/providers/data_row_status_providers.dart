@@ -16,14 +16,15 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 /// The one-sentence statuses under the Settings > Data rows (issue #3482).
 ///
 /// Every status reads the feature's health from [dataHealthProvider], the
-/// list the strip draws, plus a small leaf input of its own. The leaves are
-/// providers so a widget test can override them without a database. None
-/// builds the media store runtime or probes an account: opening Settings
-/// must not drain the upload queue or add keychain and network calls.
+/// list the rows' symbols draw, plus a small leaf input of its own. The
+/// leaves are providers so a widget test can override them without a
+/// database. No leaf builds the media store runtime or probes an account;
+/// only the media health does, and only while a store is attached here, to
+/// tell an unreachable store (#4561).
 ///
-/// Leaves read an async value the way the strip does: the value first, so a
-/// failed refresh keeps the last good answer (Riverpod keeps it on the
-/// error), and the error only when there never was a value.
+/// Leaves read an async value the way the health model does: the value
+/// first, so a failed refresh keeps the last good answer (Riverpod keeps it
+/// on the error), and the error only when there never was a value.
 
 FeatureHealth _healthOf(Ref ref, DataFeature feature) =>
     ref.watch(dataHealthProvider).firstWhere((h) => h.feature == feature);
@@ -98,8 +99,8 @@ final mediaStoreAttachedHereProvider = Provider.autoDispose<bool?>((ref) {
 });
 
 /// The joined libraries: null while they first load, the last known list
-/// after a failed refresh, and none when they never loaded (the strip reads
-/// that as none joined too).
+/// after a failed refresh, and none when they never loaded (the health
+/// model reads that as none joined too).
 List<T>? librariesOrNull<T>(List<T>? libraries, {required bool hasError}) =>
     libraries ?? (hasError ? <T>[] : null);
 

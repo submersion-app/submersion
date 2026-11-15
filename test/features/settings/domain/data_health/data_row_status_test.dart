@@ -1,5 +1,5 @@
 // Issue #3482: the one-sentence statuses under the Settings > Data rows are
-// derived from the same inputs as the health strip, by pure functions.
+// derived from the same inputs as the health model, by pure functions.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
@@ -199,24 +199,21 @@ void main() {
       expect(s.kind, DataRowStatusKind.syncSynced);
     });
 
-    test(
-      'conflicts, held peers and a long offline spell show the strip line',
-      () {
-        for (final reason in [
-          HealthReason.syncConflicts,
-          HealthReason.syncPeersHeld,
-          HealthReason.syncOffline,
-        ]) {
-          final s = syncRowStatus(
-            health: sync(HealthLevel.attention, reason),
-            lastSync: at,
-            peerNames: const ['Eric\'s iPhone'],
-          );
-          expect(s.kind, DataRowStatusKind.syncAttention, reason: '$reason');
-          expect(s.health?.reason, reason);
-        }
-      },
-    );
+    test('conflicts, held peers and a long offline spell show the reason', () {
+      for (final reason in [
+        HealthReason.syncConflicts,
+        HealthReason.syncPeersHeld,
+        HealthReason.syncOffline,
+      ]) {
+        final s = syncRowStatus(
+          health: sync(HealthLevel.attention, reason),
+          lastSync: at,
+          peerNames: const ['Eric\'s iPhone'],
+        );
+        expect(s.kind, DataRowStatusKind.syncAttention, reason: '$reason');
+        expect(s.health?.reason, reason);
+      }
+    });
 
     test('automatic sync off still reads as in step', () {
       final s = syncRowStatus(

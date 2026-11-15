@@ -27928,15 +27928,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get dataHealth_feature_backup => 'גיבויים';
-
-  @override
-  String get dataHealth_feature_sync => 'סנכרון';
-
-  @override
-  String get dataHealth_feature_libraries => 'ספריות';
-
-  @override
   String get dataHealth_level_healthy => 'תקין';
 
   @override
@@ -27947,11 +27938,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataHealth_level_notSetUp => 'לא הוגדר';
-
-  @override
-  String dataHealth_semantics(String feature, String status) {
-    return '$feature: $status';
-  }
 
   @override
   String get dataHealth_backup_autoOff => 'מומלץ: הפעל גיבויים אוטומטיים';
@@ -28212,9 +28198,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_section_data_tagline => 'גיבויים, סנכרון ותמונות';
-
-  @override
-  String get dataHealth_feature_photos => 'תמונות';
 
   @override
   String get settings_data_backups_status_never => 'עדיין לא גובה';

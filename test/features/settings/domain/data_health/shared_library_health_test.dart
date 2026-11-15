@@ -6,12 +6,14 @@ import 'package:submersion/features/settings/domain/data_health/shared_library_h
 void main() {
   LibraryHealthInput lib(
     String name, {
+    String? id,
     String? lastError,
     bool rolesRejected = false,
     bool pendingRolesWaiting = false,
     bool readOnlyDetected = false,
     SharedLibraryRole listedRole = SharedLibraryRole.editor,
   }) => LibraryHealthInput(
+    id: id ?? name.toLowerCase(),
     name: name,
     lastError: lastError,
     rolesRejected: rolesRejected,
@@ -99,5 +101,39 @@ void main() {
       HealthLevel.failing,
       HealthReason.librariesFailed,
     );
+  });
+
+  group('findings (#4561)', () {
+    test('one per failing or held library, each with its id', () {
+      final h = evaluateSharedLibraryHealth([
+        lib('A', lastError: 'boom'),
+        lib('B', rolesRejected: true),
+        lib('C'),
+      ]);
+      expectHealth(h, HealthLevel.failing, HealthReason.librariesFailed);
+      expect(h.count, 1);
+      expect(h.name, 'A');
+      expect(
+        [for (final f in h.findings) (f.reason, f.subjectId, f.level)],
+        [
+          (HealthReason.librariesFailed, 'a', HealthLevel.failing),
+          (HealthReason.librariesEditsHeld, 'b', HealthLevel.attention),
+        ],
+      );
+    });
+
+    test('held edits alone keep their headline', () {
+      final h = evaluateSharedLibraryHealth([
+        lib('A'),
+        lib('B', rolesRejected: true),
+      ]);
+      expectHealth(h, HealthLevel.attention, HealthReason.librariesEditsHeld);
+      expect(h.name, 'B');
+      expect(h.findings.single.subjectId, 'b');
+    });
+
+    test('healthy has no findings', () {
+      expect(evaluateSharedLibraryHealth([lib('A')]).findings, isEmpty);
+    });
   });
 }

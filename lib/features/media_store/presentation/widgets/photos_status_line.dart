@@ -12,6 +12,8 @@ import 'package:submersion/features/settings/presentation/providers/pending_setu
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_marked_title.dart';
 
 /// The one sentence that says what is true of photo copies here (spec
 /// section 8.3), including the runtime fact that the store could be opened
@@ -46,14 +48,20 @@ class PhotosStatusLine extends ConsumerWidget {
         status is PhotosPaused ||
         status is PhotosUnreachable ||
         status is PhotosFinishSettingUp;
-    final theme = Theme.of(context);
+    // The shape says what is happening; the mark is the colour (#4561).
     return ListTile(
       key: const Key('photos-status'),
       leading: Icon(
         attention ? Icons.error_outline : Icons.cloud_done_outlined,
-        color: attention ? theme.colorScheme.error : null,
       ),
-      title: Text(photosStatusText(l10n, status, copies.label ?? '')),
+      title: HealthMarkedTitle(
+        title: Text(photosStatusText(l10n, status, copies.label ?? '')),
+        feature: DataFeature.media,
+        reasons: const {
+          HealthReason.mediaTransfersPaused,
+          HealthReason.mediaStoreUnreachable,
+        },
+      ),
       // A mismatch is the one pause the diver resolves: the guided
       // reconnect (issue #2303) says what each way out does.
       subtitle:

@@ -4,6 +4,7 @@ import 'package:submersion/features/settings/domain/data_health/feature_health.d
 /// What the health rules read from one joined shared library.
 class LibraryHealthInput {
   const LibraryHealthInput({
+    required this.id,
     required this.name,
     required this.lastError,
     required this.rolesRejected,
@@ -12,6 +13,9 @@ class LibraryHealthInput {
     required this.listedRole,
   });
 
+  /// The library's id, so its tile on the Shared libraries page carries its
+  /// own mark (#4561).
+  final String id;
   final String name;
   final String? lastError;
   final bool rolesRejected;
@@ -39,25 +43,37 @@ FeatureHealth evaluateSharedLibraryHealth(List<LibraryHealthInput> libraries) {
       reason: HealthReason.notSetUp,
     );
   }
-  final failed = libraries.where((l) => l.lastError != null).toList();
-  if (failed.isNotEmpty) {
-    return FeatureHealth(
-      feature: DataFeature.sharedLibraries,
-      level: HealthLevel.failing,
-      reason: HealthReason.librariesFailed,
-      name: failed.first.name,
-      count: failed.length,
+  FeatureHealth finding(
+    LibraryHealthInput l,
+    HealthLevel level,
+    HealthReason reason,
+  ) => FeatureHealth(
+    feature: DataFeature.sharedLibraries,
+    level: level,
+    reason: reason,
+    name: l.name,
+    subjectId: l.id,
+  );
+  // One finding per library, so each tile is marked on its own.
+  final findings = List<FeatureHealth>.unmodifiable([
+    for (final l in libraries)
+      if (l.lastError != null)
+        finding(l, HealthLevel.failing, HealthReason.librariesFailed),
+    for (final l in libraries)
+      if (l.editsHeld)
+        finding(l, HealthLevel.attention, HealthReason.librariesEditsHeld),
+  ]);
+  if (findings.isNotEmpty) {
+    // Failures come first, so the headline is the first failing library
+    // with the count of them, else the first library holding edits.
+    final headline = findings.first;
+    final failed = findings.where(
+      (f) => f.reason == HealthReason.librariesFailed,
     );
-  }
-  for (final library in libraries) {
-    if (library.editsHeld) {
-      return FeatureHealth(
-        feature: DataFeature.sharedLibraries,
-        level: HealthLevel.attention,
-        reason: HealthReason.librariesEditsHeld,
-        name: library.name,
-      );
-    }
+    return headline.copyWith(
+      count: failed.isEmpty ? null : failed.length,
+      findings: findings,
+    );
   }
   return FeatureHealth(
     feature: DataFeature.sharedLibraries,

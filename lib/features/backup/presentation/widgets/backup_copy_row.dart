@@ -13,6 +13,12 @@ import 'package:submersion/features/settings/presentation/widgets/accounts/accou
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_using_row.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again_button.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_marked_title.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_text.dart';
 
 /// "Copy to {account}" with Change, or "No copy off this device" with
 /// Choose an account (spec section 8.2). The sheet offers every account
@@ -66,15 +72,36 @@ class BackupCopyRow extends ConsumerWidget {
         false,
       ),
     };
+    // A copy that did not arrive says so here, beside its account, so the
+    // mark has words; one that needs a sign-in also offers it (#4561).
+    final missing = findingFor(ref.watch(backupHealthProvider), const {
+      HealthReason.backupCloudSignIn,
+      HealthReason.backupCloudCopyMissing,
+    });
     return ListTile(
       key: const Key('backup-copy'),
       leading: Icon(icon),
-      title: Text(title),
+      title: HealthMarkedTitle(
+        title: Text(title),
+        feature: DataFeature.backup,
+        reasons: const {
+          HealthReason.backupCloudCopyMissing,
+          HealthReason.backupCloudSignIn,
+          HealthReason.backupNoOffDeviceCopy,
+        },
+      ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           if (detail != null) Text(detail),
+          if (missing != null)
+            Text(healthReasonText(l10n, missing, DateTime.now())),
+          if (missing?.reason == HealthReason.backupCloudSignIn)
+            SignInAgainButton(
+              feature: DataFeature.backup,
+              onPressed: (group) => signInAgain(context, ref, group),
+            ),
           TileSubtitleAction(
             actionKey: const Key('backup-copy-change'),
             label: hasAccount

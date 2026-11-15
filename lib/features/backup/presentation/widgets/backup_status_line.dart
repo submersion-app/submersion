@@ -7,11 +7,9 @@ import 'package:submersion/features/settings/domain/data_health/data_row_status.
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/data_row_status_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again.dart';
-import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again_button.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_row_status_text.dart';
-import 'package:submersion/features/settings/presentation/widgets/data_health/health_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_marked_title.dart';
 
 /// The backup or restore running now, or the one that just finished.
 class BackupOperationMessage extends ConsumerWidget {
@@ -55,7 +53,8 @@ class BackupOperationMessage extends ConsumerWidget {
 
 /// What is true of the last backup, in the sentence the Settings > Data row
 /// shows (spec section 8.2): where the last backup went, never where the
-/// current settings would send the next one.
+/// current settings would send the next one. Marked when the last backup
+/// failed, is overdue or never ran (#4561).
 class BackupStatusLine extends ConsumerWidget {
   const BackupStatusLine({super.key});
 
@@ -72,28 +71,21 @@ class BackupStatusLine extends ConsumerWidget {
           ? ref.watch(lastBackupCloudAccountLabelProvider).value
           : null,
     );
-    final needsSignIn = health.reason == HealthReason.backupCloudSignIn;
-    final failed =
-        status.kind == DataRowStatusKind.backupsFailed || needsSignIn;
-    final theme = Theme.of(context);
-    final now = DateTime.now();
+    final failed = status.kind == DataRowStatusKind.backupsFailed;
+    // The mark carries the colour (#4561); a copy that needs a sign-in says
+    // so on the Copy row.
     return ListTile(
       key: const Key('backup-status-line'),
-      leading: Icon(
-        failed ? Icons.error_outline : Icons.history,
-        color: failed ? theme.colorScheme.error : null,
+      leading: Icon(failed ? Icons.error_outline : Icons.history),
+      title: HealthMarkedTitle(
+        title: Text(dataRowStatusText(context.l10n, status, DateTime.now())),
+        feature: DataFeature.backup,
+        reasons: const {
+          HealthReason.backupFailed,
+          HealthReason.backupOverdue,
+          HealthReason.backupNever,
+        },
       ),
-      title: Text(
-        needsSignIn
-            ? healthReasonText(context.l10n, health, now)
-            : dataRowStatusText(context.l10n, status, now),
-      ),
-      trailing: needsSignIn
-          ? SignInAgainButton(
-              feature: DataFeature.backup,
-              onPressed: (group) => signInAgain(context, ref, group),
-            )
-          : null,
     );
   }
 }

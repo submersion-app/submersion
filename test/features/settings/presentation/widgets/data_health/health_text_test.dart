@@ -30,7 +30,7 @@ void main() {
     now,
   );
 
-  test('every reason shown under the strip has its own wording', () {
+  test('every reason a Data row shows has its own wording', () {
     const silent = {
       HealthReason.ok,
       HealthReason.notSetUp,
@@ -94,24 +94,12 @@ void main() {
     );
   });
 
-  test('labels and routes cover every feature and level', () {
-    expect(DataFeature.values.map((f) => dataFeatureLabel(l10n, f)), [
-      'Backups',
-      'Sync',
-      'Libraries',
-      'Photos',
-    ]);
+  test('labels cover every level', () {
     expect(HealthLevel.values.map((l) => healthLevelLabel(l10n, l)), [
       'Failing',
       'Needs attention',
       'Healthy',
       'Not set up',
-    ]);
-    expect(DataFeature.values.map(dataFeatureRoute), [
-      '/settings/backup',
-      '/settings/cloud-sync',
-      '/settings/shared-libraries',
-      '/settings/photos-media',
     ]);
   });
 }

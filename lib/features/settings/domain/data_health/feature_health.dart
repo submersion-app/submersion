@@ -58,10 +58,18 @@ enum HealthReason {
   librariesEditsHeld,
   mediaFinishSetup,
   mediaTransfersPaused,
+
+  /// A store attached here could not be opened with this device's keys
+  /// (#4561).
+  mediaStoreUnreachable,
 }
 
 /// One feature's health: its level, the reason behind it, and any values the
 /// reason's text needs.
+///
+/// The headline is what the Settings > Data row shows; [findings] holds every
+/// problem the evaluation found, the headline among them, so a feature's page
+/// can mark each item that needs the diver (#4561).
 class FeatureHealth extends Equatable {
   const FeatureHealth({
     required this.feature,
@@ -70,6 +78,8 @@ class FeatureHealth extends Equatable {
     this.when,
     this.count,
     this.name,
+    this.subjectId,
+    this.findings = const [],
   });
 
   final DataFeature feature;
@@ -85,8 +95,63 @@ class FeatureHealth extends Equatable {
   /// The thing the reason is about (a library's name).
   final String? name;
 
+  /// The one item among siblings a finding is about (a library's id, an
+  /// extra backup account's id, which media setup item), so only that tile
+  /// is marked.
+  final String? subjectId;
+
+  /// Every problem found, in evaluation order (not by severity: use
+  /// [findingFor] for the worst of some reasons). Empty when healthy or not
+  /// set up.
+  final List<FeatureHealth> findings;
+
+  FeatureHealth copyWith({
+    HealthLevel? level,
+    HealthReason? reason,
+    DateTime? when,
+    int? count,
+    String? name,
+    String? subjectId,
+    List<FeatureHealth>? findings,
+  }) => FeatureHealth(
+    feature: feature,
+    level: level ?? this.level,
+    reason: reason ?? this.reason,
+    when: when ?? this.when,
+    count: count ?? this.count,
+    name: name ?? this.name,
+    subjectId: subjectId ?? this.subjectId,
+    findings: findings ?? this.findings,
+  );
+
   @override
-  List<Object?> get props => [feature, level, reason, when, count, name];
+  List<Object?> get props => [
+    feature,
+    level,
+    reason,
+    when,
+    count,
+    name,
+    subjectId,
+    findings,
+  ];
+}
+
+/// The most severe finding of [health] whose reason is one of [reasons];
+/// ties go to the earliest. With [subjectId], only findings about that
+/// subject count. Null when none matches.
+FeatureHealth? findingFor(
+  FeatureHealth health,
+  Set<HealthReason> reasons, {
+  String? subjectId,
+}) {
+  FeatureHealth? best;
+  for (final f in health.findings) {
+    if (!reasons.contains(f.reason)) continue;
+    if (subjectId != null && f.subjectId != subjectId) continue;
+    if (best == null || f.level.severity > best.level.severity) best = f;
+  }
+  return best;
 }
 
 /// Whether [health] is one that signing in again would fix (issue #3811).
@@ -105,5 +170,5 @@ FeatureHealth pickHealth(DataFeature feature, List<FeatureHealth> candidates) {
   for (final candidate in candidates) {
     if (candidate.level.severity > best.level.severity) best = candidate;
   }
-  return best;
+  return best.copyWith(findings: List.unmodifiable(candidates));
 }

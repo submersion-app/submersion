@@ -5,15 +5,15 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// The one sentence a Settings > Data row shows for its [DataRowStatus].
 ///
 /// Kinds that stand in for a health reason (sync paused, photos or
-/// libraries needing attention) reuse the strip's attention line, so the
-/// row and the strip read the same words.
+/// libraries needing attention) reuse the health reason sentence, so the
+/// row and the feature page marks read the same words.
 String dataRowStatusText(
   AppLocalizations l10n,
   DataRowStatus status,
   DateTime now,
 ) {
   // Mid-sentence, so "just now" is lowercase, unlike the standalone label
-  // relativeAgo gives the strip after a colon.
+  // relativeAgo gives after a colon.
   String ago() {
     final when = status.when;
     if (when == null || now.difference(when).inMinutes < 1) {
@@ -42,7 +42,7 @@ String dataRowStatusText(
     DataRowStatusKind.backupsPlain => l10n.settings_data_backups_status_plain(
       ago(),
     ),
-    // After a colon, like the strip's line, so the standalone form.
+    // After a colon, like the reason sentence, so the standalone form.
     DataRowStatusKind.backupsFailed => l10n.dataHealth_backup_failed(
       status.when == null
           ? l10n.backup_time_justNow
