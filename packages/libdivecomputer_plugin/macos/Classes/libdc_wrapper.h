@@ -445,6 +445,10 @@ int libdc_download_run(
 // Cancel a running download (thread-safe).
 void libdc_download_cancel(libdc_download_session_t *session);
 
+// Whether libdc_download_cancel has been called on this session (thread-safe).
+// Lets a transport stop a connect wait that runs before libdc_download_run.
+int libdc_download_is_cancelled(const libdc_download_session_t *session);
+
 // After libdc_download_run: the descriptor product and model the device
 // reported about itself, when it differs from the one the download was
 // opened with (see libdc_resolve_reported_product). Returns 1 and fills

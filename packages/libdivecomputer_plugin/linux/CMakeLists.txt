@@ -154,6 +154,7 @@ add_library(${PLUGIN_NAME} SHARED
     ble_scanner.c
     ble_io_stream.c
     ble_read_poll.c
+    ble_services_wait.c
     serial_scanner.c
     serial_io_stream.c
     usbhid_enumerator.c
