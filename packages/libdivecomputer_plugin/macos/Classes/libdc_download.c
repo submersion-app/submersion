@@ -924,6 +924,10 @@ void libdc_download_cancel(libdc_download_session_t *session) {
     }
 }
 
+int libdc_download_is_cancelled(const libdc_download_session_t *session) {
+    return session != NULL && session->cancelled;
+}
+
 void libdc_download_session_free(libdc_download_session_t *session) {
     if (session == NULL) {
         return;

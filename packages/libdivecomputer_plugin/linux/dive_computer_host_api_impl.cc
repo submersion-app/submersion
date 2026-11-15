@@ -326,6 +326,13 @@ static void send_error_from_thread(HostApiContext* ctx,
     g_idle_add(error_callback_idle, cbd);
 }
 
+// Cancel check for the BLE connect wait: reads the cancelled flag that
+// handle_cancel_download sets, before libdc_download_run is reached.
+static gboolean ble_download_cancelled(gpointer user_data) {
+  return libdc_download_is_cancelled(
+             static_cast<const libdc_download_session_t*>(user_data)) != 0;
+}
+
 static gpointer download_thread_func(gpointer data) {
   auto* td = static_cast<DownloadThreadData*>(data);
   HostApiContext* ctx = td->ctx;
@@ -396,9 +403,18 @@ static gpointer download_thread_func(gpointer data) {
     ctx->ble_stream = ble_io_stream_new();
     ble_io_stream_set_device_address(ctx->ble_stream, td->address);
     ble_io_stream_set_pin_callback(ctx->ble_stream, on_pin_code_required, ctx);
+    // This thread's own session, not ctx->session, which a retry started
+    // after a cancel would replace.
+    ble_io_stream_set_cancel_check(ctx->ble_stream, ble_download_cancelled,
+                                   ctx->session);
     if (!ble_io_stream_connect(ctx->ble_stream, device_path)) {
-      send_error_from_thread(ctx, "connect_failed",
-                             "Failed to connect to BLE device");
+      // Name the step that broke, so a report says more than "failed".
+      const gchar* reason = ble_io_stream_connect_failure(ctx->ble_stream);
+      g_autofree gchar* message =
+          reason != nullptr
+              ? g_strdup_printf("Failed to connect to BLE device: %s", reason)
+              : g_strdup("Failed to connect to BLE device");
+      send_error_from_thread(ctx, "connect_failed", message);
       ble_io_stream_free(ctx->ble_stream);
       ctx->ble_stream = nullptr;
       libdc_download_session_free(ctx->session);
