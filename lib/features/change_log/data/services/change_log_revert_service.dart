@@ -123,17 +123,21 @@ class ChangeLogRevertService {
         if (!item.isBlocked)
           changeLogRecordKey(item.event.table, item.event.recordId),
     };
+    final edits = await _planEdits(
+      [
+        for (final event in events)
+          if (!created.contains((event.table, event.recordId))) event,
+      ],
+      dependencies: dependencies,
+      restoring: restoring,
+    );
     return [
       ...restores,
-      ...await _planEdits(
-        [
-          for (final event in events)
-            if (!created.contains((event.table, event.recordId))) event,
-        ],
-        dependencies: dependencies,
-        restoring: restoring,
+      ...edits,
+      ...await planner.planRemovals(
+        events,
+        releasing: ChangeLogRecordPlanner.releasedLinks(edits),
       ),
-      ...await planner.planRemovals(events),
     ];
   }
 
@@ -270,10 +274,15 @@ class ChangeLogRevertService {
     // Skipping a record can leave what it uses in use, and a plan can be
     // older than the data, so removals are checked again here.
     final dependencies = await ChangeLogDependencyIndex.load(_db);
-    final removals = await _plannerWith(dependencies).settleRemovals([
-      for (final item in plan.items)
-        if (item.removesRecord && applies(item)) item,
-    ]);
+    final removals = await _plannerWith(dependencies).settleRemovals(
+      [
+        for (final item in plan.items)
+          if (item.removesRecord && applies(item)) item,
+      ],
+      releasing: ChangeLogRecordPlanner.releasedLinks(
+        plan.items.where((item) => item.column != null && applies(item)),
+      ),
+    );
     final decided = [
       for (final item in plan.items)
         if (!item.removesRecord || !applies(item)) item,
