@@ -79,7 +79,17 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Swap with a buddy'), findsNothing);
-      expect(find.text('Insights'), findsOneWidget);
+      // The swap's gap goes with it: Plan Dive and Insights sit one 8 px
+      // gap apart, as they did before the swap was added.
+      Finder button(String label) => find.ancestor(
+        of: find.text(label),
+        matching: find.bySubtype<ButtonStyleButton>(),
+      );
+      expect(
+        tester.getTopLeft(button('Insights')).dy -
+            tester.getBottomLeft(button('Plan Dive')).dy,
+        8,
+      );
     });
   });
 }

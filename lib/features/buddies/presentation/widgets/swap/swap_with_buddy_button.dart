@@ -18,6 +18,12 @@ void openBuddySwap(BuildContext context) {
   }
 }
 
+/// Whether this device can run the swap at all: a browser has none of the
+/// radios it runs over (issue #4121). Every swap button asks this, so they
+/// appear and disappear together.
+bool _swapAvailable(WidgetRef ref) =>
+    ref.watch(deviceCapabilitiesProvider).nearby;
+
 /// Opens the buddy card swap screen from the Buddies list headers. Absent in
 /// a browser, which has none of the radios the swap runs over (issue #4121).
 class SwapWithBuddyButton extends ConsumerWidget {
@@ -27,7 +33,7 @@ class SwapWithBuddyButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!ref.watch(deviceCapabilitiesProvider).nearby) {
+    if (!_swapAvailable(ref)) {
       return const SizedBox.shrink();
     }
     return IconButton(
@@ -56,7 +62,7 @@ class SwapWithBuddyActionButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!ref.watch(deviceCapabilitiesProvider).nearby) {
+    if (!_swapAvailable(ref)) {
       return const SizedBox.shrink();
     }
     final button = OutlinedButton.icon(
