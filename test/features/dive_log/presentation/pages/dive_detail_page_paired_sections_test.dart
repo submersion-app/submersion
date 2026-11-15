@@ -2,20 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-// ignore: implementation_imports
-import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy.dart';
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
@@ -26,81 +20,13 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
-import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/marine_life/domain/entities/species.dart';
-import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/signatures/domain/entities/signature.dart';
-import 'package:submersion/features/signatures/presentation/providers/signature_providers.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../widgets/buoyancy_outcome_fixture.dart';
-
-typedef Override = riverpod.Override;
-
-/// Mock SettingsNotifier that doesn't access the database.
-class _MockSettingsNotifier extends StateNotifier<AppSettings>
-    implements SettingsNotifier {
-  _MockSettingsNotifier(super.initial);
-
-  @override
-  Future<void> setMapStyle(MapStyle style) async =>
-      state = state.copyWith(mapStyle: style);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-AppSettings _settingsWithVisibleSections(List<DiveDetailSectionId> visible) {
-  final sections = DiveDetailSectionId.values
-      .map(
-        (id) => DiveDetailSectionConfig(id: id, visible: visible.contains(id)),
-      )
-      .toList();
-  return AppSettings(diveDetailSections: sections);
-}
-
-Widget _buildTestWidget({
-  required Dive dive,
-  required AppSettings settings,
-  List<Override> extraOverrides = const [],
-}) {
-  return ProviderScope(
-    overrides: [
-      diveProvider(dive.id).overrideWith((ref) async => dive),
-      diveDataSourcesProvider(
-        dive.id,
-      ).overrideWith((ref) async => <DiveDataSource>[]),
-      settingsProvider.overrideWith((ref) => _MockSettingsNotifier(settings)),
-      ...extraOverrides,
-    ],
-    child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: DiveDetailPage(diveId: dive.id),
-    ),
-  );
-}
-
-List<Override> _renderOverrides(
-  String diveId,
-  SharedPreferences prefs, {
-  List<BuddyWithRole> buddies = const [],
-}) => [
-  sharedPreferencesProvider.overrideWithValue(prefs),
-  buddiesForDiveProvider(diveId).overrideWith((ref) async => buddies),
-  diveSightingsProvider(diveId).overrideWith((ref) async => <Sighting>[]),
-  buddySignaturesForDiveProvider(
-    diveId,
-  ).overrideWith((ref) async => <Signature>[]),
-  surfaceIntervalProvider(diveId).overrideWith((ref) async => null),
-  tankPressuresProvider(
-    diveId,
-  ).overrideWith((ref) async => <String, List<TankPressurePoint>>{}),
-];
+import 'dive_detail_page_paired_harness.dart';
 
 /// Finds the ResponsiveSectionPair whose subtree contains [label].
 Finder _pairContaining(String label) => find.ancestor(
@@ -260,16 +186,6 @@ AppSettings _settingsWithOrder(List<DiveDetailSectionId> order) {
   );
 }
 
-final _buddy = BuddyWithRole(
-  buddy: Buddy(
-    id: 'b1',
-    name: 'Alice',
-    createdAt: DateTime(2026, 1, 1),
-    updatedAt: DateTime(2026, 1, 1),
-  ),
-  roles: [DiveRole.builtInBuddy()],
-);
-
 void main() {
   late SharedPreferences prefs;
 
@@ -284,16 +200,16 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       final dive = _diveWithConditions('pair-wide');
-      final settings = _settingsWithVisibleSections([
+      final settings = settingsWithVisibleSections([
         DiveDetailSectionId.details,
         DiveDetailSectionId.environment,
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
-          extraOverrides: _renderOverrides(dive.id, prefs),
+          extraOverrides: pairedRenderOverrides(dive.id, prefs),
         ),
       );
       await tester.pumpAndSettle();
@@ -318,16 +234,16 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       final dive = _diveWithConditions('pair-narrow');
-      final settings = _settingsWithVisibleSections([
+      final settings = settingsWithVisibleSections([
         DiveDetailSectionId.details,
         DiveDetailSectionId.environment,
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
-          extraOverrides: _renderOverrides(dive.id, prefs),
+          extraOverrides: pairedRenderOverrides(dive.id, prefs),
         ),
       );
       await tester.pumpAndSettle();
@@ -347,16 +263,16 @@ void main() {
       // Empty dive => nothing logged and no satellite conditions, so
       // Environment renders nothing.
       final dive = Dive(id: 'no-cond', dateTime: DateTime(2026, 3, 15, 10, 0));
-      final settings = _settingsWithVisibleSections([
+      final settings = settingsWithVisibleSections([
         DiveDetailSectionId.details,
         DiveDetailSectionId.environment,
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
-          extraOverrides: _renderOverrides(dive.id, prefs),
+          extraOverrides: pairedRenderOverrides(dive.id, prefs),
         ),
       );
       await tester.pumpAndSettle();
@@ -382,10 +298,10 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
-          extraOverrides: _renderOverrides(dive.id, prefs),
+          extraOverrides: pairedRenderOverrides(dive.id, prefs),
         ),
       );
       await tester.pumpAndSettle();
@@ -421,10 +337,10 @@ void main() {
         // order would never reach the page.
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pumpWidget(
-          _buildTestWidget(
+          pairedDetailPage(
             dive: dive,
             settings: _settingsWithOrder(order),
-            extraOverrides: _renderOverrides(dive.id, prefs),
+            extraOverrides: pairedRenderOverrides(dive.id, prefs),
           ),
         );
         await tester.pumpAndSettle();
@@ -461,16 +377,20 @@ void main() {
         id: 'buddies-wide',
         dateTime: DateTime(2026, 3, 15, 10, 0),
       );
-      final settings = _settingsWithVisibleSections([
+      final settings = settingsWithVisibleSections([
         DiveDetailSectionId.buddies,
         DiveDetailSectionId.signatures,
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
-          extraOverrides: _renderOverrides(dive.id, prefs, buddies: [_buddy]),
+          extraOverrides: pairedRenderOverrides(
+            dive.id,
+            prefs,
+            buddies: [pairedBuddy],
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -488,16 +408,16 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       final dive = Dive(id: 'solo', dateTime: DateTime(2026, 3, 15, 10, 0));
-      final settings = _settingsWithVisibleSections([
+      final settings = settingsWithVisibleSections([
         DiveDetailSectionId.buddies,
         DiveDetailSectionId.signatures,
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
-          extraOverrides: _renderOverrides(dive.id, prefs),
+          extraOverrides: pairedRenderOverrides(dive.id, prefs),
         ),
       );
       await tester.pumpAndSettle();
@@ -519,11 +439,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             _tideOverride(dive, _tideRecord(dive.id)),
           ],
         ),
@@ -562,11 +482,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             _tideOverride(dive, _tideRecord(dive.id)),
           ],
         ),
@@ -593,11 +513,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             _tideOverride(dive, _tideRecord(dive.id)),
           ],
         ),
@@ -621,11 +541,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             _tideOverride(dive, null),
           ],
         ),
@@ -655,11 +575,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             _tideOverride(dive, _tideRecord(dive.id)),
           ],
         ),
@@ -699,11 +619,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             ..._sacOverrides(dive, _sacAnalysis),
           ],
         ),
@@ -735,11 +655,11 @@ void main() {
       final gate = Completer<void>();
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             buoyancyTwinProvider(dive.id).overrideWith((ref) async {
               if (ref.watch(trigger) > 0) await gate.future;
               return buoyancyOutcome();
@@ -777,11 +697,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             ..._sacOverrides(dive, _sacAnalysis),
           ],
         ),
@@ -811,11 +731,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             ..._sacOverrides(dive, _sacAnalysis),
           ],
         ),
@@ -844,11 +764,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             ..._sacOverrides(dive, _sacAnalysis),
           ],
         ),
@@ -878,11 +798,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             ..._sacSupportOverrides(dive),
             profileAnalysisProvider(
               dive.id,
@@ -917,11 +837,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             ..._sacSupportOverrides(dive),
             profileAnalysisProvider(
               dive.id,
@@ -963,11 +883,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             ..._sacOverrides(dive, null),
           ],
         ),
@@ -1000,11 +920,11 @@ void main() {
         ],
       );
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: _settingsWithOrder([DiveDetailSectionId.weights]),
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             _buoyancyOverride(dive, buoyancyOutcome()),
           ],
         ),
@@ -1028,11 +948,11 @@ void main() {
         weightType: WeightType.ankleWeights,
       );
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: _settingsWithOrder([DiveDetailSectionId.weights]),
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             _buoyancyOverride(dive, buoyancyOutcome()),
           ],
         ),
@@ -1052,11 +972,11 @@ void main() {
         'weights-legacy-untyped',
       ).copyWith(weights: const [], weightAmount: 5.0);
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: _settingsWithOrder([DiveDetailSectionId.weights]),
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             _buoyancyOverride(dive, buoyancyOutcome()),
           ],
         ),
@@ -1080,11 +1000,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             _buoyancyOverride(dive, buoyancyOutcome()),
           ],
         ),
@@ -1112,11 +1032,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             _buoyancyOverride(dive, buoyancyOutcome()),
           ],
         ),
@@ -1143,11 +1063,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             _buoyancyOverride(dive, buoyancyOutcome()),
           ],
         ),
@@ -1174,11 +1094,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             _buoyancyOverride(dive, buoyancyOutcome()),
           ],
         ),
@@ -1204,11 +1124,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             _buoyancyOverride(dive, null),
           ],
         ),
@@ -1233,11 +1153,11 @@ void main() {
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
           extraOverrides: [
-            ..._renderOverrides(dive.id, prefs),
+            ...pairedRenderOverrides(dive.id, prefs),
             _buoyancyOverride(dive, buoyancyOutcome()),
           ],
         ),

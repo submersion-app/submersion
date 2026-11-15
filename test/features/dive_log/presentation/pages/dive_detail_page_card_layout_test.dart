@@ -3,110 +3,19 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-// ignore: implementation_imports
-import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy.dart';
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
-import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
-import 'package:submersion/features/marine_life/domain/entities/species.dart';
-import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/signatures/domain/entities/signature.dart';
-import 'package:submersion/features/signatures/presentation/providers/signature_providers.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 
-typedef Override = riverpod.Override;
+import 'dive_detail_page_paired_harness.dart';
 
 /// How paired cards share their row on the dive detail page (issue #4583):
-/// both columns end level, and the card after a pair can move up beside it.
-/// The pairing rules themselves are in dive_detail_page_paired_sections_test.
-
-/// Mock SettingsNotifier that doesn't access the database.
-class _MockSettingsNotifier extends StateNotifier<AppSettings>
-    implements SettingsNotifier {
-  _MockSettingsNotifier(super.initial);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-AppSettings _settingsWithVisibleSections(List<DiveDetailSectionId> visible) =>
-    AppSettings(
-      diveDetailSections: [
-        for (final id in DiveDetailSectionId.values)
-          DiveDetailSectionConfig(id: id, visible: visible.contains(id)),
-      ],
-    );
-
-Widget _buildTestWidget({
-  required Dive dive,
-  required AppSettings settings,
-  List<Override> extraOverrides = const [],
-}) => ProviderScope(
-  overrides: [
-    diveProvider(dive.id).overrideWith((ref) async => dive),
-    diveDataSourcesProvider(
-      dive.id,
-    ).overrideWith((ref) async => <DiveDataSource>[]),
-    settingsProvider.overrideWith((ref) => _MockSettingsNotifier(settings)),
-    ...extraOverrides,
-  ],
-  child: MaterialApp(
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: DiveDetailPage(diveId: dive.id),
-  ),
-);
-
-/// Bumped to make the buddies read reload, as a dependency changing does.
-class _Trigger extends Notifier<int> {
-  @override
-  int build() => 0;
-
-  void bump() => state = state + 1;
-}
-
-final _trigger = NotifierProvider<_Trigger, int>(_Trigger.new);
-
-List<Override> _renderOverrides(
-  String diveId,
-  SharedPreferences prefs, {
-  List<BuddyWithRole> buddies = const [],
-  Future<void> Function()? reloadGate,
-}) => [
-  sharedPreferencesProvider.overrideWithValue(prefs),
-  buddiesForDiveProvider(diveId).overrideWith((ref) async {
-    if (ref.watch(_trigger) > 0) await reloadGate?.call();
-    return buddies;
-  }),
-  diveSightingsProvider(diveId).overrideWith((ref) async => <Sighting>[]),
-  buddySignaturesForDiveProvider(
-    diveId,
-  ).overrideWith((ref) async => <Signature>[]),
-  surfaceIntervalProvider(diveId).overrideWith((ref) async => null),
-  tankPressuresProvider(
-    diveId,
-  ).overrideWith((ref) async => <String, List<TankPressurePoint>>{}),
-];
-
-final _buddy = BuddyWithRole(
-  buddy: Buddy(
-    id: 'b1',
-    name: 'Alice',
-    createdAt: DateTime(2026, 1, 1),
-    updatedAt: DateTime(2026, 1, 1),
-  ),
-  roles: [DiveRole.builtInBuddy()],
-);
-
+/// both columns end level, the card after a pair can move up beside it, and
+/// the pair holds together while its reads reload. Which sections pair is
+/// covered by dive_detail_page_paired_sections_test.
 void main() {
   late SharedPreferences prefs;
 
@@ -131,16 +40,16 @@ void main() {
       );
       final reload = Completer<void>();
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
-          settings: _settingsWithVisibleSections([
+          settings: settingsWithVisibleSections([
             DiveDetailSectionId.buddies,
             DiveDetailSectionId.signatures,
           ]),
-          extraOverrides: _renderOverrides(
+          extraOverrides: pairedRenderOverrides(
             dive.id,
             prefs,
-            buddies: [_buddy],
+            buddies: [pairedBuddy],
             reloadGate: () => reload.future,
           ),
         ),
@@ -150,7 +59,7 @@ void main() {
 
       ProviderScope.containerOf(
         tester.element(find.byType(DiveDetailPage)),
-      ).read(_trigger.notifier).bump();
+      ).read(reloadTrigger.notifier).bump();
       await tester.pump();
 
       expect(find.byType(ResponsiveSectionPair), findsOneWidget);
@@ -170,16 +79,20 @@ void main() {
         id: 'buddies-level',
         dateTime: DateTime(2026, 3, 15, 10, 0),
       );
-      final settings = _settingsWithVisibleSections([
+      final settings = settingsWithVisibleSections([
         DiveDetailSectionId.buddies,
         DiveDetailSectionId.signatures,
       ]);
 
       await tester.pumpWidget(
-        _buildTestWidget(
+        pairedDetailPage(
           dive: dive,
           settings: settings,
-          extraOverrides: _renderOverrides(dive.id, prefs, buddies: [_buddy]),
+          extraOverrides: pairedRenderOverrides(
+            dive.id,
+            prefs,
+            buddies: [pairedBuddy],
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -218,20 +131,20 @@ void main() {
             dateTime: DateTime(2026, 3, 15, 10, 0),
             notes: 'Calm water and good visibility.',
           );
-          final settings = _settingsWithVisibleSections([
+          final settings = settingsWithVisibleSections([
             DiveDetailSectionId.buddies,
             DiveDetailSectionId.signatures,
             next,
           ]);
 
           await tester.pumpWidget(
-            _buildTestWidget(
+            pairedDetailPage(
               dive: dive,
               settings: settings,
-              extraOverrides: _renderOverrides(
+              extraOverrides: pairedRenderOverrides(
                 dive.id,
                 prefs,
-                buddies: [_buddy],
+                buddies: [pairedBuddy],
               ),
             ),
           );
