@@ -101,11 +101,11 @@ class _Bundle extends AssetBundle {
 }
 
 void main() {
-  test('the local cache is at version 22', () {
+  test('the local cache is at least version 22', () {
     final db = LocalCacheDatabase(NativeDatabase.memory());
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 22);
+    expect(db.schemaVersion, greaterThanOrEqualTo(22));
   });
 
   test('a fresh database has the kind, last, and its index', () async {

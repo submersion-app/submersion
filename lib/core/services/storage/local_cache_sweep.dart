@@ -39,6 +39,7 @@ class LocalCacheSweepReport {
     required this.bathymetryRows,
     required this.trackGeometryRows,
     required this.decoRows,
+    required this.verticalDistanceRows,
     required this.assetRows,
     required this.reefRows,
     required this.vacuumed,
@@ -47,6 +48,7 @@ class LocalCacheSweepReport {
   final int bathymetryRows;
   final int trackGeometryRows;
   final int decoRows;
+  final int verticalDistanceRows;
   final int assetRows;
   final int reefRows;
 
@@ -54,12 +56,18 @@ class LocalCacheSweepReport {
   final bool vacuumed;
 
   int get rowsDeleted =>
-      bathymetryRows + trackGeometryRows + decoRows + assetRows + reefRows;
+      bathymetryRows +
+      trackGeometryRows +
+      decoRows +
+      verticalDistanceRows +
+      assetRows +
+      reefRows;
 
   @override
   String toString() =>
       'LocalCacheSweepReport(bathymetry: $bathymetryRows, '
       'trackGeometry: $trackGeometryRows, deco: $decoRows, '
+      'verticalDistance: $verticalDistanceRows, '
       'asset: $assetRows, reef: $reefRows, vacuumed: $vacuumed)';
 }
 
@@ -119,6 +127,12 @@ class LocalCacheSweep {
       libraryTable: _library.dives,
       libraryId: _library.dives.id,
     );
+    final verticalDistanceRows = await _sweepOrphans(
+      localTable: _local.diveVerticalDistanceCache,
+      localId: _local.diveVerticalDistanceCache.diveId,
+      libraryTable: _library.dives,
+      libraryId: _library.dives.id,
+    );
     final assetRows = await _sweepOrphans(
       localTable: _local.localAssetCache,
       localId: _local.localAssetCache.mediaId,
@@ -132,6 +146,7 @@ class LocalCacheSweep {
       bathymetryRows: bathymetryRows,
       trackGeometryRows: trackGeometryRows,
       decoRows: decoRows,
+      verticalDistanceRows: verticalDistanceRows,
       assetRows: assetRows,
       reefRows: reefRows,
       vacuumed: vacuumed,
