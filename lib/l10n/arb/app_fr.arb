@@ -2853,6 +2853,7 @@
   "diveLog_edit_trainingCoursesHint": "Associer cette plongée à un ou plusieurs cours de formation",
   "diveLog_edit_tripSuggested": "Suggestion : {name}",
   "diveLog_edit_tripUse": "Utiliser",
+  "diveLog_edit_newRecordNotAdded": "Enregistré, mais impossible de l'ajouter à cette plongée. Choisissez-le dans la liste.",
   "diveLog_edit_useSet": "Utiliser un ensemble",
   "diveLog_edit_removeSet": "Retirer un ensemble",
   "diveLog_bulkEdit_setsToRemove": "Ensembles à retirer",

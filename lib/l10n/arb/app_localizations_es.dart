@@ -8973,6 +8973,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_edit_tripUse => 'Usar';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'Se guardó, pero no se pudo añadir a esta inmersión. Elígelo en la lista.';
+
+  @override
   String get diveLog_edit_useSet => 'Usar conjunto';
 
   @override

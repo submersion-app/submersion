@@ -14055,6 +14055,12 @@ abstract class AppLocalizations {
   /// **'Use'**
   String get diveLog_edit_tripUse;
 
+  /// Shown when a trip or dive center the diver just created from the Details card's picker could not be read back to put on the dive. The record exists; the diver should pick it rather than make it again.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved, but it couldn\'t be added to this dive. Pick it from the list.'**
+  String get diveLog_edit_newRecordNotAdded;
+
   /// No description provided for @diveLog_edit_useSet.
   ///
   /// In en, this message translates to:

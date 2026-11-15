@@ -2978,6 +2978,7 @@
   "diveLog_edit_trainingCoursesHint": "ربط هذه الغوصة بدورة تدريبية واحدة أو أكثر",
   "diveLog_edit_tripSuggested": "مقترح: {name}",
   "diveLog_edit_tripUse": "استخدام",
+  "diveLog_edit_newRecordNotAdded": "تم الحفظ، لكن تعذّرت إضافته إلى هذه الغطسة. اختره من القائمة.",
   "diveLog_edit_useSet": "استخدام طقم",
   "diveLog_edit_removeSet": "إزالة طقم",
   "diveLog_bulkEdit_setsToRemove": "أطقم للإزالة",

@@ -8948,6 +8948,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_tripUse => 'Használás';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'Mentve, de nem sikerült hozzáadni ehhez a merüléshez. Válaszd ki a listából.';
+
+  @override
   String get diveLog_edit_useSet => 'Készlet használata';
 
   @override

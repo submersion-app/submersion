@@ -11,15 +11,21 @@ import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 /// per course, the group label on the first row only. Renders nothing until
 /// the courses load, rather than reserving blank space.
 class DiveCourseRows extends ConsumerWidget {
-  const DiveCourseRows({super.key, required this.diveId});
+  const DiveCourseRows({super.key, required this.diveId, this.courseIds});
 
   final String diveId;
 
+  /// The courses to show, in this order: the dive as the page holds it,
+  /// which during an editing sitting is ahead of what is stored. Null shows
+  /// the courses stored for [diveId].
+  final List<String>? courseIds;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final courses =
-        // The retained value: a reload after a link change keeps the rows.
-        ref.watch(coursesForDiveProvider(diveId)).value ?? const <Course>[];
+    final storedAsync = ref.watch(coursesForDiveProvider(diveId));
+    // The retained value: a reload after a link change keeps the rows.
+    final stored = storedAsync.value ?? const <Course>[];
+    final courses = _resolve(ref, stored, loaded: storedAsync.hasValue);
     if (courses.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -28,6 +34,30 @@ class DiveCourseRows extends ConsumerWidget {
           _CourseRow(course: courses[i], showLabel: i == 0),
       ],
     );
+  }
+
+  /// [courseIds] as courses: each from the dive's [stored] courses, else
+  /// from the diver's course list. An id neither knows is left out.
+  ///
+  /// The course list is read only once the dive's own courses are [loaded]
+  /// and one is still missing, which happens during a sitting that added a
+  /// course. Until they load every id looks missing, and the rows draw
+  /// nothing, as they always have.
+  List<Course> _resolve(
+    WidgetRef ref,
+    List<Course> stored, {
+    required bool loaded,
+  }) {
+    final ids = courseIds;
+    if (ids == null) return stored;
+    final byId = {for (final course in stored) course.id: course};
+    if (loaded && ids.any((id) => !byId.containsKey(id))) {
+      final all = ref.watch(courseListNotifierProvider).value ?? const [];
+      for (final course in all) {
+        byId.putIfAbsent(course.id, () => course);
+      }
+    }
+    return [for (final id in ids) ?byId[id]];
   }
 }
 

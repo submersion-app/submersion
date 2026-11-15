@@ -9116,6 +9116,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_tripUse => 'استخدام';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'تم الحفظ، لكن تعذّرت إضافته إلى هذه الغطسة. اختره من القائمة.';
+
+  @override
   String get diveLog_edit_useSet => 'استخدام طقم';
 
   @override

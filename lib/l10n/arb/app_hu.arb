@@ -2853,6 +2853,7 @@
   "diveLog_edit_trainingCoursesHint": "Merülés összekapcsolása egy vagy több képzési tanfolyammal",
   "diveLog_edit_tripSuggested": "Javasolt: {name}",
   "diveLog_edit_tripUse": "Használás",
+  "diveLog_edit_newRecordNotAdded": "Mentve, de nem sikerült hozzáadni ehhez a merüléshez. Válaszd ki a listából.",
   "diveLog_edit_useSet": "Készlet használata",
   "diveLog_edit_removeSet": "Készlet eltávolítása",
   "diveLog_bulkEdit_setsToRemove": "Eltávolítandó készletek",

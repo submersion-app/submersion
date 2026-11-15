@@ -8969,6 +8969,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_tripUse => 'Verwenden';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'Gespeichert, konnte aber nicht zu diesem Tauchgang hinzugefügt werden. Bitte aus der Liste auswählen.';
+
+  @override
   String get diveLog_edit_useSet => 'Set verwenden';
 
   @override

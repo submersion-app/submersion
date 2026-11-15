@@ -2978,6 +2978,7 @@
   "diveLog_edit_trainingCoursesHint": "Koppel deze duik aan een of meer trainingscursussen",
   "diveLog_edit_tripSuggested": "Voorgesteld: {name}",
   "diveLog_edit_tripUse": "Gebruiken",
+  "diveLog_edit_newRecordNotAdded": "Opgeslagen, maar het kon niet aan deze duik worden toegevoegd. Kies het uit de lijst.",
   "diveLog_edit_useSet": "Set gebruiken",
   "diveLog_edit_removeSet": "Set verwijderen",
   "diveLog_bulkEdit_setsToRemove": "Te verwijderen sets",

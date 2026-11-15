@@ -8972,6 +8972,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_edit_tripUse => 'Usar';
 
   @override
+  String get diveLog_edit_newRecordNotAdded =>
+      'Guardado, mas não foi possível adicioná-lo a este mergulho. Escolhe-o na lista.';
+
+  @override
   String get diveLog_edit_useSet => 'Usar Conjunto';
 
   @override

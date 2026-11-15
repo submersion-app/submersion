@@ -3090,6 +3090,7 @@
   "diveLog_edit_trainingCoursesHint": "将此次潜水关联到一个或多个培训课程",
   "diveLog_edit_tripSuggested": "建议：{name}",
   "diveLog_edit_tripUse": "使用",
+  "diveLog_edit_newRecordNotAdded": "已保存，但无法添加到此潜水。请从列表中选择。",
   "diveLog_edit_useSet": "使用套装",
   "diveLog_edit_removeSet": "移除套装",
   "diveLog_bulkEdit_setsToRemove": "要移除的套装",

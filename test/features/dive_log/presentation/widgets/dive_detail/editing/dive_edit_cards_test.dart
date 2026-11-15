@@ -35,13 +35,24 @@ void main() {
   group('the dive cards', () {
     // A card registered here gains a pencil on the dive page. Naming them
     // makes adding one a deliberate change to this test.
-    test('are Notes, Tags, Altitude and Environment', () {
+    test('are Notes, Tags, Altitude, Environment and Details', () {
       expect(diveEditCards.keys, {
         DiveDetailSectionId.notes,
         DiveDetailSectionId.tags,
         DiveDetailSectionId.altitude,
         DiveDetailSectionId.environment,
+        DiveDetailSectionId.details,
       });
+    });
+
+    test('Details is never left out: the page always shows it', () {
+      final details = diveEditCards[DiveDetailSectionId.details]!;
+      expect(details.id, 'details');
+      expect(details.isEmpty(dive), isFalse);
+      expect(
+        details.isEmpty(Dive(id: 'bare', dateTime: DateTime(2024))),
+        isFalse,
+      );
     });
 
     test('every card id is its section name', () {
