@@ -33019,6 +33019,239 @@ class AppLocalizationsAr extends AppLocalizations {
       'متوسط معدلات الصعود والنزول';
 
   @override
+  String get insights_profile_verticalDistance_title => 'إجمالي الصعود والنزول';
+
+  @override
+  String get insights_profile_verticalDistance_subtitle =>
+      'كل الغطسات مجمّعة وموضوعة في سياقها';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsTitle =>
+      'مجموع أقصى الأعماق';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsSubtitle =>
+      'كل غطسة مباشرةً إلى أعمق نقطة فيها ثم العودة';
+
+  @override
+  String get insights_profile_verticalDistance_totalAscent => 'إجمالي الصعود';
+
+  @override
+  String get insights_profile_verticalDistance_totalDescent => 'إجمالي النزول';
+
+  @override
+  String get insights_profile_verticalDistance_seaLevel => 'مستوى سطح البحر';
+
+  @override
+  String insights_profile_verticalDistance_next(String landmark) {
+    return 'التالي: $landmark';
+  }
+
+  @override
+  String insights_profile_verticalDistance_toGo(String distance) {
+    return 'يتبقى $distance';
+  }
+
+  @override
+  String insights_profile_verticalDistance_multiple(
+    int count,
+    String landmark,
+  ) {
+    return '$count × $landmark';
+  }
+
+  @override
+  String get insights_profile_verticalDistance_stripIdle =>
+      'أشر إلى عمود لترى متى وصلت إليه';
+
+  @override
+  String insights_profile_verticalDistance_stripAscent(
+    String level,
+    String date,
+  ) {
+    return '$level من الصعود، بُلغت في $date';
+  }
+
+  @override
+  String insights_profile_verticalDistance_stripDescent(
+    String level,
+    String date,
+  ) {
+    return '$level من النزول، بُلغت في $date';
+  }
+
+  @override
+  String insights_profile_verticalDistance_stripPassed(
+    String landmark,
+    String date,
+  ) {
+    return '$landmark: تم تجاوزه في $date';
+  }
+
+  @override
+  String insights_profile_verticalDistance_stripAhead(
+    String landmark,
+    String distance,
+  ) {
+    return '$landmark: يتبقى $distance';
+  }
+
+  @override
+  String get insights_profile_verticalDistance_openDive => 'فتح الغطسة';
+
+  @override
+  String get insights_profile_verticalDistance_pinned => 'مثبّت';
+
+  @override
+  String insights_profile_verticalDistance_estimated(int estimated, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'الغطسات المحسوبة من أقصى عمق: $estimated من $total',
+      many: 'الغطسات المحسوبة من أقصى عمق: $estimated من $total',
+      few: 'الغطسات المحسوبة من أقصى عمق: $estimated من $total',
+      two: 'الغطسات المحسوبة من أقصى عمق: $estimated من $total',
+      one: 'الغطسات المحسوبة من أقصى عمق: $estimated من $total',
+      zero: 'الغطسات المحسوبة من أقصى عمق: $estimated من $total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_profile_verticalDistance_empty =>
+      'لا توجد غطسات بعمق بعد';
+
+  @override
+  String get insights_profile_verticalDistance_error =>
+      'تعذّر تحميل إجمالي الصعود والنزول';
+
+  @override
+  String insights_profile_verticalDistance_semantics(
+    String total,
+    String up,
+    String upDistance,
+    String down,
+    String downDistance,
+  ) {
+    return 'إجمالي الصعود والنزول $total لكل منهما. التالي للأعلى: $up، يتبقى $upDistance. التالي للأسفل: $down، يتبقى $downDistance.';
+  }
+
+  @override
+  String get insights_landmark_statueOfLiberty => 'تمثال الحرية';
+
+  @override
+  String get insights_landmark_greatPyramid => 'الهرم الأكبر بالجيزة';
+
+  @override
+  String get insights_landmark_eiffelTower => 'برج إيفل';
+
+  @override
+  String get insights_landmark_empireStateBuilding => 'مبنى إمباير ستيت';
+
+  @override
+  String get insights_landmark_burjKhalifa => 'برج خليفة';
+
+  @override
+  String get insights_landmark_benNevis => 'بن نيفيس';
+
+  @override
+  String get insights_landmark_mountKosciuszko => 'جبل كوسيوسكو';
+
+  @override
+  String get insights_landmark_mountFuji => 'جبل فوجي';
+
+  @override
+  String get insights_landmark_matterhorn => 'ماترهورن';
+
+  @override
+  String get insights_landmark_montBlanc => 'مون بلان';
+
+  @override
+  String get insights_landmark_kilimanjaro => 'كليمنجارو';
+
+  @override
+  String get insights_landmark_denali => 'دينالي';
+
+  @override
+  String get insights_landmark_aconcagua => 'أكونكاغوا';
+
+  @override
+  String get insights_landmark_k2 => 'K2';
+
+  @override
+  String get insights_landmark_everest => 'جبل إيفرست';
+
+  @override
+  String get insights_landmark_olympusMons => 'أوليمبوس مونس (المريخ)';
+
+  @override
+  String get insights_landmark_karmanLine => 'حافة الفضاء';
+
+  @override
+  String get insights_landmark_internationalSpaceStation =>
+      'محطة الفضاء الدولية';
+
+  @override
+  String get insights_landmark_recreationalLimit => 'حد الغوص الترفيهي';
+
+  @override
+  String get insights_landmark_greatBlueHole => 'الثقب الأزرق العظيم';
+
+  @override
+  String get insights_landmark_deansBlueHole => 'ثقب دين الأزرق';
+
+  @override
+  String get insights_landmark_dragonHole => 'ثقب التنين';
+
+  @override
+  String get insights_landmark_deepestScubaDive => 'أعمق غطسة بجهاز تنفس';
+
+  @override
+  String get insights_landmark_craterLake => 'بحيرة كريتر';
+
+  @override
+  String get insights_landmark_lakeTanganyika => 'بحيرة تنجانيقا';
+
+  @override
+  String get insights_landmark_lakeBaikal => 'بحيرة بايكال';
+
+  @override
+  String get insights_landmark_deepestWhaleDive => 'أعمق غطسة لحوت';
+
+  @override
+  String get insights_landmark_averageOceanDepth => 'متوسط عمق المحيط';
+
+  @override
+  String get insights_landmark_titanic => 'تايتانيك';
+
+  @override
+  String get insights_landmark_bismarck => 'بسمارك';
+
+  @override
+  String get insights_landmark_molloyDeep => 'منخفض مولوي';
+
+  @override
+  String get insights_landmark_deepestShipwreck => 'أعمق حطام سفينة';
+
+  @override
+  String get insights_landmark_javaTrench => 'خندق جاوة';
+
+  @override
+  String get insights_landmark_southSandwichTrench => 'خندق ساندويتش الجنوبية';
+
+  @override
+  String get insights_landmark_puertoRicoTrench => 'خندق بورتوريكو';
+
+  @override
+  String get insights_landmark_tongaTrench => 'خندق تونغا';
+
+  @override
+  String get insights_landmark_challengerDeep => 'غور تشالنجر';
+
+  @override
+  String get insights_landmark_kolaBorehole => 'بئر كولا فائق العمق';
+
+  @override
   String get insights_profile_avgAscent => 'متوسط الصعود';
 
   @override
@@ -65108,6 +65341,15 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get info_insights_ascentDescent_summary =>
       'متوسط السرعة في النزول والصعود، محسوبًا من المخططات.';
+
+  @override
+  String get info_insights_verticalDistance_maxDepthsSummary =>
+      'تُحتسب كل غطسة نزولًا مباشرًا إلى أقصى عمق لها وصعودًا مباشرًا، مع تجاهل كل تغيّر في العمق على طول الطريق. تُستبعد الغطسة التي لا عمق أقصى لها.';
+
+  @override
+  String info_insights_verticalDistance_summary(String deadband) {
+    return 'تُحسب كل غطسة من السطح نزولًا ثم عودةً، دون التذبذب الأقل من $deadband. الغطسة بلا مخطط تُحسب مرة حتى أقصى عمق ومرة للعودة.';
+  }
 
   @override
   String get info_insights_timeAtDepth_summary =>
