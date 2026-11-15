@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' show SpeciesCompanion;
 import 'package:submersion/core/services/database_service.dart';
@@ -81,7 +82,7 @@ void main() {
     await setUpTestDatabase();
     originalPicker = FilePickerPlatform.instance;
     picker = MockFilePickerPlatform()
-      ..saveFileResult = Uri.file('${workDir.path}/backup.uddf');
+      ..saveFileResult = Uri.file(p.join(workDir.path, 'backup.uddf'));
     FilePickerPlatform.instance = picker;
 
     await createDiver();
