@@ -49,6 +49,15 @@ def _metres(value: float) -> str:
     return f"{value:,.0f} m"
 
 
+def _domain(url: str) -> str | None:
+    """The page's domain, or None when [url] names no host: a malformed
+    source is shown as written, not allowed to stop the page."""
+    try:
+        return evidence.registrable_domain(url)
+    except ValueError:
+        return None
+
+
 def _figure(source: dict) -> str:
     return f"{source.get('lat')}, {source.get('lon')}"
 
@@ -69,7 +78,11 @@ def _position_rows(checked, domains) -> list[str]:
         rows.append(f"<tr><td>Position</td><td>{lat:.6f}, {lon:.6f} "
                     f"[{_map_link(lat, lon)}]</td></tr>")
     for source in position.get("sources") or []:
-        kind = domains.kind_of(source.get("url") or "") or "on no list"
+        if not isinstance(source, dict):
+            continue
+        url = source.get("url")
+        url = url if isinstance(url, str) else ""
+        kind = domains.kind_of(url) or "on no list"
         distance = ""
         if checked.position:
             try:
@@ -78,11 +91,13 @@ def _position_rows(checked, domains) -> list[str]:
                 distance = _metres(evidence.metres_between(*checked.position, lat, lon))
             except ValueError:
                 distance = "unreadable"
+        domain = _domain(url)
+        where = domain or url or "(no address)"
+        link = f'<a href="{_e(url)}">page</a>' if domain else ""
         rows.append(
-            f"<tr><td></td><td>{_e(evidence.registrable_domain(source['url']))} "
+            f"<tr><td></td><td>{_e(where)} "
             f"&nbsp; {_e(_figure(source))} &nbsp; {_e(distance)} &nbsp; "
-            f"{_e(kind.replace('_', ' '))} &nbsp; "
-            f'<a href="{_e(source["url"])}">page</a></td></tr>'
+            f"{_e(kind.replace('_', ' '))} &nbsp; {link}</td></tr>"
         )
     return rows
 

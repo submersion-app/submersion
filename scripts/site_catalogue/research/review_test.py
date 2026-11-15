@@ -100,6 +100,19 @@ class ReviewPageTest(unittest.TestCase):
         self.assertLess(page.index("USAT Liberty"), page.index("<details"))
         self.assertGreater(page.index("Coral Garden"), page.index("<details"))
 
+    def test_a_source_without_a_usable_address_still_renders(self):
+        entry = _entry()
+        entry["position"]["sources"] += [
+            {"read": "2026-11-16", "lat": -8.2739, "lon": 115.5929},
+            {"url": "not an address", "read": "2026-11-16",
+             "lat": -8.2739, "lon": 115.5929},
+        ]
+        page = _page(entry)
+        self.assertIn("Not offered for approval", page)
+        self.assertIn("no address", page)
+        self.assertIn("not an address", page)
+        self.assertNotIn('href=""', page)
+
     def test_an_empty_batch(self):
         self.assertIn("No researched sites", _page())
 
