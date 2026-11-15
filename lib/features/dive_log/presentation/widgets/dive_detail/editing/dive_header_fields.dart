@@ -175,12 +175,23 @@ DateTime pickedInstant(DateTime picked, DateTime? current, {DateTime? stored}) {
 }
 
 /// Moves the entry, and a recorded exit with it, so the dive keeps its
-/// length (issue #241). The runtime is left as it is.
+/// length (issue #241). The runtime is left as it is. An exit a runtime
+/// typed in this sitting moved, and the exit to give back for it, move too.
 void setEntryTime(EditSession<Dive> session, DateTime entry) {
   final shift = entry.difference(session.valueOf(diveEntryField));
   final exit = session.valueOf(diveExitField);
   session.set(diveEntryField, entry);
-  if (exit != null) session.set(diveExitField, exit.add(shift));
+  if (exit == null) return;
+  session.set(diveExitField, exit.add(shift));
+  final moved = session.recall<({DateTime before, DateTime after})>(
+    _runtimeExitKey,
+  );
+  if (moved != null && moved.after == exit) {
+    session.remember(_runtimeExitKey, (
+      before: moved.before.add(shift),
+      after: exit.add(shift),
+    ));
+  }
 }
 
 /// Whether the sitting's entry and exit are both the stored ones.

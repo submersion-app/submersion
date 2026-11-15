@@ -109,7 +109,8 @@ Future<void> pickSiteForSitting(
     final gps = dive.entryLocation ?? dive.exitLocation;
     // A dive with its own GPS needs no inference.
     final area = gps == null ? await _areaOf(ref, anchors, dive) : null;
-    if (!context.mounted) return;
+    // A sitting saved or cancelled while the area loaded opens no picker.
+    if (!context.mounted || session.isDisposed || session.isFrozen) return;
     final site = await pickOrCreateSite(
       context,
       ref,

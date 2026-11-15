@@ -259,6 +259,20 @@ void main() {
       expect(session.valueOf(diveExitField), exit);
     });
 
+    // PR review: the entry moved between typing a runtime and clearing it
+    // moves the exit to give back with it.
+    test('a runtime cleared after the entry moved gives back the exit, moved '
+        'with the entry', () {
+      final session = sitting();
+      const shift = Duration(minutes: 10);
+
+      setRuntime(session, const Duration(minutes: 60));
+      setEntryTime(session, entry.add(shift));
+      setRuntime(session, null);
+
+      expect(session.valueOf(diveExitField), exit.add(shift));
+    });
+
     test('an exit picked after typing a runtime is kept when the runtime is '
         'cleared', () {
       final session = sitting();

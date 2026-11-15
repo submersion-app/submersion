@@ -13,7 +13,11 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_time_rows.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_site_row.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_area_anchor_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/models/site_area_anchor.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
@@ -56,6 +60,7 @@ void main() {
     Dive dive, {
     AppSettings settings = const AppSettings(),
     Future<List<DiveDataSource>> Function()? sources,
+    SiteAreaAnchorRepository? anchors,
   }) async {
     tester.view.physicalSize = const Size(900, 2400);
     tester.view.devicePixelRatio = 1;
@@ -72,6 +77,8 @@ void main() {
           ),
           if (sources != null)
             diveDataSourcesProvider(dive.id).overrideWith((ref) => sources()),
+          if (anchors != null)
+            siteAreaAnchorRepositoryProvider.overrideWithValue(anchors),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -430,6 +437,27 @@ void main() {
     expect(session.valueOf(diveWaterTypeField), isNull);
   });
 
+  // PR review: the area lookup runs before the picker opens, so a sitting
+  // ended while it answers must open no picker.
+  testWidgets('a sitting ended while the area loads opens no picker', (
+    tester,
+  ) async {
+    final area = Completer<SiteAreaAnchor?>();
+    final controller = await pumpEditor(
+      tester,
+      full.copyWith(clearSite: true, diverId: 'diver'),
+      anchors: _HeldAnchors(area),
+    );
+
+    await tester.tap(find.text(l10nOf(tester).diveLog_edit_row_addSite));
+    await tester.pump();
+    controller.session!.freeze();
+    area.complete(null);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SitePickerSheet), findsNothing);
+  });
+
   testWidgets('the exit row shows the estimate for a dive with no exit', (
     tester,
   ) async {
@@ -469,4 +497,19 @@ void main() {
     expect(editable.controller.text, 'Evening drift');
     expect(editable.controller.selection.baseOffset, 2);
   });
+}
+
+/// An area lookup that answers when the test says.
+class _HeldAnchors extends SiteAreaAnchorRepository {
+  _HeldAnchors(this.answer);
+
+  final Completer<SiteAreaAnchor?> answer;
+
+  @override
+  Future<SiteAreaAnchor?> forDive({
+    required DateTime at,
+    String? tripId,
+    String? diverId,
+    List<String> excludeDiveIds = const [],
+  }) => answer.future;
 }
