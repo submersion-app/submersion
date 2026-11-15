@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -67,7 +68,15 @@ class BuiltInMapLayersNotifier extends StateNotifier<BuiltInMapLayers> {
   BuiltInMapLayersNotifier.unstored([super.layers = const BuiltInMapLayers()])
     : _prefs = null;
 
+  static final _log = LoggerService.forClass(BuiltInMapLayersNotifier);
+
   final SharedPreferences? _prefs;
+
+  /// Writes are sent one after another, so a layer ticked and unticked in
+  /// quick succession can never have its older value stored last and
+  /// shown at the next launch. The store is not asked to keep the order
+  /// itself: nothing in its interface says it does.
+  Future<void> _writes = Future.value();
 
   static BuiltInMapLayers _read(SharedPreferences prefs) {
     const defaults = BuiltInMapLayers();
@@ -91,10 +100,30 @@ class BuiltInMapLayersNotifier extends StateNotifier<BuiltInMapLayers> {
   };
 
   /// Turns the layer of [kind] on or off, and remembers it.
+  ///
+  /// The map changes at once. The returned future completes when the
+  /// choice has been stored, after any change made before it. It never
+  /// fails: the menu that calls this does not wait for it, and a choice
+  /// that could not be stored still stands until the app is closed.
   Future<void> setLayer(CatalogueKind kind, bool on) async {
     if (state.shows(kind) == on) return;
     state = state.withKind(kind, on);
-    await _prefs?.setBool(_key(kind), on);
+    final prefs = _prefs;
+    if (prefs == null) return;
+    final write = _writes.then((_) async {
+      try {
+        await prefs.setBool(_key(kind), on);
+      } catch (error, stackTrace) {
+        _log.warning(
+          'Could not remember the built-in map layers; the next launch '
+          'will show them as they were',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+    });
+    _writes = write;
+    await write;
   }
 }
 
