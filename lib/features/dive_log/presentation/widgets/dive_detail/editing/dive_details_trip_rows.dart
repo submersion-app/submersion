@@ -36,27 +36,29 @@ const double _underRowInset = 14;
 
 /// Reads back a record the diver has just made, to put it on the dive.
 ///
-/// The record exists whether or not this read works. When it fails the dive
-/// is left as it was and the diver is told, so they can pick the new record
-/// from the list instead. [messenger] and [sorry] are read before the page
-/// that made the record was opened.
+/// The record exists whether or not this read works. When the read fails,
+/// or finds nothing, the dive is left as it was and the diver is told, so
+/// they can pick the new record from the list instead. [messenger] and
+/// [sorry] are read before the page that made the record was opened.
 Future<V?> _readBack<V>(
   Future<V?> Function() read, {
   required String what,
   required ScaffoldMessengerState messenger,
   required String sorry,
 }) async {
+  V? record;
   try {
-    return await read();
+    record = await read();
+    if (record == null) _log.warning('The new $what was not there to read');
   } catch (error, stackTrace) {
     _log.warning(
       'Could not read back the new $what',
       error: error,
       stackTrace: stackTrace,
     );
-    messenger.showSnackBar(SnackBar(content: Text(sorry)));
-    return null;
   }
+  if (record == null) messenger.showSnackBar(SnackBar(content: Text(sorry)));
+  return record;
 }
 
 /// Sets [field] on [session] unless the row has gone, or the sitting has
@@ -150,7 +152,11 @@ class _DiveTripRowState extends ConsumerState<DiveTripRow> {
       ),
     );
     if (result != _createNew || !mounted) return;
-    final tripId = await newTripForDiveEdit(context, ref, _newTripFacts);
+    final tripId = await newTripForDiveEdit(
+      context,
+      ref,
+      () => _newTripFacts(session),
+    );
     if (tripId == null) return;
     final trip = await _readBack(
       () => trips.getTripById(tripId),
@@ -161,10 +167,12 @@ class _DiveTripRowState extends ConsumerState<DiveTripRow> {
     if (trip != null) _set(session, trip);
   }
 
-  /// What a trip made from here learns from the dive as the sitting holds
-  /// it (#3351).
-  Future<List<SelectionDiveFacts>> _newTripFacts() async {
-    final dive = widget.session.working;
+  /// What a trip made from here learns from the dive as [session] holds it
+  /// (#3351): the sitting the picker was opened in.
+  Future<List<SelectionDiveFacts>> _newTripFacts(
+    EditSession<Dive> session,
+  ) async {
+    final dive = session.working;
     final entry = dive.effectiveEntryTime;
     return [
       SelectionDiveFacts(

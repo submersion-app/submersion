@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -97,6 +98,8 @@ void main() {
   late ValueNotifier<bool> showRows;
   // The sitting the rows are bound to, so a test can hand them another.
   late ValueNotifier<EditSession<Dive>> boundSession;
+  // What the new-trip page was opened with: its prefilled draft.
+  Object? newTripExtra;
 
   Future<RecordEditController<Dive>> pumpRows(
     WidgetTester tester,
@@ -106,6 +109,7 @@ void main() {
     tester.view.physicalSize = const Size(900, 1600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    newTripExtra = null;
     showRows = ValueNotifier<bool>(true);
     addTearDown(showRows.dispose);
     centers = _Centers({
@@ -155,7 +159,10 @@ void main() {
         ),
         GoRoute(
           path: '/trips/new',
-          builder: (context, state) => stub('save the trip', 'new-trip'),
+          builder: (context, state) {
+            newTripExtra = state.extra;
+            return stub('save the trip', 'new-trip');
+          },
         ),
         GoRoute(
           path: '/dive-centers/new',
@@ -311,6 +318,46 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text(l.common_error_tryAgain), findsOneWidget);
       expect(controller.isDirty, isFalse);
+    });
+
+    testWidgets('a new trip that is not there to read back says so', (
+      tester,
+    ) async {
+      final controller = await pumpRows(tester, bare);
+      trips.byId.remove('new-trip');
+      await openTripSheet(tester);
+      await tester.tap(find.text(l.trips_picker_newTrip));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('save the trip'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l.common_error_tryAgain), findsOneWidget);
+      expect(controller.isDirty, isFalse);
+    });
+
+    testWidgets('the new-trip form is prefilled from the sitting its picker '
+        'was opened in', (tester) async {
+      await pumpRows(tester, bare);
+      await openTripSheet(tester);
+
+      // The row is handed a sitting on another dive while the sheet is open.
+      final other = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(Dive(id: 'other', dateTime: DateTime.utc(2026, 7, 1, 10)))
+        ..openCard('details');
+      addTearDown(other.dispose);
+      boundSession.value = other.session!;
+      await tester.pump();
+
+      await tester.tap(find.text(l.trips_picker_newTrip));
+      await tester.pumpAndSettle();
+
+      // The dive the picker was opened for is on 9 March.
+      final draft = newTripExtra! as TripDraft;
+      expect(
+        (draft.trip.startDate.year, draft.trip.startDate.month),
+        (2026, 3),
+      );
     });
 
     testWidgets('a new trip that returns after the sitting was cancelled '
@@ -533,6 +580,22 @@ void main() {
 
       expect(other.isDirty, isFalse);
       expect(working(controller).diveCenter?.id, 'new-center');
+    });
+
+    testWidgets('a new center that is not there to read back says so', (
+      tester,
+    ) async {
+      final controller = await pumpRows(tester, bare);
+      centers.byId.remove('new-center');
+      await openCenterSheet(tester);
+      await tester.tap(find.text(l.diveCenters_picker_newCenter));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('save the center'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l.common_error_tryAgain), findsOneWidget);
+      expect(controller.isDirty, isFalse);
     });
 
     testWidgets('a new center that returns after the sitting ended sets '
