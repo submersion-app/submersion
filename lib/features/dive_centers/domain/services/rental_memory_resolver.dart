@@ -84,3 +84,12 @@ class LastDiveAtCenter extends Equatable {
     tanks,
   ];
 }
+
+/// Whether "Apply last dive" must ask before replacing the weights and
+/// cylinders a dive holds (issue #2075): whenever it holds any. A weight row
+/// with no amount yet still carries its type and notes, so it counts. Asked
+/// by the dive form and by the dive page's Details card.
+bool applyLastDiveNeedsConfirm({
+  required List<DiveWeight> weights,
+  required List<DiveTank> tanks,
+}) => weights.isNotEmpty || tanks.isNotEmpty;

@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tags_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_weights_card_editor.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
@@ -99,5 +100,12 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     // the dive while this card is closed.
     isValid: gasSwitchesValid,
     editorBuilder: (context, session) => DiveTanksCardEditor(session: session),
+  ),
+  DiveDetailSectionId.weights: EditCard<Dive>(
+    id: DiveDetailSectionId.weights.name,
+    title: (context) => context.l10n.diveLog_detail_section_weight,
+    isEmpty: (dive) => !diveHasWeights(dive),
+    editorBuilder: (context, session) =>
+        DiveWeightsCardEditor(session: session),
   ),
 };

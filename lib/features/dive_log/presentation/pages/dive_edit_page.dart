@@ -273,15 +273,6 @@ double? _savedNumber(
   NumberInvalid() => null, // unreachable: validate() blocked the save
 };
 
-/// Whether "Apply last dive" must ask before replacing the form's weights
-/// and tanks (issue #2075): whenever the form holds any. A weight row with
-/// no amount yet still carries its type and notes, so it counts.
-@visibleForTesting
-bool applyLastDiveNeedsConfirm({
-  required List<DiveWeight> weights,
-  required List<DiveTank> tanks,
-}) => weights.isNotEmpty || tanks.isNotEmpty;
-
 class DiveEditPage extends ConsumerStatefulWidget {
   final String? diveId;
 
