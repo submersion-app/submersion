@@ -1,0 +1,461 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/dive_detail_layout.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/tide/entities/tide_extremes.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_details_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_list.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_tide_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_fields.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tides/domain/entities/tide_record.dart';
+import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+
+import '../../../../../helpers/mock_providers.dart';
+import '../../../../../helpers/test_database.dart';
+
+AppSettings _settings(
+  List<DiveDetailSectionId> visible, {
+  DiveDetailLayout layout = DiveDetailLayout.detailed,
+}) => AppSettings(
+  diveDetailSections: [
+    // In the order given, so a test can put a card above Details.
+    for (final id in visible) DiveDetailSectionConfig(id: id, visible: true),
+    for (final id in DiveDetailSectionId.values)
+      if (!visible.contains(id))
+        DiveDetailSectionConfig(id: id, visible: false),
+  ],
+  diveDetailLayout: layout,
+);
+
+/// The Details card in the dive page's section list, and what holds still
+/// around it while it is open (issue #4527).
+///
+/// The page hands the list the dive as the sitting holds it, and rebuilds
+/// when the controller says a card changed. `repump` stands in for that.
+void main() {
+  final l = AppLocalizationsEn();
+  late MockCurrentDiverIdNotifier diverIdNotifier;
+  late SharedPreferences prefs;
+  final plain = Dive(id: 'dive-1', dateTime: DateTime.utc(2026, 3, 15, 12));
+  final atSea = plain.copyWith(
+    site: const DiveSite(
+      id: 'site-reykjavik',
+      name: 'Reykjavik',
+      location: GeoPoint(64.15, -21.95),
+    ),
+  );
+  final tide = TideRecord(
+    id: 'tide-1',
+    diveId: 'dive-1',
+    heightMeters: 1.6,
+    tideState: TideState.rising,
+    rateOfChange: 0.4,
+    highTideHeight: 2.4,
+    highTideTime: DateTime.utc(2026, 3, 15, 14),
+    lowTideHeight: 0.4,
+    lowTideTime: DateTime.utc(2026, 3, 15, 8),
+    createdAt: DateTime.utc(2026, 3, 15, 12),
+  );
+
+  setUp(() async {
+    await setUpTestDatabase();
+    await DatabaseService.instance.database.customStatement(
+      "INSERT INTO divers (id, name, created_at, updated_at) "
+      "VALUES ('diver-1', 'Test Diver', 1000, 1000)",
+    );
+    // The visibility row opens in the input the device last used.
+    SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
+    diverIdNotifier = MockCurrentDiverIdNotifier();
+    await diverIdNotifier.setCurrentDiver('diver-1');
+  });
+  tearDown(() async => tearDownTestDatabase());
+
+  RecordEditController<Dive> controllerOver(Dive stored) {
+    final controller = RecordEditController<Dive>(onSave: (_) async {})
+      ..unlock(stored);
+    addTearDown(controller.dispose);
+    return controller;
+  }
+
+  Widget harness({
+    required Dive dive,
+    required AppSettings settings,
+    RecordEditController<Dive>? controller,
+    Dive? tideFor,
+  }) {
+    final list = DiveDetailSectionList(
+      dive: dive,
+      profileSection: const SizedBox.shrink(),
+      safetyReviewKey: GlobalKey(),
+      notesKey: GlobalKey(),
+      retention: DiveDetailAnalysisRetention(),
+      actions: DiveDetailActions(
+        setPrimarySource: (_) {},
+        splitSource: (_, _) {},
+        removeSource: (_, _, _) {},
+        separateSegments: (_, _) {},
+        scanGallery: (_) {},
+        addPhotos: (_) {},
+        addDocument: (_) {},
+        openDocument: (_) {},
+      ),
+    );
+    return ProviderScope(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier(settings)),
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        currentDiverIdProvider.overrideWith((ref) => diverIdNotifier),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'diver-1'),
+        if (tideFor != null)
+          healedTideRecordProvider((
+            diveId: tideFor.id,
+            location: tideFor.site!.location!,
+            entryTime: tideFor.effectiveEntryTime,
+          )).overrideWith((ref) async => tide),
+      ],
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: controller == null
+                ? list
+                : RecordEditScope<Dive>(controller: controller, child: list),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void sizeTo(WidgetTester tester, double width) {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = Size(width, 3200);
+    addTearDown(tester.view.reset);
+  }
+
+  final editor = find.byType(DiveDetailsCardEditor);
+  final detailsFrame = find.byWidgetPredicate(
+    (w) => w is RecordCardFrame<Dive> && w.card.id == 'details',
+  );
+
+  bool tideShows(WidgetTester tester) =>
+      tester.getSize(find.byType(DiveTideSection)).height > 0;
+
+  group('the Details card', () {
+    const visible = [DiveDetailSectionId.details];
+
+    testWidgets('locked, it has no pencil', (tester) async {
+      sizeTo(tester, 600);
+      await tester.pumpWidget(
+        harness(dive: plain, settings: _settings(visible)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveDetailsSection), findsOneWidget);
+      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    });
+
+    testWidgets('unlocked, it has a pencil and opens where it sits', (
+      tester,
+    ) async {
+      sizeTo(tester, 600);
+      final controller = controllerOver(plain);
+      await tester.pumpWidget(
+        harness(
+          dive: plain,
+          settings: _settings(visible),
+          controller: controller,
+        ),
+      );
+      await tester.pumpAndSettle();
+      final before = tester.getTopLeft(detailsFrame);
+
+      await tester.tap(find.byTooltip(l.recordEdit_editCardTooltip('Details')));
+      await tester.pumpAndSettle();
+
+      expect(editor, findsOneWidget);
+      expect(tester.getTopLeft(detailsFrame), before);
+    });
+
+    testWidgets('hidden by the diver, it can be added and opens', (
+      tester,
+    ) async {
+      sizeTo(tester, 600);
+      final controller = controllerOver(plain);
+      await tester.pumpWidget(
+        harness(
+          dive: plain,
+          settings: _settings(const [DiveDetailSectionId.notes]),
+          controller: controller,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(detailsFrame, findsNothing);
+
+      controller.addCard('details');
+      await tester.pumpAndSettle();
+
+      expect(editor, findsOneWidget);
+    });
+
+    testWidgets('in the folding layout its pencil opens it', (tester) async {
+      sizeTo(tester, 600);
+      final controller = controllerOver(plain);
+      await tester.pumpWidget(
+        harness(
+          dive: plain,
+          settings: _settings(visible, layout: DiveDetailLayout.list),
+          controller: controller,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip(l.recordEdit_editCardTooltip('Details')));
+      await tester.pumpAndSettle();
+
+      expect(editor, findsOneWidget);
+    });
+
+    testWidgets('at 1200 px it opens in its slot beside Environment', (
+      tester,
+    ) async {
+      sizeTo(tester, 1200);
+      final logged = plain.copyWith(airTemp: 21);
+      final controller = controllerOver(logged);
+      await tester.pumpWidget(
+        harness(
+          dive: logged,
+          settings: _settings(const [
+            DiveDetailSectionId.details,
+            DiveDetailSectionId.environment,
+          ]),
+          controller: controller,
+        ),
+      );
+      await tester.pumpAndSettle();
+      final environment = find.byWidgetPredicate(
+        (w) => w is RecordCardFrame<Dive> && w.card.id == 'environment',
+      );
+      final before = tester.getRect(detailsFrame);
+      expect(tester.getRect(environment).top, before.top);
+
+      controller.openCard('details');
+      await tester.pumpAndSettle();
+
+      expect(editor, findsOneWidget);
+      final after = tester.getRect(detailsFrame);
+      expect(after.topLeft, before.topLeft);
+      expect(after.width, before.width);
+      expect(tester.getRect(environment).top, after.top);
+      expect(tester.getRect(environment).left, greaterThan(after.right - 1));
+    });
+
+    testWidgets('picking a type, a trip and a water type does not rebuild '
+        'the editor', (tester) async {
+      sizeTo(tester, 600);
+      final controller = controllerOver(plain);
+      final settings = _settings(visible);
+      await tester.pumpWidget(
+        harness(dive: plain, settings: settings, controller: controller),
+      );
+      controller.openCard('details');
+      await tester.pumpAndSettle();
+      final before = tester.state(editor);
+      final session = controller.session!;
+
+      session.set(diveTypeIdsField, <String>['wreck']);
+      session.set(diveWaterTypeField, WaterType.fresh);
+      session.set(diveCourseIdsField, <String>['c1']);
+      await tester.pumpWidget(
+        harness(
+          dive: session.working,
+          settings: settings,
+          controller: controller,
+        ),
+      );
+      await tester.pump();
+
+      expect(identical(tester.state(editor), before), isTrue);
+    });
+  });
+
+  group('while Details is open', () {
+    testWidgets('switching to fresh water keeps the Tide card until Done', (
+      tester,
+    ) async {
+      sizeTo(tester, 600);
+      final controller = controllerOver(atSea);
+      final settings = _settings(const [
+        DiveDetailSectionId.tide,
+        DiveDetailSectionId.details,
+      ]);
+      Future<void> repump() async {
+        await tester.pumpWidget(
+          harness(
+            dive: controller.session!.working,
+            settings: settings,
+            controller: controller,
+            tideFor: atSea,
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      await repump();
+      expect(tideShows(tester), isTrue);
+      controller.openCard('details');
+      await tester.pumpAndSettle();
+      final top = tester.getTopLeft(editor).dy;
+
+      controller.session!.set(diveWaterTypeField, WaterType.fresh);
+      await repump();
+
+      expect(tideShows(tester), isTrue);
+      expect(tester.getTopLeft(editor).dy, top);
+
+      controller.closeCard('details');
+      await repump();
+
+      expect(tideShows(tester), isFalse);
+    });
+
+    testWidgets('the Surface GPS and Tide pair does not split until Done', (
+      tester,
+    ) async {
+      sizeTo(tester, 1200);
+      final controller = controllerOver(atSea);
+      final settings = _settings(const [
+        DiveDetailSectionId.surfaceGps,
+        DiveDetailSectionId.tide,
+        DiveDetailSectionId.details,
+      ]);
+      Future<void> repump() async {
+        await tester.pumpWidget(
+          harness(
+            dive: controller.session!.working,
+            settings: settings,
+            controller: controller,
+            tideFor: atSea,
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      final pair = find.byKey(const ValueKey('diveSectionPair_surfaceGps'));
+      await repump();
+      expect(pair, findsOneWidget);
+      controller.openCard('details');
+      await tester.pumpAndSettle();
+      final top = tester.getTopLeft(editor).dy;
+
+      controller.session!.set(diveWaterTypeField, WaterType.fresh);
+      await repump();
+
+      expect(pair, findsOneWidget);
+      expect(tester.getTopLeft(editor).dy, top);
+
+      controller.closeCard('details');
+      await repump();
+
+      expect(pair, findsNothing);
+    });
+
+    testWidgets('adding a first course keeps Signatures as it was until '
+        'Done', (tester) async {
+      sizeTo(tester, 600);
+      await DatabaseService.instance.database.customStatement(
+        "INSERT INTO courses (id, diver_id, name, agency, start_date, "
+        "created_at, updated_at) VALUES ('c1', 'diver-1', 'Wreck Diver', "
+        "'padi', 0, 0, 0)",
+      );
+      final controller = controllerOver(plain);
+      final settings = _settings(const [
+        DiveDetailSectionId.signatures,
+        DiveDetailSectionId.details,
+      ]);
+      Future<void> repump() async {
+        await tester.pumpWidget(
+          harness(
+            dive: controller.session!.working,
+            settings: settings,
+            controller: controller,
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      final training = find.text(l.diveLog_detail_section_trainingSignature);
+      await repump();
+      expect(training, findsNothing);
+      controller.openCard('details');
+      await tester.pumpAndSettle();
+      final top = tester.getTopLeft(editor).dy;
+
+      controller.session!.set(diveCourseIdsField, <String>['c1']);
+      await repump();
+
+      expect(training, findsNothing);
+      expect(tester.getTopLeft(editor).dy, top);
+
+      controller.closeCard('details');
+      await repump();
+
+      expect(training, findsOneWidget);
+    });
+
+    testWidgets('the Buddies and Signatures pair does not form until Done', (
+      tester,
+    ) async {
+      sizeTo(tester, 1200);
+      final controller = controllerOver(plain);
+      final settings = _settings(const [
+        DiveDetailSectionId.buddies,
+        DiveDetailSectionId.signatures,
+        DiveDetailSectionId.details,
+      ]);
+      Future<void> repump() async {
+        await tester.pumpWidget(
+          harness(
+            dive: controller.session!.working,
+            settings: settings,
+            controller: controller,
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      final pair = find.byKey(const ValueKey('diveSectionPair_buddies'));
+      await repump();
+      expect(pair, findsNothing);
+      controller.openCard('details');
+      await tester.pumpAndSettle();
+
+      controller.session!.set(diveCourseIdsField, <String>['c1']);
+      await repump();
+
+      expect(pair, findsNothing);
+
+      controller.closeCard('details');
+      await repump();
+
+      expect(pair, findsOneWidget);
+    });
+  });
+}
