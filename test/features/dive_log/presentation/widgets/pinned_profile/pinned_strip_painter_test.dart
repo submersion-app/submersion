@@ -264,10 +264,7 @@ void main() {
         painter(curveHeight: 72).shouldRepaint(painter(curveHeight: 44)),
         isTrue,
       );
-      expect(
-        painter(extraMaxDepthMeters: 30).shouldRepaint(painter()),
-        isTrue,
-      );
+      expect(painter(extraMaxDepthMeters: 30).shouldRepaint(painter()), isTrue);
       expect(painter().shouldRepaint(painter()), isFalse);
     });
   });
