@@ -45,6 +45,19 @@ class _UnreadableCache extends VerticalDistanceCacheRepository {
   }
 }
 
+/// A cache that reads normally and whose writes fail and are counted.
+class _UnwritableCache extends VerticalDistanceCacheRepository {
+  _UnwritableCache(LocalCacheDatabase db) : super(database: db);
+
+  var writes = 0;
+
+  @override
+  Future<void> putAll(Map<String, VerticalDistanceCacheEntry> entries) async {
+    writes++;
+    throw StateError('cache write failed');
+  }
+}
+
 /// A cache that records each write.
 class _CountingCache extends VerticalDistanceCacheRepository {
   _CountingCache(LocalCacheDatabase db) : super(database: db);
@@ -352,6 +365,20 @@ void main() {
 
     expect((await timeline(using: broken)).totalMeters, 20);
     expect(broken.writes, 0);
+  });
+
+  test('after a failed write the cache is not written again', () async {
+    final previous = InsightsRepository.seriesDiveChunkSize;
+    InsightsRepository.seriesDiveChunkSize = 1;
+    addTearDown(() => InsightsRepository.seriesDiveChunkSize = previous);
+    for (final (id, at) in [('a', day1), ('b', day2), ('c', day3)]) {
+      await dive(id, at: at);
+      await profile(id, to20);
+    }
+    final unwritable = _UnwritableCache(local);
+
+    expect((await timeline(using: unwritable)).totalMeters, 60);
+    expect(unwritable.writes, 1);
   });
 
   test('no dives give the empty timeline', () async {

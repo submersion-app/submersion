@@ -130,7 +130,8 @@ extension InsightsRepositoryVerticalDistance on InsightsRepository {
   /// Profile figures for the fingerprinted dives: cached where the hash
   /// matches, decoded on a worker otherwise. A dive whose blobs all fail to
   /// decode gets 0, measured nothing. When the cache cannot be read it is
-  /// not written either: a cache that is not there is not retried per chunk.
+  /// not written either, and after one failed write it is not written
+  /// again: a cache that is not there is not retried per chunk.
   Future<Map<String, double>> _profileVerticalDistances(
     Map<String, String> fingerprints,
     VerticalDistanceCacheRepository cache,
@@ -195,6 +196,7 @@ extension InsightsRepositoryVerticalDistance on InsightsRepository {
       try {
         await cache.putAll(entries);
       } catch (e, stackTrace) {
+        cacheUsable = false;
         _log.error(
           'Failed to write the vertical distance cache',
           error: e,
