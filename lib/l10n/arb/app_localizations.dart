@@ -15751,6 +15751,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t save your changes. Nothing was changed.'**
   String get recordEdit_saveFailed;
 
+  /// Message shown when Save is refused because a field holds text that is not a valid value.
+  ///
+  /// In en, this message translates to:
+  /// **'Some values can\'t be read. Fix them before saving.'**
+  String get recordEdit_fixInvalid;
+
   /// No description provided for @settings_manage_setupAssistant.
   ///
   /// In en, this message translates to:

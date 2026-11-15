@@ -10031,6 +10031,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile salvare le modifiche. Non è stato modificato nulla.';
 
   @override
+  String get recordEdit_fixInvalid =>
+      'Alcuni valori non sono leggibili. Correggili prima di salvare.';
+
+  @override
   String get settings_manage_setupAssistant => 'Assistente di configurazione';
 
   @override

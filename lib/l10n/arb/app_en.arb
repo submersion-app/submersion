@@ -5956,6 +5956,10 @@
   "@recordEdit_saveFailed": {
     "description": "Message shown when saving an unlocked record fails."
   },
+  "recordEdit_fixInvalid": "Some values can't be read. Fix them before saving.",
+  "@recordEdit_fixInvalid": {
+    "description": "Message shown when Save is refused because a field holds text that is not a valid value."
+  },
   "settings_manage_setupAssistant": "Setup assistant",
   "settings_manage_setupAssistant_subtitle": "Revisit units, backups, sync and photos",
   "setup_common_back": "Back",

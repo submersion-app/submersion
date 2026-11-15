@@ -1,11 +1,10 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/text_keeping_caret.dart';
 
 /// The Notes card's editor: the dive's notes as Markdown, written through
 /// to the sitting as the diver types.
@@ -44,17 +43,8 @@ class _DiveNotesCardEditorState extends State<DiveNotesCardEditor> {
   void _followSession() {
     final notes = widget.session.valueOf(diveNotesField);
     if (_controller.text == notes) return;
-    // Assigning `text` would throw the caret out of a field the diver is
-    // in. It stays where it was, or at the end of a shorter note.
-    final selection = _controller.selection;
-    _controller.value = TextEditingValue(
-      text: notes,
-      selection: selection.isValid
-          ? TextSelection.collapsed(
-              offset: math.min(selection.extentOffset, notes.length),
-            )
-          : selection,
-    );
+    // The caret stays where it was, or at the end of a shorter note.
+    _controller.replaceTextKeepingCaret(notes);
   }
 
   @override

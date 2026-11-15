@@ -57,6 +57,39 @@ void main() {
     expect(changed, isNull);
   });
 
+  // A hint says what applies while nothing is picked (a dive with no entry
+  // method of its own shows its site's). It is not a choice, so it must not
+  // name the option that clears the value.
+  testWidgets('a hint shows in the resting row and not as the clear option', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Material(
+            child: EnumPickerRow<Flavor>(
+              label: 'Flavor',
+              value: null,
+              values: Flavor.values,
+              displayName: flavorName,
+              onChanged: (_) {},
+              placeholder: 'Not specified',
+              hint: 'Mild',
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Mild'), findsOneWidget);
+    expect(find.text('Not specified'), findsNothing);
+
+    await tester.tap(find.text('Flavor'));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(ListTile, 'Not specified'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Mild'), findsOneWidget);
+  });
+
   testWidgets('dismissing the sheet changes nothing', (tester) async {
     var calls = 0;
     await tester.pumpWidget(

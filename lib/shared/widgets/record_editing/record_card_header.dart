@@ -73,9 +73,17 @@ class RecordChangedDot extends StatelessWidget {
 /// target), the dot that marks unsaved changes, and "Done" while the card is
 /// open. Unlocking must not change the row's height.
 class RecordCardHeader extends StatelessWidget {
-  const RecordCardHeader({super.key, required this.title, this.trailing});
+  const RecordCardHeader({
+    super.key,
+    required this.title,
+    this.leading,
+    this.trailing,
+  });
 
   final String title;
+
+  /// Drawn before the title in every state, such as a card's icon.
+  final Widget? leading;
 
   /// What the card shows at the right while reading, such as a count.
   final Widget? trailing;
@@ -85,7 +93,11 @@ class RecordCardHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final frame = RecordCardFrameScope.maybeOf(context);
     final titleText = Text(title, style: theme.textTheme.titleMedium);
+    final leading = this.leading;
     final trailing = this.trailing;
+    final beforeTitle = <Widget>[
+      if (leading != null) ...[leading, const SizedBox(width: 8)],
+    ];
 
     if (frame == null) {
       // The title takes the room there is and wraps within it, so what
@@ -93,6 +105,7 @@ class RecordCardHeader extends StatelessWidget {
       // overflow the card.
       return Row(
         children: [
+          ...beforeTitle,
           Expanded(child: titleText),
           ?trailing,
         ],
@@ -103,6 +116,7 @@ class RecordCardHeader extends StatelessWidget {
     // The title and its dot take all the room the row has left, so what
     // follows them sits at the row's right edge.
     final titleAndDot = <Widget>[
+      ...beforeTitle,
       Expanded(
         child: Row(
           children: [

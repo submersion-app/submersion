@@ -94,10 +94,44 @@ RecordEditController<_Rec> _controller() {
   return controller;
 }
 
+/// The frame 600 px down a page seen through a 300 px high window, so it
+/// starts out of sight. [showFrame] leaves the frame out, to mount it later.
+Widget _tallHost(
+  RecordEditController<_Rec> controller, {
+  bool showFrame = true,
+}) {
+  return MaterialApp(
+    locale: const Locale('en'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: Scaffold(
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: SizedBox(
+          height: 300,
+          child: RecordEditScope<_Rec>(
+            controller: controller,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 600),
+                  if (showFrame)
+                    RecordCardFrame<_Rec>(card: _card, child: _readCard),
+                  const SizedBox(height: 600),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 /// A page seen through a 300 px high window, with the card 600 px down it
 /// so it starts out of sight. Like the dive page, it builds the card only
 /// once it has been added from the strip.
-Widget _tallHost(RecordEditController<_Rec> controller) {
+Widget _addedHost(RecordEditController<_Rec> controller) {
   return MaterialApp(
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -292,14 +326,149 @@ void main() {
     expect(find.byIcon(Icons.edit_outlined), findsNothing);
   });
 
+  // Some cards carry an icon before their title (Altitude). It stays put in
+  // every state of the header.
+  group('a header with a leading widget', () {
+    Widget host(RecordCardFrameData? data) => MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: RecordCardFrameScope(
+          data: data,
+          child: const RecordCardHeader(
+            leading: Icon(Icons.terrain),
+            title: 'Altitude',
+            trailing: Text('info'),
+          ),
+        ),
+      ),
+    );
+
+    RecordCardFrameData frame({required bool isOpen}) => RecordCardFrameData(
+      isOpen: isOpen,
+      isChanged: true,
+      onOpen: () {},
+      onDone: () {},
+    );
+
+    void expectLeadingBeforeTitle(WidgetTester tester) {
+      final leading = tester.getRect(find.byIcon(Icons.terrain));
+      final title = tester.getRect(find.text('Altitude'));
+      expect(leading.left, 0);
+      expect(leading.right, lessThanOrEqualTo(title.left));
+    }
+
+    testWidgets('locked: it sits before the title, trailing at the right', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(null));
+
+      expectLeadingBeforeTitle(tester);
+      expect(tester.getRect(find.text('info')).right, 800);
+    });
+
+    testWidgets('unlocked: it sits before the title, the pencil at the right', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(frame(isOpen: false)));
+
+      expectLeadingBeforeTitle(tester);
+      expect(tester.getRect(find.byIcon(Icons.edit_outlined)).right, 800);
+      expect(find.text('info'), findsOneWidget);
+    });
+
+    testWidgets('open: it sits before the title, Done at the right', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(frame(isOpen: true)));
+
+      expectLeadingBeforeTitle(tester);
+      expect(find.text('Done'), findsOneWidget);
+    });
+
+    // The first keystroke in an open card marks it changed. If the dot then
+    // took room from the title, a title that only just fitted would wrap,
+    // and everything in the card would jump down a line under the diver.
+    testWidgets('the dot arriving does not reflow the title', (tester) async {
+      Widget at(RecordCardFrameData data) => MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            // Wide enough for the title beside Done, with nothing to spare.
+            child: SizedBox(
+              width: 300,
+              child: RecordCardFrameScope(
+                data: data,
+                child: const RecordCardHeader(title: 'Altitude Dive'),
+              ),
+            ),
+          ),
+        ),
+      );
+      RecordCardFrameData open({required bool isChanged}) =>
+          RecordCardFrameData(
+            isOpen: true,
+            isChanged: isChanged,
+            onOpen: () {},
+            onDone: () {},
+          );
+
+      await tester.pumpWidget(at(open(isChanged: false)));
+      final clean = tester.getRect(find.text('Altitude Dive'));
+      final height = tester.getSize(find.byType(RecordCardHeader)).height;
+
+      await tester.pumpWidget(at(open(isChanged: true)));
+
+      expect(find.byType(RecordChangedDot), findsOneWidget);
+      expect(tester.getRect(find.text('Altitude Dive')), clean);
+      expect(tester.getSize(find.byType(RecordCardHeader)).height, height);
+    });
+
+    testWidgets('a header with none keeps its title at the left edge', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: RecordCardHeader(title: 'Notes')),
+        ),
+      );
+
+      expect(tester.getRect(find.text('Notes')).left, 0);
+    });
+  });
+
   group('a card asked to show itself', () {
     const editor = ValueKey('editor');
+
+    // A refusal for unreadable input names the field. Its own row scrolls
+    // itself into view, which may be far below the top of a tall card.
+    testWidgets('a request that names a field is left to that field', (
+      tester,
+    ) async {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes');
+      await tester.pumpWidget(_tallHost(controller));
+      expect(tester.getRect(find.byKey(editor)).top, greaterThan(300));
+
+      controller
+        ..setFieldInvalid('notes', 'notes', invalid: true)
+        ..closeCard('notes');
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(find.byKey(editor)).top, greaterThan(300));
+      expect(controller.revealRequest, isNotNull, reason: 'not answered');
+    });
 
     testWidgets('a card added from the strip scrolls into view', (
       tester,
     ) async {
       final controller = _controller()..unlock(const _Rec());
-      await tester.pumpWidget(_tallHost(controller));
+      await tester.pumpWidget(_addedHost(controller));
       expect(find.byKey(editor), findsNothing);
 
       controller.addCard('notes');
@@ -315,28 +484,13 @@ void main() {
       tester,
     ) async {
       final controller = _controller()..unlock(const _Rec());
-      await tester.pumpWidget(_tallHost(controller));
+      await tester.pumpWidget(_addedHost(controller));
       controller.addCard('notes');
       await tester.pumpAndSettle();
 
       tester.state<ScrollableState>(find.byType(Scrollable)).position.jumpTo(0);
       // Anything that rebuilds the page: the old request must not replay.
       controller.session!.set(_notes, 'b');
-      await tester.pumpAndSettle();
-
-      expect(tester.getRect(find.byKey(editor)).top, greaterThan(300));
-    });
-
-    testWidgets('a request for another card does not move this one', (
-      tester,
-    ) async {
-      final controller = _controller()..unlock(const _Rec());
-      await tester.pumpWidget(_tallHost(controller));
-      controller.addCard('notes');
-      await tester.pumpAndSettle();
-      tester.state<ScrollableState>(find.byType(Scrollable)).position.jumpTo(0);
-
-      controller.addCard('tags');
       await tester.pumpAndSettle();
 
       expect(tester.getRect(find.byKey(editor)).top, greaterThan(300));

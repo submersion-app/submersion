@@ -10022,6 +10022,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Änderungen konnten nicht gespeichert werden. Es wurde nichts geändert.';
 
   @override
+  String get recordEdit_fixInvalid =>
+      'Einige Werte können nicht gelesen werden. Korrigiere sie vor dem Speichern.';
+
+  @override
   String get settings_manage_setupAssistant => 'Einrichtungsassistent';
 
   @override

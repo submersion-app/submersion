@@ -4,54 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
-import 'package:submersion/features/dive_log/data/services/dive_edit_save_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_edit_save_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
-import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
-
-/// Stands in for the save service: applies the sitting to [stored] and
-/// records what it was asked to write, or fails on demand.
-class _FakeSave implements DiveEditSaveService {
-  _FakeSave(this.stored);
-
-  Dive stored;
-  Object? failWith;
-
-  /// When set, a save waits here before it writes or fails, so a test can
-  /// act while it is running.
-  Completer<void>? hold;
-  final calls = <({String diveId, Dive merged, List<String> cards})>[];
-
-  @override
-  Future<({Dive before, Dive after})?> save({
-    required String diveId,
-    required Dive Function(Dive stored) apply,
-    required Iterable<String> changedCardIds,
-  }) async {
-    await hold?.future;
-    final error = failWith;
-    if (error != null) throw error;
-    final before = stored;
-    final merged = apply(before);
-    calls.add((diveId: diveId, merged: merged, cards: changedCardIds.toList()));
-    stored = merged;
-    return (before: before, after: merged);
-  }
-}
+import 'dive_detail_page_unlock_harness.dart';
 
 /// A dive list whose refresh after a write fails.
 class _FailingRefreshList extends PaginatedDiveListNotifier {
@@ -64,173 +29,20 @@ class _FailingRefreshList extends PaginatedDiveListNotifier {
   }) async => throw StateError('the list could not be refreshed');
 }
 
+/// A site list that cannot be read again.
+class _FailingSites extends SiteListNotifier {
+  _FailingSites(super.repository, super.ref);
+
+  @override
+  Future<void> refresh() async =>
+      throw StateError('the sites could not be read again');
+}
+
 /// The dive page unlocked for editing in place (issue #4527), behind the
 /// build switch.
 void main() {
-  final dive = Dive(
-    id: 'dive-1',
-    diveNumber: 1,
-    dateTime: DateTime(2023, 1, 1),
-    notes: 'Calm',
-  );
-
-  /// A second dive, for tests that hand the page another one.
-  final otherDive = Dive(
-    id: 'dive-2',
-    diveNumber: 2,
-    dateTime: DateTime(2023, 1, 2),
-    notes: 'Other notes',
-  );
-
   setUp(setUpTestDatabase);
   tearDown(tearDownTestDatabase);
-
-  /// Pumps the page on top of a home route, with only Tags and Notes shown
-  /// so both are on screen, and returns the router and the fake service.
-  Future<({GoRouter router, _FakeSave save})> pumpPage(
-    WidgetTester tester, {
-    bool unlockEditing = true,
-    bool embedded = false,
-    Size size = const Size(700, 1000),
-    Dive? stored,
-    Set<DiveDetailSectionId> visible = const {
-      DiveDetailSectionId.tags,
-      DiveDetailSectionId.notes,
-    },
-    Completer<void>? reloadGate,
-    String initialLocation = '/home/dive',
-    ValueNotifier<String>? shownDiveId,
-    bool listRefreshFails = false,
-  }) async {
-    tester.view.devicePixelRatio = 1.0;
-    tester.view.physicalSize = size;
-    addTearDown(tester.view.reset);
-    // One notifier for the life of the page: made in the route's builder it
-    // would be a new one, never disposed, each time the route rebuilt.
-    final shownId = shownDiveId ?? ValueNotifier(dive.id);
-    if (shownDiveId == null) addTearDown(shownId.dispose);
-
-    final save = _FakeSave(stored ?? dive);
-    var loads = 0;
-    final overrides = await getBaseOverrides(
-      settingsNotifier: MockSettingsNotifier(
-        AppSettings(
-          hasAcceptedPlanningDisclaimer: true,
-          diveDetailSections: [
-            for (final id in DiveDetailSectionId.values)
-              DiveDetailSectionConfig(id: id, visible: visible.contains(id)),
-          ],
-        ),
-      ),
-    );
-    final router = GoRouter(
-      initialLocation: initialLocation,
-      routes: [
-        // The dive as a root page, the way a deep link opens it.
-        GoRoute(
-          path: '/root-dive',
-          builder: (context, state) =>
-              DiveDetailPage(diveId: dive.id, unlockEditing: unlockEditing),
-        ),
-        GoRoute(
-          path: '/dives',
-          builder: (context, state) => const Scaffold(body: Text('PANE')),
-        ),
-        GoRoute(
-          path: '/home',
-          builder: (context, state) => const Scaffold(body: Text('HOME')),
-          routes: [
-            GoRoute(
-              path: 'dive',
-              // With [shownDiveId] the same page is handed another dive,
-              // keeping its state, as the list pane does with its detail.
-              builder: (context, state) => ValueListenableBuilder<String>(
-                valueListenable: shownId,
-                builder: (context, id, _) => DiveDetailPage(
-                  diveId: id,
-                  embedded: embedded,
-                  unlockEditing: unlockEditing,
-                ),
-              ),
-            ),
-          ],
-        ),
-        GoRoute(
-          path: '/dives/:id',
-          builder: (context, state) =>
-              Scaffold(body: Text('OTHER ${state.pathParameters['id']}')),
-        ),
-      ],
-    );
-
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          ...overrides,
-          // Reads the fake's dive, so a save shows on the page as it would
-          // from the database.
-          diveProvider(dive.id).overrideWith((ref) async {
-            // Every load after the first waits on [reloadGate], so a test
-            // can look at the page before the saved dive is read back.
-            if (++loads > 1 && reloadGate != null) await reloadGate.future;
-            return save.stored;
-          }),
-          diveDataSourcesProvider(
-            dive.id,
-          ).overrideWith((ref) async => <DiveDataSource>[]),
-          diveNeighborsProvider(
-            dive.id,
-          ).overrideWith((ref) => (previousId: null, nextId: 'dive-2')),
-          diveProvider(otherDive.id).overrideWith((ref) async => otherDive),
-          diveDataSourcesProvider(
-            otherDive.id,
-          ).overrideWith((ref) async => <DiveDataSource>[]),
-          diveNeighborsProvider(
-            otherDive.id,
-          ).overrideWith((ref) => (previousId: dive.id, nextId: null)),
-          diveEditSaveServiceProvider.overrideWithValue(save),
-          if (listRefreshFails)
-            paginatedDiveListProvider.overrideWith(
-              (ref) =>
-                  _FailingRefreshList(ref.watch(diveRepositoryProvider), ref),
-            ),
-        ],
-        child: MaterialApp.router(
-          routerConfig: router,
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-        ),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
-    return (router: router, save: save);
-  }
-
-  Future<void> settle(WidgetTester tester) async {
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
-  }
-
-  Future<void> unlock(WidgetTester tester) async {
-    await tester.tap(find.byTooltip('Unlock to edit'));
-    await settle(tester);
-  }
-
-  Future<void> openNotes(WidgetTester tester) async {
-    await tester.tap(find.byTooltip('Edit Notes'));
-    await settle(tester);
-  }
-
-  AppBarTextAction action(WidgetTester tester, String label) =>
-      tester.widget<AppBarTextAction>(
-        find.byWidgetPredicate(
-          (w) => w is AppBarTextAction && w.label == label,
-        ),
-      );
-
-  String location(GoRouter router) => router.state.uri.toString();
 
   testWidgets('switch off: the page has no lock', (tester) async {
     await pumpPage(tester, unlockEditing: false);
@@ -301,6 +113,114 @@ void main() {
     expect(page.save.calls.single.cards, ['notes']);
     expect(find.byTooltip('Unlock to edit'), findsOneWidget);
     expect(find.text('Calm, then current'), findsOneWidget);
+  });
+
+  group('a write the sitting holds for another record', () {
+    Future<void> typeNote(WidgetTester tester) async {
+      await unlock(tester);
+      await openNotes(tester);
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(MarkdownNotesField),
+          matching: find.byType(TextField),
+        ),
+        'Calm, then current',
+      );
+      await settle(tester);
+    }
+
+    RecordEditController<Dive> controller(WidgetTester tester) => tester
+        .widget<RecordEditScope<Dive>>(find.byType(RecordEditScope<Dive>))
+        .notifier!;
+
+    testWidgets('is run by the save, and the site list is read again', (
+      tester,
+    ) async {
+      SpySites? sites;
+      final page = await pumpPage(
+        tester,
+        extra: [
+          siteListNotifierProvider.overrideWith(
+            (ref) => sites = SpySites(ref.watch(siteRepositoryProvider), ref),
+          ),
+        ],
+      );
+      await typeNote(tester);
+      var ran = 0;
+      controller(tester).session!.holdWrite('site', () async => ran++);
+
+      await tester.tap(find.text('Save'));
+      await settle(tester);
+
+      expect(page.save.calls, hasLength(1));
+      expect(ran, 1);
+      expect(sites?.refreshes, 1);
+    });
+
+    testWidgets('is dropped when the sitting is cancelled', (tester) async {
+      await pumpPage(tester);
+      await typeNote(tester);
+      var ran = 0;
+      controller(tester).session!.holdWrite('site', () async => ran++);
+
+      await tester.tap(find.text('Cancel'));
+      await settle(tester);
+      await tester.tap(find.text('Discard'));
+      await settle(tester);
+
+      expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+      expect(ran, 0);
+    });
+
+    testWidgets('a sitting that holds none leaves the site list alone', (
+      tester,
+    ) async {
+      SpySites? sites;
+      await pumpPage(
+        tester,
+        extra: [
+          siteListNotifierProvider.overrideWith(
+            (ref) => sites = SpySites(ref.watch(siteRepositoryProvider), ref),
+          ),
+        ],
+      );
+      await typeNote(tester);
+
+      await tester.tap(find.text('Save'));
+      await settle(tester);
+
+      expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+      expect(sites, isNull);
+    });
+
+    // As with the dive list: the dive and the held write are both committed
+    // by then, so this is not a save that failed.
+    testWidgets('a site list that cannot be read again is not a failed save', (
+      tester,
+    ) async {
+      final page = await pumpPage(
+        tester,
+        extra: [
+          siteListNotifierProvider.overrideWith(
+            (ref) => _FailingSites(ref.watch(siteRepositoryProvider), ref),
+          ),
+        ],
+      );
+      await typeNote(tester);
+      var ran = 0;
+      controller(tester).session!.holdWrite('site', () async => ran++);
+
+      await tester.tap(find.text('Save'));
+      await settle(tester);
+
+      expect(ran, 1);
+      expect(
+        find.text("Couldn't save your changes. Nothing was changed."),
+        findsNothing,
+      );
+      expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+      expect(page.save.calls, hasLength(1));
+    });
   });
 
   testWidgets('typing a change and typing it back disables Save again', (
@@ -671,7 +591,15 @@ void main() {
   testWidgets(
     'a list refresh that fails after the write is not a failed save',
     (tester) async {
-      final page = await pumpPage(tester, listRefreshFails: true);
+      final page = await pumpPage(
+        tester,
+        extra: [
+          paginatedDiveListProvider.overrideWith(
+            (ref) =>
+                _FailingRefreshList(ref.watch(diveRepositoryProvider), ref),
+          ),
+        ],
+      );
       await unlock(tester);
       await openNotes(tester);
       await tester.enterText(notesField(), 'Saved all the same');
@@ -733,6 +661,9 @@ void main() {
     await tester.enterText(notesField(), 'Something else');
     await settle(tester);
 
+    // The harness restores the view too; said here because this is where
+    // the size is changed again.
+    addTearDown(tester.view.reset);
     tester.view.physicalSize = const Size(1400, 1000);
     await settle(tester);
 

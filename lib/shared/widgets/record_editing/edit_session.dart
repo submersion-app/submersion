@@ -18,6 +18,9 @@ class EditSession<T> extends ChangeNotifier {
   /// Pending changes by field id, in the order they were first made.
   final Map<String, _Pending<T>> _pending = {};
 
+  /// How many times each card's pending values have changed, by card id.
+  final Map<String, int> _revisions = {};
+
   /// The record as stored, as of the last [rebase].
   T get stored => _stored;
 
@@ -39,12 +42,19 @@ class EditSession<T> extends ChangeNotifier {
   /// Lets the sitting change again, after a save that did not go through.
   void thaw() => _isFrozen = false;
 
-  bool _isDisposed = false;
-
   /// The cards that own at least one pending change.
   Set<String> get changedCardIds => {
     for (final pending in _pending.values) pending.cardId,
   };
+
+  /// How many times [set] has changed or cleared a pending value of a field
+  /// [cardId] owns or shows ([EditField.alsoShownOn]). It only ever goes up,
+  /// so a listener that remembers it can tell that what a card shows has
+  /// moved without comparing values.
+  int revisionOf(String cardId) => _revisions[cardId] ?? 0;
+
+  /// The cards whose [revisionOf] has moved in this sitting.
+  Set<String> get revisedCardIds => _revisions.keys.toSet();
 
   /// The pending value of [field], or the stored one when it is unchanged.
   V valueOf<V>(EditField<T, V> field) {
@@ -64,7 +74,7 @@ class EditSession<T> extends ChangeNotifier {
     if (field.same(value, field.read(_stored))) {
       if (current == null) return;
       _pending.remove(field.id);
-      notifyListeners();
+      _changed(field);
       return;
     }
     if (current != null && field.same(value, current.value as V)) return;
@@ -74,6 +84,13 @@ class EditSession<T> extends ChangeNotifier {
       apply: (record) => field.write(record, value),
       matches: (record) => field.same(value, field.read(record)),
     );
+    _changed(field);
+  }
+
+  void _changed(EditField<T, Object?> field) {
+    for (final cardId in {field.cardId, ...field.alsoShownOn}) {
+      _revisions[cardId] = revisionOf(cardId) + 1;
+    }
     notifyListeners();
   }
 
@@ -96,6 +113,50 @@ class EditSession<T> extends ChangeNotifier {
     }
     return record;
   }
+
+  /// Writes this sitting owes to other records, by key, in the order each
+  /// key was first held.
+  final Map<String, Future<void> Function()> _heldWrites = {};
+
+  /// Whether the sitting holds a write to another record.
+  bool get hasHeldWrites => _heldWrites.isNotEmpty;
+
+  /// Holds [write] to run when the sitting is saved: a change to a record
+  /// other than [T] that belongs to this sitting, such as an altitude found
+  /// for the dive copied back to its site. A second call with the same [key]
+  /// replaces the first.
+  ///
+  /// A held write is not a change to the record, so it neither makes the
+  /// session dirty nor notifies. Discarding the session discards it. Like
+  /// [set], it does nothing while the session [isFrozen].
+  void holdWrite(String key, Future<void> Function() write) {
+    if (_isFrozen) return;
+    _heldWrites[key] = write;
+  }
+
+  /// Runs every held write, one after another, in the order first held.
+  /// They are kept, so a save that failed can run them again. The first one
+  /// to throw stops the rest.
+  Future<void> runHeldWrites() async {
+    for (final write in _heldWrites.values.toList()) {
+      await write();
+    }
+  }
+
+  /// What has been asked about with [firstTime].
+  final Set<String> _asked = {};
+
+  /// True the first time it is asked about [key] in this sitting, false
+  /// from then on. For what a card does once however often it is opened,
+  /// such as looking a value up: a card's editor is built anew each time
+  /// the card opens, and only the sitting outlives it.
+  bool firstTime(String key) => _asked.add(key);
+
+  bool _isDisposed = false;
+
+  /// Whether the sitting has ended. Work that can outlive it (a lookup, a
+  /// fetch) checks this before writing its result here.
+  bool get isDisposed => _isDisposed;
 
   @override
   void dispose() {

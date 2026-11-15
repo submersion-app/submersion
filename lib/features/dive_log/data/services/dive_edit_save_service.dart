@@ -26,10 +26,16 @@ class DiveEditSaveService {
   /// [changedCardIds] names the cards the sitting changed, for its History
   /// label. Returns the dive before and after, or null when [apply] changed
   /// nothing. Throws [StateError] when the dive no longer exists.
+  ///
+  /// [alsoWrite] makes the sitting's writes to other records (an altitude
+  /// copied back to the dive's site). It runs after the dive is written, in
+  /// the same transaction and History entry, so if it throws the dive is
+  /// left as it was. It is not called when [apply] changed nothing.
   Future<({Dive before, Dive after})?> save({
     required String diveId,
     required Dive Function(Dive stored) apply,
     required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
   }) {
     // The scope goes outside the transaction it covers, as its own contract
     // requires. An operation that ends with no events is removed when the
@@ -46,6 +52,7 @@ class DiveEditSaveService {
         final merged = apply(stored);
         if (merged == stored) return null;
         await _diveRepo.updateDive(merged);
+        await alsoWrite?.call();
         return (before: stored, after: merged);
       }),
     );

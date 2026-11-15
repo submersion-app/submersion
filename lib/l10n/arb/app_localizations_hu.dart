@@ -10006,6 +10006,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült menteni a módosításokat. Semmi sem változott.';
 
   @override
+  String get recordEdit_fixInvalid =>
+      'Néhány érték nem olvasható. Javítsa ki őket mentés előtt.';
+
+  @override
   String get settings_manage_setupAssistant => 'Beállítási varázsló';
 
   @override

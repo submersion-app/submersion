@@ -3288,6 +3288,7 @@
   "recordEdit_unsavedChanges": "Cambios sin guardar",
   "recordEdit_hiddenCard": "{card}, oculto",
   "recordEdit_saveFailed": "No se pudieron guardar los cambios. No se realizó ningún cambio.",
+  "recordEdit_fixInvalid": "Algunos valores no se pueden leer. Corrígelos antes de guardar.",
   "siteMatchReview_title": "Asociar puntos",
   "siteMatchReview_diveNumber": "Inmersión #{number}",
   "siteMatchReview_empty": "Nada que asociar.",

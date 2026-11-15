@@ -27,16 +27,7 @@ import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 class InsightsOverviewPage extends ConsumerWidget {
   final bool embedded;
 
-  /// Leads with the observations strip (#2381). On for the desktop summary
-  /// pane only: the Overview category detail is the same page and would
-  /// otherwise repeat it.
-  final bool showObservations;
-
-  const InsightsOverviewPage({
-    super.key,
-    this.embedded = false,
-    this.showObservations = false,
-  });
+  const InsightsOverviewPage({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,8 +38,7 @@ class InsightsOverviewPage extends ConsumerWidget {
       error: (e, _) => _ErrorCard(
         onRetry: () => ref.invalidate(filteredDiveStatisticsProvider),
       ),
-      data: (stats) =>
-          _OverviewBody(stats: stats, showObservations: showObservations),
+      data: (stats) => _OverviewBody(stats: stats),
     );
 
     if (embedded) return body;
@@ -61,8 +51,7 @@ class InsightsOverviewPage extends ConsumerWidget {
 
 class _OverviewBody extends ConsumerWidget {
   final DiveStatistics stats;
-  final bool showObservations;
-  const _OverviewBody({required this.stats, required this.showObservations});
+  const _OverviewBody({required this.stats});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -116,8 +105,9 @@ class _OverviewBody extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (showObservations)
-            const ObservationsStrip(padding: EdgeInsets.only(bottom: 16)),
+          // Observations lead the Overview on every layout (#4559); an empty
+          // strip is zero-size, so the totals sit where they always did.
+          const ObservationsStrip(padding: EdgeInsets.only(bottom: 16)),
           _AggregateGrid(stats: stats, fmt: fmt, career: career),
           if (career.divingSinceResolved != null) ...[
             const SizedBox(height: 8),
