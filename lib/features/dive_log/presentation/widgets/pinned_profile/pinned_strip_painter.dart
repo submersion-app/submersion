@@ -20,6 +20,14 @@ export 'pinned_strip_layers.dart' show kPinnedStripPointBudget;
 /// Breathing room above and below the strip's curve.
 const double _curvePad = 4;
 
+/// The strip's curve area in a box of [size], [curveHeight] tall: the whole
+/// width, less [_curvePad] above and below for the line's stroke and the
+/// max-depth dot.
+Rect pinnedStripCurveRect(
+  Size size, {
+  double curveHeight = kPinnedStripHeight,
+}) => Rect.fromLTWH(0, _curvePad, size.width, curveHeight - 2 * _curvePad);
+
 /// Stroke width of the strip's NDL line.
 const double _ndlLineWidth = 1.5;
 
@@ -155,12 +163,7 @@ class PinnedStripPainter extends CustomPainter {
       extraMaxDepthMeters,
     );
     return PlotMapping(
-      rect: Rect.fromLTWH(
-        0,
-        _curvePad,
-        size.width,
-        curveHeight - 2 * _curvePad,
-      ),
+      rect: pinnedStripCurveRect(size, curveHeight: curveHeight),
       minSeconds: profile.isEmpty ? 0 : profile.first.timestamp.toDouble(),
       maxSeconds: profile.isEmpty ? 1 : profile.last.timestamp.toDouble(),
       minDepthMeters: 0,
@@ -185,10 +188,32 @@ class PinnedStripPainter extends CustomPainter {
     return Rect.lerp(start.rect, curveArea, morph);
   }
 
+  /// Where the shading is clipped: as [clipFor] across and at the top, but
+  /// down to the bottom of the box, which the shading always fills.
+  /// Null without a chart plot.
+  Rect? fillClipFor(Size size) {
+    final clip = clipFor(size);
+    if (clip == null) return null;
+    return Rect.fromLTRB(
+      clip.left,
+      clip.top,
+      clip.right,
+      math.max(clip.bottom, size.height),
+    );
+  }
+
   /// The shaded area, as the full chart draws it: between the depth line and
-  /// the bottom of the plot (the water below the diver), clear above.
-  Path? fillPathFor(Size size) =>
-      profile.length < 2 ? null : _fillPath(mappingFor(size));
+  /// the bottom (the water below the diver), clear above. It runs on to the
+  /// bottom of the box of [size], past the curve area's breathing room, so
+  /// no band of bare surface shows under it (#4579).
+  Path? fillPathFor(Size size) {
+    if (profile.length < 2) return null;
+    final m = mappingFor(size);
+    return _fillPath(m, _fillBottom(m, size));
+  }
+
+  double _fillBottom(PlotMapping m, Size size) =>
+      math.max(m.rect.bottom, size.height);
 
   /// Where the NDL line passes the sample at [index] reading [ndlSeconds]:
   /// on [ProfileMetricBands.ndl]'s scale, the hour at the top of the plot
@@ -208,9 +233,8 @@ class PinnedStripPainter extends CustomPainter {
     );
   }
 
-  Path _fillPath(PlotMapping m) {
+  Path _fillPath(PlotMapping m, double bottomY) {
     final points = pinnedStripCurve(profile).points;
-    final bottomY = m.rect.bottom;
     final first = m.project(points.first.timestamp, points.first.depth);
     final path = Path()..moveTo(first.dx, bottomY);
     for (final p in points) {
@@ -346,6 +370,24 @@ class PinnedStripPainter extends CustomPainter {
     if (profile.length < 2) return;
     final m = mappingFor(size);
     final clip = clipFor(size);
+    // The shading first, under its own clip, which reaches the box's bottom.
+    final fillBottom = _fillBottom(m, size);
+    final fillClip = fillClipFor(size);
+    canvas.save();
+    if (fillClip != null) canvas.clipRect(fillClip);
+    canvas.drawPath(
+      _fillPath(m, fillBottom),
+      Paint()
+        ..shader =
+            LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: fillColors,
+            ).createShader(
+              Rect.fromLTRB(m.rect.left, m.rect.top, m.rect.right, fillBottom),
+            ),
+    );
+    canvas.restore();
     if (clip != null) canvas.clipRect(clip);
     // The bounded set of points, as the full chart draws; the cursor below
     // still reads its depth from the whole profile.
@@ -355,15 +397,6 @@ class PinnedStripPainter extends CustomPainter {
       final o = m.project(points[i].timestamp, points[i].depth);
       i == 0 ? line.moveTo(o.dx, o.dy) : line.lineTo(o.dx, o.dy);
     }
-    canvas.drawPath(
-      _fillPath(m),
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: fillColors,
-        ).createShader(m.rect),
-    );
     final stops = decoStopCurve;
     final ceiling = ceilingCurve;
     if (stops != null) {

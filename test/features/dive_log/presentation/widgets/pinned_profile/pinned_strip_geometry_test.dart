@@ -3,9 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
 
 void main() {
-  // A 456 px card. The squash takes the first kSquashRange px of its
-  // scroll-out; the hand-over to the strip takes the remaining
-  // 456 - kSquashRange - kPinnedStripHeight px.
+  // A 456 px card, [top] px from the top of the viewport.
   Rect cardAt(double top) => Rect.fromLTWH(16, top, 368, 456);
 
   group('squashDepth', () {
@@ -56,49 +54,33 @@ void main() {
     });
   });
 
+  // Issue #4579: the hand-over ran on until the card's bottom reached the
+  // strip, a long stretch of mostly empty strip over the rest of the card,
+  // and the cards below came into view before it settled. It ends as the
+  // plot reaches the top, [end] px past the card's top.
   group('condenseProgress (the hand-over to the strip)', () {
-    test('is 0 while the card is still squashing', () {
-      expect(condenseProgress(card: cardAt(0)), 0);
-      expect(condenseProgress(card: cardAt(-kSquashRange)), 0);
+    test('is 0 until it starts', () {
+      expect(condenseProgress(card: cardAt(0), start: 30, end: 150), 0);
+      expect(condenseProgress(card: cardAt(-30), start: 30, end: 150), 0);
     });
 
-    test('runs over the rest of the scroll-out, linearly', () {
+    test('runs linearly from its start to the plot reaching the top', () {
       expect(
-        condenseProgress(
-          card: cardAt(
-            -(kSquashRange + (456 - kSquashRange - kPinnedStripHeight) / 2),
-          ),
-        ),
+        condenseProgress(card: cardAt(-90), start: 30, end: 150),
         closeTo(0.5, 1e-9),
       );
     });
 
-    test('is 1 once the card bottom reaches the strip', () {
-      // The card's bottom meets the strip's.
-      expect(condenseProgress(card: cardAt(-(456 - kPinnedStripHeight))), 1);
-      expect(condenseProgress(card: cardAt(-900)), 1);
+    test('is 1 as the plot reaches the top, whatever is left of the card', () {
+      expect(condenseProgress(card: cardAt(-150), start: 30, end: 150), 1);
+      // Most of the 456 px card is still on screen, and it is settled.
+      expect(cardAt(-150).bottom, greaterThan(300));
+      expect(condenseProgress(card: cardAt(-900), start: 30, end: 150), 1);
     });
 
-    // After the squash the card slides up until its plot reaches the top;
-    // the hand-over starts there.
-    test('can start later, once the plot reaches the top', () {
-      const start = kSquashRange + 60;
-      expect(condenseProgress(card: cardAt(-start), start: start), 0);
-      // Halfway through the 456 - start - kPinnedStripHeight px of hand-over.
-      expect(
-        condenseProgress(
-          card: cardAt(-(start + (456 - start - kPinnedStripHeight) / 2)),
-          start: start,
-        ),
-        closeTo(0.5, 1e-9),
-      );
-      expect(
-        condenseProgress(
-          card: cardAt(-(456 - kPinnedStripHeight)),
-          start: start,
-        ),
-        1,
-      );
+    test('is done at once when it has no scroll to run over', () {
+      expect(condenseProgress(card: cardAt(-31), start: 30, end: 30), 1);
+      expect(condenseProgress(card: cardAt(-10), start: 30, end: 30), 0);
     });
   });
 
@@ -125,24 +107,10 @@ void main() {
     });
   });
 
-  group('condenseFadeEnd', () {
-    // Past the moment the plot reaches the top, the card slides its plot out
-    // of view; the full chart must be gone by then, so no data leaves the
-    // view, and the strip carries the line on.
-    test('is where the plot reaches the top, as a share of the hand-over', () {
-      // Starts 30 px in, plot at the top 150 px in, 456 - 30 - kPinnedStripHeight px
-      // of hand-over: the fade takes the first 120 of them.
-      expect(
-        condenseFadeEnd(start: 30, plotAtTop: 150, cardHeight: 456),
-        closeTo(120 / (456 - 30 - kPinnedStripHeight), 1e-9),
-      );
-    });
-
-    test('stays within the hand-over', () {
-      expect(condenseFadeEnd(start: 30, plotAtTop: 20, cardHeight: 456), 0);
-      expect(condenseFadeEnd(start: 30, plotAtTop: 900, cardHeight: 456), 1);
-      expect(condenseFadeEnd(start: 30, plotAtTop: 150, cardHeight: 80), 1);
-    });
+  // The fade and the morph share the hand-over, so the strip is opaque with
+  // room left to change shape before the plot reaches the top.
+  test('the fade takes part of the hand-over, leaving the rest to morph', () {
+    expect(kCondenseFadeEnd, inExclusiveRange(0, 1));
   });
 
   test('the hand-over starts early in the card\'s motion', () {
@@ -231,6 +199,50 @@ void main() {
       final moved = chart.shift(const Offset(-40, -100));
       expect(moved.project(0, 0), Offset.zero);
       expect(moved.maxSeconds, 3000);
+    });
+  });
+
+  // The strip's box moves from the chart's plot to its pinned place on the
+  // morph, and the painter blends its line inside that box on the same
+  // morph. Handed the plot as it stands, the line took the morph twice and
+  // lagged the box's edges: a blank border around it (#4579).
+  group('morphStartFor', () {
+    test('the painter\'s blend of it is the line\'s place on the page', () {
+      const start = PlotMapping(
+        rect: Rect.fromLTWH(60, 20, 280, 48),
+        minSeconds: 0,
+        maxSeconds: 600,
+        minDepthMeters: 0,
+        maxDepthMeters: 18,
+      );
+      const end = Rect.fromLTWH(4, 4, 392, 64);
+      for (final morph in [0.0, 0.3, 0.7, 0.95]) {
+        final box = Rect.lerp(
+          const Rect.fromLTWH(60, 20, 280, 48),
+          const Rect.fromLTWH(4, 0, 392, 72),
+          morph,
+        )!;
+        final own = Rect.fromLTWH(0, 4, box.width, 64);
+        final handed = morphStartFor(
+          start: start,
+          end: end,
+          box: box,
+          own: own,
+          morph: morph,
+        );
+        final drawn = Rect.lerp(handed.rect, own, morph)!;
+        final wanted = Rect.lerp(start.rect, end, morph)!.shift(-box.topLeft);
+        for (final (a, b) in [
+          (drawn.left, wanted.left),
+          (drawn.top, wanted.top),
+          (drawn.right, wanted.right),
+          (drawn.bottom, wanted.bottom),
+        ]) {
+          expect(a, closeTo(b, 1e-9), reason: 'morph $morph');
+        }
+        expect(handed.maxSeconds, 600);
+        expect(handed.maxDepthMeters, 18);
+      }
     });
   });
 }
