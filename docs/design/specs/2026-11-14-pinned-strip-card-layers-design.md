@@ -126,11 +126,17 @@ existing lines do.
 
 ## When a card counts as in view
 
-A card is in view when at least 96 logical pixels of it, or all of it if it
-is shorter, lie between a fixed edge 72 px below the page's top (the grown
-strip's bottom) and the bottom of the page's viewport. The edge is fixed, not
-the strip's current bottom, so the strip growing cannot push a card back out
-of view and flicker (builder call). A card folded to its header row (the phone list layout) is not in
+A card is in view only once all of it, or most of it, shows in the window
+(decided by the diver after the first build, which used a lower bar of
+96 px): at least 75% of the card lies between a fixed edge 72 px below the
+page's top (the grown strip's bottom) and the bottom of the page's viewport.
+A card taller than that room, which can never show 75% of itself, counts
+once it fills 75% of the room. The edge is fixed, not the strip's current
+bottom, so the strip growing cannot push a card back out of view. A card
+already in view stays in until it falls 16 px below the threshold, so one
+resting on it does not flicker with scroll jitter.
+
+A card folded to its header row (the phone list layout) is not in
 view, and is never measured, because its content is not built.
 
 In the wide paired layout, both cards of a pair are measured independently.
