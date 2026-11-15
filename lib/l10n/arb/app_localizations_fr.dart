@@ -32797,27 +32797,28 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get insights_profile_verticalDistance_title =>
-      'Total Ascent & Descent';
+      'Remontée et descente totales';
 
   @override
   String get insights_profile_verticalDistance_subtitle =>
-      'Every dive added up, against mountains and ocean depths';
+      'Toutes vos plongées additionnées, face aux montagnes et aux fosses océaniques';
 
   @override
-  String get insights_profile_verticalDistance_totalAscent => 'total ascent';
+  String get insights_profile_verticalDistance_totalAscent => 'remontée totale';
 
   @override
-  String get insights_profile_verticalDistance_totalDescent => 'total descent';
+  String get insights_profile_verticalDistance_totalDescent =>
+      'descente totale';
 
   @override
-  String get insights_profile_verticalDistance_seaLevel => 'Sea level';
+  String get insights_profile_verticalDistance_seaLevel => 'Niveau de la mer';
 
   @override
   String insights_profile_verticalDistance_next(
     String landmark,
     String distance,
   ) {
-    return 'Next: $landmark, $distance to go';
+    return 'Prochain : $landmark, encore $distance';
   }
 
   @override
@@ -32838,14 +32839,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get insights_profile_verticalDistance_stripIdle =>
-      'Point at a bar to see when you got there';
+      'Pointez une barre pour voir quand vous l\'avez atteinte';
 
   @override
   String insights_profile_verticalDistance_stripAscent(
     String level,
     String date,
   ) {
-    return '$level of ascent, reached $date';
+    return '$level de remontée, atteints le $date';
   }
 
   @override
@@ -32853,7 +32854,7 @@ class AppLocalizationsFr extends AppLocalizations {
     String level,
     String date,
   ) {
-    return '$level of descent, reached $date';
+    return '$level de descente, atteints le $date';
   }
 
   @override
@@ -32861,7 +32862,7 @@ class AppLocalizationsFr extends AppLocalizations {
     String landmark,
     String date,
   ) {
-    return '$landmark: passed $date';
+    return '$landmark : dépassé le $date';
   }
 
   @override
@@ -32869,33 +32870,35 @@ class AppLocalizationsFr extends AppLocalizations {
     String landmark,
     String distance,
   ) {
-    return '$landmark: $distance to go';
+    return '$landmark : encore $distance';
   }
 
   @override
-  String get insights_profile_verticalDistance_openDive => 'Open dive';
+  String get insights_profile_verticalDistance_openDive => 'Ouvrir la plongée';
 
   @override
-  String get insights_profile_verticalDistance_pinned => 'Pinned';
+  String get insights_profile_verticalDistance_pinned => 'Épinglé';
 
   @override
   String insights_profile_verticalDistance_estimated(int estimated, int total) {
     String _temp0 = intl.Intl.pluralLogic(
       total,
       locale: localeName,
-      other: '$estimated of $total dives counted from max depth',
-      one: '$estimated of $total dive counted from max depth',
+      other:
+          '$estimated sur $total plongées comptées depuis la profondeur maximale',
+      one:
+          '$estimated sur $total plongée comptée depuis la profondeur maximale',
     );
     return '$_temp0';
   }
 
   @override
   String get insights_profile_verticalDistance_empty =>
-      'No dives with a depth yet';
+      'Aucune plongée avec profondeur pour l\'instant';
 
   @override
   String get insights_profile_verticalDistance_error =>
-      'Failed to load ascent and descent totals';
+      'Impossible de charger les totaux de remontée et de descente';
 
   @override
   String insights_profile_verticalDistance_semantics(
@@ -32905,17 +32908,17 @@ class AppLocalizationsFr extends AppLocalizations {
     String down,
     String downDistance,
   ) {
-    return 'Total ascent and descent $total each. Next up: $up, $upDistance to go. Next down: $down, $downDistance to go.';
+    return 'Remontée et descente totales : $total chacune. Prochain en haut : $up, encore $upDistance. Prochain en bas : $down, encore $downDistance.';
   }
 
   @override
-  String get insights_landmark_statueOfLiberty => 'Statue of Liberty';
+  String get insights_landmark_statueOfLiberty => 'Statue de la Liberté';
 
   @override
-  String get insights_landmark_greatPyramid => 'Great Pyramid of Giza';
+  String get insights_landmark_greatPyramid => 'Grande pyramide de Gizeh';
 
   @override
-  String get insights_landmark_eiffelTower => 'Eiffel Tower';
+  String get insights_landmark_eiffelTower => 'Tour Eiffel';
 
   @override
   String get insights_landmark_empireStateBuilding => 'Empire State Building';
@@ -32927,19 +32930,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_landmark_benNevis => 'Ben Nevis';
 
   @override
-  String get insights_landmark_mountKosciuszko => 'Mount Kosciuszko';
+  String get insights_landmark_mountKosciuszko => 'Mont Kosciuszko';
 
   @override
-  String get insights_landmark_mountFuji => 'Mount Fuji';
+  String get insights_landmark_mountFuji => 'Mont Fuji';
 
   @override
-  String get insights_landmark_matterhorn => 'Matterhorn';
+  String get insights_landmark_matterhorn => 'Cervin';
 
   @override
   String get insights_landmark_montBlanc => 'Mont Blanc';
 
   @override
-  String get insights_landmark_kilimanjaro => 'Kilimanjaro';
+  String get insights_landmark_kilimanjaro => 'Kilimandjaro';
 
   @override
   String get insights_landmark_denali => 'Denali';
@@ -32951,47 +32954,51 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_landmark_k2 => 'K2';
 
   @override
-  String get insights_landmark_everest => 'Mount Everest';
+  String get insights_landmark_everest => 'Mont Everest';
 
   @override
   String get insights_landmark_olympusMons => 'Olympus Mons (Mars)';
 
   @override
-  String get insights_landmark_karmanLine => 'Edge of space';
+  String get insights_landmark_karmanLine => 'Limite de l\'espace';
 
   @override
   String get insights_landmark_internationalSpaceStation =>
-      'International Space Station';
+      'Station spatiale internationale';
 
   @override
-  String get insights_landmark_recreationalLimit => 'Recreational dive limit';
+  String get insights_landmark_recreationalLimit =>
+      'Limite de la plongée loisir';
 
   @override
-  String get insights_landmark_greatBlueHole => 'Great Blue Hole';
+  String get insights_landmark_greatBlueHole => 'Grand Trou bleu';
 
   @override
-  String get insights_landmark_deansBlueHole => 'Dean\'s Blue Hole';
+  String get insights_landmark_deansBlueHole => 'Trou bleu de Dean';
 
   @override
-  String get insights_landmark_dragonHole => 'Dragon Hole';
+  String get insights_landmark_dragonHole => 'Trou du Dragon';
 
   @override
-  String get insights_landmark_deepestScubaDive => 'Deepest scuba dive';
+  String get insights_landmark_deepestScubaDive =>
+      'Plongée en scaphandre la plus profonde';
 
   @override
   String get insights_landmark_craterLake => 'Crater Lake';
 
   @override
-  String get insights_landmark_lakeTanganyika => 'Lake Tanganyika';
+  String get insights_landmark_lakeTanganyika => 'Lac Tanganyika';
 
   @override
-  String get insights_landmark_lakeBaikal => 'Lake Baikal';
+  String get insights_landmark_lakeBaikal => 'Lac Baïkal';
 
   @override
-  String get insights_landmark_deepestWhaleDive => 'Deepest whale dive';
+  String get insights_landmark_deepestWhaleDive =>
+      'Plongée de baleine la plus profonde';
 
   @override
-  String get insights_landmark_averageOceanDepth => 'Average ocean depth';
+  String get insights_landmark_averageOceanDepth =>
+      'Profondeur moyenne de l\'océan';
 
   @override
   String get insights_landmark_titanic => 'Titanic';
@@ -33000,28 +33007,29 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_landmark_bismarck => 'Bismarck';
 
   @override
-  String get insights_landmark_molloyDeep => 'Molloy Deep';
+  String get insights_landmark_molloyDeep => 'Fosse Molloy';
 
   @override
-  String get insights_landmark_deepestShipwreck => 'Deepest shipwreck';
+  String get insights_landmark_deepestShipwreck => 'Épave la plus profonde';
 
   @override
-  String get insights_landmark_javaTrench => 'Java Trench';
+  String get insights_landmark_javaTrench => 'Fosse de Java';
 
   @override
-  String get insights_landmark_southSandwichTrench => 'South Sandwich Trench';
+  String get insights_landmark_southSandwichTrench =>
+      'Fosse des Sandwich du Sud';
 
   @override
-  String get insights_landmark_puertoRicoTrench => 'Puerto Rico Trench';
+  String get insights_landmark_puertoRicoTrench => 'Fosse de Porto Rico';
 
   @override
-  String get insights_landmark_tongaTrench => 'Tonga Trench';
+  String get insights_landmark_tongaTrench => 'Fosse des Tonga';
 
   @override
-  String get insights_landmark_challengerDeep => 'Challenger Deep';
+  String get insights_landmark_challengerDeep => 'Abîme Challenger';
 
   @override
-  String get insights_landmark_kolaBorehole => 'Kola Superdeep Borehole';
+  String get insights_landmark_kolaBorehole => 'Forage superprofond de Kola';
 
   @override
   String get insights_profile_avgAscent => 'Remontée moy.';
@@ -64557,7 +64565,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String info_insights_verticalDistance_summary(String deadband) {
-    return 'Each dive is counted from the surface down and back, ignoring wobble under $deadband. A dive with no profile counts once down to its max depth and once back up.';
+    return 'Chaque plongée est comptée de la surface jusqu\'au fond et retour, sans les oscillations inférieures à $deadband. Une plongée sans profil compte une fois jusqu\'à sa profondeur maximale et une fois au retour.';
   }
 
   @override

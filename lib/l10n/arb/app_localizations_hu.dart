@@ -32544,27 +32544,29 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_profile_verticalDistance_title =>
-      'Total Ascent & Descent';
+      'Összes felszállás és lesüllyedés';
 
   @override
   String get insights_profile_verticalDistance_subtitle =>
-      'Every dive added up, against mountains and ocean depths';
+      'Minden merülés összeadva, hegyekhez és óceáni mélységekhez mérve';
 
   @override
-  String get insights_profile_verticalDistance_totalAscent => 'total ascent';
+  String get insights_profile_verticalDistance_totalAscent =>
+      'összes felszállás';
 
   @override
-  String get insights_profile_verticalDistance_totalDescent => 'total descent';
+  String get insights_profile_verticalDistance_totalDescent =>
+      'összes lesüllyedés';
 
   @override
-  String get insights_profile_verticalDistance_seaLevel => 'Sea level';
+  String get insights_profile_verticalDistance_seaLevel => 'Tengerszint';
 
   @override
   String insights_profile_verticalDistance_next(
     String landmark,
     String distance,
   ) {
-    return 'Next: $landmark, $distance to go';
+    return 'Következő: $landmark, még $distance';
   }
 
   @override
@@ -32585,14 +32587,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_profile_verticalDistance_stripIdle =>
-      'Point at a bar to see when you got there';
+      'Mutass egy oszlopra, hogy lásd, mikor értél oda';
 
   @override
   String insights_profile_verticalDistance_stripAscent(
     String level,
     String date,
   ) {
-    return '$level of ascent, reached $date';
+    return '$level felszállás, elérve: $date';
   }
 
   @override
@@ -32600,7 +32602,7 @@ class AppLocalizationsHu extends AppLocalizations {
     String level,
     String date,
   ) {
-    return '$level of descent, reached $date';
+    return '$level lesüllyedés, elérve: $date';
   }
 
   @override
@@ -32608,7 +32610,7 @@ class AppLocalizationsHu extends AppLocalizations {
     String landmark,
     String date,
   ) {
-    return '$landmark: passed $date';
+    return '$landmark: elhagyva: $date';
   }
 
   @override
@@ -32616,33 +32618,32 @@ class AppLocalizationsHu extends AppLocalizations {
     String landmark,
     String distance,
   ) {
-    return '$landmark: $distance to go';
+    return '$landmark: még $distance';
   }
 
   @override
-  String get insights_profile_verticalDistance_openDive => 'Open dive';
+  String get insights_profile_verticalDistance_openDive => 'Merülés megnyitása';
 
   @override
-  String get insights_profile_verticalDistance_pinned => 'Pinned';
+  String get insights_profile_verticalDistance_pinned => 'Rögzítve';
 
   @override
   String insights_profile_verticalDistance_estimated(int estimated, int total) {
     String _temp0 = intl.Intl.pluralLogic(
       total,
       locale: localeName,
-      other: '$estimated of $total dives counted from max depth',
-      one: '$estimated of $total dive counted from max depth',
+      other: '$estimated / $total merülés a maximális mélység alapján számolva',
     );
     return '$_temp0';
   }
 
   @override
   String get insights_profile_verticalDistance_empty =>
-      'No dives with a depth yet';
+      'Még nincs mélységgel rögzített merülés';
 
   @override
   String get insights_profile_verticalDistance_error =>
-      'Failed to load ascent and descent totals';
+      'Nem sikerült betölteni az összes felszállást és lesüllyedést';
 
   @override
   String insights_profile_verticalDistance_semantics(
@@ -32652,32 +32653,32 @@ class AppLocalizationsHu extends AppLocalizations {
     String down,
     String downDistance,
   ) {
-    return 'Total ascent and descent $total each. Next up: $up, $upDistance to go. Next down: $down, $downDistance to go.';
+    return 'Összes felszállás és lesüllyedés: mindkettő $total. Következő felfelé: $up, még $upDistance. Következő lefelé: $down, még $downDistance.';
   }
 
   @override
-  String get insights_landmark_statueOfLiberty => 'Statue of Liberty';
+  String get insights_landmark_statueOfLiberty => 'Szabadság-szobor';
 
   @override
-  String get insights_landmark_greatPyramid => 'Great Pyramid of Giza';
+  String get insights_landmark_greatPyramid => 'Gízai nagy piramis';
 
   @override
-  String get insights_landmark_eiffelTower => 'Eiffel Tower';
+  String get insights_landmark_eiffelTower => 'Eiffel-torony';
 
   @override
   String get insights_landmark_empireStateBuilding => 'Empire State Building';
 
   @override
-  String get insights_landmark_burjKhalifa => 'Burj Khalifa';
+  String get insights_landmark_burjKhalifa => 'Burdzs Kalifa';
 
   @override
   String get insights_landmark_benNevis => 'Ben Nevis';
 
   @override
-  String get insights_landmark_mountKosciuszko => 'Mount Kosciuszko';
+  String get insights_landmark_mountKosciuszko => 'Kosciuszko-hegy';
 
   @override
-  String get insights_landmark_mountFuji => 'Mount Fuji';
+  String get insights_landmark_mountFuji => 'Fudzsi';
 
   @override
   String get insights_landmark_matterhorn => 'Matterhorn';
@@ -32686,7 +32687,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_landmark_montBlanc => 'Mont Blanc';
 
   @override
-  String get insights_landmark_kilimanjaro => 'Kilimanjaro';
+  String get insights_landmark_kilimanjaro => 'Kilimandzsáró';
 
   @override
   String get insights_landmark_denali => 'Denali';
@@ -32704,41 +32705,43 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_landmark_olympusMons => 'Olympus Mons (Mars)';
 
   @override
-  String get insights_landmark_karmanLine => 'Edge of space';
+  String get insights_landmark_karmanLine => 'Az űr határa';
 
   @override
   String get insights_landmark_internationalSpaceStation =>
-      'International Space Station';
+      'Nemzetközi Űrállomás';
 
   @override
-  String get insights_landmark_recreationalLimit => 'Recreational dive limit';
+  String get insights_landmark_recreationalLimit =>
+      'A szabadidős merülés határa';
 
   @override
-  String get insights_landmark_greatBlueHole => 'Great Blue Hole';
+  String get insights_landmark_greatBlueHole => 'Nagy Kék Lyuk';
 
   @override
   String get insights_landmark_deansBlueHole => 'Dean\'s Blue Hole';
 
   @override
-  String get insights_landmark_dragonHole => 'Dragon Hole';
+  String get insights_landmark_dragonHole => 'Sárkány-lyuk';
 
   @override
-  String get insights_landmark_deepestScubaDive => 'Deepest scuba dive';
+  String get insights_landmark_deepestScubaDive =>
+      'Legmélyebb palackos merülés';
 
   @override
-  String get insights_landmark_craterLake => 'Crater Lake';
+  String get insights_landmark_craterLake => 'Kráter-tó';
 
   @override
-  String get insights_landmark_lakeTanganyika => 'Lake Tanganyika';
+  String get insights_landmark_lakeTanganyika => 'Tanganyika-tó';
 
   @override
-  String get insights_landmark_lakeBaikal => 'Lake Baikal';
+  String get insights_landmark_lakeBaikal => 'Bajkál-tó';
 
   @override
-  String get insights_landmark_deepestWhaleDive => 'Deepest whale dive';
+  String get insights_landmark_deepestWhaleDive => 'Legmélyebb bálnamerülés';
 
   @override
-  String get insights_landmark_averageOceanDepth => 'Average ocean depth';
+  String get insights_landmark_averageOceanDepth => 'Az óceán átlagos mélysége';
 
   @override
   String get insights_landmark_titanic => 'Titanic';
@@ -32747,28 +32750,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_landmark_bismarck => 'Bismarck';
 
   @override
-  String get insights_landmark_molloyDeep => 'Molloy Deep';
+  String get insights_landmark_molloyDeep => 'Molloy-mélység';
 
   @override
-  String get insights_landmark_deepestShipwreck => 'Deepest shipwreck';
+  String get insights_landmark_deepestShipwreck => 'Legmélyebb hajóroncs';
 
   @override
-  String get insights_landmark_javaTrench => 'Java Trench';
+  String get insights_landmark_javaTrench => 'Jávai-árok';
 
   @override
-  String get insights_landmark_southSandwichTrench => 'South Sandwich Trench';
+  String get insights_landmark_southSandwichTrench => 'Déli-Sandwich-árok';
 
   @override
-  String get insights_landmark_puertoRicoTrench => 'Puerto Rico Trench';
+  String get insights_landmark_puertoRicoTrench => 'Puerto Ricó-i-árok';
 
   @override
-  String get insights_landmark_tongaTrench => 'Tonga Trench';
+  String get insights_landmark_tongaTrench => 'Tonga-árok';
 
   @override
-  String get insights_landmark_challengerDeep => 'Challenger Deep';
+  String get insights_landmark_challengerDeep => 'Challenger-mélység';
 
   @override
-  String get insights_landmark_kolaBorehole => 'Kola Superdeep Borehole';
+  String get insights_landmark_kolaBorehole => 'Kolai szupermély fúrás';
 
   @override
   String get insights_profile_avgAscent => 'Átl. felszállás';
@@ -64063,7 +64066,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String info_insights_verticalDistance_summary(String deadband) {
-    return 'Each dive is counted from the surface down and back, ignoring wobble under $deadband. A dive with no profile counts once down to its max depth and once back up.';
+    return 'Minden merülés a felszíntől lefelé és vissza számít, a(z) $deadband alatti ingadozás nélkül. A profil nélküli merülés egyszer a maximális mélységig és egyszer vissza számít.';
   }
 
   @override
