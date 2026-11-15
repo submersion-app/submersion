@@ -57,6 +57,8 @@ Library   Gear                 [Import] [Transfers] [Sources]
     button and a desktop drop start), then the review page as today.
   - **Transfers** pushes the Settings Transfers page (queue list plus Clear
     completed and multi-select) as a page over Media; Back returns to Media.
+    Opened from Media the page is titled Transfers, matching the button;
+    Settings keeps calling it Uploads (decided during the build).
   - **Sources** pushes the existing Sources screen in a page with its own app
     bar. Tapping a source sets the Library filter as today, closes the page,
     and selects the Library tab (even if Gear was showing).

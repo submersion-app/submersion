@@ -59,7 +59,7 @@ Run: `flutter test test/features/media/presentation/media_console_scaffold_test.
 Expected: compile errors on `MediaConsoleAction` and `onAction`.
 
 - [ ] **Step 3: Implement**
-  Build the row as `PreferredSize(preferredSize: tabBar.preferredSize, child: Row([Expanded(child: tabBar), ...buttons, SizedBox(width: 8)]))`. The `TabBar` always gets `dividerColor: Colors.transparent`; when the old code wanted a divider, the row draws it instead as a `DecoratedBox` bottom border in `theme.colorScheme.outlineVariant`, so it runs under the buttons too. Button colour follows `AppBarTabColors.unselected`, so it reads on a coloured bar. Remove the five-tab labels from `_label`.
+  Build the row as `PreferredSize(preferredSize: tabBar.preferredSize, child: Row([Expanded(child: tabBar), ...buttons, SizedBox(width: 4)]))` (4, not 8: at 360px the wider gap squeezed the tab strip). The `TabBar` always gets `dividerColor: Colors.transparent`; when the old code wanted a divider, the row draws it instead as a `DecoratedBox` bottom border in `theme.colorScheme.outlineVariant`, so it runs under the buttons too. Button colour follows `AppBarTabColors.unselected`, so it reads on a coloured bar. Remove the five-tab labels from `_label`.
 
 - [ ] **Step 4: Run the tests and see them pass**
 
@@ -109,7 +109,7 @@ Same command. Expected: all pass.
 
 - [ ] **Step 2: Run, expect failure** (`flutter test test/features/media/presentation/media_section_page_test.dart`).
 
-- [ ] **Step 3: Implement** `onAction` in `_MediaSectionPageState`: `importMedia` calls `MediaImportView.launchImport(context, ref, pick: widget.importPickOverride)`; `transfers` pushes `MaterialPageRoute(builder: (_) => const TransfersPage())`; `sources` awaits `Navigator.of(context).push<bool>(...)` and, when `true` and mounted, sets `_section = MediaConsoleSection.library`. The `child` switch covers `library` and `gear` only.
+- [ ] **Step 3: Implement** `onAction` in `_MediaSectionPageState`: `importMedia` calls `MediaImportView.launchImport(context, ref, pick: widget.importPickOverride)`; `transfers` pushes `MaterialPageRoute(builder: (_) => TransfersPage(title: l10n.media_console_transfers))` (`TransfersPage` gains an optional `title`; null keeps Settings' Uploads); `sources` awaits `Navigator.of(context).push<bool>(...)` and, when `true` and mounted, sets `_section = MediaConsoleSection.library`. The `child` switch covers `library` and `gear` only.
 
 - [ ] **Step 4: Run Tasks 1 to 3's test files, expect pass.**
 
