@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -26,12 +28,23 @@ final _alice = BuddyWithRole(
   roles: [DiveRole.builtInBuddy()],
 );
 
+/// Bumped to make the buddies read reload, as a dependency changing does.
+class _Trigger extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void bump() => state = state + 1;
+}
+
+final _trigger = NotifierProvider<_Trigger, int>(_Trigger.new);
+
 Future<void> _pump(
   WidgetTester tester, {
   required bool buddies,
   required bool course,
   bool signaturesFail = false,
   double? height,
+  Future<void> Function()? reloadGate,
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = const Size(800, 2000);
@@ -46,9 +59,10 @@ Future<void> _pump(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        buddiesForDiveProvider(
-          _diveId,
-        ).overrideWith((ref) async => buddies ? [_alice] : <BuddyWithRole>[]),
+        buddiesForDiveProvider(_diveId).overrideWith((ref) async {
+          if (ref.watch(_trigger) > 0) await reloadGate?.call();
+          return buddies ? [_alice] : <BuddyWithRole>[];
+        }),
         buddySignaturesForDiveProvider(_diveId).overrideWith(
           (ref) async =>
               signaturesFail ? throw StateError('read failed') : <Signature>[],
@@ -129,6 +143,34 @@ void main() {
     final cards = _cards(tester);
     expect(cards, hasLength(1));
     expect(cards.single.top, _host(tester).top);
+  });
+
+  // A reload driven by a dependency keeps the last answer: no buddies. Read
+  // as "still loading", it would bring in the buddy placeholder and its gap
+  // above the instructor's card, then take them out again.
+  testWidgets('a training dive without buddies holds still while they reload', (
+    tester,
+  ) async {
+    final reload = Completer<void>();
+    await _pump(
+      tester,
+      buddies: false,
+      course: true,
+      reloadGate: () => reload.future,
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DiveSignaturesSection)),
+    );
+
+    container.read(_trigger.notifier).bump();
+    await tester.pump();
+
+    final cards = _cards(tester);
+    expect(cards, hasLength(1));
+    expect(cards.single.top, _host(tester).top);
+
+    reload.complete();
+    await tester.pumpAndSettle();
   });
 
   testWidgets('with both, the last card takes the extra height', (

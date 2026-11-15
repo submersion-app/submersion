@@ -31,11 +31,14 @@ class DiveSignaturesSection extends ConsumerWidget {
     // The buddy card draws nothing for a dive without buddies, or when
     // either of its reads fails, so its gap must go with it or the
     // instructor's card starts 24px down. It draws a placeholder while the
-    // buddies load, so it counts as shown until then.
+    // buddies first load, so it counts as shown until then. A reload keeps
+    // the last answer: `value` holds it through one driven by a dependency,
+    // where `valueOrNull` reads as loading and the placeholder and its gap
+    // would flicker in and out.
     final hasBuddies = ref.watch(
-      buddiesForDiveProvider(dive.id).select(
-        (async) => !async.hasError && (async.valueOrNull?.isNotEmpty ?? true),
-      ),
+      buddiesForDiveProvider(
+        dive.id,
+      ).select((async) => !async.hasError && (async.value?.isNotEmpty ?? true)),
     );
     final signaturesFailed = ref.watch(
       buddySignaturesForDiveProvider(dive.id).select((async) => async.hasError),
