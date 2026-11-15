@@ -9202,7 +9202,7 @@
   "insights_profile_ascentDescent_subtitle": "Merülési profil adatokból",
   "insights_profile_ascentDescent_title": "Átlagos felszállási és lesüllyedési sebesség",
   "insights_profile_verticalDistance_title": "Összes felszállás és lesüllyedés",
-  "insights_profile_verticalDistance_subtitle": "Minden merülés összeadva, hegyekhez és óceáni mélységekhez mérve",
+  "insights_profile_verticalDistance_subtitle": "Minden merülés összeadva, perspektívába helyezve",
   "insights_profile_verticalDistance_totalAscent": "összes felszállás",
   "insights_profile_verticalDistance_totalDescent": "összes lesüllyedés",
   "insights_profile_verticalDistance_seaLevel": "Tengerszint",

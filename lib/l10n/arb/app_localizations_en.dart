@@ -32156,7 +32156,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_profile_verticalDistance_subtitle =>
-      'Every dive added up, against mountains and ocean depths';
+      'Every dive added up and put into perspective';
 
   @override
   String get insights_profile_verticalDistance_totalAscent => 'total ascent';

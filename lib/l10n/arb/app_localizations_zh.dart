@@ -30807,7 +30807,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_profile_verticalDistance_title => '累计上升与下降';
 
   @override
-  String get insights_profile_verticalDistance_subtitle => '所有潜水累加，与高山和海洋深处相比';
+  String get insights_profile_verticalDistance_subtitle => '所有潜水累加，放进更大的视野';
 
   @override
   String get insights_profile_verticalDistance_totalAscent => '累计上升';

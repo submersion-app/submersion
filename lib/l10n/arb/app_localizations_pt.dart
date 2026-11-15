@@ -32688,7 +32688,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get insights_profile_verticalDistance_subtitle =>
-      'Todos os mergulhos somados, comparados com montanhas e profundezas oceânicas';
+      'Todos os mergulhos somados e postos em perspectiva';
 
   @override
   String get insights_profile_verticalDistance_totalAscent => 'subida total';

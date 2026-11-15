@@ -9461,7 +9461,7 @@
   "insights_profile_ascentDescent_subtitle": "Aus Tauchprofildaten",
   "insights_profile_ascentDescent_title": "Durchschnittliche Aufstiegs- & Abstiegsraten",
   "insights_profile_verticalDistance_title": "Gesamter Auf- & Abstieg",
-  "insights_profile_verticalDistance_subtitle": "Alle Tauchgänge zusammengezählt, verglichen mit Bergen und Meerestiefen",
+  "insights_profile_verticalDistance_subtitle": "Alle Tauchgänge zusammengezählt und ins Verhältnis gesetzt",
   "insights_profile_verticalDistance_totalAscent": "Aufstieg gesamt",
   "insights_profile_verticalDistance_totalDescent": "Abstieg gesamt",
   "insights_profile_verticalDistance_seaLevel": "Meeresspiegel",

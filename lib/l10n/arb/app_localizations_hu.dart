@@ -32548,7 +32548,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_profile_verticalDistance_subtitle =>
-      'Minden merülés összeadva, hegyekhez és óceáni mélységekhez mérve';
+      'Minden merülés összeadva, perspektívába helyezve';
 
   @override
   String get insights_profile_verticalDistance_totalAscent =>

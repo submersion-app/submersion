@@ -32487,7 +32487,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_profile_verticalDistance_subtitle =>
-      'Al je duiken opgeteld, vergeleken met bergen en oceaandiepten';
+      'Al je duiken opgeteld en in perspectief geplaatst';
 
   @override
   String get insights_profile_verticalDistance_totalAscent =>

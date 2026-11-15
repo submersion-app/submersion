@@ -52035,7 +52035,7 @@ abstract class AppLocalizations {
   /// No description provided for @insights_profile_verticalDistance_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Every dive added up, against mountains and ocean depths'**
+  /// **'Every dive added up and put into perspective'**
   String get insights_profile_verticalDistance_subtitle;
 
   /// No description provided for @insights_profile_verticalDistance_totalAscent.

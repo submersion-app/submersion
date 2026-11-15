@@ -18895,7 +18895,7 @@
   "insights_profile_ascentDescent_subtitle": "From dive profile data",
   "insights_profile_ascentDescent_title": "Average Ascent & Descent Rates",
   "insights_profile_verticalDistance_title": "Total Ascent & Descent",
-  "insights_profile_verticalDistance_subtitle": "Every dive added up, against mountains and ocean depths",
+  "insights_profile_verticalDistance_subtitle": "Every dive added up and put into perspective",
   "insights_profile_verticalDistance_totalAscent": "total ascent",
   "insights_profile_verticalDistance_totalDescent": "total descent",
   "insights_profile_verticalDistance_seaLevel": "Sea level",

@@ -31891,7 +31891,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_profile_verticalDistance_subtitle =>
-      'כל הצלילות מסוכמות, בהשוואה להרים ולמעמקי האוקיינוס';
+      'כל הצלילות מסוכמות ומוצגות בפרספקטיבה';
 
   @override
   String get insights_profile_verticalDistance_totalAscent => 'עלייה כוללת';

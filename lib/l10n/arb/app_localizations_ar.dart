@@ -33016,7 +33016,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_profile_verticalDistance_subtitle =>
-      'كل الغطسات مجمّعة، مقارنةً بالجبال وأعماق المحيطات';
+      'كل الغطسات مجمّعة وموضوعة في سياقها';
 
   @override
   String get insights_profile_verticalDistance_totalAscent => 'إجمالي الصعود';

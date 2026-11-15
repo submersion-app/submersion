@@ -32633,7 +32633,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_profile_verticalDistance_subtitle =>
-      'Alle Tauchgänge zusammengezählt, verglichen mit Bergen und Meerestiefen';
+      'Alle Tauchgänge zusammengezählt und ins Verhältnis gesetzt';
 
   @override
   String get insights_profile_verticalDistance_totalAscent => 'Aufstieg gesamt';

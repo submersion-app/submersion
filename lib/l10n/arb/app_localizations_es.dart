@@ -32720,7 +32720,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get insights_profile_verticalDistance_subtitle =>
-      'Todas tus inmersiones sumadas, frente a montañas y profundidades oceánicas';
+      'Todas tus inmersiones sumadas y puestas en perspectiva';
 
   @override
   String get insights_profile_verticalDistance_totalAscent => 'ascenso total';

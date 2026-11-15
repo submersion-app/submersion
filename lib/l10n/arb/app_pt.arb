@@ -9327,7 +9327,7 @@
   "insights_profile_ascentDescent_subtitle": "A partir dos dados de perfil de mergulho",
   "insights_profile_ascentDescent_title": "Taxas Médias de Subida e Descida",
   "insights_profile_verticalDistance_title": "Subida e Descida Totais",
-  "insights_profile_verticalDistance_subtitle": "Todos os mergulhos somados, comparados com montanhas e profundezas oceânicas",
+  "insights_profile_verticalDistance_subtitle": "Todos os mergulhos somados e postos em perspectiva",
   "insights_profile_verticalDistance_totalAscent": "subida total",
   "insights_profile_verticalDistance_totalDescent": "descida total",
   "insights_profile_verticalDistance_seaLevel": "Nível do mar",

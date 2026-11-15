@@ -9327,7 +9327,7 @@
   "insights_profile_ascentDescent_subtitle": "من بيانات ملف الغوص",
   "insights_profile_ascentDescent_title": "متوسط معدلات الصعود والنزول",
   "insights_profile_verticalDistance_title": "إجمالي الصعود والنزول",
-  "insights_profile_verticalDistance_subtitle": "كل الغطسات مجمّعة، مقارنةً بالجبال وأعماق المحيطات",
+  "insights_profile_verticalDistance_subtitle": "كل الغطسات مجمّعة وموضوعة في سياقها",
   "insights_profile_verticalDistance_totalAscent": "إجمالي الصعود",
   "insights_profile_verticalDistance_totalDescent": "إجمالي النزول",
   "insights_profile_verticalDistance_seaLevel": "مستوى سطح البحر",

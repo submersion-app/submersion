@@ -32714,7 +32714,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_profile_verticalDistance_subtitle =>
-      'Tutte le immersioni sommate, confrontate con montagne e abissi oceanici';
+      'Tutte le immersioni sommate e messe in prospettiva';
 
   @override
   String get insights_profile_verticalDistance_totalAscent => 'risalita totale';
