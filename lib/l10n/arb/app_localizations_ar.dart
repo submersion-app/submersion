@@ -9605,6 +9605,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_counterdiffusion => 'الانتشار العكسي';
 
   @override
+  String get diveLog_legend_label_buoyancy => 'الطفو';
+
+  @override
   String get diveLog_counterdiffusion_segment_icd => 'ICD';
 
   @override
@@ -11625,6 +11628,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_density => 'الكثافة';
+
+  @override
+  String get diveLog_tooltip_buoyancy => 'الطفو';
+
+  @override
+  String diveLog_buoyancy_readout_buoyant(String value) {
+    return '$value طافٍ';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_heavy(String value) {
+    return '$value ثقيل';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_neutral(String value) {
+    return '$value متعادل';
+  }
 
   @override
   String get diveLog_tooltip_depth => 'العمق';
@@ -56654,7 +56675,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_profileMetric_o2CellMv => 'خلايا الأكسجين';
 
   @override
+  String get enum_profileMetric_buoyancy => 'الطفو';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'الخلايا';
+
+  @override
+  String get enum_profileMetric_buoyancy_short => 'الطفو';
 
   @override
   String get diveLog_o2CellSpread_label => 'تشتت خلايا O2';

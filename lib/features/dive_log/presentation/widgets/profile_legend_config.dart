@@ -102,6 +102,10 @@ class ProfileLegendConfig {
   /// Helium is breathed or held in the tissues, so the counterdiffusion
   /// overlay has something to show (#4530).
   final bool hasCounterdiffusion;
+
+  /// The dive can be modelled (a tank or an exposure suit), so the buoyancy
+  /// line can be offered (#4593).
+  final bool hasBuoyancy;
   final bool hasPhotoMarkers;
   final bool hasMultiTankPressure;
   final bool hasGasData;
@@ -164,6 +168,7 @@ class ProfileLegendConfig {
     this.hasGasSwitches = false,
     this.hasLateGasSwitches = false,
     this.hasCounterdiffusion = false,
+    this.hasBuoyancy = false,
     this.hasPhotoMarkers = false,
     this.hasMultiTankPressure = false,
     this.hasGasData = false,
@@ -207,6 +212,7 @@ class ProfileLegendConfig {
       hasGasSwitches ||
       hasLateGasSwitches ||
       hasCounterdiffusion ||
+      hasBuoyancy ||
       hasPhotoMarkers ||
       hasTankListSection ||
       hasGasData ||

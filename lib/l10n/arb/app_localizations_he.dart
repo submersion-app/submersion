@@ -9267,6 +9267,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_counterdiffusion => 'דיפוזיה נגדית';
 
   @override
+  String get diveLog_legend_label_buoyancy => 'ציפה';
+
+  @override
   String get diveLog_counterdiffusion_segment_icd => 'ICD';
 
   @override
@@ -11222,6 +11225,24 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_density => 'צפיפות';
+
+  @override
+  String get diveLog_tooltip_buoyancy => 'ציפה';
+
+  @override
+  String diveLog_buoyancy_readout_buoyant(String value) {
+    return '$value צף';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_heavy(String value) {
+    return '$value כבד';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_neutral(String value) {
+    return '$value ניטרלי';
+  }
 
   @override
   String get diveLog_tooltip_depth => 'עומק';
@@ -54699,7 +54720,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_profileMetric_o2CellMv => 'תאי O2';
 
   @override
+  String get enum_profileMetric_buoyancy => 'ציפה';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'תאים';
+
+  @override
+  String get enum_profileMetric_buoyancy_short => 'ציפה';
 
   @override
   String get diveLog_o2CellSpread_label => 'פיזור תאי O2';

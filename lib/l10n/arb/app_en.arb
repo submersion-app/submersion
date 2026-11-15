@@ -5576,6 +5576,7 @@
   "diveLog_legend_label_gasDensity": "Gas Density",
   "diveLog_legend_label_lateGasSwitches": "Late gas switches",
   "diveLog_legend_label_counterdiffusion": "Counterdiffusion",
+  "diveLog_legend_label_buoyancy": "Buoyancy",
   "diveLog_counterdiffusion_segment_icd": "ICD",
   "diveLog_counterdiffusion_segment_all": "All",
   "diveLog_tooltip_counterdiffusion_icd": "Counterdiffusion (ICD)",
@@ -6522,6 +6523,37 @@
   "diveLog_tooltip_decoStop": "Deco stop",
   "diveLog_tooltip_cns": "CNS",
   "diveLog_tooltip_density": "Density",
+  "diveLog_tooltip_buoyancy": "Buoyancy",
+  "diveLog_buoyancy_readout_buoyant": "{value} buoyant",
+  "@diveLog_buoyancy_readout_buoyant": {
+    "description": "Profile tooltip value for net buoyancy above neutral, with its signed weight.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "+0.9 kg"
+      }
+    }
+  },
+  "diveLog_buoyancy_readout_heavy": "{value} heavy",
+  "@diveLog_buoyancy_readout_heavy": {
+    "description": "Profile tooltip value for net buoyancy below neutral, with its signed weight.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "-2.4 kg"
+      }
+    }
+  },
+  "diveLog_buoyancy_readout_neutral": "{value} neutral",
+  "@diveLog_buoyancy_readout_neutral": {
+    "description": "Profile tooltip value for net buoyancy at neutral, with its weight.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "0.0 kg"
+      }
+    }
+  },
   "diveLog_tooltip_depth": "Depth",
   "diveLog_tooltip_gfPercent": "GF%",
   "diveLog_tooltip_hr": "HR",
@@ -33460,7 +33492,9 @@
     "description": "Confirmation shown after queueing an upload"
   },
   "enum_profileMetric_o2CellMv": "O2 Cells",
+  "enum_profileMetric_buoyancy": "Buoyancy",
   "enum_profileMetric_o2CellMv_short": "Cells",
+  "enum_profileMetric_buoyancy_short": "Buoyancy",
   "diveLog_o2CellSpread_label": "O2 Cell Spread",
   "media_status_broken": "Missing and not backed up",
   "media_servedFrom_localDisk": "On this device",

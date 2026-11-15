@@ -14913,6 +14913,12 @@ abstract class AppLocalizations {
   /// **'Counterdiffusion'**
   String get diveLog_legend_label_counterdiffusion;
 
+  /// No description provided for @diveLog_legend_label_buoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy'**
+  String get diveLog_legend_label_buoyancy;
+
   /// No description provided for @diveLog_counterdiffusion_segment_icd.
   ///
   /// In en, this message translates to:
@@ -18156,6 +18162,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Density'**
   String get diveLog_tooltip_density;
+
+  /// No description provided for @diveLog_tooltip_buoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy'**
+  String get diveLog_tooltip_buoyancy;
+
+  /// Profile tooltip value for net buoyancy above neutral, with its signed weight.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} buoyant'**
+  String diveLog_buoyancy_readout_buoyant(String value);
+
+  /// Profile tooltip value for net buoyancy below neutral, with its signed weight.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} heavy'**
+  String diveLog_buoyancy_readout_heavy(String value);
+
+  /// Profile tooltip value for net buoyancy at neutral, with its weight.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} neutral'**
+  String diveLog_buoyancy_readout_neutral(String value);
 
   /// No description provided for @diveLog_tooltip_depth.
   ///
@@ -87762,11 +87792,23 @@ abstract class AppLocalizations {
   /// **'O2 Cells'**
   String get enum_profileMetric_o2CellMv;
 
+  /// No description provided for @enum_profileMetric_buoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy'**
+  String get enum_profileMetric_buoyancy;
+
   /// No description provided for @enum_profileMetric_o2CellMv_short.
   ///
   /// In en, this message translates to:
   /// **'Cells'**
   String get enum_profileMetric_o2CellMv_short;
+
+  /// No description provided for @enum_profileMetric_buoyancy_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy'**
+  String get enum_profileMetric_buoyancy_short;
 
   /// No description provided for @diveLog_o2CellSpread_label.
   ///

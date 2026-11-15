@@ -37,7 +37,12 @@ String formatRightAxisTick(
   }
   // A tick on the zero line can unmap to -1e-13, which would print "-0".
   final rounded = double.parse(display.toStringAsFixed(decimals));
-  return formatFixedForDisplay(rounded == 0 ? 0 : display, decimals);
+  final label = formatFixedForDisplay(rounded == 0 ? 0 : display, decimals);
+  // Net buoyancy reads by its sign: buoyant above 0, heavy below (#4593).
+  if (metric == ProfileRightAxisMetric.buoyancy && rounded > 0) {
+    return '+$label';
+  }
+  return label;
 }
 
 /// Fewest decimals at which two values [step] apart round to different
@@ -60,6 +65,8 @@ double _displayValue(
   ProfileRightAxisMetric.sac => units.convertPressure(value),
   ProfileRightAxisMetric.ascentRate ||
   ProfileRightAxisMetric.meanDepth => units.convertDepth(value),
+  // Stored in kilograms.
+  ProfileRightAxisMetric.buoyancy => units.convertWeight(value),
   // Stored in seconds, labelled in minutes.
   ProfileRightAxisMetric.ndl ||
   ProfileRightAxisMetric.tts ||
@@ -81,6 +88,7 @@ int _baseDecimals(ProfileRightAxisMetric metric) => switch (metric) {
   ProfileRightAxisMetric.ppO2 ||
   ProfileRightAxisMetric.ppN2 ||
   ProfileRightAxisMetric.ppHe ||
-  ProfileRightAxisMetric.gasDensity => 1,
+  ProfileRightAxisMetric.gasDensity ||
+  ProfileRightAxisMetric.buoyancy => 1,
   _ => 0,
 };

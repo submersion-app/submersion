@@ -9476,6 +9476,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_legend_label_counterdiffusion => 'Contradifusão';
 
   @override
+  String get diveLog_legend_label_buoyancy => 'Flutuabilidade';
+
+  @override
   String get diveLog_counterdiffusion_segment_icd => 'ICD';
 
   @override
@@ -11472,6 +11475,24 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_density => 'Densidade';
+
+  @override
+  String get diveLog_tooltip_buoyancy => 'Flutuabilidade';
+
+  @override
+  String diveLog_buoyancy_readout_buoyant(String value) {
+    return '$value positiva';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_heavy(String value) {
+    return '$value negativa';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_neutral(String value) {
+    return '$value neutra';
+  }
 
   @override
   String get diveLog_tooltip_depth => 'Profundidade';
@@ -55858,7 +55879,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_profileMetric_o2CellMv => 'Células O2';
 
   @override
+  String get enum_profileMetric_buoyancy => 'Flutuabilidade';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Células';
+
+  @override
+  String get enum_profileMetric_buoyancy_short => 'Flutuab.';
 
   @override
   String get diveLog_o2CellSpread_label => 'Dispersão das células O2';

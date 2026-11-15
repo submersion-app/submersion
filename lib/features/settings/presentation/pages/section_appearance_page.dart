@@ -813,6 +813,7 @@ class SectionAppearancePage extends ConsumerWidget {
       ProfileRightAxisMetric.cns => l10n.enum_profileMetric_cns,
       ProfileRightAxisMetric.otu => l10n.enum_profileMetric_otu,
       ProfileRightAxisMetric.o2CellMv => l10n.enum_profileMetric_o2CellMv,
+      ProfileRightAxisMetric.buoyancy => l10n.enum_profileMetric_buoyancy,
     };
   }
 

@@ -3,7 +3,10 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// One stretch of the net buoyancy line that stays on one side of neutral
 /// (issue #4593). Consecutive runs on opposite sides share their crossing
@@ -142,4 +145,26 @@ LineChartBarData buildNeutralRule({
     dashArray: const [4, 3],
     dotData: const FlDotData(show: false),
   );
+}
+
+/// The tooltip value for a net buoyancy of [kg]: one decimal in the diver's
+/// weight unit, signed, with the side named in words so colour is never the
+/// only cue ("+0.9 kg buoyant", "-2.4 kg heavy", "0.0 kg neutral").
+String formatBuoyancyReadout(
+  double kg,
+  UnitFormatter units,
+  AppLocalizations l10n,
+) {
+  final display = units.convertWeight(kg);
+  final rounded = double.parse(display.toStringAsFixed(1));
+  if (rounded == 0) {
+    return l10n.diveLog_buoyancy_readout_neutral(
+      '${formatFixedForDisplay(0, 1)} ${units.weightSymbol}',
+    );
+  }
+  final number = formatFixedForDisplay(rounded, 1);
+  final value = '${rounded > 0 ? '+' : ''}$number ${units.weightSymbol}';
+  return rounded > 0
+      ? l10n.diveLog_buoyancy_readout_buoyant(value)
+      : l10n.diveLog_buoyancy_readout_heavy(value);
 }

@@ -9415,6 +9415,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_counterdiffusion => 'Tegendiffusie';
 
   @override
+  String get diveLog_legend_label_buoyancy => 'Drijfvermogen';
+
+  @override
   String get diveLog_counterdiffusion_segment_icd => 'ICD';
 
   @override
@@ -11403,6 +11406,24 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_density => 'Dichtheid';
+
+  @override
+  String get diveLog_tooltip_buoyancy => 'Drijfvermogen';
+
+  @override
+  String diveLog_buoyancy_readout_buoyant(String value) {
+    return '$value drijvend';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_heavy(String value) {
+    return '$value zwaar';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_neutral(String value) {
+    return '$value neutraal';
+  }
 
   @override
   String get diveLog_tooltip_depth => 'Diepte';
@@ -55519,7 +55540,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_profileMetric_o2CellMv => 'O2-cellen';
 
   @override
+  String get enum_profileMetric_buoyancy => 'Drijfvermogen';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Cellen';
+
+  @override
+  String get enum_profileMetric_buoyancy_short => 'Drijfverm.';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2-celspreiding';

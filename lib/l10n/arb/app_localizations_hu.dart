@@ -9453,6 +9453,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_counterdiffusion => 'Ellendiffúzió';
 
   @override
+  String get diveLog_legend_label_buoyancy => 'Felhajtóerő';
+
+  @override
   String get diveLog_counterdiffusion_segment_icd => 'ICD';
 
   @override
@@ -11448,6 +11451,24 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_density => 'Sűrűség';
+
+  @override
+  String get diveLog_tooltip_buoyancy => 'Felhajtóerő';
+
+  @override
+  String diveLog_buoyancy_readout_buoyant(String value) {
+    return '$value felhajt';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_heavy(String value) {
+    return '$value lehúz';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_neutral(String value) {
+    return '$value semleges';
+  }
 
   @override
   String get diveLog_tooltip_depth => 'Mélység';
@@ -55572,7 +55593,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_profileMetric_o2CellMv => 'O2-cellák';
 
   @override
+  String get enum_profileMetric_buoyancy => 'Felhajtóerő';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Cellák';
+
+  @override
+  String get enum_profileMetric_buoyancy_short => 'Felhajtó';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2-cellák szórása';

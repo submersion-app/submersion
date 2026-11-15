@@ -8986,6 +8986,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_counterdiffusion => '逆向扩散';
 
   @override
+  String get diveLog_legend_label_buoyancy => '浮力';
+
+  @override
   String get diveLog_counterdiffusion_segment_icd => 'ICD';
 
   @override
@@ -10895,6 +10898,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_density => '密度';
+
+  @override
+  String get diveLog_tooltip_buoyancy => '浮力';
+
+  @override
+  String diveLog_buoyancy_readout_buoyant(String value) {
+    return '$value 正浮力';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_heavy(String value) {
+    return '$value 负浮力';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_neutral(String value) {
+    return '$value 中性浮力';
+  }
 
   @override
   String get diveLog_tooltip_depth => '深度';
@@ -52394,7 +52415,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_profileMetric_o2CellMv => 'O2 电池';
 
   @override
+  String get enum_profileMetric_buoyancy => '浮力';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => '电池';
+
+  @override
+  String get enum_profileMetric_buoyancy_short => '浮力';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2电池离散度';
