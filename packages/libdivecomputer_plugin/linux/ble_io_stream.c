@@ -164,6 +164,15 @@ static gboolean services_resolved(GDBusConnection* conn,
 // takes a few seconds; this matches the Connect call's own timeout.
 #define SERVICES_RESOLVED_TIMEOUT_MS 30000
 
+// The timeout for one property read while waiting until |deadline|: the time
+// left, at most 2 s, so a slow read cannot carry the wait past the deadline.
+// Zero or less once the deadline has passed.
+static gint read_timeout_ms(gint64 deadline) {
+    gint64 left_ms =
+        (deadline - g_get_monotonic_time()) / G_TIME_SPAN_MILLISECOND;
+    return (gint)MIN(left_ms, 2000);
+}
+
 // Block until ServicesResolved is TRUE, the link drops, or the timeout
 // passes. Device1.Connect returns as soon as the LE link is up, not when GATT
 // discovery is done (observed on BlueZ 5.88 with a Shearwater Perdix 2:
@@ -177,20 +186,24 @@ static gboolean wait_for_services_resolved(GDBusConnection* conn,
     gint64 deadline =
         g_get_monotonic_time() +
         (gint64)SERVICES_RESOLVED_TIMEOUT_MS * G_TIME_SPAN_MILLISECOND;
-    while (!services_resolved(conn, device_path, 2000)) {
-        if (!device_connected(conn, device_path, 2000)) {
+    gint timeout_ms;
+    while ((timeout_ms = read_timeout_ms(deadline)) > 0) {
+        if (services_resolved(conn, device_path, timeout_ms)) return TRUE;
+
+        timeout_ms = read_timeout_ms(deadline);
+        if (timeout_ms <= 0) break;
+        if (!device_connected(conn, device_path, timeout_ms)) {
+            // A read the deadline cut short says nothing about the link.
+            if (read_timeout_ms(deadline) <= 0) break;
             g_warning("BleIoStream: link dropped before GATT services were "
                       "resolved");
             return FALSE;
         }
-        if (g_get_monotonic_time() >= deadline) {
-            g_warning("BleIoStream: GATT services not resolved within %d ms",
-                      SERVICES_RESOLVED_TIMEOUT_MS);
-            return FALSE;
-        }
         g_usleep(100 * G_TIME_SPAN_MILLISECOND);
     }
-    return TRUE;
+    g_warning("BleIoStream: GATT services not resolved within %d ms",
+              SERVICES_RESOLVED_TIMEOUT_MS);
+    return FALSE;
 }
 
 // Best write and notify characteristic under one GATT service. BlueZ lists
