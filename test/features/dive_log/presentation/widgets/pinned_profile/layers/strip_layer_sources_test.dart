@@ -125,8 +125,10 @@ void main() {
       [for (final p in line.runs.single) p.seconds],
       [0, 120, 240, 360, 480],
     );
-    expect(line.min, 12);
-    expect(line.max, 20);
+    // A degree of room each side, as the full chart's temperature axis
+    // has, so a steady water temperature is not drawn along the edge.
+    expect(line.min, 11);
+    expect(line.max, 21);
     expect(line.valueAt(60), 19);
   });
 

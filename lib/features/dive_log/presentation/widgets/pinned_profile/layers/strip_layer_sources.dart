@@ -136,6 +136,7 @@ PinnedStripLayerData buildStripLayerData(
     List<double?>? curve, {
     double? min,
     double? max,
+    double pad = 0,
     bool breakAtNull = false,
   }) {
     if (curve == null) return null;
@@ -146,13 +147,22 @@ PinnedStripLayerData buildStripLayerData(
             ? null
             : StripPoint(profile[i].timestamp, curve[i]!.toDouble()),
     ], breakAtNull: breakAtNull);
-    return _line(layer, layer.name, colorOf(metric), runs, min: min, max: max);
+    return _line(
+      layer,
+      layer.name,
+      colorOf(metric),
+      runs,
+      min: min,
+      max: max,
+      pad: pad,
+    );
   }
 
   final lines = <StripLine?>[
+    // A degree of room each side, as the full chart's temperature axis.
     indexed(StripLayer.temperature, ProfileMetric.temperature, [
       for (final p in profile) p.temperature,
-    ]),
+    ], pad: 1),
     indexed(
       StripLayer.cns,
       ProfileMetric.cns,
@@ -245,6 +255,7 @@ StripLine? _line(
   List<List<StripPoint>> runs, {
   double? min,
   double? max,
+  double pad = 0,
   bool estimated = false,
   String? label,
 }) {
@@ -258,8 +269,8 @@ StripLine? _line(
     key: key,
     color: color,
     runs: List.unmodifiable([for (final run in runs) _thinned(run)]),
-    min: min ?? values.reduce(math.min),
-    max: max ?? values.reduce(math.max),
+    min: min ?? values.reduce(math.min) - pad,
+    max: max ?? values.reduce(math.max) + pad,
     estimated: estimated,
     label: label,
   );
