@@ -38,6 +38,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dar
 import 'package:submersion/features/equipment/presentation/providers/dive_sensor_summary_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/chart_buoyancy_inputs.dart';
 
 /// Resolves computerId -> display name for a dive's data sources via the
 /// shared [resolveSourceName] fallback chain. Sources without a computerId
@@ -290,6 +291,8 @@ class DiveProfileChartHost extends ConsumerWidget {
       dive,
       resolvedActive?.points ?? dive.profile,
     );
+    // The net buoyancy line (issue #4593), modelled on the drawn series.
+    final buoyancy = watchChartBuoyancy(ref, diveId, chartProfile);
 
     keepProfileExtentsOnDrawnSeries(
       context,
@@ -435,6 +438,8 @@ class DiveProfileChartHost extends ConsumerWidget {
         ppHeCurve: analysis?.ppHeCurve,
         modCurve: analysis?.modCurve,
         densityCurve: analysis?.densityCurve,
+        buoyancyCurve: buoyancy.curve,
+        buoyancyAvailable: buoyancy.available,
         gfCurve: analysis?.gfCurve,
         surfaceGfCurve: analysis?.surfaceGfCurve,
         meanDepthCurve: analysis?.meanDepthCurve,
