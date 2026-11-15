@@ -314,6 +314,8 @@ class UddfExportService {
           // The definitions the sites' type and tag references need.
           tags: extras.siteTags,
           customSiteTypes: extras.customSiteTypes,
+          // The species the dives' sightings reference (issue #4578).
+          species: extras.species,
         );
 
         // Last section, per the UDDF specification.

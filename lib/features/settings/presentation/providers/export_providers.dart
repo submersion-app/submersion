@@ -22,6 +22,7 @@ import 'package:submersion/core/services/export/uddf/uddf_dive_chunk.dart';
 import 'package:submersion/core/services/export/uddf/uddf_equipment_tag_source.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_source.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
+import 'package:submersion/core/services/export/uddf/uddf_species_catalogue.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
@@ -48,6 +49,7 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -463,6 +465,17 @@ class ExportNotifier extends StateNotifier<ExportState>
         dives: dives,
       );
 
+  /// The species catalogue both full UDDF exports write: every custom
+  /// species, and the bundled ones the exported dives' sightings name
+  /// (issue #4578). See [uddfBackupSpecies].
+  Future<List<Species>> _uddfBackupSpecies(List<Dive> dives) async =>
+      uddfBackupSpecies(
+        all: await _ref.read(allSpeciesProvider.future),
+        sighted: await _ref
+            .read(speciesRepositoryProvider)
+            .getSpeciesSightedOnDives([for (final dive in dives) dive.id]),
+      );
+
   /// Every gear check-in flattened for the Excel sheet and the CSV file:
   /// the item name and type, the dive number when the check-in is on a
   /// dive the export knows, and the observation itself (condition 3a).
@@ -788,7 +801,7 @@ class ExportNotifier extends StateNotifier<ExportState>
       final buddies = await _ref.read(allBuddiesProvider.future);
       final certifications = await _ref.read(allCertificationsProvider.future);
       final diveCenters = await _ref.read(allDiveCentersProvider.future);
-      final species = await _ref.read(allSpeciesProvider.future);
+      final species = await _uddfBackupSpecies(dives);
 
       // Collect new comprehensive data
       final currentDiver = await _ref.read(currentDiverProvider.future);
@@ -1550,7 +1563,7 @@ class ExportNotifier extends StateNotifier<ExportState>
       final buddies = await _ref.read(allBuddiesProvider.future);
       final certifications = await _ref.read(allCertificationsProvider.future);
       final diveCenters = await _ref.read(allDiveCentersProvider.future);
-      final species = await _ref.read(allSpeciesProvider.future);
+      final species = await _uddfBackupSpecies(dives);
       final currentDiver = await _ref.read(currentDiverProvider.future);
       final trips = await _ref.read(allTripsProvider.future);
       final tags = await _ref.read(tagsProvider.future);

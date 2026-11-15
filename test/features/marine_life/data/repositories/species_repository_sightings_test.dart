@@ -62,4 +62,51 @@ void main() {
   test('getSightingsForDives returns empty map for empty input', () async {
     expect(await repository.getSightingsForDives([]), isEmpty);
   });
+
+  group('getSpeciesSightedOnDives (issue #4578)', () {
+    test('lists each species the dives name once, and no other', () async {
+      await insertTestDive(id: 'd1');
+      await insertTestDive(id: 'd2');
+      await insertTestDive(id: 'd3');
+      final grouper = await repository.createSpecies(
+        commonName: 'Test Grouper',
+        scientificName: 'Epinephelus testus',
+        category: SpeciesCategory.fish,
+      );
+      final turtle = await repository.createSpecies(
+        commonName: 'Test Turtle',
+        category: SpeciesCategory.turtle,
+      );
+      await repository.createSpecies(
+        commonName: 'Never Seen',
+        category: SpeciesCategory.other,
+      );
+      await repository.addSighting(diveId: 'd1', speciesId: grouper.id);
+      await repository.addSighting(diveId: 'd2', speciesId: grouper.id);
+      await repository.addSighting(diveId: 'd3', speciesId: turtle.id);
+
+      final sighted = await repository.getSpeciesSightedOnDives(['d1', 'd2']);
+
+      expect(sighted.map((s) => s.id), [grouper.id]);
+      expect(sighted.single.scientificName, 'Epinephelus testus');
+    });
+
+    test('reads past the bound variable limit', () async {
+      final species = await repository.createSpecies(
+        commonName: 'Test Ray',
+        category: SpeciesCategory.ray,
+      );
+      await insertTestDive(id: 'last');
+      await repository.addSighting(diveId: 'last', speciesId: species.id);
+      final ids = [for (var i = 0; i < 1000; i++) 'missing-$i', 'last'];
+
+      final sighted = await repository.getSpeciesSightedOnDives(ids);
+
+      expect(sighted.map((s) => s.id), [species.id]);
+    });
+
+    test('returns nothing for no dives', () async {
+      expect(await repository.getSpeciesSightedOnDives([]), isEmpty);
+    });
+  });
 }

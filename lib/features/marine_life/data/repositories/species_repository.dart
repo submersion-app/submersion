@@ -354,6 +354,45 @@ class SpeciesRepository {
     return byDive;
   }
 
+  /// Each species a sighting on one of [diveIds] names, once, in the same
+  /// order as [getAllSpecies].
+  ///
+  /// A UDDF export declares these so every `speciesref` its dives carry
+  /// resolves (issue #4578). The dive ids are queried in chunks, like
+  /// [getSightingsForDives], to stay under SQLite's bound-variable limit.
+  Future<List<domain.Species>> getSpeciesSightedOnDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return const [];
+
+    const chunkSize = 900; // safely under SQLite's 999 bound-variable limit
+    final byId = <String, Specy>{};
+    for (var start = 0; start < diveIds.length; start += chunkSize) {
+      final end = (start + chunkSize < diveIds.length)
+          ? start + chunkSize
+          : diveIds.length;
+      final chunk = diveIds.sublist(start, end);
+      final sighted = _db.selectOnly(_db.sightings)
+        ..addColumns([_db.sightings.speciesId])
+        ..where(_db.sightings.diveId.isIn(chunk));
+      final rows = await (_db.select(
+        _db.species,
+      )..where((t) => t.id.isInQuery(sighted))).get();
+      for (final row in rows) {
+        byId[row.id] = row;
+      }
+    }
+    // Rows from several chunks arrive in no order, and [sortedByText] only
+    // re-sorts within runs of one category, so group them first.
+    final byCategory = byId.values.toList()
+      ..sort((a, b) => a.category.compareTo(b.category));
+    return sortedByText(
+      byCategory,
+      (r) => r.commonName,
+      groupOf: (r) => r.category,
+    ).map(_mapRowToSpecies).toList();
+  }
+
   /// Update sighting
   Future<void> updateSighting(domain.Sighting sighting) async {
     await (_db.update(

@@ -20,6 +20,9 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
@@ -60,6 +63,11 @@ class UddfDivesExtras {
   final List<SiteTypeEntity> customSiteTypes;
   final List<Tag> siteTags;
 
+  /// The species the exported dives' sightings name, so each `speciesref`
+  /// resolves to a declared species (issue #4578). Only these: the bundled
+  /// catalogue is the same on every install.
+  final List<Species> species;
+
   const UddfDivesExtras({
     this.diveBuddies = const {},
     this.components = const [],
@@ -70,6 +78,7 @@ class UddfDivesExtras {
     this.siteFeaturesBySite = const {},
     this.customSiteTypes = const [],
     this.siteTags = const [],
+    this.species = const [],
   });
 
   const UddfDivesExtras.empty() : this();
@@ -100,6 +109,7 @@ final uddfDivesExtrasFetchProvider = Provider<UddfDivesExtrasFetch>((ref) {
     siteTypes: ref.read(siteTypeRepositoryProvider),
     siteFeatures: ref.read(siteFeatureRepositoryProvider),
     dives: ref.read(diveRepositoryProvider),
+    species: ref.read(speciesRepositoryProvider),
   );
 });
 
@@ -118,6 +128,10 @@ final uddfDivesExtrasFetchProvider = Provider<UddfDivesExtrasFetch>((ref) {
 /// Site types and tags (issue #1765) are not behind a checkbox either: they
 /// describe the exported sites, which always travel. They load only when
 /// [classification] is given.
+///
+/// The species the dives' sightings name (issue #4578) are not behind a
+/// checkbox either: a sighting is the dive's own record. They load only when
+/// [species] is given.
 Future<UddfDivesExtras> resolveDivesExtras(
   BuddyRepository buddies,
   EquipmentComponentRepository components,
@@ -129,6 +143,7 @@ Future<UddfDivesExtras> resolveDivesExtras(
   SiteTypeRepository? siteTypes,
   SiteFeatureRepository? siteFeatures,
   DiveRepository? dives,
+  SpeciesRepository? species,
 }) async {
   // The lean list-view load leaves certifications out, and every <buddy>
   // declaration carries one, so this path reads them too.
@@ -142,12 +157,15 @@ Future<UddfDivesExtras> resolveDivesExtras(
   final diveGasSwitches =
       await dives?.getGasSwitchesForDives(diveIds) ??
       const <String, List<GasSwitchWithTank>>{};
+  final sightedSpecies =
+      await species?.getSpeciesSightedOnDives(diveIds) ?? const <Species>[];
   if (classification == null) {
     return UddfDivesExtras(
       diveBuddies: diveBuddies,
       components: gear,
       diveRoles: diveRoles,
       diveGasSwitches: diveGasSwitches,
+      species: sightedSpecies,
     );
   }
 
@@ -171,5 +189,6 @@ Future<UddfDivesExtras> resolveDivesExtras(
         await siteFeatures?.getFeaturesForSites(siteIds) ?? const {},
     customSiteTypes: source.customSiteTypes,
     siteTags: source.siteTags,
+    species: sightedSpecies,
   );
 }
