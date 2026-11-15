@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/utils/dive_service_status.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_set_use.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_with_figure.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// The Equipment card.
 class DiveEquipmentSection extends ConsumerWidget {
@@ -33,7 +37,7 @@ class DiveEquipmentSection extends ConsumerWidget {
       GearTree.topLevelCount(dive.gearProvenance),
     );
 
-    return CollapsibleCardSection(
+    final card = CollapsibleCardSection(
       title: context.l10n.diveLog_detail_section_equipment,
       icon: Icons.backpack,
       collapsedSubtitle: collapsedSubtitle,
@@ -69,6 +73,33 @@ class DiveEquipmentSection extends ConsumerWidget {
               ObservationStatusChip(equipment: item, dive: dive),
         ),
       ),
+    );
+    // During a sitting, the set the dive's location suggests shows above the
+    // card once every editor has closed: arriving after a lookup, it must
+    // not push an open editor down the page (issue #4527).
+    final edit = RecordEditScope.maybeOf<Dive>(context);
+    final session = edit?.session;
+    if (session == null || edit!.openCardIds.isNotEmpty) return card;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DiveGeofenceSuggestion(
+          session: session,
+          onUse: (set, items) => useSetInSitting(
+            session,
+            set,
+            items,
+            read: ref.read,
+            questions: SetUseQuestions.dialogs(
+              context,
+              ref.read(unitFormatterProvider),
+            ),
+            auto: false,
+          ),
+        ),
+        card,
+      ],
     );
   }
 }

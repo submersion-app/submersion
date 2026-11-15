@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tags_card_editor.dart';
@@ -107,5 +108,17 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     isEmpty: (dive) => !diveHasWeights(dive),
     editorBuilder: (context, session) =>
         DiveWeightsCardEditor(session: session),
+  ),
+  DiveDetailSectionId.equipment: EditCard<Dive>(
+    id: DiveDetailSectionId.equipment.name,
+    title: (context) => context.l10n.diveLog_detail_section_equipment,
+    leading: (context) => Icon(
+      Icons.backpack,
+      size: 20,
+      color: Theme.of(context).colorScheme.primary,
+    ),
+    isEmpty: (dive) => dive.gear.isEmpty,
+    editorBuilder: (context, session) =>
+        DiveEquipmentCardEditor(session: session),
   ),
 };

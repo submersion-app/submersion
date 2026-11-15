@@ -36,8 +36,8 @@ void main() {
   group('the dive cards', () {
     // A card registered here gains a pencil on the dive page. Naming them
     // makes adding one a deliberate change to this test.
-    test('are Notes, Tags, Altitude, Environment, Details, Cylinders and '
-        'Weight', () {
+    test('are Notes, Tags, Altitude, Environment, Details, Cylinders, '
+        'Weight and Equipment', () {
       expect(diveEditCards.keys, {
         DiveDetailSectionId.notes,
         DiveDetailSectionId.tags,
@@ -46,7 +46,13 @@ void main() {
         DiveDetailSectionId.details,
         DiveDetailSectionId.tanks,
         DiveDetailSectionId.weights,
+        DiveDetailSectionId.equipment,
       });
+    });
+
+    test('Equipment is left out of a dive with no gear', () {
+      final equipment = diveEditCards[DiveDetailSectionId.equipment]!;
+      expect(equipment.isEmpty(dive.copyWith(gear: const [])), isTrue);
     });
 
     test('Weight is left out of a dive with no weight', () {

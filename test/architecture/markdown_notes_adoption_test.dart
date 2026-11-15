@@ -27,11 +27,15 @@ void main() {
         'MarkdownNotesField(',
     'lib/features/dive_centers/presentation/pages/dive_center_edit_page.dart':
         'MarkdownNotesField(',
-    // The bulk notes field and the save-as-set description.
+    // The bulk notes field.
     'lib/features/dive_log/presentation/pages/dive_edit_page.dart':
         'MarkdownNotesField(',
     // The Notes card edited in place on the dive page (issue #4527).
     'lib/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart':
+        'MarkdownNotesField(',
+    // The save-as-set description, shared by the dive form and the
+    // Equipment card (issue #4527).
+    'lib/features/dive_log/presentation/widgets/save_gear_as_set_dialog.dart':
         'MarkdownNotesField(',
     'lib/features/dive_log/presentation/widgets/edit_sections/experience_section.dart':
         'markdown: true',
@@ -71,8 +75,6 @@ void main() {
   /// shared editor or view must appear, so one of them going plain fails
   /// even while another still uses the shared widget.
   const atLeast = <String, int>{
-    // The bulk notes field and the save-as-set description.
-    'lib/features/dive_log/presentation/pages/dive_edit_page.dart': 2,
     // Description, notes and (through _buildAccessRow) access notes.
     'lib/features/dive_sites/presentation/pages/site_detail_page.dart': 3,
   };
