@@ -39911,15 +39911,44 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_reparseDives_button => 'Összes újraelemzése';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'Az újraelemzéshez megőrzött letöltési adatok megtekintése és elvetése';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'Összes elvetése';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'Búvárkomputerenként';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'Ismeretlen komputer';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'Egy merüléshez sem tartozik nyers búvárkomputer-adat.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return '$computer nyers adatainak elvetése';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Elvetés';
 
   @override
   String diveComputer_rawData_discardAllMessage(int count, String size) {
     return 'Eltávolítod $count merülés tárolt nyers letöltési adatait az összes merülésszámítógépről ($size)? Ezek a merülések ezután nem elemezhetők újra, amikor a merüléselemző fejlődik. A merülések és a módosításaid változatlanok maradnak, és a többi szinkronizált eszközöd is eltávolítja az adatokat.';
   }
-
-  @override
-  String get diveComputer_rawData_discardButton => 'Nyers adatok elvetése';
 
   @override
   String diveComputer_rawData_discardComputerMessage(

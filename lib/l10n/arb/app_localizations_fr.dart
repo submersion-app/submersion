@@ -40233,16 +40233,45 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_reparseDives_button => 'Tout réanalyser';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'Voir et supprimer les données de téléchargement conservées pour réanalyser les plongées';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'Tout supprimer';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'Par ordinateur de plongée';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'Ordinateur inconnu';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'Aucune plongée ne conserve de données brutes d\'ordinateur de plongée.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées, $size',
+      one: '$count plongée, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return 'Supprimer les données brutes de $computer';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Supprimer';
 
   @override
   String diveComputer_rawData_discardAllMessage(int count, String size) {
     return 'Supprimer les données brutes de téléchargement conservées pour $count plongées de tous les ordinateurs de plongée ($size) ? Ces plongées ne pourront plus être réanalysées lorsque l\'analyseur de plongées s\'améliorera. Les plongées et vos modifications restent inchangées, et vos autres appareils synchronisés suppriment aussi ces données.';
   }
-
-  @override
-  String get diveComputer_rawData_discardButton =>
-      'Supprimer les données brutes';
 
   @override
   String diveComputer_rawData_discardComputerMessage(

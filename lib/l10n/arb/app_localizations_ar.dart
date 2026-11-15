@@ -40644,15 +40644,48 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_reparseDives_button => 'إعادة تحليل الكل';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'عرض بيانات التنزيل المحفوظة لإعادة تحليل الغطسات وحذفها';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'حذف الكل';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'حسب كمبيوتر الغوص';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'كمبيوتر غير معروف';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'لا توجد غطسات تحتفظ ببيانات أولية من كمبيوتر الغوص.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة، $size',
+      many: '$count غطسة، $size',
+      few: '$count غطسات، $size',
+      two: 'غطستان، $size',
+      one: 'غطسة واحدة، $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return 'حذف البيانات الأولية من $computer';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'حذف';
 
   @override
   String diveComputer_rawData_discardAllMessage(int count, String size) {
     return 'إزالة بيانات التنزيل الأولية المحفوظة لـ $count غطسة من جميع كمبيوترات الغوص ($size)؟ لن يعود بالإمكان إعادة تحليل هذه الغطسات عند تحسين محلل الغطسات. تبقى الغطسات وتعديلاتك كما هي، وستزيل أجهزتك المتزامنة الأخرى البيانات أيضاً.';
   }
-
-  @override
-  String get diveComputer_rawData_discardButton => 'حذف البيانات الأولية';
 
   @override
   String diveComputer_rawData_discardComputerMessage(

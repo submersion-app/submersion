@@ -40128,15 +40128,45 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_reparseDives_button => 'Rianalizza tutto';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'Visualizza ed elimina i dati di download conservati per rianalizzare le immersioni';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'Elimina tutto';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'Per computer subacqueo';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'Computer sconosciuto';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'Nessuna immersione conserva dati grezzi del computer subacqueo.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni, $size',
+      one: '$count immersione, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return 'Elimina i dati grezzi di $computer';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Elimina';
 
   @override
   String diveComputer_rawData_discardAllMessage(int count, String size) {
     return 'Rimuovere i dati grezzi di download conservati per $count immersioni da tutti i computer subacquei ($size)? Queste immersioni non potranno più essere rianalizzate quando il parser delle immersioni migliorerà. Le immersioni e le tue modifiche restano invariate, e anche gli altri dispositivi sincronizzati rimuovono i dati.';
   }
-
-  @override
-  String get diveComputer_rawData_discardButton => 'Elimina dati grezzi';
 
   @override
   String diveComputer_rawData_discardComputerMessage(

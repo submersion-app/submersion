@@ -62857,6 +62857,48 @@ abstract class AppLocalizations {
   /// **'Re-parse all'**
   String get settings_reparseDives_button;
 
+  /// Raw dive computer data page in Data tools (issue #4590)
+  ///
+  /// In en, this message translates to:
+  /// **'See and discard the download data kept for re-parsing dives'**
+  String get settings_rawDiveData_subtitle;
+
+  /// Raw dive computer data page in Data tools (issue #4590)
+  ///
+  /// In en, this message translates to:
+  /// **'Discard all'**
+  String get settings_rawDiveData_discardAll;
+
+  /// Raw dive computer data page in Data tools (issue #4590)
+  ///
+  /// In en, this message translates to:
+  /// **'By dive computer'**
+  String get settings_rawDiveData_byComputer;
+
+  /// Raw dive computer data page in Data tools (issue #4590)
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown computer'**
+  String get settings_rawDiveData_unknownComputer;
+
+  /// Raw dive computer data page in Data tools (issue #4590)
+  ///
+  /// In en, this message translates to:
+  /// **'No dives keep raw dive computer data.'**
+  String get settings_rawDiveData_none;
+
+  /// Raw dive computer data page in Data tools (issue #4590)
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive, {size}} other{{count} dives, {size}}}'**
+  String settings_rawDiveData_computerUsage(int count, String size);
+
+  /// Screen reader label for one computer's Discard on the Raw dive computer data page (issue #4590)
+  ///
+  /// In en, this message translates to:
+  /// **'Discard raw data from {computer}'**
+  String settings_rawDiveData_discardComputerSemantics(String computer);
+
   /// No description provided for @diveComputer_rawData_discardAction.
   ///
   /// In en, this message translates to:
@@ -62868,12 +62910,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove the raw download data kept for {count} dives from every dive computer ({size})? Those dives can no longer be re-parsed when the dive parser improves. The dives and your edits stay as they are, and your other synced devices drop the data too.'**
   String diveComputer_rawData_discardAllMessage(int count, String size);
-
-  /// No description provided for @diveComputer_rawData_discardButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard raw data'**
-  String get diveComputer_rawData_discardButton;
 
   /// No description provided for @diveComputer_rawData_discardComputerMessage.
   ///

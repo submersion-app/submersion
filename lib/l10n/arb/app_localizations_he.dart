@@ -39150,15 +39150,45 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_reparseDives_button => 'נתח הכול מחדש';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'הצג ומחק את נתוני ההורדה שנשמרים לניתוח מחדש של צלילות';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'מחק הכול';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'לפי מחשב צלילה';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'מחשב לא ידוע';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'אין צלילות עם נתונים גולמיים ממחשב צלילה.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות, $size',
+      one: '$count צלילה, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return 'מחק נתונים גולמיים מ-$computer';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'מחק';
 
   @override
   String diveComputer_rawData_discardAllMessage(int count, String size) {
     return 'להסיר את נתוני ההורדה הגולמיים השמורים של $count צלילות מכל מחשבי הצלילה ($size)? לא ניתן יהיה עוד לנתח מחדש צלילות אלה כאשר מנתח הצלילות ישתפר. הצלילות והעריכות שלך יישארו כפי שהן, וגם המכשירים המסונכרנים האחרים שלך יסירו את הנתונים.';
   }
-
-  @override
-  String get diveComputer_rawData_discardButton => 'מחק נתונים גולמיים';
 
   @override
   String diveComputer_rawData_discardComputerMessage(

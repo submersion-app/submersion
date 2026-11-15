@@ -1,6 +1,7 @@
 // Issue #3482: the data tools moved off the Data page onto their own Data
 // tools page under Advanced, each still opening its own page. #3422 added
-// the table editor, #4465 the relink of data sources, which runs in place.
+// the table editor, #4465 the relink of data sources, which runs in place,
+// #4590 the raw dive computer data page.
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -43,6 +44,7 @@ void main() {
           '/settings/data-quality',
           '/settings/table-editor',
           '/settings/reparse-dives',
+          '/settings/raw-dive-data',
           '/settings/agent-access',
         ])
           GoRoute(
@@ -74,12 +76,12 @@ void main() {
     return router;
   }
 
-  testWidgets('lists the seven tools and pushes their routes', (tester) async {
+  testWidgets('lists the eight tools and pushes their routes', (tester) async {
     await pumpPage(tester);
 
     expect(find.text('Data tools'), findsOneWidget);
     // Same row widget as the Data page, so the tools look like its rows.
-    expect(find.byType(DataRowTile), findsNWidgets(7));
+    expect(find.byType(DataRowTile), findsNWidgets(8));
     for (final title in const [
       'Fix dive times',
       'Link buddy names',
@@ -87,6 +89,7 @@ void main() {
       'Data quality',
       'Table editor',
       'Re-parse dives',
+      'Raw dive computer data',
       'Relink data sources',
     ]) {
       expect(find.text(title), findsOneWidget, reason: title);
@@ -104,6 +107,7 @@ void main() {
       ('Data quality', '/settings/data-quality'),
       ('Table editor', '/settings/table-editor'),
       ('Re-parse dives', '/settings/reparse-dives'),
+      ('Raw dive computer data', '/settings/raw-dive-data'),
     ]) {
       await pumpPage(tester);
       await tester.tap(find.text(title));
@@ -114,7 +118,7 @@ void main() {
 
   testWidgets('hides the agent access row off the desktop', (tester) async {
     await pumpPage(tester);
-    expect(find.byType(DataRowTile), findsNWidgets(7));
+    expect(find.byType(DataRowTile), findsNWidgets(8));
     expect(find.text('Agent access'), findsNothing);
   });
 
@@ -124,7 +128,7 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await pumpPage(tester);
-    expect(find.byType(DataRowTile), findsNWidgets(8));
+    expect(find.byType(DataRowTile), findsNWidgets(9));
     expect(find.text('Agent access'), findsOneWidget);
     await tester.tap(find.text('Agent access'));
     await tester.pumpAndSettle();
@@ -138,7 +142,7 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await pumpPage(tester, debugMode: true);
-    expect(find.byType(DataRowTile), findsNWidgets(7));
+    expect(find.byType(DataRowTile), findsNWidgets(8));
     debugDefaultTargetPlatformOverride = null;
   });
 
@@ -159,11 +163,19 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await pumpPage(tester, debugMode: true, browser: true);
-    // The six tools a browser can run: no re-parse (the dive parser is
+    // The seven tools a browser can run: no re-parse (the dive parser is
     // native) and no agent access row.
-    expect(find.byType(DataRowTile), findsNWidgets(6));
+    expect(find.byType(DataRowTile), findsNWidgets(7));
     expect(find.text('Agent access'), findsNothing);
     expect(find.text('Re-parse dives'), findsNothing);
     debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('a browser still offers the raw dive computer data page, '
+      'since synced raw data can be discarded there', (tester) async {
+    await pumpPage(tester, browser: true);
+    await tester.tap(find.text('Raw dive computer data'));
+    await tester.pumpAndSettle();
+    expect(find.text('page /settings/raw-dive-data'), findsOneWidget);
   });
 }

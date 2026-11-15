@@ -139,6 +139,94 @@ void main() {
     });
   });
 
+  // Settings > Data > Data tools > Raw dive computer data lists each
+  // computer's share, with a discard per computer (issue #4590).
+  group('getUsageByComputer', () {
+    test('lists each computer holding raw bytes, the deleted one last as '
+        'unknown', () async {
+      await seedLibrary();
+
+      final rows = await service.getUsageByComputer();
+
+      expect(rows.map((r) => r.computerId), ['c1', 'c2', null]);
+      expect(rows.map((r) => r.diveCount), [2, 1, 1]);
+      expect(rows.every((r) => r.storedBytes > 0), isTrue);
+      expect(rows.map((r) => r.name), ['c1', 'c2', null]);
+    });
+
+    test('counts a dive recorded by two computers under each', () async {
+      await seedMultiSourceDive();
+
+      final rows = await service.getUsageByComputer();
+
+      expect(rows.map((r) => r.computerId), ['c1', 'c2']);
+      expect(rows.map((r) => r.diveCount), [1, 1]);
+    });
+
+    test('folds sources whose computer row is missing into one unknown '
+        'row', () async {
+      await seedSource('orphan', computerId: null, rawData: bytes(100));
+      // A synced source can name a computer this device has no row for.
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+      await seedSource('dangling', computerId: 'gone', rawData: bytes(100));
+      await db.customStatement('PRAGMA foreign_keys = ON');
+
+      final rows = await service.getUsageByComputer();
+
+      expect(rows, hasLength(1));
+      expect(rows.single.computerId, isNull);
+      expect(rows.single.name, isNull);
+      expect(rows.single.diveCount, 2);
+    });
+
+    test('names a computer with no name by its maker and model', () async {
+      await db
+          .into(db.diveComputers)
+          .insert(
+            const DiveComputersCompanion(
+              id: Value('t'),
+              name: Value(''),
+              manufacturer: Value('Shearwater'),
+              model: Value('Teric'),
+              createdAt: Value(nowMs),
+              updatedAt: Value(nowMs),
+            ),
+          );
+      await seedSource('t-a', computerId: 't', rawData: bytes(100));
+
+      final rows = await service.getUsageByComputer();
+
+      expect(rows.single.name, 'Shearwater Teric');
+    });
+
+    test('orders computers by name, ignoring case', () async {
+      for (final (id, name) in const [('x', 'Zeta'), ('y', 'alpha')]) {
+        await db
+            .into(db.diveComputers)
+            .insert(
+              DiveComputersCompanion(
+                id: Value(id),
+                name: Value(name),
+                createdAt: const Value(nowMs),
+                updatedAt: const Value(nowMs),
+              ),
+            );
+        await seedSource('$id-a', computerId: id, rawData: bytes(100));
+      }
+
+      final rows = await service.getUsageByComputer();
+
+      expect(rows.map((r) => r.name), ['alpha', 'Zeta']);
+    });
+
+    test('is empty when no source holds raw bytes', () async {
+      await seedComputer('c1');
+      await seedSource('c1-none', computerId: 'c1');
+
+      expect(await service.getUsageByComputer(), isEmpty);
+    });
+  });
+
   group('discard', () {
     test('reports dives cleared, not source rows', () async {
       await seedMultiSourceDive();

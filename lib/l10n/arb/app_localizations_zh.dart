@@ -37741,15 +37741,42 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_reparseDives_button => '全部重新解析';
 
   @override
+  String get settings_rawDiveData_subtitle => '查看并丢弃为重新解析潜水而保留的下载数据';
+
+  @override
+  String get settings_rawDiveData_discardAll => '全部丢弃';
+
+  @override
+  String get settings_rawDiveData_byComputer => '按潜水电脑';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => '未知潜水电脑';
+
+  @override
+  String get settings_rawDiveData_none => '没有潜水保留潜水电脑原始数据。';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水，$size',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return '丢弃 $computer 的原始数据';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => '丢弃';
 
   @override
   String diveComputer_rawData_discardAllMessage(int count, String size) {
     return '要删除所有潜水电脑为 $count 次潜水保存的原始下载数据（$size）吗？之后潜水解析器改进时，这些潜水将无法再重新解析。潜水及您的编辑保持不变，您的其他同步设备也会删除这些数据。';
   }
-
-  @override
-  String get diveComputer_rawData_discardButton => '丢弃原始数据';
 
   @override
   String diveComputer_rawData_discardComputerMessage(

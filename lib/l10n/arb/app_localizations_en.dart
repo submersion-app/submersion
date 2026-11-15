@@ -39449,15 +39449,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_reparseDives_button => 'Re-parse all';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'See and discard the download data kept for re-parsing dives';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'Discard all';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'By dive computer';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'Unknown computer';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'No dives keep raw dive computer data.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives, $size',
+      one: '$count dive, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return 'Discard raw data from $computer';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Discard';
 
   @override
   String diveComputer_rawData_discardAllMessage(int count, String size) {
     return 'Remove the raw download data kept for $count dives from every dive computer ($size)? Those dives can no longer be re-parsed when the dive parser improves. The dives and your edits stay as they are, and your other synced devices drop the data too.';
   }
-
-  @override
-  String get diveComputer_rawData_discardButton => 'Discard raw data';
 
   @override
   String diveComputer_rawData_discardComputerMessage(

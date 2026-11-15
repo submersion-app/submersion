@@ -40099,15 +40099,45 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_reparseDives_button => 'Reanalisar tudo';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'Ver e descartar os dados de transferência guardados para reanalisar mergulhos';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'Descartar tudo';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'Por computador de mergulho';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'Computador desconhecido';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'Nenhum mergulho guarda dados brutos do computador de mergulho.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos, $size',
+      one: '$count mergulho, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return 'Descartar os dados brutos de $computer';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Descartar';
 
   @override
   String diveComputer_rawData_discardAllMessage(int count, String size) {
     return 'Remover os dados brutos de download guardados de $count mergulhos de todos os computadores de mergulho ($size)? Esses mergulhos não poderão mais ser reanalisados quando o analisador de mergulhos melhorar. Os mergulhos e suas edições permanecem como estão, e seus outros dispositivos sincronizados também removem os dados.';
   }
-
-  @override
-  String get diveComputer_rawData_discardButton => 'Descartar dados brutos';
 
   @override
   String diveComputer_rawData_discardComputerMessage(

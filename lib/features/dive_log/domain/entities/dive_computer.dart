@@ -85,17 +85,24 @@ class DiveComputer extends Equatable {
   });
 
   /// Full display name combining manufacturer and model
-  String get fullName {
-    if (manufacturer != null && model != null) {
-      return '$manufacturer $model';
-    }
-    if (model != null) return model!;
-    if (manufacturer != null) return manufacturer!;
-    return name;
-  }
+  String get fullName => fullNameOf(name, manufacturer, model);
 
   /// Short display name for lists
-  String get displayName => name.isNotEmpty ? name : fullName;
+  String get displayName => displayNameOf(name, manufacturer, model);
+
+  /// [fullName] for a computer known only by its columns, as a query over
+  /// several tables returns it.
+  static String fullNameOf(String name, String? manufacturer, String? model) {
+    if (manufacturer != null && model != null) return '$manufacturer $model';
+    return model ?? manufacturer ?? name;
+  }
+
+  /// [displayName] for a computer known only by its columns.
+  static String displayNameOf(
+    String name,
+    String? manufacturer,
+    String? model,
+  ) => name.isNotEmpty ? name : fullNameOf(name, manufacturer, model);
 
   /// The model and maker of the computer Apple Health dives are attributed
   /// to (issue #637).

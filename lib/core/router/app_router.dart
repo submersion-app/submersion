@@ -134,6 +134,7 @@ import 'package:submersion/features/settings/presentation/pages/connected_accoun
 import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
+import 'package:submersion/features/settings/presentation/pages/raw_dive_data_page.dart';
 import 'package:submersion/features/settings/presentation/pages/reparse_dives_page.dart';
 import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
@@ -1894,6 +1895,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'reparse-dives',
                 name: 'reparseDives',
                 builder: (context, state) => const ReparseDivesPage(),
+              ),
+              GoRoute(
+                path: 'raw-dive-data',
+                name: 'rawDiveData',
+                builder: (context, state) => const RawDiveDataPage(),
               ),
               GoRoute(
                 path: 'link-buddy-names',

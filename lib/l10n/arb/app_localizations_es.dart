@@ -40145,16 +40145,45 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_reparseDives_button => 'Reanalizar todo';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'Ver y descartar los datos de descarga guardados para reanalizar inmersiones';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'Descartar todo';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'Por ordenador de buceo';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'Ordenador desconocido';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'Ninguna inmersión conserva datos sin procesar del ordenador de buceo.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones, $size',
+      one: '$count inmersión, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return 'Descartar los datos sin procesar de $computer';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Descartar';
 
   @override
   String diveComputer_rawData_discardAllMessage(int count, String size) {
     return '¿Eliminar los datos de descarga sin procesar guardados de $count inmersiones de todos los ordenadores de buceo ($size)? Esas inmersiones ya no podrán reanalizarse cuando mejore el analizador de inmersiones. Las inmersiones y tus cambios se mantienen, y tus otros dispositivos sincronizados también eliminan los datos.';
   }
-
-  @override
-  String get diveComputer_rawData_discardButton =>
-      'Descartar datos sin procesar';
 
   @override
   String diveComputer_rawData_discardComputerMessage(
