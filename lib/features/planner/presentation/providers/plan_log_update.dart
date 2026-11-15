@@ -9,12 +9,13 @@ import 'package:submersion/features/planner/data/repositories/dive_plan_reposito
 import 'package:submersion/features/planner/data/services/planned_dives_writer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
-import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart'
-    show SeriesDiveResult;
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
+
+export 'package:submersion/features/planner/data/services/planned_dives_writer.dart'
+    show seriesNeedsFirstStart;
 
 /// What "Create / Update planned dives" did (issue #3565).
 class PlannedDivesUpdate {
@@ -179,11 +180,3 @@ Future<PlannedDivesUpdate> updatePlannedDives(
     orphans: await writer.orphans(notifier.removedLinkedDiveIds),
   );
 }
-
-/// Whether "Update planned dives" must ask for the first dive's start: a
-/// series where some dive still to write has none to lay it out on. A dived
-/// dive starts when it did, and the dives after it carry from that, so a
-/// series begun by one needs none.
-bool seriesNeedsFirstStart(PlanSeries series, List<SeriesDiveResult> results) =>
-    series.isSeries &&
-    results.any((r) => r.actual == null && r.state.startDateTime == null);

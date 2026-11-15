@@ -142,6 +142,38 @@ own code and writes nothing (issue #4203). It never has a planner of its own:
 Every answer carries the planner's caveat in the app's language, and the
 description tells the agent to pass on every issue.
 
+### Planned dives
+
+`planned_dives` (`{delete_removed, move_dived_link}`) is an effect field of
+`dive_plan_series` and `dive_plans`, on create and update, so "save it and put
+it in my log" is one change (`writes/families/planned_dives_effect.dart`). It
+runs the planner's own `PlannedDivesWriter`, as "Create / Update planned
+dives" does: a dive with no entry gets a planned one, a planned entry is
+rewritten in place, a dived one is left alone.
+
+- **Preview.** The saved plan is computed as the planner opens it
+  (`computeStoredSeries` / `computeStoredPlan`) with the owner's settings and
+  decided by the writer, without writing. The item lists new entries in
+  `also_creates`, rewritten ones in `also_changes`, removed entries it deletes
+  in `also_reaches`, and each dive's outcome in the indirect field
+  `planned_dive_entries` (`create`, `update`, `skip_dived`, `delete_removed`,
+  `keep_removed`, with the entry's id). That list is part of the footprint, so
+  an entry dived between preview and apply makes the plan stale.
+- **Refusals.** A series whose first dive has no `start_date_time`; a dive
+  with no segments or a critical warning; a single plan linked to a dived dive
+  without `move_dived_link`; a plan in a series (the series writes them all);
+  a copy; and a change set where an earlier change writes the plan or the log,
+  which the decision would be made without.
+- **Removed dives.** Only the dives the same update drops through `plan_ids`.
+  Their planned entries are deleted with `delete_removed`, else kept unlinked;
+  a dived one always stays.
+- **Revert.** The writes run inside the apply's transaction, and a write that
+  fails part way is rethrown, so nothing is left half written. The change log
+  records profile series updates for any `agent` operation
+  (`changeLogSeriesUpdateSources`), so a rewritten entry gets its old samples
+  back. A revert does not count a link it takes back itself as a use, so the
+  plan's new link does not keep the new entry.
+
 ## Writes
 
 A write takes two calls. `preview_changes` reads and diffs, and `apply_changes`
