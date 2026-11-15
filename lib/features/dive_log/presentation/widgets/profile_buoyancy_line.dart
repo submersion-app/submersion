@@ -105,6 +105,21 @@ List<BuoyancyRun> buoyancySignRuns(
   return runs;
 }
 
+/// [picked] (sample indices the decimation kept, ascending) with the first
+/// index of every gap in [curveKg] added, so the line still breaks there.
+///
+/// Decimation sees gaps as 0 and keeps each bucket's extremes; a gap between
+/// a heavy and a buoyant sample is neither, and dropping it would bridge the
+/// missing data.
+List<int> keepBuoyancyGaps(List<int> picked, List<double?> curveKg) {
+  final gapStarts = <int>[
+    for (var i = 0; i < curveKg.length; i++)
+      if (curveKg[i] == null && (i == 0 || curveKg[i - 1] != null)) i,
+  ];
+  if (gapStarts.isEmpty) return picked;
+  return ({...picked, ...gapStarts}.toList()..sort());
+}
+
 /// One chart bar per run, mapped into [band] against [range], buoyant runs in
 /// [buoyant] and heavy runs in [heavy]. No fill: the depth trace stays
 /// uncovered.

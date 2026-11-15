@@ -7475,7 +7475,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     ({double min, double max}) range,
   ) {
     final curve = widget.buoyancyCurve!;
-    final indices = _decimatedCurveIndices(_buoyancyForDecimation());
+    final indices = keepBuoyancyGaps(
+      _decimatedCurveIndices(_buoyancyForDecimation()),
+      curve,
+    );
     final kgs = <double?>[for (final i in indices) curve[i]];
     final timestamps = <int>[
       for (final i in indices) widget.profile[i].timestamp,

@@ -166,4 +166,22 @@ void main() {
       }
     });
   });
+
+  group('keepBuoyancyGaps', () {
+    test('keeps a gap the decimation dropped', () {
+      // A bucket of -1, gap, +1 keeps only its min and max; without the gap
+      // index the line would bridge the missing data.
+      final curve = <double?>[-1, null, 1];
+      expect(keepBuoyancyGaps([0, 2], curve), [0, 1, 2]);
+    });
+
+    test('adds one index per gap, in order, without duplicates', () {
+      final curve = <double?>[1, null, null, 2, 3, null, 4];
+      expect(keepBuoyancyGaps([0, 1, 3, 6], curve), [0, 1, 3, 5, 6]);
+    });
+
+    test('no gaps leaves the picked indices alone', () {
+      expect(keepBuoyancyGaps([0, 3], <double?>[1, 2, 3, 4]), [0, 3]);
+    });
+  });
 }

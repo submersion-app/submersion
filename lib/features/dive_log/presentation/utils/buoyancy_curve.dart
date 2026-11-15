@@ -5,10 +5,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 /// chart draws (issue #4593).
 ///
 /// The model emits one sample per input point with that point's timestamp,
-/// so the two usually line up one to one. Matching by timestamp rather than
-/// index means a mismatch (a Combine's sequential halves draw the union while
-/// the card models the primary rows) shows as a gap, never as a value shifted
-/// onto the wrong moment.
+/// so the two line up one to one when the model ran on the drawn series.
+/// Matching by timestamp rather than index means any mismatch between the
+/// modelled and drawn samples shows as a gap, never as a value shifted onto
+/// the wrong moment.
 List<double?> alignBuoyancyCurve(
   List<DiveProfilePoint> drawn,
   List<TwinSample> samples,

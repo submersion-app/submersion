@@ -107,24 +107,24 @@ void main() {
   });
 
   test(
-    'primary source on a multi-source dive models the drawn points',
+    'primary source on a multi-source dive reuses the card result',
     () async {
-      // The card reads the primary rows through another query; the line models
-      // exactly the series the chart draws, so the two can never be paired
-      // wrongly (issue #4593).
+      // The card models the primary rows, which are the series the chart draws
+      // for the primary computer, so the dive page runs the model once.
       final primary = source('s1', isPrimary: true);
+      final card = cardOutcome();
       final c = container(
         active: SourceProfile(
           sourceId: 's1',
           computerId: primary.computerId,
           isEdited: false,
-          points: points([0, 5, 15]),
+          points: points([0, 10, 20]),
         ),
         sources: [primary, source('s2', isPrimary: false)],
-        card: cardOutcome(),
+        card: card,
       );
       final result = await c.read(chartBuoyancyTwinProvider(diveId).future);
-      expect([for (final s in result!.samples) s.timestamp], [0, 5, 15]);
+      expect(identical(result, card.result), isTrue);
     },
   );
 
