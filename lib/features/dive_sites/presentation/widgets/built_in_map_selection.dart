@@ -39,6 +39,9 @@ mixin BuiltInMapSelection<T extends ConsumerStatefulWidget>
 
   /// Keeps a card from outliving its pin. Call from `build`.
   ///
+  /// (A record the catalogue no longer holds is cleared where its card is
+  /// built, in [buildBuiltInInfoCard], which is where that is read.)
+  ///
   /// The selection is cleared when the layer its record belongs to is
   /// turned off, and when the diver's sites come to hide the record's pin,
   /// by the same two rules that hide it on the map: the record becomes the
@@ -96,16 +99,32 @@ mixin BuiltInMapSelection<T extends ConsumerStatefulWidget>
   Widget? buildBuiltInInfoCard(BuildContext context) {
     final selected = _selectedBuiltIn;
     if (selected == null) return null;
-    // The record as the catalogue holds it now, else as it was tapped: the
-    // card stays while the map moves the site off screen.
-    final site =
-        ref
-            .watch(visibleBuiltInSitesProvider)
-            .value
-            ?.where((s) => s.id == selected.id)
-            .firstOrNull ??
-        ref.watch(catalogueSiteProvider(selected.id)).value ??
-        selected;
+    // The record as the map draws it now. Off the map (moved out of view),
+    // as the catalogue holds it, so the card stays while the map moves.
+    final onMap = ref
+        .watch(visibleBuiltInSitesProvider)
+        .value
+        ?.where((s) => s.id == selected.id)
+        .firstOrNull;
+    final held = onMap == null
+        ? ref.watch(catalogueSiteProvider(selected.id))
+        : null;
+    if (held != null &&
+        held.hasValue &&
+        !held.isLoading &&
+        held.value == null) {
+      // The catalogue has answered, and no longer holds the record (a new
+      // catalogue dropped it): there is nothing to show or to add. Cleared
+      // after this frame, since a build cannot change the selection.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _selectedBuiltIn?.id == selected.id) {
+          selectBuiltIn(null);
+        }
+      });
+      return null;
+    }
+    // Still being read, or the read failed: the record as it was tapped.
+    final site = onMap ?? held?.value ?? selected;
     return BuiltInSiteInfoCard(
       site: site,
       actionLabel: context.l10n.diveSites_map_builtInSites_add,

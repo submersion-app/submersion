@@ -624,7 +624,9 @@ design as approved; these are the corrections to read with it.
   is the link rule and the 150 m rule together
   (`offerableCatalogueSites` with `byPosition`), not the link rule
   alone: a site the diver creates on the record's spot hides the pin,
-  and the card goes with it.
+  and the card goes with it. The card also goes when a new catalogue no
+  longer holds its record. A record that is only out of view, or still
+  being read, keeps its card.
 - **The strip is drawn at zoom 12**, with the map locked; the fullscreen
   map from its corner button is the one that moves.
 - **Nearby is read once per kind**, 60 records each (ten times the six

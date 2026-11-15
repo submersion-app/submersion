@@ -46,6 +46,12 @@ const wreckB = CatalogueSite(
   kind: CatalogueKind.register,
 );
 
+/// The built-in pins in view, for a test that moves them while the map is
+/// up.
+final shownProvider = StateProvider<List<CatalogueSite>>(
+  (ref) => const [builtInA],
+);
+
 /// The diver's sites, for a test that changes them while the map is up.
 final mineProvider = StateProvider<List<SiteWithDiveCount>>((ref) => const []);
 
@@ -337,6 +343,66 @@ void builtInMapContract({
 
       expect(find.text('Add to my sites'), findsNothing);
       handle.dispose();
+    });
+
+    group('a selected record whose pin leaves the map', () {
+      /// A map over [catalogue] whose pins are whatever [shownProvider]
+      /// holds, with [builtInA] selected.
+      Future<ProviderContainer> selected(
+        WidgetTester tester,
+        FakeSiteCatalogue catalogue,
+      ) async {
+        final container = await pump(
+          tester,
+          extraOverrides: [
+            heatMapSettingsProvider.overrideWith(
+              (ref) => const HeatMapSettings(isVisible: false),
+            ),
+            siteCatalogueProvider.overrideWithValue(catalogue),
+            visibleBuiltInSitesProvider.overrideWith(
+              (ref) async => ref.watch(shownProvider),
+            ),
+          ],
+        );
+        await semanticsTap(tester, 'Built-in dive site: A');
+        expect(find.text('Add to my sites'), findsOneWidget);
+        return container;
+      }
+
+      testWidgets('keeps its card while it is only off screen', (tester) async {
+        final handle = tester.ensureSemantics();
+        final container = await selected(
+          tester,
+          FakeSiteCatalogue(const [builtInA]),
+        );
+
+        // The map was moved: the record is out of view, and still there.
+        container.read(shownProvider.notifier).state = const [];
+        await settle(tester);
+        await settle(tester);
+
+        expect(find.text('Add to my sites'), findsOneWidget);
+        handle.dispose();
+      });
+
+      testWidgets('loses its card when a new catalogue no longer holds it: '
+          'there is nothing left to add', (tester) async {
+        final handle = tester.ensureSemantics();
+        final catalogue = FakeSiteCatalogue(const [builtInA]);
+        final container = await selected(tester, catalogue);
+
+        // An import replaces the catalogue with one that dropped the record.
+        catalogue.sites = [];
+        container.read(siteCatalogueRevisionProvider.notifier).state++;
+        container.read(shownProvider.notifier).state = const [];
+        // The pin goes, then the catalogue is asked, then the card goes:
+        // each takes a frame.
+        await settle(tester);
+        await settle(tester);
+
+        expect(find.text('Add to my sites'), findsNothing);
+        handle.dispose();
+      });
     });
 
     group('a selected record the diver comes to have loses its card:', () {
