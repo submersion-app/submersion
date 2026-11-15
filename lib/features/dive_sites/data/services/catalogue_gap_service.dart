@@ -197,6 +197,9 @@ class CatalogueGapService {
   /// log. A pair that cannot be applied is counted and the rest still go
   /// through.
   ///
+  /// Each pair's record is read again first, and one the catalogue no
+  /// longer holds as the pair shows it is counted as not applied.
+  ///
   /// The result does not wait for the altitude of a site that was given a
   /// position: that lookup needs the network, and follows by itself.
   Future<CatalogueApplyResult> apply(
@@ -214,6 +217,15 @@ class CatalogueGapService {
         final pair = request.pair;
         final fields = request.fields.intersection(pair.fields);
         try {
+          // The pair pictures the catalogue as it stood when the diver was
+          // shown it, and an import can replace the catalogue while a
+          // comparison is open. A record that has gone or changed since is
+          // not written: the diver has not seen what it holds now, and the
+          // next search offers that.
+          if (await _catalogue.byId(pair.record.id) != pair.record) {
+            notApplied++;
+            continue;
+          }
           final write = await _fills.applyFill(
             siteId: pair.site.id,
             record: pair.record,

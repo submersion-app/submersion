@@ -400,6 +400,52 @@ void main() {
       },
     );
 
+    test('a record the catalogue has dropped since is not applied', () async {
+      await mine('a', 'Salt Pier', at: _pier40m);
+      final pair = (await pairs()).single;
+      // A catalogue import lands while the comparison is open.
+      catalogue.sites = [_thistlegorm, _blueHoleEgypt];
+
+      final result = await service().apply([
+        CatalogueApplyRequest(pair, pair.fields),
+      ], diverId: 'd1');
+
+      expect(result.notApplied, 1);
+      expect(result.linked, 0);
+      final site = (await sites.getSiteById('a'))!;
+      expect(site.catalogueId, isNull);
+      expect(site.maxDepth, isNull);
+    });
+
+    test('a record the catalogue has changed since is not applied', () async {
+      await mine('a', 'Salt Pier', at: _pier40m);
+      final pair = (await pairs()).single;
+      // The diver was shown 15 m; the catalogue now says otherwise.
+      catalogue.sites = const [
+        CatalogueSite(
+          id: 'osm_pier',
+          name: 'Salt Pier',
+          location: _pier,
+          countryCode: 'BQ',
+          country: 'Caribbean Netherlands',
+          maxDepth: 21,
+          typeIds: ['reef'],
+          source: 'osm',
+        ),
+      ];
+
+      final result = await service().apply([
+        CatalogueApplyRequest(pair, pair.fields),
+      ], diverId: 'd1');
+
+      expect(result.notApplied, 1);
+      final site = (await sites.getSiteById('a'))!;
+      expect(site.catalogueId, isNull);
+      expect(site.maxDepth, isNull);
+      // The next search offers what the catalogue holds now.
+      expect((await pairs()).single.record.maxDepth, 21);
+    });
+
     test('a write that throws is counted and does not stop the next', () async {
       await mine('a', 'Salt Pier', at: _pier40m);
       await mine('b', 'Thistlegorm', at: _wreck40m);

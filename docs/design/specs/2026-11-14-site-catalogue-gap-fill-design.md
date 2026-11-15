@@ -620,6 +620,11 @@ findings. All are fixed. The calls it led to:
 - **An altitude lookup's answer is written only when the site still has
   no altitude.** The lookup can be out for seconds, and a value the diver
   entered meanwhile stays.
+- **A pair whose record has gone or changed since it was shown is not
+  applied.** Each record is read again before its write; an import that
+  replaced the catalogue while a comparison was open leaves the pair
+  counted as not applied, and the next search offers what the catalogue
+  holds now.
 - **A merge carries over keys of the answers that this build cannot
   read,** from every merged site. The survivor's value stands where two
   hold the same key, then the first merged site's.
