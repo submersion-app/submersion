@@ -40,8 +40,11 @@ DiveTank _recordedFrom(DiveTank into, DiveTank from) => into.copyWith(
 /// as a change of the Tanks card, moved at Save by [exchange] after the
 /// cylinders are written. Cancel moves nothing.
 ///
-/// The same pair exchanged again takes the last exchange back. A pair
-/// naming a cylinder no longer on the dive by Save is skipped.
+/// The same pair exchanged again takes the last exchange back. The readings
+/// move before the dive's cylinders are written, while both rows still
+/// exist: a cylinder the sitting then removes goes with the readings that
+/// were moved onto it, and the one kept has the readings moved onto it,
+/// with the pressures it took in the sitting.
 void exchangeTankSeries(
   EditSession<Dive> session,
   String tankIdA,
@@ -78,10 +81,12 @@ void exchangeTankSeries(
   session.holdChange(
     tankSeriesExchangeKey,
     cardId: diveTanksCardId,
+    beforeRecord: true,
     write: () async {
-      final onDive = {for (final t in session.working.tanks) t.id};
+      // The rows as stored: both are still there when this runs.
+      final stored = {for (final t in session.stored.tanks) t.id};
       for (final (x, y) in heldTankSeriesExchanges(session)) {
-        if (onDive.contains(x) && onDive.contains(y)) await exchange(x, y);
+        if (stored.contains(x) && stored.contains(y)) await exchange(x, y);
       }
     },
   );

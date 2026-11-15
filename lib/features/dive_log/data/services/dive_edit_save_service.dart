@@ -43,11 +43,18 @@ class DiveEditSaveService {
   /// nothing, unless [alsoWriteIsAChange]: the sitting's only change is a
   /// write of its own (a dismissed suggestion, a location added to the
   /// site), and the dive comes back as it was before and after.
+  ///
+  /// [writeFirst] makes the sitting's writes that need rows the dive's own
+  /// write may delete (readings moved between two cylinders, one of which
+  /// the sitting removes). It runs before the dive is written, in the same
+  /// transaction and History entry, and counts as a change as [alsoWrite]
+  /// does.
   Future<({Dive before, Dive after, List<TripDateStretch> tripDateStretches})?>
   save({
     required String diveId,
     required Dive Function(Dive stored) apply,
     required Iterable<String> changedCardIds,
+    Future<void> Function()? writeFirst,
     Future<void> Function()? alsoWrite,
     bool alsoWriteIsAChange = false,
   }) {
@@ -65,14 +72,19 @@ class DiveEditSaveService {
         }
         final merged = apply(stored);
         if (merged == stored) {
-          if (!alsoWriteIsAChange || alsoWrite == null) return null;
-          await alsoWrite();
+          if (!alsoWriteIsAChange ||
+              (alsoWrite == null && writeFirst == null)) {
+            return null;
+          }
+          await writeFirst?.call();
+          await alsoWrite?.call();
           return (
             before: stored,
             after: stored,
             tripDateStretches: const <TripDateStretch>[],
           );
         }
+        await writeFirst?.call();
         await _diveRepo.updateDive(merged);
         // Only a save that touched the trip moves its dates: a dive saved
         // for something else leaves a trip it sits outside of alone, so a

@@ -66,6 +66,15 @@ void main() {
     );
   }
 
+  /// The order the save service writes a sitting in: what must go before
+  /// the dive, the dive, then the rest, in one transaction.
+  Future<void> saveAsTheServiceDoes(EditSession<Dive> s) =>
+      DatabaseService.instance.database.transaction(() async {
+        await s.runHeldWrites(beforeRecord: true);
+        await dives.updateDive(s.applyTo((await dives.getDiveById('d1'))!));
+        await s.runHeldWrites();
+      });
+
   Future<EditSession<Dive>> sitting() async =>
       EditSession((await dives.getDiveById('d1'))!);
 
@@ -108,10 +117,7 @@ void main() {
     final before = tank(s, 'tB');
     exchangeTankSeries(s, 'tA', 'tB', exchange: exchange);
 
-    await DatabaseService.instance.database.transaction(() async {
-      await dives.updateDive(s.applyTo((await dives.getDiveById('d1'))!));
-      await s.runHeldWrites();
-    });
+    await saveAsTheServiceDoes(s);
 
     final saved = (await dives.getDiveById('d1'))!;
     final a = saved.tanks.firstWhere((t) => t.id == 'tA');
@@ -129,13 +135,24 @@ void main() {
     expect(series['tB']!.map((p) => p.pressure), [200.0, 170.0]);
   });
 
-  test('a pair whose cylinder was removed is skipped', () async {
+  test('a cylinder removed after an exchange: the one kept has the readings '
+      'moved onto it, with their pressures', () async {
     final s = await sitting();
+    final before = tank(s, 'tB');
     exchangeTankSeries(s, 'tA', 'tB', exchange: exchange);
     removeSittingTank(s, 'tB');
 
-    await s.runHeldWrites();
+    await saveAsTheServiceDoes(s);
 
-    expect(exchanged, isEmpty);
+    final saved = (await dives.getDiveById('d1'))!;
+    expect(saved.tanks.map((t) => t.id), ['tA']);
+    final a = saved.tanks.single;
+    expect(
+      (a.startPressure, a.endPressure, a.transmitterSerial),
+      (before.startPressure, before.endPressure, '222'),
+    );
+    final series = await pressures.getTankPressuresForDive('d1');
+    expect(series['tA']!.map((p) => p.pressure), [210.0]);
+    expect(series.containsKey('tB'), isFalse);
   });
 }

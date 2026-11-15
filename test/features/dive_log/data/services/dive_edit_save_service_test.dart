@@ -367,6 +367,41 @@ void main() {
       },
     );
 
+    // A reassign moves readings between cylinder rows that must both still
+    // exist: it runs before the dive's rows are written (issue #4527).
+    test(
+      'writeFirst runs before the dive is written, in the same entry',
+      () async {
+        String? notesSeen;
+
+        await service.save(
+          diveId: 'dive',
+          apply: (dive) => dive.copyWith(notes: 'Changed'),
+          changedCardIds: ['tanks'],
+          writeFirst: () async =>
+              notesSeen = (await dives.getDiveById('dive'))!.notes,
+        );
+
+        expect(notesSeen, 'Calm');
+        expect((await stored()).notes, 'Changed');
+      },
+    );
+
+    test('writeFirst alone, with no dive change, is written', () async {
+      var ran = 0;
+
+      final result = await service.save(
+        diveId: 'dive',
+        apply: (dive) => dive,
+        changedCardIds: ['tanks'],
+        writeFirst: () async => ran++,
+        alsoWriteIsAChange: true,
+      );
+
+      expect(result, isNotNull);
+      expect(ran, 1);
+    });
+
     test('a held change that throws leaves everything as it was', () async {
       final sites = SiteRepository();
 

@@ -448,6 +448,28 @@ void main() {
     });
   });
 
+  test('a change held before the record runs only in its own phase', () async {
+    final ran = <String>[];
+    final s = EditSession(const _Rec())
+      ..holdChange(
+        'after',
+        cardId: 'tanks',
+        write: () async => ran.add('after'),
+      )
+      ..holdChange(
+        'before',
+        cardId: 'tanks',
+        beforeRecord: true,
+        write: () async => ran.add('before'),
+      );
+
+    expect(s.hasHeldWritesBeforeRecord, isTrue);
+    await s.runHeldWrites(beforeRecord: true);
+    expect(ran, ['before']);
+    await s.runHeldWrites();
+    expect(ran, ['before', 'after']);
+  });
+
   test('a released held write is not run at save', () async {
     final ran = <String>[];
     final session = EditSession(const _Rec())

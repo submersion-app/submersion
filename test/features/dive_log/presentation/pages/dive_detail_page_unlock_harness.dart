@@ -49,6 +49,7 @@ class FakeSave implements DiveEditSaveService {
     required String diveId,
     required Dive Function(Dive stored) apply,
     required Iterable<String> changedCardIds,
+    Future<void> Function()? writeFirst,
     Future<void> Function()? alsoWrite,
     bool alsoWriteIsAChange = false,
   }) async {
@@ -59,6 +60,7 @@ class FakeSave implements DiveEditSaveService {
     final merged = apply(before);
     calls.add((diveId: diveId, merged: merged, cards: changedCardIds.toList()));
     heldChangeFlags.add(alsoWriteIsAChange);
+    await writeFirst?.call();
     await alsoWrite?.call();
     stored = merged;
     return (

@@ -102,6 +102,9 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       // uses dropped.
       apply: (stored) => diveSittingApply(session, stored),
       changedCardIds: session.changedCardIds,
+      writeFirst: session.hasHeldWritesBeforeRecord
+          ? () => session.runHeldWrites(beforeRecord: true)
+          : null,
       alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
       alsoWriteIsAChange: session.hasHeldChanges,
     );
