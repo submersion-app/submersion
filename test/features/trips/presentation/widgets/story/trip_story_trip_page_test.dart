@@ -36,6 +36,7 @@ import '../../../../../helpers/mock_providers.dart';
   required DateTime today,
   TripType type = TripType.resort,
   String notes = '',
+  bool withSites = true,
 }) {
   const depths = [30.2, 28.4, 24.0];
   final dives = <Dive>[
@@ -46,7 +47,9 @@ import '../../../../../helpers/mock_providers.dart';
           dateTime: DateTime(start.year, start.month, start.day + d, 8 + 3 * i),
           maxDepth: depths[i % depths.length],
           runtime: const Duration(minutes: 50),
-          site: DiveSite(id: 'site-$d', name: 'Site ${d + 1}'),
+          site: withSites
+              ? DiveSite(id: 'site-$d', name: 'Site ${d + 1}')
+              : null,
         ),
   ];
   final trip = Trip(
@@ -93,10 +96,14 @@ void main() {
     required TripWithStats stats,
     List<Override> extra = const [],
     VoidCallback? onScanForDives,
+    double width = 420,
+    double textScale = 1,
   }) async {
-    tester.view.physicalSize = const Size(420, 2000);
+    tester.view.physicalSize = Size(width, 2000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    tester.platformDispatcher.textScaleFactorTestValue = textScale;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     // Dates are formatted against Intl.defaultLocale, a process global the
     // app sets from its own locale. Pin it and put it back.
     final previousLocale = Intl.defaultLocale;
@@ -179,6 +186,40 @@ void main() {
     // Five days were dived, each at its own site.
     expect(within('5'), findsOneWidget);
     expect(within('Sites visited'), findsOneWidget);
+  });
+
+  testWidgets('a trip dived at no named site shows no sites total', (
+    tester,
+  ) async {
+    final siteless = _trip(
+      DateTime(2026, 10, 28),
+      [2, 1],
+      today: DateTime(2026, 12, 1),
+      withSites: false,
+    );
+    await pumpTripPage(tester, story: siteless.story, stats: siteless.stats);
+
+    final totals = find.byKey(TripStoryTripPage.totalsKey);
+    Finder within(String text) =>
+        find.descendant(of: totals, matching: find.text(text));
+    // The other totals stand; a zero would read as a count that was taken.
+    expect(within('Total Dives'), findsOneWidget);
+    expect(within('Sites visited'), findsNothing);
+    expect(within('0'), findsNothing);
+  });
+
+  testWidgets('at text scale 2.0 on a narrow phone the whole page lays out, '
+      'the Documents card included', (tester) async {
+    await pumpTripPage(
+      tester,
+      story: finished.story,
+      stats: finished.stats,
+      width: 320,
+      textScale: 2,
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(DocumentsSection), findsOneWidget);
   });
 
   testWidgets('the trip name is not on the page', (tester) async {
@@ -380,9 +421,8 @@ void main() {
 
     testWidgets("at text scale 2.0 on a narrow phone, today's line keeps its "
         'date and its figures', (tester) async {
-      // The line alone: the Documents card further down this page has a
-      // header row of its own that does not fit at this size, which is not
-      // this line's to answer for.
+      // The line alone, at the width where it stacks; the whole page at
+      // this size has a test of its own above.
       final previousLocale = Intl.defaultLocale;
       Intl.defaultLocale = 'en';
       addTearDown(() => Intl.defaultLocale = previousLocale);

@@ -54,4 +54,11 @@ void main() {
   test('a trip with no plans has none', () async {
     expect(await queries.undivedPlanIds('t2'), isEmpty);
   });
+
+  test('a read that fails answers with no plans, and does not throw', () async {
+    await db.customStatement('ALTER TABLE dives RENAME TO dives_elsewhere');
+
+    // The picker then draws every dive as one that happened.
+    expect(await queries.undivedPlanIds('t1'), isEmpty);
+  });
 }
