@@ -224,6 +224,18 @@ void main() {
     expect(geofenceSuggestion(c.session!), isNull);
   });
 
+  testWidgets('in the open card the suggestion waits while another card is '
+      'open: it must not push that one down', (tester) async {
+    final c = await pump(tester, dive);
+    c.openCard('header');
+    await pickReef(tester, c);
+    expect(find.byType(GeofenceSuggestionBanner), findsNothing);
+
+    c.closeCard('header');
+    await tester.pumpAndSettle();
+    expect(find.byType(GeofenceSuggestionBanner), findsOneWidget);
+  });
+
   testWidgets('the closed card shows the suggestion only once the editors '
       'close', (tester) async {
     final c = await pump(tester, dive, editor: false);

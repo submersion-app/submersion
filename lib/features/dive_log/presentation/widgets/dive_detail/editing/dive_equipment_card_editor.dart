@@ -25,6 +25,7 @@ import 'package:submersion/shared/widgets/forms/form_caption.dart';
 import 'package:submersion/shared/widgets/forms/form_empty_row.dart';
 import 'package:submersion/shared/widgets/forms/form_overline.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// The Equipment card's editor (issue #4527): use a set, add from the
 /// picker, scan a tag, arrange, the gear tree with its removals, save the
@@ -301,6 +302,10 @@ class _DiveEquipmentCardEditorState
 /// The set the dive's location suggests during a sitting (issue #4527),
 /// as the dive form's banner: Apply uses it, Dismiss puts it away for the
 /// sitting. Draws nothing while there is none.
+///
+/// It arrives after a lookup, with the header open most of the time, so it
+/// waits while any card but Equipment is open: coming in, it would push an
+/// open editor below it down the page.
 class DiveGeofenceSuggestion extends StatelessWidget {
   const DiveGeofenceSuggestion({
     super.key,
@@ -314,10 +319,12 @@ class DiveGeofenceSuggestion extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final open = RecordEditScope.maybeOf<Dive>(context)?.openCardIds ?? {};
+    final othersOpen = open.any((id) => id != diveEquipmentCardId);
     return ValueListenableBuilder<EquipmentSet?>(
       valueListenable: geofenceSuggestionListenable(session),
       builder: (context, set, _) {
-        if (set == null) return const SizedBox.shrink();
+        if (set == null || othersOpen) return const SizedBox.shrink();
         return Padding(
           padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
           child: GeofenceSuggestionBanner(
