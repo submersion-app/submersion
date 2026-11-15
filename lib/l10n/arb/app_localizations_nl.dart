@@ -1797,6 +1797,33 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_story_today => 'Vandaag';
 
   @override
+  String get trips_story_tripTile => 'Reis';
+
+  @override
+  String get trips_story_tripTileAll => 'Alles';
+
+  @override
+  String get trips_story_tripTile_semantics => 'Hele reis';
+
+  @override
+  String trips_story_dayTile_semantics(String date, int number) {
+    return '$date, dag $number';
+  }
+
+  @override
+  String trips_story_dayTile_deepest(String depth) {
+    return 'diepste $depth';
+  }
+
+  @override
+  String get trips_story_noDivesThisDay => 'Geen duiken op deze dag';
+
+  @override
+  String trips_story_dayMaxDepth(String depth) {
+    return 'max. $depth';
+  }
+
+  @override
   String trips_countryFlags_more(int count) {
     return '+$count';
   }
@@ -36387,9 +36414,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_detail_stat_speciesSeen => 'Waargenomen soorten';
-
-  @override
-  String get trips_breakdown_column_sites => 'Stekken';
 
   @override
   String trips_itinerary_dayLabel(int dayNumber) {

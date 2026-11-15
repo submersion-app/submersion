@@ -1809,6 +1809,34 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trips_story_today => 'Oggi';
 
   @override
+  String get trips_story_tripTile => 'Viaggio';
+
+  @override
+  String get trips_story_tripTileAll => 'Tutto';
+
+  @override
+  String get trips_story_tripTile_semantics => 'Tutto il viaggio';
+
+  @override
+  String trips_story_dayTile_semantics(String date, int number) {
+    return '$date, giorno $number';
+  }
+
+  @override
+  String trips_story_dayTile_deepest(String depth) {
+    return 'la più profonda $depth';
+  }
+
+  @override
+  String get trips_story_noDivesThisDay =>
+      'Nessuna immersione in questo giorno';
+
+  @override
+  String trips_story_dayMaxDepth(String depth) {
+    return 'max $depth';
+  }
+
+  @override
   String trips_countryFlags_more(int count) {
     return '+$count';
   }
@@ -36639,9 +36667,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get trips_detail_stat_speciesSeen => 'Specie osservate';
-
-  @override
-  String get trips_breakdown_column_sites => 'Siti';
 
   @override
   String trips_itinerary_dayLabel(int dayNumber) {

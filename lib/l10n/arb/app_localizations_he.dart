@@ -1783,6 +1783,33 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_story_today => 'היום';
 
   @override
+  String get trips_story_tripTile => 'טיול';
+
+  @override
+  String get trips_story_tripTileAll => 'הכול';
+
+  @override
+  String get trips_story_tripTile_semantics => 'כל הטיול';
+
+  @override
+  String trips_story_dayTile_semantics(String date, int number) {
+    return '$date, יום $number';
+  }
+
+  @override
+  String trips_story_dayTile_deepest(String depth) {
+    return 'העמוקה ביותר $depth';
+  }
+
+  @override
+  String get trips_story_noDivesThisDay => 'אין צלילות ביום זה';
+
+  @override
+  String trips_story_dayMaxDepth(String depth) {
+    return 'מרבי $depth';
+  }
+
+  @override
   String trips_countryFlags_more(int count) {
     return '+$count';
   }
@@ -35742,9 +35769,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_detail_stat_speciesSeen => 'מינים שנצפו';
-
-  @override
-  String get trips_breakdown_column_sites => 'אתרים';
 
   @override
   String trips_itinerary_dayLabel(int dayNumber) {

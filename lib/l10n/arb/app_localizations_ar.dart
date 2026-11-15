@@ -1849,6 +1849,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_story_today => 'اليوم';
 
   @override
+  String get trips_story_tripTile => 'الرحلة';
+
+  @override
+  String get trips_story_tripTileAll => 'الكل';
+
+  @override
+  String get trips_story_tripTile_semantics => 'الرحلة كاملة';
+
+  @override
+  String trips_story_dayTile_semantics(String date, int number) {
+    return '$date، اليوم $number';
+  }
+
+  @override
+  String trips_story_dayTile_deepest(String depth) {
+    return 'الأعمق $depth';
+  }
+
+  @override
+  String get trips_story_noDivesThisDay => 'لا غطسات في هذا اليوم';
+
+  @override
+  String trips_story_dayMaxDepth(String depth) {
+    return 'الأقصى $depth';
+  }
+
+  @override
   String trips_countryFlags_more(int count) {
     return '+$count';
   }
@@ -37106,9 +37133,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_detail_stat_speciesSeen => 'الأنواع المشاهدة';
-
-  @override
-  String get trips_breakdown_column_sites => 'المواقع';
 
   @override
   String trips_itinerary_dayLabel(int dayNumber) {

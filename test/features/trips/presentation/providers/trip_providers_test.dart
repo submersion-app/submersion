@@ -457,9 +457,10 @@ void main() {
 
       // getTripWithStats aggregates straight over the dives table, so a merge
       // changes the counts without touching the trip row -- and the trip detail
-      // page renders these in TripStatStrip directly above the itinerary that
-      // divesForTripProvider feeds. Without the dives-table subscription the
-      // header would still read "2 dives / 42m" over a list of one 18m dive.
+      // page renders these as the Trip page's totals directly above the day
+      // lines that divesForTripProvider feeds. Without the dives-table
+      // subscription the totals would still read "2 dives / 42m" over a day
+      // line of one 18m dive.
       //
       // Transaction-wrapped for the same reason as the divesForTripProvider
       // test above: it is the tick shape the merge/consolidate services emit.

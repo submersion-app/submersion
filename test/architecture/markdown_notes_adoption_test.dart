@@ -95,7 +95,7 @@ void main() {
     'lib/features/site_scape/presentation/site_feature_info_sheet.dart',
     'lib/features/trips/presentation/widgets/overview/trip_prepare_overview.dart',
     'lib/features/trips/presentation/widgets/story/trip_story_day_plan.dart',
-    'lib/features/trips/presentation/widgets/story/trip_story_view.dart',
+    'lib/features/trips/presentation/widgets/story/trip_story_trip_page.dart',
   ];
 
   /// Truncated previews, table columns and exports that need plain words.

@@ -1805,6 +1805,33 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_story_today => 'Ma';
 
   @override
+  String get trips_story_tripTile => 'Út';
+
+  @override
+  String get trips_story_tripTileAll => 'Mind';
+
+  @override
+  String get trips_story_tripTile_semantics => 'Teljes út';
+
+  @override
+  String trips_story_dayTile_semantics(String date, int number) {
+    return '$date, $number. nap';
+  }
+
+  @override
+  String trips_story_dayTile_deepest(String depth) {
+    return 'legmélyebb: $depth';
+  }
+
+  @override
+  String get trips_story_noDivesThisDay => 'Ezen a napon nem volt merülés';
+
+  @override
+  String trips_story_dayMaxDepth(String depth) {
+    return 'max. $depth';
+  }
+
+  @override
   String trips_countryFlags_more(int count) {
     return '+$count';
   }
@@ -36442,9 +36469,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_detail_stat_speciesSeen => 'Látott fajok';
-
-  @override
-  String get trips_breakdown_column_sites => 'Helyszínek';
 
   @override
   String trips_itinerary_dayLabel(int dayNumber) {

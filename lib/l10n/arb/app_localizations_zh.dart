@@ -1734,6 +1734,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_story_today => '今天';
 
   @override
+  String get trips_story_tripTile => '旅行';
+
+  @override
+  String get trips_story_tripTileAll => '全部';
+
+  @override
+  String get trips_story_tripTile_semantics => '整个旅行';
+
+  @override
+  String trips_story_dayTile_semantics(String date, int number) {
+    return '$date，第 $number 天';
+  }
+
+  @override
+  String trips_story_dayTile_deepest(String depth) {
+    return '最深 $depth';
+  }
+
+  @override
+  String get trips_story_noDivesThisDay => '当天没有潜水';
+
+  @override
+  String trips_story_dayMaxDepth(String depth) {
+    return '最大 $depth';
+  }
+
+  @override
   String trips_countryFlags_more(int count) {
     return '+$count';
   }
@@ -34486,9 +34513,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_detail_stat_speciesSeen => '已发现物种';
-
-  @override
-  String get trips_breakdown_column_sites => '潜水点';
 
   @override
   String trips_itinerary_dayLabel(int dayNumber) {

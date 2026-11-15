@@ -1073,6 +1073,37 @@
   },
   "trips_story_surfaceDay": "Surface day",
   "trips_story_today": "Today",
+  "trips_story_tripTile": "Trip",
+  "trips_story_tripTileAll": "All",
+  "trips_story_tripTile_semantics": "Whole trip",
+  "trips_story_dayTile_semantics": "{date}, day {number}",
+  "@trips_story_dayTile_semantics": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_story_dayTile_deepest": "deepest {depth}",
+  "@trips_story_dayTile_deepest": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_noDivesThisDay": "No dives this day",
+  "trips_story_dayMaxDepth": "{depth} max",
+  "@trips_story_dayMaxDepth": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
   "trips_countryFlags_more": "+{count}",
   "trips_countryFlags_semantics": "Countries: {names}",
   "trips_countryFlags_separator": ", ",
@@ -21282,7 +21313,6 @@
   "trips_detail_label_disembark": "Disembark",
   "trips_detail_stat_sitesVisited": "Sites visited",
   "trips_detail_stat_speciesSeen": "Species seen",
-  "trips_breakdown_column_sites": "Sites",
   "trips_itinerary_dayLabel": "Day {dayNumber}",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
