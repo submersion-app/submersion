@@ -67,6 +67,7 @@ class StripLayerInputs {
     this.findings = const [],
     this.plan,
     this.otherSources = const [],
+    this.sacScale = 1,
   });
 
   /// The series the chart draws (the active source's).
@@ -87,6 +88,10 @@ class StripLayerInputs {
   final ChartSourceOverlay? plan;
   final List<ChartSourceOverlay> otherSources;
 
+  /// What the SAC curve is scaled by so it agrees with the dive's own SAC,
+  /// as the full chart scales it (`calculateSacNormalizationFactor`).
+  final double sacScale;
+
   /// Whether every input is the same object as [other]'s, so data built
   /// from one serves the other.
   bool sameAs(StripLayerInputs other) =>
@@ -101,6 +106,7 @@ class StripLayerInputs {
       identical(computerEvents, other.computerEvents) &&
       identical(findings, other.findings) &&
       identical(plan, other.plan) &&
+      sacScale == other.sacScale &&
       _sameList(otherSources, other.otherSources);
 
   static bool _sameList<T>(List<T> a, List<T> b) {
@@ -169,7 +175,12 @@ PinnedStripLayerData buildStripLayerData(
       max: ProfileMetricBands.gtr.fixedMax,
       breakAtNull: true,
     ),
-    indexed(StripLayer.sac, ProfileMetric.sac, analysis?.sacCurve),
+    // The smoothed curve, as the full chart draws it: the raw one swings
+    // sample to sample. A sample with no rate is a gap, not a zero.
+    indexed(StripLayer.sac, ProfileMetric.sac, [
+      for (final v in analysis?.smoothedSacCurve ?? const <double>[])
+        v > 0 ? v * inputs.sacScale : null,
+    ]),
     indexed(
       StripLayer.tts,
       ProfileMetric.tts,

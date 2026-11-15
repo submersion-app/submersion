@@ -183,14 +183,39 @@ void main() {
     expect(gtr.valueAt(180), isNull);
   });
 
-  test('sac line from the analysis', () {
+  test('sac line draws the smoothed curve, as the full chart does', () {
     final data = _build(
       analysis: ProfileAnalysis.empty().copyWith(
-        sacCurve: [for (var i = 0; i < 10; i++) 15.0 + i],
+        // The raw curve spikes sample to sample; the chart never draws it.
+        sacCurve: [for (var i = 0; i < 10; i++) i.isEven ? 5.0 : 40.0],
+        smoothedSacCurve: [for (var i = 0; i < 10; i++) 15.0 + i],
       ),
     );
     final line = _line(data, StripLayer.sac);
     expect((line.min, line.max), (15, 24));
+  });
+
+  test('sac skips the samples with no rate and takes the dive scale', () {
+    final data = buildStripLayerData(
+      StripLayerInputs(
+        profile: _profile,
+        analysis: ProfileAnalysis.empty().copyWith(
+          smoothedSacCurve: [0, 0, 10, 12, 14, 16, 18, 20, 0, 0],
+        ),
+        sacScale: 1.5,
+      ),
+      _style,
+    );
+    final line = _line(data, StripLayer.sac);
+    expect([for (final p in line.runs.single) p.seconds], [
+      120,
+      180,
+      240,
+      300,
+      360,
+      420,
+    ]);
+    expect((line.min, line.max), (15, 30));
   });
 
   test('tank pressure lines share one range and mark estimates', () {

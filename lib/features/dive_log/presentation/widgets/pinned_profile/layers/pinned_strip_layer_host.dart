@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_analysis
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
+import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show ChartSourceOverlay;
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
@@ -149,11 +150,13 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
     final plan = ref.watch(
       plannedProfileOverlayProvider(id).select((a) => a.value),
     );
+    final analysis = ref.watch(
+      sourceProfileAnalysisProvider(key).select((a) => a.value),
+    );
     return StripLayerInputs(
       profile: profile,
-      analysis: ref.watch(
-        sourceProfileAnalysisProvider(key).select((a) => a.value),
-      ),
+      analysis: analysis,
+      sacScale: calculateSacNormalizationFactor(dive, analysis),
       tanks: watchChartTankSeries(ref, id),
       diveTanks: dive.tanks,
       gasSwitches:
