@@ -50,6 +50,12 @@ class ImportPayload extends Equatable {
   static const currencyPrefsKey = 'currencyPrefs';
   static const currencyEventsKey = 'currencyEvents';
 
+  /// Metadata key for the species catalogue (issue #4578): maps from
+  /// `UddfImportParsers.parseSpecies`. No review step: the importer restores
+  /// each species it lacks, matched by name, so a species no dive sighted is
+  /// not lost.
+  static const speciesKey = 'species';
+
   /// The people the source attributes records to (issue #1893). Empty for
   /// every format that has no notion of several divers.
   final List<SourceDiver> sourceDivers;

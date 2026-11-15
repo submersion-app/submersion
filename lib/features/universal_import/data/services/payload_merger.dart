@@ -151,6 +151,9 @@ class PayloadMerger {
     final currencyRules = <String, Map<String, dynamic>>{};
     final currencyPrefs = <Map<String, dynamic>>[];
     final currencyEvents = <Map<String, dynamic>>[];
+    // The species catalogue (issue #4578). Kept whole from every file: the
+    // importer matches each species by name, so a repeat links to the first.
+    final species = <Map<String, dynamic>>[];
 
     for (final input in inputs) {
       warnings.addAll(input.payload.warnings);
@@ -206,6 +209,11 @@ class PayloadMerger {
               'certificationRef': '${input.fileId}:$ref',
           });
         }
+      }
+
+      final catalogue = input.payload.metadata[ImportPayload.speciesKey];
+      for (final spec in catalogue is List ? catalogue : const []) {
+        if (spec is Map<String, dynamic>) species.add(spec);
       }
 
       // Dives are appended without folding, so each file's dive indices shift
@@ -279,6 +287,7 @@ class PayloadMerger {
           ImportPayload.currencyPrefsKey: currencyPrefs,
         if (currencyEvents.isNotEmpty)
           ImportPayload.currencyEventsKey: currencyEvents,
+        if (species.isNotEmpty) ImportPayload.speciesKey: species,
       },
     );
   }

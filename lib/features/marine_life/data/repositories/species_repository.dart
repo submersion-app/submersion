@@ -9,6 +9,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
 import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
 import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
@@ -352,6 +353,40 @@ class SpeciesRepository {
       }
     }
     return byDive;
+  }
+
+  /// Each species a sighting on one of [diveIds] names, once, in the same
+  /// order as [getAllSpecies].
+  ///
+  /// A UDDF export declares these so every `speciesref` its dives carry
+  /// resolves (issue #4578). The dive ids bind one SQL variable each, so a
+  /// whole logbook is read in [seriesIdChunks] runs.
+  Future<List<domain.Species>> getSpeciesSightedOnDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return const [];
+
+    final byId = <String, Specy>{};
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final sighted = _db.selectOnly(_db.sightings)
+        ..addColumns([_db.sightings.speciesId])
+        ..where(_db.sightings.diveId.isIn(chunk));
+      final rows = await (_db.select(
+        _db.species,
+      )..where((t) => t.id.isInQuery(sighted))).get();
+      for (final row in rows) {
+        byId[row.id] = row;
+      }
+    }
+    // Rows from several chunks arrive in no order, and [sortedByText] only
+    // re-sorts within runs of one category, so group them first.
+    final byCategory = byId.values.toList()
+      ..sort((a, b) => a.category.compareTo(b.category));
+    return sortedByText(
+      byCategory,
+      (r) => r.commonName,
+      groupOf: (r) => r.category,
+    ).map(_mapRowToSpecies).toList();
   }
 
   /// Update sighting
