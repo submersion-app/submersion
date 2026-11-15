@@ -64,20 +64,28 @@ class StripLine {
   /// or null outside every run.
   double? valueAt(int seconds) {
     for (final run in runs) {
-      if (run.isEmpty || seconds < run.first.seconds) continue;
-      if (seconds > run.last.seconds) continue;
-      for (var i = 0; i < run.length; i++) {
-        final p = run[i];
-        if (p.seconds == seconds) return p.value;
-        if (p.seconds > seconds) {
-          final a = run[i - 1];
-          final share = (seconds - a.seconds) / (p.seconds - a.seconds);
-          return a.value + (p.value - a.value) * share;
-        }
-      }
+      final value = stripValueAt(run, seconds);
+      if (value != null) return value;
     }
     return null;
   }
+}
+
+/// The value of [run] at [seconds], interpolated between the samples either
+/// side, or null outside it.
+double? stripValueAt(List<StripPoint> run, int seconds) {
+  if (run.isEmpty || seconds < run.first.seconds) return null;
+  if (seconds > run.last.seconds) return null;
+  for (var i = 0; i < run.length; i++) {
+    final p = run[i];
+    if (p.seconds == seconds) return p.value;
+    if (p.seconds > seconds) {
+      final a = run[i - 1];
+      final share = (seconds - a.seconds) / (p.seconds - a.seconds);
+      return a.value + (p.value - a.value) * share;
+    }
+  }
+  return null;
 }
 
 /// A stretch of the dive tinted the strip's full height: a phase of the dive
