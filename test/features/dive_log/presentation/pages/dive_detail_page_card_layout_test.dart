@@ -8,7 +8,9 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_details_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import 'dive_detail_page_paired_harness.dart';
 
@@ -160,5 +162,96 @@ void main() {
         },
       );
     }
+
+    Future<void> pumpAfterPair(
+      WidgetTester tester,
+      Dive dive,
+      List<DiveDetailSectionId> after,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        pairedDetailPage(
+          dive: dive,
+          // In this order, the rest hidden: the cards in [after] come
+          // straight after the pair.
+          settings: AppSettings(
+            diveDetailSections: [
+              for (final id in [
+                DiveDetailSectionId.buddies,
+                DiveDetailSectionId.signatures,
+                ...after,
+              ])
+                DiveDetailSectionConfig(id: id, visible: true),
+              for (final id in DiveDetailSectionId.values)
+                if (id != DiveDetailSectionId.buddies &&
+                    id != DiveDetailSectionId.signatures &&
+                    !after.contains(id))
+                  DiveDetailSectionConfig(id: id, visible: false),
+            ],
+          ),
+          extraOverrides: pairedRenderOverrides(
+            dive.id,
+            prefs,
+            buddies: [pairedBuddy],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Finder buddiesPair() => find.byKey(
+      ValueKey('diveSectionPair_${DiveDetailSectionId.buddies.name}'),
+    );
+
+    // A full-width card with nothing to show draws nothing, so the card after
+    // it is the next card: Surface GPS on a dive with no position.
+    testWidgets('an empty full-width card does not stop the next one', (
+      tester,
+    ) async {
+      final dive = Dive(
+        id: 'buddies-empty-gps',
+        dateTime: DateTime(2026, 3, 15, 10, 0),
+        notes: 'Calm water and good visibility.',
+      );
+      await pumpAfterPair(tester, dive, [
+        DiveDetailSectionId.surfaceGps,
+        DiveDetailSectionId.notes,
+      ]);
+
+      expect(
+        find.descendant(
+          of: buddiesPair(),
+          matching: find.byKey(const ValueKey('diveSection_notes')),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    // A card that starts a pair of its own stays in that pair, and is drawn
+    // once.
+    testWidgets('the first half of the next pair is not its slot', (
+      tester,
+    ) async {
+      final dive = Dive(
+        id: 'buddies-then-details',
+        dateTime: DateTime(2026, 3, 15, 10, 0),
+        airTemp: 21,
+      );
+      await pumpAfterPair(tester, dive, [
+        DiveDetailSectionId.details,
+        DiveDetailSectionId.environment,
+      ]);
+
+      expect(find.byType(ResponsiveSectionPair), findsNWidgets(2));
+      expect(find.byType(DiveDetailsSection), findsOneWidget);
+      expect(
+        find.descendant(
+          of: buddiesPair(),
+          matching: find.byType(DiveDetailsSection),
+        ),
+        findsNothing,
+      );
+    });
   });
 }

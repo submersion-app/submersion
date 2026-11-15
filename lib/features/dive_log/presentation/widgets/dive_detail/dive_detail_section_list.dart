@@ -225,11 +225,12 @@ class DiveDetailSectionList extends ConsumerWidget {
         continue;
       }
       final selfSpacing = _selfSpacingSections.contains(id);
-      final slots = !selfSpacing && !kDiveDetailFullWidthSections.contains(id);
-      // A card that cannot move up beside the pair ends it here; one that
-      // can is built first, since an empty one is skipped and the card after
-      // it is the next card instead.
-      if (!slots) flushPair();
+      // A card that places its own gap only learns after build whether it
+      // has anything to show, so it ends a held pair before it is built: the
+      // gap it places depends on what is above it. Any other card is built
+      // first, so an empty one is skipped and the card after it is the next
+      // card instead (issue #4583).
+      if (selfSpacing) flushPair();
       final content = _framed(
         id,
         _sectionContent(
@@ -249,12 +250,15 @@ class DiveDetailSectionList extends ConsumerWidget {
         child: _markForStrip(id, content),
       );
       final held = pendingPair;
-      if (held != null) {
+      if (held != null &&
+          !selfSpacing &&
+          !kDiveDetailFullWidthSections.contains(id)) {
         pendingPair = null;
         _addSectionGap(children, layout);
         children.add(held(slot: card));
         continue;
       }
+      flushPair();
       if (!selfSpacing) _addSectionGap(children, layout);
       children.add(card);
     }
