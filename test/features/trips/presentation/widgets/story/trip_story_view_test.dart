@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -98,6 +100,8 @@ void main() {
     ValueNotifier<TripStory>? stories,
     Map<String, List<DiveProfilePoint>> profiles = const {},
     Set<String> undived = const {},
+    Future<Set<String>> Function()? undivedRead,
+    Stream<int>? profileWrites,
     Map<int, TripDayWeather>? tripDayWeather,
     Size viewSize = const Size(420, 900),
   }) async {
@@ -142,7 +146,10 @@ void main() {
           batchProfileCacheProvider.overrideWith((ref) => {...profiles}),
           tripUndivedPlanIdsProvider(
             'trip-1',
-          ).overrideWith((ref) async => undived),
+          ).overrideWith((ref) => undivedRead?.call() ?? Future.value(undived)),
+          tripProfileWritesProvider.overrideWith(
+            (ref) => profileWrites ?? const Stream<int>.empty(),
+          ),
           tripCountriesProvider.overrideWith((ref) async => {}),
           tripCylinderStatesProvider(
             'trip-1',
@@ -487,6 +494,92 @@ void main() {
       expect(batcher.calls.last.toSet(), {'d1', 'd2'});
     });
 
+    testWidgets('asks again when a dive on the trip changes, so one that '
+        'gained a profile loses its estimate', (tester) async {
+      final stories = ValueNotifier(finished);
+      addTearDown(stories.dispose);
+      await pumpView(tester, finished, stories: stories);
+      await tester.tap(find.byKey(TripDayPicker.tripTileKey));
+      await tester.pump();
+      expect(batcher.calls, hasLength(1));
+
+      // The same three dives, read again after a download filled one of
+      // them in.
+      stories.value = _story(
+        marchTrip,
+        dives: [
+          _dive('d1', DateTime(2026, 3, 25, 9)),
+          _dive('d3a', DateTime(2026, 3, 27, 9)).copyWith(maxDepth: 27.4),
+          _dive('d3b', DateTime(2026, 3, 27, 14)),
+        ],
+        today: DateTime(2026, 6, 1),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(batcher.calls, hasLength(2));
+      expect(batcher.calls.last.toSet(), {'d1', 'd3a', 'd3b'});
+    });
+
+    testWidgets('asks again when a profile is written, even with the story '
+        'unchanged', (tester) async {
+      final writes = StreamController<int>();
+      addTearDown(writes.close);
+      await pumpView(tester, finished, profileWrites: writes.stream);
+      await tester.tap(find.byKey(TripDayPicker.tripTileKey));
+      await tester.pump();
+      expect(batcher.calls, hasLength(1));
+
+      // No frame follows: nothing on screen changed, so nothing asks for
+      // one. The request must not wait for a frame that may never come.
+      writes.add(1);
+      await tester.idle();
+      await tester.idle();
+
+      expect(batcher.calls, hasLength(2));
+      expect(batcher.calls.last.toSet(), {'d1', 'd3a', 'd3b'});
+    });
+
+    testWidgets('asks for a long trip a list page at a time, in the '
+        'story\'s order', (tester) async {
+      final long = _story(
+        marchTrip,
+        dives: [
+          for (var day = 0; day < 3; day++)
+            for (var i = 0; i < 40; i++)
+              _dive(
+                'd$day-${i.toString().padLeft(2, '0')}',
+                DateTime(2026, 3, 25 + day, 6, i * 15),
+              ),
+        ],
+        today: DateTime(2026, 6, 1),
+      );
+      await pumpView(tester, long);
+
+      expect(batcher.calls.map((ids) => ids.length), [50, 50, 20]);
+      expect(batcher.calls.expand((ids) => ids), [
+        for (final day in long.days)
+          for (final dive in day.dives) dive.id,
+      ]);
+    });
+
+    testWidgets('choosing another day does not build the model again', (
+      tester,
+    ) async {
+      await pumpView(
+        tester,
+        finished,
+        profiles: {'d1': _profile(18), 'd3a': _profile(30)},
+      );
+      final before = picker(tester).model;
+
+      await tester.tap(find.byKey(TripDayPicker.dayTileKey(3)));
+      await tester.pump();
+
+      expect(picker(tester).selectedDate, DateTime(2026, 3, 27));
+      expect(picker(tester).model, same(before));
+    });
+
     testWidgets('draws what the cache holds, on the trip\'s scales', (
       tester,
     ) async {
@@ -527,6 +620,54 @@ void main() {
         for (final day in picker(tester).model.days) day.dives.single.dashed,
       ];
       expect(dashed, [false, true, false]);
+    });
+
+    testWidgets('until it is known which plans were dived, a plan is not '
+        'drawn: it never shows solid first', (tester) async {
+      final answer = Completer<Set<String>>();
+      final story = _story(
+        marchTrip,
+        dives: [
+          _dive('d1', DateTime(2026, 3, 25, 9)),
+          _dive('plan', DateTime(2026, 3, 26, 9), planned: true),
+        ],
+        today: DateTime(2026, 6, 1),
+      );
+      await pumpView(
+        tester,
+        story,
+        profiles: {'d1': _profile(18), 'plan': _profile(20)},
+        undivedRead: () => answer.future,
+      );
+
+      var days = picker(tester).model.days;
+      expect(days[0].dives.single.dashed, isFalse);
+      expect(days[1].dives, isEmpty);
+
+      answer.complete({'plan'});
+      await tester.pump();
+      await tester.pump();
+
+      days = picker(tester).model.days;
+      expect(days[1].dives.single.dashed, isTrue);
+    });
+
+    testWidgets('when the plans read fails, every dive draws as one that '
+        'happened', (tester) async {
+      final story = _story(
+        marchTrip,
+        dives: [_dive('plan', DateTime(2026, 3, 26, 9), planned: true)],
+        today: DateTime(2026, 6, 1),
+      );
+      await pumpView(
+        tester,
+        story,
+        profiles: {'plan': _profile(20)},
+        undivedRead: () async => throw StateError('no database'),
+      );
+      await tester.pump();
+
+      expect(picker(tester).model.days[1].dives.single.dashed, isFalse);
     });
 
     testWidgets('a profile landing in the cache redraws the picker without '

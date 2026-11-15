@@ -207,4 +207,135 @@ void main() {
 
     expect(model.days.single.dives, isEmpty);
   });
+
+  test('while it is not yet known which plans were dived, a dive marked '
+      'planned draws nothing; the other dives draw as usual', () {
+    final profile = pts([(0, 0), (300, 18), (2400, 0)]);
+    final model = buildTripPickerModel(
+      days: [
+        day(d1, [
+          Dive(id: 'plan', dateTime: d1, isPlanned: true),
+          Dive(
+            id: 'draft',
+            dateTime: d1.add(const Duration(hours: 3)),
+            isDraft: true,
+          ),
+          Dive(id: 'logged', dateTime: d1.add(const Duration(hours: 6))),
+        ]),
+      ],
+      profiles: {'plan': profile, 'draft': profile, 'logged': profile},
+      undivedPlanIds: null,
+    );
+
+    final shapes = model.days.single.dives;
+    expect(shapes.map((s) => s.diveId), ['draft', 'logged']);
+    expect(shapes.map((s) => s.dashed), [true, false]);
+  });
+
+  group('TripPickerModelMemo', () {
+    final a = Dive(id: 'a', dateTime: d1);
+    final b = Dive(id: 'b', dateTime: d2);
+    final days = [
+      day(d1, [a]),
+      day(d2, [b], number: 2),
+    ];
+    final profileA = pts([(0, 0), (300, 18), (2400, 0)]);
+
+    test('hands back the same model for the same inputs', () {
+      final memo = TripPickerModelMemo();
+      final profiles = {'a': profileA};
+      final first = memo.resolve(
+        days: days,
+        profiles: profiles,
+        undivedPlanIds: const {},
+      );
+      final second = memo.resolve(
+        days: days,
+        profiles: profiles,
+        undivedPlanIds: <String>{},
+      );
+
+      expect(second, same(first));
+      expect(first.days.first.dives.single.diveId, 'a');
+    });
+
+    test('a cache that changed only for dives off this trip is the same '
+        'input', () {
+      final memo = TripPickerModelMemo();
+      final first = memo.resolve(
+        days: days,
+        profiles: {'a': profileA},
+        undivedPlanIds: const {},
+      );
+      final second = memo.resolve(
+        days: days,
+        // A new map, as the cache writes one: this trip's entry is the same
+        // list, and another trip's dive has landed beside it.
+        profiles: {'a': profileA, 'elsewhere': profileA},
+        undivedPlanIds: const {},
+      );
+
+      expect(second, same(first));
+    });
+
+    test('builds again when one of the trip\'s dives gains a profile', () {
+      final memo = TripPickerModelMemo();
+      final first = memo.resolve(
+        days: days,
+        profiles: {'a': profileA},
+        undivedPlanIds: const {},
+      );
+      final second = memo.resolve(
+        days: days,
+        profiles: {'a': profileA, 'b': profileA},
+        undivedPlanIds: const {},
+      );
+
+      expect(second, isNot(same(first)));
+      expect(second.days[1].dives.single.diveId, 'b');
+    });
+
+    test('builds again when the undived plans change, and when they become '
+        'known', () {
+      final memo = TripPickerModelMemo();
+      final profiles = {'a': profileA};
+      final unknown = memo.resolve(
+        days: days,
+        profiles: profiles,
+        undivedPlanIds: null,
+      );
+      final known = memo.resolve(
+        days: days,
+        profiles: profiles,
+        undivedPlanIds: const {},
+      );
+      final planned = memo.resolve(
+        days: days,
+        profiles: profiles,
+        undivedPlanIds: const {'a'},
+      );
+
+      expect(known, isNot(same(unknown)));
+      expect(planned, isNot(same(known)));
+      expect(planned.days.first.dives.single.dashed, isTrue);
+    });
+
+    test('builds again for another story', () {
+      final memo = TripPickerModelMemo();
+      final profiles = {'a': profileA};
+      final first = memo.resolve(
+        days: days,
+        profiles: profiles,
+        undivedPlanIds: const {},
+      );
+      final second = memo.resolve(
+        days: [days.first],
+        profiles: profiles,
+        undivedPlanIds: const {},
+      );
+
+      expect(second, isNot(same(first)));
+      expect(second.days, hasLength(1));
+    });
+  });
 }

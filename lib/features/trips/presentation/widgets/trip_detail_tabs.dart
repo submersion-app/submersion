@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklists_panel.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_day_picker_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_dives_tab.dart';
@@ -17,7 +19,7 @@ enum TripDetailTab { overview, itinerary, gear, checklist, dives, photos }
 
 /// The trip page's body (#2845): one scrolling tab row and six views, the
 /// same for every trip type and width.
-class TripDetailTabs extends StatefulWidget {
+class TripDetailTabs extends ConsumerStatefulWidget {
   final TripWithStats tripWithStats;
 
   /// Where the Overview's Plan row goes; null pushes the edit page.
@@ -30,10 +32,10 @@ class TripDetailTabs extends StatefulWidget {
   });
 
   @override
-  State<TripDetailTabs> createState() => _TripDetailTabsState();
+  ConsumerState<TripDetailTabs> createState() => _TripDetailTabsState();
 }
 
-class _TripDetailTabsState extends State<TripDetailTabs> {
+class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
   /// Which page of the Overview's story shows. Held here, above the tab
   /// view, because the tab view does not keep an off-screen tab alive: kept
   /// inside the Overview it would be lost on a visit to another tab. Null
@@ -62,6 +64,11 @@ class _TripDetailTabsState extends State<TripDetailTabs> {
     final tripWithStats = widget.tripWithStats;
     final onEditPlan = widget.onEditPlan;
     final trip = tripWithStats.trip;
+    // Held here for the same reason as the selection above: the story's day
+    // picker reads which plans were dived, and that read is dropped with the
+    // Overview when another tab shows. Read again on each return, the picker
+    // would draw the trip's plans a moment after everything else.
+    ref.watch(tripUndivedPlanIdsProvider(trip.id));
     return DefaultTabController(
       // Keyed by trip: the master-detail pane reuses this widget for the next
       // trip, which opens on its Overview, not on the tab left open before.

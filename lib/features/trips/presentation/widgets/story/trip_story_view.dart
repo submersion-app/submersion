@@ -1,5 +1,7 @@
+import 'dart:async';
+
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -72,10 +74,12 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
 
   TripStory get _story => widget.story;
 
-  static Set<String> _diveIdsOf(TripStory story) => {
-    for (final day in story.days)
-      for (final dive in day.dives) dive.id,
-  };
+  /// How many dives one profile request covers: the dive list's page size,
+  /// so a long trip costs the batcher what scrolling the list would.
+  static const _profilesPerRequest = 50;
+
+  /// Counts the requests started, so a newer one ends an older one's loop.
+  int _profileRequest = 0;
 
   @override
   void initState() {
@@ -86,9 +90,11 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
   @override
   void didUpdateWidget(TripStoryView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!setEquals(_diveIdsOf(oldWidget.story), _diveIdsOf(_story))) {
-      _requestProfiles();
-    }
+    // A new story is a new read of the trip: a dive was added, removed or
+    // changed. Asking again is cheap, because the batcher skips every dive
+    // it already holds samples for, and it is how a dive that has gained a
+    // profile since loses its estimated outline.
+    if (!identical(oldWidget.story, _story)) _requestProfiles();
   }
 
   @override
@@ -98,14 +104,27 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
   }
 
   /// Asks the app's shared mini-profile batcher for every dive on the trip,
-  /// once. The page is already on screen from the story alone; the picker's
-  /// shapes arrive after.
+  /// a list page at a time in the story's order. The page is already on
+  /// screen from the story alone; the picker's shapes arrive after.
+  ///
+  /// Started in a microtask: that is after the build this may be called
+  /// from, and it does not wait for a frame, which a profile written while
+  /// nothing on screen changes would never bring.
   void _requestProfiles() {
-    final ids = _diveIdsOf(_story).toList(growable: false);
+    final ids = [
+      for (final day in _story.days)
+        for (final dive in day.dives) dive.id,
+    ];
     if (ids.isEmpty) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) ref.read(diveProfileBatcherProvider).load(ids);
-    });
+    final request = ++_profileRequest;
+    unawaited(
+      Future.microtask(() async {
+        for (final page in ids.slices(_profilesPerRequest)) {
+          if (!mounted || request != _profileRequest) return;
+          await ref.read(diveProfileBatcherProvider).load(page);
+        }
+      }),
+    );
   }
 
   /// The page a trip opens on before one is chosen: today while the trip is
@@ -126,6 +145,11 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
   @override
   Widget build(BuildContext context) {
     final tripId = _story.trip.id;
+    // A profile written for a dive on the trip: ask again, so its estimated
+    // outline gives way to what was recorded.
+    ref.listen(tripProfileWritesProvider, (_, next) {
+      if (next.hasValue) _requestProfiles();
+    });
     // One read for the whole story, shared by every day's head.
     final storedWeather =
         ref.watch(tripDayWeatherProvider(tripId)).asData?.value ??
@@ -194,7 +218,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
 ///
 /// It watches the cache itself, so a profile landing redraws the strip and
 /// nothing else: the page under it is not rebuilt.
-class _Picker extends ConsumerWidget {
+class _Picker extends ConsumerStatefulWidget {
   const _Picker({
     required this.story,
     required this.selectedDate,
@@ -208,22 +232,33 @@ class _Picker extends ConsumerWidget {
   final ValueChanged<DateTime?> onSelect;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_Picker> createState() => _PickerState();
+}
+
+class _PickerState extends ConsumerState<_Picker> {
+  /// Choosing a day rebuilds the picker; it does not change what it draws.
+  final _model = TripPickerModelMemo();
+
+  @override
+  Widget build(BuildContext context) {
+    final story = widget.story;
     final profiles = ref.watch(batchProfileCacheProvider);
-    // Until the read answers, every dive draws as one that happened.
+    final undived = ref.watch(tripUndivedPlanIdsProvider(story.trip.id));
+    // Null until the read answers, when a plan is not drawn at all: drawn
+    // solid first, it would say it was dived. A read that failed answers
+    // with no plans, so every dive draws as one that happened.
     final undivedPlanIds =
-        ref.watch(tripUndivedPlanIdsProvider(story.trip.id)).valueOrNull ??
-        const <String>{};
+        undived.valueOrNull ?? (undived.hasError ? const <String>{} : null);
     return TripDayPicker(
       days: story.days,
-      model: buildTripPickerModel(
+      model: _model.resolve(
         days: story.days,
         profiles: profiles,
         undivedPlanIds: undivedPlanIds,
       ),
-      selectedDate: selectedDate,
-      onSelect: onSelect,
-      chartHeight: chartHeight,
+      selectedDate: widget.selectedDate,
+      onSelect: widget.onSelect,
+      chartHeight: widget.chartHeight,
     );
   }
 }

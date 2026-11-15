@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_day_picker_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
@@ -65,7 +66,10 @@ void main() {
   });
 
   group('the story page chosen on the Overview', () {
-    Future<ValueNotifier<TripWithStats>> pumpTabs(WidgetTester tester) async {
+    Future<ValueNotifier<TripWithStats>> pumpTabs(
+      WidgetTester tester, {
+      List<String>? undivedReads,
+    }) async {
       tester.view.physicalSize = const Size(1100, 800);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
@@ -77,6 +81,10 @@ void main() {
           overrides: [
             ...overrides,
             for (final id in ['a', 'b']) ...[
+              tripUndivedPlanIdsProvider(id).overrideWith((ref) async {
+                undivedReads?.add(id);
+                return const <String>{};
+              }),
               divesForTripProvider(id).overrideWith((ref) async => <Dive>[]),
               tripStoryProvider(id).overrideWith(
                 (ref) async => buildTripStory(
@@ -135,6 +143,21 @@ void main() {
             .dayNumber,
         3,
       );
+    });
+
+    testWidgets('which plans were dived is read once, not again on each '
+        'return to the Overview', (tester) async {
+      final reads = <String>[];
+      await pumpTabs(tester, undivedReads: reads);
+      expect(reads, ['a']);
+
+      await tester.tap(find.widgetWithText(Tab, 'Dives'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(Tab, 'Overview'));
+      await tester.pumpAndSettle();
+
+      // Read again, the picker would draw a plan late on every return.
+      expect(reads, ['a']);
     });
 
     testWidgets('a different trip starts from its own opening page', (

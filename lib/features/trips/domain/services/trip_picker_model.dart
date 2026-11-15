@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -98,10 +99,14 @@ class TripPickerModel extends Equatable {
 /// dashed whatever profile is stored for it: a plan made in the planner is
 /// saved with its planned profile, and would otherwise look like a logged
 /// dive. `isPlanned` alone is not the test (issue #3924).
+///
+/// A null [undivedPlanIds] means that read has not answered. Until it does,
+/// a dive marked planned draws nothing: it may have been dived or not, and a
+/// solid shape that turns dashed a moment later says it happened first.
 TripPickerModel buildTripPickerModel({
   required List<TripStoryDay> days,
   required Map<String, List<DiveProfilePoint>> profiles,
-  required Set<String> undivedPlanIds,
+  required Set<String>? undivedPlanIds,
 }) {
   final pickerDays = [
     for (final day in days)
@@ -109,11 +114,14 @@ TripPickerModel buildTripPickerModel({
         date: day.date,
         dives: [
           for (final dive in _inEntryOrder(day.dives))
-            ?_shapeFor(
-              dive,
-              profiles[dive.id],
-              notHappened: dive.isDraft || undivedPlanIds.contains(dive.id),
-            ),
+            if (undivedPlanIds != null || !dive.isPlanned || dive.isDraft)
+              ?_shapeFor(
+                dive,
+                profiles[dive.id],
+                notHappened:
+                    dive.isDraft ||
+                    (undivedPlanIds?.contains(dive.id) ?? false),
+              ),
         ],
       ),
   ];
@@ -130,6 +138,65 @@ TripPickerModel buildTripPickerModel({
     maxDepth: maxDepth,
     widestDaySeconds: widestDaySeconds,
   );
+}
+
+/// Keeps the last model built, and hands it back while what it was built
+/// from has not changed.
+///
+/// The picker rebuilds whenever the selected day changes or its space does,
+/// and the model walks every sample of every dive on the trip. Its inputs
+/// change far less often than that.
+class TripPickerModelMemo {
+  List<TripStoryDay>? _days;
+  List<List<DiveProfilePoint>?> _entries = const [];
+  Set<String>? _undivedPlanIds;
+  TripPickerModel? _model;
+
+  static const _sameIds = SetEquality<String>();
+
+  /// [buildTripPickerModel] for these inputs, built only when they differ
+  /// from the last call's.
+  ///
+  /// [days] is compared by identity: a story keeps its list. [profiles] is
+  /// compared entry by entry for this trip's dives only, also by identity:
+  /// the cache writes a new map each time a profile lands anywhere in the
+  /// app, and keeps the list of every dive it did not touch.
+  TripPickerModel resolve({
+    required List<TripStoryDay> days,
+    required Map<String, List<DiveProfilePoint>> profiles,
+    required Set<String>? undivedPlanIds,
+  }) {
+    final entries = [
+      for (final day in days)
+        for (final dive in day.dives) profiles[dive.id],
+    ];
+    final cached = _model;
+    if (cached != null &&
+        identical(days, _days) &&
+        _sameEntries(entries, _entries) &&
+        _sameIds.equals(undivedPlanIds, _undivedPlanIds)) {
+      return cached;
+    }
+    _days = days;
+    _entries = entries;
+    _undivedPlanIds = undivedPlanIds;
+    return _model = buildTripPickerModel(
+      days: days,
+      profiles: profiles,
+      undivedPlanIds: undivedPlanIds,
+    );
+  }
+
+  static bool _sameEntries(
+    List<List<DiveProfilePoint>?> a,
+    List<List<DiveProfilePoint>?> b,
+  ) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (!identical(a[i], b[i])) return false;
+    }
+    return true;
+  }
 }
 
 List<Dive> _inEntryOrder(List<Dive> dives) =>
