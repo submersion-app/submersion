@@ -92,6 +92,20 @@ void main() {
     expect(text, contains('not for navigation'));
   });
 
+  test('researched sites are credited, with where they cite their pages '
+      'and the mark they carry', () async {
+    final text = await licenceText();
+
+    expect(text, contains('Submersion site research'));
+    expect(
+      text,
+      contains(
+        'gathered from published dive guides and are marked "Not verified"',
+      ),
+    );
+    expect(text, contains('scripts/site_catalogue/research/sites.json'));
+  });
+
   test('every entry states its licence, the project\'s own sites '
       'included', () async {
     final text = await licenceText();
