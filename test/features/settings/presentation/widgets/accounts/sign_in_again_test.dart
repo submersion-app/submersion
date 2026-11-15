@@ -21,7 +21,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again.dart';
-import 'package:submersion/features/settings/presentation/widgets/data_health/data_health_strip.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again_button.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/test_database.dart';
@@ -367,7 +367,7 @@ void main() {
           home: Consumer(
             builder: (context, ref, _) {
               container = ProviderScope.containerOf(context);
-              return const Scaffold(body: DataHealthStrip());
+              return const Scaffold(body: _DataRowHost());
             },
           ),
         ),
@@ -394,4 +394,23 @@ void main() {
 
     expect(h.sync.performSyncCalls, 1);
   });
+}
+
+/// Stands in for Settings > Data (#4561): a row's Sign in again button for
+/// each feature health that offers it, with the sign-in run from this host,
+/// which outlives the button as the page outlives its row.
+class _DataRowHost extends ConsumerWidget {
+  const _DataRowHost();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => Column(
+    children: [
+      for (final h in ref.watch(dataHealthProvider))
+        if (offersSignInAgain(h))
+          SignInAgainButton(
+            feature: h.feature,
+            onPressed: (group) => signInAgain(context, ref, group),
+          ),
+    ],
+  );
 }
