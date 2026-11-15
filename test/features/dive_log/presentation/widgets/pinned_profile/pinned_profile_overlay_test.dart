@@ -119,6 +119,7 @@ void main() {
     bool markTarget = false,
     bool enabled = true,
     double targetGap = 1100,
+    Dive? shownDive,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -142,7 +143,7 @@ void main() {
                 builder: (context, w, child) =>
                     SizedBox(width: w, height: 600, child: child),
                 child: PinnedProfileOverlay(
-                  dive: dive,
+                  dive: shownDive ?? dive,
                   enabled: enabled,
                   profileKey: profileKey,
                   chartViewport: chartViewport,
@@ -1019,6 +1020,44 @@ void main() {
         tester.getTopLeft(find.byType(PinnedStripCardMarker)).dy,
         greaterThan(tester.getRect(strip).bottom),
       );
+    });
+
+    // Data built on an earlier pass served the whole hand-over, so a line
+    // the dive had gained since was only found at settling, and the strip
+    // grew then: the same bounce (#4579).
+    testWidgets('data changed since the last pass sets the condensing height', (
+      tester,
+    ) async {
+      final noTemperature = dive.copyWith(
+        profile: [
+          for (final p in dive.profile)
+            DiveProfilePoint(timestamp: p.timestamp, depth: p.depth),
+        ],
+      );
+      await pump(
+        tester,
+        profileKey: GlobalKey(),
+        markTarget: true,
+        targetGap: 0,
+        shownDive: noTemperature,
+      );
+      // A first pass builds the data, with no temperature line to grow for.
+      await condenseTo(tester, 0.6);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(stripWidget(tester).layers.grow, 0);
+      await jump(tester, 0);
+
+      // The dive gains its temperatures; the next pass condenses grown.
+      await pump(
+        tester,
+        profileKey: GlobalKey(),
+        markTarget: true,
+        targetGap: 0,
+      );
+      await condenseTo(tester, 0.6);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(host(tester).settled, isFalse);
+      expect(stripWidget(tester).layers.grow, 1);
     });
 
     testWidgets('nothing is shown while the card is on screen', (tester) async {
