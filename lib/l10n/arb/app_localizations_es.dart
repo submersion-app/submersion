@@ -13076,6 +13076,30 @@ class AppLocalizationsEs extends AppLocalizations {
       'Recopilado de guías de buceo publicadas, no de un levantamiento. Comprueba la posición en el lugar antes de fiarte de ella.';
 
   @override
+  String get diveSites_catalogue_withdrawn => 'Registro integrado retirado.';
+
+  @override
+  String diveSites_catalogue_withdrawnBecause(String reason) {
+    return 'Registro integrado retirado: $reason.';
+  }
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonPosition =>
+      'su posición era incorrecta';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonNotASite =>
+      'no es un sitio de buceo';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonDuplicate =>
+      'duplicaba un sitio';
+
+  @override
+  String get diveSites_catalogue_withdrawnReplacement =>
+      'Ver el registro corregido';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'Comparar sitios con el catálogo integrado';
 

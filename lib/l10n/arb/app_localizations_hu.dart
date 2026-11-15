@@ -13041,6 +13041,30 @@ class AppLocalizationsHu extends AppLocalizations {
       'Közzétett merülési kalauzokból gyűjtve, nem felmérésből. Mielőtt megbízna benne, ellenőrizze a helyszínen a pozíciót.';
 
   @override
+  String get diveSites_catalogue_withdrawn =>
+      'A beépített bejegyzést visszavonták.';
+
+  @override
+  String diveSites_catalogue_withdrawnBecause(String reason) {
+    return 'A beépített bejegyzést visszavonták: $reason.';
+  }
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonPosition =>
+      'a pozíciója hibás volt';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonNotASite => 'ez nem merülőhely';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonDuplicate =>
+      'kétszer szerepeltetett egy merülőhelyet';
+
+  @override
+  String get diveSites_catalogue_withdrawnReplacement =>
+      'A javított bejegyzés megtekintése';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'Merülőhelyek összevetése a beépített katalógussal';
 

@@ -12874,6 +12874,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'Gathered from published dive guides, not from a survey. Check the position locally before you rely on it.';
 
   @override
+  String get diveSites_catalogue_withdrawn => 'Built-in record withdrawn.';
+
+  @override
+  String diveSites_catalogue_withdrawnBecause(String reason) {
+    return 'Built-in record withdrawn: $reason.';
+  }
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonPosition =>
+      'its position was wrong';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonNotASite =>
+      'it is not a dive site';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonDuplicate =>
+      'it listed a site twice';
+
+  @override
+  String get diveSites_catalogue_withdrawnReplacement =>
+      'See the corrected record';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'Check sites against built-in catalogue';
 

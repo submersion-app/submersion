@@ -7831,6 +7831,19 @@
   "diveSites_catalogue_credit": "From the built-in site catalogue. Source: {source}",
   "diveSites_catalogue_notVerified": "Not verified",
   "diveSites_catalogue_notVerifiedExplanation": "Gathered from published dive guides, not from a survey. Check the position locally before you rely on it.",
+  "diveSites_catalogue_withdrawn": "Built-in record withdrawn.",
+  "diveSites_catalogue_withdrawnBecause": "Built-in record withdrawn: {reason}.",
+  "@diveSites_catalogue_withdrawnBecause": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "diveSites_catalogue_withdrawnReasonPosition": "its position was wrong",
+  "diveSites_catalogue_withdrawnReasonNotASite": "it is not a dive site",
+  "diveSites_catalogue_withdrawnReasonDuplicate": "it listed a site twice",
+  "diveSites_catalogue_withdrawnReplacement": "See the corrected record",
   "diveSites_list_menu_catalogueReview": "Check sites against built-in catalogue",
   "diveSites_gapReview_title": "Built-in details for your sites",
   "diveSites_gapReview_sectionSame": "Same site ({count})",

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_withdrawal.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
@@ -141,7 +143,8 @@ class SiteDetailHeader extends ConsumerWidget {
 /// to credit, and the site's website when the catalogue holds one.
 ///
 /// Read through the site's link, not stored on the site, so it follows the
-/// catalogue. Nothing shows for a record a later catalogue dropped.
+/// catalogue. A record a later catalogue withdrew says so and why, with a
+/// way to the record that corrects it; one it simply dropped shows nothing.
 class _CatalogueLine extends ConsumerWidget {
   const _CatalogueLine({required this.catalogueId});
 
@@ -150,7 +153,14 @@ class _CatalogueLine extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final record = ref.watch(catalogueSiteProvider(catalogueId)).value;
-    if (record == null) return const SizedBox.shrink();
+    if (record == null) {
+      final withdrawal = ref
+          .watch(catalogueWithdrawalProvider(catalogueId))
+          .value;
+      return withdrawal == null
+          ? const SizedBox.shrink()
+          : _WithdrawnLine(withdrawal: withdrawal);
+    }
     final source = ref.watch(catalogueSourceProvider(record.source)).value;
     if (source == null) return const SizedBox.shrink();
 
@@ -179,6 +189,57 @@ class _CatalogueLine extends ConsumerWidget {
                   launchUrl(website, mode: LaunchMode.externalApplication),
               icon: const Icon(Icons.open_in_new, size: 16),
               label: Text(l10n.diveCenters_label_website),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Says that the built-in record a site came from was withdrawn, and why.
+/// Nothing about the site changes; a correcting record, when there is one,
+/// opens on its own page.
+class _WithdrawnLine extends StatelessWidget {
+  const _WithdrawnLine({required this.withdrawal});
+
+  final CatalogueWithdrawal withdrawal;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final reason = switch (withdrawal.reason) {
+      CatalogueWithdrawalReason.position =>
+        l10n.diveSites_catalogue_withdrawnReasonPosition,
+      CatalogueWithdrawalReason.notASite =>
+        l10n.diveSites_catalogue_withdrawnReasonNotASite,
+      CatalogueWithdrawalReason.duplicate =>
+        l10n.diveSites_catalogue_withdrawnReasonDuplicate,
+      CatalogueWithdrawalReason.other => null,
+    };
+    final replacedBy = withdrawal.replacedBy;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8,
+        children: [
+          Text(
+            reason == null
+                ? l10n.diveSites_catalogue_withdrawn
+                : l10n.diveSites_catalogue_withdrawnBecause(reason),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          if (replacedBy != null)
+            TextButton(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+              ),
+              onPressed: () => context.push('/sites/catalogue/$replacedBy'),
+              child: Text(l10n.diveSites_catalogue_withdrawnReplacement),
             ),
         ],
       ),

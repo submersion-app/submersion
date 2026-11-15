@@ -12790,6 +12790,28 @@ class AppLocalizationsHe extends AppLocalizations {
       'נאסף ממדריכי צלילה שפורסמו, לא ממדידה. כדאי לבדוק את המיקום במקום לפני שסומכים עליו.';
 
   @override
+  String get diveSites_catalogue_withdrawn => 'הרשומה המובנית הוסרה.';
+
+  @override
+  String diveSites_catalogue_withdrawnBecause(String reason) {
+    return 'הרשומה המובנית הוסרה: $reason.';
+  }
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonPosition =>
+      'המיקום שלה היה שגוי';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonNotASite => 'זה אינו אתר צלילה';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonDuplicate =>
+      'היא כפלה אתר קיים';
+
+  @override
+  String get diveSites_catalogue_withdrawnReplacement => 'הצגת הרשומה המתוקנת';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'השוואת אתרים מול הקטלוג המובנה';
 
