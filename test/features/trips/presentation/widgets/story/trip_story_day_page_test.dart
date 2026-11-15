@@ -159,6 +159,11 @@ Future<void> pumpPage(
         builder: (_, state) =>
             Scaffold(body: Text('dive ${state.pathParameters['id']}')),
       ),
+      GoRoute(
+        path: '/trips/:id/gallery',
+        builder: (_, state) =>
+            Scaffold(body: Text('gallery ${state.pathParameters['id']}')),
+      ),
     ],
   );
   await tester.pumpWidget(
@@ -514,6 +519,36 @@ void main() {
       expect(galleryButtons, findsNWidgets(7));
     });
 
+    testWidgets('a photo opens the trip\'s gallery, and so does the tile '
+        'counting the rest', (tester) async {
+      final day = TripStoryDay(
+        date: DateTime(2026, 3, 8),
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        dives: [
+          Dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9), maxDepth: 20),
+        ],
+        media: [_media('m0'), _media('m1')],
+        mediaCount: 5,
+      );
+      await pumpPage(tester, day, viewSize: const Size(420, 1400));
+      final tripId = _storyFor(day).trip.id;
+      final photos = find.descendant(
+        of: find.byType(TripDayPhotoStrip),
+        matching: find.byType(GestureDetector),
+      );
+
+      await tester.tap(photos.first);
+      await tester.pumpAndSettle();
+      expect(find.text('gallery $tripId'), findsOneWidget);
+
+      tester.element(find.text('gallery $tripId')).pop();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('+3'));
+      await tester.pumpAndSettle();
+      expect(find.text('gallery $tripId'), findsOneWidget);
+    });
+
     testWidgets('a past day merges duplicate species into one badge', (
       tester,
     ) async {
@@ -630,6 +665,37 @@ void main() {
       await tester.tap(find.byKey(const Key('day-map-pin-d1')));
       await tester.pumpAndSettle();
       expect(highlighted('d1'), isFalse);
+    });
+
+    testWidgets('opening the card a pin lit up puts its light out', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        _pastDay(['d1', 'd2']),
+        mapPoints: [_pin('d1', 1), _pin('d2', 2)],
+        viewSize: const Size(420, 1400),
+      );
+      bool highlighted(String id) => tester
+          .widgetList<DiveListItem>(find.byType(DiveListItem))
+          .firstWhere((w) => w.summary.id == id)
+          .isHighlighted;
+      await tester.tap(find.byKey(const Key('day-map-pin-d2')));
+      await tester.pumpAndSettle();
+      expect(highlighted('d2'), isTrue);
+
+      await tester.tap(
+        find.byWidgetPredicate(
+          (w) => w is DiveListItem && w.summary.id == 'd2',
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('dive d2'), findsOneWidget);
+
+      // Back on the day, the card is as it was before the pin was tapped.
+      tester.element(find.text('dive d2')).pop();
+      await tester.pumpAndSettle();
+      expect(highlighted('d2'), isFalse);
     });
 
     testWidgets('the expand button opens the day map fullscreen', (

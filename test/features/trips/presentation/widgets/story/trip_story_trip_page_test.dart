@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_country.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
@@ -23,6 +24,7 @@ import 'package:submersion/features/trips/presentation/widgets/story/trip_story_
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_empty_state.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_trip_page.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_country_flags.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_cylinders_summary_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -98,6 +100,7 @@ void main() {
     VoidCallback? onScanForDives,
     double width = 420,
     double textScale = 1,
+    Map<String, List<TripCountry>> countries = const {},
   }) async {
     tester.view.physicalSize = Size(width, 2000);
     tester.view.devicePixelRatio = 1;
@@ -130,7 +133,7 @@ void main() {
       ProviderScope(
         overrides: [
           ...overrides,
-          tripCountriesProvider.overrideWith((ref) async => {}),
+          tripCountriesProvider.overrideWith((ref) async => countries),
           tripFillForecastProvider('trip-1').overrideWith((ref) async => null),
           ...extra,
         ].cast(),
@@ -220,6 +223,52 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(DocumentsSection), findsOneWidget);
+  });
+
+  group('a trip with a country', () {
+    const egypt = {
+      'trip-1': [TripCountry(code: 'EG', name: 'Egypt')],
+    };
+
+    testWidgets('shows its flag after the dates where both fit', (
+      tester,
+    ) async {
+      await pumpTripPage(
+        tester,
+        story: finished.story,
+        stats: finished.stats,
+        countries: egypt,
+        width: 900,
+      );
+
+      final dates = tester.getRect(find.textContaining('6 days'));
+      final flags = tester.getRect(find.byType(TripCountryFlags));
+      expect(flags.left, greaterThan(dates.right));
+      expect(flags.center.dy, moreOrLessEquals(dates.center.dy, epsilon: 2));
+    });
+
+    testWidgets('puts the flag under the dates where they do not', (
+      tester,
+    ) async {
+      await pumpTripPage(
+        tester,
+        story: finished.story,
+        stats: finished.stats,
+        countries: egypt,
+      );
+
+      expect(tester.takeException(), isNull);
+      final dates = tester.getRect(find.textContaining('6 days'));
+      final flags = tester.getRect(find.byType(TripCountryFlags));
+      expect(flags.top, greaterThanOrEqualTo(dates.bottom));
+      expect(flags.left, dates.left);
+    });
+  });
+
+  testWidgets('a trip with no country shows its dates alone', (tester) async {
+    await pumpTripPage(tester, story: finished.story, stats: finished.stats);
+
+    expect(find.byType(TripCountryFlags), findsNothing);
   });
 
   testWidgets('the trip name is not on the page', (tester) async {
