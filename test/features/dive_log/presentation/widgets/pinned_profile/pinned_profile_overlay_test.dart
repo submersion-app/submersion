@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_painter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -788,6 +789,24 @@ void main() {
     box = tester.getRect(strip);
     expect(box.left, closeTo(card.left + 4, 0.01));
     expect(box.right, closeTo(card.right - 4, 0.01));
+  });
+
+  // The line was blended inside a box already widening on the same morph,
+  // so it lagged the box's edges: a blank border around it (#4579).
+  testWidgets('the condensing strip\'s line spans its box', (tester) async {
+    await pump(tester, profileKey: GlobalKey(), plotInset: 40);
+    for (final t in [(1 + fadeEnd) / 2, 0.9]) {
+      await condenseTo(tester, t);
+      final s = stripWidget(tester);
+      final size = tester.getSize(strip);
+      final drawn = Rect.lerp(
+        s.morphFrom!.rect,
+        pinnedStripCurveRect(size, curveHeight: kPinnedStripHeight),
+        s.condense,
+      )!;
+      expect(drawn.left, closeTo(0, 0.01), reason: 't=$t');
+      expect(drawn.right, closeTo(size.width, 0.01), reason: 't=$t');
+    }
   });
 
   testWidgets('after a resize the strip line still starts on the copy plot', (

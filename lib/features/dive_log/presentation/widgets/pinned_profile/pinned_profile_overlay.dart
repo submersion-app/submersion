@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/page_scroll_forwarder.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_painter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 
 /// Builds a live copy of the profile card that fills the height it is given,
@@ -557,18 +558,31 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
                     t,
                     fadeEnd: fadeEnd,
                   ),
-                  // The copy's line, in the strip's own coordinates; once
-                  // the copy slides its plot past the top, held at the top
-                  // instead, so the line never leaves the view.
+                  // Where the strip's line starts: the copy's, once the copy
+                  // slides its plot past the top held at the top instead,
+                  // so the line never leaves the view; handed so the
+                  // painter's blend keeps it on the box's edges as the box
+                  // widens ([morphStartFor]).
                   // Settled, the strip draws its own curve alone, so it
                   // does not repaint for a mapping that moves with the
                   // scroll but is no longer used.
-                  morphFrom: morph >= 1
+                  morphFrom: morph >= 1 || copy == null
                       ? null
-                      : copy
-                            ?.shift(copyOrigin)
-                            .keptInView()
-                            .shift(-box.topLeft - stripAt.topLeft),
+                      : morphStartFor(
+                          start: copy.shift(copyOrigin).keptInView(),
+                          // Where the strip's own curve area ends up, on the
+                          // page: across the pinned strip, under the top.
+                          end: pinnedStripCurveRect(
+                            Size(innerRight - innerLeft, stripHeight),
+                            curveHeight: stripHeight,
+                          ).shift(Offset(innerLeft, 0)),
+                          box: stripBox,
+                          own: pinnedStripCurveRect(
+                            stripBox.size,
+                            curveHeight: stripHeight,
+                          ),
+                          morph: morph,
+                        ),
                 ),
               ),
             ),

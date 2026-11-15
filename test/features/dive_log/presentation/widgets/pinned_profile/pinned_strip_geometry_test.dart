@@ -201,4 +201,48 @@ void main() {
       expect(moved.maxSeconds, 3000);
     });
   });
+
+  // The strip's box moves from the chart's plot to its pinned place on the
+  // morph, and the painter blends its line inside that box on the same
+  // morph. Handed the plot as it stands, the line took the morph twice and
+  // lagged the box's edges: a blank border around it (#4579).
+  group('morphStartFor', () {
+    test('the painter\'s blend of it is the line\'s place on the page', () {
+      const start = PlotMapping(
+        rect: Rect.fromLTWH(60, 20, 280, 48),
+        minSeconds: 0,
+        maxSeconds: 600,
+        minDepthMeters: 0,
+        maxDepthMeters: 18,
+      );
+      const end = Rect.fromLTWH(4, 4, 392, 64);
+      for (final morph in [0.0, 0.3, 0.7, 0.95]) {
+        final box = Rect.lerp(
+          const Rect.fromLTWH(60, 20, 280, 48),
+          const Rect.fromLTWH(4, 0, 392, 72),
+          morph,
+        )!;
+        final own = Rect.fromLTWH(0, 4, box.width, 64);
+        final handed = morphStartFor(
+          start: start,
+          end: end,
+          box: box,
+          own: own,
+          morph: morph,
+        );
+        final drawn = Rect.lerp(handed.rect, own, morph)!;
+        final wanted = Rect.lerp(start.rect, end, morph)!.shift(-box.topLeft);
+        for (final (a, b) in [
+          (drawn.left, wanted.left),
+          (drawn.top, wanted.top),
+          (drawn.right, wanted.right),
+          (drawn.bottom, wanted.bottom),
+        ]) {
+          expect(a, closeTo(b, 1e-9), reason: 'morph $morph');
+        }
+        expect(handed.maxSeconds, 600);
+        expect(handed.maxDepthMeters, 18);
+      }
+    });
+  });
 }

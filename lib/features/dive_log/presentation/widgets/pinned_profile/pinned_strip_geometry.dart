@@ -120,6 +120,53 @@ double condenseMorphProgress(double t, {required double fadeEnd}) {
   return u * u * (3 - 2 * u);
 }
 
+/// The mapping to hand the strip's painter as where its line starts
+/// ([PinnedStripPainter.from], in the strip's own coordinates) so that the
+/// line is drawn [morph] of the way from [start] to [end], both on the page,
+/// while the strip's [box] (on the page) is itself on its way.
+///
+/// The painter blends from what it is handed to its own curve area, [own]
+/// (in the box), by [morph]. Handed [start] as it stands, moved into the
+/// box, the line took the morph twice, once with the box and once inside
+/// it, and lagged the box's edges: a blank border around it (#4579). This
+/// is the mapping whose blend lands where the line belongs. Its time and
+/// depth ranges are [start]'s, which the painter blends as before.
+PlotMapping morphStartFor({
+  required PlotMapping start,
+  required Rect end,
+  required Rect box,
+  required Rect own,
+  required double morph,
+}) {
+  final rest = 1 - morph;
+  final wanted = Rect.lerp(start.rect, end, morph)!.shift(-box.topLeft);
+  // Settled, nothing is left to blend from; the painter draws through its
+  // own area then.
+  if (rest <= 0) {
+    return PlotMapping(
+      rect: own,
+      minSeconds: start.minSeconds,
+      maxSeconds: start.maxSeconds,
+      minDepthMeters: start.minDepthMeters,
+      maxDepthMeters: start.maxDepthMeters,
+    );
+  }
+  double undo(double target, double ownEdge) =>
+      (target - morph * ownEdge) / rest;
+  return PlotMapping(
+    rect: Rect.fromLTRB(
+      undo(wanted.left, own.left),
+      undo(wanted.top, own.top),
+      undo(wanted.right, own.right),
+      undo(wanted.bottom, own.bottom),
+    ),
+    minSeconds: start.minSeconds,
+    maxSeconds: start.maxSeconds,
+    minDepthMeters: start.minDepthMeters,
+    maxDepthMeters: start.maxDepthMeters,
+  );
+}
+
 /// How a depth curve maps onto the screen: a plot [rect] spanning
 /// [minSeconds] to [maxSeconds] across and [minDepthMeters] (top) to
 /// [maxDepthMeters] (bottom) down, the same mapping the profile chart uses.

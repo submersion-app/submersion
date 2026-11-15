@@ -188,6 +188,26 @@ void main() {
       final belowShallowPart = m.project(120, 20);
       expect(fill.contains(belowShallowPart), isTrue);
     });
+
+    // The curve area keeps 4 px clear above and below the line, for its
+    // stroke and the max-depth dot. The shading stopped at that inset too,
+    // leaving a band of bare surface along the strip's bottom (#4579).
+    test('reaches the bottom of the strip, not just its curve area', () {
+      final p = painter(from: chart, morph: 1);
+      expect(p.fillPathFor(size)!.getBounds().bottom, kPinnedStripHeight);
+      expect(p.fillClipFor(size)!.bottom, kPinnedStripHeight);
+    });
+
+    // Condensing, the box is held down to the chart's plot while the curve
+    // area rises toward the strip's: the shading fills the box to its
+    // bottom, though the line and layers keep their own clip.
+    test('fills a box taller than its curve to the box\'s bottom', () {
+      const tall = Size(400, 300);
+      final p = painter(from: chart, morph: 0.5);
+      expect(p.fillPathFor(tall)!.getBounds().bottom, 300);
+      expect(p.fillClipFor(tall)!.bottom, 300);
+      expect(p.clipFor(tall)!.bottom, lessThan(300));
+    });
   });
 
   // One depth line throughout the hand-over: the strip draws it at the full
