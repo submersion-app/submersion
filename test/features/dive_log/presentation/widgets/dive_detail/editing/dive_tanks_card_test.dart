@@ -17,6 +17,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_switches_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/tank_row.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -96,6 +98,7 @@ void main() {
             settingsNotifier: MockSettingsNotifier(settings),
           ),
           tankPressuresProvider(dive.id).overrideWith((ref) async => pressures),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -315,6 +318,27 @@ void main() {
     expect(heldTankSeriesExchanges(c.session!), [('a', 'b')]);
     expect(c.session!.working.tanks.first.endPressure, 140);
     expect(find.text(l.diveLog_tank_reassignPending), findsOneWidget);
+  });
+
+  testWidgets('an own cylinder scanned on a row joins the gear: Equipment '
+      'gets its dot', (tester) async {
+    final c = await pumpEditor(tester, oc);
+    const cylinder = EquipmentItem(
+      id: 'own',
+      name: 'My AL80',
+      type: EquipmentType.tank,
+    );
+
+    final row = tester.widget<TankRow>(find.byType(TankRow));
+    expect(row.onOwnCylinderUsed, isNotNull);
+    await tester.runAsync(() async {
+      await row.onOwnCylinderUsed!(cylinder);
+      await c.session!.settled();
+    });
+    await tester.pump();
+
+    expect([for (final g in c.session!.working.gear) g.item.id], ['own']);
+    expect(c.session!.changedCardIds, {'equipment'});
   });
 
   testWidgets('a scan in flight delays Save until it lands', (tester) async {

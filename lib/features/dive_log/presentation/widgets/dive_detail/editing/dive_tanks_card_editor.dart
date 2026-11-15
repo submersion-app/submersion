@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ccr_settings_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_gas_switches.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_rules.dart';
@@ -24,7 +25,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/scr_settings_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_series_reassign_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
@@ -41,16 +41,6 @@ import 'package:submersion/shared/widgets/record_editing/record_card_form.dart';
 
 const _log = LoggerService('DiveTanksCardEditor');
 
-/// Adds an own cylinder used on a tank row to the dive's gear. Set by the
-/// Equipment card's code, which owns the gear (issue #4527, plan 5).
-typedef OwnCylinderUsed =
-    Future<void> Function(
-      BuildContext context,
-      WidgetRef ref,
-      EditSession<Dive> session,
-      EquipmentItem item,
-    );
-
 /// The Tanks card's editor, titled "Cylinders" as its read card is: the
 /// dive mode and its rebreather settings, the cylinders, a saved
 /// configuration, the gas switches and the pressure series reassign
@@ -59,14 +49,9 @@ typedef OwnCylinderUsed =
 /// A gauge dive logs no gas, so its editor shows the mode alone; its
 /// cylinders are kept, hidden, as the dive form keeps them.
 class DiveTanksCardEditor extends ConsumerStatefulWidget {
-  const DiveTanksCardEditor({
-    super.key,
-    required this.session,
-    this.onOwnCylinderUsed,
-  });
+  const DiveTanksCardEditor({super.key, required this.session});
 
   final EditSession<Dive> session;
-  final OwnCylinderUsed? onOwnCylinderUsed;
 
   @override
   ConsumerState<DiveTanksCardEditor> createState() =>
@@ -450,7 +435,6 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
         .firstOrNull
         ?.id;
     final suggested = suggestedTankIds(_session);
-    final ownCylinder = widget.onOwnCylinderUsed;
     return [
       FormOverline(label: l10n.diveLog_edit_overline_tanks),
       FormCaption(l10n.diveLog_edit_tanksCaption),
@@ -476,9 +460,12 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
               ? () => removeSittingTank(_session, tanks[i].id)
               : null,
           canRemove: tanks.length > 1,
-          onOwnCylinderUsed: ownCylinder == null
-              ? null
-              : (item) => ownCylinder(context, ref, _session, item),
+          // An own cylinder, scanned (issue #2335) or picked from My
+          // cylinders (issue #2599), joins the dive's gear: the Equipment
+          // card gets its dot. The tank row itself never links to it.
+          onOwnCylinderUsed: (item) => addGearToSitting(ref, _session, [
+            item,
+          ], stillWanted: () => mounted),
           // Save waits for a scan still being read.
           onScanPending: _session.track,
         ),

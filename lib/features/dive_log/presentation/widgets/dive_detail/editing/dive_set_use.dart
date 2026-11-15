@@ -1,0 +1,284 @@
+import 'package:flutter/widgets.dart';
+import 'package:uuid/uuid.dart';
+
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/cylinder_configs/domain/services/dive_tank_config_adapter.dart';
+import 'package:submersion/features/cylinder_configs/presentation/widgets/apply_configuration_confirm_dialog.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_fields.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_rules.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_fields.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_weights_fields.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/set_weights_choice_dialog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/equipment/domain/entities/set_bundle.dart';
+import 'package:submersion/features/equipment/domain/services/set_bundle_form_plan.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/set_bundle_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+
+const _log = LoggerService('DiveSetUse');
+const _uuid = Uuid();
+
+/// What a set's use found and left on the three cards it reaches.
+typedef SetUseCards = ({
+  List<GearLink> gear,
+  List<DiveWeight> weights,
+  List<DiveTank> tanks,
+});
+
+/// What [useSetInSitting] changed: the gear, weights and cylinders before
+/// and after, so a rule that applied a set can take it back while what it
+/// left is still there (the site's location set, issue #4527).
+@immutable
+class SetUseResult {
+  const SetUseResult({required this.before, required this.after});
+
+  final SetUseCards before;
+  final SetUseCards after;
+}
+
+SetUseCards _cardsOf(EditSession<Dive> session) => (
+  gear: session.valueOf(diveGearField),
+  weights: session.valueOf(diveWeightsField),
+  tanks: session.valueOf(diveTanksField),
+);
+
+/// Uses [set] on the sitting, as the dive form's `_useSet` does on the form
+/// (`dive_edit_page_set_bundle.dart:10`, issue #4525): the sets it includes
+/// that are already on the dive are absorbed into it, its gear [items] are
+/// added, then the weights and cylinders it carries.
+///
+/// Weights the dive already has ask whether to add the set's, replace them
+/// or keep them; cylinders it would change ask before they are replaced,
+/// and declining keeps the gear and weights already applied. [auto] is a
+/// use nobody asked for (a site's location set): it asks nothing and
+/// overwrites nothing.
+///
+/// Every step drops its result when the sitting has ended or is being
+/// saved, or [context] has gone. Save waits for the whole use. Returns what
+/// changed, or null when it stopped before the end.
+Future<SetUseResult?> useSetInSitting(
+  BuildContext context,
+  WidgetRef ref,
+  EditSession<Dive> session,
+  EquipmentSet set,
+  List<EquipmentItem> items, {
+  required bool auto,
+}) {
+  final run = _use(context, ref, session, set, items, auto);
+  session.track(run);
+  return run;
+}
+
+Future<SetUseResult?> _use(
+  BuildContext context,
+  WidgetRef ref,
+  EditSession<Dive> session,
+  EquipmentSet set,
+  List<EquipmentItem> items,
+  bool auto,
+) async {
+  bool alive() => !session.isDisposed && !session.isFrozen && context.mounted;
+  if (!alive()) return null;
+  final before = _cardsOf(session);
+  final units = UnitFormatter(ref.read(settingsProvider));
+  final covered = await _coveredByOuterSet(ref, session, set);
+  if (!alive()) return null;
+  final absorbedWeights = await _absorbIncludedSets(ref, session, set);
+  if (!alive()) return null;
+  await addGearToSitting(
+    ref,
+    session,
+    items,
+    viaSetId: set.id,
+    stillWanted: () => context.mounted,
+  );
+  if (!alive()) return null;
+  SetBundle? bundle;
+  try {
+    bundle = await ref.read(setBundleProvider(set.id).future);
+  } catch (error, stackTrace) {
+    // The gear is on; the weights and cylinders cannot be read.
+    _log.warning(
+      'Reading what set ${set.id} carries failed',
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
+  if (!context.mounted || !alive()) return null;
+  if (bundle != null) {
+    final weightsDone = await _applyWeights(
+      context,
+      session,
+      set,
+      bundle,
+      absorbedWeights,
+      units: units,
+      auto: auto,
+      covered: covered,
+    );
+    if (!weightsDone || !context.mounted || !alive()) return null;
+    await _applyCylinders(context, session, set, bundle, units, auto: auto);
+    if (!alive()) return null;
+  }
+  return SetUseResult(before: before, after: _cardsOf(session));
+}
+
+/// Whether a set already on the dive includes [set]: its lead is then
+/// already counted, and adding it again would double it.
+Future<bool> _coveredByOuterSet(
+  WidgetRef ref,
+  EditSession<Dive> session,
+  EquipmentSet set,
+) async {
+  final others = {
+    for (final row in sittingGearRows(session))
+      if (row.viaSetId != null && row.viaSetId != set.id) row.viaSetId!,
+  };
+  if (others.isEmpty) return false;
+  try {
+    final onDive = await ref
+        .read(equipmentSetRepositoryProvider)
+        .getAllSets(ids: others.toList());
+    return onDive.any((outer) => outer.includedSetIds.contains(set.id));
+  } catch (_) {
+    // Sets unavailable: the question is asked as usual.
+    return false;
+  }
+}
+
+/// The sets [set] includes that are on the dive take its tag, so the dive
+/// shows one set. Returns the weights they filled between them, or null
+/// when none was on the dive.
+Future<List<WeightEntryDraft>?> _absorbIncludedSets(
+  WidgetRef ref,
+  EditSession<Dive> session,
+  EquipmentSet set,
+) async {
+  final onDive = {for (final row in sittingGearRows(session)) ?row.viaSetId};
+  final absorbed = [
+    for (final id in set.includedSetIds)
+      if (id != set.id && onDive.contains(id)) id,
+  ];
+  if (absorbed.isEmpty) return null;
+  var weights = const <WeightEntryDraft>[];
+  try {
+    final bundles = await ref.read(setBundleLoaderProvider).load(absorbed);
+    weights = [for (final b in bundles) ...b.weights];
+  } catch (_) {
+    // The tags still move; the weights question is then asked as usual.
+  }
+  if (session.isDisposed || session.isFrozen) return weights;
+  keepGearRows(session, [
+    for (final row in sittingGearRows(session))
+      absorbed.contains(row.viaSetId)
+          ? GearProvenance(
+              equipmentId: row.equipmentId,
+              viaEquipmentId: row.viaEquipmentId,
+              viaSetId: set.id,
+            )
+          : row,
+  ]);
+  return weights;
+}
+
+/// The set's weights, as [planSetWeights] decides. False when the sitting
+/// went while the question was open.
+Future<bool> _applyWeights(
+  BuildContext context,
+  EditSession<Dive> session,
+  EquipmentSet set,
+  SetBundle bundle,
+  List<WeightEntryDraft>? absorbedWeights, {
+  required UnitFormatter units,
+  required bool auto,
+  required bool covered,
+}) async {
+  final onDive = session.valueOf(diveWeightsField);
+  var step = planSetWeights(
+    onDive: onDive,
+    bundleWeights: bundle.weights,
+    absorbedWeights: absorbedWeights,
+    auto: auto,
+    coveredByOuterSet: covered,
+  );
+  var add = false;
+  if (step == SetWeightsStep.ask) {
+    if (!context.mounted) return false;
+    final choice = await showSetWeightsChoiceDialog(
+      context,
+      setName: set.name,
+      setTotal: units.formatWeight(bundle.totalWeightKg),
+      currentTotal: units.formatWeight(
+        onDive.fold<double>(0, (sum, w) => sum + w.amountKg),
+      ),
+    );
+    if (session.isDisposed || session.isFrozen) return false;
+    switch (choice) {
+      case SetWeightsChoice.add:
+        add = true;
+        step = SetWeightsStep.fill;
+      case SetWeightsChoice.replace:
+        step = SetWeightsStep.replace;
+      case SetWeightsChoice.keep || null:
+        step = SetWeightsStep.leave;
+    }
+  }
+  if (step != SetWeightsStep.fill && step != SetWeightsStep.replace) {
+    return true;
+  }
+  session.set(diveWeightsField, [
+    if (add) ...session.valueOf(diveWeightsField),
+    ...bundle.toDiveWeights(diveId: session.stored.id, newId: _uuid.v4),
+  ]);
+  return true;
+}
+
+/// The set's cylinders, merged as a saved configuration is. What they would
+/// change is asked first, unless [auto], which changes nothing already on
+/// the dive.
+Future<void> _applyCylinders(
+  BuildContext context,
+  EditSession<Dive> session,
+  EquipmentSet set,
+  SetBundle bundle,
+  UnitFormatter units, {
+  required bool auto,
+}) async {
+  if (bundle.cylinders.isEmpty) return;
+  const adapter = DiveTankConfigAdapter();
+  final tanks = session.valueOf(diveTanksField);
+  var result = adapter.apply(
+    tanks: tanks,
+    items: bundle.cylinders,
+    newId: (_) => newSittingTankId(),
+  );
+  if (result.overwrites.isNotEmpty && !auto) {
+    if (!context.mounted) return;
+    final confirmed = await confirmCylinderOverwrites(
+      context,
+      configName: set.name,
+      overwrites: result.overwrites,
+      tanks: tanks,
+      units: units,
+    );
+    if (!confirmed || session.isDisposed || session.isFrozen) return;
+    result = adapter.apply(
+      tanks: tanks,
+      items: bundle.cylinders,
+      newId: (_) => newSittingTankId(),
+      overwrite: true,
+    );
+  }
+  if (!result.changed) return;
+  setTanks(session, result.tanks);
+}
