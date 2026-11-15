@@ -71,37 +71,35 @@ double zoomOutProgress({required Rect card, required double plotAtTop}) {
 /// How far the card has handed over to the strip, from 0 to 1.
 ///
 /// [card] is the card's rect relative to the top of the scroll viewport. The
-/// hand-over starts once the card has scrolled [start] past the top (the
-/// squash, then the slide that brings its plot to the top) and completes as
-/// the card's bottom reaches the strip's, so scrolling slowly plays it
-/// slowly and scrolling back reverses it.
-double condenseProgress({required Rect card, double start = kSquashRange}) {
+/// hand-over starts once the card has scrolled [start] past the top and
+/// completes [end] px past it, as the card's plot reaches the top of the
+/// page, so scrolling slowly plays it slowly and scrolling back reverses it.
+///
+/// It is over by then, not when the card's bottom reaches the strip: what
+/// is left of the card below its plot (its axis and legend) slides up under
+/// the settled strip, and the cards below it come into view with the strip
+/// already scrubbable and showing their layers (issue #4579).
+double condenseProgress({
+  required Rect card,
+  required double start,
+  required double end,
+}) {
   final past = -card.top - start;
   if (past <= 0) return 0;
-  final travel = card.height - start - kPinnedStripHeight;
+  final travel = end - start;
   if (travel <= 0) return 1;
   return (past / travel).clamp(0.0, 1.0);
 }
 
 /// Where, as a share of the hand-over ([condenseProgress]), the strip's
-/// background has fully faded in over the card: the moment the card's plot
-/// reaches the top of the page, [plotAtTop] px past the card's top.
+/// background has fully faded in over the card's plot.
 ///
 /// Until then the strip's depth line sits exactly on the chart's, so only
-/// one line is seen. Past it the card slides its plot up out of view, so
-/// the full chart has to be gone by then, or the data on it would be seen
-/// leaving the view; the strip alone carries the line on, below the top
-/// ([PlotMapping.keptInView]). The fade follows the scroll position, so the
-/// same point is where the chart starts coming back when scrolling up.
-double condenseFadeEnd({
-  required double start,
-  required double plotAtTop,
-  required double cardHeight,
-}) {
-  final travel = cardHeight - start - kPinnedStripHeight;
-  if (travel <= 0) return 1;
-  return ((plotAtTop - start) / travel).clamp(0.0, 1.0);
-}
+/// one line is seen; past it the strip, opaque, morphs to its own shape
+/// while the chart's plot slides up beneath it. The fade follows the scroll
+/// position, so the same point is where the chart starts coming back when
+/// scrolling up.
+const double kCondenseFadeEnd = 0.5;
 
 /// The strip background's opacity at condense progress [t], fully opaque
 /// from [fadeEnd] on.

@@ -118,6 +118,7 @@ void main() {
     double pagePadding = 0,
     bool markTarget = false,
     bool enabled = true,
+    double targetGap = 1100,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -183,7 +184,7 @@ void main() {
                           )
                         else
                           const SizedBox(height: profileHeight),
-                        const SizedBox(height: 1100),
+                        SizedBox(height: targetGap),
                         if (markTarget)
                           PinnedStripCardMarker(
                             id: DiveDetailSectionId.environment,
@@ -221,14 +222,15 @@ void main() {
       tester.getTopLeft(find.byType(PinnedProfileOverlay)).dy;
 
   /// The copy's plot sits under its 40 px header. Squash and slide share the
-  /// scroll, finishing together 112 + 40 = 152 px in; the strip starts to
-  /// fade in kHandOverOverlap of the way through.
+  /// scroll, finishing together 112 + 40 = 152 px in, as the plot reaches the
+  /// top; the strip starts to fade in kHandOverOverlap of the way through and
+  /// has settled by then (issue #4579).
   const together = range + 40;
   const start = together * kHandOverOverlap;
-  const handOver = profileHeight - start - kPinnedStripHeight;
+  const handOver = together - start;
 
-  /// The fade ends as the copy's plot reaches the top, 152 px in.
-  const fadeEnd = (together - start) / handOver;
+  /// The share of the hand-over the fade takes; the morph takes the rest.
+  const fadeEnd = kCondenseFadeEnd;
 
   /// The squash and slide [scrolled] px past the card's top.
   double squashAt(double scrolled) =>
@@ -351,22 +353,82 @@ void main() {
     );
   });
 
-  // The strip rose towards its final height faster than the card scrolled
-  // away, uncovering the bottom of the card below it.
-  testWidgets('while it condenses, the strip covers the card to its bottom', (
+  // The strip shrinks towards its final height while the copy's plot slides
+  // up beneath it; it never shrinks faster, or the full chart would show
+  // below it.
+  testWidgets('while it condenses, the strip never uncovers the copy\'s plot', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    for (final t in [0.3, 0.5, 0.7, 0.9, 1.0]) {
+      await condenseTo(tester, t);
+      expect(
+        tester.getRect(strip).bottom,
+        greaterThanOrEqualTo(
+          tester.getRect(find.byType(_FakeChart)).bottom - 0.01,
+        ),
+        reason: 't=$t',
+      );
+    }
+  });
+
+  // Issue #4579: the strip used to cover the card below its plot (its axis
+  // and legend) down to the card's bottom, a long, mostly empty box. Only
+  // the plot becomes the strip; the rest of the card stays in view.
+  testWidgets('the card below its plot is never under the strip', (
     tester,
   ) async {
     final profileKey = GlobalKey();
     await pump(tester, profileKey: profileKey);
-    for (final t in [0.3, 0.5, 0.7, 0.9]) {
+    for (final t in [0.3, 0.5, 0.7, 0.9, 1.0]) {
       await condenseTo(tester, t);
       final card = tester.getRect(find.byKey(profileKey));
       expect(
         tester.getRect(strip).bottom,
-        greaterThanOrEqualTo(card.bottom - 4 - 0.01),
+        lessThanOrEqualTo(card.bottom - footer + 0.01),
         reason: 't=$t',
       );
     }
+  });
+
+  // Issue #4579: the hand-over ran on until the card's bottom reached the
+  // strip, so the cards below came into view under a strip that could not
+  // be scrubbed and showed none of their layers.
+  testWidgets('it settles as the plot reaches the top, the card left below', (
+    tester,
+  ) async {
+    final profileKey = GlobalKey();
+    await pump(tester, profileKey: profileKey);
+    await jump(tester, profileTop + together);
+    final s = stripWidget(tester);
+    expect(s.condense, 1);
+    expect(s.morphFrom, isNull);
+    expect(stripIgnoresPointer(tester), isFalse);
+    expect(
+      tester
+          .widget<PinnedStripLayerHost>(find.byType(PinnedStripLayerHost))
+          .settled,
+      isTrue,
+    );
+    // The rest of the card is still on screen, drawn by the copy below the
+    // strip.
+    expect(copyKey, findsOneWidget);
+    final card = tester.getRect(find.byKey(profileKey));
+    expect(card.bottom, greaterThan(tester.getRect(strip).bottom + 90));
+  });
+
+  testWidgets('the rest of the card slides up under the settled strip', (
+    tester,
+  ) async {
+    final profileKey = GlobalKey();
+    await pump(tester, profileKey: profileKey);
+    await jump(tester, profileTop + together + 30);
+    final card = tester.getRect(find.byKey(profileKey));
+    expect(tester.getRect(copyKey).bottom, closeTo(card.bottom, 0.01));
+    final pinned = tester.getRect(strip);
+    expect(pinned.top, closeTo(overlayTop(tester), 0.01));
+    expect(pinned.height, kPinnedStripHeight);
+    expect(stripWidget(tester).condense, 1);
   });
 
   // A see-through surface over the whole card washed everything grey; the
@@ -414,20 +476,21 @@ void main() {
   // Past the moment its plot reaches the top, the card slides the plot out
   // of view, so the full chart is gone by then: no data on it leaves the
   // view while it can still be seen.
-  testWidgets('the full chart is gone as its plot reaches the top', (
+  testWidgets('the full chart is covered before its plot reaches the top', (
     tester,
   ) async {
     await pump(tester, profileKey: GlobalKey());
+    await jump(tester, profileTop + together * 0.5);
+    expect(stripWidget(tester).backgroundOpacity, lessThan(1));
     for (final scrolled in [together * 0.5, together - 10, together - 1]) {
       await jump(tester, profileTop + scrolled);
-      expect(stripWidget(tester).backgroundOpacity, lessThan(1));
       expect(
         tester.getTopLeft(find.byType(_FakeChart)).dy,
         greaterThanOrEqualTo(overlayTop(tester) - 0.01),
         reason: '$scrolled',
       );
     }
-    await jump(tester, profileTop + together);
+    await jump(tester, profileTop + together - 10);
     expect(stripWidget(tester).backgroundOpacity, 1);
   });
 
@@ -900,6 +963,41 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       expect(stripWidget(tester).layers.grow, 0);
       expect(stripWidget(tester).layers.strengths, isEmpty);
+    });
+
+    // Issue #4579: with a card that adds a line in view right below the
+    // profile, the strip condensed to its normal height, settled, then grew:
+    // a bounce. It condenses straight to the grown height instead.
+    testWidgets('with a line layer card in view, it condenses straight to the '
+        'grown height', (tester) async {
+      await pump(
+        tester,
+        profileKey: GlobalKey(),
+        markTarget: true,
+        targetGap: 0,
+      );
+      // The marked card (400 to 500 in the content) is in view below the
+      // strip while the hand-over is under way.
+      await condenseTo(tester, 0.6);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(host(tester).settled, isFalse);
+      expect(host(tester).cardsInView, {DiveDetailSectionId.environment});
+      expect(stripWidget(tester).layers.grow, 1);
+      // Its layer waits for the strip to settle.
+      expect(stripWidget(tester).layers.strengths, isEmpty);
+
+      await jump(tester, profileTop + together);
+      expect(host(tester).settled, isTrue);
+      // Already at its final height as it settles: nothing left to grow.
+      expect(tester.getSize(strip).height, kPinnedStripGrownHeight);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(tester.getSize(strip).height, kPinnedStripGrownHeight);
+      expect(stripWidget(tester).layers.strengths, isNotEmpty);
+      // The card is clear below the strip as its layer comes in.
+      expect(
+        tester.getTopLeft(find.byType(PinnedStripCardMarker)).dy,
+        greaterThan(tester.getRect(strip).bottom),
+      );
     });
 
     testWidgets('nothing is shown while the card is on screen', (tester) async {

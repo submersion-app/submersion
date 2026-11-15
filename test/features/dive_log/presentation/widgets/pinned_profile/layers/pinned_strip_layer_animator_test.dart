@@ -72,14 +72,28 @@ void main() {
     expect(_last.grow, 1);
   });
 
-  testWidgets('not settled: nothing shows even with the card in view', (
+  // Issue #4579: the strip condensed to its normal height, then grew once it
+  // settled. It grows while it condenses, so it reaches its final height in
+  // one motion; only the layers wait for it to settle.
+  testWidgets('not settled: no layer shows, but the strip grows for the card', (
     tester,
   ) async {
     await _pump(tester, cards: _env, settled: false);
     await tester.pump(const Duration(milliseconds: 300));
     expect(_last.strengthOf(StripLayer.temperature), 0);
-    expect(_last.grow, 0);
     expect(_last.active, isEmpty);
+    expect(_last.grow, 1);
+  });
+
+  testWidgets('settling with the card in view keeps the strip grown', (
+    tester,
+  ) async {
+    await _pump(tester, cards: _env, settled: false);
+    await tester.pump(const Duration(milliseconds: 300));
+    await _pump(tester, cards: _env);
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(_last.grow, 1);
+    expect(_last.strengthOf(StripLayer.temperature), greaterThan(0));
   });
 
   testWidgets('card leaves mid-fade: strength reverses from where it was', (
@@ -98,6 +112,23 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(_last.strengthOf(StripLayer.temperature), 0);
     expect(_last.grow, 0);
+  });
+
+  // A layer turned on and off again before its fade had ticked once kept
+  // fading in, and stayed on with nothing to show it for (#4579).
+  testWidgets('a layer turned off before its fade starts stays hidden', (
+    tester,
+  ) async {
+    await _pump(tester);
+    await _pump(tester, cards: _env);
+    await _pump(tester, cards: _env, settled: false);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_last.strengthOf(StripLayer.temperature), 0);
+    expect(_last.active, isEmpty);
+    // And it can still come back.
+    await _pump(tester, cards: _env);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_last.strengthOf(StripLayer.temperature), 1);
   });
 
   testWidgets('media in view with photos fades media in, grow stays 0', (

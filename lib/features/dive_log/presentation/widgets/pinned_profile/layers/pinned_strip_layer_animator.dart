@@ -42,7 +42,8 @@ class StripLayerState {
 /// builds with the result.
 ///
 /// A layer heads in when the strip is [settled], its card is one of
-/// [cardsInView] and [data] has something for it. Turning round mid-fade
+/// [cardsInView] and [data] has something for it. The strip grows for such
+/// a line layer whether or not it has settled. Turning round mid-fade
 /// carries on from where it is. With the platform's reduce-motion setting
 /// on, every change applies at once.
 class PinnedStripLayerAnimator extends StatefulWidget {
@@ -89,13 +90,11 @@ class _PinnedStripLayerAnimatorState extends State<PinnedStripLayerAnimator>
   }
 
   void _retarget() {
-    final wanted = widget.settled
-        ? stripLayersFor(widget.cardsInView)
-        : const <StripLayer>{};
-    final active = {
-      for (final layer in wanted)
+    final available = {
+      for (final layer in stripLayersFor(widget.cardsInView))
         if (widget.data.hasData(layer)) layer,
     };
+    final active = widget.settled ? available : const <StripLayer>{};
     _active = active;
     final instant = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     for (final layer in StripLayer.values) {
@@ -105,7 +104,10 @@ class _PinnedStripLayerAnimatorState extends State<PinnedStripLayerAnimator>
       _layers[layer] = controller;
       _drive(controller, on: on, instant: instant);
     }
-    _drive(_grow, on: active.any((l) => l.isLine), instant: instant);
+    // The strip grows for the cards in view while it is still condensing,
+    // so it condenses straight to the height it settles at instead of
+    // reaching its normal height and growing again (issue #4579).
+    _drive(_grow, on: available.any((l) => l.isLine), instant: instant);
   }
 
   void _drive(
@@ -118,7 +120,9 @@ class _PinnedStripLayerAnimatorState extends State<PinnedStripLayerAnimator>
     } else if (on && controller.status != AnimationStatus.forward) {
       if (controller.value < 1) controller.forward();
     } else if (!on && controller.status != AnimationStatus.reverse) {
-      if (controller.value > 0) controller.reverse();
+      // Turned off before its fade has ticked, it is still at 0 but heading
+      // in; reverse() from 0 would not stop it, so it is put back at rest.
+      controller.value > 0 ? controller.reverse() : controller.reset();
     }
   }
 
