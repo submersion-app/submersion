@@ -40,6 +40,15 @@ void main() {
     expect(imperial.formatDepthWhole(100, roundUp: true), '329 ft');
   });
 
+  test('a tiny distance still to go reads 1, not 0', () {
+    // A summed total can land a hair below a landmark.
+    expect(metric.formatDepthWhole(1e-10, roundUp: true), '1 m');
+    expect(
+      metric.formatDepthWhole(8849 - 8848.9999999999, roundUp: true),
+      '1 m',
+    );
+  });
+
   test('null renders a placeholder', () {
     expect(metric.formatDepthWhole(null), '--');
   });

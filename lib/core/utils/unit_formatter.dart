@@ -69,6 +69,14 @@ class UnitFormatter {
   static String _wholeWithSymbol(int value, String symbol) =>
       '${NumberFormat('#,##0').format(value)} $symbol';
 
+  /// A distance still to go, rounded up to a whole unit. The epsilon keeps
+  /// float noise just above a whole number (581.0000000001) from adding one;
+  /// any positive distance still reads at least 1, however small.
+  static int _ceilToGo(double value) {
+    final whole = (value - 1e-9).ceil();
+    return value > 0 && whole < 1 ? 1 : whole;
+  }
+
   /// Get depth unit symbol
   String get depthSymbol => settings.depthUnit.symbol;
 
@@ -81,7 +89,7 @@ class UnitFormatter {
   String formatDepthWhole(double? meters, {bool roundUp = false}) {
     if (meters == null) return '--';
     final converted = DepthUnit.meters.convert(meters, settings.depthUnit);
-    final whole = roundUp ? (converted - 1e-9).ceil() : converted.round();
+    final whole = roundUp ? _ceilToGo(converted) : converted.round();
     return _wholeWithSymbol(whole, settings.depthUnit.symbol);
   }
 
