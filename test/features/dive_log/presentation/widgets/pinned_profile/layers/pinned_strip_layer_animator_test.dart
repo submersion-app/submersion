@@ -85,6 +85,40 @@ void main() {
     expect(_last.grow, 1);
   });
 
+  // A fast scroll can settle the strip before its 250 ms growth is done;
+  // it then kept growing after settling, the bounce of #4579 (review). The
+  // hand-over finishes the growth ([StripLayerState.condensedBy]), so it is
+  // complete at once when the strip settles.
+  testWidgets('settling completes the growth at once', (tester) async {
+    await _pump(tester, cards: _env, settled: false);
+    expect(_last.grow, 0);
+    expect(_last.growTarget, 1);
+    await _pump(tester, cards: _env);
+    expect(_last.grow, 1);
+  });
+
+  testWidgets('the hand-over carries the growth to its target', (tester) async {
+    const growing = StripLayerState(
+      data: PinnedStripLayerData.empty,
+      strengths: {},
+      grow: 0.2,
+      active: {},
+      growTarget: 1,
+    );
+    expect(growing.condensedBy(0).grow, 0.2);
+    expect(growing.condensedBy(0.5).grow, 0.5);
+    expect(growing.condensedBy(1).grow, 1);
+    const shrinking = StripLayerState(
+      data: PinnedStripLayerData.empty,
+      strengths: {},
+      grow: 0.8,
+      active: {},
+    );
+    expect(shrinking.condensedBy(0).grow, 0.8);
+    expect(shrinking.condensedBy(0.5).grow, 0.5);
+    expect(shrinking.condensedBy(1).grow, 0);
+  });
+
   testWidgets('settling with the card in view keeps the strip grown', (
     tester,
   ) async {

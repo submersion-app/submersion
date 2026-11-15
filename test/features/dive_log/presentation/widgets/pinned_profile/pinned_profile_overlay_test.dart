@@ -1022,6 +1022,26 @@ void main() {
       );
     });
 
+    // A scroll faster than the 250 ms growth settled the strip part grown,
+    // and it went on growing after settling (review of #4579).
+    testWidgets('a fast scroll to settled reaches the grown height at once', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        profileKey: GlobalKey(),
+        markTarget: true,
+        targetGap: 0,
+      );
+      // No time passes between these frames: the growth has not ticked.
+      await condenseTo(tester, 0.6);
+      await jump(tester, profileTop + together);
+      expect(host(tester).settled, isTrue);
+      expect(tester.getSize(strip).height, kPinnedStripGrownHeight);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(tester.getSize(strip).height, kPinnedStripGrownHeight);
+    });
+
     // Data built on an earlier pass served the whole hand-over, so a line
     // the dive had gained since was only found at settling, and the strip
     // grew then: the same bounce (#4579).

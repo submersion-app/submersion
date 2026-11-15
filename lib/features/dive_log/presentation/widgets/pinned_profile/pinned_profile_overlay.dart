@@ -420,9 +420,9 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
   }
 
   /// What is pinned over the page for [card]: the [box] it all covers, on
-  /// the overlay, and the [child] drawn in it. [layers] are the card layers
+  /// the overlay, and the [child] drawn in it. [animated] are the card layers
   /// the strip draws, and how far it has grown for them.
-  ({Rect box, Widget child}) _pinned(Rect card, StripLayerState layers) {
+  ({Rect box, Widget child}) _pinned(Rect card, StripLayerState animated) {
     // One motion: the squash and the slide share the scroll, finishing
     // together as the plot reaches the top, and the strip starts to fade in
     // before they do, so no step starts or stops on its own.
@@ -439,6 +439,10 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     // none of its data is seen leaving the view.
     const fadeEnd = kCondenseFadeEnd;
     final morph = condenseMorphProgress(t, fadeEnd: fadeEnd);
+    // What is left of the strip's growth runs with the morph, so however
+    // fast the page is scrolled it is complete as the strip settles, and the
+    // strip never grows after (#4579).
+    final layers = animated.condensedBy(morph);
     // The copy, on the page: at the card's place, slid up by its share of
     // the scroll.
     final copyOrigin = Offset(
