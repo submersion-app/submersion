@@ -166,6 +166,7 @@ class BuoyancySection extends ConsumerWidget {
             HeaderInfoButton(
               title: l10n.diveDetailSection_buoyancy_name,
               height: 40,
+              width: _infoSlotWidth,
               content: (context) => buoyancyInfo(
                 context.l10n,
                 infoUnits(context),
@@ -179,11 +180,16 @@ class BuoyancySection extends ConsumerWidget {
     );
   }
 
+  /// The info icon's slot in the header row.
+  static const double _infoSlotWidth = 48;
+
   /// Everything in the header row besides the button's label: the waves
-  /// icon and its gap (32), the text button's icon, gap and padding (52),
-  /// and the info slot (48). The title may shrink to nothing, as it always
-  /// could.
-  static const double _headerChromeWidth = 132;
+  /// icon and its gap (32), the text button's icon, gap and padding at
+  /// standard density (52), and the info slot. The title may shrink to
+  /// nothing, as it always could. Compact density trims the button's
+  /// padding, so this errs toward collapsing a few pixels early, never
+  /// toward overflowing.
+  static const double _headerChromeWidth = 32 + 52 + _infoSlotWidth;
 
   /// The rendered width of [label] in the text button's style.
   static double _whatIfLabelWidth(BuildContext context, String label) {
