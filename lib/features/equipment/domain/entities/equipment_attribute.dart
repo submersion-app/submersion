@@ -10,6 +10,11 @@ class EquipmentAttribute extends Equatable {
   final bool isCustom;
   final String? valueText;
   final double? valueNum;
+
+  /// The unit this item's number is read and typed in (issue #4534), as an
+  /// `AttributeUnit` name (`psi`, `pounds`, `dual`, ...). Null follows the
+  /// diver's settings. [valueNum] stays canonical metric either way.
+  final String? valueUnit;
   final int sortOrder;
 
   const EquipmentAttribute({
@@ -19,6 +24,7 @@ class EquipmentAttribute extends Equatable {
     this.isCustom = false,
     this.valueText,
     this.valueNum,
+    this.valueUnit,
     this.sortOrder = 0,
   });
 
@@ -27,12 +33,14 @@ class EquipmentAttribute extends Equatable {
     required String key,
     String? valueText,
     double? valueNum,
+    String? valueUnit,
   }) => EquipmentAttribute(
     id: curatedId(equipmentId, key),
     equipmentId: equipmentId,
     key: key,
     valueText: valueText,
     valueNum: valueNum,
+    valueUnit: valueUnit,
   );
 
   /// Deterministic id for curated rows: identical on every device, so
@@ -43,6 +51,10 @@ class EquipmentAttribute extends Equatable {
   bool get hasValue =>
       (valueText != null && valueText!.trim().isNotEmpty) || valueNum != null;
 
+  /// Worth a row: a value, or a unit picked before the value was typed. The
+  /// detail page shows only [hasValue] rows; a save keeps both.
+  bool get hasContent => hasValue || valueUnit != null;
+
   EquipmentAttribute copyWith({
     String? id,
     String? equipmentId,
@@ -50,9 +62,11 @@ class EquipmentAttribute extends Equatable {
     bool? isCustom,
     String? valueText,
     double? valueNum,
+    String? valueUnit,
     int? sortOrder,
     bool clearValueText = false,
     bool clearValueNum = false,
+    bool clearValueUnit = false,
   }) => EquipmentAttribute(
     id: id ?? this.id,
     equipmentId: equipmentId ?? this.equipmentId,
@@ -60,6 +74,7 @@ class EquipmentAttribute extends Equatable {
     isCustom: isCustom ?? this.isCustom,
     valueText: clearValueText ? null : (valueText ?? this.valueText),
     valueNum: clearValueNum ? null : (valueNum ?? this.valueNum),
+    valueUnit: clearValueUnit ? null : (valueUnit ?? this.valueUnit),
     sortOrder: sortOrder ?? this.sortOrder,
   );
 
@@ -71,6 +86,7 @@ class EquipmentAttribute extends Equatable {
     isCustom,
     valueText,
     valueNum,
+    valueUnit,
     sortOrder,
   ];
 }

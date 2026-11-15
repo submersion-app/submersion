@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v368: dive_sites.catalogue_answers, and the catalogue link and
+/// Schema v369: dive_sites.catalogue_answers, and the catalogue link and
 /// answers a profile keeps for a shared library site in library_site_notes.
 /// All nullable and never backfilled.
 void main() {
@@ -61,10 +61,10 @@ void main() {
     );
   }
 
-  test('v368 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(368));
-    expect(AppDatabase.migrationVersions, contains(368));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(368));
+  test('v369 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(369));
+    expect(AppDatabase.migrationVersions, contains(369));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(369));
   });
 
   test('upgrading adds the columns and leaves existing rows empty', () async {

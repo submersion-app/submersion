@@ -269,6 +269,65 @@ void main() {
       expect(rows.firstWhere((r) => r.id == recording).computerId, isNull);
     });
 
+    test('relinkComputer leaves an unmarked live series alone beside a live '
+        'series of its source marked as a parse, and takes that one', () async {
+      // The same dive with the recording written since v357: its mark says
+      // it is the recording, so the unmarked series beside it is the edit.
+      await insertComputerDataSource('d-mine');
+      Future<String> series({bool? isEdit}) => profileSeries.insertSeries(
+        diveId: 'd-mine',
+        sourceId: 'ds-1',
+        isPrimary: true,
+        isEdit: isEdit,
+        samples: one,
+        now: 1000,
+      );
+      final edit = await series();
+      final recording = await series(isEdit: false);
+
+      expect(
+        await profileSeries.relinkComputer(
+          'comp-a',
+          ['d-mine'],
+          sourceIds: const {'ds-1'},
+          now: 2000,
+        ),
+        1,
+      );
+      final rows = await profileSeries.getRowsForDives(['d-mine']);
+      expect(rows.firstWhere((r) => r.id == edit).computerId, isNull);
+      expect(rows.firstWhere((r) => r.id == recording).computerId, 'comp-a');
+    });
+
+    test('relinkComputer takes an unmarked live series beside a marked edit '
+        'of its source', () async {
+      // The marked edit is the edit, so the unmarked series is the recording.
+      await insertComputerDataSource('d-mine');
+      Future<String> series({bool? isEdit}) => profileSeries.insertSeries(
+        diveId: 'd-mine',
+        sourceId: 'ds-1',
+        isPrimary: true,
+        isEdit: isEdit,
+        samples: one,
+        now: 1000,
+      );
+      final recording = await series();
+      final edit = await series(isEdit: true);
+
+      expect(
+        await profileSeries.relinkComputer(
+          'comp-a',
+          ['d-mine'],
+          sourceIds: const {'ds-1'},
+          now: 2000,
+        ),
+        1,
+      );
+      final rows = await profileSeries.getRowsForDives(['d-mine']);
+      expect(rows.firstWhere((r) => r.id == recording).computerId, 'comp-a');
+      expect(rows.firstWhere((r) => r.id == edit).computerId, isNull);
+    });
+
     test('relinkComputer takes a live series marked as a parse whatever lies '
         'beneath it', () async {
       // The mark is final (issue #4386): only an unmarked live series is

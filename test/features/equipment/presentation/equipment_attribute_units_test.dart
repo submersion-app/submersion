@@ -484,4 +484,93 @@ void main() {
       expect(formatAttributeValue(focal(), def, units, l10n), '');
     });
   });
+
+  group('an item\'s own unit (issue #4534)', () {
+    EquipmentAttribute num(String key, double value, [String? unit]) =>
+        EquipmentAttribute.curated(
+          equipmentId: 'e1',
+          key: key,
+          valueNum: value,
+          valueUnit: unit,
+        );
+    EquipmentAttributeDef defOf(String key) =>
+        EquipmentAttributeCatalog.defFor(key)!;
+    final gauge = defOf('gauge_max_pressure_bar');
+    final volume = defOf(EquipmentAttrKeys.volumeL);
+
+    test('a psi gauge reads in psi for a metric diver', () {
+      expect(
+        formatAttributeValue(num(gauge.key, 275.79, 'psi'), gauge, units, l10n),
+        '4000 psi',
+      );
+    });
+
+    test('a bar gauge stays bar for an imperial diver', () {
+      expect(
+        formatAttributeValue(num(gauge.key, 300, 'bar'), gauge, imperial, l10n),
+        '300 bar',
+      );
+    });
+
+    test('an untouched field follows the diver', () {
+      expect(
+        formatAttributeValue(num(gauge.key, 300), gauge, imperial, l10n),
+        '4351.1 psi',
+      );
+    });
+
+    test('a dual-scale gauge shows the diver\'s unit first', () {
+      expect(
+        formatAttributeValue(num(gauge.key, 300, 'dual'), gauge, units, l10n),
+        '300 bar / 4351.1 psi',
+      );
+      expect(
+        formatAttributeValue(
+          num(gauge.key, 300, 'dual'),
+          gauge,
+          imperial,
+          l10n,
+        ),
+        '4351.1 psi / 300 bar',
+      );
+    });
+
+    test('cylinder cubic feet read as rated gas capacity', () {
+      expect(
+        formatAttributeValue(
+          num(volume.key, 11.1),
+          volume,
+          imperial,
+          l10n,
+          workingPressureBar: 206.843,
+        ),
+        '77 cuft',
+      );
+      expect(
+        formatAttributeValue(
+          num(volume.key, 11.1, 'cubicFeet'),
+          volume,
+          units,
+          l10n,
+          workingPressureBar: 206.843,
+        ),
+        '77 cuft',
+      );
+    });
+
+    test('with no working pressure cubic feet are a marked estimate', () {
+      expect(
+        formatAttributeValue(num(volume.key, 11.1), volume, imperial, l10n),
+        '~78 cuft',
+      );
+    });
+
+    test('a rebreather cylinder always reads litres', () {
+      final diluent = defOf('diluent_cylinder_l');
+      expect(
+        formatAttributeValue(num(diluent.key, 3), diluent, imperial, l10n),
+        '3 L',
+      );
+    });
+  });
 }

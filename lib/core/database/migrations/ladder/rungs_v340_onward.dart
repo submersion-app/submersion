@@ -214,13 +214,26 @@ extension RungsFromV340 on AppDatabase {
     if (from < 367) await _assertDiveMediaTimeOffsetColumn();
     if (from < 367) await reportProgress();
 
-    // v368: dive_sites.catalogue_answers, what a diver has settled about
+    // v368: equipment_attributes.value_unit, the unit an item's own number
+    // reads in (issue #4534). Nullable, no backfill: every existing row
+    // follows the diver's settings, as it did. Re-asserted in beforeOpen.
+    // The same rung repairs cylinder volumes an imperial diver typed in
+    // cubic feet, stored as water volume until now. Data only, so the floor
+    // does not move; it rewrites equipment_attributes.value_num, so
+    // changeLogRewrittenColumns lists it, and it repeats after each sync
+    // apply for rows a peer below v368 still sends. Renumbered from 366 and
+    // 367, which main took.
+    if (from < 368) await _assertAttributeValueUnitColumn();
+    if (from < 368) await _repairCylinderVolumeCubicFeet();
+    if (from < 368) await reportProgress();
+
+    // v369: dive_sites.catalogue_answers, what a diver has settled about
     // built-in catalogue records for a site, and the link and answers a
     // profile keeps for a shared library site in library_site_notes.
     // Nullable, with nothing to backfill, so the floor does not move. The
-    // columns are re-asserted in beforeOpen. Renumbered twice: main took 365
-    // for #4537 and 367 for #4539.
-    if (from < 368) await _assertSiteCatalogueAnswersColumns();
-    if (from < 368) await reportProgress();
+    // columns are re-asserted in beforeOpen. Renumbered three times: main took
+    // 365 for #4537, 367 for #4539 and 368 for #4544.
+    if (from < 369) await _assertSiteCatalogueAnswersColumns();
+    if (from < 369) await reportProgress();
   }
 }

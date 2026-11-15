@@ -151,6 +151,37 @@ void main() {
     expect(stored.identifier, isNull);
   });
 
+  test(
+    'a replaced part keeps the units its spec is read in (issue #4534)',
+    () async {
+      final light = await repo.createEquipment(
+        const EquipmentItem(id: '', name: 'Light', type: EquipmentType.light),
+      );
+      final old = await repo.createEquipment(
+        EquipmentItem(
+          id: '',
+          name: '21700',
+          type: EquipmentType.battery,
+          parentEquipmentId: light.id,
+          attributes: [
+            EquipmentAttribute.curated(
+              equipmentId: '',
+              key: EquipmentAttrKeys.dryWeightKg,
+              valueNum: 0.07,
+              valueUnit: 'pounds',
+            ),
+          ],
+        ),
+      );
+
+      final fresh = await repo.replaceChild(old, now: DateTime(2026, 9, 10));
+      final stored = (await repo.getEquipmentById(fresh.id))!;
+      final weight = stored.attr(EquipmentAttrKeys.dryWeightKg);
+      expect(weight?.valueNum, 0.07);
+      expect(weight?.valueUnit, 'pounds');
+    },
+  );
+
   Future<(EquipmentItem, EquipmentItem)> ccrWithCell() async {
     final ccr = await repo.createEquipment(
       const EquipmentItem(id: '', name: 'CCR', type: EquipmentType.rebreather),

@@ -10713,6 +10713,7 @@ class DiveRepository {
               isCustom: row.isCustom,
               valueText: row.valueText,
               valueNum: row.valueNum,
+              valueUnit: row.valueUnit,
               sortOrder: row.sortOrder,
             ),
           );

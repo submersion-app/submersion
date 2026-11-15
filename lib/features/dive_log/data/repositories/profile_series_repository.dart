@@ -758,26 +758,34 @@ class ProfileSeriesRepository {
     };
   }
 
-  /// The unmarked live series of [series] that have no computer and share
-  /// their source with another such series.
+  /// The unmarked live series of [series] that have no computer and stand
+  /// beside another live series of their source that has none either and is
+  /// not a marked edit.
   ///
   /// A dive re-parsed before #3189 holds its recording live beside the edit
   /// that corrects it, and a computer delete strips the recording's computer.
-  /// The two are then alike in every column, and one of them is the edit, so
-  /// a relink stamps neither and a re-parse replaces neither (issue #4529).
+  /// With both unmarked the two are alike in every column, and one of them
+  /// is the edit, so a relink stamps neither and a re-parse replaces neither
+  /// (issue #4529). Where the recording is marked as a parse, only the
+  /// unmarked one is in doubt: it is named here, and the recording goes back
+  /// to its computer. Beside a marked edit the unmarked one is the recording,
+  /// and is not named.
+  ///
   /// Not part of [liveEditIdsOf]: a reader that wants the dive's one edit
   /// cannot take two.
   static Set<String> liveTwinIdsOf(List<ProfileSeriesIdentity> series) {
-    bool candidate(ProfileSeriesIdentity s) =>
-        s.isPrimary &&
-        s.isEdit == null &&
-        s.computerId == null &&
-        s.sourceId != null;
+    bool orphaned(ProfileSeriesIdentity s) =>
+        s.isPrimary && s.computerId == null && s.sourceId != null;
     return {
       for (final s in series)
-        if (candidate(s) &&
+        if (orphaned(s) &&
+            s.isEdit == null &&
             series.any(
-              (o) => o.id != s.id && candidate(o) && o.sourceId == s.sourceId,
+              (o) =>
+                  o.id != s.id &&
+                  orphaned(o) &&
+                  o.isEdit != true &&
+                  o.sourceId == s.sourceId,
             ))
           s.id,
     };
@@ -1134,14 +1142,14 @@ class ProfileSeriesRepository {
   /// A manual edit is left alone, by the one rule every reader shares: a
   /// series marked as an edit, live or demoted (issue #4386), and an
   /// unmarked live one [liveEditIdsOf] reads as an edit by the generation
-  /// demoted beneath it, or that [liveTwinIdsOf] cannot tell from the
-  /// recording beside it. `saveEditedProfile` gives an edit a null computer
-  /// on purpose, not because a computer delete stripped one. Stamping it
-  /// would hand it to the next re-parse of the dive, which replaces what its
-  /// source owns, and a series is deleted whole: the correction would be
-  /// gone here and tombstoned on every peer. The same rule spares a
-  /// file-imported profile that `setPrimaryDataSource` promoted over the
-  /// computer's samples.
+  /// demoted beneath it, or that [liveTwinIdsOf] finds beside a live
+  /// recording that lost its computer too. `saveEditedProfile` gives an edit
+  /// a null computer on purpose, not because a computer delete stripped one.
+  /// Stamping it would hand it to the next re-parse of the dive, which
+  /// replaces what its source owns, and a series is deleted whole: the
+  /// correction would be gone here and tombstoned on every peer. The same
+  /// rule spares a file-imported profile that `setPrimaryDataSource` promoted
+  /// over the computer's samples.
   ///
   /// The demoted generation is still relinked. It really is the computer's
   /// own output, restoring its attribution is the point of the relink, and a

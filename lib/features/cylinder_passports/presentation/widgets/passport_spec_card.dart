@@ -6,6 +6,7 @@ import 'package:submersion/features/cylinder_passports/domain/services/passport_
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_item_units.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -30,20 +31,20 @@ class PassportSpecCard extends ConsumerWidget {
       hePercent: newest?.hePercent ?? 0,
       gasModel: units.settings.gasModel,
     );
+    // The volume and working pressure rows read in the cylinder's own units
+    // (issue #4534); the metrics below them keep the diver's.
+    final own = cylinderSpecUnits(equipment, units);
     final valve = equipment.attrText('valve_type');
     final rows = <(String, String)>[
       if (equipment.volumeL != null)
         (
           attributeLabel(l10n, EquipmentAttrKeys.volumeL),
-          units.formatTankVolume(
-            equipment.volumeL,
-            equipment.workingPressureBar,
-          ),
+          own.formatTankVolume(equipment.volumeL, equipment.workingPressureBar),
         ),
       if (equipment.workingPressureBar != null)
         (
           attributeLabel(l10n, EquipmentAttrKeys.workingPressureBar),
-          units.formatPressure(equipment.workingPressureBar),
+          own.formatPressure(equipment.workingPressureBar),
         ),
       if (equipment.tankMaterial != null)
         (

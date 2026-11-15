@@ -690,7 +690,13 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   _buildDetailRow(
                     context,
                     attributeLabel(context.l10n, def.key),
-                    formatAttributeValue(attr, def, units, context.l10n),
+                    formatAttributeValue(
+                      attr,
+                      def,
+                      units,
+                      context.l10n,
+                      workingPressureBar: equipment.workingPressureBar,
+                    ),
                   ),
               // The item's colour (issue #2326): its own row with a swatch,
               // only when the stored value is a colour code and the type has

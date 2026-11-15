@@ -12220,6 +12220,8 @@
   "equipment_edit_addCustomField": "Egyéni mező hozzáadása",
   "attr_flagYes": "Igen",
   "attr_flagNo": "Nem",
+  "attr_unitDual": "Mindkettő",
+  "attr_unitPicker": "Mértékegység",
   "attr_figurePosition_automatic": "Automatikus",
   "equipment_edit_invalidThickness": "Formátum: 5, 5/4 vagy 7/5/3",
   "equipment_edit_invalidFocalLength": "Formátum: 60 vagy 15-45",

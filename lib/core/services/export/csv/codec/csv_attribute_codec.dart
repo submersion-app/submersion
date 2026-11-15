@@ -1,13 +1,17 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/database/cylinder_volume_repair.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_date_formats.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_list_codec.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
+import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/constants/focal_length.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_item_units.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
 
 /// One attribute read back from an equipment CSV `key=value` pair.
@@ -17,6 +21,11 @@ typedef CsvAttribute = ({
   String? valueText,
   double? valueNum,
 });
+
+/// The symbol My units writes after a cylinder's rated gas capacity (issue
+/// #4534). Files written before it carry `cuft`, which is water volume and
+/// still reads back as such.
+const cylinderGasCapacitySymbol = 'cuft gas';
 
 /// The metric suffixes the catalog puts on unit-bearing keys. My units drops
 /// them, so a value in inches never sits under `hose_length_m`.
@@ -56,7 +65,15 @@ final Map<String, EquipmentAttributeDef> _defByMyUnitsKey = {
 /// page uses and names the unit (`hose_length=22 in`), and writes a date in
 /// the file's date format. Text, choice, flag, thickness, focal length and
 /// custom attributes are the same in both modes.
-String formatAttributePair(EquipmentAttribute attribute, CsvExportUnits units) {
+///
+/// A cylinder's volume in cubic feet is its rated gas capacity at
+/// [workingPressureBar] (200 bar assumed without one), written with
+/// [cylinderGasCapacitySymbol]; a rebreather cylinder is always litres.
+String formatAttributePair(
+  EquipmentAttribute attribute,
+  CsvExportUnits units, {
+  double? workingPressureBar,
+}) {
   final raw = '${attribute.key}=${attribute.valueText ?? attribute.valueNum}';
   if (attribute.isCustom) {
     return _customCollides(attribute.key) ? '$_customPrefix$raw' : raw;
@@ -72,10 +89,22 @@ String formatAttributePair(EquipmentAttribute attribute, CsvExportUnits units) {
   }
   final key = myUnitsKeyFor(attribute.key);
   if (key == null) return raw;
+  // The diver's units, not the item's: a column keeps one unit.
+  final unit = attributeUnitInForce(def, null, formatter);
+  if (unit != null && isCylinderGasVolume(def, unit)) {
+    final cuft = ratedCapacityCuft(number, workingPressureBar);
+    return '$key=${trimFixed(cuft, 1)} $cylinderGasCapacitySymbol';
+  }
+  if (unit == AttributeUnit.liters &&
+      formatter.settings.volumeUnit != VolumeUnit.liters) {
+    return '$key=${trimFixed(number, UnitFormatter.tankVolumeLiterDecimals(number))} '
+        '${VolumeUnit.liters.symbol}';
+  }
   final display = attributeDisplayFromMetric(def.dimension, formatter, number);
   final symbol = attributeUnitSymbol(def.dimension, formatter);
-  // A cylinder's water volume in cuft is a fraction of one; three places
-  // keep it within 0.03 L of the stored litres.
+  // A plain volume in cuft (a lift bag; a cylinder is written as gas
+  // capacity above) can be a fraction of one; three places keep it within
+  // 0.03 L of the stored litres.
   final decimals =
       def.dimension == AttributeDimension.volumeL &&
           symbol == VolumeUnit.cubicFeet.symbol
@@ -124,10 +153,14 @@ final _numberWithSymbol = RegExp(r'^(-?\d+(?:\.\d+)?)\s+(\S.*)$');
 /// file is Metric (a date attribute is then epoch milliseconds). [type] is
 /// the row's item type when known: a type without a colour keeps a colour
 /// code as the diver's own "color" field (issue #2520).
+///
+/// [workingPressureBar] is the row's cylinder working pressure, which a
+/// volume written as [cylinderGasCapacitySymbol] reads back at.
 CsvAttribute? parseAttributePair(
   String pair, {
   DateFormatPreference? dateFormat,
   EquipmentType? type,
+  double? workingPressureBar,
 }) {
   final eq = pair.indexOf('=');
   if (eq <= 0) return null;
@@ -146,6 +179,40 @@ CsvAttribute? parseAttributePair(
 
   final unitDef = _defByMyUnitsKey[key];
   final match = _numberWithSymbol.firstMatch(value);
+  if (unitDef != null &&
+      match != null &&
+      unitDef.key == EquipmentAttrKeys.volumeL &&
+      match.group(2)!.trim() == cylinderGasCapacitySymbol) {
+    return (
+      key: unitDef.key,
+      isCustom: false,
+      valueText: null,
+      valueNum: volumeLitersFromCapacity(
+        double.parse(match.group(1)!),
+        workingPressureBar,
+      ),
+    );
+  }
+  if (unitDef != null &&
+      match != null &&
+      unitDef.key == EquipmentAttrKeys.volumeL &&
+      match.group(2)!.trim() == VolumeUnit.cubicFeet.symbol) {
+    // A file written before #4534 wrote a cylinder as water cubic feet. From
+    // a library with the old bug, a cylinder typed in cubic feet comes back
+    // as an impossible water volume; it is read as the v368 repair reads the
+    // stored row, the figure typed as gas capacity, so the import does not
+    // bring the bug back.
+    final figure = double.parse(match.group(1)!);
+    final water = VolumeUnit.cubicFeet.convert(figure, VolumeUnit.liters);
+    return (
+      key: unitDef.key,
+      isCustom: false,
+      valueText: null,
+      valueNum: water > cylinderVolumeRepairThresholdLiters
+          ? volumeLitersFromCapacity(figure, workingPressureBar)
+          : water,
+    );
+  }
   if (unitDef != null && match != null) {
     final metric = _toMetric(
       unitDef.dimension,

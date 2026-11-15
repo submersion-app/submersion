@@ -119,13 +119,24 @@ class SubmersionEquipmentCsvParser implements ImportParser {
       // attributes: the importer keeps the first custom field of a name, and
       // the diver's own `custom:color` wins, as it does in the app.
       final strayColors = <Map<String, dynamic>>[];
-      for (final pair in splitAttributePairs(
-        table.text(row, 'Attributes') ?? '',
-      )) {
+      final pairs = splitAttributePairs(table.text(row, 'Attributes') ?? '');
+      // A cylinder's gas capacity reads back at its working pressure, which
+      // may come later in the cell (issue #4534).
+      double? workingPressureBar;
+      for (final pair in pairs.where((p) => p.startsWith('working_pressure'))) {
+        final parsed = parseAttributePair(pair, dateFormat: dateFormat);
+        if (parsed != null &&
+            !parsed.isCustom &&
+            parsed.key == EquipmentAttrKeys.workingPressureBar) {
+          workingPressureBar = parsed.valueNum;
+        }
+      }
+      for (final pair in pairs) {
         final parsed = parseAttributePair(
           pair,
           dateFormat: dateFormat,
           type: type,
+          workingPressureBar: workingPressureBar,
         );
         if (parsed == null) {
           warnings.add(

@@ -190,6 +190,30 @@ void main() {
     expect(labels!.single.specLine, startsWith('${rated.round()} cuft, '));
   });
 
+  testWidgets('a label reads in the cylinder\'s own units for a metric diver '
+      '(issue #4534)', (tester) async {
+    await tester.runAsync(() async {
+      await seed('al80', 'tank');
+      await EquipmentRepository().saveAttributes('al80', [
+        EquipmentAttribute.curated(
+          equipmentId: 'al80',
+          key: EquipmentAttrKeys.volumeL,
+          valueNum: 11.1,
+          valueUnit: 'cubicFeet',
+        ),
+        EquipmentAttribute.curated(
+          equipmentId: 'al80',
+          key: EquipmentAttrKeys.workingPressureBar,
+          valueNum: 207,
+          valueUnit: 'psi',
+        ),
+      ]);
+    });
+    final labels = await printVia(tester, ['al80']);
+    final rated = TankPresets.matchBySpecs(11.1, 207)!.ratedCapacityCuft!;
+    expect(labels!.single.specLine, '${rated.round()} cuft, 3002 psi');
+  });
+
   testWidgets('a selection of only wanted gear exports nothing', (
     tester,
   ) async {

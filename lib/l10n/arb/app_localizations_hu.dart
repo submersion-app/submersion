@@ -42169,6 +42169,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attr_flagNo => 'Nem';
 
   @override
+  String get attr_unitDual => 'Mindkettő';
+
+  @override
+  String get attr_unitPicker => 'Mértékegység';
+
+  @override
   String get attr_figurePosition_automatic => 'Automatikus';
 
   @override

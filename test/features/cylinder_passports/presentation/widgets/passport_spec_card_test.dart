@@ -127,4 +127,38 @@ void main() {
       );
     },
   );
+
+  testWidgets(
+    'a cylinder kept in cubic feet reads in cubic feet for a metric diver '
+    '(issue #4534)',
+    (tester) async {
+      const inCuft = EquipmentItem(
+        id: id,
+        name: 'AL80',
+        type: EquipmentType.tank,
+        attributes: [
+          EquipmentAttribute(
+            id: 'a1',
+            equipmentId: id,
+            key: EquipmentAttrKeys.volumeL,
+            valueNum: 11.1,
+            valueUnit: 'cubicFeet',
+          ),
+          EquipmentAttribute(
+            id: 'a2',
+            equipmentId: id,
+            key: EquipmentAttrKeys.workingPressureBar,
+            valueNum: 207,
+            valueUnit: 'psi',
+          ),
+        ],
+      );
+      final rated = TankPresets.matchBySpecs(11.1, 207)!.ratedCapacityCuft!;
+      expect(
+        await volumeRow(tester, equipment: inCuft),
+        '${rated.round()} cuft',
+      );
+      expect(find.text('3002 psi'), findsOneWidget);
+    },
+  );
 }

@@ -1244,7 +1244,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           for (final def in EquipmentAttributeCatalog.attributesFor(
             _selectedType,
           ))
-            if (_attrValues[def.key] case final attr? when attr.hasValue) attr,
+            if (_attrValues[def.key] case final attr? when attr.hasContent)
+              attr,
           ...customAttributes,
         ],
         customReminderEnabled: _customReminderEnabled,

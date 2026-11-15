@@ -12220,6 +12220,8 @@
   "equipment_edit_addCustomField": "إضافة حقل مخصص",
   "attr_flagYes": "نعم",
   "attr_flagNo": "لا",
+  "attr_unitDual": "كلاهما",
+  "attr_unitPicker": "الوحدة",
   "attr_figurePosition_automatic": "تلقائي",
   "equipment_edit_invalidThickness": "استخدم 5 أو 5/4 أو 7/5/3",
   "equipment_edit_invalidFocalLength": "استخدم 60 أو 15-45",

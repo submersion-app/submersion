@@ -12220,6 +12220,8 @@
   "equipment_edit_addCustomField": "Aangepast veld toevoegen",
   "attr_flagYes": "Ja",
   "attr_flagNo": "Nee",
+  "attr_unitDual": "Beide",
+  "attr_unitPicker": "Eenheid",
   "attr_figurePosition_automatic": "Automatisch",
   "equipment_edit_invalidThickness": "Gebruik 5, 5/4 of 7/5/3",
   "equipment_edit_invalidFocalLength": "Gebruik 60 of 15-45",

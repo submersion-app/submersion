@@ -42518,6 +42518,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attr_flagNo => 'Non';
 
   @override
+  String get attr_unitDual => 'Les deux';
+
+  @override
+  String get attr_unitPicker => 'Unité';
+
+  @override
   String get attr_figurePosition_automatic => 'Automatique';
 
   @override

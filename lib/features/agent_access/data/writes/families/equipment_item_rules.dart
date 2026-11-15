@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:submersion/core/constants/enums.dart'
     show EquipmentStatus, EquipmentType;
+import 'package:submersion/core/database/cylinder_volume_repair.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_fitting.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_item_units.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/services/attribute_service_baselines.dart';
 
@@ -28,14 +30,34 @@ class _AttributeListCodec extends ObjectListCodec {
           'is_custom': FieldCodec.flag(),
           'value_text': FieldCodec.text(maxLength: 500, nullable: true),
           'value_num': FieldCodec.number(nullable: true),
+          // The unit a built-in number reads in (issue #4534); value_num
+          // stays metric. Replaced with the rest of the list, so leaving it
+          // out clears it, as it does value_text and value_num.
+          'value_unit': FieldCodec.text(maxLength: 20, nullable: true),
         },
         defaults: const {'is_custom': false},
         maxItems: 60,
       );
 
+  /// The list as a save stores it, so a plan compares like with like: a
+  /// large cylinder volume is stamped in litres (issue #4534).
   @override
-  Object parseValue(Object raw) =>
-      jsonEncode(_ordered(ObjectListCodec.items(super.parseValue(raw))));
+  Object parseValue(Object raw) => jsonEncode(
+    _ordered([
+      for (final item in ObjectListCodec.items(super.parseValue(raw)))
+        if (item['is_custom'] == true)
+          item
+        else
+          {
+            ...item,
+            'value_unit': stampedCylinderVolumeUnit(
+              item['key']! as String,
+              (item['value_num'] as num?)?.toDouble(),
+              item['value_unit'] as String?,
+            ),
+          },
+    ]),
+  );
 }
 
 List<Map<String, Object?>> _ordered(List<Map<String, Object?>> items) => [
@@ -59,6 +81,7 @@ List<Map<String, Object?>> attributeDocuments(EquipmentItem item) => _ordered([
         'is_custom': a.isCustom,
         'value_text': a.valueText,
         'value_num': a.valueNum,
+        'value_unit': a.valueUnit,
       },
 ]);
 
@@ -73,10 +96,18 @@ String? attributeProblem(Object parsed, EquipmentType type) {
       return 'attributes: $key is listed more than once.';
     }
     final text = item['value_text'] as String?;
-    if ((text == null || text.trim().isEmpty) && item['value_num'] == null) {
+    final unit = item['value_unit'] as String?;
+    if ((text == null || text.trim().isEmpty) &&
+        item['value_num'] == null &&
+        unit == null) {
       return 'attributes: $key has no value; leave it out to clear it.';
     }
-    if (custom) continue;
+    if (custom) {
+      if (unit != null) {
+        return 'attributes: $key is a custom field and takes no value_unit.';
+      }
+      continue;
+    }
     final def = EquipmentAttributeCatalog.defFor(key);
     if (def != null && EquipmentAttributeCatalog.isSystemKey(key)) {
       return 'attributes: $key is the app\'s own and cannot be written.';
@@ -87,6 +118,13 @@ String? attributeProblem(Object parsed, EquipmentType type) {
     }
     if (def.kind == AttributeKind.choice && !def.choiceKeys.contains(text)) {
       return 'attributes: $key takes one of ${def.choiceKeys.join(', ')}.';
+    }
+    if (unit != null && parseAttributeUnit(def, unit) == null) {
+      final choices = attributeUnitChoices(def);
+      return choices.isEmpty
+          ? 'attributes: $key has no unit to pick; leave value_unit out.'
+          : 'attributes: $key takes value_unit one of '
+                '${choices.map((u) => u.name).join(', ')}.';
     }
   }
   return null;
@@ -374,6 +412,7 @@ List<EquipmentAttribute> _attributes(EquipmentItem current, Object? parsed) {
           key: item['key']! as String,
           valueText: item['value_text'] as String?,
           valueNum: (item['value_num'] as num?)?.toDouble(),
+          valueUnit: item['value_unit'] as String?,
         ),
   ];
 }
