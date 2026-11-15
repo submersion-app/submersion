@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/documents/data/repositories/document_owner_options_repository.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/documents/data/repositories/document_row_mapper.dart';
+import 'package:submersion/features/documents/domain/clearance_supersession.dart';
 import 'package:submersion/features/documents/domain/document_ids.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
@@ -165,7 +166,7 @@ class DocumentRepository {
           .customSelect(
             'SELECT * FROM documents WHERE $column = ? '
             '${diverId == null ? '' : 'AND diver_id = ? '}'
-            'ORDER BY type, title, created_at',
+            'ORDER BY ${_documentOrder()}',
             variables: [
               Variable.withString(owner.id!),
               if (diverId != null) Variable.withString(diverId),
@@ -189,6 +190,7 @@ class DocumentRepository {
       )
       ..orderBy([
         (t) => OrderingTerm(expression: t.type),
+        (t) => OrderingTerm.desc(_clearanceRecency(t)),
         (t) => OrderingTerm(expression: t.title),
         (t) => OrderingTerm(expression: t.createdAt),
       ]);
@@ -241,7 +243,7 @@ class DocumentRepository {
           'LEFT JOIN dives dv ON dv.id = d.dive_id '
           'LEFT JOIN dive_sites dvs ON dvs.id = dv.site_id '
           'WHERE $where '
-          'ORDER BY d.type, d.title, d.created_at',
+          'ORDER BY ${_documentOrder('d.')}',
           variables: [for (final arg in args) Variable.withString(arg)],
           readsFrom: {_db.documents, _db.documentPages},
         )
@@ -856,7 +858,8 @@ class DocumentRepository {
     ], notify: notify);
   }
 
-  /// [diverId]'s documents that can remind: an expiry date, not a card.
+  /// [diverId]'s documents that can remind: an expiry date, not a card,
+  /// and not a medical clearance a later one supersedes (#4541).
   Future<List<Document>> getRemindingForDiver(String diverId) async {
     final rows =
         await (_db.select(_db.documents)..where(
@@ -866,6 +869,38 @@ class DocumentRepository {
                   t.type.equals(DocumentType.certificationCard.storage).not(),
             ))
             .get();
+    return withoutSupersededClearances(rows.map(documentFromRow).toList());
+  }
+
+  /// Every medical clearance of [diverId], dated or not: the set a renewal
+  /// re-arms together, since one clearance's save can supersede another.
+  Future<List<Document>> getMedicalClearancesForDiver(String diverId) async {
+    final rows =
+        await (_db.select(_db.documents)..where(
+              (t) =>
+                  t.diverId.equals(diverId) &
+                  t.type.equals(DocumentType.medicalClearance.storage),
+            ))
+            .get();
     return rows.map(documentFromRow).toList();
   }
 }
+
+/// List order: by type, medical clearances newest first (#4508: by expiry,
+/// else issue date, undated last), then by title and age. [prefix] is the
+/// table alias with its dot.
+String _documentOrder([String prefix = '']) =>
+    '${prefix}type, '
+    "CASE WHEN ${prefix}type = 'medicalClearance' "
+    'THEN COALESCE(${prefix}expiry_date, ${prefix}issue_date) END DESC, '
+    '${prefix}title, ${prefix}created_at';
+
+/// [_documentOrder]'s clearance key, for the typed personal-documents query.
+Expression<int> _clearanceRecency($DocumentsTable t) => CaseWhenExpression(
+  cases: [
+    CaseWhen(
+      t.type.equals(DocumentType.medicalClearance.storage),
+      then: coalesce([t.expiryDate, t.issueDate]),
+    ),
+  ],
+);

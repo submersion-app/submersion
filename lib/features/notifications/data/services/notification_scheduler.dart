@@ -15,6 +15,7 @@ import 'package:submersion/features/notifications/domain/draft_reminder_plan.dar
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/clearance_supersession.dart';
 import 'package:submersion/features/documents/domain/document_reminder_plan.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
@@ -442,28 +443,63 @@ class NotificationScheduler {
     // is gone (deleted on another device, or with its owner) or no longer
     // reminds is cancelled. One of another profile, which the loop below
     // never reaches, is rebuilt from the document as it is now: a renewal
-    // synced in must not leave the old expiry announcing itself.
+    // synced in must not leave the old expiry announcing itself. One of
+    // [diverId]'s that a later clearance supersedes (#4541) is cancelled.
+    final reminding = diverId == null
+        ? const <Document>[]
+        : await _documentRepository.getRemindingForDiver(diverId);
+    final remindingIds = {for (final d in reminding) d.id};
     for (final id in await _notificationService.pendingDocumentReminderIds()) {
       final document = await _documentRepository.getById(id);
       if (document == null || !document.remindsOnExpiry) {
         await _notificationService.cancelDocumentReminders(id);
       } else if (document.diverId != diverId) {
         await updateForDocument(document, settings);
+      } else if (!remindingIds.contains(id)) {
+        await _notificationService.cancelDocumentReminders(id);
       }
     }
-    if (diverId == null) return;
-    final documents = await _documentRepository.getRemindingForDiver(diverId);
-    for (final document in documents) {
-      await updateForDocument(document, settings);
+    for (final document in reminding) {
+      await _armDocument(document, settings);
     }
   }
 
   /// Replaces [document]'s reminders with the ones its expiry calls for
   /// now; after an edit that cleared the expiry, that is none.
+  ///
+  /// A medical clearance re-arms its diver's every clearance from the
+  /// database instead, so only the current one reminds (#4541): saving a
+  /// renewal silences the one it supersedes, and passing a deleted
+  /// renewal brings the superseded one back.
   Future<void> updateForDocument(
     Document document,
     AppSettings settings,
   ) async {
+    if (DemoModeGate.instance.isActive) return;
+    if (document.type == DocumentType.medicalClearance) {
+      return _updateClearances(document, settings);
+    }
+    await _armDocument(document, settings);
+  }
+
+  Future<void> _updateClearances(Document changed, AppSettings settings) async {
+    final clearances = await _documentRepository.getMedicalClearancesForDiver(
+      changed.diverId,
+    );
+    final superseded = supersededClearanceIds(clearances);
+    if (!clearances.any((c) => c.id == changed.id)) {
+      await _notificationService.cancelDocumentReminders(changed.id);
+    }
+    for (final clearance in clearances) {
+      if (superseded.contains(clearance.id)) {
+        await _notificationService.cancelDocumentReminders(clearance.id);
+      } else {
+        await _armDocument(clearance, settings);
+      }
+    }
+  }
+
+  Future<void> _armDocument(Document document, AppSettings settings) async {
     if (DemoModeGate.instance.isActive) return;
     await _notificationService.cancelDocumentReminders(document.id);
     if (!settings.notificationsEnabled) return;

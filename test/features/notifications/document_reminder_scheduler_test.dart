@@ -175,6 +175,45 @@ void main() {
     );
   });
 
+  group('medical clearances (#4541)', () {
+    DateTime inDays(int n) => DateTime(now.year, now.month, now.day + n);
+
+    test('saving a renewal cancels the old clearance\'s reminders and arms '
+        'the new one\'s', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await save(DocumentType.medicalClearance, inDays(400));
+      await scheduler.updateForDocument(renewal, const AppSettings());
+      expect(service.cancelled, containsAll([old.id, renewal.id]));
+      expect(service.scheduled.map((s) => s.documentId).toSet(), {renewal.id});
+    });
+
+    test('updating a superseded clearance schedules nothing for it', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      await save(DocumentType.medicalClearance, inDays(400));
+      await scheduler.updateForDocument(old, const AppSettings());
+      expect(service.cancelled, contains(old.id));
+      expect(service.scheduled.where((s) => s.documentId == old.id), isEmpty);
+    });
+
+    test('a full schedule cancels a superseded clearance\'s pending '
+        'reminders', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await save(DocumentType.medicalClearance, inDays(400));
+      service.pending = {old.id};
+      await scheduler.scheduleAll(settings: const AppSettings(), diverId: 'd1');
+      expect(service.cancelled, contains(old.id));
+      expect(service.scheduled.map((s) => s.documentId).toSet(), {renewal.id});
+    });
+
+    test('once the renewal is gone, the old clearance reminds again', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await save(DocumentType.medicalClearance, inDays(400));
+      await DocumentRepository().delete(renewal.id);
+      await scheduler.updateForDocument(renewal, const AppSettings());
+      expect(service.scheduled.map((s) => s.documentId).toSet(), {old.id});
+    });
+  });
+
   test('the background refresh, with no active profile, refreshes pending '
       'reminders too', () async {
     final permit = await save(
