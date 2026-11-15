@@ -144,7 +144,7 @@ void main() {
     expect(find.byIcon(Icons.scuba_diving), findsOneWidget);
   });
 
-  testWidgets('no chart label is smaller than 15 px (#4567)', (tester) async {
+  testWidgets('every chart label is drawn at 14 px (#4567)', (tester) async {
     await _pump(tester);
 
     final texts = _chartTexts(tester).toList();
@@ -153,16 +153,15 @@ void main() {
     for (final text in texts) {
       expect(
         text.style?.fontSize,
-        greaterThanOrEqualTo(15),
-        reason: '"${text.data}" is too small to read',
+        14,
+        reason: '"${text.data}" is not at the chart label size',
       );
     }
-    // The marks a diver reads first are larger still: the old graph drew
-    // them at 9 px.
+    // The old graph drew its marks at 9 px.
     final high = tester.widget<Text>(find.text('H 14:20 · 2.4m'));
-    expect(high.style?.fontSize, 16);
+    expect(high.style?.fontSize, 14);
     final entry = tester.widget<Text>(find.text('10:05'));
-    expect(entry.style?.fontSize, 16);
+    expect(entry.style?.fontSize, 14);
   });
 
   testWidgets('a narrow card keeps the time and drops the height', (

@@ -51,10 +51,10 @@ class DiveTideChart extends StatelessWidget {
   static const double defaultPlotHeight = 160;
 
   /// Size of the labels on the highs, the lows and the dive marker.
-  static const double labelFontSize = 16;
+  static const double labelFontSize = 14;
 
   /// Size of the axis tick labels.
-  static const double axisFontSize = 15;
+  static const double axisFontSize = 14;
 
   static const double _rightPadding = 8;
   static const double _axisGap = 6;
