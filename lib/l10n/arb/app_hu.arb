@@ -9785,7 +9785,6 @@
   "trips_appBar_title": "Utak",
   "trips_list_count": "{count, plural, =1{{count} út} other{{count} út}}",
   "trips_list_countFiltered": "{shown} / {total, plural, =1{{total} út} other{{total} út}}",
-  "trips_breakdown_column_sites": "Helyszínek",
   "trips_detail_action_delete": "Törlés",
   "trips_detail_action_export": "Exportálás",
   "trips_detail_appBar_title": "Út",

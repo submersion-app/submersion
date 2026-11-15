@@ -21242,7 +21242,6 @@
   "trips_detail_label_disembark": "Disembark",
   "trips_detail_stat_sitesVisited": "Sites visited",
   "trips_detail_stat_speciesSeen": "Species seen",
-  "trips_breakdown_column_sites": "Sites",
   "trips_itinerary_dayLabel": "Day {dayNumber}",
   "@trips_itinerary_dayLabel": {
     "placeholders": {

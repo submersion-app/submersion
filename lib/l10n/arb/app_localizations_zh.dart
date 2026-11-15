@@ -34287,9 +34287,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_detail_stat_speciesSeen => '已发现物种';
 
   @override
-  String get trips_breakdown_column_sites => '潜水点';
-
-  @override
   String trips_itinerary_dayLabel(int dayNumber) {
     return '第 $dayNumber 天';
   }

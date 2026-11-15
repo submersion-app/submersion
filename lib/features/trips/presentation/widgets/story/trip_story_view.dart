@@ -90,12 +90,21 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
   @override
   void didUpdateWidget(TripStoryView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // A new story is a new read of the trip: a dive was added, removed or
-    // changed. Asking again is cheap, because the batcher skips every dive
-    // it already holds samples for, and it is how a dive that has gained a
-    // profile since loses its estimated outline.
-    if (!identical(oldWidget.story, _story)) _requestProfiles();
+    // Only when the trip's dives are not the ones asked for before. The story
+    // is composed again for much else (a checklist tick, a linked photo), and
+    // every ask re-reads each dive held without samples. A profile written
+    // for a dive already asked for is heard in build, on its own tick.
+    if (!_sameIds.equals(_diveIdsOf(oldWidget.story), _diveIdsOf(_story))) {
+      _requestProfiles();
+    }
   }
+
+  static const _sameIds = SetEquality<String>();
+
+  static Set<String> _diveIdsOf(TripStory story) => {
+    for (final day in story.days)
+      for (final dive in day.dives) dive.id,
+  };
 
   @override
   void dispose() {

@@ -9781,7 +9781,6 @@
   "trips_appBar_title": "Viaggi",
   "trips_list_count": "{count, plural, =1{{count} viaggio} other{{count} viaggi}}",
   "trips_list_countFiltered": "{shown} di {total, plural, =1{{total} viaggio} other{{total} viaggi}}",
-  "trips_breakdown_column_sites": "Siti",
   "trips_detail_action_delete": "Elimina",
   "trips_detail_action_export": "Esporta",
   "trips_detail_appBar_title": "Viaggio",

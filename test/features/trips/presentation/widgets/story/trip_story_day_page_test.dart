@@ -917,6 +917,44 @@ void main() {
       expect(find.byType(FlutterMap), findsOneWidget);
     });
 
+    testWidgets('a pin brings back a card scrolled off the top', (
+      tester,
+    ) async {
+      // Short enough that the page scrolls.
+      await pumpPage(
+        tester,
+        richDay(),
+        mapPoints: pins,
+        viewSize: const Size(640, 420),
+      );
+      final scrollable = find.byType(Scrollable).first;
+      final position = tester.state<ScrollableState>(scrollable).position;
+      final card1 = find.byWidgetPredicate(
+        (w) => w is DiveListItem && w.summary.id == 'd1',
+      );
+      final viewTop = tester.getRect(scrollable).top;
+      // Beside the map, the first card starts level with it. Scroll until the
+      // card's top is 40 above the page, with the map's middle row of pins
+      // still on screen.
+      final offset = tester.getRect(card1).top - viewTop + 40;
+      expect(position.maxScrollExtent, greaterThanOrEqualTo(offset));
+      position.jumpTo(offset);
+      await tester.pump();
+      expect(position.pixels, offset, reason: 'the page really scrolled');
+      expect(tester.getRect(card1).top, lessThan(viewTop));
+      final pin = find.byKey(const Key('day-map-pin-d1'));
+      expect(pin.hitTestable(), findsOneWidget);
+
+      await tester.tap(pin);
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getRect(card1).top,
+        greaterThanOrEqualTo(viewTop - 0.5),
+        reason: 'the lit card is back in view, its top at the top',
+      );
+    });
+
     testWidgets('a pin tap lights a card that is already in view', (
       tester,
     ) async {

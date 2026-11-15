@@ -9910,7 +9910,6 @@
   "trips_appBar_title": "Reizen",
   "trips_list_count": "{count, plural, =1{{count} reis} other{{count} reizen}}",
   "trips_list_countFiltered": "{shown} van {total, plural, =1{{total} reis} other{{total} reizen}}",
-  "trips_breakdown_column_sites": "Stekken",
   "trips_detail_action_delete": "Verwijderen",
   "trips_detail_action_export": "Exporteren",
   "trips_detail_appBar_title": "Reis",

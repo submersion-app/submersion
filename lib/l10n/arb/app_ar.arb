@@ -9910,7 +9910,6 @@
   "trips_appBar_title": "الرحلات",
   "trips_list_count": "{count, plural, =1{رحلة واحدة} two{رحلتان} few{{count} رحلات} many{{count} رحلة} other{{count} رحلة}}",
   "trips_list_countFiltered": "{shown} من {total, plural, =1{رحلة واحدة} two{رحلتين} few{{total} رحلات} many{{total} رحلة} other{{total} رحلة}}",
-  "trips_breakdown_column_sites": "المواقع",
   "trips_detail_action_delete": "حذف",
   "trips_detail_action_export": "تصدير",
   "trips_detail_appBar_title": "الرحلة",

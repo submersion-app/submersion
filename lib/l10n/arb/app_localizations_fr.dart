@@ -36521,9 +36521,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_detail_stat_speciesSeen => 'Espèces observées';
 
   @override
-  String get trips_breakdown_column_sites => 'Sites';
-
-  @override
   String trips_itinerary_dayLabel(int dayNumber) {
     return 'Jour $dayNumber';
   }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -17,11 +19,11 @@ import '../../../../helpers/mock_providers.dart';
 
 /// The master-detail pane reuses the tabs for the next trip (#2845).
 void main() {
-  Trip trip(String id) => Trip(
+  Trip trip(String id, {DateTime? start}) => Trip(
     id: id,
     name: 'Trip $id',
-    startDate: DateTime(2024, 1, 15),
-    endDate: DateTime(2024, 1, 22),
+    startDate: start ?? DateTime(2024, 1, 15),
+    endDate: (start ?? DateTime(2024, 1, 15)).add(const Duration(days: 7)),
     createdAt: DateTime(2024, 1, 1),
     updatedAt: DateTime(2024, 1, 1),
   );
@@ -69,26 +71,29 @@ void main() {
     Future<ValueNotifier<TripWithStats>> pumpTabs(
       WidgetTester tester, {
       List<String>? undivedReads,
+      Future<Set<String>> Function()? undivedAnswer,
+      Trip? first,
     }) async {
       tester.view.physicalSize = const Size(1100, 800);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-      final shown = ValueNotifier(TripWithStats(trip: trip('a'), diveCount: 0));
+      final shownTrip = first ?? trip('a');
+      final shown = ValueNotifier(TripWithStats(trip: shownTrip, diveCount: 0));
       addTearDown(shown.dispose);
       final overrides = await getBaseOverrides();
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             ...overrides,
-            for (final id in ['a', 'b']) ...[
-              tripUndivedPlanIdsProvider(id).overrideWith((ref) async {
+            for (final id in {shownTrip.id, 'a', 'b'}) ...[
+              tripUndivedPlanIdsProvider(id).overrideWith((ref) {
                 undivedReads?.add(id);
-                return const <String>{};
+                return undivedAnswer?.call() ?? Future.value(const <String>{});
               }),
               divesForTripProvider(id).overrideWith((ref) async => <Dive>[]),
               tripStoryProvider(id).overrideWith(
                 (ref) async => buildTripStory(
-                  trip: trip(id),
+                  trip: id == shownTrip.id ? shownTrip : trip(id),
                   dives: [
                     Dive(
                       id: '$id-1',
@@ -158,6 +163,35 @@ void main() {
 
       // Read again, the picker would draw a plan late on every return.
       expect(reads, ['a']);
+    });
+
+    testWidgets('the plans read answering does not rebuild the tabs', (
+      tester,
+    ) async {
+      final answer = Completer<Set<String>>();
+      await pumpTabs(tester, undivedAnswer: () => answer.future);
+      final before = tester.widget<TabBar>(find.byType(TabBar));
+
+      answer.complete(const {'a-1'});
+      await tester.pumpAndSettle();
+
+      // Only the picker needs the answer, and it reads it itself.
+      expect(tester.widget<TabBar>(find.byType(TabBar)), same(before));
+    });
+
+    testWidgets('a trip that has not started does not read its plans', (
+      tester,
+    ) async {
+      final reads = <String>[];
+      final now = DateTime.now();
+      await pumpTabs(
+        tester,
+        undivedReads: reads,
+        first: trip('c', start: DateTime(now.year, now.month, now.day + 30)),
+      );
+
+      // Its Overview is the Prepare page, which draws no day picker.
+      expect(reads, isEmpty);
     });
 
     testWidgets('a different trip starts from its own opening page', (

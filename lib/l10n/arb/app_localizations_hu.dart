@@ -36231,9 +36231,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_detail_stat_speciesSeen => 'Látott fajok';
 
   @override
-  String get trips_breakdown_column_sites => 'Helyszínek';
-
-  @override
   String trips_itinerary_dayLabel(int dayNumber) {
     return '$dayNumber. nap';
   }

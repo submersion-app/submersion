@@ -154,6 +154,11 @@ class TripPickerModelMemo {
 
   static const _sameIds = SetEquality<String>();
 
+  /// The same list, entry by entry: the cache keeps an untouched dive's list.
+  static const _sameEntries = ListEquality<List<DiveProfilePoint>?>(
+    IdentityEquality(),
+  );
+
   /// [buildTripPickerModel] for these inputs, built only when they differ
   /// from the last call's.
   ///
@@ -173,7 +178,7 @@ class TripPickerModelMemo {
     final cached = _model;
     if (cached != null &&
         identical(days, _days) &&
-        _sameEntries(entries, _entries) &&
+        _sameEntries.equals(entries, _entries) &&
         _sameIds.equals(undivedPlanIds, _undivedPlanIds)) {
       return cached;
     }
@@ -185,17 +190,6 @@ class TripPickerModelMemo {
       profiles: profiles,
       undivedPlanIds: undivedPlanIds,
     );
-  }
-
-  static bool _sameEntries(
-    List<List<DiveProfilePoint>?> a,
-    List<List<DiveProfilePoint>?> b,
-  ) {
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (!identical(a[i], b[i])) return false;
-    }
-    return true;
   }
 }
 

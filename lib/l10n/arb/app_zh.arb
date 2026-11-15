@@ -10061,7 +10061,6 @@
   "trips_appBar_title": "旅行",
   "trips_list_count": "{count, plural, =1{{count} 次旅行} other{{count} 次旅行}}",
   "trips_list_countFiltered": "{shown} / {total, plural, =1{{total} 次旅行} other{{total} 次旅行}}",
-  "trips_breakdown_column_sites": "潜水点",
   "trips_detail_action_delete": "删除",
   "trips_detail_action_export": "导出",
   "trips_detail_appBar_title": "旅行",

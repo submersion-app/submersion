@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -78,15 +79,30 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
         ? null
         : _cardKeys[diveId]?.currentContext;
     if (keyContext == null) return;
-    // Only when the card is below the fold: a scroll for a card already in
-    // view would push the map off the top and every next pin tap would start
-    // with scrolling back up.
+    // Only when the card is out of view: a scroll for a card already in view
+    // would push the map off the top and every next pin tap would start with
+    // scrolling back up. A card below the fold comes up to the bottom edge;
+    // one scrolled off the top (beside the map on a wide pane, the cards
+    // start level with it) comes down to the top edge.
     Scrollable.ensureVisible(
       keyContext,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
-      alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+      alignmentPolicy: _isAboveViewport(keyContext)
+          ? ScrollPositionAlignmentPolicy.keepVisibleAtStart
+          : ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
     );
+  }
+
+  /// Whether the top of the widget at [context] is above its scroll view's
+  /// top edge.
+  static bool _isAboveViewport(BuildContext context) {
+    final target = context.findRenderObject();
+    final position = Scrollable.maybeOf(context)?.position;
+    if (target == null || position == null) return false;
+    final viewport = RenderAbstractViewport.maybeOf(target);
+    if (viewport == null) return false;
+    return viewport.getOffsetToReveal(target, 0).offset < position.pixels;
   }
 
   @override

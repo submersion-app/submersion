@@ -35534,9 +35534,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_detail_stat_speciesSeen => 'מינים שנצפו';
 
   @override
-  String get trips_breakdown_column_sites => 'אתרים';
-
-  @override
   String trips_itinerary_dayLabel(int dayNumber) {
     return 'יום $dayNumber';
   }

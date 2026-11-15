@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/planner/presentation/chart/plan_chart_paint_utils.dart';
 import 'package:submersion/features/trips/domain/services/trip_picker_model.dart';
 
 /// Where the surface line sits, from the top of a tile.
@@ -63,7 +65,7 @@ List<TripPickerShape> layoutTripPickerDay(
       math.max(kTripPickerMinDiveWidth, dive.spanSeconds * pointsPerSecond),
   ];
   var gap = kTripPickerDiveGap;
-  var total = _sum(widths) + gap * (widths.length - 1);
+  var total = widths.sum + gap * (widths.length - 1);
   if (total > usable) {
     final fit = usable / total;
     widths = [for (final w in widths) w * fit];
@@ -97,9 +99,6 @@ List<TripPickerShape> layoutTripPickerDay(
   }
   return shapes;
 }
-
-double _sum(List<double> values) =>
-    values.fold(0, (total, value) => total + value);
 
 /// Paints one day's tile of the trip day picker: the surface line, with the
 /// day's dives hanging from it.
@@ -154,28 +153,16 @@ class TripDayPickerPainter extends CustomPainter {
     );
     for (final shape in shapes) {
       if (shape.dashed) {
-        canvas.drawPath(_dashed(shape.path), outline);
+        canvas.drawPath(
+          dashedPath(shape.path, dash: _dashOn, gap: _dashOff),
+          outline,
+        );
       } else {
         canvas
           ..drawPath(shape.path, fill)
           ..drawPath(shape.path, outline);
       }
     }
-  }
-
-  /// [source] cut into dashes. The repo has no dash helper; this is the
-  /// whole of what one would do.
-  static Path _dashed(Path source) {
-    final dashed = Path();
-    for (final metric in source.computeMetrics()) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        final end = math.min(distance + _dashOn, metric.length);
-        dashed.addPath(metric.extractPath(distance, end), Offset.zero);
-        distance = end + _dashOff;
-      }
-    }
-    return dashed;
   }
 
   @override

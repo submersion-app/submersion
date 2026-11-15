@@ -494,8 +494,8 @@ void main() {
       expect(batcher.calls.last.toSet(), {'d1', 'd2'});
     });
 
-    testWidgets('asks again when a dive on the trip changes, so one that '
-        'gained a profile loses its estimate', (tester) async {
+    testWidgets('does not ask again when the story changes but its dives do '
+        'not', (tester) async {
       final stories = ValueNotifier(finished);
       addTearDown(stories.dispose);
       await pumpView(tester, finished, stories: stories);
@@ -503,8 +503,10 @@ void main() {
       await tester.pump();
       expect(batcher.calls, hasLength(1));
 
-      // The same three dives, read again after a download filled one of
-      // them in.
+      // The same three dives, read again after one was edited: a checklist
+      // tick or a linked photo recomposes the story the same way. Every ask
+      // re-reads each dive held without samples, so an unchanged set of dives
+      // must not ask; a profile written is heard on its own.
       stories.value = _story(
         marchTrip,
         dives: [
@@ -517,8 +519,7 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(batcher.calls, hasLength(2));
-      expect(batcher.calls.last.toSet(), {'d1', 'd3a', 'd3b'});
+      expect(batcher.calls, hasLength(1));
     });
 
     testWidgets('asks again when a profile is written, even with the story '

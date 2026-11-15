@@ -57302,12 +57302,6 @@ abstract class AppLocalizations {
   /// **'Species seen'**
   String get trips_detail_stat_speciesSeen;
 
-  /// No description provided for @trips_breakdown_column_sites.
-  ///
-  /// In en, this message translates to:
-  /// **'Sites'**
-  String get trips_breakdown_column_sites;
-
   /// No description provided for @trips_itinerary_dayLabel.
   ///
   /// In en, this message translates to:

@@ -9910,7 +9910,6 @@
   "trips_appBar_title": "Viagens",
   "trips_list_count": "{count, plural, =1{{count} viagem} other{{count} viagens}}",
   "trips_list_countFiltered": "{shown} de {total, plural, =1{{total} viagem} other{{total} viagens}}",
-  "trips_breakdown_column_sites": "Pontos",
   "trips_detail_action_delete": "Excluir",
   "trips_detail_action_export": "Exportar",
   "trips_detail_appBar_title": "Viagem",

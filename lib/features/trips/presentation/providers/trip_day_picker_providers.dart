@@ -33,7 +33,9 @@ final tripProfileWritesSourceProvider = Provider<TripProfileWrites>(
 );
 
 /// Counts the writes of a dive's stored profile: a download or an import
-/// filling in a dive that was logged by hand, a reparse, a merge.
+/// filling in a dive that was logged by hand, a reparse, a merge. Only a dive
+/// the picker drew as an estimate changes shape on one: see
+/// [TripProfileWrites].
 ///
 /// The trip story asks for its profiles again on each one. The story itself
 /// cannot say when: it is read without samples, so a dive that gains a

@@ -10044,7 +10044,6 @@
   "trips_appBar_title": "Reisen",
   "trips_list_count": "{count, plural, =1{{count} Reise} other{{count} Reisen}}",
   "trips_list_countFiltered": "{shown} von {total, plural, =1{{total} Reise} other{{total} Reisen}}",
-  "trips_breakdown_column_sites": "Plätze",
   "trips_detail_action_delete": "Löschen",
   "trips_detail_action_export": "Exportieren",
   "trips_detail_appBar_title": "Reise",

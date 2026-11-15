@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -68,7 +69,14 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
     // picker reads which plans were dived, and that read is dropped with the
     // Overview when another tab shows. Read again on each return, the picker
     // would draw the trip's plans a moment after everything else.
-    ref.watch(tripUndivedPlanIdsProvider(trip.id));
+    //
+    // Listened to, not watched: the picker reads the answer itself, and
+    // nothing here shows it, so an answer must not rebuild every tab. Only
+    // once the trip has begun: before that the Overview is the Prepare page,
+    // which has no picker.
+    if (!trip.startsAfter(clock.now())) {
+      ref.listen(tripUndivedPlanIdsProvider(trip.id), (_, _) {});
+    }
     return DefaultTabController(
       // Keyed by trip: the master-detail pane reuses this widget for the next
       // trip, which opens on its Overview, not on the tab left open before.
