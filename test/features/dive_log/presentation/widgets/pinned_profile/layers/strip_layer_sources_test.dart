@@ -420,12 +420,12 @@ void main() {
 
   test('ghost points past the end of the dive are dropped', () {
     final data = _build(
-      plan: ChartSourceOverlay(
+      plan: const ChartSourceOverlay(
         sourceId: 'plan',
         name: 'Plan',
         color: Colors.purple,
         computerId: null,
-        points: const [
+        points: [
           DiveProfilePoint(timestamp: 0, depth: 0),
           DiveProfilePoint(timestamp: 300, depth: 18),
           // The plan runs on, deeper, after the dive ended at 540 s.
