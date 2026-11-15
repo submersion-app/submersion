@@ -62,17 +62,26 @@ List<DateTime> wallClockHourTicks({
     return Duration(microseconds: intoDay.inMicroseconds % step.inMicroseconds);
   }
 
+  // [candidate] moved onto a step boundary of the site clock, not before
+  // [after]. A step that crossed a clock change lands off a boundary by the
+  // change; it goes back to the nearer boundary unless that is not later
+  // than [after], and forward otherwise.
+  DateTime realign(DateTime candidate, DateTime after) {
+    final drift = pastBoundary(candidate);
+    if (drift == Duration.zero) return candidate;
+    final back = candidate.subtract(drift);
+    if (drift * 2 <= step && back.isAfter(after)) return back;
+    return candidate.add(step - drift);
+  }
+
   final ticks = <DateTime>[];
   final offset = pastBoundary(start);
-  var tick = offset == Duration.zero ? start : start.add(step - offset);
+  var tick = offset == Duration.zero
+      ? start
+      : realign(start.add(step - offset), start);
   while (!tick.isAfter(end)) {
     ticks.add(tick);
-    var next = tick.add(step);
-    final drift = pastBoundary(next);
-    if (drift != Duration.zero) {
-      // The clock changed in between: step to the nearer boundary.
-      next = drift * 2 <= step ? next.subtract(drift) : next.add(step - drift);
-    }
+    final next = realign(tick.add(step), tick);
     if (!next.isAfter(tick)) break;
     tick = next;
   }

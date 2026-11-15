@@ -7,6 +7,7 @@ import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_chart_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Compact visualization showing where a tide is in its cycle.
@@ -99,6 +100,8 @@ class TideCycleGraph extends StatelessWidget {
             ringColor: backdropColorOf(context),
             gridColor: colorScheme.outlineVariant.withValues(alpha: 0.3),
             labelColor: colorScheme.onSurfaceVariant,
+            highColor: TideChartColors.of(context).high,
+            lowColor: TideChartColors.of(context).low,
             labelStyle: (textTheme.labelMedium ?? const TextStyle()).copyWith(
               fontSize: labelFontSize,
             ),
@@ -187,6 +190,10 @@ class _TideCyclePainter extends CustomPainter {
   final Color ringColor;
   final Color gridColor;
   final Color labelColor;
+
+  /// The high and low marks' colours, as on the other tide charts.
+  final Color highColor;
+  final Color lowColor;
   final TextStyle labelStyle;
   final bool showLabels;
   final double currentHeight;
@@ -207,6 +214,8 @@ class _TideCyclePainter extends CustomPainter {
     required this.ringColor,
     required this.gridColor,
     required this.labelColor,
+    required this.highColor,
+    required this.lowColor,
     required this.labelStyle,
     required this.showLabels,
     required this.currentHeight,
@@ -335,7 +344,7 @@ class _TideCyclePainter extends CustomPainter {
           TextSpan(
             text: 'H',
             style: labelStyle.copyWith(
-              color: Colors.red.shade600,
+              color: highColor,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -348,7 +357,7 @@ class _TideCyclePainter extends CustomPainter {
             TextSpan(
               text: ' $highHeightStr',
               style: labelStyle.copyWith(
-                color: Colors.red.shade600,
+                color: highColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -372,7 +381,7 @@ class _TideCyclePainter extends CustomPainter {
           TextSpan(
             text: 'L',
             style: labelStyle.copyWith(
-              color: Colors.blue.shade600,
+              color: lowColor,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -380,7 +389,7 @@ class _TideCyclePainter extends CustomPainter {
             TextSpan(
               text: ' $lowHeightStr',
               style: labelStyle.copyWith(
-                color: Colors.blue.shade600,
+                color: lowColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -401,7 +410,7 @@ class _TideCyclePainter extends CustomPainter {
           TextSpan(
             text: 'L',
             style: labelStyle.copyWith(
-              color: Colors.blue.shade600,
+              color: lowColor,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -409,7 +418,7 @@ class _TideCyclePainter extends CustomPainter {
             TextSpan(
               text: ' $lowHeightStr',
               style: labelStyle.copyWith(
-                color: Colors.blue.shade600,
+                color: lowColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -523,6 +532,8 @@ class _TideCyclePainter extends CustomPainter {
         ringColor != oldDelegate.ringColor ||
         gridColor != oldDelegate.gridColor ||
         labelColor != oldDelegate.labelColor ||
+        highColor != oldDelegate.highColor ||
+        lowColor != oldDelegate.lowColor ||
         labelStyle != oldDelegate.labelStyle ||
         showLabels != oldDelegate.showLabels ||
         currentHeight != oldDelegate.currentHeight ||

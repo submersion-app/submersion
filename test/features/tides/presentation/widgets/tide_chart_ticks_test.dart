@@ -114,6 +114,31 @@ void main() {
     });
   });
 
+  test('realigns the first tick when the clock changes before it', () {
+    // The site clock jumps forward an hour at 02:00 UTC, between the 01:10
+    // start and the first 2-hour boundary.
+    final change = DateTime.utc(2026, 3, 28, 2);
+    DateTime toSite(DateTime instant) => instant.isBefore(change)
+        ? instant
+        : instant.add(const Duration(hours: 1));
+    final start = DateTime.utc(2026, 3, 28, 1, 10);
+
+    final ticks = wallClockHourTicks(
+      start: start,
+      end: DateTime.utc(2026, 3, 28, 12),
+      stepHours: 2,
+      toSite: toSite,
+    );
+
+    expect(ticks, isNotEmpty);
+    for (final tick in ticks) {
+      expect(tick.isBefore(start), isFalse);
+      final wall = toSite(tick);
+      expect(wall.hour % 2, 0, reason: 'tick at $tick reads $wall');
+      expect(wall.minute, 0);
+    }
+  });
+
   group('tideTimeStepHours', () {
     test('uses a finer step on a wide plot', () {
       expect(tideTimeStepHours(plotWidth: 600, labelWidth: 40), 2);

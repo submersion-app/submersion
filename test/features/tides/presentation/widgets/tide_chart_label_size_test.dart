@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/tide/entities/tide_prediction.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_chart.dart';
@@ -52,6 +53,19 @@ Widget _app(Widget child) => MaterialApp(
 );
 
 void main() {
+  // Times are formatted with DateFormat(pattern) and no explicit locale, so
+  // the digits follow intl's process-wide default. Pin it, and put it back.
+  String? previousDefaultLocale;
+
+  setUp(() {
+    previousDefaultLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+
+  tearDown(() {
+    Intl.defaultLocale = previousDefaultLocale;
+  });
+
   group('TideChart label sizes (#4567)', () {
     Future<void> pump(WidgetTester tester) async {
       await tester.pumpWidget(
@@ -172,6 +186,42 @@ void main() {
       await pump(tester);
 
       expect(find.text('Now 22:00 -0.3m'), findsOneWidget);
+    });
+
+    testWidgets('the Now label stays inside the chart at a large text size', (
+      tester,
+    ) async {
+      // A past low at 21:45 opens the window at 21:15, so now (22:00) sits
+      // near the left edge; doubled text makes the pill wider than the room
+      // to its left.
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: _app(
+            SizedBox(
+              width: 360,
+              child: TideChart(
+                predictions: _predictions(),
+                extremes: [
+                  TideExtreme(
+                    type: TideExtremeType.low,
+                    time: DateTime.utc(2026, 1, 15, 21, 45),
+                    heightMeters: -0.4,
+                  ),
+                  ...edgeExtremes.skip(1),
+                ],
+                now: _reference,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final chart = tester.getRect(find.byType(TideChart));
+      final pill = tester.getRect(find.textContaining(RegExp(r'^Now \S')));
+      expect(pill.left, greaterThanOrEqualTo(chart.left - 0.5));
+      expect(pill.right, lessThanOrEqualTo(chart.right + 0.5));
     });
 
     testWidgets('a label near either edge turns inward instead of clipping', (

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
-import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -122,7 +121,7 @@ class DiveTideSection extends ConsumerWidget {
 
     // Build collapsed subtitle with tide state and height
     final collapsedSubtitle =
-        '${record.tideState.localizedName(context.l10n)} • ${DepthUnit.meters.convert(record.heightMeters, units.settings.depthUnit).toStringAsFixed(1)}${units.settings.depthUnit.symbol}';
+        '${record.tideState.localizedName(context.l10n)} • ${units.formatDepth(record.heightMeters)}';
 
     // The header names the dive's date; the chart's own axis carries the
     // times, and names the neighbouring day where the window crosses into
