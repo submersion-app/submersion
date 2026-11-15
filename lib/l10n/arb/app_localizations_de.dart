@@ -23363,7 +23363,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buoyancy_throughDive => 'Im Tauchgangverlauf';
 
   @override
-  String get buoyancy_adjust => 'Anpassen';
+  String get buoyancy_whatIfButton => 'Was wäre, wenn?';
 
   @override
   String buoyancy_readoutHeavy(String amount) {
@@ -23465,7 +23465,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_whatIfTitle => 'Diesen Tauchgang anpassen';
+  String get buoyancy_whatIfTitle => 'Was wäre, wenn du dein Blei änderst?';
+
+  @override
+  String get buoyancy_whatIfNote =>
+      'Was du hier ausprobierst, ändert nichts an deinem geloggten Tauchgang.';
 
   @override
   String get buoyancy_whatIfLead => 'Blei';
@@ -64011,7 +64015,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Fahre über das Diagramm, um zu sehen, was dich in diesem Moment nach unten zog und was dich oben hielt. Anpassen öffnet ein Blatt, das eine andere Bleimenge oder einen anderen Anzugauftrieb an diesem Tauchgang durchrechnet.';
+      'Fahre über das Diagramm, um zu sehen, was dich in diesem Moment nach unten zog und was dich oben hielt. „Was wäre, wenn?“ öffnet ein Blatt, das eine andere Bleimenge, einen anderen Wassertyp oder einen anderen Anzugauftrieb an diesem Tauchgang durchrechnet, ohne den Tauchgang zu ändern.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

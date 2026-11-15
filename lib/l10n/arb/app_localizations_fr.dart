@@ -23459,7 +23459,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buoyancy_throughDive => 'Pendant la plongée';
 
   @override
-  String get buoyancy_adjust => 'Ajuster';
+  String get buoyancy_whatIfButton => 'Et si ?';
 
   @override
   String buoyancy_readoutHeavy(String amount) {
@@ -23561,7 +23561,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_whatIfTitle => 'Ajuster cette plongée';
+  String get buoyancy_whatIfTitle => 'Et si vous changiez votre lestage ?';
+
+  @override
+  String get buoyancy_whatIfNote =>
+      'Rien de ce que vous essayez ici ne modifie votre plongée enregistrée.';
 
   @override
   String get buoyancy_whatIfLead => 'Lest';
@@ -64287,7 +64291,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Parcourez le graphique pour voir ce qui vous tirait vers le bas et ce qui vous maintenait à flot à cet instant. Ajuster ouvre une feuille qui essaie une autre quantité de lest ou de flottabilité de combinaison sur cette plongée.';
+      'Parcourez le graphique pour voir ce qui vous tirait vers le bas et ce qui vous maintenait à flot à cet instant. « Et si ? » ouvre une feuille qui essaie une autre quantité de lest, un autre type d\'eau ou une autre flottabilité de combinaison sur cette plongée, sans modifier la plongée.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

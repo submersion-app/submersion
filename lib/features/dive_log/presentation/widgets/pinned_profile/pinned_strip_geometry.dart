@@ -8,9 +8,12 @@ const double kPinnedStripHeight = 44;
 /// (issue #4562): room for several lines on scales of their own.
 const double kPinnedStripGrownHeight = 72;
 
-/// The shortest the squashed chart's plot gets, about the strip's own curve,
-/// so it is still a readable chart when the strip takes over from it.
-const double kMinPlotHeight = 48;
+/// The shortest the squashed chart's plot gets: the strip's own height, so
+/// it is still a readable chart when the strip takes over from it, and the
+/// two meet as the strip settles. Any taller and the strip, which never
+/// rises above the plot, settled that much too tall and shrank after
+/// (#4579).
+const double kMinPlotHeight = kPinnedStripHeight;
 
 /// The squash range used until the chart's plot has been measured.
 const double kSquashRange = 100;
@@ -55,8 +58,9 @@ double slideDepth({
 }
 
 /// The share of the squash-and-slide after which the strip starts to fade
-/// in. The fade has to be over by the end of it ([condenseFadeEnd]), so an
-/// early start gives it a long stretch of scroll to spread over.
+/// in. The fade and then the morph ([kCondenseFadeEnd]) have to be over by
+/// the end of it, so an early start gives them a long stretch of scroll to
+/// spread over.
 const double kHandOverOverlap = 0.2;
 
 /// How far the pinned copy has zoomed out from the full card's zoom window
@@ -71,37 +75,35 @@ double zoomOutProgress({required Rect card, required double plotAtTop}) {
 /// How far the card has handed over to the strip, from 0 to 1.
 ///
 /// [card] is the card's rect relative to the top of the scroll viewport. The
-/// hand-over starts once the card has scrolled [start] past the top (the
-/// squash, then the slide that brings its plot to the top) and completes as
-/// the card's bottom reaches the strip's, so scrolling slowly plays it
-/// slowly and scrolling back reverses it.
-double condenseProgress({required Rect card, double start = kSquashRange}) {
+/// hand-over starts once the card has scrolled [start] past the top and
+/// completes [end] px past it, as the card's plot reaches the top of the
+/// page, so scrolling slowly plays it slowly and scrolling back reverses it.
+///
+/// It is over by then, not when the card's bottom reaches the strip: what
+/// is left of the card below its plot (its axis and legend) slides up under
+/// the settled strip, and the cards below it come into view with the strip
+/// already scrubbable and showing their layers (issue #4579).
+double condenseProgress({
+  required Rect card,
+  required double start,
+  required double end,
+}) {
   final past = -card.top - start;
   if (past <= 0) return 0;
-  final travel = card.height - start - kPinnedStripHeight;
+  final travel = end - start;
   if (travel <= 0) return 1;
   return (past / travel).clamp(0.0, 1.0);
 }
 
 /// Where, as a share of the hand-over ([condenseProgress]), the strip's
-/// background has fully faded in over the card: the moment the card's plot
-/// reaches the top of the page, [plotAtTop] px past the card's top.
+/// background has fully faded in over the card's plot.
 ///
 /// Until then the strip's depth line sits exactly on the chart's, so only
-/// one line is seen. Past it the card slides its plot up out of view, so
-/// the full chart has to be gone by then, or the data on it would be seen
-/// leaving the view; the strip alone carries the line on, below the top
-/// ([PlotMapping.keptInView]). The fade follows the scroll position, so the
-/// same point is where the chart starts coming back when scrolling up.
-double condenseFadeEnd({
-  required double start,
-  required double plotAtTop,
-  required double cardHeight,
-}) {
-  final travel = cardHeight - start - kPinnedStripHeight;
-  if (travel <= 0) return 1;
-  return ((plotAtTop - start) / travel).clamp(0.0, 1.0);
-}
+/// one line is seen; past it the strip, opaque, morphs to its own shape
+/// while the chart's plot slides up beneath it. The fade follows the scroll
+/// position, so the same point is where the chart starts coming back when
+/// scrolling up.
+const double kCondenseFadeEnd = 0.5;
 
 /// The strip background's opacity at condense progress [t], fully opaque
 /// from [fadeEnd] on.
@@ -119,6 +121,53 @@ double condenseMorphProgress(double t, {required double fadeEnd}) {
     u = ((t - fadeEnd) / (1 - fadeEnd)).clamp(0.0, 1.0);
   }
   return u * u * (3 - 2 * u);
+}
+
+/// The mapping to hand the strip's painter as where its line starts
+/// (`PinnedStripPainter.from`, in the strip's own coordinates) so that the
+/// line is drawn [morph] of the way from [start] to [end], both on the page,
+/// while the strip's [box] (on the page) is itself on its way.
+///
+/// The painter blends from what it is handed to its own curve area, [own]
+/// (in the box), by [morph]. Handed [start] as it stands, moved into the
+/// box, the line took the morph twice, once with the box and once inside
+/// it, and lagged the box's edges: a blank border around it (#4579). This
+/// is the mapping whose blend lands where the line belongs. Its time and
+/// depth ranges are [start]'s, which the painter blends as before.
+PlotMapping morphStartFor({
+  required PlotMapping start,
+  required Rect end,
+  required Rect box,
+  required Rect own,
+  required double morph,
+}) {
+  final rest = 1 - morph;
+  final wanted = Rect.lerp(start.rect, end, morph)!.shift(-box.topLeft);
+  // Settled, nothing is left to blend from; the painter draws through its
+  // own area then.
+  if (rest <= 0) {
+    return PlotMapping(
+      rect: own,
+      minSeconds: start.minSeconds,
+      maxSeconds: start.maxSeconds,
+      minDepthMeters: start.minDepthMeters,
+      maxDepthMeters: start.maxDepthMeters,
+    );
+  }
+  double undo(double target, double ownEdge) =>
+      (target - morph * ownEdge) / rest;
+  return PlotMapping(
+    rect: Rect.fromLTRB(
+      undo(wanted.left, own.left),
+      undo(wanted.top, own.top),
+      undo(wanted.right, own.right),
+      undo(wanted.bottom, own.bottom),
+    ),
+    minSeconds: start.minSeconds,
+    maxSeconds: start.maxSeconds,
+    minDepthMeters: start.minDepthMeters,
+    maxDepthMeters: start.maxDepthMeters,
+  );
 }
 
 /// How a depth curve maps onto the screen: a plot [rect] spanning

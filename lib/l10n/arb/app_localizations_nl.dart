@@ -23252,7 +23252,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buoyancy_throughDive => 'Tijdens de duik';
 
   @override
-  String get buoyancy_adjust => 'Aanpassen';
+  String get buoyancy_whatIfButton => 'Wat als?';
 
   @override
   String buoyancy_readoutHeavy(String amount) {
@@ -23354,7 +23354,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_whatIfTitle => 'Deze duik aanpassen';
+  String get buoyancy_whatIfTitle => 'Wat als je je lood aanpast?';
+
+  @override
+  String get buoyancy_whatIfNote =>
+      'Wat je hier probeert, verandert niets aan je gelogde duik.';
 
   @override
   String get buoyancy_whatIfLead => 'Lood';
@@ -63757,7 +63761,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Beweeg over de grafiek om te zien wat je op dat moment omlaag trok en wat je omhoog hield. Aanpassen opent een blad dat een andere hoeveelheid lood of pakdrijfvermogen op deze duik doorrekent.';
+      'Beweeg over de grafiek om te zien wat je op dat moment omlaag trok en wat je omhoog hield. ‘Wat als?’ opent een blad dat een andere hoeveelheid lood, een ander watertype of een ander pakdrijfvermogen op deze duik doorrekent, zonder de duik te wijzigen.';
 
   @override
   String get info_diveLog_waterConditions_summary =>
