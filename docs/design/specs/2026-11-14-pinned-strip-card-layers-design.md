@@ -59,7 +59,7 @@ the cursor.
 | `health` | Heart rate line | `DiveProfilePoint.heartRate` |
 | `notes` | A tick at each annotation, and at each computer bookmark | `diveAnnotationsProvider`; `ProfileEventType.bookmark` events (`diveComputerEventsProvider`) |
 | `safetyReview` | A window per finding, start to end | `safetyReviewProvider` findings with `startTimestamp` (and `endTimestamp`); dismissed findings excluded |
-| `diveLab` | The linked plan's depth line, ghosted | `watchPlannedProfileForChart` (as the full chart's plan-vs-actual) |
+| `diveLab` | The linked plan's depth line, ghosted | `plannedProfileOverlayProvider` (the full chart's plan-vs-actual line, read without the chart's own plan switch) |
 | `dataSources` | The dive's other computers' depth lines, ghosted | `sourceProfilesProvider`, every source but the active one |
 
 The first five rows are the diver's. The diver later approved every other
@@ -68,6 +68,12 @@ card adds nothing: altitude, tide, nav track (its map already follows the
 shared cursor), sightings, weights, buoyancy, buddies, equipment, tags,
 documents, custom fields, signatures, surface GPS, details. A running
 mean-depth line for details was considered and dropped as low value.
+
+**The full chart's own switches:** a card in view adds its layers even
+where the diver has hidden that metric on the full chart (its legend or
+options): the card being on screen is the stronger signal. Proposed in
+design and not objected to. So the plan shows with Dive Lab in view even
+with the chart's plan switch off.
 
 A layer whose data the dive does not have (no temperature samples, no tank
 pressure series, no media) draws nothing and adds no tooltip row, even with

@@ -81,6 +81,8 @@ void main() {
         DiveProfilePoint(
           timestamp: t,
           depth: t < 300 ? t / 20 : (600 - t) / 20,
+          // A temperature, so the environment card has a line to add.
+          temperature: 24 - t / 100,
         ),
     ],
   );
@@ -115,6 +117,7 @@ void main() {
     double footerHeight = footer,
     double pagePadding = 0,
     bool markTarget = false,
+    bool enabled = true,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -139,6 +142,7 @@ void main() {
                     SizedBox(width: w, height: 600, child: child),
                 child: PinnedProfileOverlay(
                   dive: dive,
+                  enabled: enabled,
                   profileKey: profileKey,
                   chartViewport: chartViewport,
                   squashedCard: (context, onPlotFrame, viewport) => Column(
@@ -842,6 +846,63 @@ void main() {
       await condenseTo(tester, 0.5);
       expect(host(tester).shown, isTrue);
       expect(host(tester).settled, isFalse);
+    });
+
+    testWidgets('with the strip off, no card is tracked', (tester) async {
+      await pump(
+        tester,
+        profileKey: GlobalKey(),
+        targetKey: GlobalKey(),
+        markTarget: true,
+        enabled: false,
+      );
+      await jump(tester, 1300);
+      expect(host(tester).cardsInView, isEmpty);
+      expect(host(tester).shown, isFalse);
+    });
+
+    testWidgets('the page keeps its place as the strip comes and goes', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        profileKey: GlobalKey(),
+        targetKey: GlobalKey(),
+        markTarget: true,
+      );
+      final page = position(tester);
+      await jump(tester, 1300);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(identical(position(tester), page), isTrue);
+      expect(position(tester).pixels, 1300);
+      await jump(tester, 0);
+      expect(identical(position(tester), page), isTrue);
+      expect(position(tester).pixels, 0);
+    });
+
+    testWidgets('scrolling back, the grown strip shrinks as it condenses', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        profileKey: GlobalKey(),
+        targetKey: GlobalKey(),
+        markTarget: true,
+      );
+      // A line layer would grow it; settle with the marked card in view.
+      await jump(tester, 1300);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(host(tester).settled, isTrue);
+      expect(stripWidget(tester).layers.grow, 1);
+      expect(
+        tester.getSize(strip).height,
+        kPinnedStripGrownHeight,
+      );
+      await condenseTo(tester, 0.5);
+      expect(host(tester).settled, isFalse);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(stripWidget(tester).layers.grow, 0);
+      expect(stripWidget(tester).layers.strengths, isEmpty);
     });
 
     testWidgets('nothing is shown while the card is on screen', (tester) async {

@@ -794,6 +794,52 @@ void main() {
       expect(find.text('21°C'), findsOneWidget);
     });
 
+    // Many layer rows on a short screen must not run the tooltip off it
+    // (review): its room is capped, and its box scales down to fit.
+    testWidgets('the tooltip room is capped on a short screen', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 600);
+      addTearDown(tester.view.reset);
+      final tanks = PinnedStripLayerData(
+        lines: [
+          for (var i = 0; i < 12; i++)
+            StripLine(
+              layer: StripLayer.tankPressure,
+              key: 't$i',
+              color: Colors.green,
+              runs: const [
+                [StripPoint(0, 200), StripPoint(1500, 50)],
+              ],
+              min: 50,
+              max: 200,
+              label: 'Tank ${i + 1}',
+            ),
+        ],
+      );
+      final c = await pump(
+        tester,
+        layers: StripLayerState(
+          data: tanks,
+          strengths: const {StripLayer.tankPressure: 1},
+          grow: 1,
+          active: const {StripLayer.tankPressure},
+        ),
+      );
+      await setCursor(c, tester, 75);
+      final room = tester.getSize(
+        find
+            .ancestor(
+              of: tooltip(),
+              matching: find.byType(CustomSingleChildLayout),
+            )
+            .first,
+      );
+      expect(room.height, lessThanOrEqualTo(300));
+      expect(tester.getRect(tooltip()).bottom, lessThanOrEqualTo(600));
+    });
+
     testWidgets('the semantics value reads the layer row too', (tester) async {
       final handle = tester.ensureSemantics();
       final c = await pump(tester, layers: state());

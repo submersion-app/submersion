@@ -128,12 +128,14 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
   /// rebuilds only when that changes.
   void _updateInView() {
     final viewport = _lastConstraints?.maxHeight;
-    final inView = viewport == null || !viewport.isFinite
+    // With the strip off nothing is drawn, so no card is worth tracking.
+    final inView = !widget.enabled || viewport == null || !viewport.isFinite
         ? const <DiveDetailSectionId>{}
         : cardsInView(
             cardsInContent: _cardRects,
             pixels: _pixels,
             viewportHeight: viewport,
+            previously: _inView,
           );
     if (!setEquals(inView, _inView)) setState(() => _inView = inView);
   }
@@ -182,7 +184,7 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     final card = onOverlay(
       boxOf(widget.profileKey.currentContext),
     )?.shift(Offset(0, _pixels));
-    _cardRects = overlay is RenderBox
+    _cardRects = widget.enabled && overlay is RenderBox
         ? _cards.measure(overlay, _pixels)
         : const {};
     _updateInView();
@@ -310,7 +312,8 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
       // A content resize can move the offset with the card staying put in
       // the content, which the measure alone would not rebuild for.
       if (pixels != _pixels) setState(() => _pixels = pixels);
-      _updateInView();
+      // Not judged here: the content may have resized, and the card rects
+      // are from before it. The measure that follows judges them afresh.
       _scheduleMeasure();
     }
     return false;

@@ -79,4 +79,35 @@ void main() {
       {_env, DiveDetailSectionId.tanks},
     );
   });
+
+  // A card resting on the threshold must not flicker in and out with a
+  // pixel of trackpad jitter (review): once in view it stays in until it
+  // falls a little further below the threshold.
+  group('hysteresis', () {
+    Set<DiveDetailSectionId> judged(double top, {required bool wasIn}) =>
+        cardsInView(
+          cardsInContent: {_env: Rect.fromLTWH(0, top, 400, 300)},
+          pixels: 1000,
+          viewportHeight: 800,
+          previously: wasIn ? {_env} : const {},
+        );
+
+    test('a card in view stays in a little below the threshold', () {
+      // 90 px below the edge: under 96, inside the hysteresis.
+      expect(judged(862, wasIn: true), {_env});
+      expect(judged(862, wasIn: false), isEmpty);
+    });
+
+    test('it leaves once past the hysteresis', () {
+      expect(
+        judged(1072 - 300 + 96 - kCardInViewHysteresisPx - 1, wasIn: true),
+        isEmpty,
+      );
+    });
+
+    test('a card out of view still needs the full threshold to come in', () {
+      expect(judged(867, wasIn: false), isEmpty);
+      expect(judged(868, wasIn: false), {_env});
+    });
+  });
 }
