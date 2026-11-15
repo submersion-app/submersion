@@ -186,5 +186,83 @@ void main() {
 
       expect(idsOf(result.sites).toSet(), {'north', 'south', 'east', 'west'});
     });
+
+    group('by kind', () {
+      final mixed = [
+        at('site_a', 58.2, -3.8),
+        at('site_b', 59.8, -2.2),
+        at('wreck_edge', 59.9, -2.1, register: true),
+        at('wreck_centre', 59.01, -3.01, register: true),
+        at('wreck_mid', 59.4, -3.4, register: true),
+      ];
+
+      test('dive sites only leaves every register record out', () async {
+        final catalogue = await catalogueOf(mixed);
+
+        final result = await catalogue.inBounds(
+          box,
+          kinds: const {CatalogueKind.site},
+        );
+
+        expect(idsOf(result.sites).toSet(), {'site_a', 'site_b'});
+        expect(result.truncated, isFalse);
+      });
+
+      test('dive sites only is cut short by dive sites alone', () async {
+        final catalogue = await catalogueOf(mixed);
+
+        // Two dive sites fit a limit of two, however many register
+        // records the box also holds.
+        final fits = await catalogue.inBounds(
+          box,
+          limit: 2,
+          kinds: const {CatalogueKind.site},
+        );
+        expect(fits.sites, hasLength(2));
+        expect(fits.truncated, isFalse);
+
+        final cut = await catalogue.inBounds(
+          box,
+          limit: 1,
+          kinds: const {CatalogueKind.site},
+        );
+        expect(cut.sites, hasLength(1));
+        expect(cut.truncated, isTrue);
+      });
+
+      test('register records only, nearest the centre first, taking the '
+          'whole limit', () async {
+        final catalogue = await catalogueOf(mixed);
+
+        final result = await catalogue.inBounds(
+          box,
+          limit: 2,
+          kinds: const {CatalogueKind.register},
+        );
+
+        expect(idsOf(result.sites), ['wreck_centre', 'wreck_mid']);
+        expect(result.truncated, isTrue);
+
+        final all = await catalogue.inBounds(
+          box,
+          kinds: const {CatalogueKind.register},
+        );
+        expect(idsOf(all.sites).toSet(), {
+          'wreck_edge',
+          'wreck_centre',
+          'wreck_mid',
+        });
+        expect(all.truncated, isFalse);
+      });
+
+      test('no kind reads nothing', () async {
+        final catalogue = await catalogueOf(mixed);
+
+        final result = await catalogue.inBounds(box, kinds: const {});
+
+        expect(result.sites, isEmpty);
+        expect(result.truncated, isFalse);
+      });
+    });
   });
 }

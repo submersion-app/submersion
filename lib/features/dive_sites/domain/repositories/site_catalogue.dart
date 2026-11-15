@@ -31,9 +31,17 @@ abstract interface class SiteCatalogue {
   /// The sites in [bounds], for a map: at most [limit], dive sites first,
   /// then register records, each kind nearest the middle of the box first.
   /// `truncated` says the box held more.
+  ///
+  /// Only records of [kinds] are read, and [limit] and `truncated` speak
+  /// of those alone: a map that draws dive sites only is not cut short by
+  /// the wrecks around them. With no kind nothing is read.
   Future<CatalogueBoundsResult> inBounds(
     CatalogueBounds bounds, {
     int limit = 1500,
+    Set<CatalogueKind> kinds = const {
+      CatalogueKind.site,
+      CatalogueKind.register,
+    },
   });
 
   /// Sites whose name or place matches every word of [query].
