@@ -209,7 +209,10 @@ void main() {
     expect(within('30.2m'), findsOneWidget);
     expect(
       tester.getSemantics(line),
-      isSemantics(label: 'Thu, Oct 29, Site 2', isButton: true),
+      isSemantics(
+        label: 'Thu, Oct 29, Site 2, 3 dives, deepest 30.2m',
+        isButton: true,
+      ),
     );
   });
 
@@ -348,6 +351,89 @@ void main() {
         findsOneWidget,
       );
       expect(find.byType(TodayChip), findsOneWidget);
+      // What the chip shows is also said.
+      expect(
+        tester.getSemantics(find.byKey(TripStoryDayLine.keyFor(2))).label,
+        endsWith(', Today'),
+      );
+    });
+
+    testWidgets('a day ahead with dives planned for it reads as planned, not '
+        'as dived', (tester) async {
+      final withPlans = _trip(start, [1, 1, 2], today: now);
+      await pumpTripPage(
+        tester,
+        story: withPlans.story,
+        stats: withPlans.stats,
+        extra: [cylinders],
+      );
+
+      final tomorrow = find.byKey(TripStoryDayLine.keyFor(3));
+      expect(
+        find.descendant(of: tomorrow, matching: find.text('Planned')),
+        findsOneWidget,
+      );
+      expect(tester.getSemantics(tomorrow).label, endsWith(', Planned'));
+      // Days that have happened are not marked.
+      expect(find.text('Planned'), findsOneWidget);
+    });
+
+    testWidgets("at text scale 2.0 on a narrow phone, today's line keeps its "
+        'date and its figures', (tester) async {
+      // The line alone: the Documents card further down this page has a
+      // header row of its own that does not fit at this size, which is not
+      // this line's to answer for.
+      final previousLocale = Intl.defaultLocale;
+      Intl.defaultLocale = 'en';
+      addTearDown(() => Intl.defaultLocale = previousLocale);
+      final today = underWay.story.days[1];
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Align(
+                alignment: Alignment.topLeft,
+                child: Builder(
+                  builder: (context) => MediaQuery(
+                    data: MediaQuery.of(
+                      context,
+                    ).copyWith(textScaler: const TextScaler.linear(2)),
+                    child: SizedBox(
+                      width: 320,
+                      child: TripStoryDayLine(day: today, onTap: () {}),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      final line = find.byKey(TripStoryDayLine.keyFor(2));
+      final date = find.descendant(
+        of: line,
+        matching: find.byWidgetPredicate(
+          (w) => w is Text && (w.data ?? '').contains(', '),
+        ),
+      );
+      // The date has room to be read: it is not an initial and an ellipsis.
+      expect(tester.getSize(date.first).width, greaterThan(120));
+      expect(
+        find.descendant(of: line, matching: find.textContaining('1 dive')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: line, matching: find.byType(TodayChip)),
+        findsOneWidget,
+      );
     });
   });
 

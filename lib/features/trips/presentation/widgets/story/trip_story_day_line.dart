@@ -12,7 +12,11 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// day.
 ///
 /// A surface day is drawn muted and shows no dive figures, so the dived days
-/// stand out when the list is scanned.
+/// stand out when the list is scanned. Today carries its chip, and a day
+/// ahead is marked Planned: its dives are plans, and must not read as dived.
+///
+/// Where the line is narrow for its text (a phone at a large text size), the
+/// figures and the chip move under the date instead of squeezing it.
 class TripStoryDayLine extends ConsumerWidget {
   const TripStoryDayLine({super.key, required this.day, required this.onTap});
 
@@ -20,6 +24,9 @@ class TripStoryDayLine extends ConsumerWidget {
   final VoidCallback onTap;
 
   static Key keyFor(int dayNumber) => Key('trip-day-line-$dayNumber');
+
+  /// Below this many points of width per unit of text scale, the line stacks.
+  static const double _roomyWidth = 300;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,94 +38,142 @@ class TripStoryDayLine extends ConsumerWidget {
     final parts = tripDaySubtitleParts(context, day);
     final quiet = day.isSurface || day.isPlannedRest;
     final maxDepth = day.maxDepth;
+    final hasDives = day.dives.isNotEmpty;
+    final diveCount = hasDives
+        ? l10n.diveLog_listPage_tripGroupDiveCount(day.diveCount)
+        : null;
+    final depth = hasDives && maxDepth != null
+        ? units.formatDepth(maxDepth)
+        : null;
+    final chip = switch (day.kind) {
+      TripStoryDayKind.today => const TodayChip(),
+      TripStoryDayKind.future => Chip(
+        label: Text(l10n.trips_story_planned),
+        visualDensity: VisualDensity.compact,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      TripStoryDayKind.past => null,
+    };
+    // Everything the line shows, said: the figures and the chip included.
+    final spoken = [
+      date,
+      ...parts,
+      ?diveCount,
+      if (depth != null) l10n.trips_story_dayTile_deepest(depth),
+      if (day.kind == TripStoryDayKind.today) l10n.trips_story_today,
+      if (day.kind == TripStoryDayKind.future) l10n.trips_story_planned,
+    ].join(', ');
+
+    final badge = Container(
+      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: quiet ? scheme.surfaceContainerHighest : scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        '${day.dayNumber}',
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: quiet ? scheme.onSurfaceVariant : scheme.onPrimaryContainer,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+    final dateStyle = theme.textTheme.titleSmall?.copyWith(
+      fontWeight: FontWeight.w600,
+      color: quiet ? scheme.onSurfaceVariant : null,
+    );
+    final subtitleStyle = theme.textTheme.bodySmall?.copyWith(
+      color: scheme.onSurfaceVariant,
+    );
 
     return Semantics(
       key: keyFor(day.dayNumber),
       container: true,
       button: true,
-      label: [date, ...parts].join(', '),
+      label: spoken,
       onTap: onTap,
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Row(
-            children: [
-              Container(
-                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: quiet
-                      ? scheme.surfaceContainerHighest
-                      : scheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  '${day.dayNumber}',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: quiet
-                        ? scheme.onSurfaceVariant
-                        : scheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final scale = MediaQuery.textScalerOf(context).scale(1);
+              final roomy = constraints.maxWidth / scale >= _roomyWidth;
+              return Row(
+                crossAxisAlignment: roomy
+                    ? CrossAxisAlignment.center
+                    : CrossAxisAlignment.start,
+                children: [
+                  // A fixed-size box given an alignment would fill the row's
+                  // height; unbound, the badge keeps to its number.
+                  UnconstrainedBox(child: badge),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (roomy)
+                          Text(
+                            date,
+                            style: dateStyle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        else
+                          // The date is read in full, wrapping if it must,
+                          // and the chip takes the next line when the two
+                          // do not fit.
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(date, style: dateStyle),
+                              ?chip,
+                            ],
+                          ),
+                        if (parts.isNotEmpty)
+                          Text(
+                            parts.join(' · '),
+                            style: subtitleStyle,
+                            maxLines: roomy ? 1 : 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        if (!roomy && diveCount != null)
+                          Text(
+                            [diveCount, ?depth].join(' · '),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      date,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: quiet ? scheme.onSurfaceVariant : null,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (parts.isNotEmpty)
-                      Text(
-                        parts.join(' · '),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                  if (roomy && chip != null) ...[
+                    const SizedBox(width: 8),
+                    chip,
                   ],
-                ),
-              ),
-              if (day.kind == TripStoryDayKind.today) ...[
-                const SizedBox(width: 8),
-                const TodayChip(),
-              ],
-              if (day.dives.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      l10n.diveLog_listPage_tripGroupDiveCount(day.diveCount),
-                      style: theme.textTheme.labelLarge,
+                  if (roomy && diveCount != null) ...[
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(diveCount, style: theme.textTheme.labelLarge),
+                        if (depth != null) Text(depth, style: subtitleStyle),
+                      ],
                     ),
-                    if (maxDepth != null)
-                      Text(
-                        units.formatDepth(maxDepth),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
                   ],
-                ),
-              ],
-              const SizedBox(width: 4),
-              Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
-            ],
+                  const SizedBox(width: 4),
+                  Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
+                ],
+              );
+            },
           ),
         ),
       ),
