@@ -106,7 +106,8 @@ class DiveEquipmentSection extends ConsumerWidget {
             session,
             set,
             items,
-            read: ref.read,
+            // The banner goes as the use starts; the use goes on.
+            read: ProviderScope.containerOf(context, listen: false).read,
             questions: SetUseQuestions.dialogs(
               context,
               ref.read(unitFormatterProvider),

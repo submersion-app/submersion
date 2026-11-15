@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -190,18 +191,33 @@ void tankSlotChosen(
 /// link is cleared, since a slot belongs to one trip, the notes of
 /// suggested and declined cylinders start again, and slots on the new trip
 /// are suggested ([suggestTankSlots]), as the form's `_setTrip` does.
+///
+/// Back on the trip the dive is stored on, a stored cylinder gets its own
+/// link back rather than none: changing the trip and changing it back is
+/// no change.
 void tanksAfterTripChange(
   EditSession<Dive> session, {
   required TripSlotReader readSlots,
 }) {
   if (session.isFrozen || session.isDisposed) return;
-  final tanks = session.valueOf(diveTanksField);
-  if (tanks.any((t) => t.tripCylinderId != null)) {
-    setTanks(session, [
-      for (final t in tanks)
-        t.tripCylinderId == null ? t : t.copyWith(clearTripCylinderId: true),
-    ]);
+  final storedTripId = _tripIdOf(session.stored);
+  final backOnStored =
+      storedTripId != null && _tripIdOf(session.working) == storedTripId;
+  final storedLinks = <String, String?>{
+    if (backOnStored)
+      for (final t in session.stored.tanks) t.id: t.tripCylinderId,
+  };
+  DiveTank relinked(DiveTank t) {
+    final link = storedLinks[t.id];
+    if (link == t.tripCylinderId) return t;
+    return link == null
+        ? t.copyWith(clearTripCylinderId: true)
+        : t.copyWith(tripCylinderId: link);
   }
+
+  final tanks = session.valueOf(diveTanksField);
+  final next = [for (final t in tanks) relinked(t)];
+  if (!listEquals(next, tanks)) setTanks(session, next);
   session
     ..remember(_suggestedKey, const <String>{})
     ..remember(_declinedKey, const <String>{});

@@ -49,16 +49,14 @@ class SetUseResult {
 /// The two questions a set's use can ask, as dialogs over the caller's
 /// [BuildContext]. Built before the use starts, so the use itself holds no
 /// context across its awaits; a question asked once the caller has gone
-/// gets no answer, which keeps what is there.
+/// gets no answer, which keeps what is there. The use goes on: the card
+/// that asked closing is not the diver taking the set back.
 class SetUseQuestions {
   SetUseQuestions.dialogs(BuildContext context, this.units)
     : _context = context;
 
   final BuildContext _context;
   final UnitFormatter units;
-
-  /// Whether the caller is still on screen.
-  bool get stillWanted => _context.mounted;
 
   /// Add the set's weights, replace them, or keep the dive's.
   Future<SetWeightsChoice?> weights({
@@ -92,7 +90,8 @@ class SetUseQuestions {
   }
 }
 
-SetUseCards _cardsOf(EditSession<Dive> session) => (
+/// The gear, weights and cylinders of [session] as they stand.
+SetUseCards setUseCardsOf(EditSession<Dive> session) => (
   gear: session.valueOf(diveGearField),
   weights: session.valueOf(diveWeightsField),
   tanks: session.valueOf(diveTanksField),
@@ -110,10 +109,11 @@ SetUseCards _cardsOf(EditSession<Dive> session) => (
 /// overwrites nothing.
 ///
 /// Every step drops its result when the sitting has ended or is being
-/// saved, or the caller asking the [questions] has gone. A use with [auto]
-/// asks none and needs none. Providers are read through [read]. Save waits
-/// for the whole use. Returns what changed, or null when it stopped before
-/// the end.
+/// saved, or [stillWanted] says no (a site's location set, once the site
+/// changed again). A use with [auto] asks none and needs none. Providers
+/// are read through [read], which must outlive the widget that asked: the
+/// use goes on after its card closes. Save waits for the whole use.
+/// Returns what changed, or null when it stopped before the end.
 Future<SetUseResult?> useSetInSitting(
   EditSession<Dive> session,
   EquipmentSet set,
@@ -121,9 +121,10 @@ Future<SetUseResult?> useSetInSitting(
   required ProviderRead read,
   SetUseQuestions? questions,
   required bool auto,
+  bool Function()? stillWanted,
 }) {
   assert(auto || questions != null, 'A use that may ask needs its questions');
-  final run = _use(questions, read, session, set, items, auto);
+  final run = _use(questions, read, session, set, items, auto, stillWanted);
   session.track(run);
   return run;
 }
@@ -135,13 +136,12 @@ Future<SetUseResult?> _use(
   EquipmentSet set,
   List<EquipmentItem> items,
   bool auto,
+  bool Function()? stillWanted,
 ) async {
   bool alive() =>
-      !session.isDisposed &&
-      !session.isFrozen &&
-      (questions?.stillWanted ?? true);
+      !session.isDisposed && !session.isFrozen && (stillWanted?.call() ?? true);
   if (!alive()) return null;
-  final before = _cardsOf(session);
+  final before = setUseCardsOf(session);
   final covered = await _coveredByOuterSet(read, session, set);
   if (!alive()) return null;
   final absorbedWeights = await _absorbIncludedSets(read, session, set);
@@ -151,7 +151,7 @@ Future<SetUseResult?> _use(
     session,
     items,
     viaSetId: set.id,
-    stillWanted: () => questions?.stillWanted ?? true,
+    stillWanted: stillWanted,
   );
   if (!alive()) return null;
   SetBundle? bundle;
@@ -180,7 +180,7 @@ Future<SetUseResult?> _use(
     await _applyCylinders(questions, session, set, bundle, auto: auto);
     if (!alive()) return null;
   }
-  return SetUseResult(before: before, after: _cardsOf(session));
+  return SetUseResult(before: before, after: setUseCardsOf(session));
 }
 
 /// Whether a set already on the dive includes [set]: its lead is then
@@ -316,8 +316,10 @@ Future<void> _applyCylinders(
         ) ??
         false;
     if (!confirmed || session.isDisposed || session.isFrozen) return;
+    // Over the cylinders as they are now: one that came while the question
+    // was open is kept.
     result = adapter.apply(
-      tanks: tanks,
+      tanks: session.valueOf(diveTanksField),
       items: bundle.cylinders,
       newId: (_) => newSittingTankId(),
       overwrite: true,

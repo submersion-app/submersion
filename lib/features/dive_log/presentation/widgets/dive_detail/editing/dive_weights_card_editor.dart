@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
@@ -18,6 +19,8 @@ import 'package:submersion/shared/widgets/forms/form_overline.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_form.dart';
 import 'package:submersion/shared/widgets/record_editing/record_number_row.dart';
+
+const _log = LoggerService('DiveWeightsCardEditor');
 
 /// The Weight card's editor (issue #4527): the weights with their total, a
 /// saved preset, and how the weighting felt.
@@ -93,11 +96,23 @@ class _DiveWeightsCardEditorState extends ConsumerState<DiveWeightsCardEditor> {
         if (w.amountKg > 0) w,
     ];
     if (weights.isEmpty) return;
-    await repository.createFromWeights(
-      diverId: diverId,
-      displayName: name,
-      weights: weights,
-    );
+    try {
+      await repository.createFromWeights(
+        diverId: diverId,
+        displayName: name,
+        weights: weights,
+      );
+    } catch (error, stackTrace) {
+      _log.error(
+        'Saving the weights as a preset failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      messenger.showSnackBar(
+        SnackBar(content: Text('${l10n.common_label_error}: $error')),
+      );
+      return;
+    }
     messenger.showSnackBar(
       SnackBar(content: Text(l10n.diveLog_edit_weightPreset_saved(name))),
     );

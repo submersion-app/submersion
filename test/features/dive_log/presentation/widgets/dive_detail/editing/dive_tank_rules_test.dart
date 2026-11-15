@@ -186,6 +186,20 @@ void main() {
       ], everyElement(isNull));
     });
 
+    test('a trip changed and changed back gives the stored cylinders their '
+        'links back, so the card is unchanged', () async {
+      final linked = dive.copyWith(
+        tanks: [stored.copyWith(tripCylinderId: 's1')],
+      );
+      final s = EditSession(linked)..set(diveTripField, otherTrip);
+      tanksAfterTripChange(s, readSlots: slots);
+      s.set(diveTripField, trip);
+      tanksAfterTripChange(s, readSlots: slots);
+      await s.settled();
+      expect(s.working.tanks.single.tripCylinderId, 's1');
+      expect(s.changedCardIds, isEmpty);
+    });
+
     test('clearing the trip clears the links and suggests nothing', () async {
       final linked = dive.copyWith(
         tanks: [stored.copyWith(tripCylinderId: 's1')],

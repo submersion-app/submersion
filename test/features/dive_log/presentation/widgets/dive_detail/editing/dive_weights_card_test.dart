@@ -213,6 +213,26 @@ void main() {
     expect(c.session!.isDirty, isFalse);
   });
 
+  testWidgets('Save as preset that cannot be written says so, and nothing '
+      'is left unhandled', (tester) async {
+    // No diver 'me' in the database: the preset's insert is refused.
+    final c = await pumpEditor(tester, dive);
+
+    await tester.tap(find.text(l.diveLog_edit_weightPreset_save));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Cold water');
+    await tester.tap(find.text(l.common_action_save));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining(l.common_label_error), findsOneWidget);
+    expect(
+      find.text(l.diveLog_edit_weightPreset_saved('Cold water')),
+      findsNothing,
+    );
+    expect(c.session!.isDirty, isFalse);
+  });
+
   testWidgets('feedback over with an amount, in pounds, saves kilograms', (
     tester,
   ) async {

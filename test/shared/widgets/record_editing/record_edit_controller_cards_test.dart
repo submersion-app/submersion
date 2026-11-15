@@ -459,6 +459,38 @@ void main() {
       expect(s.isFrozen, isFalse);
     });
 
+    test('onStart is told of each sitting as unlock starts it', () {
+      final started = <EditSession<_Rec>>[];
+      final c = RecordEditController<_Rec>(
+        onSave: (_) async {},
+        onStart: started.add,
+      );
+      addTearDown(c.dispose);
+
+      c.unlock(const _Rec());
+      c.unlock(const _Rec(depth: 2));
+
+      expect(started, [same(c.session)]);
+      c.lock();
+      c.unlock(const _Rec(depth: 3));
+      expect(started, hasLength(2));
+      expect(started.last, same(c.session));
+    });
+
+    test('a sitting with no changes locks though a stored value fails a '
+        'check: there is nothing to write', () async {
+      var saves = 0;
+      final c = _controller(
+        onSave: (_) async => saves++,
+        invalidCards: negativeDepth,
+      )..unlock(const _Rec(depth: -1));
+
+      expect(await c.save(), isTrue);
+      expect(saves, 0);
+      expect(c.refusedForInvalidInput, isFalse);
+      expect(c.isUnlocked, isFalse);
+    });
+
     test('with no invalidCards, save is as before', () async {
       var saves = 0;
       final c = _controller(onSave: (_) async => saves++)..unlock(const _Rec());

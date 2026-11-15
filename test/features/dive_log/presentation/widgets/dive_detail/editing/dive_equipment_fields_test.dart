@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -7,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../../../helpers/mock_providers.dart';
@@ -162,6 +165,33 @@ void main() {
         ], stillWanted: () => true);
         await Future.wait([first, second]);
       });
+
+      expect([for (final g in s.working.gear) g.item.id], ['fins', 'mask']);
+    });
+
+    test('a removal made while an add reads its parts is kept', () async {
+      final gate = Completer<ComponentsIndex>();
+      final container = ProviderContainer(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          equipmentComponentsIndexProvider.overrideWith((ref) => gate.future),
+        ],
+      );
+      addTearDown(container.dispose);
+      final s = EditSession(dive);
+      const mask = EquipmentItem(
+        id: 'mask',
+        name: 'Mask',
+        type: EquipmentType.mask,
+      );
+
+      final add = addGearToSitting(container.read, s, const [
+        mask,
+      ], stillWanted: () => true);
+      await Future<void>.delayed(Duration.zero);
+      removeSetFromSitting(s, 'warm', keepGear: false);
+      gate.complete(ComponentsIndex.empty);
+      await add;
 
       expect([for (final g in s.working.gear) g.item.id], ['fins', 'mask']);
     });

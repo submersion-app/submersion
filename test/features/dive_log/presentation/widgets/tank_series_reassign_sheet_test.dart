@@ -62,6 +62,7 @@ void main() {
   Widget host({
     String diveId = 'd1',
     Future<void> Function(String a, String b)? onExchange,
+    domain.Dive Function(domain.Dive stored)? shape,
   }) => testAppInShell(
     overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
     child: Consumer(
@@ -73,7 +74,7 @@ void main() {
           await showTankSeriesReassignSheet(
             context,
             ref,
-            dive: dive!,
+            dive: shape == null ? dive! : shape(dive!),
             tankPressures: pressures,
             onExchange: onExchange,
           );
@@ -214,4 +215,49 @@ void main() {
       expect(moved.sourceTankIndex, 2);
     },
   );
+
+  testWidgets('handed an exchange, "Move to" offers the cylinders the sheet '
+      'was given, not the dive as stored', (tester) async {
+    await diveRepo.createDive(
+      domain.Dive(
+        id: 'd4',
+        dateTime: DateTime.utc(2026, 7, 3, 10),
+        tanks: const [
+          domain.DiveTank(id: 't4A', name: 'Back gas', order: 0),
+          domain.DiveTank(id: 't4B', name: 'Deco', order: 1),
+          domain.DiveTank(id: 't4C', name: 'Stage', order: 2),
+        ],
+      ),
+    );
+    await tankRepo.insertTankPressures('d4', {
+      't4A': [
+        (timestamp: 0, pressure: 200.0),
+        (timestamp: 600, pressure: 150.0),
+      ],
+    });
+    final asked = <(String, String)>[];
+
+    await tester.pumpWidget(
+      host(
+        diveId: 'd4',
+        onExchange: (a, b) async => asked.add((a, b)),
+        // The sitting removed the stage.
+        shape: (d) => d.copyWith(
+          tanks: [
+            for (final t in d.tanks)
+              if (t.id != 't4C') t,
+          ],
+        ),
+      ),
+    );
+    await tester.tap(find.text('OPEN'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Move to'));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(SimpleDialogOption, 'Stage'), findsNothing);
+    await tester.tap(find.widgetWithText(SimpleDialogOption, 'Deco'));
+    await tester.pumpAndSettle();
+    expect(asked, [('t4A', 't4B')]);
+  });
 }

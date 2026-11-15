@@ -153,8 +153,11 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
         units: units,
       );
       if (!confirmed || !mounted) return;
+      if (_session.isDisposed || _session.isFrozen) return;
+      // Over the cylinders as they are now: one that came while the
+      // question was open is kept.
       result = adapter.apply(
-        tanks: tanks,
+        tanks: _session.valueOf(diveTanksField),
         items: config.items,
         newId: (_) => newSittingTankId(),
         overwrite: true,
@@ -182,13 +185,23 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
     );
   }
 
+  /// [pressures] are the readings as the sitting holds them
+  /// ([tankPressuresInSitting]). A cylinder added in the sitting has none
+  /// and no row yet to move them onto, so it is left out.
   Future<void> _reassign(Map<String, List<TankPressurePoint>> pressures) {
     final repository = ref.read(tankPressureRepositoryProvider);
     final diveId = _session.stored.id;
+    final storedIds = {for (final t in _session.stored.tanks) t.id};
+    final working = _session.working;
     return showTankSeriesReassignSheet(
       context,
       ref,
-      dive: _session.working,
+      dive: working.copyWith(
+        tanks: [
+          for (final t in working.tanks)
+            if (storedIds.contains(t.id)) t,
+        ],
+      ),
       tankPressures: pressures,
       onExchange: (a, b) async {
         if (!mounted) return;
@@ -432,9 +445,12 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
           // An own cylinder, scanned (issue #2335) or picked from My
           // cylinders (issue #2599), joins the dive's gear: the Equipment
           // card gets its dot. The tank row itself never links to it.
-          onOwnCylinderUsed: (item) => addGearToSitting(ref.read, _session, [
-            item,
-          ], stillWanted: () => mounted),
+          // It goes on if this card closes while its parts are read.
+          onOwnCylinderUsed: (item) => addGearToSitting(
+            ProviderScope.containerOf(context, listen: false).read,
+            _session,
+            [item],
+          ),
           // Save waits for a scan still being read.
           onScanPending: _session.track,
         ),
@@ -444,9 +460,12 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
   }
 
   List<Widget> _reassignRows(BuildContext context) {
-    final pressures = ref
-        .watch(tankPressuresProvider(_session.stored.id))
-        .value;
+    // Moved by the exchanges already held, so a second reassign shows what
+    // each cylinder holds now.
+    final pressures = tankPressuresInSitting(
+      _session,
+      ref.watch(tankPressuresProvider(_session.stored.id)).value,
+    );
     if (!CylindersCard.canReassignTankSeries(_session.working, pressures)) {
       return const [];
     }

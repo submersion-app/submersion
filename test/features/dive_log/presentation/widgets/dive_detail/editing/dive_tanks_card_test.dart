@@ -296,6 +296,24 @@ void main() {
       expect(c.session!.working.tanks.single.volume, 15);
       expect(c.session!.changedCardIds, {'tanks'});
     });
+
+    testWidgets('replaced, a cylinder that came while it asked is kept', (
+      tester,
+    ) async {
+      final c = await pumpEditor(tester, oc, configs: [twin()]);
+      final s = c.session!;
+
+      await apply(tester);
+      setTanks(s, [
+        ...s.working.tanks,
+        const DiveTank(id: 'arrived', volume: 7, role: TankRole.stage),
+      ]);
+      await tester.tap(find.text(l.cylinderConfigs_overwriteConfirm));
+      await tester.pumpAndSettle();
+
+      expect([for (final t in s.working.tanks) t.id], contains('arrived'));
+      expect(s.working.tanks.first.volume, 15);
+    });
   });
 
   testWidgets('O2 that cannot be read refuses Done', (tester) async {

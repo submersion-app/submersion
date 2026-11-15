@@ -102,6 +102,23 @@ void main() {
     expect(heldTankSeriesExchanges(s), [('tA', 'tB')]);
   });
 
+  test('the readings a reassign shows are moved by the held exchanges, '
+      'in the order they were made', () async {
+    final s = await sitting();
+    const a = [TankPressurePoint(tankId: 'tA', timestamp: 0, pressure: 200)];
+    const b = [TankPressurePoint(tankId: 'tB', timestamp: 0, pressure: 210)];
+    final stored = {'tA': a, 'tB': b};
+
+    expect(tankPressuresInSitting(s, stored), stored);
+    exchangeTankSeries(s, 'tA', 'tB', exchange: exchange);
+    expect(tankPressuresInSitting(s, stored), {'tA': b, 'tB': a});
+    // Onto a cylinder with no readings: they move, and nothing is left.
+    setTanks(s, [...s.working.tanks, const DiveTank(id: 'tC', order: 2)]);
+    exchangeTankSeries(s, 'tA', 'tC', exchange: exchange);
+    expect(tankPressuresInSitting(s, stored), {'tB': a, 'tC': b});
+    expect(tankPressuresInSitting(s, null), isNull);
+  });
+
   test('the same exchange again leaves the sitting clean', () async {
     final s = await sitting();
     exchangeTankSeries(s, 'tA', 'tB', exchange: exchange);

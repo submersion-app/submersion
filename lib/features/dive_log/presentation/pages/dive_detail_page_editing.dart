@@ -30,6 +30,8 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
           for (final card in diveEditCards.values)
             if (card.isValid?.call(session) == false) card.id,
         ],
+        // Whatever unlocked the page.
+        onStart: (session) => startDiveSitting(session, ref.read),
       )..addListener(_onEditChanged);
 
   /// Whether a sitting is in progress.
@@ -177,11 +179,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   Widget lockButton(Dive dive) => IconButton(
     icon: const Icon(Icons.lock_outline),
     tooltip: context.l10n.recordEdit_unlockTooltip,
-    onPressed: () {
-      final controller = editController..unlock(dive);
-      final session = controller.session;
-      if (session != null) startDiveSitting(session, ref.read);
-    },
+    onPressed: () => editController.unlock(dive),
   );
 
   /// The cards the page is not showing for [working], in section order:

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -36,7 +37,11 @@ final diveGearRefreshProvider = Provider<void Function(String diveId)>(
 );
 
 /// The cards whose values feed the refresh above.
-const _gearCardIds = {'tanks', 'equipment', 'weights'};
+final _gearCardIds = {
+  DiveDetailSectionId.tanks.name,
+  DiveDetailSectionId.equipment.name,
+  DiveDetailSectionId.weights.name,
+};
 
 /// What a saved editing sitting on a dive still owes once its write has
 /// gone through: a word about a trip whose dates it moved, a fresh read of
@@ -90,7 +95,7 @@ class DiveSittingFollowUp {
     required Dive before,
     required Dive after,
     required List<TripDateStretch> tripDateStretches,
-    Set<String> changedCardIds = const {},
+    required Set<String> changedCardIds,
   }) async {
     await _guarded(
       'name the stretched trip',

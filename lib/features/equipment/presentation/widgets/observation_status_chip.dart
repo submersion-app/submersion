@@ -52,7 +52,7 @@ class ObservationStatusChip extends ConsumerWidget {
             scheme.tertiary,
             l10n.equipmentObservation_chip_ok,
           );
-    return IconButton(
+    final button = IconButton(
       icon: Icon(icon, color: color, size: 20),
       tooltip: tooltip,
       visualDensity: VisualDensity.compact,
@@ -66,5 +66,12 @@ class ObservationStatusChip extends ConsumerWidget {
               dive: dive,
             ),
     );
+    if (!readOnly) return button;
+    // Read-only is a state, not a dimmed button: a check made is read out
+    // as text, and "Check in", an action the locked page does not offer,
+    // is not read out at all.
+    return mine.isEmpty
+        ? ExcludeSemantics(child: button)
+        : Semantics(label: tooltip, excludeSemantics: true, child: button);
   }
 }

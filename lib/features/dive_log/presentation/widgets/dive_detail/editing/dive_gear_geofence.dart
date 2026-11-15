@@ -22,6 +22,10 @@ const _appliedKey = 'geofenceApplied';
 const _suggestionKey = 'geofenceSuggestion';
 const _dismissedKey = 'geofenceDismissed';
 
+/// The latest lookup, which the next one waits for, and its token.
+const _lookupKey = 'geofenceLookup';
+const _lookupTokenKey = 'geofenceLookupToken';
+
 /// The location set the sitting suggests, as something to listen to: the
 /// suggestion arrives after a lookup, and the Equipment card shows it
 /// whether open or closed. Made on first use; dropped with the sitting.
@@ -74,8 +78,11 @@ List<GeoPoint> _divePoints(Dive dive) => [
 /// brings an item the dive lacks.
 ///
 /// Called by whoever puts a site on the sitting (`readDiveSiteAssigner`),
-/// so the site rules stay free of gear. The lookup is dropped when the site
-/// changed again, or the sitting ended or is being saved. Tracked.
+/// so the site rules stay free of gear. Lookups run one after another: one
+/// still putting its set on when the site changes again stops, what it put
+/// on is taken back, and only then is the next site looked up. A lookup is
+/// dropped when a later one has started, when the site has changed, or when
+/// the sitting ended or is being saved. Tracked.
 void reevaluateGearForSite(
   EditSession<Dive> session, {
   required ProviderRead read,
@@ -84,58 +91,86 @@ void reevaluateGearForSite(
   _takeBack(session);
   _suggestion(session).value = null;
   final siteId = session.working.site?.id;
+  // Its own token, so a lookup for A started before the site went to B and
+  // back to A is not taken for this one.
+  final token = Object();
+  final previous = session.recall<Future<void>>(_lookupKey);
+  session.remember(_lookupTokenKey, token);
   bool stillWanted() =>
       !session.isDisposed &&
       !session.isFrozen &&
+      identical(session.recall<Object>(_lookupTokenKey), token) &&
       session.working.site?.id == siteId;
-  session.track(() async {
-    final EquipmentSetSelectionInputs inputs;
-    try {
-      inputs = await read(equipmentSetSelectionInputsProvider.future);
-    } catch (error, stackTrace) {
-      // Sets unavailable: no location set this time.
-      _log.warning(
-        'Reading the location sets failed',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      return;
-    }
-    if (!stillWanted()) return;
-    final points = _divePoints(session.working);
-    final gear = session.valueOf(diveGearField);
-    if (gear.isEmpty) {
-      final best = EquipmentSetSelector.bestSetFor(
-        divePoints: points,
-        sets: inputs.sets,
-        geofences: inputs.geofences,
-      );
-      final items = best?.items ?? const <EquipmentItem>[];
-      if (best == null || (items.isEmpty && !best.carriesBeyondGear)) return;
-      final result = await useSetInSitting(
-        session,
-        best,
-        items,
-        read: read,
-        auto: true,
-      );
-      if (result != null && stillWanted()) {
-        session.remember(_appliedKey, result);
-      }
-      return;
-    }
-    final match = EquipmentSetSelector.matchingGeofenceSet(
+  final run = _lookUp(session, read, previous, stillWanted);
+  session
+    ..remember(_lookupKey, run)
+    ..track(run);
+}
+
+Future<void> _lookUp(
+  EditSession<Dive> session,
+  ProviderRead read,
+  Future<void>? previous,
+  bool Function() stillWanted,
+) async {
+  // The previous lookup's failure was its own to log.
+  if (previous != null) await previous.then((_) {}, onError: (_) {});
+  if (session.isDisposed || session.isFrozen) return;
+  // What the previous lookup put on after this site was picked.
+  _takeBack(session);
+  if (!stillWanted()) return;
+  final EquipmentSetSelectionInputs inputs;
+  try {
+    inputs = await read(equipmentSetSelectionInputsProvider.future);
+  } catch (error, stackTrace) {
+    // Sets unavailable: no location set this time.
+    _log.warning(
+      'Reading the location sets failed',
+      error: error,
+      stackTrace: stackTrace,
+    );
+    return;
+  }
+  if (!stillWanted()) return;
+  final points = _divePoints(session.working);
+  final gear = session.valueOf(diveGearField);
+  if (gear.isEmpty) {
+    final best = EquipmentSetSelector.bestSetFor(
       divePoints: points,
       sets: inputs.sets,
       geofences: inputs.geofences,
     );
-    if (match == null || _dismissed(session).contains(match.id)) return;
-    final onDive = {for (final link in gear) link.item.id};
-    final bringsNew = (match.items ?? const <EquipmentItem>[]).any(
-      (item) => !onDive.contains(item.id),
+    final items = best?.items ?? const <EquipmentItem>[];
+    if (best == null || (items.isEmpty && !best.carriesBeyondGear)) return;
+    final before = setUseCardsOf(session);
+    await useSetInSitting(
+      session,
+      best,
+      items,
+      read: read,
+      auto: true,
+      stillWanted: stillWanted,
     );
-    if (bringsNew) _suggestion(session).value = match;
-  }());
+    if (session.isDisposed || session.isFrozen) return;
+    // Remembered even when the site changed meanwhile and the use stopped
+    // part way: the next lookup takes back whatever it put on.
+    session.remember(
+      _appliedKey,
+      SetUseResult(before: before, after: setUseCardsOf(session)),
+    );
+    return;
+  }
+  final match = EquipmentSetSelector.matchingGeofenceSet(
+    divePoints: points,
+    sets: inputs.sets,
+    geofences: inputs.geofences,
+  );
+  if (match == null || _dismissed(session).contains(match.id)) return;
+  final onDive = {for (final link in gear) link.item.id};
+  final bringsNew = (match.items ?? const <EquipmentItem>[]).any(
+    (item) => !onDive.contains(item.id),
+  );
+  if (bringsNew) _suggestion(session).value = match;
 }
 
 /// What the last location set applied goes back, card by card, where it is

@@ -16,6 +16,26 @@ typedef TankSeriesExchange =
 List<(String, String)> heldTankSeriesExchanges(EditSession<Dive> session) =>
     session.recall<List<(String, String)>>(tankSeriesExchangeKey) ?? const [];
 
+/// [stored] (the readings as the database holds them, by cylinder) with
+/// the held exchanges made, oldest first: what each cylinder holds in the
+/// sitting, for a reassign sheet opened again. Null while unread.
+Map<String, List<TankPressurePoint>>? tankPressuresInSitting(
+  EditSession<Dive> session,
+  Map<String, List<TankPressurePoint>>? stored,
+) {
+  if (stored == null) return null;
+  final held = heldTankSeriesExchanges(session);
+  if (held.isEmpty) return stored;
+  final moved = {...stored};
+  for (final (a, b) in held) {
+    final onA = moved.remove(a);
+    final onB = moved.remove(b);
+    if (onB != null) moved[a] = onB;
+    if (onA != null) moved[b] = onA;
+  }
+  return moved;
+}
+
 bool _samePair((String, String) a, (String, String) b) =>
     (a.$1 == b.$1 && a.$2 == b.$2) || (a.$1 == b.$2 && a.$2 == b.$1);
 
@@ -37,8 +57,8 @@ DiveTank _recordedFrom(DiveTank into, DiveTank from) => into.copyWith(
 /// #1314, #4527): their start and end pressures, transmitter serials and
 /// source indexes swap on the working cylinders at once, so the editor and
 /// the closed card show the result, and the readings themselves are held
-/// as a change of the Tanks card, moved at Save by [exchange] after the
-/// cylinders are written. Cancel moves nothing.
+/// as a change of the Tanks card, moved at Save by [exchange] before the
+/// cylinders are written (below). Cancel moves nothing.
 ///
 /// The same pair exchanged again takes the last exchange back. The readings
 /// move before the dive's cylinders are written, while both rows still

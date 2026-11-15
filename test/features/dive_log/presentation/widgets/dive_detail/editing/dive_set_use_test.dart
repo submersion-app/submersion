@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -8,6 +11,7 @@ import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_co
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_set_use.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_rules.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/set_bundle_loader.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -99,12 +103,23 @@ void main() {
   Future<void> pumpHost(
     WidgetTester tester, {
     Map<String, SetBundle> loaded = const {},
+    ValueListenable<bool>? shown,
+    Future<String?>? diverId,
   }) async {
+    final host = Consumer(
+      builder: (c, r, _) {
+        context = c;
+        ref = r;
+        return const SizedBox();
+      },
+    );
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           ...await getBaseOverrides(),
-          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          validatedCurrentDiverIdProvider.overrideWith(
+            (ref) => diverId ?? Future<String?>.value(),
+          ),
           setBundleProvider('warm').overrideWith((ref) async => bundle),
           setBundleLoaderProvider.overrideWithValue(_Loader(loaded)),
         ],
@@ -113,13 +128,12 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: Consumer(
-              builder: (c, r, _) {
-                context = c;
-                ref = r;
-                return const SizedBox();
-              },
-            ),
+            body: shown == null
+                ? host
+                : ValueListenableBuilder<bool>(
+                    valueListenable: shown,
+                    builder: (_, on, _) => on ? host : const SizedBox(),
+                  ),
           ),
         ),
       ),
@@ -132,6 +146,7 @@ void main() {
     EditSession<Dive> session, {
     bool auto = false,
     String? answer,
+    void Function()? whileAsked,
   }) async {
     late Future<SetUseResult?> running;
     await tester.runAsync(() async {
@@ -149,6 +164,7 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
     });
     await tester.pumpAndSettle();
+    whileAsked?.call();
     if (answer != null) {
       await tester.tap(find.text(answer));
       await tester.pumpAndSettle();
@@ -213,6 +229,28 @@ void main() {
     expect(s.working.weights, hasLength(1));
   });
 
+  testWidgets('confirming the overwrite keeps a cylinder that came while it '
+      'was asked', (tester) async {
+    await pumpHost(tester);
+    final s = EditSession(bare.copyWith(tanks: const [ownTank]));
+    const arrived = DiveTank(
+      id: 'arrived',
+      volume: 7,
+      role: TankRole.stage,
+      order: 1,
+    );
+
+    await use(
+      tester,
+      s,
+      answer: l.cylinderConfigs_overwriteConfirm,
+      whileAsked: () => setTanks(s, [...s.working.tanks, arrived]),
+    );
+
+    expect([for (final t in s.working.tanks) t.id], contains('arrived'));
+    expect(s.working.tanks.first.volume, 11.1);
+  });
+
   testWidgets('auto asks nothing and overwrites nothing', (tester) async {
     await pumpHost(tester);
     final s = EditSession(
@@ -266,5 +304,42 @@ void main() {
     await tester.runAsync(() async => running);
     expect(s.working.gear, isEmpty);
     expect(s.working.weights, isEmpty);
+  });
+
+  testWidgets('the card that asked closing does not stop the use: the set '
+      'still goes on', (tester) async {
+    final shown = ValueNotifier(true);
+    addTearDown(shown.dispose);
+    final diver = Completer<String?>();
+    await pumpHost(tester, shown: shown, diverId: diver.future);
+    final container = ProviderScope.containerOf(context, listen: false);
+    final s = EditSession(bare);
+    late Future<SetUseResult?> running;
+    await tester.runAsync(() async {
+      running = useSetInSitting(
+        s,
+        warm,
+        read: container.read,
+        questions: SetUseQuestions.dialogs(
+          context,
+          const UnitFormatter(AppSettings()),
+        ),
+        const [wing],
+        auto: false,
+      );
+    });
+    // Done on the card while its gear is being read.
+    shown.value = false;
+    await tester.pump();
+    diver.complete(null);
+    await tester.runAsync(() async {
+      await running;
+      await s.settled();
+    });
+
+    final w = s.working;
+    expect([for (final g in w.gear) g.item.id], ['wing']);
+    expect(w.weights.single.amountKg, 4);
+    expect(w.tanks.single.volume, 11.1);
   });
 }

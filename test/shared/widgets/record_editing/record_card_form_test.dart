@@ -134,5 +134,41 @@ void main() {
       expect(controller.invalidCardIds, {'tanks'});
       expect(find.text('Too late'), findsOneWidget);
     });
+
+    testWidgets('rebuilt from above with every field valid, no field is '
+        'built a second time to be checked', (tester) async {
+      var builds = 0;
+      Future<void> pumpCounting(int max) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: RecordEditScope<String>(
+                controller: controller,
+                child: RecordCardForm<String>(
+                  cardId: 'tanks',
+                  child: FormField<int>(
+                    initialValue: 40,
+                    validator: (v) => (v ?? 0) > max ? 'Too late' : null,
+                    builder: (state) {
+                      builds++;
+                      return Text(state.errorText ?? 'ok');
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+      }
+
+      await pumpCounting(50);
+      final before = builds;
+      await pumpCounting(60);
+
+      expect(builds - before, 1);
+      expect(controller.invalidCardIds, isEmpty);
+    });
   });
 }

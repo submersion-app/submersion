@@ -18,6 +18,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
+import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
 import 'package:submersion/features/gear_passports/presentation/utils/scan_owned_item.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -48,21 +49,20 @@ class _DiveEquipmentCardEditorState
     extends ConsumerState<DiveEquipmentCardEditor> {
   EditSession<Dive> get _session => widget.session;
 
+  /// Reads for work that goes on after this card closes: gear picked, then
+  /// Done tapped while its parts are read, is still the diver's choice.
+  ProviderRead get _read =>
+      ProviderScope.containerOf(context, listen: false).read;
+
   Future<void> _add(List<EquipmentItem> items, {String? viaSetId}) =>
-      addGearToSitting(
-        ref.read,
-        _session,
-        items,
-        viaSetId: viaSetId,
-        stillWanted: () => mounted,
-      );
+      addGearToSitting(_read, _session, items, viaSetId: viaSetId);
 
   Future<void> _useSet(EquipmentSet set, List<EquipmentItem> items) =>
       useSetInSitting(
         _session,
         set,
         items,
-        read: ref.read,
+        read: _read,
         questions: SetUseQuestions.dialogs(
           context,
           ref.read(unitFormatterProvider),

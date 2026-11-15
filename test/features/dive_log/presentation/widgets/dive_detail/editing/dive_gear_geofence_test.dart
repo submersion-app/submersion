@@ -219,6 +219,58 @@ void main() {
     expect(s.working.gear, isEmpty);
   });
 
+  test('A\'s set still going on when B is picked: what it put on goes back '
+      'and B\'s set comes', () async {
+    final gate = Completer<SetBundle>();
+    final slow = ProviderContainer(
+      parent: container,
+      overrides: [setBundleProvider('warm').overrideWith((ref) => gate.future)],
+    );
+    addTearDown(slow.dispose);
+    final s = EditSession(bare)..set(diveSiteField, reef);
+    reevaluateGearForSite(s, read: slow.read);
+    // A's gear is on; its weights wait for the bundle.
+    for (var i = 0; i < 200 && s.working.gear.isEmpty; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+    }
+    expect([for (final g in s.working.gear) g.item.id], ['wing']);
+
+    s.set(diveSiteField, lake);
+    reevaluateGearForSite(s, read: slow.read);
+    gate.complete(warmWeights);
+    await s.settled();
+
+    expect([for (final g in s.working.gear) g.item.id], ['dry']);
+    expect(s.working.weights, isEmpty);
+  });
+
+  test('A, B and A again: the set is put on once', () async {
+    final gate = Completer<EquipmentSetSelectionInputs>();
+    final slow = ProviderContainer(
+      parent: container,
+      overrides: [
+        equipmentSetSelectionInputsProvider.overrideWith((ref) => gate.future),
+      ],
+    );
+    addTearDown(slow.dispose);
+    final s = EditSession(bare)..set(diveSiteField, reef);
+    reevaluateGearForSite(s, read: slow.read);
+    s.set(diveSiteField, lake);
+    reevaluateGearForSite(s, read: container.read);
+    s.set(diveSiteField, reef);
+    reevaluateGearForSite(s, read: container.read);
+    gate.complete(
+      EquipmentSetSelectionInputs(
+        sets: [warm],
+        geofences: [fence('warm', reef.location!)],
+      ),
+    );
+    await s.settled();
+
+    expect([for (final g in s.working.gear) g.item.id], ['wing']);
+    expect([for (final w in s.working.weights) w.amountKg], [2]);
+  });
+
   testWidgets('a site picked through the site assigner brings its set', (
     tester,
   ) async {

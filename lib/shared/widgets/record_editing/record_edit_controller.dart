@@ -28,9 +28,15 @@ class RecordEditController<T> extends ChangeNotifier {
     required this.onSave,
     this.trackedWorkTimeout = const Duration(seconds: 10),
     this.invalidCards,
+    this.onStart,
   });
 
   final RecordSave<T> onSave;
+
+  /// Told of each sitting as [unlock] starts it, before any card opens:
+  /// what the record's cards need before they are checked (the dive's gas
+  /// switches) is asked for here, whichever way the page was unlocked.
+  final void Function(EditSession<T> session)? onStart;
 
   /// The cards whose own check fails for the sitting, in page order. Asked
   /// of every card at [save], open or not: a value one card changes can
@@ -158,7 +164,9 @@ class RecordEditController<T> extends ChangeNotifier {
     if (isUnlocked) return;
     _toldChangedCardIds = const {};
     _toldRevisions = {};
-    _session = EditSession<T>(stored)..addListener(_onSessionChanged);
+    final session = _session = EditSession<T>(stored)
+      ..addListener(_onSessionChanged);
+    onStart?.call(session);
     notifyListeners();
   }
 
@@ -325,16 +333,18 @@ class RecordEditController<T> extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    // A sitting with nothing to write ends: a value stored failing a card's
+    // check is not the diver's to fix before they can close the page.
+    if (!session.isDirty) {
+      lock();
+      return true;
+    }
     final failing = invalidCards?.call(session) ?? const [];
     if (failing.isNotEmpty) {
       _refusedForInvalidInput = true;
       _openToShow(session, failing.first);
       notifyListeners();
       return false;
-    }
-    if (!session.isDirty) {
-      lock();
-      return true;
     }
     _isSaving = true;
     _saveError = null;

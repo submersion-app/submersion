@@ -30,6 +30,9 @@ Future<void> showTankSeriesReassignSheet(
     builder: (sheetContext) => _ReassignSheet(
       dive: dive,
       tankPressures: tankPressures,
+      // A sitting hands its own cylinders, which Move to offers instead of
+      // the dive's as stored.
+      ownTanks: onExchange != null,
       // During an editing sitting the exchange is held until Save
       // (issue #4527); otherwise it is written at once, with an Undo.
       onExchange: onExchange ?? (a, b) => _exchange(context, dive.id, a, b),
@@ -77,10 +80,12 @@ class _ReassignSheet extends ConsumerWidget {
     required this.dive,
     required this.tankPressures,
     required this.onExchange,
+    required this.ownTanks,
   });
 
   final Dive dive;
   final Map<String, List<TankPressurePoint>> tankPressures;
+  final bool ownTanks;
   final Future<void> Function(String tankIdA, String tankIdB) onExchange;
 
   @override
@@ -170,6 +175,7 @@ class _ReassignSheet extends ConsumerWidget {
                       ref,
                       diveId: dive.id,
                       excludeTankId: tank.id,
+                      tanks: ownTanks ? dive.tanks : null,
                     );
                     if (target == null || !context.mounted) return;
                     Navigator.of(context).pop();

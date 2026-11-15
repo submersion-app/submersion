@@ -89,14 +89,15 @@ const _addKey = 'gearAdd';
 ///
 /// Adds run one at a time, in the order asked, each on the gear the one
 /// before it left, and Save waits for them. An add drops its result when
-/// the sitting has ended or is being saved, or [stillWanted] says no (the
-/// widget that asked has gone).
+/// the sitting has ended or is being saved, or [stillWanted] says no (a
+/// site's location set, once the site changed again). It goes on after the
+/// card that asked closes, so [read] must outlive that card's widget.
 Future<void> addGearToSitting(
   ProviderRead read,
   EditSession<Dive> session,
   List<EquipmentItem> items, {
   String? viaSetId,
-  required bool Function() stillWanted,
+  bool Function()? stillWanted,
 }) {
   final previous = session.recall<Future<void>>(_addKey);
   final run = () async {
@@ -115,9 +116,10 @@ Future<void> _addNow(
   EditSession<Dive> session,
   List<EquipmentItem> items,
   String? viaSetId,
-  bool Function() stillWanted,
+  bool Function()? stillWanted,
 ) async {
-  bool alive() => !session.isDisposed && !session.isFrozen && stillWanted();
+  bool alive() =>
+      !session.isDisposed && !session.isFrozen && (stillWanted?.call() ?? true);
   if (items.isEmpty || !alive()) return;
   var toAdd = items;
   String? diverId = session.stored.diverId;
@@ -147,24 +149,33 @@ Future<void> _addNow(
     if (!alive()) return;
   }
   if (toAdd.isEmpty) return;
-  final current = session.valueOf(diveGearField);
-  final merged = [
-    for (final link in current) link.item,
-    for (final item in toAdd)
-      if (!current.any((link) => link.item.id == item.id)) item,
-  ];
-  final expansion = await expandGear(
-    read,
-    additions: [
-      for (final item in toAdd) (equipmentId: item.id, viaSetId: viaSetId),
-    ],
-    existing: [for (final link in current) link.provenance],
-    existingItems: merged,
-    diverId: diverId,
-  );
-  if (!alive()) return;
-  session.set(
-    diveGearField,
-    gearLinksFor([...merged, ...expansion.newItems], expansion.provenance),
-  );
+  // The gear can change while the parts are read (a row removed, Clear
+  // all): the add is then worked out again on what is there now, so it
+  // never puts back what the diver took off. A few tries, then it goes on.
+  for (var attempt = 1; ; attempt++) {
+    final current = session.valueOf(diveGearField);
+    final merged = [
+      for (final link in current) link.item,
+      for (final item in toAdd)
+        if (!current.any((link) => link.item.id == item.id)) item,
+    ];
+    final expansion = await expandGear(
+      read,
+      additions: [
+        for (final item in toAdd) (equipmentId: item.id, viaSetId: viaSetId),
+      ],
+      existing: [for (final link in current) link.provenance],
+      existingItems: merged,
+      diverId: diverId,
+    );
+    if (!alive()) return;
+    if (attempt < 3 && !identical(session.valueOf(diveGearField), current)) {
+      continue;
+    }
+    session.set(
+      diveGearField,
+      gearLinksFor([...merged, ...expansion.newItems], expansion.provenance),
+    );
+    return;
+  }
 }
