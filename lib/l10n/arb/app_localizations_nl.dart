@@ -1797,6 +1797,33 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_story_today => 'Vandaag';
 
   @override
+  String get trips_story_tripTile => 'Reis';
+
+  @override
+  String get trips_story_tripTileAll => 'Alles';
+
+  @override
+  String get trips_story_tripTile_semantics => 'Hele reis';
+
+  @override
+  String trips_story_dayTile_semantics(String date, int number) {
+    return '$date, dag $number';
+  }
+
+  @override
+  String trips_story_dayTile_deepest(String depth) {
+    return 'diepste $depth';
+  }
+
+  @override
+  String get trips_story_noDivesThisDay => 'Geen duiken op deze dag';
+
+  @override
+  String trips_story_dayMaxDepth(String depth) {
+    return 'max. $depth';
+  }
+
+  @override
   String trips_countryFlags_more(int count) {
     return '+$count';
   }
@@ -23213,7 +23240,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buoyancy_throughDive => 'Tijdens de duik';
 
   @override
-  String get buoyancy_adjust => 'Aanpassen';
+  String get buoyancy_whatIfButton => 'Wat als?';
 
   @override
   String buoyancy_readoutHeavy(String amount) {
@@ -23315,7 +23342,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_whatIfTitle => 'Deze duik aanpassen';
+  String get buoyancy_whatIfTitle => 'Wat als je je lood aanpast?';
+
+  @override
+  String get buoyancy_whatIfNote =>
+      'Wat je hier probeert, verandert niets aan je gelogde duik.';
 
   @override
   String get buoyancy_whatIfLead => 'Lood';
@@ -32478,6 +32509,240 @@ class AppLocalizationsNl extends AppLocalizations {
       'Gemiddelde opstijg- & afdalingssnelheden';
 
   @override
+  String get insights_profile_verticalDistance_title =>
+      'Totale opstijging & afdaling';
+
+  @override
+  String get insights_profile_verticalDistance_subtitle =>
+      'Al je duiken opgeteld en in perspectief geplaatst';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsTitle =>
+      'Maximale diepten opgeteld';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsSubtitle =>
+      'Elke duik recht naar het diepste punt en terug';
+
+  @override
+  String get insights_profile_verticalDistance_totalAscent =>
+      'totale opstijging';
+
+  @override
+  String get insights_profile_verticalDistance_totalDescent =>
+      'totale afdaling';
+
+  @override
+  String get insights_profile_verticalDistance_seaLevel => 'Zeeniveau';
+
+  @override
+  String insights_profile_verticalDistance_next(String landmark) {
+    return 'Volgende: $landmark';
+  }
+
+  @override
+  String insights_profile_verticalDistance_toGo(String distance) {
+    return 'nog $distance';
+  }
+
+  @override
+  String insights_profile_verticalDistance_multiple(
+    int count,
+    String landmark,
+  ) {
+    return '$count × $landmark';
+  }
+
+  @override
+  String get insights_profile_verticalDistance_stripIdle =>
+      'Wijs een balk aan om te zien wanneer je daar was';
+
+  @override
+  String insights_profile_verticalDistance_stripAscent(
+    String level,
+    String date,
+  ) {
+    return '$level opstijging, bereikt op $date';
+  }
+
+  @override
+  String insights_profile_verticalDistance_stripDescent(
+    String level,
+    String date,
+  ) {
+    return '$level afdaling, bereikt op $date';
+  }
+
+  @override
+  String insights_profile_verticalDistance_stripPassed(
+    String landmark,
+    String date,
+  ) {
+    return '$landmark: gepasseerd op $date';
+  }
+
+  @override
+  String insights_profile_verticalDistance_stripAhead(
+    String landmark,
+    String distance,
+  ) {
+    return '$landmark: nog $distance';
+  }
+
+  @override
+  String get insights_profile_verticalDistance_openDive => 'Duik openen';
+
+  @override
+  String get insights_profile_verticalDistance_pinned => 'Vastgezet';
+
+  @override
+  String insights_profile_verticalDistance_estimated(int estimated, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$estimated van $total duiken geteld vanaf de maximale diepte',
+      one: '$estimated van $total duik geteld vanaf de maximale diepte',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_profile_verticalDistance_empty =>
+      'Nog geen duiken met een diepte';
+
+  @override
+  String get insights_profile_verticalDistance_error =>
+      'Kan totale opstijging en afdaling niet laden';
+
+  @override
+  String insights_profile_verticalDistance_semantics(
+    String total,
+    String up,
+    String upDistance,
+    String down,
+    String downDistance,
+  ) {
+    return 'Totale opstijging en afdaling elk $total. Volgende boven: $up, nog $upDistance. Volgende onder: $down, nog $downDistance.';
+  }
+
+  @override
+  String get insights_landmark_statueOfLiberty => 'Vrijheidsbeeld';
+
+  @override
+  String get insights_landmark_greatPyramid => 'Grote Piramide van Gizeh';
+
+  @override
+  String get insights_landmark_eiffelTower => 'Eiffeltoren';
+
+  @override
+  String get insights_landmark_empireStateBuilding => 'Empire State Building';
+
+  @override
+  String get insights_landmark_burjKhalifa => 'Burj Khalifa';
+
+  @override
+  String get insights_landmark_benNevis => 'Ben Nevis';
+
+  @override
+  String get insights_landmark_mountKosciuszko => 'Mount Kosciuszko';
+
+  @override
+  String get insights_landmark_mountFuji => 'Fuji';
+
+  @override
+  String get insights_landmark_matterhorn => 'Matterhorn';
+
+  @override
+  String get insights_landmark_montBlanc => 'Mont Blanc';
+
+  @override
+  String get insights_landmark_kilimanjaro => 'Kilimanjaro';
+
+  @override
+  String get insights_landmark_denali => 'Denali';
+
+  @override
+  String get insights_landmark_aconcagua => 'Aconcagua';
+
+  @override
+  String get insights_landmark_k2 => 'K2';
+
+  @override
+  String get insights_landmark_everest => 'Mount Everest';
+
+  @override
+  String get insights_landmark_olympusMons => 'Olympus Mons (Mars)';
+
+  @override
+  String get insights_landmark_karmanLine => 'Rand van de ruimte';
+
+  @override
+  String get insights_landmark_internationalSpaceStation =>
+      'Internationaal Ruimtestation';
+
+  @override
+  String get insights_landmark_recreationalLimit =>
+      'Grens van recreatief duiken';
+
+  @override
+  String get insights_landmark_greatBlueHole => 'Great Blue Hole';
+
+  @override
+  String get insights_landmark_deansBlueHole => 'Dean\'s Blue Hole';
+
+  @override
+  String get insights_landmark_dragonHole => 'Dragon Hole';
+
+  @override
+  String get insights_landmark_deepestScubaDive => 'Diepste scubaduik';
+
+  @override
+  String get insights_landmark_craterLake => 'Crater Lake';
+
+  @override
+  String get insights_landmark_lakeTanganyika => 'Tanganyikameer';
+
+  @override
+  String get insights_landmark_lakeBaikal => 'Baikalmeer';
+
+  @override
+  String get insights_landmark_deepestWhaleDive =>
+      'Diepste duik van een walvis';
+
+  @override
+  String get insights_landmark_averageOceanDepth => 'Gemiddelde oceaandiepte';
+
+  @override
+  String get insights_landmark_titanic => 'Titanic';
+
+  @override
+  String get insights_landmark_bismarck => 'Bismarck';
+
+  @override
+  String get insights_landmark_molloyDeep => 'Molloydiepte';
+
+  @override
+  String get insights_landmark_deepestShipwreck => 'Diepste scheepswrak';
+
+  @override
+  String get insights_landmark_javaTrench => 'Javatrog';
+
+  @override
+  String get insights_landmark_southSandwichTrench => 'Zuidelijke Sandwichtrog';
+
+  @override
+  String get insights_landmark_puertoRicoTrench => 'Puerto Ricotrog';
+
+  @override
+  String get insights_landmark_tongaTrench => 'Tongatrog';
+
+  @override
+  String get insights_landmark_challengerDeep => 'Challengerdiepte';
+
+  @override
+  String get insights_landmark_kolaBorehole => 'Superdiep boorgat van Kola';
+
+  @override
   String get insights_profile_avgAscent => 'Gem. opstijging';
 
   @override
@@ -36142,9 +36407,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_detail_stat_speciesSeen => 'Waargenomen soorten';
-
-  @override
-  String get trips_breakdown_column_sites => 'Stekken';
 
   @override
   String trips_itinerary_dayLabel(int dayNumber) {
@@ -63718,7 +63980,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Beweeg over de grafiek om te zien wat je op dat moment omlaag trok en wat je omhoog hield. Aanpassen opent een blad dat een andere hoeveelheid lood of pakdrijfvermogen op deze duik doorrekent.';
+      'Beweeg over de grafiek om te zien wat je op dat moment omlaag trok en wat je omhoog hield. ‘Wat als?’ opent een blad dat een andere hoeveelheid lood, een ander watertype of een ander pakdrijfvermogen op deze duik doorrekent, zonder de duik te wijzigen.';
 
   @override
   String get info_diveLog_waterConditions_summary =>
@@ -63791,6 +64053,15 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get info_insights_ascentDescent_summary =>
       'Gemiddelde snelheid bij afdalen en opstijgen, afgeleid uit de profielen.';
+
+  @override
+  String get info_insights_verticalDistance_maxDepthsSummary =>
+      'Elke duik telt recht omlaag tot de maximale diepte en recht weer omhoog, zonder rekening te houden met dieptewisselingen onderweg. Een duik zonder maximale diepte telt niet mee.';
+
+  @override
+  String info_insights_verticalDistance_summary(String deadband) {
+    return 'Elke duik telt van het oppervlak naar beneden en terug, zonder schommelingen onder $deadband. Een duik zonder profiel telt één keer tot de maximale diepte en één keer terug.';
+  }
 
   @override
   String get info_insights_timeAtDepth_summary =>

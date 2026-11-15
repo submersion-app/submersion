@@ -74,6 +74,14 @@ typedef struct {
     // Callback when PIN code is needed.
     void (*on_pin_code_required)(const gchar* address, gpointer user_data);
     gpointer pin_callback_data;
+
+    // Polled while connect waits on BlueZ, so a cancelled download stops
+    // waiting instead of holding the link. NULL when nothing can cancel.
+    gboolean (*is_cancelled)(gpointer user_data);
+    gpointer cancel_data;
+
+    // Why the last ble_io_stream_connect returned FALSE, or NULL.
+    gchar* connect_failure;
 } BleIoStream;
 
 // Create a new BLE I/O stream.
@@ -106,6 +114,16 @@ void ble_io_stream_set_pin_callback(
     BleIoStream* stream,
     void (*callback)(const gchar* address, gpointer user_data),
     gpointer user_data);
+
+// Set the check ble_io_stream_connect polls while it waits for BlueZ to
+// resolve the GATT services. Called on the thread that runs connect.
+void ble_io_stream_set_cancel_check(BleIoStream* stream,
+                                    gboolean (*is_cancelled)(gpointer user_data),
+                                    gpointer user_data);
+
+// Why the last ble_io_stream_connect failed, for the diver's diagnostic
+// details, or NULL. Owned by the stream.
+const gchar* ble_io_stream_connect_failure(const BleIoStream* stream);
 
 G_END_DECLS
 

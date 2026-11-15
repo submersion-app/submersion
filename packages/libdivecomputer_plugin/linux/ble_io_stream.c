@@ -1,7 +1,10 @@
 #include "ble_io_stream.h"
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "ble_services_wait.h"
 
 // Known GATT UUIDs for dive computer communication (same as macOS/Windows).
 // PREFERRED_SERVICE_UUID is unused on Linux (BlueZ enumerates all
@@ -130,19 +133,148 @@ static gchar* get_string_property(GDBusConnection* conn,
     return ret;
 }
 
-// Whether BlueZ still reports the device connected. FALSE when the property
-// cannot be read within |timeout_ms|, which is the answer a dropped link or a
-// wedged BlueZ gives.
-static gboolean device_connected(GDBusConnection* conn,
-                                 const gchar* device_path, gint timeout_ms) {
+// Read a boolean org.bluez.Device1 property. FALSE when it cannot be read
+// within |timeout_ms|, which is the answer a dropped link or a wedged BlueZ
+// gives.
+static gboolean device_flag(GDBusConnection* conn, const gchar* device_path,
+                            const gchar* property, gint timeout_ms) {
     GVariant* value = get_property(conn, device_path, "org.bluez.Device1",
-                                   "Connected", timeout_ms);
+                                   property, timeout_ms);
     if (!value) return FALSE;
 
-    gboolean connected = g_variant_is_of_type(value, G_VARIANT_TYPE_BOOLEAN) &&
-                         g_variant_get_boolean(value);
+    gboolean set = g_variant_is_of_type(value, G_VARIANT_TYPE_BOOLEAN) &&
+                   g_variant_get_boolean(value);
     g_variant_unref(value);
-    return connected;
+    return set;
+}
+
+// Whether BlueZ still reports the device connected.
+static gboolean device_connected(GDBusConnection* conn,
+                                 const gchar* device_path, gint timeout_ms) {
+    return device_flag(conn, device_path, "Connected", timeout_ms);
+}
+
+// Call a no-argument org.bluez method and wait for its reply. FALSE, with
+// |error| set when it is non-NULL, if the call fails. The reply is freed here:
+// g_dbus_connection_call_sync hands back a tuple the caller owns even when the
+// method returns nothing, so dropping it leaks.
+static gboolean call_bluez_method(GDBusConnection* conn, const gchar* path,
+                                  const gchar* interface, const gchar* method,
+                                  gint timeout_ms, GError** error) {
+    GVariant* reply = g_dbus_connection_call_sync(
+        conn, "org.bluez", path, interface, method, NULL, NULL,
+        G_DBUS_CALL_FLAGS_NONE, timeout_ms, NULL, error);
+    if (!reply) return FALSE;
+    g_variant_unref(reply);
+    return TRUE;
+}
+
+static gboolean connect_failed(BleIoStream* stream, const gchar* format, ...)
+    G_GNUC_PRINTF(2, 3);
+
+// Log why ble_io_stream_connect failed and keep the reason for the diagnostic
+// details the diver sees, so a report names the step that broke rather than a
+// bare "Failed to connect". Returns FALSE so a failure path can end with
+// `return connect_failed(...)`.
+static gboolean connect_failed(BleIoStream* stream, const gchar* format, ...) {
+    va_list args;
+    va_start(args, format);
+    gchar* reason = g_strdup_vprintf(format, args);
+    va_end(args);
+
+    g_warning("BleIoStream: %s", reason);
+    g_free(stream->connect_failure);
+    stream->connect_failure = reason;
+    return FALSE;
+}
+
+// Device1.Connect's timeout: how long BlueZ may take to bring the LE link up.
+#define BLUEZ_CONNECT_TIMEOUT_MS 30000
+// How long to wait for BlueZ to resolve the device's GATT services after
+// Connect has returned. Service discovery over a 100 ms connection interval
+// takes a few seconds; it gets the same budget as Connect.
+#define SERVICES_RESOLVED_TIMEOUT_MS BLUEZ_CONNECT_TIMEOUT_MS
+
+// The longest one property read may block during that wait, so a wedged BlueZ
+// is noticed quickly.
+#define SERVICES_RESOLVED_READ_TIMEOUT_MS 2000
+
+// The pause between two polls of ServicesResolved.
+#define SERVICES_RESOLVED_POLL_INTERVAL_MS 100
+
+// The D-Bus timeout for one property read given |left_us| of the wait: the
+// time left, rounded down to a whole millisecond so the read cannot outlast
+// the deadline, at most SERVICES_RESOLVED_READ_TIMEOUT_MS. ble_services_wait
+// never hands a read less than BLE_SERVICES_WAIT_MIN_READ_US, so this is
+// always at least 1.
+static gint read_timeout_ms(int64_t left_us) {
+    int64_t left_ms = left_us / G_TIME_SPAN_MILLISECOND;
+    return (gint)MIN(left_ms, SERVICES_RESOLVED_READ_TIMEOUT_MS);
+}
+
+// ble_services_wait probes backed by BlueZ. |userdata| is the stream.
+static int probe_services_resolved(void* userdata, int64_t timeout_us) {
+    const BleIoStream* stream = userdata;
+    return device_flag(stream->connection, stream->device_path,
+                       "ServicesResolved", read_timeout_ms(timeout_us));
+}
+
+static int probe_connected(void* userdata, int64_t timeout_us) {
+    const BleIoStream* stream = userdata;
+    return device_connected(stream->connection, stream->device_path,
+                            read_timeout_ms(timeout_us));
+}
+
+static int probe_cancelled(void* userdata) {
+    const BleIoStream* stream = userdata;
+    return stream->is_cancelled != NULL &&
+           stream->is_cancelled(stream->cancel_data);
+}
+
+static int64_t probe_now_us(void* userdata) {
+    (void)userdata;
+    return g_get_monotonic_time();
+}
+
+static void probe_sleep_us(void* userdata, int64_t duration_us) {
+    (void)userdata;
+    g_usleep((gulong)duration_us);
+}
+
+// Block until ServicesResolved is TRUE, the link drops, the download is
+// cancelled, or the timeout passes. Device1.Connect returns as soon as the LE
+// link is up, not when GATT discovery is done (observed on BlueZ 5.88 with a
+// Shearwater Perdix 2: ServicesResolved became TRUE about two seconds after
+// Connect returned), so enumerating characteristics right after Connect finds
+// none and the download fails with "No suitable GATT characteristics found".
+// Android and darwin wait for their platforms' service-discovery callbacks;
+// this is the BlueZ equivalent. The loop itself lives in ble_services_wait.c,
+// free of GLib, so test/native can pin it.
+static gboolean wait_for_services_resolved(BleIoStream* stream) {
+    const ble_services_wait_ops_t ops = {
+        .services_resolved = probe_services_resolved,
+        .connected = probe_connected,
+        .cancelled = probe_cancelled,
+        .now_us = probe_now_us,
+        .sleep_us = probe_sleep_us,
+        .userdata = stream,
+    };
+    switch (ble_services_wait(
+        &ops, (int64_t)SERVICES_RESOLVED_TIMEOUT_MS * G_TIME_SPAN_MILLISECOND,
+        (int64_t)SERVICES_RESOLVED_POLL_INTERVAL_MS * G_TIME_SPAN_MILLISECOND)) {
+        case BLE_SERVICES_WAIT_RESOLVED:
+            return TRUE;
+        case BLE_SERVICES_WAIT_CANCELLED:
+            return connect_failed(stream,
+                                  "cancelled while waiting for GATT services");
+        case BLE_SERVICES_WAIT_LINK_DROPPED:
+            return connect_failed(
+                stream, "link dropped before GATT services were resolved");
+        case BLE_SERVICES_WAIT_TIMED_OUT:
+            break;
+    }
+    return connect_failed(stream, "GATT services not resolved within %d ms",
+                          SERVICES_RESOLVED_TIMEOUT_MS);
 }
 
 // Best write and notify characteristic under one GATT service. BlueZ lists
@@ -304,9 +436,9 @@ static gboolean grant_initial_credits(BleIoStream* stream) {
         NULL, G_DBUS_CALL_FLAGS_NONE, stream->timeout_ms, NULL, &error);
     if (error) {
         if (stream->credits_required) {
-            g_warning("BleIoStream: Terminal I/O initial credit grant "
-                      "failed: %s", error->message);
-            return FALSE;
+            return connect_failed(stream,
+                                  "Terminal I/O initial credit grant failed: %s",
+                                  error->message);
         }
         abandon_credit_flow_control(stream, error->message);
         return TRUE;
@@ -453,24 +585,27 @@ static void on_properties_changed(GDBusConnection* connection,
 gboolean ble_io_stream_connect(BleIoStream* stream,
                                const gchar* device_path) {
     g_autoptr(GError) error = NULL;
+    g_clear_pointer(&stream->connect_failure, g_free);
 
     stream->connection = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &error);
     if (!stream->connection) {
-        g_warning("BleIoStream: Failed to connect to system bus: %s",
-                  error->message);
-        return FALSE;
+        return connect_failed(stream, "Failed to connect to system bus: %s",
+                              error->message);
     }
 
     stream->device_path = g_strdup(device_path);
     g_hash_table_remove_all(stream->characteristic_paths);
 
     // Connect the device.
-    g_dbus_connection_call_sync(
-        stream->connection, "org.bluez", device_path,
-        "org.bluez.Device1", "Connect",
-        NULL, NULL, G_DBUS_CALL_FLAGS_NONE, 30000, NULL, &error);
-    if (error) {
-        g_warning("BleIoStream: Connect failed: %s", error->message);
+    if (!call_bluez_method(stream->connection, device_path,
+                           "org.bluez.Device1", "Connect",
+                           BLUEZ_CONNECT_TIMEOUT_MS, &error)) {
+        return connect_failed(stream, "Connect failed: %s", error->message);
+    }
+
+    // Connect returned when the link came up; the characteristics enumerated
+    // below only exist once discovery is done.
+    if (!wait_for_services_resolved(stream)) {
         return FALSE;
     }
 
@@ -492,9 +627,8 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
         NULL, G_VARIANT_TYPE("(a{oa{sa{sv}}})"),
         G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
     if (!managed) {
-        g_warning("BleIoStream: GetManagedObjects failed: %s",
-                  error->message);
-        return FALSE;
+        return connect_failed(stream, "GetManagedObjects failed: %s",
+                              error->message);
     }
 
     GVariant* objects = NULL;
@@ -762,11 +896,11 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
     g_free(read_poll_path);
 
     if (!best_write_path || !best_notify_path) {
-        g_warning("BleIoStream: No suitable GATT characteristics found, and "
-                  "no known read-poll service matched");
         g_free(best_write_path);
         g_free(best_notify_path);
-        return FALSE;
+        return connect_failed(stream,
+                              "No suitable GATT characteristics found, and "
+                              "no known read-poll service matched");
     }
 
     stream->write_path = best_write_path;
@@ -779,15 +913,13 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
     // module keeps the UART bridge closed until StartNotify has been called.
     if (stream->credits_notify_path) {
         g_clear_error(&error);
-        g_dbus_connection_call_sync(
-            stream->connection, "org.bluez", stream->credits_notify_path,
-            "org.bluez.GattCharacteristic1", "StartNotify",
-            NULL, NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
-        if (error) {
+        if (!call_bluez_method(stream->connection, stream->credits_notify_path,
+                               "org.bluez.GattCharacteristic1", "StartNotify",
+                               -1, &error)) {
             if (stream->credits_required) {
-                g_warning("BleIoStream: Terminal I/O credits StartNotify "
-                          "failed: %s", error->message);
-                return FALSE;
+                return connect_failed(
+                    stream, "Terminal I/O credits StartNotify failed: %s",
+                    error->message);
             }
             // The subscription never came up, so there is nothing to stop.
             g_clear_pointer(&stream->credits_notify_path, g_free);
@@ -805,13 +937,11 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
 
     // Enable notifications via StartNotify.
     g_clear_error(&error);
-    g_dbus_connection_call_sync(
-        stream->connection, "org.bluez", stream->notify_path,
-        "org.bluez.GattCharacteristic1", "StartNotify",
-        NULL, NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
-    if (error) {
-        g_warning("BleIoStream: StartNotify failed: %s", error->message);
-        return FALSE;
+    if (!call_bluez_method(stream->connection, stream->notify_path,
+                           "org.bluez.GattCharacteristic1", "StartNotify", -1,
+                           &error)) {
+        return connect_failed(stream, "StartNotify failed: %s",
+                              error->message);
     }
 
     // A Terminal I/O module keeps its UART bridge closed until the client
@@ -894,7 +1024,7 @@ static int ble_write(void* userdata, const void* data, size_t size,
     g_variant_builder_init(&opts, G_VARIANT_TYPE("a{sv}"));
 
     g_autoptr(GError) error = NULL;
-    g_dbus_connection_call_sync(
+    GVariant* reply = g_dbus_connection_call_sync(
         stream->connection, "org.bluez", stream->write_path,
         "org.bluez.GattCharacteristic1", "WriteValue",
         g_variant_new("(@aya{sv})",
@@ -902,6 +1032,7 @@ static int ble_write(void* userdata, const void* data, size_t size,
                       &opts),
         NULL, G_DBUS_CALL_FLAGS_NONE,
         stream->timeout_ms, NULL, &error);
+    if (reply) g_variant_unref(reply);
 
     // A read-poll computer's reply is fetched by a read whatever the write
     // completion said, so a rejection on a live link is reported as sent and
@@ -1244,17 +1375,15 @@ void ble_io_stream_close(BleIoStream* stream) {
 
     // Stop notifications.
     if (stream->connection && stream->notify_path) {
-        g_dbus_connection_call_sync(
-            stream->connection, "org.bluez", stream->notify_path,
-            "org.bluez.GattCharacteristic1", "StopNotify",
-            NULL, NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL);
+        call_bluez_method(stream->connection, stream->notify_path,
+                          "org.bluez.GattCharacteristic1", "StopNotify", -1,
+                          NULL);
     }
 
     if (stream->connection && stream->credits_notify_path) {
-        g_dbus_connection_call_sync(
-            stream->connection, "org.bluez", stream->credits_notify_path,
-            "org.bluez.GattCharacteristic1", "StopNotify",
-            NULL, NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL);
+        call_bluez_method(stream->connection, stream->credits_notify_path,
+                          "org.bluez.GattCharacteristic1", "StopNotify", -1,
+                          NULL);
     }
     credit_balance_set(stream->credits, 0, FALSE);
     stream->credits_required = FALSE;
@@ -1268,10 +1397,8 @@ void ble_io_stream_close(BleIoStream* stream) {
 
     // Disconnect the device.
     if (stream->connection && stream->device_path) {
-        g_dbus_connection_call_sync(
-            stream->connection, "org.bluez", stream->device_path,
-            "org.bluez.Device1", "Disconnect",
-            NULL, NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL);
+        call_bluez_method(stream->connection, stream->device_path,
+                          "org.bluez.Device1", "Disconnect", -1, NULL);
     }
 }
 
@@ -1307,6 +1434,7 @@ void ble_io_stream_free(BleIoStream* stream) {
     g_cond_clear(&stream->pin_cond);
     g_free(stream->pending_pin);
     g_free(stream->device_address);
+    g_free(stream->connect_failure);
     if (stream->connection) g_object_unref(stream->connection);
     g_free(stream);
 }
@@ -1332,4 +1460,15 @@ void ble_io_stream_set_pin_callback(
     gpointer user_data) {
     stream->on_pin_code_required = callback;
     stream->pin_callback_data = user_data;
+}
+
+void ble_io_stream_set_cancel_check(BleIoStream* stream,
+                                    gboolean (*is_cancelled)(gpointer user_data),
+                                    gpointer user_data) {
+    stream->is_cancelled = is_cancelled;
+    stream->cancel_data = user_data;
+}
+
+const gchar* ble_io_stream_connect_failure(const BleIoStream* stream) {
+    return stream->connect_failure;
 }

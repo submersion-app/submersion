@@ -304,10 +304,10 @@ void main() {
       );
     });
 
-    test('formats integer rating with one decimal place', () {
+    test('formats a whole-star rating without a decimal (#4573)', () {
       expect(
         adapter.formatValue(DiveCenterField.rating, 5.0, units),
-        equals('5.0'),
+        equals('5'),
       );
     });
 

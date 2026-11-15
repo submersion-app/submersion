@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_empty_state.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_country_flags.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -108,7 +109,7 @@ class TripStoryHero extends ConsumerWidget {
         ],
         if (showEmptyState && story.isEmpty) ...[
           const SizedBox(height: 16),
-          _EmptyState(onScanForDives: onScanForDives),
+          TripStoryEmptyState(onScanForDives: onScanForDives),
         ],
       ],
     );
@@ -180,48 +181,6 @@ class _ChecklistCard extends ConsumerWidget {
               ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final VoidCallback? onScanForDives;
-
-  const _EmptyState({required this.onScanForDives});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        children: [
-          Icon(
-            Icons.auto_stories,
-            size: 48,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.l10n.trips_story_empty_title,
-            style: theme.textTheme.titleMedium,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            context.l10n.trips_story_empty_subtitle,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          if (onScanForDives != null)
-            FilledButton.icon(
-              icon: const Icon(Icons.playlist_add, size: 18),
-              label: Text(context.l10n.trips_diveScan_findButton),
-              onPressed: onScanForDives,
-            ),
-        ],
       ),
     );
   }

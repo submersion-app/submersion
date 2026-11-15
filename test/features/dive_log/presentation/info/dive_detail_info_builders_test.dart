@@ -276,7 +276,7 @@ void main() {
       l10n,
       imperial,
       hasDrysuitGas: false,
-      canAdjust: true,
+      canTryWhatIf: true,
     );
     final ditch = content.terms.firstWhere(
       (e) => e.term == label(DiveTerm.minDitchable),

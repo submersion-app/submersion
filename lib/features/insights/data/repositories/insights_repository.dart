@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/data/repositories/depth_bucket_sql.
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
@@ -42,6 +43,7 @@ import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_
 import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
 import 'package:submersion/features/insights/data/repositories/visibility_band_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/data/repositories/vertical_distance_cache.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
 import 'package:submersion/features/insights/data/tank_configuration_sql.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
@@ -57,6 +59,8 @@ import 'package:submersion/features/insights/domain/counted_cylinders.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/domain/vertical_distance/vertical_distance.dart';
+import 'package:submersion/features/insights/domain/vertical_distance/vertical_distance_timeline.dart';
 import 'package:submersion/features/insights/domain/water_temp_bands.dart';
 import 'package:submersion/features/trips/data/side_trip_sql.dart';
 
@@ -73,6 +77,7 @@ part 'insights_repository_role_consumption.dart';
 part 'insights_repository_tank_configuration.dart';
 part 'insights_repository_time_of_day.dart';
 part 'insights_repository_twin_set_candidates.dart';
+part 'insights_repository_vertical_distance.dart';
 
 /// Per-dive outcome of the recorded (non-computed) deco classification.
 ///

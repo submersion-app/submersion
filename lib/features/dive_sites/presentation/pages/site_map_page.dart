@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_depth_overlay_layer.dart';
 import 'package:submersion/features/bathymetry/presentation/depth_overlay_toggle_button.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_marker_layer.dart';
@@ -228,7 +229,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     }
     if (site.rating != null) {
       subtitle += subtitle.isNotEmpty ? ' \u2022 ' : '';
-      subtitle += '\u2605 ${site.rating!.toStringAsFixed(1)}';
+      subtitle += '\u2605 ${formatRatingForDisplay(site.rating!)}';
     }
 
     return MapInfoCard(

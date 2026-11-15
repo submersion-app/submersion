@@ -1,9 +1,12 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_site_catalogue_tables.dart';
+import 'package:submersion/core/database/local_cache_vertical_distance_table.dart';
 
 export 'package:submersion/core/database/local_cache_site_catalogue_tables.dart'
     show SiteCatalogueEntries, SiteCatalogueMeta;
+export 'package:submersion/core/database/local_cache_vertical_distance_table.dart'
+    show DiveVerticalDistanceCache;
 
 part 'local_cache_database.g.dart';
 
@@ -345,13 +348,14 @@ class RecentQueries extends Table {
     RecentQueries,
     SiteCatalogueEntries,
     SiteCatalogueMeta,
+    DiveVerticalDistanceCache,
   ],
 )
 class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 23;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -549,6 +553,8 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       if (from < 22) {
         await _addSiteCatalogueKind();
       }
+      // v23: each dive's vertical distance (issue #4569).
+      if (from < 23) await m.createTable(diveVerticalDistanceCache);
     },
     beforeOpen: (details) async {
       // Ladder-collision self-heal: a parallel branch that also claimed v7
@@ -713,6 +719,8 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       await _createSiteCatalogueIndex();
       // v22 mirror, for a database a colliding branch stamped at v22 first.
       await _addSiteCatalogueKind();
+      // v23 mirror, for a database a colliding branch stamped at v23 first.
+      await customStatement(kCreateDiveVerticalDistanceCacheSql);
     },
   );
 

@@ -1783,6 +1783,33 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_story_today => 'היום';
 
   @override
+  String get trips_story_tripTile => 'טיול';
+
+  @override
+  String get trips_story_tripTileAll => 'הכול';
+
+  @override
+  String get trips_story_tripTile_semantics => 'כל הטיול';
+
+  @override
+  String trips_story_dayTile_semantics(String date, int number) {
+    return '$date, יום $number';
+  }
+
+  @override
+  String trips_story_dayTile_deepest(String depth) {
+    return 'העמוקה ביותר $depth';
+  }
+
+  @override
+  String get trips_story_noDivesThisDay => 'אין צלילות ביום זה';
+
+  @override
+  String trips_story_dayMaxDepth(String depth) {
+    return 'מרבי $depth';
+  }
+
+  @override
   String trips_countryFlags_more(int count) {
     return '+$count';
   }
@@ -22851,7 +22878,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buoyancy_throughDive => 'לאורך הצלילה';
 
   @override
-  String get buoyancy_adjust => 'התאמה';
+  String get buoyancy_whatIfButton => 'מה אם?';
 
   @override
   String buoyancy_readoutHeavy(String amount) {
@@ -22953,7 +22980,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_whatIfTitle => 'התאמת צלילה זו';
+  String get buoyancy_whatIfTitle => 'מה אם היית משנה את המשקולות?';
+
+  @override
+  String get buoyancy_whatIfNote =>
+      'שום דבר שתנסה כאן לא משנה את הצלילה שתיעדת.';
 
   @override
   String get buoyancy_whatIfLead => 'משקולות';
@@ -31883,6 +31914,236 @@ class AppLocalizationsHe extends AppLocalizations {
       'קצבי עלייה וירידה ממוצעים';
 
   @override
+  String get insights_profile_verticalDistance_title => 'עלייה וירידה כוללות';
+
+  @override
+  String get insights_profile_verticalDistance_subtitle =>
+      'כל הצלילות מסוכמות ומוצגות בפרספקטיבה';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsTitle =>
+      'סכום העומקים המרביים';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsSubtitle =>
+      'כל צלילה ישר לנקודה העמוקה ביותר שלה וחזרה';
+
+  @override
+  String get insights_profile_verticalDistance_totalAscent => 'עלייה כוללת';
+
+  @override
+  String get insights_profile_verticalDistance_totalDescent => 'ירידה כוללת';
+
+  @override
+  String get insights_profile_verticalDistance_seaLevel => 'פני הים';
+
+  @override
+  String insights_profile_verticalDistance_next(String landmark) {
+    return 'הבא: $landmark';
+  }
+
+  @override
+  String insights_profile_verticalDistance_toGo(String distance) {
+    return 'נותרו $distance';
+  }
+
+  @override
+  String insights_profile_verticalDistance_multiple(
+    int count,
+    String landmark,
+  ) {
+    return '$count × $landmark';
+  }
+
+  @override
+  String get insights_profile_verticalDistance_stripIdle =>
+      'הצביעו על עמודה כדי לראות מתי הגעתם לשם';
+
+  @override
+  String insights_profile_verticalDistance_stripAscent(
+    String level,
+    String date,
+  ) {
+    return '$level עלייה, הושגו ב-$date';
+  }
+
+  @override
+  String insights_profile_verticalDistance_stripDescent(
+    String level,
+    String date,
+  ) {
+    return '$level ירידה, הושגו ב-$date';
+  }
+
+  @override
+  String insights_profile_verticalDistance_stripPassed(
+    String landmark,
+    String date,
+  ) {
+    return '$landmark: נעקף ב-$date';
+  }
+
+  @override
+  String insights_profile_verticalDistance_stripAhead(
+    String landmark,
+    String distance,
+  ) {
+    return '$landmark: נותרו $distance';
+  }
+
+  @override
+  String get insights_profile_verticalDistance_openDive => 'פתח צלילה';
+
+  @override
+  String get insights_profile_verticalDistance_pinned => 'מוצמד';
+
+  @override
+  String insights_profile_verticalDistance_estimated(int estimated, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$estimated מתוך $total צלילות נספרו לפי העומק המקסימלי',
+      one: '$estimated מתוך $total צלילה נספרה לפי העומק המקסימלי',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_profile_verticalDistance_empty =>
+      'עדיין אין צלילות עם עומק';
+
+  @override
+  String get insights_profile_verticalDistance_error =>
+      'טעינת סיכומי העלייה והירידה נכשלה';
+
+  @override
+  String insights_profile_verticalDistance_semantics(
+    String total,
+    String up,
+    String upDistance,
+    String down,
+    String downDistance,
+  ) {
+    return 'עלייה וירידה כוללות: $total כל אחת. הבא למעלה: $up, נותרו $upDistance. הבא למטה: $down, נותרו $downDistance.';
+  }
+
+  @override
+  String get insights_landmark_statueOfLiberty => 'פסל החירות';
+
+  @override
+  String get insights_landmark_greatPyramid => 'הפירמידה הגדולה של גיזה';
+
+  @override
+  String get insights_landmark_eiffelTower => 'מגדל אייפל';
+
+  @override
+  String get insights_landmark_empireStateBuilding => 'בניין אמפייר סטייט';
+
+  @override
+  String get insights_landmark_burjKhalifa => 'בורג\' ח\'ליפה';
+
+  @override
+  String get insights_landmark_benNevis => 'בן נוויס';
+
+  @override
+  String get insights_landmark_mountKosciuszko => 'הר קושצ\'ושקו';
+
+  @override
+  String get insights_landmark_mountFuji => 'הר פוג\'י';
+
+  @override
+  String get insights_landmark_matterhorn => 'מטרהורן';
+
+  @override
+  String get insights_landmark_montBlanc => 'מון בלאן';
+
+  @override
+  String get insights_landmark_kilimanjaro => 'קילימנג\'רו';
+
+  @override
+  String get insights_landmark_denali => 'דנאלי';
+
+  @override
+  String get insights_landmark_aconcagua => 'אקונקגואה';
+
+  @override
+  String get insights_landmark_k2 => 'K2';
+
+  @override
+  String get insights_landmark_everest => 'הר האוורסט';
+
+  @override
+  String get insights_landmark_olympusMons => 'אולימפוס מונס (מאדים)';
+
+  @override
+  String get insights_landmark_karmanLine => 'גבול החלל';
+
+  @override
+  String get insights_landmark_internationalSpaceStation =>
+      'תחנת החלל הבינלאומית';
+
+  @override
+  String get insights_landmark_recreationalLimit => 'גבול הצלילה הספורטיבית';
+
+  @override
+  String get insights_landmark_greatBlueHole => 'החור הכחול הגדול';
+
+  @override
+  String get insights_landmark_deansBlueHole => 'החור הכחול של דין';
+
+  @override
+  String get insights_landmark_dragonHole => 'חור הדרקון';
+
+  @override
+  String get insights_landmark_deepestScubaDive => 'צלילת הסקובה העמוקה ביותר';
+
+  @override
+  String get insights_landmark_craterLake => 'אגם המכתש';
+
+  @override
+  String get insights_landmark_lakeTanganyika => 'אגם טנגניקה';
+
+  @override
+  String get insights_landmark_lakeBaikal => 'אגם באיקל';
+
+  @override
+  String get insights_landmark_deepestWhaleDive =>
+      'צלילת הלווייתן העמוקה ביותר';
+
+  @override
+  String get insights_landmark_averageOceanDepth => 'עומק האוקיינוס הממוצע';
+
+  @override
+  String get insights_landmark_titanic => 'טיטאניק';
+
+  @override
+  String get insights_landmark_bismarck => 'ביסמרק';
+
+  @override
+  String get insights_landmark_molloyDeep => 'מעמקי מולוי';
+
+  @override
+  String get insights_landmark_deepestShipwreck => 'הספינה הטרופה העמוקה ביותר';
+
+  @override
+  String get insights_landmark_javaTrench => 'תעלת ג\'אווה';
+
+  @override
+  String get insights_landmark_southSandwichTrench => 'תעלת סנדוויץ\' הדרומית';
+
+  @override
+  String get insights_landmark_puertoRicoTrench => 'תעלת פוארטו ריקו';
+
+  @override
+  String get insights_landmark_tongaTrench => 'תעלת טונגה';
+
+  @override
+  String get insights_landmark_challengerDeep => 'מעמקי צ\'לנג\'ר';
+
+  @override
+  String get insights_landmark_kolaBorehole => 'קידוח העל של קולה';
+
+  @override
   String get insights_profile_avgAscent => 'עלייה ממוצעת';
 
   @override
@@ -35501,9 +35762,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_detail_stat_speciesSeen => 'מינים שנצפו';
-
-  @override
-  String get trips_breakdown_column_sites => 'אתרים';
 
   @override
   String trips_itinerary_dayLabel(int dayNumber) {
@@ -62790,7 +63048,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'עבור על התרשים כדי לראות מה משך אותך למטה ומה החזיק אותך למעלה באותו רגע. כוונון פותח חלונית שמנסה כמות משקולות או ציפת חליפה אחרת על הצלילה הזו.';
+      'עבור על התרשים כדי לראות מה משך אותך למטה ומה החזיק אותך למעלה באותו רגע. „מה אם?” פותח חלונית שמנסה כמות משקולות, סוג מים או ציפת חליפה אחרים על הצלילה הזו, בלי לשנות את הצלילה.';
 
   @override
   String get info_diveLog_waterConditions_summary =>
@@ -62862,6 +63120,15 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get info_insights_ascentDescent_summary =>
       'מהירות ממוצעת בירידה ובעלייה, מחושבת מהפרופילים.';
+
+  @override
+  String get info_insights_verticalDistance_maxDepthsSummary =>
+      'כל צלילה נספרת ישר מטה עד לעומק המרבי שלה וישר חזרה למעלה, בלי להתחשב בשינויי עומק בדרך. צלילה ללא עומק מרבי אינה נספרת.';
+
+  @override
+  String info_insights_verticalDistance_summary(String deadband) {
+    return 'כל צלילה נספרת מפני המים למטה ובחזרה, בלי תנודות קטנות מ-$deadband. צלילה ללא פרופיל נספרת פעם אחת עד העומק המקסימלי ופעם אחת בחזרה.';
+  }
 
   @override
   String get info_insights_timeAtDepth_summary =>

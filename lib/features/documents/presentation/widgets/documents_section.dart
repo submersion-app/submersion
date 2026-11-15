@@ -39,34 +39,50 @@ class DocumentsSection extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.folder_copy_outlined,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    l10n.documents_section_title,
-                    style: theme.textTheme.titleMedium,
+            // The title at the start and Add at the far edge while both fit
+            // on a line. When they do not (a narrow phone at a large text
+            // size, a long translation), Add takes the next line: in a Row
+            // it kept its width and squeezed the title to nothing.
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.folder_copy_outlined,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          l10n.documents_section_title,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                TextButton.icon(
-                  key: const ValueKey('documents-section-add'),
-                  icon: const Icon(Icons.add),
-                  label: Text(l10n.documents_add),
-                  onPressed: () => context.push(
-                    Uri(
-                      path: '/documents/new',
-                      queryParameters: {
-                        'ownerKind': owner.kind.storage,
-                        'ownerId': ?owner.id,
-                      },
-                    ).toString(),
+                  TextButton.icon(
+                    key: const ValueKey('documents-section-add'),
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.documents_add),
+                    onPressed: () => context.push(
+                      Uri(
+                        path: '/documents/new',
+                        queryParameters: {
+                          'ownerKind': owner.kind.storage,
+                          'ownerId': ?owner.id,
+                        },
+                      ).toString(),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 8),
             docs.when(
