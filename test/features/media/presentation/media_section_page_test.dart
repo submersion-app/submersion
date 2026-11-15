@@ -139,6 +139,14 @@ void main() {
     await tester.tap(action(MediaConsoleAction.transfers));
     await tester.pumpAndSettle();
     expect(find.byType(TransfersPage), findsOneWidget);
+    // Titled like the button, not Settings' "Uploads".
+    expect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.text('Transfers'),
+      ),
+      findsOneWidget,
+    );
 
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();

@@ -10,6 +10,7 @@ import 'package:submersion/features/media/presentation/providers/media_library_p
 import 'package:submersion/features/media/presentation/providers/media_watcher_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_console_scaffold.dart';
 import 'package:submersion/features/media_store/presentation/pages/transfers_page.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
 
 /// The Media screen's Photos/Videos tab: owns the selected console section
@@ -67,9 +68,12 @@ class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
           pick: widget.importPickOverride,
         );
       case MediaConsoleAction.transfers:
-        await Navigator.of(
-          context,
-        ).push(MaterialPageRoute<void>(builder: (_) => const TransfersPage()));
+        // Settings calls the same page Uploads; from here it takes the
+        // button's name.
+        final title = context.l10n.media_console_transfers;
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => TransfersPage(title: title)),
+        );
       case MediaConsoleAction.sources:
         // Browsing a source filters the Library and closes the page with
         // true: show the Library it filtered, whichever tab was up.

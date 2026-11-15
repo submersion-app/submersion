@@ -10,15 +10,14 @@ import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The transfer queue list: active, waiting, and failed transfers with
-/// per-entry retry. Embedded by both the Settings TransfersPage (which adds
-/// the app bar, clear-completed action, and bulk selection) and the Media
-/// console's Transfers section.
+/// per-entry retry. Embedded by TransfersPage, which adds the app bar, the
+/// clear-completed action and bulk selection.
 ///
-/// Selection is owned by the host, not by this widget: the Settings page runs
-/// the [SelectionController] behind its [SelectionAppBar] and passes the state
-/// down, while the Media console embeds the plain list by omitting these. The
-/// tile renders its checkbox in place of the state icon so the row root stays
-/// the [ListTile] either way.
+/// Selection is owned by the host, not by this widget: the page runs the
+/// [SelectionController] behind its [SelectionAppBar] and passes the state
+/// down; a host that omits it gets the plain list. The tile renders its
+/// checkbox in place of the state icon so the row root stays the [ListTile]
+/// either way.
 class TransfersView extends ConsumerWidget {
   const TransfersView({
     super.key,

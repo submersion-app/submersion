@@ -59,6 +59,7 @@ void main() {
     Map<String, String> labels = const {},
     bool suspended = false,
     bool runtimeFails = false,
+    String? title,
   }) => ProviderScope(
     overrides: [
       mediaTransferQueueRepositoryProvider.overrideWithValue(repo),
@@ -81,12 +82,12 @@ void main() {
         (ref) => Stream.value(const MediaTransferSummary()),
       ),
     ],
-    child: const MaterialApp(
+    child: MaterialApp(
       // Pinned: these tests find widgets by their English strings.
-      locale: Locale('en'),
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: TransfersPage(),
+      home: TransfersPage(title: title),
     ),
   );
 
@@ -338,6 +339,32 @@ void main() {
     await tester.runAsync(() async {
       expect(await repo.watchEntries().first, isEmpty);
     });
+  });
+
+  testWidgets('Settings opens it titled Uploads', (tester) async {
+    await tester.pumpWidget(app(const []));
+    await tester.pump();
+    expect(
+      find.descendant(of: find.byType(AppBar), matching: find.text('Uploads')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('an opener can title it, as Media does with Transfers', (
+    tester,
+  ) async {
+    // The Media section's Transfers button opens this page (#4587); the
+    // queue holds downloads and deletes too, so it keeps that name there.
+    await tester.pumpWidget(app(const [], title: 'Transfers'));
+    await tester.pump();
+    expect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.text('Transfers'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Uploads'), findsNothing);
   });
 
   testWidgets('renders the empty state', (tester) async {
