@@ -4864,6 +4864,8 @@
   },
   "diveLog_detail_section_decoStatus": "Deco Status",
   "diveLog_detail_section_details": "Details",
+  "diveLog_detail_section_header": "Dive",
+  "@diveLog_detail_section_header": {"description": "Title of the dive page's header block (site, times, depths) when it is opened for editing, and its name in the dive's History"},
   "diveLog_detail_section_diveProfile": "Dive Profile",
   "diveLog_detail_profileRevision_kind_edit": "Edit",
   "diveLog_detail_profileRevision_kind_create": "Create",

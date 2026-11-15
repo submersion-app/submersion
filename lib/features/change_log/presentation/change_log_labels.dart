@@ -5,6 +5,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/change_log/domain/change_log_entities.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_operation.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_reference_labels.dart';
@@ -80,7 +81,11 @@ String? _recordEditLabel(AppLocalizations l, String label) {
       : const <String, DiveDetailSectionId>{};
   final cards = [
     for (final id in edit.cardIds)
-      diveSections[id]?.localizedDisplayName(l) ?? id,
+      // The dive page's header block is a card but not a section.
+      if (edit.table == 'dives' && id == diveHeaderCardId)
+        l.diveLog_detail_section_header
+      else
+        diveSections[id]?.localizedDisplayName(l) ?? id,
   ];
   return l.changeLog_label_recordEdit(
     cards.join(l.changeLog_label_recordEditSeparator),

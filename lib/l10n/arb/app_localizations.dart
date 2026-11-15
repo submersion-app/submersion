@@ -12690,6 +12690,12 @@ abstract class AppLocalizations {
   /// **'Details'**
   String get diveLog_detail_section_details;
 
+  /// Title of the dive page's header block (site, times, depths) when it is opened for editing, and its name in the dive's History
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get diveLog_detail_section_header;
+
   /// No description provided for @diveLog_detail_section_diveProfile.
   ///
   /// In en, this message translates to:

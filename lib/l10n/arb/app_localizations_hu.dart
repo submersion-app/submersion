@@ -8064,6 +8064,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_section_details => 'Részletek';
 
   @override
+  String get diveLog_detail_section_header => 'Merülés';
+
+  @override
   String get diveLog_detail_section_diveProfile => 'Merülési profil';
 
   @override

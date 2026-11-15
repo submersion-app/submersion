@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/utils/dive_type_autofill.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_site_assignment.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_area_anchor_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -15,9 +16,45 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/weather/domain/services/altitude_resolver.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/form_caption.dart';
+import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 const _log = LoggerService('DiveSiteRow');
+
+/// The site row of the header editor: the site's name, where it is under
+/// it, and a clear button. Picking or clearing applies the site's rules to
+/// the other cards ([assignDiveSite]).
+class DiveSiteRow extends ConsumerWidget {
+  const DiveSiteRow({super.key, required this.session});
+
+  final EditSession<Dive> session;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final site = session.valueOf(diveSiteField);
+    final where = site?.locationString ?? '';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FormRow.picker(
+          label: l10n.diveLog_edit_row_site,
+          value: site?.name,
+          placeholder: l10n.diveLog_edit_row_addSite,
+          onTap: () => pickSiteForSitting(context, ref, session),
+          onClear: site == null
+              ? null
+              : () => readDiveSiteAssigner(context)(session, null),
+          clearTooltip: l10n.common_action_remove,
+        ),
+        if (where.isNotEmpty) FormCaption(where),
+      ],
+    );
+  }
+}
 
 /// Puts a site on the dive of a sitting, with its rules ([assignDiveSite]).
 typedef DiveSiteAssigner =

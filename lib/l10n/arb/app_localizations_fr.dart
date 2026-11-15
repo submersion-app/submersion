@@ -8106,6 +8106,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_detail_section_details => 'Détails';
 
   @override
+  String get diveLog_detail_section_header => 'Plongée';
+
+  @override
   String get diveLog_detail_section_diveProfile => 'Profil de plongée';
 
   @override

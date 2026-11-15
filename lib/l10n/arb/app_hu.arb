@@ -2628,6 +2628,7 @@
   },
   "diveLog_detail_section_decoStatus": "Dekó állapot",
   "diveLog_detail_section_details": "Részletek",
+  "diveLog_detail_section_header": "Merülés",
   "diveLog_detail_section_diveProfile": "Merülési profil",
   "diveLog_detail_profileRevision_kind_edit": "Szerkesztés",
   "diveLog_detail_profileRevision_kind_create": "Létrehozva",

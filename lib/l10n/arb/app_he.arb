@@ -2628,6 +2628,7 @@
   },
   "diveLog_detail_section_decoStatus": "מצב דקו",
   "diveLog_detail_section_details": "פרטים",
+  "diveLog_detail_section_header": "צלילה",
   "diveLog_detail_section_diveProfile": "פרופיל צלילה",
   "diveLog_detail_profileRevision_kind_edit": "עריכה",
   "diveLog_detail_profileRevision_kind_create": "נוצר",
