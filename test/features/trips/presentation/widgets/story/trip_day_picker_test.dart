@@ -254,9 +254,7 @@ void main() {
 
     expect(
       tester.getSemantics(find.byKey(TripDayPicker.dayTileKey(2))),
-      isSemantics(
-        label: 'Thu, Oct 29, day 2, 3 dives, deepest 30.2m, Today',
-      ),
+      isSemantics(label: 'Thu, Oct 29, day 2, 3 dives, deepest 30.2m, Today'),
     );
   });
 

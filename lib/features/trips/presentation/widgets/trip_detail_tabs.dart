@@ -4,6 +4,7 @@ import 'package:submersion/features/checklists/presentation/widgets/trip_checkli
 import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_tab.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_dives_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_itinerary_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab.dart';
@@ -16,7 +17,7 @@ enum TripDetailTab { overview, itinerary, gear, checklist, dives, photos }
 
 /// The trip page's body (#2845): one scrolling tab row and six views, the
 /// same for every trip type and width.
-class TripDetailTabs extends StatelessWidget {
+class TripDetailTabs extends StatefulWidget {
   final TripWithStats tripWithStats;
 
   /// Where the Overview's Plan row goes; null pushes the edit page.
@@ -29,8 +30,37 @@ class TripDetailTabs extends StatelessWidget {
   });
 
   @override
+  State<TripDetailTabs> createState() => _TripDetailTabsState();
+}
+
+class _TripDetailTabsState extends State<TripDetailTabs> {
+  /// Which page of the Overview's story shows. Held here, above the tab
+  /// view, because the tab view does not keep an off-screen tab alive: kept
+  /// inside the Overview it would be lost on a visit to another tab. Null
+  /// until a page is chosen, when the story opens where it opens by rule.
+  final _storySelection = ValueNotifier<TripStorySelection?>(null);
+
+  @override
+  void didUpdateWidget(TripDetailTabs oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The master-detail pane reuses this widget for the next trip, which
+    // starts from its own opening page.
+    if (oldWidget.tripWithStats.trip.id != widget.tripWithStats.trip.id) {
+      _storySelection.value = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _storySelection.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final tripWithStats = widget.tripWithStats;
+    final onEditPlan = widget.onEditPlan;
     final trip = tripWithStats.trip;
     return DefaultTabController(
       // Keyed by trip: the master-detail pane reuses this widget for the next
@@ -60,6 +90,7 @@ class TripDetailTabs extends StatelessWidget {
                 TripOverviewTab(
                   tripWithStats: tripWithStats,
                   onEditPlan: onEditPlan,
+                  selection: _storySelection,
                 ),
                 TripItineraryTab(tripId: trip.id),
                 TripGearTab(trip: trip),

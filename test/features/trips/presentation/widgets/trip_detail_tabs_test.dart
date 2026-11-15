@@ -4,6 +4,11 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
+import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_day_picker.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_page.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_trip_page.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -57,5 +62,94 @@ void main() {
     shown.value = TripWithStats(trip: trip('b'), diveCount: 0);
     await tester.pumpAndSettle();
     expect(controller().index, TripDetailTab.overview.index);
+  });
+
+  group('the story page chosen on the Overview', () {
+    Future<ValueNotifier<TripWithStats>> pumpTabs(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1100, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final shown = ValueNotifier(TripWithStats(trip: trip('a'), diveCount: 0));
+      addTearDown(shown.dispose);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            for (final id in ['a', 'b']) ...[
+              divesForTripProvider(id).overrideWith((ref) async => <Dive>[]),
+              tripStoryProvider(id).overrideWith(
+                (ref) async => buildTripStory(
+                  trip: trip(id),
+                  dives: [
+                    Dive(
+                      id: '$id-1',
+                      dateTime: DateTime(2024, 1, 17, 9),
+                      maxDepth: 20,
+                    ),
+                  ],
+                  itineraryDays: [],
+                  mediaByDiveId: {},
+                  sightingsByDiveId: {},
+                  checklistItems: [],
+                  today: DateTime(2024, 6, 1),
+                ),
+              ),
+            ],
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: ValueListenableBuilder<TripWithStats>(
+                valueListenable: shown,
+                builder: (_, value, _) => TripDetailTabs(tripWithStats: value),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return shown;
+    }
+
+    testWidgets('the chosen day survives a visit to another tab', (
+      tester,
+    ) async {
+      await pumpTabs(tester);
+      expect(find.byType(TripStoryTripPage), findsOneWidget);
+
+      await tester.tap(find.byKey(TripDayPicker.dayTileKey(3)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(Tab, 'Dives'));
+      await tester.pumpAndSettle();
+      expect(find.byType(TripStoryDayPage), findsNothing);
+      await tester.tap(find.widgetWithText(Tab, 'Overview'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<TripStoryDayPage>(find.byType(TripStoryDayPage))
+            .day
+            .dayNumber,
+        3,
+      );
+    });
+
+    testWidgets('a different trip starts from its own opening page', (
+      tester,
+    ) async {
+      final shown = await pumpTabs(tester);
+      await tester.tap(find.byKey(TripDayPicker.dayTileKey(3)));
+      await tester.pumpAndSettle();
+      expect(find.byType(TripStoryDayPage), findsOneWidget);
+
+      shown.value = TripWithStats(trip: trip('b'), diveCount: 0);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TripStoryTripPage), findsOneWidget);
+      expect(find.byType(TripStoryDayPage), findsNothing);
+    });
   });
 }
