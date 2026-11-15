@@ -114,6 +114,49 @@ void main() {
     });
   });
 
+  test('does not step back across the clock change it is correcting', () {
+    // Spring forward at 02:00 UTC with a 2-hour step: the tick after 00:00
+    // lands on 02:00 UTC, which reads 03:00. Stepping back the hour reaches
+    // 01:00 UTC, before the change, which still reads 01:00.
+    final change = DateTime.utc(2026, 3, 28, 2);
+    DateTime toSite(DateTime instant) => instant.isBefore(change)
+        ? instant
+        : instant.add(const Duration(hours: 1));
+
+    final ticks = wallClockHourTicks(
+      start: DateTime.utc(2026, 3, 28),
+      end: DateTime.utc(2026, 3, 28, 12),
+      stepHours: 2,
+      toSite: toSite,
+    );
+
+    expect(ticks.map(toSite).map((t) => t.hour), [0, 4, 6, 8, 10, 12]);
+  });
+
+  test('stays on the step when the clock falls back', () {
+    // The site clock goes back an hour at 02:00 UTC, so 02:00 to 03:00 UTC
+    // reads 01:00 to 02:00 a second time.
+    final change = DateTime.utc(2026, 10, 25, 2);
+    DateTime toSite(DateTime instant) => instant.isBefore(change)
+        ? instant
+        : instant.subtract(const Duration(hours: 1));
+
+    final ticks = wallClockHourTicks(
+      start: DateTime.utc(2026, 10, 25),
+      end: DateTime.utc(2026, 10, 25, 13),
+      stepHours: 2,
+      toSite: toSite,
+    );
+
+    for (var i = 0; i < ticks.length; i++) {
+      final wall = toSite(ticks[i]);
+      expect(wall.hour % 2, 0, reason: 'tick at ${ticks[i]} reads $wall');
+      expect(wall.minute, 0);
+      if (i > 0) expect(ticks[i].isAfter(ticks[i - 1]), isTrue);
+    }
+    expect(ticks.map(toSite).last.hour, 12);
+  });
+
   test('realigns the first tick when the clock changes before it', () {
     // The site clock jumps forward an hour at 02:00 UTC, between the 01:10
     // start and the first 2-hour boundary.

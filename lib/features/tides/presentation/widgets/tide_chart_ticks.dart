@@ -62,16 +62,30 @@ List<DateTime> wallClockHourTicks({
     return Duration(microseconds: intoDay.inMicroseconds % step.inMicroseconds);
   }
 
-  // [candidate] moved onto a step boundary of the site clock, not before
+  // [candidate] moved onto a step boundary of the site clock, later than
   // [after]. A step that crossed a clock change lands off a boundary by the
-  // change; it goes back to the nearer boundary unless that is not later
-  // than [after], and forward otherwise.
+  // change. Moving the instant back or forward by that amount does not
+  // always move the clock by it (stepping back can recross the change), so
+  // each move is checked against the clock: the nearer one that lands on a
+  // boundary wins, and failing both, the next boundary is found hour by
+  // hour.
+  bool onBoundary(DateTime instant) => pastBoundary(instant) == Duration.zero;
   DateTime realign(DateTime candidate, DateTime after) {
     final drift = pastBoundary(candidate);
     if (drift == Duration.zero) return candidate;
     final back = candidate.subtract(drift);
-    if (drift * 2 <= step && back.isAfter(after)) return back;
-    return candidate.add(step - drift);
+    final forward = candidate.add(step - drift);
+    final options = drift * 2 <= step ? [back, forward] : [forward, back];
+    for (final option in options) {
+      if (option.isAfter(after) && onBoundary(option)) return option;
+    }
+    // Clock changes are whole or half hours, so a whole-hour walk from the
+    // last tick finds the next boundary within a step and a little more.
+    for (var hours = 1; hours <= stepHours + 2; hours++) {
+      final probe = after.add(Duration(hours: hours));
+      if (onBoundary(probe)) return probe;
+    }
+    return forward;
   }
 
   final ticks = <DateTime>[];
