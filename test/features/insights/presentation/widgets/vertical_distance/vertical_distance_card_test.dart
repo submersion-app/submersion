@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -38,6 +40,22 @@ final _timeline = VerticalDistanceTimeline([
       estimated: i < 5,
     ),
 ]);
+
+/// A new timeline object holding the same dives, as a provider refresh gives.
+VerticalDistanceTimeline _copy(VerticalDistanceTimeline t) =>
+    VerticalDistanceTimeline([
+      for (var i = 0; i < 58; i++)
+        DiveVerticalDistance(
+          diveId: 'd$i',
+          startMillis: DateTime.utc(
+            2021,
+            1,
+            10,
+          ).add(Duration(days: 30 * i)).millisecondsSinceEpoch,
+          meters: 110,
+          estimated: i < 5,
+        ),
+    ]);
 
 const _scaleKey = Key('verticalScale');
 const _stripKey = Key('verticalStrip');
@@ -94,7 +112,7 @@ void main() {
       ProviderScope(
         overrides: [
           verticalDistanceTimelineProvider.overrideWith(
-            (ref) async => timeline ?? _timeline,
+            (ref) async => timeline ?? _copy(_timeline),
           ),
           sharedPreferencesProvider.overrideWithValue(prefs),
           settingsProvider.overrideWith(
@@ -386,6 +404,80 @@ void main() {
     await tester.tap(find.text('5 of 58 dives counted from max depth'));
     await tester.pump();
     expect(stripText(tester), 'Point at a bar to see when you got there');
+  });
+
+  testWidgets('on a short bar the ascent headline stays clear of sea level', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      width: 320,
+      timeline: VerticalDistanceTimeline([
+        const DiveVerticalDistance(
+          diveId: 'a',
+          startMillis: 0,
+          meters: 50,
+          estimated: false,
+        ),
+      ]),
+    );
+    final seaLevel = tester.getRect(find.text('Sea level'));
+    final ascentToGo = tester.getRect(find.textContaining('to go').first);
+    expect(ascentToGo.bottom, lessThanOrEqualTo(seaLevel.top));
+  });
+
+  testWidgets('a pinned level survives a refresh with the same dives', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tapAt(at(tester, 100));
+    await tester.pump();
+    final pinned = stripText(tester);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(VerticalDistanceCard)),
+    ).invalidate(verticalDistanceTimelineProvider);
+    await tester.pumpAndSettle();
+
+    expect(stripText(tester), pinned);
+    expect(find.text('Pinned'), findsOneWidget);
+  });
+
+  testWidgets('the card keeps its height from loading to loaded', (
+    tester,
+  ) async {
+    final pending = Completer<VerticalDistanceTimeline>();
+    tester.view.physicalSize = const Size(1000, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          verticalDistanceTimelineProvider.overrideWith(
+            (ref) => pending.future,
+          ),
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith(
+            (ref) => _MockSettingsNotifier(const AppSettings()),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(child: VerticalDistanceCard()),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final loading = tester.getSize(find.byType(VerticalDistanceCard)).height;
+
+    pending.complete(_timeline);
+    await tester.pumpAndSettle();
+
+    expect(tester.getSize(find.byType(VerticalDistanceCard)).height, loading);
   });
 
   testWidgets('lays out right to left', (tester) async {

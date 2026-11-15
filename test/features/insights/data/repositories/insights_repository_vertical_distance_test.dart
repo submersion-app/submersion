@@ -28,6 +28,23 @@ class _BrokenCache extends VerticalDistanceCacheRepository {
       throw StateError('cache write failed');
 }
 
+/// A cache whose reads fail and whose writes are counted.
+class _UnreadableCache extends VerticalDistanceCacheRepository {
+  _UnreadableCache(LocalCacheDatabase db) : super(database: db);
+
+  var writes = 0;
+
+  @override
+  Future<Map<String, VerticalDistanceCacheEntry>> getEntries(
+    Set<String> diveIds,
+  ) async => throw StateError('cache read failed');
+
+  @override
+  Future<void> putAll(Map<String, VerticalDistanceCacheEntry> entries) async {
+    writes++;
+  }
+}
+
 /// A cache that records each write.
 class _CountingCache extends VerticalDistanceCacheRepository {
   _CountingCache(LocalCacheDatabase db) : super(database: db);
@@ -326,6 +343,15 @@ void main() {
     await timeline(using: counting);
 
     expect(counting.writes, hasLength(3));
+  });
+
+  test('a cache that cannot be read is not written to either', () async {
+    await dive('a', at: day1);
+    await profile('a', to20);
+    final broken = _UnreadableCache(local);
+
+    expect((await timeline(using: broken)).totalMeters, 20);
+    expect(broken.writes, 0);
   });
 
   test('no dives give the empty timeline', () async {

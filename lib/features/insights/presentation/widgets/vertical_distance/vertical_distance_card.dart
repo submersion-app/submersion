@@ -44,7 +44,7 @@ class VerticalDistanceCard extends ConsumerWidget {
           return VerticalDistanceScale(timeline: timeline);
         },
         loading: () => const SizedBox(
-          height: kVerticalScaleHeight + 56,
+          height: kVerticalCardBodyHeight,
           child: Center(child: CircularProgressIndicator()),
         ),
         error: (_, _) => StatEmptyState(

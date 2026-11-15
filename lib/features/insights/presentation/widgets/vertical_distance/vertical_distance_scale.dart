@@ -23,6 +23,14 @@ export 'package:submersion/features/insights/presentation/widgets/vertical_dista
 /// Widest the scale grows; on a wide screen it is centred, not stretched.
 const double _maxScaleWidth = 440;
 
+/// Height reserved for the estimated-dives note under the strip.
+const double kVerticalNoteHeight = 16;
+
+/// The scale, the strip and the note with their gaps: the card's body
+/// height, which its loading state reserves too.
+const double kVerticalCardBodyHeight =
+    kVerticalScaleHeight + 8 + kVerticalStripHeight + 8 + kVerticalNoteHeight;
+
 /// The vertical scale and its readout strip (issue #4569).
 ///
 /// Pointing at a bar selects a level: hovering follows the pointer, a click
@@ -58,7 +66,13 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
     super.didUpdateWidget(old);
     if (old.timeline != widget.timeline) {
       _layout = _layoutFor(widget.timeline);
-      _selection.value = const VerticalIdle();
+      // A refresh with the same total (any Insights table write refreshes
+      // the provider) keeps the selected level; the strip reads its date
+      // from the new timeline. A different total redraws the scale, so the
+      // old level means nothing there.
+      if (old.timeline.totalMeters != widget.timeline.totalMeters) {
+        _selection.value = const VerticalIdle();
+      }
     }
   }
 
@@ -114,19 +128,25 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
               );
             },
           ),
-          if (timeline.estimatedDives > 0)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                l10n.insights_profile_verticalDistance_estimated(
-                  timeline.estimatedDives,
-                  timeline.countedDives,
-                ),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
+          // The note's line is always reserved, so the card is the same
+          // height with or without it, and while loading.
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: kVerticalNoteHeight),
+              child: timeline.estimatedDives == 0
+                  ? null
+                  : Text(
+                      l10n.insights_profile_verticalDistance_estimated(
+                        timeline.estimatedDives,
+                        timeline.countedDives,
+                      ),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
             ),
+          ),
         ],
       ),
     );
@@ -308,19 +328,26 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
     final next = nextLandmark(d, total);
     final bar = _layout.barPx;
     const height = 72.0;
-    final top = d == VerticalLeg.ascent
-        ? (g.seaY - bar).clamp(0.0, g.seaY - 90)
-        : (g.seaY + bar - height).clamp(
-            g.seaY + 6,
-            kVerticalScaleHeight - height,
-          );
+    // The ascent headline is anchored by its bottom edge, which sits level
+    // with a typical headline's end beside the bar top but never lower than
+    // just above the Sea level label; however many lines its text takes, it
+    // grows upward and stays clear of sea level. The descent headline is
+    // anchored by its top, which is never above sea level.
+    final ascentBottom = math.min(g.seaY - bar + height, g.seaY - 20);
+    final descentTop = (g.seaY + bar - height).clamp(
+      g.seaY + 6,
+      kVerticalScaleHeight - height,
+    );
     final muted = theme.textTheme.bodySmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );
     return PositionedDirectional(
       start: g.columnInset,
       end: 0,
-      top: top,
+      top: d == VerticalLeg.descent ? descentTop : null,
+      bottom: d == VerticalLeg.ascent
+          ? kVerticalScaleHeight - ascentBottom
+          : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

@@ -65,6 +65,11 @@ class UnitFormatter {
   }
 
   /// Get depth unit symbol
+  /// A whole number grouped in the active locale, then its unit symbol:
+  /// "6,380 m". Shared by the long-distance formats.
+  static String _wholeWithSymbol(int value, String symbol) =>
+      '${NumberFormat('#,##0').format(value)} $symbol';
+
   String get depthSymbol => settings.depthUnit.symbol;
 
   /// A long vertical distance given in metres, in whole display units with
@@ -77,8 +82,7 @@ class UnitFormatter {
     if (meters == null) return '--';
     final converted = DepthUnit.meters.convert(meters, settings.depthUnit);
     final whole = roundUp ? (converted - 1e-9).ceil() : converted.round();
-    final formatted = NumberFormat('#,##0').format(whole);
-    return '$formatted ${settings.depthUnit.symbol}';
+    return _wholeWithSymbol(whole, settings.depthUnit.symbol);
   }
 
   // ============================================================================
@@ -523,8 +527,7 @@ class UnitFormatter {
   String formatAltitude(double? value, {int decimals = 0}) {
     if (value == null) return '--';
     final converted = AltitudeUnit.meters.convert(value, settings.altitudeUnit);
-    final formatted = NumberFormat('#,##0').format(converted.round());
-    return '$formatted ${settings.altitudeUnit.symbol}';
+    return _wholeWithSymbol(converted.round(), settings.altitudeUnit.symbol);
   }
 
   /// Format altitude with altitude group label

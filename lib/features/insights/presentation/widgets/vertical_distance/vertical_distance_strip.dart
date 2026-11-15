@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Height of the readout strip.
+const double kVerticalStripHeight = 48;
+
 /// The readout under the scale (issue #4569). Always present and always the
 /// same height, so selecting a level never moves the page under the
 /// pointer. [onOpen] is null when the level has no dive behind it.
@@ -27,7 +30,7 @@ class VerticalDistanceStrip extends StatelessWidget {
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 400;
         return Container(
-          height: 48,
+          height: kVerticalStripHeight,
           padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
           decoration: BoxDecoration(
             color: scheme.surfaceContainerHighest,
