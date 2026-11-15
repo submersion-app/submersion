@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_lift.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_painter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_tooltip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
@@ -483,25 +484,44 @@ void main() {
     expect(surface.animationDuration, Duration.zero);
   });
 
+  Material stripSurface(WidgetTester tester) => tester.widget<Material>(
+    find
+        .descendant(
+          of: find.byType(PinnedProfileStrip),
+          matching: find.byType(Material),
+        )
+        .first,
+  );
+
+  List<BoxShadow> stripShadows(WidgetTester tester) =>
+      (tester
+                  .widget<DecoratedBox>(
+                    find.byKey(const ValueKey('pinnedStripShadow')),
+                  )
+                  .decoration
+              as BoxDecoration)
+          .boxShadow ??
+      const [];
+
   // A shadow switching on the moment the surface turned opaque flashed grey
-  // in both directions; it grows with the condense instead.
+  // in both directions; it grows with the condense instead. Settled, it is
+  // clearly deeper than the cards it covers (#4554), so the strip draws its
+  // own rather than Material's.
   testWidgets('its shadow grows with the condense', (tester) async {
-    Material surface() => tester.widget<Material>(
-      find
-          .descendant(
-            of: find.byType(PinnedProfileStrip),
-            matching: find.byType(Material),
-          )
-          .first,
-    );
-    await pumpMorphing(tester, condense: 0, background: 1);
-    expect(surface().elevation, 0);
-    await pumpMorphing(tester, condense: 0.5, background: 1);
-    expect(surface().elevation, closeTo(1.5, 1e-6));
-    // Settled, it lifts off the page like an app bar with content scrolled
-    // under it (Material 3's level 2, elevation 3).
-    await pumpMorphing(tester, condense: 1, background: 1);
-    expect(surface().elevation, 3);
+    for (final condense in [0.0, 0.5, 1.0]) {
+      await pumpMorphing(tester, condense: condense, background: 1);
+      expect(stripSurface(tester).elevation, 0, reason: 'condense=$condense');
+      expect(
+        stripShadows(tester),
+        pinnedStripShadows(Brightness.light, strength: condense),
+        reason: 'condense=$condense',
+      );
+    }
+    expect(stripShadows(tester), isNotEmpty);
+    // No shadow while the surface is see-through: it would show through
+    // and grey the card.
+    await pumpMorphing(tester, condense: 1, background: 0.5);
+    expect(stripShadows(tester), isEmpty);
   });
 
   RoundedRectangleBorder surfaceShape(WidgetTester tester) =>
@@ -528,6 +548,48 @@ void main() {
               )
               .foregroundPainter!
           as PinnedStripOutlinePainter;
+
+  // Black barely darkens a dark page: the deeper dark shadow and a faint
+  // light rim on the sides and bottom keep the strip apart from the cards.
+  testWidgets('dark mode draws the deeper shadow and the rim', (tester) async {
+    final dark = ThemeData(brightness: Brightness.dark, useMaterial3: true);
+    await pumpMorphing(tester, condense: 1, background: 1, theme: dark);
+    expect(
+      stripShadows(tester),
+      pinnedStripShadows(Brightness.dark, strength: 1),
+    );
+    expect(
+      outline(tester).side,
+      pinnedStripEdge(
+        brightness: Brightness.dark,
+        themeSide: BorderSide.none,
+        surfaceOpacity: 1,
+        strength: 1,
+      ),
+    );
+    expect(outline(tester).side.width, 1);
+    // Halfway through the condense, the rim is half as strong.
+    await pumpMorphing(tester, condense: 0.5, background: 1, theme: dark);
+    expect(
+      outline(tester).side.color.a,
+      closeTo(kPinnedStripRimAlpha * 0.5, 1e-6),
+    );
+  });
+
+  // Mid-condense the strip's top crosses the profile card, and pinned it
+  // sits under the header: a blurred shadow rising above it would grey both.
+  test('its shadow is clipped at the strip top', () {
+    final clip = const PinnedStripShadowClip().getClip(const Size(400, 56));
+    expect(clip.top, 0);
+    // Room for the deepest (dark) shadow: offset 12 plus blur 28.
+    expect(clip.bottom, greaterThan(56 + 12 + 28));
+    expect(clip.left, lessThan(-28));
+    expect(clip.right, greaterThan(400 + 28));
+    expect(
+      const PinnedStripShadowClip().shouldReclip(const PinnedStripShadowClip()),
+      isFalse,
+    );
+  });
 
   // The outline is open at the top: a stroke down both sides, round the
   // bottom corners and along the bottom.

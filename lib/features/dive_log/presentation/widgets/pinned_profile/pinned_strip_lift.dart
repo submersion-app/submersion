@@ -42,6 +42,29 @@ List<BoxShadow> pinnedStripShadows(
   ];
 }
 
+/// How far beyond the strip's sides and bottom its shadow may fall: room for
+/// the deepest layer (dark: offset 12 plus blur 28) with some to spare.
+const double kPinnedStripShadowReach = 64;
+
+/// Clips the strip's shadow at the strip's own top edge, letting it fall
+/// freely beside and below. Mid-condense the strip's top crosses the profile
+/// card, and pinned it sits under the header: a blurred shadow rising above
+/// it would grey both.
+class PinnedStripShadowClip extends CustomClipper<Rect> {
+  const PinnedStripShadowClip();
+
+  @override
+  Rect getClip(Size size) => Rect.fromLTRB(
+    -kPinnedStripShadowReach,
+    0,
+    size.width + kPinnedStripShadowReach,
+    size.height + kPinnedStripShadowReach,
+  );
+
+  @override
+  bool shouldReclip(PinnedStripShadowClip oldClipper) => false;
+}
+
 /// The line along the strip's sides and bottom.
 ///
 /// Where the theme's cards have an outline ([themeSide]) the strip keeps it,
