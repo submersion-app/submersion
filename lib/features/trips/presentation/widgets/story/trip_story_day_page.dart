@@ -171,6 +171,11 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
           )
         : null;
 
+    // Built here, in build, not in the LayoutBuilder below: the cards watch
+    // providers, and that callback runs during layout, after this build has
+    // already settled what it listens to.
+    final dives = day.dives.isEmpty ? null : _dives(context);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // Beside each other only when there is room and both sides have
@@ -197,14 +202,14 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
                   ),
                   const SizedBox(width: 16),
                   // A tapped pin lights up a card that is already in view.
-                  Expanded(child: _dives(context)),
+                  Expanded(child: dives!),
                 ],
               )
             : _stacked([
                 mapOf(180),
                 plan,
                 timeline,
-                if (day.dives.isNotEmpty) _dives(context),
+                dives,
                 photos,
                 species,
                 noDives,
