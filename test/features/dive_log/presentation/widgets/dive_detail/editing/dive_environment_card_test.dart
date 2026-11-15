@@ -274,6 +274,20 @@ void main() {
       expect(find.text('21 °C'), findsOneWidget);
     });
 
+    // The read card shows "18 km/h"; the row showed "18.0 km/h" beside it.
+    testWidgets('a whole wind speed shows no decimals', (tester) async {
+      await pumpEditor(tester, full.copyWith(windSpeed: 5));
+
+      expect(find.text('18 km/h'), findsOneWidget);
+    });
+
+    // A wind speed with a decimal keeps it, so the row can still round it.
+    testWidgets('a wind speed with a decimal keeps it', (tester) async {
+      await pumpEditor(tester, full);
+
+      expect(find.text('14.4 km/h'), findsOneWidget);
+    });
+
     testWidgets('typing an air temperature in Fahrenheit stores Celsius', (
       tester,
     ) async {
@@ -610,7 +624,7 @@ void main() {
 
         expect(find.text('Weather data loaded'), findsOneWidget);
         // 5 m/s is 18 km/h.
-        expect(find.text('18.0 km/h'), findsOneWidget);
+        expect(find.text('18 km/h'), findsOneWidget);
         expect(find.text('24 °C'), findsOneWidget);
         expect(find.text('70 %'), findsOneWidget);
         expect(find.text('1009 mbar'), findsOneWidget);
