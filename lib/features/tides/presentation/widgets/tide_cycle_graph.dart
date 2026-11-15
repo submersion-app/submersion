@@ -7,6 +7,7 @@ import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_chart_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Compact visualization showing where a tide is in its cycle.
@@ -25,7 +26,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// TideCycleGraph(
 ///   record: tideRecord,
 ///   referenceTime: dive.entryTime,
-///   height: 60,
 /// )
 /// ```
 class TideCycleGraph extends StatelessWidget {
@@ -50,12 +50,19 @@ class TideCycleGraph extends StatelessWidget {
   /// Depth unit preference for height display. Defaults to meters.
   final DepthUnit depthUnit;
 
+  /// Size of the text on the graph's marks. The time and height beside the
+  /// marker are one step larger.
+  static const double labelFontSize = 13;
+
+  /// The height the graph needs for its labels to clear the wave.
+  static const double defaultHeight = 104;
+
   const TideCycleGraph({
     super.key,
     required this.record,
     this.referenceTime,
     this.timeFormat = TimeFormat.twentyFourHour,
-    this.height = 60,
+    this.height = defaultHeight,
     this.width,
     this.showLabels = true,
     this.depthUnit = DepthUnit.meters,
@@ -93,7 +100,11 @@ class TideCycleGraph extends StatelessWidget {
             ringColor: backdropColorOf(context),
             gridColor: colorScheme.outlineVariant.withValues(alpha: 0.3),
             labelColor: colorScheme.onSurfaceVariant,
-            labelStyle: textTheme.labelSmall ?? const TextStyle(fontSize: 10),
+            highColor: TideChartColors.of(context).high,
+            lowColor: TideChartColors.of(context).low,
+            labelStyle: (textTheme.labelMedium ?? const TextStyle()).copyWith(
+              fontSize: labelFontSize,
+            ),
             showLabels: showLabels,
             currentHeight: record.heightMeters,
             highTideHeight: record.highTideHeight,
@@ -179,6 +190,10 @@ class _TideCyclePainter extends CustomPainter {
   final Color ringColor;
   final Color gridColor;
   final Color labelColor;
+
+  /// The high and low marks' colours, as on the other tide charts.
+  final Color highColor;
+  final Color lowColor;
   final TextStyle labelStyle;
   final bool showLabels;
   final double currentHeight;
@@ -199,6 +214,8 @@ class _TideCyclePainter extends CustomPainter {
     required this.ringColor,
     required this.gridColor,
     required this.labelColor,
+    required this.highColor,
+    required this.lowColor,
     required this.labelStyle,
     required this.showLabels,
     required this.currentHeight,
@@ -214,8 +231,8 @@ class _TideCyclePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // Skip painting if size is too small (e.g., during collapse animation)
-    // Minimum size must accommodate padding: left(70) + right(46) = 116 width, top(12) + bottom(18) = 30 height
-    if (size.width < 120 || size.height < 35) return;
+    // Minimum size must accommodate padding: left(80) + right(64) = 144 width, top(22) + bottom(20) = 42 height
+    if (size.width < 160 || size.height < 50) return;
 
     final wavePaint = Paint()
       ..color = waveColor
@@ -242,10 +259,10 @@ class _TideCyclePainter extends CustomPainter {
       ..strokeWidth = 1.0;
 
     // Padding for labels (extra space for timestamps and heights)
-    final leftPadding = showLabels ? 70.0 : 8.0;
-    final rightPadding = showLabels ? 46.0 : 8.0;
-    const topPadding = 12.0;
-    const bottomPadding = 18.0;
+    final leftPadding = showLabels ? 80.0 : 8.0;
+    final rightPadding = showLabels ? 64.0 : 8.0;
+    const topPadding = 22.0;
+    const bottomPadding = 20.0;
 
     final graphWidth = size.width - leftPadding - rightPadding;
     final graphHeight = size.height - topPadding - bottomPadding;
@@ -327,21 +344,20 @@ class _TideCyclePainter extends CustomPainter {
           TextSpan(
             text: 'H',
             style: labelStyle.copyWith(
-              color: Colors.red.shade600,
+              color: highColor,
               fontWeight: FontWeight.bold,
             ),
           ),
           if (highTimeStr != null)
             TextSpan(
               text: ' $highTimeStr',
-              style: labelStyle.copyWith(color: labelColor, fontSize: 9),
+              style: labelStyle.copyWith(color: labelColor),
             ),
           if (highHeightStr != null)
             TextSpan(
               text: ' $highHeightStr',
               style: labelStyle.copyWith(
-                color: Colors.red.shade600,
-                fontSize: 9,
+                color: highColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -365,7 +381,7 @@ class _TideCyclePainter extends CustomPainter {
           TextSpan(
             text: 'L',
             style: labelStyle.copyWith(
-              color: Colors.blue.shade600,
+              color: lowColor,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -373,8 +389,7 @@ class _TideCyclePainter extends CustomPainter {
             TextSpan(
               text: ' $lowHeightStr',
               style: labelStyle.copyWith(
-                color: Colors.blue.shade600,
-                fontSize: 9,
+                color: lowColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -395,7 +410,7 @@ class _TideCyclePainter extends CustomPainter {
           TextSpan(
             text: 'L',
             style: labelStyle.copyWith(
-              color: Colors.blue.shade600,
+              color: lowColor,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -403,8 +418,7 @@ class _TideCyclePainter extends CustomPainter {
             TextSpan(
               text: ' $lowHeightStr',
               style: labelStyle.copyWith(
-                color: Colors.blue.shade600,
-                fontSize: 9,
+                color: lowColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -427,14 +441,14 @@ class _TideCyclePainter extends CustomPainter {
           if (refTimeStr != null)
             TextSpan(
               text: '$refTimeStr ',
-              style: labelStyle.copyWith(color: labelColor, fontSize: 9),
+              style: labelStyle.copyWith(color: labelColor),
             ),
           TextSpan(
             text: heightText,
             style: labelStyle.copyWith(
               color: markerColor,
               fontWeight: FontWeight.bold,
-              fontSize: 11,
+              fontSize: TideCycleGraph.labelFontSize + 1,
             ),
           ),
         ],
@@ -456,7 +470,7 @@ class _TideCyclePainter extends CustomPainter {
       if (startTime != null) {
         textPainter.text = TextSpan(
           text: _formatTime(startTime),
-          style: labelStyle.copyWith(color: labelColor, fontSize: 9),
+          style: labelStyle.copyWith(color: labelColor),
         );
         textPainter.layout();
         textPainter.paint(canvas, Offset(leftPadding, centerY + 4));
@@ -465,7 +479,7 @@ class _TideCyclePainter extends CustomPainter {
       if (endTime != null) {
         textPainter.text = TextSpan(
           text: _formatTime(endTime),
-          style: labelStyle.copyWith(color: labelColor, fontSize: 9),
+          style: labelStyle.copyWith(color: labelColor),
         );
         textPainter.layout();
         textPainter.paint(
@@ -518,6 +532,8 @@ class _TideCyclePainter extends CustomPainter {
         ringColor != oldDelegate.ringColor ||
         gridColor != oldDelegate.gridColor ||
         labelColor != oldDelegate.labelColor ||
+        highColor != oldDelegate.highColor ||
+        lowColor != oldDelegate.lowColor ||
         labelStyle != oldDelegate.labelStyle ||
         showLabels != oldDelegate.showLabels ||
         currentHeight != oldDelegate.currentHeight ||

@@ -12,16 +12,25 @@ DateTime Function(DateTime instant) siteClockConverter(GeoPoint location) =>
 List<TideExtreme> extremesAtSiteWallClock(
   List<TideExtreme> extremes,
   GeoPoint location,
-) {
-  final toSite = siteClockConverter(location);
-  return [for (final e in extremes) e.copyWith(time: toSite(e.time))];
-}
+) => extremesAtWallClock(extremes, siteClockConverter(location));
+
+/// [extremes] with their times mapped through [toSite], a converter from
+/// [siteClockConverter]; for a caller that already holds one.
+List<TideExtreme> extremesAtWallClock(
+  List<TideExtreme> extremes,
+  DateTime Function(DateTime instant) toSite,
+) => [for (final e in extremes) e.copyWith(time: toSite(e.time))];
 
 extension TideRecordSiteWallClock on TideRecord {
   /// This record with its high and low times moved from real instants to
   /// site wall clock, for display. Storage always keeps instants.
-  TideRecord toSiteWallClock(GeoPoint location) {
-    final toSite = siteClockConverter(location);
+  TideRecord toSiteWallClock(GeoPoint location) =>
+      atWallClock(siteClockConverter(location));
+
+  /// This record with its high and low times mapped through [toSite], a
+  /// converter from [siteClockConverter]; for a caller that already holds
+  /// one.
+  TideRecord atWallClock(DateTime Function(DateTime instant) toSite) {
     return copyWith(
       highTideTime: highTideTime == null ? null : toSite(highTideTime!),
       lowTideTime: lowTideTime == null ? null : toSite(lowTideTime!),
