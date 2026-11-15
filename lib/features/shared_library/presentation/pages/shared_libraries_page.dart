@@ -6,6 +6,8 @@ import 'package:submersion/features/settings/presentation/widgets/settings_pane_
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_role_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_marked_title.dart';
 
 /// Settings > Shared site libraries: the libraries connected on this device that
 /// the active profile belongs to (issue #2567).
@@ -116,14 +118,21 @@ class _LibraryTile extends ConsumerWidget {
       else
         l10n.sharedLibrary_library_neverSynced,
     ];
+    // The shape says the last sync failed; the mark is the colour, at this
+    // library's own level (#4561).
     return ListTile(
       leading: Icon(
         library.lastError != null ? Icons.error_outline : Icons.groups_outlined,
-        color: library.lastError != null
-            ? Theme.of(context).colorScheme.error
-            : null,
       ),
-      title: Text(library.name),
+      title: HealthMarkedTitle(
+        title: Text(library.name),
+        feature: DataFeature.sharedLibraries,
+        reasons: const {
+          HealthReason.librariesFailed,
+          HealthReason.librariesEditsHeld,
+        },
+        subjectId: library.id,
+      ),
       subtitle: Text(parts.join(' · ')),
       trailing: const Icon(Icons.chevron_right),
       onTap: () =>
