@@ -13,6 +13,8 @@ import 'package:submersion/features/settings/presentation/widgets/accounts/accou
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_using_row.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_marked_title.dart';
 
 /// Kinds signed in once per device: a second account of one cannot hold
 /// its own session, so it is never a second destination.
@@ -148,7 +150,13 @@ class _ExtraCopyTile extends ConsumerWidget {
             ? Icons.cloud_off_outlined
             : accountKindIcon(account.kind),
       ),
-      title: Text(title),
+      // Only the account that missed its copy is marked (#4561).
+      title: HealthMarkedTitle(
+        title: Text(title),
+        feature: DataFeature.backup,
+        reasons: const {HealthReason.backupExtraCopyMissing},
+        subjectId: id,
+      ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

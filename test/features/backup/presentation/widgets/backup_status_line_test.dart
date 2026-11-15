@@ -11,6 +11,7 @@ import 'package:submersion/features/settings/domain/data_health/feature_health.d
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sign_in_again_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _FakeSyncNotifier extends StateNotifier<SyncState>
@@ -45,17 +46,23 @@ void main() {
     rowStatuses: {},
   );
 
-  Future<void> pump(WidgetTester tester, HealthReason reason) async {
+  Future<void> pump(
+    WidgetTester tester,
+    HealthReason reason, {
+    HealthLevel level = HealthLevel.attention,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           backupSettingsProvider.overrideWith((ref) => _FakeSettings()),
           backupHealthProvider.overrideWithValue(
-            FeatureHealth(
-              feature: DataFeature.backup,
-              level: HealthLevel.attention,
-              reason: reason,
-            ),
+            pickHealth(DataFeature.backup, [
+              FeatureHealth(
+                feature: DataFeature.backup,
+                level: level,
+                reason: reason,
+              ),
+            ]),
           ),
           signInAgainGroupProvider(
             DataFeature.backup,
@@ -73,17 +80,39 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('a copy needing a sign-in says so and offers it', (tester) async {
+  // Issue #4561: the sign-in belongs to the copy, so the Copy row carries
+  // it; the status line keeps to what is true of the last backup.
+  testWidgets('a copy needing a sign-in leaves the line plain', (tester) async {
     await pump(tester, HealthReason.backupCloudSignIn);
-
-    expect(find.text('Last backup did not reach the cloud'), findsOneWidget);
-    expect(find.text('Sign in again'), findsOneWidget);
-  });
-
-  testWidgets('any other reason reads as it did', (tester) async {
-    await pump(tester, HealthReason.backupCloudCopyMissing);
 
     expect(find.text('Last backup did not reach the cloud'), findsNothing);
     expect(find.text('Sign in again'), findsNothing);
+    expect(find.byType(HealthSymbol), findsNothing);
+  });
+
+  testWidgets('a failed backup is marked, its icon left uncoloured', (
+    tester,
+  ) async {
+    await pump(tester, HealthReason.backupFailed, level: HealthLevel.failing);
+
+    expect(
+      tester.widget<HealthSymbol>(find.byType(HealthSymbol)).level,
+      HealthLevel.failing,
+    );
+    expect(tester.widget<Icon>(find.byIcon(Icons.error_outline)).color, isNull);
+  });
+
+  testWidgets('an overdue backup is marked', (tester) async {
+    await pump(tester, HealthReason.backupOverdue);
+
+    expect(find.byType(HealthSymbol), findsOneWidget);
+  });
+
+  testWidgets('a reason about another row leaves the line unmarked', (
+    tester,
+  ) async {
+    await pump(tester, HealthReason.backupAutoOff);
+
+    expect(find.byType(HealthSymbol), findsNothing);
   });
 }

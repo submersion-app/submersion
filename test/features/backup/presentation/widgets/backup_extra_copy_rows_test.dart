@@ -14,8 +14,11 @@ import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_extra_copy_rows.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 final _t = DateTime.utc(2026);
@@ -57,6 +60,7 @@ void main() {
     BackupCopyTarget? target,
     String extras = '[$_gitExtra]',
     List<String> missed = const [],
+    List<FeatureHealth> findings = const [],
   }) async {
     await tester.binding.setSurfaceSize(const Size(500, 1200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -78,6 +82,9 @@ void main() {
           offerableAccountKindsProvider.overrideWithValue(const []),
           backupCopyTargetProvider.overrideWith(
             (ref) async => target ?? CopyFollowsSync(_groups.holding('gd-row')),
+          ),
+          backupHealthProvider.overrideWithValue(
+            pickHealth(DataFeature.backup, findings),
           ),
         ],
         child: const MaterialApp(
@@ -156,6 +163,29 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  // Issue #4561: only the account that missed its copy carries the mark.
+  testWidgets('marks only the account that missed its copy', (tester) async {
+    await pumpRows(
+      tester,
+      extras: '[$_gitExtra,{"id":"db-row","kind":"dropbox"}]',
+      missed: const ['git-row'],
+      findings: const [
+        FeatureHealth(
+          feature: DataFeature.backup,
+          level: HealthLevel.attention,
+          reason: HealthReason.backupExtraCopyMissing,
+          subjectId: 'git-row',
+        ),
+      ],
+    );
+    Finder markIn(String id) => find.descendant(
+      of: find.byKey(Key('backup-extra-copy-$id')),
+      matching: find.byType(HealthSymbol),
+    );
+    expect(markIn('git-row'), findsOneWidget);
+    expect(markIn('db-row'), findsNothing);
   });
 
   testWidgets('remove drops the account', (tester) async {
