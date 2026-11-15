@@ -191,6 +191,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
                     section.id,
                     layout: presence,
                     working: working,
+                    stored: editController.session?.stored,
                   ) ||
                   (!section.visible && !added.contains(card.id))))
             AddStripEntry(

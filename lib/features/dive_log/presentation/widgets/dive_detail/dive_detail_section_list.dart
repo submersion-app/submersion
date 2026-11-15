@@ -121,6 +121,11 @@ class DiveDetailSectionList extends ConsumerWidget {
     // gained something to show must not appear above an editor and push it
     // down the page. The cards still draw the dive as it is now.
     final presence = edit?.layoutRecord ?? dive;
+    // A card with no editor draws the dive as stored, and decides from it
+    // whether it shows, for the whole sitting: a site, date or depth typed
+    // into a card must not rework a calculated card before Save, nor bring
+    // one in or take one out (issue #4527, plan 4).
+    final stored = edit?.session?.stored ?? dive;
 
     // Visible sections in configured order, minus gauge-hidden ones.
     final visible = [
@@ -146,7 +151,7 @@ class DiveDetailSectionList extends ConsumerWidget {
 
       final pair = layout.pairsSections ? diveDetailSectionPairFor(id) : null;
       if (pair != null && visibleIds.contains(pair.partnerOf(id)!)) {
-        final cards = _buildPairCards(pair, ref, open, presence);
+        final cards = _buildPairCards(pair, ref, open, presence, stored);
         if (cards != null) {
           _addSectionGap(children, layout);
           // Each side is framed like a card on a row of its own, so a card
@@ -185,7 +190,7 @@ class DiveDetailSectionList extends ConsumerWidget {
         // header.
         final content = _framed(
           id,
-          _sectionContent(ref, id, 0, presence),
+          _sectionContent(ref, id, 0, presence, stored),
           open,
         );
         if (content == null) continue;
@@ -212,6 +217,7 @@ class DiveDetailSectionList extends ConsumerWidget {
           id,
           selfSpacing && children.isNotEmpty ? layout.sectionGap : 0,
           presence,
+          stored,
         ),
         open,
       );
@@ -255,17 +261,20 @@ class DiveDetailSectionList extends ConsumerWidget {
   /// their presence from; they draw [dive]. The two differ only while an
   /// editor is open (see `RecordEditController.layoutRecord`).
   ///
-  /// A card with no editor that decides for itself whether it shows (Tide,
-  /// Signatures) is handed [presence] as its dive, so that a value typed
-  /// into an open card cannot bring it in or take it out above that card.
-  /// The same goes for a calculated block inside a card that can be edited:
-  /// the Environment card's satellite conditions.
+  /// A card with no editor is handed [stored], the dive as stored during a
+  /// sitting, both to draw and to decide whether it shows, so nothing typed
+  /// into another card reworks it before Save or brings it in or out. The
+  /// same goes for a calculated block inside a card that can be edited: the
+  /// Environment card's satellite conditions.
   Widget? _sectionContent(
     WidgetRef ref,
     DiveDetailSectionId id,
     double topGap,
     Dive presence,
+    Dive stored,
   ) {
+    // Shadows the field for the cards with no editor.
+    final dive = diveEditCards.containsKey(id) ? this.dive : stored;
     switch (id) {
       case DiveDetailSectionId.profile:
         // No recorded profile: an estimated outline when the depth and times
@@ -309,8 +318,8 @@ class DiveDetailSectionList extends ConsumerWidget {
       case DiveDetailSectionId.details:
         return DiveDetailsSection(dive: dive);
       case DiveDetailSectionId.environment:
-        if (!_onPage(ref, id, presence)) return null;
-        return DiveEnvironmentSection(dive: dive, satelliteFor: presence);
+        if (!_onPage(ref, id, presence, stored)) return null;
+        return DiveEnvironmentSection(dive: dive, satelliteFor: stored);
       case DiveDetailSectionId.altitude:
         if (!diveCardIsShown(ref, id, presence)) {
           // Safety phase 2: the site is at altitude but the dive was not
@@ -329,10 +338,9 @@ class DiveDetailSectionList extends ConsumerWidget {
         if (!diveCardIsShown(ref, id, dive)) return null;
         return DiveAltitudeSection(dive: dive);
       case DiveDetailSectionId.tide:
-        // The card decides for itself whether it has tides to show, and a
-        // freshwater dive has none. The water type is edited on the Details
-        // card, so it is asked about the dive the layout is held to.
-        return DiveTideSection(dive: presence, topGap: topGap);
+        // The card decides for itself whether it has tides to show, from
+        // the dive as stored.
+        return DiveTideSection(dive: dive, topGap: topGap);
       case DiveDetailSectionId.health:
         // Only once a record with something in it has loaded, so no empty
         // card flashes.
@@ -364,9 +372,9 @@ class DiveDetailSectionList extends ConsumerWidget {
       case DiveDetailSectionId.buddies:
         return DiveBuddiesSection(dive: dive);
       case DiveDetailSectionId.signatures:
-        // It shows a training signature for a dive with a course, and the
-        // courses are edited on the Details card: the same reasoning.
-        return DiveSignaturesSection(dive: presence);
+        // It shows a training signature for a dive with a course: from the
+        // dive as stored, as every card with no editor.
+        return DiveSignaturesSection(dive: dive);
       case DiveDetailSectionId.equipment:
         if (dive.equipment.isEmpty) return null;
         return DiveEquipmentSection(dive: dive);
@@ -383,7 +391,7 @@ class DiveDetailSectionList extends ConsumerWidget {
           onHoverMedia: mediaHoverCursorHandler(ref.container, dive),
         );
       case DiveDetailSectionId.tags:
-        if (!_onPage(ref, id, presence)) return null;
+        if (!_onPage(ref, id, presence, stored)) return null;
         return DiveTagsSection(dive: dive);
       case DiveDetailSectionId.notes:
         return DiveNotesSection(
@@ -438,8 +446,18 @@ class DiveDetailSectionList extends ConsumerWidget {
   /// Whether [id]'s card is on the page: the layout held while an editor
   /// is open ([presence]) and the dive as it is now both have something for
   /// it. The Add strip asks the same question, so a card is one or the other.
-  bool _onPage(WidgetRef ref, DiveDetailSectionId id, Dive presence) =>
-      diveCardIsOnPage(ref, id, layout: presence, working: dive);
+  bool _onPage(
+    WidgetRef ref,
+    DiveDetailSectionId id,
+    Dive presence,
+    Dive stored,
+  ) => diveCardIsOnPage(
+    ref,
+    id,
+    layout: presence,
+    working: dive,
+    stored: stored,
+  );
 
   /// [content] wrapped so the section can be edited in place, when it has
   /// a card (see [diveEditCards]); otherwise [content] as it is.
@@ -536,7 +554,10 @@ class DiveDetailSectionList extends ConsumerWidget {
     WidgetRef ref,
     Set<String> open,
     Dive presence,
+    Dive stored,
   ) {
+    // The cards with no editor in these pairs draw the dive as stored.
+    final dive = stored;
     switch (pair.left) {
       case DiveDetailSectionId.decoStatus:
         if (dive.profile.isEmpty) return null;
@@ -566,26 +587,28 @@ class DiveDetailSectionList extends ConsumerWidget {
           ref,
           DiveDetailSectionId.environment,
           presence,
+          stored,
         );
         final environmentOpen = open.contains(
           DiveDetailSectionId.environment.name,
         );
         if (!hasEnvironment && !environmentOpen) return null;
+        // Both cards can be edited: they draw the sitting's dive.
         return _PairCards(
-          DiveDetailsSection(dive: dive),
+          DiveDetailsSection(dive: this.dive),
           // Open with nothing to show yet: its frame draws the editor.
           hasEnvironment
-              ? DiveEnvironmentSection(dive: dive, satelliteFor: presence)
+              ? DiveEnvironmentSection(dive: this.dive, satelliteFor: stored)
               : const SizedBox.shrink(),
         );
 
       case DiveDetailSectionId.surfaceGps:
-        if (!diveHasLocationMap(dive) || !watchHasTide(ref, presence)) {
+        if (!diveHasLocationMap(dive) || !watchHasTide(ref, dive)) {
           return null;
         }
         return _PairCards(
           DiveDetailSurfaceGpsSection(dive: dive),
-          DiveTideSection(dive: presence),
+          DiveTideSection(dive: dive),
         );
 
       case DiveDetailSectionId.tanks:
@@ -613,10 +636,10 @@ class DiveDetailSectionList extends ConsumerWidget {
             dive.id,
           ).select((a) => a.valueOrNull?.isNotEmpty ?? false),
         );
-        if (!hasBuddies && presence.courseIds.isEmpty) return null;
+        if (!hasBuddies && dive.courseIds.isEmpty) return null;
         return _PairCards(
           DiveBuddiesSection(dive: dive),
-          DiveSignaturesSection(dive: presence),
+          DiveSignaturesSection(dive: dive),
         );
 
       default:
