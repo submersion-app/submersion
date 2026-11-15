@@ -254,6 +254,29 @@ void main() {
     expect(binding.controller.text, '100.');
   });
 
+  // For a rule that follows from the diver's own edit, and must not run
+  // when the text was put there from the sitting.
+  test('onEdited is told of what the diver typed, not of what arrives', () {
+    var edits = 0;
+    final binding = FieldTextBinding<_Rec, double?>(
+      session: session,
+      field: _altitude,
+      format: _feet,
+      parse: _parseFeet,
+      onEdited: () => edits++,
+    );
+    addTearDown(binding.dispose);
+
+    session.rebase(const _Rec(altitude: 2000));
+    expect(edits, 0);
+
+    binding.controller.text = '100';
+    expect(edits, 1);
+
+    binding.controller.text = '1.2.3';
+    expect(edits, 1);
+  });
+
   test('dispose stops following the session', () {
     final binding = FieldTextBinding<_Rec, double?>(
       session: session,

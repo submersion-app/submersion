@@ -1060,7 +1060,7 @@ Changed by the review of this plan's own pull request (#4550):
 
 ### Left open
 
-- After a fetch, the read card ignores a description the diver types, because the weather source stays Open-Meteo. Showing it would mean deciding what editing weather does to its source. Today's form behaves the same.
+- Decided 2026-11-14: a description the diver types or clears on fetched weather makes the weather manual (`weatherDescriptionEdited`, told by `FieldTextBinding.onEdited`), so the read card shows their words and no longer says Open-Meteo for that dive. The other fetched values stay. Typing the stored words back restores the source. Today's form still ignores a typed description.
 - In an open card the form rows sit about 14 px in from the card's title.
 - A held write cannot be withdrawn, and overwrites: the site gets the looked-up altitude even if the site gained one meanwhile. The altitude write checks, as it runs, that the dive still has the looked-up altitude, so one the diver typed over or cleared is not written. Plan 4 (picking a site) needs a way to release one.
 - Resizing across the 700 px pair width while a paired card is open rebuilds its editor: values are kept, focus is not.

@@ -365,6 +365,27 @@ void main() {
       expect(controller.session!.working.weatherDescription, isNull);
     });
 
+    // The read card shows a fetched dive's forecast, not its stored words.
+    // Words the diver types here must be the ones it shows afterwards.
+    testWidgets('a description typed on fetched weather makes the weather '
+        'the diver\'s own', (tester) async {
+      final controller = await pumpEditor(
+        tester,
+        full.copyWith(weatherSource: WeatherSource.openMeteo),
+      );
+
+      await tester.tap(find.text('Fine'));
+      await tester.pump();
+      await tester.enterText(
+        fieldOf(l10nOf(tester).diveLog_edit_label_weatherDescription),
+        'Squalls',
+      );
+      await tester.pump();
+
+      expect(controller.session!.working.weatherDescription, 'Squalls');
+      expect(controller.session!.working.weatherSource, WeatherSource.manual);
+    });
+
     testWidgets('the entry row hints the site method when the dive has none', (
       tester,
     ) async {

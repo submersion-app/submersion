@@ -195,6 +195,34 @@ void setEntryMethod(
   if (exitFollows) session.set(diveExitMethodField, value);
 }
 
+/// Call when the diver has edited the weather description themselves.
+///
+/// The read card writes the description of fetched weather from its
+/// forecast and does not show the stored words. Words the diver types, or
+/// their taking the description out, would then be saved and never seen, so
+/// editing it makes the weather the diver's own: the source becomes manual
+/// and the read card shows what is stored. The other fetched values stay.
+///
+/// Typing the stored words back puts the source back as well, unless the
+/// weather has been fetched again in this sitting, so the sitting is left
+/// clean. Weather that was not fetched is left alone.
+void weatherDescriptionEdited(EditSession<Dive> session) {
+  final stored = session.stored;
+  final refetched =
+      session.valueOf(diveWeatherFetchedAtField) != stored.weatherFetchedAt;
+  final backToStored = diveWeatherDescriptionField.same(
+    session.valueOf(diveWeatherDescriptionField),
+    stored.weatherDescription,
+  );
+  if (backToStored && !refetched) {
+    session.set(diveWeatherSourceField, stored.weatherSource);
+    return;
+  }
+  if (session.valueOf(diveWeatherSourceField) == WeatherSource.openMeteo) {
+    session.set(diveWeatherSourceField, WeatherSource.manual);
+  }
+}
+
 /// Writes a fetched forecast into the sitting, as the dive form does.
 ///
 /// Wind, cloud cover, precipitation and humidity are replaced by whatever

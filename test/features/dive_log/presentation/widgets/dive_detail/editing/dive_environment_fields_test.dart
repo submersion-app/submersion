@@ -320,6 +320,61 @@ void main() {
     });
   });
 
+  // The read card writes a fetched dive's description from its forecast and
+  // ignores the stored words. Words the diver types have to be shown, so
+  // typing them makes the weather the diver's own.
+  group('weatherDescriptionEdited', () {
+    final fetched = full.copyWith(weatherSource: WeatherSource.openMeteo);
+
+    test('a description typed on fetched weather makes it manual', () {
+      final session = sessionOver(fetched)
+        ..set(diveWeatherDescriptionField, 'Squalls');
+
+      weatherDescriptionEdited(session);
+
+      expect(session.working.weatherSource, WeatherSource.manual);
+    });
+
+    test('so does clearing it', () {
+      final session = sessionOver(fetched)
+        ..set(diveWeatherDescriptionField, null);
+
+      weatherDescriptionEdited(session);
+
+      expect(session.working.weatherSource, WeatherSource.manual);
+    });
+
+    test('typing the stored words back leaves the sitting clean', () {
+      final session = sessionOver(fetched)
+        ..set(diveWeatherDescriptionField, 'Squalls');
+      weatherDescriptionEdited(session);
+
+      session.set(diveWeatherDescriptionField, 'Fine');
+      weatherDescriptionEdited(session);
+
+      expect(session.isDirty, isFalse);
+    });
+
+    test('weather that was never fetched keeps its source', () {
+      final session = sessionOver(bare.copyWith(weatherDescription: 'Fine'))
+        ..set(diveWeatherDescriptionField, 'Squalls');
+
+      weatherDescriptionEdited(session);
+
+      expect(session.working.weatherSource, isNull);
+    });
+
+    test('a fetch after the edit is fetched weather again', () {
+      final session = sessionOver(fetched)
+        ..set(diveWeatherDescriptionField, 'Squalls');
+      weatherDescriptionEdited(session);
+
+      applyFetchedWeather(session, _forecast, now: DateTime(2024, 6, 3));
+
+      expect(session.working.weatherSource, WeatherSource.openMeteo);
+    });
+  });
+
   group('applyFetchedWeather', () {
     final now = DateTime(2024, 6, 3, 9);
 

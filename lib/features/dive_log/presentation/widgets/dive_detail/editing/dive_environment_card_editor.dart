@@ -43,9 +43,7 @@ class DiveEnvironmentCardEditor extends ConsumerStatefulWidget {
 
 class _DiveEnvironmentCardEditorState
     extends ConsumerState<DiveEnvironmentCardEditor> {
-  late FieldTextBinding<Dive, String?> _description = _words(
-    diveWeatherDescriptionField,
-  );
+  late FieldTextBinding<Dive, String?> _description = _describe();
   late FieldTextBinding<Dive, String?> _surfaceConditions = _words(
     diveSurfaceConditionsField,
   );
@@ -64,12 +62,26 @@ class _DiveEnvironmentCardEditorState
   }
 
   /// A free-text row: blank is no value.
-  FieldTextBinding<Dive, String?> _words(EditField<Dive, String?> field) {
+  FieldTextBinding<Dive, String?> _words(
+    EditField<Dive, String?> field, {
+    VoidCallback? onEdited,
+  }) {
     return FieldTextBinding<Dive, String?>(
       session: widget.session,
       field: field,
       format: (value) => value ?? '',
       parse: (text) => FieldValue(trimmedOrNull(text)),
+      onEdited: onEdited,
+    );
+  }
+
+  /// The weather description, which the diver's own edit takes over from a
+  /// forecast ([weatherDescriptionEdited]).
+  FieldTextBinding<Dive, String?> _describe() {
+    final session = widget.session;
+    return _words(
+      diveWeatherDescriptionField,
+      onEdited: () => weatherDescriptionEdited(session),
     );
   }
 
@@ -79,7 +91,7 @@ class _DiveEnvironmentCardEditorState
     if (oldWidget.session == widget.session) return;
     _description.dispose();
     _surfaceConditions.dispose();
-    _description = _words(diveWeatherDescriptionField);
+    _description = _describe();
     _surfaceConditions = _words(diveSurfaceConditionsField);
     _exitFollows = exitFollowsEntry(widget.session.working);
   }
