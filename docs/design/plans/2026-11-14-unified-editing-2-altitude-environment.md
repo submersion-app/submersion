@@ -1062,7 +1062,7 @@ Changed by the review of this plan's own pull request (#4550):
 
 - After a fetch, the read card ignores a description the diver types, because the weather source stays Open-Meteo. Showing it would mean deciding what editing weather does to its source. Today's form behaves the same.
 - In an open card the form rows sit about 14 px in from the card's title.
-- A held write cannot be withdrawn, and overwrites: the site gets the looked-up altitude even if the diver then clears the dive's, or if the site gained one meanwhile. Plan 4 (picking a site) needs a way to release one.
+- A held write cannot be withdrawn, and overwrites: the site gets the looked-up altitude even if the site gained one meanwhile. The altitude write checks, as it runs, that the dive still has the looked-up altitude, so one the diver typed over or cleared is not written. Plan 4 (picking a site) needs a way to release one.
 - Resizing across the 700 px pair width while a paired card is open rebuilds its editor: values are kept, focus is not.
 - The group banner shows the last readable altitude's group while the altitude text is unreadable.
 - The read-only pressure row on the Environment card does not lead to the Altitude card. A changed card that has gone back to the strip carries no dot.

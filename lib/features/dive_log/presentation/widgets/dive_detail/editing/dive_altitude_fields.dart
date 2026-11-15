@@ -35,7 +35,8 @@ final diveSurfacePressureField = EditField<Dive, double?>(
 /// lookup of the site's coordinates ([AltitudeResolver]). When that last one
 /// is what answered, the altitude belongs on the site as well: the write is
 /// held on [session] and made by [writeSiteAltitude] when the sitting is
-/// saved, so cancelling leaves the site as it was.
+/// saved, so cancelling leaves the site as it was. It is made only if the
+/// dive still has that altitude by then.
 ///
 /// It never replaces an altitude: one set before the call, or typed while
 /// the lookup ran, stays. A result that arrives after the sitting ended,
@@ -77,9 +78,12 @@ Future<void> fillAltitudeIfEmpty(
   session.set(diveAltitudeField, meters);
   final writeBack = resolution.siteAltitudeWriteBack;
   if (writeBack != null) {
-    session.holdWrite(
-      'siteAltitude:${writeBack.siteId}',
-      () => writeSiteAltitude(writeBack.siteId, writeBack.altitudeMeters),
-    );
+    session.holdWrite('siteAltitude:${writeBack.siteId}', () async {
+      // Asked as the sitting is saved: a diver who has since typed another
+      // altitude, or taken this one out, has not accepted the lookup, and
+      // the site must not be given it.
+      if (session.valueOf(diveAltitudeField) != meters) return;
+      await writeSiteAltitude(writeBack.siteId, writeBack.altitudeMeters);
+    });
   }
 }
