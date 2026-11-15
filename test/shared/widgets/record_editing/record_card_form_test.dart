@@ -86,4 +86,53 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('Digits only'), findsOneWidget);
   });
+
+  // Another card can change what a field checks against (the header's
+  // runtime bounds a gas switch time), with no keystroke in this card.
+  group('a limit changed from outside', () {
+    Future<void> pumpLimit(WidgetTester tester, int max) async {
+      String? withinMax(String? value) =>
+          (int.tryParse(value ?? '') ?? 0) > max ? 'Too late' : null;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RecordEditScope<String>(
+              controller: controller,
+              child: RecordCardForm<String>(
+                cardId: 'tanks',
+                child: TextFormField(
+                  key: const Key('field'),
+                  initialValue: '40',
+                  validator: withinMax,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('a limit raised elsewhere clears the report', (tester) async {
+      await pumpLimit(tester, 30);
+      expect(controller.invalidCardIds, {'tanks'});
+
+      await pumpLimit(tester, 50);
+
+      expect(controller.invalidCardIds, isEmpty);
+      expect(find.text('Too late'), findsNothing);
+    });
+
+    testWidgets('a limit lowered elsewhere makes the report and shows the '
+        'error', (tester) async {
+      await pumpLimit(tester, 50);
+      expect(controller.invalidCardIds, isEmpty);
+
+      await pumpLimit(tester, 30);
+
+      expect(controller.invalidCardIds, {'tanks'});
+      expect(find.text('Too late'), findsOneWidget);
+    });
+  });
 }

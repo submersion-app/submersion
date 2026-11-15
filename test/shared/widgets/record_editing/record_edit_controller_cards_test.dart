@@ -438,6 +438,27 @@ void main() {
       expect(c.openCardIds, isNot(contains('notes')));
     });
 
+    test('work that lands while save waits for it is checked too', () async {
+      var saves = 0;
+      final c = _controller(
+        onSave: (_) async => saves++,
+        invalidCards: negativeDepth,
+      )..unlock(const _Rec());
+      final s = c.session!..set(_notes, 'x');
+      final gate = Completer<void>();
+      s.track(gate.future.then((_) => s.set(_depth, -1)));
+
+      final saving = c.save();
+      gate.complete();
+
+      expect(await saving, isFalse);
+      expect(saves, 0);
+      expect(c.refusedForInvalidInput, isTrue);
+      expect(c.isSaving, isFalse);
+      expect(c.openCardIds, contains('details'));
+      expect(s.isFrozen, isFalse);
+    });
+
     test('with no invalidCards, save is as before', () async {
       var saves = 0;
       final c = _controller(onSave: (_) async => saves++)..unlock(const _Rec());

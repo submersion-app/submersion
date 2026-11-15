@@ -7,7 +7,8 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 ///
 /// Outside a form those validators never run, so nothing would stop a
 /// card holding an O2 that cannot be read from closing or being saved.
-/// This validates once when first built and after every change, and
+/// This validates once when first built, after every change, and whenever
+/// it is rebuilt from above, and
 /// reports the result to the page's controller as field [fieldId] of
 /// [cardId]: Done and Save then refuse while any field shows an error, as
 /// they do for unreadable input. Disposed, it withdraws its report.
@@ -37,6 +38,15 @@ class _RecordCardFormState<T> extends State<RecordCardForm<T>> {
   @override
   void initState() {
     super.initState();
+    _scheduleReport();
+  }
+
+  /// Rebuilt from above: another card may have changed what a field checks
+  /// against (the header's runtime bounds a gas switch time) with no
+  /// keystroke here, so the fields are checked again.
+  @override
+  void didUpdateWidget(RecordCardForm<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
     _scheduleReport();
   }
 

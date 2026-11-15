@@ -350,6 +350,16 @@ class RecordEditController<T> extends ChangeNotifier {
       await session.settled().timeout(trackedWorkTimeout, onTimeout: () {});
       // The page went away, or the sitting was discarded, while it waited.
       if (!identical(_session, session)) return false;
+      // What landed meanwhile (switches read from the database, a set's
+      // cylinders) is checked as the rest was.
+      final failing = invalidCards?.call(session) ?? const [];
+      if (failing.isNotEmpty) {
+        _isSaving = false;
+        _refusedForInvalidInput = true;
+        _openToShow(session, failing.first);
+        notifyListeners();
+        return false;
+      }
     }
     // What is written is what the diver saw when they asked for it.
     session.freeze();
