@@ -617,8 +617,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       actions: [
         DiveNavButtons(diveId: diveId, onNavigate: _navigateToDive),
         // With editing offered favourite is a field of the header card, so
-        // a locked page shows it as a state only (issue #4527).
-        if (editingOffered && !compactActions && dive.isFavorite)
+        // a locked page shows it as a state only, at every width: the menu
+        // has no favourite item then (issue #4527).
+        if (editingOffered && dive.isFavorite)
           Icon(
             Icons.favorite,
             color: Colors.red,

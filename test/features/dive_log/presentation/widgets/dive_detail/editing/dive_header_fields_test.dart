@@ -399,5 +399,10 @@ void main() {
         isFalse,
       );
     });
+
+    // PR review: sources not yet loaded are not "no source".
+    test('the switch is not offered while the sources are unknown', () {
+      expect(plannedSwitchOffered(timed, hasPrimarySource: null), isFalse);
+    });
   });
 }

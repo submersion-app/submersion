@@ -1289,10 +1289,11 @@ The plan was built as written in this session, then reviewed as a whole branch b
 
 ### Decided while building
 
-- The locked bar shows a filled heart on a favourite dive and nothing on any other. At phone width, with editing offered, favourite is neither in the bar nor in the menu.
+- The locked bar shows a filled heart on a favourite dive and nothing on any other, at every width. (Built first without it at phone width, which left a phone no place showing the state; the pull request's review caught it.)
 - Unlocking still moves the hero down by the Add strip's height on a page that fits, as #4566 left it; the spec says unlocking moves nothing.
 - `setRuntime` notes the exit before a typed runtime first moved it; a runtime emptied or zero gives that exit back, unless the diver picked an exit since.
 - The site suggestion keeps its place, disabled, while a sitting is saved.
+- The planned switch waits for the dive's data sources: while they load the editor offers no switch, so a downloaded dive cannot be marked as planned before its source is known (pull request review).
 
 ### Left open
 
@@ -1301,4 +1302,4 @@ The plan was built as written in this session, then reviewed as a whole branch b
 - Save waits for tracked work with no time limit.
 - The altitude take-back restores the stored altitude, not the value before the lookup: a stored altitude the diver cleared comes back.
 - The estimated exit, shown as the exit row's placeholder, reads much like a recorded exit.
-- Tests not written: the site picker opening on the dive's GPS or area, once per tap; a held location actually written by Save; a species refresh that throws; a primary data source hiding the planned switch; the hero's site tap while unlocked; the stored site picked back after two others.
+- Tests not written: the site picker opening on the dive's GPS or area, once per tap; a held location actually written by Save; a species refresh that throws; the hero's site tap while unlocked; the stored site picked back after two others.

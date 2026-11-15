@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
@@ -51,6 +55,7 @@ void main() {
     WidgetTester tester,
     Dive dive, {
     AppSettings settings = const AppSettings(),
+    Future<List<DiveDataSource>> Function()? sources,
   }) async {
     tester.view.physicalSize = const Size(900, 2400);
     tester.view.devicePixelRatio = 1;
@@ -65,6 +70,8 @@ void main() {
           ...await getBaseOverrides(
             settingsNotifier: MockSettingsNotifier(settings),
           ),
+          if (sources != null)
+            diveDataSourcesProvider(dive.id).overrideWith((ref) => sources()),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -314,6 +321,38 @@ void main() {
       await pumpEditor(tester, full.copyWith(isPlanned: true));
       expect(find.byKey(const Key('dive_edit_planned_switch')), findsNothing);
       expect(find.byType(Switch), findsOneWidget); // the favourite only
+    });
+
+    // PR review: the sources load after the card opens, and a dive whose
+    // primary source is not yet known must not offer the switch meanwhile.
+    testWidgets('while the dive\'s sources load there is no switch', (
+      tester,
+    ) async {
+      final loading = Completer<List<DiveDataSource>>();
+      await pumpEditor(tester, full, sources: () => loading.future);
+      expect(find.byKey(const Key('dive_edit_planned_switch')), findsNothing);
+
+      loading.complete(const []);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('dive_edit_planned_switch')), findsOneWidget);
+    });
+
+    testWidgets('a dive with a primary source has no switch', (tester) async {
+      final at = DateTime.utc(2026, 3, 9);
+      await pumpEditor(
+        tester,
+        full,
+        sources: () async => [
+          DiveDataSource(
+            id: 'src',
+            diveId: full.id,
+            isPrimary: true,
+            importedAt: at,
+            createdAt: at,
+          ),
+        ],
+      );
+      expect(find.byKey(const Key('dive_edit_planned_switch')), findsNothing);
     });
 
     testWidgets('a draft has no switch', (tester) async {

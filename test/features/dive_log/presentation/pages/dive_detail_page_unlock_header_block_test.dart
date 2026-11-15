@@ -216,20 +216,32 @@ void main() {
       );
     });
 
-    testWidgets('editing offered on a phone: no favourite item in the menu', (
-      tester,
-    ) async {
-      await pumpPage(
-        tester,
-        stored: headed.copyWith(isFavorite: true),
-        size: const Size(560, 1000),
-      );
+    testWidgets(
+      'editing offered on a phone: a state in the bar, no item in the menu',
+      (tester) async {
+        await pumpPage(
+          tester,
+          stored: headed.copyWith(isFavorite: true),
+          size: const Size(560, 1000),
+        );
 
-      await tester.tap(find.byIcon(Icons.more_vert));
-      await settle(tester);
+        // PR review: with no menu item, the bar is the one place a phone
+        // shows that the dive is a favourite.
+        expect(find.byIcon(Icons.favorite), findsOneWidget);
+        expect(
+          find.ancestor(
+            of: find.byIcon(Icons.favorite),
+            matching: find.byType(IconButton),
+          ),
+          findsNothing,
+        );
 
-      expect(find.text('Remove from Favorites'), findsNothing);
-    });
+        await tester.tap(find.byIcon(Icons.more_vert));
+        await settle(tester);
+
+        expect(find.text('Remove from Favorites'), findsNothing);
+      },
+    );
 
     testWidgets('editing off: the bar toggles it as before', (tester) async {
       await pumpPage(

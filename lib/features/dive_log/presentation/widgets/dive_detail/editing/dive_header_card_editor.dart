@@ -7,8 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_mode_label.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label.dart';
-import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_time_rows.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_site_row.dart';
@@ -80,10 +79,14 @@ class _DiveHeaderCardEditorState extends ConsumerState<DiveHeaderCardEditor> {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
     final session = widget.session;
-    final hasPrimarySource = watchDiveDataSources(
-      ref,
-      session.stored.id,
-    ).any((source) => source.isPrimary);
+    // Null while the sources load, which offers no planned switch.
+    final hasPrimarySource = ref
+        .watch(
+          diveDataSourcesProvider(
+            session.stored.id,
+          ).select((sources) => sources.valueOrNull),
+        )
+        ?.any((source) => source.isPrimary);
     final typesById = {
       for (final type
           in ref.watch(diveTypesProvider).value ?? const <DiveTypeEntity>[])
@@ -292,7 +295,7 @@ class _DiveHeaderCardEditorState extends ConsumerState<DiveHeaderCardEditor> {
   }
 
   /// Favourite, and the planned switch where the dive can take it.
-  List<Widget> _flags(AppLocalizations l10n, bool hasPrimarySource) {
+  List<Widget> _flags(AppLocalizations l10n, bool? hasPrimarySource) {
     final session = widget.session;
     return [
       FormRow.toggle(

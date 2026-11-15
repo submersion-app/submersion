@@ -305,6 +305,8 @@ Future<void> _suggestNumber(
 /// Whether the header editor offers the planned switch: for a dive stored
 /// as logged, with no primary data source, that is not a draft. A stored
 /// plan is logged with "Mark as logged", which numbers it and runs the
-/// logbook rules.
-bool plannedSwitchOffered(Dive stored, {required bool hasPrimarySource}) =>
-    !stored.isPlanned && !hasPrimarySource && !stored.isDraft;
+/// logbook rules. [hasPrimarySource] is null while the dive's sources are
+/// still loading, and an unknown source offers no switch: a downloaded dive
+/// must not be marked as planned before its source is known.
+bool plannedSwitchOffered(Dive stored, {required bool? hasPrimarySource}) =>
+    !stored.isPlanned && hasPrimarySource == false && !stored.isDraft;
