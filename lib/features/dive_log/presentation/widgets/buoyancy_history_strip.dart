@@ -50,12 +50,15 @@ class BuoyancyHistoryStrip extends ConsumerStatefulWidget {
 }
 
 class _Point {
+  /// The dive this pair stands for.
+  final String diveId;
   final String label;
   final double carriedKg;
   final double idealKg;
   final bool isCurrent;
 
   const _Point({
+    required this.diveId,
     required this.label,
     required this.carriedKg,
     required this.idealKg,
@@ -68,19 +71,16 @@ class _BuoyancyHistoryStripState extends ConsumerState<BuoyancyHistoryStrip> {
   static const double _axisGap = 6;
   static const double _dateGap = 6;
 
-  /// The pair picked by a tap; null follows the last pair.
-  int? _selected;
+  /// The dive whose pair was picked by a tap; null follows the last pair.
+  /// Held by dive rather than by place, so a history refresh that adds or
+  /// drops a dive keeps the readout on the dive that was tapped.
+  String? _selectedDiveId;
 
   @override
   void didUpdateWidget(BuoyancyHistoryStrip oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // A tapped pair belongs to the dive and the list it was tapped in: on
-    // another dive, or with this dive joining or leaving the list, the same
-    // index would name a different dive.
-    if (oldWidget.diveId != widget.diveId ||
-        (oldWidget.current == null) != (widget.current == null)) {
-      _selected = null;
-    }
+    // A pick belongs to the dive page it was made on.
+    if (oldWidget.diveId != widget.diveId) _selectedDiveId = null;
   }
 
   @override
@@ -99,6 +99,7 @@ class _BuoyancyHistoryStripState extends ConsumerState<BuoyancyHistoryStrip> {
     final points = [
       for (final e in entries)
         _Point(
+          diveId: e.diveId,
           label: units.formatMonthDay(e.diveDateTime),
           carriedKg: e.carriedKg,
           idealKg: e.idealKg,
@@ -106,16 +107,16 @@ class _BuoyancyHistoryStripState extends ConsumerState<BuoyancyHistoryStrip> {
         ),
       if (current != null)
         _Point(
+          diveId: widget.diveId,
           label: l10n.buoyancy_historyThisDive,
           carriedKg: current.carriedKg,
           idealKg: current.idealKg,
           isCurrent: true,
         ),
     ];
-    final picked = _selected;
-    final selected = picked != null && picked < points.length
-        ? picked
-        : points.length - 1;
+    // A picked dive that has left the list hands back to the last pair.
+    final picked = points.indexWhere((p) => p.diveId == _selectedDiveId);
+    final selected = picked >= 0 ? picked : points.length - 1;
     final theme = Theme.of(context);
     final caption = theme.textTheme.bodySmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
@@ -322,7 +323,7 @@ class _BuoyancyHistoryStripState extends ConsumerState<BuoyancyHistoryStrip> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(2)),
       ),
     );
-    void pick() => setState(() => _selected = index);
+    void pick() => setState(() => _selectedDiveId = p.diveId);
     // One node per pair, read as its values, rather than two bare bars.
     return Semantics(
       button: true,

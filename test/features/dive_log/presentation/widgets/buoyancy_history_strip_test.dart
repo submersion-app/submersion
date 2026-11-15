@@ -229,6 +229,51 @@ void main() {
     handle.dispose();
   });
 
+  testWidgets('a picked dive stays picked when the history refreshes around '
+      'it', (tester) async {
+    var history = _history;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          buoyancyHistoryProvider('d1').overrideWith((ref) async => history),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: BuoyancyHistoryStrip(
+              diveId: 'd1',
+              units: UnitFormatter(AppSettings()),
+              current: _current,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // Pick May 2, the second pair.
+    await tester.tap(find.byKey(const ValueKey('history-dive-1')));
+    await tester.pump();
+    expect(_readoutText(tester), startsWith('May 2'));
+
+    // An older dive joins the front of the list, moving May 2 along a place.
+    history = [_entry(30, 9, 5), ..._history];
+    ProviderScope.containerOf(
+      tester.element(find.byType(BuoyancyHistoryStrip)),
+    ).invalidate(buoyancyHistoryProvider('d1'));
+    await tester.pumpAndSettle();
+    expect(_readoutText(tester), startsWith('May 2'));
+
+    // And once it leaves the list, the readout falls back to this dive.
+    history = [_entry(1, 6, 5)];
+    ProviderScope.containerOf(
+      tester.element(find.byType(BuoyancyHistoryStrip)),
+    ).invalidate(buoyancyHistoryProvider('d1'));
+    await tester.pumpAndSettle();
+    expect(_readoutText(tester), startsWith('This dive'));
+  });
+
   testWidgets('a pair tapped on one dive is not kept for the next', (
     tester,
   ) async {
