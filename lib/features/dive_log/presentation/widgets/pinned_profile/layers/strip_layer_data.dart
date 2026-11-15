@@ -40,7 +40,8 @@ class StripLine {
     required this.max,
     this.estimated = false,
     this.label,
-  });
+    List<List<StripPoint>>? valueRuns,
+  }) : _valueRuns = valueRuns;
 
   final StripLayer layer;
 
@@ -48,7 +49,14 @@ class StripLine {
   /// a layer with one line.
   final String key;
   final Color color;
+
+  /// The runs as drawn, thinned to the strip's point budget.
   final List<List<StripPoint>> runs;
+
+  /// The runs with every sample, where thinning dropped some, so a value
+  /// read at the cursor is the sample's own, as the card and the full chart
+  /// read it, not one interpolated across the dropped samples.
+  final List<List<StripPoint>>? _valueRuns;
   final double min;
   final double max;
 
@@ -63,7 +71,7 @@ class StripLine {
   /// The value at [seconds], interpolated between the samples either side,
   /// or null outside every run.
   double? valueAt(int seconds) {
-    for (final run in runs) {
+    for (final run in _valueRuns ?? runs) {
       final value = stripValueAt(run, seconds);
       if (value != null) return value;
     }
@@ -152,13 +160,23 @@ class StripGhost {
     required this.label,
     required this.color,
     required this.points,
-  });
+    List<StripPoint>? valuePoints,
+  }) : _valuePoints = valuePoints;
 
   final StripLayer layer;
   final String key;
   final String label;
   final Color color;
+
+  /// The points as drawn, thinned to the strip's point budget.
   final List<StripPoint> points;
+
+  /// Every point, where thinning dropped some, for reading the depth at the
+  /// cursor.
+  final List<StripPoint>? _valuePoints;
+
+  /// The depth at [seconds], or null outside the line.
+  double? depthAt(int seconds) => stripValueAt(_valuePoints ?? points, seconds);
 
   double get maxDepth =>
       points.fold(0.0, (deepest, p) => math.max(deepest, p.value));

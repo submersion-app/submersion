@@ -209,14 +209,10 @@ void main() {
       _style,
     );
     final line = _line(data, StripLayer.sac);
-    expect([for (final p in line.runs.single) p.seconds], [
-      120,
-      180,
-      240,
-      300,
-      360,
-      420,
-    ]);
+    expect(
+      [for (final p in line.runs.single) p.seconds],
+      [120, 180, 240, 300, 360, 420],
+    );
     expect((line.min, line.max), (15, 30));
   });
 
@@ -396,6 +392,49 @@ void main() {
       30,
     );
     expect(data.ghostMaxDepth({}), 0);
+  });
+
+  test('a long series reads its own samples, not the thinned line', () {
+    // 5000 samples, past the strip's point budget, on a sawtooth the
+    // thinning cannot keep whole: a scatter, not a straight ramp.
+    final long = [
+      for (var i = 0; i < 5000; i++)
+        DiveProfilePoint(
+          timestamp: i,
+          depth: 10,
+          temperature: 20.0 + (i * i % 17) * 0.1,
+        ),
+    ];
+    final line = _line(_build(profile: long), StripLayer.temperature);
+    expect(
+      line.runs.single.length,
+      lessThan(long.length),
+      reason: 'the drawn line is thinned',
+    );
+    final misread = [
+      for (var i = 0; i < long.length; i++)
+        if ((line.valueAt(i)! - long[i].temperature!).abs() > 1e-9) i,
+    ];
+    expect(misread, isEmpty);
+  });
+
+  test('ghost points past the end of the dive are dropped', () {
+    final data = _build(
+      plan: ChartSourceOverlay(
+        sourceId: 'plan',
+        name: 'Plan',
+        color: Colors.purple,
+        computerId: null,
+        points: const [
+          DiveProfilePoint(timestamp: 0, depth: 0),
+          DiveProfilePoint(timestamp: 300, depth: 18),
+          // The plan runs on, deeper, after the dive ended at 540 s.
+          DiveProfilePoint(timestamp: 900, depth: 60),
+        ],
+      ),
+    );
+    expect(data.ghosts.single.points.last.seconds, 300);
+    expect(data.ghostMaxDepth({StripLayer.plannedDepth}), 18);
   });
 
   test('hasData is false for a layer with nothing', () {

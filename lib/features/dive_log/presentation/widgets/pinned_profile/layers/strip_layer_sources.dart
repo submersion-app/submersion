@@ -217,9 +217,10 @@ PinnedStripLayerData buildStripLayerData(
     ]),
     ghosts: List.unmodifiable(
       [
-        if (inputs.plan case final plan?) _ghost(StripLayer.plannedDepth, plan),
+        if (inputs.plan case final plan?)
+          _ghost(StripLayer.plannedDepth, plan, end),
         for (final source in inputs.otherSources)
-          _ghost(StripLayer.sourceDepths, source),
+          _ghost(StripLayer.sourceDepths, source, end),
       ].nonNulls,
     ),
   );
@@ -264,11 +265,21 @@ StripLine? _line(
     for (final run in runs)
       for (final p in run) p.value,
   ];
+  final thinned = [for (final run in runs) _thinned(run)];
+  final dropped = [
+    for (var i = 0; i < runs.length; i++)
+      if (thinned[i].length != runs[i].length) i,
+  ].isNotEmpty;
   return StripLine(
     layer: layer,
     key: key,
     color: color,
-    runs: List.unmodifiable([for (final run in runs) _thinned(run)]),
+    runs: List.unmodifiable(thinned),
+    valueRuns: dropped
+        ? List<List<StripPoint>>.unmodifiable([
+            for (final run in runs) List<StripPoint>.unmodifiable(run),
+          ])
+        : null,
     min: min ?? values.reduce(math.min) - pad,
     max: max ?? values.reduce(math.max) + pad,
     estimated: estimated,
@@ -425,15 +436,24 @@ List<StripTick> _ticks(StripLayerInputs inputs, StripLayerStyle style) {
   ];
 }
 
-StripGhost? _ghost(StripLayer layer, ChartSourceOverlay overlay) {
-  if (overlay.points.length < 2) return null;
+/// [overlay] as a ghost line, up to [end], the end of the dive: past it the
+/// strip has no room, and a deeper stretch there would only squeeze the
+/// dive's own depth line for nothing seen.
+StripGhost? _ghost(StripLayer layer, ChartSourceOverlay overlay, int end) {
+  final points = [
+    for (final p in overlay.points)
+      if (p.timestamp <= end) StripPoint(p.timestamp, p.depth),
+  ];
+  if (points.length < 2) return null;
+  final thinned = _thinned(points);
   return StripGhost(
     layer: layer,
     key: overlay.sourceId,
     label: overlay.name,
     color: overlay.color,
-    points: _thinned([
-      for (final p in overlay.points) StripPoint(p.timestamp, p.depth),
-    ]),
+    points: thinned,
+    valuePoints: thinned.length == points.length
+        ? null
+        : List<StripPoint>.unmodifiable(points),
   );
 }

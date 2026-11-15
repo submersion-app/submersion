@@ -5,7 +5,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
     show TooltipRow;
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/pinned_strip_layer_animator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer_data.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_text.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -99,7 +98,7 @@ List<TooltipRow> stripLayerTooltipRows({
     StripLayer.plannedDepth || StripLayer.sourceDepths => [
       for (final ghost in data.ghosts)
         if (ghost.layer == layer)
-          if (stripValueAt(ghost.points, s) case final depth?)
+          if (ghost.depthAt(s) case final depth?)
             TooltipRow(
               label: '${l10n.diveLog_tooltip_depth} · ${ghost.label}',
               value: units.formatDepth(depth),
