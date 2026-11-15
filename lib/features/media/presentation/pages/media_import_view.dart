@@ -17,7 +17,8 @@ import 'package:submersion/features/media/presentation/helpers/asset_import_cand
 import 'package:submersion/features/media/presentation/helpers/offer_site_review_after_import.dart';
 
 /// The dive-less import, started by the Media section's Import button
-/// (#4587) and by a desktop drop on it: launches the three-tab picker with
+/// (#4587) and by files dropped on the app window with no dive or site to
+/// go to (importDroppedMedia): launches the three-tab picker with
 /// no dive context, then hands the picked assets to [MediaImportReviewPage].
 /// Nothing is written until the user confirms, and only assets resolved to a
 /// dive or a site are imported.

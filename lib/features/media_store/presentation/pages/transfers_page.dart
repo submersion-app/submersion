@@ -143,8 +143,8 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
                 ),
           // The notice lives here rather than inside TransfersView: it
           // watches the runtime, which this page builds deliberately (see
-          // initState), so the view stays a plain list that constructs
-          // nothing - no drain, queue reclaim or verify sweep - on its own.
+          // initState), so the view stays a plain list that starts no drain,
+          // queue reclaim or verify sweep on its own.
           body: Column(
             children: [
               const MediaTransfersSuspendedNotice(),

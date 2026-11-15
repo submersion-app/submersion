@@ -154,6 +154,29 @@ void main() {
     expect(find.byType(MediaLibraryView), findsOneWidget);
   });
 
+  testWidgets('a double tap on Transfers opens one page, not two', (
+    tester,
+  ) async {
+    setDesktopSize(tester);
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    // The second tap lands before the route covers the button.
+    await tester.tap(action(MediaConsoleAction.transfers));
+    await tester.tap(action(MediaConsoleAction.transfers));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(TransfersPage), findsNothing);
+    expect(find.byType(MediaLibraryView), findsOneWidget);
+
+    // Once the page has closed, the button works again.
+    await tester.tap(action(MediaConsoleAction.transfers));
+    await tester.pumpAndSettle();
+    expect(find.byType(TransfersPage), findsOneWidget);
+  });
+
   testWidgets('the Import button opens the picker straight away', (
     tester,
   ) async {
