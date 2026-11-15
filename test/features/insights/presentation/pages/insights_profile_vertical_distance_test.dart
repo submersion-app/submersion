@@ -99,7 +99,8 @@ void main() {
     expect(card, greaterThan(top('Average Ascent & Descent Rates')));
     expect(card, lessThan(top('Time at Depth Ranges')));
     final maxDepths = top('Max Depths Added Up');
-    expect(maxDepths, greaterThan(card));
+    // Beside it at this width, on the same line.
+    expect(maxDepths, card);
     expect(maxDepths, lessThan(top('Time at Depth Ranges')));
   });
 }

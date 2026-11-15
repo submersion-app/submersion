@@ -12,7 +12,7 @@ import 'package:submersion/features/insights/presentation/widgets/chart_row_link
 import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
-import 'package:submersion/features/insights/presentation/widgets/vertical_distance/vertical_distance_card.dart';
+import 'package:submersion/features/insights/presentation/widgets/vertical_distance/vertical_distance_cards.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
@@ -40,9 +40,7 @@ class InsightsProfilePage extends ConsumerWidget {
         children: [
           _buildAscentDescentSection(context, ref, units),
           const SizedBox(height: 16),
-          const VerticalDistanceCard(),
-          const SizedBox(height: 16),
-          const VerticalDistanceCard.maxDepths(),
+          const VerticalDistanceCards(),
           const SizedBox(height: 16),
           _buildTimeAtDepthSection(context, ref, units),
           const SizedBox(height: 16),

@@ -330,7 +330,7 @@ as the diver passes the one before.
 ### A second card: max depths added up
 
 Added during review at the user's request. A second card, "Max Depths
-Added Up", sits directly under the first and draws the same scale, strip,
+Added Up", sits beside the first and draws the same scale, strip,
 landmarks and interactions from a different figure: each dive counts once
 straight down to its stored max depth and straight back up, ignoring every
 change of depth along the way. It sets the profile figure beside a plainer
@@ -345,6 +345,13 @@ one, so the diver can see how much the in-water up and down adds.
   for one.
 - **Info.** Its info sheet says that only each dive's deepest point
   counts and that dives with no max depth are left out.
+- **Layout.** From 800 px of page width the two cards sit side by side,
+  ending level (the second keeps an empty note row); below that they
+  stack. Chosen over a single card with two pairs of bars, which would have
+  meant reworking the scale.
+- **One scale.** Both cards are sized to the larger of their two scales,
+  so the bars compare at a glance; the smaller card shows headroom above
+  its bar. Until both have loaded, each card uses its own scale.
 
 ### Units and language
 

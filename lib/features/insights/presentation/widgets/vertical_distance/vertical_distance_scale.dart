@@ -51,9 +51,15 @@ class VerticalDistanceScale extends ConsumerStatefulWidget {
     super.key,
     required this.timeline,
     this.reservesNote = true,
+    this.extentMeters,
   });
 
   final VerticalDistanceTimeline timeline;
+
+  /// A larger height to size the scale to, shared with another card so the
+  /// two sets of bars compare at a glance; null for the timeline's own. See
+  /// [VerticalScaleLayout.compute].
+  final double? extentMeters;
 
   /// Whether the estimated-dives note keeps its row under the strip while it
   /// has nothing to say. False for a timeline that can never estimate a
@@ -68,23 +74,26 @@ class VerticalDistanceScale extends ConsumerStatefulWidget {
 
 class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
   final _selection = ValueNotifier<VerticalSelection>(const VerticalIdle());
-  late VerticalScaleLayout _layout = _layoutFor(widget.timeline);
+  late VerticalScaleLayout _layout = _layoutFor(widget);
 
-  static VerticalScaleLayout _layoutFor(VerticalDistanceTimeline t) =>
+  static VerticalScaleLayout _layoutFor(VerticalDistanceScale w) =>
       VerticalScaleLayout.compute(
-        totalMeters: t.totalMeters,
+        totalMeters: w.timeline.totalMeters,
         halfHeightPx: kVerticalScaleHalfHeight,
+        extentMeters: w.extentMeters,
       );
 
   @override
   void didUpdateWidget(VerticalDistanceScale old) {
     super.didUpdateWidget(old);
-    if (old.timeline != widget.timeline) {
-      _layout = _layoutFor(widget.timeline);
+    if (old.timeline != widget.timeline ||
+        old.extentMeters != widget.extentMeters) {
+      _layout = _layoutFor(widget);
       // A refresh with the same total (any Insights table write refreshes
       // the provider) keeps the selected level; the strip reads its date
       // from the new timeline. A different total redraws the scale, so the
-      // old level means nothing there.
+      // old level means nothing there. A new shared extent only rescales:
+      // the level is held in metres, so it stays.
       if (old.timeline.totalMeters != widget.timeline.totalMeters) {
         _selection.value = const VerticalIdle();
       }

@@ -62,6 +62,38 @@ void main() {
     });
   });
 
+  group('a scale shared by two cards', () {
+    test('a total\'s own extent is the larger next landmark', () {
+      // Next up from 525 m is the Burj Khalifa (828), next down Crater Lake
+      // (594).
+      expect(verticalScaleExtent(525), 828);
+    });
+
+    test('a larger shared extent shortens the bar, landmarks unchanged', () {
+      final layout = VerticalScaleLayout.compute(
+        totalMeters: 525,
+        halfHeightPx: 240,
+        extentMeters: 2000,
+      );
+
+      expect(layout.extentMeters, 2000);
+      // 525 x 240 / (2000 x 1.08) = 58.33 px.
+      expect(layout.barPx, closeTo(58.3, 0.1));
+      expect(layout.ascentMarks.last.landmark.meters, 828);
+      expect(layout.descentMarks.last.landmark.meters, 594);
+    });
+
+    test('a smaller shared extent never cuts off the next landmark', () {
+      final layout = VerticalScaleLayout.compute(
+        totalMeters: 525,
+        halfHeightPx: 240,
+        extentMeters: 300,
+      );
+
+      expect(layout.extentMeters, 828);
+    });
+  });
+
   group('VerticalScaleLayout, edge totals', () {
     test('the most recent passed label is nudged clear of the next one', () {
       // Total 8,700: K2 (8,611) passed, Everest (8,849) next. The extent is

@@ -29,6 +29,17 @@ class VerticalScaleMark {
   final double labelOffsetPx;
 }
 
+/// How tall a scale for [totalMeters] must reach on its own: the larger of
+/// its two next landmarks. Two cards drawn on one scale use the larger of
+/// their two extents, so their bars compare at a glance.
+double verticalScaleExtent(double totalMeters) {
+  final total = math.max(0.0, totalMeters);
+  return math.max(
+    nextLandmark(VerticalLeg.ascent, total).meters,
+    nextLandmark(VerticalLeg.descent, total).meters,
+  );
+}
+
 /// The geometry of the scale for one total: how long the bars are and where
 /// every tick and label goes. Pure, so the widget only paints it.
 ///
@@ -36,6 +47,10 @@ class VerticalScaleMark {
 /// length. The scale reaches the larger of the two next landmarks, plus
 /// [headroom] for its label, so a diver is never more than one landmark
 /// from the top and the bars always fill a good part of the card.
+///
+/// [VerticalScaleLayout.compute]'s `extentMeters` sizes the scale to a
+/// larger extent shared with another card; it never shrinks the scale below
+/// its own, so the next landmarks always fit.
 class VerticalScaleLayout {
   VerticalScaleLayout._({
     required this.totalMeters,
@@ -48,13 +63,17 @@ class VerticalScaleLayout {
   factory VerticalScaleLayout.compute({
     required double totalMeters,
     required double halfHeightPx,
+    double? extentMeters,
     double headroom = 0.08,
     double minLabelGapPx = 18,
   }) {
     final total = math.max(0.0, totalMeters);
     final nextUp = nextLandmark(VerticalLeg.ascent, total);
     final nextDown = nextLandmark(VerticalLeg.descent, total);
-    final extent = math.max(nextUp.meters, nextDown.meters);
+    final extent = math.max(
+      math.max(nextUp.meters, nextDown.meters),
+      extentMeters ?? 0,
+    );
     final pxPerMeter = halfHeightPx / (extent * (1 + headroom));
 
     final placed = _placeLabels(
@@ -77,7 +96,8 @@ class VerticalScaleLayout {
 
   final double totalMeters;
 
-  /// The larger of the two next landmarks: the height the scale is sized to.
+  /// The height the scale is sized to: the larger of the two next landmarks,
+  /// or a larger extent shared with another card.
   final double extentMeters;
 
   final double _pxPerMeter;

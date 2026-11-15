@@ -19,13 +19,27 @@ import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 /// [VerticalDistanceCard.maxDepths] card draws the same scale counting each
 /// dive straight down to its max depth and back.
 class VerticalDistanceCard extends ConsumerWidget {
-  const VerticalDistanceCard({super.key}) : maxDepthsOnly = false;
+  const VerticalDistanceCard({super.key, this.scaleExtentMeters})
+    : maxDepthsOnly = false,
+      keepNoteRow = true;
 
-  const VerticalDistanceCard.maxDepths({super.key}) : maxDepthsOnly = true;
+  const VerticalDistanceCard.maxDepths({
+    super.key,
+    this.scaleExtentMeters,
+    this.keepNoteRow = false,
+  }) : maxDepthsOnly = true;
 
   /// True for the card that counts only each dive's max depth. Its timeline
   /// never estimates a dive, so it has no estimated-dives note.
   final bool maxDepthsOnly;
+
+  /// A height shared with the card beside it, so both draw on one scale;
+  /// null for the card's own. See [VerticalDistanceScale.extentMeters].
+  final double? scaleExtentMeters;
+
+  /// Keeps the estimated-dives note's row even with no note to show, so the
+  /// card lines up with a card beside it that has one.
+  final bool keepNoteRow;
 
   String _title(AppLocalizations l10n) => maxDepthsOnly
       ? l10n.insights_profile_verticalDistance_maxDepthsTitle
@@ -73,13 +87,14 @@ class VerticalDistanceCard extends ConsumerWidget {
           }
           return VerticalDistanceScale(
             timeline: timeline,
-            reservesNote: !maxDepthsOnly,
+            reservesNote: keepNoteRow,
+            extentMeters: scaleExtentMeters,
           );
         },
         loading: () => SizedBox(
-          height: maxDepthsOnly
-              ? kVerticalScaleAndStripHeight
-              : kVerticalCardBodyHeight,
+          height: keepNoteRow
+              ? kVerticalCardBodyHeight
+              : kVerticalScaleAndStripHeight,
           child: const Center(child: CircularProgressIndicator()),
         ),
         error: (_, _) => StatEmptyState(
