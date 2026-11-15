@@ -386,6 +386,24 @@ void main() {
       expect(controller.session!.working.weatherSource, WeatherSource.manual);
     });
 
+    testWidgets('a sky picked on fetched weather drops the forecast code', (
+      tester,
+    ) async {
+      final controller = await pumpEditor(
+        tester,
+        full.copyWith(weatherSource: WeatherSource.openMeteo, weatherCode: 80),
+      );
+      final l10n = l10nOf(tester);
+
+      await tester.tap(find.text(l10n.diveLog_edit_label_precipitation));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ListTile, 'Snow'));
+      await tester.pumpAndSettle();
+
+      expect(controller.session!.working.precipitation, Precipitation.snow);
+      expect(controller.session!.working.weatherCode, isNull);
+    });
+
     testWidgets('the entry row hints the site method when the dive has none', (
       tester,
     ) async {

@@ -294,14 +294,20 @@ class _DiveEnvironmentCardEditorState
         value: session.valueOf(diveCloudCoverField),
         values: CloudCover.values,
         displayName: (value) => value.localizedName(l10n),
-        onChanged: (value) => session.set(diveCloudCoverField, value),
+        onChanged: (value) {
+          session.set(diveCloudCoverField, value);
+          weatherSkyEdited(session);
+        },
       ),
       EnumPickerRow<Precipitation>(
         label: l10n.diveLog_edit_label_precipitation,
         value: session.valueOf(divePrecipitationField),
         values: Precipitation.values,
         displayName: (value) => value.localizedName(l10n),
-        onChanged: (value) => session.set(divePrecipitationField, value),
+        onChanged: (value) {
+          session.set(divePrecipitationField, value);
+          weatherSkyEdited(session);
+        },
       ),
       RecordNumberRow<Dive>(
         session: session,

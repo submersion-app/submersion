@@ -335,13 +335,27 @@ void main() {
       expect(session.working.weatherSource, WeatherSource.manual);
     });
 
-    test('so does clearing it', () {
+    // With no words stored the card writes the description from the
+    // forecast whatever the source, so clearing needs no change of source,
+    // and the weather keeps saying where it came from.
+    test('clearing it leaves fetched weather fetched', () {
       final session = sessionOver(fetched)
         ..set(diveWeatherDescriptionField, null);
 
       weatherDescriptionEdited(session);
 
-      expect(session.working.weatherSource, WeatherSource.manual);
+      expect(session.working.weatherSource, WeatherSource.openMeteo);
+    });
+
+    test('clearing words typed in this sitting makes it fetched again', () {
+      final session = sessionOver(fetched)
+        ..set(diveWeatherDescriptionField, 'Squalls');
+      weatherDescriptionEdited(session);
+
+      session.set(diveWeatherDescriptionField, null);
+      weatherDescriptionEdited(session);
+
+      expect(session.working.weatherSource, WeatherSource.openMeteo);
     });
 
     test('typing the stored words back leaves the sitting clean', () {
@@ -372,6 +386,72 @@ void main() {
       applyFetchedWeather(session, _forecast, now: DateTime(2024, 6, 3));
 
       expect(session.working.weatherSource, WeatherSource.openMeteo);
+    });
+  });
+
+  // The read card names the sky from the forecast's code before cloud cover
+  // and precipitation, and leaves precipitation out when there is a code.
+  // A sky the diver changes would then be described as the forecast had it.
+  group('weatherSkyEdited', () {
+    final fetched = full.copyWith(
+      weatherSource: WeatherSource.openMeteo,
+      weatherCode: 80,
+      precipitation: Precipitation.rain,
+    );
+
+    test('a changed precipitation drops the code', () {
+      final session = sessionOver(fetched)
+        ..set(divePrecipitationField, Precipitation.none);
+
+      weatherSkyEdited(session);
+
+      expect(session.working.weatherCode, isNull);
+    });
+
+    test('a changed cloud cover drops the code', () {
+      final session = sessionOver(fetched)
+        ..set(diveCloudCoverField, CloudCover.overcast);
+
+      weatherSkyEdited(session);
+
+      expect(session.working.weatherCode, isNull);
+    });
+
+    test('the other fetched values and the source stay', () {
+      final session = sessionOver(fetched)
+        ..set(divePrecipitationField, Precipitation.none);
+
+      weatherSkyEdited(session);
+
+      expect(session.working.weatherSource, WeatherSource.openMeteo);
+      expect(session.working.cloudCover, fetched.cloudCover);
+    });
+
+    test('setting the sky back restores the code and leaves the sitting '
+        'clean', () {
+      final session = sessionOver(fetched)
+        ..set(divePrecipitationField, Precipitation.none);
+      weatherSkyEdited(session);
+
+      session.set(divePrecipitationField, Precipitation.rain);
+      weatherSkyEdited(session);
+
+      expect(session.working.weatherCode, 80);
+      expect(session.isDirty, isFalse);
+    });
+
+    test('the code of a fetch made in this sitting is not put back', () {
+      final session = sessionOver(fetched);
+      applyFetchedWeather(session, _forecast, now: DateTime(2024, 6, 3));
+      session.set(diveWeatherCodeField, 3);
+      session.set(divePrecipitationField, Precipitation.none);
+      weatherSkyEdited(session);
+
+      session.set(divePrecipitationField, Precipitation.rain);
+      session.set(diveCloudCoverField, fetched.cloudCover);
+      weatherSkyEdited(session);
+
+      expect(session.working.weatherCode, isNull);
     });
   });
 
