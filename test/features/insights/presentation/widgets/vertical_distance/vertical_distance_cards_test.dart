@@ -153,6 +153,39 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a level pinned before the shared scale arrives stays pinned', (
+    tester,
+  ) async {
+    final pending = Completer<VerticalDistanceTimeline>();
+    await pump(tester, width: 1000, profileFuture: pending.future);
+
+    // Only the Max Depths card has loaded: pin a level on its descent bar.
+    final scale = find.byKey(const Key('verticalScale'));
+    final origin = tester.getTopLeft(scale);
+    final size = tester.getSize(scale);
+    await tester.tapAt(
+      Offset(
+        origin.dx + size.width / 2,
+        origin.dy + kVerticalScaleHeight / 2 + 60,
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Pinned'), findsOneWidget);
+    final ownScaleHeadline = tester.getTopLeft(find.text('total ascent')).dy;
+
+    pending.complete(profile);
+    await tester.pump();
+    await tester.pump();
+
+    // The Max Depths card now sits on the larger shared scale: its bar is
+    // shorter, so its ascent headline sits lower, and the level stays.
+    expect(
+      tester.getTopLeft(find.text('total ascent').last).dy,
+      greaterThan(ownScaleHeadline),
+    );
+    expect(find.text('Pinned'), findsOneWidget);
+  });
+
   testWidgets('until both have loaded, each card keeps its own scale', (
     tester,
   ) async {
