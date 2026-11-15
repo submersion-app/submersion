@@ -20,6 +20,7 @@ void main() {
   Widget host({
     required MediaConsoleSection selected,
     required ValueChanged<MediaConsoleSection> onSelect,
+    ValueChanged<MediaConsoleAction>? onAction,
     Map<MediaConsoleSection, int> badgeCounts = const {},
     ThemeData? theme,
     double appBarHeight = kToolbarHeight,
@@ -47,6 +48,7 @@ void main() {
           ),
           selected: selected,
           onSelect: onSelect,
+          onAction: onAction ?? (_) {},
           badgeCounts: badgeCounts,
           child: const SizedBox.expand(key: _contentKey),
         ),
@@ -64,15 +66,24 @@ void main() {
   AppBar appBar(WidgetTester tester) =>
       tester.widget<AppBar>(find.byType(AppBar));
 
-  test('the console has exactly five destinations', () {
-    // Unlinked media no longer exists and Missing files is a Library chip,
-    // so neither gets a tab. Gear photos have their own (issue #3355).
+  /// Below master-detail width the tab row is the app bar's bottom.
+  void expectTabsInAppBar(WidgetTester tester) {
+    expect(
+      find.descendant(of: find.byType(AppBar), matching: find.byType(TabBar)),
+      findsOneWidget,
+    );
+  }
+
+  Finder action(MediaConsoleAction a) =>
+      find.byKey(ValueKey('media_console_action_${a.name}'));
+
+  test('the console has exactly two tabs', () {
+    // Only places to browse are tabs (#4587): Import, Transfers and Sources
+    // are actions, so they are buttons on the tab row instead. Gear photos
+    // have their own tab (issue #3355).
     expect(MediaConsoleSection.values, [
       MediaConsoleSection.library,
       MediaConsoleSection.gear,
-      MediaConsoleSection.sources,
-      MediaConsoleSection.transfers,
-      MediaConsoleSection.importMedia,
     ]);
   });
 
@@ -88,7 +99,7 @@ void main() {
         );
 
         expect(find.byType(TabBar), findsOneWidget);
-        expect(appBar(tester).bottom, isA<TabBar>());
+        expectTabsInAppBar(tester);
         expect(find.byType(PaneHeaderBar), findsNothing);
         // With the switch's own 8px label padding, the switch's first name
         // lands on the 16px line a tab label starts on unpadded.
@@ -192,25 +203,25 @@ void main() {
         );
         // The tab strip can scroll at phone width: later sections may sit
         // off-screen until dragged into view.
-        await tester.ensureVisible(find.text('Transfers'));
+        await tester.ensureVisible(find.text('Equipment'));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Transfers'));
-        expect(tapped, MediaConsoleSection.transfers);
+        await tester.tap(find.text('Equipment'));
+        expect(tapped, MediaConsoleSection.gear);
       });
     }
 
     testWidgets('an outside selection change moves the tab indicator', (
       tester,
     ) async {
-      // Sources' "Browse source" jumps to Library from outside the tab
-      // strip; the indicator has to follow it.
+      // Browsing a source on the Sources page selects the Library from
+      // outside the tab strip; the indicator has to follow it.
       setWidth(tester, _desktopWidth);
       await tester.pumpWidget(
-        host(selected: MediaConsoleSection.sources, onSelect: (_) {}),
+        host(selected: MediaConsoleSection.gear, onSelect: (_) {}),
       );
       TabController controller() =>
           tester.widget<TabBar>(find.byType(TabBar)).controller!;
-      expect(controller().index, MediaConsoleSection.sources.index);
+      expect(controller().index, MediaConsoleSection.gear.index);
 
       await tester.pumpWidget(
         host(selected: MediaConsoleSection.library, onSelect: (_) {}),
@@ -224,16 +235,16 @@ void main() {
     ) async {
       setWidth(tester, _desktopWidth);
       await tester.pumpWidget(
-        host(selected: MediaConsoleSection.transfers, onSelect: (_) {}),
+        host(selected: MediaConsoleSection.gear, onSelect: (_) {}),
       );
       expect(find.byType(PaneHeaderBar), findsOneWidget);
 
       setWidth(tester, _phoneWidth);
       await tester.pumpAndSettle();
-      expect(appBar(tester).bottom, isA<TabBar>());
+      expectTabsInAppBar(tester);
       expect(
         tester.widget<TabBar>(find.byType(TabBar)).controller!.index,
-        MediaConsoleSection.transfers.index,
+        MediaConsoleSection.gear.index,
       );
     });
   });
@@ -244,7 +255,7 @@ void main() {
       host(
         selected: MediaConsoleSection.library,
         onSelect: (_) {},
-        badgeCounts: const {MediaConsoleSection.transfers: 3},
+        badgeCounts: const {MediaConsoleSection.library: 3},
       ),
     );
     expect(find.text('3'), findsOneWidget);
@@ -327,18 +338,69 @@ void main() {
     testWidgets('stacked tabs drop the divider on a coloured bar only', (
       tester,
     ) async {
-      Color? divider() =>
+      // The row draws the rule, not the tab bar, so it runs under the
+      // buttons as well as the tabs.
+      BoxBorder? divider() =>
+          (tester
+                      .widget<DecoratedBox>(
+                        find.byKey(const ValueKey('media_console_tab_row')),
+                      )
+                      .decoration
+                  as BoxDecoration)
+              .border;
+      Color? tabBarDivider() =>
           tester.widget<TabBar>(find.byType(TabBar)).dividerColor;
 
       // Tropical's teal bar already contrasts with the page: no extra rule.
       await pumpPreset(tester, 'tropical', Brightness.light, width: 360);
-      expect(appBar(tester).bottom, isA<TabBar>());
-      expect(divider(), Colors.transparent);
-
-      // Submersion's bar is the page colour: keep the stock divider.
-      await pumpPreset(tester, 'submersion', Brightness.light, width: 360);
-      expect(appBar(tester).bottom, isA<TabBar>());
+      expectTabsInAppBar(tester);
       expect(divider(), isNull);
+      expect(tabBarDivider(), Colors.transparent);
+
+      // Submersion's bar is the page colour: a rule the row's full width.
+      final submersion = await pumpPreset(
+        tester,
+        'submersion',
+        Brightness.light,
+        width: 360,
+      );
+      expectTabsInAppBar(tester);
+      expect(
+        divider(),
+        Border(
+          bottom: BorderSide(color: submersion.colorScheme.outlineVariant),
+        ),
+      );
+      expect(tabBarDivider(), Colors.transparent);
+      expect(
+        tester.getSize(find.byKey(const ValueKey('media_console_tab_row'))),
+        const Size(360, kTextTabBarHeight),
+      );
+    });
+
+    testWidgets('the buttons take the unselected tab colour', (tester) async {
+      // On Tropical's teal bar the stock icon colour would not read; the
+      // buttons follow the tab labels instead.
+      for (final id in ['tropical', 'submersion']) {
+        await pumpPreset(tester, id, Brightness.light);
+        final icon = tester.widget<Icon>(
+          find.descendant(
+            of: action(MediaConsoleAction.sources),
+            matching: find.byType(Icon),
+          ),
+        );
+        final iconColor =
+            icon.color ??
+            IconTheme.of(
+              tester.element(
+                find.descendant(
+                  of: action(MediaConsoleAction.sources),
+                  matching: find.byType(Icon),
+                ),
+              ),
+            ).color;
+        expect(iconColor, labelColor(tester, 'Equipment'), reason: id);
+      }
     });
 
     for (final preset in AppThemeRegistry.presets) {
@@ -361,7 +423,7 @@ void main() {
               final background = appBarBackground(tester, theme);
               final title = labelColor(tester, 'Media');
               final selected = labelColor(tester, 'Library');
-              final unselected = labelColor(tester, 'Sources');
+              final unselected = labelColor(tester, 'Equipment');
 
               // The selected label is stock `primary` where that reads on
               // the bar, else the title's own colour: the legibility the
@@ -436,7 +498,7 @@ void main() {
 
           final background = theme.colorScheme.surface;
           final selected = labelColor(tester, 'Library');
-          final unselected = labelColor(tester, 'Sources');
+          final unselected = labelColor(tester, 'Equipment');
           final textContrast = contrast(
             theme.colorScheme.onSurface,
             background,
@@ -459,7 +521,10 @@ void main() {
     }
   });
 
-  testWidgets('a browser has no Sources or Import tab (#4121)', (tester) async {
+  testWidgets('a browser shows only the Transfers button (#4121)', (
+    tester,
+  ) async {
+    // A browser can neither import files nor watch folders.
     setWidth(tester, _desktopWidth);
     await tester.pumpWidget(
       host(
@@ -470,8 +535,93 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Library'), findsOneWidget);
-    expect(find.text('Transfers'), findsOneWidget);
-    expect(find.text('Sources'), findsNothing);
-    expect(find.text('Import'), findsNothing);
+    expect(find.text('Equipment'), findsOneWidget);
+    expect(action(MediaConsoleAction.transfers), findsOneWidget);
+    expect(action(MediaConsoleAction.importMedia), findsNothing);
+    expect(action(MediaConsoleAction.sources), findsNothing);
+  });
+
+  group('action buttons (#4587)', () {
+    for (final width in [_phoneWidth, _desktopWidth]) {
+      testWidgets('tapping each button fires onAction at width $width', (
+        tester,
+      ) async {
+        setWidth(tester, width);
+        final tapped = <MediaConsoleAction>[];
+        MediaConsoleSection? selected;
+        await tester.pumpWidget(
+          host(
+            selected: MediaConsoleSection.library,
+            onSelect: (s) => selected = s,
+            onAction: tapped.add,
+          ),
+        );
+        for (final a in MediaConsoleAction.values) {
+          await tester.tap(action(a));
+        }
+        expect(tapped, MediaConsoleAction.values);
+        // A button is not a tab: the selection does not move.
+        expect(selected, isNull);
+      });
+
+      testWidgets('buttons share the tab row at width $width', (tester) async {
+        setWidth(tester, width);
+        await tester.pumpWidget(
+          host(selected: MediaConsoleSection.library, onSelect: (_) {}),
+        );
+        final tabsCentre = tester.getCenter(find.text('Library'));
+        // The buttons start where the (scrollable) tab strip ends, never
+        // over it.
+        var previousRight = tester.getTopRight(find.byType(TabBar)).dx;
+        for (final a in MediaConsoleAction.values) {
+          final centre = tester.getCenter(action(a));
+          expect(centre.dy, closeTo(tabsCentre.dy, 1), reason: a.name);
+          final left = tester.getTopLeft(action(a)).dx;
+          expect(left, greaterThanOrEqualTo(previousRight), reason: a.name);
+          previousRight = tester.getTopRight(action(a)).dx;
+        }
+        // The last button ends at the row's trailing edge, less its gap.
+        expect(previousRight, closeTo(width - 4, 1));
+        expect(
+          find.descendant(
+            of: find.byKey(const ValueKey('media_console_tab_row')),
+            matching: find.byType(IconButton),
+          ),
+          findsNWidgets(MediaConsoleAction.values.length),
+        );
+      });
+    }
+
+    testWidgets('a 320px phone fits two tabs and three buttons', (
+      tester,
+    ) async {
+      setWidth(tester, 320);
+      await tester.pumpWidget(
+        host(selected: MediaConsoleSection.library, onSelect: (_) {}),
+      );
+      expect(tester.takeException(), isNull);
+      for (final a in MediaConsoleAction.values) {
+        expect(action(a).hitTestable(), findsOneWidget, reason: a.name);
+      }
+      // Where the labels outgrow the strip (large text), it scrolls rather
+      // than run under the buttons: the Gear tab can still be reached.
+      await tester.ensureVisible(find.text('Equipment'));
+      await tester.pumpAndSettle();
+      expect(find.text('Equipment').hitTestable(), findsOneWidget);
+    });
+
+    testWidgets('the buttons carry their names as tooltips', (tester) async {
+      setWidth(tester, _desktopWidth);
+      await tester.pumpWidget(
+        host(selected: MediaConsoleSection.library, onSelect: (_) {}),
+      );
+      for (final (a, tip) in const [
+        (MediaConsoleAction.importMedia, 'Import'),
+        (MediaConsoleAction.transfers, 'Transfers'),
+        (MediaConsoleAction.sources, 'Sources'),
+      ]) {
+        expect(tester.widget<IconButton>(action(a)).tooltip, tip);
+      }
+    });
   });
 }

@@ -1,25 +1,37 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/presentation/pages/gear_gallery_view.dart';
 import 'package:submersion/features/media/presentation/pages/media_import_view.dart';
 import 'package:submersion/features/media/presentation/pages/media_library_view.dart';
-import 'package:submersion/features/media/presentation/pages/media_sources_section_view.dart';
+import 'package:submersion/features/media/presentation/pages/media_sources_section_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_watcher_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_console_scaffold.dart';
-import 'package:submersion/features/media_store/presentation/widgets/transfers_view.dart';
+import 'package:submersion/features/media_store/presentation/pages/transfers_page.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
 
 /// The Media screen's Photos/Videos tab: owns the selected console section
 /// and renders its content inside [MediaConsoleScaffold], whose section tabs
-/// sit under [headerTitle].
+/// sit under [headerTitle], and carries out the tab row's Import, Transfers
+/// and Sources buttons (#4587).
 class MediaSectionPage extends ConsumerStatefulWidget {
-  const MediaSectionPage({super.key, required this.headerTitle});
+  const MediaSectionPage({
+    super.key,
+    required this.headerTitle,
+    this.importPickOverride,
+  });
 
   /// The header's title: the Media screen's Photos/Videos and Documents
   /// switch (#3631).
   final SectionHeaderTitle headerTitle;
+
+  /// Test seam: returns the picked assets instead of driving the platform
+  /// picker (which flutter_test cannot).
+  @visibleForTesting
+  final Future<List<AssetInfo>> Function(BuildContext context)?
+  importPickOverride;
 
   @override
   ConsumerState<MediaSectionPage> createState() => _MediaSectionPageState();
@@ -46,6 +58,30 @@ class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
     });
   }
 
+  Future<void> _onAction(MediaConsoleAction action) async {
+    switch (action) {
+      case MediaConsoleAction.importMedia:
+        await MediaImportView.launchImport(
+          context,
+          ref,
+          pick: widget.importPickOverride,
+        );
+      case MediaConsoleAction.transfers:
+        await Navigator.of(
+          context,
+        ).push(MaterialPageRoute<void>(builder: (_) => const TransfersPage()));
+      case MediaConsoleAction.sources:
+        // Browsing a source filters the Library and closes the page with
+        // true: show the Library it filtered, whichever tab was up.
+        final browsed = await Navigator.of(context).push<bool>(
+          MaterialPageRoute(builder: (_) => const MediaSourcesSectionPage()),
+        );
+        if (browsed == true && mounted) {
+          setState(() => _section = MediaConsoleSection.library);
+        }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Missing files live under the Library's health chip; the badge on the
@@ -56,16 +92,11 @@ class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
       headerTitle: widget.headerTitle,
       selected: _section,
       onSelect: (section) => setState(() => _section = section),
+      onAction: _onAction,
       badgeCounts: {MediaConsoleSection.library: missingCount},
       child: switch (_section) {
         MediaConsoleSection.library => const MediaLibraryView(),
         MediaConsoleSection.gear => const GearGalleryView(),
-        MediaConsoleSection.sources => MediaSourcesSectionView(
-          onBrowseSource: () =>
-              setState(() => _section = MediaConsoleSection.library),
-        ),
-        MediaConsoleSection.transfers => const TransfersView(),
-        MediaConsoleSection.importMedia => const MediaImportView(),
       },
     );
   }
