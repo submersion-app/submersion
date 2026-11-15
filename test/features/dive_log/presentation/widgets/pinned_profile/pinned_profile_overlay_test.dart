@@ -7,6 +7,9 @@ import 'package:submersion/features/dive_log/data/services/profile_analysis_serv
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/pinned_strip_layer_host.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_card_marker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
@@ -111,6 +114,7 @@ void main() {
     ValueNotifier<ChartViewport>? chartViewport,
     double footerHeight = footer,
     double pagePadding = 0,
+    bool markTarget = false,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -176,7 +180,13 @@ void main() {
                         else
                           const SizedBox(height: profileHeight),
                         const SizedBox(height: 1100),
-                        SizedBox(key: targetKey, height: 100),
+                        if (markTarget)
+                          PinnedStripCardMarker(
+                            id: DiveDetailSectionId.environment,
+                            child: SizedBox(key: targetKey, height: 100),
+                          )
+                        else
+                          SizedBox(key: targetKey, height: 100),
                         const SizedBox(height: 2000),
                       ],
                     ),
@@ -780,6 +790,66 @@ void main() {
     expect(position(tester).pixels, greaterThan(before + 60));
   });
 
+  // Issue #4562: the marked cards below the pinned strip reach its layers.
+  group('cards in view', () {
+    PinnedStripLayerHost host(WidgetTester tester) =>
+        tester.widget<PinnedStripLayerHost>(find.byType(PinnedStripLayerHost));
+
+    testWidgets('a marked card below the settled strip reaches the host', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        profileKey: GlobalKey(),
+        targetKey: GlobalKey(),
+        markTarget: true,
+      );
+      // The card (1500 to 1600 in the content) shows from 200 to 300.
+      await jump(tester, 1300);
+      expect(host(tester).shown, isTrue);
+      expect(host(tester).settled, isTrue);
+      expect(host(tester).cardsInView, {DiveDetailSectionId.environment});
+    });
+
+    testWidgets('a card scrolled up under the 72 px edge leaves', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        profileKey: GlobalKey(),
+        targetKey: GlobalKey(),
+        markTarget: true,
+      );
+      await jump(tester, 1300);
+      // Now it shows from 0 to 100: 28 px below the edge.
+      await jump(tester, 1500);
+      expect(host(tester).cardsInView, isEmpty);
+    });
+
+    testWidgets('a card below the viewport is not in view', (tester) async {
+      await pump(
+        tester,
+        profileKey: GlobalKey(),
+        targetKey: GlobalKey(),
+        markTarget: true,
+      );
+      await jump(tester, 800);
+      expect(host(tester).cardsInView, isEmpty);
+    });
+
+    testWidgets('the strip is not settled while it condenses', (tester) async {
+      await pump(tester, profileKey: GlobalKey());
+      await condenseTo(tester, 0.5);
+      expect(host(tester).shown, isTrue);
+      expect(host(tester).settled, isFalse);
+    });
+
+    testWidgets('nothing is shown while the card is on screen', (tester) async {
+      await pump(tester, profileKey: GlobalKey());
+      expect(host(tester).shown, isFalse);
+    });
+  });
+
   testWidgets('scrolling to a section leaves it clear of the strip', (
     tester,
   ) async {
@@ -793,7 +863,7 @@ void main() {
 
     expect(
       tester.getTopLeft(find.byKey(target)).dy - overlayTop(tester),
-      greaterThanOrEqualTo(kPinnedStripHeight - 0.5),
+      greaterThanOrEqualTo(kPinnedStripGrownHeight - 0.5),
     );
   });
 
@@ -813,7 +883,7 @@ void main() {
       expect(strip, findsOneWidget);
       expect(
         tester.getTopLeft(find.byKey(target)).dy - overlayTop(tester),
-        greaterThanOrEqualTo(kPinnedStripHeight - 0.5),
+        greaterThanOrEqualTo(kPinnedStripGrownHeight - 0.5),
       );
     },
   );

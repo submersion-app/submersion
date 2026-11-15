@@ -34,9 +34,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// layers, eased in and out with the cards in view, to [builder]
 /// (issue #4562).
 ///
-/// While the strip is not [shown] it reads nothing and builds with
-/// [StripLayerState.none]: the data is only worth loading for a strip on
-/// screen.
+/// While the strip is not [shown] it reads nothing and every layer is
+/// hidden: the data is only worth loading for a strip on screen. It builds
+/// the same widgets either way, so the page below it, the [builder]'s
+/// child, is never moved to a new parent, which would reset its scroll.
 class PinnedStripLayerHost extends ConsumerStatefulWidget {
   const PinnedStripLayerHost({
     super.key,
@@ -70,7 +71,14 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.shown) return widget.builder(context, StripLayerState.none);
+    if (!widget.shown) {
+      return PinnedStripLayerAnimator(
+        data: PinnedStripLayerData.empty,
+        cardsInView: const {},
+        settled: false,
+        builder: widget.builder,
+      );
+    }
     final inputs = _watchInputs();
     final style = _style(context);
     final from = _builtFrom;
