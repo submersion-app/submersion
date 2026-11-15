@@ -164,13 +164,20 @@ static gboolean services_resolved(GDBusConnection* conn,
 // takes a few seconds; this matches the Connect call's own timeout.
 #define SERVICES_RESOLVED_TIMEOUT_MS 30000
 
+// The longest one property read may block during that wait, so a wedged BlueZ
+// is noticed quickly.
+#define SERVICES_RESOLVED_READ_TIMEOUT_MS 2000
+
+// The pause between two polls of ServicesResolved.
+#define SERVICES_RESOLVED_POLL_INTERVAL_MS 100
+
 // The timeout for one property read while waiting until |deadline|: the time
-// left, at most 2 s, so a slow read cannot carry the wait past the deadline.
-// Zero or less once the deadline has passed.
+// left, at most SERVICES_RESOLVED_READ_TIMEOUT_MS, so a slow read cannot carry
+// the wait past the deadline. Zero or less once the deadline has passed.
 static gint read_timeout_ms(gint64 deadline) {
     gint64 left_ms =
         (deadline - g_get_monotonic_time()) / G_TIME_SPAN_MILLISECOND;
-    return (gint)MIN(left_ms, 2000);
+    return (gint)MIN(left_ms, SERVICES_RESOLVED_READ_TIMEOUT_MS);
 }
 
 // Block until ServicesResolved is TRUE, the link drops, or the timeout
@@ -199,7 +206,7 @@ static gboolean wait_for_services_resolved(GDBusConnection* conn,
                       "resolved");
             return FALSE;
         }
-        g_usleep(100 * G_TIME_SPAN_MILLISECOND);
+        g_usleep(SERVICES_RESOLVED_POLL_INTERVAL_MS * G_TIME_SPAN_MILLISECOND);
     }
     g_warning("BleIoStream: GATT services not resolved within %d ms",
               SERVICES_RESOLVED_TIMEOUT_MS);
