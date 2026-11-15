@@ -10,7 +10,7 @@ class VerticalProbe {
     this.ahead = false,
   });
 
-  final VerticalDirection direction;
+  final VerticalLeg direction;
 
   /// The level, in metres from sea level.
   final double meters;

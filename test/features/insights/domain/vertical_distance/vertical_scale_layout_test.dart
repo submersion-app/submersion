@@ -55,13 +55,10 @@ void main() {
     });
 
     test('snap finds a passed mark within the tolerance', () {
-      expect(
-        layout.snap(VerticalDirection.descent, 90.5)!.landmark.meters,
-        332,
-      );
-      expect(layout.snap(VerticalDirection.descent, 100), isNull);
+      expect(layout.snap(VerticalLeg.descent, 90.5)!.landmark.meters, 332);
+      expect(layout.snap(VerticalLeg.descent, 100), isNull);
       // The next landmark is not passed, so it never snaps.
-      expect(layout.snap(VerticalDirection.descent, 159.4), isNull);
+      expect(layout.snap(VerticalLeg.descent, 159.4), isNull);
     });
   });
 

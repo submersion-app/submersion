@@ -234,7 +234,7 @@ expect(VerticalDistanceTimeline.empty.crossingAt(1), isNull);
 - Produces:
 
 ```dart
-enum VerticalDirection { ascent, descent }
+enum VerticalLeg { ascent, descent }
 
 enum VerticalLandmarkId { statueOfLiberty, greatPyramid, /* ... one per named landmark */ }
 
@@ -250,10 +250,10 @@ const List<VerticalLandmark> descentLandmarks; // ascending by meters
 
 /// Everything with meters <= [total], ascending: named landmarks merged
 /// with the multiples (2 x and up) of Everest or Challenger Deep.
-List<VerticalLandmark> passedLandmarks(VerticalDirection d, double total);
+List<VerticalLandmark> passedLandmarks(VerticalLeg d, double total);
 
 /// The smallest landmark with meters > [total]. Never null: multiples go on.
-VerticalLandmark nextLandmark(VerticalDirection d, double total);
+VerticalLandmark nextLandmark(VerticalLeg d, double total);
 ```
 
 - [ ] **Step 1: Verify the figures.** For each landmark in the spec's two lists, look the figure up in a source and record the source in a one-line comment above its constant. Where a source disagrees with the spec's figure, use the sourced one and note the change for the PR description. Drop any landmark whose figure cannot be sourced.
@@ -263,40 +263,40 @@ VerticalLandmark nextLandmark(VerticalDirection d, double total);
 ```dart
 test('lists are strictly ascending and ids are unique', () { /* both lists */ });
 test('next from nothing is the smallest landmark', () {
-  expect(nextLandmark(VerticalDirection.ascent, 0).id,
+  expect(nextLandmark(VerticalLeg.ascent, 0).id,
       VerticalLandmarkId.statueOfLiberty);
 });
 test('a landmark is passed at exactly its height', () {
-  final passed = passedLandmarks(VerticalDirection.ascent, 8849);
+  final passed = passedLandmarks(VerticalLeg.ascent, 8849);
   expect(passed.last.id, VerticalLandmarkId.everest);
-  final next = nextLandmark(VerticalDirection.ascent, 8849);
+  final next = nextLandmark(VerticalLeg.ascent, 8849);
   expect((next.id, next.multiple, next.meters),
       (VerticalLandmarkId.everest, 2, 17698.0));
 });
 test('named landmarks interleave with multiples', () {
-  expect(nextLandmark(VerticalDirection.ascent, 20000).id,
+  expect(nextLandmark(VerticalLeg.ascent, 20000).id,
       VerticalLandmarkId.olympusMons); // 21,900
-  final n = nextLandmark(VerticalDirection.ascent, 22000);
+  final n = nextLandmark(VerticalLeg.ascent, 22000);
   expect((n.multiple, n.meters), (3, 26547.0));
-  expect(nextLandmark(VerticalDirection.ascent, 98000).id,
+  expect(nextLandmark(VerticalLeg.ascent, 98000).id,
       VerticalLandmarkId.karmanLine); // 11 x Everest is 97,339
 });
 test('multiples continue past the last named landmark', () {
-  final n = nextLandmark(VerticalDirection.ascent, 500000);
+  final n = nextLandmark(VerticalLeg.ascent, 500000);
   expect((n.id, n.multiple, n.meters),
       (VerticalLandmarkId.everest, 57, 504393.0));
-  final far = nextLandmark(VerticalDirection.descent, 1000000);
+  final far = nextLandmark(VerticalLeg.descent, 1000000);
   expect((far.multiple, far.meters), (92, 1006020.0));
 });
 test('descent leans on Challenger Deep multiples', () {
-  expect(nextLandmark(VerticalDirection.descent, 11000).id,
+  expect(nextLandmark(VerticalLeg.descent, 11000).id,
       VerticalLandmarkId.kolaBorehole);
-  final n = nextLandmark(VerticalDirection.descent, 12262);
+  final n = nextLandmark(VerticalLeg.descent, 12262);
   expect((n.id, n.multiple, n.meters),
       (VerticalLandmarkId.challengerDeep, 2, 21870.0));
 });
 test('passed merges named and multiples in order', () {
-  final passed = passedLandmarks(VerticalDirection.ascent, 26547);
+  final passed = passedLandmarks(VerticalLeg.ascent, 26547);
   expect(passed.map((l) => l.meters), orderedEquals(/* sorted copy */));
   expect(passed.where((l) => l.multiple > 1).map((l) => l.multiple), [2, 3]);
 });
@@ -318,7 +318,7 @@ test('passed merges named and multiples in order', () {
 - Test: `test/features/insights/domain/vertical_distance/vertical_selection_test.dart`
 
 **Interfaces:**
-- Consumes: Task 3's `VerticalDirection`, `VerticalLandmark`, `passedLandmarks`, `nextLandmark`.
+- Consumes: Task 3's `VerticalLeg`, `VerticalLandmark`, `passedLandmarks`, `nextLandmark`.
 - Produces:
 
 ```dart
@@ -346,12 +346,12 @@ class VerticalScaleLayout {
   /// Metres for a distance from sea level, clamped to 0..totalMeters.
   double metersAt(double offsetPx);
   /// The passed mark within [tolerancePx] of [offsetPx], or null.
-  VerticalScaleMark? snap(VerticalDirection d, double offsetPx,
+  VerticalScaleMark? snap(VerticalLeg d, double offsetPx,
       {double tolerancePx = 4});
 }
 
 class VerticalProbe { // what the pointer is on
-  final VerticalDirection direction;
+  final VerticalLeg direction;
   final double meters;
   final VerticalLandmark? landmark; // set when snapped, or on the next mark
   final bool ahead; // the dashed next landmark, above the total
@@ -381,8 +381,8 @@ expect(labelled(layout.descentMarks), [594, 332, 202, 124, 40]); // 301 is 8.3 p
 expect(layout.ascentMarks.last.passed, isFalse);
 expect(layout.metersAt(layout.barPx + 50), 525); // clamped to the total
 expect(layout.metersAt(-5), 0);
-expect(layout.snap(VerticalDirection.descent, 90.5)!.landmark.meters, 332);
-expect(layout.snap(VerticalDirection.descent, 100), isNull);
+expect(layout.snap(VerticalLeg.descent, 90.5)!.landmark.meters, 332);
+expect(layout.snap(VerticalLeg.descent, 100), isNull);
 ```
 
   And these:

@@ -5,8 +5,8 @@ import 'package:submersion/features/insights/domain/vertical_distance/vertical_s
 /// The readout's three states (issue #4569): idle, hovering a level, and a
 /// level pinned by a click or a tap. While pinned, hovering changes nothing.
 void main() {
-  const a = VerticalProbe(direction: VerticalDirection.descent, meters: 100);
-  const b = VerticalProbe(direction: VerticalDirection.ascent, meters: 200);
+  const a = VerticalProbe(direction: VerticalLeg.descent, meters: 100);
+  const b = VerticalProbe(direction: VerticalLeg.ascent, meters: 200);
   const idle = VerticalIdle();
 
   test('hovering a level from idle shows it', () {

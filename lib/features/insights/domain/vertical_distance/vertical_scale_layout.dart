@@ -52,27 +52,25 @@ class VerticalScaleLayout {
     double minLabelGapPx = 18,
   }) {
     final total = math.max(0.0, totalMeters);
-    final nextUp = nextLandmark(VerticalDirection.ascent, total);
-    final nextDown = nextLandmark(VerticalDirection.descent, total);
+    final nextUp = nextLandmark(VerticalLeg.ascent, total);
+    final nextDown = nextLandmark(VerticalLeg.descent, total);
     final extent = math.max(nextUp.meters, nextDown.meters);
     final pxPerMeter = halfHeightPx / (extent * (1 + headroom));
 
-    List<VerticalScaleMark> marksFor(
-      VerticalDirection d,
-      VerticalLandmark next,
-    ) => _placeMarks(
-      passed: passedLandmarks(d, total),
-      next: next,
-      pxPerMeter: pxPerMeter,
-      minGap: minLabelGapPx,
-    );
+    List<VerticalScaleMark> marksFor(VerticalLeg d, VerticalLandmark next) =>
+        _placeMarks(
+          passed: passedLandmarks(d, total),
+          next: next,
+          pxPerMeter: pxPerMeter,
+          minGap: minLabelGapPx,
+        );
 
     return VerticalScaleLayout._(
       totalMeters: total,
       extentMeters: extent,
       pxPerMeter: pxPerMeter,
-      ascentMarks: marksFor(VerticalDirection.ascent, nextUp),
-      descentMarks: marksFor(VerticalDirection.descent, nextDown),
+      ascentMarks: marksFor(VerticalLeg.ascent, nextUp),
+      descentMarks: marksFor(VerticalLeg.descent, nextDown),
     );
   }
 
@@ -98,13 +96,13 @@ class VerticalScaleLayout {
   double metersAt(double offsetPx) =>
       (offsetPx / _pxPerMeter).clamp(0.0, totalMeters);
 
-  List<VerticalScaleMark> marksOn(VerticalDirection d) =>
-      d == VerticalDirection.ascent ? ascentMarks : descentMarks;
+  List<VerticalScaleMark> marksOn(VerticalLeg d) =>
+      d == VerticalLeg.ascent ? ascentMarks : descentMarks;
 
   /// The passed mark on [d]'s side nearest [offsetPx] and within
   /// [tolerancePx] of it, or null.
   VerticalScaleMark? snap(
-    VerticalDirection d,
+    VerticalLeg d,
     double offsetPx, {
     double tolerancePx = 4,
   }) {

@@ -4,8 +4,8 @@ import 'package:submersion/features/insights/domain/vertical_distance/vertical_l
 /// The landmarks the scale is drawn against (issue #4569). Multiples assume
 /// Everest at 8,849 m and Challenger Deep at 10,935 m.
 void main() {
-  const up = VerticalDirection.ascent;
-  const down = VerticalDirection.descent;
+  const up = VerticalLeg.ascent;
+  const down = VerticalLeg.descent;
 
   group('landmark lists', () {
     for (final (name, list) in [

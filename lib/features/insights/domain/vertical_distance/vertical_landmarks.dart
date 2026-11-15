@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 /// Which half of the scale: total ascent rises past mountains, total
 /// descent sinks past ocean depths (issue #4569).
-enum VerticalDirection { ascent, descent }
+enum VerticalLeg { ascent, descent }
 
 /// Every landmark the scale can show. The localized name of each lives in
 /// `verticalLandmarkName`, which switches over this enum with no default, so
@@ -150,12 +150,12 @@ const List<VerticalLandmark> descentLandmarks = [
   VerticalLandmark(VerticalLandmarkId.kolaBorehole, 12262),
 ];
 
-List<VerticalLandmark> _named(VerticalDirection d) =>
-    d == VerticalDirection.ascent ? ascentLandmarks : descentLandmarks;
+List<VerticalLandmark> _named(VerticalLeg d) =>
+    d == VerticalLeg.ascent ? ascentLandmarks : descentLandmarks;
 
 /// Past the top of each named list the scale keeps going in multiples of
 /// its tallest or deepest natural landmark.
-VerticalLandmark _base(VerticalDirection d) => d == VerticalDirection.ascent
+VerticalLandmark _base(VerticalLeg d) => d == VerticalLeg.ascent
     ? ascentLandmarks.firstWhere((l) => l.id == VerticalLandmarkId.everest)
     : descentLandmarks.firstWhere(
         (l) => l.id == VerticalLandmarkId.challengerDeep,
@@ -166,7 +166,7 @@ VerticalLandmark _multipleOf(VerticalLandmark base, int n) =>
 
 /// Every landmark at or below [total] metres, ascending: the named ones
 /// merged with the multiples (2 x and up) of the base landmark.
-List<VerticalLandmark> passedLandmarks(VerticalDirection d, double total) {
+List<VerticalLandmark> passedLandmarks(VerticalLeg d, double total) {
   final base = _base(d);
   final passed = [
     for (final l in _named(d))
@@ -179,7 +179,7 @@ List<VerticalLandmark> passedLandmarks(VerticalDirection d, double total) {
 /// The smallest landmark above [total] metres. Never null: the multiples
 /// go on without limit. Worked out directly, without walking the
 /// multiples, so it costs the same for any total.
-VerticalLandmark nextLandmark(VerticalDirection d, double total) {
+VerticalLandmark nextLandmark(VerticalLeg d, double total) {
   final base = _base(d);
   final n = math.max(2, (total / base.meters).floor() + 1);
   final multiple = _multipleOf(base, n);
