@@ -54,12 +54,17 @@ void main() {
     expect({for (final field in all) field.id}, hasLength(11));
   });
 
-  test('no other card shows a Details value', () {
+  test('only the header shows a Details value: the dive types', () {
     // The Tide card and the Environment card's satellite conditions follow
     // the water type, but they are laid out from the dive the page's layout
-    // is held to, not redrawn as it is picked.
+    // is held to, not redrawn as it is picked. The header block draws the
+    // dive's types from the sitting (issue #4527, plan 4).
     for (final field in all) {
-      expect(field.alsoShownOn, isEmpty, reason: field.id);
+      expect(
+        field.alsoShownOn,
+        field == diveTypeIdsField ? {'header'} : isEmpty,
+        reason: field.id,
+      );
     }
   });
 

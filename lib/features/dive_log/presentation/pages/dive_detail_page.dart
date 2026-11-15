@@ -39,6 +39,7 @@ import 'package:submersion/features/dive_import/presentation/providers/dive_heal
 import 'package:submersion/features/dive_import/presentation/providers/dive_resync_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/download_target_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_header_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_health_section.dart';
 import 'package:submersion/features/dive_lab/presentation/what_if_entry.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
@@ -59,17 +60,13 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_title.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_embedded_header.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_hero_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_overflow_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_list.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/mirror_dive_dialog.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/draft_dive_banner.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/unfilled_dive_chip.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -520,29 +517,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // The site suggestion sits above the header card, never inside
-            // it. Embedded mode has its own copy under the toolbar (which
-            // stays put while the body scrolls), so only the standalone page
-            // renders one here; otherwise the banner would appear twice.
-            // Collapses to nothing when there is no suggestion, so no
-            // spacing of its own is needed.
-            if (!widget.embedded) ...[
-              if (dive.isPlanned)
-                PlannedDiveBanner(
-                  diveId: dive.id,
-                  onMarkLogged: () => _markAsLogged(dive),
-                ),
-              if (dive.isDraft)
-                DraftDiveBanner(
-                  dive: dive,
-                  onMarkComplete: () => _markAsLogged(dive),
-                  onDownload: _downloadForDraft,
-                  onSurfaced: () => _surfaceDraft(dive),
-                ),
-              SiteSuggestionCard(diveId: dive.id, currentSite: dive.site),
-            ],
-            // Fixed: Header
-            DiveDetailHeroSection(dive: dive, embedded: widget.embedded),
+            DiveDetailHeaderBlock(
+              stored: dive,
+              shown: shown,
+              embedded: widget.embedded,
+              onMarkLogged: () => _markAsLogged(dive),
+              onDownloadDraft: _downloadForDraft,
+              onSurfaceDraft: () => _surfaceDraft(dive),
+            ),
             SizedBox(height: layout.headerGap),
             // Configurable sections in user-defined order, the dive profile
             // chart among them, with the card pairs (Deco+Tissue,
@@ -634,7 +616,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       ),
       actions: [
         DiveNavButtons(diveId: diveId, onNavigate: _navigateToDive),
-        if (!compactActions)
+        // With editing offered favourite is a field of the header card, so
+        // a locked page shows it as a state only (issue #4527).
+        if (editingOffered && !compactActions && dive.isFavorite)
+          Icon(
+            Icons.favorite,
+            color: Colors.red,
+            semanticLabel: context.l10n.enum_diveField_isFavorite,
+          )
+        else if (!editingOffered && !compactActions)
           IconButton(
             icon: Icon(
               dive.isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -653,7 +643,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
           tooltip: context.l10n.diveLog_detail_tooltip_editDive,
           onPressed: () => context.push('/dives/$diveId/edit'),
         ),
-        _overflowMenu(dive, _appBarMenuKey, showFavorite: compactActions),
+        _overflowMenu(
+          dive,
+          _appBarMenuKey,
+          showFavorite: compactActions && !editingOffered,
+        ),
       ],
     );
     if (!editingOffered) return Scaffold(appBar: appBar, body: content);

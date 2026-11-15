@@ -6,6 +6,7 @@ import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
@@ -20,6 +21,8 @@ final String _card = DiveDetailSectionId.details.name;
 final diveTypeIdsField = EditField<Dive, List<String>>(
   id: 'diveTypeIds',
   cardId: _card,
+  // The header block draws the dive's types too.
+  alsoShownOn: {diveHeaderCardId},
   read: (dive) => dive.diveTypeIds,
   write: (dive, ids) => dive.copyWith(diveTypeIds: List.unmodifiable(ids)),
   equals: listEquals,

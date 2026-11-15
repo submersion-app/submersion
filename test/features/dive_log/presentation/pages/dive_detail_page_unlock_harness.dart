@@ -128,6 +128,7 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
   List<Override> extra = const [],
   bool imperial = false,
   ValueNotifier<String>? shownDiveId,
+  List<DiveDataSource> sources = const [],
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = size;
@@ -204,9 +205,7 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
           if (++loads > 1 && reloadGate != null) await reloadGate.future;
           return save.stored;
         }),
-        diveDataSourcesProvider(
-          dive.id,
-        ).overrideWith((ref) async => <DiveDataSource>[]),
+        diveDataSourcesProvider(dive.id).overrideWith((ref) async => sources),
         diveNeighborsProvider(
           dive.id,
         ).overrideWith((ref) => (previousId: null, nextId: 'dive-2')),
