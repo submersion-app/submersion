@@ -5,7 +5,7 @@ import 'package:submersion/features/settings/presentation/providers/data_health_
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/byte_format.dart';
 
-/// One quiet line under the status strip: how much the database holds.
+/// One quiet line above the Data rows: how much the database holds.
 /// Nothing while it loads, so the page never jumps from a placeholder.
 class DataFactsLine extends ConsumerWidget {
   const DataFactsLine({super.key});

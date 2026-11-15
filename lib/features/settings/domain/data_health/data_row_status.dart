@@ -5,9 +5,9 @@ import 'package:submersion/features/settings/domain/data_health/feature_health.d
 
 /// What the one-sentence subtitle under a Settings > Data row says.
 ///
-/// Derived from the same inputs the health strip reads (issue #3482), so a
-/// row can never contradict the strip. Pure data: the widget layer turns a
-/// kind into localized text.
+/// Derived from the same inputs the health model reads (issue #3482), so a
+/// row's sentence can never contradict its status symbol. Pure data: the
+/// widget layer turns a kind into localized text.
 enum DataRowStatusKind {
   /// The row's inputs have not loaded yet; never read as "none".
   checking,
@@ -131,8 +131,8 @@ DataRowStatus backupsRowStatus({
   };
 }
 
-/// Reasons whose strip line is the row's status: sync is paused, or "in
-/// step" would contradict what the strip says needs attention.
+/// Reasons whose health sentence is the row's status: sync is paused, or
+/// "in step" would contradict what the symbol says needs attention.
 const _syncAttentionReasons = {
   HealthReason.syncNeedsPassphrase,
   HealthReason.syncAwaitingAdoption,

@@ -18,9 +18,9 @@ String relativeAgo(AppLocalizations l10n, DateTime at, DateTime now) {
   return l10n.backup_time_daysAgo(diff.inDays);
 }
 
-/// The one-line reason shown under the strip for a feature that is failing
-/// or needs attention. Healthy and not set up have no line, so they read as
-/// an empty string.
+/// The one-line reason a Data row and a page mark give for a feature that
+/// is failing or needs attention. Healthy and not set up have no line, so
+/// they read as an empty string.
 String healthReasonText(
   AppLocalizations l10n,
   FeatureHealth health,

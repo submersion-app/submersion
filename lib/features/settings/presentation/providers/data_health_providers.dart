@@ -22,8 +22,8 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 
-// One health model behind the Settings > Data status strip and the row marks
-// (issues #3390, #3394), so the two can never disagree.
+// One health model behind the Settings > Data rows and the feature pages'
+// marks (issues #3390, #3394, #4561), so the two can never disagree.
 
 // What a feature reads as while its inputs load or fail to load.
 const _librariesNotSetUp = FeatureHealth(
