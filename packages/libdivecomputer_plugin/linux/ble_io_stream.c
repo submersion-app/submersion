@@ -194,22 +194,34 @@ static gboolean connect_failed(BleIoStream* stream, const gchar* format, ...) {
 // Connect has returned. Service discovery over a 100 ms connection interval
 // takes a few seconds; it gets the same budget as Connect.
 #define SERVICES_RESOLVED_TIMEOUT_MS BLUEZ_CONNECT_TIMEOUT_MS
-#define SERVICES_RESOLVED_POLL_MS 100
-// D-Bus timeout for each property read while waiting. A BlueZ that cannot
-// answer one this fast is treated like a dropped link.
-#define DEVICE_PROBE_TIMEOUT_MS 2000
 
-// ble_services_wait probes backed by BlueZ. |userdata| is the stream.
-static int probe_services_resolved(void* userdata) {
-    const BleIoStream* stream = userdata;
-    return device_flag(stream->connection, stream->device_path,
-                       "ServicesResolved", DEVICE_PROBE_TIMEOUT_MS);
+// The longest one property read may block during that wait, so a wedged BlueZ
+// is noticed quickly.
+#define SERVICES_RESOLVED_READ_TIMEOUT_MS 2000
+
+// The pause between two polls of ServicesResolved.
+#define SERVICES_RESOLVED_POLL_INTERVAL_MS 100
+
+// The D-Bus timeout for one property read given |left_us| of the wait: the
+// time left, rounded up to a whole millisecond, at most
+// SERVICES_RESOLVED_READ_TIMEOUT_MS.
+static gint read_timeout_ms(int64_t left_us) {
+    int64_t left_ms =
+        (left_us + G_TIME_SPAN_MILLISECOND - 1) / G_TIME_SPAN_MILLISECOND;
+    return (gint)MIN(left_ms, SERVICES_RESOLVED_READ_TIMEOUT_MS);
 }
 
-static int probe_connected(void* userdata) {
+// ble_services_wait probes backed by BlueZ. |userdata| is the stream.
+static int probe_services_resolved(void* userdata, int64_t timeout_us) {
+    const BleIoStream* stream = userdata;
+    return device_flag(stream->connection, stream->device_path,
+                       "ServicesResolved", read_timeout_ms(timeout_us));
+}
+
+static int probe_connected(void* userdata, int64_t timeout_us) {
     const BleIoStream* stream = userdata;
     return device_connected(stream->connection, stream->device_path,
-                            DEVICE_PROBE_TIMEOUT_MS);
+                            read_timeout_ms(timeout_us));
 }
 
 static int probe_cancelled(void* userdata) {
@@ -248,7 +260,7 @@ static gboolean wait_for_services_resolved(BleIoStream* stream) {
     };
     switch (ble_services_wait(
         &ops, (int64_t)SERVICES_RESOLVED_TIMEOUT_MS * G_TIME_SPAN_MILLISECOND,
-        (int64_t)SERVICES_RESOLVED_POLL_MS * G_TIME_SPAN_MILLISECOND)) {
+        (int64_t)SERVICES_RESOLVED_POLL_INTERVAL_MS * G_TIME_SPAN_MILLISECOND)) {
         case BLE_SERVICES_WAIT_RESOLVED:
             return TRUE;
         case BLE_SERVICES_WAIT_CANCELLED:

@@ -2,6 +2,11 @@
 
 #include <stddef.h>
 
+// Time left before |deadline|; zero or less once it has passed.
+static int64_t time_left(const ble_services_wait_ops_t* ops, int64_t deadline) {
+    return deadline - ops->now_us(ops->userdata);
+}
+
 ble_services_wait_result_t ble_services_wait(const ble_services_wait_ops_t* ops,
                                              int64_t timeout_us,
                                              int64_t poll_interval_us) {
@@ -12,15 +17,24 @@ ble_services_wait_result_t ble_services_wait(const ble_services_wait_ops_t* ops,
         if (ops->cancelled != NULL && ops->cancelled(ops->userdata)) {
             return BLE_SERVICES_WAIT_CANCELLED;
         }
-        if (ops->services_resolved(ops->userdata)) {
+
+        int64_t left = time_left(ops, deadline);
+        if (left <= 0) return BLE_SERVICES_WAIT_TIMED_OUT;
+        if (ops->services_resolved(ops->userdata, left)) {
             return BLE_SERVICES_WAIT_RESOLVED;
         }
-        if (!ops->connected(ops->userdata)) {
-            return BLE_SERVICES_WAIT_LINK_DROPPED;
+
+        left = time_left(ops, deadline);
+        if (left <= 0) return BLE_SERVICES_WAIT_TIMED_OUT;
+        if (!ops->connected(ops->userdata, left)) {
+            // A read the deadline cut short says nothing about the link.
+            return time_left(ops, deadline) <= 0 ? BLE_SERVICES_WAIT_TIMED_OUT
+                                                 : BLE_SERVICES_WAIT_LINK_DROPPED;
         }
-        if (ops->now_us(ops->userdata) >= deadline) {
-            return BLE_SERVICES_WAIT_TIMED_OUT;
-        }
-        ops->sleep_us(ops->userdata, poll_interval_us);
+
+        left = time_left(ops, deadline);
+        if (left <= 0) return BLE_SERVICES_WAIT_TIMED_OUT;
+        ops->sleep_us(ops->userdata,
+                      poll_interval_us < left ? poll_interval_us : left);
     }
 }

@@ -19,11 +19,13 @@ typedef enum {
 // so test/native can drive the loop with a fake clock on any host;
 // ble_io_stream.c supplies the BlueZ-backed probes.
 typedef struct {
+    // Each property read is given |timeout_us|, the time the wait has left
+    // (always positive), and reads as zero if it cannot finish within it.
     // Device1.ServicesResolved: non-zero once discovery is done and the
     // services and characteristics are exported.
-    int (*services_resolved)(void* userdata);
+    int (*services_resolved)(void* userdata, int64_t timeout_us);
     // Device1.Connected: zero once the link has dropped.
-    int (*connected)(void* userdata);
+    int (*connected)(void* userdata, int64_t timeout_us);
     // Non-zero once the download has been cancelled. May be NULL.
     int (*cancelled)(void* userdata);
     // Monotonic clock, in microseconds.
@@ -33,9 +35,11 @@ typedef struct {
 } ble_services_wait_ops_t;
 
 // Poll until the services resolve, the link drops, the download is cancelled
-// or |timeout_us| passes, sleeping |poll_interval_us| between polls. A
-// cancellation wins over a resolution seen in the same poll, and the link is
-// only probed while the services are still unresolved.
+// or |timeout_us| passes, sleeping |poll_interval_us| between polls. No read
+// or sleep is given more than the time left, so a slow BlueZ cannot carry the
+// wait past its deadline, and a read the deadline cut short is a timeout, not
+// a dropped link. A cancellation wins over a resolution seen in the same poll,
+// and the link is only probed while the services are still unresolved.
 ble_services_wait_result_t ble_services_wait(const ble_services_wait_ops_t* ops,
                                              int64_t timeout_us,
                                              int64_t poll_interval_us);
