@@ -5,8 +5,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 /// `copyWith` keeps the old value when it is passed null, so emptying a
-/// field needs a flag of its own. These are the values the Altitude,
-/// Environment and Details cards edit one at a time (issue #4527).
+/// field needs a flag of its own. These are the values the header block,
+/// Altitude, Environment and Details cards edit one at a time (issue #4527).
 void main() {
   final trip = Trip(
     id: 'trip',
@@ -54,6 +54,12 @@ void main() {
     boatName: 'Elite',
     boatCaptain: 'Sam',
     waterType: WaterType.salt,
+    diveNumber: 214,
+    bottomTime: const Duration(minutes: 41),
+    maxDepth: 28.4,
+    avgDepth: 16.2,
+    waterTemp: 24,
+    rating: 4,
   );
 
   // Each entry clears one value and reads it back.
@@ -150,10 +156,22 @@ void main() {
       (d) => d.boatCaptain,
     ),
     'waterType': ((d) => d.copyWith(clearWaterType: true), (d) => d.waterType),
+    'diveNumber': (
+      (d) => d.copyWith(clearDiveNumber: true),
+      (d) => d.diveNumber,
+    ),
+    'bottomTime': (
+      (d) => d.copyWith(clearBottomTime: true),
+      (d) => d.bottomTime,
+    ),
+    'maxDepth': ((d) => d.copyWith(clearMaxDepth: true), (d) => d.maxDepth),
+    'avgDepth': ((d) => d.copyWith(clearAvgDepth: true), (d) => d.avgDepth),
+    'waterTemp': ((d) => d.copyWith(clearWaterTemp: true), (d) => d.waterTemp),
+    'rating': ((d) => d.copyWith(clearRating: true), (d) => d.rating),
   };
 
-  test('the table covers all twenty-nine values', () {
-    expect(cases, hasLength(29));
+  test('the table covers all thirty-five values', () {
+    expect(cases, hasLength(35));
   });
 
   for (final entry in cases.entries) {
@@ -192,6 +210,10 @@ void main() {
       full.copyWith(waterType: WaterType.fresh, clearWaterType: true).waterType,
       isNull,
     );
+  });
+
+  test('a clear flag wins over a depth passed with it', () {
+    expect(full.copyWith(maxDepth: 30.0, clearMaxDepth: true).maxDepth, isNull);
   });
 
   test('a value passed without the flag still replaces the old one', () {
