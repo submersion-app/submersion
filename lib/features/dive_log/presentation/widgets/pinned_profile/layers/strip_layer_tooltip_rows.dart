@@ -14,11 +14,14 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// chart's tooltip or the card reads it, in the diver's units, in layer
 /// order. A layer with no value at the cursor adds no row, nor do the marks
 /// (media, annotations, bookmarks, gas switches), which carry no value.
+/// [sacRow] reads a SAC rate (bar/min at the surface) as the diver's chosen
+/// gas consumption display; without it the row is SAC.
 List<TooltipRow> stripLayerTooltipRows({
   required StripLayerState layers,
   required int cursorSeconds,
   required UnitFormatter units,
   required AppLocalizations l10n,
+  ({String label, String value}) Function(double sacBarPerMin)? sacRow,
 }) {
   final data = layers.data;
   final s = cursorSeconds;
@@ -49,7 +52,25 @@ List<TooltipRow> stripLayerTooltipRows({
       layer,
       (v) => formatGtrMinutes(v.round(), minuteUnit: minutes),
     ),
-    StripLayer.sac => lines(layer, units.formatSac),
+    // As the full chart reads it: SAC, or RMV when the diver shows only
+    // that ([sacRow], from `gasConsumptionTooltipRow`).
+    StripLayer.sac => [
+      for (final line in data.lines)
+        if (line.layer == layer)
+          if (line.valueAt(s) case final v?)
+            if (sacRow?.call(v) case final row?)
+              TooltipRow(
+                label: row.label,
+                value: row.value,
+                bulletColor: line.color,
+              )
+            else
+              TooltipRow(
+                label: l10n.gasConsumption_sac,
+                value: units.formatSac(v),
+                bulletColor: line.color,
+              ),
+    ],
     StripLayer.tts => lines(layer, (v) => '${(v / 60).ceil()} $minutes'),
     StripLayer.heartRate => lines(
       layer,

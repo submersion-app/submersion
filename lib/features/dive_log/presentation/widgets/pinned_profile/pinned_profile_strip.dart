@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/presentation/profile_colors/profile
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
+import 'package:submersion/features/dive_log/presentation/utils/gas_consumption_tooltip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show TooltipRow;
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/pinned_strip_layer_animator.dart';
@@ -177,6 +178,7 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
         ? profile[cursor].timestamp
         : null;
     final layers = widget.layers;
+    final consumption = ref.watch(gasConsumptionDisplayProvider);
     final rows = values == null
         ? const <TooltipRow>[]
         : [
@@ -191,6 +193,14 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
               cursorSeconds: selectedSeconds!,
               units: units,
               l10n: context.l10n,
+              // SAC or RMV, as the diver shows gas consumption.
+              sacRow: (sacBarPerMin) => gasConsumptionTooltipRow(
+                l10n: context.l10n,
+                units: units,
+                display: consumption,
+                sacBarPerMin: sacBarPerMin,
+                tankVolume: widget.dive.sacReferenceVolume,
+              ),
             ),
           ];
     // Settled, the strip is as tall as its line layers have grown it.

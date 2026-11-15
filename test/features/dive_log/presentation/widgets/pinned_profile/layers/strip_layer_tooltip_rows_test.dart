@@ -146,6 +146,22 @@ void main() {
     );
   });
 
+  test('the SAC row is read as the full chart reads it, RMV included', () {
+    final rows = stripLayerTooltipRows(
+      layers: StripLayerState(
+        data: _data,
+        strengths: const {StripLayer.sac: 1},
+        grow: 1,
+        active: const {StripLayer.sac},
+      ),
+      cursorSeconds: 100,
+      units: _metric,
+      l10n: _l10n,
+      sacRow: (barPerMin) => (label: 'RMV', value: '${barPerMin * 10} L/min'),
+    );
+    expect([for (final r in rows) (r.label, r.value)], [('RMV', '12.0 L/min')]);
+  });
+
   test('the phase row names the phase under the cursor', () {
     expect(_rows({StripLayer.phases}), [('Phase', 'Bottom')]);
     expect(_rows({StripLayer.phases}, seconds: 400), isEmpty);
