@@ -12841,12 +12841,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_import_button_import => 'استيراد';
 
   @override
-  String get diveSites_import_detail_alreadyImported => 'تم الاستيراد مسبقاً';
-
-  @override
-  String get diveSites_import_detail_importToMySites => 'استيراد إلى مواقعي';
-
-  @override
   String diveSites_import_detail_source(Object source) {
     return 'المصدر: $source';
   }
@@ -13544,16 +13538,70 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_map_builtInSites_added => 'تمت الإضافة إلى مواقعك';
 
   @override
-  String get diveSites_map_builtInSites_hide => 'إخفاء المواقع المدمجة';
+  String get diveSites_map_layers_tooltip => 'المواقع المدمجة على الخريطة';
 
   @override
-  String get diveSites_map_builtInSites_off => 'المواقع المدمجة مخفية';
+  String get diveSites_map_layers_diveSites => 'مواقع الغوص المدمجة';
 
   @override
-  String get diveSites_map_builtInSites_on => 'المواقع المدمجة ظاهرة';
+  String get diveSites_map_layers_registers => 'الحطام والشعاب المسجّلة';
 
   @override
-  String get diveSites_map_builtInSites_show => 'إظهار المواقع المدمجة';
+  String diveSites_map_semantics_registerMarker(String name) {
+    return 'حطام أو شعاب مسجّلة: $name';
+  }
+
+  @override
+  String get diveSites_builtIn_details => 'التفاصيل';
+
+  @override
+  String get diveSites_builtInPage_kindDiveSite => 'موقع غوص مدمج';
+
+  @override
+  String get diveSites_builtInPage_kindWreck => 'حطام مسجّل';
+
+  @override
+  String get diveSites_builtInPage_kindReef => 'شعاب مسجّلة';
+
+  @override
+  String get diveSites_builtInPage_notYours => 'ليس ضمن مواقعك';
+
+  @override
+  String diveSites_builtInPage_yourSiteHere(String distance, String name) {
+    return 'موقعك \"$name\" يبعد $distance من هنا';
+  }
+
+  @override
+  String get diveSites_builtInPage_about => 'نبذة';
+
+  @override
+  String get diveSites_builtInPage_nearbyYours => 'مواقعك';
+
+  @override
+  String get diveSites_builtInPage_source => 'المصدر';
+
+  @override
+  String diveSites_builtInPage_credit(String credit) {
+    return 'الإسناد: $credit';
+  }
+
+  @override
+  String diveSites_builtInPage_licence(String licence) {
+    return 'الترخيص: $licence';
+  }
+
+  @override
+  String get diveSites_builtInPage_notAGuide =>
+      'موضع مسجّل وليس دليل غوص. غير صالح للملاحة.';
+
+  @override
+  String get diveSites_builtInPage_notFound =>
+      'هذا الموقع المدمج لم يعد متاحًا';
+
+  @override
+  String diveSites_search_builtIn(String text) {
+    return 'البحث عن \"$text\" في المواقع المدمجة';
+  }
 
   @override
   String get diveSites_map_empty_description =>

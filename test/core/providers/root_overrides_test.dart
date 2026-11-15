@@ -12,6 +12,8 @@ import 'package:submersion/core/providers/root_overrides.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_settings_provider.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/built_in_map_layers_provider.dart';
 import 'package:submersion/features/media/data/media_cache_settings.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/media_cache_settings_provider.dart';
@@ -91,6 +93,39 @@ void main() {
         .setGlobalEnabled(false);
     expect(prefs.getBool('dive_computer_clock_sync_enabled'), isFalse);
   });
+
+  test(
+    'backs the Sites map\'s built-in layers with SharedPreferences',
+    () async {
+      SharedPreferences.setMockInitialValues({
+        SettingsKeys.builtInDiveSitesOnMap: false,
+        SettingsKeys.builtInRegistersOnMap: true,
+      });
+      addTearDown(() => SharedPreferences.setMockInitialValues({}));
+      final prefs = await SharedPreferences.getInstance();
+      final logFileService = LogFileService(
+        logDirectory: p.join(Directory.systemTemp.path, 'submersion-test'),
+      );
+
+      final container = ProviderContainer(
+        overrides: rootProviderOverrides(
+          prefs: prefs,
+          logFileService: logFileService,
+        ).cast(),
+      );
+      addTearDown(container.dispose);
+
+      // The diver's stored choice, not the defaults a bare container has.
+      expect(
+        container.read(builtInMapLayersNotifierProvider),
+        const BuiltInMapLayers(diveSites: false, registers: true),
+      );
+      await container
+          .read(builtInMapLayersNotifierProvider.notifier)
+          .setLayer(CatalogueKind.site, true);
+      expect(prefs.getBool(SettingsKeys.builtInDiveSitesOnMap), isTrue);
+    },
+  );
 
   test('backs the auto-connect switch with SharedPreferences', () async {
     SharedPreferences.setMockInitialValues({

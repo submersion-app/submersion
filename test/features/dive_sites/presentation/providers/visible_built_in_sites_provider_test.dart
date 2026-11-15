@@ -4,6 +4,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/built_in_map_layers_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -30,14 +31,19 @@ const _tropics = CatalogueBounds(south: 0, west: -80, north: 30, east: -60);
 const _north = CatalogueBounds(south: 40, west: -10, north: 60, east: 10);
 
 /// A container over [catalogue] whose overlay providers stay alive for
-/// the test, as a map on screen keeps them.
+/// the test, as a map on screen keeps them. Both [layers] are on unless a
+/// test is about them.
 ProviderContainer _container(
   FakeSiteCatalogue catalogue, {
   List<DiveSite> mine = const [],
+  BuiltInMapLayers layers = const BuiltInMapLayers(registers: true),
 }) {
   final container = ProviderContainer(
     overrides: [
       siteCatalogueProvider.overrideWithValue(catalogue),
+      builtInMapLayersNotifierProvider.overrideWith(
+        (ref) => BuiltInMapLayersNotifier.unstored(layers),
+      ),
       sitesWithCountsProvider.overrideWith(
         (ref) async => mine.map(_mine).toList(),
       ),
@@ -52,10 +58,109 @@ ProviderContainer _container(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('showBuiltInSitesProvider defaults to false', () {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-    expect(container.read(showBuiltInSitesProvider), isFalse);
+  group('layers', () {
+    final mixed = [
+      _at('site', 12, -68),
+      _at('wreck', 13, -69, kind: CatalogueKind.register),
+    ];
+
+    test('by default only dive sites are asked for and marked', () async {
+      final catalogue = FakeSiteCatalogue(mixed);
+      final container = _container(catalogue, layers: const BuiltInMapLayers());
+
+      container.read(builtInOverlayBoundsProvider.notifier).state = _tropics;
+      final sites = await container.read(visibleBuiltInSitesProvider.future);
+
+      expect(sites.map((s) => s.id), ['site']);
+      expect(catalogue.kindsAsked.last, {CatalogueKind.site});
+    });
+
+    test('with both layers on both kinds are asked for', () async {
+      final catalogue = FakeSiteCatalogue(mixed);
+      final container = _container(catalogue);
+
+      container.read(builtInOverlayBoundsProvider.notifier).state = _tropics;
+      final sites = await container.read(visibleBuiltInSitesProvider.future);
+
+      expect(sites.map((s) => s.id), ['site', 'wreck']);
+      expect(catalogue.kindsAsked.last, {
+        CatalogueKind.site,
+        CatalogueKind.register,
+      });
+    });
+
+    test('with both layers off nothing is read', () async {
+      final catalogue = FakeSiteCatalogue(mixed);
+      final container = _container(
+        catalogue,
+        layers: const BuiltInMapLayers(diveSites: false),
+      );
+
+      container.read(builtInOverlayBoundsProvider.notifier).state = _tropics;
+
+      expect(await container.read(visibleBuiltInSitesProvider.future), isEmpty);
+      expect(catalogue.inBoundsCalls, 0);
+      expect(container.read(builtInOverlayTruncatedProvider), isFalse);
+    });
+
+    test('turning a layer off drops its records', () async {
+      final catalogue = FakeSiteCatalogue(mixed);
+      final container = _container(catalogue);
+      container.read(builtInOverlayBoundsProvider.notifier).state = _tropics;
+      expect(
+        await container.read(visibleBuiltInSitesProvider.future),
+        hasLength(2),
+      );
+
+      await container
+          .read(builtInMapLayersNotifierProvider.notifier)
+          .setLayer(CatalogueKind.register, false);
+      final sites = await container.read(visibleBuiltInSitesProvider.future);
+
+      expect(sites.map((s) => s.id), ['site']);
+    });
+
+    test('a view cut short by register records is not cut short with '
+        'dive sites alone', () async {
+      final catalogue = FakeSiteCatalogue([
+        _at('site', 12, -68),
+        for (var i = 0; i < kBuiltInOverlayMarkerLimit + 5; i++)
+          _at('w$i', 10 + i * 0.001, -70, kind: CatalogueKind.register),
+      ]);
+      final container = _container(catalogue, layers: const BuiltInMapLayers());
+
+      container.read(builtInOverlayBoundsProvider.notifier).state = _tropics;
+      final sites = await container.read(visibleBuiltInSitesProvider.future);
+
+      expect(sites.map((s) => s.id), ['site']);
+      expect(container.read(builtInOverlayTruncatedProvider), isFalse);
+    });
+
+    test('the limit is of markers shown, with dive sites alone', () async {
+      // Ten more dive sites than the limit, twenty of them the diver's.
+      final container = _container(
+        FakeSiteCatalogue([
+          for (var i = 0; i < kBuiltInOverlayMarkerLimit + 10; i++)
+            _at('s$i', 15 + i * 0.001, -70),
+        ]),
+        mine: [
+          for (var i = 0; i < 20; i++)
+            DiveSite(
+              id: 'mine$i',
+              name: 'mine$i',
+              location: GeoPoint(15 + i * 0.001, -70),
+              catalogueId: 's$i',
+            ),
+        ],
+        layers: const BuiltInMapLayers(),
+      );
+
+      container.read(builtInOverlayBoundsProvider.notifier).state = _tropics;
+      final sites = await container.read(visibleBuiltInSitesProvider.future);
+
+      expect(sites, hasLength(kBuiltInOverlayMarkerLimit - 10));
+      expect(container.read(builtInOverlayTruncatedProvider), isFalse);
+    });
   });
 
   test('with no bounds reported, nothing is read', () async {

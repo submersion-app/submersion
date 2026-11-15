@@ -44,7 +44,7 @@ These were chosen by the maintainer during the design conversation.
 | 2 | Open-register expansion | Harvester pulls the open registers below and removes overlap; cleans the existing data | Design: `2026-11-14-site-catalogue-register-expansion-design.md` |
 | 3 | AI-researched sites | The research process, what each site must cite, checks before one ships, the "not verified" badge and its matching rule | Not designed |
 | 4 | Fill gaps in existing sites | A review list offering catalogue details for sites the diver already has; links sites adopted before slice 1 | Design: `2026-11-14-site-catalogue-gap-fill-design.md` |
-| 5 | Browse before diving | Catalogue site pages, catalogue sites on the map by default | Not designed |
+| 5 | Browse before diving | Catalogue site pages, catalogue sites on the map by default | Design: `2026-11-14-site-catalogue-browse-design.md` |
 
 Slices 2 and 3 are mostly scripts and data and write to the format slice 1
 fixes. Slices 4 and 5 depend on the link and the storage from slice 1.

@@ -1,45 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
-import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+
 import 'package:submersion/features/dive_sites/presentation/pages/site_map_page.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_overlay_view.dart';
-import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
-import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
 
-import '../../../../helpers/mock_providers.dart';
-import '../../../../helpers/test_database.dart';
-
-const _builtInA = CatalogueSite(
-  id: 'a',
-  name: 'A',
-  // At the page's default center so it is within the zoom-3 viewport (the
-  // marker cluster layer culls off-screen markers).
-  location: GeoPoint(20, -157),
-  source: 'osm',
-);
-
-/// A repository whose createSite always fails, to exercise the add-error path.
-class _ThrowingSiteRepository extends SiteRepository {
-  @override
-  Future<List<DiveSite>> getAllSites({
-    String? diverId,
-    List<String>? ids,
-  }) async => [];
-
-  @override
-  Future<DiveSite> createSite(
-    DiveSite site, {
-    SiteClassification? classification,
-  }) async => throw Exception('write failed');
-}
+import '../built_in_map_contract.dart';
 
 void _usePhoneSurface(WidgetTester tester) {
   tester.view.devicePixelRatio = 1.0;
@@ -50,52 +17,12 @@ void _usePhoneSurface(WidgetTester tester) {
   });
 }
 
-/// Invokes the marker's onTap via its semantics action. The cluster plugin
-/// keeps markers behind an IgnorePointer during its fade-in, so a pointer tap
-/// never lands; the semantics tap drives the same GestureDetector.onTap.
-Future<void> _semanticsTap(WidgetTester tester, String label) async {
-  tester.semantics.tap(find.semantics.byLabel(label));
-  await tester.pump();
-  await tester.pump(const Duration(seconds: 1));
-}
-
-Future<ProviderContainer> _pumpMap(
-  WidgetTester tester, {
-  required List<Override> extraOverrides,
-  Locale? locale,
-}) async {
-  final base = await getBaseOverrides();
-  late ProviderContainer container;
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [
-        ...base,
-        sitesWithCountsProvider.overrideWith((ref) async => []),
-        siteCoverageHeatMapProvider.overrideWith(
-          (ref) async => <HeatMapPoint>[],
-        ),
-        ...extraOverrides,
-      ],
-      child: Builder(
-        builder: (context) {
-          container = ProviderScope.containerOf(context);
-          return MaterialApp(
-            locale: locale,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: const SiteMapPage(),
-          );
-        },
-      ),
-    ),
-  );
-  // Avoid pumpAndSettle: the FlutterMap tile layer animates indefinitely.
-  await tester.pump();
-  await tester.pump(const Duration(seconds: 1));
-  return container;
-}
-
+/// The phone's map page and the built-in catalogue: what it shares with
+/// the split pane's map (see `built_in_map_contract.dart`), and the one
+/// thing that is its own.
 void main() {
+  builtInMapContract(map: () => const SiteMapPage(), surface: _usePhoneSurface);
+
   testWidgets('the zoom-in caption wraps beside the map controls on a phone, '
       'however long its language makes it', (tester) async {
     tester.view.devicePixelRatio = 1.0;
@@ -105,19 +32,16 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    final container = await _pumpMap(
+    await pumpBuiltInMap(
       tester,
+      map: () => const SiteMapPage(),
       // Hungarian's caption is twice the length of the English one.
       locale: const Locale('hu'),
       extraOverrides: [
-        visibleBuiltInSitesProvider.overrideWith((ref) async => [_builtInA]),
+        visibleBuiltInSitesProvider.overrideWith((ref) async => [builtInA]),
         builtInOverlayTruncatedProvider.overrideWithValue(true),
       ],
     );
-    container.read(showBuiltInSitesProvider.notifier).state = true;
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
-
     final caption = tester.getRect(
       find.descendant(
         of: find.byType(BuiltInOverlayCaption),
@@ -128,137 +52,5 @@ void main() {
     expect(caption.right, lessThanOrEqualTo(controls.left));
     expect(caption.left, greaterThanOrEqualTo(0));
     expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('built-in pins appear only when the toggle is on', (
-    tester,
-  ) async {
-    _usePhoneSurface(tester);
-
-    final container = await _pumpMap(
-      tester,
-      extraOverrides: [
-        visibleBuiltInSitesProvider.overrideWith(
-          (ref) async => const [_builtInA],
-        ),
-      ],
-    );
-
-    expect(find.byKey(const Key('builtInPin_a')), findsNothing);
-
-    container.read(showBuiltInSitesProvider.notifier).state = true;
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
-
-    expect(find.byKey(const Key('builtInPin_a')), findsOneWidget);
-  });
-
-  group('built-in selection and import', () {
-    setUp(() async {
-      await setUpTestDatabase();
-    });
-    tearDown(() async {
-      await tearDownTestDatabase();
-    });
-
-    testWidgets('selecting a pin shows its info card and adding imports it', (
-      tester,
-    ) async {
-      _usePhoneSurface(tester);
-      final handle = tester.ensureSemantics();
-
-      await _pumpMap(
-        tester,
-        extraOverrides: [
-          heatMapSettingsProvider.overrideWith(
-            (ref) => const HeatMapSettings(isVisible: false),
-          ),
-          showBuiltInSitesProvider.overrideWith((ref) => true),
-          siteRepositoryProvider.overrideWithValue(SiteRepository()),
-          visibleBuiltInSitesProvider.overrideWith(
-            (ref) async => const [_builtInA],
-          ),
-        ],
-      );
-
-      // Selecting the pin shows the built-in info card with its add action.
-      await _semanticsTap(tester, 'Built-in dive site: A');
-      expect(find.text('Add to my sites'), findsOneWidget);
-
-      // Adding imports the site and confirms via a snackbar, clearing the card.
-      await tester.tap(find.text('Add to my sites'));
-      await tester.pump();
-      await tester.pump(const Duration(seconds: 1));
-      expect(find.text('Added to your sites'), findsOneWidget);
-      // The new site remembers the catalogue record it came from.
-      final added = await tester.runAsync(SiteRepository().getAllSites);
-      expect(added!.single.catalogueId, 'a');
-      expect(find.text('Add to my sites'), findsNothing);
-
-      handle.dispose();
-    });
-
-    testWidgets('shows an error snackbar when adding a built-in site fails', (
-      tester,
-    ) async {
-      _usePhoneSurface(tester);
-      final handle = tester.ensureSemantics();
-
-      await _pumpMap(
-        tester,
-        extraOverrides: [
-          heatMapSettingsProvider.overrideWith(
-            (ref) => const HeatMapSettings(isVisible: false),
-          ),
-          showBuiltInSitesProvider.overrideWith((ref) => true),
-          siteRepositoryProvider.overrideWithValue(_ThrowingSiteRepository()),
-          visibleBuiltInSitesProvider.overrideWith(
-            (ref) async => const [_builtInA],
-          ),
-        ],
-      );
-
-      await _semanticsTap(tester, 'Built-in dive site: A');
-      await tester.tap(find.text('Add to my sites'));
-      await tester.pump();
-      await tester.pump(const Duration(seconds: 1));
-
-      expect(find.text("Couldn't add site. Please try again."), findsOneWidget);
-      // The card stays so the user can retry.
-      expect(find.text('Add to my sites'), findsOneWidget);
-
-      handle.dispose();
-    });
-
-    testWidgets('hiding built-in sites clears the selected info card', (
-      tester,
-    ) async {
-      _usePhoneSurface(tester);
-      final handle = tester.ensureSemantics();
-
-      final container = await _pumpMap(
-        tester,
-        extraOverrides: [
-          heatMapSettingsProvider.overrideWith(
-            (ref) => const HeatMapSettings(isVisible: false),
-          ),
-          showBuiltInSitesProvider.overrideWith((ref) => true),
-          siteRepositoryProvider.overrideWithValue(SiteRepository()),
-          visibleBuiltInSitesProvider.overrideWith(
-            (ref) async => const [_builtInA],
-          ),
-        ],
-      );
-
-      await _semanticsTap(tester, 'Built-in dive site: A');
-      expect(find.text('Add to my sites'), findsOneWidget);
-
-      container.read(showBuiltInSitesProvider.notifier).state = false;
-      await tester.pump();
-      await tester.pump(const Duration(seconds: 1));
-      expect(find.text('Add to my sites'), findsNothing);
-
-      handle.dispose();
-    });
   });
 }

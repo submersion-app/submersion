@@ -20202,18 +20202,6 @@ abstract class AppLocalizations {
   /// **'Import'**
   String get diveSites_import_button_import;
 
-  /// No description provided for @diveSites_import_detail_alreadyImported.
-  ///
-  /// In en, this message translates to:
-  /// **'Already Imported'**
-  String get diveSites_import_detail_alreadyImported;
-
-  /// No description provided for @diveSites_import_detail_importToMySites.
-  ///
-  /// In en, this message translates to:
-  /// **'Import to My Sites'**
-  String get diveSites_import_detail_importToMySites;
-
   /// No description provided for @diveSites_import_detail_source.
   ///
   /// In en, this message translates to:
@@ -21149,29 +21137,113 @@ abstract class AppLocalizations {
   /// **'Added to your sites'**
   String get diveSites_map_builtInSites_added;
 
-  /// No description provided for @diveSites_map_builtInSites_hide.
+  /// Button on the Sites map that opens the menu of built-in catalogue layers
   ///
   /// In en, this message translates to:
-  /// **'Hide built-in sites'**
-  String get diveSites_map_builtInSites_hide;
+  /// **'Built-in sites on the map'**
+  String get diveSites_map_layers_tooltip;
 
-  /// No description provided for @diveSites_map_builtInSites_off.
+  /// Map layer menu row: records from sources that list places people dive
   ///
   /// In en, this message translates to:
-  /// **'Built-in sites hidden'**
-  String get diveSites_map_builtInSites_off;
+  /// **'Built-in dive sites'**
+  String get diveSites_map_layers_diveSites;
 
-  /// No description provided for @diveSites_map_builtInSites_on.
+  /// Map layer menu row: records from wreck registers and reef deployment lists
   ///
   /// In en, this message translates to:
-  /// **'Built-in sites shown'**
-  String get diveSites_map_builtInSites_on;
+  /// **'Charted wrecks and reefs'**
+  String get diveSites_map_layers_registers;
 
-  /// No description provided for @diveSites_map_builtInSites_show.
+  /// Screen reader label of a map pin for a charted wreck or reef
   ///
   /// In en, this message translates to:
-  /// **'Show built-in sites'**
-  String get diveSites_map_builtInSites_show;
+  /// **'Charted wreck or reef: {name}'**
+  String diveSites_map_semantics_registerMarker(String name);
+
+  /// Button on a built-in site card that opens the site page
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get diveSites_builtIn_details;
+
+  /// Built-in site page, line under the name: what kind of record this is
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in dive site'**
+  String get diveSites_builtInPage_kindDiveSite;
+
+  /// Built-in site page, line under the name: a wreck from a wreck register
+  ///
+  /// In en, this message translates to:
+  /// **'Charted wreck'**
+  String get diveSites_builtInPage_kindWreck;
+
+  /// Built-in site page, line under the name: a reef from a reef deployment list
+  ///
+  /// In en, this message translates to:
+  /// **'Charted reef'**
+  String get diveSites_builtInPage_kindReef;
+
+  /// Built-in site page, after the kind: this site is not one of the diver's own
+  ///
+  /// In en, this message translates to:
+  /// **'Not in your sites'**
+  String get diveSites_builtInPage_notYours;
+
+  /// Built-in site page: one of the diver's own sites lies at this position
+  ///
+  /// In en, this message translates to:
+  /// **'Your site \"{name}\" is {distance} from here'**
+  String diveSites_builtInPage_yourSiteHere(String distance, String name);
+
+  /// Built-in site page card title: what the catalogue says about the site
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get diveSites_builtInPage_about;
+
+  /// Built-in site page, Nearby card: heading of the diver's own sites
+  ///
+  /// In en, this message translates to:
+  /// **'Your sites'**
+  String get diveSites_builtInPage_nearbyYours;
+
+  /// Built-in site page card title and link label: where the record came from
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get diveSites_builtInPage_source;
+
+  /// Built-in site page, Source card: who the source asks to be credited
+  ///
+  /// In en, this message translates to:
+  /// **'Credit: {credit}'**
+  String diveSites_builtInPage_credit(String credit);
+
+  /// Built-in site page, Source card: the licence the source publishes under
+  ///
+  /// In en, this message translates to:
+  /// **'Licence: {licence}'**
+  String diveSites_builtInPage_licence(String licence);
+
+  /// Built-in site page, Source card of a wreck or reef register record
+  ///
+  /// In en, this message translates to:
+  /// **'A charted position, not a dive guide. Not for navigation.'**
+  String get diveSites_builtInPage_notAGuide;
+
+  /// Built-in site page when the catalogue no longer holds the record
+  ///
+  /// In en, this message translates to:
+  /// **'This built-in site is no longer available'**
+  String get diveSites_builtInPage_notFound;
+
+  /// Row under the Sites search field that searches the built-in catalogue for the typed text
+  ///
+  /// In en, this message translates to:
+  /// **'Search built-in sites for \"{text}\"'**
+  String diveSites_search_builtIn(String text);
 
   /// No description provided for @diveSites_map_empty_description.
   ///

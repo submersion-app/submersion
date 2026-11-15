@@ -5,15 +5,24 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/services/catalogue_site_visibility.dart';
+import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_search_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_import_site_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 
-/// Page for searching and importing dive sites from online sources.
+/// Page for searching the built-in site catalogue, reading about what it
+/// finds, and importing sites from it.
 class SiteImportPage extends ConsumerStatefulWidget {
-  const SiteImportPage({super.key});
+  const SiteImportPage({super.key, this.initialQuery});
+
+  /// A search to open with (`/sites/import?q=`): the Sites list hands over
+  /// what the diver typed in its own search field. Blank or null opens
+  /// the page empty, with the field focused.
+  final String? initialQuery;
 
   @override
   ConsumerState<SiteImportPage> createState() => _SiteImportPageState();
@@ -26,9 +35,18 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
   @override
   void initState() {
     super.initState();
-    // Auto-focus search field
+    final initial = widget.initialQuery?.trim() ?? '';
+    _searchController.text = initial;
+    // After the first frame: a provider cannot be written while the tree
+    // builds. With a search to run the results lead; otherwise the field
+    // takes the focus, ready to type in.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
+      if (!mounted) return;
+      if (initial.isEmpty) {
+        _focusNode.requestFocus();
+      } else {
+        _onSearch();
+      }
     });
   }
 
@@ -208,6 +226,13 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
     ColorScheme colorScheme,
   ) {
     final units = ref.watch(unitFormatterProvider);
+    // The diver's sites as they are now, beside the ids the search found
+    // linked when it ran: a site added from its own page since then, or
+    // from another screen, shows as imported without a new search.
+    final mine = [
+      ...?ref.watch(sitesWithCountsProvider).value?.map((entry) => entry.site),
+    ];
+    final linkedNow = linkedCatalogueIds(mine);
 
     // Error state
     if (state.hasError) {
@@ -388,12 +413,25 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
           ...state.sites.map((site) {
             // Already one of the diver's sites, in this session or any
             // earlier one: the link says so.
-            final isImported = state.linkedCatalogueIds.contains(site.id);
+            final isImported =
+                state.linkedCatalogueIds.contains(site.id) ||
+                linkedNow.contains(site.id);
             return CatalogueImportSiteCard(
               site: site,
               isImported: isImported,
               units: units,
               onImport: () => _importSite(site),
+              // The diver's own site when the record is already theirs,
+              // else the record's page. That page hands over to their site
+              // too, for a record whose owner is not known here yet.
+              onOpen: () {
+                final ownerId = catalogueOwnerSiteId(mine, site.id);
+                context.push(
+                  ownerId == null
+                      ? catalogueSitePath(site.id)
+                      : '/sites/$ownerId',
+                );
+              },
             );
           }),
         ],

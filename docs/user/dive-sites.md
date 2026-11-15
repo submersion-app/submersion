@@ -111,7 +111,33 @@ The heat map layer shows where your diving activity is concentrated. Toggle it w
 
 ### Built-in sites on the map
 
-**Show built-in sites** in the map's controls adds the built-in catalogue's sites as hollow grey pins beneath your own. The map marks the sites in view, and reads them again when you move or zoom it. Zoomed far out, a view can hold more than it marks (1,500): dive sites are marked first, then the charted wrecks and reefs nearest the middle, and a note says **Zoom in to see every built-in site**. Tap a pin to read about the site, and **Add to my sites** to keep it.
+The map also draws sites from the built-in catalogue, beneath your own, so you can look around a place before you dive it. They come in two layers, chosen from the globe button in the map's controls (**Built-in sites on the map**):
+
+- **Built-in dive sites**, shown as hollow grey pins. This layer is on unless you turn it off.
+- **Charted wrecks and reefs**, shown as grey anchors. This layer starts off, because there are far more of them than dive sites: around Britain or Florida they alone would fill the map.
+
+Tick or untick either layer in the menu; it stays open so you can change both. Your choice is remembered on this device, and each device keeps its own. With both layers off the map shows only your own sites.
+
+The map marks the built-in sites in view, and reads them again when you move or zoom it. Zoomed far out, a view can hold more than it marks (1,500): dive sites are marked first, then the charted wrecks and reefs nearest the middle, and a note says **Zoom in to see every built-in site**. A built-in site you have already added is drawn as your own, and one that sits within 150 m (490 ft) of a site you created yourself is not drawn.
+
+Tap a pin for a card about the site. **Add to my sites** keeps it, and **Details** opens the site's own page.
+
+### Built-in site pages
+
+Every site in the built-in catalogue has a page you can read without adding the site. Open it with **Details** on a pin's card, or by tapping a result on the Import page. It shows:
+
+- A map of the position, with the depth overlay. The button in its corner opens a map you can move and zoom.
+- The site's name, where it is, and whether it is a **Built-in dive site**, a **Charted wreck** or a **Charted reef**. **Not in your sites** says the page is the catalogue's and not one of yours.
+- **About**: site types, entry, depth and description, when the catalogue has them. Many dive sites in the catalogue are no more than a name and a position, and the page then leaves this out.
+- **Hazards**, including any restriction or protection a wreck register notes.
+- **Location**: country, region, island, sea and GPS coordinates. To copy the coordinates, use the copy button beside them or hold the row.
+- **Tides** and **Ecosystem** for the position, as on your own sites. A fresh-water site has no tides, and a position with no tide data (an inland lake or quarry, say) has no Tides card at all.
+- **Nearby**: your own sites within 10 km (6 mi), then other built-in sites, each with its distance. Tap one to open it.
+- **Source**: where the record came from, who to credit, and its licence, with links to the source and to the site's website. For a charted wreck or reef it adds that the record is a charted position and not a dive guide.
+
+If one of the sites you created yourself sits on the same spot, the page says so (**Your site ... is ... from here**) and opens it.
+
+**Add to my sites** adds the site with everything the catalogue holds for it and opens your own new site's page in its place. A built-in site you have already added has no page of its own any more: wherever you open it, you get your site.
 
 ### Map / list split pane (desktop)
 
@@ -142,6 +168,8 @@ Use the filter icon to narrow the list by:
 
 The filter also takes a written query: `gps is blank` lists the sites with no GPS location.
 
+The search field searches your own sites. While you type plain words in it, a row beneath offers **Search built-in sites for** what you typed: tap it to run the same search on the Import page, over the whole built-in catalogue. It is how you look up a site you do not have yet.
+
 Use the sort icon to order by name, rating, difficulty, max depth, dive count, or when you last dived there.
 
 ## Importing sites
@@ -149,7 +177,7 @@ Use the sort icon to order by name, rating, difficulty, max depth, dive count, o
 Choose **Import** from the overflow menu on the Sites list. Type a site name, a place (a country in any language, a region or an island) or a sea, or choose a quick-search chip (Caribbean, Red Sea, Thailand, Indonesia, Maldives, Philippines). Results appear in two sections:
 
 - **My Sites**: matches from your own site database, shown with a "Saved" badge. Tapping one opens its detail page.
-- **Import from Database**: results from the built-in site catalogue, up to 200 at a time; a note says when there are more, and a more specific search shows them. Tap a result card to read what the catalogue holds for the site (where it is, site types, entry, depth, hazards, description, website and source), then tap **Import to My Sites**. A site you have already added shows **Already Imported**, in this session or any later one.
+- **Import from Database**: results from the built-in site catalogue, up to 200 at a time; a note says when there are more, and a more specific search shows them. Tap a result card to open the site's [built-in page](#built-in-site-pages) and read about it, or tap **Import** on the card to add it straight away. A site you have already added shows **Imported**, in this session or any later one, and tapping it opens your own site.
 
 An imported site arrives with everything the catalogue holds for it: name, description, country, region, island, body of water, GPS coordinates, depth, site types, entry method, and hazards. You can edit any field after import.
 

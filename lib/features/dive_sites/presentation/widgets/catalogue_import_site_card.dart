@@ -1,21 +1,21 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
-import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_info_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One built-in catalogue site among the import page's search results: its
 /// name, place and tags, and the button that adopts it. Tapping the card
-/// opens the record's details.
+/// asks to open the record's own page.
 class CatalogueImportSiteCard extends StatelessWidget {
   final CatalogueSite site;
   final bool isImported;
   final UnitFormatter units;
   final VoidCallback onImport;
+
+  /// Runs when the card is tapped anywhere but its Import button.
+  final VoidCallback onOpen;
 
   const CatalogueImportSiteCard({
     super.key,
@@ -23,6 +23,7 @@ class CatalogueImportSiteCard extends StatelessWidget {
     required this.isImported,
     required this.units,
     required this.onImport,
+    required this.onOpen,
   });
 
   /// What the catalogue says the site is: its types by name, then the
@@ -43,7 +44,7 @@ class CatalogueImportSiteCard extends StatelessWidget {
         button: true,
         label: context.l10n.diveSites_import_semantics_viewDetails(site.name),
         child: InkWell(
-          onTap: () => _showDetails(context),
+          onTap: onOpen,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -208,22 +209,5 @@ class CatalogueImportSiteCard extends StatelessWidget {
     return line.isNotEmpty
         ? line
         : context.l10n.diveCenters_label_locationUnknown;
-  }
-
-  /// The record's details, in the sheet the picker and the map use, so a
-  /// diver sees its hazards, entry, depth range and website before
-  /// importing it.
-  void _showDetails(BuildContext context) {
-    final l10n = context.l10n;
-    unawaited(
-      showCatalogueSiteDetails(
-        context,
-        site: site,
-        actionLabel: isImported
-            ? l10n.diveSites_import_detail_alreadyImported
-            : l10n.diveSites_import_detail_importToMySites,
-        onAction: isImported ? null : () async => onImport(),
-      ),
-    );
   }
 }

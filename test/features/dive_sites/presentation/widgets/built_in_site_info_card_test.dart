@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_catal
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_info_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/recording_url_launcher.dart';
 
 const _osm = CatalogueSource(
   key: 'osm',
@@ -164,6 +167,26 @@ void main() {
     expect(find.byIcon(Icons.warning_amber_outlined), findsNothing);
   });
 
+  testWidgets('Website opens the site\'s website, outside the app', (
+    tester,
+  ) async {
+    final launcher = useRecordingUrlLauncher();
+    await _pump(
+      tester,
+      BuiltInSiteInfoCard(
+        site: _full,
+        actionLabel: 'Add to my sites',
+        onAction: () async {},
+      ),
+    );
+
+    await tester.tap(find.text('Website'));
+    await tester.pump();
+
+    expect(launcher.launched, ['https://example.org/salt-pier']);
+    expect(launcher.modes, [PreferredLaunchMode.externalApplication]);
+  });
+
   testWidgets('a website that is not a web address shows no button', (
     tester,
   ) async {
@@ -234,6 +257,145 @@ void main() {
     await tester.tap(find.text('Add to my sites'));
     await tester.pumpAndSettle();
     expect(calls, 2);
+  });
+
+  group('Details', () {
+    testWidgets('with a details action the card offers the record\'s page', (
+      tester,
+    ) async {
+      var opened = 0;
+      await _pump(
+        tester,
+        BuiltInSiteInfoCard(
+          site: _full,
+          actionLabel: 'Add to my sites',
+          onAction: () async {},
+          onDetails: () => opened++,
+        ),
+      );
+
+      await tester.tap(find.text('Details'));
+
+      expect(opened, 1);
+      // The action it sits beside is still there.
+      expect(find.text('Add to my sites'), findsOneWidget);
+    });
+
+    testWidgets('without one there is no Details button', (tester) async {
+      await _pump(
+        tester,
+        BuiltInSiteInfoCard(
+          site: _full,
+          actionLabel: 'Use this site',
+          onAction: () async {},
+        ),
+      );
+
+      expect(find.text('Details'), findsNothing);
+    });
+
+    testWidgets('the picker\'s sheet has no Details button', (tester) async {
+      await _pump(
+        tester,
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showCatalogueSiteDetails(
+              context,
+              site: _full,
+              actionLabel: 'Use this site',
+              onAction: () async {},
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Salt Pier'), findsOneWidget);
+      expect(find.text('Details'), findsNothing);
+    });
+
+    testWidgets('Details, Website and a long action fit a narrow card: '
+        'the action takes a line of its own and wraps inside its button', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 700);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await _pump(
+        tester,
+        BuiltInSiteInfoCard(
+          site: _full,
+          actionLabel: 'Zu meinen Tauchplätzen hinzufügen',
+          onAction: () async {},
+          onDetails: () {},
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      final card = tester.getRect(find.byType(Card));
+      final details = tester.getRect(find.text('Details'));
+      final action = tester.getRect(find.bySubtype<FilledButton>());
+      expect(action.top, greaterThan(details.bottom));
+      expect(action.right, lessThanOrEqualTo(card.right - 16));
+      expect(action.left, greaterThanOrEqualTo(card.left + 16));
+    });
+
+    testWidgets('an action that drops to its own line stays at the card\'s '
+        'end, where it sits on a wider card', (tester) async {
+      tester.view.physicalSize = const Size(320, 700);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      // Too wide to share a line with the two links, narrower than the
+      // card: where it lands shows which side it is aligned to.
+      await _pump(
+        tester,
+        BuiltInSiteInfoCard(
+          site: _full,
+          actionLabel: 'Add to my sites',
+          onAction: () async {},
+          onDetails: () {},
+        ),
+      );
+
+      final card = tester.getRect(find.byType(Card));
+      final details = tester.getRect(find.text('Details'));
+      final action = tester.getRect(find.bySubtype<FilledButton>());
+      expect(action.top, greaterThan(details.bottom));
+      // Its margin and padding in from the card's right edge, with the
+      // room it does not need left over on the other side.
+      final endGap = card.right - action.right;
+      expect(endGap, closeTo(16, 1));
+      expect(action.left - card.left, greaterThan(endGap + 4));
+    });
+
+    testWidgets('where they fit, the links sit at the start and the action '
+        'at the end of one line', (tester) async {
+      tester.view.physicalSize = const Size(600, 700);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await _pump(
+        tester,
+        BuiltInSiteInfoCard(
+          site: _full,
+          actionLabel: 'Add to my sites',
+          onAction: () async {},
+          onDetails: () {},
+        ),
+      );
+
+      final card = tester.getRect(find.byType(Card));
+      final details = tester.getRect(find.text('Details'));
+      final action = tester.getRect(find.bySubtype<FilledButton>());
+      expect(details.center.dy, closeTo(action.center.dy, 1));
+      expect(details.left - card.left, lessThan(40));
+      expect(card.right - action.right, closeTo(16, 1));
+    });
   });
 
   testWidgets('the details sheet closes, then runs the action', (tester) async {

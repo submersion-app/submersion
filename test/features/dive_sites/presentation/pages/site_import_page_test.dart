@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_import_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_search_providers.dart';
-import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_info_card.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_import_site_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -62,12 +64,35 @@ class _SeededSearch extends StateNotifier<ExternalSiteSearchState>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Pumps the page in a router that also knows a built-in record's page,
+/// which a result opens.
 Future<_SeededSearch> _pump(
   WidgetTester tester,
   ExternalSiteSearchState state, {
   Locale locale = const Locale('en'),
+  String? initialQuery,
+  List<DiveSite> mine = const [],
 }) async {
   final search = _SeededSearch(state);
+  final router = GoRouter(
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (_, _) => SiteImportPage(initialQuery: initialQuery),
+      ),
+      GoRoute(
+        path: '/sites/catalogue/:id',
+        builder: (_, state) =>
+            Scaffold(body: Text('built-in page ${state.pathParameters['id']}')),
+      ),
+      GoRoute(
+        path: '/sites/:id',
+        builder: (_, state) =>
+            Scaffold(body: Text('own site ${state.pathParameters['id']}')),
+      ),
+    ],
+  );
+  addTearDown(router.dispose);
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -79,12 +104,18 @@ Future<_SeededSearch> _pump(
           ),
         ),
         externalSiteSearchProvider.overrideWith((ref) => search),
+        sitesWithCountsProvider.overrideWith(
+          (ref) async => [
+            for (final site in mine)
+              SiteWithDiveCount(site: site, diveCount: 0),
+          ],
+        ),
       ],
-      child: MaterialApp(
+      child: MaterialApp.router(
+        routerConfig: router,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         locale: locale,
-        home: const SiteImportPage(),
       ),
     ),
   );
@@ -207,7 +238,7 @@ void main() {
     expect(find.text('Location unknown'), findsNothing);
   });
 
-  group('the details of a result', () {
+  group('tapping a result', () {
     const wreck = CatalogueSite(
       id: 'osm_node_5',
       name: 'Thistlegorm',
@@ -222,8 +253,7 @@ void main() {
       source: 'osm',
     );
 
-    testWidgets('are the same ones the picker shows: hazards, entry, depth '
-        'range and website', (tester) async {
+    testWidgets('opens the record\'s own page, not a sheet', (tester) async {
       await _pump(
         tester,
         const ExternalSiteSearchState(query: 'this', sites: [wreck]),
@@ -232,18 +262,34 @@ void main() {
       await tester.tap(find.text('Thistlegorm'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(BuiltInSiteInfoCard), findsOneWidget);
-      expect(find.text('Strong current'), findsOneWidget);
-      expect(find.text('Boat'), findsOneWidget);
-      expect(find.text('16m–30m'), findsOneWidget);
-      expect(find.text('Website'), findsOneWidget);
-      expect(find.text('Source: OpenStreetMap contributors'), findsOneWidget);
-      expect(find.text('Import to My Sites'), findsOneWidget);
+      expect(find.text('built-in page osm_node_5'), findsOneWidget);
     });
 
-    testWidgets('offer no import for a site the diver already has', (
-      tester,
-    ) async {
+    testWidgets('a result the diver already has opens their own site, '
+        'straight away', (tester) async {
+      await _pump(
+        tester,
+        const ExternalSiteSearchState(
+          query: 'this',
+          sites: [wreck],
+          linkedCatalogueIds: {'osm_node_5'},
+        ),
+        mine: const [
+          DiveSite(id: 'mine', name: 'Thistlegorm', catalogueId: 'osm_node_5'),
+        ],
+      );
+      expect(find.text('Imported'), findsOneWidget);
+
+      await tester.tap(find.text('Thistlegorm'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('own site mine'), findsOneWidget);
+      expect(find.text('built-in page osm_node_5'), findsNothing);
+    });
+
+    testWidgets('a result marked imported whose site is not known yet '
+        'opens the record\'s page, which hands over', (tester) async {
+      // The search says it is linked; the diver's sites have not loaded.
       await _pump(
         tester,
         const ExternalSiteSearchState(
@@ -256,20 +302,14 @@ void main() {
       await tester.tap(find.text('Thistlegorm'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Import to My Sites'), findsNothing);
-      final button = tester.widget<FilledButton>(
-        find.ancestor(
-          of: find.text('Already Imported'),
-          matching: find.bySubtype<FilledButton>(),
-        ),
-      );
-      expect(button.onPressed, isNull);
+      expect(find.text('built-in page osm_node_5'), findsOneWidget);
     });
   });
 
-  testWidgets('a result card: Import to My Sites closes the details and '
-      'imports once', (tester) async {
+  testWidgets('a result card: its Import button imports once and opens '
+      'nothing; the card itself asks to be opened', (tester) async {
     var imports = 0;
+    var opens = 0;
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -289,6 +329,7 @@ void main() {
                 isImported: false,
                 units: ref.watch(unitFormatterProvider),
                 onImport: () => imports++,
+                onOpen: () => opens++,
               ),
             ),
           ),
@@ -297,13 +338,67 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('Import'));
+    await tester.pumpAndSettle();
+    expect(imports, 1);
+    expect(opens, 0);
+
     await tester.tap(find.text('Abu Dabab'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Import to My Sites'));
-    await tester.pumpAndSettle();
-
+    expect(opens, 1);
     expect(imports, 1);
-    expect(find.byType(BuiltInSiteInfoCard), findsNothing);
+  });
+
+  testWidgets('a site added since the search ran reads Imported without '
+      'searching again', (tester) async {
+    // The search found nothing linked; the diver has since added Abu Dabab
+    // from its own page.
+    await _pump(
+      tester,
+      const ExternalSiteSearchState(query: 'Red Sea', sites: [_abuDabab]),
+      mine: const [
+        DiveSite(id: 'mine', name: 'Abu Dabab', catalogueId: 'osm_node_1'),
+      ],
+    );
+
+    expect(find.text('Imported'), findsOneWidget);
+    expect(find.text('Import'), findsNothing);
+  });
+
+  group('opened with a search', () {
+    testWidgets('fills the field and runs it once', (tester) async {
+      final search = await _pump(
+        tester,
+        const ExternalSiteSearchState(),
+        initialQuery: ' thistlegorm ',
+      );
+
+      expect(search.searches, ['thistlegorm']);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'thistlegorm',
+      );
+    });
+
+    testWidgets('a blank one searches for nothing', (tester) async {
+      final search = await _pump(
+        tester,
+        const ExternalSiteSearchState(),
+        initialQuery: '  ',
+      );
+
+      expect(search.searches, isEmpty);
+    });
+
+    testWidgets('with none the page opens as before', (tester) async {
+      final search = await _pump(tester, const ExternalSiteSearchState());
+
+      expect(search.searches, isEmpty);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        isEmpty,
+      );
+    });
   });
 
   testWidgets('a quick-search chip searches for its place', (tester) async {

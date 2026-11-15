@@ -182,4 +182,128 @@ void main() {
       );
     });
   });
+
+  group('catalogueSitePath', () {
+    test('is the record\'s own page', () {
+      expect(catalogueSitePath('osm_node_1'), '/sites/catalogue/osm_node_1');
+    });
+
+    test('keeps an id that is not path-safe in one path segment', () {
+      // No id is like this today; a later source's might be.
+      final path = catalogueSitePath('researched/blue hole?v=2#a');
+
+      final segments = Uri.parse(path).pathSegments;
+      expect(segments, ['sites', 'catalogue', 'researched/blue hole?v=2#a']);
+      expect(Uri.parse(path).hasQuery, isFalse);
+      expect(Uri.parse(path).hasFragment, isFalse);
+    });
+  });
+
+  group('catalogueKindLabel', () {
+    CatalogueSite register(List<String> types) => CatalogueSite(
+      id: 'r',
+      name: 'R',
+      typeIds: types,
+      source: 'ukho',
+      kind: CatalogueKind.register,
+    );
+
+    test('a record from a dive site source is a built-in dive site', () {
+      expect(catalogueKindLabel(full, l10n), 'Built-in dive site');
+      // Whatever its types say: a dive site at a wreck is still a dive site.
+      expect(
+        catalogueKindLabel(
+          const CatalogueSite(
+            id: 'a',
+            name: 'A',
+            typeIds: ['wreck'],
+            source: 'osm',
+          ),
+          l10n,
+        ),
+        'Built-in dive site',
+      );
+    });
+
+    test('a register record typed as a wreck is a charted wreck', () {
+      expect(catalogueKindLabel(register(['wreck']), l10n), 'Charted wreck');
+      // A ship sunk as a reef is listed as both.
+      expect(
+        catalogueKindLabel(register(['artificial_reef', 'wreck']), l10n),
+        'Charted wreck',
+      );
+    });
+
+    test('any other register record is a charted reef', () {
+      expect(
+        catalogueKindLabel(register(['artificial_reef']), l10n),
+        'Charted reef',
+      );
+      expect(catalogueKindLabel(register([]), l10n), 'Charted reef');
+    });
+  });
+
+  group('catalogueSourceLinkUri', () {
+    const ukho = CatalogueSource(
+      key: 'ukho',
+      name: 'UK Hydrographic Office Wrecks and Obstructions',
+      licence: 'OGL-UK-3.0',
+      licenceUrl:
+          'https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/',
+      credit: 'UK Hydrographic Office',
+    );
+
+    CatalogueSite from(String? ref) =>
+        CatalogueSite(id: 'a', name: 'A', source: 'ukho', sourceRef: ref);
+
+    test('a record\'s own page, or its dataset\'s, is offered', () {
+      expect(
+        catalogueSourceLinkUri(
+          from('https://www.openstreetmap.org/node/10011808941'),
+          ukho,
+        ).toString(),
+        'https://www.openstreetmap.org/node/10011808941',
+      );
+      expect(
+        catalogueSourceLinkUri(
+          from('https://datahub.admiralty.co.uk/portal/apps/sites/#/x'),
+          ukho,
+        ),
+        isNotNull,
+      );
+    });
+
+    test('the same address as the licence link is not offered twice', () {
+      expect(catalogueSourceLinkUri(from(ukho.licenceUrl), ukho), isNull);
+    });
+
+    test('a data file to download is not offered', () {
+      for (final ref in [
+        'https://web.archive.org/web/2024/https://wrecks.example.gov/AWOIS_Wrecks.kml',
+        'https://example.org/data/Reefs.ZIP',
+        'https://example.org/sites.geojson',
+      ]) {
+        expect(catalogueSourceLinkUri(from(ref), ukho), isNull, reason: ref);
+      }
+    });
+
+    test('only a web address is offered', () {
+      for (final ref in [
+        'mailto:a@example.org',
+        'tel:+1',
+        'example',
+        '',
+        null,
+      ]) {
+        expect(catalogueSourceLinkUri(from(ref), ukho), isNull, reason: '$ref');
+      }
+    });
+
+    test('a record whose source is not known still gets its link', () {
+      expect(
+        catalogueSourceLinkUri(from('https://example.org/record/1'), null),
+        isNotNull,
+      );
+    });
+  });
 }

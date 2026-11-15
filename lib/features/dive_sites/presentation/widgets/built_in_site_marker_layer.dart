@@ -5,13 +5,16 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_kind_glyph.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 
 /// A recessive marker-cluster layer for built-in (bundled) dive sites.
 /// Rendered BELOW the user-site layer and clustered separately, so built-in
-/// markers never merge into the user's clusters. Markers are hollow grey pins,
-/// smaller than the user's filled circles. Repeats across the date line with
-/// the user-site layer (issue #2516).
+/// markers never merge into the user's clusters. Markers are hollow grey
+/// glyphs, smaller than the user's filled circles: a pin for a dive site,
+/// an anchor for a charted wreck or reef (`catalogueKindIcon`). Both kinds
+/// share the one cluster layer. Repeats across the date line with the
+/// user-site layer (issue #2516).
 class BuiltInSiteMarkerLayer extends StatelessWidget {
   /// Sites with coordinates; one without is skipped.
   final List<CatalogueSite> sites;
@@ -43,14 +46,21 @@ class BuiltInSiteMarkerLayer extends StatelessWidget {
             height: selected ? 40 : 34,
             child: Semantics(
               button: true,
-              label: context.l10n.diveSites_map_semantics_builtInSiteMarker(
-                site.name,
-              ),
+              label: switch (site.kind) {
+                CatalogueKind.site =>
+                  context.l10n.diveSites_map_semantics_builtInSiteMarker(
+                    site.name,
+                  ),
+                CatalogueKind.register =>
+                  context.l10n.diveSites_map_semantics_registerMarker(
+                    site.name,
+                  ),
+              },
               child: GestureDetector(
                 key: Key('builtInPin_${site.id}'),
                 onTap: () => onTap(site),
                 child: Icon(
-                  Icons.location_on_outlined,
+                  catalogueKindIcon(site.kind),
                   size: selected ? 36 : 30,
                   color: selected
                       ? Theme.of(context).colorScheme.primary

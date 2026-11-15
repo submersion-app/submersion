@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_page/catalogue_page_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Everything the built-in catalogue knows about one site, with one action:
@@ -24,11 +25,17 @@ class BuiltInSiteInfoCard extends ConsumerStatefulWidget {
   /// only says so.
   final Future<void> Function()? onAction;
 
+  /// Opens the record's own page. Given on the map, where the card is
+  /// the way to it; absent in the site picker, where the diver is naming
+  /// a dive and the card already says what the record holds.
+  final VoidCallback? onDetails;
+
   const BuiltInSiteInfoCard({
     super.key,
     required this.site,
     required this.actionLabel,
     required this.onAction,
+    this.onDetails,
   });
 
   @override
@@ -78,6 +85,7 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
       ?depth,
     ];
     final website = catalogueWebsiteUri(site.website);
+    final hasLinks = widget.onDetails != null || website != null;
 
     return Card(
       child: Padding(
@@ -98,7 +106,7 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
                 child: Wrap(
                   spacing: 6,
                   runSpacing: 4,
-                  children: [for (final fact in facts) _Fact(fact)],
+                  children: [for (final fact in facts) CatalogueFactChip(fact)],
                 ),
               ),
             if (site.hazards != null)
@@ -142,64 +150,58 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
                 ),
               ),
             const SizedBox(height: 8),
-            Row(
+            // The links and the action share a line where they fit:
+            // links at the start, the action at the end. Where they do
+            // not (a phone, with a long translated action) each takes a
+            // line of its own at the end of the card, and the action's
+            // label wraps inside the button instead of pushing it past
+            // the card's edge.
+            OverflowBar(
+              alignment: hasLinks
+                  ? MainAxisAlignment.spaceBetween
+                  : MainAxisAlignment.end,
+              overflowAlignment: OverflowBarAlignment.end,
+              spacing: 8,
+              overflowSpacing: 4,
               children: [
-                if (website != null)
-                  TextButton.icon(
-                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                    onPressed: () => launchUrl(
-                      website,
-                      mode: LaunchMode.externalApplication,
-                    ),
-                    icon: const Icon(Icons.open_in_new, size: 16),
-                    label: Text(l10n.diveCenters_label_website),
+                if (hasLinks)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.onDetails != null)
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsetsDirectional.only(end: 12),
+                          ),
+                          onPressed: widget.onDetails,
+                          child: Text(l10n.diveSites_builtIn_details),
+                        ),
+                      if (website != null)
+                        TextButton.icon(
+                          style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                          onPressed: () => launchUrl(
+                            website,
+                            mode: LaunchMode.externalApplication,
+                          ),
+                          icon: const Icon(Icons.open_in_new, size: 16),
+                          label: Text(l10n.diveCenters_label_website),
+                        ),
+                    ],
                   ),
-                // Takes the rest of the row, so a long translated label
-                // ("Zu meinen Tauchplätzen hinzufügen") wraps inside the
-                // button instead of pushing the row past the card's edge.
-                Expanded(
-                  child: Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: FilledButton.icon(
-                      icon: Icon(
-                        widget.onAction == null
-                            ? Icons.check
-                            : Icons.add_location_alt,
-                        size: 18,
-                      ),
-                      label: Text(widget.actionLabel),
-                      onPressed: _running || widget.onAction == null
-                          ? null
-                          : _run,
-                    ),
+                FilledButton.icon(
+                  icon: Icon(
+                    widget.onAction == null
+                        ? Icons.check
+                        : Icons.add_location_alt,
+                    size: 18,
                   ),
+                  label: Text(widget.actionLabel),
+                  onPressed: _running || widget.onAction == null ? null : _run,
                 ),
               ],
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// One short fact about the site: a type, an entry, a depth.
-class _Fact extends StatelessWidget {
-  const _Fact(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        child: Text(text, style: theme.textTheme.labelMedium),
       ),
     );
   }

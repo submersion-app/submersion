@@ -12683,12 +12683,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveSites_import_button_import => 'Importar';
 
   @override
-  String get diveSites_import_detail_alreadyImported => 'Ya importado';
-
-  @override
-  String get diveSites_import_detail_importToMySites => 'Importar a mis sitios';
-
-  @override
   String diveSites_import_detail_source(Object source) {
     return 'Fuente: $source';
   }
@@ -13360,16 +13354,71 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveSites_map_builtInSites_added => 'Agregado a tus sitios';
 
   @override
-  String get diveSites_map_builtInSites_hide => 'Ocultar sitios integrados';
+  String get diveSites_map_layers_tooltip => 'Sitios integrados en el mapa';
 
   @override
-  String get diveSites_map_builtInSites_off => 'Sitios integrados ocultos';
+  String get diveSites_map_layers_diveSites => 'Puntos de buceo integrados';
 
   @override
-  String get diveSites_map_builtInSites_on => 'Sitios integrados visibles';
+  String get diveSites_map_layers_registers =>
+      'Pecios y arrecifes cartografiados';
 
   @override
-  String get diveSites_map_builtInSites_show => 'Mostrar sitios integrados';
+  String diveSites_map_semantics_registerMarker(String name) {
+    return 'Pecio o arrecife cartografiado: $name';
+  }
+
+  @override
+  String get diveSites_builtIn_details => 'Detalles';
+
+  @override
+  String get diveSites_builtInPage_kindDiveSite => 'Punto de buceo integrado';
+
+  @override
+  String get diveSites_builtInPage_kindWreck => 'Pecio cartografiado';
+
+  @override
+  String get diveSites_builtInPage_kindReef => 'Arrecife cartografiado';
+
+  @override
+  String get diveSites_builtInPage_notYours => 'No está en tus sitios';
+
+  @override
+  String diveSites_builtInPage_yourSiteHere(String distance, String name) {
+    return 'Tu sitio \"$name\" está a $distance de aquí';
+  }
+
+  @override
+  String get diveSites_builtInPage_about => 'Información';
+
+  @override
+  String get diveSites_builtInPage_nearbyYours => 'Tus sitios';
+
+  @override
+  String get diveSites_builtInPage_source => 'Fuente';
+
+  @override
+  String diveSites_builtInPage_credit(String credit) {
+    return 'Crédito: $credit';
+  }
+
+  @override
+  String diveSites_builtInPage_licence(String licence) {
+    return 'Licencia: $licence';
+  }
+
+  @override
+  String get diveSites_builtInPage_notAGuide =>
+      'Una posición cartografiada, no una guía de buceo. No apta para la navegación.';
+
+  @override
+  String get diveSites_builtInPage_notFound =>
+      'Este sitio integrado ya no está disponible';
+
+  @override
+  String diveSites_search_builtIn(String text) {
+    return 'Buscar \"$text\" en los sitios integrados';
+  }
 
   @override
   String get diveSites_map_empty_description =>

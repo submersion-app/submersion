@@ -12059,12 +12059,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_import_button_import => '导入';
 
   @override
-  String get diveSites_import_detail_alreadyImported => '已导入';
-
-  @override
-  String get diveSites_import_detail_importToMySites => '导入到我的潜水点';
-
-  @override
   String diveSites_import_detail_source(Object source) {
     return '来源: $source';
   }
@@ -12697,16 +12691,68 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_map_builtInSites_added => '已添加到您的潜水点';
 
   @override
-  String get diveSites_map_builtInSites_hide => '隐藏内置潜水点';
+  String get diveSites_map_layers_tooltip => '地图上的内置潜水点';
 
   @override
-  String get diveSites_map_builtInSites_off => '已隐藏内置潜水点';
+  String get diveSites_map_layers_diveSites => '内置潜水点';
 
   @override
-  String get diveSites_map_builtInSites_on => '已显示内置潜水点';
+  String get diveSites_map_layers_registers => '已标注的沉船和礁石';
 
   @override
-  String get diveSites_map_builtInSites_show => '显示内置潜水点';
+  String diveSites_map_semantics_registerMarker(String name) {
+    return '已标注的沉船或礁石：$name';
+  }
+
+  @override
+  String get diveSites_builtIn_details => '详情';
+
+  @override
+  String get diveSites_builtInPage_kindDiveSite => '内置潜水点';
+
+  @override
+  String get diveSites_builtInPage_kindWreck => '已标注的沉船';
+
+  @override
+  String get diveSites_builtInPage_kindReef => '已标注的礁石';
+
+  @override
+  String get diveSites_builtInPage_notYours => '不在你的潜水点中';
+
+  @override
+  String diveSites_builtInPage_yourSiteHere(String distance, String name) {
+    return '你的潜水点“$name”距此 $distance';
+  }
+
+  @override
+  String get diveSites_builtInPage_about => '简介';
+
+  @override
+  String get diveSites_builtInPage_nearbyYours => '你的潜水点';
+
+  @override
+  String get diveSites_builtInPage_source => '来源';
+
+  @override
+  String diveSites_builtInPage_credit(String credit) {
+    return '署名：$credit';
+  }
+
+  @override
+  String diveSites_builtInPage_licence(String licence) {
+    return '许可：$licence';
+  }
+
+  @override
+  String get diveSites_builtInPage_notAGuide => '这是已标注的位置，不是潜水指南。不可用于导航。';
+
+  @override
+  String get diveSites_builtInPage_notFound => '此内置潜水点已不可用';
+
+  @override
+  String diveSites_search_builtIn(String text) {
+    return '在内置潜水点中搜索“$text”';
+  }
 
   @override
   String get diveSites_map_empty_description => '为您的潜水点添加坐标以在地图上显示';

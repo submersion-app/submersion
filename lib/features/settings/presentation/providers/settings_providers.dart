@@ -101,6 +101,12 @@ class SettingsKeys {
   /// Device-local: whether the fullscreen viewers fill the window or take
   /// the desktop window into OS fullscreen.
   static const String viewerFullscreenMode = 'viewer_fullscreen_mode';
+
+  // Which built-in catalogue layers the Sites map draws, device-local. A
+  // missing key means the default, so only a diver's own change is stored.
+  static const String builtInDiveSitesOnMap = 'built_in_dive_sites_on_map';
+  static const String builtInRegistersOnMap = 'built_in_registers_on_map';
+
   static const String defaultDiveType = 'default_dive_type';
   static const String defaultTankVolume = 'default_tank_volume';
   static const String defaultStartPressure = 'default_start_pressure';

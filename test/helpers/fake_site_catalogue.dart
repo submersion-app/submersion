@@ -36,6 +36,9 @@ class FakeSiteCatalogue implements SiteCatalogue {
   /// The bounds of every [inBounds] call, in order.
   final List<CatalogueBounds> boundsAsked = [];
 
+  /// The kinds of every [inBounds] call, in order.
+  final List<Set<CatalogueKind>> kindsAsked = [];
+
   /// The query of every [search] call, in order.
   final List<String> searches = [];
 
@@ -78,13 +81,19 @@ class FakeSiteCatalogue implements SiteCatalogue {
   Future<CatalogueBoundsResult> inBounds(
     CatalogueBounds bounds, {
     int limit = 1500,
+    Set<CatalogueKind> kinds = const {
+      CatalogueKind.site,
+      CatalogueKind.register,
+    },
   }) async {
     inBoundsCalls++;
     boundsAsked.add(bounds);
+    kindsAsked.add(kinds);
     final inside = [
       for (final site in sites)
-        if (site.location case final location? when bounds.contains(location))
-          site,
+        if (kinds.contains(site.kind))
+          if (site.location case final location? when bounds.contains(location))
+            site,
     ];
     final center = bounds.center;
     int nearestFirst(CatalogueSite a, CatalogueSite b) => distanceMeters(

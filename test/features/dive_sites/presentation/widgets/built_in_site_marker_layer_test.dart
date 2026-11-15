@@ -66,6 +66,79 @@ void main() {
     );
   });
 
+  group('a pin says what kind of record it marks', () {
+    CatalogueSite wreck(String id) => CatalogueSite(
+      id: id,
+      name: id,
+      location: const GeoPoint(10, 20),
+      source: 'ukho',
+      kind: CatalogueKind.register,
+    );
+
+    Icon pin(WidgetTester tester, String id) => tester.widget<Icon>(
+      find.descendant(
+        of: find.byKey(Key('builtInPin_$id')),
+        matching: find.byType(Icon),
+      ),
+    );
+
+    testWidgets('a dive site keeps the hollow pin', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          BuiltInSiteMarkerLayer(
+            sites: [ext('a', 10.0, 20.0)],
+            selectedCatalogueId: null,
+            onTap: (_) {},
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(pin(tester, 'a').icon, Icons.location_on_outlined);
+    });
+
+    testWidgets('a charted wreck or reef is an anchor, and says so', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          BuiltInSiteMarkerLayer(
+            sites: [wreck('Tabarka')],
+            selectedCatalogueId: null,
+            onTap: (_) {},
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(pin(tester, 'Tabarka').icon, Icons.anchor);
+      expect(
+        find.bySemanticsLabel('Charted wreck or reef: Tabarka'),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel('Built-in dive site: Tabarka'),
+        findsNothing,
+      );
+    });
+
+    testWidgets('a selected anchor takes the primary colour', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          BuiltInSiteMarkerLayer(
+            sites: [wreck('w')],
+            selectedCatalogueId: 'w',
+            onTap: (_) {},
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final context = tester.element(find.byKey(const Key('builtInPin_w')));
+      expect(pin(tester, 'w').color, Theme.of(context).colorScheme.primary);
+    });
+  });
+
   testWidgets('renders a cluster bubble for co-located built-in sites', (
     tester,
   ) async {
