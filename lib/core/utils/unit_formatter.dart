@@ -67,6 +67,16 @@ class UnitFormatter {
   /// Get depth unit symbol
   String get depthSymbol => settings.depthUnit.symbol;
 
+  /// A long vertical distance given in metres, in whole display units with
+  /// grouped digits: "6,380 m" or "20,932 ft" (issue #4569). Converted before
+  /// rounding, and grouped in the active locale like [formatAltitude].
+  String formatDepthWhole(double? meters) {
+    if (meters == null) return '--';
+    final converted = DepthUnit.meters.convert(meters, settings.depthUnit);
+    final formatted = NumberFormat('#,##0').format(converted.round());
+    return '$formatted ${settings.depthUnit.symbol}';
+  }
+
   // ============================================================================
   // Rates
   // ============================================================================

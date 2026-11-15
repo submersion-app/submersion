@@ -52026,6 +52026,372 @@ abstract class AppLocalizations {
   /// **'Average Ascent & Descent Rates'**
   String get insights_profile_ascentDescent_title;
 
+  /// No description provided for @insights_profile_verticalDistance_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Ascent & Descent'**
+  String get insights_profile_verticalDistance_title;
+
+  /// No description provided for @insights_profile_verticalDistance_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every dive added up, against mountains and ocean depths'**
+  String get insights_profile_verticalDistance_subtitle;
+
+  /// No description provided for @insights_profile_verticalDistance_totalAscent.
+  ///
+  /// In en, this message translates to:
+  /// **'total ascent'**
+  String get insights_profile_verticalDistance_totalAscent;
+
+  /// No description provided for @insights_profile_verticalDistance_totalDescent.
+  ///
+  /// In en, this message translates to:
+  /// **'total descent'**
+  String get insights_profile_verticalDistance_totalDescent;
+
+  /// No description provided for @insights_profile_verticalDistance_seaLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sea level'**
+  String get insights_profile_verticalDistance_seaLevel;
+
+  /// No description provided for @insights_profile_verticalDistance_next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {landmark}, {distance} to go'**
+  String insights_profile_verticalDistance_next(
+    String landmark,
+    String distance,
+  );
+
+  /// No description provided for @insights_profile_verticalDistance_landmarkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{landmark} {height}'**
+  String insights_profile_verticalDistance_landmarkLabel(
+    String landmark,
+    String height,
+  );
+
+  /// No description provided for @insights_profile_verticalDistance_multiple.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} × {landmark}'**
+  String insights_profile_verticalDistance_multiple(int count, String landmark);
+
+  /// No description provided for @insights_profile_verticalDistance_stripIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'Point at a bar to see when you got there'**
+  String get insights_profile_verticalDistance_stripIdle;
+
+  /// No description provided for @insights_profile_verticalDistance_stripAscent.
+  ///
+  /// In en, this message translates to:
+  /// **'{level} of ascent, reached {date}'**
+  String insights_profile_verticalDistance_stripAscent(
+    String level,
+    String date,
+  );
+
+  /// No description provided for @insights_profile_verticalDistance_stripDescent.
+  ///
+  /// In en, this message translates to:
+  /// **'{level} of descent, reached {date}'**
+  String insights_profile_verticalDistance_stripDescent(
+    String level,
+    String date,
+  );
+
+  /// No description provided for @insights_profile_verticalDistance_stripPassed.
+  ///
+  /// In en, this message translates to:
+  /// **'{landmark}: passed {date}'**
+  String insights_profile_verticalDistance_stripPassed(
+    String landmark,
+    String date,
+  );
+
+  /// No description provided for @insights_profile_verticalDistance_stripAhead.
+  ///
+  /// In en, this message translates to:
+  /// **'{landmark}: {distance} to go'**
+  String insights_profile_verticalDistance_stripAhead(
+    String landmark,
+    String distance,
+  );
+
+  /// No description provided for @insights_profile_verticalDistance_openDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Open dive'**
+  String get insights_profile_verticalDistance_openDive;
+
+  /// No description provided for @insights_profile_verticalDistance_pinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get insights_profile_verticalDistance_pinned;
+
+  /// No description provided for @insights_profile_verticalDistance_estimated.
+  ///
+  /// In en, this message translates to:
+  /// **'{total, plural, one{{estimated} of {total} dive counted from max depth} other{{estimated} of {total} dives counted from max depth}}'**
+  String insights_profile_verticalDistance_estimated(int estimated, int total);
+
+  /// No description provided for @insights_profile_verticalDistance_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives with a depth yet'**
+  String get insights_profile_verticalDistance_empty;
+
+  /// No description provided for @insights_profile_verticalDistance_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load ascent and descent totals'**
+  String get insights_profile_verticalDistance_error;
+
+  /// No description provided for @insights_profile_verticalDistance_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Total ascent and descent {total} each. Next up: {up}, {upDistance} to go. Next down: {down}, {downDistance} to go.'**
+  String insights_profile_verticalDistance_semantics(
+    String total,
+    String up,
+    String upDistance,
+    String down,
+    String downDistance,
+  );
+
+  /// No description provided for @insights_landmark_statueOfLiberty.
+  ///
+  /// In en, this message translates to:
+  /// **'Statue of Liberty'**
+  String get insights_landmark_statueOfLiberty;
+
+  /// No description provided for @insights_landmark_greatPyramid.
+  ///
+  /// In en, this message translates to:
+  /// **'Great Pyramid of Giza'**
+  String get insights_landmark_greatPyramid;
+
+  /// No description provided for @insights_landmark_eiffelTower.
+  ///
+  /// In en, this message translates to:
+  /// **'Eiffel Tower'**
+  String get insights_landmark_eiffelTower;
+
+  /// No description provided for @insights_landmark_empireStateBuilding.
+  ///
+  /// In en, this message translates to:
+  /// **'Empire State Building'**
+  String get insights_landmark_empireStateBuilding;
+
+  /// No description provided for @insights_landmark_burjKhalifa.
+  ///
+  /// In en, this message translates to:
+  /// **'Burj Khalifa'**
+  String get insights_landmark_burjKhalifa;
+
+  /// No description provided for @insights_landmark_benNevis.
+  ///
+  /// In en, this message translates to:
+  /// **'Ben Nevis'**
+  String get insights_landmark_benNevis;
+
+  /// No description provided for @insights_landmark_mountKosciuszko.
+  ///
+  /// In en, this message translates to:
+  /// **'Mount Kosciuszko'**
+  String get insights_landmark_mountKosciuszko;
+
+  /// No description provided for @insights_landmark_mountFuji.
+  ///
+  /// In en, this message translates to:
+  /// **'Mount Fuji'**
+  String get insights_landmark_mountFuji;
+
+  /// No description provided for @insights_landmark_matterhorn.
+  ///
+  /// In en, this message translates to:
+  /// **'Matterhorn'**
+  String get insights_landmark_matterhorn;
+
+  /// No description provided for @insights_landmark_montBlanc.
+  ///
+  /// In en, this message translates to:
+  /// **'Mont Blanc'**
+  String get insights_landmark_montBlanc;
+
+  /// No description provided for @insights_landmark_kilimanjaro.
+  ///
+  /// In en, this message translates to:
+  /// **'Kilimanjaro'**
+  String get insights_landmark_kilimanjaro;
+
+  /// No description provided for @insights_landmark_denali.
+  ///
+  /// In en, this message translates to:
+  /// **'Denali'**
+  String get insights_landmark_denali;
+
+  /// No description provided for @insights_landmark_aconcagua.
+  ///
+  /// In en, this message translates to:
+  /// **'Aconcagua'**
+  String get insights_landmark_aconcagua;
+
+  /// No description provided for @insights_landmark_k2.
+  ///
+  /// In en, this message translates to:
+  /// **'K2'**
+  String get insights_landmark_k2;
+
+  /// No description provided for @insights_landmark_everest.
+  ///
+  /// In en, this message translates to:
+  /// **'Mount Everest'**
+  String get insights_landmark_everest;
+
+  /// No description provided for @insights_landmark_olympusMons.
+  ///
+  /// In en, this message translates to:
+  /// **'Olympus Mons (Mars)'**
+  String get insights_landmark_olympusMons;
+
+  /// No description provided for @insights_landmark_karmanLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Edge of space'**
+  String get insights_landmark_karmanLine;
+
+  /// No description provided for @insights_landmark_internationalSpaceStation.
+  ///
+  /// In en, this message translates to:
+  /// **'International Space Station'**
+  String get insights_landmark_internationalSpaceStation;
+
+  /// No description provided for @insights_landmark_recreationalLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Recreational dive limit'**
+  String get insights_landmark_recreationalLimit;
+
+  /// No description provided for @insights_landmark_greatBlueHole.
+  ///
+  /// In en, this message translates to:
+  /// **'Great Blue Hole'**
+  String get insights_landmark_greatBlueHole;
+
+  /// No description provided for @insights_landmark_deansBlueHole.
+  ///
+  /// In en, this message translates to:
+  /// **'Dean\'s Blue Hole'**
+  String get insights_landmark_deansBlueHole;
+
+  /// No description provided for @insights_landmark_dragonHole.
+  ///
+  /// In en, this message translates to:
+  /// **'Dragon Hole'**
+  String get insights_landmark_dragonHole;
+
+  /// No description provided for @insights_landmark_deepestScubaDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Deepest scuba dive'**
+  String get insights_landmark_deepestScubaDive;
+
+  /// No description provided for @insights_landmark_craterLake.
+  ///
+  /// In en, this message translates to:
+  /// **'Crater Lake'**
+  String get insights_landmark_craterLake;
+
+  /// No description provided for @insights_landmark_lakeTanganyika.
+  ///
+  /// In en, this message translates to:
+  /// **'Lake Tanganyika'**
+  String get insights_landmark_lakeTanganyika;
+
+  /// No description provided for @insights_landmark_lakeBaikal.
+  ///
+  /// In en, this message translates to:
+  /// **'Lake Baikal'**
+  String get insights_landmark_lakeBaikal;
+
+  /// No description provided for @insights_landmark_deepestWhaleDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Deepest whale dive'**
+  String get insights_landmark_deepestWhaleDive;
+
+  /// No description provided for @insights_landmark_averageOceanDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Average ocean depth'**
+  String get insights_landmark_averageOceanDepth;
+
+  /// No description provided for @insights_landmark_titanic.
+  ///
+  /// In en, this message translates to:
+  /// **'Titanic'**
+  String get insights_landmark_titanic;
+
+  /// No description provided for @insights_landmark_bismarck.
+  ///
+  /// In en, this message translates to:
+  /// **'Bismarck'**
+  String get insights_landmark_bismarck;
+
+  /// No description provided for @insights_landmark_molloyDeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Molloy Deep'**
+  String get insights_landmark_molloyDeep;
+
+  /// No description provided for @insights_landmark_deepestShipwreck.
+  ///
+  /// In en, this message translates to:
+  /// **'Deepest shipwreck'**
+  String get insights_landmark_deepestShipwreck;
+
+  /// No description provided for @insights_landmark_javaTrench.
+  ///
+  /// In en, this message translates to:
+  /// **'Java Trench'**
+  String get insights_landmark_javaTrench;
+
+  /// No description provided for @insights_landmark_southSandwichTrench.
+  ///
+  /// In en, this message translates to:
+  /// **'South Sandwich Trench'**
+  String get insights_landmark_southSandwichTrench;
+
+  /// No description provided for @insights_landmark_puertoRicoTrench.
+  ///
+  /// In en, this message translates to:
+  /// **'Puerto Rico Trench'**
+  String get insights_landmark_puertoRicoTrench;
+
+  /// No description provided for @insights_landmark_tongaTrench.
+  ///
+  /// In en, this message translates to:
+  /// **'Tonga Trench'**
+  String get insights_landmark_tongaTrench;
+
+  /// No description provided for @insights_landmark_challengerDeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenger Deep'**
+  String get insights_landmark_challengerDeep;
+
+  /// No description provided for @insights_landmark_kolaBorehole.
+  ///
+  /// In en, this message translates to:
+  /// **'Kola Superdeep Borehole'**
+  String get insights_landmark_kolaBorehole;
+
   /// No description provided for @insights_profile_avgAscent.
   ///
   /// In en, this message translates to:
@@ -100759,6 +101125,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Average speed going down and coming up, worked out from the profiles.'**
   String get info_insights_ascentDescent_summary;
+
+  /// No description provided for @info_insights_verticalDistance_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Each dive is counted from the surface down and back, ignoring wobble under {deadband}. A dive with no profile counts once down to its max depth and once back up.'**
+  String info_insights_verticalDistance_summary(String deadband);
 
   /// No description provided for @info_insights_timeAtDepth_summary.
   ///
