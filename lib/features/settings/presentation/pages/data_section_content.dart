@@ -103,8 +103,10 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       SetUpStep? setUpStep,
     }) {
       final h = healthOf == null ? null : health[healthOf];
+      // A row still checking keeps its icon: health reads a feature whose
+      // inputs are loading as not set up, which the dash would misreport.
       // A photos-off row reads as not set up whatever Lightroom alone says.
-      final level = h == null
+      final level = h == null || status.kind == DataRowStatusKind.checking
           ? null
           : status.showsHealthMark
           ? h.level

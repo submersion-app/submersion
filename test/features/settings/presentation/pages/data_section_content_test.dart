@@ -40,6 +40,8 @@ import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/demo_mode/presentation/widgets/demo_enter_dialog.dart';
+import 'package:submersion/features/settings/domain/data_health/data_row_status.dart';
+import 'package:submersion/features/settings/presentation/providers/data_row_status_providers.dart';
 
 import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -88,6 +90,8 @@ void main() {
     Future<void> Function()? forget,
     // The account Sign in again offers (issue #3811).
     AccountGroup? signInGroup,
+    // A row still loading its inputs (#4561 review).
+    DataRowStatus? librariesStatus,
   }) async {
     // MediaQuery follows the view, which the layout breakpoints read.
     tester.view.devicePixelRatio = 1;
@@ -158,6 +162,8 @@ void main() {
             signInAgainGroupProvider(
               feature,
             ).overrideWith((ref) async => signInGroup),
+          if (librariesStatus != null)
+            librariesRowStatusProvider.overrideWithValue(librariesStatus),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -222,6 +228,40 @@ void main() {
     );
     expect(markBeside('Database storage'), findsNothing);
     expect(markBeside('Connected accounts'), findsNothing);
+  });
+
+  // A feature whose inputs are still loading reads as not set up in the
+  // health model; its row says "Checking" and keeps its own icon rather
+  // than showing the hollow not-set-up dash.
+  testWidgets('a row still checking keeps its icon, not the dash', (
+    tester,
+  ) async {
+    await pumpData(
+      tester,
+      dataHealth: [
+        health[0],
+        health[1],
+        const FeatureHealth(
+          feature: DataFeature.sharedLibraries,
+          level: HealthLevel.notSetUp,
+          reason: HealthReason.notSetUp,
+        ),
+        health[3],
+      ],
+      librariesStatus: const DataRowStatus(DataRowStatusKind.checking),
+    );
+
+    expect(markBeside('Shared site libraries'), findsNothing);
+    expect(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text('Shared site libraries'),
+          matching: find.byType(ListTile),
+        ),
+        matching: find.byIcon(Icons.groups_outlined),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('an amber row says why', (tester) async {
