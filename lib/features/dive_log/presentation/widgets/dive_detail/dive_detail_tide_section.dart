@@ -8,21 +8,27 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_gates.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
+import 'package:submersion/features/tides/domain/services/dive_tide_window.dart';
 import 'package:submersion/features/tides/domain/services/site_wall_clock.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/tides/presentation/tide_state_display.dart';
+import 'package:submersion/features/tides/presentation/widgets/dive_tide_chart.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_extremes_list.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_stat_tiles.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
-import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 
 /// The tide conditions section for a dive.
 ///
 /// Shows tide data from:
 /// 1. Stored TideRecord (if saved when dive was logged)
 /// 2. Calculated from tide model (if dive site has coordinates and tide data)
+///
+/// The card charts the predicted tide across the day around the dive (12
+/// hours either side of the entry), then gives the tide at the entry as
+/// three readings and lists every high and low in that day (issue #4567).
 ///
 /// Collapses to nothing when no tide data is available, so the section takes
 /// up zero space; [topGap] is placed above the card only then. Beside Surface
@@ -56,7 +62,6 @@ class DiveTideSection extends ConsumerWidget {
     final request = diveTideRequest(dive);
     if (request == null) return null;
     final siteLocation = request.location;
-    final entryTime = request.entryTime;
 
     // The stored record, lazily self-healed against a fresh computation.
     final tideRecordAsync = ref.watch(healedTideRecordProvider(request));
@@ -68,7 +73,7 @@ class DiveTideSection extends ConsumerWidget {
             context,
             ref,
             tideRecord.toSiteWallClock(siteLocation),
-            entryTime: entryTime,
+            request: request,
           );
         }
 
@@ -81,8 +86,8 @@ class DiveTideSection extends ConsumerWidget {
           context,
           ref,
           calculated.toSiteWallClock(siteLocation),
+          request: request,
           isCalculated: true,
-          entryTime: entryTime,
         );
       },
       loading: () => null,
@@ -90,82 +95,41 @@ class DiveTideSection extends ConsumerWidget {
     );
   }
 
-  /// Build the tide card with data.
+  /// Build the tide card with data. [record] carries times already mapped
+  /// to the dive site's wall clock.
   Widget _buildTideCard(
     BuildContext context,
     WidgetRef ref,
     TideRecord record, {
+    required ({String diveId, GeoPoint location, DateTime entryTime}) request,
     bool isCalculated = false,
-    DateTime? entryTime,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final units = ref.watch(unitFormatterProvider);
+    final entryTime = request.entryTime;
 
     // Get collapsed state from provider
     final isExpanded = ref.watch(tideSectionExpandedProvider);
 
-    // Get icon and color based on tide state
-    IconData stateIcon;
-    Color stateColor;
-    switch (record.tideState) {
-      case TideState.rising:
-        stateIcon = Icons.trending_up;
-        stateColor = Colors.blue;
-        break;
-      case TideState.falling:
-        stateIcon = Icons.trending_down;
-        stateColor = Colors.orange;
-        break;
-      case TideState.slackHigh:
-        stateIcon = Icons.horizontal_rule;
-        stateColor = Colors.green;
-        break;
-      case TideState.slackLow:
-        stateIcon = Icons.horizontal_rule;
-        stateColor = Colors.amber;
-        break;
-    }
+    // The day of tide around the dive. Watched only while the card is open:
+    // a collapsed card shows none of it.
+    final windowAsync = isExpanded
+        ? ref.watch(diveTideWindowProvider(request))
+        : const AsyncValue<DiveTideWindow?>.loading();
+    final window = windowAsync.value;
+    final hasWindow = window != null && window.predictions.length >= 2;
 
     // Build collapsed subtitle with tide state and height
     final collapsedSubtitle =
         '${record.tideState.localizedName(context.l10n)} • ${DepthUnit.meters.convert(record.heightMeters, units.settings.depthUnit).toStringAsFixed(1)}${units.settings.depthUnit.symbol}';
 
-    // Compute cycle time range for the header
-    final (cycleStart, cycleEnd) = _calculateCycleTimes(
-      record.highTideTime,
-      record.lowTideTime,
-    );
-    final dateRef = entryTime ?? record.highTideTime ?? record.lowTideTime;
-    final dateStr = dateRef != null
-        ? DateFormat(
-            UnitFormatter.weekdayMonthDayPattern(units.settings.dateFormat),
-          ).format(dateRef)
-        : '';
-    // The record's times arrive already mapped to the dive site's wall
-    // clock (wall-clock-as-UTC), so format them verbatim.
-    final timeRangeStr = cycleStart != null && cycleEnd != null
-        ? () {
-            final timeFmt = DateFormat(units.settings.timeFormat.pattern);
-            final startStr = timeFmt.format(cycleStart);
-            final endStr = timeFmt.format(cycleEnd);
-            final spansNewDay =
-                cycleStart.year != cycleEnd.year ||
-                cycleStart.month != cycleEnd.month ||
-                cycleStart.day != cycleEnd.day;
-            if (spansNewDay) {
-              final endDateStr = DateFormat(
-                UnitFormatter.monthDayPattern(units.settings.dateFormat),
-              ).format(cycleEnd);
-              return '$startStr - $endStr ($endDateStr)';
-            }
-            return '$startStr - $endStr';
-          }()
-        : '';
-    final dateTimeLabel = [
-      dateStr,
-      timeRangeStr,
-    ].where((s) => s.isNotEmpty).join(' | ');
+    // The header names the dive's date; the chart's own axis carries the
+    // times, and names the neighbouring day where the window crosses into
+    // it. The entry time is site wall clock, so it is formatted verbatim.
+    final dateLabel = DateFormat(
+      UnitFormatter.weekdayMonthDayPattern(units.settings.dateFormat),
+    ).format(entryTime);
 
     return CollapsibleCardSection(
       title: context.l10n.diveLog_detail_section_tide,
@@ -181,11 +145,11 @@ class DiveTideSection extends ConsumerWidget {
               ),
             )
           : null,
-      // The cycle range is secondary to the card itself: in a half-width
-      // column it trims rather than wrapping the header onto three lines.
-      trailing: isExpanded && dateTimeLabel.isNotEmpty
+      // The date is secondary to the card itself: in a half-width column it
+      // trims rather than wrapping the header.
+      trailing: isExpanded
           ? Text(
-              dateTimeLabel,
+              dateLabel,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.right,
@@ -200,81 +164,66 @@ class DiveTideSection extends ConsumerWidget {
       },
       contentBuilder: (context) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: DetailRowGroup(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Divider(),
-              // Tide cycle visualization
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: TideCycleGraph(
-                  record: record,
-                  referenceTime: entryTime,
-                  timeFormat: units.settings.timeFormat,
-                  depthUnit: units.settings.depthUnit,
-                  height: 80,
-                ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Divider(),
+            const SizedBox(height: 4),
+            if (hasWindow)
+              DiveTideChart(
+                window: window,
+                units: units,
+                displayTime: siteClockConverter(request.location),
+                diveDuration: dive.effectiveRuntime,
+              )
+            else if (windowAsync.isLoading)
+              // Hold the chart's place while the day is computed.
+              SizedBox(height: DiveTideChart.heightOf(context))
+            else
+              // No day of predictions to plot: the single cycle the record
+              // itself describes.
+              TideCycleGraph(
+                record: record,
+                referenceTime: entryTime,
+                timeFormat: units.settings.timeFormat,
+                depthUnit: units.settings.depthUnit,
               ),
-              // Current state, its icon in the label column so the value
-              // lines up with the rows below.
-              DetailRow.text(
-                icon: stateIcon,
-                iconColor: stateColor,
-                iconGap: 8,
-                label: context.l10n.diveLog_detail_label_state,
-                value: record.tideState.localizedName(context.l10n),
-                valueStyle: theme.textTheme.bodyMedium,
-              ),
-              DiveDetailRow(
-                label: context.l10n.diveLog_detail_label_height,
-                value:
-                    '${DepthUnit.meters.convert(record.heightMeters, units.settings.depthUnit).toStringAsFixed(2)}${units.settings.depthUnit.symbol}',
-              ),
-              if (record.rateOfChange != null)
-                DiveDetailRow(
-                  label: context.l10n.diveLog_detail_label_rateOfChange,
-                  value: units.formatTideRate(record.rateOfChange),
-                ),
-              if (record.highTideTime != null && record.highTideHeight != null)
-                DiveDetailRow(
-                  label: context.l10n.diveLog_detail_label_highTide,
-                  value:
-                      '${DepthUnit.meters.convert(record.highTideHeight!, units.settings.depthUnit).toStringAsFixed(2)}${units.settings.depthUnit.symbol} at ${_formatTime(record.highTideTime!, units.settings.timeFormat)}',
-                ),
-              if (record.lowTideTime != null && record.lowTideHeight != null)
-                DiveDetailRow(
-                  label: context.l10n.diveLog_detail_label_lowTide,
-                  value:
-                      '${DepthUnit.meters.convert(record.lowTideHeight!, units.settings.depthUnit).toStringAsFixed(2)}${units.settings.depthUnit.symbol} at ${_formatTime(record.lowTideTime!, units.settings.timeFormat)}',
-                ),
-            ],
-          ),
+            const SizedBox(height: 12),
+            TideStatTiles(record: record, units: units),
+            const SizedBox(height: 8),
+            TideExtremesList(
+              extremes: hasWindow
+                  ? extremesAtSiteWallClock(window.extremes, request.location)
+                  : _recordExtremes(record),
+              units: units,
+              day: entryTime,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  /// Calculate the start and end times for the tide cycle (low -> high -> low).
-  (DateTime?, DateTime?) _calculateCycleTimes(
-    DateTime? highTideTime,
-    DateTime? lowTideTime,
-  ) {
-    if (highTideTime == null || lowTideTime == null) {
-      return (null, null);
-    }
-
-    final halfCycle = highTideTime.difference(lowTideTime).abs();
-
-    if (lowTideTime.isBefore(highTideTime)) {
-      return (lowTideTime, highTideTime.add(halfCycle));
-    } else {
-      return (highTideTime.subtract(halfCycle), lowTideTime);
-    }
-  }
-
-  /// Format a DateTime as a time string using the given time format.
-  String _formatTime(DateTime time, TimeFormat timeFormat) {
-    return DateFormat(timeFormat.pattern).format(time);
+  /// The one high and one low a record names, in time order: what the list
+  /// shows until, or instead of, the day of predictions.
+  List<TideExtreme> _recordExtremes(TideRecord record) {
+    final highTime = record.highTideTime;
+    final highHeight = record.highTideHeight;
+    final lowTime = record.lowTideTime;
+    final lowHeight = record.lowTideHeight;
+    return [
+      if (highTime != null && highHeight != null)
+        TideExtreme(
+          type: TideExtremeType.high,
+          time: highTime,
+          heightMeters: highHeight,
+        ),
+      if (lowTime != null && lowHeight != null)
+        TideExtreme(
+          type: TideExtremeType.low,
+          time: lowTime,
+          heightMeters: lowHeight,
+        ),
+    ]..sort((a, b) => a.time.compareTo(b.time));
   }
 }

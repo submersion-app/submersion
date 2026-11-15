@@ -14,6 +14,7 @@ import 'package:submersion/features/tides/data/services/noaa_station_service.dar
 import 'package:submersion/features/tides/data/services/tide_constituent_resolver.dart';
 import 'package:submersion/features/tides/data/services/tide_data_service.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
+import 'package:submersion/features/tides/domain/services/dive_tide_window.dart';
 import 'package:submersion/features/tides/domain/services/tide_record_heal.dart';
 import 'package:submersion/features/tides/domain/services/site_wall_clock.dart';
 import 'package:submersion/features/tides/domain/services/tide_status_for_dive.dart';
@@ -107,6 +108,27 @@ final calculatedTideRecordProvider = FutureProvider.autoDispose
         id: 'calculated',
         diveId: params.diveId,
         status: status,
+      );
+    });
+
+/// The predicted tide across the day around a dive, for the dive page's
+/// chart: the curve and every high and low from 12 hours before the entry to
+/// 12 hours after it. Times are real instants. Null when no tide data
+/// resolves at the site. Computed off the UI thread, and released when the
+/// dive page stops watching it.
+final diveTideWindowProvider = FutureProvider.autoDispose
+    .family<
+      DiveTideWindow?,
+      ({String diveId, GeoPoint location, DateTime entryTime})
+    >((ref, params) async {
+      final calculator = await ref.watch(
+        tideCalculatorProvider(params.location).future,
+      );
+      if (calculator == null) return null;
+      return loadDiveTideWindow(
+        calculator: calculator,
+        entryWallClock: params.entryTime,
+        location: params.location,
       );
     });
 
