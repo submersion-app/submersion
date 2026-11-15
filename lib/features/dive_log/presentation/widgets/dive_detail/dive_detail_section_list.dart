@@ -627,9 +627,12 @@ class DiveDetailSectionList extends ConsumerWidget {
 
 /// The bare cards of a section pair, in left-then-right order.
 ///
-/// [stackedFirst] and [stackedSecond] are the cards to show instead when the
-/// pair stacks in a narrow pane: null where the row-mode card already keeps
-/// its natural height, set where it is built to fill a shared row height.
+/// In a row both cards are given the taller one's height, so each needs a
+/// `Card` at its root to fill it (issue #4583). [stackedFirst] and
+/// [stackedSecond] are the cards to show instead when the pair stacks in a
+/// narrow pane: null for a card that lays out at its natural height first,
+/// set where the row card holds `Expanded` children and needs a bounded
+/// height (the deco column).
 class _PairCards {
   const _PairCards(
     this.first,

@@ -513,7 +513,8 @@ void main() {
           in find
               .descendant(of: pair, matching: find.byType(Card))
               .evaluate()) {
-        final rect = tester.getRect(find.byWidget(card.widget).first);
+        final box = card.renderObject! as RenderBox;
+        final rect = box.localToGlobal(Offset.zero) & box.size;
         final left = rect.center.dx < middle;
         bottoms[left] = math.max(bottoms[left] ?? 0, rect.bottom);
       }
