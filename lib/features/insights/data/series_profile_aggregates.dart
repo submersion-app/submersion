@@ -4,6 +4,7 @@ import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
+import 'package:submersion/features/insights/domain/vertical_distance/vertical_distance.dart';
 
 /// Smoothing interval used by [ascentDescentRates], in seconds.
 ///
@@ -119,14 +120,14 @@ Map<int, double> combineDepthSeconds(Map<int, double> a, Map<int, double> b) =>
 /// chart on the dive.
 void _forEachStream(
   List<SeriesBlob> blobs,
-  void Function(List<ProfileSample> samples) fold,
+  void Function(StreamKey key, List<ProfileSample> samples) fold,
 ) {
   const codec = ProfileSeriesCodec();
   final byStream = <StreamKey, List<SeriesBlob>>{};
   for (final b in blobs) {
     byStream.putIfAbsent((b.diveId, b.computerId), () => []).add(b);
   }
-  for (final rows in byStream.values) {
+  for (final MapEntry(key: key, value: rows) in byStream.entries) {
     List<ProfileSample>? samples;
     for (final b in rows) {
       final List<ProfileSample> decoded;
@@ -140,7 +141,7 @@ void _forEachStream(
           : _mergedByTimestamp(samples, decoded);
     }
     if (samples == null) continue;
-    fold(samples);
+    fold(key, samples);
     // samples falls out of scope here, before the next stream is decoded.
   }
 }
@@ -148,7 +149,7 @@ void _forEachStream(
 /// [ascentDescentRates] over packed blobs, as combinable totals.
 RateTotals ascentDescentTotalsFromBlobs(List<SeriesBlob> blobs) {
   var totals = emptyRateTotals;
-  _forEachStream(blobs, (samples) {
+  _forEachStream(blobs, (_, samples) {
     totals = _foldRates(totals, samples);
   });
   return totals;
@@ -157,8 +158,26 @@ RateTotals ascentDescentTotalsFromBlobs(List<SeriesBlob> blobs) {
 /// [timeAtDepthRanges] over packed blobs, as combinable bucket seconds.
 Map<int, double> timeAtDepthSecondsFromBlobs(List<SeriesBlob> blobs) {
   final seconds = <int, double>{};
-  _forEachStream(blobs, (samples) => _foldDepthSeconds(seconds, samples));
+  _forEachStream(blobs, (_, samples) => _foldDepthSeconds(seconds, samples));
   return seconds;
+}
+
+/// Each dive's vertical distance from its primary series (issue #4569),
+/// keyed by dive id; see [verticalDistanceMeters].
+///
+/// A stream stored as several series rows is interleaved first, so it counts
+/// once. A dive logged by two primary computers keeps the larger figure: both
+/// recorded the same dive, and the larger one missed less of it. A dive whose
+/// every blob fails to decode is absent, so the caller falls back to its max
+/// depth.
+Map<String, double> verticalDistanceByDiveFromBlobs(List<SeriesBlob> blobs) {
+  final out = <String, double>{};
+  _forEachStream(blobs, (key, samples) {
+    final meters = verticalDistanceMeters(samples.map((s) => s.depth));
+    final previous = out[key.$1];
+    if (previous == null || meters > previous) out[key.$1] = meters;
+  });
+  return out;
 }
 
 ({double? avgAscent, double? avgDescent}) ascentDescentRatesFromBlobs(
