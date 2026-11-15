@@ -3059,7 +3059,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buddySwap_nearby_failed =>
-      'Kon niet naar duikers in de buurt zoeken. De andere manieren om te wisselen hieronder werken nog.';
+      'Kon niet naar duikers in de buurt zoeken. De andere manieren om te wisselen werken nog.';
 
   @override
   String buddySwap_dives(int count) {

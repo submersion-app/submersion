@@ -822,7 +822,7 @@
   "buddySwap_yourCard": "O seu cartão",
   "buddySwap_nearby_title": "Por perto",
   "buddySwap_nearby_status": "A procurar mergulhadores. O seu parceiro precisa deste ecrã aberto e do Submersion 1.8.4 ou posterior.",
-  "buddySwap_nearby_failed": "Não foi possível procurar mergulhadores por perto. As outras formas de trocar abaixo continuam a funcionar.",
+  "buddySwap_nearby_failed": "Não foi possível procurar mergulhadores por perto. As outras formas de trocar continuam a funcionar.",
   "buddySwap_dives": "{count, plural, =1{{count} mergulho} other{{count} mergulhos}}",
   "buddySwap_action_showCode": "Mostrar o meu código",
   "buddySwap_action_scanCode": "Ler o código do parceiro",

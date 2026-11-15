@@ -3066,7 +3066,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get buddySwap_nearby_failed =>
-      'Nem sikerült a közeli búvárokat keresni. Az alábbi többi cseremód továbbra is működik.';
+      'Nem sikerült a közeli búvárokat keresni. A többi cseremód továbbra is működik.';
 
   @override
   String buddySwap_dives(int count) {

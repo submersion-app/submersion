@@ -3079,7 +3079,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get buddySwap_nearby_failed =>
-      'No se pudo buscar buceadores cercanos. Las otras formas de intercambiar de abajo siguen funcionando.';
+      'No se pudo buscar buceadores cercanos. Las otras formas de intercambiar siguen funcionando.';
 
   @override
   String buddySwap_dives(int count) {

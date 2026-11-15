@@ -822,7 +822,7 @@
   "buddySwap_yourCard": "بطاقتك",
   "buddySwap_nearby_title": "بالقرب منك",
   "buddySwap_nearby_status": "جارٍ البحث عن غواصين. يحتاج رفيقك إلى فتح هذه الشاشة واستخدام Submersion 1.8.4 أو أحدث.",
-  "buddySwap_nearby_failed": "تعذّر البحث عن الغواصين القريبين. لا تزال طرق التبادل الأخرى أدناه تعمل.",
+  "buddySwap_nearby_failed": "تعذّر البحث عن الغواصين القريبين. لا تزال طرق التبادل الأخرى تعمل.",
   "buddySwap_dives": "{count, plural, =1{غطسة واحدة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
   "buddySwap_action_showCode": "عرض رمزي",
   "buddySwap_action_scanCode": "امسح رمز رفيقك",

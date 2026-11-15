@@ -3027,7 +3027,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddySwap_nearby_failed =>
-      'לא ניתן היה לחפש צוללים בקרבת מקום. שאר דרכי ההחלפה למטה עדיין עובדות.';
+      'לא ניתן היה לחפש צוללים בקרבת מקום. שאר דרכי ההחלפה עדיין עובדות.';
 
   @override
   String buddySwap_dives(int count) {

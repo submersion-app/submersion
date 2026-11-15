@@ -110,7 +110,12 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
       if (mounted) setState(() => _cardFailed = true);
       return;
     }
-    if (!mounted || card == null || run != _runs) return;
+    if (!mounted || run != _runs) return;
+    if (card == null) {
+      // No current diver: nothing to send, but receiving still works.
+      setState(() => _cardFailed = true);
+      return;
+    }
     final session = ref.read(buddySwapSessionFactoryProvider)(card);
     _session = session;
     _events = session.events.listen(_onEvent);
@@ -447,8 +452,15 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
                     Expanded(
                       child: ListView(padding: padding, children: yours),
                     ),
+                    // One primary list per route: on iOS and Android both
+                    // would attach to the route's controller, and a
+                    // status-bar tap could not tell which to scroll.
                     Expanded(
-                      child: ListView(padding: padding, children: methods),
+                      child: ListView(
+                        primary: false,
+                        padding: padding,
+                        children: methods,
+                      ),
                     ),
                   ],
                 );

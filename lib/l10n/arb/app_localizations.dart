@@ -4735,7 +4735,7 @@ abstract class AppLocalizations {
   /// No description provided for @buddySwap_nearby_failed.
   ///
   /// In en, this message translates to:
-  /// **'Could not look for nearby divers. The other ways to swap below still work.'**
+  /// **'Could not look for nearby divers. The other ways to swap still work.'**
   String get buddySwap_nearby_failed;
 
   /// No description provided for @buddySwap_dives.

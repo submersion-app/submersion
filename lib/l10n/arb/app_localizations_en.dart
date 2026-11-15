@@ -3040,7 +3040,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buddySwap_nearby_failed =>
-      'Could not look for nearby divers. The other ways to swap below still work.';
+      'Could not look for nearby divers. The other ways to swap still work.';
 
   @override
   String buddySwap_dives(int count) {

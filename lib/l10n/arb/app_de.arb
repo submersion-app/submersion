@@ -848,7 +848,7 @@
   "buddySwap_yourCard": "Deine Karte",
   "buddySwap_nearby_title": "In der Nähe",
   "buddySwap_nearby_status": "Suche nach Tauchern. Dein Buddy braucht diesen Bildschirm geöffnet und Submersion 1.8.4 oder neuer.",
-  "buddySwap_nearby_failed": "Taucher in der Nähe konnten nicht gesucht werden. Die anderen Wege zum Tauschen unten funktionieren weiterhin.",
+  "buddySwap_nearby_failed": "Taucher in der Nähe konnten nicht gesucht werden. Die anderen Wege zum Tauschen funktionieren weiterhin.",
   "buddySwap_dives": "{count, plural, =1{1 Tauchgang} other{{count} Tauchgänge}}",
   "buddySwap_action_showCode": "Meinen Code zeigen",
   "buddySwap_action_scanCode": "Code des Buddys scannen",

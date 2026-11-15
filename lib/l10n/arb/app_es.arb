@@ -822,7 +822,7 @@
   "buddySwap_yourCard": "Tu tarjeta",
   "buddySwap_nearby_title": "Cerca",
   "buddySwap_nearby_status": "Buscando buceadores. Tu compañero necesita esta pantalla abierta y Submersion 1.8.4 o posterior.",
-  "buddySwap_nearby_failed": "No se pudo buscar buceadores cercanos. Las otras formas de intercambiar de abajo siguen funcionando.",
+  "buddySwap_nearby_failed": "No se pudo buscar buceadores cercanos. Las otras formas de intercambiar siguen funcionando.",
   "buddySwap_dives": "{count, plural, =1{1 inmersión} other{{count} inmersiones}}",
   "buddySwap_action_showCode": "Mostrar mi código",
   "buddySwap_action_scanCode": "Escanear su código",

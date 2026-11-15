@@ -3078,7 +3078,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get buddySwap_nearby_failed =>
-      'Impossibile cercare subacquei nelle vicinanze. Gli altri modi per scambiare qui sotto funzionano ancora.';
+      'Impossibile cercare subacquei nelle vicinanze. Gli altri modi per scambiare funzionano ancora.';
 
   @override
   String buddySwap_dives(int count) {

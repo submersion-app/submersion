@@ -3076,7 +3076,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get buddySwap_nearby_failed =>
-      'Não foi possível procurar mergulhadores por perto. As outras formas de trocar abaixo continuam a funcionar.';
+      'Não foi possível procurar mergulhadores por perto. As outras formas de trocar continuam a funcionar.';
 
   @override
   String buddySwap_dives(int count) {

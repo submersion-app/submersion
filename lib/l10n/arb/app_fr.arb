@@ -822,7 +822,7 @@
   "buddySwap_yourCard": "Votre carte",
   "buddySwap_nearby_title": "À proximité",
   "buddySwap_nearby_status": "Recherche de plongeurs. Votre binôme doit ouvrir cet écran et avoir Submersion 1.8.4 ou plus récent.",
-  "buddySwap_nearby_failed": "Impossible de chercher des plongeurs à proximité. Les autres façons d'échanger ci-dessous fonctionnent toujours.",
+  "buddySwap_nearby_failed": "Impossible de chercher des plongeurs à proximité. Les autres façons d'échanger fonctionnent toujours.",
   "buddySwap_dives": "{count, plural, =1{{count} plongée} other{{count} plongées}}",
   "buddySwap_action_showCode": "Afficher mon code",
   "buddySwap_action_scanCode": "Scanner son code",

@@ -351,6 +351,31 @@ void main() {
     expect(session.starts, 0);
   });
 
+  testWidgets('no current diver shows the card failure, not a spinner', (
+    tester,
+  ) async {
+    await pump(tester, card: () async => null);
+    expect(find.text('Your buddy card could not be built.'), findsOneWidget);
+    expect(find.text('Scan their code'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('two columns share no primary scroll controller', (tester) async {
+    await pump(tester, width: 800);
+    // Read above the columns: a primary list hides the controller below it.
+    final primary = PrimaryScrollController.of(
+      tester.element(
+        find
+            .ancestor(
+              of: find.text('Nearby'),
+              matching: find.byType(LayoutBuilder),
+            )
+            .first,
+      ),
+    );
+    expect(primary.positions.length, lessThanOrEqualTo(1));
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
   testWidgets('719 wide is one column, 720 is two', (tester) async {
     await pump(tester, width: 719);
     expect(
@@ -453,8 +478,8 @@ void main() {
     await settle(tester);
     expect(
       find.text(
-        'Could not look for nearby divers. The other ways to swap below '
-        'still work.',
+        'Could not look for nearby divers. The other ways to swap still '
+        'work.',
       ),
       findsOneWidget,
     );

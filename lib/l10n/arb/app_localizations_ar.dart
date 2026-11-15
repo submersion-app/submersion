@@ -3157,7 +3157,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buddySwap_nearby_failed =>
-      'تعذّر البحث عن الغواصين القريبين. لا تزال طرق التبادل الأخرى أدناه تعمل.';
+      'تعذّر البحث عن الغواصين القريبين. لا تزال طرق التبادل الأخرى تعمل.';
 
   @override
   String buddySwap_dives(int count) {

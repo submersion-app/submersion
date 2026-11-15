@@ -822,7 +822,7 @@
   "buddySwap_yourCard": "הכרטיס שלך",
   "buddySwap_nearby_title": "בקרבת מקום",
   "buddySwap_nearby_status": "מחפש צוללים. השותף שלך צריך שהמסך הזה יהיה פתוח ו-Submersion 1.8.4 ואילך.",
-  "buddySwap_nearby_failed": "לא ניתן היה לחפש צוללים בקרבת מקום. שאר דרכי ההחלפה למטה עדיין עובדות.",
+  "buddySwap_nearby_failed": "לא ניתן היה לחפש צוללים בקרבת מקום. שאר דרכי ההחלפה עדיין עובדות.",
   "buddySwap_dives": "{count, plural, =1{צלילה אחת} other{{count} צלילות}}",
   "buddySwap_action_showCode": "הצג את הקוד שלי",
   "buddySwap_action_scanCode": "סרוק את הקוד של השותף",
