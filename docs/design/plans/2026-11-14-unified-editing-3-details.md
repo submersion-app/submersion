@@ -1085,15 +1085,22 @@ Plan 2's pull request (#4550) gained two fix commits while this was being built.
 
 ### Tests the plan listed that were not written
 
-- "A course refresh that throws" and "a trip message that cannot be shown": neither can be made to throw from a test. The guard is pinned by "a mode that cannot be remembered is not a failed save"; the other two guards are the same helper.
-- A failed trip stretch failing the save (call 6), and reverting a sitting restoring the trip's dates. The reviewer ran the second as a probe and it holds.
+- "A course refresh that throws" and "a trip message that cannot be shown": neither can be made to throw from a test. The guard is pinned by "a mode that cannot be remembered is not a failed save"; all three steps go through the one guarded helper.
+
+### From the code review of the pull request
+
+- **A new trip or dive center that cannot be read back** is caught: the dive is left as it was and the diver is told to try again (`common_error_tryAgain`). The record exists and can be picked from the list.
+- **In Range, a measured distance the sitting holds is named in the caption.** No chip can show it, and it is what Save writes. This is the case of `1.2.3` typed in Precise and Range tapped.
+- **A row or editor that goes before it has built makes no text binding on the way out.** The bindings are made on first use and disposed only if made.
+- **The clear buttons of the trip and dive center rows are named** (`common_action_remove`).
+- **The calculated rows in the open editor share one label column**, as on the read card.
+- Tests added: a trip stretch that throws fails the save and leaves the dive as it was; reverting the sitting puts the trip's dates back; a cleared dive center is stored as null; a look at the other visibility input changes nothing for a bucket, a range under another scale, or no visibility.
 
 ### Left open
 
 - In the open editor the calculated rows keep the read card's layout, the value beside its label, while the form rows put the value at the right edge.
-- In Range, nothing on the row says the sitting holds a measured distance. Typing `1.2.3` and switching to Range leaves 1.2 m held, the last readable text, with no sign of it until Done. The form does the same.
 - After a look at Range, the Precise row comes back open for typing, not resting: both inputs share one form row.
-- A trip or dive center lookup that throws after a new one is made is an unhandled error with no word to the diver, as in the form.
 - A dive with a `tripId` whose trip did not load reads as "Not set" and offers no clear.
 - After a saved sitting the quality scan and the tide record are not run, as after plans 1 and 2.
 - `diveSaveTouchesTrip` compares entry times while the stretch reads the dive's date column. It matters once plan 4 makes dates editable.
+- Tide, Signatures and the Environment card's satellite block are each handed the held layout by name. Once the site and the date can be edited (plan 4), more readers will need it; the general form is the spec's rule that a calculated card keeps its stored values during a sitting.
