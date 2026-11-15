@@ -413,4 +413,54 @@ void main() {
     expect(built, isTrue);
     expect(found, isNull);
   });
+
+  // Work the sitting started that a save depends on, such as the dive types
+  // a picked site adds: the save writes what it brings (issue #4527, plan 4).
+  test('save waits for tracked work before freezing', () async {
+    _Rec? saved;
+    final controller = _controller(
+      onSave: (session) async => saved = session.working,
+    )..unlock(const _Rec());
+    final session = controller.session!..set(_notes, 'typed');
+    final gate = Completer<void>();
+    session.track(gate.future.then((_) => session.set(_depth, 12)));
+
+    final saving = controller.save();
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.isSaving, isTrue);
+    expect(saved, isNull);
+
+    gate.complete();
+    expect(await saving, isTrue);
+    expect(saved, const _Rec(notes: 'typed', depth: 12));
+  });
+
+  test('a sitting whose only change is held is saved', () async {
+    var saves = 0;
+    final controller = _controller(onSave: (_) async => saves++)
+      ..unlock(const _Rec());
+    controller.session!.holdChange('k', cardId: 'header', write: () async {});
+
+    expect(controller.isDirty, isTrue);
+    expect(await controller.save(), isTrue);
+    expect(saves, 1);
+  });
+
+  test('a sitting ended while its save waits is not saved', () async {
+    var saves = 0;
+    // Disposed by the test itself: the page went away mid-save.
+    final controller = RecordEditController<_Rec>(onSave: (_) async => saves++)
+      ..unlock(const _Rec());
+    final session = controller.session!..set(_notes, 'typed');
+    final gate = Completer<void>();
+    session.track(gate.future);
+
+    final saving = controller.save();
+    await Future<void>.delayed(Duration.zero);
+    controller.dispose();
+    gate.complete();
+
+    expect(await saving, isFalse);
+    expect(saves, 0);
+  });
 }

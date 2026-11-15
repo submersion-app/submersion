@@ -299,9 +299,18 @@ class RecordEditController<T> extends ChangeNotifier {
     _isSaving = true;
     _saveError = null;
     _storedDuringSave = null;
+    notifyListeners();
+    // Work the sitting started that the save depends on, such as the dive
+    // types a picked site adds, lands first. The page takes no input
+    // meanwhile: it reads [isSaving]. With nothing running the write starts
+    // at once, as it always has.
+    if (!session.isSettled) {
+      await session.settled();
+      // The page went away, or the sitting was discarded, while it waited.
+      if (!identical(_session, session)) return false;
+    }
     // What is written is what the diver saw when they asked for it.
     session.freeze();
-    notifyListeners();
     try {
       await onSave(session);
     } catch (error) {
