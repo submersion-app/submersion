@@ -108,11 +108,12 @@ class SiteCatalogueAnswers extends Equatable {
     Set<String>? also,
     Set<String>? notSame,
     Map<String, Set<String>>? declined,
+    Map<String, Object?>? unknown,
   }) => SiteCatalogueAnswers(
     also: also ?? this.also,
     notSame: notSame ?? this.notSame,
     declined: declined ?? this.declined,
-    unknown: unknown,
+    unknown: unknown ?? this.unknown,
   );
 
   /// With [recordId] remembered as a different place.

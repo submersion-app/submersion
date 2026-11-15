@@ -111,6 +111,37 @@ void main() {
     });
   });
 
+  test('keys a newer build wrote on a merged site are carried over', () {
+    final claims = mergedCatalogueClaims(
+      survivor: _site(
+        's',
+        link: 'r1',
+        answers: SiteCatalogueAnswers.decode('{"later":1,"both":"mine"}'),
+      ),
+      mergedAway: [
+        _site(
+          'a',
+          answers: SiteCatalogueAnswers.decode(
+            '{"both":"theirs","seen":["x"]}',
+          ),
+        ),
+        _site(
+          'b',
+          answers: SiteCatalogueAnswers.decode('{"seen":["y"],"more":true}'),
+        ),
+      ],
+    );
+
+    // The survivor's own value wins a key both hold, then the first merged
+    // site's: what such a key means is not known here, so none is blended.
+    expect(claims.answers.unknown, {
+      'later': 1,
+      'both': 'mine',
+      'seen': ['x'],
+      'more': true,
+    });
+  });
+
   test('sites that claim nothing merge to nothing', () {
     final claims = mergedCatalogueClaims(
       survivor: _site('s'),

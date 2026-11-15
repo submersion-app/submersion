@@ -43,8 +43,9 @@ class DiveSites extends Table {
   TextColumn get catalogueId => text().nullable()();
 
   /// What the diver has settled about catalogue records for this site
-  /// (v369), as JSON: records it also stands for, records that are a
-  /// different place, and details turned down. Null when there is nothing.
+  /// (v369), as JSON. It holds the records the site also stands for, the
+  /// records that are a different place, and the details turned down.
+  /// Null when there is nothing.
   TextColumn get catalogueAnswers => text().nullable()();
   TextColumn get region => text().nullable()();
   RealColumn get rating => real().nullable()();

@@ -289,15 +289,20 @@ class CatalogueGapService {
   /// Best-effort altitude for each site that was given a position. After
   /// the writes have committed, so a network stall holds no lock; never
   /// throws.
+  ///
+  /// The lookup can be out for seconds. The site is read again when it
+  /// answers, and an altitude the diver entered meanwhile is left alone,
+  /// as a fill leaves any other value of theirs.
   Future<void> _fillAltitudes(Map<String, GeoPoint> located) async {
     final fetch = fetchElevation;
     if (fetch == null) return;
     for (final entry in located.entries) {
       try {
         final meters = await fetch(entry.value);
-        if (meters != null) {
-          await _sites.updateSiteAltitude(entry.key, meters);
-        }
+        if (meters == null) continue;
+        final site = await _sites.getSiteById(entry.key);
+        if (site == null || site.altitude != null) continue;
+        await _sites.updateSiteAltitude(entry.key, meters);
       } catch (error, stackTrace) {
         _log.warning(
           'Altitude lookup failed for site ${entry.key}',

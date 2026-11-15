@@ -12,6 +12,12 @@ import 'package:submersion/features/dive_sites/domain/services/catalogue_site_vi
 /// united, less whatever the survivor now claims; details turned down are
 /// kept for the surviving link only.
 ///
+/// Keys a newer build wrote, which this one cannot read, are carried over
+/// from every site: the merged rows are deleted, and what they held would
+/// go with them. Where two sites hold the same key the survivor's value
+/// stands, then the first merged site's. Nothing is blended, since what
+/// such a value means is not known here.
+///
 /// The merge page cannot choose any of this: it builds the merged site
 /// from a form that knows nothing of the catalogue.
 ({String? link, SiteCatalogueAnswers answers}) mergedCatalogueClaims({
@@ -37,6 +43,10 @@ import 'package:submersion/features/dive_sites/domain/services/catalogue_site_vi
             if (id != link && !also.contains(id)) id,
       },
       declined: link == null ? const {} : {link: ?before.declined[link]},
+      unknown: {
+        // Last in wins, so the survivor goes last and merge order holds.
+        for (final site in merged.reversed) ...site.catalogueAnswers.unknown,
+      },
     ),
   );
 }

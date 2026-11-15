@@ -500,6 +500,26 @@ void main() {
       expect((await sites.getSiteById('s1'))!.location, _blueHole);
     });
 
+    test(
+      'an altitude the diver typed while the lookup was out is kept',
+      () async {
+        await mine('s1', 'Blue Hole', country: 'Egypt');
+        final pair = (await pairs()).single;
+        final lookup = Completer<double?>();
+        final gaps = service(fetchElevation: (_) => lookup.future);
+        await gaps.apply([
+          CatalogueApplyRequest(pair, pair.fields),
+        ], diverId: 'd1');
+
+        // The diver opens the site and enters its altitude themselves.
+        await sites.updateSiteAltitude('s1', 1800);
+        lookup.complete(7);
+        await gaps.altitudeFills;
+
+        expect((await sites.getSiteById('s1'))!.altitude, 1800);
+      },
+    );
+
     test('an altitude the diver typed is not looked up again', () async {
       await sites.createSite(
         const DiveSite(

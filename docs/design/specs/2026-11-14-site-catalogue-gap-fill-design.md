@@ -617,6 +617,12 @@ findings. All are fixed. The calls it led to:
   pairs are found again and the site list is refreshed through the
   provider container, not through the page's own state.
 - **Each tick is named after its site for a screen reader.**
+- **An altitude lookup's answer is written only when the site still has
+  no altitude.** The lookup can be out for seconds, and a value the diver
+  entered meanwhile stays.
+- **A merge carries over keys of the answers that this build cannot
+  read,** from every merged site. The survivor's value stands where two
+  hold the same key, then the first merged site's.
 
 ## Left to the builder
 
