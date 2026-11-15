@@ -29,6 +29,8 @@ void main() {
     List<int>? ndlCurve,
     List<double>? ceilingCurve,
     List<double>? decoStopCurve,
+    double curveHeight = kPinnedStripHeight,
+    double extraMaxDepthMeters = 0,
   }) => PinnedStripPainter(
     profile: profile,
     curveColor: Colors.blue,
@@ -39,6 +41,8 @@ void main() {
     ceilingCurve: ceilingCurve,
     decoStopCurve: decoStopCurve,
     surfaceColor: Colors.white,
+    curveHeight: curveHeight,
+    extraMaxDepthMeters: extraMaxDepthMeters,
   );
 
   Future<void> pumpPainter(WidgetTester tester, PinnedStripPainter p) =>
@@ -212,6 +216,60 @@ void main() {
         ),
     );
     expect(kProfileDepthLineWidth, 1);
+  });
+
+  // Issue #4562: the strip grows while a card's line layer shows, and a
+  // ghost depth line deeper than the dive sets the depth axis.
+  group('grown and ghosted', () {
+    test('curveHeight 72 maps the deepest point to y 68', () {
+      final m = painter(
+        morph: 1,
+        curveHeight: kPinnedStripGrownHeight,
+      ).mappingFor(const Size(400, kPinnedStripGrownHeight));
+      expect(m.project(600, 24).dy, 68);
+      expect(m.project(60, 0).dy, 4);
+    });
+
+    test('its clip is the grown curve area once pinned', () {
+      expect(
+        painter(
+          from: chart,
+          morph: 1,
+          curveHeight: kPinnedStripGrownHeight,
+        ).clipFor(const Size(400, kPinnedStripGrownHeight)),
+        const Rect.fromLTWH(0, 0, 400, kPinnedStripGrownHeight),
+      );
+    });
+
+    test('a deeper ghost lifts the profile off the bottom', () {
+      final m = painter(
+        morph: 1,
+        extraMaxDepthMeters: 48,
+      ).mappingFor(const Size(400, kPinnedStripHeight));
+      expect(m.maxDepthMeters, 48);
+      // Half way down the 36 px curve area.
+      expect(m.project(600, 24).dy, 22);
+    });
+
+    test('a shallower ghost leaves the axis to the profile', () {
+      final m = painter(
+        morph: 1,
+        extraMaxDepthMeters: 10,
+      ).mappingFor(const Size(400, kPinnedStripHeight));
+      expect(m.maxDepthMeters, 24);
+    });
+
+    test('repaints when the height or the ghost depth changes', () {
+      expect(
+        painter(curveHeight: 72).shouldRepaint(painter(curveHeight: 44)),
+        isTrue,
+      );
+      expect(
+        painter(extraMaxDepthMeters: 30).shouldRepaint(painter()),
+        isTrue,
+      );
+      expect(painter().shouldRepaint(painter()), isFalse);
+    });
   });
 
   test('kPinnedStripHeight is 44', () {
