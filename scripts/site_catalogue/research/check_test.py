@@ -159,6 +159,15 @@ class ShapeTest(unittest.TestCase):
         self.assertNotEqual(checked.state, "approved")
         check.report([checked])
 
+    def test_an_unreadable_read_date_fails(self):
+        entry = _with(("position", "sources", 0, "read"), "16 Nov 2026")
+        self.assertIn("read_date", _rules(_one(entry)))
+
+    def test_no_review_reads_as_pending(self):
+        entry = _entry()
+        del entry["review"]
+        self.assertEqual(_one(entry).state, "pending")
+
     def test_missing_read_date_fails(self):
         entry = _entry()
         del entry["types"]["sources"][0]["read"]
@@ -257,6 +266,10 @@ class PositionTest(unittest.TestCase):
         self.assertTrue(checked.ok, checked.findings)
         self.assertAlmostEqual(abs(checked.position[1]), 180.0, places=6)
 
+    def test_a_stated_position_that_is_not_numbers_fails(self):
+        entry = _with(("position", "lat"), "eight south")
+        self.assertIn("shape", _rules(_one(entry)))
+
     def test_mean_more_than_10m_off_fails(self):
         entry = _with(("position", "lat"), round(_mean_lat(), 6) + 0.0002)
         self.assertIn("position_mean", _rules(_one(entry)))
@@ -321,6 +334,17 @@ class DepthTest(unittest.TestCase):
     def test_depth_written_by_hand_fails(self):
         self.assertIn("depth_by_hand", _rules(_one(_entry(max_depth_m=30))))
 
+    def test_no_depth_at_all_passes_with_none(self):
+        entry = _entry()
+        del entry["max_depth_m"], entry["min_depth_m"]
+        checked = _one(entry)
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertIsNone(checked.max_depth)
+
+    def test_a_depth_that_is_not_a_number_fails(self):
+        entry = _with(("max_depth_m", "sources", 0, "value"), "thirty")
+        self.assertIn("shape", _rules(_one(entry)))
+
 
 class FactTest(unittest.TestCase):
     def test_contradicted_type_left_out(self):
@@ -332,6 +356,17 @@ class FactTest(unittest.TestCase):
         self.assertTrue(checked.ok)
         self.assertEqual(checked.types, [])
         self.assertIn("fact_contradicted", _rules(checked, fatal=False))
+
+    def test_a_fact_may_be_absent(self):
+        entry = _entry()
+        del entry["hazards"]
+        checked = _one(entry)
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.hazards, [])
+
+    def test_a_fact_value_that_is_not_a_list_fails(self):
+        entry = _with(("types", "value"), "wreck")
+        self.assertIn("shape", _rules(_one(entry)))
 
     def test_value_without_counting_source_fails(self):
         entry = _with(("types", "sources", 0, "url"), "https://dir.com/x")
@@ -398,6 +433,23 @@ class MainTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("research_id_usat_liberty", text)
 
+    def test_review_writes_the_page(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "review.html"
+            sites = Path(tmp) / "sites.json"
+            sites.write_text(json.dumps({"sites": [_entry()]}), encoding="utf-8")
+            domains = Path(tmp) / "domains.json"
+            domains.write_text(json.dumps({
+                "counting": DOMAINS.counting, "cite_only": DOMAINS.cite_only,
+                "never": DOMAINS.never,
+            }), encoding="utf-8")
+            with redirect_stdout(io.StringIO()) as printed:
+                code = check.main(["--file", str(sites), "--domains", str(domains),
+                                   "--review", str(out)], today=TODAY)
+            self.assertEqual(code, 0)
+            self.assertIn("USAT Liberty", out.read_text(encoding="utf-8"))
+            self.assertIn("Review page", printed.getvalue())
+
     def test_an_empty_file_passes(self):
         self.assertEqual(self._run([])[0], 0)
 
@@ -406,10 +458,13 @@ class MainTest(unittest.TestCase):
             {"id": "curated_x", "reason": "position", "date": 20261202},
             {"id": "curated_x", "reason": "bored", "date": "2026-12-02"},
             {"id": "osm_node_1", "reason": "position", "date": "2026-12-02"},
+            "curated_x",
+            {"id": "curated_x", "reason": "position", "date": "2026-12-02",
+             "replaced_by": 7},
         ):
             code, text = self._run([], [bad])
             self.assertEqual(code, 1, bad)
-            self.assertIn(bad["id"], text)
+            self.assertIn("curated_x" if isinstance(bad, str) else bad["id"], text)
         self.assertEqual(self._run([], [
             {"id": "curated_x", "reason": "position", "date": "2026-12-02"}])[0], 0)
 

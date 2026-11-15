@@ -80,6 +80,22 @@ class ReviewPageTest(unittest.TestCase):
         self.assertIn("5 to 30 m", page)
         self.assertIn("Boat traffic overhead.", page)
 
+    def test_a_maximum_alone_reads_to_that_depth(self):
+        entry = _entry()
+        del entry["min_depth_m"]
+        self.assertIn("to 30 m", _page(entry))
+
+    def test_an_unreadable_cited_figure_and_a_stray_source(self):
+        entry = _entry()
+        entry["position"]["sources"] += [
+            {"url": "https://dir.com/x", "read": "2026-11-16",
+             "lat": "8 16 S", "lon": "east of the jetty"},
+            "not a source",
+        ]
+        page = _page(entry)
+        self.assertIn("unreadable", page)
+        self.assertIn("Approve or reject", page)
+
     def test_left_out_facts_are_shown(self):
         page = _page(_entry(max_depth_m={"sources": [
             {"url": "https://opa.com/a", "read": "2026-11-15", "value": 8},

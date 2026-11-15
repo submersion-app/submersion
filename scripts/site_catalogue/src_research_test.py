@@ -191,6 +191,18 @@ class WithdrawalsTest(unittest.TestCase):
         )
         self.assertNotIn("replaced_by", withdrawn["research_id_a"])
 
+    def test_a_longer_replacement_loop_is_refused(self):
+        def withdrawn(site_id, replaced_by):
+            return _entry(site_id, withdrawn={
+                "reason": "position", "date": "2026-12-01",
+                "replaced_by": replaced_by})
+        with self.assertRaises(ValueError):
+            src_research.withdrawals([
+                withdrawn("research_id_a", "research_id_b"),
+                withdrawn("research_id_b", "research_id_c"),
+                withdrawn("research_id_c", "research_id_b"),
+            ], [])
+
     def test_a_replacement_loop_is_refused(self):
         with self.assertRaises(ValueError):
             src_research.withdrawals(

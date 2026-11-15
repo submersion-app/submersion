@@ -199,8 +199,6 @@ def _follow_replacements(found: dict[str, dict]) -> dict[str, dict]:
                 raise ValueError(f"{site_id}: its replacements loop back on it")
             seen.add(target)
             target = found[target]["replaced_by"]
-        if target in seen:
-            raise ValueError(f"{site_id}: its replacements loop back on it")
         if target in found:
             # Withdrawn outright, with nothing after it: no record corrects
             # this one any more.

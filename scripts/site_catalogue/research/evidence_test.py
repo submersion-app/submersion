@@ -96,6 +96,10 @@ class ParseCoordinateTest(unittest.TestCase):
             with self.assertRaises(ValueError, msg=bad):
                 evidence.parse_coordinate(bad, "lat")
 
+    def test_a_value_of_another_type_is_refused(self):
+        with self.assertRaises(ValueError):
+            evidence.parse_coordinate([8, 16], "lat")
+
     def test_rubbish_is_refused(self):
         for text in ("", "north", "8 16 28 12 S", True, None):
             with self.assertRaises(ValueError, msg=repr(text)):
