@@ -23393,7 +23393,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get buoyancy_throughDive => 'Durante o mergulho';
 
   @override
-  String get buoyancy_adjust => 'Ajustar';
+  String get buoyancy_whatIfButton => 'E se?';
 
   @override
   String buoyancy_readoutHeavy(String amount) {
@@ -23495,7 +23495,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_whatIfTitle => 'Ajustar este mergulho';
+  String get buoyancy_whatIfTitle => 'E se você mudasse o seu lastro?';
+
+  @override
+  String get buoyancy_whatIfNote =>
+      'Nada do que você testar aqui altera o seu mergulho registado.';
 
   @override
   String get buoyancy_whatIfLead => 'Lastro';
@@ -64125,7 +64129,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Passe pelo gráfico para ver o que puxava você para baixo e o que mantinha você à tona naquele momento. Ajustar abre uma folha que experimenta outra quantidade de lastro ou outra flutuabilidade do fato neste mergulho.';
+      'Passe pelo gráfico para ver o que puxava você para baixo e o que mantinha você à tona naquele momento. «E se?» abre uma folha que experimenta outra quantidade de lastro, outro tipo de água ou outra flutuabilidade do fato neste mergulho, sem alterar o mergulho.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

@@ -23320,7 +23320,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buoyancy_throughDive => 'A merülés során';
 
   @override
-  String get buoyancy_adjust => 'Módosítás';
+  String get buoyancy_whatIfButton => 'Mi lenne, ha?';
 
   @override
   String buoyancy_readoutHeavy(String amount) {
@@ -23422,7 +23422,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_whatIfTitle => 'Merülés módosítása';
+  String get buoyancy_whatIfTitle => 'Mi lenne, ha másképp súlyoznál?';
+
+  @override
+  String get buoyancy_whatIfNote =>
+      'Amit itt kipróbálsz, az nem változtat a naplózott merülésen.';
 
   @override
   String get buoyancy_whatIfLead => 'Ólom';
@@ -63793,7 +63797,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Húzd végig a diagramon, hogy lásd, mi húzott lefelé és mi tartott fent abban a pillanatban. A Módosítás egy lapot nyit, amely más ólommennyiséget vagy ruhafelhajtóerőt próbál ki erre a merülésre.';
+      'Húzd végig a diagramon, hogy lásd, mi húzott lefelé és mi tartott fent abban a pillanatban. A „Mi lenne, ha?” egy lapot nyit, amely más ólommennyiséget, víztípust vagy ruhafelhajtóerőt próbál ki erre a merülésre, a merülés módosítása nélkül.';
 
   @override
   String get info_diveLog_waterConditions_summary =>
