@@ -393,15 +393,17 @@ void main() {
       expect(hint(tester).onTap, isNotNull);
     });
 
-    testWidgets('during a sitting it is a plain note: the old edit form must '
-        'not open over the sitting', (tester) async {
+    // Plan 5 gave the Cylinders card an editor: during a sitting the hint
+    // opens it, never the old edit form over the sitting (issue #4527).
+    testWidgets('during a sitting it opens the Cylinders card', (tester) async {
       final controller = RecordEditController<Dive>(onSave: (_) async {})
         ..unlock(noVolume);
       addTearDown(controller.dispose);
 
       await pumpRows(tester, controller: controller);
+      hint(tester).onTap!();
 
-      expect(hint(tester).onTap, isNull);
+      expect(controller.openCardIds, contains('tanks'));
     });
 
     testWidgets('once the sitting ends it is a link again', (tester) async {
