@@ -283,6 +283,17 @@ void main() {
       expect(find.text('Altitude Group 3'), findsOneWidget);
     });
 
+    // An imperial diver saw "300-900m (984-2953ft)": metres first, and a
+    // unit they did not choose.
+    testWidgets('the banner gives its range in the diver\'s unit', (
+      tester,
+    ) async {
+      await pumpEditor(tester, high, settings: imperial);
+
+      expect(find.text('Altitude Group 2'), findsOneWidget);
+      expect(find.text('2,953-5,906 ft'), findsOneWidget);
+    });
+
     testWidgets('at sea level the banner takes no room', (tester) async {
       await pumpEditor(tester, bare.copyWith(altitude: 100));
 
@@ -505,7 +516,7 @@ void main() {
       );
       expect(banner.group, AltitudeGroup.group3);
       expect(find.text('Altitude Group 3'), findsOneWidget);
-      expect(find.text('1800-2700m (5906-8858ft)'), findsOneWidget);
+      expect(find.text('1,800-2,700 m'), findsOneWidget);
     });
 
     testWidgets('unlocked, it gains the pencil and keeps its icon and info '

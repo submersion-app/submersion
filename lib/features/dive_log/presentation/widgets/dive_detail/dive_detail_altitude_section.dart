@@ -139,15 +139,16 @@ class DiveAltitudeSection extends ConsumerWidget {
 
 /// The coloured banner naming an altitude group and its range, shared by
 /// the Altitude card and its editor. Draws nothing at sea level.
-class AltitudeGroupBanner extends StatelessWidget {
+class AltitudeGroupBanner extends ConsumerWidget {
   const AltitudeGroupBanner({super.key, required this.group});
 
   final AltitudeGroup group;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (group == AltitudeGroup.seaLevel) return const SizedBox.shrink();
 
+    final units = ref.watch(unitFormatterProvider);
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final (background, foreground, icon) = switch (group.warningLevel) {
@@ -201,7 +202,7 @@ class AltitudeGroupBanner extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  group.localizedRange(context.l10n),
+                  group.localizedRange(context.l10n, units),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: foreground.withValues(alpha: 0.8),
                   ),

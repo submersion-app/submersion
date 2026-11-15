@@ -508,10 +508,13 @@ class UnitFormatter {
   /// Format altitude value with unit symbol
   String formatAltitude(double? value, {int decimals = 0}) {
     if (value == null) return '--';
-    final converted = AltitudeUnit.meters.convert(value, settings.altitudeUnit);
-    final formatted = NumberFormat('#,##0').format(converted.round());
-    return '$formatted ${settings.altitudeUnit.symbol}';
+    return '${formatAltitudeNumber(value)} ${settings.altitudeUnit.symbol}';
   }
+
+  /// An altitude in metres as the number [formatAltitude] shows, without
+  /// its unit: for a range that names its unit once.
+  String formatAltitudeNumber(double meters) =>
+      NumberFormat('#,##0').format(convertAltitude(meters).round());
 
   /// Format altitude with altitude group label
   String formatAltitudeWithGroup(double? value, {int decimals = 0}) {

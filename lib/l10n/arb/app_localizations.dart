@@ -22229,23 +22229,11 @@ abstract class AppLocalizations {
   /// **'Extreme Altitude'**
   String get enum_altitudeGroup_extreme;
 
-  /// No description provided for @enum_altitudeGroup_extreme_range.
-  ///
-  /// In en, this message translates to:
-  /// **'>2700m (>8858ft)'**
-  String get enum_altitudeGroup_extreme_range;
-
   /// No description provided for @enum_altitudeGroup_group1.
   ///
   /// In en, this message translates to:
   /// **'Altitude Group 1'**
   String get enum_altitudeGroup_group1;
-
-  /// No description provided for @enum_altitudeGroup_group1_range.
-  ///
-  /// In en, this message translates to:
-  /// **'300-900m (984-2953ft)'**
-  String get enum_altitudeGroup_group1_range;
 
   /// No description provided for @enum_altitudeGroup_group2.
   ///
@@ -22253,23 +22241,11 @@ abstract class AppLocalizations {
   /// **'Altitude Group 2'**
   String get enum_altitudeGroup_group2;
 
-  /// No description provided for @enum_altitudeGroup_group2_range.
-  ///
-  /// In en, this message translates to:
-  /// **'900-1800m (2953-5906ft)'**
-  String get enum_altitudeGroup_group2_range;
-
   /// No description provided for @enum_altitudeGroup_group3.
   ///
   /// In en, this message translates to:
   /// **'Altitude Group 3'**
   String get enum_altitudeGroup_group3;
-
-  /// No description provided for @enum_altitudeGroup_group3_range.
-  ///
-  /// In en, this message translates to:
-  /// **'1800-2700m (5906-8858ft)'**
-  String get enum_altitudeGroup_group3_range;
 
   /// No description provided for @enum_altitudeGroup_seaLevel.
   ///
@@ -22277,11 +22253,17 @@ abstract class AppLocalizations {
   /// **'Sea Level'**
   String get enum_altitudeGroup_seaLevel;
 
-  /// No description provided for @enum_altitudeGroup_seaLevel_range.
+  /// The range of the highest altitude group, in the diver's unit: >2,700 m
   ///
   /// In en, this message translates to:
-  /// **'0-300m (0-984ft)'**
-  String get enum_altitudeGroup_seaLevel_range;
+  /// **'>{low} {unit}'**
+  String enum_altitudeGroup_range_above(String low, String unit);
+
+  /// The range of an altitude group, in the diver's unit: 300-900 m
+  ///
+  /// In en, this message translates to:
+  /// **'{low}-{high} {unit}'**
+  String enum_altitudeGroup_range_between(String low, String high, String unit);
 
   /// No description provided for @enum_certificationAgency_bsac.
   ///
