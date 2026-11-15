@@ -146,20 +146,22 @@ class DiveDetailSectionList extends ConsumerWidget {
 
       final pair = layout.pairsSections ? diveDetailSectionPairFor(id) : null;
       if (pair != null && visibleIds.contains(pair.partnerOf(id)!)) {
-        final cards = _markPair(
-          pair,
-          _buildPairCards(pair, ref, open, presence),
-        );
+        final cards = _buildPairCards(pair, ref, open, presence);
         if (cards != null) {
           _addSectionGap(children, layout);
           // Each side is framed like a card on a row of its own, so a card
           // with an editor gains its pencil and opens where it sits. A pair
           // with no card of its own for a narrow pane has none to frame:
           // stacked, it shows the row card.
-          Widget? left(Widget? card) =>
-              card == null ? null : _framed(pair.left, card, open);
-          Widget? right(Widget? card) =>
-              card == null ? null : _framed(pair.right, card, open);
+          // Marked outside the frame, as a card on a row of its own is, for
+          // the pinned profile strip (issue #4562).
+          Widget? side(DiveDetailSectionId id, Widget? card) {
+            final framed = card == null ? null : _framed(id, card, open);
+            return framed == null ? null : _markForStrip(id, framed);
+          }
+
+          Widget? left(Widget? card) => side(pair.left, card);
+          Widget? right(Widget? card) => side(pair.right, card);
           children.add(
             ResponsiveSectionPair(
               key: ValueKey('diveSectionPair_${pair.left.name}'),
@@ -239,20 +241,6 @@ class DiveDetailSectionList extends ConsumerWidget {
       kStripLayersByCard.containsKey(id)
       ? PinnedStripCardMarker(id: id, child: card)
       : card;
-
-  /// [cards] with each half marked as its section, side by side and
-  /// stacked alike.
-  static _PairCards? _markPair(DiveDetailSectionPair pair, _PairCards? cards) {
-    if (cards == null) return null;
-    Widget? left(Widget? w) => w == null ? null : _markForStrip(pair.left, w);
-    Widget? right(Widget? w) => w == null ? null : _markForStrip(pair.right, w);
-    return _PairCards(
-      left(cards.first)!,
-      right(cards.second)!,
-      stackedFirst: left(cards.stackedFirst),
-      stackedSecond: right(cards.stackedSecond),
-    );
-  }
 
   /// The widget for section [id], or null when it has nothing to show.
   ///
