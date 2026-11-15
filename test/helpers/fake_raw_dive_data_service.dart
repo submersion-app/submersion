@@ -21,6 +21,12 @@ class FakeRawDiveDataService implements RawDiveDataService {
     return usage;
   }
 
+  List<ComputerRawDiveDataUsage> byComputer = const [];
+
+  @override
+  Future<List<ComputerRawDiveDataUsage>> getUsageByComputer() async =>
+      byComputer;
+
   @override
   Future<int> discard({String? computerId}) async {
     calls.add(computerId);
