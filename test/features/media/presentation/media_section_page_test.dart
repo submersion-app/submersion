@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -199,6 +201,38 @@ void main() {
     // An empty pick leaves the section as it was.
     expect(find.byType(MediaLibraryView), findsOneWidget);
     expect(strip(tester).index, MediaConsoleSection.library.index);
+  });
+
+  testWidgets('a second tap while the picker is open starts nothing', (
+    tester,
+  ) async {
+    // A desktop file dialog is no route, so nothing covers the button
+    // while it is open; the page itself has to ignore the second tap.
+    setDesktopSize(tester);
+    var picks = 0;
+    final picked = Completer<List<AssetInfo>>();
+    await tester.pumpWidget(
+      host(
+        importPick: (_) {
+          picks++;
+          return picked.future;
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(action(MediaConsoleAction.importMedia));
+    await tester.pump();
+    await tester.tap(action(MediaConsoleAction.importMedia));
+    await tester.pump();
+    expect(picks, 1);
+
+    // Once the picker closes, the button works again.
+    picked.complete(const []);
+    await tester.pumpAndSettle();
+    await tester.tap(action(MediaConsoleAction.importMedia));
+    await tester.pumpAndSettle();
+    expect(picks, 2);
   });
 
   testWidgets(

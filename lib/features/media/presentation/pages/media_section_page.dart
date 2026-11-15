@@ -59,7 +59,23 @@ class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
     });
   }
 
+  /// True from a button tap until what it opened has closed.
+  bool _actionOpen = false;
+
+  /// Runs one tab-row button, ignoring taps while an earlier one is still
+  /// open. A pushed page covers the buttons, but a desktop file dialog is no
+  /// route, so a second Import tap would otherwise start a second import.
   Future<void> _onAction(MediaConsoleAction action) async {
+    if (_actionOpen) return;
+    _actionOpen = true;
+    try {
+      await _runAction(action);
+    } finally {
+      _actionOpen = false;
+    }
+  }
+
+  Future<void> _runAction(MediaConsoleAction action) async {
     switch (action) {
       case MediaConsoleAction.importMedia:
         await MediaImportView.launchImport(
