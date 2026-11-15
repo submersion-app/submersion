@@ -8,7 +8,7 @@ const double kPinnedStripRimAlpha = 0.12;
 typedef _Layer = ({double alpha, double dy, double blur});
 
 /// Light: a tight contact shadow and a soft, deep drop, clearly above the
-/// cards it covers (elevation 1 to 4 across the theme presets).
+/// cards it covers (elevation 0 to 4 across the theme presets).
 const List<_Layer> _lightLayers = [
   (alpha: 0.18, dy: 2, blur: 4),
   (alpha: 0.24, dy: 10, blur: 22),

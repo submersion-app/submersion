@@ -237,18 +237,18 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                     // Colour follows the scroll frame by frame already; the
                     // surface's own ease would lag a fast scroll and flash.
                     animationDuration: Duration.zero,
-                    // It starts across the card at the plot's top and pins flush
-                    // under the header at the card's width, so only its bottom
-                    // corners round, like the card's own, condensing and pinned
-                    // alike (#4488).
+                    // It starts across the card at the plot's top and pins
+                    // flush under the header at the card's width, so only its
+                    // bottom corners round, like the card's own, condensing and
+                    // pinned alike (#4488).
                     shape: RoundedRectangleBorder(borderRadius: card.corners),
                     clipBehavior: Clip.antiAlias,
                     child: CustomPaint(
-                      // Its outline on the sides and bottom only: its top crosses
-                      // the card at the plot's top and pins flush under the
-                      // header. The theme's card outline where there is one,
-                      // fading in with the surface; otherwise, in dark mode, a
-                      // faint light rim growing in with the shadow.
+                      // Its outline on the sides and bottom only: its top
+                      // crosses the card at the plot's top and pins flush under
+                      // the header. The theme's card outline where there is
+                      // one, fading in with the surface; otherwise, in dark
+                      // mode, a faint light rim growing in with the shadow.
                       foregroundPainter: PinnedStripOutlinePainter(
                         side: pinnedStripEdge(
                           brightness: theme.brightness,
@@ -268,9 +268,9 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                             behavior: HitTestBehavior.opaque,
                             onTapDown: (d) =>
                                 _scrubTo(d.localPosition.dx, width, profile),
-                            // A mouse still hovers where it clicked, so the cursor
-                            // stays until it moves or leaves; a lifted finger
-                            // clears.
+                            // A mouse still hovers where it clicked, so the
+                            // cursor stays until it moves or leaves; a lifted
+                            // finger clears.
                             onTapUp: (d) {
                               if (d.kind != PointerDeviceKind.mouse) {
                                 _write(null);
@@ -283,16 +283,16 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                                 _scrubTo(d.localPosition.dx, width, profile),
                             onHorizontalDragEnd: (_) => _write(null),
                             onHorizontalDragCancel: () => _write(null),
-                            // Cross-fades with the surface: drawn on the chart's
-                            // own line and shading, so at full strength the two
-                            // shadings would stack into a darker blue.
+                            // Cross-fades with the surface: drawn on the
+                            // chart's own line and shading, so at full strength
+                            // the two shadings would stack into a darker blue.
                             child: Opacity(
                               opacity: background,
                               child: CustomPaint(
                                 size: Size.infinite,
                                 painter: stripPainter,
-                                // Its own layer: moving the cursor repaints only
-                                // the cursor.
+                                // Its own layer: moving the cursor repaints
+                                // only the cursor.
                                 foregroundPainter: PinnedStripCursorPainter(
                                   strip: stripPainter,
                                   selectedSeconds: selectedSeconds,

@@ -518,6 +518,17 @@ void main() {
       );
     }
     expect(stripShadows(tester), isNotEmpty);
+    // The shadow is clipped at the strip's top, so it never rises onto the
+    // card or header above.
+    final clip = tester.widget<ClipRect>(
+      find
+          .ancestor(
+            of: find.byKey(const ValueKey('pinnedStripShadow')),
+            matching: find.byType(ClipRect),
+          )
+          .first,
+    );
+    expect(clip.clipper, isA<PinnedStripShadowClip>());
     // No shadow while the surface is see-through: it would show through
     // and grey the card.
     await pumpMorphing(tester, condense: 1, background: 0.5);
@@ -574,6 +585,18 @@ void main() {
       outline(tester).side.color.a,
       closeTo(kPinnedStripRimAlpha * 0.5, 1e-6),
     );
+  });
+
+  // In light mode the shadow alone separates the strip; a white rim there
+  // would read as a stray highlight.
+  testWidgets('light mode draws no rim', (tester) async {
+    await pumpMorphing(
+      tester,
+      condense: 1,
+      background: 1,
+      theme: ThemeData(useMaterial3: true),
+    );
+    expect(outline(tester).side, BorderSide.none);
   });
 
   // Mid-condense the strip's top crosses the profile card, and pinned it
