@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -479,6 +480,45 @@ void main() {
       // Buddies card and the Signatures card, so match one-or-more.
       expect(find.byType(ResponsiveSectionPair), findsOneWidget);
       expect(_pairContaining('Alice'), findsWidgets);
+    });
+
+    // Issue #4583: the shorter card left blank space under it before the
+    // next card; now both columns end level.
+    testWidgets('the two cards end level (wide pane)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = Dive(
+        id: 'buddies-level',
+        dateTime: DateTime(2026, 3, 15, 10, 0),
+      );
+      final settings = _settingsWithVisibleSections([
+        DiveDetailSectionId.buddies,
+        DiveDetailSectionId.signatures,
+      ]);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: settings,
+          extraOverrides: _renderOverrides(dive.id, prefs, buddies: [_buddy]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final pair = find.byType(ResponsiveSectionPair);
+      final middle = tester.getCenter(pair).dx;
+      final bottoms = <bool, double>{};
+      for (final card
+          in find
+              .descendant(of: pair, matching: find.byType(Card))
+              .evaluate()) {
+        final rect = tester.getRect(find.byWidget(card.widget).first);
+        final left = rect.center.dx < middle;
+        bottoms[left] = math.max(bottoms[left] ?? 0, rect.bottom);
+      }
+      expect(bottoms.keys, containsAll([true, false]));
+      expect(bottoms[true], bottoms[false]);
     });
 
     testWidgets('no pairing for a solo dive (no buddies, no course)', (

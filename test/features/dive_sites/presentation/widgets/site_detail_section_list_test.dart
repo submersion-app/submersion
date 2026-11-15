@@ -132,6 +132,26 @@ void main() {
       expect(difficulty.left, lessThan(rating.left));
     });
 
+    // Issue #4583: a top-aligned row left blank space under the shorter card.
+    testWidgets('paired cards of different heights end level', (tester) async {
+      await _pump(
+        tester,
+        width: 1400,
+        sections: _config(),
+        cards: {
+          ..._allCards(),
+          SiteDetailSectionId.rating: (_) => const Card(
+            child: SizedBox(height: 160, child: Text('CARD_rating')),
+          ),
+        },
+      );
+
+      final difficulty = _rectOf(tester, SiteDetailSectionId.difficulty);
+      final rating = _rectOf(tester, SiteDetailSectionId.rating);
+      expect(difficulty.height, rating.height);
+      expect(difficulty.bottom, rating.bottom);
+    });
+
     testWidgets('the pair stacks on a narrow pane', (tester) async {
       await _pump(tester, width: 390, sections: _config());
 

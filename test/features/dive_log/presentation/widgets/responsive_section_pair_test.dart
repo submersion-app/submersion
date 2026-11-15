@@ -76,7 +76,12 @@ void main() {
       );
     }
 
-    testWidgets('off, each column keeps its own height', (tester) async {
+    // Issue #4583: the shorter card no longer leaves blank space under it,
+    // and the row gets there without IntrinsicHeight, which a card holding a
+    // LayoutBuilder (a map, a chart) cannot be measured by.
+    testWidgets('off, the shorter card still ends level with the taller', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(1000, 600));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -85,6 +90,10 @@ void main() {
 
       expect(tester.getSize(find.byType(ResponsiveSectionPair)).height, 200);
       expect(find.byType(IntrinsicHeight), findsNothing);
+      final short = find
+          .ancestor(of: find.text('SHORT'), matching: find.byType(SizedBox))
+          .first;
+      expect(tester.getSize(short).height, 200);
     });
 
     testWidgets('on, the short column is stretched to the tall one', (

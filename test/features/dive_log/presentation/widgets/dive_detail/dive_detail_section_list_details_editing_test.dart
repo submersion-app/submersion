@@ -419,15 +419,25 @@ void main() {
           await tester.pumpAndSettle();
         }
 
+        // Its lines, not its height: beside Details it grows to the open
+        // editor's height (issue #4583).
+        List<String?> lines() => [
+          for (final text in tester.widgetList<Text>(
+            find.descendant(of: environment, matching: find.byType(Text)),
+          ))
+            text.data,
+        ];
+
         await repump();
-        final height = tester.getSize(environment).height;
+        final before = lines();
+        expect(before, isNotEmpty);
         controller.openCard('details');
         await tester.pumpAndSettle();
 
         controller.session!.set(diveWaterTypeField, WaterType.fresh);
         await repump();
 
-        expect(tester.getSize(environment).height, height);
+        expect(lines(), before);
 
         controller.closeCard('details');
         await repump();

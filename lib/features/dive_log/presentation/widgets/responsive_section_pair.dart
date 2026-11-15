@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/shared/widgets/equal_height_row.dart';
+
 /// Renders two dive-detail cards side by side when there is enough horizontal
 /// room, and stacked otherwise.
 ///
-/// At or above [minRowWidth] the cards sit in a top-aligned [Row] of two equal
-/// [Expanded] columns separated by [columnGap], each card keeping its own
-/// intrinsic height. Below it they stack in a [Column] with [stackGap] between
-/// them -- visually identical to rendering the two cards as adjacent stacked
+/// At or above [minRowWidth] the cards sit in two equal columns separated by
+/// [columnGap], and the shorter card grows to the taller one's height, so no
+/// blank space is left under it before the next card (issue #4583). Below it
+/// they stack in a [Column] with [stackGap] between them, each at its own
+/// height: visually identical to rendering the two cards as adjacent stacked
 /// sections.
 ///
 /// The widget measures its own available width with a [LayoutBuilder], so it
@@ -54,12 +57,14 @@ class ResponsiveSectionPair extends StatelessWidget {
   /// Vertical gap between the two cards when stacked.
   final double stackGap;
 
-  /// Whether both columns are stretched to the taller one's height in row
-  /// mode, instead of each keeping its intrinsic height.
+  /// Whether the row shares its height through an [IntrinsicHeight] instead
+  /// of an [EqualHeightRow].
   ///
-  /// Only for pairs whose cards fill the height they are given; a card that
-  /// merely sits at its natural height gains nothing and pays an
-  /// [IntrinsicHeight] layout pass for it.
+  /// Every row gives both cards the taller one's height. Only a pair whose
+  /// cards hold [Expanded] children, and so cannot be laid out at their
+  /// natural height first, needs this: [IntrinsicHeight] measures them
+  /// without laying them out. Its cards must then answer intrinsic size
+  /// queries, so nothing in them may hold a [LayoutBuilder].
   final bool stretch;
 
   @override
@@ -67,17 +72,19 @@ class ResponsiveSectionPair extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth >= minRowWidth) {
-          final row = Row(
-            crossAxisAlignment: stretch
-                ? CrossAxisAlignment.stretch
-                : CrossAxisAlignment.start,
-            children: [
-              Expanded(child: first),
-              SizedBox(width: columnGap),
-              Expanded(child: second),
-            ],
+          if (!stretch) {
+            return EqualHeightRow(gap: columnGap, children: [first, second]);
+          }
+          return IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: first),
+                SizedBox(width: columnGap),
+                Expanded(child: second),
+              ],
+            ),
           );
-          return stretch ? IntrinsicHeight(child: row) : row;
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
