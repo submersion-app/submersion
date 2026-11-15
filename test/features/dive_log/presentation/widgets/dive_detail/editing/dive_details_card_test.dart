@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -19,6 +21,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_type_mult
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/suggested_text_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_site_assignment.dart';
+import 'package:submersion/features/weather/data/services/elevation_service.dart';
+import 'package:submersion/features/weather/domain/services/altitude_resolver.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -300,6 +305,43 @@ void main() {
       );
       expect(field.selectedTypeIds, ['wreck', 'night']);
       expect(field.keepTypeIds, ['wreck', 'night']);
+    });
+
+    // A type the site added and the diver unticked is theirs from then on,
+    // even ticked again: the next site does not take it back (plan 4).
+    testWidgets('a type the site added, unticked and ticked again, is the '
+        'diver\'s', (tester) async {
+      final controller = await pumpEditor(tester, full);
+      final session = controller.session!;
+      final resolver = AltitudeResolver(
+        elevationService: ElevationService(
+          client: MockClient((_) async => http.Response('', 500)),
+        ),
+      );
+      void assign(DiveSite? site) => assignDiveSite(
+        session,
+        site,
+        siteDiveTypeIds: (_) async => ['drift'],
+        resolver: resolver,
+        writeSiteAltitude: (_, _) async {},
+      );
+      DiveTypeMultiSelectField field() =>
+          tester.widget<DiveTypeMultiSelectField>(
+            find.byType(DiveTypeMultiSelectField),
+          );
+
+      assign(const DiveSite(id: 'drifty', name: 'Current point'));
+      await tester.pump();
+      expect(working(controller).diveTypeIds, ['wreck', 'night', 'drift']);
+
+      field().onChanged(['wreck', 'night']);
+      await tester.pump();
+      field().onChanged(['wreck', 'night', 'drift']);
+      await tester.pump();
+      assign(null);
+      await tester.pump();
+
+      expect(working(controller).diveTypeIds, ['wreck', 'night', 'drift']);
     });
 
     testWidgets('changing them sets them in order', (tester) async {

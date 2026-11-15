@@ -10,6 +10,8 @@ library;
 
 export 'current_tide_indicator.dart';
 export 'tide_chart.dart';
+export 'tide_chart_legend.dart';
+export 'tide_chart_mini.dart';
 export 'tide_cycle_graph.dart';
 export 'tide_section.dart';
 export 'tide_source_badge.dart';

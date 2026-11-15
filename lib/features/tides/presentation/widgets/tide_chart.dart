@@ -8,7 +8,11 @@ import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/tide/entities/tide_prediction.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_chart_colors.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_chart_layout.dart';
+import 'package:submersion/features/tides/presentation/widgets/tide_chart_legend.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Interactive tide chart showing water height over time.
@@ -70,6 +74,18 @@ class TideChart extends StatefulWidget {
   /// repeat, so a DST change cannot fold the axis. Identity when null.
   final DateTime Function(DateTime instant)? displayTime;
 
+  /// Size of the text on the chart's marks: the high and low labels and the
+  /// "Now" marker.
+  static const double markFontSize = 14;
+
+  /// Size of the axis labels.
+  static const double axisFontSize = 13;
+
+  /// Widths the left axis takes: its tick labels and, outside them, its
+  /// name. Together they are where the plot starts.
+  static const double _leftTitlesWidth = 45;
+  static const double _leftAxisNameSize = 20;
+
   const TideChart({
     super.key,
     required this.predictions,
@@ -101,6 +117,9 @@ class _TideChartState extends State<TideChart> {
     }
 
     final colorScheme = Theme.of(context).colorScheme;
+    final axisStyle = Theme.of(
+      context,
+    ).textTheme.labelSmall?.copyWith(fontSize: TideChart.axisFontSize);
     final reference = widget.now ?? DateTime.now();
 
     // Calculate time range to show one past extreme at the left edge
@@ -199,15 +218,18 @@ class _TideChartState extends State<TideChart> {
       widget.timeFormat.pattern,
     ).format(_display(reference));
     final nowHeightStr = currentHeight != null
-        ? '${DepthUnit.meters.convert(currentHeight, widget.depthUnit).toStringAsFixed(1)}${widget.depthUnit.symbol}'
+        ? '${formatFixedForDisplay(DepthUnit.meters.convert(currentHeight, widget.depthUnit), 1)}${widget.depthUnit.symbol}'
         : '';
+    // The generated message takes its placeholders in alphabetical order,
+    // height first, whatever order the sentence prints them in.
     final nowLabelText = context.l10n.tides_chart_nowLabel(
-      nowTimeStr,
       nowHeightStr,
+      nowTimeStr,
     );
 
-    // Constant for chart layout (must match titlesData reservedSize for left axis)
-    const leftAxisWidth = 45.0;
+    // Where the plot starts: the left axis's tick labels plus its name.
+    const leftAxisWidth =
+        TideChart._leftTitlesWidth + TideChart._leftAxisNameSize;
 
     // Build a textual summary for screen readers
     final extremesSummary =
@@ -227,7 +249,7 @@ class _TideChartState extends State<TideChart> {
                 return context.l10n.tides_semantic_extremeItem(
                   typeLabel,
                   timeStr,
-                  displayHeight.toStringAsFixed(1),
+                  formatFixedForDisplay(displayHeight, 1),
                   widget.depthUnit.symbol,
                 );
               })
@@ -242,7 +264,10 @@ class _TideChartState extends State<TideChart> {
           // Legend
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: _buildLegend(context),
+            child: TideChartLegend(
+              showExtremeMarkers: widget.showExtremeMarkers,
+              showNowMarker: widget.showNowMarker,
+            ),
           ),
 
           // Chart with "Now" label positioned above
@@ -252,6 +277,12 @@ class _TideChartState extends State<TideChart> {
               final chartDrawingWidth = constraints.maxWidth - leftAxisWidth;
               final nowPixelX =
                   leftAxisWidth + (nowX / maxX) * chartDrawingWidth;
+              final nowStyle = TextStyle(
+                color: colorScheme.onPrimaryContainer,
+                fontSize: TideChart.markFontSize,
+                height: 1.2,
+                fontWeight: FontWeight.bold,
+              );
 
               return Stack(
                 clipBehavior: Clip.none,
@@ -269,10 +300,10 @@ class _TideChartState extends State<TideChart> {
                         gridData: FlGridData(
                           show: true,
                           drawVerticalLine: true,
-                          horizontalInterval: _calculateHeightInterval(
+                          horizontalInterval: tideChartHeightInterval(
                             heightRange,
                           ),
-                          verticalInterval: _calculateTimeInterval(maxX),
+                          verticalInterval: tideChartTimeInterval(maxX),
                           getDrawingHorizontalLine: (value) => FlLine(
                             color: colorScheme.outlineVariant.withValues(
                               alpha: 0.3,
@@ -288,17 +319,21 @@ class _TideChartState extends State<TideChart> {
                         ),
                         titlesData: FlTitlesData(
                           leftTitles: AxisTitles(
+                            axisNameSize: TideChart._leftAxisNameSize,
                             axisNameWidget: Text(
                               context.l10n.tides_chart_heightAxis(
                                 widget.depthUnit.symbol,
                               ),
-                              style: Theme.of(context).textTheme.labelSmall,
+                              style: axisStyle,
                             ),
                             sideTitles: SideTitles(
                               showTitles: true,
-                              reservedSize: 45,
-                              interval: _calculateHeightInterval(heightRange),
+                              reservedSize: TideChart._leftTitlesWidth,
+                              interval: tideChartHeightInterval(heightRange),
                               getTitlesWidget: (value, meta) {
+                                if (!isOnAxisStep(value, meta)) {
+                                  return const SizedBox.shrink();
+                                }
                                 final displayValue = DepthUnit.meters.convert(
                                   value,
                                   widget.depthUnit,
@@ -308,10 +343,8 @@ class _TideChartState extends State<TideChart> {
                                     end: 4,
                                   ),
                                   child: Text(
-                                    displayValue.toStringAsFixed(1),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.labelSmall,
+                                    formatFixedForDisplay(displayValue, 1),
+                                    style: axisStyle,
                                   ),
                                 );
                               },
@@ -321,8 +354,11 @@ class _TideChartState extends State<TideChart> {
                             sideTitles: SideTitles(
                               showTitles: true,
                               reservedSize: 30,
-                              interval: _calculateTimeInterval(maxX),
+                              interval: tideChartTimeInterval(maxX),
                               getTitlesWidget: (value, meta) {
+                                if (!isOnAxisStep(value, meta)) {
+                                  return const SizedBox.shrink();
+                                }
                                 final time = _display(
                                   minTime.add(
                                     Duration(minutes: (value * 60).round()),
@@ -334,9 +370,7 @@ class _TideChartState extends State<TideChart> {
                                     DateFormat(
                                       widget.timeFormat.pattern,
                                     ).format(time),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.labelSmall,
+                                    style: axisStyle,
                                   ),
                                 );
                               },
@@ -348,8 +382,17 @@ class _TideChartState extends State<TideChart> {
                           topTitles: AxisTitles(
                             sideTitles: SideTitles(
                               showTitles: true,
-                              reservedSize: 20,
-                              interval: _calculateTimeInterval(maxX),
+                              // Tall enough for the Now pill at the
+                              // ambient text scale, which it sits in.
+                              reservedSize: math.max(
+                                24,
+                                MediaQuery.textScalerOf(
+                                          context,
+                                        ).scale(TideChart.markFontSize) *
+                                        1.2 +
+                                    6,
+                              ),
+                              interval: tideChartTimeInterval(maxX),
                               getTitlesWidget: (value, meta) {
                                 final time = _display(
                                   minTime.add(
@@ -360,10 +403,9 @@ class _TideChartState extends State<TideChart> {
                                 if (time.hour == 0 && time.minute < 30) {
                                   return Text(
                                     DateFormat('EEE').format(time),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelSmall
-                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                    style: axisStyle?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   );
                                 }
                                 return const SizedBox.shrink();
@@ -396,10 +438,14 @@ class _TideChartState extends State<TideChart> {
                             if (widget.showExtremeMarkers &&
                                 widget.extremes != null)
                               ..._buildExtremeLabels(
+                                context,
                                 timeToX,
                                 minTime,
                                 maxTime,
                                 colorScheme,
+                                pixelsPerX: maxX > 0
+                                    ? chartDrawingWidth / maxX
+                                    : 0,
                               ),
                             // Current time marker (line only, label is positioned above chart)
                             if (widget.showNowMarker &&
@@ -431,7 +477,7 @@ class _TideChartState extends State<TideChart> {
                                   ),
                                   style: TextStyle(
                                     color: colorScheme.onSurfaceVariant,
-                                    fontSize: 10,
+                                    fontSize: TideChart.axisFontSize,
                                   ),
                                   labelResolver: (line) =>
                                       context.l10n.tides_chart_msl,
@@ -491,16 +537,16 @@ class _TideChartState extends State<TideChart> {
                                   TextStyle(
                                     color: colorScheme.onInverseSurface
                                         .withValues(alpha: 0.7),
-                                    fontSize: 11,
+                                    fontSize: TideChart.axisFontSize,
                                   ),
                                   children: [
                                     TextSpan(
                                       text:
-                                          '${displayHeight.toStringAsFixed(2)}${widget.depthUnit.symbol}\n',
+                                          '${formatFixedForDisplay(displayHeight, 2)}${widget.depthUnit.symbol}\n',
                                       style: TextStyle(
                                         color: colorScheme.onInverseSurface,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 14,
+                                        fontSize: 16,
                                       ),
                                     ),
                                     TextSpan(
@@ -508,7 +554,7 @@ class _TideChartState extends State<TideChart> {
                                       style: TextStyle(
                                         color: colorScheme.onInverseSurface
                                             .withValues(alpha: 0.7),
-                                        fontSize: 10,
+                                        fontSize: TideChart.axisFontSize,
                                       ),
                                     ),
                                   ],
@@ -523,11 +569,22 @@ class _TideChartState extends State<TideChart> {
                   // "Now" label positioned above the chart
                   if (widget.showNowMarker && nowX >= 0 && nowX <= maxX)
                     Positioned(
-                      left: nowPixelX - 50, // Approximate center of label
+                      // Centred on the marker line, but kept inside the
+                      // chart when now sits near either end of the window.
+                      left: tideChartPillLeft(
+                        nowPixelX,
+                        tideChartTextWidth(
+                              context,
+                              nowLabelText.trim(),
+                              nowStyle,
+                            ) +
+                            2 * tideChartNowPillPadding,
+                        constraints.maxWidth,
+                      ),
                       top: 0, // At the very top of the reserved space
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
+                          horizontal: tideChartNowPillPadding,
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
@@ -536,11 +593,9 @@ class _TideChartState extends State<TideChart> {
                         ),
                         child: Text(
                           nowLabelText.trim(),
-                          style: TextStyle(
-                            color: colorScheme.onPrimaryContainer,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          maxLines: 1,
+                          softWrap: false,
+                          style: nowStyle,
                         ),
                       ),
                     ),
@@ -581,80 +636,6 @@ class _TideChartState extends State<TideChart> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildLegend(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Wrap(
-      spacing: 16,
-      runSpacing: 8,
-      children: [
-        _buildLegendItem(
-          context,
-          color: colorScheme.primary,
-          label: context.l10n.tides_legend_tideLevel,
-        ),
-        if (widget.showExtremeMarkers) ...[
-          _buildLegendItem(
-            context,
-            color: Colors.red.shade600,
-            label: context.l10n.tides_legend_highTide,
-          ),
-          _buildLegendItem(
-            context,
-            color: Colors.blue.shade600,
-            label: context.l10n.tides_legend_lowTide,
-          ),
-        ],
-        if (widget.showNowMarker)
-          _buildLegendItem(
-            context,
-            color: colorScheme.primary,
-            label: context.l10n.tides_legend_now,
-            isDashed: true,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildLegendItem(
-    BuildContext context, {
-    required Color color,
-    required String label,
-    bool isDashed = false,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (isDashed)
-          Container(
-            width: 12,
-            height: 2,
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: color,
-                  width: 2,
-                  style: BorderStyle.solid,
-                ),
-              ),
-            ),
-            child: CustomPaint(painter: _DashedLinePainter(color: color)),
-          )
-        else
-          Container(
-            width: 12,
-            height: 3,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        const SizedBox(width: 4),
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-      ],
     );
   }
 
@@ -699,6 +680,7 @@ class _TideChartState extends State<TideChart> {
     if (widget.extremes == null || widget.extremes!.isEmpty) {
       return [];
     }
+    final marks = TideChartColors.of(context);
     // The ring punches the dot out of the curve, so it takes the colour
     // behind the chart (usually its card): a fixed white glared on a dark
     // chart.
@@ -711,7 +693,7 @@ class _TideChartState extends State<TideChart> {
 
     return visibleExtremes.map((extreme) {
       final isHigh = extreme.type == TideExtremeType.high;
-      final color = isHigh ? Colors.red.shade600 : Colors.blue.shade600;
+      final color = isHigh ? marks.high : marks.low;
 
       return LineChartBarData(
         spots: [FlSpot(timeToX(extreme.time), extreme.heightMeters)],
@@ -734,16 +716,24 @@ class _TideChartState extends State<TideChart> {
   }
 
   /// Build vertical lines with labels for extreme markers (high/low tide).
+  ///
+  /// A label is centred on its extreme, unless that would carry it past an
+  /// edge of the plot (the window opens and closes 30 minutes from an
+  /// extreme), in which case it is drawn on the inner side of its line.
+  /// [pixelsPerX] converts the chart's hour units to pixels.
   List<VerticalLine> _buildExtremeLabels(
+    BuildContext context,
     double Function(DateTime) timeToX,
     DateTime minTime,
     DateTime maxTime,
-    ColorScheme colorScheme,
-  ) {
+    ColorScheme colorScheme, {
+    required double pixelsPerX,
+  }) {
     if (widget.extremes == null || widget.extremes!.isEmpty) {
       return [];
     }
 
+    final marks = TideChartColors.of(context);
     // Filter extremes within visible range
     final visibleExtremes = widget.extremes!
         .where((e) => !e.time.isBefore(minTime) && !e.time.isAfter(maxTime))
@@ -751,7 +741,7 @@ class _TideChartState extends State<TideChart> {
 
     return visibleExtremes.map((extreme) {
       final isHigh = extreme.type == TideExtremeType.high;
-      final color = isHigh ? Colors.red.shade600 : Colors.blue.shade600;
+      final color = isHigh ? marks.high : marks.low;
       final label = isHigh ? 'H' : 'L';
       final timeStr = DateFormat(
         widget.timeFormat.pattern,
@@ -761,148 +751,43 @@ class _TideChartState extends State<TideChart> {
         widget.depthUnit,
       );
       final heightStr =
-          '${displayHeight.toStringAsFixed(1)}${widget.depthUnit.symbol}';
+          '${formatFixedForDisplay(displayHeight, 1)}${widget.depthUnit.symbol}';
+      final text = ' $label $timeStr $heightStr ';
+      final style = TextStyle(
+        color: color,
+        fontSize: TideChart.markFontSize,
+        fontWeight: FontWeight.bold,
+        backgroundColor: colorScheme.surface.withValues(alpha: 0.9),
+      );
+
+      final x = timeToX(extreme.time);
+      final pixelX = x * pixelsPerX;
+      final plotWidth = timeToX(maxTime) * pixelsPerX;
+      final halfWidth = tideChartTextWidth(context, text, style) / 2;
+      final side = pixelX - halfWidth < 0
+          ? 1.0 // Too near the left edge: drawn to the right of its line.
+          : pixelX + halfWidth > plotWidth
+          ? -1.0 // Too near the right edge: drawn to the left of its line.
+          : 0.0;
 
       return VerticalLine(
-        x: timeToX(extreme.time),
+        x: x,
         color: Colors.transparent, // Invisible line, just for the label
         strokeWidth: 0,
         label: VerticalLineLabel(
           show: true,
-          alignment: isHigh ? Alignment.topCenter : Alignment.bottomCenter,
-          padding: EdgeInsets.only(top: isHigh ? 0 : 4, bottom: isHigh ? 4 : 0),
-          style: TextStyle(
-            color: color,
-            fontSize: 9,
-            fontWeight: FontWeight.bold,
-            backgroundColor: colorScheme.surface.withValues(alpha: 0.9),
+          alignment: Alignment(side, isHigh ? -1 : 1),
+          // A label beside its line steps clear of the extreme's dot.
+          padding: EdgeInsets.only(
+            left: side > 0 ? tideChartSideLabelGap : 0,
+            right: side < 0 ? tideChartSideLabelGap : 0,
+            top: isHigh ? 0 : 4,
+            bottom: isHigh ? 4 : 0,
           ),
-          labelResolver: (line) => ' $label $timeStr $heightStr ',
+          style: style,
+          labelResolver: (line) => text,
         ),
       );
     }).toList();
-  }
-
-  double _calculateHeightInterval(double range) {
-    if (range <= 0.5) return 0.1;
-    if (range <= 1.0) return 0.2;
-    if (range <= 2.0) return 0.5;
-    if (range <= 5.0) return 1.0;
-    return 2.0;
-  }
-
-  double _calculateTimeInterval(double maxHours) {
-    if (maxHours <= 6) return 1; // 1 hour intervals
-    if (maxHours <= 12) return 2; // 2 hour intervals
-    if (maxHours <= 24) return 4; // 4 hour intervals
-    if (maxHours <= 48) return 6; // 6 hour intervals
-    return 12; // 12 hour intervals
-  }
-}
-
-/// Simple painter for dashed line in legend
-class _DashedLinePainter extends CustomPainter {
-  final Color color;
-
-  _DashedLinePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-
-    const dashWidth = 3.0;
-    const dashSpace = 2.0;
-    double startX = 0;
-
-    while (startX < size.width) {
-      canvas.drawLine(
-        Offset(startX, size.height / 2),
-        Offset(math.min(startX + dashWidth, size.width), size.height / 2),
-        paint,
-      );
-      startX += dashWidth + dashSpace;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// Mini tide chart for compact displays (e.g., list items, previews).
-class TideChartMini extends StatelessWidget {
-  /// Tide predictions to plot.
-  final List<TidePrediction> predictions;
-
-  /// Height of the mini chart.
-  final double height;
-
-  /// Color of the tide curve.
-  final Color? color;
-
-  const TideChartMini({
-    super.key,
-    required this.predictions,
-    this.height = 40,
-    this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (predictions.isEmpty) {
-      return SizedBox(height: height);
-    }
-
-    final chartColor = color ?? Theme.of(context).colorScheme.primary;
-
-    // Calculate bounds
-    final heights = predictions.map((p) => p.heightMeters);
-    final minHeight = heights.reduce(math.min);
-    final maxHeight = heights.reduce(math.max);
-    final heightRange = maxHeight - minHeight;
-    final paddedMinHeight = minHeight - (heightRange * 0.1);
-    final paddedMaxHeight = maxHeight + (heightRange * 0.1);
-
-    final minTime = predictions.first.time;
-    double timeToX(DateTime time) {
-      return time.difference(minTime).inMinutes / 60.0;
-    }
-
-    final maxX = timeToX(predictions.last.time);
-
-    return SizedBox(
-      height: height,
-      child: LineChart(
-        LineChartData(
-          minX: 0,
-          maxX: maxX,
-          minY: paddedMinHeight,
-          maxY: paddedMaxHeight,
-          gridData: const FlGridData(show: false),
-          titlesData: const FlTitlesData(show: false),
-          borderData: FlBorderData(show: false),
-          lineTouchData: const LineTouchData(enabled: false),
-          lineBarsData: [
-            LineChartBarData(
-              spots: predictions
-                  .map((p) => FlSpot(timeToX(p.time), p.heightMeters))
-                  .toList(),
-              isCurved: true,
-              curveSmoothness: 0.3,
-              color: chartColor,
-              barWidth: 1.5,
-              isStrokeCapRound: true,
-              dotData: const FlDotData(show: false),
-              belowBarData: BarAreaData(
-                show: true,
-                color: chartColor.withValues(alpha: 0.2),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

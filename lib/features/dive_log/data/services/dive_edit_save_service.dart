@@ -40,13 +40,16 @@ class DiveEditSaveService {
   /// copied back to the dive's site). It runs after the dive is written, in
   /// the same transaction and History entry, so if it throws the dive and
   /// its trip are left as they were. It is not called when [apply] changed
-  /// nothing.
+  /// nothing, unless [alsoWriteIsAChange]: the sitting's only change is a
+  /// write of its own (a dismissed suggestion, a location added to the
+  /// site), and the dive comes back as it was before and after.
   Future<({Dive before, Dive after, List<TripDateStretch> tripDateStretches})?>
   save({
     required String diveId,
     required Dive Function(Dive stored) apply,
     required Iterable<String> changedCardIds,
     Future<void> Function()? alsoWrite,
+    bool alsoWriteIsAChange = false,
   }) {
     // The scope goes outside the transaction it covers, as its own contract
     // requires. An operation that ends with no events is removed when the
@@ -61,7 +64,15 @@ class DiveEditSaveService {
           throw StateError('Dive $diveId no longer exists');
         }
         final merged = apply(stored);
-        if (merged == stored) return null;
+        if (merged == stored) {
+          if (!alsoWriteIsAChange || alsoWrite == null) return null;
+          await alsoWrite();
+          return (
+            before: stored,
+            after: stored,
+            tripDateStretches: const <TripDateStretch>[],
+          );
+        }
         await _diveRepo.updateDive(merged);
         // Only a save that touched the trip moves its dates: a dive saved
         // for something else leaves a trip it sits outside of alone, so a

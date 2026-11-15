@@ -37,6 +37,9 @@ class FakeSave implements DiveEditSaveService {
   Completer<void>? hold;
   final calls = <({String diveId, Dive merged, List<String> cards})>[];
 
+  /// Whether each save was told its held writes are a change of their own.
+  final heldChangeFlags = <bool>[];
+
   /// What the next save reports as the trips whose dates it moved.
   List<TripDateStretch> tripDateStretches = const [];
 
@@ -47,6 +50,7 @@ class FakeSave implements DiveEditSaveService {
     required Dive Function(Dive stored) apply,
     required Iterable<String> changedCardIds,
     Future<void> Function()? alsoWrite,
+    bool alsoWriteIsAChange = false,
   }) async {
     await hold?.future;
     final error = failWith;
@@ -54,6 +58,7 @@ class FakeSave implements DiveEditSaveService {
     final before = stored;
     final merged = apply(before);
     calls.add((diveId: diveId, merged: merged, cards: changedCardIds.toList()));
+    heldChangeFlags.add(alsoWriteIsAChange);
     await alsoWrite?.call();
     stored = merged;
     return (
@@ -123,6 +128,7 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
   List<Override> extra = const [],
   bool imperial = false,
   ValueNotifier<String>? shownDiveId,
+  List<DiveDataSource> sources = const [],
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = size;
@@ -199,9 +205,7 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
           if (++loads > 1 && reloadGate != null) await reloadGate.future;
           return save.stored;
         }),
-        diveDataSourcesProvider(
-          dive.id,
-        ).overrideWith((ref) async => <DiveDataSource>[]),
+        diveDataSourcesProvider(dive.id).overrideWith((ref) async => sources),
         diveNeighborsProvider(
           dive.id,
         ).overrideWith((ref) => (previousId: null, nextId: 'dive-2')),

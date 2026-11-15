@@ -501,6 +501,37 @@ void main() {
       expect(controller.session!.working.exitMethod, EntryMethod.shore);
     });
 
+    // The direct edit belongs to the sitting, not to the editor: closing
+    // the card and opening it again does not link the two (plan 4).
+    testWidgets('an exit picked equal to the entry stays the diver\'s after '
+        'a reopen', (tester) async {
+      final stored = bare.copyWith(
+        entryMethod: EntryMethod.shore,
+        exitMethod: EntryMethod.boat,
+      );
+      final controller = await pumpEditor(tester, stored);
+      final l10n = l10nOf(tester);
+
+      await tester.tap(find.text(l10n.diveLog_edit_label_exitMethod));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ListTile, 'Shore'));
+      await tester.pumpAndSettle();
+      await pumpEditor(
+        tester,
+        stored,
+        controller: controller,
+        showEditor: false,
+      );
+      await pumpEditor(tester, stored, controller: controller);
+      await tester.tap(find.text(l10n.diveLog_edit_label_entryMethod));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ListTile, 'Ladder'));
+      await tester.pumpAndSettle();
+
+      expect(controller.session!.working.entryMethod, EntryMethod.ladder);
+      expect(controller.session!.working.exitMethod, EntryMethod.shore);
+    });
+
     testWidgets('picking an entry method carries a linked exit with it', (
       tester,
     ) async {

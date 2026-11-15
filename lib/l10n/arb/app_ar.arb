@@ -2753,6 +2753,7 @@
   },
   "diveLog_detail_section_decoStatus": "حالة الديكو",
   "diveLog_detail_section_details": "التفاصيل",
+  "diveLog_detail_section_header": "غطسة",
   "diveLog_detail_section_diveProfile": "ملف الغوصة",
   "diveLog_detail_profileRevision_kind_edit": "تعديل",
   "diveLog_detail_profileRevision_kind_create": "إنشاء",

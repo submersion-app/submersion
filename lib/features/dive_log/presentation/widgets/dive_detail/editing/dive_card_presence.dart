@@ -46,6 +46,10 @@ bool diveCardIsShown(
 /// Asked of [working], picking it would take the Environment card off the
 /// page under an open editor.
 ///
+/// [stored], during a sitting, is the dive as stored: what a card works out
+/// is asked of it instead, so that a site or a date changed in the sitting
+/// does not rework it before Save (issue #4527, plan 4).
+///
 /// The section list and the Add strip both ask this, so a card is always
 /// either on the page or offered in the strip, never neither.
 ///
@@ -55,8 +59,9 @@ bool diveCardIsOnPage(
   DiveDetailSectionId id, {
   required Dive layout,
   required Dive working,
+  Dive? stored,
 }) {
-  if (!diveCardIsShown(ref, id, layout)) return false;
+  if (!diveCardIsShown(ref, id, layout, satelliteFor: stored)) return false;
   return identical(layout, working) ||
-      diveCardIsShown(ref, id, working, satelliteFor: layout);
+      diveCardIsShown(ref, id, working, satelliteFor: stored ?? layout);
 }

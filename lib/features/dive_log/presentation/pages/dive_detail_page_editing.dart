@@ -93,6 +93,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       apply: session.applyTo,
       changedCardIds: session.changedCardIds,
       alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
+      alsoWriteIsAChange: session.hasHeldChanges,
     );
     if (result == null) return;
     if (result.after.id == widget.diveId) _justSaved = result.after;
@@ -190,6 +191,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
                     section.id,
                     layout: presence,
                     working: working,
+                    stored: editController.session?.stored,
                   ) ||
                   (!section.visible && !added.contains(card.id))))
             AddStripEntry(

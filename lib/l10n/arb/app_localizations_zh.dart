@@ -7685,6 +7685,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_section_details => '详情';
 
   @override
+  String get diveLog_detail_section_header => '潜水';
+
+  @override
   String get diveLog_detail_section_diveProfile => '潜水轮廓';
 
   @override

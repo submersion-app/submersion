@@ -160,4 +160,23 @@ void main() {
       expect(DiveHeroHeader.formatRuntime(logged), '--');
     });
   });
+
+  // The dive page puts the header card's pencil here (issue #4527, plan 4).
+  testWidgets('titleTrailing is drawn at the end of the title row', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      DiveHeroHeader(
+        dive: dive,
+        units: const UnitFormatter(AppSettings()),
+        titleTrailing: const Icon(Icons.edit_outlined, key: Key('trailing')),
+      ),
+    );
+
+    final title = tester.getCenter(find.text('Shark Point'));
+    final trailing = tester.getCenter(find.byKey(const Key('trailing')));
+    expect(trailing.dx, greaterThan(title.dx));
+    expect((trailing.dy - title.dy).abs(), lessThan(12));
+  });
 }

@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_trip_rows.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_visibility_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_site_assignment.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_multi_select_field.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/suggested_text_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -113,7 +114,11 @@ class _DiveDetailsCardEditorState extends ConsumerState<DiveDetailsCardEditor> {
                 // The types the dive is stored with are offered even when
                 // hidden (issue #401), so unticking one can be undone.
                 keepTypeIds: session.stored.diveTypeIds,
-                onChanged: (ids) => session.set(diveTypeIdsField, ids),
+                onChanged: (ids) {
+                  // A type a site added that the diver unticks is theirs.
+                  diveTypesEditedByHand(session, ids);
+                  session.set(diveTypeIdsField, ids);
+                },
               ),
             ),
             FormRow.display(

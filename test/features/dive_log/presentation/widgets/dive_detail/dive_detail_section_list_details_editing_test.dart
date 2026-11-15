@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_environment_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_tide_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_fields.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -297,7 +298,7 @@ void main() {
   });
 
   group('while Details is open', () {
-    testWidgets('switching to fresh water keeps the Tide card until Done', (
+    testWidgets('switching to fresh water keeps the Tide card until Save', (
       tester,
     ) async {
       sizeTo(tester, 600);
@@ -330,13 +331,15 @@ void main() {
       expect(tideShows(tester), isTrue);
       expect(tester.getTopLeft(editor).dy, top);
 
+      // The Tide card has no editor: it shows the dive as stored until
+      // the sitting is saved (plan 4).
       controller.closeCard('details');
       await repump();
 
-      expect(tideShows(tester), isFalse);
+      expect(tideShows(tester), isTrue);
     });
 
-    testWidgets('the Surface GPS and Tide pair does not split until Done', (
+    testWidgets('the Surface GPS and Tide pair does not split until Save', (
       tester,
     ) async {
       sizeTo(tester, 1200);
@@ -374,7 +377,7 @@ void main() {
       controller.closeCard('details');
       await repump();
 
-      expect(pair, findsNothing);
+      expect(pair, findsOneWidget);
     });
 
     // The Environment card carries satellite water conditions, which a
@@ -398,7 +401,7 @@ void main() {
       );
       final environment = find.byType(DiveEnvironmentSection);
 
-      testWidgets('beside Details, the card keeps its lines until Done', (
+      testWidgets('beside Details, the card keeps its lines until Save', (
         tester,
       ) async {
         sizeTo(tester, 1200);
@@ -432,8 +435,9 @@ void main() {
         controller.closeCard('details');
         await repump();
 
-        // With nothing logged and no satellite lines, the card goes.
-        expect(environment, findsNothing);
+        // The satellite lines are worked out from the dive as stored until
+        // the sitting is saved (plan 4), so the card stays.
+        expect(environment, findsOneWidget);
       });
 
       testWidgets('above Details in the folding layout, the editor does not '
@@ -472,7 +476,7 @@ void main() {
     });
 
     testWidgets('adding a first course keeps Signatures as it was until '
-        'Done', (tester) async {
+        'Save', (tester) async {
       sizeTo(tester, 600);
       await DatabaseService.instance.database.customStatement(
         "INSERT INTO courses (id, diver_id, name, agency, start_date, "
@@ -511,10 +515,11 @@ void main() {
       controller.closeCard('details');
       await repump();
 
-      expect(training, findsOneWidget);
+      // Signatures has no editor: the stored dive until Save (plan 4).
+      expect(training, findsNothing);
     });
 
-    testWidgets('the Buddies and Signatures pair does not form until Done', (
+    testWidgets('the Buddies and Signatures pair does not form until Save', (
       tester,
     ) async {
       sizeTo(tester, 1200);
@@ -549,7 +554,75 @@ void main() {
       controller.closeCard('details');
       await repump();
 
-      expect(pair, findsOneWidget);
+      expect(pair, findsNothing);
+    });
+  });
+
+  // A card with no editor draws the dive as stored for the whole sitting
+  // (issue #4527, plan 4): the site, the date and the depths can now be
+  // changed in the header, and such a card must not rework them before
+  // Save, nor come and go.
+  group('cards with no editor', () {
+    testWidgets('a site changed in the sitting leaves Tide on the stored '
+        'site', (tester) async {
+      sizeTo(tester, 600);
+      final controller = controllerOver(atSea);
+      final settings = _settings(const [DiveDetailSectionId.tide]);
+      Future<void> repump() async {
+        await tester.pumpWidget(
+          harness(
+            dive: controller.session!.working,
+            settings: settings,
+            controller: controller,
+            tideFor: atSea,
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      await repump();
+      expect(tideShows(tester), isTrue);
+
+      controller.session!.set(
+        diveSiteField,
+        const DiveSite(id: 'lake', name: 'Lake'),
+      );
+      await repump();
+
+      expect(tideShows(tester), isTrue);
+    });
+
+    testWidgets('after the sitting the cards follow the dive', (tester) async {
+      sizeTo(tester, 600);
+      final controller = controllerOver(atSea);
+      final settings = _settings(const [DiveDetailSectionId.tide]);
+      final lake = plain.copyWith(
+        site: const DiveSite(id: 'lake', name: 'Lake'),
+      );
+      await tester.pumpWidget(
+        harness(
+          dive: atSea,
+          settings: settings,
+          controller: controller,
+          tideFor: atSea,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tideShows(tester), isTrue);
+
+      controller.lock();
+      await tester.pumpWidget(
+        harness(
+          dive: lake,
+          settings: settings,
+          controller: controller,
+          tideFor: atSea,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveTideSection), findsOneWidget);
+      expect(tideShows(tester), isFalse);
     });
   });
 }

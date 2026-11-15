@@ -8084,6 +8084,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_detail_section_details => 'Detalhes';
 
   @override
+  String get diveLog_detail_section_header => 'Mergulho';
+
+  @override
   String get diveLog_detail_section_diveProfile => 'Perfil do Mergulho';
 
   @override

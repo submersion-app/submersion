@@ -8083,6 +8083,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_section_details => 'Dettagli';
 
   @override
+  String get diveLog_detail_section_header => 'Immersione';
+
+  @override
   String get diveLog_detail_section_diveProfile => 'Profilo immersione';
 
   @override

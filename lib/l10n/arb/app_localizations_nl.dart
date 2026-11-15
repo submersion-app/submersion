@@ -8033,6 +8033,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_detail_section_details => 'Details';
 
   @override
+  String get diveLog_detail_section_header => 'Duik';
+
+  @override
   String get diveLog_detail_section_diveProfile => 'Duikprofiel';
 
   @override

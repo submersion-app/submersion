@@ -2628,6 +2628,7 @@
   },
   "diveLog_detail_section_decoStatus": "Statut déco",
   "diveLog_detail_section_details": "Détails",
+  "diveLog_detail_section_header": "Plongée",
   "diveLog_detail_section_diveProfile": "Profil de plongée",
   "diveLog_detail_profileRevision_kind_edit": "Modification",
   "diveLog_detail_profileRevision_kind_create": "Création",
