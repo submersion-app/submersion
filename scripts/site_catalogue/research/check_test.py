@@ -217,6 +217,30 @@ class PositionTest(unittest.TestCase):
         self.assertTrue(checked.ok, checked.findings)
         self.assertAlmostEqual(checked.position[0], _mean_lat(), places=6)
 
+    def test_an_unreadable_cite_only_figure_is_a_note(self):
+        entry = _entry()
+        entry["position"]["sources"].append(
+            {"url": "https://dir.com/x", "read": "2026-11-16",
+             "lat": "8 16 S", "lon": "east of the jetty"}
+        )
+        checked = _one(entry)
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertIn("position_unread", _rules(checked, fatal=False))
+
+    def test_mean_across_the_antimeridian(self):
+        # Taveuni, Fiji: 30 m either side of 180 degrees.
+        entry = _entry(country_code="FJ")
+        entry["position"]["sources"] = [
+            {"url": "https://opa.com/t", "read": "2026-11-16",
+             "lat": -16.80012, "lon": 179.99985},
+            {"url": "https://pressb.org/t", "read": "2026-11-16",
+             "lat": -16.80012, "lon": -179.99985},
+        ]
+        entry["position"].update(lat=-16.80012, lon=180.0)
+        checked = _one(entry)
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertAlmostEqual(abs(checked.position[1]), 180.0, places=6)
+
     def test_mean_more_than_10m_off_fails(self):
         entry = _with(("position", "lat"), round(_mean_lat(), 6) + 0.0002)
         self.assertIn("position_mean", _rules(_one(entry)))

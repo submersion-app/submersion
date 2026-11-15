@@ -181,7 +181,27 @@ def withdrawals(entries, curated_withdrawn) -> dict[str, dict]:
         found[site_id] = {
             key: item[key] for key in ("reason", "date", "replaced_by") if item.get(key)
         }
-    return found
+    return _follow_replacements(found)
+
+
+def _follow_replacements(found: dict[str, dict]) -> dict[str, dict]:
+    """[found] with each replacement followed to the record that still
+    ships: when B replaced A and was later replaced by C, A points at C.
+    Raises ValueError for a loop."""
+    followed = {}
+    for site_id, withdrawal in found.items():
+        target, seen = withdrawal.get("replaced_by"), {site_id}
+        while target in found and found[target].get("replaced_by"):
+            if target in seen:
+                raise ValueError(f"{site_id}: its replacements loop back on it")
+            seen.add(target)
+            target = found[target]["replaced_by"]
+        if target in seen:
+            raise ValueError(f"{site_id}: its replacements loop back on it")
+        followed[site_id] = (
+            dict(withdrawal, replaced_by=target) if target else dict(withdrawal)
+        )
+    return followed
 
 
 def load_batch(

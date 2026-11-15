@@ -155,6 +155,36 @@ class WithdrawalsTest(unittest.TestCase):
             "curated_x": {"reason": "not_a_site", "date": "2026-12-02"},
         })
 
+    def test_a_replacement_chain_points_at_the_last_record(self):
+        withdrawn = src_research.withdrawals(
+            [
+                _entry("research_id_a", withdrawn={
+                    "reason": "position", "date": "2026-12-01",
+                    "replaced_by": "research_id_b"}),
+                _entry("research_id_b", withdrawn={
+                    "reason": "position", "date": "2027-02-01",
+                    "replaced_by": "research_id_c"}),
+                _entry("research_id_c"),
+            ],
+            [],
+        )
+        self.assertEqual(withdrawn["research_id_a"]["replaced_by"], "research_id_c")
+        self.assertEqual(withdrawn["research_id_b"]["replaced_by"], "research_id_c")
+
+    def test_a_replacement_loop_is_refused(self):
+        with self.assertRaises(ValueError):
+            src_research.withdrawals(
+                [
+                    _entry("research_id_a", withdrawn={
+                        "reason": "position", "date": "2026-12-01",
+                        "replaced_by": "research_id_b"}),
+                    _entry("research_id_b", withdrawn={
+                        "reason": "position", "date": "2027-02-01",
+                        "replaced_by": "research_id_a"}),
+                ],
+                [],
+            )
+
     def test_a_bad_curated_withdrawal_is_refused(self):
         for bad in (
             {"id": "osm_node_1", "reason": "position", "date": "2026-12-02"},

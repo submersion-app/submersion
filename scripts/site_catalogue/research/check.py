@@ -198,19 +198,33 @@ def _counting(sources, domains) -> list[dict]:
     ]
 
 
+def _mean_longitude(values: list[float]) -> float:
+    """The mean of longitudes that agree within 150 m, taken the short way
+    round: two figures either side of 180 degrees average to 180, not 0."""
+    first = values[0]
+    unwrapped = [first + (v - first + 180.0) % 360.0 - 180.0 for v in values]
+    mean = sum(unwrapped) / len(unwrapped)
+    return (mean + 180.0) % 360.0 - 180.0 if not -180.0 <= mean <= 180.0 else mean
+
+
 def _check_position(checked: CheckedEntry, domains) -> None:
     position = checked.entry.get("position")
     sources = _sources(position)
+    counted = _counting(sources, domains)
     figures = []
     for source in sources:
         try:
             lat, lat_p = evidence.parse_coordinate(source.get("lat"), "lat")
             lon, lon_p = evidence.parse_coordinate(source.get("lon"), "lon")
         except ValueError as error:
-            checked.fail("shape", f"{source.get('url')}: {error}")
-            return
+            if source in counted:
+                checked.fail("shape", f"{source.get('url')}: {error}")
+                return
+            # A cited page never counts, so its odd figure costs nothing.
+            checked.note("position_unread", f"{source.get('url')}: {error}")
+            continue
         figures.append((source, lat, lon, max(lat_p, lon_p)))
-    counting = [f for f in figures if f[0] in _counting(sources, domains)]
+    counting = [f for f in figures if f[0] in counted]
     if len(counting) < 2:
         checked.fail("position_sources", "two counting pages state a position")
         return
@@ -233,7 +247,7 @@ def _check_position(checked: CheckedEntry, domains) -> None:
                 )
     mean = (
         sum(f[1] for f in counting) / len(counting),
-        sum(f[2] for f in counting) / len(counting),
+        _mean_longitude([f[2] for f in counting]),
     )
     checked.position = mean
     try:

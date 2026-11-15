@@ -25,9 +25,9 @@ It prints, per source, what was read, what each gate dropped and what was
 written, then the ids that left and joined the catalogue it replaces.
 
 Researched sites are read from `research/sites.json` on every run, as the
-curated file is (src_research.py). A researched record that the file
-being replaced ships may leave only by a withdrawal written in its
-evidence entry: otherwise the merge stops, naming it, so a diver who
+curated file is (src_research.py). A researched or curated record that
+the file being replaced ships may leave only by a withdrawal written in
+the evidence file: otherwise the merge stops, naming it, so a diver who
 adopted it is never left without word.
 """
 
@@ -301,6 +301,17 @@ def build(
             "dropped": dict(sorted(dropped.items())),
             "formed": len(formed),
         }
+    curated_ids = {entry["id"] for entry in curated}
+    unknown = sorted(
+        site_id
+        for site_id in research.withdrawn
+        if site_id.startswith(_CURATED + "_") and site_id not in curated_ids
+    )
+    if unknown:
+        raise ValueError(
+            "Withdrawals name no record in the curated file (keep a "
+            "withdrawn curated entry in the file): " + "; ".join(unknown)
+        )
     kept_curated = [e for e in curated if e["id"] not in research.withdrawn]
     for entry in kept_curated:
         record = _curated_working(entry)
@@ -334,14 +345,14 @@ def build(
     silent = sorted(
         site_id
         for site_id in previous_ids or ()
-        if site_id.startswith(_RESEARCH + "_")
+        if site_id.startswith((_RESEARCH + "_", _CURATED + "_"))
         and site_id not in shipped
         and site_id not in research.withdrawn
     )
     if silent:
         raise ValueError(
-            "Researched records the catalogue ships would leave without a "
-            "withdrawal (write one in research/sites.json): "
+            "Researched or curated records the catalogue ships would leave "
+            "without a withdrawal (write one in research/sites.json): "
             + "; ".join(
                 f"{site_id} (same site as {beaten[site_id]})"
                 if site_id in beaten

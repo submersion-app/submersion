@@ -144,10 +144,17 @@ that it was withdrawn and why; nothing about their site changes.
 
 A curated record (`scripts/dive_sites_curated.json`) is withdrawn the same
 way, by an item in `withdrawn_curated`:
-`{"id": "curated_...", "reason": ..., "date": ...}`.
+`{"id": "curated_...", "reason": ..., "date": ...}`. Its entry stays in
+the curated file: the merge refuses a withdrawal that names no curated
+entry, which is how a mistyped id is caught.
 
-The merge stops when a researched record the shipped catalogue holds would
-leave it without a withdrawal (because the entry was deleted or rejected,
-or because a new OpenStreetMap dive site now lies within 150 m of it). It
-names the record and what replaced it; write the withdrawal and run it
-again.
+When a correction is itself withdrawn later, the catalogue sends each
+earlier withdrawal on to the record that still ships; a loop of
+replacements stops the merge.
+
+The merge stops when a researched or curated record the shipped catalogue
+holds would leave it without a withdrawal: because the entry was deleted
+or rejected, or because a new OpenStreetMap dive site now lies within
+150 m of a researched record (1 km of a curated one with its name). It
+names the record and what replaced it; write the withdrawal, with that
+record as `replaced_by`, and run it again.

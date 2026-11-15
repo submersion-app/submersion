@@ -736,6 +736,17 @@ class ResearchInTheMergeTest(unittest.TestCase):
             self._build(_batch([]), previous_ids={"research_id_gone"})
         self.assertIn("research_id_gone", str(raised.exception))
 
+    def test_a_shipped_curated_id_that_leaves_without_withdrawal_fails(self):
+        with self.assertRaises(ValueError) as raised:
+            self._build(_batch([]), previous_ids={"curated_gone"})
+        self.assertIn("curated_gone", str(raised.exception))
+
+    def test_a_withdrawal_naming_no_curated_record_fails(self):
+        with self.assertRaises(ValueError) as raised:
+            self._build(_batch([], withdrawn={
+                "curated_shroe": {"reason": "duplicate", "date": "2026-12-01"}}))
+        self.assertIn("curated_shroe", str(raised.exception))
+
     def test_withdrawn_research_id_may_leave(self):
         records, _ = self._build(
             _batch([], withdrawn={"research_id_gone": {
