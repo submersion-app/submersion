@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_par
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_name_key.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_withdrawal.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/repositories/site_catalogue.dart';
 
@@ -190,6 +191,12 @@ class FakeSiteCatalogue implements SiteCatalogue {
 
   @override
   Future<CatalogueSource?> source(String key) async => sources[key];
+
+  /// The withdrawals [withdrawal] answers, by record id.
+  Map<String, CatalogueWithdrawal> withdrawals = {};
+
+  @override
+  Future<CatalogueWithdrawal?> withdrawal(String id) async => withdrawals[id];
 }
 
 /// The real catalogue's order: folded name first (the search text begins

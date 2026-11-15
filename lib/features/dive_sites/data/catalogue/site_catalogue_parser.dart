@@ -5,6 +5,7 @@ import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/catalogue_enum_names.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_withdrawal.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// A catalogue file, read.
@@ -13,10 +14,14 @@ class ParsedSiteCatalogue {
   final List<CatalogueSite> sites;
   final List<CatalogueSource> sources;
 
+  /// The researched records this catalogue no longer ships, and why.
+  final List<CatalogueWithdrawal> withdrawn;
+
   const ParsedSiteCatalogue({
     required this.format,
     required this.sites,
     required this.sources,
+    this.withdrawn = const [],
   });
 }
 
@@ -67,6 +72,11 @@ ParsedSiteCatalogue parseSiteCatalogue(String json, {SeaNamer? seaAt}) {
         for (final entry in sources.entries)
           if (entry.value case final Map<String, dynamic> raw)
             ?_source(entry.key, raw),
+    ],
+    withdrawn: [
+      if (meta['withdrawn'] case final Map<String, dynamic> withdrawn)
+        for (final entry in withdrawn.entries)
+          ?catalogueWithdrawalFromJson(entry.key, entry.value),
     ],
   );
 }
