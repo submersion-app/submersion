@@ -97,7 +97,7 @@ void main() {
     expect(_last.grow, 1);
   });
 
-  testWidgets('the hand-over carries the growth to its target', (tester) async {
+  test('the hand-over carries the growth to its target', () {
     const growing = StripLayerState(
       data: PinnedStripLayerData.empty,
       strengths: {},

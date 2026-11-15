@@ -737,8 +737,10 @@ void main() {
 
   // It pins over the other cards, so it is only as wide as they are: inside
   // the profile card's margin from the first frame of the fade to pinned,
-  // never widening out to the page's edges (#4488).
-  testWidgets('the strip keeps the card width while condensing and pinned', (
+  // never widening out to the page's edges (#4488). With a plot as wide as
+  // the card, as here, that is the card's width throughout; a narrower plot
+  // starts it narrower (the test above).
+  testWidgets('the strip stays within the card margin, condensing and pinned', (
     tester,
   ) async {
     final profileKey = GlobalKey();
