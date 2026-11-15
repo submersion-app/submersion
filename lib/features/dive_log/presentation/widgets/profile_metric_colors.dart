@@ -49,6 +49,14 @@ abstract final class ProfileMetricColors {
   static const Color gf = Color(0xFF673AB7); // Deep Purple 500
   static const Color surfaceGf = Color(0xFFBA68C8); // Purple 300
   static const Color meanDepth = Color(0xFF607D8B); // Blue Grey 500
+
+  /// The net buoyancy line (#4593), one colour per side of neutral. Fixed,
+  /// not diver-chosen, because the colour carries the meaning. The Okabe-Ito
+  /// bluish green and vermillion: apart from depth blue and from each other
+  /// under the common colour-vision deficiencies. The green is a shade darker
+  /// than Okabe-Ito's #009E73 so it clears 3:1 on every theme's light surface.
+  static const Color buoyancyBuoyant = Color(0xFF00936B);
+  static const Color buoyancyHeavy = Color(0xFFD55E00);
 }
 
 /// Lightness added per overlaid computer, so the second computer's trace is
