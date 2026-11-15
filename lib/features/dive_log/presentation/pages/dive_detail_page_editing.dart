@@ -226,21 +226,14 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
                 onSave: _saveAndReport,
               )
             : lockedBar,
-        body: Column(
-          children: [
-            AddStrip(
-              entries: controller.isUnlocked
-                  ? _addStripEntries(shown)
-                  : const [],
-              onAdd: controller.addCard,
-            ),
-            Expanded(
-              child: RecordEditScope<Dive>(
-                controller: controller,
-                child: content,
-              ),
-            ),
-          ],
+        // The strip comes and goes as the page unlocks and locks, and as
+        // cards are added and closed; the page under it stays where it is.
+        body: AddStripLayout(
+          strip: AddStrip(
+            entries: controller.isUnlocked ? _addStripEntries(shown) : const [],
+            onAdd: controller.addCard,
+          ),
+          body: RecordEditScope<Dive>(controller: controller, child: content),
         ),
       ),
     );

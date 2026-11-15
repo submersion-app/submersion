@@ -60,15 +60,19 @@ void main() {
   testWidgets('unlock swaps the bar and moves nothing in the page', (
     tester,
   ) async {
-    await pumpPage(tester);
-    // The page's own scroll view, not the Add strip's sideways one. The
-    // strip sits above it, so what must not move is the page inside it.
-    final scroll = find.byWidgetPredicate(
-      (w) => w is SingleChildScrollView && w.scrollDirection == Axis.vertical,
-    );
-    Offset notesInScroll() =>
-        tester.getTopLeft(find.text('Calm')) - tester.getTopLeft(scroll);
-    final before = notesInScroll();
+    // Short, so the page scrolls; it is looked at part of the way down.
+    await pumpPage(tester, size: const Size(700, 260));
+    final page = tester
+        .state<ScrollableState>(
+          find.byWidgetPredicate(
+            (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+          ),
+        )
+        .position;
+    page.jumpTo(page.maxScrollExtent / 2);
+    await settle(tester);
+    double notesTop() => tester.getTopLeft(find.text('Calm')).dy;
+    final before = notesTop();
     expect(find.byType(DiveNavButtons), findsOneWidget);
 
     await unlock(tester);
@@ -78,7 +82,15 @@ void main() {
     expect(find.byTooltip('Unlock to edit'), findsNothing);
     expect(find.byType(DiveNavButtons), findsNothing);
     expect(find.byTooltip('Edit Notes'), findsOneWidget);
-    expect(notesInScroll(), before);
+    // The Add strip arrived above the page and offers Tags.
+    expect(find.byKey(const ValueKey('addStrip_tags')), findsOneWidget);
+    expect(notesTop(), before);
+
+    await tester.tap(find.text('Cancel'));
+    await settle(tester);
+
+    expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+    expect(notesTop(), before);
   });
 
   testWidgets('the strip offers Tags for a dive with none', (tester) async {
