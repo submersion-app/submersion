@@ -21,9 +21,9 @@ List<String> buddyCardChips(
 ) => [
   ?card.phone,
   ?card.email,
-  ?card.social,
   if (card.certs.isNotEmpty) card.certs.first.name,
   if (card.dives != null) l10n.buddySwap_dives(card.dives!),
   if (card.since != null) l10n.buddySwap_chip_since('${card.since}'),
   if (card.last != null) l10n.buddySwap_chip_lastDive(formatDate(card.last!)),
+  ?card.social,
 ];

@@ -14,6 +14,7 @@ const _full = BuddyCard(
   name: 'Jordan Blake',
   phone: '+1 555 0199',
   email: 'j@x.com',
+  social: '@jordan',
   certs: [BuddyCardCert(agency: 'PADI', name: 'Advanced Open Water Diver')],
   dives: 342,
   since: 2014,
@@ -60,6 +61,7 @@ void main() {
       'Advanced Open Water Diver',
       '342 dives',
       'Diving since 2014',
+      '@jordan',
     ]);
   });
 
