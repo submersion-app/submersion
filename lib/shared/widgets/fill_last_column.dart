@@ -1,7 +1,7 @@
-import 'dart:math' as math;
-
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+
+import 'package:submersion/shared/widgets/render_box_children.dart';
 
 /// Stacks its children full width, like a [Column] with
 /// `CrossAxisAlignment.stretch`, and gives any height it is made to fill
@@ -38,47 +38,27 @@ class RenderFillLastColumn extends RenderBox
     }
   }
 
-  double _sum(double Function(RenderBox child) measure) {
-    var sum = 0.0;
-    var child = firstChild;
-    while (child != null) {
-      sum += measure(child);
-      child = childAfter(child);
-    }
-    return sum;
-  }
-
-  double _largest(double Function(RenderBox child) measure) {
-    var largest = 0.0;
-    var child = firstChild;
-    while (child != null) {
-      largest = math.max(largest, measure(child));
-      child = childAfter(child);
-    }
-    return largest;
-  }
-
   @override
   double computeMinIntrinsicWidth(double height) =>
-      _largest((c) => c.getMinIntrinsicWidth(double.infinity));
+      largestOfChildren((c) => c.getMinIntrinsicWidth(double.infinity));
 
   @override
   double computeMaxIntrinsicWidth(double height) =>
-      _largest((c) => c.getMaxIntrinsicWidth(double.infinity));
+      largestOfChildren((c) => c.getMaxIntrinsicWidth(double.infinity));
 
   @override
   double computeMinIntrinsicHeight(double width) =>
-      _sum((c) => c.getMinIntrinsicHeight(width));
+      sumOfChildren((c) => c.getMinIntrinsicHeight(width));
 
   @override
   double computeMaxIntrinsicHeight(double width) =>
-      _sum((c) => c.getMaxIntrinsicHeight(width));
+      sumOfChildren((c) => c.getMaxIntrinsicHeight(width));
 
   @override
   Size computeDryLayout(covariant BoxConstraints constraints) {
     assert(constraints.hasBoundedWidth, 'FillLastColumn needs a bounded width');
     final child = BoxConstraints.tightFor(width: constraints.maxWidth);
-    final height = _sum((c) => c.getDryLayout(child).height);
+    final height = sumOfChildren((c) => c.getDryLayout(child).height);
     return constraints.constrain(Size(constraints.maxWidth, height));
   }
 
@@ -94,15 +74,16 @@ class RenderFillLastColumn extends RenderBox
       child.layout(natural, parentUsesSize: true);
       child = childAfter(child);
     }
-    final stacked = _sum((c) => c.size.height);
+    final stacked = sumOfChildren((c) => c.size.height);
     final height = constraints.constrainHeight(stacked);
     final last = lastChild;
     if (last != null && height > stacked) {
+      // A minimum, not a tight height: tight constraints would make the
+      // child its own relayout boundary, and content that grows inside it
+      // later (a signature loading) would relayout it at this stale height
+      // without telling the column.
       last.layout(
-        BoxConstraints.tightFor(
-          width: width,
-          height: last.size.height + height - stacked,
-        ),
+        natural.copyWith(minHeight: last.size.height + height - stacked),
         parentUsesSize: true,
       );
     }

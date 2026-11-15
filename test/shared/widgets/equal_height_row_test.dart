@@ -130,6 +130,31 @@ void main() {
     expect(_cardRect(tester, 'TALL').height, 100);
   });
 
+  // The stretched card must still tell the row when it grows: data arriving
+  // after the first frame (a tide record, a signature) makes it taller.
+  testWidgets('a stretched card that grows past the row takes the row along', (
+    tester,
+  ) async {
+    final height = ValueNotifier<double>(40);
+    addTearDown(height.dispose);
+    await _pump(tester, [
+      ValueListenableBuilder<double>(
+        valueListenable: height,
+        builder: (context, value, _) => _card('GROWS', value),
+      ),
+      _card('TALL', 200),
+    ]);
+    expect(_cardRect(tester, 'GROWS').height, 200);
+
+    height.value = 320;
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(_cardRect(tester, 'GROWS').height, 320);
+    expect(_cardRect(tester, 'TALL').height, 320);
+    expect(tester.getSize(find.byType(EqualHeightRow)).height, 320);
+  });
+
   testWidgets('taps reach the card in each column', (tester) async {
     final tapped = <String>[];
     Widget tappable(String label, double height) => GestureDetector(

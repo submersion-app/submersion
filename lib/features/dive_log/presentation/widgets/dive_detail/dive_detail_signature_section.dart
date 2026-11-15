@@ -28,14 +28,19 @@ class DiveSignaturesSection extends ConsumerWidget {
     final buddies = BuddySignaturesSection(diveId: dive.id);
     if (dive.courseIds.isEmpty) return buddies;
 
-    // The buddy card draws nothing for a dive without buddies, so its gap
-    // must go with it or the instructor's card starts 24px down. It draws a
-    // placeholder while the buddies load, so it counts as shown until then.
-    final buddiesShow = ref.watch(
+    // The buddy card draws nothing for a dive without buddies, or when
+    // either of its reads fails, so its gap must go with it or the
+    // instructor's card starts 24px down. It draws a placeholder while the
+    // buddies load, so it counts as shown until then.
+    final hasBuddies = ref.watch(
       buddiesForDiveProvider(dive.id).select(
         (async) => !async.hasError && (async.valueOrNull?.isNotEmpty ?? true),
       ),
     );
+    final signaturesFailed = ref.watch(
+      buddySignaturesForDiveProvider(dive.id).select((async) => async.hasError),
+    );
+    final buddiesShow = hasBuddies && !signaturesFailed;
     final training = _TrainingSignatureCard(dive: dive);
     if (!buddiesShow) return training;
     return FillLastColumn(

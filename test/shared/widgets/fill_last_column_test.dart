@@ -58,6 +58,36 @@ void main() {
     expect(_rect(tester, 'B'), const Rect.fromLTWH(0, 40, 300, 210));
   });
 
+  testWidgets('a stretched last child that grows takes the column along', (
+    tester,
+  ) async {
+    final height = ValueNotifier<double>(60);
+    addTearDown(height.dispose);
+    await _pump(
+      tester,
+      ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 250),
+        child: FillLastColumn(
+          children: [
+            _box('A', 40),
+            ValueListenableBuilder<double>(
+              valueListenable: height,
+              builder: (context, value, _) => _box('B', value),
+            ),
+          ],
+        ),
+      ),
+    );
+    expect(_rect(tester, 'B').height, 210);
+
+    height.value = 300;
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(_rect(tester, 'B').height, 300);
+    expect(tester.getSize(find.byType(FillLastColumn)).height, 340);
+  });
+
   testWidgets('with no children it is empty', (tester) async {
     await _pump(tester, const FillLastColumn(children: []));
 

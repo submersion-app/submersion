@@ -30,6 +30,7 @@ Future<void> _pump(
   WidgetTester tester, {
   required bool buddies,
   required bool course,
+  bool signaturesFail = false,
   double? height,
 }) async {
   tester.view.devicePixelRatio = 1.0;
@@ -48,9 +49,10 @@ Future<void> _pump(
         buddiesForDiveProvider(
           _diveId,
         ).overrideWith((ref) async => buddies ? [_alice] : <BuddyWithRole>[]),
-        buddySignaturesForDiveProvider(
-          _diveId,
-        ).overrideWith((ref) async => <Signature>[]),
+        buddySignaturesForDiveProvider(_diveId).overrideWith(
+          (ref) async =>
+              signaturesFail ? throw StateError('read failed') : <Signature>[],
+        ),
         signatureForDiveProvider(_diveId).overrideWith((ref) async => null),
         coursesForDiveProvider(_diveId).overrideWith((ref) async => <Course>[]),
       ],
@@ -113,6 +115,16 @@ void main() {
     tester,
   ) async {
     await _pump(tester, buddies: false, course: true);
+
+    final cards = _cards(tester);
+    expect(cards, hasLength(1));
+    expect(cards.single.top, _host(tester).top);
+  });
+
+  testWidgets('when the buddy signatures fail to load, no gap is left', (
+    tester,
+  ) async {
+    await _pump(tester, buddies: true, course: true, signaturesFail: true);
 
     final cards = _cards(tester);
     expect(cards, hasLength(1));

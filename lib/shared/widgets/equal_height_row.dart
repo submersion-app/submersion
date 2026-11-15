@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
+import 'package:submersion/shared/widgets/render_box_children.dart';
+
 /// Lays its children out side by side in equal-width columns, each as tall
 /// as the tallest.
 ///
@@ -85,34 +87,25 @@ class RenderEqualHeightRow extends RenderBox
   double _columnWidth(double width) =>
       childCount == 0 ? 0 : math.max(0, (width - _totalGap) / childCount);
 
-  /// The largest of [measure] over the children.
-  double _largest(double Function(RenderBox child) measure) {
-    var largest = 0.0;
-    var child = firstChild;
-    while (child != null) {
-      largest = math.max(largest, measure(child));
-      child = childAfter(child);
-    }
-    return largest;
-  }
-
   // The columns are equal, so the row needs every column as wide as the
   // widest child needs, as a Row of Expanded children does.
   @override
   double computeMinIntrinsicWidth(double height) =>
-      _largest((c) => c.getMinIntrinsicWidth(height)) * childCount + _totalGap;
+      largestOfChildren((c) => c.getMinIntrinsicWidth(height)) * childCount +
+      _totalGap;
 
   @override
   double computeMaxIntrinsicWidth(double height) =>
-      _largest((c) => c.getMaxIntrinsicWidth(height)) * childCount + _totalGap;
+      largestOfChildren((c) => c.getMaxIntrinsicWidth(height)) * childCount +
+      _totalGap;
 
   @override
   double computeMinIntrinsicHeight(double width) =>
-      _largest((c) => c.getMinIntrinsicHeight(_columnWidth(width)));
+      largestOfChildren((c) => c.getMinIntrinsicHeight(_columnWidth(width)));
 
   @override
   double computeMaxIntrinsicHeight(double width) =>
-      _largest((c) => c.getMaxIntrinsicHeight(_columnWidth(width)));
+      largestOfChildren((c) => c.getMaxIntrinsicHeight(_columnWidth(width)));
 
   /// What each child is first offered: its column's width, and any height up
   /// to what the row is offered.
@@ -129,7 +122,7 @@ class RenderEqualHeightRow extends RenderBox
   Size computeDryLayout(covariant BoxConstraints constraints) {
     assert(constraints.hasBoundedWidth, 'EqualHeightRow needs a bounded width');
     final natural = _naturalConstraints(constraints);
-    final tallest = _largest((c) => c.getDryLayout(natural).height);
+    final tallest = largestOfChildren((c) => c.getDryLayout(natural).height);
     return constraints.constrain(Size(constraints.maxWidth, tallest));
   }
 
@@ -146,8 +139,14 @@ class RenderEqualHeightRow extends RenderBox
       child.layout(natural, parentUsesSize: true);
       child = childAfter(child);
     }
-    final height = constraints.constrainHeight(_largest((c) => c.size.height));
-    final fill = BoxConstraints.tightFor(width: columnWidth, height: height);
+    final height = constraints.constrainHeight(
+      largestOfChildren((c) => c.size.height),
+    );
+    // A minimum, not a tight height: tight constraints would make the child
+    // its own relayout boundary, and content that grows inside it later (a
+    // tide record arriving) would relayout it at this stale height without
+    // telling the row.
+    final fill = natural.copyWith(minHeight: height);
 
     var index = 0;
     child = firstChild;
