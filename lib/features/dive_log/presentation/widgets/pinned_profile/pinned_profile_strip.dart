@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -9,8 +11,15 @@ import 'package:submersion/features/dive_log/presentation/profile_colors/profile
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
+import 'package:submersion/features/dive_log/presentation/utils/gas_consumption_tooltip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show TooltipRow;
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/pinned_strip_layer_animator.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_band_painter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer_tooltip_rows.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_line_painter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_marker_painter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_painter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_lift.dart';
@@ -20,8 +29,15 @@ import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dar
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Room below the strip the tooltip may take: enough for its five rows.
+/// Room below the strip the tooltip may take: enough for its own five rows,
+/// and more for each row a card layer adds (issue #4562).
 const double _tooltipRoom = 240;
+
+/// Room a tooltip row takes.
+const double _tooltipRowRoom = 24;
+
+/// The strip's own tooltip rows, which [_tooltipRoom] is sized for.
+const int _ownTooltipRows = 5;
 
 /// Corner radius of the profile card the strip condenses out of when the
 /// theme's card shape gives none: Material 3's default card radius.
@@ -80,9 +96,14 @@ class PinnedProfileStrip extends ConsumerStatefulWidget {
     this.condense = 1,
     this.backgroundOpacity = 1,
     this.morphFrom,
+    this.layers = StripLayerState.none,
   });
 
   final Dive dive;
+
+  /// The layers of the cards in view and how far each has faded in, and how
+  /// far the strip has grown for them (issue #4562).
+  final StripLayerState layers;
 
   /// How far the shape has condensed into the strip, from 0 to 1. At 1 the
   /// strip is its pinned [kPinnedStripHeight]; below 1 it needs a bounded
@@ -152,13 +173,41 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
       analysis: analysis,
       cursorIndex: cursor,
     );
-    final rows = values == null
-        ? const <TooltipRow>[]
-        : pinnedStripTooltipRows(values, units, context.l10n, palette: palette);
     final selectedSeconds =
         cursor != null && cursor >= 0 && cursor < profile.length
         ? profile[cursor].timestamp
         : null;
+    final layers = widget.layers;
+    final consumption = ref.watch(gasConsumptionDisplayProvider);
+    final rows = values == null
+        ? const <TooltipRow>[]
+        : [
+            ...pinnedStripTooltipRows(
+              values,
+              units,
+              context.l10n,
+              palette: palette,
+            ),
+            ...stripLayerTooltipRows(
+              layers: layers,
+              cursorSeconds: selectedSeconds!,
+              cursorIndex: cursor,
+              units: units,
+              l10n: context.l10n,
+              // SAC or RMV, as the diver shows gas consumption.
+              sacRow: (sacBarPerMin) => gasConsumptionTooltipRow(
+                l10n: context.l10n,
+                units: units,
+                display: consumption,
+                sacBarPerMin: sacBarPerMin,
+                tankVolume: widget.dive.sacReferenceVolume,
+              ),
+            ),
+          ];
+    // Settled, the strip is as tall as its line layers have grown it.
+    final stripHeight =
+        kPinnedStripHeight +
+        layers.grow * (kPinnedStripGrownHeight - kPinnedStripHeight);
 
     final condense = widget.condense.clamp(0.0, 1.0);
     final background = widget.backgroundOpacity.clamp(0.0, 1.0);
@@ -182,6 +231,8 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
       ndlColor: palette.colorOf(ProfileMetric.ndl),
       ceilingColor: palette.colorOf(ProfileMetric.ceiling),
       maxDepthColor: palette.colorOf(ProfileMetric.maxDepth),
+      curveHeight: stripHeight,
+      extraMaxDepthMeters: _ghostDepth(profile, layers),
     );
     return Semantics(
       container: true,
@@ -200,12 +251,16 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                     link: _link,
                     rows: rows,
                     stripWidth: width,
+                    room: _tooltipRoomFor(
+                      rows.length,
+                      MediaQuery.sizeOf(context).height,
+                    ),
                     // Where the cursor line is drawn, through the strip's own
                     // mapping.
                     cursorX: selectedSeconds == null
                         ? 0
                         : stripPainter
-                              .mappingFor(Size(width, kPinnedStripHeight))
+                              .mappingFor(Size(width, stripHeight))
                               .project(selectedSeconds, 0)
                               .dx,
                   ),
@@ -260,7 +315,7 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                         corners: card.corners,
                       ),
                       child: SizedBox(
-                        height: condense >= 1 ? kPinnedStripHeight : null,
+                        height: condense >= 1 ? stripHeight : null,
                         child: MouseRegion(
                           onHover: (e) =>
                               _scrubTo(e.localPosition.dx, width, profile),
@@ -289,12 +344,12 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                             // the two shadings would stack into a darker blue.
                             child: Opacity(
                               opacity: background,
-                              child: CustomPaint(
-                                size: Size.infinite,
-                                painter: stripPainter,
+                              child: _Layered(
+                                strip: stripPainter,
+                                layers: layers,
                                 // Its own layer: moving the cursor repaints
                                 // only the cursor.
-                                foregroundPainter: PinnedStripCursorPainter(
+                                cursor: PinnedStripCursorPainter(
                                   strip: stripPainter,
                                   selectedSeconds: selectedSeconds,
                                   color: colors.primary,
@@ -316,6 +371,74 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
   }
 }
 
+/// Room below the strip for a tooltip of [rows] rows: more for each row a
+/// card layer adds, but never over half of a screen [screenHeight] tall, a
+/// short window included, or its last rows would fall off it. Past that its
+/// box scales down to fit.
+double _tooltipRoomFor(int rows, double screenHeight) {
+  final wanted = math.max(
+    _tooltipRoom,
+    _tooltipRoom + (rows - _ownTooltipRows) * _tooltipRowRoom,
+  );
+  return math.min(wanted, screenHeight / 2);
+}
+
+/// The deepest point of the ghost depth lines showing, faded in with them,
+/// so the depth axis eases out to a deeper ghost rather than jumping.
+double _ghostDepth(List<DiveProfilePoint> profile, StripLayerState layers) {
+  final own = pinnedStripCurve(profile).maxDepthMeters;
+  var deepest = 0.0;
+  for (final ghost in layers.data.ghosts) {
+    final strength = layers.strengthOf(ghost.layer);
+    if (strength <= 0 || ghost.maxDepth <= own) continue;
+    deepest = math.max(deepest, own + (ghost.maxDepth - own) * strength);
+  }
+  return deepest;
+}
+
+/// The strip's painters, bottom to top: the card layers' bands, the depth
+/// curve and its own marks, the card layers' lines and marks, the cursor.
+/// The card layers' painters are left out while no layer shows.
+class _Layered extends StatelessWidget {
+  const _Layered({
+    required this.strip,
+    required this.layers,
+    required this.cursor,
+  });
+
+  final PinnedStripPainter strip;
+  final StripLayerState layers;
+  final PinnedStripCursorPainter cursor;
+
+  @override
+  Widget build(BuildContext context) {
+    final depth = CustomPaint(
+      size: Size.infinite,
+      painter: strip,
+      foregroundPainter: layers.strengths.isEmpty ? cursor : null,
+    );
+    if (layers.strengths.isEmpty) return depth;
+    final shows = layers.strengths.keys;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (shows.any(
+          (l) => l == StripLayer.phases || l == StripLayer.safetyFindings,
+        ))
+          CustomPaint(
+            painter: StripBandPainter(strip: strip, layers: layers),
+          ),
+        depth,
+        CustomPaint(
+          painter: StripLinePainter(strip: strip, layers: layers),
+          foregroundPainter: StripMarkerPainter(strip: strip, layers: layers),
+        ),
+        CustomPaint(foregroundPainter: cursor),
+      ],
+    );
+  }
+}
+
 /// The tooltip, hung [kPinnedTooltipDrop] below the strip through [link] and
 /// placed beside the cursor by [pinnedTooltipLeft].
 class _FloatingTooltip extends StatelessWidget {
@@ -324,12 +447,16 @@ class _FloatingTooltip extends StatelessWidget {
     required this.rows,
     required this.stripWidth,
     required this.cursorX,
+    required this.room,
   });
 
   final LayerLink link;
   final List<TooltipRow> rows;
   final double stripWidth;
   final double cursorX;
+
+  /// Height the tooltip may take below the strip.
+  final double room;
 
   @override
   Widget build(BuildContext context) => Align(
@@ -341,7 +468,7 @@ class _FloatingTooltip extends StatelessWidget {
       offset: const Offset(0, kPinnedTooltipDrop),
       child: SizedBox(
         width: stripWidth,
-        height: _tooltipRoom,
+        height: room,
         // The strip's semantics value already reads these rows, so they are
         // not announced a second time from here.
         child: ExcludeSemantics(

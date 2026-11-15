@@ -9,6 +9,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.d
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_altitude_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_details_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_environment_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_card_marker.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
@@ -470,6 +472,72 @@ void main() {
       expect(find.byType(MarkdownNotesField), findsNothing);
       expect(find.text('Calm'), findsNothing, reason: 'folded again');
       expect(settings.expandedCalls, isEmpty);
+    });
+  });
+
+  // Issue #4562: the cards that add a layer to the pinned profile strip are
+  // marked, so the strip can tell when they are in view.
+  group('pinned strip markers', () {
+    Finder marker(DiveDetailSectionId id) =>
+        find.byWidgetPredicate((w) => w is PinnedStripCardMarker && w.id == id);
+
+    testWidgets('a card with a strip layer is marked, others are not', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        harness(dive: dive, settings: _RecordingSettings(_settings(shown))),
+      );
+      await tester.pumpAndSettle();
+
+      expect(marker(DiveDetailSectionId.notes), findsOneWidget);
+      expect(marker(DiveDetailSectionId.tags), findsNothing);
+      expect(marker(DiveDetailSectionId.customFields), findsNothing);
+    });
+
+    testWidgets('a folded card is not marked until it unfolds', (tester) async {
+      final settings = _RecordingSettings(
+        _settings(const [
+          DiveDetailSectionId.tags,
+          DiveDetailSectionId.notes,
+        ], layout: DiveDetailLayout.list),
+      );
+      await tester.pumpWidget(harness(dive: dive, settings: settings));
+      await tester.pumpAndSettle();
+      expect(marker(DiveDetailSectionId.notes), findsNothing);
+
+      await tester.tap(find.text('Notes'));
+      await tester.pumpAndSettle();
+      expect(marker(DiveDetailSectionId.notes), findsOneWidget);
+    });
+
+    testWidgets('both cards of a pair are marked', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1400, 2000);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        harness(
+          // The deco pair shows only for a dive with a profile.
+          dive: dive.copyWith(
+            profile: [
+              for (var t = 0; t <= 600; t += 10)
+                DiveProfilePoint(
+                  timestamp: t,
+                  depth: t < 300 ? t / 20 : (600 - t) / 20,
+                ),
+            ],
+          ),
+          settings: _RecordingSettings(
+            _settings(const [
+              DiveDetailSectionId.decoStatus,
+              DiveDetailSectionId.tissueLoading,
+            ]),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+      expect(marker(DiveDetailSectionId.decoStatus), findsOneWidget);
+      expect(marker(DiveDetailSectionId.tissueLoading), findsOneWidget);
     });
   });
 

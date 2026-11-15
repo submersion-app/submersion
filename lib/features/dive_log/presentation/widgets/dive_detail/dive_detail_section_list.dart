@@ -9,6 +9,8 @@ import 'package:submersion/features/dive_lab/presentation/providers/compare_prov
 import 'package:submersion/features/dive_lab/presentation/widgets/compare_section.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_card_marker.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_altitude_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
@@ -151,10 +153,15 @@ class DiveDetailSectionList extends ConsumerWidget {
           // with an editor gains its pencil and opens where it sits. A pair
           // with no card of its own for a narrow pane has none to frame:
           // stacked, it shows the row card.
-          Widget? left(Widget? card) =>
-              card == null ? null : _framed(pair.left, card, open);
-          Widget? right(Widget? card) =>
-              card == null ? null : _framed(pair.right, card, open);
+          // Marked outside the frame, as a card on a row of its own is, for
+          // the pinned profile strip (issue #4562).
+          Widget? side(DiveDetailSectionId id, Widget? card) {
+            final framed = card == null ? null : _framed(id, card, open);
+            return framed == null ? null : _markForStrip(id, framed);
+          }
+
+          Widget? left(Widget? card) => side(pair.left, card);
+          Widget? right(Widget? card) => side(pair.right, card);
           children.add(
             ResponsiveSectionPair(
               key: ValueKey('diveSectionPair_${pair.left.name}'),
@@ -187,7 +194,8 @@ class DiveDetailSectionList extends ConsumerWidget {
             context,
             ref,
             id,
-            content,
+            // Built only while unfolded, so a folded card is never marked.
+            _markForStrip(id, content),
             // A card being edited is unfolded for the sitting. That is not
             // the diver's saved choice, so it is not written back.
             isExpanded: unfolded.contains(id) || open.contains(id.name),
@@ -213,7 +221,10 @@ class DiveDetailSectionList extends ConsumerWidget {
       // same rebuild move it rather than remounting it, which would drop the
       // state inside.
       children.add(
-        KeyedSubtree(key: ValueKey('diveSection_${id.name}'), child: content),
+        KeyedSubtree(
+          key: ValueKey('diveSection_${id.name}'),
+          child: _markForStrip(id, content),
+        ),
       );
     }
     return Column(
@@ -222,6 +233,14 @@ class DiveDetailSectionList extends ConsumerWidget {
       children: children,
     );
   }
+
+  /// [card] marked as section [id] for the pinned profile strip when that
+  /// section adds a layer to it (issue #4562), so the strip can tell when it
+  /// is in view.
+  static Widget _markForStrip(DiveDetailSectionId id, Widget card) =>
+      kStripLayersByCard.containsKey(id)
+      ? PinnedStripCardMarker(id: id, child: card)
+      : card;
 
   /// The widget for section [id], or null when it has nothing to show.
   ///

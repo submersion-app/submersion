@@ -641,8 +641,8 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// appending the gas type when the tank is known, e.g. "Tank 1 (EAN32)".
   ///
   /// [fallbackLabel] is used when the tank has no custom name; callers pass a
-  /// localized default (e.g. "Tank 1") so labeling stays translatable.
-  @visibleForTesting
+  /// localized default (e.g. "Tank 1") so labeling stays translatable. The
+  /// pinned profile strip names its tank rows with it too.
   static String tankTooltipLabel(DiveTank? tank, String fallbackLabel) {
     final base = tank?.name ?? fallbackLabel;
     if (tank == null) return base;

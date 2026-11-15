@@ -4,8 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/pinned_strip_layer_animator.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/pinned_strip_layer_host.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_card_marker.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_cards_in_view.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/page_scroll_forwarder.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
@@ -105,10 +110,34 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
 
   Rect? get _card => _cardInContent?.shift(Offset(0, -_pixels));
 
+  /// The cards that add layers to the strip (issue #4562), their rects in
+  /// scroll-content coordinates as last measured, and which of them are in
+  /// view at the current scroll.
+  final PinnedStripCardRegistry _cards = PinnedStripCardRegistry();
+  Map<DiveDetailSectionId, Rect> _cardRects = const {};
+  Set<DiveDetailSectionId> _inView = const {};
+
   @override
   void initState() {
     super.initState();
+    _cards.onChanged = _scheduleMeasure;
     _scheduleMeasure();
+  }
+
+  /// Works out which marked cards are in view at the current scroll, and
+  /// rebuilds only when that changes.
+  void _updateInView() {
+    final viewport = _lastConstraints?.maxHeight;
+    // With the strip off nothing is drawn, so no card is worth tracking.
+    final inView = !widget.enabled || viewport == null || !viewport.isFinite
+        ? const <DiveDetailSectionId>{}
+        : cardsInView(
+            cardsInContent: _cardRects,
+            pixels: _pixels,
+            viewportHeight: viewport,
+            previously: _inView,
+          );
+    if (!setEquals(inView, _inView)) setState(() => _inView = inView);
   }
 
   @override
@@ -155,6 +184,10 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     final card = onOverlay(
       boxOf(widget.profileKey.currentContext),
     )?.shift(Offset(0, _pixels));
+    _cardRects = widget.enabled && overlay is RenderBox
+        ? _cards.measure(overlay, _pixels)
+        : const {};
+    _updateInView();
     final plotBox = boxOf(_copyFrame?.plotKey.currentContext);
     final copyBox = boxOf(_copyRootKey.currentContext);
     final measured = plotBox == null || copyBox == null
@@ -264,6 +297,7 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
       // Re-measured as the squash begins, as a backstop for anything that
       // moved the card unseen while nothing was drawn.
       if (wasIdle && covers) _scheduleMeasure();
+      _updateInView();
     }
     // Content above the card can change height (a card loading in), so the
     // recorded position is refreshed once the frame is laid out.
@@ -278,6 +312,8 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
       // A content resize can move the offset with the card staying put in
       // the content, which the measure alone would not rebuild for.
       if (pixels != _pixels) setState(() => _pixels = pixels);
+      // Not judged here: the content may have resized, and the card rects
+      // are from before it. The measure that follows judges them afresh.
       _scheduleMeasure();
     }
     return false;
@@ -307,44 +343,62 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
           _lastConstraints = constraints;
           _scheduleMeasure();
         }
-        final drawn = pinned ? _pinned(card) : null;
-        // Clipped to the page here, not by the stack: a stack clips only for
-        // a child placed past its edges, and the pinned box never is, though
-        // the copy in it slides up past the page's top. Unclipped, that part
-        // drew over the dive's header beside the strip (#4488).
-        return ClipRect(
-          child: Stack(
-            children: [
-              NotificationListener<ScrollMetricsNotification>(
-                onNotification: _onMetrics,
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: _onScroll,
-                  child: widget.child,
-                ),
-              ),
-              // Always mounted, empty while nothing is pinned: a drag that
-              // unpins the card (dragging the copy back down) keeps scrolling
-              // the page instead of stopping dead as its recognizer goes.
-              Positioned.fromRect(
-                key: const ValueKey('pinnedProfileBox'),
-                rect: drawn?.box ?? Rect.zero,
-                // It lies over the page, not in its scroll view: vertical drags
-                // and wheel scrolls on it go on to the page.
-                child: PageScrollForwarder(
-                  position: () => _pagePosition,
-                  child: drawn?.child ?? const SizedBox.shrink(),
-                ),
-              ),
-            ],
-          ),
+        final handOver = _handOverAt(_pixels);
+        // The layers of the cards in view, eased in and out (issue #4562).
+        // Always built, so the page never moves to a new parent.
+        return PinnedStripLayerHost(
+          dive: widget.dive,
+          shown: pinned && handOver > 0,
+          settled: pinned && handOver >= 1,
+          cardsInView: _inView,
+          builder: (context, layers) => _overPage(pinned ? card : null, layers),
         );
       },
     );
   }
 
+  /// The page with what is pinned over it.
+  Widget _overPage(Rect? card, StripLayerState layers) {
+    final drawn = card == null ? null : _pinned(card, layers);
+    // Clipped to the page here, not by the stack: a stack clips only for
+    // a child placed past its edges, and the pinned box never is, though
+    // the copy in it slides up past the page's top. Unclipped, that part
+    // drew over the dive's header beside the strip (#4488).
+    return ClipRect(
+      child: Stack(
+        children: [
+          NotificationListener<ScrollMetricsNotification>(
+            onNotification: _onMetrics,
+            child: NotificationListener<ScrollNotification>(
+              onNotification: _onScroll,
+              child: PinnedStripCardScope(
+                registry: _cards,
+                child: widget.child,
+              ),
+            ),
+          ),
+          // Always mounted, empty while nothing is pinned: a drag that
+          // unpins the card (dragging the copy back down) keeps scrolling
+          // the page instead of stopping dead as its recognizer goes.
+          Positioned.fromRect(
+            key: const ValueKey('pinnedProfileBox'),
+            rect: drawn?.box ?? Rect.zero,
+            // It lies over the page, not in its scroll view: vertical drags
+            // and wheel scrolls on it go on to the page.
+            child: PageScrollForwarder(
+              position: () => _pagePosition,
+              child: drawn?.child ?? const SizedBox.shrink(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// What is pinned over the page for [card]: the [box] it all covers, on
-  /// the overlay, and the [child] drawn in it.
-  ({Rect box, Widget child}) _pinned(Rect card) {
+  /// the overlay, and the [child] drawn in it. [layers] are the card layers
+  /// the strip draws, and how far it has grown for them.
+  ({Rect box, Widget child}) _pinned(Rect card, StripLayerState layers) {
     // One motion: the squash and the slide share the scroll, finishing
     // together as the plot reaches the top, and the strip starts to fade in
     // before they do, so no step starts or stops on its own.
@@ -395,9 +449,13 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     // It keeps the card's width throughout, so pinned it is only as wide as
     // the other cards on the page (#4488): the condense only moves its top
     // up to the page's and its bottom up to the strip's height.
+    // Its line layers grow it, only ever once it has settled (issue #4562).
+    final stripHeight =
+        kPinnedStripHeight +
+        layers.grow * (kPinnedStripGrownHeight - kPinnedStripHeight);
     final toward = Rect.lerp(
       from,
-      Rect.fromLTRB(from.left, 0, from.right, kPinnedStripHeight),
+      Rect.fromLTRB(from.left, 0, from.right, stripHeight),
       morph,
     )!;
     // Its bottom never rises above the card's own while any card is left,
@@ -453,6 +511,7 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
                 ignoring: t < 1,
                 child: PinnedProfileStrip(
                   dive: widget.dive,
+                  layers: layers,
                   condense: morph,
                   backgroundOpacity: condenseBackgroundOpacity(
                     t,
@@ -504,7 +563,11 @@ Future<void> ensureVisibleBelowPinnedStrip(
   ).getOffsetToReveal(object, alignment);
   // Decided by where the page ends up, not where it is: the jump usually
   // starts from the profile card itself, and the strip pins on the way.
-  final room = overlay.coversTopAt(reveal.offset) ? kPinnedStripHeight : 0.0;
+  // Room for the grown strip: the section it lands on may well add a line
+  // layer, and the strip grows after the landing (issue #4562).
+  final room = overlay.coversTopAt(reveal.offset)
+      ? kPinnedStripGrownHeight
+      : 0.0;
   final offset = (reveal.offset - room).clamp(
     position.minScrollExtent,
     position.maxScrollExtent,

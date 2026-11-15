@@ -20,12 +20,6 @@ export 'pinned_strip_layers.dart' show kPinnedStripPointBudget;
 /// Breathing room above and below the strip's curve.
 const double _curvePad = 4;
 
-/// Height of the pinned strip's curve area: the whole strip (issue #4509).
-/// The strip aims its line at this from the start, whatever height its box
-/// has while it condenses, so the line never grows back out toward a tall
-/// box.
-const double _curveAreaHeight = kPinnedStripHeight;
-
 /// Stroke width of the strip's NDL line.
 const double _ndlLineWidth = 1.5;
 
@@ -107,6 +101,8 @@ class PinnedStripPainter extends CustomPainter {
     this.ndlColor = ProfileMetricColors.ndl,
     this.ceilingColor = ProfileMetricColors.ceiling,
     this.maxDepthColor = ProfileMetricColors.maxDepth,
+    this.curveHeight = kPinnedStripHeight,
+    this.extraMaxDepthMeters = 0,
   });
 
   final List<DiveProfilePoint> profile;
@@ -140,16 +136,30 @@ class PinnedStripPainter extends CustomPainter {
   final Color ceilingColor;
   final Color maxDepthColor;
 
+  /// Height of the strip's curve area: the whole strip (issue #4509), taller
+  /// while it draws a card's line layers (issue #4562). The strip aims its
+  /// line at this from the start, whatever height its box has while it
+  /// condenses, so the line never grows back out toward a tall box.
+  final double curveHeight;
+
+  /// The deepest point of any ghost depth line drawn with the strip (a plan,
+  /// another computer), in metres: the depth axis reaches it when it is
+  /// deeper than the dive, so the ghost is not cut off at the bottom.
+  final double extraMaxDepthMeters;
+
   /// The strip's own mapping: the whole dive across the pinned strip's curve
   /// area, surface to deepest point down.
   PlotMapping _own(Size size) {
-    final maxDepth = pinnedStripCurve(profile).maxDepthMeters;
+    final maxDepth = math.max(
+      pinnedStripCurve(profile).maxDepthMeters,
+      extraMaxDepthMeters,
+    );
     return PlotMapping(
       rect: Rect.fromLTWH(
         0,
         _curvePad,
         size.width,
-        _curveAreaHeight - 2 * _curvePad,
+        curveHeight - 2 * _curvePad,
       ),
       minSeconds: profile.isEmpty ? 0 : profile.first.timestamp.toDouble(),
       maxSeconds: profile.isEmpty ? 1 : profile.last.timestamp.toDouble(),
@@ -171,7 +181,7 @@ class PinnedStripPainter extends CustomPainter {
   Rect? clipFor(Size size) {
     final start = from;
     if (start == null) return null;
-    final curveArea = Rect.fromLTWH(0, 0, size.width, _curveAreaHeight);
+    final curveArea = Rect.fromLTWH(0, 0, size.width, curveHeight);
     return Rect.lerp(start.rect, curveArea, morph);
   }
 
@@ -401,7 +411,9 @@ class PinnedStripPainter extends CustomPainter {
       old.surfaceColor != surfaceColor ||
       old.ndlColor != ndlColor ||
       old.ceilingColor != ceilingColor ||
-      old.maxDepthColor != maxDepthColor;
+      old.maxDepthColor != maxDepthColor ||
+      old.curveHeight != curveHeight ||
+      old.extraMaxDepthMeters != extraMaxDepthMeters;
 }
 
 /// The pinned strip's scrub cursor: a line across the strip at
@@ -449,5 +461,8 @@ class PinnedStripCursorPainter extends CustomPainter {
       old.color != color ||
       old.strip.profile != strip.profile ||
       old.strip.from != strip.from ||
-      old.strip.morph != strip.morph;
+      old.strip.morph != strip.morph ||
+      // Its mapping follows the strip's height and a ghost's depth too.
+      old.strip.curveHeight != strip.curveHeight ||
+      old.strip.extraMaxDepthMeters != strip.extraMaxDepthMeters;
 }

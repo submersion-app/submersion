@@ -4,6 +4,10 @@ import 'dart:ui';
 /// tooltip below it while it is scrubbed (issue #4509).
 const double kPinnedStripHeight = 44;
 
+/// Height of the pinned strip while it draws a line layer of a card in view
+/// (issue #4562): room for several lines on scales of their own.
+const double kPinnedStripGrownHeight = 72;
+
 /// The shortest the squashed chart's plot gets, about the strip's own curve,
 /// so it is still a readable chart when the strip takes over from it.
 const double kMinPlotHeight = 48;

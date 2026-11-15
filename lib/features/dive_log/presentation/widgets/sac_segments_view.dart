@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/presentation/utils/sac_rate_axis.da
 import 'package:submersion/features/dive_log/presentation/utils/sac_rate_display.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_segment_groups.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_phase_label.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_segment_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_segment_table.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_segments_summary.dart';
@@ -126,16 +127,7 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
   String _share(double share) =>
       context.l10n.diveLog_detail_sacSegments_share('${(share * 100).round()}');
 
-  String _phaseLabel(DivePhase phase) {
-    final l10n = context.l10n;
-    return switch (phase) {
-      DivePhase.descent => l10n.diveLog_detail_sacSegments_phaseDescent,
-      DivePhase.bottom => l10n.diveLog_detail_sacSegments_phaseBottom,
-      DivePhase.ascent => l10n.diveLog_detail_sacSegments_phaseAscent,
-      DivePhase.safetyStop => l10n.diveLog_detail_sacSegments_phaseSafetyStop,
-      DivePhase.deco => l10n.diveLog_detail_sacSegments_phaseDeco,
-    };
-  }
+  String _phaseLabel(DivePhase phase) => divePhaseLabel(phase, context.l10n);
 
   static String _duration(int seconds) =>
       '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
