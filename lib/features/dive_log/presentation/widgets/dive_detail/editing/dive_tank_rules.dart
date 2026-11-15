@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_fields.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
@@ -23,10 +24,12 @@ const _suggestedKey = 'tankSlotsSuggested';
 const _declinedKey = 'tankSlotsDeclined';
 
 /// Sets the sitting's cylinders. Their order is left as given: renumbering
-/// is [removeSittingTank]'s, as it is the form's (`_removeTank`).
+/// is [removeSittingTank]'s, as it is the form's (`_removeTank`). Switches
+/// whose cylinder is gone go with it ([dropGasSwitchesWithoutTank]).
 void setTanks(EditSession<Dive> session, List<DiveTank> tanks) {
   if (session.isFrozen || session.isDisposed) return;
   session.set(diveTanksField, List<DiveTank>.unmodifiable(tanks));
+  dropGasSwitchesWithoutTank(session);
 }
 
 /// Removes the cylinder [tankId] and numbers the rest from 0, as the form
