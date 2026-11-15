@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/visibility_input_mode_provider.dart';
@@ -21,12 +22,14 @@ import 'package:submersion/l10n/l10n_extension.dart';
 const _log = LoggerService('DiveSittingFollowUp');
 
 /// Has what a dive's cylinders, gear and weights feed worked out again in
-/// the background: its derived metrics (gas use, SAC) and the sensor
-/// summary of its gear, as the dive form does after every save
-/// (`dive_edit_page.dart`, after `_saveDive`). A provider, so a test can
-/// stand in for the schedulers.
+/// the background: its derived metrics (gas use, SAC), the sensor summary
+/// of its gear, and its data-quality findings (a reassign repairs one, and
+/// gear feeds the shared-gear finding), as the dive form does after every
+/// save (`dive_edit_page.dart`, after `_saveDive`). A provider, so a test
+/// can stand in for the schedulers.
 final diveGearRefreshProvider = Provider<void Function(String diveId)>(
   (ref) => (diveId) {
+    scheduleQualityScan([diveId]);
     scheduleDerivedMetricsRefresh([diveId]);
     scheduleSensorSummaryRefresh([diveId]);
   },
