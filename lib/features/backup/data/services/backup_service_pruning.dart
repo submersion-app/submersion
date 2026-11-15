@@ -80,6 +80,8 @@ extension BackupServicePruning on BackupService {
     List<BackupRecord> pruned,
   ) async {
     final remaining = <BackupRecord>[];
+    // Written once after the loop: each write re-encodes the whole history.
+    final cloudOnly = <String, BackupRecord>{};
     for (final record in pruned) {
       final offDevice =
           record.cloudFileId != null || record.extraCloudCopies.isNotEmpty;
@@ -93,9 +95,9 @@ extension BackupServicePruning on BackupService {
           continue;
         }
         await _deleteLocalCopy(record);
-        final cloudOnly = record.withoutLocalCopy();
-        await _preferences.updateRecord(cloudOnly);
-        remaining.add(cloudOnly);
+        final updated = record.withoutLocalCopy();
+        cloudOnly[updated.id] = updated;
+        remaining.add(updated);
       } catch (e, st) {
         // Best-effort, as below: a backup this platform refuses to delete
         // stays in history and is retried on every future prune.
@@ -106,6 +108,11 @@ extension BackupServicePruning on BackupService {
         );
         if (offDevice) remaining.add(record);
       }
+    }
+    if (cloudOnly.isNotEmpty) {
+      await _preferences.setHistory([
+        for (final r in _preferences.getHistory()) cloudOnly[r.id] ?? r,
+      ]);
     }
     return remaining;
   }
@@ -142,29 +149,12 @@ extension BackupServicePruning on BackupService {
   }) async {
     if (toDelete.isEmpty) return const {};
     if (holdCloudCopies) {
-      // The local copy still goes, so an unreadable folder (a signed-out
-      // provider) never lets backups pile up on the device; the record stays,
-      // cloud-only, for the next prune to finish.
-      final held = [
-        for (final r in toDelete)
-          if (r.cloudFileId != null && here(r)) r,
-      ];
-      for (final r in held) {
-        if (r.localPath == null) continue;
-        try {
-          await _deleteLocalCopy(r);
-          await _preferences.updateRecord(r.withoutLocalCopy());
-        } catch (e, st) {
-          _log.warning(
-            'Failed to prune local copy of ${r.filename}; will retry',
-            error: e,
-            stackTrace: st,
-          );
-        }
-      }
+      // Their local copies are gone already ([_pruneLocalCopies]), so an
+      // unreadable folder (a signed-out provider) never lets backups pile up
+      // on the device; the records stay, cloud-only, for the next prune.
       toDelete = [
         for (final r in toDelete)
-          if (!held.contains(r)) r,
+          if (r.cloudFileId == null || !here(r)) r,
       ];
     }
 
