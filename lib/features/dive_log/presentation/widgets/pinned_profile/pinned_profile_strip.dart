@@ -191,6 +191,7 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
             ...stripLayerTooltipRows(
               layers: layers,
               cursorSeconds: selectedSeconds!,
+              cursorIndex: cursor,
               units: units,
               l10n: context.l10n,
               // SAC or RMV, as the diver shows gas consumption.

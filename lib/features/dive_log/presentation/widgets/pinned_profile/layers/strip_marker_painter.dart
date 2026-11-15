@@ -35,7 +35,7 @@ class StripMarkerPainter extends StripLayerPainter {
       (layers.data.dots.isNotEmpty && layers.strengthOf(StripLayer.media) > 0);
 
   @override
-  void paintLayers(Canvas canvas, Size size, PlotMapping m) {
+  void paintLayers(Canvas canvas, Rect area, PlotMapping m) {
     for (final tick in layers.data.ticks) {
       final strength = layers.strengthOf(tick.layer);
       if (strength <= 0) continue;
@@ -45,16 +45,19 @@ class StripMarkerPainter extends StripLayerPainter {
         ..strokeWidth = 1.5;
       if (tick.hollow) {
         canvas.drawCircle(
-          Offset(x, _bookmarkRadius + 1.5),
+          Offset(x, area.top + _bookmarkRadius + 1.5),
           _bookmarkRadius,
           paint..style = PaintingStyle.stroke,
         );
         continue;
       }
+      // From the curve area's edge: while the strip condenses its box is
+      // the whole card, far below the curve.
       final top = tick.edge == StripTickEdge.top;
+      final edge = top ? area.top : area.bottom;
       canvas.drawLine(
-        Offset(x, top ? 0 : size.height),
-        Offset(x, top ? kStripTickLength : size.height - kStripTickLength),
+        Offset(x, edge),
+        Offset(x, top ? edge + kStripTickLength : edge - kStripTickLength),
         paint,
       );
     }

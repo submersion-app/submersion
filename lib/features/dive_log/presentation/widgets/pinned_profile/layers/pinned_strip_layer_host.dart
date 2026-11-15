@@ -241,7 +241,8 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
       profiles,
       sources,
       activeSourceId,
-      Localizations.localeOf(context),
+      // The locale as text: the memo compares objects by identity.
+      Localizations.localeOf(context).toLanguageTag(),
     ], () => _overlaysOf(profiles, sources, activeSourceId, labels));
   }
 

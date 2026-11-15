@@ -273,6 +273,43 @@ void main() {
     expect(lines[0].valueAt(270), 130);
   });
 
+  test('a tank reads as the Cylinders card and full chart read it', () {
+    final data = _build(
+      tanks: const EstimatedTankPressures({
+        't1': [
+          // The transmitter paired two minutes in.
+          TankPressurePoint(tankId: 't1', timestamp: 120, pressure: 200),
+          TankPressurePoint(tankId: 't1', timestamp: 300, pressure: 180),
+          // Two readings at one moment: the last wins, as on the chart.
+          TankPressurePoint(tankId: 't1', timestamp: 300, pressure: 178),
+          TankPressurePoint(tankId: 't1', timestamp: 540, pressure: 150),
+        ],
+      }, {}),
+    );
+    final line = _line(data, StripLayer.tankPressure);
+    expect(line.valueAt(0), 200);
+    expect(line.valueAt(300), 178);
+  });
+
+  test('a curve reads the sample at the cursor index', () {
+    // Samples 4 and 5 share a timestamp.
+    final profile = [
+      for (var i = 0; i < 10; i++)
+        DiveProfilePoint(timestamp: i < 5 ? i * 60 : (i - 1) * 60, depth: 10),
+    ];
+    final data = _build(
+      profile: profile,
+      analysis: ProfileAnalysis.empty().copyWith(
+        cnsCurve: [for (var i = 0; i < 10; i++) i.toDouble()],
+      ),
+    );
+    final line = _line(data, StripLayer.cns);
+    expect(line.valueAt(240, index: 4), 4);
+    expect(line.valueAt(240, index: 5), 5);
+    // With no index, by time.
+    expect(line.valueAt(30), 0.5);
+  });
+
   test('tank points past the profile are dropped', () {
     final data = _build(
       tanks: const EstimatedTankPressures({

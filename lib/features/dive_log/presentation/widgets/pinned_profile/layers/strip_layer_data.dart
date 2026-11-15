@@ -4,7 +4,9 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer.dart';
 
 /// One sample of a layer: [value] at [seconds] into the dive.
@@ -41,7 +43,11 @@ class StripLine {
     this.estimated = false,
     this.label,
     List<List<StripPoint>>? valueRuns,
-  }) : _valueRuns = valueRuns;
+    List<double?>? byIndex,
+    List<TankPressurePoint>? pressures,
+  }) : _valueRuns = valueRuns,
+       _byIndex = byIndex,
+       _pressures = pressures;
 
   final StripLayer layer;
 
@@ -57,6 +63,16 @@ class StripLine {
   /// read at the cursor is the sample's own, as the card and the full chart
   /// read it, not one interpolated across the dropped samples.
   final List<List<StripPoint>>? _valueRuns;
+
+  /// The values index-aligned with the chart's profile, where the line is
+  /// drawn from a curve the analysis or the profile keeps per sample: read
+  /// at the cursor's index, as the strip's own rows and the full chart read
+  /// them, so two samples sharing a timestamp cannot swap.
+  final List<double?>? _byIndex;
+
+  /// A tank's whole pressure series, read as the full chart and the
+  /// Cylinders card read it ([pressureAtCursor]).
+  final List<TankPressurePoint>? _pressures;
   final double min;
   final double max;
 
@@ -68,9 +84,21 @@ class StripLine {
   /// the layer's name is enough.
   final String? label;
 
-  /// The value at [seconds], interpolated between the samples either side,
-  /// or null outside every run.
-  double? valueAt(int seconds) {
+  /// The value at the cursor: a tank's as the Cylinders card reads it; the
+  /// sample at [index] for a curve kept per sample; otherwise, or where that
+  /// sample has none, interpolated at [seconds] between the samples either
+  /// side, and null outside every run.
+  double? valueAt(int seconds, {int? index}) {
+    final pressures = _pressures;
+    if (pressures != null) return pressureAtCursor(pressures, seconds);
+    final byIndex = _byIndex;
+    if (index != null &&
+        byIndex != null &&
+        index >= 0 &&
+        index < byIndex.length) {
+      final value = byIndex[index];
+      if (value != null) return value;
+    }
     for (final run in _valueRuns ?? runs) {
       final value = stripValueAt(run, seconds);
       if (value != null) return value;
@@ -84,16 +112,23 @@ class StripLine {
 double? stripValueAt(List<StripPoint> run, int seconds) {
   if (run.isEmpty || seconds < run.first.seconds) return null;
   if (seconds > run.last.seconds) return null;
-  for (var i = 0; i < run.length; i++) {
-    final p = run[i];
-    if (p.seconds == seconds) return p.value;
-    if (p.seconds > seconds) {
-      final a = run[i - 1];
-      final share = (seconds - a.seconds) / (p.seconds - a.seconds);
-      return a.value + (p.value - a.value) * share;
+  // The first sample at or after [seconds], by halving: the tooltip reads
+  // every active line on every cursor move.
+  var low = 0;
+  var high = run.length - 1;
+  while (low < high) {
+    final mid = (low + high) >> 1;
+    if (run[mid].seconds < seconds) {
+      low = mid + 1;
+    } else {
+      high = mid;
     }
   }
-  return null;
+  final p = run[low];
+  if (p.seconds == seconds || low == 0) return p.value;
+  final a = run[low - 1];
+  final share = (seconds - a.seconds) / (p.seconds - a.seconds);
+  return a.value + (p.value - a.value) * share;
 }
 
 /// A stretch of the dive tinted the strip's full height: a phase of the dive

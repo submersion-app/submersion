@@ -49,7 +49,7 @@ class StripLinePainter extends StripLayerPainter {
   }
 
   @override
-  void paintLayers(Canvas canvas, Size size, PlotMapping m) {
+  void paintLayers(Canvas canvas, Rect area, PlotMapping m) {
     for (final ghost in layers.data.ghosts) {
       final strength = layers.strengthOf(ghost.layer);
       if (strength <= 0 || ghost.points.length < 2) continue;

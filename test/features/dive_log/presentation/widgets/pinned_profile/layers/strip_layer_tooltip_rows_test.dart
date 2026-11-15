@@ -165,6 +165,8 @@ void main() {
   test('the phase row names the phase under the cursor', () {
     expect(_rows({StripLayer.phases}), [('Phase', 'Bottom')]);
     expect(_rows({StripLayer.phases}, seconds: 400), isEmpty);
+    // The last sample, where the last phase ends, is still in it.
+    expect(_rows({StripLayer.phases}, seconds: 300), [('Phase', 'Bottom')]);
   });
 
   test('a finding row shows only inside its window', () {

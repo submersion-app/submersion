@@ -157,6 +157,7 @@ PinnedStripLayerData buildStripLayerData(
       max: max,
       maxFloor: maxFloor,
       pad: pad,
+      byIndex: List.unmodifiable(curve.take(count)),
     );
   }
 
@@ -263,6 +264,8 @@ StripLine? _line(
   double pad = 0,
   bool estimated = false,
   String? label,
+  List<double?>? byIndex,
+  List<TankPressurePoint>? pressures,
 }) {
   if (runs.isEmpty) return null;
   final values = [
@@ -270,10 +273,9 @@ StripLine? _line(
       for (final p in run) p.value,
   ];
   final thinned = [for (final run in runs) _thinned(run)];
-  final dropped = [
-    for (var i = 0; i < runs.length; i++)
-      if (thinned[i].length != runs[i].length) i,
-  ].isNotEmpty;
+  final dropped = Iterable<int>.generate(
+    runs.length,
+  ).any((i) => thinned[i].length != runs[i].length);
   final low = min ?? values.reduce(math.min) - pad;
   var high = max ?? values.reduce(math.max) + pad;
   if (maxFloor != null) high = math.max(high, maxFloor);
@@ -294,6 +296,8 @@ StripLine? _line(
     max: high,
     estimated: estimated,
     label: label,
+    byIndex: byIndex,
+    pressures: pressures,
   );
 }
 
@@ -349,6 +353,8 @@ List<StripLine> _tankLines(
         max: max,
         estimated: series.estimatedTankIds.contains(id),
         label: style.tankLabel(_tank(inputs.diveTanks, id), i),
+        // Read whole, as the Cylinders card reads it at the cursor.
+        pressures: series.pressures[id],
       ),
   ];
 }

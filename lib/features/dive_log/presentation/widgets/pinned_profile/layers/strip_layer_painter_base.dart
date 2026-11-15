@@ -13,8 +13,10 @@ abstract class StripLayerPainter extends CustomPainter {
   final PinnedStripPainter strip;
   final StripLayerState layers;
 
-  /// Paints the layers through [m], already clipped.
-  void paintLayers(Canvas canvas, Size size, PlotMapping m);
+  /// Paints the layers through [m] within [area], the curve area as it is
+  /// this frame (the whole strip once settled, the morphing plot while it
+  /// condenses), already clipped to it.
+  void paintLayers(Canvas canvas, Rect area, PlotMapping m);
 
   /// Whether this painter has anything at a strength above 0.
   bool get hasAnything;
@@ -26,10 +28,11 @@ abstract class StripLayerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (strip.profile.length < 2 || !hasAnything) return;
+    final area = strip.clipFor(size) ?? Offset.zero & size;
     canvas
       ..save()
-      ..clipRect(strip.clipFor(size) ?? Offset.zero & size);
-    paintLayers(canvas, size, strip.mappingFor(size));
+      ..clipRect(area);
+    paintLayers(canvas, area, strip.mappingFor(size));
     canvas.restore();
   }
 

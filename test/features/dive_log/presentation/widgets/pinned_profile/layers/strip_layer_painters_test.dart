@@ -334,6 +334,65 @@ void main() {
       );
     });
 
+    testWidgets('while condensing, ticks hang from the curve area', (
+      tester,
+    ) async {
+      // The chart's plot, 20 px down and 100 px tall in a 300 px box.
+      const plot = PlotMapping(
+        rect: Rect.fromLTWH(0, 20, 400, 100),
+        minSeconds: 60,
+        maxSeconds: 1260,
+        minDepthMeters: 0,
+        maxDepthMeters: 20,
+      );
+      const strip = PinnedStripPainter(
+        profile: _profile,
+        curveColor: Colors.blue,
+        fillColors: [Colors.blue, Colors.blue],
+        surfaceColor: Colors.white,
+        from: plot,
+        morph: 0,
+      );
+      await _pump(
+        tester,
+        StripMarkerPainter(
+          strip: strip,
+          layers: _state(
+            const PinnedStripLayerData(
+              ticks: [
+                StripTick(
+                  layer: StripLayer.gasSwitches,
+                  seconds: 660,
+                  color: Color(0xFF00AA00),
+                  edge: StripTickEdge.bottom,
+                ),
+                StripTick(
+                  layer: StripLayer.annotations,
+                  seconds: 660,
+                  color: Color(0xFFFFAA00),
+                  edge: StripTickEdge.top,
+                ),
+              ],
+            ),
+            {StripLayer.gasSwitches: 1, StripLayer.annotations: 1},
+          ),
+        ),
+        height: 300,
+      );
+      expect(
+        find.byType(CustomPaint),
+        paints
+          ..line(
+            p1: const Offset(200, 120),
+            p2: const Offset(200, 120 - kStripTickLength),
+          )
+          ..line(
+            p1: const Offset(200, 20),
+            p2: const Offset(200, 20 + kStripTickLength),
+          ),
+      );
+    });
+
     testWidgets('a media dot sits on the depth line', (tester) async {
       await _pump(
         tester,

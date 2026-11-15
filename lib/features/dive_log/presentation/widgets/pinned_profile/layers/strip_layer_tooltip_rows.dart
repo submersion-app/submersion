@@ -1,10 +1,11 @@
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gtr_format.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_phase_label.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show TooltipRow;
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/pinned_strip_layer_animator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer_data.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_text.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -18,6 +19,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 List<TooltipRow> stripLayerTooltipRows({
   required StripLayerState layers,
   required int cursorSeconds,
+  int? cursorIndex,
   required UnitFormatter units,
   required AppLocalizations l10n,
   ({String label, String value}) Function(double sacBarPerMin)? sacRow,
@@ -30,7 +32,7 @@ List<TooltipRow> stripLayerTooltipRows({
       [
         for (final line in data.lines)
           if (line.layer == layer)
-            if (line.valueAt(s) case final v?)
+            if (line.valueAt(s, index: cursorIndex) case final v?)
               TooltipRow(
                 label: line.label == null
                     ? _labelOf(layer, l10n)
@@ -56,7 +58,7 @@ List<TooltipRow> stripLayerTooltipRows({
     StripLayer.sac => [
       for (final line in data.lines)
         if (line.layer == layer)
-          if (line.valueAt(s) case final v?)
+          if (line.valueAt(s, index: cursorIndex) case final v?)
             if (sacRow?.call(v) case final row?)
               TooltipRow(
                 label: row.label,
@@ -76,14 +78,12 @@ List<TooltipRow> stripLayerTooltipRows({
       (v) => '${v.round()} ${l10n.units_profileMetric_bpm}',
     ),
     StripLayer.phases => [
-      for (final band in data.bands)
-        if (band.layer == layer && band.start <= s && s < band.end)
-          if (band.phase case final phase?)
-            TooltipRow(
-              label: l10n.diveLog_detail_sacSegments_phase,
-              value: _phaseName(phase, l10n),
-              bulletColor: band.color,
-            ),
+      if (_phaseAt(data, s) case final band?)
+        TooltipRow(
+          label: l10n.diveLog_detail_sacSegments_phase,
+          value: divePhaseLabel(band.phase!, l10n),
+          bulletColor: band.color,
+        ),
     ],
     StripLayer.safetyFindings => [
       for (final band in data.bands)
@@ -116,6 +116,18 @@ List<TooltipRow> stripLayerTooltipRows({
   ];
 }
 
+/// The phase band under [seconds]: the one it falls in, the later of two
+/// it joins, or at the very end of the dive the one that ends there.
+StripBand? _phaseAt(PinnedStripLayerData data, int seconds) {
+  StripBand? endingHere;
+  for (final band in data.bands) {
+    if (band.layer != StripLayer.phases || band.phase == null) continue;
+    if (band.start <= seconds && seconds < band.end) return band;
+    if (band.end == seconds) endingHere = band;
+  }
+  return endingHere;
+}
+
 /// The tooltip label of a layer with one line.
 String _labelOf(StripLayer layer, AppLocalizations l10n) => switch (layer) {
   StripLayer.temperature => l10n.diveLog_tooltip_temp,
@@ -126,13 +138,4 @@ String _labelOf(StripLayer layer, AppLocalizations l10n) => switch (layer) {
   StripLayer.tts => l10n.diveLog_tooltip_tts,
   StripLayer.heartRate => l10n.diveLog_tooltip_hr,
   _ => layer.name,
-};
-
-/// A phase as the consumption card names it.
-String _phaseName(DivePhase phase, AppLocalizations l10n) => switch (phase) {
-  DivePhase.descent => l10n.diveLog_detail_sacSegments_phaseDescent,
-  DivePhase.bottom => l10n.diveLog_detail_sacSegments_phaseBottom,
-  DivePhase.ascent => l10n.diveLog_detail_sacSegments_phaseAscent,
-  DivePhase.safetyStop => l10n.diveLog_detail_sacSegments_phaseSafetyStop,
-  DivePhase.deco => l10n.diveLog_detail_sacSegments_phaseDeco,
 };
