@@ -355,6 +355,132 @@ void main() {
     expect(selections, [null]);
   });
 
+  group('keyboard focus', () {
+    /// Whether the focused control is inside the tile with [key].
+    bool focusIsIn(WidgetTester tester, Key key) {
+      final focused = FocusManager.instance.primaryFocus?.context;
+      if (focused == null) return false;
+      final tile = tester.element(find.byKey(key));
+      var inside = false;
+      focused.visitAncestorElements((ancestor) {
+        inside = ancestor == tile;
+        return !inside;
+      });
+      return inside;
+    }
+
+    testWidgets('the strip is one tab stop, on the selected tile', (
+      tester,
+    ) async {
+      await pumpPicker(
+        tester,
+        days: six.story.days,
+        model: six.model,
+        selectedDate: six.story.days[2].date,
+      );
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(focusIsIn(tester, TripDayPicker.dayTileKey(3)), isTrue);
+
+      // Nothing else on this screen takes focus, so a second Tab comes back
+      // round to the same tile: no other tile is a stop on the way.
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(focusIsIn(tester, TripDayPicker.dayTileKey(3)), isTrue);
+    });
+
+    testWidgets('with the Trip tile selected, it is the tab stop', (
+      tester,
+    ) async {
+      await pumpPicker(tester, days: six.story.days, model: six.model);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(focusIsIn(tester, TripDayPicker.tripTileKey), isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(focusIsIn(tester, TripDayPicker.tripTileKey), isTrue);
+    });
+
+    testWidgets('an arrow key takes the focus along with the selection', (
+      tester,
+    ) async {
+      final selection = ValueNotifier<DateTime?>(six.story.days[1].date);
+      addTearDown(selection.dispose);
+      await pumpPicker(
+        tester,
+        days: six.story.days,
+        model: six.model,
+        selection: selection,
+      );
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(focusIsIn(tester, TripDayPicker.dayTileKey(2)), isTrue);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      selection.value = selections.last;
+      await tester.pump();
+      expect(focusIsIn(tester, TripDayPicker.dayTileKey(3)), isTrue);
+
+      // And the stop moved with it: Tab comes back to the new tile.
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(focusIsIn(tester, TripDayPicker.dayTileKey(3)), isTrue);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+      selection.value = selections.last;
+      await tester.pump();
+      // Two steps back from day 3 is day 1; the second was taken from the
+      // tile the first one focused.
+      expect(selections.last, six.story.days[1].date);
+    });
+
+    testWidgets('a trip that loses days keeps a tab stop', (tester) async {
+      final days = ValueNotifier(fourteen.story.days);
+      addTearDown(days.dispose);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: ValueListenableBuilder(
+                valueListenable: days,
+                builder: (_, shown, _) => TripDayPicker(
+                  days: shown,
+                  model: TripPickerModel(
+                    days: [
+                      for (final day in shown)
+                        TripPickerDay(date: day.date, dives: const []),
+                    ],
+                    maxDepth: 0,
+                    widestDaySeconds: 0,
+                  ),
+                  selectedDate: shown.first.date,
+                  onSelect: selections.add,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      days.value = fourteen.story.days.sublist(0, 3);
+      await tester.pump();
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(focusIsIn(tester, TripDayPicker.dayTileKey(1)), isTrue);
+    });
+  });
+
   group('a strip longer than its space', () {
     testWidgets('choosing a day that is off screen brings it into view', (
       tester,

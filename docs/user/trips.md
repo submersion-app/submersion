@@ -64,6 +64,8 @@ Tap a tile to see that day and nothing else: its map, a strip showing when you d
 
 The first tile, **Trip**, shows the whole trip instead: its dates and totals, a line for every day (tap one to open it), and for a liveaboard its vessel. A finished trip opens here; a trip that is under way opens on today.
 
+With a keyboard, Tab reaches the strip and the left and right arrow keys move from one tile to the next.
+
 While the trip is under way, today's page and the **Trip** page both show how full your cylinders are and, if you have entered a return flight, a card counting down to it.
 
 The preparation page and the **Trip** page both end with your notes, then the trip's **Documents** card, where you add and open the trip's paperwork.

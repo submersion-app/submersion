@@ -23,7 +23,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// When the days do not fit they scroll sideways, the Trip tile staying
 /// fixed at the start edge and the selected day kept in view.
-class TripDayPicker extends ConsumerStatefulWidget {
+///
+/// For a keyboard the strip is one stop, on the selected tile; the arrow
+/// keys move the selection and the focus together, as they do in a tab bar.
+class TripDayPicker extends StatefulWidget {
   const TripDayPicker({
     super.key,
     required this.days,
@@ -58,11 +61,15 @@ class TripDayPicker extends ConsumerStatefulWidget {
   static const moreAfterKey = Key('trip-picker-more-after');
 
   @override
-  ConsumerState<TripDayPicker> createState() => _TripDayPickerState();
+  State<TripDayPicker> createState() => _TripDayPickerState();
 }
 
-class _TripDayPickerState extends ConsumerState<TripDayPicker> {
+class _TripDayPickerState extends State<TripDayPicker> {
   final _scroll = ScrollController();
+
+  /// One focus node per tile. Only the selected tile's is a tab stop.
+  final _tripFocus = FocusNode(debugLabel: 'trip picker: trip');
+  final _dayFocus = <FocusNode>[];
 
   /// The day tiles' width and the space they scroll in, from the last
   /// layout, for bringing the selected day into view.
@@ -83,7 +90,33 @@ class _TripDayPickerState extends ConsumerState<TripDayPicker> {
   void initState() {
     super.initState();
     _scroll.addListener(_updateMore);
+    _syncFocusNodes();
     _showSelectedAfterFrame(animate: false);
+  }
+
+  /// One node per day, and the tab stop on the selected tile.
+  void _syncFocusNodes() {
+    final count = widget.days.length;
+    if (_dayFocus.length > count) {
+      final dropped = _dayFocus.sublist(count);
+      _dayFocus.length = count;
+      // Their tiles are still mounted until this build is over.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        for (final node in dropped) {
+          node.dispose();
+        }
+      });
+    }
+    while (_dayFocus.length < count) {
+      _dayFocus.add(
+        FocusNode(debugLabel: 'trip picker: day ${_dayFocus.length + 1}'),
+      );
+    }
+    final selected = _selectedIndex;
+    _tripFocus.skipTraversal = selected >= 0;
+    for (var i = 0; i < count; i++) {
+      _dayFocus[i].skipTraversal = i != selected;
+    }
   }
 
   void _updateMore() {
@@ -99,6 +132,7 @@ class _TripDayPickerState extends ConsumerState<TripDayPicker> {
   @override
   void didUpdateWidget(TripDayPicker oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _syncFocusNodes();
     if (oldWidget.selectedDate != widget.selectedDate) {
       _showSelectedAfterFrame(animate: true);
     }
@@ -108,6 +142,10 @@ class _TripDayPickerState extends ConsumerState<TripDayPicker> {
   void dispose() {
     _scroll.dispose();
     _more.dispose();
+    _tripFocus.dispose();
+    for (final node in _dayFocus) {
+      node.dispose();
+    }
     super.dispose();
   }
 
@@ -139,11 +177,14 @@ class _TripDayPickerState extends ConsumerState<TripDayPicker> {
     });
   }
 
-  /// Moves the selection one tile along the order Trip, day 1, day 2...
+  /// Moves the selection one tile along the order Trip, day 1, day 2...,
+  /// and the focus with it: the keys are only heard while a tile has focus,
+  /// and left behind it would sit on a tile that is no longer the one shown.
   void _step(int delta) {
     final next = _selectedIndex + delta;
     if (next < -1 || next >= widget.days.length) return;
     widget.onSelect(next < 0 ? null : widget.days[next].date);
+    (next < 0 ? _tripFocus : _dayFocus[next]).requestFocus();
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
@@ -198,6 +239,7 @@ class _TripDayPickerState extends ConsumerState<TripDayPicker> {
               ),
               child: _TripTile(
                 selected: selectedIndex < 0,
+                focusNode: _tripFocus,
                 chartHeight: widget.chartHeight,
                 onTap: () => widget.onSelect(null),
               ),
@@ -239,6 +281,7 @@ class _TripDayPickerState extends ConsumerState<TripDayPicker> {
                                     shapes: widget.model.days[i],
                                     model: widget.model,
                                     selected: i == selectedIndex,
+                                    focusNode: _dayFocus[i],
                                     chartHeight: widget.chartHeight,
                                     onTap: () =>
                                         widget.onSelect(widget.days[i].date),
@@ -284,12 +327,14 @@ class _Tile extends StatelessWidget {
     super.key,
     required this.label,
     required this.selected,
+    required this.focusNode,
     required this.onTap,
     required this.child,
   });
 
   final String label;
   final bool selected;
+  final FocusNode focusNode;
   final VoidCallback onTap;
   final Widget child;
 
@@ -312,7 +357,7 @@ class _Tile extends StatelessWidget {
           borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
         ),
         clipBehavior: Clip.antiAlias,
-        child: InkWell(onTap: onTap, child: child),
+        child: InkWell(focusNode: focusNode, onTap: onTap, child: child),
       ),
     );
   }
@@ -433,11 +478,13 @@ class _EdgeFade extends StatelessWidget {
 class _TripTile extends StatelessWidget {
   const _TripTile({
     required this.selected,
+    required this.focusNode,
     required this.chartHeight,
     required this.onTap,
   });
 
   final bool selected;
+  final FocusNode focusNode;
   final double chartHeight;
   final VoidCallback onTap;
 
@@ -449,6 +496,7 @@ class _TripTile extends StatelessWidget {
       key: TripDayPicker.tripTileKey,
       label: l10n.trips_story_tripTile_semantics,
       selected: selected,
+      focusNode: focusNode,
       onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -480,6 +528,7 @@ class _DayTile extends ConsumerWidget {
     required this.shapes,
     required this.model,
     required this.selected,
+    required this.focusNode,
     required this.chartHeight,
     required this.onTap,
   });
@@ -488,6 +537,7 @@ class _DayTile extends ConsumerWidget {
   final TripPickerDay shapes;
   final TripPickerModel model;
   final bool selected;
+  final FocusNode focusNode;
   final double chartHeight;
   final VoidCallback onTap;
 
@@ -514,6 +564,7 @@ class _DayTile extends ConsumerWidget {
       key: TripDayPicker.dayTileKey(day.dayNumber),
       label: label,
       selected: selected,
+      focusNode: focusNode,
       onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
