@@ -120,6 +120,7 @@ void main() {
     bool enabled = true,
     double targetGap = 1100,
     Dive? shownDive,
+    double plotInset = 0,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -162,9 +163,14 @@ void main() {
                         child: Builder(
                           builder: (context) {
                             copyViewport = viewport;
-                            return _FakeChart(
-                              onPlotFrame: reportsPlot ? onPlotFrame : null,
-                              viewport: viewport,
+                            return Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: plotInset,
+                              ),
+                              child: _FakeChart(
+                                onPlotFrame: reportsPlot ? onPlotFrame : null,
+                                viewport: viewport,
+                              ),
                             );
                           },
                         ),
@@ -751,6 +757,35 @@ void main() {
     expect(pinned.right, closeTo(card.right - 4, 0.01));
     expect(pinned.top, closeTo(overlayTop(tester), 0.01));
     expect(pinned.height, kPinnedStripHeight);
+  });
+
+  // The strip's surface spanned the card's width from its first frame, so
+  // beside the narrower plot (inside the chart's axes) it showed as blank
+  // bands while the curve widened. It starts on the plot alone and widens
+  // with the curve, reaching the card's width as it settles.
+  testWidgets('the strip widens from the plot to the card as it condenses', (
+    tester,
+  ) async {
+    final profileKey = GlobalKey();
+    await pump(tester, profileKey: profileKey, plotInset: 40);
+    final card = tester.getRect(find.byKey(profileKey));
+
+    await condenseTo(tester, fadeEnd / 2);
+    final plot = tester.getRect(find.byType(_FakeChart));
+    expect(plot.left, closeTo(card.left + 40, 0.01));
+    var box = tester.getRect(strip);
+    expect(box.left, closeTo(plot.left, 0.01));
+    expect(box.right, closeTo(plot.right, 0.01));
+
+    await condenseTo(tester, (1 + fadeEnd) / 2);
+    box = tester.getRect(strip);
+    expect(box.left, inExclusiveRange(card.left + 4, card.left + 40));
+    expect(box.right, inExclusiveRange(card.right - 40, card.right - 4));
+
+    await jump(tester, profileTop + together);
+    box = tester.getRect(strip);
+    expect(box.left, closeTo(card.left + 4, 0.01));
+    expect(box.right, closeTo(card.right - 4, 0.01));
   });
 
   testWidgets('after a resize the strip line still starts on the copy plot', (

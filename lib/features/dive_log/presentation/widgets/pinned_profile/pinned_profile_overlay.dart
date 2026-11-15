@@ -472,15 +472,25 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     // so the strip is never a tall, mostly empty box (#4579). Without a
     // plot from the copy, it covers the card to its bottom instead.
     final keptPlot = copy?.shift(copyOrigin).keptInView().rect;
-    final from = Rect.fromLTRB(
+    // Across, it starts on the plot too, inside the chart's axes, and widens
+    // with its curve: a surface at the card's width from the start showed as
+    // blank bands beside the curve. It stays within the card's margin.
+    final inner = Rect.fromLTRB(
       card.left + margin.left,
-      math.max(0, plotOnPage?.top ?? 0),
+      0,
       card.right - margin.right,
+      0,
+    );
+    final from = Rect.fromLTRB(
+      math.max(inner.left, plotOnPage?.left ?? inner.left),
+      math.max(0, plotOnPage?.top ?? 0),
+      math.min(inner.right, plotOnPage?.right ?? inner.right),
       keptPlot?.bottom ?? math.max(card.bottom - margin.bottom, 0),
     );
-    // It keeps the card's width throughout, so pinned it is only as wide as
-    // the other cards on the page (#4488): the condense only moves its top
-    // up to the page's and its bottom to the strip's height.
+    // Pinned, it is the card's width, so it is only as wide as the other
+    // cards on the page (#4488): the condense moves its top up to the
+    // page's, its sides out to the card's margin and its bottom to the
+    // strip's height.
     // Its line layers grow it (issue #4562), already while it condenses, so
     // it heads straight for the height it settles at (#4579).
     final stripHeight =
@@ -488,7 +498,7 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
         layers.grow * (kPinnedStripGrownHeight - kPinnedStripHeight);
     final toward = Rect.lerp(
       from,
-      Rect.fromLTRB(from.left, 0, from.right, stripHeight),
+      Rect.fromLTRB(inner.left, 0, inner.right, stripHeight),
       morph,
     )!;
     // Its bottom never rises above the copy's plot, or the full chart would
