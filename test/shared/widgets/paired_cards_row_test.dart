@@ -405,6 +405,52 @@ void main() {
       expect(_cardRect(tester, 'SLOT').width, 700);
     });
 
+    testWidgets('held, a different card in the slot is placed afresh', (
+      tester,
+    ) async {
+      Future<void> pumpSlot(String label, double height) => _pump(
+        tester,
+        first: _card('TALL', 300),
+        second: _card('SHORT', 100),
+        slot: KeyedSubtree(key: ValueKey(label), child: _card(label, height)),
+        holdPlacement: true,
+      );
+      await pumpSlot('SMALL', 80);
+      expect(_cardRect(tester, 'SMALL').width, lessThan(700));
+
+      // Too tall for the space: the column it held was chosen for SMALL.
+      await pumpSlot('BIG', 260);
+
+      expect(_cardRect(tester, 'BIG').width, 700);
+      expect(_cardRect(tester, 'BIG').top, 300 + 24);
+    });
+
+    // Opening a card's editor swaps the widgets inside its frame; it is still
+    // the same card, under the same key, and keeps its place.
+    testWidgets('held, the same card with new insides keeps its place', (
+      tester,
+    ) async {
+      Future<void> pumpSlot(Widget inside) => _pump(
+        tester,
+        first: _card('TALL', 300),
+        second: _card('SHORT', 100),
+        slot: KeyedSubtree(key: const ValueKey('NOTES'), child: inside),
+        holdPlacement: true,
+      );
+      await pumpSlot(_card('NOTES', 80));
+      final before = _cardRect(tester, 'NOTES');
+      expect(before.width, lessThan(700));
+
+      await pumpSlot(
+        Padding(padding: EdgeInsets.zero, child: _card('NOTES', 260)),
+      );
+
+      final after = _cardRect(tester, 'NOTES');
+      expect(after.left, before.left);
+      expect(after.top, before.top);
+      expect(after.width, before.width);
+    });
+
     testWidgets('keeps its state when it moves', (tester) async {
       final height = ValueNotifier<double>(80);
       addTearDown(height.dispose);

@@ -20,7 +20,10 @@ import 'package:flutter/widgets.dart';
 ///
 /// While [holdPlacement] is true the slot keeps the place it last had: a card
 /// being edited must not jump out from under the diver when its editor makes
-/// it taller. Its partner grows to match instead.
+/// it taller. Its partner grows to match instead. The place held belongs to
+/// the slot's [Widget.key]: a slot with another key is a different card and
+/// is placed afresh, while the same card opening its editor, which swaps the
+/// widgets inside it, keeps its place.
 ///
 /// An [IntrinsicHeight] around a stretched [Row] would end the cards level
 /// too, but it asks every descendant for its intrinsic height first, which a
@@ -39,7 +42,8 @@ class PairedCardsRow extends MultiChildRenderObjectWidget {
     this.columnGap = 16,
     this.rowGap = 24,
     this.holdPlacement = false,
-  }) : super(children: [first, second, ?slot]);
+  }) : slotKey = slot?.key,
+       super(children: [first, second, ?slot]);
 
   /// The horizontal space between the two columns.
   final double columnGap;
@@ -50,12 +54,16 @@ class PairedCardsRow extends MultiChildRenderObjectWidget {
   /// Whether the slot keeps the place it last had.
   final bool holdPlacement;
 
+  /// The slot's key, which says which card the place held belongs to.
+  final Key? slotKey;
+
   @override
   RenderPairedCardsRow createRenderObject(BuildContext context) =>
       RenderPairedCardsRow(
         columnGap: columnGap,
         rowGap: rowGap,
         holdPlacement: holdPlacement,
+        slotKey: slotKey,
         textDirection: Directionality.of(context),
       );
 
@@ -68,6 +76,7 @@ class PairedCardsRow extends MultiChildRenderObjectWidget {
       ..columnGap = columnGap
       ..rowGap = rowGap
       ..holdPlacement = holdPlacement
+      ..slotKey = slotKey
       ..textDirection = Directionality.of(context);
   }
 }
@@ -89,10 +98,16 @@ class RenderPairedCardsRow extends RenderBox
     required double rowGap,
     required bool holdPlacement,
     required TextDirection textDirection,
+    this.slotKey,
   }) : _columnGap = columnGap,
        _rowGap = rowGap,
        _holdPlacement = holdPlacement,
        _textDirection = textDirection;
+
+  /// Which card is in the slot; see [PairedCardsRow.slotKey]. A new card
+  /// arrives as a new child, which lays the row out again, so this needs no
+  /// layout of its own.
+  Key? slotKey;
 
   double get columnGap => _columnGap;
   double _columnGap;
@@ -128,9 +143,12 @@ class RenderPairedCardsRow extends RenderBox
   }
 
   /// The slot's column at the last layout, or null for below the row; kept
-  /// for [holdPlacement]. [_placed] says whether there was a slot to place.
+  /// for [holdPlacement]. [_placed] says whether there was a slot, and
+  /// [_placedKey] which card it was: the place held was chosen for that
+  /// card's height, so a different card is placed afresh.
   int? _slotColumn;
   bool _placed = false;
+  Key? _placedKey;
 
   @override
   void setupParentData(RenderBox child) {
@@ -255,7 +273,8 @@ class RenderPairedCardsRow extends RenderBox
     second.layout(inColumn, parentUsesSize: true);
     final heights = [first.size.height, second.size.height];
 
-    final hold = holdPlacement && _placed && slot != null;
+    final hold =
+        holdPlacement && slot != null && _placed && slotKey == _placedKey;
     final arrangement = _arrange(
       heights,
       slotInColumn: slot == null
@@ -274,6 +293,7 @@ class RenderPairedCardsRow extends RenderBox
       heldColumn: hold ? _slotColumn : null,
     );
     _placed = slot != null;
+    _placedKey = slotKey;
     _slotColumn = arrangement.column;
 
     final slotColumn = arrangement.column;

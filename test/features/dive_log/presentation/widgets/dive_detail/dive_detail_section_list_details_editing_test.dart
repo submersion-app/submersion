@@ -267,6 +267,54 @@ void main() {
       expect(tester.getRect(environment).left, greaterThan(after.right - 1));
     });
 
+    // Issue #4583: Notes, straight after the pair, moves up under its
+    // shorter half. Opening its editor makes it taller than the space there;
+    // it must not jump out from under the diver.
+    testWidgets('a card that moved up beside the pair stays while edited', (
+      tester,
+    ) async {
+      sizeTo(tester, 1200);
+      // Enough conditions logged that Notes fits under Details closed, and
+      // its open editor does not.
+      final logged = plain.copyWith(
+        airTemp: 21,
+        windSpeed: 4,
+        humidity: 70,
+        surfacePressure: 1.013,
+        notes: 'Calm.',
+      );
+      final controller = controllerOver(logged);
+      await tester.pumpWidget(
+        harness(
+          dive: logged,
+          settings: _settings(const [
+            DiveDetailSectionId.details,
+            DiveDetailSectionId.environment,
+            DiveDetailSectionId.notes,
+          ]),
+          controller: controller,
+        ),
+      );
+      await tester.pumpAndSettle();
+      final notes = find.byWidgetPredicate(
+        (w) => w is RecordCardFrame<Dive> && w.card.id == 'notes',
+      );
+      final before = tester.getRect(notes);
+      // Half width: it sits in a column of the pair, not below it.
+      expect(
+        before.width,
+        lessThan(tester.getSize(find.byType(Scaffold)).width / 2),
+      );
+
+      controller.openCard('notes');
+      await tester.pumpAndSettle();
+
+      final after = tester.getRect(notes);
+      expect(after.left, before.left);
+      expect(after.top, before.top);
+      expect(after.width, before.width);
+    });
+
     testWidgets('picking a type, a trip and a water type does not rebuild '
         'the editor', (tester) async {
       sizeTo(tester, 600);
