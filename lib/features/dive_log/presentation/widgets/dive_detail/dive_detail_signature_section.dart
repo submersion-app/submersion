@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_course_rows.dart';
@@ -8,26 +9,45 @@ import 'package:submersion/features/signatures/presentation/widgets/buddy_signat
 import 'package:submersion/features/signatures/presentation/widgets/signature_capture_widget.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/fill_last_column.dart';
 
 /// The Signatures content: buddy signatures plus the optional
 /// course-instructor signature card. The same content in the normal section
 /// flow and beside Buddies.
-class DiveSignaturesSection extends StatelessWidget {
+///
+/// Beside Buddies the row hands it the taller card's height (issue #4583).
+/// A single card is returned bare so that it grows to fill that height; two
+/// share it through a [FillLastColumn], the lower card taking the extra.
+class DiveSignaturesSection extends ConsumerWidget {
   const DiveSignaturesSection({super.key, required this.dive});
 
   final Dive dive;
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        BuddySignaturesSection(diveId: dive.id),
-        if (dive.courseIds.isNotEmpty) ...[
-          const SizedBox(height: 24),
-          _TrainingSignatureCard(dive: dive),
-        ],
-      ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final buddies = BuddySignaturesSection(diveId: dive.id);
+    if (dive.courseIds.isEmpty) return buddies;
+
+    // The buddy card draws nothing for a dive without buddies, or when
+    // either of its reads fails, so its gap must go with it or the
+    // instructor's card starts 24px down. It draws a placeholder while the
+    // buddies first load, so it counts as shown until then. A reload keeps
+    // the last answer: `value` holds it through one driven by a dependency,
+    // where `valueOrNull` reads as loading and the placeholder and its gap
+    // would flicker in and out.
+    final hasBuddies = ref.watch(
+      buddiesForDiveProvider(
+        dive.id,
+      ).select((async) => !async.hasError && (async.value?.isNotEmpty ?? true)),
+    );
+    final signaturesFailed = ref.watch(
+      buddySignaturesForDiveProvider(dive.id).select((async) => async.hasError),
+    );
+    final buddiesShow = hasBuddies && !signaturesFailed;
+    final training = _TrainingSignatureCard(dive: dive);
+    if (!buddiesShow) return training;
+    return FillLastColumn(
+      children: [buddies, const SizedBox(height: 24), training],
     );
   }
 }
