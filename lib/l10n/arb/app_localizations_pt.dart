@@ -13068,6 +13068,13 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveSites_catalogue_notVerified => 'Não verificado';
+
+  @override
+  String get diveSites_catalogue_notVerifiedExplanation =>
+      'Reunido a partir de guias de mergulho publicados, não de um levantamento. Confirme a posição no local antes de confiar nela.';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'Comparar pontos com o catálogo integrado';
 

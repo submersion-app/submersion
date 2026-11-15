@@ -7829,6 +7829,8 @@
   },
   "diveSites_picker_nearby": "Nearby",
   "diveSites_catalogue_credit": "From the built-in site catalogue. Source: {source}",
+  "diveSites_catalogue_notVerified": "Not verified",
+  "diveSites_catalogue_notVerifiedExplanation": "Gathered from published dive guides, not from a survey. Check the position locally before you rely on it.",
   "diveSites_list_menu_catalogueReview": "Check sites against built-in catalogue",
   "diveSites_gapReview_title": "Built-in details for your sites",
   "diveSites_gapReview_sectionSame": "Same site ({count})",

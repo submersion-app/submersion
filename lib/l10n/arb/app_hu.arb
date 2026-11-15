@@ -3920,6 +3920,8 @@
   "diveSites_group_siteCount": "{count, plural, =1{1 merülőhely} other{{count} merülőhely}}",
   "diveSites_picker_nearby": "A közelben",
   "diveSites_catalogue_credit": "A beépített merülőhely-katalógusból. Forrás: {source}",
+  "diveSites_catalogue_notVerified": "Nem ellenőrzött",
+  "diveSites_catalogue_notVerifiedExplanation": "Közzétett merülési kalauzokból gyűjtve, nem felmérésből. Mielőtt megbízna benne, ellenőrizze a helyszínen a pozíciót.",
   "diveSites_list_menu_catalogueReview": "Merülőhelyek összevetése a beépített katalógussal",
   "diveSites_gapReview_title": "Beépített adatok a merülőhelyeihez",
   "diveSites_gapReview_sectionSame": "Ugyanaz a merülőhely ({count})",

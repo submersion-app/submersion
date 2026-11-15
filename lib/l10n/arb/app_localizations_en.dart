@@ -12867,6 +12867,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveSites_catalogue_notVerified => 'Not verified';
+
+  @override
+  String get diveSites_catalogue_notVerifiedExplanation =>
+      'Gathered from published dive guides, not from a survey. Check the position locally before you rely on it.';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'Check sites against built-in catalogue';
 

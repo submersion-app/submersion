@@ -4045,6 +4045,8 @@
   "diveSites_group_siteCount": "{count, plural, =1{1 punto} other{{count} puntos}}",
   "diveSites_picker_nearby": "Cerca",
   "diveSites_catalogue_credit": "Del catálogo integrado de sitios. Fuente: {source}",
+  "diveSites_catalogue_notVerified": "No verificado",
+  "diveSites_catalogue_notVerifiedExplanation": "Recopilado de guías de buceo publicadas, no de un levantamiento. Comprueba la posición en el lugar antes de fiarte de ella.",
   "diveSites_list_menu_catalogueReview": "Comparar sitios con el catálogo integrado",
   "diveSites_gapReview_title": "Datos integrados para tus sitios",
   "diveSites_gapReview_sectionSame": "El mismo sitio ({count})",

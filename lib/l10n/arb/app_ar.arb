@@ -4045,6 +4045,8 @@
   "diveSites_group_siteCount": "{count, plural, =0{لا مواقع} =1{موقع واحد} =2{موقعان} few{{count} مواقع} many{{count} موقعًا} other{{count} موقع}}",
   "diveSites_picker_nearby": "قريب",
   "diveSites_catalogue_credit": "من كتالوج المواقع المدمج. المصدر: {source}",
+  "diveSites_catalogue_notVerified": "غير موثّق",
+  "diveSites_catalogue_notVerifiedExplanation": "جُمعت من أدلة غوص منشورة، وليس من مسح ميداني. تحقّق من الموقع محليًا قبل الاعتماد عليه.",
   "diveSites_list_menu_catalogueReview": "مطابقة المواقع مع الكتالوج المدمج",
   "diveSites_gapReview_title": "تفاصيل مدمجة لمواقعك",
   "diveSites_gapReview_sectionSame": "الموقع نفسه ({count})",

@@ -12982,6 +12982,13 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveSites_catalogue_notVerified => 'Niet geverifieerd';
+
+  @override
+  String get diveSites_catalogue_notVerifiedExplanation =>
+      'Verzameld uit gepubliceerde duikgidsen, niet uit een opmeting. Controleer de positie ter plaatse voordat je erop vertrouwt.';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'Stekken vergelijken met ingebouwde catalogus';
 

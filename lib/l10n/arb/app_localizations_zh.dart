@@ -12420,6 +12420,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveSites_catalogue_notVerified => '未经核实';
+
+  @override
+  String get diveSites_catalogue_notVerifiedExplanation =>
+      '根据已发布的潜水指南整理，并非实地测量。依赖之前请在当地核实位置。';
+
+  @override
   String get diveSites_list_menu_catalogueReview => '与内置目录比对潜水点';
 
   @override

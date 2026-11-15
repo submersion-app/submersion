@@ -20704,6 +20704,18 @@ abstract class AppLocalizations {
   /// **'From the built-in site catalogue. Source: {source}'**
   String diveSites_catalogue_credit(Object source);
 
+  /// No description provided for @diveSites_catalogue_notVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not verified'**
+  String get diveSites_catalogue_notVerified;
+
+  /// No description provided for @diveSites_catalogue_notVerifiedExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Gathered from published dive guides, not from a survey. Check the position locally before you rely on it.'**
+  String get diveSites_catalogue_notVerifiedExplanation;
+
   /// No description provided for @diveSites_list_menu_catalogueReview.
   ///
   /// In en, this message translates to:

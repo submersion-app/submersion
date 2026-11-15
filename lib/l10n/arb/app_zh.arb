@@ -4160,6 +4160,8 @@
   "diveSites_group_siteCount": "{count, plural, other{{count} 个潜水点}}",
   "diveSites_picker_nearby": "附近",
   "diveSites_catalogue_credit": "来自内置潜水点目录。来源：{source}",
+  "diveSites_catalogue_notVerified": "未经核实",
+  "diveSites_catalogue_notVerifiedExplanation": "根据已发布的潜水指南整理，并非实地测量。依赖之前请在当地核实位置。",
   "diveSites_list_menu_catalogueReview": "与内置目录比对潜水点",
   "diveSites_gapReview_title": "你的潜水点的内置详情",
   "diveSites_gapReview_sectionSame": "同一潜水点（{count}）",

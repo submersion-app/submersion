@@ -13253,6 +13253,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveSites_catalogue_notVerified => 'غير موثّق';
+
+  @override
+  String get diveSites_catalogue_notVerifiedExplanation =>
+      'جُمعت من أدلة غوص منشورة، وليس من مسح ميداني. تحقّق من الموقع محليًا قبل الاعتماد عليه.';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'مطابقة المواقع مع الكتالوج المدمج';
 

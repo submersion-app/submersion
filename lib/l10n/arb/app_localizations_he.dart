@@ -12783,6 +12783,13 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveSites_catalogue_notVerified => 'לא מאומת';
+
+  @override
+  String get diveSites_catalogue_notVerifiedExplanation =>
+      'נאסף ממדריכי צלילה שפורסמו, לא ממדידה. כדאי לבדוק את המיקום במקום לפני שסומכים עליו.';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'השוואת אתרים מול הקטלוג המובנה';
 

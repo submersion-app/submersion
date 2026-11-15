@@ -13034,6 +13034,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveSites_catalogue_notVerified => 'Nem ellenőrzött';
+
+  @override
+  String get diveSites_catalogue_notVerifiedExplanation =>
+      'Közzétett merülési kalauzokból gyűjtve, nem felmérésből. Mielőtt megbízna benne, ellenőrizze a helyszínen a pozíciót.';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'Merülőhelyek összevetése a beépített katalógussal';
 

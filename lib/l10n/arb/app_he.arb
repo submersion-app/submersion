@@ -3920,6 +3920,8 @@
   "diveSites_group_siteCount": "{count, plural, =1{אתר אחד} other{{count} אתרים}}",
   "diveSites_picker_nearby": "בקרבת מקום",
   "diveSites_catalogue_credit": "מתוך קטלוג האתרים המובנה. מקור: {source}",
+  "diveSites_catalogue_notVerified": "לא מאומת",
+  "diveSites_catalogue_notVerifiedExplanation": "נאסף ממדריכי צלילה שפורסמו, לא ממדידה. כדאי לבדוק את המיקום במקום לפני שסומכים עליו.",
   "diveSites_list_menu_catalogueReview": "השוואת אתרים מול הקטלוג המובנה",
   "diveSites_gapReview_title": "פרטים מובנים לאתרים שלך",
   "diveSites_gapReview_sectionSame": "אותו אתר ({count})",
