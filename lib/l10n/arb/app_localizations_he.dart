@@ -38921,6 +38921,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return 'מחק נתונים גולמיים מ-$computer';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'מחק';
 
   @override

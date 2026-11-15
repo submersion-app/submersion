@@ -39678,6 +39678,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return '$computer nyers adatainak elvetése';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Elvetés';
 
   @override

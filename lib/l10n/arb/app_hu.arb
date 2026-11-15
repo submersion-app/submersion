@@ -11240,6 +11240,7 @@
   "settings_rawDiveData_unknownComputer": "Ismeretlen komputer",
   "settings_rawDiveData_none": "Egy merüléshez sem tartozik nyers búvárkomputer-adat.",
   "settings_rawDiveData_computerUsage": "{count, plural, other{{count} merülés, {size}}}",
+  "settings_rawDiveData_discardComputerSemantics": "{computer} nyers adatainak elvetése",
   "diveComputer_rawData_discardAction": "Elvetés",
   "diveComputer_rawData_discardAllMessage": "Eltávolítod {count} merülés tárolt nyers letöltési adatait az összes merülésszámítógépről ({size})? Ezek a merülések ezután nem elemezhetők újra, amikor a merüléselemző fejlődik. A merülések és a módosításaid változatlanok maradnak, és a többi szinkronizált eszközöd is eltávolítja az adatokat.",
   "diveComputer_rawData_discardComputerMessage": "Eltávolítod {count} merülés tárolt nyers letöltési adatait a(z) {computer} eszközről? Ezek a merülések ezután nem elemezhetők újra, amikor a merüléselemző fejlődik. A merülések és a módosításaid változatlanok maradnak, és a többi szinkronizált eszközöd is eltávolítja az adatokat.",

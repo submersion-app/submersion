@@ -40415,6 +40415,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return 'حذف البيانات الأولية من $computer';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'حذف';
 
   @override

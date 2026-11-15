@@ -39893,6 +39893,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return 'Elimina i dati grezzi di $computer';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Elimina';
 
   @override

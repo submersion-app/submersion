@@ -37518,6 +37518,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return '丢弃 $computer 的原始数据';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => '丢弃';
 
   @override

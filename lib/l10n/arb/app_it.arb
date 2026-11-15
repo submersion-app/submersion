@@ -11240,6 +11240,7 @@
   "settings_rawDiveData_unknownComputer": "Computer sconosciuto",
   "settings_rawDiveData_none": "Nessuna immersione conserva dati grezzi del computer subacqueo.",
   "settings_rawDiveData_computerUsage": "{count, plural, one{{count} immersione, {size}} other{{count} immersioni, {size}}}",
+  "settings_rawDiveData_discardComputerSemantics": "Elimina i dati grezzi di {computer}",
   "diveComputer_rawData_discardAction": "Elimina",
   "diveComputer_rawData_discardAllMessage": "Rimuovere i dati grezzi di download conservati per {count} immersioni da tutti i computer subacquei ({size})? Queste immersioni non potranno più essere rianalizzate quando il parser delle immersioni migliorerà. Le immersioni e le tue modifiche restano invariate, e anche gli altri dispositivi sincronizzati rimuovono i dati.",
   "diveComputer_rawData_discardComputerMessage": "Rimuovere i dati grezzi di download conservati per {count} immersioni da {computer}? Queste immersioni non potranno più essere rianalizzate quando il parser delle immersioni migliorerà. Le immersioni e le tue modifiche restano invariate, e anche gli altri dispositivi sincronizzati rimuovono i dati.",

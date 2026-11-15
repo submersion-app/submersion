@@ -11240,6 +11240,7 @@
   "settings_rawDiveData_unknownComputer": "未知潜水电脑",
   "settings_rawDiveData_none": "没有潜水保留潜水电脑原始数据。",
   "settings_rawDiveData_computerUsage": "{count, plural, other{{count} 次潜水，{size}}}",
+  "settings_rawDiveData_discardComputerSemantics": "丢弃 {computer} 的原始数据",
   "diveComputer_rawData_discardAction": "丢弃",
   "diveComputer_rawData_discardAllMessage": "要删除所有潜水电脑为 {count} 次潜水保存的原始下载数据（{size}）吗？之后潜水解析器改进时，这些潜水将无法再重新解析。潜水及您的编辑保持不变，您的其他同步设备也会删除这些数据。",
   "diveComputer_rawData_discardComputerMessage": "要删除 {computer} 为 {count} 次潜水保存的原始下载数据吗？之后潜水解析器改进时，这些潜水将无法再重新解析。潜水及您的编辑保持不变，您的其他同步设备也会删除这些数据。",

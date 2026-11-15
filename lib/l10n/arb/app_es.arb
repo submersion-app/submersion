@@ -11240,6 +11240,7 @@
   "settings_rawDiveData_unknownComputer": "Ordenador desconocido",
   "settings_rawDiveData_none": "Ninguna inmersión conserva datos sin procesar del ordenador de buceo.",
   "settings_rawDiveData_computerUsage": "{count, plural, one{{count} inmersión, {size}} other{{count} inmersiones, {size}}}",
+  "settings_rawDiveData_discardComputerSemantics": "Descartar los datos sin procesar de {computer}",
   "diveComputer_rawData_discardAction": "Descartar",
   "diveComputer_rawData_discardAllMessage": "¿Eliminar los datos de descarga sin procesar guardados de {count} inmersiones de todos los ordenadores de buceo ({size})? Esas inmersiones ya no podrán reanalizarse cuando mejore el analizador de inmersiones. Las inmersiones y tus cambios se mantienen, y tus otros dispositivos sincronizados también eliminan los datos.",
   "diveComputer_rawData_discardComputerMessage": "¿Eliminar los datos de descarga sin procesar guardados de {count} inmersiones de {computer}? Esas inmersiones ya no podrán reanalizarse cuando mejore el analizador de inmersiones. Las inmersiones y tus cambios se mantienen, y tus otros dispositivos sincronizados también eliminan los datos.",

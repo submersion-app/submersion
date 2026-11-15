@@ -39996,6 +39996,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return 'Supprimer les données brutes de $computer';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Supprimer';
 
   @override

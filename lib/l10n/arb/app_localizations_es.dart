@@ -39910,6 +39910,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return 'Descartar los datos sin procesar de $computer';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Descartar';
 
   @override

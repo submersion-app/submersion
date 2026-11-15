@@ -84,6 +84,19 @@ void main() {
     expect(find.text('Discard'), findsOneWidget);
   });
 
+  testWidgets('a computer\'s Discard tells a screen reader which computer', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester);
+
+    expect(
+      find.bySemanticsLabel('Discard raw data from Perdix'),
+      findsOneWidget,
+    );
+    semantics.dispose();
+  });
+
   testWidgets('Discard all confirms with the every-computer message and '
       'discards everything', (tester) async {
     await pump(tester);

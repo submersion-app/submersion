@@ -11,8 +11,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Settings > Data > Advanced > Data tools (issue #3482): the one-off repair
 /// tools that used to sit at the bottom of the Data page, each opening its
 /// own page. Re-parse dives (issue #224) is offered where the dive parser
-/// runs; Raw dive computer data (issue #4590) everywhere. Relink data sources (issue #4465) runs in place after a
-/// confirmation.
+/// runs; Raw dive computer data (issue #4590) everywhere. Relink data
+/// sources (issue #4465) runs in place after a confirmation.
 ///
 /// Agent access (the in-app MCP server) is listed here too, on desktop only
 /// and, until its write surface is complete, only while debug mode is on.

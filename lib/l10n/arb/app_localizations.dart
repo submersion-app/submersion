@@ -62497,6 +62497,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} dive, {size}} other{{count} dives, {size}}}'**
   String settings_rawDiveData_computerUsage(int count, String size);
 
+  /// Screen reader label for one computer's Discard on the Raw dive computer data page (issue #4590)
+  ///
+  /// In en, this message translates to:
+  /// **'Discard raw data from {computer}'**
+  String settings_rawDiveData_discardComputerSemantics(String computer);
+
   /// No description provided for @diveComputer_rawData_discardAction.
   ///
   /// In en, this message translates to:

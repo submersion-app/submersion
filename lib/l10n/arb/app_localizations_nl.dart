@@ -39619,6 +39619,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return 'Ruwe data van $computer verwijderen';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Verwijderen';
 
   @override

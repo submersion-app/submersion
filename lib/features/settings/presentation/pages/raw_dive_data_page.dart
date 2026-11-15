@@ -21,16 +21,23 @@ class RawDiveDataPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    // Logged where a count fails, not in build: a rebuild while it stays
+    // failed would log the same error again.
+    void logFailure(AsyncValue<Object?>? previous, AsyncValue<Object?> next) {
+      if (!next.hasError || (previous?.hasError ?? false)) return;
+      _log.error(
+        'Could not count the raw dive computer data',
+        error: next.error,
+        stackTrace: next.stackTrace,
+      );
+    }
+
+    ref.listen(rawDiveDataUsageProvider, logFailure);
+    ref.listen(rawDiveDataByComputerProvider, logFailure);
     final total = ref.watch(rawDiveDataUsageProvider);
     final byComputer = ref.watch(rawDiveDataByComputerProvider);
     final Widget body;
     if (total.hasError || byComputer.hasError) {
-      final error = total.error ?? byComputer.error;
-      _log.error(
-        'Could not count the raw dive computer data',
-        error: error,
-        stackTrace: total.stackTrace ?? byComputer.stackTrace,
-      );
       body = Center(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -137,6 +144,8 @@ class _Overview extends ConsumerWidget {
                 TileSubtitleAction(
                   actionKey: ValueKey('raw_dive_data_discard_$id'),
                   label: l10n.diveComputer_rawData_discardAction,
+                  semanticsLabel: l10n
+                      .settings_rawDiveData_discardComputerSemantics(name),
                   onPressed: () => confirmAndDiscardRawDiveData(
                     context,
                     ref,

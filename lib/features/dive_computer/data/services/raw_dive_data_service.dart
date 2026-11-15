@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -7,6 +8,8 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
+    as domain;
 
 /// How much raw dive computer data the library holds.
 ///
@@ -85,7 +88,7 @@ class RawDiveDataService {
           computerId: r.readNullable<String>('id'),
           name: r.readNullable<String>('id') == null
               ? null
-              : _displayName(
+              : domain.DiveComputer.displayNameOf(
                   r.readNullable<String>('name') ?? '',
                   r.readNullable<String>('manufacturer'),
                   r.readNullable<String>('model'),
@@ -94,21 +97,12 @@ class RawDiveDataService {
           storedBytes: r.read<int>('bytes'),
         ),
     ];
-    usage.sort((a, b) {
+    return usage.sorted((a, b) {
       if (a.name == null || b.name == null) {
         return (a.name == null ? 1 : 0) - (b.name == null ? 1 : 0);
       }
       return a.name!.toLowerCase().compareTo(b.name!.toLowerCase());
     });
-    return usage;
-  }
-
-  /// The name `DiveComputer.displayName` gives: the diver's own name, else
-  /// the maker and model.
-  static String _displayName(String name, String? manufacturer, String? model) {
-    if (name.isNotEmpty) return name;
-    if (manufacturer != null && model != null) return '$manufacturer $model';
-    return model ?? manufacturer ?? name;
   }
 
   /// Clears the raw bytes of [computerId]'s sources, or of every source when

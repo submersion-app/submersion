@@ -11240,6 +11240,7 @@
   "settings_rawDiveData_unknownComputer": "Ordinateur inconnu",
   "settings_rawDiveData_none": "Aucune plongée ne conserve de données brutes d'ordinateur de plongée.",
   "settings_rawDiveData_computerUsage": "{count, plural, one{{count} plongée, {size}} other{{count} plongées, {size}}}",
+  "settings_rawDiveData_discardComputerSemantics": "Supprimer les données brutes de {computer}",
   "diveComputer_rawData_discardAction": "Supprimer",
   "diveComputer_rawData_discardAllMessage": "Supprimer les données brutes de téléchargement conservées pour {count} plongées de tous les ordinateurs de plongée ({size}) ? Ces plongées ne pourront plus être réanalysées lorsque l'analyseur de plongées s'améliorera. Les plongées et vos modifications restent inchangées, et vos autres appareils synchronisés suppriment aussi ces données.",
   "diveComputer_rawData_discardComputerMessage": "Supprimer les données brutes de téléchargement conservées pour {count} plongées de {computer} ? Ces plongées ne pourront plus être réanalysées lorsque l'analyseur de plongées s'améliorera. Les plongées et vos modifications restent inchangées, et vos autres appareils synchronisés suppriment aussi ces données.",

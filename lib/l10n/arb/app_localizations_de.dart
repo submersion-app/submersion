@@ -39801,6 +39801,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String settings_rawDiveData_discardComputerSemantics(String computer) {
+    return 'Rohdaten von $computer verwerfen';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Verwerfen';
 
   @override
