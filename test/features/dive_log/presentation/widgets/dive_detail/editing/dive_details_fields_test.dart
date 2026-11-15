@@ -54,8 +54,13 @@ void main() {
     expect({for (final field in all) field.id}, hasLength(11));
   });
 
-  test('water type is also shown on the Environment card', () {
-    expect(diveWaterTypeField.alsoShownOn, {'environment'});
+  test('no other card shows a Details value', () {
+    // The Tide card and the Environment card's satellite conditions follow
+    // the water type, but they are laid out from the dive the page's layout
+    // is held to, not redrawn as it is picked.
+    for (final field in all) {
+      expect(field.alsoShownOn, isEmpty, reason: field.id);
+    }
   });
 
   group('trip', () {

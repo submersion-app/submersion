@@ -127,12 +127,15 @@ final diveVisibilityField = EditField<Dive, StoredVisibility>(
 );
 
 /// The dive's own water type. A dive with none shows its site's, but that
-/// is not stored on the dive. The Environment card leaves its satellite
-/// conditions out for a freshwater dive, so it is redrawn with this.
+/// is not stored on the dive.
+///
+/// Other cards work things out from it (the Tide card, and the Environment
+/// card's satellite conditions, have nothing for fresh water), but none
+/// shows it: they are laid out from the dive the page's layout is held to,
+/// and catch up when the last editor closes.
 final diveWaterTypeField = EditField<Dive, WaterType?>(
   id: 'waterType',
   cardId: _card,
-  alsoShownOn: {DiveDetailSectionId.environment.name},
   read: (dive) => dive.waterType,
   write: (dive, value) =>
       dive.copyWith(waterType: value, clearWaterType: value == null),

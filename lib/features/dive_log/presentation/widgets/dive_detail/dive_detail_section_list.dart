@@ -234,6 +234,8 @@ class DiveDetailSectionList extends ConsumerWidget {
   /// A card with no editor that decides for itself whether it shows (Tide,
   /// Signatures) is handed [presence] as its dive, so that a value typed
   /// into an open card cannot bring it in or take it out above that card.
+  /// The same goes for a calculated block inside a card that can be edited:
+  /// the Environment card's satellite conditions.
   Widget? _sectionContent(
     WidgetRef ref,
     DiveDetailSectionId id,
@@ -284,7 +286,7 @@ class DiveDetailSectionList extends ConsumerWidget {
         return DiveDetailsSection(dive: dive);
       case DiveDetailSectionId.environment:
         if (!watchHasEnvironmentData(ref, presence)) return null;
-        return DiveEnvironmentSection(dive: dive);
+        return DiveEnvironmentSection(dive: dive, satelliteFor: presence);
       case DiveDetailSectionId.altitude:
         if (presence.altitude == null || presence.altitude! <= 0) {
           // Safety phase 2: the site is at altitude but the dive was not
@@ -536,7 +538,7 @@ class DiveDetailSectionList extends ConsumerWidget {
           DiveDetailsSection(dive: dive),
           // Open with nothing to show yet: its frame draws the editor.
           hasEnvironment
-              ? DiveEnvironmentSection(dive: dive)
+              ? DiveEnvironmentSection(dive: dive, satelliteFor: presence)
               : const SizedBox.shrink(),
         );
 

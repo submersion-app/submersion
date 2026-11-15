@@ -11,12 +11,18 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_details_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_environment_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_list.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_tide_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_fields.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
+import 'package:submersion/features/reef/domain/entities/reef_habitat.dart';
+import 'package:submersion/features/reef/domain/entities/reef_health.dart';
+import 'package:submersion/features/reef/domain/services/bleaching_alert_level.dart';
+import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
@@ -31,10 +37,12 @@ import '../../../../../helpers/test_database.dart';
 AppSettings _settings(
   List<DiveDetailSectionId> visible, {
   DiveDetailLayout layout = DiveDetailLayout.detailed,
+  bool expanded = false,
 }) => AppSettings(
   diveDetailSections: [
     // In the order given, so a test can put a card above Details.
-    for (final id in visible) DiveDetailSectionConfig(id: id, visible: true),
+    for (final id in visible)
+      DiveDetailSectionConfig(id: id, visible: true, expanded: expanded),
     for (final id in DiveDetailSectionId.values)
       if (!visible.contains(id))
         DiveDetailSectionConfig(id: id, visible: false),
@@ -98,6 +106,7 @@ void main() {
     required AppSettings settings,
     RecordEditController<Dive>? controller,
     Dive? tideFor,
+    ReefHealth? satellite,
   }) {
     final list = DiveDetailSectionList(
       dive: dive,
@@ -128,6 +137,15 @@ void main() {
             location: tideFor.site!.location!,
             entryTime: tideFor.effectiveEntryTime,
           )).overrideWith((ref) async => tide),
+        if (satellite != null) ...[
+          reefHealthForDiveProvider.overrideWith(
+            (ref, request) async => ReefPart.ok(satellite),
+          ),
+          reefHabitatProvider.overrideWith(
+            (ref, location) async =>
+                const ReefPart.ok(ReefHabitat(onReef: true)),
+          ),
+        ],
       ],
       child: MaterialApp(
         locale: const Locale('en'),
@@ -375,6 +393,100 @@ void main() {
       await repump();
 
       expect(pair, findsNothing);
+    });
+
+    // The Environment card carries satellite water conditions, which a
+    // freshwater dive has none of. Nothing is logged on these dives, so the
+    // satellite lines are all the card holds.
+    group('fresh water and the satellite conditions', () {
+      final atReef = plain.copyWith(
+        site: const DiveSite(
+          id: 'site',
+          name: 'Coral Garden',
+          location: GeoPoint(-16.5, 145.8),
+          waterType: WaterType.salt,
+        ),
+      );
+      final health = ReefHealth(
+        sst: 30.1,
+        sstAnomaly: 0.8,
+        degreeHeatingWeeks: 4.2,
+        alertLevel: BleachingAlertLevel.watch,
+        observedAt: DateTime.utc(2023, 9, 1, 12),
+      );
+      final environment = find.byType(DiveEnvironmentSection);
+
+      testWidgets('beside Details, the card keeps its lines until Done', (
+        tester,
+      ) async {
+        sizeTo(tester, 1200);
+        final controller = controllerOver(atReef);
+        final settings = _settings(const [
+          DiveDetailSectionId.details,
+          DiveDetailSectionId.environment,
+        ]);
+        Future<void> repump() async {
+          await tester.pumpWidget(
+            harness(
+              dive: controller.session!.working,
+              settings: settings,
+              controller: controller,
+              satellite: health,
+            ),
+          );
+          await tester.pumpAndSettle();
+        }
+
+        await repump();
+        final height = tester.getSize(environment).height;
+        controller.openCard('details');
+        await tester.pumpAndSettle();
+
+        controller.session!.set(diveWaterTypeField, WaterType.fresh);
+        await repump();
+
+        expect(tester.getSize(environment).height, height);
+
+        controller.closeCard('details');
+        await repump();
+
+        // With nothing logged and no satellite lines, the card goes.
+        expect(environment, findsNothing);
+      });
+
+      testWidgets('above Details in the folding layout, the editor does not '
+          'move', (tester) async {
+        sizeTo(tester, 600);
+        final controller = controllerOver(atReef);
+        final settings = _settings(
+          const [DiveDetailSectionId.environment, DiveDetailSectionId.details],
+          layout: DiveDetailLayout.list,
+          expanded: true,
+        );
+        Future<void> repump() async {
+          await tester.pumpWidget(
+            harness(
+              dive: controller.session!.working,
+              settings: settings,
+              controller: controller,
+              satellite: health,
+            ),
+          );
+          await tester.pumpAndSettle();
+        }
+
+        await repump();
+        final height = tester.getSize(environment).height;
+        controller.openCard('details');
+        await tester.pumpAndSettle();
+        final top = tester.getTopLeft(editor).dy;
+
+        controller.session!.set(diveWaterTypeField, WaterType.fresh);
+        await repump();
+
+        expect(tester.getSize(environment).height, height);
+        expect(tester.getTopLeft(editor).dy, top);
+      });
     });
 
     testWidgets('adding a first course keeps Signatures as it was until '
