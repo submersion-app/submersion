@@ -187,6 +187,29 @@ void main() {
       expect(controller.isDirty, isFalse);
     });
 
+    testWidgets('a number the diver typed, cut back to the one shown, is no '
+        'change', (tester) async {
+      // 12 m shows as 39 ft. 39.4 ft is typed, then its decimals deleted:
+      // the 39 left is the number the row showed for 12 m, not a rounding
+      // of what was typed.
+      final controller = await pumpRow(
+        tester,
+        bare.copyWith(visibilityMeters: 12),
+        settings: imperial,
+      );
+      await focus(tester);
+      await type(tester, '39.4');
+      expect(value(controller).meters, closeTo(12.009, 1e-3));
+
+      await tester.enterText(find.byType(TextFormField), '39.');
+      await tester.pump();
+      await tester.enterText(find.byType(TextFormField), '39');
+      await tester.pump();
+
+      expect(value(controller), const StoredVisibility(meters: 12));
+      expect(controller.isDirty, isFalse);
+    });
+
     testWidgets('a finer value than the one shown is a change', (tester) async {
       final controller = await pumpRow(
         tester,

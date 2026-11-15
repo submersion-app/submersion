@@ -320,6 +320,36 @@ void main() {
     expect(_section(DiveDetailSectionId.tags), findsNothing);
   });
 
+  // With another editor still open the page keeps the cards it had. One the
+  // diver has emptied and closed meanwhile has nothing to draw there, and
+  // must not hold an empty place: the strip is how it is reached again.
+  testWidgets('a card emptied and closed while another is open draws '
+      'nothing', (tester) async {
+    final settings = _RecordingSettings(
+      _settings(const [
+        DiveDetailSectionId.altitude,
+        DiveDetailSectionId.notes,
+      ]),
+    );
+    final controller = controllerOver(dive.copyWith(altitude: 1850))
+      ..openCard('notes')
+      ..openCard('altitude');
+    controller.session!.set(diveAltitudeField, null);
+    controller.closeCard('altitude');
+
+    await tester.pumpWidget(
+      harness(
+        dive: controller.session!.working,
+        settings: settings,
+        controller: controller,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(controller.openCardIds, {'notes'});
+    expect(_section(DiveDetailSectionId.altitude), findsNothing);
+  });
+
   group('list layout', () {
     final folded = _settings(const [
       DiveDetailSectionId.tags,
@@ -580,6 +610,30 @@ void main() {
       expect(identical(tester.state(editor), before), isTrue);
       expect(hasFocus(tester, fieldOf(label)), isTrue);
       expectBesideDetails(tester, environmentFrame);
+    });
+
+    // The pair has no card of its own for a narrow pane: stacked, it shows
+    // the row card, and so the same frame around the same read card.
+    testWidgets('stacked in a narrow pane, an open card keeps its read card '
+        'behind it', (tester) async {
+      final controller = controllerOver(logged)..openCard('environment');
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(600, 1600);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        harness(
+          dive: logged,
+          settings: _RecordingSettings(_settings(pair)),
+          controller: controller,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveEnvironmentCardEditor), findsOneWidget);
+      expect(
+        tester.widget<RecordCardFrame<Dive>>(environmentFrame).child,
+        isA<DiveEnvironmentSection>(),
+      );
     });
 
     testWidgets('closed again with nothing in it, Details has the row to '

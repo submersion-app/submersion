@@ -339,6 +339,16 @@ void main() {
     expect(session.revisionOf('details'), 2);
   });
 
+  // A card's editor is built anew each time the card opens. What it does
+  // once in a sitting, it asks the sitting about.
+  test('firstTime is true once for each key', () {
+    final session = EditSession(const _Rec());
+
+    expect(session.firstTime('lookup'), isTrue);
+    expect(session.firstTime('lookup'), isFalse);
+    expect(session.firstTime('another'), isTrue);
+  });
+
   // A card's editor keeps its session for a frame after the sitting has
   // ended. A keystroke that arrives then is dropped, not thrown.
   test('a disposed session ignores what is set on it', () {

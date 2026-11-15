@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_field_marks.dart';
 import 'package:submersion/shared/widgets/record_editing/record_number_row.dart';
+import 'package:submersion/shared/widgets/record_editing/reveal_answering.dart';
 
 @immutable
 class _Rec {
@@ -19,7 +20,8 @@ class _Row extends StatefulWidget {
   State<_Row> createState() => _RowState();
 }
 
-class _RowState extends State<_Row> with RecordFieldMarks<_Rec, _Row> {
+class _RowState extends State<_Row>
+    with RevealAnswering<_Row>, RecordFieldMarks<_Rec, _Row> {
   @override
   String get markCardId => 'card';
 
@@ -91,11 +93,11 @@ void main() {
     double? shown(double value) => value.roundToDouble();
     double same(double typed) => typed;
 
-    test('the number shown for the sitting value stands for it', () {
+    test('the number the row put on show stands for the value behind it', () {
       expect(
         storedValueOfTyped(
           12,
-          current: 12.4,
+          onShow: 12.4,
           stored: 9.0,
           shownNumber: shown,
           fromDisplay: same,
@@ -108,7 +110,7 @@ void main() {
       expect(
         storedValueOfTyped(
           9,
-          current: 12.4,
+          onShow: 12.4,
           stored: 9.3,
           shownNumber: shown,
           fromDisplay: same,
@@ -121,7 +123,7 @@ void main() {
       expect(
         storedValueOfTyped(
           40,
-          current: 12.0,
+          onShow: 12.0,
           stored: 12.0,
           shownNumber: shown,
           fromDisplay: (typed) => typed * 0.3048,
@@ -130,11 +132,11 @@ void main() {
       );
     });
 
-    test('with nothing in the sitting or stored, it is converted as typed', () {
+    test('with nothing on show or stored, it is converted as typed', () {
       expect(
         storedValueOfTyped(
           40,
-          current: null,
+          onShow: null,
           stored: null,
           shownNumber: shown,
           fromDisplay: (typed) => typed * 2,

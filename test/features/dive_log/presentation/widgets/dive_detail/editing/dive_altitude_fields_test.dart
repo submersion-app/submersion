@@ -194,6 +194,29 @@ void main() {
       expect(wrote, [('site-1', 512.0)]);
     });
 
+    // The site is given the altitude that was looked up for the dive. A
+    // diver who then types another, or takes it out, has not accepted it.
+    for (final (name, typed) in [('typed over', 600.0), ('cleared', null)]) {
+      test(
+        'a looked-up altitude the diver $name is not written to the site',
+        () async {
+          final session = sessionOver(bare.copyWith(site: lakeNoAltitude));
+          await fillAltitudeIfEmpty(
+            session,
+            resolver: AltitudeResolver(
+              elevationService: _FakeElevation(result: 512),
+            ),
+            writeSiteAltitude: writeSite,
+          );
+
+          session.set(diveAltitudeField, typed);
+          await session.runHeldWrites();
+
+          expect(wrote, isEmpty);
+        },
+      );
+    }
+
     test('a diver who typed a value while the lookup ran keeps it', () async {
       final gate = Completer<void>();
       final session = sessionOver(bare.copyWith(site: lakeNoAltitude));

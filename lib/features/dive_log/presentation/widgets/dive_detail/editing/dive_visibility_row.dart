@@ -15,6 +15,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
 import 'package:submersion/shared/widgets/record_editing/record_field_marks.dart';
 import 'package:submersion/shared/widgets/record_editing/record_number_row.dart';
+import 'package:submersion/shared/widgets/record_editing/reveal_answering.dart';
 import 'package:submersion/shared/widgets/record_editing/text_keeping_caret.dart';
 
 /// The visibility input of the Details card: a band or a measured distance,
@@ -26,9 +27,9 @@ import 'package:submersion/shared/widgets/record_editing/text_keeping_caret.dart
 /// differs from the dive form, in which the input showing at Save decides
 /// what is written.
 ///
-/// A distance is typed in the diver's depth unit. The number already on
-/// show stands for the value behind it, so a visibility stored as 12 m and
-/// shown as 39 ft is not rewritten by typing 39. Emptying the number means
+/// A distance is typed in the diver's depth unit. A number the row put on
+/// show itself stands for the value behind it, so a visibility stored as
+/// 12 m and shown as 39 ft is not rewritten by typing 39. Emptying the number means
 /// no measurement: a dive stored with a range or a bucket goes back to it.
 /// Text that is not a number, a negative one included, never reaches the
 /// sitting, and holds the card open until it is fixed.
@@ -42,12 +43,19 @@ class DiveVisibilityRow extends ConsumerStatefulWidget {
 }
 
 class _DiveVisibilityRowState extends ConsumerState<DiveVisibilityRow>
-    with RecordFieldMarks<Dive, DiveVisibilityRow> {
+    with
+        RevealAnswering<DiveVisibilityRow>,
+        RecordFieldMarks<Dive, DiveVisibilityRow> {
   late UnitFormatter _units = ref.read(unitFormatterProvider);
   late VisibilityInputMode _mode =
       widget.session.valueOf(diveVisibilityField).naturalMode ??
       ref.read(visibilityInputModeProvider);
   late FieldTextBinding<Dive, StoredVisibility> _binding = _bind();
+
+  /// The distance whose number this row last put on show itself: the one it
+  /// opened with, or one that arrived from elsewhere since. Null when that
+  /// was no distance, or the diver has only typed.
+  double? _onShowMeters;
 
   @override
   String get markCardId => diveVisibilityField.cardId;
@@ -59,10 +67,16 @@ class _DiveVisibilityRowState extends ConsumerState<DiveVisibilityRow>
     return FieldTextBinding<Dive, StoredVisibility>(
       session: widget.session,
       field: diveVisibilityField,
-      format: _format,
+      format: _show,
       parse: _parse,
       onUnreadableChanged: reportUnreadable,
     );
+  }
+
+  /// The text for a value this row is about to put on show.
+  String _show(StoredVisibility value) {
+    _onShowMeters = value.meters;
+    return _format(value);
   }
 
   /// The measured distance in the diver's unit, or nothing when the dive
@@ -100,7 +114,7 @@ class _DiveVisibilityRowState extends ConsumerState<DiveVisibilityRow>
           StoredVisibility(
             meters: storedValueOfTyped(
               typed,
-              current: current.meters,
+              onShow: _onShowMeters,
               stored: stored.meters,
               shownNumber: _shownNumber,
               fromDisplay: _units.depthToMeters,
@@ -117,7 +131,7 @@ class _DiveVisibilityRowState extends ConsumerState<DiveVisibilityRow>
     // again, which also withdraws the mark.
     if (_binding.isUnreadable) {
       _binding.controller.replaceTextKeepingCaret(
-        _format(widget.session.valueOf(diveVisibilityField)),
+        _show(widget.session.valueOf(diveVisibilityField)),
       );
     }
     setState(() => _mode = mode);

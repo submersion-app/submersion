@@ -52,8 +52,16 @@ class _DiveEnvironmentCardEditorState
   bool _fetching = false;
 
   /// Whether the exit method still mirrors the entry method: true until the
-  /// diver edits the exit directly.
-  late bool _exitFollows = exitFollowsEntry(widget.session.working);
+  /// diver edits the exit directly. Settled as the editor opens, in
+  /// [initState]: a late initializer would run at the first change of entry
+  /// method instead, after the dive may have changed underneath.
+  late bool _exitFollows;
+
+  @override
+  void initState() {
+    super.initState();
+    _exitFollows = exitFollowsEntry(widget.session.working);
+  }
 
   /// A free-text row: blank is no value.
   FieldTextBinding<Dive, String?> _words(EditField<Dive, String?> field) {
@@ -97,9 +105,10 @@ class _DiveEnvironmentCardEditorState
     final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
+      // The question is the whole of it: the dive form repeats it as the
+      // body under the title.
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.diveLog_edit_fetchWeatherConfirm),
-        content: Text(l10n.diveLog_edit_fetchWeatherConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),

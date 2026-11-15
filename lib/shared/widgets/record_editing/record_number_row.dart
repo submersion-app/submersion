@@ -8,21 +8,22 @@ import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
 import 'package:submersion/shared/widgets/record_editing/record_field_marks.dart';
+import 'package:submersion/shared/widgets/record_editing/reveal_answering.dart';
 
 /// The stored value a number typed into a row stands for.
 ///
-/// The number a row already shows stands for the value behind it, which may
-/// carry more than the row can show: [current] (the sitting's) first, then
-/// [stored], so typing that number back clears the change. Any other number
-/// is [fromDisplay] of what was typed.
+/// A number the row put on show itself stands for the value behind it,
+/// which may carry more than the row can show: [onShow], the value it last
+/// showed, then [stored], so typing that number back clears the change. A
+/// number the diver typed stands for itself: [fromDisplay] of it.
 double storedValueOfTyped(
   double typed, {
-  required double? current,
+  required double? onShow,
   required double? stored,
   required double? Function(double value) shownNumber,
   required double Function(double typed) fromDisplay,
 }) {
-  if (current != null && typed == shownNumber(current)) return current;
+  if (onShow != null && typed == shownNumber(onShow)) return onShow;
   if (stored != null && typed == shownNumber(stored)) return stored;
   return fromDisplay(typed);
 }
@@ -34,11 +35,11 @@ double storedValueOfTyped(
 /// row sets the field to null.
 ///
 /// What the diver types is what is stored, with one exception: the number
-/// the row is already showing is left as it is. A stored 1,234.5 m shown as
+/// the row itself put on show is left as it is. A stored 1,234.5 m shown as
 /// 4050 ft would read back as 1,234.44 m, and a value shown with fewer
 /// decimals than it has would lose them; neither is a change the diver made.
 /// Any other number is taken as typed, so 100.4 typed over 100 is kept even
-/// where both show as "100".
+/// where both show as "100", and so is 100 typed over that 100.4.
 ///
 /// Text that is not a number never reaches the sitting. The row shows its
 /// own message and tells the page's `RecordEditController`, which keeps the
@@ -90,7 +91,9 @@ class RecordNumberRow<T> extends StatefulWidget {
 }
 
 class _RecordNumberRowState<T> extends State<RecordNumberRow<T>>
-    with RecordFieldMarks<T, RecordNumberRow<T>> {
+    with
+        RevealAnswering<RecordNumberRow<T>>,
+        RecordFieldMarks<T, RecordNumberRow<T>> {
   late FieldTextBinding<T, double?> _binding = _bind();
 
   @override
@@ -99,12 +102,21 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>>
   @override
   String get markFieldId => widget.field.id;
 
+  /// The value whose number this row last put on show itself: the one it
+  /// opened with, or one that arrived from elsewhere since. Null when that
+  /// was nothing, or the diver has only typed.
+  double? _onShow;
+
   FieldTextBinding<T, double?> _bind() {
     return FieldTextBinding<T, double?>(
       session: widget.session,
       field: widget.field,
-      // Read through the widget each time, so a change of unit is followed.
-      format: _format,
+      // The binding formats only what it is about to show.
+      format: (stored) {
+        _onShow = stored;
+        // Read through the widget each time, so a change of unit is followed.
+        return _format(stored);
+      },
       parse: _parse,
       onUnreadableChanged: reportUnreadable,
     );
@@ -136,12 +148,11 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>>
       case NumberInvalid():
         return const FieldUnreadable();
       case NumberValue(value: final typed):
-        final session = widget.session;
         return FieldValue(
           storedValueOfTyped(
             typed,
-            current: session.valueOf(widget.field),
-            stored: widget.field.read(session.stored),
+            onShow: _onShow,
+            stored: widget.field.read(widget.session.stored),
             shownNumber: _shownNumber,
             fromDisplay: (shown) => widget.fromDisplay?.call(shown) ?? shown,
           ),
@@ -160,8 +171,17 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>>
       _binding = _bind();
       return;
     }
-    // The unit or the number of decimals may have changed.
-    _binding.resync();
+    // The binding follows the sitting by itself. The text is read again
+    // here only when what it would show may have changed: the unit, or how
+    // the number is written.
+    if (oldWidget.toDisplay != widget.toDisplay ||
+        oldWidget.fromDisplay != widget.fromDisplay ||
+        oldWidget.fractionDigits != widget.fractionDigits ||
+        oldWidget.trimZeros != widget.trimZeros ||
+        oldWidget.integer != widget.integer ||
+        oldWidget.allowNegative != widget.allowNegative) {
+      _binding.resync();
+    }
   }
 
   @override

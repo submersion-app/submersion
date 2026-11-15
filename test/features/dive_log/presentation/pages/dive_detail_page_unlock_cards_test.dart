@@ -236,6 +236,31 @@ void main() {
       expect(saved.cards, ['altitude']);
     });
 
+    // Another editor still open keeps the page laid out as it was. A card
+    // emptied and closed meanwhile draws nothing, so the strip has to offer
+    // it, or there is no way back into it until the other editor closes.
+    testWidgets('a card emptied and closed while another is open is offered '
+        'again', (tester) async {
+      await pumpPage(
+        tester,
+        visible: cards,
+        size: tall,
+        stored: dive.copyWith(altitude: 900),
+      );
+      await unlock(tester);
+      await openNotes(tester);
+      await tester.tap(find.byTooltip('Edit Altitude Dive'));
+      await settle(tester);
+
+      await typeIn(tester, l10nOf(tester).diveLog_edit_label_altitude, '');
+      controller(tester).closeCard('altitude');
+      await settle(tester);
+
+      expect(controller(tester).openCardIds, {'notes'});
+      expect(find.byType(DiveAltitudeSection), findsNothing);
+      expect(find.byKey(addAltitude), findsOneWidget);
+    });
+
     testWidgets('the entry method carries the exit method with it', (
       tester,
     ) async {

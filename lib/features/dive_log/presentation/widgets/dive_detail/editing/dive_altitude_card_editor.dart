@@ -19,9 +19,9 @@ import 'package:submersion/shared/widgets/record_editing/record_number_row.dart'
 /// The Altitude card's editor: the dive's altitude and surface pressure, in
 /// the diver's units, with the altitude group the read card shows.
 ///
-/// Opened on a dive with no altitude, it looks one up
-/// ([fillAltitudeIfEmpty]). What it finds is a change like any other: the
-/// card is marked, and Cancel undoes it.
+/// The first time it is opened in a sitting, on a dive with no altitude, it
+/// looks one up ([fillAltitudeIfEmpty]). What it finds is a change like any
+/// other: the card is marked, and Cancel undoes it.
 class DiveAltitudeCardEditor extends ConsumerStatefulWidget {
   const DiveAltitudeCardEditor({super.key, required this.session});
 
@@ -34,6 +34,8 @@ class DiveAltitudeCardEditor extends ConsumerStatefulWidget {
 
 class _DiveAltitudeCardEditorState
     extends ConsumerState<DiveAltitudeCardEditor> {
+  static const _lookupKey = 'altitudeLookup';
+
   @override
   void initState() {
     super.initState();
@@ -43,9 +45,12 @@ class _DiveAltitudeCardEditorState
   void _fillAltitude() {
     if (!mounted) return;
     final session = widget.session;
-    if (session.isDisposed || session.valueOf(diveAltitudeField) != null) {
-      return;
-    }
+    if (session.isDisposed) return;
+    // Once in a sitting, whether or not there was anything to look up: the
+    // card can be opened many times, and an altitude the diver has taken
+    // out since must stay out. Fetching the weather asks again.
+    final first = session.firstTime(_lookupKey);
+    if (!first || session.valueOf(diveAltitudeField) != null) return;
     // Read now: the write is made when the sitting is saved, which may be
     // after this card has closed.
     final sites = ref.read(siteRepositoryProvider);

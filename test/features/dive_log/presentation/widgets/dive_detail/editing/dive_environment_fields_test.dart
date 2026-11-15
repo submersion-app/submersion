@@ -205,6 +205,27 @@ void main() {
       );
     });
 
+    // An import can leave space around a description. The editor reads its
+    // text trimmed, so the stored words have to count as the same words.
+    test('a description is the same whatever space is around it', () {
+      final session = sessionOver(bare.copyWith(weatherDescription: 'Sunny '));
+
+      session.set(diveWeatherDescriptionField, 'Sunny');
+
+      expect(session.isDirty, isFalse);
+    });
+
+    test('a description is trimmed, and blank is null', () {
+      expect(
+        diveWeatherDescriptionField.write(bare, '  Sunny ').weatherDescription,
+        'Sunny',
+      );
+      expect(
+        diveWeatherDescriptionField.write(full, '   ').weatherDescription,
+        isNull,
+      );
+    });
+
     test('the card is left out when nothing is logged', () {
       final card = diveEditCards[DiveDetailSectionId.environment]!;
 
