@@ -1057,6 +1057,31 @@ void main() {
       );
     });
 
+    // Carrying the growth with the hand-over must not reach a strip that
+    // has settled: there a card coming into view eases it taller over
+    // 250 ms, as it fades its layer in, rather than snapping it.
+    testWidgets('a settled strip eases its growth as a card comes into view', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        profileKey: GlobalKey(),
+        targetGap: 1100,
+        markTarget: true,
+      );
+      await jump(tester, 800);
+      expect(host(tester).settled, isTrue);
+      expect(tester.getSize(strip).height, kPinnedStripHeight);
+      await jump(tester, 1300);
+      await tester.pump(const Duration(milliseconds: 125));
+      expect(
+        tester.getSize(strip).height,
+        inExclusiveRange(kPinnedStripHeight, kPinnedStripGrownHeight),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(tester.getSize(strip).height, kPinnedStripGrownHeight);
+    });
+
     // A scroll faster than the 250 ms growth settled the strip part grown,
     // and it went on growing after settling (review of #4579).
     testWidgets('a fast scroll to settled reaches the grown height at once', (

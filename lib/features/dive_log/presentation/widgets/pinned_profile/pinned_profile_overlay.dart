@@ -475,16 +475,12 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     // Across, it starts on the plot too, inside the chart's axes, and widens
     // with its curve: a surface at the card's width from the start showed as
     // blank bands beside the curve. It stays within the card's margin.
-    final inner = Rect.fromLTRB(
-      card.left + margin.left,
-      0,
-      card.right - margin.right,
-      0,
-    );
+    final innerLeft = card.left + margin.left;
+    final innerRight = card.right - margin.right;
     final from = Rect.fromLTRB(
-      math.max(inner.left, plotOnPage?.left ?? inner.left),
+      math.max(innerLeft, plotOnPage?.left ?? innerLeft),
       math.max(0, plotOnPage?.top ?? 0),
-      math.min(inner.right, plotOnPage?.right ?? inner.right),
+      math.min(innerRight, plotOnPage?.right ?? innerRight),
       keptPlot?.bottom ?? math.max(card.bottom - margin.bottom, 0),
     );
     // Pinned, it is the card's width, so it is only as wide as the other
@@ -498,7 +494,7 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
         layers.grow * (kPinnedStripGrownHeight - kPinnedStripHeight);
     final toward = Rect.lerp(
       from,
-      Rect.fromLTRB(inner.left, 0, inner.right, stripHeight),
+      Rect.fromLTRB(innerLeft, 0, innerRight, stripHeight),
       morph,
     )!;
     // Its bottom never rises above the copy's plot, or the full chart would

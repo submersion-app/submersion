@@ -107,7 +107,9 @@ void main() {
     );
     expect(growing.condensedBy(0).grow, 0.2);
     expect(growing.condensedBy(0.5).grow, 0.5);
-    expect(growing.condensedBy(1).grow, 1);
+    expect(growing.condensedBy(0.9).grow, 0.9);
+    // Settled, the animator's own growth stands.
+    expect(identical(growing.condensedBy(1), growing), isTrue);
     const shrinking = StripLayerState(
       data: PinnedStripLayerData.empty,
       strengths: {},
@@ -116,7 +118,8 @@ void main() {
     );
     expect(shrinking.condensedBy(0).grow, 0.8);
     expect(shrinking.condensedBy(0.5).grow, 0.5);
-    expect(shrinking.condensedBy(1).grow, 0);
+    expect(shrinking.condensedBy(0.9).grow, closeTo(0.1, 1e-9));
+    expect(identical(shrinking.condensedBy(1), shrinking), isTrue);
   });
 
   testWidgets('settling with the card in view keeps the strip grown', (

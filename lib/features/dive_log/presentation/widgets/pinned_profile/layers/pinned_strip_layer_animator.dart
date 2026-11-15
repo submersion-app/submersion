@@ -45,8 +45,11 @@ class StripLayerState {
   /// This state for a strip [morph] of the way through its hand-over: what
   /// is left of the growth runs with the morph, so the strip reaches its
   /// target height as it settles however fast the page was scrolled, and
-  /// never grows or shrinks after (#4579).
+  /// never grows or shrinks after (#4579). Settled ([morph] 1), the growth
+  /// is the animator's own, completed as it settled and eased from there as
+  /// cards come and go.
   StripLayerState condensedBy(double morph) {
+    if (morph >= 1) return this;
     final carried = growTarget >= 1
         ? math.max(grow, morph)
         : math.min(grow, 1 - morph);
