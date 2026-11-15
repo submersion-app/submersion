@@ -145,8 +145,19 @@ class ShapeTest(unittest.TestCase):
         self.assertIn("vocabulary", _rules(_one(_with(("hazards", "value"), ["sharks"]))))
 
     def test_future_read_date_fails(self):
-        entry = _with(("position", "sources", 0, "read"), "2026-11-17")
+        entry = _with(("position", "sources", 0, "read"), "2026-11-18")
         self.assertIn("read_date", _rules(_one(entry)))
+
+    def test_a_read_date_one_day_ahead_passes(self):
+        # A researcher east of UTC can be a day ahead of the checker.
+        entry = _with(("position", "sources", 0, "read"), "2026-11-17")
+        self.assertTrue(_one(entry).ok, _one(entry).findings)
+
+    def test_a_review_that_is_not_an_object_is_reported(self):
+        checked = _one(_entry(review="approved"))
+        self.assertIn("shape", _rules(checked))
+        self.assertNotEqual(checked.state, "approved")
+        check.report([checked])
 
     def test_missing_read_date_fails(self):
         entry = _entry()
@@ -345,17 +356,24 @@ class NeighbourTest(unittest.TestCase):
         checked = _check(withdrawn, self._near())
         self.assertTrue(checked[1].ok, checked[1].findings)
 
+    def test_a_rejected_entry_is_not_a_neighbour(self):
+        rejected = _entry(review={"state": "rejected", "date": "2026-11-17",
+                                  "reason": "weak sources"})
+        checked = _check(rejected, self._near())
+        self.assertTrue(checked[1].ok, checked[1].findings)
+
     def test_withdrawn_entry_still_checked(self):
         entry = _entry(name="", withdrawn={"reason": "position", "date": "2026-12-01"})
         self.assertFalse(_one(entry).ok)
 
 
 class MainTest(unittest.TestCase):
-    def _run(self, entries):
+    def _run(self, entries, withdrawn_curated=()):
         with tempfile.TemporaryDirectory() as tmp:
             sites = Path(tmp) / "sites.json"
-            sites.write_text(json.dumps({"sites": entries, "withdrawn_curated": []}),
-                             encoding="utf-8")
+            sites.write_text(json.dumps({
+                "sites": entries, "withdrawn_curated": list(withdrawn_curated),
+            }), encoding="utf-8")
             domains = Path(tmp) / "domains.json"
             domains.write_text(json.dumps({
                 "counting": DOMAINS.counting,
@@ -382,6 +400,18 @@ class MainTest(unittest.TestCase):
 
     def test_an_empty_file_passes(self):
         self.assertEqual(self._run([])[0], 0)
+
+    def test_a_bad_curated_withdrawal_exits_one_naming_it(self):
+        for bad in (
+            {"id": "curated_x", "reason": "position", "date": 20261202},
+            {"id": "curated_x", "reason": "bored", "date": "2026-12-02"},
+            {"id": "osm_node_1", "reason": "position", "date": "2026-12-02"},
+        ):
+            code, text = self._run([], [bad])
+            self.assertEqual(code, 1, bad)
+            self.assertIn(bad["id"], text)
+        self.assertEqual(self._run([], [
+            {"id": "curated_x", "reason": "position", "date": "2026-12-02"}])[0], 0)
 
 
 if __name__ == "__main__":

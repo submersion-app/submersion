@@ -30,7 +30,6 @@ for _path in (_HERE, _RESEARCH, os.path.dirname(_HERE)):
 import check  # noqa: E402
 import evidence  # noqa: E402
 import records as rec  # noqa: E402
-from site_catalogue_format import WITHDRAWAL_REASONS, is_iso_date  # noqa: E402
 
 RESEARCH_FILE = Path(_RESEARCH) / "sites.json"
 DOMAINS_FILE = Path(_RESEARCH) / "domains.json"
@@ -53,6 +52,11 @@ _AFTER_ENTRY = {
     "blue_hole": "into a blue hole",
     "pier": "under a pier",
     "kelp_forest": "in a kelp forest",
+    "lake": "in a lake",
+    "quarry": "in a quarry",
+    "river": "in a river",
+    "spring": "into a spring",
+    "pool": "in a pool",
 }
 _ENTRY_WORDS = {"shore": "Shore", "boat": "Boat"}
 
@@ -172,16 +176,11 @@ def withdrawals(entries, curated_withdrawn) -> dict[str, dict]:
                 for key in ("reason", "date", "replaced_by")
                 if withdrawn.get(key)
             }
+    problems = check.withdrawn_curated_problems(curated_withdrawn)
+    if problems:
+        raise ValueError("; ".join(problems))
     for item in curated_withdrawn:
-        site_id = item.get("id") or ""
-        if not site_id.startswith("curated_"):
-            raise ValueError(f"{site_id!r}: only a curated id is withdrawn here")
-        if item.get("reason") not in WITHDRAWAL_REASONS or not is_iso_date(
-            item.get("date")
-        ):
-            raise ValueError(
-                f"{site_id}: a withdrawal needs a reason and a YYYY-MM-DD date"
-            )
+        site_id = item["id"]
         found[site_id] = {
             key: item[key] for key in ("reason", "date", "replaced_by") if item.get(key)
         }
@@ -202,9 +201,12 @@ def _follow_replacements(found: dict[str, dict]) -> dict[str, dict]:
             target = found[target]["replaced_by"]
         if target in seen:
             raise ValueError(f"{site_id}: its replacements loop back on it")
-        followed[site_id] = (
-            dict(withdrawal, replaced_by=target) if target else dict(withdrawal)
-        )
+        if target in found:
+            # Withdrawn outright, with nothing after it: no record corrects
+            # this one any more.
+            target = None
+        rest = {k: v for k, v in withdrawal.items() if k != "replaced_by"}
+        followed[site_id] = dict(rest, replaced_by=target) if target else rest
     return followed
 
 

@@ -797,6 +797,8 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/site_catalogue/fetch_test.py
           python3 -m coverage run --append --include="$guards" \
+            scripts/site_catalogue/merge_research_test.py
+          python3 -m coverage run --append --include="$guards" \
             scripts/site_catalogue/src_research_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/site_catalogue/research/evidence_test.py

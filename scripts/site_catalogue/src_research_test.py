@@ -123,6 +123,13 @@ class DescribeTest(unittest.TestCase):
         self.assertEqual(src_research.describe(["shore"], ["muck"]),
                          "Shore dive on a muck site.")
 
+    def test_freshwater_and_pool_types_read_naturally(self):
+        self.assertEqual(src_research.describe(["shore"], ["lake"]), "Shore dive in a lake.")
+        self.assertEqual(src_research.describe(["shore"], ["quarry"]), "Shore dive in a quarry.")
+        self.assertEqual(src_research.describe(["shore"], ["river"]), "Shore dive in a river.")
+        self.assertEqual(src_research.describe(["shore"], ["spring"]), "Shore dive into a spring.")
+        self.assertEqual(src_research.describe(["shore"], ["pool"]), "Shore dive in a pool.")
+
     def test_nothing_known(self):
         self.assertIsNone(src_research.describe([], []))
         self.assertIsNone(src_research.describe(["giantStride"], []))
@@ -170,6 +177,19 @@ class WithdrawalsTest(unittest.TestCase):
         )
         self.assertEqual(withdrawn["research_id_a"]["replaced_by"], "research_id_c")
         self.assertEqual(withdrawn["research_id_b"]["replaced_by"], "research_id_c")
+
+    def test_a_replacement_withdrawn_outright_leaves_no_link(self):
+        withdrawn = src_research.withdrawals(
+            [
+                _entry("research_id_a", withdrawn={
+                    "reason": "position", "date": "2026-12-01",
+                    "replaced_by": "research_id_b"}),
+                _entry("research_id_b", withdrawn={
+                    "reason": "not_a_site", "date": "2027-02-01"}),
+            ],
+            [],
+        )
+        self.assertNotIn("replaced_by", withdrawn["research_id_a"])
 
     def test_a_replacement_loop_is_refused(self):
         with self.assertRaises(ValueError):

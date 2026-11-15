@@ -18,6 +18,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass, field
+from decimal import Decimal
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -74,7 +75,10 @@ def parse_coordinate(value, axis: str) -> tuple[float, float]:
     if isinstance(value, bool) or value is None:
         raise ValueError(f"not a coordinate: {value!r}")
     if isinstance(value, (int, float)):
-        text = repr(float(value)) if isinstance(value, float) else str(value)
+        # Written out in full: repr gives 5e-05 for a small float.
+        text = (
+            format(Decimal(repr(value)), "f") if isinstance(value, float) else str(value)
+        )
     elif isinstance(value, str):
         text = value
     else:
@@ -101,6 +105,10 @@ def parse_coordinate(value, axis: str) -> tuple[float, float]:
     parts = text.split()
     if not 1 <= len(parts) <= 3 or not all(_NUMBER.match(p) for p in parts):
         raise ValueError(f"not a coordinate: {value!r}")
+    if any("." in part for part in parts[:-1]):
+        # 8 16.5 28 is no form a page means: only the last place has a
+        # fraction.
+        raise ValueError(f"{value!r}: a fraction before the last part")
     numbers = [float(p) for p in parts]
     if any(n >= 60 for n in numbers[1:]):
         raise ValueError(f"{value!r}: minutes or seconds of 60 or more")
@@ -155,19 +163,26 @@ class DomainLists:
         return None
 
 
+def _domain_key(domain: str) -> str:
+    """A list's domain as hosts are compared: lower case, without `www.`."""
+    key = domain.strip().lower()
+    return key[4:] if key.startswith("www.") else key
+
+
 def load_domains(path: Path) -> DomainLists:
-    """The domain lists in [path]. Raises ValueError when a domain is on
-    two lists."""
+    """The domain lists in [path], each domain in lower case without
+    `www.`. Raises ValueError when a domain is on two lists."""
     data = json.loads(Path(path).read_text(encoding="utf-8"))
+    lists: dict[str, dict] = {name: {} for name in LISTS}
     seen: dict[str, str] = {}
     for name in LISTS:
-        for domain in data.get(name) or {}:
-            if domain in seen:
-                raise ValueError(
-                    f"{domain} is on both {seen[domain]} and {name}"
-                )
-            seen[domain] = name
-    return DomainLists(**{name: dict(data.get(name) or {}) for name in LISTS})
+        for domain, reason in (data.get(name) or {}).items():
+            key = _domain_key(domain)
+            if key in seen:
+                raise ValueError(f"{key} is on both {seen[key]} and {name}")
+            seen[key] = name
+            lists[name][key] = reason
+    return DomainLists(**lists)
 
 
 def metres_between(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

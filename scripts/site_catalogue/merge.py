@@ -519,13 +519,17 @@ def main(argv=None, *, places=None, curated=None, research=None) -> int:
         return 2
     # Stamped with the newest download, so the same snapshots always write
     # the same bytes.
-    write_catalogue(
-        arguments.out,
-        catalogue,
-        max(fetched),
-        open_only=arguments.open_only,
-        withdrawn=research.withdrawn,
-    )
+    try:
+        write_catalogue(
+            arguments.out,
+            catalogue,
+            max(fetched),
+            open_only=arguments.open_only,
+            withdrawn=research.withdrawn,
+        )
+    except ValueError as error:
+        print(error)
+        return 2
     shipped_metadata = arguments.out / NJDEP_METADATA_SHIPPED
     if ships_new_jersey:
         shipped_metadata.write_bytes(metadata.read_bytes())

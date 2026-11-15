@@ -86,6 +86,16 @@ class ParseCoordinateTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             evidence.parse_coordinate("8 16 60 S", "lat")
 
+    def test_a_small_float_is_read(self):
+        value, precision = evidence.parse_coordinate(0.00005, "lon")
+        self.assertAlmostEqual(value, 0.00005)
+        self.assertAlmostEqual(precision, 0.00001)
+
+    def test_decimals_only_in_the_last_part(self):
+        for bad in ("8 16.5 28 S", "8.2 16 S"):
+            with self.assertRaises(ValueError, msg=bad):
+                evidence.parse_coordinate(bad, "lat")
+
     def test_rubbish_is_refused(self):
         for text in ("", "north", "8 16 28 12 S", True, None):
             with self.assertRaises(ValueError, msg=repr(text)):
@@ -146,6 +156,12 @@ class DomainTest(unittest.TestCase):
         self.assertEqual(
             lists.kind_of("https://shop.alertdiver.eu/x"), "counting"
         )
+
+    def test_list_keys_are_normalised(self):
+        lists = self._lists({"counting": {"WWW.DiveNet.com": "dive press"}})
+        self.assertEqual(lists.kind_of("https://divenet.com/x"), "counting")
+        with self.assertRaises(ValueError):
+            self._lists({"counting": {"www.x.com": "a"}, "cite_only": {"x.com": "b"}})
 
     def test_a_domain_on_two_lists_is_refused(self):
         with self.assertRaises(ValueError):

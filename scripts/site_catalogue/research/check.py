@@ -24,7 +24,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -106,7 +106,12 @@ class CheckedEntry:
 
     @property
     def state(self) -> str:
-        return (self.entry.get("review") or {}).get("state") or "pending"
+        review = self.entry.get("review")
+        if review is None:
+            return "pending"
+        if not isinstance(review, dict):
+            return "invalid"
+        return review.get("state") or "pending"
 
     @property
     def withdrawn(self) -> bool:
@@ -161,7 +166,9 @@ def _check_shape(checked: CheckedEntry, ids: set[str], today: date) -> None:
             when = None
         if when is None:
             checked.fail("read_date", f"{source.get('url')}: no read date")
-        elif when > today:
+        elif when > today + timedelta(days=1):
+            # A day of slack: a researcher east of UTC writes a date the
+            # checker, running in UTC, has not reached yet.
             checked.fail("read_date", f"{source.get('url')}: read in the future")
 
     review = entry.get("review")
@@ -344,7 +351,10 @@ def check_entries(entries, domains, *, today: date) -> list[CheckedEntry]:
 def _check_neighbours(results: list[CheckedEntry]) -> None:
     """Two standing entries within 150 m are one site written twice,
     unless one of them says why both stand."""
-    standing = [r for r in results if r.position and not r.withdrawn]
+    standing = [
+        r for r in results
+        if r.position and not r.withdrawn and r.state != "rejected"
+    ]
     for i, a in enumerate(standing):
         for b in standing[i + 1:]:
             if a.entry.get("note") or b.entry.get("note"):
@@ -352,6 +362,28 @@ def _check_neighbours(results: list[CheckedEntry]) -> None:
             apart = evidence.metres_between(*a.position, *b.position)
             if apart <= AGREE_M:
                 b.fail("neighbour", f"{apart:.0f} m from {a.id}; a note says why both stand")
+
+
+def withdrawn_curated_problems(items) -> list[str]:
+    """What is wrong with the file's `withdrawn_curated` list: an item
+    that is not an object, an id that is not a curated one, a reason
+    outside the list, or a date not written YYYY-MM-DD."""
+    problems = []
+    for item in items:
+        if not isinstance(item, dict):
+            problems.append(f"{item!r}: a curated withdrawal is an object")
+            continue
+        site_id = item.get("id")
+        if not isinstance(site_id, str) or not site_id.startswith("curated_"):
+            problems.append(f"{site_id!r}: only a curated id is withdrawn here")
+        if item.get("reason") not in WITHDRAWAL_REASONS:
+            problems.append(f"{site_id}: withdrawal reason {item.get('reason')!r}")
+        if not is_iso_date(item.get("date")):
+            problems.append(f"{site_id}: withdrawal date is not YYYY-MM-DD")
+        replaced_by = item.get("replaced_by")
+        if replaced_by is not None and not isinstance(replaced_by, str):
+            problems.append(f"{site_id}: replaced_by is a record id")
+    return problems
 
 
 def load(path: Path) -> dict:
@@ -397,12 +429,15 @@ def main(argv=None, *, today: date | None = None) -> int:
     doc = load(args.file)
     results = check_entries(doc["sites"], domains, today=today or date.today())
     print(report(results))
+    curated_problems = withdrawn_curated_problems(doc["withdrawn_curated"])
+    for problem in curated_problems:
+        print(f"  FAIL withdrawn_curated {problem}")
     if args.review is not None:
         import review  # noqa: PLC0415
 
         args.review.write_text(review.render(results, domains), encoding="utf-8")
         print(f"Review page: {args.review}")
-    return 0 if all(c.ok for c in results) else 1
+    return 0 if all(c.ok for c in results) and not curated_problems else 1
 
 
 if __name__ == "__main__":
