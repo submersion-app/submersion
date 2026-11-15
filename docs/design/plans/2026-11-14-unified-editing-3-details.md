@@ -1075,6 +1075,14 @@ The plan was built as written, then reviewed as a whole branch. This is what dif
 - **Task 9's tests** are in `dive_detail_section_list_details_editing_test.dart`, with a harness that supplies tide data, satellite conditions and shared preferences.
 - **The rule that came out of the review:** a calculated block inside a card that can be edited is laid out from `presence`, like a card with no editor that decides for itself whether it shows.
 
+### When the base's last review fixes were merged in
+
+Plan 2's pull request (#4550) gained two fix commits while this was being built. Merging them changed three things here:
+
+- **`storedValueOfTyped(typed, onShow:, stored:, ...)`.** The base narrowed the number rule: only a number the row put on show itself stands for the value behind it; a number the diver typed stands for itself. The parameter that was `current` (the sitting's value) is `onShow` (the value the row last showed). `DiveVisibilityRow` follows it, so 39.4 ft typed over a 12 m visibility and cut back to 39 is no change.
+- **`RecordFieldMarks` is `on RevealAnswering`.** The base gave the card frame and the number row one shared answer to a reveal request (`reveal_answering.dart`). A row mixes in `RevealAnswering<W>` first, then `RecordFieldMarks<T, W>`.
+- **`diveCardIsShown(ref, id, dive, satelliteFor:)`.** The base's one question for the section list and the Add strip, `diveCardIsOnPage`, asks whether the dive as it is now still has something for a card. For the Environment card's satellite conditions that is asked of the held layout, or fresh water picked on Details would take the card off the page under the open editor.
+
 ### Tests the plan listed that were not written
 
 - "A course refresh that throws" and "a trip message that cannot be shown": neither can be made to throw from a test. The guard is pinned by "a mode that cannot be remembered is not a failed save"; the other two guards are the same helper.
