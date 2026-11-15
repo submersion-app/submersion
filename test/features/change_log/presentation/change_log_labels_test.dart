@@ -44,6 +44,14 @@ void main() {
       expect(changeLogStoredLabel(l, label), 'Edited: $notes, $tags');
     });
 
+    // The header block is not a section (issue #4527, plan 4).
+    test('a sitting that changed the header names it', () {
+      expect(
+        changeLogStoredLabel(l, 'record_edit:dives:header,notes'),
+        'Edited: ${l.diveLog_detail_section_header}, $notes',
+      );
+    });
+
     test('a card id with no title is shown as written', () {
       expect(
         changeLogStoredLabel(l, 'record_edit:dives:notes,zzz'),

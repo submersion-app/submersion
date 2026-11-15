@@ -2628,6 +2628,7 @@
   },
   "diveLog_detail_section_decoStatus": "Stato deco",
   "diveLog_detail_section_details": "Dettagli",
+  "diveLog_detail_section_header": "Immersione",
   "diveLog_detail_section_diveProfile": "Profilo immersione",
   "diveLog_detail_profileRevision_kind_edit": "Modifica",
   "diveLog_detail_profileRevision_kind_create": "Creato",

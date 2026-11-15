@@ -8206,6 +8206,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_section_details => 'التفاصيل';
 
   @override
+  String get diveLog_detail_section_header => 'غطسة';
+
+  @override
   String get diveLog_detail_section_diveProfile => 'ملف الغوصة';
 
   @override

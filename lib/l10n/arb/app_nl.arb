@@ -2753,6 +2753,7 @@
   },
   "diveLog_detail_section_decoStatus": "Decostatus",
   "diveLog_detail_section_details": "Details",
+  "diveLog_detail_section_header": "Duik",
   "diveLog_detail_section_diveProfile": "Duikprofiel",
   "diveLog_detail_profileRevision_kind_edit": "Bewerking",
   "diveLog_detail_profileRevision_kind_create": "Aangemaakt",

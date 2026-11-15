@@ -48,6 +48,10 @@ class DiveHeroHeader extends ConsumerWidget {
   /// card is a button; when null the map is purely decorative.
   final VoidCallback? onSiteTap;
 
+  /// Drawn at the end of the title row, such as the header card's pencil
+  /// on a dive page that offers editing.
+  final Widget? titleTrailing;
+
   const DiveHeroHeader({
     required this.dive,
     required this.units,
@@ -57,6 +61,7 @@ class DiveHeroHeader extends ConsumerWidget {
     this.bottomTimeText,
     this.belowTitle,
     this.onSiteTap,
+    this.titleTrailing,
     super.key,
   });
 
@@ -151,6 +156,7 @@ class DiveHeroHeader extends ConsumerWidget {
                             // name it shows as (issue #2567).
                             if (dive.effectiveName == null && dive.site != null)
                               LibrarySiteBadge(site: dive.site!),
+                            ?titleTrailing,
                           ],
                         ),
                         ?belowTitle,

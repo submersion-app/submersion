@@ -42,6 +42,17 @@ class SiteSuggestionActions {
   Future<DiveSite> create(DiveSite site) =>
       suggestion.service.createAndLink(diveId, site);
 
+  /// The site [candidateId] stands for, without linking the dive: a
+  /// catalogue site is adopted as the diver's at once. For an editing
+  /// sitting, which holds the link until its Save.
+  Future<({DiveSite site, List<String> createdSiteIds})> resolve(
+    String candidateId,
+  ) => suggestion.service.resolveCandidate(diveId, candidateId);
+
+  /// Creates [site] at the point with no link, for an editing sitting.
+  Future<DiveSite> createUnlinked(DiveSite site) =>
+      suggestion.service.createSite(site);
+
   /// The site the dive is linked to right now, re-read after a write.
   ///
   /// The chosen candidate id is not the answer: a bundled candidate

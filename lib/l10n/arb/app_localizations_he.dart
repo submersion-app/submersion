@@ -7918,6 +7918,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_section_details => 'פרטים';
 
   @override
+  String get diveLog_detail_section_header => 'צלילה';
+
+  @override
   String get diveLog_detail_section_diveProfile => 'פרופיל צלילה';
 
   @override

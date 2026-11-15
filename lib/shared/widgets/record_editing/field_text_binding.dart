@@ -46,6 +46,7 @@ class FieldTextBinding<T, V> {
     required this.parse,
     this.onUnreadableChanged,
     this.onEdited,
+    this.apply,
   }) : controller = TextEditingController(
          text: format(session.valueOf(field)),
        ) {
@@ -72,6 +73,11 @@ class FieldTextBinding<T, V> {
   /// not run for a value that arrived from elsewhere.
   final VoidCallback? onEdited;
 
+  /// Writes a value the diver typed. Null is `session.set(field, value)`.
+  /// For a value whose change moves others, such as a runtime that moves
+  /// the exit.
+  final void Function(V value)? apply;
+
   final TextEditingController controller;
 
   late String _lastText;
@@ -89,7 +95,12 @@ class FieldTextBinding<T, V> {
     switch (parse(text)) {
       case FieldValue<V>(:final value):
         _setUnreadable(false);
-        session.set(field, value);
+        final apply = this.apply;
+        if (apply != null) {
+          apply(value);
+        } else {
+          session.set(field, value);
+        }
         onEdited?.call();
       case FieldUnreadable<V>():
         _setUnreadable(true);

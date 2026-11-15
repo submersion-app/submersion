@@ -2850,6 +2850,7 @@
   },
   "diveLog_detail_section_decoStatus": "减压状态",
   "diveLog_detail_section_details": "详情",
+  "diveLog_detail_section_header": "潜水",
   "diveLog_detail_section_diveProfile": "潜水轮廓",
   "diveLog_detail_profileRevision_kind_edit": "编辑",
   "diveLog_detail_profileRevision_kind_create": "创建",

@@ -336,6 +336,58 @@ void main() {
       expect(await logEvents(db), isEmpty);
     });
 
+    // A dismissed suggestion or a location added to the site changes no
+    // dive value: the held write is the change (issue #4527, plan 4).
+    test(
+      'a held change with no dive change is written, in one entry',
+      () async {
+        final result = await service.save(
+          diveId: 'dive',
+          apply: (dive) => dive,
+          changedCardIds: ['header'],
+          alsoWrite: () => dives.setSiteSuggestionDismissed('dive', true),
+          alsoWriteIsAChange: true,
+        );
+
+        expect(result, isNotNull);
+        expect(result!.before, result.after);
+        expect(result.tripDateStretches, isEmpty);
+        final row = await db
+            .customSelect(
+              "SELECT site_suggestion_dismissed_at AS at FROM dives "
+              "WHERE id = 'dive'",
+            )
+            .getSingle();
+        expect(row.data['at'], isNotNull);
+        final operation = (await operations()).single;
+        expect(operation['label'], 'record_edit:dives:header');
+        final events = await logEvents(db);
+        expect(events, isNotEmpty);
+        expect({for (final e in events) e['operation_id']}, {operation['id']});
+      },
+    );
+
+    test('a held change that throws leaves everything as it was', () async {
+      final sites = SiteRepository();
+
+      await expectLater(
+        service.save(
+          diveId: 'dive',
+          apply: (dive) => dive,
+          changedCardIds: ['header'],
+          alsoWrite: () async {
+            await sites.updateSiteAltitude('site', 512);
+            throw StateError('no');
+          },
+          alsoWriteIsAChange: true,
+        ),
+        throwsStateError,
+      );
+
+      expect(await siteAltitude(), isNull);
+      expect(await logEvents(db), isEmpty);
+    });
+
     test('is not made when the sitting changed nothing', () async {
       var ran = 0;
 
