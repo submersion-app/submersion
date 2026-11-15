@@ -32,19 +32,22 @@ ChartBuoyancyInputs watchChartBuoyancy(
   // The line's own toggle, or the right axis reading buoyancy: every other
   // right-axis metric reads without its line shown, and without the curve
   // this one would silently fall back to another metric.
-  final show = ref.watch(profileLegendProvider.select((s) => s.showBuoyancy));
-  final axis = ref.watch(
+  final legend = ref.watch(
     profileLegendProvider.select(
-      (s) => (hidden: s.rightAxisHidden, metric: s.rightAxisMetric),
+      (s) => (
+        show: s.showBuoyancy,
+        axisHidden: s.rightAxisHidden,
+        axis: s.rightAxisMetric,
+      ),
     ),
   );
   final defaultAxis = ref.watch(
     settingsProvider.select((s) => s.defaultRightAxisMetric),
   );
   final onAxis =
-      !axis.hidden &&
-      (axis.metric ?? defaultAxis) == ProfileRightAxisMetric.buoyancy;
-  if (!show && !onAxis) return (available: true, curve: null);
+      !legend.axisHidden &&
+      (legend.axis ?? defaultAxis) == ProfileRightAxisMetric.buoyancy;
+  if (!legend.show && !onAxis) return (available: true, curve: null);
   // The result only: a reload keeps the previous value, so the chart is not
   // rebuilt until a new model actually arrives.
   final result = ref.watch(
