@@ -640,6 +640,25 @@ Tests first. At least:
 - `test/architecture/`, `test/shared/` and the l10n tests after adding
   files and strings.
 
+## Pilot result (2026-11-15)
+
+The pilot shipped no records. Research under the rule covered the three
+pilot areas and one replacement of each kind (Tulamben and Lembeh,
+Sipadan with Mabul and Kapalai and Tubbataha, the Farne Islands and St
+Abbs): no site had two counting pages with a written position. Local
+operators, marine reserves and dive clubs describe their sites in words or
+show them on map images; written coordinates appear almost only in
+directories (waypoints.ph, scubaspotadvisor, agency pages), which never
+count. The nearest misses had one counting position each: the Mawali
+wreck in Lembeh, Black Rock at Tubbataha, the Britannia at the Farnes.
+
+The maintainer kept the rule and shipped the code with an empty evidence
+file: the mark (on the 55 curated records), the matching rule,
+withdrawals and the checker in CI. Acceptance 1 is therefore not met by
+this slice and waits for a batch under wider sources, which needs its own
+decision on what may confirm a position. The near misses are written up
+in the slice's ledger for that batch.
+
 ## Known gaps after the build
 
 - Two operators who copied one survey look independent to the checker. The

@@ -229,6 +229,8 @@
 - [ ] **Step 2: Run** `python3.14 scripts/site_catalogue/research/check.py --review <scratchpad>/review.html`. Expected: every entry offered for approval passes.
 - [ ] **Step 3: Publish** the review page as a private artifact and **stop**: ask the maintainer to approve or reject each entry. Do not commit `sites.json` with any `approved` state before their answer.
 
+> **Outcome:** no entry passed in any of the six areas researched (see the spec's Pilot result). The maintainer chose to ship the code with an empty `sites.json`; Task 13 was not run, and the PR refers to #4514 instead of closing it.
+
 ### Task 13: Ship the approved batch
 
 **Files:**
