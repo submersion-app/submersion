@@ -41,6 +41,7 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
 
   // Derived from the outcome once, not on every scrub frame.
   late double _scaleKg;
+  late Map<TwinBalancePartKind, (double, double)> _partRangesKg;
   late TwinMoments _moments;
   late List<TwinSample> _plotted;
 
@@ -73,6 +74,10 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
     final outcome = widget.outcome;
     _markerCache = null;
     _scaleKg = TwinBalance.scaleKg(outcome.result, outcome.outputs.verdict);
+    _partRangesKg = TwinBalance.partRangesKg(
+      outcome.result,
+      outcome.outputs.verdict,
+    );
     _moments = TwinMoments.of(outcome.result, outcome.outputs.verdict);
     _plotted = BuoyancyChart.plottableSamples(
       outcome.result.samples,
@@ -107,7 +112,12 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
         // Above the chart, not under it: on a phone the finger scrubbing the
         // chart would otherwise cover the parts it is moving.
         const SizedBox(height: 8),
-        BuoyancyBalanceBar(balance: balance, scaleKg: _scaleKg, units: units),
+        BuoyancyBalanceBar(
+          balance: balance,
+          scaleKg: _scaleKg,
+          units: units,
+          partRangesKg: _partRangesKg,
+        ),
         if (hasChart) ...[
           const SizedBox(height: 12),
           BuoyancyChart(

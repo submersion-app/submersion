@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/buoyancy/twin_balance.dart';
@@ -26,12 +28,24 @@ class BuoyancyBalanceBar extends StatelessWidget {
   final double scaleKg;
   final UnitFormatter units;
 
+  /// Each part's smallest and largest size over the whole dive
+  /// ([TwinBalance.partRangesKg]). With it the callout lane keeps room for
+  /// every callout the dive will ever need, so the bar and the chart under it
+  /// never move while the dive is scrubbed. Pass the same map for the whole
+  /// dive: the reserve is worked out once per map.
+  final Map<TwinBalancePartKind, (double, double)>? partRangesKg;
+
   const BuoyancyBalanceBar({
     super.key,
     required this.balance,
     required this.scaleKg,
     required this.units,
+    this.partRangesKg,
   });
+
+  /// The reserved rows, kept beside the dive's ranges map so scrubbing reuses
+  /// them instead of measuring the same labels on every frame.
+  static final Expando<(Object, int)> _reserveCache = Expando();
 
   static const double _segmentHeight = 34;
   static const double _gap = 2;
@@ -94,6 +108,7 @@ class BuoyancyBalanceBar extends StatelessWidget {
             ExcludeSemantics(
               child: BalanceCalloutLane(
                 width: width,
+                minRows: _reservedRows(context, usable, width, labelStyle),
                 callouts: [
                   ..._callouts(context, down, halfWidth, isDown: true),
                   ..._callouts(context, up, halfWidth, isDown: false),
@@ -185,6 +200,81 @@ class BuoyancyBalanceBar extends StatelessWidget {
     );
   }
 
+  /// The callout rows the whole dive will need at this width: a row for every
+  /// part that, at its smallest, is too narrow for its label, sized for its
+  /// widest label. Parts are assumed never to need more than their own
+  /// segment, which holds unless a crowded side has to shrink to fit.
+  int _reservedRows(
+    BuildContext context,
+    double usable,
+    double width,
+    TextStyle? labelStyle,
+  ) {
+    final ranges = partRangesKg;
+    if (ranges == null || usable < _minSegmentWidth) return 1;
+    final direction = Directionality.of(context);
+    final scaler = MediaQuery.textScalerOf(context);
+    final key = (
+      width,
+      scaleKg,
+      units.settings.weightUnit,
+      labelStyle,
+      BalanceCalloutLane.styleOf(context),
+      direction,
+      scaler,
+      Localizations.localeOf(context),
+    );
+    final cached = _reserveCache[ranges];
+    if (cached != null && cached.$1 == key) return cached.$2;
+
+    final l10n = context.l10n;
+    final scale = scaleKg > 0 ? scaleKg : 1.0;
+    final widths = <double>[];
+    for (final MapEntry(key: kind, value: (smallest, largest))
+        in ranges.entries) {
+      final narrowest = (smallest / scale * usable).clamp(
+        _minSegmentWidth,
+        usable,
+      );
+      final label = _partLabel(l10n, kind, smallest);
+      if (_fitsInBar(label, narrowest, labelStyle, direction, scaler)) continue;
+      widths.add(
+        math.max(
+          BalanceCalloutLane.pillWidth(context, label),
+          BalanceCalloutLane.pillWidth(
+            context,
+            _partLabel(l10n, kind, largest),
+          ),
+        ),
+      );
+    }
+    final rows = balanceCalloutRowsToHold(widths, laneWidth: width);
+    _reserveCache[ranges] = (key, rows);
+    return rows;
+  }
+
+  String _partLabel(
+    AppLocalizations l10n,
+    TwinBalancePartKind kind,
+    double kg,
+  ) => l10n.buoyancy_partLabel(_name(l10n, kind), units.formatWeight(kg.abs()));
+
+  static bool _fitsInBar(
+    String text,
+    double width,
+    TextStyle? style,
+    TextDirection direction,
+    TextScaler scaler,
+  ) =>
+      measureSingleLine(
+            text,
+            style,
+            direction: direction,
+            scaler: scaler,
+          ).width +
+          _labelPadding * 2 <=
+      width;
+
   /// Callouts for the side's segments that have no room for their figure,
   /// each anchored at its segment's centre, measured from the bar's start
   /// edge.
@@ -251,24 +341,13 @@ class BuoyancyBalanceBar extends StatelessWidget {
     return [
       for (var i = 0; i < ordered.length; i++)
         () {
-          final name = _name(l10n, ordered[i].kind);
-          final label = l10n.buoyancy_partLabel(
-            name,
-            units.formatWeight(ordered[i].kg.abs()),
-          );
-          bool fits(String text) =>
-              measureSingleLine(
-                    text,
-                    labelStyle,
-                    direction: direction,
-                    scaler: scaler,
-                  ).width +
-                  _labelPadding * 2 <=
-              widths[i];
-
+          final label = _partLabel(l10n, ordered[i].kind, ordered[i].kg);
           // The whole label when there is room; otherwise the part's icon
           // when there is room for that, and a callout above the bar names it.
-          final inBar = fits(label) ? label : null;
+          final inBar =
+              _fitsInBar(label, widths[i], labelStyle, direction, scaler)
+              ? label
+              : null;
           return _Segment(
             part: ordered[i],
             width: widths[i],

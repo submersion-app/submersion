@@ -130,6 +130,34 @@ class TwinBalance {
     return math.max(scale, negligibleKg);
   }
 
+  /// The smallest and largest size, as magnitudes, of each part across every
+  /// sample and the rest state. A part the dive never has is left out.
+  ///
+  /// The balance bar uses it to reserve, once for a dive, the room its
+  /// callouts will ever need, so the bar does not move while it is scrubbed.
+  static Map<TwinBalancePartKind, (double, double)> partRangesKg(
+    BuoyancyTwinResult result,
+    TwinVerdict verdict,
+  ) {
+    final ranges = <TwinBalancePartKind, (double, double)>{};
+    void take(TwinBalance b) {
+      for (final p in b.parts) {
+        final kg = p.kg.abs();
+        final range = ranges[p.kind];
+        ranges[p.kind] = range == null
+            ? (kg, kg)
+            : (math.min(range.$1, kg), math.max(range.$2, kg));
+      }
+    }
+
+    take(TwinBalance.atRest(result, verdict));
+    for (final sample in result.samples) {
+      if (!sample.netKg.isFinite) continue;
+      take(TwinBalance.atSample(result, sample));
+    }
+    return ranges;
+  }
+
   static double _largestSide(TwinBalance b) =>
       math.max(b.downTotalKg, b.upTotalKg);
 }

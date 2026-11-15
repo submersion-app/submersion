@@ -253,6 +253,32 @@ void main() {
     });
   });
 
+  group('TwinBalance.partRangesKg', () {
+    test('spans each part over the dive and the rest state, as magnitudes', () {
+      final ranges = TwinBalance.partRangesKg(_result(dive), _verdict());
+      // The suit squeezes to 1.2 at depth and is 4.0 at the surface.
+      expect(ranges[TwinBalancePartKind.suit]!.$1, closeTo(1.2, 1e-9));
+      expect(ranges[TwinBalancePartKind.suit]!.$2, closeTo(4.0, 1e-9));
+      // The tanks cross from sinking to floating: 2.0 down to 0.4 up.
+      expect(ranges[TwinBalancePartKind.tanks]!.$1, closeTo(0.4, 1e-9));
+      expect(ranges[TwinBalancePartKind.tanks]!.$2, closeTo(2.0, 1e-9));
+      expect(ranges[TwinBalancePartKind.lead], (6.0, 6.0));
+    });
+
+    test('leaves out a part the dive never has', () {
+      final ranges = TwinBalance.partRangesKg(
+        _result(dive, suitKind: TwinSuitKind.none),
+        _verdict(suit: 0),
+      );
+      expect(ranges.containsKey(TwinBalancePartKind.lead), isTrue);
+      final suitless = _result(const [], suitKind: TwinSuitKind.none);
+      expect(
+        TwinBalance.partRangesKg(suitless, _verdict(suit: 0)),
+        isNot(contains(TwinBalancePartKind.suit)),
+      );
+    });
+  });
+
   group('TwinMoments', () {
     test('start is the first in-water sample, deepest the max depth', () {
       final m = TwinMoments.of(_result(dive), _verdict());

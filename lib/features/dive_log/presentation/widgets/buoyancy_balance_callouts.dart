@@ -72,6 +72,29 @@ List<BalanceCalloutPlacement> placeBalanceCallouts(
 int balanceCalloutRows(List<BalanceCalloutPlacement> placed) =>
     placed.fold(1, (rows, p) => math.max(rows, p.row + 1));
 
+/// Rows enough to hold callouts of these [widths] wherever their parts sit,
+/// never fewer than one.
+///
+/// [placeBalanceCallouts] deals callouts into rows in turn, so with k rows
+/// none holds more than ceil(n / k) of them. If the widest ceil(n / k) fit
+/// side by side, any such row fits, and placement never needs more than k:
+/// a lane that reserves this many rows does not grow mid-scrub.
+int balanceCalloutRowsToHold(
+  List<double> widths, {
+  required double laneWidth,
+  double gap = 4,
+}) {
+  if (widths.isEmpty) return 1;
+  final widest = [...widths]..sort((a, b) => b.compareTo(a));
+  for (var rows = 1; rows < widths.length; rows++) {
+    final perRow = (widths.length / rows).ceil();
+    final span =
+        widest.take(perRow).fold(0.0, (sum, w) => sum + w) + gap * (perRow - 1);
+    if (span <= laneWidth) return rows;
+  }
+  return widths.length;
+}
+
 bool _fits(List<BalanceCalloutRequest> row, double laneWidth, double gap) =>
     row.fold(0.0, (sum, q) => sum + q.width) + gap * (row.length - 1) <=
     laneWidth;
@@ -138,16 +161,22 @@ class BalanceCallout {
 /// The strip above the balance bar that holds the callouts for parts too
 /// narrow to carry their own label, each with a leader down to its segment.
 ///
-/// Its height holds at least one row whether or not anything is in it, so the
-/// bar and the chart under it stay put while the dive is scrubbed.
+/// Its height holds [minRows] rows whether or not anything is in them, so the
+/// bar and the chart under it stay put while the dive is scrubbed; it grows
+/// past that only if the callouts of the moment need more.
 class BalanceCalloutLane extends StatelessWidget {
   final List<BalanceCallout> callouts;
   final double width;
+
+  /// The rows to keep room for: what the dive will ever need, from
+  /// [balanceCalloutRowsToHold].
+  final int minRows;
 
   const BalanceCalloutLane({
     super.key,
     required this.callouts,
     required this.width,
+    this.minRows = 1,
   });
 
   static const double pillHeight = 20;
@@ -159,24 +188,41 @@ class BalanceCalloutLane extends StatelessWidget {
   static double heightFor(int rows) =>
       rows * pillHeight + (rows - 1) * _rowGap + _leader;
 
+  /// The callout text style.
+  static TextStyle? styleOf(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.onSurface,
+    );
+  }
+
+  /// The width a callout for [label] takes in this context.
+  static double pillWidth(BuildContext context, String label) =>
+      measureSingleLine(
+        label,
+        styleOf(context),
+        direction: Directionality.of(context),
+        scaler: MediaQuery.textScalerOf(context),
+      ).width +
+      // The text's padding and the outline either side.
+      _padding * 2 +
+      2;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final style = theme.textTheme.labelSmall?.copyWith(
-      color: theme.colorScheme.onSurface,
-    );
+    final style = styleOf(context);
     final direction = Directionality.of(context);
-    final scaler = MediaQuery.textScalerOf(context);
     final byId = {for (final c in callouts) c.id: c};
     final placed = placeBalanceCallouts([
       for (final c in callouts)
         BalanceCalloutRequest(
           id: c.id,
           anchor: c.anchor,
-          width: _pillWidth(c.label, style, direction, scaler),
+          width: pillWidth(context, c.label),
         ),
     ], laneWidth: width);
-    final height = heightFor(balanceCalloutRows(placed));
+    final height = heightFor(math.max(minRows, balanceCalloutRows(placed)));
     double top(int row) =>
         height - _leader - pillHeight - row * (pillHeight + _rowGap);
 
@@ -231,22 +277,6 @@ class BalanceCalloutLane extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  static double _pillWidth(
-    String label,
-    TextStyle? style,
-    TextDirection direction,
-    TextScaler scaler,
-  ) {
-    final text = measureSingleLine(
-      label,
-      style,
-      direction: direction,
-      scaler: scaler,
-    );
-    // Text, its padding and the outline either side.
-    return text.width + _padding * 2 + 2;
   }
 }
 

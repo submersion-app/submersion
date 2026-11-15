@@ -28,6 +28,7 @@ Future<void> _pump(
   Locale locale = const Locale('en'),
   AppSettings settings = const AppSettings(),
   ThemeData? theme,
+  Map<TwinBalancePartKind, (double, double)>? ranges,
 }) async {
   await tester.binding.setSurfaceSize(Size(width, 400));
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -42,6 +43,7 @@ Future<void> _pump(
           balance: balance,
           scaleKg: scaleKg,
           units: UnitFormatter(settings),
+          partRangesKg: ranges,
         ),
       ),
     ),
@@ -248,6 +250,37 @@ void main() {
     await _pump(tester, _balance());
     expect(_callout(TwinBalancePartKind.suit), findsOneWidget);
     expect(tester.getRect(_segment(TwinBalancePartKind.lead)).top, before);
+  });
+
+  testWidgets('with the dive ranges the bar holds still when a second row of '
+      'callouts appears', (tester) async {
+    // On a 300 px phone, lead and body alone need one row of callouts; with
+    // every part a sliver they need two.
+    const plain = [
+      TwinBalancePart(kind: TwinBalancePartKind.lead, kg: -6.0),
+      TwinBalancePart(kind: TwinBalancePartKind.body, kg: 5.0),
+    ];
+    const ranges = {
+      TwinBalancePartKind.lead: (6.0, 6.0),
+      TwinBalancePartKind.tanks: (2.0, 2.0),
+      TwinBalancePartKind.gear: (1.0, 1.0),
+      TwinBalancePartKind.suit: (0.3, 3.0),
+      TwinBalancePartKind.body: (5.0, 5.0),
+    };
+    Future<double> leadTop(
+      TwinBalance b, {
+      Map<TwinBalancePartKind, (double, double)>? r,
+    }) async {
+      await _pump(tester, b, width: 300, ranges: r);
+      return tester.getRect(_segment(TwinBalancePartKind.lead)).top;
+    }
+
+    const one = TwinBalance(parts: plain, netKg: -1.0);
+    final crowded = _balance(suit: 0.3);
+    // Without the ranges the lane grows, which is the jump being prevented.
+    expect(await leadTop(crowded), greaterThan(await leadTop(one)));
+    // With them it already has the room.
+    expect(await leadTop(crowded, r: ranges), await leadTop(one, r: ranges));
   });
 
   testWidgets('a callout does not repeat its part to a screen reader', (

@@ -78,6 +78,40 @@ void main() {
     expect(placed.single.start, 0);
   });
 
+  group('rows to hold', () {
+    test('one row when nothing needs one, or everything fits', () {
+      expect(balanceCalloutRowsToHold(const [], laneWidth: 300), 1);
+      expect(balanceCalloutRowsToHold(const [100, 100], laneWidth: 300), 1);
+    });
+
+    test('enough rows for the widest share of each', () {
+      // Two rows of two: 100 + 4 + 100 fits 300.
+      expect(
+        balanceCalloutRowsToHold(const [100, 100, 100, 100], laneWidth: 300),
+        2,
+      );
+      // Not even two fit 150 side by side: one per row.
+      expect(
+        balanceCalloutRowsToHold(const [100, 100, 100, 100], laneWidth: 150),
+        4,
+      );
+    });
+
+    test('placement never needs more rows than it reserves', () {
+      const widths = <double>[120, 60, 90, 75, 110];
+      const lane = 300.0;
+      final reserved = balanceCalloutRowsToHold(widths, laneWidth: lane);
+      // Whatever order the parts end up in along the bar.
+      for (var shift = 0; shift < widths.length; shift++) {
+        final placed = placeBalanceCallouts([
+          for (var i = 0; i < widths.length; i++)
+            _r('$i', ((i + shift) % widths.length) * 60.0, widths[i]),
+        ], laneWidth: lane);
+        expect(balanceCalloutRows(placed), lessThanOrEqualTo(reserved));
+      }
+    });
+  });
+
   test('nothing to place gives nothing back', () {
     expect(placeBalanceCallouts(const [], laneWidth: 300), isEmpty);
   });

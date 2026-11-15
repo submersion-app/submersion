@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -62,6 +63,16 @@ Finder _bar(String series, int index) =>
     find.byKey(ValueKey('history-$series-$index'));
 
 void main() {
+  // The dates come from Intl.defaultLocale, a process global the app sets
+  // from its locale; MaterialApp.locale does not touch it. Pin it so the
+  // expected 'May 1' holds whatever locale the test process starts in.
+  late String? previousLocale;
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   testWidgets('the caption says what is compared, over how many dives', (
     tester,
   ) async {
