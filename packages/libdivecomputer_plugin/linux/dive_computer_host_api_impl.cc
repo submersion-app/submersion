@@ -29,7 +29,13 @@ struct HostApiContext {
   GMutex download_mutex;
   BleIoStream* ble_stream;
   libdc_download_session_t* session;
+  // The newest download thread. The next download joins it before
+  // connecting, so download attempts run one after another.
   GThread* download_thread;
+  // Owners: the method-handler registration and each download thread. The
+  // context is freed when the last of them lets go, so a download still
+  // running at teardown never touches freed memory.
+  gint ref_count;
   // When true, on_dive_downloaded buffers dives instead of dispatching them
   // immediately. Used during multi-port probing to avoid leaking phantom
   // dives from a wrong port to Flutter.
@@ -37,15 +43,15 @@ struct HostApiContext {
   GList* buffered_dives;  // list of LibdivecomputerPluginParsedDive*
 };
 
-static void host_api_context_free(gpointer data) {
-  auto* ctx = static_cast<HostApiContext*>(data);
-  if (ctx->ble_scanner != nullptr) {
-    ble_scanner_free(ctx->ble_scanner);
-  }
-  if (ctx->serial_scanner != nullptr) {
-    serial_scanner_free(ctx->serial_scanner);
-  }
-  // The session and streams belong to the download thread that opened them.
+static HostApiContext* host_api_context_ref(HostApiContext* ctx) {
+  g_atomic_int_inc(&ctx->ref_count);
+  return ctx;
+}
+
+// Free the context once nothing holds it. The session and streams are not
+// here: they belong to the download thread that opened them.
+static void host_api_context_destroy(HostApiContext* ctx) {
+  if (ctx->download_thread != nullptr) g_thread_unref(ctx->download_thread);
   g_mutex_clear(&ctx->download_mutex);
   if (ctx->buffered_dives != nullptr) {
     g_list_free_full(ctx->buffered_dives, g_object_unref);
@@ -54,6 +60,50 @@ static void host_api_context_free(gpointer data) {
     g_object_unref(ctx->flutter_api);
   }
   delete ctx;
+}
+
+static gboolean host_api_context_destroy_idle(gpointer data) {
+  host_api_context_destroy(static_cast<HostApiContext*>(data));
+  return G_SOURCE_REMOVE;
+}
+
+static void host_api_context_unref(HostApiContext* ctx) {
+  if (!g_atomic_int_dec_and_test(&ctx->ref_count)) return;
+  // The Flutter objects belong to the main thread, so a download thread that
+  // lets go last hands the free over to it.
+  if (g_main_context_is_owner(g_main_context_default())) {
+    host_api_context_destroy(ctx);
+  } else {
+    g_idle_add(host_api_context_destroy_idle, ctx);
+  }
+}
+
+// The method handlers are being cleared. A download still running keeps its
+// own reference; stop it, and wake a PIN prompt it may be blocked on (an
+// empty PIN reads as cancelled), so it ends and lets go promptly.
+static void host_api_context_free(gpointer data) {
+  auto* ctx = static_cast<HostApiContext*>(data);
+  if (ctx->ble_scanner != nullptr) {
+    ble_scanner_free(ctx->ble_scanner);
+    ctx->ble_scanner = nullptr;
+  }
+  if (ctx->serial_scanner != nullptr) {
+    serial_scanner_free(ctx->serial_scanner);
+    ctx->serial_scanner = nullptr;
+  }
+  g_mutex_lock(&ctx->download_mutex);
+  if (ctx->session != nullptr) libdc_download_cancel(ctx->session);
+  if (ctx->ble_stream != nullptr) ble_io_stream_submit_pin(ctx->ble_stream, "");
+  g_mutex_unlock(&ctx->download_mutex);
+  host_api_context_unref(ctx);
+}
+
+// A reference to the Flutter API for a callback queued to the main thread,
+// which may run after the context has been freed. The callback unrefs it.
+static LibdivecomputerPluginDiveComputerFlutterApi* flutter_api_ref(
+    HostApiContext* ctx) {
+  return static_cast<LibdivecomputerPluginDiveComputerFlutterApi*>(
+      g_object_ref(ctx->flutter_api));
 }
 
 // Converts a libdivecomputer transport bitmask to a Pigeon-compatible FlValue
@@ -159,6 +209,9 @@ struct DownloadThreadData {
   // This download's session, created before the thread starts so a cancel
   // can never arrive before it exists. Freed by download_thread_func.
   libdc_download_session_t* session;
+  // The download this one replaced, joined before connecting so its
+  // teardown (Disconnect included) cannot reach this download's link.
+  GThread* previous_thread;
 };
 
 // Whether a plugged-in HID device belongs to the model this download selected.
@@ -180,6 +233,7 @@ static void download_thread_data_free(DownloadThreadData* data) {
   g_free(data->product);
   g_free(data->address);
   g_free(data->fingerprint);
+  host_api_context_unref(data->ctx);
   delete data;
 }
 
@@ -199,6 +253,7 @@ static gboolean progress_callback_idle(gpointer data) {
     libdivecomputer_plugin_dive_computer_flutter_api_on_download_progress(
         cbd->flutter_api, progress, nullptr, nullptr, nullptr);
     g_object_unref(progress);
+    g_object_unref(cbd->flutter_api);
     delete cbd;
     return G_SOURCE_REMOVE;
 }
@@ -207,7 +262,7 @@ static void on_download_progress(unsigned int current, unsigned int maximum,
                                  void* userdata) {
   auto* ctx = static_cast<HostApiContext*>(userdata);
   auto* cbd = new ProgressCallbackData();
-  cbd->flutter_api = ctx->flutter_api;
+  cbd->flutter_api = flutter_api_ref(ctx);
   cbd->current = (int64_t)current;
   cbd->maximum = (int64_t)maximum;
   g_idle_add(progress_callback_idle, cbd);
@@ -224,6 +279,7 @@ static gboolean dive_callback_idle(gpointer data) {
     libdivecomputer_plugin_dive_computer_flutter_api_on_dive_downloaded(
         cbd->flutter_api, cbd->parsed, nullptr, nullptr, nullptr);
     g_object_unref(cbd->parsed);
+    g_object_unref(cbd->flutter_api);
     delete cbd;
     return G_SOURCE_REMOVE;
 }
@@ -240,7 +296,7 @@ static void on_dive_downloaded(const libdc_parsed_dive_t* dive,
       ctx->buffered_dives = g_list_append(ctx->buffered_dives, parsed);
     } else {
       auto* cbd = new DiveCallbackData();
-      cbd->flutter_api = ctx->flutter_api;
+      cbd->flutter_api = flutter_api_ref(ctx);
       cbd->parsed = parsed;
       g_idle_add(dive_callback_idle, cbd);
     }
@@ -253,7 +309,7 @@ static void flush_buffered_dives(HostApiContext* ctx) {
     for (GList* l = ctx->buffered_dives; l != NULL; l = l->next) {
         auto* parsed = static_cast<LibdivecomputerPluginParsedDive*>(l->data);
         auto* cbd = new DiveCallbackData();
-        cbd->flutter_api = ctx->flutter_api;
+        cbd->flutter_api = flutter_api_ref(ctx);
         cbd->parsed = parsed;
         g_object_ref(parsed);
         g_idle_add(dive_callback_idle, cbd);
@@ -280,6 +336,7 @@ static gboolean pin_callback_idle(gpointer data) {
     libdivecomputer_plugin_dive_computer_flutter_api_on_pin_code_required(
         cbd->flutter_api, cbd->address, nullptr, nullptr, nullptr);
     g_free(cbd->address);
+    g_object_unref(cbd->flutter_api);
     delete cbd;
     return G_SOURCE_REMOVE;
 }
@@ -287,7 +344,7 @@ static gboolean pin_callback_idle(gpointer data) {
 static void on_pin_code_required(const gchar* address, gpointer user_data) {
     auto* ctx = static_cast<HostApiContext*>(user_data);
     auto* cbd = new PinCallbackData();
-    cbd->flutter_api = ctx->flutter_api;
+    cbd->flutter_api = flutter_api_ref(ctx);
     cbd->address = g_strdup(address);
     g_idle_add(pin_callback_idle, cbd);
 }
@@ -308,6 +365,7 @@ static gboolean error_callback_idle(gpointer data) {
     g_object_unref(error);
     g_free(cbd->code);
     g_free(cbd->message);
+    g_object_unref(cbd->flutter_api);
     delete cbd;
     return G_SOURCE_REMOVE;
 }
@@ -316,7 +374,7 @@ static void send_error_from_thread(HostApiContext* ctx,
                                    const gchar* code,
                                    const gchar* message) {
     auto* cbd = new ErrorCallbackData();
-    cbd->flutter_api = ctx->flutter_api;
+    cbd->flutter_api = flutter_api_ref(ctx);
     cbd->code = g_strdup(code);
     cbd->message = g_strdup(message);
     g_idle_add(error_callback_idle, cbd);
@@ -660,7 +718,7 @@ static void run_download(HostApiContext* ctx, DownloadThreadData* td,
         gboolean has_reported;
         int64_t reported_model;
     };
-    auto* cd = new CompleteData{ctx->flutter_api,
+    auto* cd = new CompleteData{flutter_api_ref(ctx),
                                 g_strdup(serial_str), g_strdup(firmware_str),
                                 g_strdup(clock_sync_str),
                                 has_reported ? g_strdup(reported_product)
@@ -678,6 +736,7 @@ static void run_download(HostApiContext* ctx, DownloadThreadData* td,
         g_free(d->firmware);
         g_free(d->clock_sync);
         g_free(d->reported_product);
+        g_object_unref(d->api);
         delete d;
         return G_SOURCE_REMOVE;
     }, cd);
@@ -693,6 +752,10 @@ static void run_download(HostApiContext* ctx, DownloadThreadData* td,
 static gpointer download_thread_func(gpointer data) {
   auto* td = static_cast<DownloadThreadData*>(data);
   HostApiContext* ctx = td->ctx;
+
+  // Let the download this one replaced finish first: it has been cancelled,
+  // and its teardown disconnects the device this one may be about to use.
+  if (td->previous_thread != nullptr) g_thread_join(td->previous_thread);
 
   run_download(ctx, td, td->session);
 
@@ -820,7 +883,7 @@ static void handle_start_download(
 
   // Build thread data from the discovered device.
   auto* td = new DownloadThreadData();
-  td->ctx = ctx;
+  td->ctx = host_api_context_ref(ctx);
   td->vendor = g_strdup(
       libdivecomputer_plugin_discovered_device_get_vendor(device));
   td->product = g_strdup(
@@ -846,9 +909,13 @@ static void handle_start_download(
     download_thread_data_free(td);
     return;
   }
+  // A download still unwinding from a cancel is stopped (again, harmlessly)
+  // and handed to this one to join, so attempts never overlap.
   g_mutex_lock(&ctx->download_mutex);
+  if (ctx->session != nullptr) libdc_download_cancel(ctx->session);
   ctx->session = td->session;
   g_mutex_unlock(&ctx->download_mutex);
+  td->previous_thread = ctx->download_thread;
 
   // Spawn download thread.
   ctx->download_thread = g_thread_new("dc-download", download_thread_func, td);
@@ -956,6 +1023,7 @@ void dive_computer_host_api_impl_register(FlBinaryMessenger* messenger) {
   ctx->ble_stream = nullptr;
   ctx->session = nullptr;
   ctx->download_thread = nullptr;
+  ctx->ref_count = 1;
 
   static const LibdivecomputerPluginDiveComputerHostApiVTable vtable = {
       .get_device_descriptors = handle_get_device_descriptors,

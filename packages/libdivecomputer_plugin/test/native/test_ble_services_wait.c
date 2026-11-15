@@ -31,6 +31,9 @@ typedef struct {
     // past the time it was given, the way a reply can land just after a
     // D-Bus timeout would have fired.
     int resolve_late;
+    // When set, the diver cancels while the ServicesResolved read is in
+    // flight, and that read then answers TRUE.
+    int cancel_during_resolved_read;
 } FakeDevice;
 
 static int reached(int after, int sleeps) {
@@ -57,6 +60,10 @@ static int fake_services_resolved(void* userdata, int64_t timeout_us) {
     FakeDevice* d = (FakeDevice*)userdata;
     if (d->resolve_late) {
         d->now_us += timeout_us + 1;
+        return 1;
+    }
+    if (d->cancel_during_resolved_read) {
+        d->cancel_after = 0;
         return 1;
     }
     return fake_read(d, timeout_us) && reached(d->resolve_after, d->sleeps);
@@ -218,6 +225,15 @@ static void test_cancel_wins_over_resolution(void) {
     printf("PASS: test_cancel_wins_over_resolution\n");
 }
 
+// A cancel that lands while the ServicesResolved read is in flight still
+// wins when that read answers TRUE.
+static void test_cancel_during_the_read_wins(void) {
+    FakeDevice d = fake_device();
+    d.cancel_during_resolved_read = 1;
+    assert(run(&d) == BLE_SERVICES_WAIT_CANCELLED);
+    printf("PASS: test_cancel_during_the_read_wins\n");
+}
+
 // Not every caller can cancel; a NULL check is allowed.
 static void test_cancel_check_is_optional(void) {
     FakeDevice d = fake_device();
@@ -242,6 +258,7 @@ int main(void) {
     test_sub_millisecond_remainder_is_a_timeout();
     test_cancel_ends_the_wait();
     test_cancel_wins_over_resolution();
+    test_cancel_during_the_read_wins();
     test_cancel_check_is_optional();
     printf("All ble_services_wait tests passed.\n");
     return 0;
