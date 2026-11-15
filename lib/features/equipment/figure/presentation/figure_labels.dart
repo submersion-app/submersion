@@ -43,11 +43,15 @@ int _byNumber(PlacedItem a, PlacedItem b) => a.number.compareTo(b.number);
 /// Phone layout (spec 8.2): labels for one [view] in columns either side of
 /// the single figure, each level with its anchor unless that would overlap
 /// the label above, in which case it moves down just enough.
+///
+/// The columns span [width] from [left], so the wide pair can lay out each
+/// figure in its own half of the box ([pairLabelColumns]).
 List<FigureLabelSlot> labelColumns({
   required FigureModel model,
   required FigureView view,
   required FigureLayout layout,
   required double width,
+  double left = 0,
   double labelHeight = kFigureLabelHeight,
 }) {
   final figure = layout.rectFor(view);
@@ -55,13 +59,13 @@ List<FigureLabelSlot> labelColumns({
     for (final p in model.placed)
       if (p.zone!.view == view) p,
   ]..sort(_byNumber);
-  final left = <PlacedItem>[];
+  final leftColumn = <PlacedItem>[];
   final right = <PlacedItem>[];
   for (final p in items) {
     if (_onCentre(p)) {
-      (left.length <= right.length ? left : right).add(p);
+      (leftColumn.length <= right.length ? leftColumn : right).add(p);
     } else if (_leftOfCentre(p)) {
-      left.add(p);
+      leftColumn.add(p);
     } else {
       right.add(p);
     }
@@ -69,11 +73,11 @@ List<FigureLabelSlot> labelColumns({
   final rightX = figure.right + kFigureLeaderGap;
   return [
     ..._stack(
-      left,
+      leftColumn,
       view,
       layout,
-      x: 0,
-      columnWidth: math.max(0, figure.left - kFigureLeaderGap),
+      x: left,
+      columnWidth: math.max(0, figure.left - kFigureLeaderGap - left),
       onLeft: true,
       labelHeight: labelHeight,
     ),
@@ -82,7 +86,7 @@ List<FigureLabelSlot> labelColumns({
       view,
       layout,
       x: rightX,
-      columnWidth: math.max(0, width - rightX),
+      columnWidth: math.max(0, left + width - rightX),
       onLeft: false,
       labelHeight: labelHeight,
     ),
@@ -126,99 +130,32 @@ List<FigureLabelSlot> _stack(
   return slots;
 }
 
-/// Wide layout (spec 8.3): a pill beside every placed item, placed in number
-/// order at the free spot nearest its anchor that clears the pills already
-/// placed. A pill sits on the outward side of its anchor (the right for a
-/// centred item) unless its natural width does not fit there and the other
-/// side has more room, in which case it moves across.
-///
-/// [widthOf] is the pill's natural width. It is capped at [maxWidth] and at
-/// the room between the anchor and the edge of the box, or the edge of the
-/// other figure when that is nearer, so a pill never lies across the other
-/// view; a pill with less room than its name needs ends in an ellipsis.
-List<FigureLabelSlot> labelPills({
+/// Wide layout (spec 8.3): the front and back side by side, each in its
+/// own half of the box with label columns either side of it, as the phone
+/// lays out its one figure. [layout] is a [FigureLayout.forPair] of [width].
+/// A label never lies across a figure (issue #4553); a name longer than its
+/// column wraps to a second line, as in a phone column.
+List<FigureLabelSlot> pairLabelColumns({
   required FigureModel model,
   required FigureLayout layout,
   required double width,
-  required double maxWidth,
-  required double Function(PlacedItem item) widthOf,
   double labelHeight = kFigureLabelHeight,
 }) {
-  final items = [...model.placed]..sort(_byNumber);
-  final taken = <Rect>[];
-  final slots = <FigureLabelSlot>[];
-  for (final p in items) {
-    final zone = p.zone!;
-    final anchor = layout.toBox(zone.view, zone.anchorX, zone.anchorY);
-    final own = layout.rectFor(zone.view);
-    final other = zone.view == FigureView.front ? layout.back : layout.front;
-    var leftLimit = 0.0;
-    var rightLimit = width;
-    if (other != own) {
-      if (other.left >= own.right) {
-        rightLimit = other.left - kFigureLeaderGap;
-      } else {
-        leftLimit = other.right + kFigureLeaderGap;
-      }
-    }
-    final roomLeft = anchor.dx - kFigureLeaderGap - leftLimit;
-    final roomRight = rightLimit - anchor.dx - kFigureLeaderGap;
-    final wanted = math.min(widthOf(p), maxWidth);
-    // Outward by default; a pill that would not fit there, where the other
-    // side has more room, moves across rather than shrinking to nothing.
-    var onLeft = _leftOfCentre(p);
-    final preferredRoom = onLeft ? roomLeft : roomRight;
-    final otherRoom = onLeft ? roomRight : roomLeft;
-    if (preferredRoom < wanted && otherRoom > preferredRoom) onLeft = !onLeft;
-    final room = onLeft ? roomLeft : roomRight;
-    final w = math.max(0.0, math.min(wanted, room));
-    final x = onLeft
-        ? anchor.dx - kFigureLeaderGap - w
-        : anchor.dx + kFigureLeaderGap;
-    final level = Rect.fromLTWH(
-      x,
-      math.max(0, anchor.dy - labelHeight / 2),
-      w,
-      labelHeight,
-    );
-    final rect = _nearestFreeRow(level, taken, labelHeight + kFigureLabelGap);
-    taken.add(rect);
-    slots.add(
-      FigureLabelSlot(item: p, rect: rect, anchor: anchor, onLeft: onLeft),
-    );
-  }
-  return slots;
-}
-
-/// [level] itself if nothing overlaps it; otherwise the free position
-/// nearest to it, trying each spot flush against the edge of a pill in the
-/// way (just below it or just above it), never above the top of the box.
-/// If none of those is free it falls back to stepping down a row at a time,
-/// which always ends because the rows below are empty.
-Rect _nearestFreeRow(Rect level, List<Rect> taken, double step) {
-  bool free(Rect r) => r.top >= 0 && !taken.any((t) => t.overlaps(r));
-  if (free(level)) return level;
-  final gap = step - level.height;
-  final candidates = <Rect>[
-    for (final t in taken)
-      if (t.left < level.right && level.left < t.right) ...[
-        Rect.fromLTWH(level.left, t.bottom + gap, level.width, level.height),
-        Rect.fromLTWH(
-          level.left,
-          t.top - gap - level.height,
-          level.width,
-          level.height,
-        ),
-      ],
-  ].where(free).toList();
-  if (candidates.isNotEmpty) {
-    double distance(Rect r) => (r.center.dy - level.center.dy).abs();
-    candidates.sort((a, b) => distance(a).compareTo(distance(b)));
-    return candidates.first;
-  }
-  var rect = level;
-  while (!free(rect)) {
-    rect = rect.shift(Offset(0, step));
-  }
-  return rect;
+  final half = width / 2;
+  assert(
+    (layout.front.center.dx - half / 2).abs() < 0.5 &&
+        (layout.back.center.dx - half * 1.5).abs() < 0.5,
+    'layout must be a FigureLayout.forPair of the same width',
+  );
+  return [
+    for (final view in FigureView.values)
+      ...labelColumns(
+        model: model,
+        view: view,
+        layout: layout,
+        width: half,
+        left: view == FigureView.front ? 0 : half,
+        labelHeight: labelHeight,
+      ),
+  ];
 }

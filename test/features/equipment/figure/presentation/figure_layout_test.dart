@@ -21,9 +21,27 @@ void main() {
     expect(layout.front.left, closeTo((1000 - total) / 2, 0.01));
   });
 
-  test('preferredHeight is the pair height for a width, capped', () {
-    expect(FigureLayout.preferredHeight(360), closeTo(348, 0.01));
-    expect(FigureLayout.preferredHeight(1000), FigureLayout.maxHeight);
+  test('forPair centres each figure in its own half of the box', () {
+    // Each half is laid out like a phone: the figure at 36 percent of the
+    // half's width, with label columns either side of it (issue #4553).
+    final layout = FigureLayout.forPair(const Size(900, 360));
+    expect(layout.front.width, closeTo(162, 0.01));
+    expect(layout.front.height, closeTo(324, 0.01));
+    expect(layout.front.left, closeTo(144, 0.01));
+    expect(layout.back.left, closeTo(450 + 144, 0.01));
+    expect(layout.front.top, 0);
+    expect(layout.back.top, 0);
+    expect(layout.scale, closeTo(162 / 200, 0.0001));
+  });
+
+  test('forPair is capped by the box height and stays positive', () {
+    final wide = FigureLayout.forPair(const Size(2000, 360));
+    expect(wide.front.height, closeTo(360, 0.01));
+    expect(wide.front.center.dx, closeTo(500, 0.01));
+    expect(wide.back.center.dx, closeTo(1500, 0.01));
+    final empty = FigureLayout.forPair(Size.zero);
+    expect(empty.front.width, greaterThan(0));
+    expect(empty.scale.isFinite, isTrue);
   });
 
   test('toBox maps figure space through the scale and offset', () {

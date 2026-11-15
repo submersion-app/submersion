@@ -30,8 +30,10 @@ class DiverFigurePainter extends CustomPainter {
   final FigureModel model;
   final FigurePalette palette;
 
-  /// The layout to draw in; defaults to the pair, or the single figure when
-  /// [only] is set. The widget passes its own so labels and art agree.
+  /// The layout to draw in; defaults to [FigureLayout.forSize] (the pair as
+  /// large as the box, with no room for labels), or the single figure when
+  /// [only] is set. The widget always passes its own, [FigureLayout.forPair]
+  /// for the wide pair, so labels and art agree.
   final FigureLayout? layout;
 
   /// Draw just this view (the phone layout).

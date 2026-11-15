@@ -7,9 +7,9 @@ import 'package:submersion/features/equipment/figure/presentation/figure_palette
 /// A number badge and an item's name, the whole slot tappable. A null
 /// [number] shows the name alone, for a figure drawn without numbers.
 ///
-/// [pill] draws a rounded background on one line (the wide layout); without
-/// it the label is plain text in a column (the phone layout), which may wrap
-/// to two lines. [alignEnd] pushes the content to the right edge, for labels
+/// [pill] draws a rounded background (the wide layout); without it the label
+/// is plain text in a column (the phone layout). Either may wrap the name to
+/// two lines. [alignEnd] pushes the content to the right edge, for labels
 /// left of their gear.
 class FigureNameLabel extends StatelessWidget {
   const FigureNameLabel({
@@ -48,27 +48,6 @@ class FigureNameLabel extends StatelessWidget {
     return pill ? base : base.copyWith(fontSize: 11, letterSpacing: 0);
   }
 
-  /// The width a pill needs to show [text] in full on one line, at the
-  /// diver's text size. A null [number] leaves out the badge and its gap.
-  static double preferredWidth(
-    String text,
-    TextStyle style,
-    TextDirection direction, {
-    required int? number,
-    TextScaler textScaler = TextScaler.noScaling,
-  }) {
-    final width = _measure(text, style, direction, textScaler);
-    final badge = number == null
-        ? 0.0
-        : FigureNumberBadge.widthFor(
-                number,
-                badgeSize,
-                textScaler: textScaler,
-              ) +
-              _gap;
-    return badge + width + _pillPadding * 2 + 2;
-  }
-
   /// The row height a label needs for its lines at the diver's text size,
   /// never below the 40 pt tap target.
   static double heightFor(BuildContext context, {required bool pill}) {
@@ -77,7 +56,9 @@ class FigureNameLabel extends StatelessWidget {
       context,
     ).scale(style.fontSize ?? 12);
     final lineHeight = fontSize * (style.height ?? 1.34);
-    return math.max(40, lineHeight * (pill ? 1 : 2) + 10);
+    // Two lines in a pill as in a phone column, so a pill in a narrow wide
+    // column wraps its name rather than cutting it short (issue #4553).
+    return math.max(40, lineHeight * 2 + 10);
   }
 
   static double _measure(
@@ -97,11 +78,10 @@ class FigureNameLabel extends StatelessWidget {
     return width;
   }
 
-  /// Two lines in a column, unless one word is wider than a line: wrapping
-  /// would then split the word mid-letter, so the name takes one line and
-  /// ends in an ellipsis instead.
+  /// Two lines, in a pill or a column, unless one word is wider than a
+  /// line: wrapping would then split the word mid-letter, so the name takes
+  /// one line and ends in an ellipsis instead.
   int _linesFor(BuildContext context, double lineWidth, TextStyle style) {
-    if (pill) return 1;
     final direction = Directionality.of(context);
     final scaler = MediaQuery.textScalerOf(context);
     final longestWord = text
