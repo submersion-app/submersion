@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -65,13 +66,27 @@ Widget _buildTestWidget({
   ),
 );
 
+/// Bumped to make the buddies read reload, as a dependency changing does.
+class _Trigger extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void bump() => state = state + 1;
+}
+
+final _trigger = NotifierProvider<_Trigger, int>(_Trigger.new);
+
 List<Override> _renderOverrides(
   String diveId,
   SharedPreferences prefs, {
   List<BuddyWithRole> buddies = const [],
+  Future<void> Function()? reloadGate,
 }) => [
   sharedPreferencesProvider.overrideWithValue(prefs),
-  buddiesForDiveProvider(diveId).overrideWith((ref) async => buddies),
+  buddiesForDiveProvider(diveId).overrideWith((ref) async {
+    if (ref.watch(_trigger) > 0) await reloadGate?.call();
+    return buddies;
+  }),
   diveSightingsProvider(diveId).overrideWith((ref) async => <Sighting>[]),
   buddySignaturesForDiveProvider(
     diveId,
@@ -101,6 +116,50 @@ void main() {
   });
 
   group('Buddies + Signatures', () {
+    // A reload driven by a dependency keeps the last answer: the dive has
+    // buddies. Read as "still loading", the pair would come apart into two
+    // full-width cards and form again once the read lands.
+    testWidgets('the pair holds together while the buddies reload', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = Dive(
+        id: 'buddies-reload',
+        dateTime: DateTime(2026, 3, 15, 10, 0),
+      );
+      final reload = Completer<void>();
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: _settingsWithVisibleSections([
+            DiveDetailSectionId.buddies,
+            DiveDetailSectionId.signatures,
+          ]),
+          extraOverrides: _renderOverrides(
+            dive.id,
+            prefs,
+            buddies: [_buddy],
+            reloadGate: () => reload.future,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      ).read(_trigger.notifier).bump();
+      await tester.pump();
+
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+
+      reload.complete();
+      await tester.pumpAndSettle();
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+    });
+
     // Issue #4583: the shorter card left blank space under it before the
     // next card; now both columns end level.
     testWidgets('the two cards end level (wide pane)', (tester) async {

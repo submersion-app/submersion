@@ -639,11 +639,14 @@ class DiveDetailSectionList extends ConsumerWidget {
       case DiveDetailSectionId.buddies:
         // Signatures self-erases unless the dive has buddies or a course. The
         // read is deferred to here so the list only couples to buddy changes
-        // when the pair can actually form.
+        // when the pair can actually form. `value`, not `valueOrNull`: a
+        // reload driven by a dependency keeps the last answer through `value`,
+        // where `valueOrNull` reads as loading and the pair would come apart
+        // until the read lands.
         final hasBuddies = ref.watch(
           buddiesForDiveProvider(
             dive.id,
-          ).select((a) => a.valueOrNull?.isNotEmpty ?? false),
+          ).select((a) => a.value?.isNotEmpty ?? false),
         );
         if (!hasBuddies && presence.courseIds.isEmpty) return null;
         return _PairCards(
