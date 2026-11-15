@@ -804,7 +804,7 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
       case SiteField.difficulty:
         return (value as SiteDifficulty).displayName;
       case SiteField.rating:
-        return formatRatingForDisplay((value as double));
+        return formatRatingForDisplay(value as double);
       case SiteField.latitude:
         return units.formatLatitude(value as double);
       case SiteField.longitude:

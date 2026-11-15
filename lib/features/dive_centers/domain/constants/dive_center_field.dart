@@ -270,7 +270,7 @@ class DiveCenterFieldAdapter
     return switch (field) {
       DiveCenterField.affiliations =>
         (value as List<String>).isEmpty ? '--' : value.join(', '),
-      DiveCenterField.rating => formatRatingForDisplay((value as double)),
+      DiveCenterField.rating => formatRatingForDisplay(value as double),
       DiveCenterField.latitude => units.formatLatitude(value as double),
       DiveCenterField.longitude => units.formatLongitude(value as double),
       DiveCenterField.diveCount => value.toString(),
