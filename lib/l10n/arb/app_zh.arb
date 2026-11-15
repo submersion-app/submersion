@@ -11242,7 +11242,6 @@
   "settings_rawDiveData_computerUsage": "{count, plural, other{{count} 次潜水，{size}}}",
   "diveComputer_rawData_discardAction": "丢弃",
   "diveComputer_rawData_discardAllMessage": "要删除所有潜水电脑为 {count} 次潜水保存的原始下载数据（{size}）吗？之后潜水解析器改进时，这些潜水将无法再重新解析。潜水及您的编辑保持不变，您的其他同步设备也会删除这些数据。",
-  "diveComputer_rawData_discardButton": "丢弃原始数据",
   "diveComputer_rawData_discardComputerMessage": "要删除 {computer} 为 {count} 次潜水保存的原始下载数据吗？之后潜水解析器改进时，这些潜水将无法再重新解析。潜水及您的编辑保持不变，您的其他同步设备也会删除这些数据。",
   "diveComputer_rawData_discardFailed": "无法丢弃原始数据",
   "diveComputer_rawData_discardTitle": "丢弃原始数据？",

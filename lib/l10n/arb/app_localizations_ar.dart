@@ -40406,6 +40406,10 @@ class AppLocalizationsAr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count غطسة، $size',
+      many: '$count غطسة، $size',
+      few: '$count غطسات، $size',
+      two: 'غطستان، $size',
+      one: 'غطسة واحدة، $size',
     );
     return '$_temp0';
   }
@@ -40417,9 +40421,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String diveComputer_rawData_discardAllMessage(int count, String size) {
     return 'إزالة بيانات التنزيل الأولية المحفوظة لـ $count غطسة من جميع كمبيوترات الغوص ($size)؟ لن يعود بالإمكان إعادة تحليل هذه الغطسات عند تحسين محلل الغطسات. تبقى الغطسات وتعديلاتك كما هي، وستزيل أجهزتك المتزامنة الأخرى البيانات أيضاً.';
   }
-
-  @override
-  String get diveComputer_rawData_discardButton => 'حذف البيانات الأولية';
 
   @override
   String diveComputer_rawData_discardComputerMessage(

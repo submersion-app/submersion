@@ -37526,9 +37526,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_rawData_discardButton => '丢弃原始数据';
-
-  @override
   String diveComputer_rawData_discardComputerMessage(
     String computer,
     int count,

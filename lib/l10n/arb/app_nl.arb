@@ -11242,7 +11242,6 @@
   "settings_rawDiveData_computerUsage": "{count, plural, one{{count} duik, {size}} other{{count} duiken, {size}}}",
   "diveComputer_rawData_discardAction": "Verwijderen",
   "diveComputer_rawData_discardAllMessage": "De bewaarde ruwe downloaddata van {count} duiken van alle duikcomputers verwijderen ({size})? Deze duiken kunnen daarna niet meer opnieuw worden verwerkt wanneer de duikparser verbetert. De duiken en je wijzigingen blijven behouden, en je andere gesynchroniseerde apparaten verwijderen de data ook.",
-  "diveComputer_rawData_discardButton": "Ruwe data verwijderen",
   "diveComputer_rawData_discardComputerMessage": "De bewaarde ruwe downloaddata van {count} duiken van {computer} verwijderen? Deze duiken kunnen daarna niet meer opnieuw worden verwerkt wanneer de duikparser verbetert. De duiken en je wijzigingen blijven behouden, en je andere gesynchroniseerde apparaten verwijderen de data ook.",
   "diveComputer_rawData_discardFailed": "Kan ruwe data niet verwijderen",
   "diveComputer_rawData_discardTitle": "Ruwe data verwijderen?",

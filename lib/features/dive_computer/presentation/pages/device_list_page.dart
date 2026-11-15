@@ -10,7 +10,6 @@ import 'package:submersion/features/dive_computer/presentation/utils/connection_
 import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/clock_sync_global_switch.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/garmin_watch_usb_entry.dart';
-import 'package:submersion/features/dive_computer/presentation/widgets/raw_dive_data_discard.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_merge_sheet.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_delete_dialog.dart';
@@ -113,7 +112,6 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
             children: [
               const ClockSyncGlobalSwitch(),
               const Divider(height: 1),
-              const RawDiveDataTile(),
               Expanded(
                 child: computersAsync.when(
                   data: (computers) {

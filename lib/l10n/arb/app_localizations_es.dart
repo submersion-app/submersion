@@ -39918,10 +39918,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_rawData_discardButton =>
-      'Descartar datos sin procesar';
-
-  @override
   String diveComputer_rawData_discardComputerMessage(
     String computer,
     int count,

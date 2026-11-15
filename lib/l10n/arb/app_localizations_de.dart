@@ -39809,9 +39809,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_rawData_discardButton => 'Rohdaten verwerfen';
-
-  @override
   String diveComputer_rawData_discardComputerMessage(
     String computer,
     int count,

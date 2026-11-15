@@ -11376,7 +11376,6 @@
   "settings_rawDiveData_computerUsage": "{count, plural, one{{count} Tauchgang, {size}} other{{count} Tauchgänge, {size}}}",
   "diveComputer_rawData_discardAction": "Verwerfen",
   "diveComputer_rawData_discardAllMessage": "Die gespeicherten Rohdaten von {count} Tauchgängen aller Tauchcomputer entfernen ({size})? Diese Tauchgänge können danach nicht mehr neu ausgewertet werden, wenn sich der Tauchgang-Parser verbessert. Die Tauchgänge und deine Änderungen bleiben erhalten, und deine anderen synchronisierten Geräte entfernen die Daten ebenfalls.",
-  "diveComputer_rawData_discardButton": "Rohdaten verwerfen",
   "diveComputer_rawData_discardComputerMessage": "Die gespeicherten Rohdaten von {count} Tauchgängen von {computer} entfernen? Diese Tauchgänge können danach nicht mehr neu ausgewertet werden, wenn sich der Tauchgang-Parser verbessert. Die Tauchgänge und deine Änderungen bleiben erhalten, und deine anderen synchronisierten Geräte entfernen die Daten ebenfalls.",
   "diveComputer_rawData_discardFailed": "Rohdaten konnten nicht verworfen werden",
   "diveComputer_rawData_discardTitle": "Rohdaten verwerfen?",

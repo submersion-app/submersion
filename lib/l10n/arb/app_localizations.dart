@@ -62509,12 +62509,6 @@ abstract class AppLocalizations {
   /// **'Remove the raw download data kept for {count} dives from every dive computer ({size})? Those dives can no longer be re-parsed when the dive parser improves. The dives and your edits stay as they are, and your other synced devices drop the data too.'**
   String diveComputer_rawData_discardAllMessage(int count, String size);
 
-  /// No description provided for @diveComputer_rawData_discardButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard raw data'**
-  String get diveComputer_rawData_discardButton;
-
   /// No description provided for @diveComputer_rawData_discardComputerMessage.
   ///
   /// In en, this message translates to:

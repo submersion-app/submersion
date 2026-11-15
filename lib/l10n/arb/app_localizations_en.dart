@@ -39228,9 +39228,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_rawData_discardButton => 'Discard raw data';
-
-  @override
   String diveComputer_rawData_discardComputerMessage(
     String computer,
     int count,

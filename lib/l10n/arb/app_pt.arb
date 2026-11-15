@@ -11242,7 +11242,6 @@
   "settings_rawDiveData_computerUsage": "{count, plural, one{{count} mergulho, {size}} other{{count} mergulhos, {size}}}",
   "diveComputer_rawData_discardAction": "Descartar",
   "diveComputer_rawData_discardAllMessage": "Remover os dados brutos de download guardados de {count} mergulhos de todos os computadores de mergulho ({size})? Esses mergulhos não poderão mais ser reanalisados quando o analisador de mergulhos melhorar. Os mergulhos e suas edições permanecem como estão, e seus outros dispositivos sincronizados também removem os dados.",
-  "diveComputer_rawData_discardButton": "Descartar dados brutos",
   "diveComputer_rawData_discardComputerMessage": "Remover os dados brutos de download guardados de {count} mergulhos de {computer}? Esses mergulhos não poderão mais ser reanalisados quando o analisador de mergulhos melhorar. Os mergulhos e suas edições permanecem como estão, e seus outros dispositivos sincronizados também removem os dados.",
   "diveComputer_rawData_discardFailed": "Não foi possível descartar os dados brutos",
   "diveComputer_rawData_discardTitle": "Descartar dados brutos?",

@@ -11242,7 +11242,6 @@
   "settings_rawDiveData_computerUsage": "{count, plural, one{{count} immersione, {size}} other{{count} immersioni, {size}}}",
   "diveComputer_rawData_discardAction": "Elimina",
   "diveComputer_rawData_discardAllMessage": "Rimuovere i dati grezzi di download conservati per {count} immersioni da tutti i computer subacquei ({size})? Queste immersioni non potranno più essere rianalizzate quando il parser delle immersioni migliorerà. Le immersioni e le tue modifiche restano invariate, e anche gli altri dispositivi sincronizzati rimuovono i dati.",
-  "diveComputer_rawData_discardButton": "Elimina dati grezzi",
   "diveComputer_rawData_discardComputerMessage": "Rimuovere i dati grezzi di download conservati per {count} immersioni da {computer}? Queste immersioni non potranno più essere rianalizzate quando il parser delle immersioni migliorerà. Le immersioni e le tue modifiche restano invariate, e anche gli altri dispositivi sincronizzati rimuovono i dati.",
   "diveComputer_rawData_discardFailed": "Impossibile eliminare i dati grezzi",
   "diveComputer_rawData_discardTitle": "Eliminare i dati grezzi?",

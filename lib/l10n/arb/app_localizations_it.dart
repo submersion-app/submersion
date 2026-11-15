@@ -39901,9 +39901,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveComputer_rawData_discardButton => 'Elimina dati grezzi';
-
-  @override
   String diveComputer_rawData_discardComputerMessage(
     String computer,
     int count,
