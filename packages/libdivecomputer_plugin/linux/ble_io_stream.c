@@ -145,6 +145,54 @@ static gboolean device_connected(GDBusConnection* conn,
     return connected;
 }
 
+// Whether BlueZ has finished GATT discovery on the device and exported its
+// services and characteristics as D-Bus objects.
+static gboolean services_resolved(GDBusConnection* conn,
+                                  const gchar* device_path, gint timeout_ms) {
+    GVariant* value = get_property(conn, device_path, "org.bluez.Device1",
+                                   "ServicesResolved", timeout_ms);
+    if (!value) return FALSE;
+
+    gboolean resolved = g_variant_is_of_type(value, G_VARIANT_TYPE_BOOLEAN) &&
+                        g_variant_get_boolean(value);
+    g_variant_unref(value);
+    return resolved;
+}
+
+// How long to wait for BlueZ to resolve the device's GATT services after
+// Connect has returned. Service discovery over a 100 ms connection interval
+// takes a few seconds; this matches the Connect call's own timeout.
+#define SERVICES_RESOLVED_TIMEOUT_MS 30000
+
+// Block until ServicesResolved is TRUE, the link drops, or the timeout
+// passes. Device1.Connect returns as soon as the LE link is up, not when GATT
+// discovery is done (observed on BlueZ 5.88 with a Shearwater Perdix 2:
+// ServicesResolved became TRUE about two seconds after Connect returned), so
+// enumerating characteristics right after Connect finds none and the download
+// fails with "No suitable GATT characteristics found". Android and darwin wait
+// for their platforms' service-discovery callbacks; this is the BlueZ
+// equivalent.
+static gboolean wait_for_services_resolved(GDBusConnection* conn,
+                                           const gchar* device_path) {
+    gint64 deadline =
+        g_get_monotonic_time() +
+        (gint64)SERVICES_RESOLVED_TIMEOUT_MS * G_TIME_SPAN_MILLISECOND;
+    while (!services_resolved(conn, device_path, 2000)) {
+        if (!device_connected(conn, device_path, 2000)) {
+            g_warning("BleIoStream: link dropped before GATT services were "
+                      "resolved");
+            return FALSE;
+        }
+        if (g_get_monotonic_time() >= deadline) {
+            g_warning("BleIoStream: GATT services not resolved within %d ms",
+                      SERVICES_RESOLVED_TIMEOUT_MS);
+            return FALSE;
+        }
+        g_usleep(100 * G_TIME_SPAN_MILLISECOND);
+    }
+    return TRUE;
+}
+
 // Best write and notify characteristic under one GATT service. BlueZ lists
 // characteristics flat, so pairs are kept per parent service path and the
 // Seac service's own pair is looked up once every service UUID is known.
@@ -471,6 +519,12 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
         NULL, NULL, G_DBUS_CALL_FLAGS_NONE, 30000, NULL, &error);
     if (error) {
         g_warning("BleIoStream: Connect failed: %s", error->message);
+        return FALSE;
+    }
+
+    // Connect returned when the link came up; the characteristics enumerated
+    // below only exist once discovery is done.
+    if (!wait_for_services_resolved(stream->connection, device_path)) {
         return FALSE;
     }
 
