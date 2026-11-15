@@ -5,15 +5,22 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_search_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_import_site_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 
-/// Page for searching and importing dive sites from online sources.
+/// Page for searching the built-in site catalogue, reading about what it
+/// finds, and importing sites from it.
 class SiteImportPage extends ConsumerStatefulWidget {
-  const SiteImportPage({super.key});
+  const SiteImportPage({super.key, this.initialQuery});
+
+  /// A search to open with (`/sites/import?q=`): the Sites list hands over
+  /// what the diver typed in its own search field. Blank or null opens
+  /// the page empty, with the field focused.
+  final String? initialQuery;
 
   @override
   ConsumerState<SiteImportPage> createState() => _SiteImportPageState();
@@ -26,9 +33,18 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
   @override
   void initState() {
     super.initState();
-    // Auto-focus search field
+    final initial = widget.initialQuery?.trim() ?? '';
+    _searchController.text = initial;
+    // After the first frame: a provider cannot be written while the tree
+    // builds. With a search to run the results lead; otherwise the field
+    // takes the focus, ready to type in.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
+      if (!mounted) return;
+      if (initial.isEmpty) {
+        _focusNode.requestFocus();
+      } else {
+        _onSearch();
+      }
     });
   }
 
@@ -394,6 +410,9 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
               isImported: isImported,
               units: units,
               onImport: () => _importSite(site),
+              // The record's own page. For a site already imported, that
+              // page hands over to the diver's own site.
+              onOpen: () => context.push(catalogueSitePath(site.id)),
             );
           }),
         ],

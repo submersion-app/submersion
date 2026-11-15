@@ -674,7 +674,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'import',
                 name: 'importSite',
-                builder: (context, state) => const SiteImportPage(),
+                builder: (context, state) => SiteImportPage(
+                  initialQuery: state.uri.queryParameters['q'],
+                ),
               ),
               GoRoute(
                 path: 'new',
