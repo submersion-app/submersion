@@ -170,4 +170,92 @@ void main() {
 
     expect(tapped, ['A', 'B']);
   });
+
+  testWidgets('a new gap and text direction move the columns', (tester) async {
+    await _pump(tester, [_card('A', 40), _card('B', 80)], gap: 20);
+    expect(_cardRect(tester, 'A').left, lessThan(_cardRect(tester, 'B').left));
+
+    await _pump(
+      tester,
+      [_card('A', 40), _card('B', 80)],
+      gap: 60,
+      textDirection: TextDirection.rtl,
+    );
+
+    final a = _cardRect(tester, 'A');
+    final b = _cardRect(tester, 'B');
+    expect(a.left, greaterThan(b.left));
+    expect(a.left - b.right, 60);
+  });
+
+  group('sizing without layout', () {
+    RenderEqualHeightRow rowOf(WidgetTester tester) =>
+        tester.renderObject<RenderEqualHeightRow>(find.byType(EqualHeightRow));
+
+    // Fixed-size children answer every query the same way, so the row's
+    // answers can be checked by arithmetic.
+    Future<RenderEqualHeightRow> pumpBoxes(WidgetTester tester) async {
+      await _pump(tester, const [
+        SizedBox(width: 100, height: 40),
+        SizedBox(width: 150, height: 90),
+      ], gap: 10);
+      return rowOf(tester);
+    }
+
+    testWidgets('intrinsic widths give every column the widest child', (
+      tester,
+    ) async {
+      final row = await pumpBoxes(tester);
+
+      expect(row.getMinIntrinsicWidth(double.infinity), 150 * 2 + 10);
+      expect(row.getMaxIntrinsicWidth(double.infinity), 150 * 2 + 10);
+    });
+
+    testWidgets('intrinsic heights are the tallest child', (tester) async {
+      final row = await pumpBoxes(tester);
+
+      expect(row.getMinIntrinsicHeight(700), 90);
+      expect(row.getMaxIntrinsicHeight(700), 90);
+    });
+
+    testWidgets('a dry layout is as tall as the tallest child', (tester) async {
+      final row = await pumpBoxes(tester);
+
+      expect(
+        row.getDryLayout(const BoxConstraints(maxWidth: 500)),
+        const Size(500, 90),
+      );
+    });
+  });
+
+  testWidgets('the row reports its children\'s baseline', (tester) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(1000, 600);
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text('LABEL'),
+              Expanded(
+                child: EqualHeightRow(
+                  gap: 8,
+                  children: [Text('LEFT'), Text('RIGHT')],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      tester.getBottomLeft(find.text('LEFT')).dy,
+      tester.getBottomLeft(find.text('LABEL')).dy,
+    );
+  });
 }

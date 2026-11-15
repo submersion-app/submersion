@@ -93,4 +93,89 @@ void main() {
 
     expect(tester.getSize(find.byType(FillLastColumn)).height, 0);
   });
+
+  group('sizing without layout', () {
+    // Fixed-size children answer every query the same way, so the column's
+    // answers can be checked by arithmetic.
+    Future<RenderFillLastColumn> pumpBoxes(WidgetTester tester) async {
+      await _pump(
+        tester,
+        const FillLastColumn(
+          children: [
+            SizedBox(width: 120, height: 40),
+            SizedBox(width: 80, height: 60),
+          ],
+        ),
+      );
+      return tester.renderObject<RenderFillLastColumn>(
+        find.byType(FillLastColumn),
+      );
+    }
+
+    testWidgets('intrinsic widths are the widest child', (tester) async {
+      final column = await pumpBoxes(tester);
+
+      expect(column.getMinIntrinsicWidth(double.infinity), 120);
+      expect(column.getMaxIntrinsicWidth(double.infinity), 120);
+    });
+
+    testWidgets('intrinsic heights add the children up', (tester) async {
+      final column = await pumpBoxes(tester);
+
+      expect(column.getMinIntrinsicHeight(300), 100);
+      expect(column.getMaxIntrinsicHeight(300), 100);
+    });
+
+    testWidgets('a dry layout is as tall as its children', (tester) async {
+      final column = await pumpBoxes(tester);
+
+      expect(
+        column.getDryLayout(const BoxConstraints(maxWidth: 300)),
+        const Size(300, 100),
+      );
+    });
+  });
+
+  testWidgets('taps reach each child', (tester) async {
+    final tapped = <String>[];
+    Widget tappable(String label) =>
+        GestureDetector(onTap: () => tapped.add(label), child: _box(label, 50));
+    await _pump(
+      tester,
+      FillLastColumn(children: [tappable('A'), tappable('B')]),
+    );
+
+    await tester.tap(find.text('A'));
+    await tester.tap(find.text('B'));
+
+    expect(tapped, ['A', 'B']);
+  });
+
+  testWidgets('the column reports its first child\'s baseline', (tester) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 600);
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text('LABEL'),
+              Expanded(
+                child: FillLastColumn(children: [Text('FIRST'), Text('NEXT')]),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      tester.getBottomLeft(find.text('FIRST')).dy,
+      tester.getBottomLeft(find.text('LABEL')).dy,
+    );
+  });
 }
