@@ -294,7 +294,8 @@ void main() {
       expect(find.text('Details'), findsNothing);
     });
 
-    testWidgets('Details, Website and a long action fit a narrow card', (
+    testWidgets('Details, Website and a long action fit a narrow card: '
+        'the action takes a line of its own and wraps inside its button', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(320, 700);
@@ -312,6 +313,65 @@ void main() {
       );
 
       expect(tester.takeException(), isNull);
+      final card = tester.getRect(find.byType(Card));
+      final details = tester.getRect(find.text('Details'));
+      final action = tester.getRect(find.bySubtype<FilledButton>());
+      expect(action.top, greaterThan(details.bottom));
+      expect(action.right, lessThanOrEqualTo(card.right - 16));
+      expect(action.left, greaterThanOrEqualTo(card.left + 16));
+    });
+
+    testWidgets('an action that drops to its own line stays at the card\'s '
+        'end, where it sits on a wider card', (tester) async {
+      tester.view.physicalSize = const Size(320, 700);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      // Too wide to share a line with the two links, narrower than the
+      // card: where it lands shows which side it is aligned to.
+      await _pump(
+        tester,
+        BuiltInSiteInfoCard(
+          site: _full,
+          actionLabel: 'Add to my sites',
+          onAction: () async {},
+          onDetails: () {},
+        ),
+      );
+
+      final card = tester.getRect(find.byType(Card));
+      final details = tester.getRect(find.text('Details'));
+      final action = tester.getRect(find.bySubtype<FilledButton>());
+      expect(action.top, greaterThan(details.bottom));
+      // Its margin and padding in from the card's right edge, with the
+      // room it does not need left over on the other side.
+      final endGap = card.right - action.right;
+      expect(endGap, closeTo(16, 1));
+      expect(action.left - card.left, greaterThan(endGap + 4));
+    });
+
+    testWidgets('where they fit, the links sit at the start and the action '
+        'at the end of one line', (tester) async {
+      tester.view.physicalSize = const Size(600, 700);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await _pump(
+        tester,
+        BuiltInSiteInfoCard(
+          site: _full,
+          actionLabel: 'Add to my sites',
+          onAction: () async {},
+          onDetails: () {},
+        ),
+      );
+
+      final card = tester.getRect(find.byType(Card));
+      final details = tester.getRect(find.text('Details'));
+      final action = tester.getRect(find.bySubtype<FilledButton>());
+      expect(details.center.dy, closeTo(action.center.dy, 1));
+      expect(details.left - card.left, lessThan(40));
+      expect(card.right - action.right, closeTo(16, 1));
     });
   });
 

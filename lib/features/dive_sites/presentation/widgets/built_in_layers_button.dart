@@ -45,13 +45,18 @@ class _BuiltInLayersButtonState extends ConsumerState<BuiltInLayersButton> {
         row(CatalogueKind.site, l10n.diveSites_map_layers_diveSites),
         row(CatalogueKind.register, l10n.diveSites_map_layers_registers),
       ],
-      child: IconButton(
-        icon: Icon(
-          layers.any ? Icons.public : Icons.public_off,
-          color: layers.any ? colorScheme.primary : null,
+      // The icon says whether any built-in site is drawn; so does the
+      // toggled state, for a screen reader that cannot see the icon.
+      child: Semantics(
+        toggled: layers.any,
+        child: IconButton(
+          icon: Icon(
+            layers.any ? Icons.public : Icons.public_off,
+            color: layers.any ? colorScheme.primary : null,
+          ),
+          tooltip: l10n.diveSites_map_layers_tooltip,
+          onPressed: () => _menu.isOpen ? _menu.close() : _menu.open(),
         ),
-        tooltip: l10n.diveSites_map_layers_tooltip,
-        onPressed: () => _menu.isOpen ? _menu.close() : _menu.open(),
       ),
     );
   }

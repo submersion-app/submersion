@@ -150,62 +150,55 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
                 ),
               ),
             const SizedBox(height: 8),
-            // The links and the action share a line where they fit. Where
-            // they do not (a phone, with a long translated action), the
-            // action takes the next line, and its label wraps inside the
-            // button instead of pushing it past the card's edge.
-            SizedBox(
-              width: double.infinity,
-              child: Wrap(
-                alignment: hasLinks
-                    ? WrapAlignment.spaceBetween
-                    : WrapAlignment.end,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  if (hasLinks)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (widget.onDetails != null)
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsetsDirectional.only(
-                                end: 12,
-                              ),
-                            ),
-                            onPressed: widget.onDetails,
-                            child: Text(l10n.diveSites_builtIn_details),
+            // The links and the action share a line where they fit:
+            // links at the start, the action at the end. Where they do
+            // not (a phone, with a long translated action) each takes a
+            // line of its own at the end of the card, and the action's
+            // label wraps inside the button instead of pushing it past
+            // the card's edge.
+            OverflowBar(
+              alignment: hasLinks
+                  ? MainAxisAlignment.spaceBetween
+                  : MainAxisAlignment.end,
+              overflowAlignment: OverflowBarAlignment.end,
+              spacing: 8,
+              overflowSpacing: 4,
+              children: [
+                if (hasLinks)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.onDetails != null)
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsetsDirectional.only(end: 12),
                           ),
-                        if (website != null)
-                          TextButton.icon(
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                            ),
-                            onPressed: () => launchUrl(
-                              website,
-                              mode: LaunchMode.externalApplication,
-                            ),
-                            icon: const Icon(Icons.open_in_new, size: 16),
-                            label: Text(l10n.diveCenters_label_website),
+                          onPressed: widget.onDetails,
+                          child: Text(l10n.diveSites_builtIn_details),
+                        ),
+                      if (website != null)
+                        TextButton.icon(
+                          style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                          onPressed: () => launchUrl(
+                            website,
+                            mode: LaunchMode.externalApplication,
                           ),
-                      ],
-                    ),
-                  FilledButton.icon(
-                    icon: Icon(
-                      widget.onAction == null
-                          ? Icons.check
-                          : Icons.add_location_alt,
-                      size: 18,
-                    ),
-                    label: Text(widget.actionLabel),
-                    onPressed: _running || widget.onAction == null
-                        ? null
-                        : _run,
+                          icon: const Icon(Icons.open_in_new, size: 16),
+                          label: Text(l10n.diveCenters_label_website),
+                        ),
+                    ],
                   ),
-                ],
-              ),
+                FilledButton.icon(
+                  icon: Icon(
+                    widget.onAction == null
+                        ? Icons.check
+                        : Icons.add_location_alt,
+                    size: 18,
+                  ),
+                  label: Text(widget.actionLabel),
+                  onPressed: _running || widget.onAction == null ? null : _run,
+                ),
+              ],
             ),
           ],
         ),

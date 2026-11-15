@@ -129,6 +129,32 @@ void main() {
     expect(find.byIcon(Icons.public), findsOneWidget);
   });
 
+  testWidgets('a screen reader hears whether any layer is on', (tester) async {
+    final handle = tester.ensureSemantics();
+    final container = await _pump(tester);
+    // The node the button's own Semantics makes, which its tooltip and
+    // tap action merge into.
+    final button = find.byWidgetPredicate(
+      (widget) => widget is Semantics && widget.properties.toggled != null,
+    );
+
+    expect(
+      tester.getSemantics(button),
+      isSemantics(hasToggledState: true, isToggled: true),
+    );
+
+    await container
+        .read(builtInMapLayersProvider.notifier)
+        .setLayer(CatalogueKind.site, false);
+    await tester.pump();
+
+    expect(
+      tester.getSemantics(button),
+      isSemantics(hasToggledState: true, isToggled: false),
+    );
+    handle.dispose();
+  });
+
   testWidgets('the rows fit a narrow phone in a long language', (tester) async {
     await _pump(tester, locale: const Locale('de'), size: const Size(320, 600));
 

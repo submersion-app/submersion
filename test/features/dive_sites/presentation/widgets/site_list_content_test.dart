@@ -23,6 +23,15 @@ import 'package:submersion/features/site_types/domain/entities/site_type_entity.
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/search_built_in_sites_row.dart';
+import 'package:submersion/features/query/presentation/providers/entity_search_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_header.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
@@ -1711,6 +1720,45 @@ void main() {
       expect(find.text('Add Your First Site'), findsNothing);
       expect(find.text('Import'), findsOneWidget);
     });
+  });
+
+  // The Sites list searches the diver's own sites. Its search field also
+  // offers to take the typed words to the built-in catalogue (#4514).
+  testWidgets('the search field offers to search built-in sites for what '
+      'is typed', (tester) async {
+    _setMobileTestSurfaceSize(tester);
+    final overrides = await _buildPhoneOverrides(
+      sites: [_makeSite(id: 's1', name: 'Salt Pier')],
+      viewMode: ListViewMode.detailed,
+    );
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
+          queryUnitPrefsProvider.overrideWithValue(kMetricPrefs),
+          demoModeActiveProvider.overrideWithValue(false),
+          entitySearchOpenProvider(
+            QuerySubject.sites,
+          ).overrideWith((ref) => true),
+        ],
+        child: const SiteListContent(showAppBar: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final field = find.byKey(entitySearchFieldKey(QuerySubject.sites));
+    await tester.tap(field);
+    await tester.pump();
+    await tester.enterText(field, 'thistlegorm');
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byKey(kSearchBuiltInSitesRowKey), findsOneWidget);
+    expect(
+      find.text('Search built-in sites for "thistlegorm"'),
+      findsOneWidget,
+    );
   });
 }
 

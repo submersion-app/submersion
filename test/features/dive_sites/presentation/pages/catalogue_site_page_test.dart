@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_catalogue_answers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/catalogue_site_page.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_page/catalogue_about_card.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_page/catalogue_location_card.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_page/catalogue_nearby_card.dart';
@@ -105,15 +107,34 @@ void main() {
       expect(find.textContaining("12°"), findsOneWidget);
     });
 
-    testWidgets('tapping the coordinates copies them', (tester) async {
+    testWidgets('the coordinates can be copied, and no other row can', (
+      tester,
+    ) async {
+      // A clipboard that takes what it is given, put back afterwards: the
+      // platform channel is the whole isolate's.
+      final copied = <String>[];
+      final messenger = tester.binding.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copied.add((call.arguments as Map)['text'] as String);
+        }
+        return null;
+      });
+      addTearDown(
+        () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+      );
       await pumpCataloguePage(tester, id: saltPier.id);
 
-      final coordinates = find.textContaining('12.08');
-      await tester.ensureVisible(coordinates);
-      await tester.tap(coordinates);
+      // One copy button on the page: the coordinates row's.
+      final copy = find.byTooltip('Copy');
+      expect(copy, findsOneWidget);
+      await tester.ensureVisible(copy);
+      await tester.tap(copy);
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
-      expect(find.text('Coordinates copied to clipboard'), findsOneWidget);
+      expect(copied.single, contains('12.08'));
+      expect(find.text('Copied to clipboard'), findsOneWidget);
     });
   });
 
@@ -134,6 +155,38 @@ void main() {
     // No website, and no record page: the source's name still stands.
     expect(find.byKey(const ValueKey('catalogueWebsiteLink')), findsNothing);
     expect(find.byKey(const ValueKey('catalogueSourceLink')), findsNothing);
+  });
+
+  testWidgets('a record whose only detail is a type this version cannot '
+      'name has no About card, not an empty one', (tester) async {
+    const future = CatalogueSite(
+      id: 'future',
+      name: 'Somewhere',
+      location: GeoPoint(1, 1),
+      typeIds: ['a_type_from_a_later_catalogue'],
+      source: 'osm',
+    );
+    await pumpCataloguePage(tester, id: future.id, records: const [future]);
+
+    expect(find.byType(CatalogueAboutCard), findsNothing);
+    expect(find.text('About'), findsNothing);
+  });
+
+  testWidgets('a record with no known source and no links has no Source '
+      'card, and no gap where it would be', (tester) async {
+    const orphan = CatalogueSite(
+      id: 'orphan',
+      name: 'Orphan',
+      location: GeoPoint(1, 1),
+      source: 'a_source_the_catalogue_does_not_list',
+    );
+    await pumpCataloguePage(tester, id: orphan.id, records: const [orphan]);
+
+    expect(find.byType(CatalogueSourceCard), findsNothing);
+    // The Add button follows the card above it at the page's one gap.
+    final reef = tester.getRect(find.byType(ReefSection));
+    final add = tester.getRect(find.byKey(_addButton));
+    expect(add.top - reef.bottom, closeTo(12, 0.5));
   });
 
   testWidgets('a fresh-water record has no tides, and says it is fresh '
@@ -300,6 +353,37 @@ void main() {
       expect(find.text(homeText), findsOneWidget);
       expect(find.byType(CatalogueSitePage), findsNothing);
     });
+  });
+
+  testWidgets('the page shows the record when the diver\'s sites cannot '
+      'be read, where it would otherwise wait for ever', (tester) async {
+    await pumpCataloguePage(
+      tester,
+      id: saltPier.id,
+      sitesError: StateError('database is busy'),
+    );
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('Pillars covered in sponges.'), findsOneWidget);
+    expect(find.byKey(_addButton), findsOneWidget);
+  });
+
+  testWidgets('a record read again while the page is open stays on screen', (
+    tester,
+  ) async {
+    final container = await pumpCataloguePage(tester, id: saltPier.id);
+    expect(find.text('Pillars covered in sponges.'), findsOneWidget);
+
+    // An import that lands: every catalogue read is made again.
+    container.read(siteCatalogueRevisionProvider.notifier).state++;
+    await tester.pump();
+
+    // In the frame where the re-read is under way, the page is still the
+    // page, not a progress indicator in its place.
+    expect(find.text('Pillars covered in sponges.'), findsOneWidget);
+    expect(find.byKey(_addButton), findsOneWidget);
+    await settle(tester);
+    expect(find.text('Pillars covered in sponges.'), findsOneWidget);
   });
 
   group('your site here', () {

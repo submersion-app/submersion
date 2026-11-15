@@ -151,6 +151,7 @@ Future<ProviderContainer> pumpCataloguePage(
   bool fromHome = false,
   Future<CatalogueAdoption> Function(CatalogueSite site)? adopter,
   RecordingRuleEngine? rules,
+  Object? sitesError,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -199,9 +200,12 @@ Future<ProviderContainer> pumpCataloguePage(
           FakeSiteCatalogue(records, pageSources),
         ),
         mineProvider.overrideWith((ref) => mine),
-        sitesWithCountsProvider.overrideWith(
-          (ref) async => ref.watch(mineProvider),
-        ),
+        sitesWithCountsProvider.overrideWith((ref) async {
+          // A read of the diver's sites that fails, for the test that is
+          // about the page not waiting on it.
+          if (sitesError != null) throw sitesError;
+          return ref.watch(mineProvider);
+        }),
         placeNameLanguageProvider.overrideWithValue('en'),
         // The cards that fetch: fixed, so a test never reaches a network.
         hasTideDataProvider.overrideWith((ref, location) async => false),

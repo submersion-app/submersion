@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/services/catalogue_site_visibility.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_search_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_import_site_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -224,6 +226,13 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
     ColorScheme colorScheme,
   ) {
     final units = ref.watch(unitFormatterProvider);
+    // The diver's sites as they are now, beside the ids the search found
+    // linked when it ran: a site added from its own page since then, or
+    // from another screen, shows as imported without a new search.
+    final linkedNow = linkedCatalogueIds(
+      ref.watch(sitesWithCountsProvider).value?.map((entry) => entry.site) ??
+          const <DiveSite>[],
+    );
 
     // Error state
     if (state.hasError) {
@@ -404,7 +413,9 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
           ...state.sites.map((site) {
             // Already one of the diver's sites, in this session or any
             // earlier one: the link says so.
-            final isImported = state.linkedCatalogueIds.contains(site.id);
+            final isImported =
+                state.linkedCatalogueIds.contains(site.id) ||
+                linkedNow.contains(site.id);
             return CatalogueImportSiteCard(
               site: site,
               isImported: isImported,

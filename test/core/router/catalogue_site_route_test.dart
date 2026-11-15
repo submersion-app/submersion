@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/catalogue_site_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_import_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 /// Finds a [GoRoute] by name in a route tree recursively.
@@ -55,5 +58,75 @@ void main() {
 
     expect(matches.pathParameters['catalogueId'], 'osm_node_663869401');
     expect(matches.last.route.name, 'catalogueSite');
+  });
+
+  group('the route builders', () {
+    Future<BuildContext> aContext(WidgetTester tester) async {
+      late BuildContext captured;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              captured = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      return captured;
+    }
+
+    Widget build(
+      BuildContext context,
+      String name,
+      String location, {
+      required String fullPath,
+      Map<String, String> pathParameters = const {},
+    }) => _named(router.configuration.routes, name)!.builder!(
+      context,
+      GoRouterState(
+        router.configuration,
+        uri: Uri.parse(location),
+        matchedLocation: Uri.parse(location).path,
+        fullPath: fullPath,
+        pathParameters: pathParameters,
+        pageKey: ValueKey(location),
+      ),
+    );
+
+    testWidgets('catalogueSite builds the page for the record in the path', (
+      tester,
+    ) async {
+      final context = await aContext(tester);
+
+      final page =
+          build(
+                context,
+                'catalogueSite',
+                '/sites/catalogue/ukho_1',
+                fullPath: '/sites/catalogue/:catalogueId',
+                pathParameters: const {'catalogueId': 'ukho_1'},
+              )
+              as CatalogueSitePage;
+
+      expect(page.catalogueId, 'ukho_1');
+    });
+
+    testWidgets('importSite hands the page the search in the URL', (
+      tester,
+    ) async {
+      final context = await aContext(tester);
+      SiteImportPage at(String location) =>
+          build(context, 'importSite', location, fullPath: '/sites/import')
+              as SiteImportPage;
+
+      // As the Sites search row writes it.
+      final handedOver = Uri(
+        path: '/sites/import',
+        queryParameters: {'q': 'blue hole'},
+      ).toString();
+      expect(at(handedOver).initialQuery, 'blue hole');
+      expect(at('/sites/import').initialQuery, isNull);
+    });
   });
 }

@@ -109,22 +109,30 @@ class _CatalogueSitePageState extends ConsumerState<CatalogueSitePage> {
   @override
   Widget build(BuildContext context) {
     final id = widget.catalogueId;
-    ref.listen<String?>(catalogueOwnerSiteIdProvider(id), (_, owner) {
-      if (owner != null) _openOwn(owner);
-    });
+    // Watched, so the page is rebuilt, and moves on, whenever the record
+    // becomes the diver's: at open, after an add, or by a sync.
     final owner = ref.watch(catalogueOwnerSiteIdProvider(id));
     if (owner != null) _openOwn(owner);
 
     final record = ref.watch(catalogueSiteProvider(id));
-    final sitesKnown = ref.watch(
-      sitesWithCountsProvider.select((sites) => sites.hasValue),
+    // Settled either way. A read of the diver's sites that failed says
+    // nothing against showing the record: the page must not wait on it
+    // for ever.
+    final sitesSettled = ref.watch(
+      sitesWithCountsProvider.select(
+        (sites) => sites.hasValue || sites.hasError,
+      ),
     );
     final site = record.value;
 
     // Nothing of the record is drawn until it is known not to be the
     // diver's: their own page is on its way, and the built-in page must
-    // not flash by first.
-    if (owner != null || _leaving || !sitesKnown || record.isLoading) {
+    // not flash by first. A record already on screen stays while it is
+    // read again (an import that lands while the page is open).
+    if (owner != null ||
+        _leaving ||
+        !sitesSettled ||
+        (record.isLoading && !record.hasValue)) {
       return Scaffold(
         appBar: AppBar(title: Text(site?.name ?? '')),
         body: const Center(child: CircularProgressIndicator()),
@@ -193,15 +201,18 @@ class _CatalogueSiteContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final nearby =
         ref.watch(catalogueNearbyProvider(site.id)).value ??
         CatalogueNearby.empty;
+    final source = ref.watch(catalogueSourceProvider(site.source)).value;
     final location = site.location;
 
     final cards = <Widget>[
       if (location != null) CatalogueSiteMapStrip(site: site),
       CatalogueSiteHeader(site: site, here: nearby.here),
-      if (CatalogueAboutCard.hasContent(site)) CatalogueAboutCard(site: site),
+      if (CatalogueAboutCard.hasContent(site, l10n))
+        CatalogueAboutCard(site: site),
       if (CatalogueHazardsCard.hasContent(site))
         CatalogueHazardsCard(site: site),
       if (CatalogueLocationCard.hasContent(site))
@@ -213,7 +224,8 @@ class _CatalogueSiteContent extends ConsumerWidget {
       if (location != null)
         ReefSection(location: location, waterType: site.waterType),
       if (!nearby.isEmpty) CatalogueNearbyCard(nearby: nearby),
-      CatalogueSourceCard(site: site),
+      if (CatalogueSourceCard.hasContent(site, source))
+        CatalogueSourceCard(site: site, source: source),
       SizedBox(
         width: double.infinity,
         child: FilledButton.icon(

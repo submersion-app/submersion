@@ -7,21 +7,25 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_page/catalogue_page_card.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What the catalogue says a built-in site is: its types, entry, depth
 /// and, for fresh water, its water type, then its description.
 ///
-/// Nothing at all for a record that has none of them, which is most dive
-/// site records: the card is absent, not empty.
+/// Most dive site records have none of them. The page asks [hasContent]
+/// and leaves the card out, so it is never drawn empty.
 class CatalogueAboutCard extends ConsumerWidget {
   const CatalogueAboutCard({super.key, required this.site});
 
   final CatalogueSite site;
 
-  /// Whether [site] has anything for this card to show.
-  static bool hasContent(CatalogueSite site) =>
-      site.typeIds.isNotEmpty ||
+  /// Whether [site] has anything for this card to show. A type counts
+  /// only when it has a name to show: a type id a later catalogue adds,
+  /// which this version cannot name, must not leave a card with a title
+  /// and nothing under it.
+  static bool hasContent(CatalogueSite site, AppLocalizations l10n) =>
+      catalogueTypeNames(site, l10n).isNotEmpty ||
       site.entryMethods.isNotEmpty ||
       site.minDepth != null ||
       site.maxDepth != null ||
@@ -30,7 +34,6 @@ class CatalogueAboutCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!hasContent(site)) return const SizedBox.shrink();
     final l10n = context.l10n;
     final depth = catalogueDepthRange(site, ref.watch(unitFormatterProvider));
     // The catalogue says salt for no record, so only fresh is worth a chip.
@@ -65,7 +68,8 @@ class CatalogueAboutCard extends ConsumerWidget {
 }
 
 /// A built-in site's hazards, as the source or the register states them.
-/// Absent for a record with none.
+/// The page asks [hasContent] and leaves the card out for a record with
+/// none.
 class CatalogueHazardsCard extends StatelessWidget {
   const CatalogueHazardsCard({super.key, required this.site});
 
@@ -76,7 +80,6 @@ class CatalogueHazardsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!hasContent(site)) return const SizedBox.shrink();
     return CataloguePageCard(
       icon: Icons.warning_amber,
       title: context.l10n.diveSites_detail_section_hazards,

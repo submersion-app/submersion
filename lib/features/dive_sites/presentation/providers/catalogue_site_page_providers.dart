@@ -1,6 +1,7 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/geocoding/sea_area_service.dart';
 import 'package:submersion/features/dive_sites/data/services/catalogue_sea_name.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/catalogue_nearby.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -34,6 +35,11 @@ final catalogueOwnerSiteIdProvider = Provider.autoDispose
       return null;
     });
 
+/// How many records of each kind are read to find a built-in record's
+/// neighbours: ten times what its page lists, so the list is still full
+/// when the diver already has dozens of the nearest.
+const _nearbyReadLimit = kCatalogueNearbyRecordLimit * 10;
+
 /// What lies near the catalogue record [catalogueId]: the diver's own
 /// sites and other built-in records. Empty for a record the catalogue
 /// does not hold, or one without coordinates.
@@ -47,16 +53,24 @@ final catalogueNearbyProvider = FutureProvider.autoDispose
       if (record == null || origin == null) return CatalogueNearby.empty;
       final catalogue = ref.watch(siteCatalogueProvider);
       final userSites = await ref.watch(sitesWithCountsProvider.future);
-      // Everything in the radius: the rule drops the diver's own before it
-      // applies its limit, so the read cannot be cut to the limit first.
-      final candidates = await catalogue.near(
+      // The nearest of each kind, read apart: the page lists dive sites
+      // before charted wrecks and reefs, and off Florida or the Solent a
+      // single nearest-first read would be hundreds of wrecks before the
+      // first dive site. Each read takes more than the page lists, since
+      // the rule then leaves out the diver's own.
+      Future<List<CatalogueSite>> nearest(CatalogueKind kind) => catalogue.near(
         origin,
         radiusMeters: kCatalogueNearbyRadiusMeters,
-        limit: 2000,
+        limit: _nearbyReadLimit,
+        kind: kind,
       );
+      final (sites, registers) = await (
+        nearest(CatalogueKind.site),
+        nearest(CatalogueKind.register),
+      ).wait;
       return catalogueNearby(
         record: record,
-        candidates: candidates,
+        candidates: [...sites, ...registers],
         userSites: userSites,
       );
     });

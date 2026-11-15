@@ -6,9 +6,11 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_import_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_search_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_import_site_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -69,6 +71,7 @@ Future<_SeededSearch> _pump(
   ExternalSiteSearchState state, {
   Locale locale = const Locale('en'),
   String? initialQuery,
+  List<DiveSite> mine = const [],
 }) async {
   final search = _SeededSearch(state);
   final router = GoRouter(
@@ -96,6 +99,12 @@ Future<_SeededSearch> _pump(
           ),
         ),
         externalSiteSearchProvider.overrideWith((ref) => search),
+        sitesWithCountsProvider.overrideWith(
+          (ref) async => [
+            for (final site in mine)
+              SiteWithDiveCount(site: site, diveCount: 0),
+          ],
+        ),
       ],
       child: MaterialApp.router(
         routerConfig: router,
@@ -311,6 +320,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(opens, 1);
     expect(imports, 1);
+  });
+
+  testWidgets('a site added since the search ran reads Imported without '
+      'searching again', (tester) async {
+    // The search found nothing linked; the diver has since added Abu Dabab
+    // from its own page.
+    await _pump(
+      tester,
+      const ExternalSiteSearchState(query: 'Red Sea', sites: [_abuDabab]),
+      mine: const [
+        DiveSite(id: 'mine', name: 'Abu Dabab', catalogueId: 'osm_node_1'),
+      ],
+    );
+
+    expect(find.text('Imported'), findsOneWidget);
+    expect(find.text('Import'), findsNothing);
   });
 
   group('opened with a search', () {

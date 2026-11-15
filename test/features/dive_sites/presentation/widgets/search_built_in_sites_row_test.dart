@@ -11,6 +11,7 @@ import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/search_built_in_sites_row.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
+import 'package:submersion/features/query/presentation/providers/entity_search_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/query/presentation/widgets/entity_search_header.dart';
@@ -24,7 +25,12 @@ final _query = StateProvider<QueryNode?>((ref) => null);
 /// The Sites search header as the Sites list builds it, over a router that
 /// can land on the Import page's location. [withRows] false is a list that
 /// passes no rows of its own.
-Widget _app({bool demoMode = false, bool withRows = true}) {
+Widget _app({
+  bool demoMode = false,
+  bool withRows = true,
+  bool alwaysShown = true,
+  void Function(WidgetRef ref)? onRef,
+}) {
   final router = GoRouter(
     initialLocation: '/',
     routes: [
@@ -32,19 +38,22 @@ Widget _app({bool demoMode = false, bool withRows = true}) {
         path: '/',
         builder: (context, state) => Scaffold(
           body: Consumer(
-            builder: (context, ref, _) => Column(
-              children: [
-                EntitySearchHeader(
-                  subject: withRows ? _subject : QuerySubject.buddies,
-                  root: withRows ? siteQueryEntity : buddyQueryEntity,
-                  query: ref.watch(_query),
-                  onChanged: (q) => ref.read(_query.notifier).state = q,
-                  alwaysShown: true,
-                  extraRows: withRows ? sitesSearchExtraRows : null,
-                ),
-                const Expanded(child: Text('the list')),
-              ],
-            ),
+            builder: (context, ref, _) {
+              onRef?.call(ref);
+              return Column(
+                children: [
+                  EntitySearchHeader(
+                    subject: withRows ? _subject : QuerySubject.buddies,
+                    root: withRows ? siteQueryEntity : buddyQueryEntity,
+                    query: ref.watch(_query),
+                    onChanged: (q) => ref.read(_query.notifier).state = q,
+                    alwaysShown: alwaysShown,
+                    extraRows: withRows ? sitesSearchExtraRows : null,
+                  ),
+                  const Expanded(child: Text('the list')),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -81,34 +90,40 @@ Future<void> _type(WidgetTester tester, String text, {Key? field}) async {
 }
 
 void main() {
-  group('isPlainWordsQuery', () {
-    test('words alone', () {
-      expect(isPlainWordsQuery(TextNode(['thistlegorm'])), isTrue);
-      expect(isPlainWordsQuery(TextNode(['blue', 'hole'])), isTrue);
+  group('plainSearchWords', () {
+    test('words alone, as one search', () {
+      expect(plainSearchWords(TextNode(['thistlegorm'])), 'thistlegorm');
+      expect(plainSearchWords(TextNode(['blue', 'hole'])), 'blue hole');
       expect(
-        isPlainWordsQuery(
+        plainSearchWords(
           AndNode([
             TextNode(['blue']),
             TextNode(['hole']),
           ]),
         ),
-        isTrue,
+        'blue hole',
       );
     });
 
+    test('a quoted phrase is its words, without the quotes', () {
+      // The parser hands a phrase over as one word with a space in it.
+      expect(plainSearchWords(TextNode(['blue hole'])), 'blue hole');
+    });
+
     test('not a condition, a choice, a negation or nothing', () {
-      expect(isPlainWordsQuery(null), isFalse);
+      expect(plainSearchWords(null), isNull);
       expect(
-        isPlainWordsQuery(
+        plainSearchWords(
           OrNode([
             TextNode(['blue']),
             TextNode(['hole']),
           ]),
         ),
-        isFalse,
+        isNull,
       );
-      expect(isPlainWordsQuery(NotNode(TextNode(['blue']))), isFalse);
-      expect(isPlainWordsQuery(AndNode(const [])), isFalse);
+      expect(plainSearchWords(NotNode(TextNode(['blue']))), isNull);
+      expect(plainSearchWords(AndNode(const [])), isNull);
+      expect(plainSearchWords(TextNode(const [' '])), isNull);
     });
   });
 
@@ -186,6 +201,43 @@ void main() {
 
     expect(find.byKey(kSearchBuiltInSitesRowKey), findsNothing);
     expect(find.byKey(kSearchEverywhereRowKey), findsOneWidget);
+  });
+
+  testWidgets('a quoted phrase is searched for without its quotes, which '
+      'the catalogue search would take for part of a word', (tester) async {
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    await _type(tester, '"blue hole"');
+
+    expect(find.text('Search built-in sites for "blue hole"'), findsOneWidget);
+
+    await tester.tap(find.byKey(kSearchBuiltInSitesRowKey));
+    await tester.pumpAndSettle();
+
+    expect(find.text('import page q=blue hole'), findsOneWidget);
+  });
+
+  testWidgets('text that did not parse when the row was hidden does not '
+      'keep the offer away afterwards', (tester) async {
+    late WidgetRef ref;
+    await tester.pumpWidget(_app(alwaysShown: false, onRef: (r) => ref = r));
+    await tester.pumpAndSettle();
+    final open = entitySearchOpenProvider(_subject);
+    ref.read(open.notifier).state = true;
+    await tester.pumpAndSettle();
+    await _type(tester, 'wreck maxDepth >');
+    expect(find.byKey(kSearchBuiltInSitesRowKey), findsNothing);
+
+    // Hidden by the list's search icon, text and all, and opened again:
+    // a new field, which parses from the start and never says so.
+    ref.read(open.notifier).state = false;
+    await tester.pumpAndSettle();
+    ref.read(open.notifier).state = true;
+    await tester.pumpAndSettle();
+    await _type(tester, 'wreck');
+
+    expect(find.byKey(kSearchBuiltInSitesRowKey), findsOneWidget);
   });
 
   testWidgets('a list that passes no rows of its own shows only Search '

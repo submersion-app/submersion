@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -73,22 +72,13 @@ class CatalogueLocationCard extends ConsumerWidget {
         l10n.diveSites_detail_location_bodyOfWater,
         sea,
       ),
+      // Worth pasting elsewhere (a chartplotter, a message to a buddy).
       _row(
         context,
         Icons.gps_fixed,
         l10n.diveSites_detail_location_gpsCoordinates,
         coordinates,
-        onTap: coordinates == null
-            ? null
-            : () {
-                Clipboard.setData(ClipboardData(text: coordinates));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(l10n.diveSites_detail_coordinatesCopied),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              },
+        copyable: true,
       ),
     ].whereType<Widget>().toList();
     if (rows.isEmpty) return const SizedBox.shrink();
@@ -107,52 +97,32 @@ class CatalogueLocationCard extends ConsumerWidget {
     );
   }
 
-  /// One row, or null when the record has no [value] for it.
+  /// One row, or null when the record has no [value] for it. A
+  /// [copyable] row is the shared copyable detail row: its button, or a
+  /// long press, copies the value and confirms it.
   Widget? _row(
     BuildContext context,
     IconData icon,
     String label,
     String? value, {
-    VoidCallback? onTap,
+    bool copyable = false,
   }) {
     final text = value?.trim() ?? '';
     if (text.isEmpty) return null;
     final theme = Theme.of(context);
     final muted = theme.colorScheme.onSurfaceVariant;
-    final row = DetailRow(
+    return DetailRow.text(
       icon: icon,
       iconSize: 18,
       iconColor: muted,
       label: label,
       labelStyle: theme.textTheme.bodySmall?.copyWith(color: muted),
       padding: const EdgeInsets.symmetric(vertical: 6),
-      value: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: Text(
-              text,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ),
-          if (onTap != null) ...[
-            const SizedBox(width: 4),
-            Icon(Icons.copy, size: 16, color: muted),
-          ],
-        ],
-      ),
-    );
-    if (onTap == null) return row;
-    return Semantics(
-      button: true,
-      label: context.l10n.diveSites_detail_semantics_copyToClipboard(label),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: row,
-      ),
+      value: text,
+      valueStyle: theme.textTheme.bodyMedium,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      copyable: copyable,
     );
   }
 }

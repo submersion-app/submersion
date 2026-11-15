@@ -76,6 +76,11 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
 
   /// Whether [_text] parses. While it does not, [_local] is still the
   /// tree of the last text that did.
+  ///
+  /// The field reports only a change of this, and a field built anew
+  /// starts out parsing without saying so. So wherever [_text] is emptied
+  /// (Close, the row hidden, a query set from outside) this goes back to
+  /// true with it, or it would stay false for a field that never errs.
   bool _textParses = true;
 
   /// Empties the field after Close, whose write the field cannot see when
@@ -100,6 +105,7 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
       _debounce?.cancel();
       _local = widget.query;
       _text = '';
+      _textParses = true;
       // Close's empty text must not outlive it: a row hidden by Close and
       // shown again by this query builds a new field, which would apply it
       // over the printed query.
@@ -161,6 +167,7 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
     setState(() {
       _local = null;
       _text = '';
+      _textParses = true;
       _override = QueryTextOverride('');
     });
     if (widget.query != null) widget.onChanged(null);
@@ -184,6 +191,7 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
       _debounce?.cancel();
       _local = null;
       _text = '';
+      _textParses = true;
       return const SizedBox.shrink();
     }
     final l10n = context.l10n;

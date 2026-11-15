@@ -156,7 +156,8 @@ void main() {
         expect(nearby.builtIn.map((r) => r.record.id), ['neighbour']);
         expect(nearby.yours.single.site.id, 'barriers');
         expect(nearby.yours.single.diveCount, 3);
-        expect(catalogue.nearCalls, 1);
+        // One small read per kind, not everything in the radius.
+        expect(catalogue.nearCalls, 2);
       },
     );
 

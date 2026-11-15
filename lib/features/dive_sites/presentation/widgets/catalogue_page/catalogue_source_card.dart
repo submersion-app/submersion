@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_page/catalogue_page_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -15,16 +13,34 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// A charted wreck or reef adds that it is a charted position and not a
 /// dive guide. Every link opens only as a web address
 /// (`catalogueWebsiteUri`): the values come from sources anyone can edit.
-class CatalogueSourceCard extends ConsumerWidget {
-  const CatalogueSourceCard({super.key, required this.site});
+///
+/// The page reads the [source] and asks [hasContent], so the card is left
+/// out, gap and all, in the rare case there is nothing to say.
+class CatalogueSourceCard extends StatelessWidget {
+  const CatalogueSourceCard({
+    super.key,
+    required this.site,
+    required this.source,
+  });
 
   final CatalogueSite site;
 
+  /// The source [site] names, or null when the catalogue does not know
+  /// it or has not answered yet.
+  final CatalogueSource? source;
+
+  /// Whether there is a source, a link or the register sentence to show.
+  static bool hasContent(CatalogueSite site, CatalogueSource? source) =>
+      source != null ||
+      site.kind == CatalogueKind.register ||
+      catalogueSourceLinkUri(site, source) != null ||
+      catalogueWebsiteUri(site.website) != null;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    final source = ref.watch(catalogueSourceProvider(site.source)).value;
+    final source = this.source;
     final muted = theme.textTheme.bodySmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );
@@ -32,12 +48,6 @@ class CatalogueSourceCard extends ConsumerWidget {
     final sourceUri = catalogueSourceLinkUri(site, source);
     final websiteUri = catalogueWebsiteUri(site.website);
     final isRegister = site.kind == CatalogueKind.register;
-    if (source == null &&
-        sourceUri == null &&
-        websiteUri == null &&
-        !isRegister) {
-      return const SizedBox.shrink();
-    }
 
     return CataloguePageCard(
       icon: Icons.source_outlined,
