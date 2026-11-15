@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -105,6 +106,43 @@ void main() {
       expect(find.text('Observations'), findsNothing);
       final finder = find.byType(ObservationsStrip, skipOffstage: false);
       expect(tester.getSize(finder).height, 0);
+    });
+
+    testWidgets('the desktop Insights home still leads with the strip', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1600, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final router = GoRouter(
+        initialLocation: '/insights',
+        routes: [
+          GoRoute(
+            path: '/insights',
+            builder: (context, state) => const InsightsPage(),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      final base = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...base,
+            ...stats(),
+            ...strip([gapObservation()]),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final stripTop = tester.getTopLeft(find.byType(ObservationsStrip)).dy;
+      expect(stripTop, lessThan(tester.getTopLeft(find.text('42')).dy));
     });
   });
 }
