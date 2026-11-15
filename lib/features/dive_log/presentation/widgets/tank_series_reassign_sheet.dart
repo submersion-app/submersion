@@ -21,6 +21,7 @@ Future<void> showTankSeriesReassignSheet(
   WidgetRef ref, {
   required Dive dive,
   required Map<String, List<TankPressurePoint>> tankPressures,
+  Future<void> Function(String tankIdA, String tankIdB)? onExchange,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -29,7 +30,9 @@ Future<void> showTankSeriesReassignSheet(
     builder: (sheetContext) => _ReassignSheet(
       dive: dive,
       tankPressures: tankPressures,
-      onExchange: (a, b) => _exchange(context, dive.id, a, b),
+      // During an editing sitting the exchange is held until Save
+      // (issue #4527); otherwise it is written at once, with an Undo.
+      onExchange: onExchange ?? (a, b) => _exchange(context, dive.id, a, b),
     ),
   );
 }

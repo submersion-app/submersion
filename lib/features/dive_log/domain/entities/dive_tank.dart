@@ -206,6 +206,8 @@ class DiveTank extends Equatable {
     double? workingPressure,
     double? startPressure,
     double? endPressure,
+    bool clearStartPressure = false,
+    bool clearEndPressure = false,
     GasMix? gasMix,
     TankRole? role,
     TankRoleSource? roleSource,
@@ -246,8 +248,10 @@ class DiveTank extends Equatable {
       name: clearName ? null : (name ?? this.name),
       volume: volume ?? this.volume,
       workingPressure: workingPressure ?? this.workingPressure,
-      startPressure: startPressure ?? this.startPressure,
-      endPressure: endPressure ?? this.endPressure,
+      startPressure: clearStartPressure
+          ? null
+          : (startPressure ?? this.startPressure),
+      endPressure: clearEndPressure ? null : (endPressure ?? this.endPressure),
       gasMix: gasMix ?? this.gasMix,
       role: role ?? this.role,
       roleSource: clearRoleSource ? null : (roleSource ?? this.roleSource),

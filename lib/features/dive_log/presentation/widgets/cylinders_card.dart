@@ -188,7 +188,7 @@ class CylindersCard extends ConsumerWidget {
                 ),
               ),
             ],
-            if (_canReassign(dive, tankPressures))
+            if (canReassignTankSeries(dive, tankPressures))
               Align(
                 alignment: AlignmentDirectional.centerEnd,
                 child: TextButton.icon(
@@ -255,7 +255,7 @@ class CylindersCard extends ConsumerWidget {
 
   /// Two or more of this dive's tanks carry a series from one computer
   /// (issue #1314): only then is there anything to move.
-  static bool _canReassign(
+  static bool canReassignTankSeries(
     Dive dive,
     Map<String, List<TankPressurePoint>>? tankPressures,
   ) {
