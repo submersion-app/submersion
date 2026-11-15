@@ -85,7 +85,8 @@ final observationsProvider = FutureProvider<List<Observation>>((ref) async {
   );
 });
 
-/// The landing strip's observations (spec section 4.4).
+/// The Overview strip's observations (spec section 4.4; on the Overview
+/// page since #4559).
 final observationStripProvider = Provider<AsyncValue<List<Observation>>>(
   (ref) => ref.watch(observationsProvider).whenData(selectStrip),
 );
