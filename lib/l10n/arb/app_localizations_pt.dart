@@ -13067,6 +13067,127 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveSites_list_menu_catalogueReview =>
+      'Comparar pontos com o catálogo integrado';
+
+  @override
+  String get diveSites_gapReview_title =>
+      'Detalhes integrados para os seus pontos';
+
+  @override
+  String diveSites_gapReview_sectionSame(Object count) {
+    return 'O mesmo ponto ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_sectionCheck(Object count) {
+    return 'A verificar ($count)';
+  }
+
+  @override
+  String get diveSites_gapReview_empty =>
+      'Os seus pontos já têm tudo o que o catálogo integrado tem para eles.';
+
+  @override
+  String diveSites_gapReview_apply(Object count) {
+    return 'Aplicar ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_adds(Object items) {
+    return 'Adiciona: $items';
+  }
+
+  @override
+  String get diveSites_gapReview_addsLink => 'ligação';
+
+  @override
+  String diveSites_gapReview_nearby(Object distance, Object name) {
+    return 'A $distance de «$name»';
+  }
+
+  @override
+  String diveSites_gapReview_named(Object name, Object place) {
+    return 'Sem posição. «$name», $place';
+  }
+
+  @override
+  String diveSites_gapReview_namedNoPlace(Object name) {
+    return 'Sem posição. «$name»';
+  }
+
+  @override
+  String get diveSites_gapReview_compare => 'Comparar com o registo integrado';
+
+  @override
+  String diveSites_gapReview_applied(Object filled, Object linked) {
+    return 'Pontos ligados: $linked. Pontos com detalhes preenchidos: $filled.';
+  }
+
+  @override
+  String diveSites_gapReview_appliedSome(
+    Object failed,
+    Object filled,
+    Object linked,
+  ) {
+    return 'Pontos ligados: $linked. Pontos com detalhes preenchidos: $filled. Não aplicados: $failed.';
+  }
+
+  @override
+  String get diveSites_gapReview_error =>
+      'Não foi possível aplicar as alterações';
+
+  @override
+  String get diveSites_gapCompare_yours => 'O seu ponto';
+
+  @override
+  String get diveSites_gapCompare_record => 'Registo integrado';
+
+  @override
+  String get diveSites_gapCompare_empty => '(vazio)';
+
+  @override
+  String get diveSites_gapCompare_staysYours => 'o seu mantém-se';
+
+  @override
+  String diveSites_gapCompare_apart(Object distance) {
+    return 'a $distance de distância';
+  }
+
+  @override
+  String diveSites_gapCompare_fill(Object count) {
+    return 'Preencher ($count)';
+  }
+
+  @override
+  String get diveSites_gapCompare_linkOnly => 'Apenas ligar';
+
+  @override
+  String get diveSites_gapCompare_notSame => 'Não é o mesmo ponto';
+
+  @override
+  String get diveSites_gapCompare_noThanks => 'Não, obrigado';
+
+  @override
+  String get diveSites_gapField_name => 'Nome';
+
+  @override
+  String diveSites_gapNotice_text(Object count) {
+    return 'Há detalhes integrados disponíveis para os seus pontos ($count)';
+  }
+
+  @override
+  String get diveSites_gapNotice_review => 'Rever';
+
+  @override
+  String get diveSites_gapLine_linked =>
+      'O catálogo integrado tem mais detalhes para este ponto.';
+
+  @override
+  String get diveSites_gapLine_unlinked =>
+      'Este ponto pode estar no catálogo integrado.';
+
+  @override
   String get diveSites_picker_builtIn_adoptError =>
       'Não foi possível adicionar este ponto';
 
@@ -25438,6 +25559,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_catalogueId =>
       'Ligação ao catálogo integrado';
+
+  @override
+  String get settings_conflict_field_catalogueAnswers =>
+      'Respostas sobre o catálogo integrado';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>

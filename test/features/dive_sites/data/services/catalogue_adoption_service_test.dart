@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_catalogue_answers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 
@@ -199,6 +200,24 @@ void main() {
       adopted.id,
     );
     expect(types.map((t) => t.id).toSet(), {'reef', 'pier'});
+  });
+
+  test('a record another site stands for is not adopted again', () async {
+    // A merge folded the site adopted from this record into another one.
+    await sites.createSite(
+      const DiveSite(
+        id: 'survivor',
+        name: 'Salt Pier (merged)',
+        catalogueId: 'osm_node_9',
+        catalogueAnswers: SiteCatalogueAnswers(also: {'osm_node_1'}),
+      ),
+    );
+
+    final adoption = await service().adopt(_saltPier, diverId: null);
+
+    expect(adoption.created, isFalse);
+    expect(adoption.site.id, 'survivor');
+    expect(await sites.getAllSites(), hasLength(1));
   });
 
   test('adopting twice returns the first site', () async {

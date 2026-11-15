@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
+import 'package:submersion/features/dive_sites/domain/entities/site_catalogue_answers.dart';
 import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 
 /// Maps a `dive_sites` row to the domain entity, every column included.
@@ -45,5 +46,6 @@ domain.DiveSite mapDiveSiteRow(DiveSite row) {
     isShared: row.isShared,
     sharedLibraryId: row.sharedLibraryId,
     catalogueId: row.catalogueId,
+    catalogueAnswers: SiteCatalogueAnswers.decode(row.catalogueAnswers),
   );
 }

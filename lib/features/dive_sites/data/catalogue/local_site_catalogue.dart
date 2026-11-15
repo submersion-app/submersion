@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_row_mapper.dart';
+import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_name_key.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -21,6 +23,10 @@ const _log = LoggerService('LocalSiteCatalogue');
 
 /// The escape character for LIKE patterns built from typed text.
 const _likeEscape = r'\';
+
+/// How many names one statement asks for: under SQLite's limit on bound
+/// values with room to spare.
+const _namesPerStatement = 500;
 
 /// The built-in site catalogue, read from the local cache database the
 /// importer fills.
@@ -211,6 +217,37 @@ class LocalSiteCatalogue implements SiteCatalogue {
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     return row == null ? null : catalogueSiteFromRow(row);
   });
+
+  @override
+  Future<Map<String, List<CatalogueSite>>> namedMany(Iterable<String> names) =>
+      _read(const {}, (db) async {
+        final wanted = {for (final name in names) catalogueNameKey(name)}
+          ..remove('');
+        if (wanted.isEmpty) return const {};
+        // The key of each record's name is worked out inside the
+        // statement, on the worker isolate, so one pass over the table
+        // answers every name and only the matching rows come back.
+        final found = <String, List<CatalogueSite>>{};
+        for (final keys in wanted.slices(_namesPerStatement)) {
+          final rows =
+              await (db.select(db.siteCatalogueEntries)..where(
+                    (t) =>
+                        t.latitude.isNotNull() &
+                        t.longitude.isNotNull() &
+                        FunctionCallExpression<String>(
+                          kCatalogueNameKeyFunction,
+                          [t.name],
+                        ).isIn(keys),
+                  ))
+                  .get();
+          for (final row in rows) {
+            (found[catalogueNameKey(row.name)] ??= []).add(
+              catalogueSiteFromRow(row),
+            );
+          }
+        }
+        return found;
+      });
 
   @override
   Future<CatalogueSource?> source(String key) => _read(null, (db) async {

@@ -12781,6 +12781,125 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveSites_list_menu_catalogueReview =>
+      'השוואת אתרים מול הקטלוג המובנה';
+
+  @override
+  String get diveSites_gapReview_title => 'פרטים מובנים לאתרים שלך';
+
+  @override
+  String diveSites_gapReview_sectionSame(Object count) {
+    return 'אותו אתר ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_sectionCheck(Object count) {
+    return 'כדאי לבדוק ($count)';
+  }
+
+  @override
+  String get diveSites_gapReview_empty =>
+      'האתרים שלך כבר כוללים את כל מה שיש לקטלוג המובנה עבורם.';
+
+  @override
+  String diveSites_gapReview_apply(Object count) {
+    return 'החל ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_adds(Object items) {
+    return 'מוסיף: $items';
+  }
+
+  @override
+  String get diveSites_gapReview_addsLink => 'קישור';
+
+  @override
+  String diveSites_gapReview_nearby(Object distance, Object name) {
+    return '$distance מ-\"$name\"';
+  }
+
+  @override
+  String diveSites_gapReview_named(Object name, Object place) {
+    return 'ללא מיקום. \"$name\", $place';
+  }
+
+  @override
+  String diveSites_gapReview_namedNoPlace(Object name) {
+    return 'ללא מיקום. \"$name\"';
+  }
+
+  @override
+  String get diveSites_gapReview_compare => 'השוואה לרשומה המובנית';
+
+  @override
+  String diveSites_gapReview_applied(Object filled, Object linked) {
+    return 'אתרים שקושרו: $linked. אתרים שפרטיהם הושלמו: $filled.';
+  }
+
+  @override
+  String diveSites_gapReview_appliedSome(
+    Object failed,
+    Object filled,
+    Object linked,
+  ) {
+    return 'אתרים שקושרו: $linked. אתרים שפרטיהם הושלמו: $filled. לא הוחלו: $failed.';
+  }
+
+  @override
+  String get diveSites_gapReview_error => 'לא ניתן היה להחיל את השינויים';
+
+  @override
+  String get diveSites_gapCompare_yours => 'האתר שלך';
+
+  @override
+  String get diveSites_gapCompare_record => 'הרשומה המובנית';
+
+  @override
+  String get diveSites_gapCompare_empty => '(ריק)';
+
+  @override
+  String get diveSites_gapCompare_staysYours => 'שלך נשאר';
+
+  @override
+  String diveSites_gapCompare_apart(Object distance) {
+    return 'במרחק $distance זה מזה';
+  }
+
+  @override
+  String diveSites_gapCompare_fill(Object count) {
+    return 'השלם ($count)';
+  }
+
+  @override
+  String get diveSites_gapCompare_linkOnly => 'קישור בלבד';
+
+  @override
+  String get diveSites_gapCompare_notSame => 'לא אותו אתר';
+
+  @override
+  String get diveSites_gapCompare_noThanks => 'לא תודה';
+
+  @override
+  String get diveSites_gapField_name => 'שם';
+
+  @override
+  String diveSites_gapNotice_text(Object count) {
+    return 'יש פרטים מובנים זמינים לאתרים שלך ($count)';
+  }
+
+  @override
+  String get diveSites_gapNotice_review => 'בדיקה';
+
+  @override
+  String get diveSites_gapLine_linked =>
+      'לקטלוג המובנה יש פרטים נוספים על האתר הזה.';
+
+  @override
+  String get diveSites_gapLine_unlinked =>
+      'ייתכן שהאתר הזה נמצא בקטלוג המובנה.';
+
+  @override
   String get diveSites_picker_builtIn_adoptError =>
       'לא ניתן היה להוסיף את האתר';
 
@@ -24865,6 +24984,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_catalogueId => 'קישור לקטלוג המובנה';
+
+  @override
+  String get settings_conflict_field_catalogueAnswers =>
+      'תשובות לגבי הקטלוג המובנה';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>

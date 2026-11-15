@@ -226,5 +226,14 @@ extension RungsFromV340 on AppDatabase {
     if (from < 368) await _assertAttributeValueUnitColumn();
     if (from < 368) await _repairCylinderVolumeCubicFeet();
     if (from < 368) await reportProgress();
+
+    // v369: dive_sites.catalogue_answers, what a diver has settled about
+    // built-in catalogue records for a site, and the link and answers a
+    // profile keeps for a shared library site in library_site_notes.
+    // Nullable, with nothing to backfill, so the floor does not move. The
+    // columns are re-asserted in beforeOpen. Renumbered three times: main took
+    // 365 for #4537, 367 for #4539 and 368 for #4544.
+    if (from < 369) await _assertSiteCatalogueAnswersColumns();
+    if (from < 369) await reportProgress();
   }
 }

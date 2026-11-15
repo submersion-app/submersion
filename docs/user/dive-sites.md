@@ -190,9 +190,31 @@ A register record is a charted position, not a dive guide: its position and dept
 
 The catalogue contains information from OpenStreetMap, which is made available under the Open Database License (ODbL). Every source and its licence is on the licenses page (**Settings > About > Open Source Licenses**, under **Dive site data**), and a site you added from the catalogue shows its source at the top of its page. The data is not for navigation.
 
+## Filling in sites you already have
+
+A site you typed in yourself, brought in from another logbook, or added before Submersion kept a link to the catalogue can take the built-in catalogue's details too. Submersion looks for the catalogue record that is the same place as each of your sites and lists what it found for you to review. Nothing changes until you say so.
+
+Open the list from the Sites page's overflow menu (**Check sites against built-in catalogue**). When there is something to review, a line above your site list says so (**Built-in details are available for your sites**) with a **Review** button; close it with the X and it returns only when something new turns up. A site that has a match also says so at the top of its own page.
+
+The list (**Built-in details for your sites**) has two parts:
+
+- **Same site**: sites Submersion is sure about, already ticked. These carry the same name as a catalogue record and sit within 150 m (490 ft) of it, or are already linked to it and the catalogue has since learned more.
+- **Check these**: sites for you to decide, not ticked. A site within 150 m (490 ft) of a record under a different name (your "Thistlegorm", the catalogue's "SS Thistlegorm"); a site with no position whose name matches exactly one record, where the record's position is part of what it offers; and any match that would give a site a position.
+
+Each row says what it would add. Tap **Apply** to act on the ticked rows. A row you leave unticked stays on the list for next time.
+
+Only empty fields are filled. A depth, a description or a position you already have is never replaced, however different the catalogue's is, and your site's name, notes and rating are never touched. A site that is not yet linked gains its link to the record, which shows the source at the top of its page and stops the catalogue offering you that site again.
+
+Tap a row to compare your site with the record field by field. Untick any detail you do not want, then tap **Fill in**; a detail you turn down is not offered again from that record. With every detail unticked, **Link only** links the site and fills nothing. Close the comparison without applying and the row keeps your choice: it names only the details still ticked, and **Apply** fills only those. Two answers take a match off the list for good:
+
+- **Not the same site**, when the record is a different place. The record stays in the catalogue, where you can still find it by name.
+- **No thanks**, on a site already linked, when you want none of the new details.
+
+Your answers are saved with the site and sync to your other devices. For a site in a shared site library, the details you fill in go to the whole library, while the link and your answers stay with your own profile.
+
 ## Merging duplicate sites
 
-If you end up with more than one entry for the same place, choose **Select items** from the list's overflow menu, select them, and tap **Merge Selected**. The merge form (**Merge Sites**) opens with all sections expanded and pre-filled from the first site. For every field that differs between the two sites, a cycle button (two-arrow icon) appears so you can step through the values from each source and keep the one you want. Coordinates, difficulty, and rating each have their own cycle control. Confirm to combine them into one site and relink every dive that was associated with any of them; **Undo** is offered right after.
+If you end up with more than one entry for the same place, choose **Select items** from the list's overflow menu, select them, and tap **Merge Selected**. The merge form (**Merge Sites**) opens with all sections expanded and pre-filled from the first site. For every field that differs between the two sites, a cycle button (two-arrow icon) appears so you can step through the values from each source and keep the one you want. Coordinates, difficulty, and rating each have their own cycle control. Confirm to combine them into one site and relink every dive that was associated with any of them; **Undo** is offered right after. If the sites you merge were added from two different built-in records, the merged site stands for both, so neither record is offered to you again.
 
 ## GPS auto-matching of dives to sites
 
