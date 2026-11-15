@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
     show TooltipRow;
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_painter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_lift.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_tooltip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_values.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
@@ -21,11 +22,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Room below the strip the tooltip may take: enough for its five rows.
 const double _tooltipRoom = 240;
-
-/// The settled strip's elevation: Material 3's level 2, the lift of an app
-/// bar with content scrolled under it, so the strip reads as pinned over the
-/// page rather than as one more card in it.
-const double kPinnedStripElevation = 3;
 
 /// Corner radius of the profile card the strip condenses out of when the
 /// theme's card shape gives none: Material 3's default card radius.
@@ -166,6 +162,11 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
 
     final condense = widget.condense.clamp(0.0, 1.0);
     final background = widget.backgroundOpacity.clamp(0.0, 1.0);
+    // How far the strip has lifted off the page. Nothing while the surface
+    // is see-through (a shadow would show through and grey the card), then
+    // growing with the condense, so it never switches on or off in a single
+    // frame either way.
+    final lift = background >= 1 ? condense : 0.0;
     final showTooltip = rows.isNotEmpty && condense >= 1;
     final stripPainter = PinnedStripPainter(
       profile: profile,
@@ -210,77 +211,95 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                   ),
             child: CompositedTransformTarget(
               link: _link,
-              child: Material(
-                // The card's own colour, so the strip reads as the card
-                // condensing.
-                color: card.fill.withValues(alpha: card.fill.a * background),
-                // No shadow while the surface is see-through (it would show
-                // through and grey the card), then one that grows with the
-                // condense, so it never switches on or off in a single frame
-                // either way.
-                elevation: background >= 1
-                    ? kPinnedStripElevation * condense
-                    : 0,
-                // Colour and shadow follow the scroll frame by frame
-                // already; the surface's own ease would lag a fast scroll
-                // and flash.
-                animationDuration: Duration.zero,
-                // It starts across the card at the plot's top and pins flush
-                // under the header at the card's width, so only its bottom
-                // corners round, like the card's own, condensing and pinned
-                // alike (#4488).
-                shape: RoundedRectangleBorder(borderRadius: card.corners),
-                clipBehavior: Clip.antiAlias,
-                child: CustomPaint(
-                  // Its outline, where the theme's cards have one, on the sides
-                  // and bottom only: its top crosses the card at the plot's top
-                  // and pins flush under the header. It fades in with the
-                  // surface.
-                  foregroundPainter: PinnedStripOutlinePainter(
-                    side: card.side.copyWith(
-                      color: card.side.color.withValues(
-                        alpha: card.side.color.a * background,
-                      ),
+              // Its own shadow, clearly deeper than the cards it covers in
+              // every theme preset and much stronger in dark mode, where
+              // black barely darkens the page (#4554). It falls only beside
+              // and below, never up onto the card or header above.
+              child: ClipRect(
+                clipper: const PinnedStripShadowClip(),
+                child: DecoratedBox(
+                  key: const ValueKey('pinnedStripShadow'),
+                  decoration: BoxDecoration(
+                    borderRadius: card.corners,
+                    boxShadow: pinnedStripShadows(
+                      theme.brightness,
+                      strength: lift,
                     ),
-                    corners: card.corners,
                   ),
-                  child: SizedBox(
-                    height: condense >= 1 ? kPinnedStripHeight : null,
-                    child: MouseRegion(
-                      onHover: (e) =>
-                          _scrubTo(e.localPosition.dx, width, profile),
-                      onExit: (_) => _write(null),
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTapDown: (d) =>
-                            _scrubTo(d.localPosition.dx, width, profile),
-                        // A mouse still hovers where it clicked, so the cursor
-                        // stays until it moves or leaves; a lifted finger
-                        // clears.
-                        onTapUp: (d) {
-                          if (d.kind != PointerDeviceKind.mouse) _write(null);
-                        },
-                        onTapCancel: () => _write(null),
-                        onHorizontalDragStart: (d) =>
-                            _scrubTo(d.localPosition.dx, width, profile),
-                        onHorizontalDragUpdate: (d) =>
-                            _scrubTo(d.localPosition.dx, width, profile),
-                        onHorizontalDragEnd: (_) => _write(null),
-                        onHorizontalDragCancel: () => _write(null),
-                        // Cross-fades with the surface: drawn on the chart's
-                        // own line and shading, so at full strength the two
-                        // shadings would stack into a darker blue.
-                        child: Opacity(
-                          opacity: background,
-                          child: CustomPaint(
-                            size: Size.infinite,
-                            painter: stripPainter,
-                            // Its own layer: moving the cursor repaints only
-                            // the cursor.
-                            foregroundPainter: PinnedStripCursorPainter(
-                              strip: stripPainter,
-                              selectedSeconds: selectedSeconds,
-                              color: colors.primary,
+                  child: Material(
+                    // The card's own colour, so the strip reads as the card
+                    // condensing.
+                    color: card.fill.withValues(
+                      alpha: card.fill.a * background,
+                    ),
+                    // No shadow of its own: the DecoratedBox around it draws
+                    // the strip's, and a second would stack under it.
+                    elevation: 0,
+                    // Colour follows the scroll frame by frame already; the
+                    // surface's own ease would lag a fast scroll and flash.
+                    animationDuration: Duration.zero,
+                    // It starts across the card at the plot's top and pins
+                    // flush under the header at the card's width, so only its
+                    // bottom corners round, like the card's own, condensing and
+                    // pinned alike (#4488).
+                    shape: RoundedRectangleBorder(borderRadius: card.corners),
+                    clipBehavior: Clip.antiAlias,
+                    child: CustomPaint(
+                      // Its outline on the sides and bottom only: its top
+                      // crosses the card at the plot's top and pins flush under
+                      // the header. The theme's card outline where there is
+                      // one, fading in with the surface; otherwise, in dark
+                      // mode, a faint light rim growing in with the shadow.
+                      foregroundPainter: PinnedStripOutlinePainter(
+                        side: pinnedStripEdge(
+                          brightness: theme.brightness,
+                          themeSide: card.side,
+                          surfaceOpacity: background,
+                          strength: lift,
+                        ),
+                        corners: card.corners,
+                      ),
+                      child: SizedBox(
+                        height: condense >= 1 ? kPinnedStripHeight : null,
+                        child: MouseRegion(
+                          onHover: (e) =>
+                              _scrubTo(e.localPosition.dx, width, profile),
+                          onExit: (_) => _write(null),
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTapDown: (d) =>
+                                _scrubTo(d.localPosition.dx, width, profile),
+                            // A mouse still hovers where it clicked, so the
+                            // cursor stays until it moves or leaves; a lifted
+                            // finger clears.
+                            onTapUp: (d) {
+                              if (d.kind != PointerDeviceKind.mouse) {
+                                _write(null);
+                              }
+                            },
+                            onTapCancel: () => _write(null),
+                            onHorizontalDragStart: (d) =>
+                                _scrubTo(d.localPosition.dx, width, profile),
+                            onHorizontalDragUpdate: (d) =>
+                                _scrubTo(d.localPosition.dx, width, profile),
+                            onHorizontalDragEnd: (_) => _write(null),
+                            onHorizontalDragCancel: () => _write(null),
+                            // Cross-fades with the surface: drawn on the
+                            // chart's own line and shading, so at full strength
+                            // the two shadings would stack into a darker blue.
+                            child: Opacity(
+                              opacity: background,
+                              child: CustomPaint(
+                                size: Size.infinite,
+                                painter: stripPainter,
+                                // Its own layer: moving the cursor repaints
+                                // only the cursor.
+                                foregroundPainter: PinnedStripCursorPainter(
+                                  strip: stripPainter,
+                                  selectedSeconds: selectedSeconds,
+                                  color: colors.primary,
+                                ),
+                              ),
                             ),
                           ),
                         ),
