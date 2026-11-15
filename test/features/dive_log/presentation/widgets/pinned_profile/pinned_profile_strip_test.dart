@@ -796,9 +796,7 @@ void main() {
 
     // Many layer rows on a short screen must not run the tooltip off it
     // (review): its room is capped, and its box scales down to fit.
-    testWidgets('the tooltip room is capped on a short screen', (
-      tester,
-    ) async {
+    testWidgets('the tooltip room is capped on a short screen', (tester) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(800, 600);
       addTearDown(tester.view.reset);

@@ -894,10 +894,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       expect(host(tester).settled, isTrue);
       expect(stripWidget(tester).layers.grow, 1);
-      expect(
-        tester.getSize(strip).height,
-        kPinnedStripGrownHeight,
-      );
+      expect(tester.getSize(strip).height, kPinnedStripGrownHeight);
       await condenseTo(tester, 0.5);
       expect(host(tester).settled, isFalse);
       await tester.pump(const Duration(milliseconds: 300));
