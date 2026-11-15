@@ -167,6 +167,28 @@ void main() {
     });
   });
 
+  test('the marks repaint when the depth line changes colour', () {
+    final layers = _state(
+      const PinnedStripLayerData(
+        dots: [StripDot(seconds: 660, depthMeters: 20)],
+      ),
+      {StripLayer.media: 1},
+    );
+    const red = PinnedStripPainter(
+      profile: _profile,
+      curveColor: Colors.red,
+      fillColors: [Colors.blue, Colors.blue],
+      surfaceColor: Colors.white,
+    );
+    expect(
+      StripMarkerPainter(
+        strip: red,
+        layers: layers,
+      ).shouldRepaint(StripMarkerPainter(strip: _strip(), layers: layers)),
+      isTrue,
+    );
+  });
+
   group('bands', () {
     testWidgets('a phase tints the strip from its start to its end', (
       tester,

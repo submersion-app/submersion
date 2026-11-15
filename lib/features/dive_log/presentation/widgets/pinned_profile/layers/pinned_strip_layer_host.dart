@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/data/services/estimated_tank_pressure_synthesizer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
@@ -18,7 +19,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
-    show ChartSourceOverlay;
+    show ChartSourceOverlay, DiveProfileChart;
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/pinned_strip_layer_animator.dart';
@@ -132,10 +133,10 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
       brightness: theme.brightness,
       colorScheme: theme.colorScheme,
       // Named as the full chart's tooltip names a tank.
-      tankLabel: (tank, index) {
-        final base = tank?.name ?? l10n.diveLog_tank_title(index + 1);
-        return tank == null ? base : '$base (${tank.gasMix.name})';
-      },
+      tankLabel: (tank, index) => DiveProfileChart.tankTooltipLabel(
+        tank,
+        l10n.diveLog_tank_title(index + 1),
+      ),
     );
   }
 
@@ -166,7 +167,9 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
       profile: profile,
       analysis: analysis,
       sacScale: calculateSacNormalizationFactor(dive, analysis),
-      tanks: watchChartTankSeries(ref, id),
+      // The chart's tank series, kept while its sources are: without the
+      // estimates it is built afresh from the measured series every call.
+      tanks: _tankSeries(id),
       diveTanks: dive.tanks,
       gasSwitches:
           ref.watch(gasSwitchesProvider(id).select((a) => a.value)) ?? const [],
@@ -191,6 +194,20 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
       ], () => plan?.copyWith(name: context.l10n.diveLog_legend_label_plan)),
       otherSources: _otherSources(id, sourceId),
     );
+  }
+
+  /// [watchChartTankSeries], as one object while its sources are.
+  EstimatedTankPressures? _tankSeries(String id) {
+    final estimated = ref.watch(
+      estimatedTankPressuresProvider(id).select((a) => a.value),
+    );
+    final measured = ref.watch(
+      activeSourceTankPressuresProvider(id).select((a) => a.value),
+    );
+    return _memo.remember('tanks', [
+      estimated,
+      measured,
+    ], () => chartTankSeries(estimated, measured));
   }
 
   /// The moment and depth of each photo or video placed on the profile,

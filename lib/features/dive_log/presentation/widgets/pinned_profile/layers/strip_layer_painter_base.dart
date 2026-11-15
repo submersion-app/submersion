@@ -43,7 +43,9 @@ abstract class StripLayerPainter extends CustomPainter {
       oldDelegate.strip.morph != strip.morph ||
       oldDelegate.strip.curveHeight != strip.curveHeight ||
       oldDelegate.strip.extraMaxDepthMeters != strip.extraMaxDepthMeters ||
-      oldDelegate.strip.surfaceColor != strip.surfaceColor;
+      oldDelegate.strip.surfaceColor != strip.surfaceColor ||
+      // The media dots are drawn in the depth line's colour.
+      oldDelegate.strip.curveColor != strip.curveColor;
 
   static bool _sameStrengths(Map<Object, double> a, Map<Object, double> b) {
     if (a.length != b.length) return false;

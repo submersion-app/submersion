@@ -461,5 +461,8 @@ class PinnedStripCursorPainter extends CustomPainter {
       old.color != color ||
       old.strip.profile != strip.profile ||
       old.strip.from != strip.from ||
-      old.strip.morph != strip.morph;
+      old.strip.morph != strip.morph ||
+      // Its mapping follows the strip's height and a ghost's depth too.
+      old.strip.curveHeight != strip.curveHeight ||
+      old.strip.extraMaxDepthMeters != strip.extraMaxDepthMeters;
 }

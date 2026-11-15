@@ -259,6 +259,26 @@ void main() {
       expect(m.maxDepthMeters, 24);
     });
 
+    test('the cursor repaints when the strip grows or a ghost deepens', () {
+      PinnedStripCursorPainter cursor(PinnedStripPainter strip) =>
+          PinnedStripCursorPainter(
+            strip: strip,
+            selectedSeconds: 600,
+            color: Colors.red,
+          );
+      expect(
+        cursor(painter(curveHeight: 72)).shouldRepaint(cursor(painter())),
+        isTrue,
+      );
+      expect(
+        cursor(
+          painter(extraMaxDepthMeters: 40),
+        ).shouldRepaint(cursor(painter())),
+        isTrue,
+      );
+      expect(cursor(painter()).shouldRepaint(cursor(painter())), isFalse);
+    });
+
     test('repaints when the height or the ghost depth changes', () {
       expect(
         painter(curveHeight: 72).shouldRepaint(painter(curveHeight: 44)),

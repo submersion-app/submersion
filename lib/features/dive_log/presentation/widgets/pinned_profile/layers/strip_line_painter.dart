@@ -75,7 +75,7 @@ class StripLinePainter extends StripLayerPainter {
         path.addPolygon([for (final p in run) _linePoint(m, line, p)], false);
       }
       canvas.drawPath(
-        line.estimated ? _dashed(path) : path,
+        line.estimated ? _dashedFor(line, m, path) : path,
         Paint()
           ..color = StripLayerPainter.faded(line.color, strength)
           ..style = PaintingStyle.stroke
@@ -85,6 +85,20 @@ class StripLinePainter extends StripLayerPainter {
       );
     }
   }
+
+  /// [line]'s dashes through [m], cut from [path] once per mapping: the
+  /// painter repaints every frame of a fade, and only the alpha changes.
+  static Path _dashedFor(StripLine line, PlotMapping m, Path path) {
+    final kept = _dashes[line];
+    if (kept != null && kept.mapping == m) return kept.path;
+    final dashed = _dashed(path);
+    _dashes[line] = (mapping: m, path: dashed);
+    return dashed;
+  }
+
+  static final Expando<({PlotMapping mapping, Path path})> _dashes = Expando(
+    'stripDashes',
+  );
 
   /// [path] cut into dashes.
   static Path _dashed(Path path) {
