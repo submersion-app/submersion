@@ -122,7 +122,12 @@ class _Overview extends ConsumerWidget {
   ) {
     final l10n = context.l10n;
     final id = computer.computerId;
+    // A computer with no name, maker or model has an empty display name;
+    // it is still discardable by its id, under the unknown label.
     final name = computer.name;
+    final label = name == null || name.isEmpty
+        ? l10n.settings_rawDiveData_unknownComputer
+        : name;
     final usage = Text(
       l10n.settings_rawDiveData_computerUsage(
         computer.diveCount,
@@ -132,9 +137,9 @@ class _Overview extends ConsumerWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: const Icon(Icons.watch_outlined),
-      title: Text(name ?? l10n.settings_rawDiveData_unknownComputer),
+      title: Text(label),
       // The unknown row has no computer to discard by; Discard all clears it.
-      subtitle: id == null || name == null
+      subtitle: id == null
           ? usage
           : Column(
               mainAxisSize: MainAxisSize.min,
@@ -145,13 +150,13 @@ class _Overview extends ConsumerWidget {
                   actionKey: ValueKey('raw_dive_data_discard_$id'),
                   label: l10n.diveComputer_rawData_discardAction,
                   semanticsLabel: l10n
-                      .settings_rawDiveData_discardComputerSemantics(name),
+                      .settings_rawDiveData_discardComputerSemantics(label),
                   onPressed: () => confirmAndDiscardRawDiveData(
                     context,
                     ref,
                     computerId: id,
                     message: l10n.diveComputer_rawData_discardComputerMessage(
-                      name,
+                      label,
                       computer.diveCount,
                     ),
                   ),

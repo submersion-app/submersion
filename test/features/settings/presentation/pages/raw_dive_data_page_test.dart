@@ -87,14 +87,40 @@ void main() {
   testWidgets('a computer\'s Discard tells a screen reader which computer', (
     tester,
   ) async {
+    // Disposed in the body: the end-of-test check runs before tear-downs,
+    // and finally covers a failing expect.
     final semantics = tester.ensureSemantics();
-    await pump(tester);
+    try {
+      await pump(tester);
 
+      expect(
+        find.bySemanticsLabel('Discard raw data from Perdix'),
+        findsOneWidget,
+      );
+    } finally {
+      semantics.dispose();
+    }
+  });
+
+  testWidgets('a computer with no name is labelled unknown but can still be '
+      'discarded', (tester) async {
+    await pump(
+      tester,
+      byComputer: const [
+        (computerId: 'c9', name: '', diveCount: 2, storedBytes: 2048),
+      ],
+    );
+
+    expect(find.text('Unknown computer'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('raw_dive_data_discard_c9')));
+    await tester.pumpAndSettle();
     expect(
-      find.bySemanticsLabel('Discard raw data from Perdix'),
+      find.textContaining('for 2 dives from Unknown computer?'),
       findsOneWidget,
     );
-    semantics.dispose();
+    await tester.tap(dialogDiscard);
+    await tester.pumpAndSettle();
+    expect(service.calls, ['c9']);
   });
 
   testWidgets('Discard all confirms with the every-computer message and '
