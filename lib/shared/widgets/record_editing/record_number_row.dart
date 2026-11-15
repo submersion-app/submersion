@@ -59,6 +59,8 @@ class RecordNumberRow<T> extends StatefulWidget {
     this.integer = false,
     this.allowNegative = true,
     this.trimZeros = false,
+    this.apply,
+    this.suggestion,
   });
 
   final EditSession<T> session;
@@ -85,6 +87,16 @@ class RecordNumberRow<T> extends StatefulWidget {
   /// Whether decimals a value does not need are left off: 18 shows as "18"
   /// and 21.4 as "21.4" at one decimal, the way a temperature reads.
   final bool trimZeros;
+
+  /// Writes a value the diver typed, in the stored unit. Null is
+  /// `session.set(field, value)`. For a value that moves others: a runtime
+  /// moves the exit.
+  final void Function(double? value)? apply;
+
+  /// Offered beside the row while it differs from the row's text, as the
+  /// form's rows offer a value worked out from the profile. Its value is
+  /// already formatted in the diver's unit.
+  final ProfileSuggestion? suggestion;
 
   @override
   State<RecordNumberRow<T>> createState() => _RecordNumberRowState<T>();
@@ -119,6 +131,15 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>>
       },
       parse: _parse,
       onUnreadableChanged: reportUnreadable,
+      // Read through the widget each time, so a new rule is followed.
+      apply: (value) {
+        final apply = widget.apply;
+        if (apply != null) {
+          apply(value);
+        } else {
+          widget.session.set(widget.field, value);
+        }
+      },
     );
   }
 
@@ -197,6 +218,7 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>>
       controller: _binding.controller,
       suffixText: widget.suffixText,
       placeholder: widget.placeholder,
+      profileSuggestion: widget.suggestion,
       keyboardType: TextInputType.numberWithOptions(
         decimal: !widget.integer,
         signed: widget.allowNegative,

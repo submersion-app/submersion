@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_number_row.dart';
@@ -48,6 +49,8 @@ Widget _host(
   String? placeholder,
   bool showRow = true,
   bool trimZeros = false,
+  void Function(double? value)? apply,
+  ProfileSuggestion? suggestion,
 }) {
   return MaterialApp(
     locale: const Locale('en'),
@@ -71,6 +74,8 @@ Widget _host(
                 fractionDigits: fractionDigits,
                 placeholder: placeholder,
                 trimZeros: trimZeros,
+                apply: apply,
+                suggestion: suggestion,
               ),
             const TextField(key: ValueKey('elsewhere')),
           ],
@@ -593,6 +598,97 @@ void main() {
 
       expect(controller.revealRequest!.fieldId, 'pressure');
       expect(tester.getRect(field()).top, greaterThan(300));
+    });
+  });
+
+  // A runtime moves the exit: the row hands what was typed to a rule
+  // instead of setting the field itself (issue #4527, plan 4).
+  group('apply', () {
+    testWidgets('is called in place of set, with the stored value', (
+      tester,
+    ) async {
+      final applied = <double?>[];
+      final controller = _unlocked(const _Rec(altitude: 100));
+      await tester.pumpWidget(_host(controller, apply: applied.add));
+
+      await tester.tap(find.text('328 ft'));
+      await tester.pump();
+      for (final text in ['4', '45']) {
+        await tester.enterText(find.byType(TextFormField), text);
+        await tester.pump();
+      }
+
+      expect(applied, [
+        closeTo(_fromFeet(4), 1e-9),
+        closeTo(_fromFeet(45), 1e-9),
+      ]);
+      expect(controller.session!.valueOf(_altitude), 100);
+    });
+
+    testWidgets('the number on show typed back is handed over as the value '
+        'behind it', (tester) async {
+      final applied = <double?>[];
+      final controller = _unlocked(const _Rec(altitude: 1234.5));
+      await tester.pumpWidget(_host(controller, apply: applied.add));
+
+      await tester.tap(find.text('4050 ft'));
+      await tester.pump();
+      for (final text in ['4', '40', '405', '4050']) {
+        await tester.enterText(find.byType(TextFormField), text);
+        await tester.pump();
+      }
+
+      expect(applied.last, 1234.5);
+    });
+
+    testWidgets('blank is handed over as null', (tester) async {
+      final applied = <double?>[];
+      final controller = _unlocked(const _Rec(altitude: 100));
+      await tester.pumpWidget(_host(controller, apply: applied.add));
+
+      await _type(tester, '328 ft', '');
+
+      expect(applied, [null]);
+    });
+  });
+
+  group('suggestion', () {
+    testWidgets('one that differs from the text is offered, and used', (
+      tester,
+    ) async {
+      var used = 0;
+      final controller = _unlocked(const _Rec(altitude: 100));
+      await tester.pumpWidget(
+        _host(
+          controller,
+          suggestion: ProfileSuggestion(
+            value: '400',
+            onUse: () => used++,
+            tooltip: 'From the profile',
+          ),
+        ),
+      );
+
+      await tester.tap(find.byTooltip('From the profile'));
+      await tester.pump();
+
+      expect(used, 1);
+    });
+
+    testWidgets('one equal to the text is not offered', (tester) async {
+      final controller = _unlocked(const _Rec(altitude: 100));
+      await tester.pumpWidget(
+        _host(
+          controller,
+          suggestion: ProfileSuggestion(
+            value: '328',
+            onUse: () {},
+            tooltip: 'From the profile',
+          ),
+        ),
+      );
+
+      expect(find.byTooltip('From the profile'), findsNothing);
     });
   });
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
 /// What a [RecordCardHeader] needs to know about the card it titles while
 /// the record is unlocked.
@@ -158,14 +159,7 @@ class RecordCardHeader extends StatelessWidget {
             ...titleAndDot,
             ?trailing,
             const SizedBox(width: 8),
-            Tooltip(
-              message: l10n.recordEdit_editCardTooltip(title),
-              child: Icon(
-                Icons.edit_outlined,
-                size: 18,
-                color: theme.colorScheme.primary,
-              ),
-            ),
+            RecordPencilIcon(cardTitle: title),
           ],
         ),
       ),
