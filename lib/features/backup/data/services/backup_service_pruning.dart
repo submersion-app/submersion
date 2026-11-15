@@ -33,7 +33,9 @@ extension BackupServicePruning on BackupService {
         ? const <BackupRecord>[]
         : eligible.sublist(keepCount);
     if (pruned.isNotEmpty) {
-      _log.info('Pruning ${pruned.length} old manual backups');
+      // Automatic backups are manual-type records too; only pre-migration
+      // and pinned records are exempt.
+      _log.info('Pruning ${pruned.length} old backups');
     }
     final toDelete = await _pruneLocalCopies(pruned);
 

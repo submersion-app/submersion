@@ -16,7 +16,9 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/backup/data/services/extra_copy_destination.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/extra_cloud_copy.dart';
 
 import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/unused_backup_database_adapter.dart';
@@ -178,5 +180,42 @@ void main() {
       preferences.getHistory().singleWhere((r) => r.id == 'r2').location,
       BackupLocation.cloud,
     );
+  });
+
+  test('a backup whose only other copy is an extra copy loses its local '
+      'copy, its extra copy and its record', () async {
+    final extra = FakeCloudStorageProvider();
+    await seed(1, inCloud: false);
+    const name = 'submersion_backup_extra.db';
+    final local = p.join(dir.path, name);
+    await File(local).writeAsString('backup extra');
+    extra.seedFile(name, Uint8List.fromList([1, 2, 3]));
+    await preferences.addRecord(
+      BackupRecord(
+        id: 'extra',
+        filename: name,
+        timestamp: DateTime.now().subtract(const Duration(days: 5)),
+        sizeBytes: 3,
+        location: BackupLocation.local,
+        diveCount: 1,
+        siteCount: 1,
+        localPath: local,
+        isAutomatic: true,
+        extraCloudCopies: const [
+          ExtraCloudCopy(accountId: 'extra-row', fileId: name),
+        ],
+      ),
+    );
+
+    await BackupService(
+      dbAdapter: UnusedBackupDatabaseAdapter(),
+      preferences: preferences,
+      syncRepository: _Device(),
+      extraCopies: [ExtraCopyDestination('extra-row', extra)],
+    ).pruneOldBackups(1);
+
+    expect(File(local).existsSync(), isFalse);
+    expect(extra.fileCount, 0);
+    expect(preferences.getHistory().map((r) => r.id), ['r1']);
   });
 }
