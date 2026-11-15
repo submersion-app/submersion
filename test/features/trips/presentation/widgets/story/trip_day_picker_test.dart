@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -85,13 +86,20 @@ void main() {
     double width = 360,
     double textScale = 1,
     Locale locale = const Locale('en'),
+    ValueNotifier<DateTime?>? selection,
   }) async {
     // Dates are formatted against Intl.defaultLocale, a process global the
     // app sets from its own locale. Pin it and put it back.
     final previousLocale = Intl.defaultLocale;
-    Intl.defaultLocale = 'en';
+    Intl.defaultLocale = locale.languageCode;
     addTearDown(() => Intl.defaultLocale = previousLocale);
 
+    Widget picker(DateTime? selected) => TripDayPicker(
+      days: days,
+      model: model,
+      selectedDate: selected,
+      onSelect: selections.add,
+    );
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       ProviderScope(
@@ -111,12 +119,12 @@ void main() {
                   child: SizedBox(
                     key: _stripKey,
                     width: width,
-                    child: TripDayPicker(
-                      days: days,
-                      model: model,
-                      selectedDate: selectedDate,
-                      onSelect: selections.add,
-                    ),
+                    child: selection == null
+                        ? picker(selectedDate)
+                        : ValueListenableBuilder<DateTime?>(
+                            valueListenable: selection,
+                            builder: (_, selected, _) => picker(selected),
+                          ),
                   ),
                 ),
               ),
@@ -280,9 +288,15 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
-    // The label is not clipped by its tile: the tile grew to hold it.
-    final label = tester.getRect(find.text('Wed'));
+    // The tiles grew with the text, so the labels are larger, not squeezed:
+    // six days no longer fit 320 points and each keeps twice its minimum.
     final tile = tester.getRect(find.byKey(TripDayPicker.dayTileKey(1)));
+    expect(tile.width, closeTo(TripDayPicker.minDayTileWidth * 2, 0.5));
+    expect(
+      tester.getSize(find.byKey(TripDayPicker.tripTileKey)).width,
+      closeTo(TripDayPicker.tripTileWidth * 2, 0.5),
+    );
+    final label = tester.getRect(find.text('Wed'));
     expect(label.left, greaterThanOrEqualTo(tile.left - 0.5));
     expect(label.right, lessThanOrEqualTo(tile.right + 0.5));
   });
@@ -339,5 +353,114 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
 
     expect(selections, [null]);
+  });
+
+  group('a strip longer than its space', () {
+    testWidgets('choosing a day that is off screen brings it into view', (
+      tester,
+    ) async {
+      final selection = ValueNotifier<DateTime?>(null);
+      addTearDown(selection.dispose);
+      await pumpPicker(
+        tester,
+        days: fourteen.story.days,
+        model: fourteen.model,
+        selection: selection,
+      );
+      final strip = tester.getRect(find.byKey(_stripKey));
+      expect(
+        tester.getRect(find.byKey(TripDayPicker.dayTileKey(13))).left,
+        greaterThan(strip.right),
+        reason: 'day 13 starts off screen',
+      );
+
+      selection.value = fourteen.story.days[12].date;
+      await tester.pumpAndSettle();
+
+      final chosen = tester.getRect(find.byKey(TripDayPicker.dayTileKey(13)));
+      expect(chosen.right, lessThanOrEqualTo(strip.right + 0.5));
+      expect(
+        chosen.left,
+        greaterThanOrEqualTo(strip.left + TripDayPicker.tripTileWidth),
+      );
+    });
+
+    testWidgets('can be dragged with a mouse', (tester) async {
+      await pumpPicker(
+        tester,
+        days: fourteen.story.days,
+        model: fourteen.model,
+      );
+      final before = tester.getRect(find.byKey(TripDayPicker.dayTileKey(3)));
+
+      await tester.drag(
+        find.byKey(TripDayPicker.dayTileKey(3)),
+        const Offset(-150, 0),
+        kind: PointerDeviceKind.mouse,
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getRect(find.byKey(TripDayPicker.dayTileKey(3))).left,
+        lessThan(before.left - 100),
+      );
+    });
+
+    testWidgets('fades at each edge where there is more to see', (
+      tester,
+    ) async {
+      await pumpPicker(
+        tester,
+        days: fourteen.story.days,
+        model: fourteen.model,
+      );
+      await tester.pump();
+      expect(find.byKey(TripDayPicker.moreAfterKey), findsOneWidget);
+      expect(find.byKey(TripDayPicker.moreBeforeKey), findsNothing);
+
+      await tester.drag(
+        find.byKey(TripDayPicker.dayTileKey(3)),
+        const Offset(-150, 0),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(TripDayPicker.moreBeforeKey), findsOneWidget);
+      expect(find.byKey(TripDayPicker.moreAfterKey), findsOneWidget);
+    });
+
+    testWidgets('a strip that fits has no fade', (tester) async {
+      await pumpPicker(tester, days: six.story.days, model: six.model);
+      await tester.pump();
+
+      expect(find.byKey(TripDayPicker.moreAfterKey), findsNothing);
+      expect(find.byKey(TripDayPicker.moreBeforeKey), findsNothing);
+    });
+  });
+
+  group('every tile is the same height, whatever its label needs', () {
+    // A label too wide for its tile is scaled down. That must not make its
+    // tile shorter: the surface line is the picture's baseline, and a
+    // staggered baseline makes depths impossible to compare across days.
+    for (final language in ['fr', 'ar', 'de']) {
+      testWidgets('in $language, on a 14 day trip', (tester) async {
+        await pumpPicker(
+          tester,
+          days: fourteen.story.days,
+          model: fourteen.model,
+          locale: Locale(language),
+        );
+
+        final heights = {
+          tester.getSize(find.byKey(TripDayPicker.tripTileKey)).height,
+          for (var day = 1; day <= 14; day++)
+            tester.getSize(find.byKey(TripDayPicker.dayTileKey(day))).height,
+        };
+        expect(heights, hasLength(1), reason: 'heights: $heights');
+        final tops = {
+          for (var day = 1; day <= 14; day++)
+            tester.getRect(find.byKey(TripDayPicker.dayTileKey(day))).top,
+        };
+        expect(tops, hasLength(1));
+      });
+    }
   });
 }

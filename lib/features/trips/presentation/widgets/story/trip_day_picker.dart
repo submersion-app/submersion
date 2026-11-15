@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,6 +53,10 @@ class TripDayPicker extends ConsumerStatefulWidget {
   static const tripTileKey = Key('trip-picker-tile-trip');
   static Key dayTileKey(int dayNumber) => Key('trip-picker-tile-$dayNumber');
 
+  /// The fades that say the strip continues past an edge.
+  static const moreBeforeKey = Key('trip-picker-more-before');
+  static const moreAfterKey = Key('trip-picker-more-after');
+
   @override
   ConsumerState<TripDayPicker> createState() => _TripDayPickerState();
 }
@@ -64,6 +69,12 @@ class _TripDayPickerState extends ConsumerState<TripDayPicker> {
   double _tileWidth = TripDayPicker.minDayTileWidth;
   double _viewport = 0;
 
+  /// Whether the strip continues past its start and its end edge.
+  final _more = ValueNotifier<({bool before, bool after})>((
+    before: false,
+    after: false,
+  ));
+
   int get _selectedIndex => widget.selectedDate == null
       ? -1
       : widget.days.indexWhere((d) => d.date == widget.selectedDate);
@@ -71,7 +82,18 @@ class _TripDayPickerState extends ConsumerState<TripDayPicker> {
   @override
   void initState() {
     super.initState();
+    _scroll.addListener(_updateMore);
     _showSelectedAfterFrame(animate: false);
+  }
+
+  void _updateMore() {
+    if (!mounted || !_scroll.hasClients) return;
+    final position = _scroll.position;
+    if (!position.hasContentDimensions) return;
+    _more.value = (
+      before: position.extentBefore > 0.5,
+      after: position.extentAfter > 0.5,
+    );
   }
 
   @override
@@ -85,6 +107,7 @@ class _TripDayPickerState extends ConsumerState<TripDayPicker> {
   @override
   void dispose() {
     _scroll.dispose();
+    _more.dispose();
     super.dispose();
   }
 
@@ -157,10 +180,10 @@ class _TripDayPickerState extends ConsumerState<TripDayPicker> {
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: scheme.outlineVariant)),
         ),
-        // The Trip tile and the day tiles are the same height by
-        // construction (the same label over the same chart height), so the
-        // row needs no intrinsic pass, which a LayoutBuilder could not take
-        // part in.
+        // The Trip tile and the day tiles are the same height: each is a
+        // label of fixed height (see _TileLabel) over the same chart height.
+        // So the row needs no intrinsic pass, which a LayoutBuilder could
+        // not take part in.
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -189,26 +212,61 @@ class _TripDayPickerState extends ConsumerState<TripDayPicker> {
                   );
                   _tileWidth = tileWidth;
                   _viewport = constraints.maxWidth;
-                  return SingleChildScrollView(
-                    controller: _scroll,
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        for (var i = 0; i < count; i++)
-                          SizedBox(
-                            width: tileWidth,
-                            child: _DayTile(
-                              day: widget.days[i],
-                              shapes: widget.model.days[i],
-                              model: widget.model,
-                              selected: i == selectedIndex,
-                              chartHeight: widget.chartHeight,
-                              onTap: () => widget.onSelect(widget.days[i].date),
-                            ),
+                  // The extents are known only after this layout.
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => _updateMore(),
+                  );
+                  return Stack(
+                    children: [
+                      // Drag by mouse as well as touch: on desktop a long
+                      // trip's days run past the pane, and a horizontal
+                      // scroll view takes no mouse drag by default.
+                      ScrollConfiguration(
+                        behavior: ScrollConfiguration.of(context).copyWith(
+                          dragDevices: PointerDeviceKind.values.toSet(),
+                        ),
+                        child: SingleChildScrollView(
+                          controller: _scroll,
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              for (var i = 0; i < count; i++)
+                                SizedBox(
+                                  width: tileWidth,
+                                  child: _DayTile(
+                                    day: widget.days[i],
+                                    shapes: widget.model.days[i],
+                                    model: widget.model,
+                                    selected: i == selectedIndex,
+                                    chartHeight: widget.chartHeight,
+                                    onTap: () =>
+                                        widget.onSelect(widget.days[i].date),
+                                  ),
+                                ),
+                            ],
                           ),
-                      ],
-                    ),
+                        ),
+                      ),
+                      // A short fade over an edge the strip continues past.
+                      ValueListenableBuilder(
+                        valueListenable: _more,
+                        builder: (context, more, _) => Stack(
+                          children: [
+                            if (more.before)
+                              const _EdgeFade(
+                                key: TripDayPicker.moreBeforeKey,
+                                atStart: true,
+                              ),
+                            if (more.after)
+                              const _EdgeFade(
+                                key: TripDayPicker.moreAfterKey,
+                                atStart: false,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),
@@ -287,30 +345,85 @@ class _TileLabel extends StatelessWidget {
     final quiet = selected
         ? scheme.onPrimaryContainer
         : (emphasised ? scheme.primary : scheme.onSurfaceVariant);
+    final topStyle = theme.textTheme.labelSmall?.copyWith(
+      color: quiet,
+      fontWeight: emphasised ? FontWeight.bold : null,
+    );
+    final bottomStyle = theme.textTheme.titleSmall?.copyWith(
+      color: strong,
+      fontWeight: FontWeight.bold,
+    );
     return Padding(
       padding: const EdgeInsets.fromLTRB(2, 4, 2, 3),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      child: SizedBox(
+        width: double.infinity,
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            Text(
-              top,
-              maxLines: 1,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: quiet,
-                fontWeight: emphasised ? FontWeight.bold : null,
+            // Sets the label's height. A label too wide for its tile is
+            // scaled down below, and scaling shrinks height with width: left
+            // to size itself, such a tile would be shorter than its
+            // neighbours and its surface line would sit higher than theirs.
+            // One space per line is never too wide, so it is never scaled.
+            ExcludeSemantics(
+              child: Opacity(
+                opacity: 0,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(' ', maxLines: 1, style: topStyle),
+                    Text(' ', maxLines: 1, style: bottomStyle),
+                  ],
+                ),
               ),
             ),
-            Text(
-              bottom,
-              maxLines: 1,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: strong,
-                fontWeight: FontWeight.bold,
+            Positioned.fill(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(top, maxLines: 1, style: topStyle),
+                    Text(bottom, maxLines: 1, style: bottomStyle),
+                  ],
+                ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A short fade over one edge of the strip, saying it continues that way.
+class _EdgeFade extends StatelessWidget {
+  const _EdgeFade({super.key, required this.atStart});
+
+  final bool atStart;
+
+  @override
+  Widget build(BuildContext context) {
+    final surface = Theme.of(context).colorScheme.surface;
+    return PositionedDirectional(
+      start: atStart ? 0 : null,
+      end: atStart ? null : 0,
+      top: 0,
+      bottom: 0,
+      width: 20,
+      child: IgnorePointer(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: atStart
+                  ? AlignmentDirectional.centerStart
+                  : AlignmentDirectional.centerEnd,
+              end: atStart
+                  ? AlignmentDirectional.centerEnd
+                  : AlignmentDirectional.centerStart,
+              colors: [surface, surface.withValues(alpha: 0)],
+            ),
+          ),
         ),
       ),
     );
