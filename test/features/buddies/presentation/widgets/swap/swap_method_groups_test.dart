@@ -91,12 +91,20 @@ void main() {
     expect(find.text('Tap an Android phone'), findsNothing);
   }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
 
-  testWidgets('iOS shows Tap an Android phone', (tester) async {
+  testWidgets('iOS shows Tap an Android phone, and it reads a tag', (
+    tester,
+  ) async {
+    var reads = 0;
     await _pump(
       tester,
-      GetCardGroup(onScanCode: () {}, onOpenFile: () {}, onReadTag: () {}),
+      GetCardGroup(
+        onScanCode: () {},
+        onOpenFile: () {},
+        onReadTag: () => reads++,
+      ),
     );
-    expect(find.text('Tap an Android phone'), findsOneWidget);
     expect(find.text('Receive by tap'), findsNothing);
+    await tester.tap(find.text('Tap an Android phone'));
+    expect(reads, 1);
   }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 }

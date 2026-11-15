@@ -114,4 +114,22 @@ void main() {
     );
     expect(find.text('Try again'), findsOneWidget);
   });
+
+  testWidgets('still starting shows a spinner, not the list', (tester) async {
+    await _pump(tester, availability: null);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('Sam de la Rivera'), findsNothing);
+    expect(find.text('Try again'), findsNothing);
+  });
+
+  testWidgets('permission refused on a phone offers Open settings', (
+    tester,
+  ) async {
+    await _pump(tester, availability: NearbyAvailability.unauthorized);
+    expect(find.text('Try again'), findsOneWidget);
+    // No settings plugin in a test: the tap must not throw.
+    await tester.tap(find.text('Open settings'));
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 }
