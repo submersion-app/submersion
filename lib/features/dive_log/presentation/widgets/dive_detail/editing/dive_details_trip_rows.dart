@@ -59,8 +59,13 @@ Future<V?> _readBack<V>(
   }
 }
 
-/// Sets [field] unless the row has gone, or the sitting has ended or is
-/// being written: a sheet, a page or a lookup can answer after any of them.
+/// Sets [field] on [session] unless the row has gone, or the sitting has
+/// ended or is being written: a sheet, a page or a lookup can answer after
+/// any of them.
+///
+/// [session] is the sitting the answer was asked for. A row can be handed
+/// another sitting while its picker is open, and what comes back belongs to
+/// the one it was opened in, never to whichever the row holds by then.
 void _setIfStillEditing<V>(
   State state,
   EditSession<Dive> session,
@@ -123,8 +128,8 @@ class DiveTripRow extends ConsumerStatefulWidget {
 }
 
 class _DiveTripRowState extends ConsumerState<DiveTripRow> {
-  void _set(Trip? trip) =>
-      _setIfStillEditing(this, widget.session, diveTripField, trip);
+  void _set(EditSession<Dive> session, Trip? trip) =>
+      _setIfStillEditing(this, session, diveTripField, trip);
 
   Future<void> _pick() async {
     final session = widget.session;
@@ -139,7 +144,7 @@ class _DiveTripRowState extends ConsumerState<DiveTripRow> {
         selectedTrip: session.valueOf(diveTripField),
         onTripSelected: (trip) {
           Navigator.of(sheetContext).pop();
-          _set(trip);
+          _set(session, trip);
         },
         onCreateNewTrip: () => Navigator.of(sheetContext).pop(_createNew),
       ),
@@ -153,7 +158,7 @@ class _DiveTripRowState extends ConsumerState<DiveTripRow> {
       messenger: messenger,
       sorry: sorry,
     );
-    if (trip != null) _set(trip);
+    if (trip != null) _set(session, trip);
   }
 
   /// What a trip made from here learns from the dive as the sitting holds
@@ -191,7 +196,7 @@ class _DiveTripRowState extends ConsumerState<DiveTripRow> {
               value: trip?.name,
               placeholder: l10n.diveLog_edit_row_notSet,
               onTap: _pick,
-              onClear: trip == null ? null : () => _set(null),
+              onClear: trip == null ? null : () => _set(session, null),
               clearTooltip: l10n.common_action_remove,
             ),
             if (trip != null)
@@ -201,7 +206,7 @@ class _DiveTripRowState extends ConsumerState<DiveTripRow> {
             else
               _TripSuggestion(
                 day: diveTripSuggestionDay(session.working),
-                onUse: _set,
+                onUse: (suggested) => _set(session, suggested),
               ),
           ],
         );
@@ -260,8 +265,8 @@ class DiveCenterRow extends ConsumerStatefulWidget {
 }
 
 class _DiveCenterRowState extends ConsumerState<DiveCenterRow> {
-  void _set(DiveCenter? center) =>
-      _setIfStillEditing(this, widget.session, diveCenterField, center);
+  void _set(EditSession<Dive> session, DiveCenter? center) =>
+      _setIfStillEditing(this, session, diveCenterField, center);
 
   Future<void> _pick() async {
     final session = widget.session;
@@ -284,7 +289,7 @@ class _DiveCenterRowState extends ConsumerState<DiveCenterRow> {
         ),
         onCenterSelected: (center) {
           Navigator.of(sheetContext).pop();
-          _set(center);
+          _set(session, center);
         },
         onCreateNewCenter: () => Navigator.of(sheetContext).pop(_createNew),
       ),
@@ -298,7 +303,7 @@ class _DiveCenterRowState extends ConsumerState<DiveCenterRow> {
       messenger: messenger,
       sorry: sorry,
     );
-    if (center != null) _set(center);
+    if (center != null) _set(session, center);
   }
 
   @override
@@ -319,7 +324,7 @@ class _DiveCenterRowState extends ConsumerState<DiveCenterRow> {
               value: center?.name,
               placeholder: l10n.diveLog_edit_row_notSet,
               onTap: _pick,
-              onClear: center == null ? null : () => _set(null),
+              onClear: center == null ? null : () => _set(session, null),
               clearTooltip: l10n.common_action_remove,
             ),
             if (where != null) _Caption(where),

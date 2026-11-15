@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -10,6 +12,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_course_ro
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_details_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_details_derived_rows.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sac_volume_hint.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
@@ -316,6 +320,95 @@ void main() {
       expect(order, orderedEquals([...order]..sort()));
       // Below the rows the card edits.
       expect(order.first, greaterThan(top(l.diveLog_diveMode_title)));
+    });
+  });
+
+  // Wanted in volume per minute, with a pressure reading and no cylinder
+  // volume: the card explains the fallback, and the note leads to the place
+  // the volume is entered (issue #386).
+  group('the cylinder volume hint', () {
+    final noVolume = bare.copyWith(
+      runtime: const Duration(minutes: 44),
+      avgDepth: 13.2,
+      tanks: const [
+        DiveTank(
+          id: 'tank-1',
+          startPressure: 200,
+          endPressure: 50,
+          gasMix: GasMix(o2: 21, he: 0),
+          role: TankRole.backGas,
+        ),
+      ],
+    );
+    const rmv = AppSettings(gasConsumptionDisplay: GasConsumptionDisplay.rmv);
+
+    Future<void> pumpRows(
+      WidgetTester tester, {
+      RecordEditController<Dive>? controller,
+    }) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: await getBaseOverrides(
+            settingsNotifier: MockSettingsNotifier(rmv),
+          ),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: controller == null
+                  ? DiveDetailsDerivedRows(dive: noVolume)
+                  : RecordEditScope<Dive>(
+                      controller: controller,
+                      child: DiveDetailsDerivedRows(dive: noVolume),
+                    ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+    }
+
+    SacVolumeHint hint(WidgetTester tester) =>
+        tester.widget<SacVolumeHint>(find.byType(SacVolumeHint));
+
+    testWidgets('on a page with no editing it is a link', (tester) async {
+      await pumpRows(tester);
+
+      expect(hint(tester).onTap, isNotNull);
+    });
+
+    testWidgets('on a locked page it is a link', (tester) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {});
+      addTearDown(controller.dispose);
+
+      await pumpRows(tester, controller: controller);
+
+      expect(hint(tester).onTap, isNotNull);
+    });
+
+    testWidgets('during a sitting it is a plain note: the old edit form must '
+        'not open over the sitting', (tester) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(noVolume);
+      addTearDown(controller.dispose);
+
+      await pumpRows(tester, controller: controller);
+
+      expect(hint(tester).onTap, isNull);
+    });
+
+    testWidgets('once the sitting ends it is a link again', (tester) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(noVolume);
+      addTearDown(controller.dispose);
+      await pumpRows(tester, controller: controller);
+
+      controller.lock();
+      await tester.pump();
+
+      expect(hint(tester).onTap, isNotNull);
     });
   });
 

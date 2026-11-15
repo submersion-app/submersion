@@ -95,6 +95,8 @@ void main() {
   late _Centers centers;
   // One per test, so no test inherits what the one before it left.
   late ValueNotifier<bool> showRows;
+  // The sitting the rows are bound to, so a test can hand them another.
+  late ValueNotifier<EditSession<Dive>> boundSession;
 
   Future<RecordEditController<Dive>> pumpRows(
     WidgetTester tester,
@@ -116,7 +118,8 @@ void main() {
       ..unlock(dive)
       ..openCard('details');
     addTearDown(controller.dispose);
-    final EditSession<Dive> session = controller.session!;
+    boundSession = ValueNotifier<EditSession<Dive>>(controller.session!);
+    addTearDown(boundSession.dispose);
 
     Widget stub(String label, String id) => Builder(
       builder: (context) => Scaffold(
@@ -136,12 +139,14 @@ void main() {
           builder: (context, state) => Scaffold(
             body: RecordEditScope<Dive>(
               controller: controller,
-              child: ValueListenableBuilder<bool>(
-                valueListenable: showRows,
-                builder: (context, show, _) => Column(
+              child: ListenableBuilder(
+                listenable: Listenable.merge([showRows, boundSession]),
+                builder: (context, _) => Column(
                   children: [
-                    if (show) DiveTripRow(session: session),
-                    if (show) DiveCenterRow(session: session),
+                    if (showRows.value)
+                      DiveTripRow(session: boundSession.value),
+                    if (showRows.value)
+                      DiveCenterRow(session: boundSession.value),
                   ],
                 ),
               ),
@@ -339,6 +344,29 @@ void main() {
       expect(controller.isDirty, isFalse);
     });
 
+    testWidgets('a new trip belongs to the sitting its picker was opened '
+        'in', (tester) async {
+      final controller = await pumpRows(tester, bare);
+      await openTripSheet(tester);
+      await tester.tap(find.text(l.trips_picker_newTrip));
+      await tester.pumpAndSettle();
+
+      // The same row is handed another sitting while the new-trip page is
+      // still open.
+      final other = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(bare)
+        ..openCard('details');
+      addTearDown(other.dispose);
+      boundSession.value = other.session!;
+      await tester.pump();
+
+      await tester.tap(find.text('save the trip'));
+      await tester.pumpAndSettle();
+
+      expect(other.isDirty, isFalse);
+      expect(working(controller).tripId, 'new-trip');
+    });
+
     testWidgets('the row gone before its lookup answers sets nothing', (
       tester,
     ) async {
@@ -484,6 +512,27 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text(l.common_error_tryAgain), findsOneWidget);
       expect(controller.isDirty, isFalse);
+    });
+
+    testWidgets('a new center belongs to the sitting its picker was opened '
+        'in', (tester) async {
+      final controller = await pumpRows(tester, bare);
+      await openCenterSheet(tester);
+      await tester.tap(find.text(l.diveCenters_picker_newCenter));
+      await tester.pumpAndSettle();
+
+      final other = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(bare)
+        ..openCard('details');
+      addTearDown(other.dispose);
+      boundSession.value = other.session!;
+      await tester.pump();
+
+      await tester.tap(find.text('save the center'));
+      await tester.pumpAndSettle();
+
+      expect(other.isDirty, isFalse);
+      expect(working(controller).diveCenter?.id, 'new-center');
     });
 
     testWidgets('a new center that returns after the sitting ended sets '

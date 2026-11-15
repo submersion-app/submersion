@@ -21,6 +21,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// What the Details card says about a dive left out of statistics, or null
 /// for a dive that is counted. The master switch wins: it already implies
@@ -202,6 +203,7 @@ class DiveDetailsDerivedRows extends ConsumerWidget {
     UnitFormatter units,
   ) {
     final display = ref.watch(gasConsumptionDisplayProvider);
+    final sitting = RecordEditScope.maybeOf<Dive>(context)?.isUnlocked ?? false;
     final sac = dive.sac;
     final rmv = display.showsRmv
         ? dive.rmvFor(ref.watch(gasModelProvider))
@@ -224,7 +226,10 @@ class DiveDetailsDerivedRows extends ConsumerWidget {
         if (!display.showsSac) sacRow(),
         SacVolumeHint(
           volumeSymbol: units.volumeSymbol,
-          onTap: () => context.push('/dives/${dive.id}/edit'),
+          // The volume is entered on the dive form. During a sitting that
+          // form would open as a second editor over the diver's unsaved
+          // changes, so the hint is a plain note until the sitting ends.
+          onTap: sitting ? null : () => context.push('/dives/${dive.id}/edit'),
         ),
       ],
     ];

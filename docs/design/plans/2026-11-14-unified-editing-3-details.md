@@ -1094,6 +1094,8 @@ Plan 2's pull request (#4550) gained two fix commits while this was being built.
 - **A row or editor that goes before it has built makes no text binding on the way out.** The bindings are made on first use and disposed only if made.
 - **The clear buttons of the trip and dive center rows are named** (`common_action_remove`).
 - **The calculated rows in the open editor share one label column**, as on the read card.
+- **What a picker or a new-record page brings back goes to the sitting it was opened in**, not to whichever sitting the row holds by then (from the pull request's review).
+- **During a sitting the cylinder volume hint is a plain note.** As a link it opened the old edit form as a second editor over the diver's unsaved changes. Plan 5 makes it open the Tanks card.
 - Tests added: a trip stretch that throws fails the save and leaves the dive as it was; reverting the sitting puts the trip's dates back; a cleared dive center is stored as null; a look at the other visibility input changes nothing for a bucket, a range under another scale, or no visibility.
 
 ### Left open
