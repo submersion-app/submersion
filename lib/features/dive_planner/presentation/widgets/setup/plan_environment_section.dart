@@ -318,7 +318,7 @@ class _AltitudeInputState extends State<_AltitudeInput> {
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              altitudeGroup.rangeDescription,
+              altitudeGroup.localizedRange(context.l10n, widget.units),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: _getGroupColor(theme, altitudeGroup),
               ),
