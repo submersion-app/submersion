@@ -386,6 +386,24 @@ void main() {
       expect(controller.session!.working.weatherSource, WeatherSource.manual);
     });
 
+    testWidgets('a sky picked on fetched weather drops the forecast code', (
+      tester,
+    ) async {
+      final controller = await pumpEditor(
+        tester,
+        full.copyWith(weatherSource: WeatherSource.openMeteo, weatherCode: 80),
+      );
+      final l10n = l10nOf(tester);
+
+      await tester.tap(find.text(l10n.diveLog_edit_label_precipitation));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ListTile, 'Snow'));
+      await tester.pumpAndSettle();
+
+      expect(controller.session!.working.precipitation, Precipitation.snow);
+      expect(controller.session!.working.weatherCode, isNull);
+    });
+
     testWidgets('the entry row hints the site method when the dive has none', (
       tester,
     ) async {
@@ -710,6 +728,43 @@ void main() {
         expect(find.byKey(const ValueKey('gone')), findsOneWidget);
         expect(controller.isDirty, isFalse);
       });
+
+      // A forecast is for one place and one time. The dive can change
+      // underneath while it is fetched; one asked for another site or date
+      // is not written onto it.
+      for (final (name, moved) in [
+        (
+          'site',
+          (Dive d) => d.copyWith(
+            site: const DiveSite(
+              id: 'site-2',
+              name: 'Quarry',
+              location: GeoPoint(51.2, -2.5),
+            ),
+          ),
+        ),
+        ('date', (Dive d) => d.copyWith(dateTime: DateTime(2024, 7, 1, 10))),
+      ]) {
+        testWidgets('a forecast for a $name the dive no longer has is '
+            'dropped', (tester) async {
+          final gate = Completer<void>();
+          final dive = bare.copyWith(site: reef);
+          final controller = await pumpEditor(
+            tester,
+            dive,
+            weather: _FakeWeather(data: _forecast, gate: gate),
+          );
+          await tapFetch(tester);
+
+          controller.storedChanged(moved(dive));
+          gate.complete();
+          await tester.pumpAndSettle();
+
+          expect(controller.session!.working.humidity, isNull);
+          expect(controller.session!.working.weatherSource, isNull);
+          expect(controller.isDirty, isFalse);
+        });
+      }
 
       testWidgets('an altitude found after the editor has gone is dropped', (
         tester,

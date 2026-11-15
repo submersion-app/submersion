@@ -195,32 +195,61 @@ void setEntryMethod(
   if (exitFollows) session.set(diveExitMethodField, value);
 }
 
+/// Whether the weather has been fetched again in this sitting.
+bool _refetched(EditSession<Dive> session) =>
+    session.valueOf(diveWeatherFetchedAtField) !=
+    session.stored.weatherFetchedAt;
+
 /// Call when the diver has edited the weather description themselves.
 ///
 /// The read card writes the description of fetched weather from its
-/// forecast and does not show the stored words. Words the diver types, or
-/// their taking the description out, would then be saved and never seen, so
-/// editing it makes the weather the diver's own: the source becomes manual
-/// and the read card shows what is stored. The other fetched values stay.
+/// forecast and does not show the stored words, so words the diver typed
+/// would be saved and never seen. Typing them makes the weather the diver's
+/// own: the source becomes manual and the read card shows their words. The
+/// other fetched values stay.
 ///
-/// Typing the stored words back puts the source back as well, unless the
-/// weather has been fetched again in this sitting, so the sitting is left
-/// clean. Weather that was not fetched is left alone.
+/// Taking the words out needs no such change: with none stored, the read
+/// card writes the description from the forecast whatever the source. So
+/// a description back to nothing, or to the stored words, puts the source
+/// back as it was, unless the weather has been fetched again in this
+/// sitting. Weather that was not fetched is left alone.
 void weatherDescriptionEdited(EditSession<Dive> session) {
   final stored = session.stored;
-  final refetched =
-      session.valueOf(diveWeatherFetchedAtField) != stored.weatherFetchedAt;
+  final words = session.valueOf(diveWeatherDescriptionField);
   final backToStored = diveWeatherDescriptionField.same(
-    session.valueOf(diveWeatherDescriptionField),
+    words,
     stored.weatherDescription,
   );
-  if (backToStored && !refetched) {
+  if ((words == null || backToStored) && !_refetched(session)) {
     session.set(diveWeatherSourceField, stored.weatherSource);
     return;
   }
-  if (session.valueOf(diveWeatherSourceField) == WeatherSource.openMeteo) {
+  if (words != null &&
+      session.valueOf(diveWeatherSourceField) == WeatherSource.openMeteo) {
     session.set(diveWeatherSourceField, WeatherSource.manual);
   }
+}
+
+/// Call when the diver has picked a cloud cover or a precipitation.
+///
+/// The read card names the sky from the forecast's weather code before
+/// either of them, and leaves precipitation out when there is a code. A sky
+/// the diver changes would then be described as the forecast had it, so the
+/// code goes: the read card describes the sky from the diver's values. The
+/// other fetched values, and the source, stay.
+///
+/// Both set back as stored puts the code back, unless the weather has been
+/// fetched again in this sitting, so the sitting is left clean.
+void weatherSkyEdited(EditSession<Dive> session) {
+  final stored = session.stored;
+  final skyAsStored =
+      session.valueOf(diveCloudCoverField) == stored.cloudCover &&
+      session.valueOf(divePrecipitationField) == stored.precipitation;
+  if (skyAsStored && !_refetched(session)) {
+    session.set(diveWeatherCodeField, stored.weatherCode);
+    return;
+  }
+  if (!skyAsStored) session.set(diveWeatherCodeField, null);
 }
 
 /// Writes a fetched forecast into the sitting, as the dive form does.

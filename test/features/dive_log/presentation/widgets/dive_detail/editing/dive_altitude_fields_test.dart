@@ -238,6 +238,36 @@ void main() {
       expect(session.hasHeldWrites, isFalse);
     });
 
+    // The dive can change underneath while the lookup runs, a sync bringing
+    // in another site, say. What was found is for the dive as it was asked
+    // about, and is not put on another.
+    test('a lookup for a site the dive no longer has is dropped', () async {
+      final gate = Completer<void>();
+      final session = sessionOver(bare.copyWith(site: lakeNoAltitude));
+
+      final filling = fillAltitudeIfEmpty(
+        session,
+        resolver: AltitudeResolver(
+          elevationService: _FakeElevation(result: 512, gate: gate),
+        ),
+        writeSiteAltitude: writeSite,
+      );
+      session.rebase(
+        bare.copyWith(
+          site: const DiveSite(
+            id: 'site-2',
+            name: 'Quarry',
+            location: GeoPoint(51.2, -2.5),
+          ),
+        ),
+      );
+      gate.complete();
+      await filling;
+
+      expect(session.valueOf(diveAltitudeField), isNull);
+      expect(session.hasHeldWrites, isFalse);
+    });
+
     test('a lookup that finds nothing changes nothing', () async {
       final session = sessionOver(bare.copyWith(site: lakeNoAltitude));
 

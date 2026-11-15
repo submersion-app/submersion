@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/weather/domain/services/altitude_resolver.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -40,8 +41,9 @@ final diveSurfacePressureField = EditField<Dive, double?>(
 ///
 /// It never replaces an altitude: one set before the call, or typed while
 /// the lookup ran, stays. A result that arrives after the sitting ended,
-/// while it is being saved, or after [stillWanted] turned false, is dropped.
-/// A lookup that fails changes nothing.
+/// while it is being saved, after [stillWanted] turned false, or after the
+/// dive's locations or site changed, is dropped. A lookup that fails changes
+/// nothing.
 Future<void> fillAltitudeIfEmpty(
   EditSession<Dive> session, {
   required AltitudeResolver resolver,
@@ -52,6 +54,7 @@ Future<void> fillAltitudeIfEmpty(
   if (session.valueOf(diveAltitudeField) != null) return;
 
   final dive = session.working;
+  final asked = _lookupInputs(dive);
   final AltitudeResolution resolution;
   try {
     resolution = await resolver.resolve(
@@ -72,6 +75,9 @@ Future<void> fillAltitudeIfEmpty(
   // The sitting ended, is being written, or nobody is waiting any more.
   if (session.isDisposed || session.isFrozen) return;
   if (!(stillWanted?.call() ?? true)) return;
+  // The dive changed underneath while the lookup ran, a sync bringing in
+  // another site, say: what was found is for the dive as it was asked about.
+  if (_lookupInputs(session.working) != asked) return;
   final meters = resolution.altitudeMeters;
   if (meters == null || session.valueOf(diveAltitudeField) != null) return;
 
@@ -87,3 +93,19 @@ Future<void> fillAltitudeIfEmpty(
     });
   }
 }
+
+/// What an altitude lookup for [dive] is asked about.
+({
+  GeoPoint? entry,
+  GeoPoint? exit,
+  String? siteId,
+  GeoPoint? site,
+  double? siteAltitude,
+})
+_lookupInputs(Dive dive) => (
+  entry: dive.entryLocation,
+  exit: dive.exitLocation,
+  siteId: dive.site?.id,
+  site: dive.site?.location,
+  siteAltitude: dive.site?.altitude,
+);
