@@ -232,7 +232,8 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                     color: card.fill.withValues(
                       alpha: card.fill.a * background,
                     ),
-                    // The shadow is the box's above, not Material's.
+                    // No shadow of its own: the DecoratedBox around it draws
+                    // the strip's, and a second would stack under it.
                     elevation: 0,
                     // Colour follows the scroll frame by frame already; the
                     // surface's own ease would lag a fast scroll and flash.
