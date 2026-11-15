@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
@@ -26,7 +27,10 @@ void main() {
       await tearDownTestDatabase();
     });
 
-    Future<GoRouter> pumpNewItemForm(WidgetTester tester) async {
+    Future<GoRouter> pumpNewItemForm(
+      WidgetTester tester, {
+      EquipmentType? type,
+    }) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(800, 4000);
       addTearDown(() {
@@ -52,7 +56,8 @@ void main() {
                 routes: [
                   GoRoute(
                     path: 'new',
-                    builder: (context, state) => const EquipmentEditPage(),
+                    builder: (context, state) =>
+                        EquipmentEditPage(initialType: type),
                   ),
                 ],
               ),
@@ -104,6 +109,30 @@ void main() {
       expect(find.byType(EquipmentEditPage), findsNothing);
       final saved = await repository.getAllEquipment();
       expect(saved.map((e) => e.name), ['Primary Reg']);
+    });
+
+    testWidgets('a unit picked with no number yet is saved (issue #4534)', (
+      tester,
+    ) async {
+      await pumpNewItemForm(tester, type: EquipmentType.instrument);
+      final picker = find.byKey(
+        const ValueKey('attr-unit-gauge_max_pressure_bar'),
+      );
+      await tester.ensureVisible(picker);
+      await tester.tap(picker);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('psi').last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final saved = (await repository.getAllEquipment()).single;
+      final range = (await repository.getAttributesForEquipment(
+        saved.id,
+      )).where((a) => a.key == 'gauge_max_pressure_bar').single;
+      expect(range.valueNum, isNull);
+      expect(range.valueUnit, 'psi');
     });
   });
 }

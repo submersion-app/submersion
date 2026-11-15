@@ -256,6 +256,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   'dive_sites': {
     'access_notes': 'How to get there, entry points',
     'altitude': 'Altitude above sea level in meters (for altitude diving)',
+    'catalogue_answers': 'What the diver has settled about catalogue records for this site, as JSON',
     'catalogue_id': 'The id of the built-in catalogue record this site was adopted from',
     'city': 'Location hierarchy',
     'country_code': 'The country\'s ISO 3166-1 alpha-2 code: from the geocoder when the location is geocoded, else read from country',
@@ -492,6 +493,9 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'thickness': '2,3,4,5,6 or 6mm',
     'type': 'regulator, bcd, wetsuit, etc.',
   },
+  'equipment_attributes': {
+    'value_unit': 'The unit this item\'s number is read in (an AttributeUnit name such as psi, pounds or dual), or null to follow the diver\'s settings, while value_num stays metric',
+  },
   'equipment_components': {
     'role': 'Free text such as "Primary second stage"',
   },
@@ -558,6 +562,10 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   'incidents': {
     'equipment_id': 'the item an equipment incident attributes to',
     'observation_id': 'the gear check-in that recorded the fault behind this report',
+  },
+  'library_site_notes': {
+    'catalogue_answers': 'What this profile has settled about catalogue records for the library site, as JSON, in the form of dive_sites.catalogue_answers',
+    'catalogue_id': 'The built-in catalogue record this profile linked the library site to',
   },
   'media': {
     'cloud_asset_id': 'PhotoKit\'s cloud identifier for a gallery link (media sync program spec 6.2), which names the same photo on every device sharing an iCloud Photos library',

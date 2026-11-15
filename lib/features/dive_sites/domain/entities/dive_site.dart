@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_catalogue_answers.dart';
 
 /// Site difficulty levels
 enum SiteDifficulty {
@@ -78,6 +79,12 @@ class DiveSite extends Equatable {
   /// from: written when the site is created, never by an ordinary edit.
   final String? catalogueId;
 
+  /// What the diver has settled about catalogue records for this site:
+  /// records it also stands for, records that are a different place, and
+  /// details turned down. Like [catalogueId], never written by an
+  /// ordinary edit.
+  final SiteCatalogueAnswers catalogueAnswers;
+
   const DiveSite({
     required this.id,
     this.diverId,
@@ -107,6 +114,7 @@ class DiveSite extends Equatable {
     this.isShared = false,
     this.sharedLibraryId,
     this.catalogueId,
+    this.catalogueAnswers = SiteCatalogueAnswers.empty,
   });
 
   /// Whether this site belongs to a shared site library (issue #2567).
@@ -192,6 +200,7 @@ class DiveSite extends Equatable {
     bool clearSharedLibraryId = false,
     String? catalogueId,
     bool clearCatalogueId = false,
+    SiteCatalogueAnswers? catalogueAnswers,
     bool clearRating = false,
     bool clearLocation = false,
     bool clearMinDepth = false,
@@ -245,6 +254,7 @@ class DiveSite extends Equatable {
           ? null
           : (sharedLibraryId ?? this.sharedLibraryId),
       catalogueId: clearCatalogueId ? null : (catalogueId ?? this.catalogueId),
+      catalogueAnswers: catalogueAnswers ?? this.catalogueAnswers,
     );
   }
 
@@ -278,6 +288,7 @@ class DiveSite extends Equatable {
     isShared,
     sharedLibraryId,
     catalogueId,
+    catalogueAnswers,
   ];
 }
 

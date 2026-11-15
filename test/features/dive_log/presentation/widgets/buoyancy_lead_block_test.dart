@@ -107,11 +107,27 @@ void main() {
     await _pump(tester, buoyancyOutcome(), history: _history);
     expect(find.text('WEIGHTING HISTORY'), findsNothing);
     expect(find.text('Carried'), findsOneWidget);
-    expect(find.text('Modeled'), findsOneWidget);
+    // Once over the figure, once in the chart's legend.
+    expect(find.text('Model suggests'), findsNWidgets(2));
+    // This dive joins the two past ones.
+    expect(find.text('Lead on your last 3 dives in this suit'), findsOneWidget);
+    expect(find.text('This dive'), findsOneWidget);
     expect(
       find.text('You typically carry 1.0 kg more than the model suggests'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('without lead on this dive the chart shows only past dives', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      buoyancyOutcome(leadKg: 0, droppableLeadKg: 0),
+      history: _history,
+    );
+    expect(find.text('Lead on your last 2 dives in this suit'), findsOneWidget);
+    expect(find.text('This dive'), findsNothing);
   });
 
   testWidgets('no history, no legend', (tester) async {

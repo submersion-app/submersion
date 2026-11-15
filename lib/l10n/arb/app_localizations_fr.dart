@@ -13118,6 +13118,126 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveSites_list_menu_catalogueReview =>
+      'Comparer les sites au catalogue intégré';
+
+  @override
+  String get diveSites_gapReview_title => 'Détails intégrés pour tes sites';
+
+  @override
+  String diveSites_gapReview_sectionSame(Object count) {
+    return 'Même site ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_sectionCheck(Object count) {
+    return 'À vérifier ($count)';
+  }
+
+  @override
+  String get diveSites_gapReview_empty =>
+      'Tes sites contiennent déjà tout ce que le catalogue intégré propose pour eux.';
+
+  @override
+  String diveSites_gapReview_apply(Object count) {
+    return 'Appliquer ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_adds(Object items) {
+    return 'Ajoute : $items';
+  }
+
+  @override
+  String get diveSites_gapReview_addsLink => 'lien';
+
+  @override
+  String diveSites_gapReview_nearby(Object distance, Object name) {
+    return 'À $distance de « $name »';
+  }
+
+  @override
+  String diveSites_gapReview_named(Object name, Object place) {
+    return 'Sans position. « $name », $place';
+  }
+
+  @override
+  String diveSites_gapReview_namedNoPlace(Object name) {
+    return 'Sans position. « $name »';
+  }
+
+  @override
+  String get diveSites_gapReview_compare => 'Comparer avec la fiche intégrée';
+
+  @override
+  String diveSites_gapReview_applied(Object filled, Object linked) {
+    return 'Sites liés : $linked. Sites complétés : $filled.';
+  }
+
+  @override
+  String diveSites_gapReview_appliedSome(
+    Object failed,
+    Object filled,
+    Object linked,
+  ) {
+    return 'Sites liés : $linked. Sites complétés : $filled. Non appliqués : $failed.';
+  }
+
+  @override
+  String get diveSites_gapReview_error =>
+      'Impossible d\'appliquer les modifications';
+
+  @override
+  String get diveSites_gapCompare_yours => 'Ton site';
+
+  @override
+  String get diveSites_gapCompare_record => 'Fiche intégrée';
+
+  @override
+  String get diveSites_gapCompare_empty => '(vide)';
+
+  @override
+  String get diveSites_gapCompare_staysYours => 'le tien est conservé';
+
+  @override
+  String diveSites_gapCompare_apart(Object distance) {
+    return 'à $distance l\'un de l\'autre';
+  }
+
+  @override
+  String diveSites_gapCompare_fill(Object count) {
+    return 'Compléter ($count)';
+  }
+
+  @override
+  String get diveSites_gapCompare_linkOnly => 'Lier seulement';
+
+  @override
+  String get diveSites_gapCompare_notSame => 'Pas le même site';
+
+  @override
+  String get diveSites_gapCompare_noThanks => 'Non merci';
+
+  @override
+  String get diveSites_gapField_name => 'Nom';
+
+  @override
+  String diveSites_gapNotice_text(Object count) {
+    return 'Des détails intégrés sont disponibles pour tes sites ($count)';
+  }
+
+  @override
+  String get diveSites_gapNotice_review => 'Vérifier';
+
+  @override
+  String get diveSites_gapLine_linked =>
+      'Le catalogue intégré a d\'autres détails pour ce site.';
+
+  @override
+  String get diveSites_gapLine_unlinked =>
+      'Ce site figure peut-être dans le catalogue intégré.';
+
+  @override
   String get diveSites_picker_builtIn_adoptError =>
       'Impossible d\'ajouter ce site';
 
@@ -23222,9 +23342,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buoyancy_historyCarried => 'Porté';
 
   @override
-  String get buoyancy_historyModeled => 'Modélisé';
-
-  @override
   String buoyancy_historyMore(String delta) {
     return 'Vous portez généralement $delta de plus que ce que le modèle suggère';
   }
@@ -23232,6 +23349,25 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String buoyancy_historyLess(String delta) {
     return 'Vous portez généralement $delta de moins que ce que le modèle suggère';
+  }
+
+  @override
+  String buoyancy_historyCaption(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Lest sur vos $count dernières plongées avec cette combinaison',
+      one: 'Lest sur votre dernière plongée avec cette combinaison',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buoyancy_historyThisDive => 'Cette plongée';
+
+  @override
+  String buoyancy_historyPoint(String date, String carried, String suggested) {
+    return '$date : $carried, $suggested';
   }
 
   @override
@@ -25515,6 +25651,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_catalogueId =>
       'Lien vers le catalogue intégré';
+
+  @override
+  String get settings_conflict_field_catalogueAnswers =>
+      'Réponses sur le catalogue intégré';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
@@ -42396,6 +42536,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attr_flagNo => 'Non';
+
+  @override
+  String get attr_unitDual => 'Les deux';
+
+  @override
+  String get attr_unitPicker => 'Unité';
 
   @override
   String get attr_figurePosition_automatic => 'Automatique';

@@ -13061,6 +13061,128 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveSites_list_menu_catalogueReview =>
+      'Tauchplätze mit integriertem Katalog abgleichen';
+
+  @override
+  String get diveSites_gapReview_title =>
+      'Integrierte Angaben für deine Tauchplätze';
+
+  @override
+  String diveSites_gapReview_sectionSame(Object count) {
+    return 'Derselbe Tauchplatz ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_sectionCheck(Object count) {
+    return 'Bitte prüfen ($count)';
+  }
+
+  @override
+  String get diveSites_gapReview_empty =>
+      'Deine Tauchplätze enthalten bereits alles, was der integrierte Katalog zu ihnen hat.';
+
+  @override
+  String diveSites_gapReview_apply(Object count) {
+    return 'Anwenden ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_adds(Object items) {
+    return 'Ergänzt: $items';
+  }
+
+  @override
+  String get diveSites_gapReview_addsLink => 'Verknüpfung';
+
+  @override
+  String diveSites_gapReview_nearby(Object distance, Object name) {
+    return '$distance von „$name“ entfernt';
+  }
+
+  @override
+  String diveSites_gapReview_named(Object name, Object place) {
+    return 'Keine Position. „$name“, $place';
+  }
+
+  @override
+  String diveSites_gapReview_namedNoPlace(Object name) {
+    return 'Keine Position. „$name“';
+  }
+
+  @override
+  String get diveSites_gapReview_compare =>
+      'Mit dem integrierten Eintrag vergleichen';
+
+  @override
+  String diveSites_gapReview_applied(Object filled, Object linked) {
+    return 'Verknüpfte Tauchplätze: $linked. Tauchplätze mit ergänzten Angaben: $filled.';
+  }
+
+  @override
+  String diveSites_gapReview_appliedSome(
+    Object failed,
+    Object filled,
+    Object linked,
+  ) {
+    return 'Verknüpfte Tauchplätze: $linked. Tauchplätze mit ergänzten Angaben: $filled. Nicht angewendet: $failed.';
+  }
+
+  @override
+  String get diveSites_gapReview_error =>
+      'Die Änderungen konnten nicht angewendet werden';
+
+  @override
+  String get diveSites_gapCompare_yours => 'Dein Tauchplatz';
+
+  @override
+  String get diveSites_gapCompare_record => 'Integrierter Eintrag';
+
+  @override
+  String get diveSites_gapCompare_empty => '(leer)';
+
+  @override
+  String get diveSites_gapCompare_staysYours => 'deine Angabe bleibt';
+
+  @override
+  String diveSites_gapCompare_apart(Object distance) {
+    return '$distance auseinander';
+  }
+
+  @override
+  String diveSites_gapCompare_fill(Object count) {
+    return 'Ergänzen ($count)';
+  }
+
+  @override
+  String get diveSites_gapCompare_linkOnly => 'Nur verknüpfen';
+
+  @override
+  String get diveSites_gapCompare_notSame => 'Nicht derselbe Tauchplatz';
+
+  @override
+  String get diveSites_gapCompare_noThanks => 'Nein danke';
+
+  @override
+  String get diveSites_gapField_name => 'Name';
+
+  @override
+  String diveSites_gapNotice_text(Object count) {
+    return 'Für deine Tauchplätze gibt es integrierte Angaben ($count)';
+  }
+
+  @override
+  String get diveSites_gapNotice_review => 'Prüfen';
+
+  @override
+  String get diveSites_gapLine_linked =>
+      'Der integrierte Katalog hat weitere Angaben zu diesem Tauchplatz.';
+
+  @override
+  String get diveSites_gapLine_unlinked =>
+      'Dieser Tauchplatz könnte im integrierten Katalog stehen.';
+
+  @override
   String get diveSites_picker_builtIn_adoptError =>
       'Tauchplatz konnte nicht hinzugefügt werden';
 
@@ -23126,9 +23248,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buoyancy_historyCarried => 'Getragen';
 
   @override
-  String get buoyancy_historyModeled => 'Modelliert';
-
-  @override
   String buoyancy_historyMore(String delta) {
     return 'Du trägst typischerweise $delta mehr als vom Modell vorgeschlagen';
   }
@@ -23136,6 +23255,25 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String buoyancy_historyLess(String delta) {
     return 'Du trägst typischerweise $delta weniger als vom Modell vorgeschlagen';
+  }
+
+  @override
+  String buoyancy_historyCaption(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Blei bei deinen letzten $count Tauchgängen in diesem Anzug',
+      one: 'Blei bei deinem letzten Tauchgang in diesem Anzug',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buoyancy_historyThisDive => 'Dieser Tauchgang';
+
+  @override
+  String buoyancy_historyPoint(String date, String carried, String suggested) {
+    return '$date: $carried, $suggested';
   }
 
   @override
@@ -25414,6 +25552,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_catalogueId =>
       'Verknüpfung mit integriertem Katalog';
+
+  @override
+  String get settings_conflict_field_catalogueAnswers =>
+      'Antworten zum integrierten Katalog';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
@@ -42190,6 +42332,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attr_flagNo => 'Nein';
+
+  @override
+  String get attr_unitDual => 'Beide';
+
+  @override
+  String get attr_unitPicker => 'Einheit';
 
   @override
   String get attr_figurePosition_automatic => 'Automatisch';

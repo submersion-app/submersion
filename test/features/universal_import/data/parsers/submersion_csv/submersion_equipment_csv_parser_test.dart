@@ -100,6 +100,42 @@ void main() {
     );
   }
 
+  test('a cylinder written as gas capacity reads back at its working pressure, '
+      'whatever order its attributes come in (issue #4534)', () async {
+    const tank = EquipmentItem(
+      id: 'al80',
+      name: 'AL80',
+      type: EquipmentType.tank,
+      attributes: [
+        EquipmentAttribute(
+          id: 'v',
+          equipmentId: 'al80',
+          key: EquipmentAttrKeys.volumeL,
+          valueNum: 11.1,
+        ),
+        EquipmentAttribute(
+          id: 'p',
+          equipmentId: 'al80',
+          key: EquipmentAttrKeys.workingPressureBar,
+          valueNum: 206.843,
+        ),
+      ],
+    );
+    final csv = CsvEquipmentWriter(
+      CsvExportUnits.fromSettings(imperial),
+    ).write([tank]);
+    expect(csv, contains('volume=77.4 cuft gas'));
+
+    final payload = await const SubmersionEquipmentCsvParser().parse(
+      _bytes(csv),
+    );
+    final item = _byName(
+      payload.entitiesOf(ImportEntityType.equipment),
+      'AL80',
+    );
+    expect(_attr(item, EquipmentAttrKeys.volumeL)['valueNum'], 11.1);
+  });
+
   test('an unknown component name is skipped with a warning', () async {
     final csv = CsvEquipmentWriter(CsvExportUnits.metric).write(
       roundTripEquipment(),

@@ -12869,6 +12869,125 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveSites_list_menu_catalogueReview =>
+      'Check sites against built-in catalogue';
+
+  @override
+  String get diveSites_gapReview_title => 'Built-in details for your sites';
+
+  @override
+  String diveSites_gapReview_sectionSame(Object count) {
+    return 'Same site ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_sectionCheck(Object count) {
+    return 'Check these ($count)';
+  }
+
+  @override
+  String get diveSites_gapReview_empty =>
+      'Your sites already carry everything the built-in catalogue has for them.';
+
+  @override
+  String diveSites_gapReview_apply(Object count) {
+    return 'Apply ($count)';
+  }
+
+  @override
+  String diveSites_gapReview_adds(Object items) {
+    return 'Adds: $items';
+  }
+
+  @override
+  String get diveSites_gapReview_addsLink => 'link';
+
+  @override
+  String diveSites_gapReview_nearby(Object distance, Object name) {
+    return '$distance from \"$name\"';
+  }
+
+  @override
+  String diveSites_gapReview_named(Object name, Object place) {
+    return 'No position. \"$name\", $place';
+  }
+
+  @override
+  String diveSites_gapReview_namedNoPlace(Object name) {
+    return 'No position. \"$name\"';
+  }
+
+  @override
+  String get diveSites_gapReview_compare => 'Compare with the built-in record';
+
+  @override
+  String diveSites_gapReview_applied(Object filled, Object linked) {
+    return 'Sites linked: $linked. Sites with details filled: $filled.';
+  }
+
+  @override
+  String diveSites_gapReview_appliedSome(
+    Object failed,
+    Object filled,
+    Object linked,
+  ) {
+    return 'Sites linked: $linked. Sites with details filled: $filled. Not applied: $failed.';
+  }
+
+  @override
+  String get diveSites_gapReview_error => 'Could not apply the changes';
+
+  @override
+  String get diveSites_gapCompare_yours => 'Your site';
+
+  @override
+  String get diveSites_gapCompare_record => 'Built-in record';
+
+  @override
+  String get diveSites_gapCompare_empty => '(empty)';
+
+  @override
+  String get diveSites_gapCompare_staysYours => 'yours stays';
+
+  @override
+  String diveSites_gapCompare_apart(Object distance) {
+    return '$distance apart';
+  }
+
+  @override
+  String diveSites_gapCompare_fill(Object count) {
+    return 'Fill in ($count)';
+  }
+
+  @override
+  String get diveSites_gapCompare_linkOnly => 'Link only';
+
+  @override
+  String get diveSites_gapCompare_notSame => 'Not the same site';
+
+  @override
+  String get diveSites_gapCompare_noThanks => 'No thanks';
+
+  @override
+  String get diveSites_gapField_name => 'Name';
+
+  @override
+  String diveSites_gapNotice_text(Object count) {
+    return 'Built-in details are available for your sites ($count)';
+  }
+
+  @override
+  String get diveSites_gapNotice_review => 'Review';
+
+  @override
+  String get diveSites_gapLine_linked =>
+      'The built-in catalogue has more details for this site.';
+
+  @override
+  String get diveSites_gapLine_unlinked =>
+      'The built-in catalogue may hold this site.';
+
+  @override
   String get diveSites_picker_builtIn_adoptError => 'Could not add this site';
 
   @override
@@ -22814,9 +22933,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buoyancy_historyCarried => 'Carried';
 
   @override
-  String get buoyancy_historyModeled => 'Modeled';
-
-  @override
   String buoyancy_historyMore(String delta) {
     return 'You typically carry $delta more than the model suggests';
   }
@@ -22824,6 +22940,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String buoyancy_historyLess(String delta) {
     return 'You typically carry $delta less than the model suggests';
+  }
+
+  @override
+  String buoyancy_historyCaption(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Lead on your last $count dives in this suit',
+      one: 'Lead on your last dive in this suit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buoyancy_historyThisDive => 'This dive';
+
+  @override
+  String buoyancy_historyPoint(String date, String carried, String suggested) {
+    return '$date: $carried, $suggested';
   }
 
   @override
@@ -25061,6 +25196,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_catalogueId => 'Built-in catalogue link';
+
+  @override
+  String get settings_conflict_field_catalogueAnswers =>
+      'Built-in catalogue answers';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
@@ -41574,6 +41713,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attr_flagNo => 'No';
+
+  @override
+  String get attr_unitDual => 'Both';
+
+  @override
+  String get attr_unitPicker => 'Unit';
 
   @override
   String get attr_figurePosition_automatic => 'Automatic';

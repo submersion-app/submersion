@@ -172,6 +172,14 @@ final exempt = <String, String>{
   ])
     method:
         'written by an import, a download, a device or the app\'s own derivation, not a diver\'s edit',
+  // Filling an existing site from the built-in catalogue (issue #4514).
+  for (final method in const ['applyFill', 'updateAnswers'])
+    'lib/features/dive_sites/data/repositories/'
+            'site_catalogue_fill_repository.dart:$method':
+        'a shortcut that fills a site\'s empty fields, which sites covers '
+        'as fields through updateSite; the catalogue link and the answers '
+        'it also writes are the app\'s bookkeeping about a built-in '
+        'record, not a record of the diver\'s diving',
   // Bulk shortcuts.
   for (final method in const [
     'lib/features/buddies/data/repositories/buddy_merge_repository.dart:bulkDeleteBuddies',

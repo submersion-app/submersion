@@ -126,6 +126,12 @@ class UddfExportBuilders {
         if (site.catalogueId != null && site.catalogueId!.isNotEmpty) {
           builder.element('catalogueid', nest: site.catalogueId);
         }
+        // What the diver settled about catalogue records for the site:
+        // like the link, nothing else in the file can rebuild it.
+        final catalogueAnswers = site.catalogueAnswers.encode();
+        if (catalogueAnswers != null) {
+          builder.element('catalogueanswers', nest: catalogueAnswers);
+        }
         if (site.description.isNotEmpty) {
           builder.element('notes', nest: site.description);
         }

@@ -68,9 +68,19 @@ class FigureLayout {
     );
   }
 
-  /// The height a full-width pair wants for [width], capped at [maxHeight].
-  static double preferredHeight(double width) =>
-      math.min(maxHeight, math.max(2.0, width - gutter));
+  /// The wide pair: the front centred in the left half of [size] and the
+  /// back in the right half, each laid out as [forSingle] lays out a phone
+  /// figure, so each half has room for label columns either side of its
+  /// figure and no label has to lie across one (issue #4553).
+  static FigureLayout forPair(Size size, {double fraction = 0.36}) {
+    final half = Size(size.width / 2, size.height);
+    final rect = forSingle(half, fraction: fraction).front;
+    return FigureLayout(
+      front: rect,
+      back: rect.shift(Offset(half.width, 0)),
+      scale: rect.width / kFigureWidth,
+    );
+  }
 
   Rect rectFor(FigureView view) => view == FigureView.front ? front : back;
 

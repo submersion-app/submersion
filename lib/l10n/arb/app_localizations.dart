@@ -20710,6 +20710,184 @@ abstract class AppLocalizations {
   /// **'From the built-in site catalogue. Source: {source}'**
   String diveSites_catalogue_credit(Object source);
 
+  /// No description provided for @diveSites_list_menu_catalogueReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Check sites against built-in catalogue'**
+  String get diveSites_list_menu_catalogueReview;
+
+  /// No description provided for @diveSites_gapReview_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in details for your sites'**
+  String get diveSites_gapReview_title;
+
+  /// No description provided for @diveSites_gapReview_sectionSame.
+  ///
+  /// In en, this message translates to:
+  /// **'Same site ({count})'**
+  String diveSites_gapReview_sectionSame(Object count);
+
+  /// No description provided for @diveSites_gapReview_sectionCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check these ({count})'**
+  String diveSites_gapReview_sectionCheck(Object count);
+
+  /// No description provided for @diveSites_gapReview_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sites already carry everything the built-in catalogue has for them.'**
+  String get diveSites_gapReview_empty;
+
+  /// No description provided for @diveSites_gapReview_apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply ({count})'**
+  String diveSites_gapReview_apply(Object count);
+
+  /// No description provided for @diveSites_gapReview_adds.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds: {items}'**
+  String diveSites_gapReview_adds(Object items);
+
+  /// No description provided for @diveSites_gapReview_addsLink.
+  ///
+  /// In en, this message translates to:
+  /// **'link'**
+  String get diveSites_gapReview_addsLink;
+
+  /// No description provided for @diveSites_gapReview_nearby.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} from \"{name}\"'**
+  String diveSites_gapReview_nearby(Object distance, Object name);
+
+  /// No description provided for @diveSites_gapReview_named.
+  ///
+  /// In en, this message translates to:
+  /// **'No position. \"{name}\", {place}'**
+  String diveSites_gapReview_named(Object name, Object place);
+
+  /// No description provided for @diveSites_gapReview_namedNoPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'No position. \"{name}\"'**
+  String diveSites_gapReview_namedNoPlace(Object name);
+
+  /// No description provided for @diveSites_gapReview_compare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare with the built-in record'**
+  String get diveSites_gapReview_compare;
+
+  /// No description provided for @diveSites_gapReview_applied.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites linked: {linked}. Sites with details filled: {filled}.'**
+  String diveSites_gapReview_applied(Object filled, Object linked);
+
+  /// No description provided for @diveSites_gapReview_appliedSome.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites linked: {linked}. Sites with details filled: {filled}. Not applied: {failed}.'**
+  String diveSites_gapReview_appliedSome(
+    Object failed,
+    Object filled,
+    Object linked,
+  );
+
+  /// No description provided for @diveSites_gapReview_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not apply the changes'**
+  String get diveSites_gapReview_error;
+
+  /// No description provided for @diveSites_gapCompare_yours.
+  ///
+  /// In en, this message translates to:
+  /// **'Your site'**
+  String get diveSites_gapCompare_yours;
+
+  /// No description provided for @diveSites_gapCompare_record.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in record'**
+  String get diveSites_gapCompare_record;
+
+  /// No description provided for @diveSites_gapCompare_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'(empty)'**
+  String get diveSites_gapCompare_empty;
+
+  /// No description provided for @diveSites_gapCompare_staysYours.
+  ///
+  /// In en, this message translates to:
+  /// **'yours stays'**
+  String get diveSites_gapCompare_staysYours;
+
+  /// No description provided for @diveSites_gapCompare_apart.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} apart'**
+  String diveSites_gapCompare_apart(Object distance);
+
+  /// No description provided for @diveSites_gapCompare_fill.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in ({count})'**
+  String diveSites_gapCompare_fill(Object count);
+
+  /// No description provided for @diveSites_gapCompare_linkOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Link only'**
+  String get diveSites_gapCompare_linkOnly;
+
+  /// No description provided for @diveSites_gapCompare_notSame.
+  ///
+  /// In en, this message translates to:
+  /// **'Not the same site'**
+  String get diveSites_gapCompare_notSame;
+
+  /// No description provided for @diveSites_gapCompare_noThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'No thanks'**
+  String get diveSites_gapCompare_noThanks;
+
+  /// No description provided for @diveSites_gapField_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get diveSites_gapField_name;
+
+  /// No description provided for @diveSites_gapNotice_text.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in details are available for your sites ({count})'**
+  String diveSites_gapNotice_text(Object count);
+
+  /// No description provided for @diveSites_gapNotice_review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get diveSites_gapNotice_review;
+
+  /// No description provided for @diveSites_gapLine_linked.
+  ///
+  /// In en, this message translates to:
+  /// **'The built-in catalogue has more details for this site.'**
+  String get diveSites_gapLine_linked;
+
+  /// No description provided for @diveSites_gapLine_unlinked.
+  ///
+  /// In en, this message translates to:
+  /// **'The built-in catalogue may hold this site.'**
+  String get diveSites_gapLine_unlinked;
+
   /// No description provided for @diveSites_picker_builtIn_adoptError.
   ///
   /// In en, this message translates to:
@@ -36591,12 +36769,6 @@ abstract class AppLocalizations {
   /// **'Carried'**
   String get buoyancy_historyCarried;
 
-  /// No description provided for @buoyancy_historyModeled.
-  ///
-  /// In en, this message translates to:
-  /// **'Modeled'**
-  String get buoyancy_historyModeled;
-
   /// No description provided for @buoyancy_historyMore.
   ///
   /// In en, this message translates to:
@@ -36608,6 +36780,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You typically carry {delta} less than the model suggests'**
   String buoyancy_historyLess(String delta);
+
+  /// Caption over the lead history chart on the Buoyancy card. count includes this dive when its lead was recorded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Lead on your last dive in this suit} other{Lead on your last {count} dives in this suit}}'**
+  String buoyancy_historyCaption(int count);
+
+  /// Date-axis label for the dive being viewed, in the lead history chart
+  ///
+  /// In en, this message translates to:
+  /// **'This dive'**
+  String get buoyancy_historyThisDive;
+
+  /// The selected dive in the lead history chart: its date (or This dive), then the lead carried and the lead the model suggests, each already labelled
+  ///
+  /// In en, this message translates to:
+  /// **'{date}: {carried}, {suggested}'**
+  String buoyancy_historyPoint(String date, String carried, String suggested);
 
   /// No description provided for @buoyancy_throughDive.
   ///
@@ -40121,6 +40311,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Built-in catalogue link'**
   String get settings_conflict_field_catalogueId;
+
+  /// No description provided for @settings_conflict_field_catalogueAnswers.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in catalogue answers'**
+  String get settings_conflict_field_catalogueAnswers;
 
   /// No description provided for @settings_conflict_field_ccrDiluentModPpO2.
   ///
@@ -66526,6 +66722,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No'**
   String get attr_flagNo;
+
+  /// No description provided for @attr_unitDual.
+  ///
+  /// In en, this message translates to:
+  /// **'Both'**
+  String get attr_unitDual;
+
+  /// No description provided for @attr_unitPicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get attr_unitPicker;
 
   /// No description provided for @attr_figurePosition_automatic.
   ///

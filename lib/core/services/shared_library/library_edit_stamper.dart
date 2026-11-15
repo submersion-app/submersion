@@ -1,6 +1,8 @@
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/shared_library/library_site_catalogue.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -8,6 +10,7 @@ import 'package:submersion/core/services/shared_library/site_document.dart';
 import 'package:submersion/core/services/shared_library/site_document_bridge.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
+import 'package:submersion/features/dive_sites/domain/entities/site_catalogue_answers.dart';
 
 /// Records which document fields a local write changed on a library site
 /// (issue #2567): each gets a fresh clock under the editing member and the
@@ -86,6 +89,38 @@ class LibraryEditStamper {
       siteId: siteId,
       notes: notes,
       rating: rating,
+    );
+  }
+
+  /// Keeps the built-in catalogue link and answers of [siteId] for the
+  /// profile [actingDiverId] (or the library's sole local profile), to
+  /// reach its other devices through personal sync. They are the profile's
+  /// own view of the site: never a library edit, and nothing for a
+  /// personal site, whose row syncs by itself.
+  Future<void> keepCatalogue(
+    String siteId, {
+    required String? catalogueId,
+    required SiteCatalogueAnswers answers,
+    String? actingDiverId,
+  }) async {
+    final row = await (_db.select(
+      _db.diveSites,
+    )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+    final libraryId = row?.sharedLibraryId;
+    if (libraryId == null) return;
+    var diverId = actingDiverId;
+    if (diverId == null) {
+      final all = await _store.membershipsForLibrary(libraryId);
+      if (all.length != 1) return;
+      diverId = all.single.diverId;
+    }
+    await putLibrarySiteCatalogue(
+      _db,
+      SyncRepository(),
+      diverId: diverId,
+      siteId: siteId,
+      catalogueId: catalogueId,
+      catalogueAnswers: answers.encode(),
     );
   }
 

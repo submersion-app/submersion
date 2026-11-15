@@ -7,8 +7,37 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_connection_setup.dart';
+import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_name_key.dart';
 
 void main() {
+  group('catalogue_name_key', () {
+    late sqlite3.Database db;
+
+    setUp(() {
+      db = sqlite3.sqlite3.openInMemory();
+      registerAppSqlFunctions(db);
+    });
+
+    tearDown(() => db.close());
+
+    Object? key(Object? value) => db.select(
+      'SELECT $kCatalogueNameKeyFunction(?) AS v',
+      [value],
+    ).first['v'];
+
+    test('is the name key the Dart side compares with', () {
+      for (final name in ['Salt-Pier (South)', 'Cancún', '  Blue  Hole ']) {
+        expect(key(name), catalogueNameKey(name), reason: name);
+      }
+      expect(key('Salt-Pier (South)'), 'salt pier south');
+    });
+
+    test('NULL stays NULL and a name of punctuation is empty', () {
+      expect(key(null), isNull);
+      expect(key('?!'), '');
+    });
+  });
+
   group('unicode_lower', () {
     late sqlite3.Database db;
 

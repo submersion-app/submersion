@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/figure/domain/figure_composer.dart
 import 'package:submersion/features/equipment/figure/domain/figure_model.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_view.dart';
 import 'package:submersion/features/equipment/figure/presentation/diver_figure.dart';
+import 'package:submersion/features/equipment/figure/presentation/diver_figure_painter.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_labels.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_leader_painter.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_name_label.dart';
@@ -248,10 +249,81 @@ void main() {
       expect(selected.single.number, 1);
     });
 
+    testWidgets('no label covers either figure (issue #4553)', (tester) async {
+      final full = composeFigure([
+        item('mask', EquipmentType.mask),
+        item('reg', EquipmentType.regulator),
+        item('bcd', EquipmentType.bcd),
+        item('suit', EquipmentType.wetsuit),
+        item('computer', EquipmentType.computer),
+        item('light', EquipmentType.light),
+        item('knife', EquipmentType.knife),
+        item('weights', EquipmentType.weights),
+        item('fins', EquipmentType.fins),
+        item('tank', EquipmentType.tank),
+        item('smb', EquipmentType.smb),
+      ]);
+      for (final width in [600.0, 900.0, 1400.0]) {
+        await pump(tester, full, width: width);
+        final paint = find.byWidgetPredicate(
+          (w) => w is CustomPaint && w.painter is DiverFigurePainter,
+        );
+        final layout =
+            (tester.widget<CustomPaint>(paint).painter! as DiverFigurePainter)
+                .layout!;
+        final origin = tester.getTopLeft(paint);
+        final figures = [layout.front.shift(origin), layout.back.shift(origin)];
+        for (final p in full.placed) {
+          final rect = tester.getRect(label(p.item.id));
+          for (final figure in figures) {
+            expect(
+              rect.overlaps(figure),
+              isFalse,
+              reason: '${p.item.id} covers a figure at $width pt',
+            );
+          }
+        }
+      }
+    });
+
+    testWidgets('a wide pill may wrap its name to two lines', (tester) async {
+      // Just over the breakpoint each label column is narrow, so a long
+      // name wraps rather than ending in an ellipsis, as on a phone.
+      await pump(tester, reef, width: 620, labelText: (p) => 'Abcd Efgh');
+      for (final id in ['mask', 'bcd', 'fins', 'tank']) {
+        final text = tester.widget<Text>(
+          find.descendant(of: label(id), matching: find.byType(Text)).last,
+        );
+        expect(text.maxLines, 2, reason: id);
+        final paragraph = tester.renderObject<RenderParagraph>(
+          find.descendant(of: label(id), matching: find.byType(RichText)).last,
+        );
+        expect(paragraph.didExceedMaxLines, isFalse, reason: id);
+      }
+    });
+
+    testWidgets('a word too long for a pill truncates instead of splitting', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        reef,
+        width: 620,
+        labelText: (p) => 'Supercalifragilistic Perdix',
+      );
+      final text = tester.widget<Text>(
+        find.descendant(of: label('mask'), matching: find.byType(Text)).last,
+      );
+      expect(text.maxLines, 1);
+      expect(text.overflow, TextOverflow.ellipsis);
+    });
+
     testWidgets('large text widens the pill instead of cutting the name', (
       tester,
     ) async {
-      await pump(tester, reef, width: 900, textScale: 1.5);
+      // Wide enough that each label column has room for the larger names;
+      // a narrower column ends a name in an ellipsis instead.
+      await pump(tester, reef, width: 1400, textScale: 1.5);
       for (final name in ['Item mask', 'Item bcd', 'Item fins', 'Item tank']) {
         final paragraph = tester.renderObject<RenderParagraph>(find.text(name));
         expect(paragraph.didExceedMaxLines, isFalse, reason: name);
@@ -484,24 +556,6 @@ void main() {
           .widgetList<FigureNameLabel>(find.byType(FigureNameLabel))
           .where((l) => l.selected);
       expect(selected.single.key, const ValueKey('figure-label-bcd'));
-    });
-
-    testWidgets('a pill is sized for its name alone', (tester) async {
-      const style = TextStyle(fontSize: 12);
-      final numbered = FigureNameLabel.preferredWidth(
-        'Item bcd',
-        style,
-        TextDirection.ltr,
-        number: 1,
-      );
-      final unnumbered = FigureNameLabel.preferredWidth(
-        'Item bcd',
-        style,
-        TextDirection.ltr,
-        number: null,
-      );
-      final badge = FigureNumberBadge.widthFor(1, FigureNameLabel.badgeSize);
-      expect(numbered - unnumbered, greaterThanOrEqualTo(badge));
     });
 
     testWidgets('a box too narrow for names still lays out', (tester) async {

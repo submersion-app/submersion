@@ -9,11 +9,10 @@ import 'package:submersion/features/equipment/figure/domain/figure_inputs.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_position.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_zone.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_color_field.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_number_attribute_field.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
-import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Renders one input per catalog definition for [type] in [group]. Values are
 /// keyed by attrKey in [values]; edits emit whole EquipmentAttribute objects
@@ -228,54 +227,18 @@ class EquipmentAttributeFormSection extends StatelessWidget {
         );
 
       case AttributeKind.number:
-        final symbol = attributeUnitSymbol(def.dimension, units);
-        return TextFormField(
-          key: fieldKey,
-          initialValue: current?.valueNum == null
-              ? ''
-              : formatAttributeNumberForEditing(
-                  def.dimension,
-                  units,
-                  current!.valueNum!,
-                ),
-          decoration: InputDecoration(
-            labelText: symbol.isEmpty ? label : '$label ($symbol)',
-          ),
-          keyboardType: const TextInputType.numberWithOptions(
-            decimal: true,
-            signed: true,
-          ),
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          validator: numberValidator(context),
-          onChanged: (text) {
-            final trimmed = text.trim();
-            if (trimmed.isEmpty) {
-              onCleared(def.key);
-              return;
-            }
-            // Read in the diver's locale, matching how the field is seeded by
-            // formatAttributeNumberForEditing. A blanket replaceAll(',', '.')
-            // would misread the en_US thousands separator, turning "1,250"
-            // into 1.25.
-            final parsed = switch (readNumber(trimmed)) {
-              NumberValue(:final value) => value,
-              NumberBlank() || NumberInvalid() => null,
-            };
-            if (parsed != null) {
-              onChanged(
-                _base(def.key).copyWith(
-                  valueNum: attributeMetricFromDisplay(
-                    def.dimension,
-                    units,
-                    parsed,
-                  ),
-                ),
-              );
-            }
-            // Non-empty but unreadable (transient like "-", or invalid): keep
-            // the last pending value rather than dropping the field; the
-            // validator shows why (#1900).
-          },
+        // The inner text field carries `attr-field-<key>`, as every other
+        // kind's input does; this key only keeps the field's state per key.
+        return EquipmentNumberAttributeField(
+          key: ValueKey('attr-number-${def.key}'),
+          def: def,
+          current: current,
+          units: units,
+          workingPressureBar: def.key == EquipmentAttrKeys.volumeL
+              ? values[EquipmentAttrKeys.workingPressureBar]?.valueNum
+              : null,
+          onChanged: onChanged,
+          onCleared: () => onCleared(def.key),
         );
 
       case AttributeKind.choice:

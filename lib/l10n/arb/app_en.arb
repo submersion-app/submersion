@@ -7829,6 +7829,35 @@
   },
   "diveSites_picker_nearby": "Nearby",
   "diveSites_catalogue_credit": "From the built-in site catalogue. Source: {source}",
+  "diveSites_list_menu_catalogueReview": "Check sites against built-in catalogue",
+  "diveSites_gapReview_title": "Built-in details for your sites",
+  "diveSites_gapReview_sectionSame": "Same site ({count})",
+  "diveSites_gapReview_sectionCheck": "Check these ({count})",
+  "diveSites_gapReview_empty": "Your sites already carry everything the built-in catalogue has for them.",
+  "diveSites_gapReview_apply": "Apply ({count})",
+  "diveSites_gapReview_adds": "Adds: {items}",
+  "diveSites_gapReview_addsLink": "link",
+  "diveSites_gapReview_nearby": "{distance} from \"{name}\"",
+  "diveSites_gapReview_named": "No position. \"{name}\", {place}",
+  "diveSites_gapReview_namedNoPlace": "No position. \"{name}\"",
+  "diveSites_gapReview_compare": "Compare with the built-in record",
+  "diveSites_gapReview_applied": "Sites linked: {linked}. Sites with details filled: {filled}.",
+  "diveSites_gapReview_appliedSome": "Sites linked: {linked}. Sites with details filled: {filled}. Not applied: {failed}.",
+  "diveSites_gapReview_error": "Could not apply the changes",
+  "diveSites_gapCompare_yours": "Your site",
+  "diveSites_gapCompare_record": "Built-in record",
+  "diveSites_gapCompare_empty": "(empty)",
+  "diveSites_gapCompare_staysYours": "yours stays",
+  "diveSites_gapCompare_apart": "{distance} apart",
+  "diveSites_gapCompare_fill": "Fill in ({count})",
+  "diveSites_gapCompare_linkOnly": "Link only",
+  "diveSites_gapCompare_notSame": "Not the same site",
+  "diveSites_gapCompare_noThanks": "No thanks",
+  "diveSites_gapField_name": "Name",
+  "diveSites_gapNotice_text": "Built-in details are available for your sites ({count})",
+  "diveSites_gapNotice_review": "Review",
+  "diveSites_gapLine_linked": "The built-in catalogue has more details for this site.",
+  "diveSites_gapLine_unlinked": "The built-in catalogue may hold this site.",
   "diveSites_picker_builtIn_adoptError": "Could not add this site",
   "diveSites_picker_builtIn_details": "Site details",
   "diveSites_picker_builtIn_nearPlace": "More sites near {place}",
@@ -14676,7 +14705,6 @@
   "buoyancy_chartNet": "Net",
   "buoyancy_chartMinutes": "Time (min)",
   "buoyancy_historyCarried": "Carried",
-  "buoyancy_historyModeled": "Modeled",
   "buoyancy_historyMore": "You typically carry {delta} more than the model suggests",
   "@buoyancy_historyMore": {
     "placeholders": {
@@ -14689,6 +14717,34 @@
   "@buoyancy_historyLess": {
     "placeholders": {
       "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_historyCaption": "{count, plural, one{Lead on your last dive in this suit} other{Lead on your last {count} dives in this suit}}",
+  "@buoyancy_historyCaption": {
+    "description": "Caption over the lead history chart on the Buoyancy card. count includes this dive when its lead was recorded.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buoyancy_historyThisDive": "This dive",
+  "@buoyancy_historyThisDive": {
+    "description": "Date-axis label for the dive being viewed, in the lead history chart"
+  },
+  "buoyancy_historyPoint": "{date}: {carried}, {suggested}",
+  "@buoyancy_historyPoint": {
+    "description": "The selected dive in the lead history chart: its date (or This dive), then the lead carried and the lead the model suggests, each already labelled",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "carried": {
+        "type": "String"
+      },
+      "suggested": {
         "type": "String"
       }
     }
@@ -15734,6 +15790,7 @@
   "settings_conflict_field_cardColorGradientPreset": "Card color gradient",
   "settings_conflict_field_cardColorGradientStart": "Card color gradient start",
   "settings_conflict_field_catalogueId": "Built-in catalogue link",
+  "settings_conflict_field_catalogueAnswers": "Built-in catalogue answers",
   "settings_conflict_field_ccrDiluentModPpO2": "CCR diluent MOD ppO2",
   "settings_conflict_field_ccrSetpointHigh": "CCR high setpoint",
   "settings_conflict_field_ccrSetpointLow": "CCR low setpoint",
@@ -25716,6 +25773,8 @@
   "equipment_edit_addCustomField": "Add custom field",
   "attr_flagYes": "Yes",
   "attr_flagNo": "No",
+  "attr_unitDual": "Both",
+  "attr_unitPicker": "Unit",
   "attr_figurePosition_automatic": "Automatic",
   "equipment_edit_invalidThickness": "Use 5, 5/4 or 7/5/3",
   "equipment_edit_invalidFocalLength": "Use 60 or 15-45",

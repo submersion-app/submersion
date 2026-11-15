@@ -1,9 +1,12 @@
+import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/constants/focal_length.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_item_units.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -104,18 +107,74 @@ int _editingFractionDigits(AttributeDimension dimension, double metricValue) =>
       _ => 1,
     };
 
+/// [metric] for [def] as typed in [unit]: the figure [formatAttributeValue]
+/// shows and the edit form seeds, with no unit symbol (issue #4534).
+String formatAttributeNumberIn(
+  EquipmentAttributeDef def,
+  AttributeUnit unit,
+  double metric, {
+  double? workingPressureBar,
+}) {
+  final value = attributeValueIn(
+    def,
+    unit,
+    metric,
+    workingPressureBar: workingPressureBar,
+  );
+  if (isCylinderGasVolume(def, unit)) return formatRoundedForInput(value, 1);
+  return formatRoundedForInput(
+    value,
+    _editingFractionDigits(def.dimension, metric),
+  );
+}
+
+/// [metric] shown in [unit] with its symbol, the way the detail page reads
+/// an item's own spec. A cylinder's cubic feet are rated gas capacity, whole
+/// numbers, marked "~" when the cylinder has no working pressure, as
+/// [UnitFormatter.formatTankVolume] shows them; Both shows the diver's
+/// pressure unit first.
+String _formatInUnit(
+  EquipmentAttributeDef def,
+  AttributeUnit unit,
+  double metric,
+  UnitFormatter units,
+  AppLocalizations l10n,
+  double? workingPressureBar,
+) {
+  if (unit == AttributeUnit.dual) {
+    final first = attributeTypingUnit(unit, units);
+    final second = first == AttributeUnit.bar
+        ? AttributeUnit.psi
+        : AttributeUnit.bar;
+    return '${_formatInUnit(def, first, metric, units, l10n, null)} / '
+        '${_formatInUnit(def, second, metric, units, l10n, null)}';
+  }
+  final symbol = attributeUnitLabel(def, unit, l10n);
+  if (isCylinderGasVolume(def, unit)) {
+    final known = workingPressureBar != null && workingPressureBar > 0;
+    final cuft = ratedCapacityCuft(metric, workingPressureBar);
+    return '${known ? '' : '~'}${formatFixedForDisplay(cuft, 0)} $symbol';
+  }
+  return '${formatAttributeNumberIn(def, unit, metric)} $symbol';
+}
+
 /// Display string for a stored attribute value on the detail page. The
 /// equipment CSV does not use it: Metric mode writes each attribute's raw
 /// canonical value, as its `_m` / `_kg` key names promise, and My units
 /// converts through [attributeDisplayFromMetric] and [attributeUnitSymbol]
 /// with a locale-free decimal (`csv_attribute_codec.dart`), because a CSV
 /// value must read back the same on any device.
+///
+/// A number reads in the item's own unit when one was picked (issue #4534),
+/// else in the diver's. [workingPressureBar] is the cylinder's, for a volume
+/// in cubic feet.
 String formatAttributeValue(
   EquipmentAttribute attr,
   EquipmentAttributeDef? def,
   UnitFormatter units,
-  AppLocalizations l10n,
-) {
+  AppLocalizations l10n, {
+  double? workingPressureBar,
+}) {
   if (def == null) return attr.valueText ?? attr.valueNum?.toString() ?? '';
   switch (def.kind) {
     case AttributeKind.text:
@@ -141,6 +200,17 @@ String formatAttributeValue(
       );
     case AttributeKind.number:
       if (attr.valueNum == null) return '';
+      final unit = attributeUnitInForce(def, attr, units);
+      if (unit != null) {
+        return _formatInUnit(
+          def,
+          unit,
+          attr.valueNum!,
+          units,
+          l10n,
+          workingPressureBar,
+        );
+      }
       final text = formatAttributeNumberForEditing(
         def.dimension,
         units,

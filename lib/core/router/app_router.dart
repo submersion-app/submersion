@@ -75,6 +75,7 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_list_page
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_merge_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/catalogue_gap_review_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_import_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_map_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_match_review_page.dart';
@@ -681,6 +682,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   state.extra,
                   duplicateOfId: state.uri.queryParameters['duplicateOf'],
                 ),
+              ),
+              GoRoute(
+                path: 'catalogue-review',
+                name: 'siteCatalogueReview',
+                builder: (context, state) => const CatalogueGapReviewPage(),
               ),
               GoRoute(
                 path: 'merge',

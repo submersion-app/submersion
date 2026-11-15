@@ -49,9 +49,11 @@ void main() {
       formatAttributePair(_num('burn_time_h', 1.5), imperial),
       'burn_time=90 min',
     );
+    // A cylinder's cubic feet are rated gas capacity, at the assumed 200 bar
+    // when no working pressure is given (issue #4534).
     expect(
       formatAttributePair(_num('volume_l', 11.1), imperial),
-      'volume=0.392 cuft',
+      'volume=78.4 cuft gas',
     );
     final metric = CsvExportUnits.fromSettings(_metricDiver);
     expect(
@@ -303,6 +305,72 @@ void main() {
         valueText: 'wide',
         valueNum: null,
       ));
+    });
+  });
+
+  group('cylinder gas capacity (#4534)', () {
+    final imperial = CsvExportUnits.fromSettings(_imperial);
+
+    test('My units writes a cylinder volume as rated gas capacity', () {
+      expect(
+        formatAttributePair(
+          _num(EquipmentAttrKeys.volumeL, 11.1),
+          imperial,
+          workingPressureBar: 206.843,
+        ),
+        'volume=77.4 cuft gas',
+      );
+    });
+
+    test('a gas capacity reads back at the working pressure', () {
+      final back = parseAttributePair(
+        'volume=77.4 cuft gas',
+        workingPressureBar: 206.843,
+      )!;
+      expect(back.key, EquipmentAttrKeys.volumeL);
+      expect(back.valueNum, 11.1);
+    });
+
+    test('with no working pressure a gas capacity assumes 200 bar', () {
+      final back = parseAttributePair('volume=80 cuft gas')!;
+      expect(back.valueNum, closeTo(80 * 28.3168 / 200, 1e-9));
+    });
+
+    test('a file written before reads its water cubic feet as before', () {
+      final back = parseAttributePair(
+        'volume=0.392 cuft',
+        workingPressureBar: 206.843,
+      )!;
+      expect(back.valueNum, closeTo(11.1, 0.03));
+    });
+
+    test(
+      'a legacy cuft cylinder that only makes sense as typed cubic feet reads '
+      'back as gas capacity, as the v368 repair reads it',
+      () {
+        // A file written before #4534 from a library with the old bug: the
+        // AL80 typed as 77.4 cu ft was stored as ~2192 L and written back out
+        // as 77.4 water cuft.
+        final back = parseAttributePair(
+          'volume=77.4 cuft',
+          workingPressureBar: 206.843,
+        )!;
+        expect(back.valueNum, 11.1);
+      },
+    );
+
+    test('a small rebreather bottle keeps both its digits', () {
+      expect(
+        formatAttributePair(_num('o2_cylinder_l', 0.85), imperial),
+        'o2_cylinder=0.85 L',
+      );
+    });
+
+    test('a rebreather cylinder is written in litres for any diver', () {
+      expect(
+        formatAttributePair(_num('diluent_cylinder_l', 3), imperial),
+        'diluent_cylinder=3 L',
+      );
     });
   });
 }

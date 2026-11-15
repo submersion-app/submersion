@@ -74,6 +74,15 @@ void main() {
     expect(text, contains(kSqlColumnNotes[table]![column]));
   });
 
+  test("a site's catalogue answers column says what it holds", () {
+    // A note is the first sentence of the column's comment, and one over
+    // the length limit is dropped without a word.
+    expect(
+      kSqlColumnNotes['dive_sites']!['catalogue_answers'],
+      contains('catalogue records'),
+    );
+  });
+
   test('the notes file matches the table sources', () {
     expect(
       // A Windows checkout can hold this file with CRLF line endings.

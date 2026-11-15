@@ -2,6 +2,7 @@ import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
+import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_name_key.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -25,6 +26,10 @@ class FakeSiteCatalogue implements SiteCatalogue {
   int nearCalls = 0;
   int searchCalls = 0;
   int byIdCalls = 0;
+  int namedManyCalls = 0;
+
+  /// The names of every [namedMany] call, in order.
+  final List<Set<String>> namesAsked = [];
   int countNearCalls = 0;
   int inBoundsCalls = 0;
 
@@ -154,6 +159,24 @@ class FakeSiteCatalogue implements SiteCatalogue {
   Future<CatalogueSite?> byId(String id) async {
     byIdCalls++;
     return sites.where((site) => site.id == id).firstOrNull;
+  }
+
+  @override
+  Future<Map<String, List<CatalogueSite>>> namedMany(
+    Iterable<String> names,
+  ) async {
+    namedManyCalls++;
+    namesAsked.add(names.toSet());
+    final wanted = {for (final name in names) catalogueNameKey(name)}
+      ..remove('');
+    final found = <String, List<CatalogueSite>>{};
+    for (final site in sites) {
+      final key = catalogueNameKey(site.name);
+      if (site.location != null && wanted.contains(key)) {
+        (found[key] ??= []).add(site);
+      }
+    }
+    return found;
   }
 
   @override

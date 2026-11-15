@@ -108,7 +108,10 @@ class EquipmentWrites extends WritableEntry {
       'reminders; is_active follows status; last_service_date and '
       'service_interval_days are legacy and not writable; attributes are '
       'the whole list, built-in keys of the item\'s type plus custom ones '
-      '(is_custom true), the app\'s own system keys left out';
+      '(is_custom true), the app\'s own system keys left out; a built-in '
+      'number may carry value_unit, the unit the item reads it in (psi, '
+      'pounds, cubicFeet, dual on a gauge range, ...), while value_num stays '
+      'metric';
 
   /// The attributes as the plan compares them: the app's system keys left
   /// out, built-in ones by key, custom ones in the diver's order.

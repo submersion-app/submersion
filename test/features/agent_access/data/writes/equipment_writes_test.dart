@@ -322,6 +322,109 @@ void main() {
     expect(again.unchanged.single.id, id);
   });
 
+  group('an attribute\'s own unit (issue #4534)', () {
+    const range = 'gauge_max_pressure_bar';
+
+    Future<Map<String, Object?>> rangeOf(String id) async =>
+        ((await doc(id))['attributes']! as List)
+            .cast<Map<String, Object?>>()
+            .firstWhere((a) => a['key'] == range);
+
+    Future<String> gauge() => created({
+      'name': 'SPG',
+      'type': 'instrument',
+      'attributes': [
+        {'key': range, 'value_num': 275.79, 'value_unit': 'psi'},
+      ],
+    });
+
+    Future<void> write(String id, Map<String, Object?> attr) async => h.apply(
+      await h.preview([
+        updateOp('equipment', id, {
+          'attributes': [attr],
+        }),
+      ]),
+    );
+
+    test('is written and read back', () async {
+      final id = await gauge();
+
+      expect((await rangeOf(id))['value_unit'], 'psi');
+    });
+
+    test('goes with the rest of the list when a write leaves it out', () async {
+      final id = await gauge();
+      await write(id, {'key': range, 'value_num': 300});
+
+      final attr = await rangeOf(id);
+      expect(attr['value_num'], 300);
+      expect(attr['value_unit'], isNull);
+    });
+
+    test('a write that keeps it plans no change', () async {
+      final id = await gauge();
+      final again = await h.preview([
+        updateOp('equipment', id, {
+          'attributes': [
+            {'key': range, 'value_num': 275.79, 'value_unit': 'psi'},
+          ],
+        }),
+      ]);
+
+      expect(again.unchanged.single.id, id);
+    });
+
+    test('is cleared by an explicit null', () async {
+      final id = await gauge();
+      await write(id, {'key': range, 'value_num': 300, 'value_unit': null});
+
+      expect((await rangeOf(id))['value_unit'], isNull);
+    });
+
+    test('may be written before any number', () async {
+      final id = await created({'name': 'SPG', 'type': 'instrument'});
+      await write(id, {'key': range, 'value_unit': 'psi'});
+
+      final attr = await rangeOf(id);
+      expect(attr['value_num'], isNull);
+      expect(attr['value_unit'], 'psi');
+    });
+
+    test(
+      'a large cylinder written without a unit plans no change again',
+      () async {
+        final tank = await created({'name': 'Bank', 'type': 'tank'});
+        final write = updateOp('equipment', tank, {
+          'attributes': [
+            {'key': 'volume_l', 'value_num': 100},
+          ],
+        });
+        await h.apply(await h.preview([write]));
+
+        final again = await h.preview([write]);
+        expect(again.unchanged.single.id, tank);
+      },
+    );
+
+    test('must be one the field offers', () async {
+      final tank = await created({'name': 'AL80', 'type': 'tank'});
+      final plan = await h.preview([
+        updateOp('equipment', tank, {
+          'attributes': [
+            {
+              'key': 'working_pressure_bar',
+              'value_num': 207,
+              'value_unit': 'dual',
+            },
+          ],
+        }),
+      ]);
+
+      expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+      expect(plan.items.single.block!.detail, contains('bar, psi'));
+    });
+  });
+
   test('a part fits only a type that holds it', () async {
     final light = await created({'name': 'Light', 'type': 'light'});
     final fins = await created({'name': 'Fins', 'type': 'fins'});

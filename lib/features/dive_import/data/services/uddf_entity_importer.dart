@@ -64,6 +64,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.d
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_catalogue_answers.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
@@ -431,6 +432,17 @@ class UddfEntityImporter {
     if (value is! String) return null;
     final trimmed = value.trim();
     return trimmed.isEmpty ? null : trimmed;
+  }
+
+  /// What the file says the diver settled about catalogue records for a
+  /// payload site. Text that cannot be read is no answers.
+  static SiteCatalogueAnswers _catalogueAnswersOf(
+    Map<String, dynamic> siteData,
+  ) {
+    final value = siteData['catalogueAnswers'];
+    return value is String
+        ? SiteCatalogueAnswers.decode(value)
+        : SiteCatalogueAnswers.empty;
   }
 
   /// Parse a value that may be either an enum instance or a string matching
@@ -2113,6 +2125,7 @@ class UddfEntityImporter {
       final waterType = siteData['waterType'] as String?;
       final bodyOfWater = siteData['bodyOfWater'] as String?;
       final fileCatalogueId = _catalogueIdOf(siteData);
+      final fileAnswers = _catalogueAnswersOf(siteData);
       await repository.updateSiteWithImportedMetadata(
         overwrittenSite,
         DiveSitesCompanion(
@@ -2127,6 +2140,12 @@ class UddfEntityImporter {
           // already linked keeps its own record.
           catalogueId: existing.catalogueId == null && fileCatalogueId != null
               ? Value(fileCatalogueId)
+              : const Value.absent(),
+          // The answers follow the same rule: a site that has settled
+          // something keeps its own.
+          catalogueAnswers:
+              existing.catalogueAnswers.isEmpty && !fileAnswers.isEmpty
+              ? Value(fileAnswers.encode())
               : const Value.absent(),
         ),
       );
@@ -2216,6 +2235,7 @@ class UddfEntityImporter {
         exitMethods: decodeEntryMethods(siteData['exitMethod'] as String?),
         // The built-in catalogue record the site was adopted from.
         catalogueId: _catalogueIdOf(siteData),
+        catalogueAnswers: _catalogueAnswersOf(siteData),
       );
 
       final createdSite = await repository.createSite(newSite);

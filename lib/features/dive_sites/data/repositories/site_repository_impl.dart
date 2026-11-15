@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_parent_links
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_catalogue_claims.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_children.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_links.dart';
@@ -28,6 +29,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_classificati
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
+import 'package:submersion/features/dive_sites/domain/services/catalogue_merge_claims.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_merge.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
@@ -152,29 +154,17 @@ class SiteRepository {
     }
   }
 
-  /// The site [diverId] adopted from the built-in catalogue record
-  /// [catalogueId], or null. With no [diverId], a site that has no diver.
-  /// The oldest wins if there are several, so every caller agrees on one.
+  /// The site of [diverId] that claims the built-in catalogue record
+  /// [catalogueId], or null: the one adopted from it, or one that stands
+  /// for it since a merge. See [SiteCatalogueClaims.claimant].
   Future<domain.DiveSite?> getSiteByCatalogueId(
     String catalogueId, {
     String? diverId,
   }) async {
     try {
-      final query = _db.select(_db.diveSites)
-        ..where(
-          (t) =>
-              t.catalogueId.equals(catalogueId) &
-              (diverId == null
-                  ? t.diverId.isNull()
-                  : t.diverId.equals(diverId)),
-        )
-        ..orderBy([
-          (t) => OrderingTerm.asc(t.createdAt),
-          (t) => OrderingTerm.asc(t.id),
-        ])
-        ..limit(1);
-      final row = await query.getSingleOrNull();
-      return row != null ? _mapRowToSite(row) : null;
+      return await SiteCatalogueClaims(
+        _db,
+      ).claimant(catalogueId, diverId: diverId);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get site by catalogue id: $catalogueId',
@@ -229,6 +219,7 @@ class SiteRepository {
                 isShared: Value(site.isShared),
                 sharedLibraryId: Value(site.sharedLibraryId),
                 catalogueId: Value(site.catalogueId),
+                catalogueAnswers: Value(site.catalogueAnswers.encode()),
                 createdAt: Value(now),
                 updatedAt: Value(now),
               ),
@@ -351,10 +342,10 @@ class SiteRepository {
         entryMethod: Value(encodeEntryMethods(site.entryMethods)),
         exitMethod: Value(encodeEntryMethods(site.exitMethods)),
         isShared: Value(site.isShared),
-        // catalogueId is deliberately not written here, like
-        // sharedLibraryId: the site edit page saves an entity built fresh
-        // from its form, so writing the link would erase it on every edit.
-        // It is set by createSite and carried by a merge.
+        // catalogueId and catalogueAnswers are deliberately not written
+        // here, like sharedLibraryId: the site edit page saves an entity
+        // built fresh from its form, so writing them would erase both on
+        // every edit. They are set by createSite and carried by a merge.
         updatedAt: Value(now),
       );
       if (metadataPatch != null) {
@@ -373,6 +364,12 @@ class SiteRepository {
         if (metadataPatch.catalogueId.present) {
           companion = companion.copyWith(
             catalogueId: metadataPatch.catalogueId,
+          );
+        }
+        // The diver's answers about catalogue records come the same way.
+        if (metadataPatch.catalogueAnswers.present) {
+          companion = companion.copyWith(
+            catalogueAnswers: metadataPatch.catalogueAnswers,
           );
         }
       }
@@ -1049,14 +1046,19 @@ class SiteRepository {
         final missing = duplicateIds.where((id) => !found.contains(id));
         throw StateError('Sites not found: ${missing.join(', ')}');
       }
-      // The catalogue link is not the caller's to choose: the merge page
-      // builds [mergedSite] from its form, which knows nothing of it. The
-      // survivor keeps its own, else takes the first merged site's.
-      final linkedSurvivor = _withMergedCatalogueLink(
-        guardedSurvivor,
-        originalSurvivor: originalSurvivor,
-        duplicateIds: duplicateIds,
-        deletedSites: deletedSites,
+      // The catalogue link and answers are not the caller's to choose: the
+      // merge page builds [mergedSite] from its form, which knows nothing
+      // of them. The survivor keeps its own link, else takes the first
+      // merged site's, and stands for every other record merged in.
+      final deletedById = {for (final site in deletedSites) site.id: site};
+      final claims = mergedCatalogueClaims(
+        survivor: originalSurvivor,
+        mergedAway: [for (final id in duplicateIds) ?deletedById[id]],
+      );
+      final linkedSurvivor = guardedSurvivor.copyWith(
+        catalogueId: claims.link,
+        clearCatalogueId: claims.link == null,
+        catalogueAnswers: claims.answers,
       );
 
       final affectedDives = await (_db.select(
@@ -1179,6 +1181,19 @@ class SiteRepository {
         );
       });
 
+      // A library survivor's row is outside personal sync: what the merge
+      // left it claiming is kept for the profile, like its notes.
+      if (linkedSurvivor.isLibrarySite &&
+          (linkedSurvivor.catalogueId != originalSurvivor.catalogueId ||
+              linkedSurvivor.catalogueAnswers !=
+                  originalSurvivor.catalogueAnswers)) {
+        await _libraryStamper.keepCatalogue(
+          survivorId,
+          catalogueId: linkedSurvivor.catalogueId,
+          answers: linkedSurvivor.catalogueAnswers,
+          actingDiverId: actingDiverId,
+        );
+      }
       SyncEventBus.notifyLocalChange();
       _log.info('Merged ${orderedIds.length} sites into survivor: $survivorId');
 
@@ -1249,6 +1264,8 @@ class SiteRepository {
       _log.info(
         'Undoing merge: restoring ${snapshot.deletedSites.length} sites',
       );
+      // The survivor as the merge left it, to see what the undo changes.
+      final merged = await getSiteById(snapshot.originalSurvivor.id);
 
       await _db.transaction(() async {
         // 1. Restore the survivor to its original state
@@ -1293,6 +1310,7 @@ class SiteRepository {
                   exitMethod: Value(encodeEntryMethods(site.exitMethods)),
                   isShared: Value(site.isShared),
                   catalogueId: Value(site.catalogueId),
+                  catalogueAnswers: Value(site.catalogueAnswers.encode()),
                   createdAt: Value(ts?.createdAt ?? now),
                   updatedAt: Value(ts?.updatedAt ?? now),
                 ),
@@ -1447,6 +1465,20 @@ class SiteRepository {
         }
       });
 
+      // A library survivor's claims are also kept for the profile; what
+      // the merge put there is taken back, or the next copy-back would
+      // return it to the row.
+      final original = snapshot.originalSurvivor;
+      if (original.isLibrarySite &&
+          merged != null &&
+          (merged.catalogueId != original.catalogueId ||
+              merged.catalogueAnswers != original.catalogueAnswers)) {
+        await _libraryStamper.keepCatalogue(
+          original.id,
+          catalogueId: original.catalogueId,
+          answers: original.catalogueAnswers,
+        );
+      }
       SyncEventBus.notifyLocalChange();
       _log.info('Undo merge complete');
     } catch (e, stackTrace) {
@@ -1698,24 +1730,6 @@ class SiteRepository {
   static String _placeholders(List<String> ids) =>
       List.filled(ids.length, '?').join(', ');
 
-  /// [survivor] carrying the catalogue link a merge leaves it with: its
-  /// stored one, else the first non-null link among [deletedSites] taken in
-  /// [duplicateIds] order, else none.
-  domain.DiveSite _withMergedCatalogueLink(
-    domain.DiveSite survivor, {
-    required domain.DiveSite originalSurvivor,
-    required List<String> duplicateIds,
-    required List<domain.DiveSite> deletedSites,
-  }) {
-    final linkBySite = {
-      for (final site in deletedSites) site.id: site.catalogueId,
-    };
-    final link =
-        originalSurvivor.catalogueId ??
-        duplicateIds.map((id) => linkBySite[id]).nonNulls.firstOrNull;
-    return survivor.copyWith(catalogueId: link, clearCatalogueId: link == null);
-  }
-
   Future<void> _updateSiteRow(domain.DiveSite site, int now) async {
     await (_db.update(_db.diveSites)..where((t) => t.id.equals(site.id))).write(
       DiveSitesCompanion(
@@ -1745,6 +1759,7 @@ class SiteRepository {
         isShared: Value(site.isShared),
         sharedLibraryId: Value(site.sharedLibraryId),
         catalogueId: Value(site.catalogueId),
+        catalogueAnswers: Value(site.catalogueAnswers.encode()),
         updatedAt: Value(now),
       ),
     );

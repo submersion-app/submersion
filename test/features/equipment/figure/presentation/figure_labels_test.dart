@@ -139,140 +139,109 @@ void main() {
     );
   });
 
-  group('labelPills', () {
-    // Laid out as DiverFigure lays out a 900 pt pair: the spare width split
-    // between the margins and a 180 pt gutter.
-    final layout = FigureLayout.forSize(const Size(900, 360), gutter: 180);
+  group('pairLabelColumns', () {
+    // A full set: enough items that the old pills, placed beside each
+    // anchor, lay across the body and the gear drawn on it (issue #4553).
+    final full = composeFigure([
+      item('mask', EquipmentType.mask),
+      item('reg', EquipmentType.regulator),
+      item('octo', EquipmentType.secondStage),
+      item('bcd', EquipmentType.bcd),
+      item('suit', EquipmentType.wetsuit),
+      item('hood', EquipmentType.hood),
+      item('gloves', EquipmentType.gloves),
+      item('boots', EquipmentType.boots),
+      item('computer', EquipmentType.computer),
+      item('compass', EquipmentType.compass),
+      item('light', EquipmentType.light),
+      item('knife', EquipmentType.knife),
+      item('weights', EquipmentType.weights),
+      item('fins', EquipmentType.fins),
+      item('tank', EquipmentType.tank),
+      item('smb', EquipmentType.smb),
+      item('reel', EquipmentType.reel),
+    ]);
 
-    List<FigureLabelSlot> pills(FigureModel model, {double natural = 120}) =>
-        labelPills(
-          model: model,
+    for (final width in const [600.0, 700.0, 900.0, 1400.0]) {
+      test('at $width pt no label covers either figure', () {
+        final layout = FigureLayout.forPair(
+          Size(width, FigureLayout.maxHeight),
+        );
+        final slots = pairLabelColumns(
+          model: full,
           layout: layout,
-          width: 900,
-          maxWidth: 900 / 4,
-          widthOf: (_) => natural,
+          width: width,
         );
+        expect(slots.length, full.placed.length);
+        expectNoOverlaps(slots);
+        for (final s in slots) {
+          final id = s.item.item.id;
+          expect(s.rect.overlaps(layout.front), isFalse, reason: id);
+          expect(s.rect.overlaps(layout.back), isFalse, reason: id);
+        }
+      });
 
-    test('a pill sits on the outward side of its anchor', () {
-      final model = composeFigure([
-        item('computer', EquipmentType.computer), // left of centre
-        item('tank', EquipmentType.tank), // back, centre
-      ]);
-      final byId = {for (final s in pills(model)) s.item.item.id: s};
-      expect(byId['computer']!.onLeft, isTrue);
-      expect(
-        byId['computer']!.rect.right,
-        lessThanOrEqualTo(byId['computer']!.anchor.dx),
-      );
-      expect(byId['tank']!.onLeft, isFalse);
-      expect(
-        byId['tank']!.rect.left,
-        greaterThanOrEqualTo(byId['tank']!.anchor.dx),
-      );
-    });
+      test('at $width pt each label stays in its own figure\'s half', () {
+        final layout = FigureLayout.forPair(
+          Size(width, FigureLayout.maxHeight),
+        );
+        for (final s in pairLabelColumns(
+          model: full,
+          layout: layout,
+          width: width,
+        )) {
+          final front = s.item.zone!.view == FigureView.front;
+          final halfLeft = front ? 0.0 : width / 2;
+          final id = s.item.item.id;
+          expect(
+            s.rect.left,
+            greaterThanOrEqualTo(halfLeft - 0.001),
+            reason: id,
+          );
+          expect(
+            s.rect.right,
+            lessThanOrEqualTo(halfLeft + width / 2 + 0.001),
+            reason: id,
+          );
+        }
+      });
+    }
 
-    test('pills are capped at a quarter of the width and stay in the box', () {
-      final model = composeFigure([
-        item('computer', EquipmentType.computer),
-        item('light', EquipmentType.light),
-        item('reel', EquipmentType.reel),
-      ]);
-      for (final s in pills(model, natural: 5000)) {
-        expect(s.rect.width, lessThanOrEqualTo(900 / 4 + 0.001));
-        expect(s.rect.left, greaterThanOrEqualTo(0));
-        expect(s.rect.right, lessThanOrEqualTo(900.001));
-      }
-    });
-
-    test('a pill never crosses into the other figure', () {
-      // Worst case: the default narrow gutter and names far too long.
-      final tight = FigureLayout.forSize(const Size(900, 360));
-      final model = composeFigure([
-        item('mask', EquipmentType.mask),
-        item('reg', EquipmentType.regulator),
-        item('compass', EquipmentType.compass),
-        item('fins', EquipmentType.fins),
-        item('tank', EquipmentType.tank),
-        item('trim', EquipmentType.weights),
-      ]);
-      final slots = labelPills(
-        model: model,
-        layout: tight,
+    test('each label is level with its anchor when nothing is in the way', () {
+      final layout = FigureLayout.forPair(const Size(900, 360));
+      final slots = pairLabelColumns(
+        model: composeFigure([
+          item('computer', EquipmentType.computer),
+          item('tank', EquipmentType.tank),
+        ]),
+        layout: layout,
         width: 900,
-        maxWidth: 900 / 4,
-        widthOf: (_) => 5000,
       );
       for (final s in slots) {
-        final other = s.item.zone!.view == FigureView.front
-            ? tight.back
-            : tight.front;
-        expect(
-          s.rect.overlaps(other),
-          isFalse,
-          reason: '${s.item.item.id} crosses the other figure',
-        );
+        expect(s.rect.center.dy, closeTo(s.anchor.dy, 0.001));
       }
     });
+  });
 
-    test('a crowded pill takes the nearest free spot, above or below', () {
-      // The regulator's pill blocks above the clipped light and the octo's
-      // blocks below it. Stepping down a whole row at a time put the light
-      // two rows (84 pt) from its gear; the nearest free spot, flush under
-      // the octo's pill, is closer.
-      final model = composeFigure([
-        item('octo', EquipmentType.secondStage),
-        item('reg', EquipmentType.regulator),
-        item('clip', EquipmentType.light),
-        item('light2', EquipmentType.light),
-        item('light3', EquipmentType.light),
-      ]);
-      final slots = pills(model);
-      expectNoOverlaps(slots);
-      const row = kFigureLabelHeight + kFigureLabelGap;
-      for (final s in slots) {
-        expect(
-          (s.rect.center.dy - s.anchor.dy).abs(),
-          lessThan(2 * row - 1),
-          reason: '${s.item.item.id} sits two rows or more from its gear',
-        );
-      }
-    });
-
-    test('a pill with no room on its side moves to the other side', () {
-      // Tiny figures 12 pt apart: a centre anchor on the front has almost no
-      // room before the back figure, so its pill goes left instead of
-      // collapsing to nothing.
-      final tight = FigureLayout.forSize(const Size(900, 60));
-      final slots = labelPills(
-        model: composeFigure([item('mask', EquipmentType.mask)]),
-        layout: tight,
-        width: 900,
-        maxWidth: 900 / 4,
-        widthOf: (_) => 120,
-      );
-      expect(slots.single.rect.width, 120);
-      expect(slots.single.onLeft, isTrue);
-      expect(slots.single.rect.overlaps(tight.back), isFalse);
-    });
-
-    test('crowded pills step down until none overlap', () {
-      final model = composeFigure([
-        item('mask', EquipmentType.mask),
-        item('reg', EquipmentType.regulator),
-        item('octo', EquipmentType.secondStage),
-        item('bcd', EquipmentType.bcd),
-        item('computer', EquipmentType.computer),
-        item('compass', EquipmentType.compass),
-        item('light', EquipmentType.light),
-        item('weights', EquipmentType.weights),
-        item('reel', EquipmentType.reel),
-        item('fins', EquipmentType.fins),
+  test('labelColumns keeps its columns inside the span it is given', () {
+    // The back figure of a 900 pt pair, laid out in the right half.
+    final layout = FigureLayout.forPair(const Size(900, 360));
+    final slots = labelColumns(
+      model: composeFigure([
         item('tank', EquipmentType.tank),
         item('smb', EquipmentType.smb),
-      ]);
-      final slots = pills(model);
-      expect(slots.length, model.placed.length);
-      expectNoOverlaps(slots);
-    });
+        item('reel', EquipmentType.reel),
+      ]),
+      view: FigureView.back,
+      layout: layout,
+      left: 450,
+      width: 450,
+    );
+    expect(slots, isNotEmpty);
+    for (final s in slots) {
+      expect(s.rect.left, greaterThanOrEqualTo(450));
+      expect(s.rect.right, lessThanOrEqualTo(900.001));
+      expect(s.rect.overlaps(layout.back), isFalse);
+    }
   });
 }

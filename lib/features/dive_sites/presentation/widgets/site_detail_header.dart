@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_catalogue_offer_line.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_rating_stars.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
@@ -128,6 +129,8 @@ class SiteDetailHeader extends ConsumerWidget {
           ],
           if (site.catalogueId != null)
             _CatalogueLine(catalogueId: site.catalogueId!),
+          // What the built-in catalogue could still add to this site.
+          SiteCatalogueOfferLine(site: site),
         ],
       ),
     );

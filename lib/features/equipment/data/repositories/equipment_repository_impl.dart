@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
+import 'package:submersion/core/database/cylinder_volume_repair.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
@@ -1056,6 +1057,7 @@ class EquipmentRepository {
                 key: a.key,
                 valueText: a.valueText,
                 valueNum: a.valueNum,
+                valueUnit: a.valueUnit,
               ),
           EquipmentAttribute.curated(
             equipmentId: '',
@@ -2041,6 +2043,7 @@ class EquipmentRepository {
         isCustom: row.isCustom,
         valueText: row.valueText,
         valueNum: row.valueNum,
+        valueUnit: row.valueUnit,
         sortOrder: row.sortOrder,
       );
 
@@ -2093,7 +2096,7 @@ class EquipmentRepository {
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    final normalized = desired.where((a) => a.hasValue).map((a) {
+    final normalized = desired.where((a) => a.hasContent).map((a) {
       if (a.isCustom) {
         return a.copyWith(
           equipmentId: equipmentId,
@@ -2103,6 +2106,10 @@ class EquipmentRepository {
       return a.copyWith(
         equipmentId: equipmentId,
         id: EquipmentAttribute.curatedId(equipmentId, a.key),
+        // A cylinder this large was entered on purpose, never typed as water
+        // cubic feet: the stamp keeps the v368 repair, which repeats after
+        // every sync apply, away from it (issue #4534).
+        valueUnit: stampedCylinderVolumeUnit(a.key, a.valueNum, a.valueUnit),
       );
     }).toList();
 
@@ -2137,6 +2144,7 @@ class EquipmentRepository {
             existing.attrKey == attr.key &&
             existing.valueText == attr.valueText &&
             existing.valueNum == attr.valueNum &&
+            existing.valueUnit == attr.valueUnit &&
             existing.sortOrder == attr.sortOrder;
         if (unchanged) continue;
 
@@ -2150,6 +2158,7 @@ class EquipmentRepository {
                 isCustom: Value(attr.isCustom),
                 valueText: Value(attr.valueText),
                 valueNum: Value(attr.valueNum),
+                valueUnit: Value(attr.valueUnit),
                 sortOrder: Value(attr.sortOrder),
                 createdAt: Value(existing?.createdAt ?? now),
                 updatedAt: Value(now),

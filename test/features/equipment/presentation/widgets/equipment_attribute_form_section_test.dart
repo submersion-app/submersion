@@ -531,4 +531,39 @@ void main() {
       expect(cleared, contains('thickness_mm'));
     },
   );
+
+  testWidgets(
+    'a cylinder volume in cubic feet reads the working pressure on the form '
+    '(issue #4534)',
+    (tester) async {
+      EquipmentAttribute? changed;
+      await pumpSection(
+        tester,
+        type: EquipmentType.tank,
+        values: {
+          EquipmentAttrKeys.workingPressureBar: EquipmentAttribute.curated(
+            equipmentId: '',
+            key: EquipmentAttrKeys.workingPressureBar,
+            valueNum: 206.843,
+          ),
+        },
+        onChanged: (a) => changed = a,
+      );
+      await tester.tap(find.byKey(const ValueKey('attr-unit-volume_l')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('cuft').last);
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.descendant(
+          of: find.byKey(const ValueKey('attr-field-volume_l')),
+          matching: find.byType(EditableText),
+        ),
+        '77.4',
+      );
+
+      expect(changed?.key, EquipmentAttrKeys.volumeL);
+      expect(changed?.valueNum, 11.1);
+      expect(changed?.valueUnit, 'cubicFeet');
+    },
+  );
 }
