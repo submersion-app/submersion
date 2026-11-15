@@ -34,9 +34,9 @@ void _refreshRoots(WidgetRef ref) {
   ref.invalidate(watchedRootLastScanProvider);
 }
 
-/// The Sources console section (Media section Phase 5): where media comes
-/// from -- browse by source type, and manage the folders the repair watcher
-/// keeps an eye on.
+/// The body of the Media section's Sources page (Media section Phase 5,
+/// a page of its own since #4587): where media comes from. Browse by source
+/// type, and manage the folders the repair watcher keeps an eye on.
 class MediaSourcesSectionView extends ConsumerWidget {
   const MediaSourcesSectionView({
     super.key,
@@ -44,7 +44,8 @@ class MediaSourcesSectionView extends ConsumerWidget {
     this.pickFolderOverride,
   });
 
-  /// Switches the console to the Library after the filter is set.
+  /// Called once a source tile has set the Library's filter; the Sources
+  /// page closes itself here so the Media section can show that Library.
   final VoidCallback onBrowseSource;
 
   /// Test seam for the platform directory picker.

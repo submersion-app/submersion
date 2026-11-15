@@ -33922,12 +33922,6 @@ abstract class AppLocalizations {
   /// **'Import'**
   String get media_console_import;
 
-  /// Import section: open the picker
-  ///
-  /// In en, this message translates to:
-  /// **'Import media...'**
-  String get media_import_launch;
-
   /// App bar title of the pre-import review
   ///
   /// In en, this message translates to:
@@ -34005,12 +33999,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose dive'**
   String get media_import_review_chooseDive;
-
-  /// Import section intro text
-  ///
-  /// In en, this message translates to:
-  /// **'Photos are linked to a dive or a dive site as you import them.'**
-  String get media_import_intro;
 
   /// Media console label for the sources section
   ///

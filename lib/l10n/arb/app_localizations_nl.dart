@@ -21358,9 +21358,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_console_import => 'Importeren';
 
   @override
-  String get media_import_launch => 'Media importeren...';
-
-  @override
   String get media_import_review_title => 'Import controleren';
 
   @override
@@ -21405,10 +21402,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_import_review_chooseDive => 'Duik kiezen';
-
-  @override
-  String get media_import_intro =>
-      'Foto\'s worden tijdens het importeren aan een duik of duiksite gekoppeld.';
 
   @override
   String get media_console_sources => 'Bronnen';

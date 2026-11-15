@@ -21171,9 +21171,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_console_import => 'Import';
 
   @override
-  String get media_import_launch => 'Import media...';
-
-  @override
   String get media_import_review_title => 'Review import';
 
   @override
@@ -21218,10 +21215,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_import_review_chooseDive => 'Choose dive';
-
-  @override
-  String get media_import_intro =>
-      'Photos are linked to a dive or a dive site as you import them.';
 
   @override
   String get media_console_sources => 'Sources';

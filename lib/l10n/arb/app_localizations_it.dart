@@ -21491,9 +21491,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_console_import => 'Importa';
 
   @override
-  String get media_import_launch => 'Importa contenuti...';
-
-  @override
   String get media_import_review_title => 'Rivedi importazione';
 
   @override
@@ -21539,10 +21536,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_import_review_chooseDive => 'Scegli immersione';
-
-  @override
-  String get media_import_intro =>
-      'Le foto vengono collegate a un\'immersione o a un sito durante l\'importazione.';
 
   @override
   String get media_console_sources => 'Origini';

@@ -40,22 +40,10 @@ void main() {
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(body: MediaImportView(launchOverride: launchOverride)),
+        home: Scaffold(body: _Launcher(pick: launchOverride)),
       ),
     );
   }
-
-  testWidgets('renders intro and launch button', (tester) async {
-    await tester.pumpWidget(host());
-    await tester.pumpAndSettle();
-    expect(
-      find.text(
-        'Photos are linked to a dive or a dive site as you import them.',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Import media...'), findsOneWidget);
-  });
 
   testWidgets(
     'a non-empty pick opens the review with one candidate per asset',
@@ -65,7 +53,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Import media...'));
+      await tester.tap(find.text('Go'));
       await tester.pumpAndSettle();
 
       final page = tester.widget<MediaImportReviewPage>(
@@ -92,10 +80,10 @@ void main() {
     );
   });
 
-  testWidgets('an empty pick stays on the view', (tester) async {
+  testWidgets('an empty pick opens no review', (tester) async {
     await tester.pumpWidget(host(launchOverride: (context) async => []));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Import media...'));
+    await tester.tap(find.text('Go'));
     await tester.pumpAndSettle();
     expect(find.byType(MediaImportReviewPage), findsNothing);
   });
@@ -124,16 +112,14 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: MediaImportView(
-              launchOverride: (context) async => [asset('a1')],
-            ),
+            body: _Launcher(pick: (context) async => [asset('a1')]),
           ),
         ),
       ),
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Import media...'));
+    await tester.tap(find.text('Go'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Import 1 items'));
     await tester.pump();
@@ -144,6 +130,20 @@ void main() {
     expect(find.text('1 linked, 0 skipped, 0 failed'), findsOneWidget);
     await tester.pumpAndSettle();
   });
+}
+
+/// Starts a dive-less import the way the Media section's Import button
+/// does, with [pick] standing in for the platform picker.
+class _Launcher extends ConsumerWidget {
+  const _Launcher({this.pick});
+
+  final Future<List<AssetInfo>> Function(BuildContext)? pick;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => FilledButton(
+    onPressed: () => MediaImportView.launchImport(context, ref, pick: pick),
+    child: const Text('Go'),
+  );
 }
 
 /// Records dive imports and reports every asset as imported.

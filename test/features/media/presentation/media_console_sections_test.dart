@@ -6,22 +6,28 @@ import 'package:submersion/features/media/presentation/widgets/media_console_sca
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// A browser can neither watch folders nor import files (issue #4121), so
-/// the Media console shows only the library and the transfers there.
+/// the Media console offers only the Transfers button there.
 void main() {
-  test('natively every section is offered', () {
+  test('natively every action is offered', () {
     expect(
-      mediaConsoleSectionsFor(currentDeviceCapabilities()),
-      MediaConsoleSection.values,
+      mediaConsoleActionsFor(currentDeviceCapabilities()),
+      MediaConsoleAction.values,
     );
   });
 
-  test('a browser offers the library, the gear and the transfers only', () {
-    // The Gear gallery (issue #3355) only shows and removes, so a browser
-    // has it too.
-    expect(mediaConsoleSectionsFor(DeviceCapabilities.web), [
-      MediaConsoleSection.library,
-      MediaConsoleSection.gear,
-      MediaConsoleSection.transfers,
+  test('a browser offers only the Transfers button', () {
+    // Both tabs show everywhere: the Gear gallery (issue #3355) only shows
+    // and removes, so a browser has it too.
+    expect(mediaConsoleActionsFor(DeviceCapabilities.web), [
+      MediaConsoleAction.transfers,
+    ]);
+  });
+
+  test('the buttons read Import, Transfers, Sources', () {
+    expect(MediaConsoleAction.values, [
+      MediaConsoleAction.importMedia,
+      MediaConsoleAction.transfers,
+      MediaConsoleAction.sources,
     ]);
   });
 

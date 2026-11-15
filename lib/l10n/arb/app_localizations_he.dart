@@ -21017,9 +21017,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_console_import => 'ייבוא';
 
   @override
-  String get media_import_launch => 'ייבוא מדיה...';
-
-  @override
   String get media_import_review_title => 'סקירת ייבוא';
 
   @override
@@ -21064,10 +21061,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_import_review_chooseDive => 'בחירת צלילה';
-
-  @override
-  String get media_import_intro =>
-      'תמונות מקושרות לצלילה או לאתר צלילה בעת הייבוא.';
 
   @override
   String get media_console_sources => 'מקורות';
