@@ -41,7 +41,7 @@ These rows stay in the open editor, in the read card's order, as rows that canno
 
 | Value | Read by | What this plan does |
 | --- | --- | --- |
-| Water type | Environment (satellite conditions are left out for a freshwater dive), Tide (no tides in fresh water), the Surface GPS and Tide pair | `diveWaterTypeField.alsoShownOn = {'environment'}`. Tide and its pair are laid out from `presence` (Task 9) |
+| Water type | Environment (satellite conditions are left out for a freshwater dive), Tide (no tides in fresh water), the Surface GPS and Tide pair | Tide, its pair and the Environment card's satellite block are laid out from `presence` (Task 9, and the review: see "After the review") |
 | Training courses | Signatures (the training signature shows for a dive with a course), the Buddies and Signatures pair | Signatures and its pair are laid out from `presence` (Task 9) |
 | Trip | The Cylinders card, through each tank's link to a trip cylinder | See "Rules that span cards" below |
 
@@ -101,7 +101,7 @@ The spec says no `dive_edit_*` test is dropped without a replacement. The form a
 9. **A reorder of dive types is a change; a reorder of courses is not.** The first dive type is the representative, and their order is stored. Courses are stored as a set, and the writer picks the representative course itself (the earliest to start), so their order is nothing the diver can save.
 10. **After a save that set a new visibility, the device remembers that input mode for the next new dive**, as the form does.
 11. **No new strings.** Every label is one the form or the read card already has. The statistics row reuses `diveLog_edit_group_statistics`, `diveLog_edit_summary_excluded` and `diveLog_edit_summary_gasExcluded`.
-12. **Tide and Signatures follow the layout record.** Adding a first course, or switching to fresh water, changes those cards when the last editor closes, not while Details is open.
+12. **Tide, Signatures and the Environment card's satellite lines follow the layout record.** Adding a first course, or switching to fresh water, changes those cards when the last editor closes, not while Details is open.
 
 ## Global Constraints
 
@@ -332,7 +332,7 @@ final EditField<Dive, String?> diveBoatNameField;            // 'boatName'
 final EditField<Dive, String?> diveBoatCaptainField;         // 'boatCaptain'
 final EditField<Dive, List<String>> diveCourseIdsField;      // 'courseIds', equals: the same set
 final EditField<Dive, StoredVisibility> diveVisibilityField; // 'visibility'
-final EditField<Dive, WaterType?> diveWaterTypeField;        // 'waterType', alsoShownOn: {'environment'}
+final EditField<Dive, WaterType?> diveWaterTypeField;        // 'waterType'
 final EditField<Dive, bool> diveExcludedFromStatsField;      // 'excludedFromStats'
 final EditField<Dive, bool> diveExcludedFromGasStatsField;   // 'excludedFromGasStats'
 
@@ -1049,6 +1049,43 @@ One, `Refs #4527`, stacked on plan 2's pull request #4550 until that merges. It 
 
 ## For plans 4 and 5
 
-- **Plan 4 (header block).** A site choice writes `diveWaterTypeField` (with `waterTypeAfterSiteAssign` over the dive's own value, which here is never the site's standing in) and `diveTypeIdsField` (with `diveTypesAfterSiteAssign`). The set of types the site added has to live where both the site picker and the Details editor's `onChanged` can reach it while either card is closed; the session holds only record values today. The average depth field names `'details'` in `alsoShownOn`. A date change already stretches the trip (Task 4). The spec says dive types also show on the header block; the header (`DiveDetailHeroSection`) draws neither dive types nor dive mode today, so `diveTypeIdsField` names no other card. If plan 4 puts them there, it adds its card id to that field's `alsoShownOn`.
+- **Plan 4 (header block).** A site choice writes `diveWaterTypeField` (with `waterTypeAfterSiteAssign` over the dive's own value, which here is never the site's standing in) and `diveTypeIdsField` (with `diveTypesAfterSiteAssign`). The set of types the site added has to live where both the site picker and the Details editor's `onChanged` can reach it while either card is closed; the session holds only record values today. The average depth field names `'details'` in `alsoShownOn`. A date change already stretches the trip (Task 4). The header block does draw the dive's types and its mode badge, as the spec says (`DiveHeroHeader`, `dive_hero_header.dart:94` and `:227`, built by `DiveDetailHeroSection`). It is handed the stored dive today (`dive_detail_page.dart:544`), so during a sitting it goes on showing the stored types. When plan 4 hands it the working dive, it adds the header's card id to `diveTypeIdsField.alsoShownOn`, and plan 5 does the same for the dive mode field.
 - **Plan 5 (Tanks, Equipment, Weights).** The dive mode field names `'details'` in `alsoShownOn`. A trip change clears tank slot links and suggests slots again (`_setTrip`, `dive_edit_page.dart:3418`); until then the writer's drop at Save is the only guard. The rental memory card joins the dive center row (`RentalMemoryCard`, `_applyLastDiveAtCenter`). The link under the air consumption rows opens the Tanks card when unlocked.
 - **Either.** A held write still cannot be withdrawn (plan 2, "Left open"). This plan did not need one: the trip stretch reads the dive as it was just written.
+
+---
+
+## After the review
+
+The plan was built as written, then reviewed as a whole branch. This is what differs from the task text above, for whoever writes plans 4 and 5.
+
+### Where the plan was wrong
+
+| Above | Now |
+| --- | --- |
+| A reorder of courses is a change; `diveCourseIdsField` compares with `listEquals` | A dive's courses are a set. The writer stores the set and picks the representative course itself, by start date (`dive_course_links.dart:67` and `:112`), so the field compares as a set. Dive types are ordered, as planned |
+| `DiveCourseRows` reads the diver's course list when an id is missing from the dive's own courses | Only once the dive's own courses have loaded and an id is still missing. Before that every id looks missing, and the list was read on every dive page |
+| `diveWaterTypeField.alsoShownOn = {'environment'}` | No field of the card names another card. The Environment card's satellite block is worked out from `presence` (`DiveEnvironmentSection.satelliteFor`); redrawn live, it emptied that card when fresh water was picked and, in the folding layout, moved the open editor |
+| The header block draws neither dive types nor dive mode | It draws both. See "For plans 4 and 5" |
+
+### Added, or placed elsewhere
+
+- **`DiveSittingFollowUp`** (`lib/features/dive_log/presentation/pages/dive_sitting_follow_up.dart`). The three steps after a committed save are a class of their own, read before the write and run after it, because a part file cannot import. It invalidates through the provider container, so the course providers are refreshed even when the page has gone. `dive_detail_page.dart` gained one import line (786).
+- **`DiveDetailLinkRow`** in `dive_details_derived_rows.dart`: the Details row that leads somewhere, used by the read card and the derived rows.
+- **Task 9's tests** are in `dive_detail_section_list_details_editing_test.dart`, with a harness that supplies tide data, satellite conditions and shared preferences.
+- **The rule that came out of the review:** a calculated block inside a card that can be edited is laid out from `presence`, like a card with no editor that decides for itself whether it shows.
+
+### Tests the plan listed that were not written
+
+- "A course refresh that throws" and "a trip message that cannot be shown": neither can be made to throw from a test. The guard is pinned by "a mode that cannot be remembered is not a failed save"; the other two guards are the same helper.
+- A failed trip stretch failing the save (call 6), and reverting a sitting restoring the trip's dates. The reviewer ran the second as a probe and it holds.
+
+### Left open
+
+- In the open editor the calculated rows keep the read card's layout, the value beside its label, while the form rows put the value at the right edge.
+- In Range, nothing on the row says the sitting holds a measured distance. Typing `1.2.3` and switching to Range leaves 1.2 m held, the last readable text, with no sign of it until Done. The form does the same.
+- After a look at Range, the Precise row comes back open for typing, not resting: both inputs share one form row.
+- A trip or dive center lookup that throws after a new one is made is an unhandled error with no word to the diver, as in the form.
+- A dive with a `tripId` whose trip did not load reads as "Not set" and offers no clear.
+- After a saved sitting the quality scan and the tide record are not run, as after plans 1 and 2.
+- `diveSaveTouchesTrip` compares entry times while the stretch reads the dive's date column. It matters once plan 4 makes dates editable.
