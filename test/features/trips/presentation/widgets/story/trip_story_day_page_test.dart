@@ -291,6 +291,26 @@ void main() {
       expect(find.byType(DayRhythmBar), findsNothing);
     });
 
+    testWidgets('a day with photos and no dives says so before the photos, '
+        'where its dives would be', (tester) async {
+      final day = TripStoryDay(
+        date: DateTime(2026, 3, 9),
+        dayNumber: 3,
+        kind: TripStoryDayKind.past,
+        media: [_media('m1')],
+        mediaCount: 1,
+        sightings: [_sighting('s1', 'Turtle')],
+      );
+      await pumpPage(tester, day, viewSize: const Size(420, 1400));
+
+      final ys = [
+        _top(tester, find.byKey(TripStoryDayPage.noDivesKey)),
+        _top(tester, find.text('Photos')),
+        _top(tester, find.text('Species seen')),
+      ];
+      expect(ys, orderedEquals([...ys]..sort()));
+    });
+
     testWidgets('a day ahead with nothing planned says so too', (tester) async {
       final day = TripStoryDay(
         date: DateTime(2027, 1, 10),
@@ -782,6 +802,26 @@ void main() {
       );
 
       expect(find.byKey(TripStoryDayPage.twoColumnsKey), findsNothing);
+      expect(tester.getSize(find.byType(FlutterMap)).height, 180);
+    });
+
+    testWidgets('narrowing the pane to one column moves the map, it does '
+        'not build it again', (tester) async {
+      await pumpPage(
+        tester,
+        richDay(),
+        mapPoints: pins,
+        viewSize: const Size(640, 1400),
+      );
+      expect(find.byKey(TripStoryDayPage.twoColumnsKey), findsOneWidget);
+      final before = tester.state(find.byType(FlutterMap));
+
+      tester.view.physicalSize = const Size(599, 1400);
+      await tester.pump();
+
+      expect(find.byKey(TripStoryDayPage.twoColumnsKey), findsNothing);
+      // The same state: its tiles and its camera came with it.
+      expect(tester.state(find.byType(FlutterMap)), same(before));
       expect(tester.getSize(find.byType(FlutterMap)).height, 180);
     });
 

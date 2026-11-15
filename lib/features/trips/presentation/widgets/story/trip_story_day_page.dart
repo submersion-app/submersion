@@ -65,6 +65,11 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
   String? _highlightedDiveId;
   final Map<String, GlobalKey> _cardKeys = {};
 
+  /// Keeps the map's state when the page changes between one column and
+  /// two: the map moves to another parent, and without a key of its own it
+  /// would be built again and load its tiles again.
+  final _mapKey = GlobalKey();
+
   TripStoryDay get _day => widget.day;
 
   void _onPinTap(String? diveId) {
@@ -111,6 +116,7 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
             child: SizedBox(
               height: height,
               child: TripDayMap(
+                key: _mapKey,
                 day: day,
                 points: widget.mapPoints,
                 highlightedDiveId: _highlightedDiveId,
@@ -214,9 +220,10 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
                 plan,
                 timeline,
                 dives,
+                // Where the dives would be, not under what the day did have.
+                noDives,
                 photos,
                 species,
-                noDives,
               ]);
 
         return SingleChildScrollView(
