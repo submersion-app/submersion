@@ -21408,9 +21408,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_console_import => 'Importieren';
 
   @override
-  String get media_import_launch => 'Medien importieren...';
-
-  @override
   String get media_import_review_title => 'Import prüfen';
 
   @override
@@ -21455,10 +21452,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_import_review_chooseDive => 'Tauchgang wählen';
-
-  @override
-  String get media_import_intro =>
-      'Fotos werden beim Import mit einem Tauchgang oder Tauchplatz verknüpft.';
 
   @override
   String get media_console_sources => 'Quellen';

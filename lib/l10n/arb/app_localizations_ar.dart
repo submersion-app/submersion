@@ -21768,9 +21768,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_console_import => 'استيراد';
 
   @override
-  String get media_import_launch => 'استيراد الوسائط...';
-
-  @override
   String get media_import_review_title => 'مراجعة الاستيراد';
 
   @override
@@ -21815,10 +21812,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_import_review_chooseDive => 'اختيار الغطسة';
-
-  @override
-  String get media_import_intro =>
-      'تُربط الصور بغطسة أو موقع غطس أثناء استيرادها.';
 
   @override
   String get media_console_sources => 'المصادر';

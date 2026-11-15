@@ -20366,9 +20366,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_console_import => '导入';
 
   @override
-  String get media_import_launch => '导入媒体...';
-
-  @override
   String get media_import_review_title => '检查导入';
 
   @override
@@ -20412,9 +20409,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_import_review_chooseDive => '选择潜水';
-
-  @override
-  String get media_import_intro => '照片在导入时会关联到潜水或潜点。';
 
   @override
   String get media_console_sources => '来源';

@@ -13059,10 +13059,6 @@
   "@media_console_import": {
     "description": "Media console sidebar/tab label for the import section"
   },
-  "media_import_launch": "Import media...",
-  "@media_import_launch": {
-    "description": "Import section: open the picker"
-  },
   "media_import_review_title": "Review import",
   "@media_import_review_title": {
     "description": "App bar title of the pre-import review"
@@ -13135,10 +13131,6 @@
   "media_import_review_chooseDive": "Choose dive",
   "@media_import_review_chooseDive": {
     "description": "Review row menu: pick a dive"
-  },
-  "media_import_intro": "Photos are linked to a dive or a dive site as you import them.",
-  "@media_import_intro": {
-    "description": "Import section intro text"
   },
   "media_console_sources": "Sources",
   "@media_console_sources": {

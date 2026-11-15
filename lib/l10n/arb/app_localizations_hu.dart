@@ -21363,9 +21363,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_console_import => 'Importálás';
 
   @override
-  String get media_import_launch => 'Média importálása...';
-
-  @override
   String get media_import_review_title => 'Importálás ellenőrzése';
 
   @override
@@ -21411,10 +21408,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_import_review_chooseDive => 'Merülés kiválasztása';
-
-  @override
-  String get media_import_intro =>
-      'A fotók importáláskor egy merüléshez vagy merülőhelyhez kapcsolódnak.';
 
   @override
   String get media_console_sources => 'Források';
