@@ -164,6 +164,11 @@ class ShapeTest(unittest.TestCase):
         self.assertIn("shape", _rules(_one(_entry(withdrawn={"reason": "position"}))))
         self.assertTrue(_one(_entry(withdrawn={"reason": "position", "date": "2026-12-01"})).ok)
 
+    def test_a_withdrawal_date_is_an_iso_date_string(self):
+        for bad in (20261201, "1 Dec 2026", "2026-13-01"):
+            entry = _entry(withdrawn={"reason": "position", "date": bad})
+            self.assertIn("shape", _rules(_one(entry)), bad)
+
 
 class DomainTest(unittest.TestCase):
     def test_unknown_domain_fails(self):

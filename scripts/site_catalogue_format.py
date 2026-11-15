@@ -13,6 +13,7 @@ never has to guess what "stair" or "speleology" means.
 import hashlib
 import json
 import re
+from datetime import date
 from pathlib import Path
 
 FORMAT = 2
@@ -263,6 +264,18 @@ RESEARCHED_SOURCES = ("curated", "research")
 
 # Why a researched record was withdrawn from the catalogue.
 WITHDRAWAL_REASONS = ("position", "not_a_site", "duplicate", "other")
+
+
+def is_iso_date(value) -> bool:
+    """Whether [value] is a calendar date written YYYY-MM-DD, the only
+    form the app reads a withdrawal's date in."""
+    if not isinstance(value, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+        return False
+    try:
+        date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
 
 # The ids of the app's built-in site types
 # (lib/core/database/site_type_seed.dart, kBuiltInSiteTypes).
@@ -525,8 +538,8 @@ def _withdrawal_problems(withdrawn, shipped: set[str]) -> list[str]:
             problems.append(
                 f"{site_id}: withdrawal reason {entry.get('reason')!r}"
             )
-        if not entry.get("date"):
-            problems.append(f"{site_id}: withdrawal has no date")
+        if not is_iso_date(entry.get("date")):
+            problems.append(f"{site_id}: withdrawal date is not YYYY-MM-DD")
         replaced_by = entry.get("replaced_by")
         if replaced_by is not None and replaced_by not in shipped:
             problems.append(

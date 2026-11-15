@@ -190,6 +190,8 @@ class WithdrawalsTest(unittest.TestCase):
             {"id": "osm_node_1", "reason": "position", "date": "2026-12-02"},
             {"id": "curated_x", "reason": "bored", "date": "2026-12-02"},
             {"id": "curated_x", "reason": "position"},
+            {"id": "curated_x", "reason": "position", "date": 20261202},
+            {"id": "curated_x", "reason": "position", "date": "2 Dec 2026"},
         ):
             with self.assertRaises(ValueError, msg=bad):
                 src_research.withdrawals([], [bad])

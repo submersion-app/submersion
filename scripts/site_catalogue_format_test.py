@@ -693,6 +693,10 @@ class WithdrawnTest(unittest.TestCase):
             {"research_x": {"reason": "bored", "date": "2026-12-02"}}))
         self.assertTrue(self._problems({"research_x": {"reason": "other"}}))
         self.assertTrue(self._problems(
+            {"research_x": {"reason": "other", "date": 20261202}}))
+        self.assertTrue(self._problems(
+            {"research_x": {"reason": "other", "date": "2 Dec 2026"}}))
+        self.assertTrue(self._problems(
             {"research_x": {"reason": "position", "date": "2026-12-02",
                             "replaced_by": "research_gone"}}))
         self.assertEqual(self._problems(

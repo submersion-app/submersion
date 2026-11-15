@@ -30,7 +30,7 @@ for _path in (_HERE, _RESEARCH, os.path.dirname(_HERE)):
 import check  # noqa: E402
 import evidence  # noqa: E402
 import records as rec  # noqa: E402
-from site_catalogue_format import WITHDRAWAL_REASONS  # noqa: E402
+from site_catalogue_format import WITHDRAWAL_REASONS, is_iso_date  # noqa: E402
 
 RESEARCH_FILE = Path(_RESEARCH) / "sites.json"
 DOMAINS_FILE = Path(_RESEARCH) / "domains.json"
@@ -176,8 +176,12 @@ def withdrawals(entries, curated_withdrawn) -> dict[str, dict]:
         site_id = item.get("id") or ""
         if not site_id.startswith("curated_"):
             raise ValueError(f"{site_id!r}: only a curated id is withdrawn here")
-        if item.get("reason") not in WITHDRAWAL_REASONS or not item.get("date"):
-            raise ValueError(f"{site_id}: a withdrawal needs a reason and a date")
+        if item.get("reason") not in WITHDRAWAL_REASONS or not is_iso_date(
+            item.get("date")
+        ):
+            raise ValueError(
+                f"{site_id}: a withdrawal needs a reason and a YYYY-MM-DD date"
+            )
         found[site_id] = {
             key: item[key] for key in ("reason", "date", "replaced_by") if item.get(key)
         }

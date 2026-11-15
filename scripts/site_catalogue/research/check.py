@@ -38,6 +38,7 @@ from site_catalogue_format import (  # noqa: E402
     ENTRY_METHODS,
     SITE_TYPE_IDS,
     WITHDRAWAL_REASONS,
+    is_iso_date,
 )
 
 SITES_FILE = Path(_HERE) / "sites.json"
@@ -176,8 +177,8 @@ def _check_shape(checked: CheckedEntry, ids: set[str], today: date) -> None:
             "reason"
         ) not in WITHDRAWAL_REASONS:
             checked.fail("shape", f"withdrawn.reason is one of {WITHDRAWAL_REASONS}")
-        elif not withdrawn.get("date"):
-            checked.fail("shape", "a withdrawal carries its date")
+        elif not is_iso_date(withdrawn.get("date")):
+            checked.fail("shape", "a withdrawal carries its date, YYYY-MM-DD")
 
 
 def _check_domains(checked: CheckedEntry, domains) -> None:
