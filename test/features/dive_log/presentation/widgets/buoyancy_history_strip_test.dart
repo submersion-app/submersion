@@ -195,6 +195,38 @@ void main() {
     }
   });
 
+  testWidgets('a pair tapped on one dive is not kept for the next', (
+    tester,
+  ) async {
+    Widget strip(String diveId) => ProviderScope(
+      overrides: [
+        buoyancyHistoryProvider('d1').overrideWith((ref) async => _history),
+        buoyancyHistoryProvider('d2').overrideWith((ref) async => _history),
+      ],
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: BuoyancyHistoryStrip(
+            diveId: diveId,
+            units: const UnitFormatter(AppSettings()),
+            current: _current,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpWidget(strip('d1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('history-dive-0')));
+    await tester.pump();
+    expect(_readoutText(tester), startsWith('May 1'));
+
+    await tester.pumpWidget(strip('d2'));
+    await tester.pumpAndSettle();
+    expect(_readoutText(tester), startsWith('This dive'));
+  });
+
   testWidgets('no past dives in this suit, no chart', (tester) async {
     await _pump(tester, history: const []);
     expect(_readout(), findsNothing);

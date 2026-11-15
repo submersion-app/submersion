@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dive_log/presentation/utils/text_measure.dart';
+
 /// A callout to place over the balance bar: [anchor] is the centre of the
 /// segment it names and [width] the callout's own, both measured from the
 /// bar's start edge.
@@ -237,17 +239,14 @@ class BalanceCalloutLane extends StatelessWidget {
     TextDirection direction,
     TextScaler scaler,
   ) {
-    final painter = TextPainter(
-      text: TextSpan(text: label, style: style),
-      textDirection: direction,
-      textScaler: scaler,
-      maxLines: 1,
-    )..layout();
-    final width = painter.width;
-    painter.dispose();
-    // Text, its padding and the outline either side, rounded up so the text
-    // never clips by a fraction of a pixel.
-    return (width + _padding * 2 + 2).ceilToDouble();
+    final text = measureSingleLine(
+      label,
+      style,
+      direction: direction,
+      scaler: scaler,
+    );
+    // Text, its padding and the outline either side.
+    return text.width + _padding * 2 + 2;
   }
 }
 

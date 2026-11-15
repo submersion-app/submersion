@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/buoyancy_history_provider.dart';
+import 'package:submersion/features/dive_log/presentation/utils/text_measure.dart';
 import 'package:submersion/features/dive_log/presentation/utils/weight_axis.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -69,6 +70,18 @@ class _BuoyancyHistoryStripState extends ConsumerState<BuoyancyHistoryStrip> {
 
   /// The pair picked by a tap; null follows the last pair.
   int? _selected;
+
+  @override
+  void didUpdateWidget(BuoyancyHistoryStrip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A tapped pair belongs to the dive and the list it was tapped in: on
+    // another dive, or with this dive joining or leaving the list, the same
+    // index would name a different dive.
+    if (oldWidget.diveId != widget.diveId ||
+        (oldWidget.current == null) != (widget.current == null)) {
+      _selected = null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -156,17 +169,8 @@ class _BuoyancyHistoryStripState extends ConsumerState<BuoyancyHistoryStrip> {
       color: scheme.onSurfaceVariant,
     );
 
-    Size measure(String text, TextStyle? style) {
-      final painter = TextPainter(
-        text: TextSpan(text: text, style: style),
-        textDirection: direction,
-        textScaler: scaler,
-        maxLines: 1,
-      )..layout();
-      final size = Size(painter.width.ceilToDouble(), painter.height);
-      painter.dispose();
-      return size;
-    }
+    Size measure(String text, TextStyle? style) =>
+        measureSingleLine(text, style, direction: direction, scaler: scaler);
 
     final peak = points.fold(
       0.0,
@@ -199,7 +203,12 @@ class _BuoyancyHistoryStripState extends ConsumerState<BuoyancyHistoryStrip> {
       builder: (context, constraints) {
         final plotWidth = math.max(0.0, constraints.maxWidth - axisWidth);
         final slot = plotWidth / points.length;
-        final barWidth = (slot / 3).clamp(3.0, 10.0);
+        // Two bars and the gap between them always fit their slot, however
+        // many dives share a narrow card.
+        final barWidth = math.min(
+          (slot / 3).clamp(3.0, 10.0).toDouble(),
+          math.max(1.0, (slot - 2) / 2),
+        );
         final highlight = scheme.surfaceContainerHighest;
 
         return Column(

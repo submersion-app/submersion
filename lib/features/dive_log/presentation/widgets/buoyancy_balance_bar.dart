@@ -5,6 +5,7 @@ import 'package:submersion/core/icons/submersion_icons.dart';
 import 'package:submersion/core/theme/contrast_ratio.dart';
 import 'package:submersion/core/theme/foreground_on.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/utils/text_measure.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_balance_callouts.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_balance_ruler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -255,17 +256,15 @@ class BuoyancyBalanceBar extends StatelessWidget {
             name,
             units.formatWeight(ordered[i].kg.abs()),
           );
-          bool fits(String text) {
-            final painter = TextPainter(
-              text: TextSpan(text: text, style: labelStyle),
-              textDirection: direction,
-              textScaler: scaler,
-              maxLines: 1,
-            )..layout();
-            final width = painter.width;
-            painter.dispose();
-            return width + _labelPadding * 2 <= widths[i];
-          }
+          bool fits(String text) =>
+              measureSingleLine(
+                    text,
+                    labelStyle,
+                    direction: direction,
+                    scaler: scaler,
+                  ).width +
+                  _labelPadding * 2 <=
+              widths[i];
 
           // The whole label when there is room; otherwise the part's icon
           // when there is room for that, and a callout above the bar names it.
