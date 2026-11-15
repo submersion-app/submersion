@@ -5,6 +5,21 @@ import 'package:submersion/core/platform/app_directories.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
+/// A Workmanager task: true when it is done, false to have it retried.
+typedef HeadlessTask =
+    Future<bool> Function(String task, Map<String, dynamic>? inputData);
+
+/// [task], made to write every line it logged before it returns: the
+/// headless isolate is torn down as soon as a task returns, and lines still
+/// queued for the log file would go with it (issue #4572).
+HeadlessTask flushingLogs(HeadlessTask task) => (name, inputData) async {
+  try {
+    return await task(name, inputData);
+  } finally {
+    await LoggerService.flushPendingWrites();
+  }
+};
+
 /// Attaches the debug log file in a headless isolate (the WorkManager
 /// isolate that runs scheduled backups), as the app's startup does in the
 /// foreground (issue #4572). Without it nothing a background task logs,

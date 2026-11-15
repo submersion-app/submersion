@@ -73,4 +73,35 @@ void main() {
 
     expect(attached, isFalse);
   });
+
+  group('flushingLogs', () {
+    test('the lines a task logged are in the file when it returns', () async {
+      await attachHeadlessFileLogging(
+        await prefs(),
+        supportDirectory: () async => support.path,
+      );
+      final task = flushingLogs((name, _) async {
+        const LoggerService('BackgroundService').warning('ran $name');
+        return true;
+      });
+
+      expect(await task('backup', null), isTrue);
+      expect(logFile().readAsStringSync(), contains('ran backup'));
+    });
+
+    test('a task that throws still flushes, and the error reaches the '
+        'caller', () async {
+      await attachHeadlessFileLogging(
+        await prefs(),
+        supportDirectory: () async => support.path,
+      );
+      final task = flushingLogs((name, _) async {
+        const LoggerService('BackgroundService').error('failing $name');
+        throw StateError('boom');
+      });
+
+      await expectLater(task('backup', null), throwsStateError);
+      expect(logFile().readAsStringSync(), contains('failing backup'));
+    });
+  });
 }
