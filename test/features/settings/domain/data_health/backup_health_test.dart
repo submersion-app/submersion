@@ -292,7 +292,9 @@ void main() {
         level: HealthLevel.attention,
         reason: HealthReason.syncAutoOff,
       );
-      expect(pickHealth(DataFeature.sync, const [a, b]), a);
+      // The headline now carries the candidates as findings, so compare the
+      // reason the tie is decided on.
+      expect(pickHealth(DataFeature.sync, const [a, b]).reason, a.reason);
     });
   });
 

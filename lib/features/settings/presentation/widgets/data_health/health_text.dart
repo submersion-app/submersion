@@ -88,5 +88,10 @@ String healthReasonText(
     ),
     HealthReason.mediaFinishSetup => l10n.dataHealth_media_finishSetup,
     HealthReason.mediaTransfersPaused => l10n.dataHealth_media_transfersPaused,
+    // The Photos status line's own words, so the row and the page agree.
+    HealthReason.mediaStoreUnreachable =>
+      name.isEmpty
+          ? l10n.settings_photos_status_pausedUnreachable
+          : l10n.settings_photos_status_unreachable(name),
   };
 }
