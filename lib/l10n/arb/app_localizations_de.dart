@@ -57735,6 +57735,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Druckverlauf neu zuordnen';
 
   @override
+  String get diveLog_tank_reassignPending =>
+      'Die Messwerte wechseln beim Speichern zu ihren neuen Flaschen.';
+
+  @override
   String diveLog_tank_roleFromTransmitterName(String role) {
     return '$role, aus dem Namen des Senders gelesen';
   }

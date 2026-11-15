@@ -54254,6 +54254,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_reassignSeries => '重新分配压力曲线';
 
   @override
+  String get diveLog_tank_reassignPending => '保存时，读数会移到新的气瓶。';
+
+  @override
   String diveLog_tank_roleFromTransmitterName(String role) {
     return '$role（根据发射器名称识别）';
   }

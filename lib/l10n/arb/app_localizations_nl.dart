@@ -57496,6 +57496,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Drukreeks opnieuw toewijzen';
 
   @override
+  String get diveLog_tank_reassignPending =>
+      'De metingen gaan bij het opslaan naar hun nieuwe flessen.';
+
+  @override
   String diveLog_tank_roleFromTransmitterName(String role) {
     return '$role, afgeleid uit de naam van de zender';
   }

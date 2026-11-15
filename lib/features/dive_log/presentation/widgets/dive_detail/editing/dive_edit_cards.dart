@@ -7,7 +7,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tags_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_card_editor.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
@@ -86,5 +88,16 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         DiveDetailsCardEditor(session: session),
+  ),
+  DiveDetailSectionId.tanks: EditCard<Dive>(
+    id: DiveDetailSectionId.tanks.name,
+    title: (context) => context.l10n.diveLog_detail_section_cylinders,
+    // A gauge dive logs no gas: its card is reached from the Add strip,
+    // and its editor shows the mode alone.
+    isEmpty: (dive) => dive.isGauge || dive.tanks.isEmpty,
+    // A runtime shortened on the header can leave a switch past the end of
+    // the dive while this card is closed.
+    isValid: gasSwitchesValid,
+    editorBuilder: (context, session) => DiveTanksCardEditor(session: session),
   ),
 };

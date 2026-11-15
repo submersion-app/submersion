@@ -45,6 +45,10 @@ void removeSittingTank(EditSession<Dive> session, String tankId) {
   ]);
 }
 
+/// A fresh id for a cylinder the sitting adds: `updateDive` refuses one
+/// with none.
+String newSittingTankId() => _uuid.v4();
+
 /// A cylinder to add after [tanks], as the form's `_addTank` builds it
 /// (`dive_edit_page.dart:4427`): [preset]'s size, or [defaultVolume]; the
 /// diver's [defaultStartPressure], 50 bar at the end, air, back gas when it
@@ -55,7 +59,7 @@ DiveTank newSittingTank({
   required double defaultVolume,
   required double defaultStartPressure,
 }) => DiveTank(
-  id: _uuid.v4(),
+  id: newSittingTankId(),
   volume: preset?.volumeLiters ?? defaultVolume,
   workingPressure: preset?.workingPressureBar,
   startPressure: defaultStartPressure,

@@ -301,7 +301,7 @@ void main() {
     final page = await pumpPage(tester);
     await unlock(tester);
 
-    await tester.tap(find.byKey(const ValueKey('addStrip_tags')));
+    await tapStripChip(tester, 'tags');
     await settle(tester);
     expect(find.byType(TagFormBlock), findsOneWidget);
     expect(find.byKey(const ValueKey('addStrip_tags')), findsNothing);
@@ -376,7 +376,7 @@ void main() {
   ) async {
     final page = await pumpPage(tester);
     await unlock(tester);
-    await tester.tap(find.byKey(const ValueKey('addStrip_tags')));
+    await tapStripChip(tester, 'tags');
     await settle(tester);
 
     // A sync changes the notes underneath while the diver is on Tags.
@@ -645,7 +645,7 @@ void main() {
       visible: const {DiveDetailSectionId.notes},
     );
     await unlock(tester);
-    await tester.tap(find.byKey(const ValueKey('addStrip_tags')));
+    await tapStripChip(tester, 'tags');
     await settle(tester);
 
     tester
@@ -694,7 +694,7 @@ void main() {
     await pumpPage(tester, size: const Size(700, height));
     await unlock(tester);
 
-    await tester.tap(find.byKey(const ValueKey('addStrip_tags')));
+    await tapStripChip(tester, 'tags');
     await tester.pumpAndSettle();
 
     final editor = tester.getRect(find.byType(TagFormBlock));

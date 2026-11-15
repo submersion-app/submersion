@@ -23,8 +23,14 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
 
   /// Created on first use, so a page that never offers editing has none.
   RecordEditController<Dive> get editController =>
-      _editController ??= RecordEditController<Dive>(onSave: _saveSitting)
-        ..addListener(_onEditChanged);
+      _editController ??= RecordEditController<Dive>(
+        onSave: _saveSitting,
+        // Each card's own check, asked at Save of open and closed cards.
+        invalidCards: (session) => [
+          for (final card in diveEditCards.values)
+            if (card.isValid?.call(session) == false) card.id,
+        ],
+      )..addListener(_onEditChanged);
 
   /// Whether a sitting is in progress.
   bool get isSittingOpen => _editController?.isUnlocked ?? false;

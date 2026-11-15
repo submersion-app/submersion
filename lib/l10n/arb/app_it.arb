@@ -17055,6 +17055,7 @@
   "diveComputer_detail_transmittersSummary": "{known} noti, {unassigned} non assegnati",
   "diveLog_tank_assignTransmitter": "Assegna trasmettitore",
   "diveLog_tank_reassignSeries": "Riassegna serie di pressione",
+  "diveLog_tank_reassignPending": "Le letture passano alle nuove bombole quando salvi.",
   "diveLog_tank_roleFromTransmitterName": "{role}, letto dal nome del trasmettitore",
   "diveLog_reassignSheet_title": "Serie di pressione",
   "diveLog_reassignSheet_swap": "Scambia",

@@ -58647,6 +58647,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'إعادة تعيين سلسلة الضغط';
 
   @override
+  String get diveLog_tank_reassignPending =>
+      'تنتقل القراءات إلى أسطواناتها الجديدة عند الحفظ.';
+
+  @override
   String diveLog_tank_roleFromTransmitterName(String role) {
     return '$role، مأخوذ من اسم جهاز الإرسال';
   }

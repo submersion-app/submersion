@@ -17055,6 +17055,7 @@
   "diveComputer_detail_transmittersSummary": "{known} bekend, {unassigned} niet toegewezen",
   "diveLog_tank_assignTransmitter": "Zender toewijzen",
   "diveLog_tank_reassignSeries": "Drukreeks opnieuw toewijzen",
+  "diveLog_tank_reassignPending": "De metingen gaan bij het opslaan naar hun nieuwe flessen.",
   "diveLog_tank_roleFromTransmitterName": "{role}, afgeleid uit de naam van de zender",
   "diveLog_reassignSheet_title": "Drukreeksen",
   "diveLog_reassignSheet_swap": "Wisselen",

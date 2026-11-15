@@ -34631,6 +34631,10 @@
   },
   "diveLog_tank_assignTransmitter": "Assign transmitter",
   "diveLog_tank_reassignSeries": "Reassign pressure series",
+  "diveLog_tank_reassignPending": "The readings move to their new cylinders when you save.",
+  "@diveLog_tank_reassignPending": {
+    "description": "Under the Reassign pressure series button on the open Cylinders card, while an exchange of recorded pressure readings is held until the diver saves the editing sitting."
+  },
   "diveLog_tank_roleFromTransmitterName": "{role}, read from the transmitter's name",
   "@diveLog_tank_roleFromTransmitterName": {
     "description": "Under a cylinder whose role the dive computer took from the name the diver gave its transmitter (a name starting with O reads as oxygen, D as diluent), so the role is unconfirmed. role is the localized tank role, e.g. O₂ Supply.",

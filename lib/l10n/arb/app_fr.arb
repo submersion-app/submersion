@@ -17055,6 +17055,7 @@
   "diveComputer_detail_transmittersSummary": "{known} connus, {unassigned} non associés",
   "diveLog_tank_assignTransmitter": "Associer l'émetteur",
   "diveLog_tank_reassignSeries": "Réattribuer la courbe de pression",
+  "diveLog_tank_reassignPending": "Les relevés passent à leurs nouveaux blocs à l'enregistrement.",
   "diveLog_tank_roleFromTransmitterName": "{role}, lu dans le nom de l'émetteur",
   "diveLog_reassignSheet_title": "Courbes de pression",
   "diveLog_reassignSheet_swap": "Échanger",

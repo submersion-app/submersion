@@ -237,6 +237,15 @@ Future<void> settle(WidgetTester tester) async {
   await tester.pump(const Duration(seconds: 1));
 }
 
+/// Taps the Add strip's chip for [cardId], scrolling the strip to it first:
+/// with more chips than the strip is wide, it may start out of view.
+Future<void> tapStripChip(WidgetTester tester, String cardId) async {
+  final chip = find.byKey(ValueKey('addStrip_$cardId'));
+  await tester.ensureVisible(chip);
+  await tester.pump();
+  await tester.tap(chip);
+}
+
 Future<void> unlock(WidgetTester tester) async {
   await tester.tap(find.byTooltip('Unlock to edit'));
   await settle(tester);
