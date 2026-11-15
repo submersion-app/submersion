@@ -1122,3 +1122,48 @@ One, `Refs #4527`. It touches `lib/**/presentation/` and `lib/shared/widgets/`, 
 - **Plan 8 (new dive).** Tanks is in the starter set: seed it with `newSittingTank` and the default preset (`_loadDefaultPreset`, `dive_edit_page.dart:851`). The default set applies through `useSetInSitting(auto: true)`. A prefilled tank and the trip board's slot shortcut go through `setTanks` and `tankSlotChosen`.
 - **Plan 9.** `tank_pressure_series` exchanges join the sitting's History entry.
 - **Any plan giving a card an editor:** add it to `diveEditCards`; a card whose values can be invalid without its widgets gives `isValid`.
+
+---
+
+## After the review
+
+The plan was built as written in this session (Eric chose "Native"), then reviewed as a whole branch by a fresh reviewer. This is what differs from the task text above, for whoever writes plan 6.
+
+### Names that changed, or were added
+
+| Above | Now |
+| --- | --- |
+| `setTanks(session, tanks)` renumbers | It does not: `removeSittingTank` renumbers, as the form does. `setTanks(..., replaced: true)` marks a change made from outside the rows and moves `tankRowsGeneration`, which keys the Cylinders editor's rows |
+| `cylindersFromConfig` | Gone: the editor calls `DiveTankConfigAdapter` itself, as it needs the overwrites for the confirm |
+| `loadGasSwitches(session, read:)` and edits taking a writer | `loadGasSwitches(session, read:, writer:)` takes a writer factory, kept for the held write; the edits take none. `loadDiveGasSwitches(session, read)` reads from the database, through `diveGasSwitchWriterProvider` |
+| Switches load when the Cylinders card opens | They load as the sitting starts: `startDiveSitting(session, read)` in `dive_edit_cards.dart`, called by the page's lock button. Save checks a card that was never opened |
+| `addGearToSitting(session, items, reads:)` and `useSetInSitting(context, ref, ...)` | Both read providers through a `ProviderRead` (`WidgetRef.read` or `ProviderContainer.read`, typedef in `gear_expansion.dart`, beside a new `expandGear(read, ...)`). `useSetInSitting(session, set, items, read:, questions:, auto:)` asks through `SetUseQuestions.dialogs(context, units)`, so it holds no context across its awaits |
+| `removeGearRows(session, ids)` | `keepGearRows(session, rows)`: the gear tree hands back the rows that stay |
+| The reassign runs after the dive is written, skipping a removed cylinder | It is held with `beforeRecord: true` and runs before the dive (`EditSession.holdChange(beforeRecord:)`, `runHeldWrites(beforeRecord:)`, `DiveEditSaveService.save(writeFirst:)`), while both rows exist: a removed cylinder takes the readings moved onto it |
+| `applyLastDiveInSitting(session, last)` | Takes `defaultStartPressure` |
+| `DiveSittingFollowUp.run(..., changedCardIds:)` required | Optional; the refresh is `diveGearRefreshProvider` (quality scan, derived metrics, sensor summary) |
+| The volume hint in two places | One widget, `DiveVolumeHint`: in a sitting it calls `addCard('tanks')` |
+| Dialogs inside the form | `showSaveGearAsSetDialog` and `confirmApplyLastDive` are files of their own, called by the form and the cards |
+| Test files | Read cards and the page end to end are in `dive_detail_page_unlock_gear_cards_test.dart` and `dive_detail_page_unlock_gear_test.dart`; the Details rules in `dive_details_gear_rules_test.dart` |
+
+### Decided while building
+
+- `RecordCardForm` checks its fields again whenever it is rebuilt, so a limit another card changes (the header's runtime bounding a switch) is reported both ways. `RecordEditController.save` asks the card checks again after waiting for tracked work.
+- Typing a switch's time back restores its own depth; with no profile the latest time is the runtime or bottom time in exact seconds.
+- The Cylinders and Weight title rows are `RecordCardHeader`s (the Cylinders info button as the trailing widget), so the pencil adds no height. The hidden Assign button keeps its room, so the card does not grow on unlock.
+- The read-only check-in chip is a disabled button that keeps its colour.
+- The location suggestion shows above the closed Equipment card once every editor has closed, and inside the open card only while no other card is open.
+- The Equipment editor's "Save as set" and "Clear all" row wraps on a narrow phone.
+- `DiveTank.copyWith` gained `clearStartPressure` and `clearEndPressure` for the exchange.
+- Plan 3's test that the volume hint is a plain note during a sitting now pins that it opens the Cylinders card.
+
+### Left open
+
+- A trip changed and changed back clears every stored slot link, with no take-back.
+- The location set's stale check compares only the site id (site A, B, A), and a site changed during the auto set's own awaits still applies it.
+- A gear add can undo a removal made during its expansion; the overwrite confirm re-applies over the cylinders read before the dialog.
+- An own cylinder's gear add, or a set used from Equipment, is dropped part-way if its card closes while it runs.
+- While an exchange is held, fill-detected switches, the time sheet and the reassign sheet read the stored readings.
+- A stored switch already out of range blocks Done and Save on an opened Cylinders card, as the form's validator does today.
+- Exchanged readings are not in the sitting's History entry until plan 9.
+- Tests not written: the gauge mode picked in a sitting leaving deco, tissue and SAC segments until Save; the pairs in a sitting; Save as set surviving Cancel; a set used across three cards at page level (it hangs on database reads in the fake clock).
