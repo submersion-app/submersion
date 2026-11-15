@@ -37,7 +37,8 @@ Future<bool> attachHeadlessFileLogging(
   try {
     final logFileService = LogFileService(
       logDirectory: p.join(await supportDirectory(), 'logs'),
-      // Appends only; the app trims the file (see [LogFileService.rotates]).
+      // Trims once when attached, then only appends; see
+      // [LogFileService.rotates].
       rotates: false,
     );
     await logFileService.initialize();

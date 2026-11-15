@@ -15,11 +15,12 @@ class LogFileService {
   final String logDirectory;
   final int maxFileSizeBytes;
 
-  /// Whether this instance trims the file once it passes
-  /// [maxFileSizeBytes]. A headless isolate (issue #4572) appends to the
-  /// app's file without trimming it: a trim is a read and a rewrite, and
-  /// two isolates trimming one file would drop each other's lines. The
-  /// app's own instance does the trimming.
+  /// Whether this instance trims the file after each write once it passes
+  /// [maxFileSizeBytes]. A headless isolate (issue #4572) passes false: a
+  /// trim is a read and a rewrite, so a line the app appends in between is
+  /// lost. Such an instance trims once, in [initialize], before it writes
+  /// anything, and only appends after that, so the file stays bounded
+  /// while scheduled tasks run for weeks without the app opening.
   final bool rotates;
 
   static const _logFileName = 'submersion.log';
@@ -40,7 +41,8 @@ class LogFileService {
 
   String get logFilePath => _logFilePath;
 
-  /// Initialize the service, creating the log directory if needed.
+  /// Initialize the service, creating the log directory if needed. An
+  /// instance that does not [rotates] trims an oversized file here.
   Future<void> initialize() async {
     _logFilePath = '$logDirectory/$_logFileName';
     final dir = Directory(logDirectory);
@@ -48,6 +50,7 @@ class LogFileService {
       await dir.create(recursive: true);
     }
     _isInitialized = true;
+    if (!rotates) await _rotateIfNeeded();
   }
 
   /// Write a formatted log line to the file.
@@ -128,7 +131,9 @@ class LogFileService {
   }
 
   /// Check file size and rotate if it exceeds the max.
-  /// Rotation keeps the last ~50% of the file content.
+  /// Rotation keeps the newest lines that fit in half the max: the app's
+  /// file is only just over it, but one a headless isolate appended to for
+  /// weeks may be several times over, and halving that would not be enough.
   ///
   /// Works on bytes, not decoded text: a strict UTF-8 decode throws on one
   /// malformed byte, which would stop rotation for good and let a file that
@@ -142,8 +147,9 @@ class LogFileService {
 
     final bytes = await file.readAsBytes();
 
-    // Find the next newline after the midpoint so we don't split a line
-    final nextNewline = bytes.indexOf(_newline, bytes.length ~/ 2);
+    // Find the next newline after the cut so we don't split a line
+    final cut = bytes.length - maxFileSizeBytes ~/ 2;
+    final nextNewline = bytes.indexOf(_newline, cut);
     if (nextNewline == -1) return;
 
     await file.writeAsBytes(bytes.sublist(nextNewline + 1));
