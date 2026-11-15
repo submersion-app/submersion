@@ -160,6 +160,17 @@ void main() {
     expect(line.max, 18);
   });
 
+  test('a dive with no CNS keeps its zero line at the bottom', () {
+    final data = _build(
+      analysis: ProfileAnalysis.empty().copyWith(
+        cnsCurve: [for (var i = 0; i < 10; i++) 0.0],
+      ),
+    );
+    final line = _line(data, StripLayer.cns);
+    expect(line.min, 0);
+    expect(line.max, greaterThan(line.min));
+  });
+
   test('surface GF ranges 0 to 150', () {
     final data = _build(
       analysis: ProfileAnalysis.empty().copyWith(

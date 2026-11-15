@@ -270,6 +270,11 @@ StripLine? _line(
     for (var i = 0; i < runs.length; i++)
       if (thinned[i].length != runs[i].length) i,
   ].isNotEmpty;
+  final low = min ?? values.reduce(math.min) - pad;
+  var high = max ?? values.reduce(math.max) + pad;
+  // A fixed floor with nothing above it (no CNS at all) keeps its line at
+  // the floor: a flat series on its own range would sit half way up.
+  if (min != null && high <= low) high = low + 1;
   return StripLine(
     layer: layer,
     key: key,
@@ -280,8 +285,8 @@ StripLine? _line(
             for (final run in runs) List<StripPoint>.unmodifiable(run),
           ])
         : null,
-    min: min ?? values.reduce(math.min) - pad,
-    max: max ?? values.reduce(math.max) + pad,
+    min: low,
+    max: high,
     estimated: estimated,
     label: label,
   );
