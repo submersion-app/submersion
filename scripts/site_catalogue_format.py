@@ -53,7 +53,7 @@ SOURCES = {
         "licence_url": _ODBL,
         "credit": "Submersion contributors",
     },
-    # Sites found by research: facts read from published dive guides,
+    # Sites found by research: facts read from published sources,
     # each one citing its pages in scripts/site_catalogue/research/. See
     # docs/design/specs/2026-11-15-site-catalogue-researched-sites-design.md.
     "research": {

@@ -152,7 +152,11 @@ class _CatalogueLine extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final record = ref.watch(catalogueSiteProvider(catalogueId)).value;
+    final recordState = ref.watch(catalogueSiteProvider(catalogueId));
+    // Only a record the catalogue answered for and lacks can have been
+    // withdrawn; one still loading asks for nothing yet.
+    if (!recordState.hasValue) return const SizedBox.shrink();
+    final record = recordState.value;
     if (record == null) {
       final withdrawal = ref
           .watch(catalogueWithdrawalProvider(catalogueId))

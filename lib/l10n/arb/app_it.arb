@@ -3922,7 +3922,7 @@
   "diveSites_picker_nearby": "Nelle vicinanze",
   "diveSites_catalogue_credit": "Dal catalogo integrato dei siti. Fonte: {source}",
   "diveSites_catalogue_notVerified": "Non verificato",
-  "diveSites_catalogue_notVerifiedExplanation": "Raccolto da guide subacquee pubblicate, non da un rilievo. Verifica la posizione sul posto prima di fidarti.",
+  "diveSites_catalogue_notVerifiedExplanation": "Raccolto da fonti pubblicate, non da un rilievo. Verifica la posizione sul posto prima di fidarti.",
   "diveSites_catalogue_withdrawn": "Scheda integrata ritirata.",
   "diveSites_catalogue_withdrawnBecause": "Scheda integrata ritirata: {reason}.",
   "diveSites_catalogue_withdrawnReasonPosition": "la posizione era sbagliata",

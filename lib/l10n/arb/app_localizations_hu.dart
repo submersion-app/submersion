@@ -13041,7 +13041,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_catalogue_notVerifiedExplanation =>
-      'Közzétett merülési kalauzokból gyűjtve, nem felmérésből. Mielőtt megbízna benne, ellenőrizze a helyszínen a pozíciót.';
+      'Közzétett forrásokból gyűjtve, nem felmérésből. Mielőtt megbízna benne, ellenőrizze a helyszínen a pozíciót.';
 
   @override
   String get diveSites_catalogue_withdrawn =>

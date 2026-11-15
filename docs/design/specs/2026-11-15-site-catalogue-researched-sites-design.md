@@ -659,6 +659,13 @@ this slice and waits for a batch under wider sources, which needs its own
 decision on what may confirm a position. The near misses are written up
 in the slice's ledger for that batch.
 
+**Wording, after review (maintainer, 2026-11-15).** With no researched
+batch, the marked records are the 55 curated ones, and ten of those come
+from NOAA's wreck register or Wikipedia, not from dive guides. The
+sentence (decision 5) and the licence text now say "published sources":
+"Gathered from published sources, not from a survey. Check the position
+locally before you rely on it."
+
 ## Known gaps after the build
 
 - Two operators who copied one survey look independent to the checker. The

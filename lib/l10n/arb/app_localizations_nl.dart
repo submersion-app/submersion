@@ -12989,7 +12989,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_catalogue_notVerifiedExplanation =>
-      'Verzameld uit gepubliceerde duikgidsen, niet uit een opmeting. Controleer de positie ter plaatse voordat je erop vertrouwt.';
+      'Verzameld uit gepubliceerde bronnen, niet uit een opmeting. Controleer de positie ter plaatse voordat je erop vertrouwt.';
 
   @override
   String get diveSites_catalogue_withdrawn =>

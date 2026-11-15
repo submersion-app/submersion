@@ -9,7 +9,7 @@ bool isResearched(CatalogueSite site) =>
     site.trust == CatalogueTrust.researched;
 
 /// The small outlined "Not verified" mark beside a built-in site gathered
-/// from published dive guides.
+/// from published sources.
 ///
 /// Neutral, not a warning: it tells the diver where the record came from,
 /// and the sentence beside it ([notVerifiedExplanation]) says what to do.

@@ -4162,7 +4162,7 @@
   "diveSites_picker_nearby": "附近",
   "diveSites_catalogue_credit": "来自内置潜水点目录。来源：{source}",
   "diveSites_catalogue_notVerified": "未经核实",
-  "diveSites_catalogue_notVerifiedExplanation": "根据已发布的潜水指南整理，并非实地测量。依赖之前请在当地核实位置。",
+  "diveSites_catalogue_notVerifiedExplanation": "根据已发布的资料整理，并非实地测量。依赖之前请在当地核实位置。",
   "diveSites_catalogue_withdrawn": "内置记录已撤回。",
   "diveSites_catalogue_withdrawnBecause": "内置记录已撤回：{reason}。",
   "diveSites_catalogue_withdrawnReasonPosition": "其位置有误",

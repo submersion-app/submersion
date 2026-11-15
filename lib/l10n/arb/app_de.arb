@@ -4081,7 +4081,7 @@
   "diveSites_picker_nearby": "In der Nähe",
   "diveSites_catalogue_credit": "Aus dem integrierten Tauchplatzkatalog. Quelle: {source}",
   "diveSites_catalogue_notVerified": "Nicht geprüft",
-  "diveSites_catalogue_notVerifiedExplanation": "Aus veröffentlichten Tauchführern zusammengetragen, nicht aus einer Vermessung. Prüfe die Position vor Ort, bevor du dich darauf verlässt.",
+  "diveSites_catalogue_notVerifiedExplanation": "Aus veröffentlichten Quellen zusammengetragen, nicht aus einer Vermessung. Prüfe die Position vor Ort, bevor du dich darauf verlässt.",
   "diveSites_catalogue_withdrawn": "Integrierter Eintrag zurückgezogen.",
   "diveSites_catalogue_withdrawnBecause": "Integrierter Eintrag zurückgezogen: {reason}.",
   "diveSites_catalogue_withdrawnReasonPosition": "die Position war falsch",

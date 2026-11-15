@@ -3922,7 +3922,7 @@
   "diveSites_picker_nearby": "A közelben",
   "diveSites_catalogue_credit": "A beépített merülőhely-katalógusból. Forrás: {source}",
   "diveSites_catalogue_notVerified": "Nem ellenőrzött",
-  "diveSites_catalogue_notVerifiedExplanation": "Közzétett merülési kalauzokból gyűjtve, nem felmérésből. Mielőtt megbízna benne, ellenőrizze a helyszínen a pozíciót.",
+  "diveSites_catalogue_notVerifiedExplanation": "Közzétett forrásokból gyűjtve, nem felmérésből. Mielőtt megbízna benne, ellenőrizze a helyszínen a pozíciót.",
   "diveSites_catalogue_withdrawn": "A beépített bejegyzést visszavonták.",
   "diveSites_catalogue_withdrawnBecause": "A beépített bejegyzést visszavonták: {reason}.",
   "diveSites_catalogue_withdrawnReasonPosition": "a pozíciója hibás volt",

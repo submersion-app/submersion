@@ -156,7 +156,7 @@ void main() {
     expect(find.text('Not verified'), findsOneWidget);
     expect(
       find.text(
-        'Gathered from published dive guides, not from a survey. Check the '
+        'Gathered from published sources, not from a survey. Check the '
         'position locally before you rely on it.',
       ),
       findsOneWidget,

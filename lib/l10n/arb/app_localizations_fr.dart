@@ -13122,7 +13122,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveSites_catalogue_notVerifiedExplanation =>
-      'Rassemblé à partir de guides de plongée publiés, pas d\'un relevé. Vérifie la position sur place avant de t\'y fier.';
+      'Rassemblé à partir de sources publiées, pas d\'un relevé. Vérifie la position sur place avant de t\'y fier.';
 
   @override
   String get diveSites_catalogue_withdrawn => 'Fiche intégrée retirée.';

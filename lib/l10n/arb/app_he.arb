@@ -3922,7 +3922,7 @@
   "diveSites_picker_nearby": "בקרבת מקום",
   "diveSites_catalogue_credit": "מתוך קטלוג האתרים המובנה. מקור: {source}",
   "diveSites_catalogue_notVerified": "לא מאומת",
-  "diveSites_catalogue_notVerifiedExplanation": "נאסף ממדריכי צלילה שפורסמו, לא ממדידה. כדאי לבדוק את המיקום במקום לפני שסומכים עליו.",
+  "diveSites_catalogue_notVerifiedExplanation": "נאסף ממקורות שפורסמו, לא ממדידה. כדאי לבדוק את המיקום במקום לפני שסומכים עליו.",
   "diveSites_catalogue_withdrawn": "הרשומה המובנית הוסרה.",
   "diveSites_catalogue_withdrawnBecause": "הרשומה המובנית הוסרה: {reason}.",
   "diveSites_catalogue_withdrawnReasonPosition": "המיקום שלה היה שגוי",

@@ -12874,7 +12874,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveSites_catalogue_notVerifiedExplanation =>
-      'Gathered from published dive guides, not from a survey. Check the position locally before you rely on it.';
+      'Gathered from published sources, not from a survey. Check the position locally before you rely on it.';
 
   @override
   String get diveSites_catalogue_withdrawn => 'Built-in record withdrawn.';

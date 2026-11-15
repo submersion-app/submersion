@@ -4047,7 +4047,7 @@
   "diveSites_picker_nearby": "قريب",
   "diveSites_catalogue_credit": "من كتالوج المواقع المدمج. المصدر: {source}",
   "diveSites_catalogue_notVerified": "غير موثّق",
-  "diveSites_catalogue_notVerifiedExplanation": "جُمعت من أدلة غوص منشورة، وليس من مسح ميداني. تحقّق من الموقع محليًا قبل الاعتماد عليه.",
+  "diveSites_catalogue_notVerifiedExplanation": "جُمعت من مصادر منشورة، وليس من مسح ميداني. تحقّق من الموقع محليًا قبل الاعتماد عليه.",
   "diveSites_catalogue_withdrawn": "سُحب السجل المدمج.",
   "diveSites_catalogue_withdrawnBecause": "سُحب السجل المدمج: {reason}.",
   "diveSites_catalogue_withdrawnReasonPosition": "كان موقعه خاطئًا",

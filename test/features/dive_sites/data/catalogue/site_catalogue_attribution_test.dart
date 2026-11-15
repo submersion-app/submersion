@@ -99,9 +99,7 @@ void main() {
     expect(text, contains('Submersion site research'));
     expect(
       text,
-      contains(
-        'gathered from published dive guides and are marked "Not verified"',
-      ),
+      contains('gathered from published sources and are marked "Not verified"'),
     );
     expect(text, contains('scripts/site_catalogue/research/sites.json'));
   });

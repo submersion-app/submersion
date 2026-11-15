@@ -12790,7 +12790,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_catalogue_notVerifiedExplanation =>
-      'נאסף ממדריכי צלילה שפורסמו, לא ממדידה. כדאי לבדוק את המיקום במקום לפני שסומכים עליו.';
+      'נאסף ממקורות שפורסמו, לא ממדידה. כדאי לבדוק את המיקום במקום לפני שסומכים עליו.';
 
   @override
   String get diveSites_catalogue_withdrawn => 'הרשומה המובנית הוסרה.';

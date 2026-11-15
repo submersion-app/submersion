@@ -20719,7 +20719,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveSites_catalogue_notVerifiedExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Gathered from published dive guides, not from a survey. Check the position locally before you rely on it.'**
+  /// **'Gathered from published sources, not from a survey. Check the position locally before you rely on it.'**
   String get diveSites_catalogue_notVerifiedExplanation;
 
   /// No description provided for @diveSites_catalogue_withdrawn.

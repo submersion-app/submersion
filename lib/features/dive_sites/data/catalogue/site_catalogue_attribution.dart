@@ -55,7 +55,7 @@ the published pages it was read from, in the source repository
 pages is kept.
 
 The researched sites and the sites added by the Submersion project are
-gathered from published dive guides and are marked "Not verified" in the
+gathered from published sources and are marked "Not verified" in the
 app: check their positions locally before relying on them.
 
 UK Hydrographic Office Wrecks and Obstructions. Contains public sector

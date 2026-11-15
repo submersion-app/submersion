@@ -4047,7 +4047,7 @@
   "diveSites_picker_nearby": "In de buurt",
   "diveSites_catalogue_credit": "Uit de ingebouwde stekkencatalogus. Bron: {source}",
   "diveSites_catalogue_notVerified": "Niet geverifieerd",
-  "diveSites_catalogue_notVerifiedExplanation": "Verzameld uit gepubliceerde duikgidsen, niet uit een opmeting. Controleer de positie ter plaatse voordat je erop vertrouwt.",
+  "diveSites_catalogue_notVerifiedExplanation": "Verzameld uit gepubliceerde bronnen, niet uit een opmeting. Controleer de positie ter plaatse voordat je erop vertrouwt.",
   "diveSites_catalogue_withdrawn": "Ingebouwde vermelding ingetrokken.",
   "diveSites_catalogue_withdrawnBecause": "Ingebouwde vermelding ingetrokken: {reason}.",
   "diveSites_catalogue_withdrawnReasonPosition": "de positie klopte niet",

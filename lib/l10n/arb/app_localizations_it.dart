@@ -13079,7 +13079,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_catalogue_notVerifiedExplanation =>
-      'Raccolto da guide subacquee pubblicate, non da un rilievo. Verifica la posizione sul posto prima di fidarti.';
+      'Raccolto da fonti pubblicate, non da un rilievo. Verifica la posizione sul posto prima di fidarti.';
 
   @override
   String get diveSites_catalogue_withdrawn => 'Scheda integrata ritirata.';

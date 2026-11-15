@@ -4047,7 +4047,7 @@
   "diveSites_picker_nearby": "Por perto",
   "diveSites_catalogue_credit": "Do catálogo integrado de pontos. Fonte: {source}",
   "diveSites_catalogue_notVerified": "Não verificado",
-  "diveSites_catalogue_notVerifiedExplanation": "Reunido a partir de guias de mergulho publicados, não de um levantamento. Confirme a posição no local antes de confiar nela.",
+  "diveSites_catalogue_notVerifiedExplanation": "Reunido a partir de fontes publicadas, não de um levantamento. Confirme a posição no local antes de confiar nela.",
   "diveSites_catalogue_withdrawn": "Registo integrado retirado.",
   "diveSites_catalogue_withdrawnBecause": "Registo integrado retirado: {reason}.",
   "diveSites_catalogue_withdrawnReasonPosition": "a posição estava errada",

@@ -13065,7 +13065,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_catalogue_notVerifiedExplanation =>
-      'Aus veröffentlichten Tauchführern zusammengetragen, nicht aus einer Vermessung. Prüfe die Position vor Ort, bevor du dich darauf verlässt.';
+      'Aus veröffentlichten Quellen zusammengetragen, nicht aus einer Vermessung. Prüfe die Position vor Ort, bevor du dich darauf verlässt.';
 
   @override
   String get diveSites_catalogue_withdrawn =>

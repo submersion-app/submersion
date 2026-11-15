@@ -36,19 +36,24 @@ void main() {
     CatalogueSource? catalogueSource,
     CatalogueWithdrawal? withdrawal,
     Future<CatalogueWithdrawal?>? withdrawalFuture,
+    Future<CatalogueSite?>? catalogueSiteFuture,
+    List<String>? withdrawalsAsked,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           siteTypesForSiteProvider(site.id).overrideWith((_) async => types),
           showCountryFlagsProvider.overrideWithValue(flags),
-          catalogueSiteProvider.overrideWith((ref, id) async => catalogueSite),
+          catalogueSiteProvider.overrideWith(
+            (ref, id) => catalogueSiteFuture ?? Future.value(catalogueSite),
+          ),
           catalogueSourceProvider.overrideWith(
             (ref, key) async => catalogueSource,
           ),
-          catalogueWithdrawalProvider.overrideWith(
-            (ref, id) => withdrawalFuture ?? Future.value(withdrawal),
-          ),
+          catalogueWithdrawalProvider.overrideWith((ref, id) {
+            withdrawalsAsked?.add(id);
+            return withdrawalFuture ?? Future.value(withdrawal);
+          }),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -410,6 +415,20 @@ void main() {
         expect(tester.takeException(), isNull);
         expect(find.textContaining('withdrawn'), findsNothing);
       });
+    });
+
+    testWidgets('does not ask for a withdrawal while the record is still '
+        'loading', (tester) async {
+      final asked = <String>[];
+      await pumpHeader(
+        tester,
+        adopted,
+        catalogueSiteFuture: Completer<CatalogueSite?>().future,
+        withdrawalsAsked: asked,
+      );
+      await tester.pump();
+
+      expect(asked, isEmpty);
     });
 
     testWidgets('shows nothing once the catalogue dropped the record', (

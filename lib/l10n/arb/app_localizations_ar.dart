@@ -13260,7 +13260,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_catalogue_notVerifiedExplanation =>
-      'جُمعت من أدلة غوص منشورة، وليس من مسح ميداني. تحقّق من الموقع محليًا قبل الاعتماد عليه.';
+      'جُمعت من مصادر منشورة، وليس من مسح ميداني. تحقّق من الموقع محليًا قبل الاعتماد عليه.';
 
   @override
   String get diveSites_catalogue_withdrawn => 'سُحب السجل المدمج.';

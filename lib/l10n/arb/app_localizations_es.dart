@@ -13076,7 +13076,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveSites_catalogue_notVerifiedExplanation =>
-      'Recopilado de guías de buceo publicadas, no de un levantamiento. Comprueba la posición en el lugar antes de fiarte de ella.';
+      'Recopilado de fuentes publicadas, no de un levantamiento. Comprueba la posición en el lugar antes de fiarte de ella.';
 
   @override
   String get diveSites_catalogue_withdrawn => 'Registro integrado retirado.';

@@ -12427,7 +12427,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_catalogue_notVerifiedExplanation =>
-      '根据已发布的潜水指南整理，并非实地测量。依赖之前请在当地核实位置。';
+      '根据已发布的资料整理，并非实地测量。依赖之前请在当地核实位置。';
 
   @override
   String get diveSites_catalogue_withdrawn => '内置记录已撤回。';

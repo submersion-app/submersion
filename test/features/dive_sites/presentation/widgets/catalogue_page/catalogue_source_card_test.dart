@@ -62,7 +62,7 @@ const _researched = CatalogueSite(
 );
 
 const _explanation =
-    'Gathered from published dive guides, not from a survey. Check the '
+    'Gathered from published sources, not from a survey. Check the '
     'position locally before you rely on it.';
 
 void main() {
