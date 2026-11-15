@@ -1,8 +1,8 @@
-// Issues #3390 and #3394: Settings > Data opens with a status strip and a
-// facts line, drops every card, and marks the four feature rows with the
-// same health symbol as the strip. Issue #3482: the rows read as outcomes
-// with one-sentence statuses under "Your data", and the rarely used rows
-// fold under "Advanced".
+// Issues #3390 and #3394: Settings > Data opens with a facts line and drops
+// every card; since #4561 the four feature rows are the status, each leading
+// with its health symbol, with no strip above them. Issue #3482: the rows
+// read as outcomes with one-sentence statuses under "Your data", and the
+// rarely used rows fold under "Advanced".
 // On a master-detail window its rows open in the detail pane (#3467).
 
 import 'dart:io';

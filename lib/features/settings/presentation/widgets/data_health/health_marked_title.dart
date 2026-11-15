@@ -30,8 +30,12 @@ class HealthMarkedTitle extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final health = ref.watch(healthProviderOf(feature));
-    final finding = findingFor(health, reasons, subjectId: subjectId);
+    // Only this item's finding: other health changes leave it alone.
+    final finding = ref.watch(
+      healthProviderOf(
+        feature,
+      ).select((h) => findingFor(h, reasons, subjectId: subjectId)),
+    );
     if (finding == null) return title;
     final l10n = context.l10n;
     return Row(

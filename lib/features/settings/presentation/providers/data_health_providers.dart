@@ -232,7 +232,8 @@ ProviderListenable<FeatureHealth> healthProviderOf(DataFeature feature) =>
       DataFeature.media => mediaHealthProvider,
     };
 
-/// The four features in row order.
+/// The four features, one entry each; consumers look a feature up by
+/// [FeatureHealth.feature], not by position.
 final dataHealthProvider = Provider.autoDispose<List<FeatureHealth>>((ref) {
   return [
     ref.watch(backupHealthProvider),

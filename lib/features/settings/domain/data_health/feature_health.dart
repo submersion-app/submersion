@@ -100,8 +100,9 @@ class FeatureHealth extends Equatable {
   /// is marked.
   final String? subjectId;
 
-  /// Every problem found, most important first by evaluation order. Empty
-  /// when healthy or not set up.
+  /// Every problem found, in evaluation order (not by severity: use
+  /// [findingFor] for the worst of some reasons). Empty when healthy or not
+  /// set up.
   final List<FeatureHealth> findings;
 
   FeatureHealth copyWith({

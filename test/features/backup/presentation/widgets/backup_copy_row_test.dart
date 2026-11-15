@@ -103,6 +103,22 @@ void main() {
     expect(inRow(find.text('Sign in again')), findsOneWidget);
   });
 
+  testWidgets('a copy that did not arrive says why, with no sign-in', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      target: const CopyFollowsSync(_google),
+      findings: [_finding(HealthReason.backupCloudCopyMissing)],
+    );
+    expect(inRow(find.byType(HealthSymbol)), findsOneWidget);
+    expect(
+      inRow(find.text('Last backup did not reach the cloud')),
+      findsOneWidget,
+    );
+    expect(find.text('Sign in again'), findsNothing);
+  });
+
   testWidgets('a healthy copy reads as before', (tester) async {
     await pump(tester, target: const CopyFollowsSync(_google));
     expect(find.byType(HealthSymbol), findsNothing);

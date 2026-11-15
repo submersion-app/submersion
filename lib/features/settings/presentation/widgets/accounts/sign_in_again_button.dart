@@ -32,7 +32,13 @@ class SignInAgainButton extends ConsumerWidget {
       syncStateProvider.select((s) => s.status == SyncStatus.syncing),
     );
     if (group == null || syncing) return const SizedBox.shrink();
-    final label = Text(context.l10n.settings_accounts_signInAgain);
+    final l10n = context.l10n;
+    // Read as the account it signs in to: Settings > Data can offer it on
+    // two rows at once (#4561).
+    final label = Text(
+      l10n.settings_accounts_signInAgain,
+      semanticsLabel: l10n.settings_accounts_signInTo(group.label),
+    );
     void press() => onPressed(group);
     return filled
         ? FilledButton(onPressed: press, child: label)

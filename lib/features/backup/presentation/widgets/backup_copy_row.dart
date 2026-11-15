@@ -72,10 +72,11 @@ class BackupCopyRow extends ConsumerWidget {
         false,
       ),
     };
-    // A copy that needs a sign-in says so here, beside its account, with
-    // the action that fixes it (#4561).
-    final signIn = findingFor(ref.watch(backupHealthProvider), const {
+    // A copy that did not arrive says so here, beside its account, so the
+    // mark has words; one that needs a sign-in also offers it (#4561).
+    final missing = findingFor(ref.watch(backupHealthProvider), const {
       HealthReason.backupCloudSignIn,
+      HealthReason.backupCloudCopyMissing,
     });
     return ListTile(
       key: const Key('backup-copy'),
@@ -94,13 +95,13 @@ class BackupCopyRow extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (detail != null) Text(detail),
-          if (signIn != null) ...[
-            Text(healthReasonText(l10n, signIn, DateTime.now())),
+          if (missing != null)
+            Text(healthReasonText(l10n, missing, DateTime.now())),
+          if (missing?.reason == HealthReason.backupCloudSignIn)
             SignInAgainButton(
               feature: DataFeature.backup,
               onPressed: (group) => signInAgain(context, ref, group),
             ),
-          ],
           TileSubtitleAction(
             actionKey: const Key('backup-copy-change'),
             label: hasAccount

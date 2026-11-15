@@ -156,6 +156,21 @@ void main() {
       expect(pressed.single.key, group.key);
     });
 
+    // Issue #4561: Settings > Data can offer it on two rows at once, so a
+    // screen reader hears which account each one signs in to.
+    testWidgets('names its account for screen readers', (tester) async {
+      final handle = tester.ensureSemantics();
+      final group = accountGroup();
+      await pumpButton(tester, group: group, pressed: []);
+
+      expect(find.text('Sign in again'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel('Sign in to ${group.label}'),
+        findsOneWidget,
+      );
+      handle.dispose();
+    });
+
     testWidgets('shows nothing without an account', (tester) async {
       await pumpButton(tester);
 
