@@ -208,9 +208,22 @@ Records in some typical map views:
 | Scapa Flow | 11 | 96 |
 | Bonaire | 65 | 0 |
 
-With dive site records alone, only a view wider than a continent reaches
-the 1,500 marker limit. With register records on, a view of Britain or of
-Florida passes it on register records alone.
+With dive site records alone, a view has to take in all of Europe to
+reach the 1,500 marker limit: Europe holds 1,569 of them (955 between the
+Alps and the North Sea), and no other continent holds 1,000. With register
+records on, a view of Britain or of Florida passes the limit on register
+records alone.
+
+**Corrected during the build (2026-11-14).** This paragraph first said
+that only a view wider than a continent reaches the limit. A view of the
+whole of Europe does, by 69 records.
+
+Measured during the build, on the shipped catalogue in a debug VM on a
+desktop Mac: the overlay's read for a view of the whole world takes about
+6 ms with dive site records only and the same with both kinds (both stop
+at 1,500 rows); for a view of Britain, 0.3 ms with dive site records only
+(83 rows) and about 8 ms with register records on (1,500 rows). A phone
+was not measured.
 
 Every catalogue id matches `[A-Za-z0-9_-]+`, so an id is safe as a path
 segment.
