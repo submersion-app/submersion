@@ -37410,6 +37410,8 @@
   "info_term_isobaricCounterdiffusion_body": "A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop.",
   "info_term_counterdiffusionProfile_label": "Counterdiffusion on the profile",
   "info_term_counterdiffusionProfile_body": "On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.",
+  "info_term_buoyancyProfile_label": "Buoyancy on the profile",
+  "info_term_buoyancyProfile_body": "The line shows your net buoyancy through the dive, from the same model as the Buoyancy card, for the computer the chart is showing. It is green while you are buoyant and orange while you are heavy, and the dashed line marks neutral.",
   "info_term_hypercapnia_label": "Hypercapnia",
   "info_term_hypercapnia_body": "A build-up of carbon dioxide in the body. Dense gas and hard work make it more likely.",
   "info_term_turnPressure_label": "Turn pressure",

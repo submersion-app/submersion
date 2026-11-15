@@ -62571,6 +62571,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.';
 
   @override
+  String get info_term_buoyancyProfile_label => 'Buoyancy on the profile';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'The line shows your net buoyancy through the dive, from the same model as the Buoyancy card, for the computer the chart is showing. It is green while you are buoyant and orange while you are heavy, and the dashed line marks neutral.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hypercapnia';
 
   @override

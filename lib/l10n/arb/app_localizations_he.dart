@@ -62244,6 +62244,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'בפרופיל הצלילה פס כתום מסמן היכן מדור מכיל כבר יותר גז אינרטי ממה שנשאף ועדיין קולט גז באופן מורגש. במודל בולמן ההליום יוצא מהר יותר משהחנקן נכנס, ולכן מעבר מטרימיקס לניטרוקס מראה פס לעתים רחוקות; הקו המקווקו במעבר מראה במקום זאת את כלל החמישיות.';
 
   @override
+  String get info_term_buoyancyProfile_label => 'ציפה בפרופיל';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'הקו מציג את הציפה הנטו שלך לאורך הצלילה, לפי אותו מודל של כרטיס הציפה, עבור המחשב שהתרשים מציג. הוא ירוק כשאתה צף וכתום כשאתה כבד, והקו המקווקו מסמן ציפה ניטרלית.';
+
+  @override
   String get info_term_hypercapnia_label => 'היפרקפניה';
 
   @override

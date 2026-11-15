@@ -63537,6 +63537,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'No perfil, uma faixa laranja marca onde um compartimento já contém mais gás inerte do que o respirado e ainda assim absorve gás de forma notória. No modelo de Buhlmann o hélio sai mais depressa do que o azoto entra, por isso uma troca de trimix para nitrox raramente mostra uma faixa; a linha tracejada na troca mostra antes a regra dos quintos.';
 
   @override
+  String get info_term_buoyancyProfile_label => 'Flutuabilidade no perfil';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'A linha mostra a tua flutuabilidade líquida durante o mergulho, com o mesmo modelo do cartão Flutuabilidade, para o computador que o gráfico mostra. É verde enquanto flutuas e laranja quando tens peso a mais, e a linha tracejada marca o neutro.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hipercapnia';
 
   @override

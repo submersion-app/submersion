@@ -18597,6 +18597,8 @@
   "info_term_isobaricCounterdiffusion_body": "Een gaswissel kan het totale inerte gas in weefsels verhogen zonder dieptewijziging als stikstof sneller stijgt dan helium daalt. De gangbare check, de vijfderegel, beperkt de stikstofstijging tot een vijfde van de heliumdaling.",
   "info_term_counterdiffusionProfile_label": "Tegendiffusie op het profiel",
   "info_term_counterdiffusionProfile_body": "Op het duikprofiel markeert een oranje band waar een compartiment al meer inert gas bevat dan wordt ingeademd en toch merkbaar gas opneemt. In het Bühlmann-model verlaat helium het weefsel sneller dan stikstof binnenkomt, dus een wissel van trimix naar nitrox toont zelden een band; de stippellijn bij de wissel toont in plaats daarvan de vijfderegel.",
+  "info_term_buoyancyProfile_label": "Drijfvermogen in het profiel",
+  "info_term_buoyancyProfile_body": "De lijn toont je netto drijfvermogen tijdens de duik, uit hetzelfde model als de kaart Drijfvermogen, voor de computer die de grafiek toont. Hij is groen zolang je drijft en oranje zolang je te zwaar bent, en de stippellijn markeert neutraal.",
   "info_term_hypercapnia_label": "Hypercapnie",
   "info_term_hypercapnia_body": "Een ophoping van koolstofdioxide in het lichaam. Dicht gas en zwaar werk maken die waarschijnlijker.",
   "info_term_turnPressure_label": "Keerdruk",

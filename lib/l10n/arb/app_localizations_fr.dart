@@ -63700,6 +63700,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Sur le profil, une bande orange marque l\'endroit où un compartiment contient déjà plus de gaz inerte que celui respiré et en absorbe pourtant nettement. Dans le modèle de Bühlmann l\'hélium sort plus vite que l\'azote n\'entre, si bien qu\'un passage du trimix au nitrox montre rarement une bande ; la ligne pointillée au changement indique plutôt la règle des cinquièmes.';
 
   @override
+  String get info_term_buoyancyProfile_label => 'Flottabilité sur le profil';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'La ligne montre ta flottabilité nette pendant la plongée, avec le même modèle que la carte Flottabilité, pour l\'ordinateur affiché par le graphique. Elle est verte quand tu es positif et orange quand tu es trop lourd, et la ligne pointillée marque le neutre.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hypercapnie';
 
   @override

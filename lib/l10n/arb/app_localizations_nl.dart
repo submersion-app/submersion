@@ -63171,6 +63171,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Op het duikprofiel markeert een oranje band waar een compartiment al meer inert gas bevat dan wordt ingeademd en toch merkbaar gas opneemt. In het Bühlmann-model verlaat helium het weefsel sneller dan stikstof binnenkomt, dus een wissel van trimix naar nitrox toont zelden een band; de stippellijn bij de wissel toont in plaats daarvan de vijfderegel.';
 
   @override
+  String get info_term_buoyancyProfile_label => 'Drijfvermogen in het profiel';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'De lijn toont je netto drijfvermogen tijdens de duik, uit hetzelfde model als de kaart Drijfvermogen, voor de computer die de grafiek toont. Hij is groen zolang je drijft en oranje zolang je te zwaar bent, en de stippellijn markeert neutraal.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hypercapnie';
 
   @override

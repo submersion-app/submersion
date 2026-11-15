@@ -63208,6 +63208,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'A merülési profilon narancssárga sáv jelzi, ahol egy kompartment már több inert gázt tartalmaz, mint amennyit belélegzünk, és mégis érezhetően telítődik. A Bühlmann-modellben a hélium gyorsabban távozik, mint ahogy a nitrogén belép, ezért a trimixről nitroxra váltás ritkán mutat sávot; a váltásnál lévő szaggatott vonal helyette az ötödszabályt mutatja.';
 
   @override
+  String get info_term_buoyancyProfile_label => 'Felhajtóerő a profilon';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'A vonal a merülés alatti nettó felhajtóerődet mutatja, ugyanabból a modellből, mint a Felhajtóerő kártya, a diagramon látható számítógéphez. Zöld, amíg felhajt, és narancssárga, amíg túl nehéz vagy, a szaggatott vonal pedig a semleges szintet jelöli.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hiperkapnia';
 
   @override

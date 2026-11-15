@@ -63602,6 +63602,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'En el perfil, una banda naranja marca dónde un compartimento ya contiene más gas inerte del que se respira y, pese a ello, sigue absorbiendo gas de forma apreciable. En el modelo de Buhlmann el helio sale más rápido de lo que entra el nitrógeno, así que un cambio de trimix a nitrox rara vez muestra una banda; la línea discontinua en el cambio muestra en su lugar la regla de los quintos.';
 
   @override
+  String get info_term_buoyancyProfile_label => 'Flotabilidad en el perfil';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'La línea muestra tu flotabilidad neta durante la inmersión, con el mismo modelo que la tarjeta de Flotabilidad, para el ordenador que muestra el gráfico. Es verde mientras flotas y naranja mientras pesas de más, y la línea discontinua marca el punto neutro.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hipercapnia';
 
   @override

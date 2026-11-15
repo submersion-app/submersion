@@ -63425,6 +63425,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Im Tauchprofil markiert ein oranges Band, wo ein Kompartiment bereits mehr Inertgas enthält, als eingeatmet wird, und trotzdem spürbar aufsättigt. Im Bühlmann-Modell fließt Helium schneller ab, als Stickstoff einströmt, daher zeigt ein Wechsel von Trimix auf Nitrox selten ein Band; die gestrichelte Linie am Wechsel zeigt stattdessen die Fünftelregel.';
 
   @override
+  String get info_term_buoyancyProfile_label => 'Auftrieb im Profil';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'Die Linie zeigt deinen Nettoauftrieb während des Tauchgangs, aus demselben Modell wie die Auftriebskarte, für den Computer, den das Diagramm zeigt. Grün heißt, du hast Auftrieb, orange, du bist zu schwer; die gestrichelte Linie markiert neutral.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hyperkapnie';
 
   @override

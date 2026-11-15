@@ -18722,6 +18722,8 @@
   "info_term_isobaricCounterdiffusion_body": "Ein Gaswechsel kann das gesamte Inertgas im Gewebe ohne Tiefenänderung erhöhen, wenn Stickstoff schneller steigt als Helium fällt. Die übliche Prüfung, die Fünftelregel, begrenzt den Stickstoffanstieg auf ein Fünftel des Heliumrückgangs.",
   "info_term_counterdiffusionProfile_label": "Gegendiffusion im Tauchprofil",
   "info_term_counterdiffusionProfile_body": "Im Tauchprofil markiert ein oranges Band, wo ein Kompartiment bereits mehr Inertgas enthält, als eingeatmet wird, und trotzdem spürbar aufsättigt. Im Bühlmann-Modell fließt Helium schneller ab, als Stickstoff einströmt, daher zeigt ein Wechsel von Trimix auf Nitrox selten ein Band; die gestrichelte Linie am Wechsel zeigt stattdessen die Fünftelregel.",
+  "info_term_buoyancyProfile_label": "Auftrieb im Profil",
+  "info_term_buoyancyProfile_body": "Die Linie zeigt deinen Nettoauftrieb während des Tauchgangs, aus demselben Modell wie die Auftriebskarte, für den Computer, den das Diagramm zeigt. Grün heißt, du hast Auftrieb, orange, du bist zu schwer; die gestrichelte Linie markiert neutral.",
   "info_term_hypercapnia_label": "Hyperkapnie",
   "info_term_hypercapnia_body": "Eine Anreicherung von Kohlendioxid im Körper. Dichtes Gas und schwere Arbeit machen sie wahrscheinlicher.",
   "info_term_turnPressure_label": "Umkehrdruck",

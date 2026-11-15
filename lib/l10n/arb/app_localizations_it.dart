@@ -63559,6 +63559,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Sul profilo una banda arancione segna dove un compartimento contiene già più gas inerte di quello respirato e continua comunque ad assorbirne in modo apprezzabile. Nel modello di Bühlmann l\'elio esce più in fretta di quanto entri l\'azoto, quindi un cambio da trimix a nitrox mostra raramente una banda; la linea tratteggiata al cambio mostra invece la regola dei quinti.';
 
   @override
+  String get info_term_buoyancyProfile_label => 'Assetto sul profilo';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'La linea mostra il tuo assetto netto durante l\'immersione, con lo stesso modello della scheda Assetto, per il computer mostrato dal grafico. È verde quando sei positivo e arancione quando sei pesante, e la linea tratteggiata indica il neutro.';
+
+  @override
   String get info_term_hypercapnia_label => 'Ipercapnia';
 
   @override
