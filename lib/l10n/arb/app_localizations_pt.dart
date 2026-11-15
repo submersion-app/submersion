@@ -13358,16 +13358,72 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_map_builtInSites_added => 'Adicionado aos seus pontos';
 
   @override
-  String get diveSites_map_builtInSites_hide => 'Ocultar pontos integrados';
+  String get diveSites_map_layers_tooltip => 'Pontos integrados no mapa';
 
   @override
-  String get diveSites_map_builtInSites_off => 'Pontos integrados ocultos';
+  String get diveSites_map_layers_diveSites => 'Pontos de mergulho integrados';
 
   @override
-  String get diveSites_map_builtInSites_on => 'Pontos integrados visíveis';
+  String get diveSites_map_layers_registers =>
+      'Naufrágios e recifes cartografados';
 
   @override
-  String get diveSites_map_builtInSites_show => 'Mostrar pontos integrados';
+  String diveSites_map_semantics_registerMarker(String name) {
+    return 'Naufrágio ou recife cartografado: $name';
+  }
+
+  @override
+  String get diveSites_builtIn_details => 'Detalhes';
+
+  @override
+  String get diveSites_builtInPage_kindDiveSite =>
+      'Ponto de mergulho integrado';
+
+  @override
+  String get diveSites_builtInPage_kindWreck => 'Naufrágio cartografado';
+
+  @override
+  String get diveSites_builtInPage_kindReef => 'Recife cartografado';
+
+  @override
+  String get diveSites_builtInPage_notYours => 'Não está nos seus pontos';
+
+  @override
+  String diveSites_builtInPage_yourSiteHere(String distance, String name) {
+    return 'O seu ponto \"$name\" fica a $distance daqui';
+  }
+
+  @override
+  String get diveSites_builtInPage_about => 'Sobre';
+
+  @override
+  String get diveSites_builtInPage_nearbyYours => 'Os seus pontos';
+
+  @override
+  String get diveSites_builtInPage_source => 'Fonte';
+
+  @override
+  String diveSites_builtInPage_credit(String credit) {
+    return 'Crédito: $credit';
+  }
+
+  @override
+  String diveSites_builtInPage_licence(String licence) {
+    return 'Licença: $licence';
+  }
+
+  @override
+  String get diveSites_builtInPage_notAGuide =>
+      'Uma posição cartografada, não um guia de mergulho. Não use para navegação.';
+
+  @override
+  String get diveSites_builtInPage_notFound =>
+      'Este ponto integrado já não está disponível';
+
+  @override
+  String diveSites_search_builtIn(String text) {
+    return 'Pesquisar \"$text\" nos pontos integrados';
+  }
 
   @override
   String get diveSites_map_empty_description =>

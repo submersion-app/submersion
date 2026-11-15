@@ -13067,16 +13067,69 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_map_builtInSites_added => 'נוסף לאתרים שלך';
 
   @override
-  String get diveSites_map_builtInSites_hide => 'הסתר אתרים מובנים';
+  String get diveSites_map_layers_tooltip => 'אתרים מובנים על המפה';
 
   @override
-  String get diveSites_map_builtInSites_off => 'אתרים מובנים מוסתרים';
+  String get diveSites_map_layers_diveSites => 'אתרי צלילה מובנים';
 
   @override
-  String get diveSites_map_builtInSites_on => 'אתרים מובנים מוצגים';
+  String get diveSites_map_layers_registers => 'ספינות טבועות ושוניות ממופות';
 
   @override
-  String get diveSites_map_builtInSites_show => 'הצג אתרים מובנים';
+  String diveSites_map_semantics_registerMarker(String name) {
+    return 'ספינה טבועה או שונית ממופה: $name';
+  }
+
+  @override
+  String get diveSites_builtIn_details => 'פרטים';
+
+  @override
+  String get diveSites_builtInPage_kindDiveSite => 'אתר צלילה מובנה';
+
+  @override
+  String get diveSites_builtInPage_kindWreck => 'ספינה טבועה ממופה';
+
+  @override
+  String get diveSites_builtInPage_kindReef => 'שונית ממופה';
+
+  @override
+  String get diveSites_builtInPage_notYours => 'לא באתרים שלך';
+
+  @override
+  String diveSites_builtInPage_yourSiteHere(String distance, String name) {
+    return 'האתר שלך \"$name\" נמצא $distance מכאן';
+  }
+
+  @override
+  String get diveSites_builtInPage_about => 'אודות';
+
+  @override
+  String get diveSites_builtInPage_nearbyYours => 'האתרים שלך';
+
+  @override
+  String get diveSites_builtInPage_source => 'מקור';
+
+  @override
+  String diveSites_builtInPage_credit(String credit) {
+    return 'קרדיט: $credit';
+  }
+
+  @override
+  String diveSites_builtInPage_licence(String licence) {
+    return 'רישיון: $licence';
+  }
+
+  @override
+  String get diveSites_builtInPage_notAGuide =>
+      'מיקום ממופה, לא מדריך צלילה. לא לניווט.';
+
+  @override
+  String get diveSites_builtInPage_notFound => 'האתר המובנה הזה אינו זמין עוד';
+
+  @override
+  String diveSites_search_builtIn(String text) {
+    return 'חיפוש \"$text\" באתרים המובנים';
+  }
 
   @override
   String get diveSites_map_empty_description =>

@@ -4,24 +4,17 @@ import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
-import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
-import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
-import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
-import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_depth_overlay_layer.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_marker_layer.dart';
 import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_overlay_view.dart';
-import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_info_card.dart';
-import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_marker_layer.dart';
-import 'package:submersion/features/dive_sites/presentation/widgets/built_in_sites_toggle_button.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/built_in_layers_button.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/built_in_map_selection.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
@@ -68,7 +61,7 @@ class SiteMapContent extends ConsumerStatefulWidget {
 }
 
 class _SiteMapContentState extends ConsumerState<SiteMapContent>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, BuiltInMapSelection<SiteMapContent> {
   final MapController _mapController = MapController();
   late final MapCameraAnimator _camera = MapCameraAnimator(
     controller: _mapController,
@@ -78,11 +71,6 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
 
   // Ephemeral morph state: each entry to this widget starts in 2D.
   SiteScapeMode _scapeMode = SiteScapeMode.map2d;
-
-  /// Externally-keyed selection for a tapped built-in (bundled) site. Held
-  /// locally rather than in the shared selection, which is keyed to the user's
-  /// own sites.
-  String? _selectedBuiltInId;
 
   static const _defaultCenter = LatLng(20.0, -157.0);
   static const _defaultZoom = 3.0;
@@ -127,14 +115,8 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
     final heatMapAsync = ref.watch(siteCoverageHeatMapProvider);
     final heatMapSettings = ref.watch(heatMapSettingsProvider);
 
-    // Clear a built-in selection when built-in sites are hidden, so the info
-    // card cannot outlive its markers. Uses listen (not watch) to avoid
-    // rebuilding the map on toggle, which would recreate the FlutterMap.
-    ref.listen<bool>(showBuiltInSitesProvider, (prev, next) {
-      if (!next && _selectedBuiltInId != null) {
-        setState(() => _selectedBuiltInId = null);
-      }
-    });
+    // A built-in card never outlives its pin (see BuiltInMapSelection).
+    listenForBuiltInSelectionReset();
 
     return sitesAsync.when(
       data: (sitesWithCounts) => _buildMapWithInfoCard(
@@ -188,7 +170,7 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
                       selectedSiteId: selectedSite?.id,
                       selectedSiteLocation: selectedSite?.location,
                     ),
-                    const BuiltInSitesToggleButton(),
+                    const BuiltInLayersButton(),
                     const HeatMapToggleButton(),
                     IconButton(
                       icon: const Icon(Icons.my_location, size: 20),
@@ -202,7 +184,7 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
               ),
             ),
           ),
-          if (_selectedBuiltInId != null)
+          if (selectedBuiltInId != null)
             Positioned(
               left: 16,
               right: 16,
@@ -211,7 +193,7 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 400),
                   child:
-                      _buildBuiltInInfoCard(context) ?? const SizedBox.shrink(),
+                      buildBuiltInInfoCard(context) ?? const SizedBox.shrink(),
                 ),
               ),
             )
@@ -249,7 +231,6 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
       final lng = s.site.location!.longitude;
       return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
     }).toList();
-    final colorScheme = Theme.of(context).colorScheme;
 
     // The selected site also drives the depth overlay layer below.
     final selectedSite = widget.selectedId == null
@@ -297,7 +278,7 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
               },
               onTap: (_, _) {
                 widget.onItemSelected(null);
-                setState(() => _selectedBuiltInId = null);
+                selectBuiltIn(null);
               },
               cameraConstraint: worldMapCameraConstraint,
             ),
@@ -314,31 +295,13 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
               // translucent ramp + contours, above tiles, below markers.
               BathymetryDepthOverlayLayer(location: selectedSite?.location),
               SiteFeatureMarkerLayer(siteId: selectedSite?.id),
-              // Built-in (bundled) sites layer - below the user markers so the
-              // user's own sites always draw on top. Shown only when toggled,
-              // and only the sites in view are read: the reporter tells the
-              // providers what the map shows.
-              const BuiltInOverlayBoundsReporter(),
-              Consumer(
-                builder: (context, ref, _) {
-                  final show = ref.watch(showBuiltInSitesProvider);
-                  if (!show) return const SizedBox.shrink();
-                  // The last sites stay up while a moved map reads the next.
-                  final builtIn = ref.watch(visibleBuiltInSitesProvider).value;
-                  if (builtIn == null) return const SizedBox.shrink();
-                  return BuiltInSiteMarkerLayer(
-                    sites: builtIn,
-                    selectedCatalogueId: _selectedBuiltInId,
-                    onTap: (site) {
-                      widget.onItemSelected(null);
-                      setState(() => _selectedBuiltInId = site.id);
-                      _camera.animateTo(
-                        LatLng(
-                          site.location!.latitude,
-                          site.location!.longitude,
-                        ),
-                      );
-                    },
+              // Built-in catalogue layers, below the diver's own markers so
+              // those always draw on top. Only the sites in view are read.
+              ...builtInMapLayers(
+                onTap: (site) {
+                  widget.onItemSelected(null);
+                  _camera.animateTo(
+                    LatLng(site.location!.latitude, site.location!.longitude),
                   );
                 },
               ),
@@ -408,41 +371,8 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
         ),
         const BuiltInOverlayCaptionSlot(),
 
-        // Empty state overlay
-        if (sitesWithLocation.isEmpty)
-          Center(
-            child: Card(
-              margin: const EdgeInsets.all(32),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.location_off,
-                      size: 64,
-                      color: colorScheme.onSurfaceVariant.withValues(
-                        alpha: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      context.l10n.diveSites_map_empty_title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      context.l10n.diveSites_map_empty_description,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+        // Empty state overlay, unless built-in pins are on the map.
+        if (sitesWithLocation.isEmpty) const SitesMapEmptyCard(),
       ],
     );
   }
@@ -579,7 +509,7 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
   }
 
   void _onMarkerTapped(DiveSite site) {
-    setState(() => _selectedBuiltInId = null);
+    selectBuiltIn(null);
     if (widget.selectedId == site.id) {
       widget.onItemSelected(null);
     } else {
@@ -587,65 +517,6 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
       // Smooth scroll to the tapped marker
       _camera.animateTo(
         LatLng(site.location!.latitude, site.location!.longitude),
-      );
-    }
-  }
-
-  Widget? _buildBuiltInInfoCard(BuildContext context) {
-    final id = _selectedBuiltInId;
-    if (id == null) return null;
-    // From the markers in view, else by id: the card stays while the map
-    // moves the site off screen.
-    final site =
-        ref
-            .watch(visibleBuiltInSitesProvider)
-            .value
-            ?.where((s) => s.id == id)
-            .firstOrNull ??
-        ref.watch(catalogueSiteProvider(id)).value;
-    if (site == null) return null;
-    return BuiltInSiteInfoCard(
-      site: site,
-      actionLabel: context.l10n.diveSites_map_builtInSites_add,
-      onAction: () => _addBuiltInSite(site),
-    );
-  }
-
-  Future<void> _addBuiltInSite(CatalogueSite site) async {
-    // Read now: adding a built-in site is creating a site by hand (#3513),
-    // and it gets its rules even if the diver leaves meanwhile.
-    final rulesAfterCreate = captureRulesAfterCreate(context, ref);
-    final CatalogueAdoption adoption;
-    try {
-      adoption = (await ref
-          .read(siteListNotifierProvider.notifier)
-          // The one adoption path: full details, its site types
-          // and the link back to the catalogue record.
-          .adoptCatalogueSite(site));
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.diveSites_map_builtInSites_addError),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-      return;
-    }
-    // addSite reloads the notifier but not the map's FutureProvider; invalidate
-    // so the new site appears and the built-in duplicate is deduped out.
-    if (mounted) {
-      ref.invalidate(sitesWithCountsProvider);
-      setState(() => _selectedBuiltInId = null);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.diveSites_map_builtInSites_added)),
-      );
-    }
-    // Only a site this tap created (see CatalogueAdoption.created).
-    if (adoption.created) {
-      await rulesAfterCreate(
-        subject: RuleSubject.sites,
-        ids: [adoption.site.id],
       );
     }
   }

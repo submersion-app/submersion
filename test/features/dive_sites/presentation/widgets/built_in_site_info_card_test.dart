@@ -236,6 +236,85 @@ void main() {
     expect(calls, 2);
   });
 
+  group('Details', () {
+    testWidgets('with a details action the card offers the record\'s page', (
+      tester,
+    ) async {
+      var opened = 0;
+      await _pump(
+        tester,
+        BuiltInSiteInfoCard(
+          site: _full,
+          actionLabel: 'Add to my sites',
+          onAction: () async {},
+          onDetails: () => opened++,
+        ),
+      );
+
+      await tester.tap(find.text('Details'));
+
+      expect(opened, 1);
+      // The action it sits beside is still there.
+      expect(find.text('Add to my sites'), findsOneWidget);
+    });
+
+    testWidgets('without one there is no Details button', (tester) async {
+      await _pump(
+        tester,
+        BuiltInSiteInfoCard(
+          site: _full,
+          actionLabel: 'Use this site',
+          onAction: () async {},
+        ),
+      );
+
+      expect(find.text('Details'), findsNothing);
+    });
+
+    testWidgets('the picker\'s sheet has no Details button', (tester) async {
+      await _pump(
+        tester,
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showCatalogueSiteDetails(
+              context,
+              site: _full,
+              actionLabel: 'Use this site',
+              onAction: () async {},
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Salt Pier'), findsOneWidget);
+      expect(find.text('Details'), findsNothing);
+    });
+
+    testWidgets('Details, Website and a long action fit a narrow card', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 700);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await _pump(
+        tester,
+        BuiltInSiteInfoCard(
+          site: _full,
+          actionLabel: 'Zu meinen Tauchplätzen hinzufügen',
+          onAction: () async {},
+          onDetails: () {},
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+    });
+  });
+
   testWidgets('the details sheet closes, then runs the action', (tester) async {
     var calls = 0;
     await _pump(

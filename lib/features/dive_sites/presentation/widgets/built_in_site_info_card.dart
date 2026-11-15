@@ -24,11 +24,17 @@ class BuiltInSiteInfoCard extends ConsumerStatefulWidget {
   /// only says so.
   final Future<void> Function()? onAction;
 
+  /// Opens the record's own page. Given on the map, where the card is
+  /// the way to it; absent in the site picker, where the diver is naming
+  /// a dive and the card already says what the record holds.
+  final VoidCallback? onDetails;
+
   const BuiltInSiteInfoCard({
     super.key,
     required this.site,
     required this.actionLabel,
     required this.onAction,
+    this.onDetails,
   });
 
   @override
@@ -78,6 +84,7 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
       ?depth,
     ];
     final website = catalogueWebsiteUri(site.website);
+    final hasLinks = widget.onDetails != null || website != null;
 
     return Card(
       child: Padding(
@@ -142,39 +149,62 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
                 ),
               ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                if (website != null)
-                  TextButton.icon(
-                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                    onPressed: () => launchUrl(
-                      website,
-                      mode: LaunchMode.externalApplication,
+            // The links and the action share a line where they fit. Where
+            // they do not (a phone, with a long translated action), the
+            // action takes the next line, and its label wraps inside the
+            // button instead of pushing it past the card's edge.
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                alignment: hasLinks
+                    ? WrapAlignment.spaceBetween
+                    : WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  if (hasLinks)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.onDetails != null)
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsetsDirectional.only(
+                                end: 12,
+                              ),
+                            ),
+                            onPressed: widget.onDetails,
+                            child: Text(l10n.diveSites_builtIn_details),
+                          ),
+                        if (website != null)
+                          TextButton.icon(
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
+                            onPressed: () => launchUrl(
+                              website,
+                              mode: LaunchMode.externalApplication,
+                            ),
+                            icon: const Icon(Icons.open_in_new, size: 16),
+                            label: Text(l10n.diveCenters_label_website),
+                          ),
+                      ],
                     ),
-                    icon: const Icon(Icons.open_in_new, size: 16),
-                    label: Text(l10n.diveCenters_label_website),
-                  ),
-                // Takes the rest of the row, so a long translated label
-                // ("Zu meinen Tauchplätzen hinzufügen") wraps inside the
-                // button instead of pushing the row past the card's edge.
-                Expanded(
-                  child: Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: FilledButton.icon(
-                      icon: Icon(
-                        widget.onAction == null
-                            ? Icons.check
-                            : Icons.add_location_alt,
-                        size: 18,
-                      ),
-                      label: Text(widget.actionLabel),
-                      onPressed: _running || widget.onAction == null
-                          ? null
-                          : _run,
+                  FilledButton.icon(
+                    icon: Icon(
+                      widget.onAction == null
+                          ? Icons.check
+                          : Icons.add_location_alt,
+                      size: 18,
                     ),
+                    label: Text(widget.actionLabel),
+                    onPressed: _running || widget.onAction == null
+                        ? null
+                        : _run,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),

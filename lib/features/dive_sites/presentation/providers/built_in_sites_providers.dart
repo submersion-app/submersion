@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/catalogue_site_visibility.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/built_in_map_layers_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 
@@ -10,12 +11,8 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 /// nearest its middle, and a caption saying to zoom in.
 const kBuiltInOverlayMarkerLimit = 1500;
 
-/// Whether built-in site markers are shown on the Sites map.
-/// In-memory only (matches the heat-map toggle convention); resets each launch.
-final showBuiltInSitesProvider = StateProvider<bool>((ref) => false);
-
 /// What the Sites map shows, as the map last reported it, or null until a
-/// map with the overlay on has reported. The catalogue holds tens of
+/// map with a built-in layer on has reported. The catalogue holds tens of
 /// thousands of records, so the overlay reads only the ones in view.
 ///
 /// Gone with the map (the reporter keeps it alive): the next map starts
@@ -23,9 +20,10 @@ final showBuiltInSitesProvider = StateProvider<bool>((ref) => false);
 final builtInOverlayBoundsProvider =
     StateProvider.autoDispose<CatalogueBounds?>((ref) => null);
 
-/// The built-in sites worth marking in the bounds the map reported: not
-/// ones the diver adopted, and not ones a site they made by hand already
-/// sits on. `truncated` says the view holds more of them than are marked.
+/// The built-in sites worth marking in the bounds the map reported: of
+/// the layers that are on (`builtInMapLayersProvider`), not ones the diver
+/// adopted, and not ones a site they made by hand already sits on.
+/// `truncated` says the view holds more of them than are marked.
 ///
 /// The limit is of markers shown, so it is applied after the diver's own
 /// are left out: the catalogue is read again, for more, while records it
@@ -37,16 +35,20 @@ final _builtInSitesInViewProvider =
     FutureProvider.autoDispose<CatalogueBoundsResult>((ref) async {
       ref.watch(siteCatalogueRevisionProvider);
       final bounds = ref.watch(builtInOverlayBoundsProvider);
+      final kinds = ref.watch(
+        builtInMapLayersProvider.select((layers) => layers.kinds),
+      );
       final catalogue = ref.watch(siteCatalogueProvider);
       final userSitesFuture = ref.watch(sitesWithCountsProvider.future);
-      if (bounds == null) {
+      // With every layer off the catalogue is not read at all.
+      if (bounds == null || kinds.isEmpty) {
         return (sites: const <CatalogueSite>[], truncated: false);
       }
       final userSites = (await userSitesFuture).map((s) => s.site).toList();
 
       var ask = kBuiltInOverlayMarkerLimit;
       while (true) {
-        final read = await catalogue.inBounds(bounds, limit: ask);
+        final read = await catalogue.inBounds(bounds, limit: ask, kinds: kinds);
         final offered = offerableCatalogueSites(
           read.sites,
           userSites,

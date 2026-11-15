@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/built_in_map_layers_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_overlay_view.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -13,6 +15,13 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// The built-in overlay reads the catalogue sites the map shows, not all
 /// of them. These pin the piece that tells the providers what the map
 /// shows, and the caption for a view that holds more than it can mark.
+
+/// The layer state with both layers off, or as it is by default.
+Override _layers({required bool show}) => builtInMapLayersProvider.overrideWith(
+  (ref) => BuiltInMapLayersNotifier.unstored(
+    show ? const BuiltInMapLayers() : const BuiltInMapLayers(diveSites: false),
+  ),
+);
 
 Future<({ProviderContainer container, MapController map})> _pumpMap(
   WidgetTester tester, {
@@ -29,7 +38,7 @@ Future<({ProviderContainer container, MapController map})> _pumpMap(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        showBuiltInSitesProvider.overrideWith((ref) => show),
+        _layers(show: show),
         ...overrides,
       ],
       child: MaterialApp(
@@ -107,7 +116,7 @@ void main() {
     late ProviderContainer container;
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [showBuiltInSitesProvider.overrideWith((ref) => true)],
+        overrides: [_layers(show: true)],
         child: MaterialApp(
           home: Scaffold(
             body: ValueListenableBuilder<bool>(
@@ -139,6 +148,35 @@ void main() {
     expect(container.read(builtInOverlayBoundsProvider), isNull);
   });
 
+  testWidgets('with nothing overridden the view is reported: built-in dive '
+      'sites are on by default', (tester) async {
+    late ProviderContainer container;
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) {
+                container = ProviderScope.containerOf(context);
+                return const FlutterMap(
+                  options: MapOptions(
+                    initialCenter: LatLng(12, -68),
+                    initialZoom: 9,
+                  ),
+                  children: [BuiltInOverlayBoundsReporter()],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(container.read(builtInOverlayBoundsProvider), isNotNull);
+  });
+
   testWidgets('with the overlay off nothing is reported', (tester) async {
     final h = await _pumpMap(tester, show: false);
     await tester.pump(const Duration(milliseconds: 500));
@@ -152,7 +190,9 @@ void main() {
     final h = await _pumpMap(tester, show: false);
     await tester.pump(const Duration(milliseconds: 500));
 
-    h.container.read(showBuiltInSitesProvider.notifier).state = true;
+    await h.container
+        .read(builtInMapLayersProvider.notifier)
+        .setLayer(CatalogueKind.register, true);
     await tester.pump();
     await tester.pump();
 

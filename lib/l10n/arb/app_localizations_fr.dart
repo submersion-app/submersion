@@ -13403,16 +13403,70 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_map_builtInSites_added => 'Ajouté à vos sites';
 
   @override
-  String get diveSites_map_builtInSites_hide => 'Masquer les sites intégrés';
+  String get diveSites_map_layers_tooltip => 'Sites intégrés sur la carte';
 
   @override
-  String get diveSites_map_builtInSites_off => 'Sites intégrés masqués';
+  String get diveSites_map_layers_diveSites => 'Sites de plongée intégrés';
 
   @override
-  String get diveSites_map_builtInSites_on => 'Sites intégrés affichés';
+  String get diveSites_map_layers_registers => 'Épaves et récifs répertoriés';
 
   @override
-  String get diveSites_map_builtInSites_show => 'Afficher les sites intégrés';
+  String diveSites_map_semantics_registerMarker(String name) {
+    return 'Épave ou récif répertorié : $name';
+  }
+
+  @override
+  String get diveSites_builtIn_details => 'Détails';
+
+  @override
+  String get diveSites_builtInPage_kindDiveSite => 'Site de plongée intégré';
+
+  @override
+  String get diveSites_builtInPage_kindWreck => 'Épave répertoriée';
+
+  @override
+  String get diveSites_builtInPage_kindReef => 'Récif répertorié';
+
+  @override
+  String get diveSites_builtInPage_notYours => 'Absent de tes sites';
+
+  @override
+  String diveSites_builtInPage_yourSiteHere(String distance, String name) {
+    return 'Ton site « $name » est à $distance d\'ici';
+  }
+
+  @override
+  String get diveSites_builtInPage_about => 'À propos';
+
+  @override
+  String get diveSites_builtInPage_nearbyYours => 'Tes sites';
+
+  @override
+  String get diveSites_builtInPage_source => 'Source';
+
+  @override
+  String diveSites_builtInPage_credit(String credit) {
+    return 'Crédit : $credit';
+  }
+
+  @override
+  String diveSites_builtInPage_licence(String licence) {
+    return 'Licence : $licence';
+  }
+
+  @override
+  String get diveSites_builtInPage_notAGuide =>
+      'Une position répertoriée, pas un guide de plongée. Ne pas utiliser pour la navigation.';
+
+  @override
+  String get diveSites_builtInPage_notFound =>
+      'Ce site intégré n\'est plus disponible';
+
+  @override
+  String diveSites_search_builtIn(String text) {
+    return 'Rechercher « $text » dans les sites intégrés';
+  }
 
   @override
   String get diveSites_map_empty_description =>

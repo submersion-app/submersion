@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart' show StateProvider;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/built_in_map_layers_provider.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
@@ -14,6 +18,7 @@ import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
 
+import '../../../../helpers/fake_site_catalogue.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -25,6 +30,19 @@ const _builtInA = CatalogueSite(
   location: GeoPoint(20, -157),
   source: 'osm',
 );
+
+/// A charted wreck in the same default view as [_builtInA], far enough
+/// east of it (150 px at zoom 3) that the two do not cluster.
+const _wreckB = CatalogueSite(
+  id: 'b',
+  name: 'B',
+  location: GeoPoint(20, -130),
+  source: 'ukho',
+  kind: CatalogueKind.register,
+);
+
+/// The diver's sites, for a test that changes them while the map is up.
+final _mineProvider = StateProvider<List<SiteWithDiveCount>>((ref) => const []);
 
 /// A repository whose createSite always fails, to exercise the add-error path.
 class _ThrowingSiteRepository extends SiteRepository {
@@ -59,34 +77,56 @@ Future<void> _semanticsTap(WidgetTester tester, String label) async {
   await tester.pump(const Duration(seconds: 1));
 }
 
+/// Pumps the map. With [withRouter] it sits in a router that also knows
+/// a built-in record's page, for a test that follows the card's Details.
 Future<ProviderContainer> _pumpMap(
   WidgetTester tester, {
   required List<Override> extraOverrides,
+  Override? sites,
+  bool withRouter = false,
   Locale? locale,
 }) async {
   final base = await getBaseOverrides();
   late ProviderContainer container;
+  Widget map(BuildContext context) {
+    container = ProviderScope.containerOf(context);
+    return const SiteMapPage();
+  }
+
+  final router = GoRouter(
+    routes: [
+      GoRoute(path: '/', builder: (context, _) => map(context)),
+      GoRoute(
+        path: '/sites/catalogue/:id',
+        builder: (_, state) =>
+            Scaffold(body: Text('built-in page ${state.pathParameters['id']}')),
+      ),
+    ],
+  );
+  addTearDown(router.dispose);
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         ...base,
-        sitesWithCountsProvider.overrideWith((ref) async => []),
+        sites ?? sitesWithCountsProvider.overrideWith((ref) async => []),
         siteCoverageHeatMapProvider.overrideWith(
           (ref) async => <HeatMapPoint>[],
         ),
         ...extraOverrides,
       ],
-      child: Builder(
-        builder: (context) {
-          container = ProviderScope.containerOf(context);
-          return MaterialApp(
-            locale: locale,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: const SiteMapPage(),
-          );
-        },
-      ),
+      child: withRouter
+          ? MaterialApp.router(
+              routerConfig: router,
+              locale: locale,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+            )
+          : MaterialApp(
+              locale: locale,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Builder(builder: map),
+            ),
     ),
   );
   // Avoid pumpAndSettle: the FlutterMap tile layer animates indefinitely.
@@ -105,7 +145,7 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    final container = await _pumpMap(
+    await _pumpMap(
       tester,
       // Hungarian's caption is twice the length of the English one.
       locale: const Locale('hu'),
@@ -114,10 +154,6 @@ void main() {
         builtInOverlayTruncatedProvider.overrideWithValue(true),
       ],
     );
-    container.read(showBuiltInSitesProvider.notifier).state = true;
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
-
     final caption = tester.getRect(
       find.descendant(
         of: find.byType(BuiltInOverlayCaption),
@@ -130,27 +166,72 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('built-in pins appear only when the toggle is on', (
-    tester,
-  ) async {
-    _usePhoneSurface(tester);
+  group('by default', () {
+    testWidgets('built-in dive site pins show with nothing switched on, '
+        'and charted wrecks do not', (tester) async {
+      _usePhoneSurface(tester);
+      await _pumpMap(
+        tester,
+        extraOverrides: [
+          siteCatalogueProvider.overrideWithValue(
+            FakeSiteCatalogue(const [_builtInA, _wreckB]),
+          ),
+        ],
+      );
 
-    final container = await _pumpMap(
-      tester,
-      extraOverrides: [
-        visibleBuiltInSitesProvider.overrideWith(
-          (ref) async => const [_builtInA],
-        ),
-      ],
-    );
+      expect(find.byKey(const Key('builtInPin_a')), findsOneWidget);
+      expect(find.byKey(const Key('builtInPin_b')), findsNothing);
+    });
 
-    expect(find.byKey(const Key('builtInPin_a')), findsNothing);
+    testWidgets('the wreck layer adds the wrecks, and both layers off '
+        'removes every pin', (tester) async {
+      _usePhoneSurface(tester);
+      final container = await _pumpMap(
+        tester,
+        extraOverrides: [
+          siteCatalogueProvider.overrideWithValue(
+            FakeSiteCatalogue(const [_builtInA, _wreckB]),
+          ),
+        ],
+      );
+      final layers = container.read(builtInMapLayersProvider.notifier);
 
-    container.read(showBuiltInSitesProvider.notifier).state = true;
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
+      await layers.setLayer(CatalogueKind.register, true);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byKey(const Key('builtInPin_b')), findsOneWidget);
 
-    expect(find.byKey(const Key('builtInPin_a')), findsOneWidget);
+      await layers.setLayer(CatalogueKind.register, false);
+      await layers.setLayer(CatalogueKind.site, false);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byKey(const Key('builtInPin_a')), findsNothing);
+      expect(find.byKey(const Key('builtInPin_b')), findsNothing);
+    });
+
+    testWidgets('a diver with no sites sees built-in pins, not the empty '
+        'card, until every layer is off', (tester) async {
+      _usePhoneSurface(tester);
+      final container = await _pumpMap(
+        tester,
+        extraOverrides: [
+          siteCatalogueProvider.overrideWithValue(
+            FakeSiteCatalogue(const [_builtInA]),
+          ),
+        ],
+      );
+
+      expect(find.text('No sites with coordinates'), findsNothing);
+      expect(find.byKey(const Key('builtInPin_a')), findsOneWidget);
+
+      await container
+          .read(builtInMapLayersProvider.notifier)
+          .setLayer(CatalogueKind.site, false);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('No sites with coordinates'), findsOneWidget);
+    });
   });
 
   group('built-in selection and import', () {
@@ -173,7 +254,6 @@ void main() {
           heatMapSettingsProvider.overrideWith(
             (ref) => const HeatMapSettings(isVisible: false),
           ),
-          showBuiltInSitesProvider.overrideWith((ref) => true),
           siteRepositoryProvider.overrideWithValue(SiteRepository()),
           visibleBuiltInSitesProvider.overrideWith(
             (ref) async => const [_builtInA],
@@ -210,7 +290,6 @@ void main() {
           heatMapSettingsProvider.overrideWith(
             (ref) => const HeatMapSettings(isVisible: false),
           ),
-          showBuiltInSitesProvider.overrideWith((ref) => true),
           siteRepositoryProvider.overrideWithValue(_ThrowingSiteRepository()),
           visibleBuiltInSitesProvider.overrideWith(
             (ref) async => const [_builtInA],
@@ -242,7 +321,6 @@ void main() {
           heatMapSettingsProvider.overrideWith(
             (ref) => const HeatMapSettings(isVisible: false),
           ),
-          showBuiltInSitesProvider.overrideWith((ref) => true),
           siteRepositoryProvider.overrideWithValue(SiteRepository()),
           visibleBuiltInSitesProvider.overrideWith(
             (ref) async => const [_builtInA],
@@ -253,9 +331,83 @@ void main() {
       await _semanticsTap(tester, 'Built-in dive site: A');
       expect(find.text('Add to my sites'), findsOneWidget);
 
-      container.read(showBuiltInSitesProvider.notifier).state = false;
+      await container
+          .read(builtInMapLayersProvider.notifier)
+          .setLayer(CatalogueKind.site, false);
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
+      expect(find.text('Add to my sites'), findsNothing);
+
+      handle.dispose();
+    });
+
+    testWidgets('the card\'s Details opens the record\'s own page', (
+      tester,
+    ) async {
+      _usePhoneSurface(tester);
+      final handle = tester.ensureSemantics();
+
+      await _pumpMap(
+        tester,
+        withRouter: true,
+        extraOverrides: [
+          heatMapSettingsProvider.overrideWith(
+            (ref) => const HeatMapSettings(isVisible: false),
+          ),
+          visibleBuiltInSitesProvider.overrideWith(
+            (ref) async => const [_builtInA],
+          ),
+        ],
+      );
+
+      await _semanticsTap(tester, 'Built-in dive site: A');
+      await tester.tap(find.text('Details'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('built-in page a'), findsOneWidget);
+
+      handle.dispose();
+    });
+
+    testWidgets('a selected record that becomes the diver\'s own loses its '
+        'card', (tester) async {
+      _usePhoneSurface(tester);
+      final handle = tester.ensureSemantics();
+
+      final container = await _pumpMap(
+        tester,
+        sites: sitesWithCountsProvider.overrideWith(
+          (ref) async => ref.watch(_mineProvider),
+        ),
+        extraOverrides: [
+          heatMapSettingsProvider.overrideWith(
+            (ref) => const HeatMapSettings(isVisible: false),
+          ),
+          visibleBuiltInSitesProvider.overrideWith(
+            (ref) async => const [_builtInA],
+          ),
+        ],
+      );
+
+      await _semanticsTap(tester, 'Built-in dive site: A');
+      expect(find.text('Add to my sites'), findsOneWidget);
+
+      // Added somewhere else: from the record's page, or by a sync.
+      container.read(_mineProvider.notifier).state = const [
+        SiteWithDiveCount(
+          site: DiveSite(
+            id: 'mine',
+            name: 'A',
+            location: GeoPoint(20, -157),
+            catalogueId: 'a',
+          ),
+          diveCount: 0,
+        ),
+      ];
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
       expect(find.text('Add to my sites'), findsNothing);
 
       handle.dispose();

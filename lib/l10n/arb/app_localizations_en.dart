@@ -13153,16 +13153,70 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_map_builtInSites_added => 'Added to your sites';
 
   @override
-  String get diveSites_map_builtInSites_hide => 'Hide built-in sites';
+  String get diveSites_map_layers_tooltip => 'Built-in sites on the map';
 
   @override
-  String get diveSites_map_builtInSites_off => 'Built-in sites hidden';
+  String get diveSites_map_layers_diveSites => 'Built-in dive sites';
 
   @override
-  String get diveSites_map_builtInSites_on => 'Built-in sites shown';
+  String get diveSites_map_layers_registers => 'Charted wrecks and reefs';
 
   @override
-  String get diveSites_map_builtInSites_show => 'Show built-in sites';
+  String diveSites_map_semantics_registerMarker(String name) {
+    return 'Charted wreck or reef: $name';
+  }
+
+  @override
+  String get diveSites_builtIn_details => 'Details';
+
+  @override
+  String get diveSites_builtInPage_kindDiveSite => 'Built-in dive site';
+
+  @override
+  String get diveSites_builtInPage_kindWreck => 'Charted wreck';
+
+  @override
+  String get diveSites_builtInPage_kindReef => 'Charted reef';
+
+  @override
+  String get diveSites_builtInPage_notYours => 'Not in your sites';
+
+  @override
+  String diveSites_builtInPage_yourSiteHere(String distance, String name) {
+    return 'Your site \"$name\" is $distance from here';
+  }
+
+  @override
+  String get diveSites_builtInPage_about => 'About';
+
+  @override
+  String get diveSites_builtInPage_nearbyYours => 'Your sites';
+
+  @override
+  String get diveSites_builtInPage_source => 'Source';
+
+  @override
+  String diveSites_builtInPage_credit(String credit) {
+    return 'Credit: $credit';
+  }
+
+  @override
+  String diveSites_builtInPage_licence(String licence) {
+    return 'Licence: $licence';
+  }
+
+  @override
+  String get diveSites_builtInPage_notAGuide =>
+      'A charted position, not a dive guide. Not for navigation.';
+
+  @override
+  String get diveSites_builtInPage_notFound =>
+      'This built-in site is no longer available';
+
+  @override
+  String diveSites_search_builtIn(String text) {
+    return 'Search built-in sites for \"$text\"';
+  }
 
   @override
   String get diveSites_map_empty_description =>
