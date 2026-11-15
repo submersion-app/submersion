@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -35,11 +36,15 @@ BuddyWithDiveCount _entry(
   lastDiveAt: lastDiveAt,
 );
 
-Future<Widget> _widget(List<BuddyWithDiveCount> entries) async => testApp(
+Future<Widget> _widget(
+  List<BuddyWithDiveCount> entries, {
+  List<dynamic> extraOverrides = const [],
+}) async => testApp(
   locale: const Locale('en'),
   overrides: [
     ...await getBaseOverrides(),
     allBuddiesWithDiveCountProvider.overrideWith((ref) => entries),
+    ...extraOverrides,
   ],
   child: const BuddySummaryWidget(),
 );
@@ -292,6 +297,40 @@ void main() {
       await tester.pump();
 
       expect(find.text('3 dives'), findsOneWidget);
+    });
+  });
+
+  group('Quick Actions swap (issue #4591)', () {
+    testWidgets('offers Swap with a buddy beside Add Buddy', (tester) async {
+      tester.view.physicalSize = const Size(1600, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(await _widget(const []));
+      await tester.pump();
+
+      expect(find.text('Swap with a buddy'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Swap with a buddy')).dx,
+        greaterThan(tester.getTopLeft(find.text('Add Buddy')).dx),
+      );
+    });
+
+    testWidgets('a browser shows only Add Buddy', (tester) async {
+      await tester.pumpWidget(
+        await _widget(
+          const [],
+          extraOverrides: [
+            deviceCapabilitiesProvider.overrideWithValue(
+              DeviceCapabilities.web,
+            ),
+          ],
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Swap with a buddy'), findsNothing);
+      expect(find.text('Add Buddy'), findsOneWidget);
     });
   });
 }
