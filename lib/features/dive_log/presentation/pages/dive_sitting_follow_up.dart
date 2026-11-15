@@ -10,6 +10,7 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/visibility_input_mode_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_date_stretch_message.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -19,7 +20,8 @@ const _log = LoggerService('DiveSittingFollowUp');
 
 /// What a saved editing sitting on a dive still owes once its write has
 /// gone through: a word about a trip whose dates it moved, a fresh read of
-/// the courses it changed, and the visibility input to offer next time.
+/// the courses it changed, the visibility input to offer next time, and a
+/// fresh read of what the sites it moved the dive between have seen.
 ///
 /// Made before the write, because everything it needs comes from the page
 /// and the write can finish after the page has gone.
@@ -81,6 +83,11 @@ class DiveSittingFollowUp {
       after,
       () => _rememberVisibilityInput(before, after),
     );
+    await _guarded(
+      'refresh the species of its sites',
+      after,
+      () => _refreshSiteSpecies(before, after),
+    );
   }
 
   /// Runs one step. A step that fails is logged, with the dive it was for,
@@ -118,6 +125,16 @@ class DiveSittingFollowUp {
     for (final courseId in was.union(now)) {
       _container.invalidate(courseDivesProvider(courseId));
       _container.invalidate(courseDiveCountProvider(courseId));
+    }
+  }
+
+  /// A dive moved from one site to another changes what each has seen.
+  void _refreshSiteSpecies(Dive before, Dive after) {
+    final was = before.site?.id;
+    final now = after.site?.id;
+    if (was == now) return;
+    for (final siteId in [?was, ?now]) {
+      _container.invalidate(siteSpottedSpeciesProvider(siteId));
     }
   }
 
