@@ -382,7 +382,16 @@ class _TideChartState extends State<TideChart> {
                           topTitles: AxisTitles(
                             sideTitles: SideTitles(
                               showTitles: true,
-                              reservedSize: 24,
+                              // Tall enough for the Now pill at the
+                              // ambient text scale, which it sits in.
+                              reservedSize: math.max(
+                                24,
+                                MediaQuery.textScalerOf(
+                                          context,
+                                        ).scale(TideChart.markFontSize) *
+                                        1.2 +
+                                    6,
+                              ),
                               interval: tideChartTimeInterval(maxX),
                               getTitlesWidget: (value, meta) {
                                 final time = _display(

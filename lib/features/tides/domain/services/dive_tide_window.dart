@@ -37,6 +37,22 @@ class DiveTideWindow extends Equatable {
   /// The highs and lows inside the window, in time order.
   final List<TideExtreme> extremes;
 
+  DiveTideWindow copyWith({
+    DateTime? entry,
+    DateTime? start,
+    DateTime? end,
+    List<TidePrediction>? predictions,
+    List<TideExtreme>? extremes,
+  }) {
+    return DiveTideWindow(
+      entry: entry ?? this.entry,
+      start: start ?? this.start,
+      end: end ?? this.end,
+      predictions: predictions ?? this.predictions,
+      extremes: extremes ?? this.extremes,
+    );
+  }
+
   /// The predicted height at [instant], interpolated between the two samples
   /// around it; null outside the sampled span.
   double? heightAt(DateTime instant) {

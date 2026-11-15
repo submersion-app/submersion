@@ -63,6 +63,24 @@ void main() {
     });
   });
 
+  test('copyWith replaces only the fields it is given', () {
+    final t0 = DateTime.utc(2026, 3, 28, 12);
+    final window = _window([
+      (t0, 1.0),
+      (t0.add(const Duration(hours: 1)), 2.0),
+    ]);
+    final later = t0.add(const Duration(minutes: 30));
+
+    final moved = window.copyWith(entry: later);
+
+    expect(moved.entry, later);
+    expect(moved.start, window.start);
+    expect(moved.end, window.end);
+    expect(moved.predictions, window.predictions);
+    expect(moved.extremes, window.extremes);
+    expect(window.copyWith(), window);
+  });
+
   group('DiveTideWindow.heightAt', () {
     final t0 = DateTime.utc(2026, 3, 28, 12);
     final window = _window([

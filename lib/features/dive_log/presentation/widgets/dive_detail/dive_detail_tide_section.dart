@@ -60,7 +60,9 @@ class DiveTideSection extends ConsumerWidget {
   Widget? _tideCard(BuildContext context, WidgetRef ref) {
     final request = diveTideRequest(dive);
     if (request == null) return null;
-    final siteLocation = request.location;
+    // The site's zone is resolved once (a polygon lookup) and every time
+    // on the card goes through this converter.
+    final toSite = siteClockConverter(request.location);
 
     // The stored record, lazily self-healed against a fresh computation.
     final tideRecordAsync = ref.watch(healedTideRecordProvider(request));
@@ -71,8 +73,9 @@ class DiveTideSection extends ConsumerWidget {
           return _buildTideCard(
             context,
             ref,
-            tideRecord.toSiteWallClock(siteLocation),
+            tideRecord.atWallClock(toSite),
             request: request,
+            toSite: toSite,
           );
         }
 
@@ -84,8 +87,9 @@ class DiveTideSection extends ConsumerWidget {
         return _buildTideCard(
           context,
           ref,
-          calculated.toSiteWallClock(siteLocation),
+          calculated.atWallClock(toSite),
           request: request,
+          toSite: toSite,
           isCalculated: true,
         );
       },
@@ -101,6 +105,7 @@ class DiveTideSection extends ConsumerWidget {
     WidgetRef ref,
     TideRecord record, {
     required ({String diveId, GeoPoint location, DateTime entryTime}) request,
+    required DateTime Function(DateTime instant) toSite,
     bool isCalculated = false,
   }) {
     final theme = Theme.of(context);
@@ -172,7 +177,7 @@ class DiveTideSection extends ConsumerWidget {
               DiveTideChart(
                 window: window,
                 units: units,
-                displayTime: siteClockConverter(request.location),
+                displayTime: toSite,
                 diveDuration: dive.effectiveRuntime,
               )
             else if (windowAsync.isLoading)
@@ -192,7 +197,7 @@ class DiveTideSection extends ConsumerWidget {
             const SizedBox(height: 8),
             TideExtremesList(
               extremes: hasWindow
-                  ? extremesAtSiteWallClock(window.extremes, request.location)
+                  ? extremesAtWallClock(window.extremes, toSite)
                   : _recordExtremes(record),
               units: units,
               day: entryTime,

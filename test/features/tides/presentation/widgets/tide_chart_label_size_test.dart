@@ -222,6 +222,17 @@ void main() {
       final pill = tester.getRect(find.textContaining(RegExp(r'^Now \S')));
       expect(pill.left, greaterThanOrEqualTo(chart.left - 0.5));
       expect(pill.right, lessThanOrEqualTo(chart.right + 0.5));
+
+      // The band above the plot grows with the text, so the pill stays out
+      // of the plot rather than covering its top.
+      final topTitles = tester
+          .widget<LineChart>(find.byType(LineChart))
+          .data
+          .titlesData
+          .topTitles
+          .sideTitles
+          .reservedSize;
+      expect(topTitles, greaterThanOrEqualTo(pill.height));
     });
 
     testWidgets('a label near either edge turns inward instead of clipping', (
