@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/insights/domain/vertical_distance/vertical_distance.dart';
 import 'package:submersion/features/insights/domain/vertical_distance/vertical_distance_timeline.dart';
 import 'package:submersion/features/insights/presentation/providers/vertical_distance_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/vertical_distance/vertical_distance_scale.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
@@ -21,8 +23,23 @@ class VerticalDistanceCard extends ConsumerWidget {
 
   const VerticalDistanceCard.maxDepths({super.key}) : maxDepthsOnly = true;
 
-  /// True for the card that counts only each dive's max depth.
+  /// True for the card that counts only each dive's max depth. Its timeline
+  /// never estimates a dive, so it has no estimated-dives note.
   final bool maxDepthsOnly;
+
+  String _title(AppLocalizations l10n) => maxDepthsOnly
+      ? l10n.insights_profile_verticalDistance_maxDepthsTitle
+      : l10n.insights_profile_verticalDistance_title;
+
+  String _subtitle(AppLocalizations l10n) => maxDepthsOnly
+      ? l10n.insights_profile_verticalDistance_maxDepthsSubtitle
+      : l10n.insights_profile_verticalDistance_subtitle;
+
+  String _summary(AppLocalizations l10n, UnitFormatter units) => maxDepthsOnly
+      ? l10n.info_insights_verticalDistance_maxDepthsSummary
+      : l10n.info_insights_verticalDistance_summary(
+          units.formatDepthWhole(verticalDistanceDeadbandMeters),
+        );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,26 +51,16 @@ class VerticalDistanceCard extends ConsumerWidget {
     );
 
     return StatSectionCard(
-      title: maxDepthsOnly
-          ? l10n.insights_profile_verticalDistance_maxDepthsTitle
-          : l10n.insights_profile_verticalDistance_title,
-      subtitle: maxDepthsOnly
-          ? l10n.insights_profile_verticalDistance_maxDepthsSubtitle
-          : l10n.insights_profile_verticalDistance_subtitle,
+      title: _title(l10n),
+      subtitle: _subtitle(l10n),
       info: (context) {
         final l10n = context.l10n;
         final units = infoUnits(context);
         return termsInfo(
           l10n,
           units,
-          title: maxDepthsOnly
-              ? l10n.insights_profile_verticalDistance_maxDepthsTitle
-              : l10n.insights_profile_verticalDistance_title,
-          summary: maxDepthsOnly
-              ? l10n.info_insights_verticalDistance_maxDepthsSummary
-              : l10n.info_insights_verticalDistance_summary(
-                  units.formatDepthWhole(verticalDistanceDeadbandMeters),
-                ),
+          title: _title(l10n),
+          summary: _summary(l10n, units),
         );
       },
       child: timelineAsync.when(
@@ -64,11 +71,16 @@ class VerticalDistanceCard extends ConsumerWidget {
               message: l10n.insights_profile_verticalDistance_empty,
             );
           }
-          return VerticalDistanceScale(timeline: timeline);
+          return VerticalDistanceScale(
+            timeline: timeline,
+            reservesNote: !maxDepthsOnly,
+          );
         },
-        loading: () => const SizedBox(
-          height: kVerticalCardBodyHeight,
-          child: Center(child: CircularProgressIndicator()),
+        loading: () => SizedBox(
+          height: maxDepthsOnly
+              ? kVerticalScaleAndStripHeight
+              : kVerticalCardBodyHeight,
+          child: const Center(child: CircularProgressIndicator()),
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,

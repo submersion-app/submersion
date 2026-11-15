@@ -26,10 +26,15 @@ const double _maxScaleWidth = 440;
 /// Height reserved for the estimated-dives note under the strip.
 const double kVerticalNoteHeight = 16;
 
+/// The scale and the strip with the gap between them: the body height of a
+/// card with no note row, which its loading state reserves too.
+const double kVerticalScaleAndStripHeight =
+    kVerticalScaleHeight + 8 + kVerticalStripHeight;
+
 /// The scale, the strip and the note with their gaps: the card's body
 /// height, which its loading state reserves too.
 const double kVerticalCardBodyHeight =
-    kVerticalScaleHeight + 8 + kVerticalStripHeight + 8 + kVerticalNoteHeight;
+    kVerticalScaleAndStripHeight + 8 + kVerticalNoteHeight;
 
 /// The vertical scale and its readout strip (issue #4569).
 ///
@@ -42,9 +47,18 @@ const double kVerticalCardBodyHeight =
 /// and the strip listen to, so a pointer move repaints those two and never
 /// rebuilds the labels, headlines or semantics.
 class VerticalDistanceScale extends ConsumerStatefulWidget {
-  const VerticalDistanceScale({super.key, required this.timeline});
+  const VerticalDistanceScale({
+    super.key,
+    required this.timeline,
+    this.reservesNote = true,
+  });
 
   final VerticalDistanceTimeline timeline;
+
+  /// Whether the estimated-dives note has a row under the strip. False for a
+  /// timeline that can never estimate a dive, which would only leave the row
+  /// blank.
+  final bool reservesNote;
 
   @override
   ConsumerState<VerticalDistanceScale> createState() =>
@@ -134,23 +148,26 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
           ),
           // The note's line is always reserved, so the card is the same
           // height with or without it, and while loading.
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: kVerticalNoteHeight),
-              child: timeline.estimatedDives == 0
-                  ? null
-                  : Text(
-                      l10n.insights_profile_verticalDistance_estimated(
-                        timeline.estimatedDives,
-                        timeline.countedDives,
+          if (widget.reservesNote)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: kVerticalNoteHeight,
+                ),
+                child: timeline.estimatedDives == 0
+                    ? null
+                    : Text(
+                        l10n.insights_profile_verticalDistance_estimated(
+                          timeline.estimatedDives,
+                          timeline.countedDives,
+                        ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
+              ),
             ),
-          ),
         ],
       ),
     );

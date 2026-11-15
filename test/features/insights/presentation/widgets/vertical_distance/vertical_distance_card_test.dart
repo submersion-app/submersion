@@ -550,6 +550,50 @@ void main() {
       expect(find.text('6,380 m'), findsNothing);
     });
 
+    testWidgets('it reserves no note row, from loading to loaded', (
+      tester,
+    ) async {
+      double height() =>
+          tester.getSize(find.byType(VerticalDistanceCard)).height;
+      await pump(tester, timeline: twoDives);
+      final withNoteRow = height();
+      // A fresh scope, not the same one with a different set of overrides.
+      await tester.pumpWidget(const SizedBox());
+
+      final pending = Completer<VerticalDistanceTimeline>();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            maxDepthTimelineProvider.overrideWith((ref) => pending.future),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith(
+              (ref) => _MockSettingsNotifier(const AppSettings()),
+            ),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: VerticalDistanceCard.maxDepths(),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      final loading = height();
+      pending.complete(twoDives);
+      await tester.pumpAndSettle();
+
+      expect(height(), loading);
+      expect(height(), withNoteRow - 8 - kVerticalNoteHeight);
+    });
+
     testWidgets('its info sheet says only the deepest point counts', (
       tester,
     ) async {
