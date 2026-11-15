@@ -278,7 +278,10 @@ class _DiveEnvironmentCardEditorState
         suffixText: units.windSpeedSymbol,
         toDisplay: units.convertWindSpeed,
         fromDisplay: units.windSpeedToMs,
+        // As the read card shows it when whole; a decimal stays so the row
+        // can still round the value.
         fractionDigits: 1,
+        trimZeros: true,
         allowNegative: false,
       ),
       EnumPickerRow<CurrentDirection>(

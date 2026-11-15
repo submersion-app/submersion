@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
@@ -68,6 +69,15 @@ const _cardId = 'altitude';
 void main() {
   final bare = Dive(id: 'dive', dateTime: DateTime(2024, 6, 1, 10));
   final high = bare.copyWith(altitude: 1200, surfacePressure: 0.87);
+
+  // The ranges group digits by the process-wide Intl.defaultLocale, which
+  // another test may have changed. Pin English so "2,953" keeps its comma.
+  late String? previousLocale;
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+  tearDown(() => Intl.defaultLocale = previousLocale);
 
   const lakeNoAltitude = DiveSite(
     id: 'site-1',
@@ -281,6 +291,17 @@ void main() {
 
       expect(banner().group, AltitudeGroup.group3);
       expect(find.text('Altitude Group 3'), findsOneWidget);
+    });
+
+    // An imperial diver saw "300-900m (984-2953ft)": metres first, and a
+    // unit they did not choose.
+    testWidgets('the banner gives its range in the diver\'s unit', (
+      tester,
+    ) async {
+      await pumpEditor(tester, high, settings: imperial);
+
+      expect(find.text('Altitude Group 2'), findsOneWidget);
+      expect(find.text('2,953-5,906 ft'), findsOneWidget);
     });
 
     testWidgets('at sea level the banner takes no room', (tester) async {
@@ -505,7 +526,7 @@ void main() {
       );
       expect(banner.group, AltitudeGroup.group3);
       expect(find.text('Altitude Group 3'), findsOneWidget);
-      expect(find.text('1800-2700m (5906-8858ft)'), findsOneWidget);
+      expect(find.text('1,800-2,700 m'), findsOneWidget);
     });
 
     testWidgets('unlocked, it gains the pencil and keeps its icon and info '

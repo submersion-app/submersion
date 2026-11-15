@@ -160,7 +160,7 @@ class LocationSection extends StatelessWidget {
                 if (group != AltitudeGroup.seaLevel && altitudeMeters != null)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-                    child: _altitudeGroupIndicator(context, group),
+                    child: _altitudeGroupIndicator(context, group, units),
                   ),
               ],
             );
@@ -171,7 +171,11 @@ class LocationSection extends StatelessWidget {
   }
 }
 
-Widget _altitudeGroupIndicator(BuildContext context, AltitudeGroup group) {
+Widget _altitudeGroupIndicator(
+  BuildContext context,
+  AltitudeGroup group,
+  UnitFormatter units,
+) {
   final colorScheme = Theme.of(context).colorScheme;
 
   Color backgroundColor;
@@ -224,7 +228,7 @@ Widget _altitudeGroupIndicator(BuildContext context, AltitudeGroup group) {
                 ),
               ),
               Text(
-                group.rangeDescription,
+                group.localizedRange(context.l10n, units),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: foregroundColor.withValues(alpha: 0.8),
                 ),

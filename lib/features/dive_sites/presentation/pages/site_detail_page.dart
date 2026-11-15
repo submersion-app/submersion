@@ -1964,7 +1964,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                                 ),
                           ),
                           Text(
-                            altitudeGroup.rangeDescription,
+                            altitudeGroup.localizedRange(context.l10n, units),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: getGroupForeground(

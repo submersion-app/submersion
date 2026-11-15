@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -1088,6 +1090,42 @@ void main() {
       await tester.pumpAndSettle();
       // No altitude label in the body.
       expect(find.textContaining('Altitude'), findsNothing);
+    });
+
+    // The range under the altitude group read "900-1800m (2953-5906ft)" to
+    // every diver.
+    testWidgets('the altitude group range is in the diver\'s unit', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      // The range groups digits by the process-wide locale; pin English.
+      final previousLocale = Intl.defaultLocale;
+      Intl.defaultLocale = 'en';
+      addTearDown(() => Intl.defaultLocale = previousLocale);
+      final overrides = await getBaseOverrides(
+        settingsNotifier: MockSettingsNotifier(
+          const AppSettings(altitudeUnit: AltitudeUnit.feet),
+        ),
+      );
+      const highSite = DiveSite(id: 'high', name: 'Lake', altitude: 1200);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(highSite.id).overrideWith((_) async => highSite),
+            siteDiveCountProvider(highSite.id).overrideWith((_) async => 0),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: highSite.id),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('2,953-5,906 ft'), 200);
+
+      expect(find.text('2,953-5,906 ft'), findsOneWidget);
     });
   });
 

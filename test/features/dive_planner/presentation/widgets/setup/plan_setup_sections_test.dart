@@ -519,6 +519,25 @@ void main() {
     expect(find.textContaining('Group 2'), findsOneWidget);
   });
 
+  // The range under the chip read "900-1800m (2953-5906ft)" to every diver.
+  testWidgets('the altitude group range is in the diver\'s unit', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _harness(
+        const PlanEnvironmentSection(),
+        settings: const AppSettings(altitudeUnit: AltitudeUnit.feet),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '3281');
+    await tester.pumpAndSettle();
+    expect(find.text('2,953-5,906 ft'), findsOneWidget);
+  });
+
   testWidgets('unreadable altitude keeps the plan altitude and says why '
       '(#1900)', (tester) async {
     tester.view.physicalSize = const Size(1200, 800);

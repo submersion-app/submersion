@@ -13369,31 +13369,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_altitudeGroup_extreme => '极端高海拔';
 
   @override
-  String get enum_altitudeGroup_extreme_range => '>2700m (>8858ft)';
-
-  @override
   String get enum_altitudeGroup_group1 => '海拔组 1';
-
-  @override
-  String get enum_altitudeGroup_group1_range => '300-900m (984-2953ft)';
 
   @override
   String get enum_altitudeGroup_group2 => '海拔组 2';
 
   @override
-  String get enum_altitudeGroup_group2_range => '900-1800m (2953-5906ft)';
-
-  @override
   String get enum_altitudeGroup_group3 => '海拔组 3';
-
-  @override
-  String get enum_altitudeGroup_group3_range => '1800-2700m (5906-8858ft)';
 
   @override
   String get enum_altitudeGroup_seaLevel => '海等级';
 
   @override
-  String get enum_altitudeGroup_seaLevel_range => '0-300m (0-984ft)';
+  String enum_altitudeGroup_range_above(String low, String unit) {
+    return '>$low $unit';
+  }
+
+  @override
+  String enum_altitudeGroup_range_between(
+    String low,
+    String high,
+    String unit,
+  ) {
+    return '$low-$high $unit';
+  }
 
   @override
   String get enum_certificationAgency_bsac => 'BSAC';

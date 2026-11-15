@@ -7101,7 +7101,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final group = AltitudeGroup.fromAltitude(altitudeMeters);
 
     if (group == AltitudeGroup.seaLevel) return null;
-    return '${group.localizedName(context.l10n)} - ${group.localizedRange(context.l10n)}';
+    return '${group.localizedName(context.l10n)} - ${group.localizedRange(context.l10n, units)}';
   }
 
   /// Get warning color for altitude dives based on altitude group.
