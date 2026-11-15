@@ -124,9 +124,9 @@ void main() {
       ),
       SharedLibrary(
         id: 'L2',
-        name: 'Club Sites',
+        name: 'Cave Survey',
         connectedAccountId: 'a',
-        prefix: 'club',
+        prefix: 'cave',
         roles: SharedLibraryRoles(owners: {'m'}),
       ),
     ];
@@ -186,7 +186,7 @@ void main() {
         )
         .level;
     expect(levelOf('Reef Survey'), HealthLevel.failing);
-    expect(levelOf('Club Sites'), HealthLevel.attention);
+    expect(levelOf('Cave Survey'), HealthLevel.attention);
     expect(tester.widget<Icon>(find.byIcon(Icons.error_outline)).color, isNull);
   });
 }
