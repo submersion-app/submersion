@@ -15,6 +15,7 @@ class EditCard<T> {
     required this.isEmpty,
     required this.editorBuilder,
     this.leading,
+    this.isValid,
   });
 
   /// Stable id, shared with the `cardId` of the fields it owns.
@@ -30,6 +31,11 @@ class EditCard<T> {
   /// Whether the page leaves this card out for [record] because it has
   /// nothing to show. Such a card is reached from the Add strip instead.
   final bool Function(T record) isEmpty;
+
+  /// Whether the sitting's values for this card can be saved. Asked of
+  /// every card at Save, open or closed, so it reads the sitting, never the
+  /// card's widgets. Null means always.
+  final bool Function(EditSession<T> session)? isValid;
 
   /// Builds the card's editor over [session].
   final Widget Function(BuildContext context, EditSession<T> session)

@@ -27,9 +27,16 @@ class RecordEditController<T> extends ChangeNotifier {
   RecordEditController({
     required this.onSave,
     this.trackedWorkTimeout = const Duration(seconds: 10),
+    this.invalidCards,
   });
 
   final RecordSave<T> onSave;
+
+  /// The cards whose own check fails for the sitting, in page order. Asked
+  /// of every card at [save], open or not: a value one card changes can
+  /// leave another, closed, card unable to save. Such a card is opened and
+  /// shown instead, and stays open until it passes ([closeCard]).
+  final List<String> Function(EditSession<T> session)? invalidCards;
 
   /// How long [save] waits for work the sitting tracks
   /// ([EditSession.track]) before it writes without it. The page takes no
@@ -209,6 +216,11 @@ class RecordEditController<T> extends ChangeNotifier {
       notifyListeners();
       return;
     }
+    if (invalidCards?.call(session).contains(cardId) ?? false) {
+      _requestReveal(cardId);
+      notifyListeners();
+      return;
+    }
     final wasOpen = _openCardIds.remove(cardId);
     final wasAdded =
         !session.changedCardIds.contains(cardId) &&
@@ -219,6 +231,19 @@ class RecordEditController<T> extends ChangeNotifier {
     // What was typed while it was open is drawn by this notification.
     _toldRevisions[cardId] = session.revisionOf(cardId);
     notifyListeners();
+  }
+
+  /// Opens [cardId], bringing it in as [addCard] does when the page was
+  /// leaving it out, and asks for it to be shown: a card that cannot be
+  /// saved as it stands.
+  void _openToShow(EditSession<T> session, String cardId) {
+    if (!_openCardIds.contains(cardId)) {
+      _holdLayoutFor(session);
+      _addedCardIds.add(cardId);
+      _openCardIds.add(cardId);
+      _toldRevisions[cardId] = session.revisionOf(cardId);
+    }
+    _requestReveal(cardId);
   }
 
   /// Brings in a card the page was leaving out, already open, and asks for
@@ -297,6 +322,13 @@ class RecordEditController<T> extends ChangeNotifier {
     if (_invalidFields.isNotEmpty) {
       _refusedForInvalidInput = true;
       _requestRevealOfInvalid(_invalidFields.keys.first);
+      notifyListeners();
+      return false;
+    }
+    final failing = invalidCards?.call(session) ?? const [];
+    if (failing.isNotEmpty) {
+      _refusedForInvalidInput = true;
+      _openToShow(session, failing.first);
       notifyListeners();
       return false;
     }
