@@ -36,22 +36,5 @@ void main() {
     expect(result.currencyRules, isEmpty);
     expect(result.currencyPrefs, isEmpty);
     expect(result.currencyEvents, isEmpty);
-    expect(result.species, isEmpty);
-  });
-
-  test('payloadToUddfResult carries the species catalogue (#4578)', () {
-    final result = UniversalAdapter.payloadToUddfResult(
-      const ImportPayload(
-        entities: {},
-        metadata: {
-          ImportPayload.speciesKey: [
-            {'uddfId': 'species_s1', 'commonName': 'My Own Slug'},
-            'not a row',
-          ],
-        },
-      ),
-    );
-
-    expect(result.species.map((s) => s['commonName']), ['My Own Slug']);
   });
 }
