@@ -230,6 +230,30 @@ void main() {
       );
     });
 
+    testWidgets('the dive cards line up with the map and the head', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        _pastDay(['d1', 'd2']),
+        mapPoints: [_pin('d1', 1), _pin('d2', 2)],
+        viewSize: const Size(420, 1400),
+      );
+
+      final map = tester.getRect(find.byType(FlutterMap));
+      // The card's own Material: the tile around it may add no inset.
+      final card = tester.getRect(
+        find
+            .descendant(
+              of: find.byType(DiveListItem).first,
+              matching: find.byType(Card),
+            )
+            .first,
+      );
+      expect(card.left, closeTo(map.left, 0.5));
+      expect(card.right, closeTo(map.right, 0.5));
+    });
+
     testWidgets('the timeline has no tinted box', (tester) async {
       await pumpPage(tester, _pastDay(['d1']));
 
@@ -701,6 +725,28 @@ void main() {
       expect(
         tester.getRect(find.byType(TripStoryDayHead)).bottom,
         lessThanOrEqualTo(map.top),
+      );
+    });
+
+    testWidgets('at 640 wide a dive card is still as wide as a small phone', (
+      tester,
+    ) async {
+      // 640 is the detail pane of the default desktop window. Split evenly, a
+      // card there is narrower than any phone it was designed for, and site
+      // names break mid-word.
+      await pumpPage(
+        tester,
+        richDay(),
+        mapPoints: pins,
+        viewSize: const Size(640, 1400),
+      );
+
+      final card = tester.getRect(find.byType(DiveListItem).first);
+      expect(card.width, greaterThanOrEqualTo(320));
+      // And the map keeps a usable width beside it.
+      expect(
+        tester.getSize(find.byType(FlutterMap)).width,
+        greaterThanOrEqualTo(240),
       );
     });
 

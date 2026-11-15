@@ -191,7 +191,11 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
                 key: TripStoryDayPage.twoColumnsKey,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // The dives take the wider share: at the default desktop
+                  // pane an even split leaves a card narrower than any
+                  // phone, and site names break mid-word.
                   Expanded(
+                    flex: 4,
                     child: _stacked([
                       mapOf(230),
                       plan,
@@ -202,7 +206,7 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
                   ),
                   const SizedBox(width: 16),
                   // A tapped pin lights up a card that is already in view.
-                  Expanded(child: dives!),
+                  Expanded(flex: 5, child: dives!),
                 ],
               )
             : _stacked([
@@ -298,6 +302,9 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
               // weights). Its profile is empty unless the dive's row needed
               // its samples (issue #3831).
               fullDive: dive,
+              // No side margin: the cards line up with the map and the head
+              // on the page's own gutter.
+              margin: const EdgeInsets.symmetric(vertical: 4),
               diveNumber: dive.diveNumber ?? index + 1,
               isHighlighted: dive.id == _highlightedDiveId,
               onTap: () {
