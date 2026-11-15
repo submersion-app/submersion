@@ -522,6 +522,54 @@ void main() {
       expect(bottoms[true], bottoms[false]);
     });
 
+    // Issue #4583: the card straight after a pair is laid out with it, so it
+    // can move up under the shorter half; a full-width one never is.
+    for (final (next, slots) in [
+      (DiveDetailSectionId.notes, true),
+      (DiveDetailSectionId.media, false),
+    ]) {
+      testWidgets(
+        '${next.name} after the pair ${slots ? 'is' : 'is not'} laid out '
+        'with it',
+        (tester) async {
+          await tester.binding.setSurfaceSize(const Size(1000, 3000));
+          addTearDown(() => tester.binding.setSurfaceSize(null));
+
+          final dive = Dive(
+            id: 'buddies-slot-${next.name}',
+            dateTime: DateTime(2026, 3, 15, 10, 0),
+            notes: 'Calm water and good visibility.',
+          );
+          final settings = _settingsWithVisibleSections([
+            DiveDetailSectionId.buddies,
+            DiveDetailSectionId.signatures,
+            next,
+          ]);
+
+          await tester.pumpWidget(
+            _buildTestWidget(
+              dive: dive,
+              settings: settings,
+              extraOverrides: _renderOverrides(
+                dive.id,
+                prefs,
+                buddies: [_buddy],
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          final pair = find.byType(ResponsiveSectionPair);
+          expect(pair, findsOneWidget);
+          final inPair = find.descendant(
+            of: pair,
+            matching: find.byKey(ValueKey('diveSection_${next.name}')),
+          );
+          expect(inPair, slots ? findsOneWidget : findsNothing);
+        },
+      );
+    }
+
     testWidgets('no pairing for a solo dive (no buddies, no course)', (
       tester,
     ) async {

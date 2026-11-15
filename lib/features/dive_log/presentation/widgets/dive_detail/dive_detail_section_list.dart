@@ -75,6 +75,12 @@ import 'package:submersion/shared/widgets/section_fold.dart';
 ///
 /// [ResponsiveSectionPair] then decides row-vs-stacked from its own measured
 /// width, so narrow panes stay stacked and unchanged.
+///
+/// In a row both halves end level. The card that comes straight after a pair
+/// is laid out with it, and moves up into the space under the shorter half
+/// when it fits there at half width, unless it is one of
+/// [kDiveDetailFullWidthSections] or places its own gap (issue #4583). While
+/// a card is being edited, that card stays where it is.
 class DiveDetailSectionList extends ConsumerWidget {
   const DiveDetailSectionList({
     super.key,
@@ -139,6 +145,18 @@ class DiveDetailSectionList extends ConsumerWidget {
     final children = <Widget>[];
     final consumed = <DiveDetailSectionId>{};
 
+    // A pair is held back until the card after it is known, so that card can
+    // move up into the space under the shorter half (issue #4583). Anything
+    // else that comes next puts the pair down first, as it was.
+    Widget Function({Widget? slot})? pendingPair;
+    void flushPair() {
+      final held = pendingPair;
+      if (held == null) return;
+      pendingPair = null;
+      _addSectionGap(children, layout);
+      children.add(held());
+    }
+
     for (final id in visible) {
       // The trailing half of a pair already rendered at the leading half's
       // slot.
@@ -148,7 +166,7 @@ class DiveDetailSectionList extends ConsumerWidget {
       if (pair != null && visibleIds.contains(pair.partnerOf(id)!)) {
         final cards = _buildPairCards(pair, ref, open, presence);
         if (cards != null) {
-          _addSectionGap(children, layout);
+          flushPair();
           // Each side is framed like a card on a row of its own, so a card
           // with an editor gains its pencil and opens where it sits. A pair
           // with no card of its own for a narrow pane has none to frame:
@@ -162,17 +180,18 @@ class DiveDetailSectionList extends ConsumerWidget {
 
           Widget? left(Widget? card) => side(pair.left, card);
           Widget? right(Widget? card) => side(pair.right, card);
-          children.add(
-            ResponsiveSectionPair(
-              key: ValueKey('diveSectionPair_${pair.left.name}'),
-              first: left(cards.first)!,
-              second: right(cards.second)!,
-              stackedFirst: left(cards.stackedFirst),
-              stackedSecond: right(cards.stackedSecond),
-              minRowWidth: pair.minRowWidth,
-              stackGap: layout.sectionGap,
-              stretch: pair.stretch,
-            ),
+          pendingPair = ({Widget? slot}) => ResponsiveSectionPair(
+            key: ValueKey('diveSectionPair_${pair.left.name}'),
+            first: left(cards.first)!,
+            second: right(cards.second)!,
+            stackedFirst: left(cards.stackedFirst),
+            stackedSecond: right(cards.stackedSecond),
+            minRowWidth: pair.minRowWidth,
+            stackGap: layout.sectionGap,
+            stretch: pair.stretch,
+            slot: slot,
+            // While a card is being edited nothing on the page moves.
+            holdSlot: open.isNotEmpty,
           );
           consumed.addAll([pair.left, pair.right]);
           continue;
@@ -180,6 +199,7 @@ class DiveDetailSectionList extends ConsumerWidget {
       }
 
       if (layout.foldsSections) {
+        flushPair();
         // A folded row wants no gap above its content or itself: each row
         // draws its own divider, and the content starts flush under the
         // header.
@@ -205,6 +225,11 @@ class DiveDetailSectionList extends ConsumerWidget {
         continue;
       }
       final selfSpacing = _selfSpacingSections.contains(id);
+      final slots = !selfSpacing && !kDiveDetailFullWidthSections.contains(id);
+      // A card that cannot move up beside the pair ends it here; one that
+      // can is built first, since an empty one is skipped and the card after
+      // it is the next card instead.
+      if (!slots) flushPair();
       final content = _framed(
         id,
         _sectionContent(
@@ -216,17 +241,24 @@ class DiveDetailSectionList extends ConsumerWidget {
         open,
       );
       if (content == null) continue;
-      if (!selfSpacing) _addSectionGap(children, layout);
       // Keyed so sections coming and going on both sides of this one in the
       // same rebuild move it rather than remounting it, which would drop the
       // state inside.
-      children.add(
-        KeyedSubtree(
-          key: ValueKey('diveSection_${id.name}'),
-          child: _markForStrip(id, content),
-        ),
+      final card = KeyedSubtree(
+        key: ValueKey('diveSection_${id.name}'),
+        child: _markForStrip(id, content),
       );
+      final held = pendingPair;
+      if (held != null) {
+        pendingPair = null;
+        _addSectionGap(children, layout);
+        children.add(held(slot: card));
+        continue;
+      }
+      if (!selfSpacing) _addSectionGap(children, layout);
+      children.add(card);
     }
+    flushPair();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,

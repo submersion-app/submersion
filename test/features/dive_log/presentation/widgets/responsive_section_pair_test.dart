@@ -186,6 +186,70 @@ void main() {
     });
   });
 
+  // Issue #4583: the card after the pair is laid out with it.
+  group('slot', () {
+    Widget slotHost({required double width, bool stretch = false}) {
+      return MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: width,
+                child: ResponsiveSectionPair(
+                  first: const SizedBox(height: 40, child: Text('FIRST')),
+                  second: const SizedBox(height: 200, child: Text('SECOND')),
+                  slot: const SizedBox(height: 30, child: Text('SLOT')),
+                  minRowWidth: 600,
+                  stackGap: 24,
+                  stretch: stretch,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('in a row, it moves up under the shorter card', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 1000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(slotHost(width: 700));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getTopLeft(find.text('SLOT')).dx,
+        tester.getTopLeft(find.text('FIRST')).dx,
+      );
+      expect(tester.getSize(find.byType(ResponsiveSectionPair)).height, 200);
+    });
+
+    testWidgets('stacked, it follows the second card', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 1000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(slotHost(width: 400));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getTopLeft(find.text('SLOT')).dy,
+        tester.getBottomLeft(find.text('SECOND')).dy + 24,
+      );
+    });
+
+    testWidgets('beside a stretch pair, it goes below the row', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 1000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(slotHost(width: 700, stretch: true));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(IntrinsicHeight), findsOneWidget);
+      expect(tester.getTopLeft(find.text('SLOT')).dy, 200 + 24);
+    });
+  });
+
   testWidgets('switching modes drops detail rows cleanly (issue #3724)', (
     tester,
   ) async {

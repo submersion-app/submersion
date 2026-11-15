@@ -45,3 +45,18 @@ SiteDetailSectionPair? siteDetailSectionPairFor(SiteDetailSectionId id) {
   }
   return null;
 }
+
+/// Sections whose card never moves up into the space a pair leaves under its
+/// shorter half: photos, maps, charts and galleries, which want the page's
+/// full width (issue #4583). Any other card that comes straight after a pair
+/// does, when it fits there at half width.
+const Set<SiteDetailSectionId> kSiteDetailFullWidthSections = {
+  SiteDetailSectionId.divePhotos,
+  SiteDetailSectionId.location,
+  SiteDetailSectionId.tide,
+  SiteDetailSectionId.seascape,
+  SiteDetailSectionId.reefHealth,
+  SiteDetailSectionId.media,
+  SiteDetailSectionId.diveStatistics,
+  SiteDetailSectionId.documents,
+};

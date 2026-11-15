@@ -83,3 +83,20 @@ DiveDetailSectionPair? diveDetailSectionPairFor(DiveDetailSectionId id) {
   }
   return null;
 }
+
+/// Sections whose card never moves up into the space a pair leaves under its
+/// shorter half: charts, maps, galleries and tables, which want the page's
+/// full width (issue #4583). Any other card that comes straight after a pair
+/// does, when it fits there at half width.
+const Set<DiveDetailSectionId> kDiveDetailFullWidthSections = {
+  DiveDetailSectionId.profile,
+  DiveDetailSectionId.decoStatus,
+  DiveDetailSectionId.tissueLoading,
+  DiveDetailSectionId.sacSegments,
+  DiveDetailSectionId.surfaceGps,
+  DiveDetailSectionId.navTrack,
+  DiveDetailSectionId.media,
+  DiveDetailSectionId.documents,
+  DiveDetailSectionId.diveLab,
+  DiveDetailSectionId.dataSources,
+};
