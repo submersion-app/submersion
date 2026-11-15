@@ -8,9 +8,12 @@ const double kPinnedStripHeight = 44;
 /// (issue #4562): room for several lines on scales of their own.
 const double kPinnedStripGrownHeight = 72;
 
-/// The shortest the squashed chart's plot gets, about the strip's own curve,
-/// so it is still a readable chart when the strip takes over from it.
-const double kMinPlotHeight = 48;
+/// The shortest the squashed chart's plot gets: the strip's own height, so
+/// it is still a readable chart when the strip takes over from it, and the
+/// two meet as the strip settles. Any taller and the strip, which never
+/// rises above the plot, settled that much too tall and shrank after
+/// (#4579).
+const double kMinPlotHeight = kPinnedStripHeight;
 
 /// The squash range used until the chart's plot has been measured.
 const double kSquashRange = 100;

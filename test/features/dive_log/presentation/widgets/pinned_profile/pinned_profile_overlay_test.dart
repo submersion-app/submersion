@@ -446,6 +446,22 @@ void main() {
     expect(stripWidget(tester).condense, lessThan(1));
   });
 
+  // The squashed plot bottomed out 4 px taller than the strip, and the
+  // strip never rises above the plot, so it settled 4 px tall and shrank as
+  // the plot slid under it (review of #4579). The plot squashes to the
+  // strip's own height, so the two meet as it settles.
+  testWidgets('it settles at its pinned height and keeps it', (tester) async {
+    await pump(tester, profileKey: GlobalKey());
+    for (final past in [0.0, 2.0, 4.0, 20.0]) {
+      await jump(tester, profileTop + together + past);
+      expect(
+        tester.getSize(strip).height,
+        kPinnedStripHeight,
+        reason: '$past px past settling',
+      );
+    }
+  });
+
   testWidgets('the rest of the card slides up under the settled strip', (
     tester,
   ) async {
@@ -605,8 +621,8 @@ void main() {
   });
 
   // A plot already shorter than kMinPlotHeight has no squash range; its
-  // height was rebuilt from that clamped range as 48 px, so the strip's line
-  // started below the chart's (review).
+  // height was rebuilt from that clamped range as kMinPlotHeight, so the
+  // strip's line started below the chart's (review).
   testWidgets('a short plot still starts the strip line on its own', (
     tester,
   ) async {
