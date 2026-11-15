@@ -135,14 +135,18 @@ class _DiveHeaderCardEditorState extends ConsumerState<DiveHeaderCardEditor> {
       DiveTimeRow(
         label: l10n.diveLog_edit_row_entry,
         value: entry,
+        stored: diveEntryField.read(session.stored),
         onPicked: (time) => setEntryTime(session, time),
         firstDate: DateTime(1950),
-        lastDate: DateTime.now().add(const Duration(days: 1)),
+        // As the form, up to tomorrow; a planned dive further ahead keeps
+        // its own day.
+        lastDate: _later(DateTime.now().add(const Duration(days: 1)), entryDay),
       ),
       DiveTimeRow(
         label: l10n.diveLog_edit_row_exit,
         value: exit,
         hint: estimatedExit(working),
+        stored: session.stored.exitTime,
         onPicked: (time) => setExitTime(session, time),
         onClear: () => setExitTime(session, null),
         // As the form: from the earlier of the two days, to a day after
@@ -158,6 +162,8 @@ class _DiveHeaderCardEditorState extends ConsumerState<DiveHeaderCardEditor> {
       ),
     ];
   }
+
+  static DateTime _later(DateTime a, DateTime b) => a.isAfter(b) ? a : b;
 
   /// The dive mode (edited on the Tanks card) and the dive types (edited
   /// on Details): the hero shows both, so the open card keeps them.

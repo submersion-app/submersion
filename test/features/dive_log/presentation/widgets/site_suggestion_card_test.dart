@@ -656,6 +656,34 @@ void main() {
       expect(live, findsNothing);
     });
 
+    // Final review, minor 4: the page must not jump while it saves.
+    testWidgets('while the sitting is saved the card stays, disabled', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        await host(
+          assignable(service),
+          editing: SiteSuggestionSitting(session),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      session.freeze();
+      await tester.pumpWidget(
+        await host(
+          assignable(service),
+          editing: SiteSuggestionSitting(session),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Assign Blue Hole'), findsOneWidget);
+      final live = find.byWidgetPredicate(
+        (w) => w is ButtonStyleButton && w.onPressed != null,
+      );
+      expect(live, findsNothing);
+    });
+
     testWidgets('a site that comes back after Cancel sets nothing', (
       tester,
     ) async {

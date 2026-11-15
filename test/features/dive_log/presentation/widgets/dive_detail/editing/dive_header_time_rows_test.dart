@@ -16,6 +16,7 @@ void main() {
     WidgetTester tester, {
     DateTime? value,
     DateTime? hint,
+    DateTime? stored,
     DateTime? first,
     DateTime? last,
   }) async {
@@ -36,6 +37,7 @@ void main() {
               label: 'Exit',
               value: value,
               hint: hint,
+              stored: stored,
               onPicked: picked.add,
               firstDate: first ?? DateTime(2026, 3, 9),
               lastDate: last ?? DateTime(2026, 3, 10),
@@ -103,6 +105,47 @@ void main() {
     await confirm(tester);
 
     expect(picked, [stored]);
+  });
+
+  // Final review, Important 1: a picker shows minutes, so a time moved and
+  // moved back must find the stored seconds again.
+  testWidgets('a date moved back to the stored one keeps the stored instant', (
+    tester,
+  ) async {
+    final moved = DateTime.utc(2026, 3, 10, 10, 34, 51);
+    final picked = await pumpRow(tester, value: moved, stored: stored);
+
+    await openRow(tester);
+    await tester.tap(find.text('9'));
+    await confirm(tester);
+    await confirm(tester);
+
+    expect(picked, [stored]);
+  });
+
+  testWidgets('a date alone moved keeps the time\'s seconds', (tester) async {
+    final picked = await pumpRow(tester, value: stored);
+
+    await openRow(tester);
+    await tester.tap(find.text('10'));
+    await confirm(tester);
+    await confirm(tester);
+
+    expect(picked, [DateTime.utc(2026, 3, 10, 10, 34, 51)]);
+  });
+
+  // Final review, minor 5: a cancel is not a pick.
+  testWidgets('with only an estimate, a cancelled time stores nothing', (
+    tester,
+  ) async {
+    final picked = await pumpRow(tester, hint: stored);
+
+    await openRow(tester);
+    await confirm(tester);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(picked, isEmpty);
   });
 
   testWidgets('the date picker is given the row\'s range', (tester) async {

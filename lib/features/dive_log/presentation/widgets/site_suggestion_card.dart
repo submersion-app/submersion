@@ -120,7 +120,12 @@ class SiteSuggestionCard extends ConsumerWidget {
     if (sitting != null && sitting.layout == null && !applies) {
       return const SizedBox.shrink();
     }
-    final live = editing is! SiteSuggestionLocked && applies;
+    // While the sitting is saved the card keeps its place, disabled: the
+    // page must not jump under the diver as it saves.
+    final live =
+        editing is! SiteSuggestionLocked &&
+        applies &&
+        !(session?.isFrozen ?? false);
     // The suggestion describes what is persisted, but an edit form can hold a
     // site the diver has not saved yet. If that one already has coordinates,
     // or is simply a different site, the banner would offer to place a site
@@ -250,7 +255,7 @@ class SiteSuggestionCard extends ConsumerWidget {
   /// the site the suggestion is about, that site has no location in the
   /// sitting, and nothing the card does has been held already.
   static bool _appliesTo(EditSession<Dive> session, SiteSuggestion suggestion) {
-    if (session.isDisposed || session.isFrozen) return false;
+    if (session.isDisposed) return false;
     final site = session.valueOf(diveSiteField);
     if (site?.id != suggestion.proposal.dive.site?.id) return false;
     if (site?.hasCoordinates ?? false) return false;

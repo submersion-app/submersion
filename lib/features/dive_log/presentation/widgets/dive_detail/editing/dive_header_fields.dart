@@ -157,10 +157,22 @@ final divePlannedField = EditField<Dive, bool>(
 );
 
 /// The instant a picker's [picked] minute stands for. A picker shows whole
-/// minutes, so [current] read back at its own minute keeps its seconds
-/// (issue #3901); any other minute is taken as picked.
-DateTime pickedInstant(DateTime picked, DateTime? current) =>
-    current != null && wholeMinute(current) == picked ? current : picked;
+/// minutes, so a time read back at its own minute keeps its seconds (issue
+/// #3901): [stored], the value stored before the sitting, so that a time
+/// moved and moved back is no change; else [current], the one on show. A
+/// new day at the same time of day keeps [current]'s seconds too. Any other
+/// minute is taken as picked.
+DateTime pickedInstant(DateTime picked, DateTime? current, {DateTime? stored}) {
+  if (stored != null && wholeMinute(stored) == picked) return stored;
+  if (current == null) return picked;
+  if (wholeMinute(current) == picked) return current;
+  if (current.hour == picked.hour && current.minute == picked.minute) {
+    return picked.add(
+      Duration(seconds: current.second, milliseconds: current.millisecond),
+    );
+  }
+  return picked;
+}
 
 /// Moves the entry, and a recorded exit with it, so the dive keeps its
 /// length (issue #241). The runtime is left as it is.
@@ -182,6 +194,8 @@ bool _timesAsStored(EditSession<Dive> session) =>
 /// runtime alone.
 void setExitTime(EditSession<Dive> session, DateTime? exit) {
   if (exit == session.valueOf(diveExitField)) return;
+  // Picked by hand: no runtime typed earlier gives it back.
+  session.remember(_runtimeExitKey, null);
   session.set(diveExitField, exit);
   if (exit == null) return;
   if (_timesAsStored(session)) {
@@ -192,22 +206,43 @@ void setExitTime(EditSession<Dive> session, DateTime? exit) {
   session.set(diveRuntimeField, span.isNegative ? null : _seconds(span));
 }
 
+/// The exit before a runtime typed in this sitting started moving it, and
+/// the exit that runtime last set: `({DateTime before, DateTime after})`.
+const _runtimeExitKey = 'runtimeMovedExit';
+
 /// Sets the runtime. A positive runtime moves a recorded exit to entry plus
 /// the runtime; back to the stored runtime with the stored entry, the exit
-/// goes back to the stored exit. A dive with no exit keeps none. Zero or
-/// none moves nothing.
+/// goes back to the stored exit. A dive with no exit keeps none.
+///
+/// Zero or none moves no exit of its own, and gives back the exit as it was
+/// before a runtime typed in this sitting moved it: a field emptied a digit
+/// at a time passes through runtimes the diver never meant (52, 5, none).
+/// An exit picked by hand since is kept.
 void setRuntime(EditSession<Dive> session, Duration? runtime) {
   session.set(diveRuntimeField, _seconds(runtime));
-  if (runtime == null || runtime <= Duration.zero) return;
+  final moved = session.recall<({DateTime before, DateTime after})>(
+    _runtimeExitKey,
+  );
+  if (runtime == null || runtime <= Duration.zero) {
+    if (moved != null && session.valueOf(diveExitField) == moved.after) {
+      session.set(diveExitField, moved.before);
+    }
+    session.remember(_runtimeExitKey, null);
+    return;
+  }
   final exit = session.valueOf(diveExitField);
   if (exit == null) return;
   final entry = session.valueOf(diveEntryField);
   final stored = session.stored;
-  if (runtime == stored.runtime && entry == diveEntryField.read(stored)) {
-    session.set(diveExitField, stored.exitTime);
-    return;
-  }
-  session.set(diveExitField, entry.add(runtime));
+  final DateTime? next =
+      runtime == stored.runtime && entry == diveEntryField.read(stored)
+      ? stored.exitTime
+      : entry.add(runtime);
+  session.set(diveExitField, next);
+  if (next == null) return;
+  // The exit before the first move of this run is the one to give back.
+  final before = moved != null && exit == moved.after ? moved.before : exit;
+  session.remember(_runtimeExitKey, (before: before, after: next));
 }
 
 /// Where a dive with no exit is shown to end: entry plus its runtime, or

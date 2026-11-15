@@ -199,6 +199,40 @@ void main() {
     expect(controller.isDirty, isFalse);
   });
 
+  // Final review, Important 2.
+  testWidgets('a runtime emptied with backspace leaves the exit where it was', (
+    tester,
+  ) async {
+    final controller = await pumpEditor(tester, full);
+
+    await type(tester, '52 min', ['5', '']);
+
+    expect(working(controller).runtime, isNull);
+    expect(working(controller).exitTime, exit);
+  });
+
+  // Final review, Important 3: a plan is usually in the future.
+  testWidgets('the entry of a dive dated next month can keep its date', (
+    tester,
+  ) async {
+    final later = DateTime.now().toUtc().add(const Duration(days: 40));
+    await pumpEditor(
+      tester,
+      full.copyWith(
+        dateTime: later,
+        entryTime: later,
+        clearExitTime: true,
+        isPlanned: true,
+      ),
+    );
+
+    final row = tester.widget<DiveTimeRow>(find.byType(DiveTimeRow).first);
+    expect(
+      row.lastDate.isBefore(DateTime(later.year, later.month, later.day)),
+      isFalse,
+    );
+  });
+
   group('profile suggestions', () {
     final profiled = full.copyWith(
       clearBottomTime: true,

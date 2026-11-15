@@ -22,6 +22,7 @@ class DiveTimeRow extends ConsumerWidget {
     required this.value,
     required this.onPicked,
     this.hint,
+    this.stored,
     this.onClear,
     required this.firstDate,
     required this.lastDate,
@@ -33,6 +34,10 @@ class DiveTimeRow extends ConsumerWidget {
   /// The estimated exit, shown muted when there is no value. Never stored
   /// unless the diver picks it.
   final DateTime? hint;
+
+  /// The value stored before the sitting: a time moved and moved back to
+  /// its minute is given its stored seconds again ([pickedInstant]).
+  final DateTime? stored;
   final ValueChanged<DateTime> onPicked;
   final VoidCallback? onClear;
   final DateTime firstDate;
@@ -70,7 +75,9 @@ class DiveTimeRow extends ConsumerWidget {
           : TimeOfDay(hour: current.hour, minute: current.minute),
     );
     if (time == null) {
-      // The time of day stays, seconds and all, on the new date.
+      // The time of day stays, seconds and all, on the new date. An
+      // estimate is not the diver's: a cancel stores nothing for it.
+      final current = value;
       if (current != null) {
         onPicked(
           DateTime.utc(
@@ -93,7 +100,7 @@ class DiveTimeRow extends ConsumerWidget {
       time.hour,
       time.minute,
     );
-    onPicked(pickedInstant(picked, current));
+    onPicked(pickedInstant(picked, current, stored: stored));
   }
 
   /// [at]'s day, kept inside the row's range so the picker can open on it.

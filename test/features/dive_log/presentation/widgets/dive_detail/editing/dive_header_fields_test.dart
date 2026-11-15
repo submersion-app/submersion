@@ -237,6 +237,40 @@ void main() {
       expect(session.isDirty, isFalse);
     });
 
+    // Final review, Important 2: emptying the field a digit at a time
+    // passes through runtimes the diver never meant.
+    test('a runtime cleared digit by digit puts the exit back', () {
+      final session = sitting();
+
+      setRuntime(session, const Duration(minutes: 5));
+      setRuntime(session, null);
+
+      expect(session.valueOf(diveExitField), exit);
+      expect(session.valueOf(diveRuntimeField), isNull);
+    });
+
+    test('a runtime typed down to zero puts the exit back', () {
+      final session = sitting();
+
+      setRuntime(session, const Duration(minutes: 60));
+      setRuntime(session, const Duration(minutes: 6));
+      setRuntime(session, Duration.zero);
+
+      expect(session.valueOf(diveExitField), exit);
+    });
+
+    test('an exit picked after typing a runtime is kept when the runtime is '
+        'cleared', () {
+      final session = sitting();
+      final picked = DateTime.utc(2026, 3, 9, 11);
+
+      setRuntime(session, const Duration(minutes: 60));
+      setExitTime(session, picked);
+      setRuntime(session, null);
+
+      expect(session.valueOf(diveExitField), picked);
+    });
+
     test('a runtime on a dive with no exit stores no exit', () {
       final session = sitting(
         Dive(id: 'dive', dateTime: entry, entryTime: entry, runtime: runtime),
