@@ -95,14 +95,14 @@ FeatureHealth evaluateBackupHealth(BackupHealthInputs i, DateTime now) {
 
   // The headline stays "off" (or the copy's sign-in); failed, overdue and
   // never describe a schedule that is not running, so they are left out.
+  // All attention, so the first (the sign-in, else "off") is the headline.
   if (!i.autoEnabled) {
-    final findings = [
+    return pickHealth(DataFeature.backup, [
       if (copySignIn)
         health(HealthLevel.attention, HealthReason.backupCloudSignIn),
       health(HealthLevel.attention, HealthReason.backupAutoOff),
       ...copyFindings,
-    ];
-    return findings.first.copyWith(findings: List.unmodifiable(findings));
+    ]);
   }
 
   final lastBackup = i.lastBackupAt;

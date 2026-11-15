@@ -63,27 +63,17 @@ FeatureHealth evaluateSharedLibraryHealth(List<LibraryHealthInput> libraries) {
       if (l.editsHeld)
         finding(l, HealthLevel.attention, HealthReason.librariesEditsHeld),
   ]);
-  final failed = libraries.where((l) => l.lastError != null).toList();
-  if (failed.isNotEmpty) {
-    return FeatureHealth(
-      feature: DataFeature.sharedLibraries,
-      level: HealthLevel.failing,
-      reason: HealthReason.librariesFailed,
-      name: failed.first.name,
-      count: failed.length,
+  if (findings.isNotEmpty) {
+    // Failures come first, so the headline is the first failing library
+    // with the count of them, else the first library holding edits.
+    final headline = findings.first;
+    final failed = findings.where(
+      (f) => f.reason == HealthReason.librariesFailed,
+    );
+    return headline.copyWith(
+      count: failed.isEmpty ? null : failed.length,
       findings: findings,
     );
-  }
-  for (final library in libraries) {
-    if (library.editsHeld) {
-      return FeatureHealth(
-        feature: DataFeature.sharedLibraries,
-        level: HealthLevel.attention,
-        reason: HealthReason.librariesEditsHeld,
-        name: library.name,
-        findings: findings,
-      );
-    }
   }
   return FeatureHealth(
     feature: DataFeature.sharedLibraries,
