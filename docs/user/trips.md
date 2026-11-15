@@ -58,7 +58,7 @@ Every trip, whatever its type, has six tabs: **Overview**, **Itinerary**, **Gear
 
 Before the first day, the Overview is a preparation page: a countdown to the trip, one summary card whose rows (itinerary, plan, gear, checklist) open the other tabs, and your notes.
 
-From the first day on, it becomes the trip's story, one day at a time. A strip across the top draws the whole trip: one tile per day, with that day's dives hanging down from a line for the surface. Each shape is one dive, as deep as it went and as wide as it was long, so the deep day and the easy days show at a glance. A dive you have planned but not dived yet is drawn as a dashed outline. On a long trip the strip scrolls sideways.
+From the first day on, it becomes the trip's story, one day at a time. A strip across the top draws the whole trip: one tile per day, with that day's dives hanging down from a line for the surface. Each shape is one dive, as deep as it went and as wide as it was long, so the deep day and the easy days show at a glance. A dashed outline is a dive whose shape is not recorded: one you have planned but not dived yet, a draft, or a dive logged without a dive computer profile, drawn from its depth and time. On a long trip the strip scrolls sideways.
 
 Tap a tile to see that day and nothing else: its map, a strip showing when you dived, your dive cards, then that day's photos and the species you saw. On a wide window the map sits beside the dives. Days with no dives show as surface days, and planned dives appear on the days they are planned for.
 

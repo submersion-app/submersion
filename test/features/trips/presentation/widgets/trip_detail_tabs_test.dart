@@ -19,14 +19,19 @@ import '../../../../helpers/mock_providers.dart';
 
 /// The master-detail pane reuses the tabs for the next trip (#2845).
 void main() {
-  Trip trip(String id, {DateTime? start}) => Trip(
-    id: id,
-    name: 'Trip $id',
-    startDate: start ?? DateTime(2024, 1, 15),
-    endDate: (start ?? DateTime(2024, 1, 15)).add(const Duration(days: 7)),
-    createdAt: DateTime(2024, 1, 1),
-    updatedAt: DateTime(2024, 1, 1),
-  );
+  Trip trip(String id, {DateTime? start}) {
+    final from = start ?? DateTime(2024, 1, 15);
+    return Trip(
+      id: id,
+      name: 'Trip $id',
+      startDate: from,
+      // A calendar week, not 7 x 24 hours: across a daylight-saving change
+      // the hours land off midnight, on the wrong day.
+      endDate: DateTime(from.year, from.month, from.day + 7),
+      createdAt: DateTime(2024, 1, 1),
+      updatedAt: DateTime(2024, 1, 1),
+    );
+  }
 
   testWidgets('selecting another trip starts it on Overview', (tester) async {
     tester.view.physicalSize = const Size(1100, 800);

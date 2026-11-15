@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_picker_providers.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/wait_until.dart';
 
 /// The two reads behind the trip day picker, on a real database: which of a
 /// trip's dives are plans nobody has dived, and when a dive's stored profile
@@ -14,8 +15,12 @@ void main() {
   late AppDatabase db;
   late ProviderContainer container;
 
-  /// Longer than the repositories' 300 ms change-tick debounce.
-  const settle = Duration(milliseconds: 450);
+  /// Time for a change that should not happen to show itself. Only for
+  /// asserting that nothing arrives: a slow runner can then make such a test
+  /// pass when it should fail, never fail when it should pass. What does
+  /// arrive is waited for with [waitUntil], since the debounced tick, the
+  /// query and the rebuild have no upper bound on a loaded machine.
+  const quietWindow = Duration(milliseconds: 450);
 
   /// Inserts a dive the way the app's own writes do: through Drift, naming
   /// the table, so the change streams hear it. A bare statement would not
@@ -63,8 +68,12 @@ void main() {
       });
 
       await dive('second', planned: true);
-      await Future<void>.delayed(settle);
 
+      await waitUntil(
+        () async => (await container.read(
+          tripUndivedPlanIdsProvider('t1').future,
+        )).contains('second'),
+      );
       expect(await container.read(tripUndivedPlanIdsProvider('t1').future), {
         'plan',
         'second',
@@ -95,25 +104,25 @@ void main() {
     });
 
     test('counts up on each write of a stored profile', () async {
+      // The series needs its dive. Writing the dive ticks only `dives`,
+      // which this provider does not hear.
       await dive('first');
-      await Future<void>.delayed(settle);
-      counts.clear();
 
       await profile('s1', 'first');
-      await Future<void>.delayed(settle);
+      await waitUntil(() async => counts.isNotEmpty);
       expect(counts, [1]);
 
       // A different number each time: the same value twice would notify
       // nobody, and the trip story would not ask for its profiles again.
       await profile('s2', 'first');
-      await Future<void>.delayed(settle);
+      await waitUntil(() async => counts.length > 1);
       expect(counts, [1, 2]);
     });
 
     test('a dive edited without its profile does not count', () async {
       await dive('first');
       await dive('second');
-      await Future<void>.delayed(settle);
+      await Future<void>.delayed(quietWindow);
 
       // Each count sends the trip story back to the database for every dive
       // it holds no samples for; an edit to a dive's notes must not.

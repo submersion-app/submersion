@@ -482,6 +482,67 @@ void main() {
   });
 
   group('a strip longer than its space', () {
+    testWidgets('keeps the selected day in view when days are added in '
+        'front of it', (tester) async {
+      // A dive logged two days before the trip adds two leading days: every
+      // tile moves two places along, the selected one included.
+      final counts = [1, 3, 3, 2, 3, 0, 2, 3, 3, 2, 3, 1, 2, 0];
+      final longer = _trip(DateTime(2026, 10, 15), [1, 1, ...counts]);
+      final shown = ValueNotifier(fourteen);
+      addTearDown(shown.dispose);
+      final selected = fourteen.story.days[12].date;
+      final previousLocale = Intl.defaultLocale;
+      Intl.defaultLocale = 'en';
+      addTearDown(() => Intl.defaultLocale = previousLocale);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Align(
+                alignment: Alignment.topCenter,
+                child: SizedBox(
+                  key: _stripKey,
+                  width: 360,
+                  child: ValueListenableBuilder(
+                    valueListenable: shown,
+                    builder: (_, trip, _) => TripDayPicker(
+                      days: trip.story.days,
+                      model: trip.model,
+                      selectedDate: selected,
+                      onSelect: selections.add,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      final strip = tester.getRect(find.byKey(_stripKey));
+      bool inView(int dayNumber) {
+        final tile = tester.getRect(
+          find.byKey(TripDayPicker.dayTileKey(dayNumber)),
+        );
+        return tile.left >= strip.left - 0.5 && tile.right <= strip.right + 0.5;
+      }
+
+      expect(inView(13), isTrue, reason: 'opens with the selected day shown');
+
+      shown.value = longer;
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      // The same date is day 15 now.
+      expect(longer.story.days[14].date, selected);
+      expect(inView(15), isTrue);
+    });
+
     testWidgets('choosing a day that is off screen brings it into view', (
       tester,
     ) async {

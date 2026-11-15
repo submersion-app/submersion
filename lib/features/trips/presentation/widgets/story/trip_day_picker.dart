@@ -82,9 +82,7 @@ class _TripDayPickerState extends State<TripDayPicker> {
     after: false,
   ));
 
-  int get _selectedIndex => widget.selectedDate == null
-      ? -1
-      : widget.days.indexWhere((d) => d.date == widget.selectedDate);
+  int get _selectedIndex => _indexIn(widget);
 
   @override
   void initState() {
@@ -135,8 +133,17 @@ class _TripDayPickerState extends State<TripDayPicker> {
     _syncFocusNodes();
     if (oldWidget.selectedDate != widget.selectedDate) {
       _showSelectedAfterFrame(animate: true);
+    } else if (_indexIn(oldWidget) != _selectedIndex) {
+      // The same day, at a new place: days were added or removed in front of
+      // it (a dive logged before the trip's start). Its tile moved with them,
+      // possibly past the edge; bring it back without a slide.
+      _showSelectedAfterFrame(animate: false);
     }
   }
+
+  static int _indexIn(TripDayPicker picker) => picker.selectedDate == null
+      ? -1
+      : picker.days.indexWhere((d) => d.date == picker.selectedDate);
 
   @override
   void dispose() {
