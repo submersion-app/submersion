@@ -11,6 +11,7 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/cloud_storage/headless_cloud_provider.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/headless_file_logging.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/security/database_security_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
@@ -150,73 +151,86 @@ bool backgroundWorkBlockedByDemoMode(DemoPaths paths) =>
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
-    const log = LoggerService('BackgroundService');
-    log.info('Background task started: $task');
-
     try {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Demo mode (issue #3708): the open database may be the sample logbook,
-      // and nothing in it may be backed up or raise a reminder. Checked before
-      // any database is located or opened.
-      if (backgroundWorkBlockedByDemoMode(await DemoPaths.resolve())) {
-        log.info('Background task skipped: demo mode is on.');
-        return true;
-      }
-
-      // Resolve WHICH database before unlocking one: a diver with a custom
-      // location has no database at the default path, and opening there would
-      // create one (#1168).
-      final located = await prepareHeadlessDatabaseLocation(prefs: prefs);
-      if (!located) {
-        log.info(
-          'Background task skipped: the configured database is not readable '
-          'from this headless context.',
-        );
-        // "succeeded": a missing database is not a retryable error.
-        return true;
-      }
-
-      final ready = await prepareHeadlessDatabaseKey(prefs: prefs);
-      if (!ready) {
-        log.info(
-          'Background task skipped: database is encrypted and no cached '
-          'key is available in this headless context.',
-        );
-        return true; // "succeeded" — do not retry-loop a locked database
-      }
-
-      // Opens the location adopted above, NOT the default path. The schema
-      // version this reads has to come from the diver's own file, which is why
-      // the location gate runs first.
-      if (!await openHeadlessDatabase(log: log)) {
-        return true; // "succeeded" — do not retry-loop a pending upgrade
-      }
-
-      // Initialize notification service
-      await NotificationService.instance.initialize();
-
-      if (task == kNotificationRefreshTask) {
-        await _refreshNotifications(log);
-      } else if (task == kBackupTask) {
-        await runScheduledBackup(
-          prefs: prefs,
-          dbAdapter: DefaultBackupDatabaseAdapter(DatabaseService.instance),
-          log: log,
-        );
-      }
-
-      log.info('Background task completed: $task');
-      return true;
-    } catch (e, stackTrace) {
-      log.error(
-        'Background task failed: $task',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return false;
+      return await _runBackgroundTask(task);
+    } finally {
+      // The isolate is torn down as soon as the task returns; queued log
+      // lines would go with it.
+      await LoggerService.flushPendingWrites();
     }
   });
+}
+
+/// One Workmanager task, start to finish. True when it is done (ran or was
+/// skipped for good), false to have Workmanager retry it.
+Future<bool> _runBackgroundTask(String task) async {
+  const log = LoggerService('BackgroundService');
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    // First, so everything below reaches the debug log (issue #4572).
+    await attachHeadlessFileLogging(prefs);
+    log.info('Background task started: $task');
+
+    // Demo mode (issue #3708): the open database may be the sample logbook,
+    // and nothing in it may be backed up or raise a reminder. Checked before
+    // any database is located or opened.
+    if (backgroundWorkBlockedByDemoMode(await DemoPaths.resolve())) {
+      log.info('Background task skipped: demo mode is on.');
+      return true;
+    }
+
+    // Resolve WHICH database before unlocking one: a diver with a custom
+    // location has no database at the default path, and opening there would
+    // create one (#1168).
+    final located = await prepareHeadlessDatabaseLocation(prefs: prefs);
+    if (!located) {
+      log.info(
+        'Background task skipped: the configured database is not readable '
+        'from this headless context.',
+      );
+      // "succeeded": a missing database is not a retryable error.
+      return true;
+    }
+
+    final ready = await prepareHeadlessDatabaseKey(prefs: prefs);
+    if (!ready) {
+      log.info(
+        'Background task skipped: database is encrypted and no cached '
+        'key is available in this headless context.',
+      );
+      return true; // "succeeded" — do not retry-loop a locked database
+    }
+
+    // Opens the location adopted above, NOT the default path. The schema
+    // version this reads has to come from the diver's own file, which is why
+    // the location gate runs first.
+    if (!await openHeadlessDatabase(log: log)) {
+      return true; // "succeeded" — do not retry-loop a pending upgrade
+    }
+
+    // Initialize notification service
+    await NotificationService.instance.initialize();
+
+    if (task == kNotificationRefreshTask) {
+      await _refreshNotifications(log);
+    } else if (task == kBackupTask) {
+      await runScheduledBackup(
+        prefs: prefs,
+        dbAdapter: DefaultBackupDatabaseAdapter(DatabaseService.instance),
+        log: log,
+      );
+    }
+
+    log.info('Background task completed: $task');
+    return true;
+  } catch (e, stackTrace) {
+    log.error(
+      'Background task failed: $task',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return false;
+  }
 }
 
 Future<void> _refreshNotifications(LoggerService log) async {

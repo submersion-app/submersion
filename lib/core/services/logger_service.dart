@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'dart:developer' as developer;
 import 'dart:isolate';
 
-import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/log_file_service.dart';
@@ -22,6 +21,10 @@ class LoggerService {
   /// [LogCategory.media] so every breadcrumb lands in the exported log
   /// without each call site repeating it.
   final LogCategory category;
+
+  /// The SharedPreferences key of the debug mode switch, which decides
+  /// whether the log file keeps the verbose levels ([configureFileLogging]).
+  static const String debugModePrefKey = 'debug_mode_enabled';
 
   /// The shared LogFileService instance. Set during app initialization.
   static LogFileService? _fileService;
@@ -390,9 +393,8 @@ class LoggerService {
 
   /// Wait for all currently pending file writes to complete.
   ///
-  /// This method is primarily intended for tests that need deterministic
-  /// synchronization with log file writes.
-  @visibleForTesting
+  /// Tests use it to synchronize with log file writes; a headless isolate
+  /// awaits it before it exits, so its last lines are not lost (#4572).
   static Future<void> flushPendingWrites() async {
     while (true) {
       final current = _pendingWrite;
