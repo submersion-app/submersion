@@ -91,7 +91,10 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
     final style = _style(context);
     final from = _builtFrom;
     // While the strip condenses no layer can show yet, and the data built
-    // last (or none) serves; it is rebuilt once the strip settles.
+    // last (or none) serves; it is rebuilt once the strip settles. It is
+    // still built the first time the strip shows: it decides how tall the
+    // strip condenses to, so the strip never grows again on settling
+    // (#4579).
     final stale = from == null || !from.sameAs(inputs) || _builtWith != style;
     if (stale && (from == null || widget.settled)) {
       _builtFrom = inputs;

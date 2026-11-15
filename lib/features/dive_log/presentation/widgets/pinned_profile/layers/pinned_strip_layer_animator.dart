@@ -118,11 +118,21 @@ class _PinnedStripLayerAnimatorState extends State<PinnedStripLayerAnimator>
     if (instant) {
       controller.value = on ? 1 : 0;
     } else if (on && controller.status != AnimationStatus.forward) {
-      if (controller.value < 1) controller.forward();
+      // Turned back on before its fade-out has ticked, it is still at 1 but
+      // heading out; forward() from 1 would not stop it, so it is held there.
+      if (controller.value < 1) {
+        controller.forward();
+      } else {
+        controller.value = 1;
+      }
     } else if (!on && controller.status != AnimationStatus.reverse) {
       // Turned off before its fade has ticked, it is still at 0 but heading
       // in; reverse() from 0 would not stop it, so it is put back at rest.
-      controller.value > 0 ? controller.reverse() : controller.reset();
+      if (controller.value > 0) {
+        controller.reverse();
+      } else {
+        controller.reset();
+      }
     }
   }
 

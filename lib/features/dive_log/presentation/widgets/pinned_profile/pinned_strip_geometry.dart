@@ -55,8 +55,9 @@ double slideDepth({
 }
 
 /// The share of the squash-and-slide after which the strip starts to fade
-/// in. The fade has to be over by the end of it ([condenseFadeEnd]), so an
-/// early start gives it a long stretch of scroll to spread over.
+/// in. The fade and then the morph ([kCondenseFadeEnd]) have to be over by
+/// the end of it, so an early start gives them a long stretch of scroll to
+/// spread over.
 const double kHandOverOverlap = 0.2;
 
 /// How far the pinned copy has zoomed out from the full card's zoom window

@@ -131,6 +131,21 @@ void main() {
     expect(_last.strengthOf(StripLayer.temperature), 1);
   });
 
+  // The mirror case: turned back on before its fade-out had ticked, it kept
+  // fading out with its card in view.
+  testWidgets('a layer turned back on before its fade-out starts stays on', (
+    tester,
+  ) async {
+    await _pump(tester);
+    await _pump(tester, cards: _env);
+    await tester.pump(const Duration(milliseconds: 300));
+    await _pump(tester);
+    await _pump(tester, cards: _env);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_last.strengthOf(StripLayer.temperature), 1);
+    expect(_last.grow, 1);
+  });
+
   testWidgets('media in view with photos fades media in, grow stays 0', (
     tester,
   ) async {

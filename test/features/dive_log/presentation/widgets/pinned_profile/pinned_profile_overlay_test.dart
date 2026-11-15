@@ -417,6 +417,27 @@ void main() {
     expect(card.bottom, greaterThan(tester.getRect(strip).bottom + 90));
   });
 
+  // Before the copy had reported its plot, the plot's top was taken as the
+  // card's, so a first jump into the hand-over drew the strip settled, and
+  // marked it so, for a frame.
+  testWidgets('a first jump into the hand-over does not settle the strip', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    position(tester).jumpTo(profileTop + together - 20);
+    await tester.pump();
+    expect(stripWidget(tester).condense, lessThan(1));
+    expect(
+      tester
+          .widget<PinnedStripLayerHost>(find.byType(PinnedStripLayerHost))
+          .settled,
+      isFalse,
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(stripWidget(tester).condense, lessThan(1));
+  });
+
   testWidgets('the rest of the card slides up under the settled strip', (
     tester,
   ) async {

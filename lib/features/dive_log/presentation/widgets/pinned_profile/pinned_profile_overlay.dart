@@ -323,7 +323,19 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
 
   /// The scroll past the card's top at which its plot reaches the top of the
   /// page: the squash and slide are done, and so is the hand-over.
-  double get _plotAtTop => _squashRange + (_copyPlot?.top ?? 0);
+  ///
+  /// Until the copy has reported its plot, where that sits is unknown, and
+  /// taking it as the card's top settled the strip for a frame on a first
+  /// jump into the hand-over. The hand-over is then taken to run on until
+  /// the card has all but left, so it never settles early.
+  double get _plotAtTop {
+    final plot = _copyPlot;
+    if (plot != null) return _squashRange + plot.top;
+    final card = _cardInContent;
+    return card == null
+        ? _squashRange
+        : math.max(_squashRange, card.height - kPinnedStripHeight);
+  }
 
   /// The scroll past the card's top at which the strip starts to fade in
   /// over the pinned copy.
