@@ -1,3 +1,5 @@
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
@@ -220,7 +222,17 @@ final mediaHealthProvider = Provider.autoDispose<FeatureHealth>((ref) {
   return evaluateMediaHealth(inputs);
 });
 
-/// The four features in strip order.
+/// The health provider behind [feature], for a page item that marks itself
+/// from its feature's findings (#4561).
+ProviderListenable<FeatureHealth> healthProviderOf(DataFeature feature) =>
+    switch (feature) {
+      DataFeature.backup => backupHealthProvider,
+      DataFeature.sync => syncHealthProvider,
+      DataFeature.sharedLibraries => sharedLibrariesHealthProvider,
+      DataFeature.media => mediaHealthProvider,
+    };
+
+/// The four features in row order.
 final dataHealthProvider = Provider.autoDispose<List<FeatureHealth>>((ref) {
   return [
     ref.watch(backupHealthProvider),
