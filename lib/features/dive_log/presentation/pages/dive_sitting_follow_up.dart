@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -47,33 +49,39 @@ class DiveSittingFollowUp {
     required Dive after,
     required List<TripDateStretch> tripDateStretches,
   }) async {
-    _guarded('name the stretched trip', () => _sayTripMoved(tripDateStretches));
-    _guarded('refresh the courses', () => _refreshCourses(before, after));
-    try {
-      await _rememberVisibilityInput(before, after);
-    } catch (error, stackTrace) {
-      _report('remember the visibility input', after, error, stackTrace);
-    }
+    await _guarded(
+      'name the stretched trip',
+      after,
+      () => _sayTripMoved(tripDateStretches),
+    );
+    await _guarded(
+      'refresh the courses',
+      after,
+      () => _refreshCourses(before, after),
+    );
+    await _guarded(
+      'remember the visibility input',
+      after,
+      () => _rememberVisibilityInput(before, after),
+    );
   }
 
-  void _guarded(String what, VoidCallback step) {
+  /// Runs one step. A step that fails is logged, with the dive it was for,
+  /// and the next one still runs.
+  Future<void> _guarded(
+    String what,
+    Dive dive,
+    FutureOr<void> Function() step,
+  ) async {
     try {
-      step();
+      await step();
     } catch (error, stackTrace) {
       _log.error(
-        'After a saved sitting, could not $what',
+        'After saving dive ${dive.id}, could not $what',
         error: error,
         stackTrace: stackTrace,
       );
     }
-  }
-
-  void _report(String what, Dive dive, Object error, StackTrace stackTrace) {
-    _log.error(
-      'After saving dive ${dive.id}, could not $what',
-      error: error,
-      stackTrace: stackTrace,
-    );
   }
 
   /// A dive put on a trip, or moved to another day on one, stretched that

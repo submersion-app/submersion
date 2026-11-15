@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/domain/services/dive_center_picker_ranking.dart';
@@ -16,7 +17,6 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
-import 'package:submersion/shared/widgets/forms/form_style.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -25,8 +25,39 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 // that way exists at once and outlives a cancelled sitting; only the dive's
 // link to it is held until Save.
 
+const _log = LoggerService('DiveDetailsTripRows');
+
 /// What a picker sheet pops with when the diver asks for a new record.
 const _createNew = '__create_new__';
+
+/// How far the words under a picker row sit in from the card's edge: the
+/// form rows' own inset.
+const double _underRowInset = 14;
+
+/// Reads back a record the diver has just made, to put it on the dive.
+///
+/// The record exists whether or not this read works. When it fails the dive
+/// is left as it was and the diver is told, so they can pick the new record
+/// from the list instead. [messenger] and [sorry] are read before the page
+/// that made the record was opened.
+Future<V?> _readBack<V>(
+  Future<V?> Function() read, {
+  required String what,
+  required ScaffoldMessengerState messenger,
+  required String sorry,
+}) async {
+  try {
+    return await read();
+  } catch (error, stackTrace) {
+    _log.warning(
+      'Could not read back the new $what',
+      error: error,
+      stackTrace: stackTrace,
+    );
+    messenger.showSnackBar(SnackBar(content: Text(sorry)));
+    return null;
+  }
+}
 
 /// Sets [field] unless the row has gone, or the sitting has ended or is
 /// being written: a sheet, a page or a lookup can answer after any of them.
@@ -50,7 +81,7 @@ class _Caption extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+      padding: const EdgeInsets.fromLTRB(_underRowInset, 0, _underRowInset, 10),
       child: Text(
         text,
         style: theme.textTheme.bodySmall?.copyWith(
@@ -99,6 +130,8 @@ class _DiveTripRowState extends ConsumerState<DiveTripRow> {
     final session = widget.session;
     // Read now: the lookup below can run after the row has gone.
     final trips = ref.read(tripRepositoryProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final sorry = context.l10n.common_error_tryAgain;
     final result = await _showPickerSheet(
       context,
       (sheetContext, scroll) => TripPickerSheet(
@@ -114,7 +147,12 @@ class _DiveTripRowState extends ConsumerState<DiveTripRow> {
     if (result != _createNew || !mounted) return;
     final tripId = await newTripForDiveEdit(context, ref, _newTripFacts);
     if (tripId == null) return;
-    final trip = await trips.getTripById(tripId);
+    final trip = await _readBack(
+      () => trips.getTripById(tripId),
+      what: 'trip',
+      messenger: messenger,
+      sorry: sorry,
+    );
     if (trip != null) _set(trip);
   }
 
@@ -154,6 +192,7 @@ class _DiveTripRowState extends ConsumerState<DiveTripRow> {
               placeholder: l10n.diveLog_edit_row_notSet,
               onTap: _pick,
               onClear: trip == null ? null : () => _set(null),
+              clearTooltip: l10n.common_action_remove,
             ),
             if (trip != null)
               _Caption(
@@ -187,7 +226,7 @@ class _TripSuggestion extends ConsumerWidget {
     final theme = Theme.of(context);
     final l10n = context.l10n;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: FormStyle.groupRadius),
+      padding: const EdgeInsets.symmetric(horizontal: _underRowInset),
       child: Row(
         children: [
           Icon(Icons.auto_awesome, size: 16, color: theme.colorScheme.primary),
@@ -229,6 +268,8 @@ class _DiveCenterRowState extends ConsumerState<DiveCenterRow> {
     final dive = session.working;
     // Read now: the lookup below can run after the row has gone.
     final centers = ref.read(diveCenterRepositoryProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final sorry = context.l10n.common_error_tryAgain;
     final result = await _showPickerSheet(
       context,
       (sheetContext, scroll) => DiveCenterPickerSheet(
@@ -251,7 +292,12 @@ class _DiveCenterRowState extends ConsumerState<DiveCenterRow> {
     if (result != _createNew || !mounted) return;
     final centerId = await context.push<String>('/dive-centers/new');
     if (centerId == null) return;
-    final center = await centers.getDiveCenterById(centerId);
+    final center = await _readBack(
+      () => centers.getDiveCenterById(centerId),
+      what: 'dive center',
+      messenger: messenger,
+      sorry: sorry,
+    );
     if (center != null) _set(center);
   }
 
@@ -274,6 +320,7 @@ class _DiveCenterRowState extends ConsumerState<DiveCenterRow> {
               placeholder: l10n.diveLog_edit_row_notSet,
               onTap: _pick,
               onClear: center == null ? null : () => _set(null),
+              clearTooltip: l10n.common_action_remove,
             ),
             if (where != null) _Caption(where),
           ],

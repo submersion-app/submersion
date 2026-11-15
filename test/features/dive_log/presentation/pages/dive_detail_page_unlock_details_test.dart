@@ -152,8 +152,16 @@ void main() {
     );
     await openDetails(tester);
 
-    await tester.tap(operatorField);
-    await tester.pump();
+    // Into every field of the card that takes typing, one after another.
+    for (var row = 0; row < 3; row++) {
+      await tester.tap(
+        find.descendant(
+          of: find.byType(SuggestedTextRow).at(row),
+          matching: find.byType(TextFormField),
+        ),
+      );
+      await tester.pump();
+    }
     await tester.tap(find.text(l.diveLog_edit_label_visibility));
     await settle(tester);
     await tester.tap(find.text('Done'));

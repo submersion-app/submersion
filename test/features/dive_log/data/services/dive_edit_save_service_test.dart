@@ -1,10 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/core/database/database.dart'
-    hide Dive, DiveCustomField, DiveWeight, Tag, Trip;
+    hide Dive, DiveCenter, DiveCustomField, DiveWeight, Tag, Trip;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_edit_save_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -18,9 +19,18 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 
 import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/test_database.dart';
+
+/// Trips whose dates cannot be moved.
+class _NoStretch extends TripRepository {
+  @override
+  Future<List<TripDateStretch>> stretchToCoverDives(
+    List<String> diveIds,
+  ) async => throw StateError('the trip could not be stretched');
+}
 
 /// An editing sitting is saved in one transaction and one change log
 /// operation, and writes only what the diver changed onto the dive as it is
@@ -460,6 +470,47 @@ void main() {
       expect((await stored()).tripId, isNull);
     });
 
+    test('a stretch that fails fails the save, and the dive is left as it '
+        'was', () async {
+      final tripA = await addTrip('a');
+      await forgetLog();
+      final failing = DiveEditSaveService(dives, _NoStretch());
+
+      await expectLater(
+        failing.save(
+          diveId: 'dive',
+          apply: (dive) => diveTripField.write(dive, tripA),
+          changedCardIds: ['details'],
+        ),
+        throwsStateError,
+      );
+
+      expect((await stored()).tripId, isNull);
+      expect(await startOf('a'), DateTime(1970, 1, 5));
+      expect(await logEvents(db), isEmpty);
+    });
+
+    test(
+      'reverting the sitting puts the trip\'s dates back with the dive',
+      () async {
+        final tripA = await addTrip('a');
+        await forgetLog();
+        await service.save(
+          diveId: 'dive',
+          apply: (dive) => diveTripField.write(dive, tripA),
+          changedCardIds: ['details'],
+        );
+        expect(isFirstOfJanuary(await startOf('a')), isTrue);
+        final operationId = (await operations()).single['id']! as String;
+
+        final revert = ChangeLogRevertService(afterDiveWrites: (_) {});
+        await revert.execute(await revert.planOperation(operationId));
+
+        expect((await stored()).tripId, isNull);
+        expect(await startOf('a'), DateTime(1970, 1, 5));
+      },
+    );
+
     test(
       'a tank linked to the old trip\'s cylinder loses the link when the trip '
       'changes',
@@ -535,36 +586,53 @@ void main() {
       expect((await stored()).courseIds, ['c1', 'c2']);
     });
 
-    test(
-      'a cleared visibility, water type and operator are stored as null',
-      () async {
-        await dives.updateDive(
-          (await stored()).copyWith(
-            visibilityMeters: 12,
-            waterType: WaterType.salt,
-            diveOperator: 'Emperor',
+    test('a cleared visibility, water type, operator and dive center are '
+        'stored as null', () async {
+      await db
+          .into(db.diveCenters)
+          .insert(
+            DiveCentersCompanion.insert(
+              id: 'center',
+              name: 'Blue Hole Divers',
+              createdAt: 0,
+              updatedAt: 0,
+            ),
+          );
+      await dives.updateDive(
+        (await stored()).copyWith(
+          visibilityMeters: 12,
+          waterType: WaterType.salt,
+          diveOperator: 'Emperor',
+          diveCenter: DiveCenter(
+            id: 'center',
+            name: 'Blue Hole Divers',
+            createdAt: epoch,
+            updatedAt: epoch,
           ),
-        );
-        final seeded = await stored();
-        expect(seeded.visibilityMeters, 12);
-        expect(seeded.waterType, WaterType.salt);
-        expect(seeded.diveOperator, 'Emperor');
+        ),
+      );
+      final seeded = await stored();
+      expect(seeded.visibilityMeters, 12);
+      expect(seeded.waterType, WaterType.salt);
+      expect(seeded.diveOperator, 'Emperor');
+      expect(seeded.diveCenter?.id, 'center');
 
-        await service.save(
-          diveId: 'dive',
-          apply: (dive) {
-            var next = diveVisibilityField.write(dive, StoredVisibility.none);
-            next = diveWaterTypeField.write(next, null);
-            return diveOperatorField.write(next, null);
-          },
-          changedCardIds: ['details'],
-        );
+      await service.save(
+        diveId: 'dive',
+        apply: (dive) {
+          var next = diveVisibilityField.write(dive, StoredVisibility.none);
+          next = diveWaterTypeField.write(next, null);
+          next = diveCenterField.write(next, null);
+          return diveOperatorField.write(next, null);
+        },
+        changedCardIds: ['details'],
+      );
 
-        final after = await stored();
-        expect(after.visibilityMeters, isNull);
-        expect(after.waterType, isNull);
-        expect(after.diveOperator, isNull);
-      },
-    );
+      final after = await stored();
+      expect(after.visibilityMeters, isNull);
+      expect(after.waterType, isNull);
+      expect(after.diveOperator, isNull);
+      expect(after.diveCenter, isNull);
+    });
   });
 }

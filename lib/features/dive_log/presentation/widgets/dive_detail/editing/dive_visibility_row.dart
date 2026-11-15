@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/providers/visibility_input_mode_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
@@ -50,7 +52,13 @@ class _DiveVisibilityRowState extends ConsumerState<DiveVisibilityRow>
   late VisibilityInputMode _mode =
       widget.session.valueOf(diveVisibilityField).naturalMode ??
       ref.read(visibilityInputModeProvider);
-  late FieldTextBinding<Dive, StoredVisibility> _binding = _bind();
+
+  /// The text binding, made when the row first needs it. Never made on the
+  /// way out: a row that goes before it has built must not start listening
+  /// to a sitting that may already have ended.
+  FieldTextBinding<Dive, StoredVisibility>? _bound;
+
+  FieldTextBinding<Dive, StoredVisibility> get _binding => _bound ??= _bind();
 
   /// The distance whose number this row last put on show itself: the one it
   /// opened with, or one that arrived from elsewhere since. Null when that
@@ -137,18 +145,47 @@ class _DiveVisibilityRowState extends ConsumerState<DiveVisibilityRow>
     setState(() => _mode = mode);
   }
 
+  /// What the sitting holds that the input on show cannot say: the band a
+  /// distance falls in, the range a chip stands for, the range or bucket
+  /// the dive keeps, or, in Range, a measured distance. No chip can show
+  /// that last one, and it is what Save will write.
+  String? _caption(
+    StoredVisibility value,
+    VisibilityBand? band,
+    VisibilityScale scale,
+    UnitFormatter units,
+  ) {
+    final meters = value.meters;
+    if (_mode == VisibilityInputMode.range && meters != null) {
+      return formatMeasuredVisibility(meters, scale, context.l10n, units);
+    }
+    return visibilityEntryCaption(
+      mode: _mode,
+      preciseMeters: meters,
+      band: band,
+      preciseTouched: false,
+      rangeTouched: false,
+      original: value,
+      scale: scale,
+      l10n: context.l10n,
+      units: units,
+    );
+  }
+
   @override
   void didUpdateWidget(DiveVisibilityRow oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.session == widget.session) return;
+    // Another sitting: its own text, and the input its own value opens in.
     withdrawMark();
-    _binding.dispose();
-    _binding = _bind();
+    _bound?.dispose();
+    _bound = null;
+    _mode = widget.session.valueOf(diveVisibilityField).naturalMode ?? _mode;
   }
 
   @override
   void dispose() {
-    _binding.dispose();
+    _bound?.dispose();
     super.dispose();
   }
 
@@ -157,7 +194,7 @@ class _DiveVisibilityRowState extends ConsumerState<DiveVisibilityRow>
     // The unit the number is typed in can change underneath the row.
     ref.listen(unitFormatterProvider, (_, units) {
       _units = units;
-      _binding.resync();
+      _bound?.resync();
     });
     final units = ref.watch(unitFormatterProvider);
     final scale = ref.watch(settingsProvider.select((s) => s.visibilityScale));
@@ -183,20 +220,7 @@ class _DiveVisibilityRowState extends ConsumerState<DiveVisibilityRow>
             diveVisibilityField,
             visibilityForBand(picked, scale),
           ),
-          // What the sitting holds that the input on show cannot: the band
-          // a distance falls in, the range a chip stands for, or the range
-          // or bucket the dive keeps.
-          caption: visibilityEntryCaption(
-            mode: _mode,
-            preciseMeters: value.meters,
-            band: band,
-            preciseTouched: false,
-            rangeTouched: false,
-            original: value,
-            scale: scale,
-            l10n: context.l10n,
-            units: units,
-          ),
+          caption: _caption(value, band, scale, units),
         );
       },
     );

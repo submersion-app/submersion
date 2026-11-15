@@ -49,9 +49,14 @@ class _Trips extends TripRepository {
   final Map<String, Trip> byId;
   Completer<void>? gate;
 
+  /// When set, every lookup fails with it.
+  Object? failWith;
+
   @override
   Future<Trip?> getTripById(String id) async {
     await gate?.future;
+    final error = failWith;
+    if (error != null) throw error;
     return byId[id];
   }
 }
@@ -61,8 +66,15 @@ class _Centers extends DiveCenterRepository {
 
   final Map<String, DiveCenter> byId;
 
+  /// When set, every lookup fails with it.
+  Object? failWith;
+
   @override
-  Future<DiveCenter?> getDiveCenterById(String id) async => byId[id];
+  Future<DiveCenter?> getDiveCenterById(String id) async {
+    final error = failWith;
+    if (error != null) throw error;
+    return byId[id];
+  }
 }
 
 /// The trip and dive center rows of the Details card (issue #4527).
@@ -80,7 +92,9 @@ void main() {
   tearDown(tearDownTestDatabase);
 
   late _Trips trips;
-  final showRows = ValueNotifier<bool>(true);
+  late _Centers centers;
+  // One per test, so no test inherits what the one before it left.
+  late ValueNotifier<bool> showRows;
 
   Future<RecordEditController<Dive>> pumpRows(
     WidgetTester tester,
@@ -90,7 +104,11 @@ void main() {
     tester.view.physicalSize = const Size(900, 1600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    showRows.value = true;
+    showRows = ValueNotifier<bool>(true);
+    addTearDown(showRows.dispose);
+    centers = _Centers({
+      for (final c in [blueHole, reef, newCenter]) c.id: c,
+    });
     trips = _Trips({
       for (final t in [redSea, maldives, created]) t.id: t,
     });
@@ -150,11 +168,7 @@ void main() {
           tripForDateProvider.overrideWith((ref, day) async => suggested),
           tripRepositoryProvider.overrideWithValue(trips),
           allDiveCentersProvider.overrideWith((ref) async => [blueHole, reef]),
-          diveCenterRepositoryProvider.overrideWithValue(
-            _Centers({
-              for (final c in [blueHole, reef, newCenter]) c.id: c,
-            }),
-          ),
+          diveCenterRepositoryProvider.overrideWithValue(centers),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -278,6 +292,22 @@ void main() {
       expect(find.text('Brand New Trip'), findsOneWidget);
     });
 
+    testWidgets('a new trip that cannot be read back says so and sets '
+        'nothing', (tester) async {
+      final controller = await pumpRows(tester, bare);
+      trips.failWith = StateError('the trip could not be read');
+      await openTripSheet(tester);
+      await tester.tap(find.text(l.trips_picker_newTrip));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('save the trip'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text(l.common_error_tryAgain), findsOneWidget);
+      expect(controller.isDirty, isFalse);
+    });
+
     testWidgets('a new trip that returns after the sitting was cancelled '
         'sets nothing', (tester) async {
       final controller = await pumpRows(tester, bare);
@@ -328,6 +358,39 @@ void main() {
       expect(controller.isDirty, isFalse);
       expect(tester.takeException(), isNull);
     });
+  });
+
+  testWidgets('both clear buttons say what they do', (tester) async {
+    await pumpRows(
+      tester,
+      bare.copyWith(trip: redSea, tripId: redSea.id, diveCenter: blueHole),
+    );
+
+    expect(find.byTooltip(l.common_action_remove), findsNWidgets(2));
+  });
+
+  testWidgets('the suggestion lines up with the caption it gives way to', (
+    tester,
+  ) async {
+    final controller = await pumpRows(tester, bare, suggested: redSea);
+    final suggestion = find.text(l.diveLog_edit_tripSuggested('Red Sea North'));
+    // Past the icon and its gap, the words would sit further in: compare
+    // the row's own left edge with the caption's.
+    final suggestionLeft = tester
+        .getTopLeft(
+          find.ancestor(of: suggestion, matching: find.byType(Row)).first,
+        )
+        .dx;
+
+    await tester.tap(find.text(l.diveLog_edit_tripUse));
+    await tester.pumpAndSettle();
+
+    const units = UnitFormatter(AppSettings());
+    final caption = find.text(
+      units.formatDateRange(redSea.startDate, redSea.endDate, l10n: l),
+    );
+    expect(controller.session!.working.tripId, 'red-sea');
+    expect(tester.getTopLeft(caption).dx, suggestionLeft);
   });
 
   group('the dive center row', () {
@@ -405,6 +468,22 @@ void main() {
 
       expect(working(controller).diveCenter?.id, 'new-center');
       expect(find.text('Brand New Center'), findsOneWidget);
+    });
+
+    testWidgets('a new center that cannot be read back says so and sets '
+        'nothing', (tester) async {
+      final controller = await pumpRows(tester, bare);
+      centers.failWith = StateError('the center could not be read');
+      await openCenterSheet(tester);
+      await tester.tap(find.text(l.diveCenters_picker_newCenter));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('save the center'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text(l.common_error_tryAgain), findsOneWidget);
+      expect(controller.isDirty, isFalse);
     });
 
     testWidgets('a new center that returns after the sitting ended sets '

@@ -23,6 +23,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/forms/form_overline.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
@@ -255,6 +256,28 @@ void main() {
       await pumpEditor(tester, bare);
 
       expect(find.text(l.diveLog_detail_label_avgDepth), findsNothing);
+    });
+
+    testWidgets('the rows nothing edits share one label column', (
+      tester,
+    ) async {
+      await pumpEditor(
+        tester,
+        full.copyWith(
+          diveComputerModel: 'Perdix 2',
+          surfaceInterval: const Duration(hours: 1),
+        ),
+      );
+
+      double left(String text) => tester.getTopLeft(find.text(text)).dx;
+      expect(left('Perdix 2'), left('GF 30/70'));
+      expect(
+        find.ancestor(
+          of: find.byType(DiveDetailsDerivedRows),
+          matching: find.byType(DetailRowGroup),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('the rows nothing edits follow the sitting', (tester) async {

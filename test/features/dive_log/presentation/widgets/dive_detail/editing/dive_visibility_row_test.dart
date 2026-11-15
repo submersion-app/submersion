@@ -6,7 +6,10 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
+import 'package:submersion/features/dive_log/presentation/providers/visibility_input_mode_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_visibility_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
@@ -41,7 +44,8 @@ void main() {
     AppSettings settings = const AppSettings(),
     MockSettingsNotifier? notifier,
     String? rememberedMode,
-    double above = 0,
+    List<Override> extra = const [],
+    RecordEditController<Dive>? ownController,
   }) async {
     final overrides = await getBaseOverrides(
       settingsNotifier: notifier ?? MockSettingsNotifier(settings),
@@ -52,13 +56,16 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('dive_edit_visibility_input_mode', rememberedMode);
     }
-    final controller = RecordEditController<Dive>(onSave: (_) async {})
+    // A test that ends the sitting itself passes its own controller.
+    final controller =
+        ownController ?? RecordEditController<Dive>(onSave: (_) async {});
+    if (ownController == null) addTearDown(controller.dispose);
+    controller
       ..unlock(dive)
       ..openCard(_cardId);
-    addTearDown(controller.dispose);
     await tester.pumpWidget(
       ProviderScope(
-        overrides: overrides,
+        overrides: [...overrides, ...extra],
         child: MaterialApp(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -73,7 +80,6 @@ void main() {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        SizedBox(height: above),
                         DiveVisibilityRow(session: controller.session!),
                         const TextField(key: ValueKey('elsewhere')),
                         const SizedBox(height: 900),
@@ -406,7 +412,7 @@ void main() {
     });
 
     testWidgets('a refused Done scrolls the row into view', (tester) async {
-      final controller = await pumpRow(tester, bare, above: 0);
+      final controller = await pumpRow(tester, bare);
       await focus(tester);
       await tester.enterText(find.byType(TextFormField), 'x');
       await tester.pump();
@@ -517,6 +523,125 @@ void main() {
       expect(controller.session!.working.visibilityMeters, isNull);
       expect(chip(tester, 'Good').selected, isTrue);
     });
+  });
+
+  group('what Range says of a measured distance', () {
+    const units = UnitFormatter(AppSettings());
+
+    testWidgets('a distance the sitting holds is named, since no chip can '
+        'show it', (tester) async {
+      await pumpRow(tester, bare.copyWith(visibilityMeters: 12));
+
+      await switchTo(tester, l.diveLog_edit_visibility_modeRange);
+
+      expect(selectedChip(tester), isNull);
+      expect(
+        find.text(formatMeasuredVisibility(12, scale, l, units)),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('after unreadable text is dropped, what is still held is '
+        'named', (tester) async {
+      final controller = await pumpRow(tester, bare);
+      await focus(tester);
+      await type(tester, '1.2.3');
+      expect(value(controller), const StoredVisibility(meters: 1.2));
+
+      await switchTo(tester, l.diveLog_edit_visibility_modeRange);
+
+      expect(
+        find.text(formatMeasuredVisibility(1.2, scale, l, units)),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('with a chip picked there is no such line', (tester) async {
+      await pumpRow(tester, bare.copyWith(visibilityMeters: 12));
+      await switchTo(tester, l.diveLog_edit_visibility_modeRange);
+
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Good'));
+      await tester.pump();
+
+      expect(
+        find.text(formatMeasuredVisibility(12, scale, l, units)),
+        findsNothing,
+      );
+    });
+  });
+
+  group('a look at the other input changes nothing', () {
+    Future<void> lookAtPrecise(WidgetTester tester) async {
+      await switchTo(tester, l.diveLog_edit_visibility_modePrecise);
+      await focus(tester);
+      await tester.tap(find.byKey(const ValueKey('elsewhere')));
+      await tester.pump();
+      await switchTo(tester, l.diveLog_edit_visibility_modeRange);
+    }
+
+    testWidgets('for a dive stored with an old bucket', (tester) async {
+      final controller = await pumpRow(
+        tester,
+        bare.copyWith(visibility: Visibility.good),
+      );
+
+      await lookAtPrecise(tester);
+
+      expect(
+        value(controller),
+        const StoredVisibility(legacy: Visibility.good),
+      );
+      expect(controller.isDirty, isFalse);
+    });
+
+    testWidgets('for a range stored under another scale', (tester) async {
+      const other = VisibilityRange(minM: 7, maxM: 11);
+      final controller = await pumpRow(
+        tester,
+        bare.copyWith(
+          visibilityMinMeters: other.minM,
+          visibilityMaxMeters: other.maxM,
+        ),
+      );
+
+      await lookAtPrecise(tester);
+
+      expect(value(controller), const StoredVisibility(range: other));
+      expect(controller.isDirty, isFalse);
+    });
+
+    testWidgets('for a dive with no visibility', (tester) async {
+      final controller = await pumpRow(tester, bare, rememberedMode: 'range');
+
+      await lookAtPrecise(tester);
+
+      expect(value(controller), StoredVisibility.none);
+      expect(controller.isDirty, isFalse);
+    });
+  });
+
+  testWidgets('a row whose first build failed leaves the ended sitting '
+      'alone', (tester) async {
+    final controller = RecordEditController<Dive>(onSave: (_) async {});
+    // With no visibility the row asks which input the device used last.
+    await pumpRow(
+      tester,
+      bare,
+      ownController: controller,
+      extra: [
+        visibilityInputModeProvider.overrideWith(
+          (ref) => throw StateError('no preferences on this device'),
+        ),
+      ],
+    );
+    expect(tester.takeException(), isNotNull);
+
+    // The sitting ends, then the row goes: it must not start listening to
+    // the sitting on its way out.
+    controller.dispose();
+    await tester.pumpWidget(const SizedBox());
+
+    expect(tester.takeException(), isNull);
   });
 
   group('the switch', () {
