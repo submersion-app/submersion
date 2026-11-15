@@ -139,7 +139,7 @@ MediaHealthInputs _inputs({required bool attached}) => MediaHealthInputs(
   storeAttachedHere: attached,
   storeAnnounced: attached,
   lightroomConnected: false,
-  mediaSetupItems: 0,
+  storeSetupItems: 0,
   transfersWaitingWithReason: false,
 );
 
