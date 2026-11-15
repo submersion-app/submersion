@@ -37,8 +37,10 @@ class VerticalDistanceCard extends ConsumerWidget {
   /// null for the card's own. See [VerticalDistanceScale.extentMeters].
   final double? scaleExtentMeters;
 
-  /// Keeps the estimated-dives note's row even with no note to show, so the
-  /// card lines up with a card beside it that has one.
+  /// Keeps the estimated-dives note's row even with no note to show. Always
+  /// for the default card, whose height must not jump when its note appears
+  /// or between loading and loaded; for the max depths card only beside a
+  /// card that has the row, so the two end level.
   final bool keepNoteRow;
 
   String _title(AppLocalizations l10n) => maxDepthsOnly

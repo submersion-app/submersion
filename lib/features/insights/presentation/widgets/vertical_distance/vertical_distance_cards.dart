@@ -7,7 +7,8 @@ import 'package:submersion/features/insights/domain/vertical_distance/vertical_s
 import 'package:submersion/features/insights/presentation/providers/vertical_distance_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/vertical_distance/vertical_distance_card.dart';
 
-/// Width from which the two cards sit side by side; below it they stack.
+/// Room for the cards (the page's content width, not the window's) from
+/// which the two cards sit side by side; below it they stack.
 /// Each card then has at least about 390 px, what its scale needs for the
 /// labels, the bar and the headlines.
 const double kVerticalCardsSideBySideMinWidth = 800;

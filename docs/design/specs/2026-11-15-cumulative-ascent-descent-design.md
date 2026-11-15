@@ -341,13 +341,14 @@ one, so the diver can see how much the in-water up and down adds.
   needs no cache and loads at once even while the first card is still
   working out new profiles.
 - **Dives counted.** A dive with no max depth is left out. No figure is
-  ever estimated, so the card has no estimated note and reserves no line
-  for one.
+  ever estimated, so the card has no estimated note; it keeps an empty
+  line for one only beside the first card (see Layout).
 - **Info.** Its info sheet says that only each dive's deepest point
   counts and that dives with no max depth are left out.
-- **Layout.** From 800 px of page width the two cards sit side by side,
-  ending level (the second keeps an empty note row); below that they
-  stack. Chosen over a single card with two pairs of bars, which would have
+- **Layout.** From 800 px of room for the cards (the page's content
+  width, inside its padding and beside any navigation rail) the two cards
+  sit side by side, ending level (the second keeps an empty note row);
+  below that they stack. Chosen over a single card with two pairs of bars, which would have
   meant reworking the scale.
 - **One scale.** Both cards are sized to the larger of their two scales,
   so the bars compare at a glance; the smaller card shows headroom above
