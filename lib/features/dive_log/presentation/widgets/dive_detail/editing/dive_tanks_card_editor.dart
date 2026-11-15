@@ -9,7 +9,6 @@ import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_co
 import 'package:submersion/features/cylinder_configs/domain/services/dive_tank_config_adapter.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/apply_configuration_confirm_dialog.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/apply_configuration_menu.dart';
-import 'package:submersion/features/dive_log/data/services/diver_gas_switch_writer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ccr_settings_panel.dart';
@@ -73,18 +72,9 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
     _loadDefaultPreset();
   }
 
-  void _loadGasSwitches() {
-    final repository = ref.read(diveRepositoryProvider);
-    final diveId = widget.session.stored.id;
-    loadGasSwitches(
-      widget.session,
-      read: () async => [
-        for (final g in await repository.getGasSwitchesForDive(diveId))
-          g.gasSwitch,
-      ],
-      writer: DiverGasSwitchWriter.new,
-    );
-  }
+  /// Read when the sitting started (`startDiveSitting`); asked again here
+  /// for a sitting started without it, and a no-op otherwise.
+  void _loadGasSwitches() => loadDiveGasSwitches(widget.session, ref.read);
 
   /// The diver's default cylinder, for Add cylinder: a built-in preset at
   /// once, one of their own once it has been read (`_loadDefaultPreset`).

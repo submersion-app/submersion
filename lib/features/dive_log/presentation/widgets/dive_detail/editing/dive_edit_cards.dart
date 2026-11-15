@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
+import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tags_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_weights_card_editor.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// The dive's notes, edited on the Notes card.
 final diveNotesField = EditField<Dive, String>(
@@ -40,6 +42,15 @@ bool _sameTagIds(List<Tag> a, List<Tag> b) {
   final others = {for (final tag in b) tag.id};
   return ids.length == others.length && ids.containsAll(others);
 }
+
+/// What a sitting on a dive needs as it starts, before any card is open.
+///
+/// The gas switches are read now, not when the Cylinders card first opens:
+/// a runtime shortened on the header can put a switch past the end of the
+/// dive, and Save checks every card whether it was opened or not
+/// (issue #4527, plan 5).
+void startDiveSitting(EditSession<Dive> session, ProviderRead read) =>
+    loadDiveGasSwitches(session, read);
 
 /// The cards of the dive page that can be edited in place, by section. A
 /// card's id is its section's `name`, so the section list, the Add strip

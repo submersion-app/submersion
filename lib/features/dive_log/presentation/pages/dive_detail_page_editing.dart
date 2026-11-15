@@ -174,7 +174,11 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   Widget lockButton(Dive dive) => IconButton(
     icon: const Icon(Icons.lock_outline),
     tooltip: context.l10n.recordEdit_unlockTooltip,
-    onPressed: () => editController.unlock(dive),
+    onPressed: () {
+      final controller = editController..unlock(dive);
+      final session = controller.session;
+      if (session != null) startDiveSitting(session, ref.read);
+    },
   );
 
   /// The cards the page is not showing for [working], in section order:

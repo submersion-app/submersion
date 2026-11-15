@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/services/diver_gas_switch_writer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -11,14 +12,38 @@ import 'package:submersion/features/dive_log/domain/services/gas_switch_editing.
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/utils/profile_time_domain.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_switches_editor.dart';
+import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 const _log = LoggerService('DiveGasSwitchSitting');
 const _uuid = Uuid();
+
+/// Makes the writer a sitting's gas switch change runs at Save. A
+/// provider, so a test can record the write instead of making it.
+final diveGasSwitchWriterProvider = Provider<DiverGasSwitchWriter Function()>(
+  (ref) => DiverGasSwitchWriter.new,
+);
+
+/// Reads the dive's gas switches into [session] from the database, once
+/// per sitting ([loadGasSwitches]), through [read].
+void loadDiveGasSwitches(EditSession<Dive> session, ProviderRead read) {
+  final repository = read(diveRepositoryProvider);
+  final writer = read(diveGasSwitchWriterProvider);
+  final diveId = session.stored.id;
+  loadGasSwitches(
+    session,
+    read: () async => [
+      for (final g in await repository.getGasSwitchesForDive(diveId))
+        g.gasSwitch,
+    ],
+    writer: writer,
+  );
+}
 
 /// The key of the gas switches' note, and of the change held for them.
 const String gasSwitchesKey = 'gasSwitches';

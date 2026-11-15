@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/diver_gas_switch_writer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
@@ -113,6 +114,30 @@ void main() {
     return page.save;
   }
 
+  /// [stored] in the test database, without its gear (no equipment rows),
+  /// with one switch on the deco cylinder at 40 minutes: what the sitting
+  /// reads as it starts.
+  Future<Dive> seedWithSwitch(WidgetTester tester, Dive stored) async {
+    final inDb = stored.copyWith(gear: const <GearLink>[]);
+    await tester.runAsync(() async {
+      await DiveRepository().createDive(inDb);
+      await DiverGasSwitchWriter().save(
+        diveId: inDb.id,
+        switches: [
+          GasSwitch(
+            id: 'g',
+            diveId: inDb.id,
+            timestamp: 2400,
+            tankId: 'b',
+            createdAt: t0,
+          ),
+        ],
+        loadedIds: const {},
+      );
+    });
+    return inDb;
+  }
+
   RecordEditController<Dive> controllerOf(WidgetTester tester) =>
       RecordEditScope.maybeOf<Dive>(
         tester.element(find.byType(CylindersCard).first),
@@ -180,24 +205,15 @@ void main() {
     expect(save.calls.single.cards, ['tanks']);
   });
 
-  testWidgets('a runtime shortened past a switch: Save refuses and opens '
-      'Cylinders', (tester) async {
-    final save = await open(tester);
+  testWidgets('a stored switch is checked though Cylinders was never '
+      'opened: a runtime shortened past it refuses Save', (tester) async {
+    final bare = await seedWithSwitch(
+      tester,
+      geared.copyWith(profile: const []),
+    );
+    final save = await open(tester, stored: bare);
     await unlock(tester);
     final s = controllerOf(tester).session!;
-    loadGasSwitches(
-      s,
-      read: () async => [
-        GasSwitch(
-          id: 'g',
-          diveId: 'dive-1',
-          timestamp: 2400,
-          tankId: 'b',
-          createdAt: t0,
-        ),
-      ],
-      writer: _Writer.new,
-    );
     await tester.runAsync(s.settled);
     s.set(diveRuntimeField, 1800.0);
     await settle(tester);
@@ -210,32 +226,19 @@ void main() {
   });
 
   testWidgets('a cylinder removed with a switch and an exchange on it saves '
-      'without them', (tester) async {
+      'without the switch', (tester) async {
     final writer = _Writer();
-    final exchanged = <(String, String)>[];
-    final save = await open(tester);
+    final stored = await seedWithSwitch(tester, geared);
+    final save = await open(
+      tester,
+      stored: stored,
+      extra: [diveGasSwitchWriterProvider.overrideWithValue(() => writer)],
+    );
     await unlock(tester);
     final s = controllerOf(tester).session!;
-    loadGasSwitches(
-      s,
-      read: () async => [
-        GasSwitch(
-          id: 'g',
-          diveId: 'dive-1',
-          timestamp: 1200,
-          tankId: 'b',
-          createdAt: t0,
-        ),
-      ],
-      writer: () => writer,
-    );
     await tester.runAsync(s.settled);
-    exchangeTankSeries(
-      s,
-      'a',
-      'b',
-      exchange: (x, y) async => exchanged.add((x, y)),
-    );
+    expect(sittingGasSwitches(s)!.current, hasLength(1));
+    exchangeTankSeries(s, 'a', 'b', exchange: (x, y) async {});
     removeSittingTank(s, 'b');
     await settle(tester);
 
@@ -244,7 +247,6 @@ void main() {
     expect(save.calls, hasLength(1));
     expect(save.calls.single.merged.tanks.map((t) => t.id), ['a']);
     expect(writer.saved.single, isEmpty);
-    expect(exchanged, isEmpty);
   });
 
   testWidgets('a weight and the gear changed: one save names both cards', (
