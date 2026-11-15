@@ -165,6 +165,14 @@ class _DiveEnvironmentCardEditorState
       // The card closed, or the sitting ended or is being saved, while
       // the fetch ran: the forecast has nowhere to go.
       if (!mounted || session.isDisposed || session.isFrozen) return;
+      // The dive changed underneath while it ran, its site or its time: the
+      // forecast is for another place or hour.
+      final now = session.working;
+      if (now.site?.location != location ||
+          now.dateTime != dive.dateTime ||
+          now.effectiveEntryTime != dive.effectiveEntryTime) {
+        return;
+      }
       if (data == null) {
         _sayUnavailable(messenger, l10n, errorColor);
         return;
