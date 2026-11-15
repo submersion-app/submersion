@@ -21,7 +21,8 @@ import 'package:submersion/features/trips/presentation/providers/liveaboard_prov
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_day_picker.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_trip_page.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklists_panel.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -247,7 +248,9 @@ void main() {
     // The overview tab renders the interactive trip story. Its content is
     // covered in depth by trip_overview_tab_test.dart and the story widget
     // tests; here we only verify the page wires the story in.
-    testWidgets('overview renders the trip story day chapters', (tester) async {
+    testWidgets('overview renders the trip story, one day at a time', (
+      tester,
+    ) async {
       _setMobileTestSurfaceSize(tester);
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -290,7 +293,9 @@ void main() {
 
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
-      expect(find.byType(TripStoryDayCard), findsWidgets);
+      // A finished trip opens on its Trip page, under the day picker.
+      expect(find.byType(TripDayPicker), findsOneWidget);
+      expect(find.byType(TripStoryTripPage), findsOneWidget);
     });
 
     // Exercises the overflow-menu scan actions and the Lightroom item, which

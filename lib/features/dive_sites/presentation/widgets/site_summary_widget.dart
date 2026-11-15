@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -145,7 +146,7 @@ class SiteSummaryWidget extends ConsumerWidget {
               _buildStatCard(
                 context,
                 icon: Icons.star,
-                value: avgRating.toStringAsFixed(1),
+                value: formatRatingForDisplay(avgRating),
                 label: context.l10n.diveSites_summary_stat_avgRating,
                 color: Colors.amber,
               ),
@@ -369,7 +370,9 @@ class SiteSummaryWidget extends ConsumerWidget {
                       siteData,
                       icon: Icons.star,
                       iconColor: Colors.amber,
-                      trailingText: siteData.site.rating!.toStringAsFixed(1),
+                      trailingText: formatRatingForDisplay(
+                        siteData.site.rating!,
+                      ),
                       secondaryFact: context.l10n.diveSites_list_tile_diveCount(
                         siteData.diveCount,
                       ),

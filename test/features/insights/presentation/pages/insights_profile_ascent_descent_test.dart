@@ -6,6 +6,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_profile_page.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/vertical_distance_providers.dart';
+import 'package:submersion/features/insights/domain/vertical_distance/vertical_distance_timeline.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
@@ -50,6 +52,12 @@ void main() {
             (ref) async => (avgAscent: 9.0, avgDescent: 18.0),
           ),
           timeAtDepthRangesProvider.overrideWith((ref) async => []),
+          verticalDistanceTimelineProvider.overrideWith(
+            (ref) async => VerticalDistanceTimeline.empty,
+          ),
+          maxDepthTimelineProvider.overrideWith(
+            (ref) async => VerticalDistanceTimeline.empty,
+          ),
           sharedPreferencesProvider.overrideWithValue(prefs),
           settingsProvider.overrideWith(
             (ref) => _MockSettingsNotifier(settings),

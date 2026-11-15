@@ -5,6 +5,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_profile_page.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/vertical_distance_providers.dart';
+import 'package:submersion/features/insights/domain/vertical_distance/vertical_distance_timeline.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -50,6 +52,12 @@ void main() {
             (ref) async => (avgAscent: null, avgDescent: null),
           ),
           timeAtDepthRangesProvider.overrideWith((ref) async => []),
+          verticalDistanceTimelineProvider.overrideWith(
+            (ref) async => VerticalDistanceTimeline.empty,
+          ),
+          maxDepthTimelineProvider.overrideWith(
+            (ref) async => VerticalDistanceTimeline.empty,
+          ),
         ],
       ),
     );

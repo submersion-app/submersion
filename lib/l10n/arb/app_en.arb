@@ -1073,6 +1073,37 @@
   },
   "trips_story_surfaceDay": "Surface day",
   "trips_story_today": "Today",
+  "trips_story_tripTile": "Trip",
+  "trips_story_tripTileAll": "All",
+  "trips_story_tripTile_semantics": "Whole trip",
+  "trips_story_dayTile_semantics": "{date}, day {number}",
+  "@trips_story_dayTile_semantics": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_story_dayTile_deepest": "deepest {depth}",
+  "@trips_story_dayTile_deepest": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_noDivesThisDay": "No dives this day",
+  "trips_story_dayMaxDepth": "{depth} max",
+  "@trips_story_dayMaxDepth": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
   "trips_countryFlags_more": "+{count}",
   "trips_countryFlags_semantics": "Countries: {names}",
   "trips_countryFlags_separator": ", ",
@@ -14784,7 +14815,7 @@
     }
   },
   "buoyancy_throughDive": "Through the dive",
-  "buoyancy_adjust": "Adjust",
+  "buoyancy_whatIfButton": "What if?",
   "buoyancy_readoutHeavy": "{amount} heavy",
   "@buoyancy_readoutHeavy": {
     "placeholders": {
@@ -14903,7 +14934,8 @@
       }
     }
   },
-  "buoyancy_whatIfTitle": "Adjust this dive",
+  "buoyancy_whatIfTitle": "What if you changed your weighting?",
+  "buoyancy_whatIfNote": "Nothing you try here changes your logged dive.",
   "buoyancy_whatIfLead": "Lead",
   "buoyancy_whatIfSuit": "Suit buoyancy",
   "buoyancy_whatIfReset": "Reset",
@@ -18896,6 +18928,74 @@
   "insights_profile_ascentDescent_error": "Failed to load rate data",
   "insights_profile_ascentDescent_subtitle": "From dive profile data",
   "insights_profile_ascentDescent_title": "Average Ascent & Descent Rates",
+  "insights_profile_verticalDistance_title": "Total Ascent & Descent",
+  "insights_profile_verticalDistance_subtitle": "Every dive added up and put into perspective",
+  "insights_profile_verticalDistance_maxDepthsTitle": "Max Depths Added Up",
+  "insights_profile_verticalDistance_maxDepthsSubtitle": "Each dive straight down to its deepest point and back",
+  "insights_profile_verticalDistance_totalAscent": "total ascent",
+  "insights_profile_verticalDistance_totalDescent": "total descent",
+  "insights_profile_verticalDistance_seaLevel": "Sea level",
+  "insights_profile_verticalDistance_next": "Next: {landmark}",
+  "@insights_profile_verticalDistance_next": {"placeholders": {"landmark": {"type": "String"}}},
+  "insights_profile_verticalDistance_toGo": "{distance} to go",
+  "@insights_profile_verticalDistance_toGo": {"placeholders": {"distance": {"type": "String"}}},
+  "insights_profile_verticalDistance_multiple": "{count} × {landmark}",
+  "@insights_profile_verticalDistance_multiple": {"placeholders": {"count": {"type": "int"}, "landmark": {"type": "String"}}},
+  "insights_profile_verticalDistance_stripIdle": "Point at a bar to see when you got there",
+  "insights_profile_verticalDistance_stripAscent": "{level} of ascent, reached {date}",
+  "@insights_profile_verticalDistance_stripAscent": {"placeholders": {"level": {"type": "String"}, "date": {"type": "String"}}},
+  "insights_profile_verticalDistance_stripDescent": "{level} of descent, reached {date}",
+  "@insights_profile_verticalDistance_stripDescent": {"placeholders": {"level": {"type": "String"}, "date": {"type": "String"}}},
+  "insights_profile_verticalDistance_stripPassed": "{landmark}: passed {date}",
+  "@insights_profile_verticalDistance_stripPassed": {"placeholders": {"landmark": {"type": "String"}, "date": {"type": "String"}}},
+  "insights_profile_verticalDistance_stripAhead": "{landmark}: {distance} to go",
+  "@insights_profile_verticalDistance_stripAhead": {"placeholders": {"landmark": {"type": "String"}, "distance": {"type": "String"}}},
+  "insights_profile_verticalDistance_openDive": "Open dive",
+  "insights_profile_verticalDistance_pinned": "Pinned",
+  "insights_profile_verticalDistance_estimated": "{total, plural, one{{estimated} of {total} dive counted from max depth} other{{estimated} of {total} dives counted from max depth}}",
+  "@insights_profile_verticalDistance_estimated": {"placeholders": {"estimated": {"type": "int"}, "total": {"type": "int"}}},
+  "insights_profile_verticalDistance_empty": "No dives with a depth yet",
+  "insights_profile_verticalDistance_error": "Failed to load ascent and descent totals",
+  "insights_profile_verticalDistance_semantics": "Total ascent and descent {total} each. Next up: {up}, {upDistance} to go. Next down: {down}, {downDistance} to go.",
+  "@insights_profile_verticalDistance_semantics": {"placeholders": {"total": {"type": "String"}, "up": {"type": "String"}, "upDistance": {"type": "String"}, "down": {"type": "String"}, "downDistance": {"type": "String"}}},
+  "insights_landmark_statueOfLiberty": "Statue of Liberty",
+  "insights_landmark_greatPyramid": "Great Pyramid of Giza",
+  "insights_landmark_eiffelTower": "Eiffel Tower",
+  "insights_landmark_empireStateBuilding": "Empire State Building",
+  "insights_landmark_burjKhalifa": "Burj Khalifa",
+  "insights_landmark_benNevis": "Ben Nevis",
+  "insights_landmark_mountKosciuszko": "Mount Kosciuszko",
+  "insights_landmark_mountFuji": "Mount Fuji",
+  "insights_landmark_matterhorn": "Matterhorn",
+  "insights_landmark_montBlanc": "Mont Blanc",
+  "insights_landmark_kilimanjaro": "Kilimanjaro",
+  "insights_landmark_denali": "Denali",
+  "insights_landmark_aconcagua": "Aconcagua",
+  "insights_landmark_k2": "K2",
+  "insights_landmark_everest": "Mount Everest",
+  "insights_landmark_olympusMons": "Olympus Mons (Mars)",
+  "insights_landmark_karmanLine": "Edge of space",
+  "insights_landmark_internationalSpaceStation": "International Space Station",
+  "insights_landmark_recreationalLimit": "Recreational dive limit",
+  "insights_landmark_greatBlueHole": "Great Blue Hole",
+  "insights_landmark_deansBlueHole": "Dean's Blue Hole",
+  "insights_landmark_dragonHole": "Dragon Hole",
+  "insights_landmark_deepestScubaDive": "Deepest scuba dive",
+  "insights_landmark_craterLake": "Crater Lake",
+  "insights_landmark_lakeTanganyika": "Lake Tanganyika",
+  "insights_landmark_lakeBaikal": "Lake Baikal",
+  "insights_landmark_deepestWhaleDive": "Deepest whale dive",
+  "insights_landmark_averageOceanDepth": "Average ocean depth",
+  "insights_landmark_titanic": "Titanic",
+  "insights_landmark_bismarck": "Bismarck",
+  "insights_landmark_molloyDeep": "Molloy Deep",
+  "insights_landmark_deepestShipwreck": "Deepest shipwreck",
+  "insights_landmark_javaTrench": "Java Trench",
+  "insights_landmark_southSandwichTrench": "South Sandwich Trench",
+  "insights_landmark_puertoRicoTrench": "Puerto Rico Trench",
+  "insights_landmark_tongaTrench": "Tonga Trench",
+  "insights_landmark_challengerDeep": "Challenger Deep",
+  "insights_landmark_kolaBorehole": "Kola Superdeep Borehole",
   "insights_profile_avgAscent": "Avg Ascent",
   "insights_profile_avgDescent": "Avg Descent",
   "insights_profile_deco_analyzing": "Analyzing dives: {analyzed} of {total}",
@@ -21213,7 +21313,6 @@
   "trips_detail_label_disembark": "Disembark",
   "trips_detail_stat_sitesVisited": "Sites visited",
   "trips_detail_stat_speciesSeen": "Species seen",
-  "trips_breakdown_column_sites": "Sites",
   "trips_itinerary_dayLabel": "Day {dayNumber}",
   "@trips_itinerary_dayLabel": {
     "placeholders": {
@@ -37543,7 +37642,7 @@
   "info_diveLog_details_summary": "The logged facts of this dive, with values worked out from the profile where nothing was entered.",
   "info_diveLog_altitude_summary": "This dive was at altitude, where lower air pressure at the surface makes the decompression model more conservative.",
   "info_diveLog_buoyancy_summary": "A model of net buoyancy through the dive, from the profile, the gas breathed and the gear logged with the dive.",
-  "info_diveLog_buoyancy_howToUse": "Move across the chart to see what was pulling you down and holding you up at that moment. Adjust opens a sheet that tries a different amount of lead or suit buoyancy against this dive.",
+  "info_diveLog_buoyancy_howToUse": "Move across the chart to see what was pulling you down and holding you up at that moment. “What if?” opens a sheet that tries a different amount of lead, water type or suit buoyancy against this dive, without changing the dive.",
   "info_diveLog_waterConditions_summary": "Sea temperature and coral heat stress near the site around the dive date, from NOAA Coral Reef Watch satellite data.",
   "info_diveLab_compare_summary": "How this dive compares with its linked plan or saved scenarios on the numbers that matter for decompression.",
   "info_diveLab_compare_howToUse": "Tap the card to open the Dive Lab and try other choices against this dive.",
@@ -37562,6 +37661,9 @@
   "info_insights_tankConfig_summary": "How the cylinders were set up on each dive, counted from the cylinders' logged roles.",
   "info_insights_sacRecords_summary": "The dives with the lowest and highest gas use in the range.",
   "info_insights_ascentDescent_summary": "Average speed going down and coming up, worked out from the profiles.",
+  "info_insights_verticalDistance_maxDepthsSummary": "Each dive is counted straight down to its max depth and straight back up, ignoring every change of depth along the way. A dive with no max depth is left out.",
+  "info_insights_verticalDistance_summary": "Each dive is counted from the surface down and back, ignoring wobble under {deadband}. A dive with no profile counts once down to its max depth and once back up.",
+  "@info_insights_verticalDistance_summary": {"placeholders": {"deadband": {"type": "String"}}},
   "info_insights_timeAtDepth_summary": "How the total time underwater divides across depth bands.",
   "info_insights_decoObligation_summary": "How many dives needed decompression stops, by the model's reading of each profile.",
   "info_insights_cumulative_summary": "The running total of dives logged over time.",

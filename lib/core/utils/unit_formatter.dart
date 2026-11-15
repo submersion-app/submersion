@@ -9,8 +9,12 @@ import 'package:submersion/core/utils/coordinates/coordinate_formatter.dart'
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/per_minute.dart' as rate;
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
+import 'package:submersion/core/utils/unit_formatter_whole.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+export 'package:submersion/core/utils/unit_formatter_whole.dart'
+    show UnitFormatterWhole;
 
 /// The formatter for the diver's settings, for widgets and providers that
 /// show values.
@@ -509,8 +513,7 @@ class UnitFormatter {
   String formatAltitude(double? value, {int decimals = 0}) {
     if (value == null) return '--';
     final converted = AltitudeUnit.meters.convert(value, settings.altitudeUnit);
-    final formatted = NumberFormat('#,##0').format(converted.round());
-    return '$formatted ${settings.altitudeUnit.symbol}';
+    return wholeWithSymbol(converted.round(), settings.altitudeUnit.symbol);
   }
 
   /// Format altitude with altitude group label

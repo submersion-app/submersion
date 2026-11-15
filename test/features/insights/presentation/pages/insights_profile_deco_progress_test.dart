@@ -10,6 +10,8 @@ import 'package:submersion/features/insights/presentation/pages/insights_profile
 import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/vertical_distance_providers.dart';
+import 'package:submersion/features/insights/domain/vertical_distance/vertical_distance_timeline.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -60,6 +62,12 @@ void main() {
             (ref) async => (avgAscent: null, avgDescent: null),
           ),
           timeAtDepthRangesProvider.overrideWith((ref) async => []),
+          verticalDistanceTimelineProvider.overrideWith(
+            (ref) async => VerticalDistanceTimeline.empty,
+          ),
+          maxDepthTimelineProvider.overrideWith(
+            (ref) async => VerticalDistanceTimeline.empty,
+          ),
           sharedPreferencesProvider.overrideWithValue(prefs),
           settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
           currentDiverIdProvider.overrideWith(

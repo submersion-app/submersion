@@ -160,4 +160,39 @@ void main() {
       expect(formatDecimalForDisplay(double.infinity), '');
     });
   });
+
+  group('formatRatingForDisplay', () {
+    test('shows a whole star count without a decimal, as a dive does', () {
+      // Issue #4573: sites and centers store their rating as a double, so a
+      // 3-star site read "3.0" beside a 3-star dive's "3".
+      Intl.defaultLocale = 'en_US';
+      expect(formatRatingForDisplay(1), '1');
+      expect(formatRatingForDisplay(3.0), '3');
+      expect(formatRatingForDisplay(5), '5');
+    });
+
+    test('keeps a fraction an import brought in, to one decimal', () {
+      Intl.defaultLocale = 'en_US';
+      expect(formatRatingForDisplay(3.5), '3.5');
+      expect(formatRatingForDisplay(4.25), '4.3');
+    });
+
+    test('drops a ".0" left by rounding to one decimal', () {
+      Intl.defaultLocale = 'en_US';
+      expect(formatRatingForDisplay(4.96), '5');
+      expect(formatRatingForDisplay(2.04), '2');
+    });
+
+    test('uses the locale decimal separator for a fraction', () {
+      Intl.defaultLocale = 'de';
+      expect(formatRatingForDisplay(3.5), '3,5');
+      expect(formatRatingForDisplay(3), '3');
+    });
+
+    test('renders nothing for a non-finite value', () {
+      Intl.defaultLocale = 'en_US';
+      expect(formatRatingForDisplay(double.nan), '');
+      expect(formatRatingForDisplay(double.infinity), '');
+    });
+  });
 }

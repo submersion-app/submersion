@@ -288,9 +288,10 @@ final tripByIdProvider = FutureProvider.family<Trip?, String>((ref, id) async {
 /// Self-invalidates on `dives` table writes for the same reason
 /// [TripListNotifier] subscribes to them: `getTripWithStats` LEFT JOINs the
 /// dives table, so a merge/consolidate or a sync apply changes the counts
-/// without touching the trip row. The trip detail page renders this through
-/// `TripStatStrip` directly above the itinerary that [divesForTripProvider]
-/// feeds, so leaving it stale would show "5 dives" over a list of 4.
+/// without touching the trip row. The trip detail page renders this as the
+/// Trip page's totals directly above the day lines that
+/// [divesForTripProvider] feeds, so leaving it stale would show "5 dives"
+/// over days that add up to 4.
 ///
 /// Watches BOTH tables because `getTripWithStats` reads both: it calls
 /// `getTripById` before running the dives aggregate, and the page renders the

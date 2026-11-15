@@ -23,20 +23,24 @@ import 'package:submersion/shared/widgets/twin_summary_rows.dart';
 import '../../../../helpers/mock_providers.dart';
 import 'buoyancy_outcome_fixture.dart';
 
-Future<void> _pump(WidgetTester tester, BuoyancyTwinOutcome? outcome) async {
+Future<void> _pump(
+  WidgetTester tester,
+  BuoyancyTwinOutcome? outcome, {
+  Locale locale = const Locale('en'),
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         buoyancyTwinProvider('d1').overrideWith((ref) async => outcome),
       ],
-      child: const MaterialApp(
+      child: MaterialApp(
         // Pinned so the asserted strings and decimal separators do not depend
         // on the host locale (repo convention).
-        locale: Locale('en'),
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
+        home: const Scaffold(
           body: SingleChildScrollView(
             child: BuoyancySection(
               diveId: 'd1',
@@ -186,8 +190,29 @@ void main() {
     expect(find.textContaining('Tank material not set'), findsNothing);
   });
 
+  testWidgets('the header offers a what-if, not an edit (#4585)', (
+    tester,
+  ) async {
+    await _pump(tester, buoyancyOutcome());
+
+    expect(find.text('Adjust'), findsNothing);
+    await tester.tap(find.text('What if?'));
+    await tester.pumpAndSettle();
+    expect(find.text('What if you changed your weighting?'), findsOneWidget);
+  });
+
+  testWidgets('the info sheet names the What if? button', (tester) async {
+    await _pump(tester, buoyancyOutcome());
+    await tester.ensureVisible(find.byType(InfoButton));
+    await tester.tap(find.byType(InfoButton));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('“What if?” opens a sheet'), findsOneWidget);
+    expect(find.textContaining('Adjust opens'), findsNothing);
+  });
+
   testWidgets('a narrow card fits its header row', (tester) async {
-    // Half of a 700px paired row. The title, the Adjust button and the info
+    // Half of a 700px paired row. The title, the What if? button and the info
     // icon could not shrink, so the header overflowed; the title now gives
     // way instead.
     await tester.binding.setSurfaceSize(const Size(300, 1600));
@@ -197,6 +222,24 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text('BUOYANCY'), findsOneWidget);
+    expect(find.text('What if?'), findsOneWidget);
+  });
+
+  testWidgets('a narrow card fits the longer German What if? label', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(300, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await _pump(tester, buoyancyOutcome(), locale: const Locale('de'));
+
+    // The label cannot fit beside the title and info icon, so the button
+    // keeps its icon and carries the label as its tooltip.
+    expect(tester.takeException(), isNull);
+    expect(find.text('Was wäre, wenn?'), findsNothing);
+    await tester.tap(find.byTooltip('Was wäre, wenn?'));
+    await tester.pumpAndSettle();
+    expect(find.text('Was wäre, wenn du dein Blei änderst?'), findsOneWidget);
   });
 
   testWidgets('says how buoyant the diver was exactly once', (tester) async {

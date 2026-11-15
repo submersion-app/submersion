@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
@@ -803,7 +804,7 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
       case SiteField.difficulty:
         return (value as SiteDifficulty).displayName;
       case SiteField.rating:
-        return (value as double).toStringAsFixed(1);
+        return formatRatingForDisplay(value as double);
       case SiteField.latitude:
         return units.formatLatitude(value as double);
       case SiteField.longitude:

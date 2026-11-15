@@ -16,7 +16,9 @@ import 'package:submersion/features/trips/presentation/providers/trip_equipment_
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_day_picker.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_line.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_page.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -122,7 +124,7 @@ void main() {
   });
 
   // Issue #166: every trip (not only liveaboards) gets a day-by-day breakdown.
-  testWidgets('renders one day chapter per trip day with dives', (
+  testWidgets('lists one line per trip day, and a tile opens that day', (
     tester,
   ) async {
     final story = buildTripStory(
@@ -142,22 +144,24 @@ void main() {
       extra: [tripStoryProvider('trip-1').overrideWith((ref) async => story)],
     );
 
-    expect(find.byType(TripStoryDayCard), findsNWidgets(2));
-    // The day number lives in each sticky header's leading badge now.
-    final badges = find.byKey(const Key('day-number-badge'));
-    expect(badges, findsNWidgets(2));
+    // A finished trip opens on its Trip page: a line per day.
+    expect(find.byType(TripStoryDayLine), findsNWidgets(2));
+    expect(find.byType(DiveListItem), findsNothing);
+
+    // One day at a time: a tile shows that day's dives and no other's.
+    await tester.tap(find.byKey(TripDayPicker.dayTileKey(2)));
+    await tester.pump();
     expect(
-      find.descendant(of: badges.at(0), matching: find.text('1')),
-      findsOneWidget,
+      tester
+          .widget<TripStoryDayPage>(find.byType(TripStoryDayPage))
+          .day
+          .dayNumber,
+      2,
     );
-    expect(
-      find.descendant(of: badges.at(1), matching: find.text('2')),
-      findsOneWidget,
-    );
-    expect(find.byType(DiveListItem), findsNWidgets(2));
+    expect(find.byType(DiveListItem), findsOneWidget);
   });
 
-  testWidgets('tapping a dive row navigates to the dive detail', (
+  testWidgets('tapping a dive card navigates to the dive detail', (
     tester,
   ) async {
     final story = buildTripStory(
@@ -173,11 +177,13 @@ void main() {
       tester,
       extra: [tripStoryProvider('trip-1').overrideWith((ref) async => story)],
     );
+    await tester.tap(find.byKey(TripDayPicker.dayTileKey(1)));
+    await tester.pump();
 
     await tester.tap(find.byType(DiveListItem).first);
     await tester.pumpAndSettle();
     // Navigation succeeded if the dive route (empty Scaffold) replaced the tab.
-    expect(find.byType(TripStoryDayCard), findsNothing);
+    expect(find.byType(TripStoryDayPage), findsNothing);
   });
 
   testWidgets('shows an error message when the story fails to load', (

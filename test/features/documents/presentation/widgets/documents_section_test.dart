@@ -108,4 +108,47 @@ void main() {
     await pump(t, trip, const []);
     expect(find.text('No documents attached'), findsOneWidget);
   });
+
+  group('header', () {
+    void size(WidgetTester t, double width, {double textScale = 1}) {
+      t.view.devicePixelRatio = 1;
+      t.view.physicalSize = Size(width, 800);
+      t.platformDispatcher.textScaleFactorTestValue = textScale;
+      addTearDown(t.view.reset);
+      addTearDown(t.platformDispatcher.clearTextScaleFactorTestValue);
+    }
+
+    testWidgets('on a narrow phone at the largest text, Add takes its own '
+        'line under the title and nothing overflows', (t) async {
+      size(t, 320, textScale: 2);
+      await pump(t, trip, const []);
+
+      expect(t.takeException(), isNull);
+      final title = t.getRect(find.text('Documents'));
+      final add = t.getRect(
+        find.byKey(const ValueKey('documents-section-add')),
+      );
+      expect(add.top, greaterThanOrEqualTo(title.bottom));
+      // The title is read on one line, not a letter per line.
+      expect(title.width, greaterThan(title.height));
+    });
+
+    testWidgets('with room, Add stays on the title\'s line at the far '
+        'edge', (t) async {
+      // Wide for a phone, because the test font is far wider than a real
+      // one: both parts must fit on a line.
+      size(t, 600);
+      await pump(t, trip, const []);
+
+      final card = t.getRect(find.byType(Card));
+      final title = t.getRect(find.text('Documents'));
+      final add = t.getRect(
+        find.byKey(const ValueKey('documents-section-add')),
+      );
+      expect(add.center.dy, moreOrLessEquals(title.center.dy, epsilon: 1));
+      // The card's own margin of 4, then its padding of 16, between the
+      // button and the edge.
+      expect(add.right, moreOrLessEquals(card.right - 20, epsilon: 0.5));
+    });
+  });
 }

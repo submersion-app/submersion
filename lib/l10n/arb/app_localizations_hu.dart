@@ -1805,6 +1805,33 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_story_today => 'Ma';
 
   @override
+  String get trips_story_tripTile => 'Út';
+
+  @override
+  String get trips_story_tripTileAll => 'Mind';
+
+  @override
+  String get trips_story_tripTile_semantics => 'Teljes út';
+
+  @override
+  String trips_story_dayTile_semantics(String date, int number) {
+    return '$date, $number. nap';
+  }
+
+  @override
+  String trips_story_dayTile_deepest(String depth) {
+    return 'legmélyebb: $depth';
+  }
+
+  @override
+  String get trips_story_noDivesThisDay => 'Ezen a napon nem volt merülés';
+
+  @override
+  String trips_story_dayMaxDepth(String depth) {
+    return 'max. $depth';
+  }
+
+  @override
   String trips_countryFlags_more(int count) {
     return '+$count';
   }
@@ -23289,7 +23316,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buoyancy_throughDive => 'A merülés során';
 
   @override
-  String get buoyancy_adjust => 'Módosítás';
+  String get buoyancy_whatIfButton => 'Mi lenne, ha?';
 
   @override
   String buoyancy_readoutHeavy(String amount) {
@@ -23391,7 +23418,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_whatIfTitle => 'Merülés módosítása';
+  String get buoyancy_whatIfTitle => 'Mi lenne, ha másképp súlyoznál?';
+
+  @override
+  String get buoyancy_whatIfNote =>
+      'Amit itt kipróbálsz, az nem változtat a naplózott merülésen.';
 
   @override
   String get buoyancy_whatIfLead => 'Ólom';
@@ -32546,6 +32577,239 @@ class AppLocalizationsHu extends AppLocalizations {
       'Átlagos felszállási és lesüllyedési sebesség';
 
   @override
+  String get insights_profile_verticalDistance_title =>
+      'Összes felszállás és lesüllyedés';
+
+  @override
+  String get insights_profile_verticalDistance_subtitle =>
+      'Minden merülés összeadva, perspektívába helyezve';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsTitle =>
+      'Maximális mélységek összeadva';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsSubtitle =>
+      'Minden merülés egyenesen a legmélyebb pontjáig és vissza';
+
+  @override
+  String get insights_profile_verticalDistance_totalAscent =>
+      'összes felszállás';
+
+  @override
+  String get insights_profile_verticalDistance_totalDescent =>
+      'összes lesüllyedés';
+
+  @override
+  String get insights_profile_verticalDistance_seaLevel => 'Tengerszint';
+
+  @override
+  String insights_profile_verticalDistance_next(String landmark) {
+    return 'Következő: $landmark';
+  }
+
+  @override
+  String insights_profile_verticalDistance_toGo(String distance) {
+    return 'még $distance';
+  }
+
+  @override
+  String insights_profile_verticalDistance_multiple(
+    int count,
+    String landmark,
+  ) {
+    return '$count × $landmark';
+  }
+
+  @override
+  String get insights_profile_verticalDistance_stripIdle =>
+      'Mutass egy oszlopra, hogy lásd, mikor értél oda';
+
+  @override
+  String insights_profile_verticalDistance_stripAscent(
+    String level,
+    String date,
+  ) {
+    return '$level felszállás, elérve: $date';
+  }
+
+  @override
+  String insights_profile_verticalDistance_stripDescent(
+    String level,
+    String date,
+  ) {
+    return '$level lesüllyedés, elérve: $date';
+  }
+
+  @override
+  String insights_profile_verticalDistance_stripPassed(
+    String landmark,
+    String date,
+  ) {
+    return '$landmark: elhagyva: $date';
+  }
+
+  @override
+  String insights_profile_verticalDistance_stripAhead(
+    String landmark,
+    String distance,
+  ) {
+    return '$landmark: még $distance';
+  }
+
+  @override
+  String get insights_profile_verticalDistance_openDive => 'Merülés megnyitása';
+
+  @override
+  String get insights_profile_verticalDistance_pinned => 'Rögzítve';
+
+  @override
+  String insights_profile_verticalDistance_estimated(int estimated, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$estimated / $total merülés a maximális mélység alapján számolva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_profile_verticalDistance_empty =>
+      'Még nincs mélységgel rögzített merülés';
+
+  @override
+  String get insights_profile_verticalDistance_error =>
+      'Nem sikerült betölteni az összes felszállást és lesüllyedést';
+
+  @override
+  String insights_profile_verticalDistance_semantics(
+    String total,
+    String up,
+    String upDistance,
+    String down,
+    String downDistance,
+  ) {
+    return 'Összes felszállás és lesüllyedés: mindkettő $total. Következő felfelé: $up, még $upDistance. Következő lefelé: $down, még $downDistance.';
+  }
+
+  @override
+  String get insights_landmark_statueOfLiberty => 'Szabadság-szobor';
+
+  @override
+  String get insights_landmark_greatPyramid => 'Gízai nagy piramis';
+
+  @override
+  String get insights_landmark_eiffelTower => 'Eiffel-torony';
+
+  @override
+  String get insights_landmark_empireStateBuilding => 'Empire State Building';
+
+  @override
+  String get insights_landmark_burjKhalifa => 'Burdzs Kalifa';
+
+  @override
+  String get insights_landmark_benNevis => 'Ben Nevis';
+
+  @override
+  String get insights_landmark_mountKosciuszko => 'Kosciuszko-hegy';
+
+  @override
+  String get insights_landmark_mountFuji => 'Fudzsi';
+
+  @override
+  String get insights_landmark_matterhorn => 'Matterhorn';
+
+  @override
+  String get insights_landmark_montBlanc => 'Mont Blanc';
+
+  @override
+  String get insights_landmark_kilimanjaro => 'Kilimandzsáró';
+
+  @override
+  String get insights_landmark_denali => 'Denali';
+
+  @override
+  String get insights_landmark_aconcagua => 'Aconcagua';
+
+  @override
+  String get insights_landmark_k2 => 'K2';
+
+  @override
+  String get insights_landmark_everest => 'Mount Everest';
+
+  @override
+  String get insights_landmark_olympusMons => 'Olympus Mons (Mars)';
+
+  @override
+  String get insights_landmark_karmanLine => 'Az űr határa';
+
+  @override
+  String get insights_landmark_internationalSpaceStation =>
+      'Nemzetközi Űrállomás';
+
+  @override
+  String get insights_landmark_recreationalLimit =>
+      'A szabadidős merülés határa';
+
+  @override
+  String get insights_landmark_greatBlueHole => 'Nagy Kék Lyuk';
+
+  @override
+  String get insights_landmark_deansBlueHole => 'Dean\'s Blue Hole';
+
+  @override
+  String get insights_landmark_dragonHole => 'Sárkány-lyuk';
+
+  @override
+  String get insights_landmark_deepestScubaDive =>
+      'Legmélyebb palackos merülés';
+
+  @override
+  String get insights_landmark_craterLake => 'Kráter-tó';
+
+  @override
+  String get insights_landmark_lakeTanganyika => 'Tanganyika-tó';
+
+  @override
+  String get insights_landmark_lakeBaikal => 'Bajkál-tó';
+
+  @override
+  String get insights_landmark_deepestWhaleDive => 'Legmélyebb bálnamerülés';
+
+  @override
+  String get insights_landmark_averageOceanDepth => 'Az óceán átlagos mélysége';
+
+  @override
+  String get insights_landmark_titanic => 'Titanic';
+
+  @override
+  String get insights_landmark_bismarck => 'Bismarck';
+
+  @override
+  String get insights_landmark_molloyDeep => 'Molloy-mélység';
+
+  @override
+  String get insights_landmark_deepestShipwreck => 'Legmélyebb hajóroncs';
+
+  @override
+  String get insights_landmark_javaTrench => 'Jávai-árok';
+
+  @override
+  String get insights_landmark_southSandwichTrench => 'Déli-Sandwich-árok';
+
+  @override
+  String get insights_landmark_puertoRicoTrench => 'Puerto Ricó-i-árok';
+
+  @override
+  String get insights_landmark_tongaTrench => 'Tonga-árok';
+
+  @override
+  String get insights_landmark_challengerDeep => 'Challenger-mélység';
+
+  @override
+  String get insights_landmark_kolaBorehole => 'Kolai szupermély fúrás';
+
+  @override
   String get insights_profile_avgAscent => 'Átl. felszállás';
 
   @override
@@ -36205,9 +36469,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_detail_stat_speciesSeen => 'Látott fajok';
-
-  @override
-  String get trips_breakdown_column_sites => 'Helyszínek';
 
   @override
   String trips_itinerary_dayLabel(int dayNumber) {
@@ -63766,7 +64027,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Húzd végig a diagramon, hogy lásd, mi húzott lefelé és mi tartott fent abban a pillanatban. A Módosítás egy lapot nyit, amely más ólommennyiséget vagy ruhafelhajtóerőt próbál ki erre a merülésre.';
+      'Húzd végig a diagramon, hogy lásd, mi húzott lefelé és mi tartott fent abban a pillanatban. A „Mi lenne, ha?” egy lapot nyit, amely más ólommennyiséget, víztípust vagy ruhafelhajtóerőt próbál ki erre a merülésre, a merülés módosítása nélkül.';
 
   @override
   String get info_diveLog_waterConditions_summary =>
@@ -63839,6 +64100,15 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get info_insights_ascentDescent_summary =>
       'Átlagsebesség lefelé és felfelé, a profilokból számítva.';
+
+  @override
+  String get info_insights_verticalDistance_maxDepthsSummary =>
+      'Minden merülés egyenesen lefelé a maximális mélységéig és egyenesen vissza számít, figyelmen kívül hagyva minden közbenső mélységváltozást. A maximális mélység nélküli merülés kimarad.';
+
+  @override
+  String info_insights_verticalDistance_summary(String deadband) {
+    return 'Minden merülés a felszíntől lefelé és vissza számít, a(z) $deadband alatti ingadozás nélkül. A profil nélküli merülés egyszer a maximális mélységig és egyszer vissza számít.';
+  }
 
   @override
   String get info_insights_timeAtDepth_summary =>

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
@@ -422,7 +423,8 @@ class _CandidateCard extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(
                     [
-                      if (c.rating != null) '★ ${c.rating!.toStringAsFixed(1)}',
+                      if (c.rating != null)
+                        '★ ${formatRatingForDisplay(c.rating!)}',
                       if (c.difficulty != null) c.difficulty!,
                     ].join(' · '),
                     style: TextStyle(color: scheme.onSurfaceVariant),

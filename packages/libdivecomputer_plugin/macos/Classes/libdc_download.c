@@ -25,8 +25,30 @@
 // Internal Types
 // ============================================================
 
+// The cancelled flag is written by the thread that calls
+// libdc_download_cancel and read by the download thread, so every access is
+// atomic: volatile alone gives no inter-thread guarantee in C. The Interlocked
+// API stands in for C11 atomics, which MSVC builds of this file do not enable.
+#ifdef _WIN32
+typedef LONG cancel_flag_t;
+static void cancel_flag_set(volatile cancel_flag_t *flag) {
+    InterlockedExchange(flag, 1);
+}
+static int cancel_flag_get(const volatile cancel_flag_t *flag) {
+    return InterlockedCompareExchange((volatile cancel_flag_t *)flag, 0, 0) != 0;
+}
+#else
+typedef int cancel_flag_t;
+static void cancel_flag_set(volatile cancel_flag_t *flag) {
+    __atomic_store_n(flag, 1, __ATOMIC_SEQ_CST);
+}
+static int cancel_flag_get(const volatile cancel_flag_t *flag) {
+    return __atomic_load_n(flag, __ATOMIC_SEQ_CST) != 0;
+}
+#endif
+
 struct libdc_download_session {
-    volatile int cancelled;
+    volatile cancel_flag_t cancelled;
     dc_context_t *context;
     // Last ERROR-level message libdivecomputer logged during this session's
     // run. The generic "Download failed" surfaced to the app hid the
@@ -243,7 +265,7 @@ static void push_event(libdc_parsed_dive_t *dive,
 
 static int cancel_callback(void *userdata) {
     download_state_t *state = (download_state_t *)userdata;
-    return state->session->cancelled;
+    return cancel_flag_get(&state->session->cancelled);
 }
 
 static void event_callback(dc_device_t *device, dc_event_type_t event,
@@ -699,7 +721,7 @@ static int dive_callback(const unsigned char *data, unsigned int size,
                           void *userdata) {
     download_state_t *state = (download_state_t *)userdata;
 
-    if (state->session->cancelled) {
+    if (cancel_flag_get(&state->session->cancelled)) {
         return 0;
     }
 
@@ -920,8 +942,12 @@ int libdc_download_session_reported_device(
 
 void libdc_download_cancel(libdc_download_session_t *session) {
     if (session != NULL) {
-        session->cancelled = 1;
+        cancel_flag_set(&session->cancelled);
     }
+}
+
+int libdc_download_is_cancelled(const libdc_download_session_t *session) {
+    return session != NULL && cancel_flag_get(&session->cancelled);
 }
 
 void libdc_download_session_free(libdc_download_session_t *session) {
@@ -1052,11 +1078,11 @@ int libdc_download_run(
     // and never changes `result` or the error buffer.
     libdc_clock_sync_status_t clock_sync = libdc_sync_device_clock(
         device, sync_clock,
-        status == DC_STATUS_SUCCESS && !session->cancelled);
+        status == DC_STATUS_SUCCESS && !cancel_flag_get(&session->cancelled));
 
     int result = 0;
     if (status != DC_STATUS_SUCCESS) {
-        if (session->cancelled) {
+        if (cancel_flag_get(&session->cancelled)) {
             set_error(&state, "Download cancelled");
             result = LIBDC_STATUS_CANCELLED;
         } else if (session->last_error[0] != '\0') {

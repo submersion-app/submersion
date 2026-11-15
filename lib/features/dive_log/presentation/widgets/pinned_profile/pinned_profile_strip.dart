@@ -293,10 +293,10 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                     // Colour follows the scroll frame by frame already; the
                     // surface's own ease would lag a fast scroll and flash.
                     animationDuration: Duration.zero,
-                    // It starts across the card at the plot's top and pins
-                    // flush under the header at the card's width, so only its
-                    // bottom corners round, like the card's own, condensing and
-                    // pinned alike (#4488).
+                    // It starts on the card's plot and pins flush under the
+                    // header at the card's width, so only its bottom corners
+                    // round, like the card's own, condensing and pinned alike
+                    // (#4488).
                     shape: RoundedRectangleBorder(borderRadius: card.corners),
                     clipBehavior: Clip.antiAlias,
                     child: CustomPaint(
