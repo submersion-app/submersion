@@ -107,13 +107,13 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
         error: e,
         stackTrace: stackTrace,
       );
-      if (mounted) setState(() => _cardFailed = true);
+      if (mounted && run == _runs) _cardGone();
       return;
     }
     if (!mounted || run != _runs) return;
     if (card == null) {
       // No current diver: nothing to send, but receiving still works.
-      setState(() => _cardFailed = true);
+      _cardGone();
       return;
     }
     final session = ref.read(buddySwapSessionFactoryProvider)(card);
@@ -132,6 +132,7 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
       if (mounted && run == _runs) {
         setState(() {
           _card = card;
+          _cardFailed = false;
           _availability = null;
           _startFailed = true;
         });
@@ -146,11 +147,19 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     }
     setState(() {
       _card = card;
+      _cardFailed = false;
       _startFailed = false;
       _availability = availability;
       _peers = session.peers;
     });
   }
+
+  /// The card could not be built, now or on a rebuild: the old one (and
+  /// everything built on it) is gone too, so the page shows the failure.
+  void _cardGone() => setState(() {
+    _card = null;
+    _cardFailed = true;
+  });
 
   /// Stops at once, before any await: from [dispose] nothing after the
   /// first await is guaranteed to run before the page is gone.

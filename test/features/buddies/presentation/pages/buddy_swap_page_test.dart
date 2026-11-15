@@ -360,6 +360,31 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
+  testWidgets('a card that fails to rebuild drops the old card', (
+    tester,
+  ) async {
+    var builds = 0;
+    await pump(
+      tester,
+      card: () async {
+        builds++;
+        if (builds > 1) throw StateError('database gone');
+        return _me;
+      },
+    );
+    expect(find.text('Jordan Blake'), findsOneWidget);
+    ProviderScope.containerOf(
+      tester.element(find.byType(BuddySwapPage)),
+    ).invalidate(myBuddyCardProvider);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await settle(tester);
+    expect(builds, 2);
+    expect(find.text('Your buddy card could not be built.'), findsOneWidget);
+    expect(find.text('Jordan Blake'), findsNothing);
+    expect(find.text('Show my code'), findsNothing);
+  });
+
   testWidgets('two columns share no primary scroll controller', (tester) async {
     await pump(tester, width: 800);
     // Read above the columns: a primary list hides the controller below it.
