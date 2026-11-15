@@ -90,7 +90,9 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     // time the write is asked for.
     final result = await service.save(
       diveId: session.stored.id,
-      apply: session.applyTo,
+      // The changes, and the rebreather values a changed mode no longer
+      // uses dropped.
+      apply: (stored) => diveSittingApply(session, stored),
       changedCardIds: session.changedCardIds,
       alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
       alsoWriteIsAChange: session.hasHeldChanges,

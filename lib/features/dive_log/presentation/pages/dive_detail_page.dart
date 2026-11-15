@@ -102,6 +102,7 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_sitting_fol
 import 'package:submersion/features/dive_log/presentation/providers/dive_edit_save_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_card_presence.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_fields.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip_layout.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
