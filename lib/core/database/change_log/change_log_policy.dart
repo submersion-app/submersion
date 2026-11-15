@@ -516,7 +516,8 @@ const Set<String> _displaySettingsKeys = {
 const Set<String> changeLogDeviceLocalTables = {'dive_profile_series_history'};
 
 /// Machine tables whose updates are recorded, but only inside an operation
-/// labelled with one of [changeLogSeriesUpdateLabels] (issue #4393).
+/// labelled with one of [changeLogSeriesUpdateLabels] (issue #4393), or one
+/// from one of [changeLogSeriesUpdateSources].
 ///
 /// Removing a source or a duplicate cylinder re-zeroes, promotes or moves
 /// series rows in place. Without their old values a revert would bring back
@@ -538,6 +539,13 @@ const Set<String> changeLogSeriesUpdateLabels = {
   'remove_source',
   'remove_duplicate_cylinders',
 };
+
+/// The operation sources that record updates to [changeLogOptInUpdateTables]
+/// whatever their label. An agent's change set is labelled with its own free
+/// text, so no label could opt it in, and rewriting a planned entry's
+/// profile in place must revert with the rest of the set (issue #4203).
+/// Kept equal to `ChangeLogSource.agent.name`, which this file cannot import.
+const Set<String> changeLogSeriesUpdateSources = {'agent'};
 
 /// Machine tables whose row belongs to another row besides its root, by
 /// column and that row's table. Such a row's delete copy is kept when that
