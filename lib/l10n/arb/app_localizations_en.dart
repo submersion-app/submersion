@@ -1791,6 +1791,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_story_today => 'Today';
 
   @override
+  String get trips_story_tripTile => 'Trip';
+
+  @override
+  String get trips_story_tripTileAll => 'All';
+
+  @override
+  String get trips_story_tripTile_semantics => 'Whole trip';
+
+  @override
+  String trips_story_dayTile_semantics(String date, int number) {
+    return '$date, day $number';
+  }
+
+  @override
+  String trips_story_dayTile_deepest(String depth) {
+    return 'deepest $depth';
+  }
+
+  @override
+  String get trips_story_noDivesThisDay => 'No dives this day';
+
+  @override
+  String trips_story_dayMaxDepth(String depth) {
+    return '$depth max';
+  }
+
+  @override
   String trips_countryFlags_more(int count) {
     return '+$count';
   }

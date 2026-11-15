@@ -1810,6 +1810,33 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_story_today => 'Aujourd\'hui';
 
   @override
+  String get trips_story_tripTile => 'Voyage';
+
+  @override
+  String get trips_story_tripTileAll => 'Tout';
+
+  @override
+  String get trips_story_tripTile_semantics => 'Tout le voyage';
+
+  @override
+  String trips_story_dayTile_semantics(String date, int number) {
+    return '$date, jour $number';
+  }
+
+  @override
+  String trips_story_dayTile_deepest(String depth) {
+    return 'la plus profonde $depth';
+  }
+
+  @override
+  String get trips_story_noDivesThisDay => 'Aucune plongée ce jour';
+
+  @override
+  String trips_story_dayMaxDepth(String depth) {
+    return '$depth max.';
+  }
+
+  @override
   String trips_countryFlags_more(int count) {
     return '+$count';
   }

@@ -2809,6 +2809,48 @@ abstract class AppLocalizations {
   /// **'Today'**
   String get trips_story_today;
 
+  /// No description provided for @trips_story_tripTile.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip'**
+  String get trips_story_tripTile;
+
+  /// No description provided for @trips_story_tripTileAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get trips_story_tripTileAll;
+
+  /// No description provided for @trips_story_tripTile_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole trip'**
+  String get trips_story_tripTile_semantics;
+
+  /// No description provided for @trips_story_dayTile_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, day {number}'**
+  String trips_story_dayTile_semantics(String date, int number);
+
+  /// No description provided for @trips_story_dayTile_deepest.
+  ///
+  /// In en, this message translates to:
+  /// **'deepest {depth}'**
+  String trips_story_dayTile_deepest(String depth);
+
+  /// No description provided for @trips_story_noDivesThisDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives this day'**
+  String get trips_story_noDivesThisDay;
+
+  /// No description provided for @trips_story_dayMaxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'{depth} max'**
+  String trips_story_dayMaxDepth(String depth);
+
   /// After a trip's flags: how many more countries it has than are drawn.
   ///
   /// In en, this message translates to:
