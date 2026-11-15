@@ -25,7 +25,12 @@ typedef struct {
     int connected_probes;
     int64_t probe_cost_us;
     int64_t start_us;
+    int64_t timeout_us;
     int probe_overran;
+    // When set, ServicesResolved answers TRUE only after its read has run
+    // past the time it was given, the way a reply can land just after a
+    // D-Bus timeout would have fired.
+    int resolve_late;
 } FakeDevice;
 
 static int reached(int after, int sleeps) {
@@ -33,10 +38,13 @@ static int reached(int after, int sleeps) {
 }
 
 // Spend one read's time; FALSE when the read times out first. Flags a read
-// handed more time than the wait has left.
+// handed more time than the wait has left, or less than the millisecond a
+// D-Bus timeout can express.
 static int fake_read(FakeDevice* d, int64_t timeout_us) {
-    if (d->now_us + timeout_us > d->start_us + TIMEOUT_US) d->probe_overran = 1;
-    if (timeout_us <= 0) d->probe_overran = 1;
+    if (d->now_us + timeout_us > d->start_us + d->timeout_us) {
+        d->probe_overran = 1;
+    }
+    if (timeout_us < BLE_SERVICES_WAIT_MIN_READ_US) d->probe_overran = 1;
     if (d->probe_cost_us > timeout_us) {
         d->now_us += timeout_us;
         return 0;
@@ -47,6 +55,10 @@ static int fake_read(FakeDevice* d, int64_t timeout_us) {
 
 static int fake_services_resolved(void* userdata, int64_t timeout_us) {
     FakeDevice* d = (FakeDevice*)userdata;
+    if (d->resolve_late) {
+        d->now_us += timeout_us + 1;
+        return 1;
+    }
     return fake_read(d, timeout_us) && reached(d->resolve_after, d->sleeps);
 }
 
@@ -75,6 +87,7 @@ static FakeDevice fake_device(void) {
     FakeDevice d = {0};
     d.now_us = 5000000;  // Any start: only differences matter.
     d.start_us = d.now_us;
+    d.timeout_us = TIMEOUT_US;
     d.resolve_after = -1;
     d.drop_after = -1;
     d.cancel_after = -1;
@@ -152,6 +165,39 @@ static void test_resolution_after_the_deadline_is_a_timeout(void) {
     printf("PASS: test_resolution_after_the_deadline_is_a_timeout\n");
 }
 
+// A TRUE that only arrives once the deadline has passed is not success, even
+// when the read itself overran the time it was given.
+static void test_late_true_is_a_timeout(void) {
+    FakeDevice d = fake_device();
+    d.resolve_late = 1;
+    d.timeout_us = 2000;
+    const ble_services_wait_ops_t ops = {
+        fake_services_resolved, fake_connected, fake_cancelled,
+        fake_now_us,            fake_sleep_us,  &d,
+    };
+    assert(ble_services_wait(&ops, d.timeout_us, POLL_US) ==
+           BLE_SERVICES_WAIT_TIMED_OUT);
+    printf("PASS: test_late_true_is_a_timeout\n");
+}
+
+// Under a millisecond left is too little for a D-Bus read, whose timeout is
+// whole milliseconds: the wait ends there instead of handing a read more time
+// than remains, and does not call the cut-short read a dropped link.
+static void test_sub_millisecond_remainder_is_a_timeout(void) {
+    FakeDevice d = fake_device();
+    d.timeout_us = 1500;
+    const ble_services_wait_ops_t ops = {
+        fake_services_resolved, fake_connected, fake_cancelled,
+        fake_now_us,            fake_sleep_us,  &d,
+    };
+    assert(ble_services_wait(&ops, d.timeout_us, 1000) ==
+           BLE_SERVICES_WAIT_TIMED_OUT);
+    assert(d.sleeps == 1);
+    assert(d.connected_probes == 1);
+    assert(!d.probe_overran);
+    printf("PASS: test_sub_millisecond_remainder_is_a_timeout\n");
+}
+
 // Cancel must end the wait promptly: the link is held up for as long as the
 // thread keeps waiting, and a retry would race it for the shared stream.
 static void test_cancel_ends_the_wait(void) {
@@ -192,6 +238,8 @@ int main(void) {
     test_stall_times_out_at_the_deadline();
     test_slow_reads_stop_at_the_deadline();
     test_resolution_after_the_deadline_is_a_timeout();
+    test_late_true_is_a_timeout();
+    test_sub_millisecond_remainder_is_a_timeout();
     test_cancel_ends_the_wait();
     test_cancel_wins_over_resolution();
     test_cancel_check_is_optional();

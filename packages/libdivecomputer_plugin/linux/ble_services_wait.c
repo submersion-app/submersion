@@ -2,9 +2,11 @@
 
 #include <stddef.h>
 
-// Time left before |deadline|; zero or less once it has passed.
+// Time left before |deadline|, or zero once too little remains for a read
+// (see BLE_SERVICES_WAIT_MIN_READ_US).
 static int64_t time_left(const ble_services_wait_ops_t* ops, int64_t deadline) {
-    return deadline - ops->now_us(ops->userdata);
+    const int64_t left = deadline - ops->now_us(ops->userdata);
+    return left < BLE_SERVICES_WAIT_MIN_READ_US ? 0 : left;
 }
 
 ble_services_wait_result_t ble_services_wait(const ble_services_wait_ops_t* ops,
@@ -19,21 +21,25 @@ ble_services_wait_result_t ble_services_wait(const ble_services_wait_ops_t* ops,
         }
 
         int64_t left = time_left(ops, deadline);
-        if (left <= 0) return BLE_SERVICES_WAIT_TIMED_OUT;
+        if (left == 0) return BLE_SERVICES_WAIT_TIMED_OUT;
         if (ops->services_resolved(ops->userdata, left)) {
-            return BLE_SERVICES_WAIT_RESOLVED;
+            // Only a resolution seen before the deadline counts.
+            return deadline - ops->now_us(ops->userdata) > 0
+                       ? BLE_SERVICES_WAIT_RESOLVED
+                       : BLE_SERVICES_WAIT_TIMED_OUT;
         }
 
         left = time_left(ops, deadline);
-        if (left <= 0) return BLE_SERVICES_WAIT_TIMED_OUT;
+        if (left == 0) return BLE_SERVICES_WAIT_TIMED_OUT;
         if (!ops->connected(ops->userdata, left)) {
             // A read the deadline cut short says nothing about the link.
-            return time_left(ops, deadline) <= 0 ? BLE_SERVICES_WAIT_TIMED_OUT
-                                                 : BLE_SERVICES_WAIT_LINK_DROPPED;
+            return time_left(ops, deadline) == 0
+                       ? BLE_SERVICES_WAIT_TIMED_OUT
+                       : BLE_SERVICES_WAIT_LINK_DROPPED;
         }
 
         left = time_left(ops, deadline);
-        if (left <= 0) return BLE_SERVICES_WAIT_TIMED_OUT;
+        if (left == 0) return BLE_SERVICES_WAIT_TIMED_OUT;
         ops->sleep_us(ops->userdata,
                       poll_interval_us < left ? poll_interval_us : left);
     }

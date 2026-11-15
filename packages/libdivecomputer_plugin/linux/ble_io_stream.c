@@ -203,11 +203,12 @@ static gboolean connect_failed(BleIoStream* stream, const gchar* format, ...) {
 #define SERVICES_RESOLVED_POLL_INTERVAL_MS 100
 
 // The D-Bus timeout for one property read given |left_us| of the wait: the
-// time left, rounded up to a whole millisecond, at most
-// SERVICES_RESOLVED_READ_TIMEOUT_MS.
+// time left, rounded down to a whole millisecond so the read cannot outlast
+// the deadline, at most SERVICES_RESOLVED_READ_TIMEOUT_MS. ble_services_wait
+// never hands a read less than BLE_SERVICES_WAIT_MIN_READ_US, so this is
+// always at least 1.
 static gint read_timeout_ms(int64_t left_us) {
-    int64_t left_ms =
-        (left_us + G_TIME_SPAN_MILLISECOND - 1) / G_TIME_SPAN_MILLISECOND;
+    int64_t left_ms = left_us / G_TIME_SPAN_MILLISECOND;
     return (gint)MIN(left_ms, SERVICES_RESOLVED_READ_TIMEOUT_MS);
 }
 

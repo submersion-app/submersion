@@ -7,6 +7,10 @@
 extern "C" {
 #endif
 
+// The least time worth giving a property read: a D-Bus call timeout is whole
+// milliseconds, so less than this left counts as the deadline having passed.
+#define BLE_SERVICES_WAIT_MIN_READ_US 1000
+
 // How a wait for BlueZ to finish GATT service discovery ended.
 typedef enum {
     BLE_SERVICES_WAIT_RESOLVED = 0,
@@ -20,7 +24,8 @@ typedef enum {
 // ble_io_stream.c supplies the BlueZ-backed probes.
 typedef struct {
     // Each property read is given |timeout_us|, the time the wait has left
-    // (always positive), and reads as zero if it cannot finish within it.
+    // (at least BLE_SERVICES_WAIT_MIN_READ_US), and reads as zero if it
+    // cannot finish within it.
     // Device1.ServicesResolved: non-zero once discovery is done and the
     // services and characteristics are exported.
     int (*services_resolved)(void* userdata, int64_t timeout_us);
@@ -37,8 +42,9 @@ typedef struct {
 // Poll until the services resolve, the link drops, the download is cancelled
 // or |timeout_us| passes, sleeping |poll_interval_us| between polls. No read
 // or sleep is given more than the time left, so a slow BlueZ cannot carry the
-// wait past its deadline, and a read the deadline cut short is a timeout, not
-// a dropped link. A cancellation wins over a resolution seen in the same poll,
+// wait past its deadline; a resolution reported once the deadline has passed
+// is a timeout, and so is a read the deadline cut short, not a dropped link.
+// A cancellation wins over a resolution seen in the same poll,
 // and the link is only probed while the services are still unresolved.
 ble_services_wait_result_t ble_services_wait(const ble_services_wait_ops_t* ops,
                                              int64_t timeout_us,
