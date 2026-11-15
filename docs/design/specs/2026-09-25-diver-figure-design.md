@@ -326,10 +326,11 @@ a `FigureLayout`, and each label's measured width, so both are unit-tested
 without widgets:
 
 - `labelColumns(model, view, layout, columnWidth)` for the phone layout.
-- `labelPills(model, layout, maxPillWidth)` for the wide layout.
+- `pairLabelColumns(model, layout, width)` for the wide layout: the phone
+  columns once for each figure, in its own half of the box (issue #4553).
 
 Each label is a small number badge followed by the item's name, truncated
-with an ellipsis: up to two lines in a phone column, one line in a pill.
+with an ellipsis: up to two lines, in a phone column or a pill.
 Every label has a tap target at least 40 pt tall, measured in tests on both
 platforms; the row grows with the diver's text size so large text never
 overflows it, and pill widths are measured at that text size.
@@ -361,8 +362,9 @@ overflows it, and pill widths are measured at that text size.
   rules in 8.2 (side by anchor, centre anchors balanced, level with the
   anchor unless that overlaps the pill above), each with a leader line to its
   gear. A pill sits against its figure and never lies across either figure
-  or reaches into the other half; a name longer than its column ends in an
-  ellipsis. Pills placed beside their anchors lay across the body and the
+  or reaches into the other half. A name longer than its column wraps to a
+  second line, and ends in an ellipsis only when one word is wider than the
+  line or two lines are not enough. Pills placed beside their anchors lay across the body and the
   gear drawn on it, so this replaced them (issue #4553).
 
 ### 8.4 Legend, tray, and tap linking

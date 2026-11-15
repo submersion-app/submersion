@@ -134,7 +134,7 @@ List<FigureLabelSlot> _stack(
 /// own half of the box with label columns either side of it, as the phone
 /// lays out its one figure. [layout] is a [FigureLayout.forPair] of [width].
 /// A label never lies across a figure (issue #4553); a name longer than its
-/// column ends in an ellipsis.
+/// column wraps to a second line, as in a phone column.
 List<FigureLabelSlot> pairLabelColumns({
   required FigureModel model,
   required FigureLayout layout,
