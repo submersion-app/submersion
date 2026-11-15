@@ -82,8 +82,6 @@ extension BackupServicePruning on BackupService {
     List<BackupRecord> pruned,
   ) async {
     final remaining = <BackupRecord>[];
-    // Written once after the loop: each write re-encodes the whole history.
-    final cloudOnly = <String, BackupRecord>{};
     for (final record in pruned) {
       final offDevice =
           record.cloudFileId != null || record.extraCloudCopies.isNotEmpty;
@@ -97,9 +95,12 @@ extension BackupServicePruning on BackupService {
           continue;
         }
         await _deleteLocalCopy(record);
-        final updated = record.withoutLocalCopy();
-        cloudOnly[updated.id] = updated;
-        remaining.add(updated);
+        // Saved per record, not once at the end: [_deleteLocalCopy] reads the
+        // history to see who else uses a path, and a worker stopped mid-way
+        // leaves no record pointing at a file it deleted.
+        final cloudOnly = record.withoutLocalCopy();
+        await _preferences.updateRecord(cloudOnly);
+        remaining.add(cloudOnly);
       } catch (e, st) {
         // Best-effort, as below: a backup this platform refuses to delete
         // stays in history and is retried on every future prune.
@@ -111,19 +112,23 @@ extension BackupServicePruning on BackupService {
         if (offDevice) remaining.add(record);
       }
     }
-    if (cloudOnly.isNotEmpty) {
-      await _preferences.setHistory([
-        for (final r in _preferences.getHistory()) cloudOnly[r.id] ?? r,
-      ]);
-    }
     return remaining;
   }
 
   /// Deletes [record]'s file on this device (a filesystem path or an SAF
-  /// document URI), if it has one.
+  /// document URI), if it has one and no other record in the history uses
+  /// it: backup filenames are only second-precise, so two backups made in
+  /// the same second share one path, and the one kept must keep its file.
   Future<void> _deleteLocalCopy(BackupRecord record) async {
     final ref = record.localPath;
     if (ref == null) return;
+    final shared = _preferences.getHistory().any(
+      (r) => r.id != record.id && r.localPath == ref,
+    );
+    if (shared) {
+      _log.info('Kept local file another backup still uses: $ref');
+      return;
+    }
     if (isSafRef(ref)) {
       await _safPort.delete(ref);
       _log.info('Deleted SAF backup: $ref');

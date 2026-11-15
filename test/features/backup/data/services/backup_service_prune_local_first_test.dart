@@ -218,4 +218,46 @@ void main() {
     expect(extra.fileCount, 0);
     expect(preferences.getHistory().map((r) => r.id), ['r1']);
   });
+
+  test('a file a kept backup still uses stays, though the backup made in '
+      'the same second is pruned', () async {
+    final cloud = FakeCloudStorageProvider();
+    final kept = await seed(1, cloud: cloud);
+    // A second backup in the same second: same filename, same local path.
+    await preferences.addRecord(
+      BackupRecord(
+        id: 'twin',
+        filename: kept.filename,
+        timestamp: kept.timestamp.subtract(const Duration(milliseconds: 1)),
+        sizeBytes: 3,
+        location: BackupLocation.local,
+        diveCount: 1,
+        siteCount: 1,
+        localPath: kept.localPath,
+        isAutomatic: true,
+      ),
+    );
+
+    await service(cloud).pruneOldBackups(1);
+
+    expect(File(kept.localPath!).existsSync(), isTrue);
+    expect(preferences.getHistory().map((r) => r.id), ['r1']);
+  });
+
+  test('two pruned backups that share a file both let it go', () async {
+    final cloud = FakeCloudStorageProvider();
+    await seed(1, cloud: cloud);
+    final old = await seed(2, cloud: cloud);
+    await preferences.addRecord(
+      old.copyWith(
+        id: 'twin',
+        timestamp: old.timestamp.subtract(const Duration(milliseconds: 1)),
+      ),
+    );
+
+    await service(cloud).pruneOldBackups(1);
+
+    expect(File(old.localPath!).existsSync(), isFalse);
+    expect(preferences.getHistory().map((r) => r.id), ['r1']);
+  });
 }

@@ -384,9 +384,10 @@ void main() {
       expect(r.location, BackupLocation.cloud);
       expect(r.cloudFileId, isNotNull);
     }
-    // The kept backup keeps its local copy. (Its file is not checked: three
-    // backups in one second share a filename, so they share that path.)
-    expect(kept.where((r) => r.localPath != null), hasLength(1));
+    // The kept backup keeps its local copy, file included: three backups in
+    // one second share a filename, so the pruned ones left the shared file.
+    final local = kept.singleWhere((r) => r.localPath != null);
+    expect(File(local.localPath!).existsSync(), isTrue);
 
     keeping.failFlush = false;
     await buildService().pruneOldBackups(1);

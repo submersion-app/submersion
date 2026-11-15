@@ -15,6 +15,13 @@ class LogFileService {
   final String logDirectory;
   final int maxFileSizeBytes;
 
+  /// Whether this instance trims the file once it passes
+  /// [maxFileSizeBytes]. A headless isolate (issue #4572) appends to the
+  /// app's file without trimming it: a trim is a read and a rewrite, and
+  /// two isolates trimming one file would drop each other's lines. The
+  /// app's own instance does the trimming.
+  final bool rotates;
+
   static const _logFileName = 'submersion.log';
   static const _defaultMaxSize = 5 * 1024 * 1024; // 5MB
   static const _newline = 0x0A;
@@ -28,6 +35,7 @@ class LogFileService {
   LogFileService({
     required this.logDirectory,
     this.maxFileSizeBytes = _defaultMaxSize,
+    this.rotates = true,
   });
 
   String get logFilePath => _logFilePath;
@@ -60,7 +68,7 @@ class LogFileService {
     try {
       final file = File(_logFilePath);
       await file.writeAsString('$line\n', mode: FileMode.append);
-      await _rotateIfNeeded();
+      if (rotates) await _rotateIfNeeded();
     } on IOException catch (e) {
       developer.log(
         'LogFileService: failed to write log line: $e',

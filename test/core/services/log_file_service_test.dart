@@ -164,6 +164,28 @@ void main() {
       expect(content, contains('number 19'));
     });
 
+    // Issue #4572: the background isolate appends to the app's file; only the
+    // app trims it, so two isolates never rewrite one file at once.
+    test('an instance that does not rotate only appends', () async {
+      final appendOnly = LogFileService(
+        logDirectory: tempDir.path,
+        maxFileSizeBytes: 200,
+        rotates: false,
+      );
+      await appendOnly.initialize();
+
+      for (var i = 0; i < 20; i++) {
+        await appendOnly.writeLine('Log message number $i with some padding');
+      }
+
+      final content = await File(
+        '${tempDir.path}/submersion.log',
+      ).readAsString();
+      expect(content.length, greaterThan(200));
+      expect(content, contains('number 0 '));
+      expect(content, contains('number 19'));
+    });
+
     // The file is now written for every user, not only in debug mode (#1826),
     // so one malformed byte (a device name, a native message) must not stop
     // rotation, which would let the file grow without bound.
