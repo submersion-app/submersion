@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -251,7 +252,7 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
                             ),
                             const SizedBox(width: 2),
                             Text(
-                              site.rating!.toStringAsFixed(1),
+                              formatRatingForDisplay(site.rating!),
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: primaryTextColor),
                             ),

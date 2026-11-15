@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
@@ -121,7 +122,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
               _buildStatCard(
                 context,
                 icon: Icons.star,
-                value: highestRating.toStringAsFixed(1),
+                value: formatRatingForDisplay(highestRating),
                 label: context.l10n.diveCenters_summary_highestRating,
                 color: Colors.amber.shade700,
               ),
@@ -229,7 +230,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
                     if (center.rating != null) ...[
                       Icon(Icons.star, size: 16, color: Colors.amber.shade700),
                       const SizedBox(width: 4),
-                      Text(center.rating!.toStringAsFixed(1)),
+                      Text(formatRatingForDisplay(center.rating!)),
                       const SizedBox(width: 8),
                     ],
                     const ExcludeSemantics(child: Icon(Icons.chevron_right)),

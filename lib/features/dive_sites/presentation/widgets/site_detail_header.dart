@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -205,7 +206,7 @@ class _Rating extends StatelessWidget {
       children: [
         SiteRatingStars(rating: rating, size: 20, color: Colors.amber.shade700),
         Text(
-          rating.toStringAsFixed(1),
+          formatRatingForDisplay(rating),
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ],

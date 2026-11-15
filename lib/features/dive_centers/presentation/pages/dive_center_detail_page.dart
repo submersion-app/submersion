@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
@@ -213,7 +214,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
             Icon(Icons.star, size: 16, color: Colors.amber.shade700),
             const SizedBox(width: 4),
             Text(
-              center.rating!.toStringAsFixed(1),
+              formatRatingForDisplay(center.rating!),
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
@@ -373,7 +374,7 @@ class _HeaderSection extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            center.rating!.toStringAsFixed(1),
+                            formatRatingForDisplay(center.rating!),
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ],

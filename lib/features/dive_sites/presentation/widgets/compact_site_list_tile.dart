@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
@@ -140,7 +141,7 @@ class CompactSiteListTile extends ConsumerWidget {
                             ),
                             const SizedBox(width: 2),
                             Text(
-                              site.rating!.toStringAsFixed(1),
+                              formatRatingForDisplay(site.rating!),
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],

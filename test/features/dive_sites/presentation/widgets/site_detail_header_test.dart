@@ -76,7 +76,9 @@ void main() {
 
     expect(find.byIcon(Icons.star), findsNWidgets(4));
     expect(find.byIcon(Icons.star_border), findsOneWidget);
-    expect(find.text('4.0'), findsOneWidget);
+    // A whole-star rating reads like a dive's, not "4.0" (#4573).
+    expect(find.text('4'), findsOneWidget);
+    expect(find.text('4.0'), findsNothing);
   });
 
   testWidgets('a fraction of a star counts the way the Rating card does', (
