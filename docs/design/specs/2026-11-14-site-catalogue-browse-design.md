@@ -597,7 +597,8 @@ design as approved; these are the corrections to read with it.
   tide data. The page asks `hasTideDataProvider` for the position and
   leaves the card out on a "no", under the same rule as every other card
   with nothing to show. The card holds its place while that is being
-  found out. This is the build's call, not the maintainer's.
+  found out. The build made this call and the maintainer confirmed it
+  on 2026-11-15.
 - **The page replaces itself only while it is the page on top.** The
   router replaces whichever page is on top, so a built-in page with a
   sheet, a dialog or another page over it waits, and hands over to the
