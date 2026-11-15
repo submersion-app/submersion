@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_gates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tags_card_editor.dart';
@@ -76,5 +77,14 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     isEmpty: (dive) => !hasLoggedEnvironmentData(dive),
     editorBuilder: (context, session) =>
         DiveEnvironmentCardEditor(session: session),
+  ),
+  DiveDetailSectionId.details: EditCard<Dive>(
+    id: DiveDetailSectionId.details.name,
+    title: (context) => context.l10n.diveLog_detail_section_details,
+    // The Details card is always on the page: every dive has a type and a
+    // mode to show.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        DiveDetailsCardEditor(session: session),
   ),
 };
