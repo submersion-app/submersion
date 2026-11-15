@@ -3065,6 +3065,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get buddySwap_title => 'Trocar com um parceiro';
 
   @override
+  String get buddySwap_yourCard => 'O seu cartão';
+
+  @override
+  String get buddySwap_nearby_title => 'Por perto';
+
+  @override
+  String get buddySwap_nearby_status =>
+      'A procurar mergulhadores. O seu parceiro precisa deste ecrã aberto e do Submersion 1.8.4 ou posterior.';
+
+  @override
   String get buddySwap_nearby_heading =>
       'Mergulhadores próximos com o Submersion aberto';
 
@@ -3105,10 +3115,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get buddySwap_action_showCode => 'Mostrar o meu código';
 
   @override
-  String get buddySwap_action_scanCode => 'Ler código';
+  String get buddySwap_action_scanCode => 'Ler o código do parceiro';
 
   @override
-  String get buddySwap_action_sendFile => 'Enviar ficheiro';
+  String get buddySwap_action_sendFile => 'Enviar como ficheiro';
 
   @override
   String get buddySwap_action_openFile => 'Abrir ficheiro de cartão';
@@ -3121,6 +3131,49 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get buddySwap_action_receiveByTap => 'Receber por toque';
+
+  @override
+  String get buddySwap_give_heading => 'Dar o seu cartão';
+
+  @override
+  String get buddySwap_get_heading => 'Receber o cartão do parceiro';
+
+  @override
+  String get buddySwap_hint_showCode => 'O seu parceiro lê-o';
+
+  @override
+  String get buddySwap_hint_sendFile =>
+      'AirDrop, Quick Share, e-mail ou uma mensagem';
+
+  @override
+  String get buddySwap_hint_writeSticker =>
+      'Quem lhe tocar recebe o seu cartão';
+
+  @override
+  String get buddySwap_hint_scanCode =>
+      'Aponte a câmara para o código do seu parceiro';
+
+  @override
+  String get buddySwap_hint_openFile =>
+      'Um ficheiro de cartão que o seu parceiro lhe enviou';
+
+  @override
+  String get buddySwap_hint_receiveByTap =>
+      'Encoste o seu telemóvel ao do seu parceiro';
+
+  @override
+  String get buddySwap_hint_tapAndroid =>
+      'Ler o cartão partilhado por um telemóvel Android';
+
+  @override
+  String buddySwap_chip_since(String year) {
+    return 'Mergulha desde $year';
+  }
+
+  @override
+  String buddySwap_chip_lastDive(String date) {
+    return 'Último mergulho $date';
+  }
 
   @override
   String get buddySwap_tap_prompt =>
@@ -3200,7 +3253,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get buddySwap_qr_tooLarge =>
-      'O seu cartão é demasiado longo para um código. Experimente Enviar ficheiro.';
+      'O seu cartão é demasiado longo para um código. Experimente Enviar como ficheiro.';
 
   @override
   String get buddySwap_sendFailed =>

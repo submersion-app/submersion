@@ -4714,6 +4714,24 @@ abstract class AppLocalizations {
   /// **'Swap with a buddy'**
   String get buddySwap_title;
 
+  /// No description provided for @buddySwap_yourCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Your card'**
+  String get buddySwap_yourCard;
+
+  /// No description provided for @buddySwap_nearby_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby'**
+  String get buddySwap_nearby_title;
+
+  /// No description provided for @buddySwap_nearby_status.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for divers. Your buddy needs this screen open and Submersion 1.8.4 or later.'**
+  String get buddySwap_nearby_status;
+
   /// No description provided for @buddySwap_nearby_heading.
   ///
   /// In en, this message translates to:
@@ -4771,25 +4789,25 @@ abstract class AppLocalizations {
   /// No description provided for @buddySwap_action_scanCode.
   ///
   /// In en, this message translates to:
-  /// **'Scan code'**
+  /// **'Scan their code'**
   String get buddySwap_action_scanCode;
 
   /// No description provided for @buddySwap_action_sendFile.
   ///
   /// In en, this message translates to:
-  /// **'Send file'**
+  /// **'Send as a file'**
   String get buddySwap_action_sendFile;
 
   /// No description provided for @buddySwap_action_openFile.
   ///
   /// In en, this message translates to:
-  /// **'Open card file'**
+  /// **'Open a card file'**
   String get buddySwap_action_openFile;
 
   /// No description provided for @buddySwap_action_writeSticker.
   ///
   /// In en, this message translates to:
-  /// **'Write NFC sticker'**
+  /// **'Write an NFC sticker'**
   String get buddySwap_action_writeSticker;
 
   /// No description provided for @buddySwap_action_tapAndroid.
@@ -4803,6 +4821,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Receive by tap'**
   String get buddySwap_action_receiveByTap;
+
+  /// No description provided for @buddySwap_give_heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Give your card'**
+  String get buddySwap_give_heading;
+
+  /// No description provided for @buddySwap_get_heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Get their card'**
+  String get buddySwap_get_heading;
+
+  /// No description provided for @buddySwap_hint_showCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Your buddy scans it'**
+  String get buddySwap_hint_showCode;
+
+  /// No description provided for @buddySwap_hint_sendFile.
+  ///
+  /// In en, this message translates to:
+  /// **'AirDrop, Quick Share, email or a message'**
+  String get buddySwap_hint_sendFile;
+
+  /// No description provided for @buddySwap_hint_writeSticker.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone who taps it gets your card'**
+  String get buddySwap_hint_writeSticker;
+
+  /// No description provided for @buddySwap_hint_scanCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Point the camera at your buddy\'s code'**
+  String get buddySwap_hint_scanCode;
+
+  /// No description provided for @buddySwap_hint_openFile.
+  ///
+  /// In en, this message translates to:
+  /// **'A card file your buddy sent you'**
+  String get buddySwap_hint_openFile;
+
+  /// No description provided for @buddySwap_hint_receiveByTap.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold your phone against your buddy\'s'**
+  String get buddySwap_hint_receiveByTap;
+
+  /// No description provided for @buddySwap_hint_tapAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the card an Android phone is sharing'**
+  String get buddySwap_hint_tapAndroid;
+
+  /// No description provided for @buddySwap_chip_since.
+  ///
+  /// In en, this message translates to:
+  /// **'Diving since {year}'**
+  String buddySwap_chip_since(String year);
+
+  /// No description provided for @buddySwap_chip_lastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive {date}'**
+  String buddySwap_chip_lastDive(String date);
 
   /// No description provided for @buddySwap_tap_prompt.
   ///
@@ -4915,7 +4999,7 @@ abstract class AppLocalizations {
   /// No description provided for @buddySwap_qr_tooLarge.
   ///
   /// In en, this message translates to:
-  /// **'Your card is too long for a code. Try Send file instead.'**
+  /// **'Your card is too long for a code. Try Send as a file instead.'**
   String get buddySwap_qr_tooLarge;
 
   /// No description provided for @buddySwap_sendFailed.

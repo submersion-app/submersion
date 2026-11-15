@@ -3067,6 +3067,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buddySwap_title => 'Scambia con un compagno';
 
   @override
+  String get buddySwap_yourCard => 'La tua scheda';
+
+  @override
+  String get buddySwap_nearby_title => 'Nelle vicinanze';
+
+  @override
+  String get buddySwap_nearby_status =>
+      'Ricerca di subacquei. Il tuo compagno deve avere questa schermata aperta e Submersion 1.8.4 o successivo.';
+
+  @override
   String get buddySwap_nearby_heading =>
       'Subacquei vicini con Submersion aperto';
 
@@ -3107,10 +3117,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buddySwap_action_showCode => 'Mostra il mio codice';
 
   @override
-  String get buddySwap_action_scanCode => 'Scansiona codice';
+  String get buddySwap_action_scanCode => 'Scansiona il suo codice';
 
   @override
-  String get buddySwap_action_sendFile => 'Invia file';
+  String get buddySwap_action_sendFile => 'Invia come file';
 
   @override
   String get buddySwap_action_openFile => 'Apri file scheda';
@@ -3123,6 +3133,49 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get buddySwap_action_receiveByTap => 'Ricevi avvicinando';
+
+  @override
+  String get buddySwap_give_heading => 'Dai la tua scheda';
+
+  @override
+  String get buddySwap_get_heading => 'Ricevi la sua scheda';
+
+  @override
+  String get buddySwap_hint_showCode => 'Il tuo compagno lo scansiona';
+
+  @override
+  String get buddySwap_hint_sendFile =>
+      'AirDrop, Quick Share, e-mail o un messaggio';
+
+  @override
+  String get buddySwap_hint_writeSticker =>
+      'Chi lo avvicina riceve la tua scheda';
+
+  @override
+  String get buddySwap_hint_scanCode =>
+      'Inquadra con la fotocamera il codice del tuo compagno';
+
+  @override
+  String get buddySwap_hint_openFile =>
+      'Un file scheda che ti ha inviato il tuo compagno';
+
+  @override
+  String get buddySwap_hint_receiveByTap =>
+      'Avvicina il tuo telefono a quello del tuo compagno';
+
+  @override
+  String get buddySwap_hint_tapAndroid =>
+      'Leggi la scheda condivisa da un telefono Android';
+
+  @override
+  String buddySwap_chip_since(String year) {
+    return 'Si immerge dal $year';
+  }
+
+  @override
+  String buddySwap_chip_lastDive(String date) {
+    return 'Ultima immersione $date';
+  }
 
   @override
   String get buddySwap_tap_prompt =>
@@ -3202,7 +3255,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get buddySwap_qr_tooLarge =>
-      'La tua scheda è troppo lunga per un codice. Prova invece Invia file.';
+      'La tua scheda è troppo lunga per un codice. Prova invece Invia come file.';
 
   @override
   String get buddySwap_sendFailed =>

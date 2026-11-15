@@ -3016,6 +3016,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddySwap_title => 'החלפה עם שותף';
 
   @override
+  String get buddySwap_yourCard => 'הכרטיס שלך';
+
+  @override
+  String get buddySwap_nearby_title => 'בקרבת מקום';
+
+  @override
+  String get buddySwap_nearby_status =>
+      'מחפש צוללים. השותף שלך צריך שהמסך הזה יהיה פתוח ו-Submersion 1.8.4 ואילך.';
+
+  @override
   String get buddySwap_nearby_heading => 'צוללים בקרבת מקום עם Submersion פתוח';
 
   @override
@@ -3055,10 +3065,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddySwap_action_showCode => 'הצג את הקוד שלי';
 
   @override
-  String get buddySwap_action_scanCode => 'סרוק קוד';
+  String get buddySwap_action_scanCode => 'סרוק את הקוד של השותף';
 
   @override
-  String get buddySwap_action_sendFile => 'שלח קובץ';
+  String get buddySwap_action_sendFile => 'שלח כקובץ';
 
   @override
   String get buddySwap_action_openFile => 'פתח קובץ כרטיס';
@@ -3071,6 +3081,45 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddySwap_action_receiveByTap => 'קבל בהצמדה';
+
+  @override
+  String get buddySwap_give_heading => 'תן את הכרטיס שלך';
+
+  @override
+  String get buddySwap_get_heading => 'קבל את הכרטיס של השותף';
+
+  @override
+  String get buddySwap_hint_showCode => 'השותף שלך סורק אותו';
+
+  @override
+  String get buddySwap_hint_sendFile => 'AirDrop, Quick Share, אימייל או הודעה';
+
+  @override
+  String get buddySwap_hint_writeSticker =>
+      'כל מי שמצמיד אותה מקבל את הכרטיס שלך';
+
+  @override
+  String get buddySwap_hint_scanCode => 'כוון את המצלמה לקוד של השותף שלך';
+
+  @override
+  String get buddySwap_hint_openFile => 'קובץ כרטיס שהשותף שלך שלח לך';
+
+  @override
+  String get buddySwap_hint_receiveByTap =>
+      'הצמד את הטלפון שלך לטלפון של השותף';
+
+  @override
+  String get buddySwap_hint_tapAndroid => 'קרא את הכרטיס שטלפון אנדרואיד משתף';
+
+  @override
+  String buddySwap_chip_since(String year) {
+    return 'צולל מאז $year';
+  }
+
+  @override
+  String buddySwap_chip_lastDive(String date) {
+    return 'צלילה אחרונה $date';
+  }
 
   @override
   String get buddySwap_tap_prompt => 'קרב את הטלפון לטלפון השני או למדבקה';
@@ -3144,7 +3193,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddySwap_qr_tooLarge =>
-      'הכרטיס שלך ארוך מדי לקוד. נסה במקום זאת לשלוח קובץ.';
+      'הכרטיס שלך ארוך מדי לקוד. נסה במקום זאת לשלוח כקובץ.';
 
   @override
   String get buddySwap_sendFailed => 'לא ניתן לשתף את קובץ הכרטיס.';

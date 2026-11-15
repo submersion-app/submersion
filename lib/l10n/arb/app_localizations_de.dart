@@ -3061,6 +3061,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddySwap_title => 'Mit Buddy tauschen';
 
   @override
+  String get buddySwap_yourCard => 'Deine Karte';
+
+  @override
+  String get buddySwap_nearby_title => 'In der Nähe';
+
+  @override
+  String get buddySwap_nearby_status =>
+      'Suche nach Tauchern. Dein Buddy braucht diesen Bildschirm geöffnet und Submersion 1.8.4 oder neuer.';
+
+  @override
   String get buddySwap_nearby_heading =>
       'Taucher in der Nähe mit geöffnetem Submersion';
 
@@ -3101,10 +3111,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddySwap_action_showCode => 'Meinen Code zeigen';
 
   @override
-  String get buddySwap_action_scanCode => 'Code scannen';
+  String get buddySwap_action_scanCode => 'Code des Buddys scannen';
 
   @override
-  String get buddySwap_action_sendFile => 'Datei senden';
+  String get buddySwap_action_sendFile => 'Als Datei senden';
 
   @override
   String get buddySwap_action_openFile => 'Kartendatei öffnen';
@@ -3117,6 +3127,49 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get buddySwap_action_receiveByTap => 'Per Antippen empfangen';
+
+  @override
+  String get buddySwap_give_heading => 'Deine Karte geben';
+
+  @override
+  String get buddySwap_get_heading => 'Karte des Buddys erhalten';
+
+  @override
+  String get buddySwap_hint_showCode => 'Dein Buddy scannt ihn';
+
+  @override
+  String get buddySwap_hint_sendFile =>
+      'AirDrop, Quick Share, E-Mail oder eine Nachricht';
+
+  @override
+  String get buddySwap_hint_writeSticker =>
+      'Wer ihn antippt, bekommt deine Karte';
+
+  @override
+  String get buddySwap_hint_scanCode =>
+      'Richte die Kamera auf den Code deines Buddys';
+
+  @override
+  String get buddySwap_hint_openFile =>
+      'Eine Kartendatei, die dein Buddy dir geschickt hat';
+
+  @override
+  String get buddySwap_hint_receiveByTap =>
+      'Halte dein Telefon an das deines Buddys';
+
+  @override
+  String get buddySwap_hint_tapAndroid =>
+      'Die Karte lesen, die ein Android-Telefon teilt';
+
+  @override
+  String buddySwap_chip_since(String year) {
+    return 'Taucht seit $year';
+  }
+
+  @override
+  String buddySwap_chip_lastDive(String date) {
+    return 'Letzter Tauchgang $date';
+  }
 
   @override
   String get buddySwap_tap_prompt =>
@@ -3196,7 +3249,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get buddySwap_qr_tooLarge =>
-      'Deine Karte ist zu lang für einen Code. Versuche stattdessen Datei senden.';
+      'Deine Karte ist zu lang für einen Code. Versuche stattdessen Als Datei senden.';
 
   @override
   String get buddySwap_sendFailed =>
