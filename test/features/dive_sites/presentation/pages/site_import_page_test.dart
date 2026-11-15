@@ -85,6 +85,11 @@ Future<_SeededSearch> _pump(
         builder: (_, state) =>
             Scaffold(body: Text('built-in page ${state.pathParameters['id']}')),
       ),
+      GoRoute(
+        path: '/sites/:id',
+        builder: (_, state) =>
+            Scaffold(body: Text('own site ${state.pathParameters['id']}')),
+      ),
     ],
   );
   addTearDown(router.dispose);
@@ -260,8 +265,31 @@ void main() {
       expect(find.text('built-in page osm_node_5'), findsOneWidget);
     });
 
-    testWidgets('a result the diver already has goes the same way: the '
-        'record\'s page hands over to their own site', (tester) async {
+    testWidgets('a result the diver already has opens their own site, '
+        'straight away', (tester) async {
+      await _pump(
+        tester,
+        const ExternalSiteSearchState(
+          query: 'this',
+          sites: [wreck],
+          linkedCatalogueIds: {'osm_node_5'},
+        ),
+        mine: const [
+          DiveSite(id: 'mine', name: 'Thistlegorm', catalogueId: 'osm_node_5'),
+        ],
+      );
+      expect(find.text('Imported'), findsOneWidget);
+
+      await tester.tap(find.text('Thistlegorm'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('own site mine'), findsOneWidget);
+      expect(find.text('built-in page osm_node_5'), findsNothing);
+    });
+
+    testWidgets('a result marked imported whose site is not known yet '
+        'opens the record\'s page, which hands over', (tester) async {
+      // The search says it is linked; the diver's sites have not loaded.
       await _pump(
         tester,
         const ExternalSiteSearchState(
@@ -270,7 +298,6 @@ void main() {
           linkedCatalogueIds: {'osm_node_5'},
         ),
       );
-      expect(find.text('Imported'), findsOneWidget);
 
       await tester.tap(find.text('Thistlegorm'));
       await tester.pumpAndSettle();

@@ -10,7 +10,12 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Where a built-in record's own page is. A record that is already one of
 /// the diver's sites opens that site's page from there.
-String catalogueSitePath(String catalogueId) => '/sites/catalogue/$catalogueId';
+///
+/// The id is one path segment whatever it holds. Every id is path-safe
+/// today, but ids come from the catalogue file, and a later source's need
+/// not be.
+String catalogueSitePath(String catalogueId) =>
+    '/sites/catalogue/${Uri.encodeComponent(catalogueId)}';
 
 /// The site's depth in the diver's unit: a range when it has both ends, the
 /// one depth it has otherwise, null with none.

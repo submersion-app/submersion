@@ -12724,13 +12724,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_import_button_import => 'Importer';
 
   @override
-  String get diveSites_import_detail_alreadyImported => 'Déjà importé';
-
-  @override
-  String get diveSites_import_detail_importToMySites =>
-      'Importer dans mes sites';
-
-  @override
   String diveSites_import_detail_source(Object source) {
     return 'Source : $source';
   }

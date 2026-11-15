@@ -130,8 +130,8 @@ Every site in the built-in catalogue has a page you can read without adding the 
 - The site's name, where it is, and whether it is a **Built-in dive site**, a **Charted wreck** or a **Charted reef**. **Not in your sites** says the page is the catalogue's and not one of yours.
 - **About**: site types, entry, depth and description, when the catalogue has them. Many dive sites in the catalogue are no more than a name and a position, and the page then leaves this out.
 - **Hazards**, including any restriction or protection a wreck register notes.
-- **Location**: country, region, island, sea and GPS coordinates. Tap the coordinates to copy them.
-- **Tides** and **Ecosystem** for the position, as on your own sites. A fresh-water site has no tides.
+- **Location**: country, region, island, sea and GPS coordinates. To copy the coordinates, use the copy button beside them or hold the row.
+- **Tides** and **Ecosystem** for the position, as on your own sites. A fresh-water site has no tides, and a position with no tide data (an inland lake or quarry, say) has no Tides card at all.
 - **Nearby**: your own sites within 10 km (6 mi), then other built-in sites, each with its distance. Tap one to open it.
 - **Source**: where the record came from, who to credit, and its licence, with links to the source and to the site's website. For a charted wreck or reef it adds that the record is a charted position and not a dive guide.
 

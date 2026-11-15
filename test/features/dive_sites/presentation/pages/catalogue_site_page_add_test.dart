@@ -113,6 +113,35 @@ void main() {
     expect(calls, 1);
   });
 
+  testWidgets('a diver who leaves while the site is being added is still '
+      'told it was', (tester) async {
+    final gate = Completer<CatalogueAdoption>();
+    final rules = RecordingRuleEngine();
+    await pumpCataloguePage(
+      tester,
+      id: saltPier.id,
+      fromHome: true,
+      rules: rules,
+      adopter: (record) => gate.future,
+    );
+
+    await tester.tap(find.byKey(_addAction));
+    await tester.pump();
+    await tester.pageBack();
+    await settle(tester);
+    expect(find.text(homeText), findsOneWidget);
+
+    gate.complete(CatalogueAdoption(site: _adopted(saltPier), created: true));
+    await settle(tester);
+
+    expect(find.text('Added to your sites'), findsOneWidget);
+    // Still where the diver went, and the new site still got its rules.
+    expect(find.text(homeText), findsOneWidget);
+    expect(rules.runs, [
+      {'new_site'},
+    ]);
+  });
+
   testWidgets('a site the diver already had is opened without running '
       'their rules on it again', (tester) async {
     final rules = RecordingRuleEngine();

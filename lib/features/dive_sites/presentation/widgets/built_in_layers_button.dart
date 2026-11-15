@@ -24,7 +24,7 @@ class _BuiltInLayersButtonState extends ConsumerState<BuiltInLayersButton> {
 
   @override
   Widget build(BuildContext context) {
-    final layers = ref.watch(builtInMapLayersProvider);
+    final layers = ref.watch(builtInMapLayersNotifierProvider);
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -33,7 +33,7 @@ class _BuiltInLayersButtonState extends ConsumerState<BuiltInLayersButton> {
       value: layers.shows(kind),
       closeOnActivate: false,
       onChanged: (on) => ref
-          .read(builtInMapLayersProvider.notifier)
+          .read(builtInMapLayersNotifierProvider.notifier)
           .setLayer(kind, on ?? false),
       trailingIcon: Icon(catalogueKindIcon(kind), size: 20),
       child: Text(label),

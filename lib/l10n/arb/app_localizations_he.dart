@@ -12404,12 +12404,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_import_button_import => 'ייבא';
 
   @override
-  String get diveSites_import_detail_alreadyImported => 'כבר יובא';
-
-  @override
-  String get diveSites_import_detail_importToMySites => 'ייבא לאתרים שלי';
-
-  @override
   String diveSites_import_detail_source(Object source) {
     return 'מקור: $source';
   }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart' show StateProvider;
@@ -136,6 +138,10 @@ String ownPageText(String id) => 'own page $id';
 /// The text on the home page beneath a pushed built-in page.
 const homeText = 'home';
 
+/// Where a test pushes a page over the built-in page, and its text.
+const otherPath = '/other';
+const otherText = 'another page';
+
 /// Pumps a built-in record's page.
 ///
 /// By default the page is the only one on the stack. With [fromHome] it is
@@ -152,6 +158,9 @@ Future<ProviderContainer> pumpCataloguePage(
   Future<CatalogueAdoption> Function(CatalogueSite site)? adopter,
   RecordingRuleEngine? rules,
   Object? sitesError,
+  bool? tideData,
+  bool importing = false,
+  bool settled = true,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -182,6 +191,11 @@ Future<ProviderContainer> pumpCataloguePage(
         ),
       ),
       GoRoute(
+        path: otherPath,
+        builder: (_, _) =>
+            Scaffold(appBar: AppBar(), body: const Text(otherText)),
+      ),
+      GoRoute(
         path: '/sites/:siteId',
         builder: (_, state) => Scaffold(
           appBar: AppBar(),
@@ -207,8 +221,14 @@ Future<ProviderContainer> pumpCataloguePage(
           return ref.watch(mineProvider);
         }),
         placeNameLanguageProvider.overrideWithValue('en'),
+        siteCatalogueImportingProvider.overrideWith((ref) => importing),
         // The cards that fetch: fixed, so a test never reaches a network.
-        hasTideDataProvider.overrideWith((ref, location) async => false),
+        // Whether the position has tide data is still being found out
+        // unless a test says ([tideData]); the Tides card then shows its
+        // own waiting state, with nothing behind it to fetch.
+        hasTideDataProvider.overrideWith(
+          (ref, location) => tideData ?? Completer<bool>().future,
+        ),
         reefHabitatProvider.overrideWith(
           (ref, location) async => const ReefPart.empty(),
         ),
@@ -239,6 +259,7 @@ Future<ProviderContainer> pumpCataloguePage(
       ),
     ),
   );
+  if (!settled) return container;
   await settle(tester);
   if (fromHome) {
     await tester.tap(find.text(homeText));

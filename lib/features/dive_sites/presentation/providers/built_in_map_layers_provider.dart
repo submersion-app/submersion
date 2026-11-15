@@ -130,7 +130,7 @@ class BuiltInMapLayersNotifier extends StateNotifier<BuiltInMapLayers> {
 /// Defaults to the built-in defaults with no storage behind them, so a
 /// container without SharedPreferences (most widget tests) still draws a
 /// map. `rootProviderOverrides` swaps in the stored notifier for the app.
-final builtInMapLayersProvider =
+final builtInMapLayersNotifierProvider =
     StateNotifierProvider<BuiltInMapLayersNotifier, BuiltInMapLayers>(
       (ref) => BuiltInMapLayersNotifier.unstored(),
     );

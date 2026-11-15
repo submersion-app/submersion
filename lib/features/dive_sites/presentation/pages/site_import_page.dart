@@ -229,10 +229,10 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
     // The diver's sites as they are now, beside the ids the search found
     // linked when it ran: a site added from its own page since then, or
     // from another screen, shows as imported without a new search.
-    final linkedNow = linkedCatalogueIds(
-      ref.watch(sitesWithCountsProvider).value?.map((entry) => entry.site) ??
-          const <DiveSite>[],
-    );
+    final mine = [
+      ...?ref.watch(sitesWithCountsProvider).value?.map((entry) => entry.site),
+    ];
+    final linkedNow = linkedCatalogueIds(mine);
 
     // Error state
     if (state.hasError) {
@@ -421,9 +421,17 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
               isImported: isImported,
               units: units,
               onImport: () => _importSite(site),
-              // The record's own page. For a site already imported, that
-              // page hands over to the diver's own site.
-              onOpen: () => context.push(catalogueSitePath(site.id)),
+              // The diver's own site when the record is already theirs,
+              // else the record's page. That page hands over to their site
+              // too, for a record whose owner is not known here yet.
+              onOpen: () {
+                final ownerId = catalogueOwnerSiteId(mine, site.id);
+                context.push(
+                  ownerId == null
+                      ? catalogueSitePath(site.id)
+                      : '/sites/$ownerId',
+                );
+              },
             );
           }),
         ],

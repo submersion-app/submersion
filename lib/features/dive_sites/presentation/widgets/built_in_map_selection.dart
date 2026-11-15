@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/catalogue_site_visibility.dart';
+import 'package:submersion/features/dive_sites/presentation/built_in_site_adoption.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/built_in_map_layers_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
@@ -13,8 +13,6 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_overlay_view.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_info_card.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_marker_layer.dart';
-import 'package:submersion/features/rules/domain/rule_subject.dart';
-import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What both Sites maps do with the built-in catalogue: draw its layers,
@@ -42,12 +40,14 @@ mixin BuiltInMapSelection<T extends ConsumerStatefulWidget>
   /// Keeps a card from outliving its pin. Call from `build`.
   ///
   /// The selection is cleared when the layer its record belongs to is
-  /// turned off, and when the record becomes the diver's own: added from
-  /// this map, from the record's page, or by a sync from another device.
+  /// turned off, and when the diver's sites come to hide the record's pin,
+  /// by the same two rules that hide it on the map: the record becomes the
+  /// diver's own (added from this map, from its page, or by a sync), or a
+  /// site they made by hand sits on it.
   /// Listens, and never watches, so the map does not rebuild on a switch:
   /// a rebuild would recreate the `FlutterMap`.
   void listenForBuiltInSelectionReset() {
-    ref.listen<BuiltInMapLayers>(builtInMapLayersProvider, (_, layers) {
+    ref.listen<BuiltInMapLayers>(builtInMapLayersNotifierProvider, (_, layers) {
       final selected = _selectedBuiltIn;
       if (selected != null && !layers.shows(selected.kind)) {
         selectBuiltIn(null);
@@ -57,8 +57,12 @@ mixin BuiltInMapSelection<T extends ConsumerStatefulWidget>
       final selected = _selectedBuiltIn;
       final sites = next.value;
       if (selected == null || sites == null) return;
-      final yours = linkedCatalogueIds(sites.map((s) => s.site));
-      if (yours.contains(selected.id)) selectBuiltIn(null);
+      final stillOffered = offerableCatalogueSites(
+        [selected],
+        [for (final entry in sites) entry.site],
+        byPosition: true,
+      );
+      if (stillOffered.isEmpty) selectBuiltIn(null);
     });
   }
 
@@ -110,45 +114,16 @@ mixin BuiltInMapSelection<T extends ConsumerStatefulWidget>
     );
   }
 
-  /// Adds [site] to the diver's sites and says so.
-  Future<void> addBuiltInSite(CatalogueSite site) async {
-    // Read now: adding a built-in site is creating a site by hand (#3513),
-    // and it gets its rules even if the diver leaves meanwhile.
-    final rulesAfterCreate = captureRulesAfterCreate(context, ref);
-    final CatalogueAdoption adoption;
-    try {
-      adoption = (await ref
-          .read(siteListNotifierProvider.notifier)
-          // The one adoption path: full details, its site types
-          // and the link back to the catalogue record.
-          .adoptCatalogueSite(site));
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.diveSites_map_builtInSites_addError),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-      return;
-    }
-    // addSite reloads the notifier but not the map's FutureProvider; invalidate
-    // so the new site appears and the built-in duplicate is deduped out.
-    if (mounted) {
-      ref.invalidate(sitesWithCountsProvider);
-      selectBuiltIn(null);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.diveSites_map_builtInSites_added)),
-      );
-    }
-    // Only a site this tap created (see CatalogueAdoption.created).
-    if (adoption.created) {
-      await rulesAfterCreate(
-        subject: RuleSubject.sites,
-        ids: [adoption.site.id],
-      );
-    }
-  }
+  /// Adds [site] to the diver's sites and says so (`adoptBuiltInSite`).
+  Future<void> addBuiltInSite(CatalogueSite site) => adoptBuiltInSite(
+    context,
+    ref,
+    site,
+    // The record is the diver's now: its pin goes, and its card with it.
+    onAdopted: (_) {
+      if (mounted) selectBuiltIn(null);
+    },
+  );
 }
 
 /// The card a Sites map shows a diver who has no site with coordinates.
@@ -161,7 +136,7 @@ class SitesMapEmptyCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final anyLayer = ref.watch(
-      builtInMapLayersProvider.select((layers) => layers.any),
+      builtInMapLayersNotifierProvider.select((layers) => layers.any),
     );
     if (anyLayer) return const SizedBox.shrink();
     final colorScheme = Theme.of(context).colorScheme;

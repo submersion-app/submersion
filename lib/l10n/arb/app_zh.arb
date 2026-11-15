@@ -4091,8 +4091,6 @@
   "diveSites_import_badge_imported": "已导入",
   "diveSites_import_badge_saved": "已保存",
   "diveSites_import_button_import": "导入",
-  "diveSites_import_detail_alreadyImported": "已导入",
-  "diveSites_import_detail_importToMySites": "导入到我的潜水点",
   "diveSites_import_detail_source": "来源: {source}",
   "diveSites_import_empty_description": "从我们全球热门潜水目的地数据库中搜索潜水点。",
   "diveSites_import_empty_hint": "尝试按潜水点名称、国家或地区搜索。",

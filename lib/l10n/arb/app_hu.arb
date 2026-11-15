@@ -3851,8 +3851,6 @@
   "diveSites_import_badge_imported": "Importált",
   "diveSites_import_badge_saved": "Mentett",
   "diveSites_import_button_import": "Importálás",
-  "diveSites_import_detail_alreadyImported": "Már importálva",
-  "diveSites_import_detail_importToMySites": "Importálás a helyszíneimhez",
   "diveSites_import_detail_source": "Forrás: {source}",
   "diveSites_import_empty_description": "Keressen merülőhelyeket a népszerű\nmerülési célpontok adatbázisunkból világszerte.",
   "diveSites_import_empty_hint": "Próbáljon keresni helyszínnév, ország vagy régió alapján.",

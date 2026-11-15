@@ -120,13 +120,17 @@ class _LicenceLine extends StatelessWidget {
       key: const ValueKey('catalogueLicenceLink'),
       borderRadius: BorderRadius.circular(8),
       onTap: () => launchUrl(target, mode: LaunchMode.externalApplication),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(child: Text(text, style: style)),
-          const SizedBox(width: 4),
-          Icon(Icons.open_in_new, size: 14, color: style?.color),
-        ],
+      // A line of small text, given the height a link needs to be hit.
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(child: Text(text, style: style)),
+            const SizedBox(width: 4),
+            Icon(Icons.open_in_new, size: 14, color: style?.color),
+          ],
+        ),
       ),
     );
   }

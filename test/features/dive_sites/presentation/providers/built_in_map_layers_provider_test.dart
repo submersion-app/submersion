@@ -226,6 +226,9 @@ void main() {
   test('the provider defaults to the unstored defaults', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
-    expect(container.read(builtInMapLayersProvider), const BuiltInMapLayers());
+    expect(
+      container.read(builtInMapLayersNotifierProvider),
+      const BuiltInMapLayers(),
+    );
   });
 }

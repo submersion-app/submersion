@@ -17,11 +17,14 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// shows, and the caption for a view that holds more than it can mark.
 
 /// The layer state with both layers off, or as it is by default.
-Override _layers({required bool show}) => builtInMapLayersProvider.overrideWith(
-  (ref) => BuiltInMapLayersNotifier.unstored(
-    show ? const BuiltInMapLayers() : const BuiltInMapLayers(diveSites: false),
-  ),
-);
+Override _layers({required bool show}) =>
+    builtInMapLayersNotifierProvider.overrideWith(
+      (ref) => BuiltInMapLayersNotifier.unstored(
+        show
+            ? const BuiltInMapLayers()
+            : const BuiltInMapLayers(diveSites: false),
+      ),
+    );
 
 Future<({ProviderContainer container, MapController map})> _pumpMap(
   WidgetTester tester, {
@@ -191,7 +194,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
 
     await h.container
-        .read(builtInMapLayersProvider.notifier)
+        .read(builtInMapLayersNotifierProvider.notifier)
         .setLayer(CatalogueKind.register, true);
     await tester.pump();
     await tester.pump();

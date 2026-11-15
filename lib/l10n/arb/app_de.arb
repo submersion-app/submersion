@@ -4010,8 +4010,6 @@
   "diveSites_import_badge_imported": "Importiert",
   "diveSites_import_badge_saved": "Gespeichert",
   "diveSites_import_button_import": "Importieren",
-  "diveSites_import_detail_alreadyImported": "Bereits importiert",
-  "diveSites_import_detail_importToMySites": "Zu meinen Tauchplätzen importieren",
   "diveSites_import_detail_source": "Quelle: {source}",
   "diveSites_import_empty_description": "Suche nach Tauchplätzen aus unserer Datenbank beliebter\nTauchziele weltweit.",
   "diveSites_import_empty_hint": "Versuche, nach Tauchplatzname, Land oder Region zu suchen.",

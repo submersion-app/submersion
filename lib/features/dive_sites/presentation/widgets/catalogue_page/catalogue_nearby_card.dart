@@ -114,8 +114,9 @@ class _NearbyRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+      // Six of these sit one under another: each is tall enough to hit.
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
         child: Row(
           children: [
             Icon(

@@ -12484,12 +12484,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_import_button_import => 'Import';
 
   @override
-  String get diveSites_import_detail_alreadyImported => 'Already Imported';
-
-  @override
-  String get diveSites_import_detail_importToMySites => 'Import to My Sites';
-
-  @override
   String diveSites_import_detail_source(Object source) {
     return 'Source: $source';
   }

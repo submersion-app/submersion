@@ -3,6 +3,7 @@ import 'package:submersion/core/services/geocoding/sea_area_service.dart';
 import 'package:submersion/features/dive_sites/data/services/catalogue_sea_name.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/catalogue_nearby.dart';
+import 'package:submersion/features/dive_sites/domain/services/catalogue_site_visibility.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -24,15 +25,10 @@ final catalogueOwnerSiteIdProvider = Provider.autoDispose
     .family<String?, String>((ref, catalogueId) {
       final sites = ref.watch(sitesWithCountsProvider).value;
       if (sites == null) return null;
-      for (final entry in sites) {
-        if (entry.site.catalogueId == catalogueId) return entry.site.id;
-      }
-      for (final entry in sites) {
-        if (entry.site.catalogueAnswers.also.contains(catalogueId)) {
-          return entry.site.id;
-        }
-      }
-      return null;
+      return catalogueOwnerSiteId(
+        sites.map((entry) => entry.site),
+        catalogueId,
+      );
     });
 
 /// How many records of each kind are read to find a built-in record's

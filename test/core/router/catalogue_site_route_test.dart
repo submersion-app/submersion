@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/catalogue_site_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_import_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -58,6 +59,17 @@ void main() {
 
     expect(matches.pathParameters['catalogueId'], 'osm_node_663869401');
     expect(matches.last.route.name, 'catalogueSite');
+  });
+
+  test('an id that is not path-safe comes back as it went in', () {
+    const id = 'researched/blue hole?v=2#a';
+
+    final matches = router.configuration.findMatch(
+      Uri.parse(catalogueSitePath(id)),
+    );
+
+    expect(matches.last.route.name, 'catalogueSite');
+    expect(matches.pathParameters['catalogueId'], id);
   });
 
   group('the route builders', () {

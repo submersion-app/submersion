@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -314,19 +317,91 @@ void main() {
     });
 
     testWidgets('never draws the record on the way', (tester) async {
-      tester.view.physicalSize = const Size(420, 900);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
-      // First frames only: the diver's sites are known, the page has not
-      // been replaced yet.
       await pumpCataloguePage(
         tester,
         id: saltPier.id,
         mine: [own('mine', catalogueId: saltPier.id)],
+        settled: false,
       );
 
-      expect(find.text('Pillars covered in sponges.'), findsNothing);
-      expect(find.byKey(_addButton), findsNothing);
+      // Frame by frame, from the first one to the diver's own page: the
+      // built-in page's content is in none of them.
+      for (var frame = 0; frame < 16; frame++) {
+        expect(
+          find.text('Pillars covered in sponges.'),
+          findsNothing,
+          reason: 'frame $frame',
+        );
+        expect(find.byKey(_addButton), findsNothing, reason: 'frame $frame');
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      expect(find.text(ownPageText('mine')), findsOneWidget);
+    });
+
+    testWidgets('with something open over the page (a sheet, a dialog) it '
+        'waits for that to close before it moves on', (tester) async {
+      final container = await pumpCataloguePage(
+        tester,
+        id: saltPier.id,
+        fromHome: true,
+      );
+      // Over the page, not instead of it: the page stays visible beneath,
+      // and keeps hearing about the diver's sites.
+      unawaited(
+        showDialog<void>(
+          context: tester.element(find.byType(CatalogueSitePage)),
+          builder: (_) => const AlertDialog(content: Text('a dialog')),
+        ),
+      );
+      await settle(tester);
+      expect(find.text('a dialog'), findsOneWidget);
+
+      container.read(mineProvider.notifier).state = [
+        own('synced', catalogueId: saltPier.id),
+      ];
+      await settle(tester);
+
+      // Nothing is replaced under what the diver is looking at.
+      expect(find.text('a dialog'), findsOneWidget);
+      expect(find.text(ownPageText('synced')), findsNothing);
+
+      Navigator.of(tester.element(find.text('a dialog'))).pop();
+      await settle(tester);
+      expect(find.text(ownPageText('synced')), findsOneWidget);
+    });
+
+    testWidgets('a page that is covered by another leaves that one alone, '
+        'and moves on only when the diver comes back to it', (tester) async {
+      final container = await pumpCataloguePage(
+        tester,
+        id: saltPier.id,
+        fromHome: true,
+      );
+      // The diver goes on from the built-in page to something else.
+      GoRouter.of(
+        tester.element(find.byType(CatalogueSitePage)),
+      ).push(otherPath);
+      await settle(tester);
+      expect(find.text(otherText), findsOneWidget);
+
+      // Meanwhile the record becomes theirs (a sync, another screen).
+      container.read(mineProvider.notifier).state = [
+        own('synced', catalogueId: saltPier.id),
+      ];
+      await settle(tester);
+
+      // The page on top is not the built-in page's to replace.
+      expect(find.text(otherText), findsOneWidget);
+      expect(find.text(ownPageText('synced')), findsNothing);
+
+      // Back on the built-in page, it hands over to the diver's own site.
+      await tester.pageBack();
+      await settle(tester);
+      expect(find.text(ownPageText('synced')), findsOneWidget);
+
+      await tester.pageBack();
+      await settle(tester);
+      expect(find.text(homeText), findsOneWidget);
     });
 
     testWidgets('and when it becomes theirs while the page is open, the '
@@ -363,9 +438,66 @@ void main() {
       sitesError: StateError('database is busy'),
     );
 
-    expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.text('Pillars covered in sponges.'), findsOneWidget);
     expect(find.byKey(_addButton), findsOneWidget);
+  });
+
+  group('tides', () {
+    testWidgets('a position with no tide data has no Tides card: a lake '
+        'the catalogue has no water type for', (tester) async {
+      const lake = CatalogueSite(
+        id: 'lake',
+        name: 'Hemmoor',
+        location: GeoPoint(53.69, 9.13),
+        country: 'Germany',
+        source: 'osm',
+      );
+      await pumpCataloguePage(
+        tester,
+        id: lake.id,
+        records: const [lake],
+        tideData: false,
+      );
+
+      expect(find.byType(TideSection), findsNothing);
+      expect(find.text('Tides'), findsNothing);
+      // The cards around where it would be keep the page's one gap.
+      final location = tester.getRect(find.byType(CatalogueLocationCard));
+      final reef = tester.getRect(find.byType(ReefSection));
+      expect(reef.top - location.bottom, closeTo(12, 0.5));
+    });
+
+    testWidgets('while that is still being found out the card holds its '
+        'place', (tester) async {
+      await pumpCataloguePage(tester, id: saltPier.id);
+
+      expect(find.byType(TideSection), findsOneWidget);
+    });
+  });
+
+  group('while the catalogue is being imported', () {
+    testWidgets('a record it does not hold yet is waited for, not called '
+        'unavailable', (tester) async {
+      final container = await pumpCataloguePage(
+        tester,
+        id: 'not_imported_yet',
+        importing: true,
+      );
+
+      expect(
+        find.text('This built-in site is no longer available'),
+        findsNothing,
+      );
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      // The import ends without the record: now it is unavailable.
+      container.read(siteCatalogueImportingProvider.notifier).state = false;
+      await settle(tester);
+      expect(
+        find.text('This built-in site is no longer available'),
+        findsOneWidget,
+      );
+    });
   });
 
   testWidgets('a record read again while the page is open stays on screen', (
@@ -515,6 +647,46 @@ void main() {
 
       expect(find.text(ownPageText('barriers')), findsOneWidget);
     });
+  });
+
+  testWidgets('what can be tapped on the page is tall enough to hit: the '
+      'nearby rows, the line for a site of yours, and the licence link', (
+    tester,
+  ) async {
+    await pumpCataloguePage(
+      tester,
+      id: tabarka.id,
+      mine: [
+        own(
+          'hand_made',
+          name: 'Tabarka',
+          location: const GeoPoint(58.90036, -3.1),
+        ),
+        own('barriers', location: const GeoPoint(58.89, -3.1)),
+      ],
+      records: const [
+        tabarka,
+        CatalogueSite(
+          id: 'inganess',
+          name: 'Inganess Bay',
+          location: GeoPoint(58.96, -3.1),
+          source: 'osm',
+        ),
+      ],
+    );
+
+    for (final key in const [
+      ValueKey('catalogueYourSiteHere'),
+      ValueKey('catalogueNearbyOwn_barriers'),
+      ValueKey('catalogueNearbyRecord_inganess'),
+      ValueKey('catalogueLicenceLink'),
+    ]) {
+      expect(
+        tester.getSize(find.byKey(key)).height,
+        greaterThanOrEqualTo(kMinInteractiveDimension),
+        reason: '$key',
+      );
+    }
   });
 
   testWidgets('the strip opens a map of the same position that can be '

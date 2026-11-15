@@ -117,11 +117,11 @@ void main() {
 
       // The diver's stored choice, not the defaults a bare container has.
       expect(
-        container.read(builtInMapLayersProvider),
+        container.read(builtInMapLayersNotifierProvider),
         const BuiltInMapLayers(diveSites: false, registers: true),
       );
       await container
-          .read(builtInMapLayersProvider.notifier)
+          .read(builtInMapLayersNotifierProvider.notifier)
           .setLayer(CatalogueKind.site, true);
       expect(prefs.getBool(SettingsKeys.builtInDiveSitesOnMap), isTrue);
     },

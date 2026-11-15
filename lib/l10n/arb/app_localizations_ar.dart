@@ -12837,12 +12837,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_import_button_import => 'استيراد';
 
   @override
-  String get diveSites_import_detail_alreadyImported => 'تم الاستيراد مسبقاً';
-
-  @override
-  String get diveSites_import_detail_importToMySites => 'استيراد إلى مواقعي';
-
-  @override
   String diveSites_import_detail_source(Object source) {
     return 'المصدر: $source';
   }

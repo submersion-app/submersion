@@ -3,9 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/compiler/query_validator.dart';
+import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/presentation/query_text_field.dart';
+import 'package:submersion/core/query/presentation/query_tree_edit.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/features/query/presentation/entity_query_editor.dart';
 import 'package:submersion/features/query/presentation/providers/entity_search_providers.dart';
@@ -56,8 +60,9 @@ class EntitySearchHeader extends ConsumerStatefulWidget {
 
   /// Rows of the list's own beneath "Search everything", shown with it
   /// (the field focused, with text in it): other places the typed text can
-  /// be taken. Given the text as typed, and the tree it parses to, which
-  /// is null while the text does not parse. No rows when null.
+  /// be taken. Given the text as typed, and the tree that text parses to
+  /// in this list's language, which is null when it does not parse. No
+  /// rows when null.
   final List<Widget> Function(String text, QueryNode? parsed)? extraRows;
 
   @override
@@ -73,15 +78,6 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
 
   /// What the diver typed, parsed or not: what Search everything sends.
   String _text = '';
-
-  /// Whether [_text] parses. While it does not, [_local] is still the
-  /// tree of the last text that did.
-  ///
-  /// The field reports only a change of this, and a field built anew
-  /// starts out parsing without saying so. So wherever [_text] is emptied
-  /// (Close, the row hidden, a query set from outside) this goes back to
-  /// true with it, or it would stay false for a field that never errs.
-  bool _textParses = true;
 
   /// Empties the field after Close, whose write the field cannot see when
   /// the committed tree was already null.
@@ -105,7 +101,6 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
       _debounce?.cancel();
       _local = widget.query;
       _text = '';
-      _textParses = true;
       // Close's empty text must not outlive it: a row hidden by Close and
       // shown again by this query builds a new field, which would apply it
       // over the printed query.
@@ -158,6 +153,24 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
     });
   }
 
+  /// The tree [text] parses to in this list's language, or null when it
+  /// does not parse or is blank.
+  ///
+  /// Read from the text itself each time, not from what the field last
+  /// reported: the field says only when its validity changes, and says
+  /// nothing when a query set from outside rewrites it, so a flag kept
+  /// from its reports can call text it never checked valid.
+  static QueryNode? _cleanTree(QueryEditorContext context, String text) {
+    if (text.trim().isEmpty) return null;
+    return switch (context.parser.parse(text)) {
+      ParseOk(:final node) =>
+        validateQuery(node, context.root, context.registry).isEmpty
+            ? normalizeQuery(node)
+            : null,
+      ParseFailure() => null,
+    };
+  }
+
   /// Close: the row hides (unless [EntitySearchHeader.alwaysShown]) and the
   /// query clears, text still waiting on the debounce included.
   void _close() {
@@ -167,7 +180,6 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
     setState(() {
       _local = null;
       _text = '';
-      _textParses = true;
       _override = QueryTextOverride('');
     });
     if (widget.query != null) widget.onChanged(null);
@@ -191,11 +203,11 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
       _debounce?.cancel();
       _local = null;
       _text = '';
-      _textParses = true;
       return const SizedBox.shrink();
     }
     final l10n = context.l10n;
     final showEverywhere = _text.trim().isNotEmpty && _focus.hasFocus;
+    final editorContext = watchQueryEditorContext(context, ref, widget.root);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -207,7 +219,7 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
             children: [
               Expanded(
                 child: QueryTextField(
-                  context: watchQueryEditorContext(context, ref, widget.root),
+                  context: editorContext,
                   value: _local,
                   onChanged: _onQueryChanged,
                   hintText: widget.hintText ?? l10n.search_fieldHint,
@@ -215,8 +227,6 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
                   fieldKey: entitySearchFieldKey(widget.subject),
                   focusNode: _focus,
                   onTextChanged: (text) => setState(() => _text = text),
-                  onValidityChanged: (valid) =>
-                      setState(() => _textParses = valid),
                   textOverride: _override,
                   onEscape: _close,
                 ),
@@ -232,7 +242,7 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
         ),
         if (showEverywhere) ...[
           SearchEverywhereRow(text: _text),
-          ...?widget.extraRows?.call(_text, _textParses ? _local : null),
+          ...?widget.extraRows?.call(_text, _cleanTree(editorContext, _text)),
         ],
       ],
     );

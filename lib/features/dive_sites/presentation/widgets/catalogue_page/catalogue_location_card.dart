@@ -10,7 +10,8 @@ import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 
 /// Where a built-in site is: its place names and its coordinates, each row
-/// only when the record has it. Tapping the coordinates copies them.
+/// only when the record has it. The coordinates row can be copied, by its
+/// button or a long press.
 ///
 /// The sea is named in the diver's place-name language, as the site would
 /// have it once added. The other place names are the catalogue's own.
@@ -20,6 +21,8 @@ class CatalogueLocationCard extends ConsumerWidget {
   final CatalogueSite site;
 
   /// Whether [site] has a place name or a position for this card to show.
+  /// The page asks this and leaves the card out when it has neither: the
+  /// card itself always has a row.
   static bool hasContent(CatalogueSite site) =>
       site.location != null ||
       [
@@ -81,7 +84,6 @@ class CatalogueLocationCard extends ConsumerWidget {
         copyable: true,
       ),
     ].whereType<Widget>().toList();
-    if (rows.isEmpty) return const SizedBox.shrink();
 
     return CataloguePageCard(
       icon: Icons.map,

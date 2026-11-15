@@ -3976,8 +3976,6 @@
   "diveSites_import_badge_imported": "Importado",
   "diveSites_import_badge_saved": "Guardado",
   "diveSites_import_button_import": "Importar",
-  "diveSites_import_detail_alreadyImported": "Ya importado",
-  "diveSites_import_detail_importToMySites": "Importar a mis sitios",
   "diveSites_import_detail_source": "Fuente: {source}",
   "diveSites_import_empty_description": "Busca puntos de buceo en nuestra base de datos de destinos\nde buceo populares alrededor del mundo.",
   "diveSites_import_empty_hint": "Intenta buscar por nombre del sitio, país o región.",

@@ -578,6 +578,74 @@ the designer's call. The ones most worth checking:
   not comfortably inside one frame's work off the UI thread, say so
   before changing any limit.
 
+## Rulings made during the build
+
+Where the build settled something this record left open, or does
+something other than what the text above says. The text above is the
+design as approved; these are the corrections to read with it.
+
+- **Coordinates are copied by a button or a long press, not a tap.**
+  Section 7's sketch and its Location paragraph say "tap to copy". The
+  page uses the shared copyable detail row (`DetailRow.text(copyable:)`),
+  the row the dive, equipment and certification pages copy from, and
+  that row copies from its copy button or a long press anywhere on it.
+  The diver's own site page still copies its coordinates its own way.
+- **The Tides card is also left out where the position has no tide
+  data.** The design leaves it out for a record typed fresh water only.
+  Only 308 of 20,931 records carry a water type, so an inland lake or
+  quarry with none would show a card saying nothing but that there is no
+  tide data. The page asks `hasTideDataProvider` for the position and
+  leaves the card out on a "no", under the same rule as every other card
+  with nothing to show. The card holds its place while that is being
+  found out. This is the build's call, not the maintainer's.
+- **The page replaces itself only while it is the page on top.** The
+  router replaces whichever page is on top, so a built-in page with a
+  sheet, a dialog or another page over it waits, and hands over to the
+  diver's own site page when it is on top again.
+- **A record the catalogue does not hold is "not found" only once the
+  bundled catalogue has finished importing.** Until then the page shows
+  the loading state (`siteCatalogueImportingProvider`): on a first launch
+  the record may only not be there yet.
+- **A record's id is encoded in the page's path.**
+  `catalogueSitePath` percent-encodes the id, so an id with a `/`, `?` or
+  `#` in it still names one route segment.
+- **One adoption flow for the page and both maps.**
+  `adoptBuiltInSite` holds the steps (adopt, refresh the diver's sites,
+  say "Added to your sites", run the "after create" rules when a site
+  was created, report a failure). The confirmation is shown through the
+  app's messenger, so it still appears when the diver has left the page
+  before the add finishes.
+- **An Import result that is the diver's opens their site directly.**
+  A result that was adopted, or that a merge folded into one of the
+  diver's sites (`catalogueOwnerSiteId`), pushes `/sites/<id>` instead of
+  going through the built-in page and its redirect.
+- **A map's card is cleared when its record stops being offered.** That
+  is the link rule and the 150 m rule together
+  (`offerableCatalogueSites` with `byPosition`), not the link rule
+  alone: a site the diver creates on the record's spot hides the pin,
+  and the card goes with it.
+- **The strip is drawn at zoom 12**, with the map locked; the fullscreen
+  map from its corner button is the one that moves.
+- **Nearby is read once per kind**, 60 records each (ten times the six
+  shown), so a coast crowded with register records cannot push the dive
+  site records out of the list.
+- **Layer choices are stored in the order they were made.** The writes
+  are sent one after another and a failed write is logged, not thrown: a
+  layer ticked and unticked quickly cannot have its older value stored
+  last.
+- **The layer provider is `builtInMapLayersNotifierProvider`**, after
+  the project's naming rule for mutable state.
+- **The Sites search row reads the typed text each time it is drawn.**
+  Whether the text is plain words is worked out from the text itself,
+  not kept in a second piece of state that an outside change to the
+  query could leave stale.
+- **The map card's bottom row is an `OverflowBar`**: links at the start
+  and the actions at the end, falling to end-aligned lines on a narrow
+  phone.
+- **Two strings were retired**: `diveSites_import_detail_alreadyImported`
+  and `diveSites_import_detail_importToMySites` belonged to the Import
+  page's details sheet, which the built-in page replaced.
+
 ## Acceptance
 
 The scenarios use a fixture catalogue with dive site and register records.

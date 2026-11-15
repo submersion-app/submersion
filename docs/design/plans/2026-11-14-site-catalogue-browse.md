@@ -122,7 +122,7 @@ Removed: `built_in_sites_toggle_button.dart` and its test;
     BuiltInMapLayersNotifier.unstored([BuiltInMapLayers layers]);
     Future<void> setLayer(CatalogueKind kind, bool on);
   }
-  final builtInMapLayersProvider; // StateNotifierProvider, unstored defaults
+  final builtInMapLayersNotifierProvider; // StateNotifierProvider, unstored defaults
   ```
 - `SettingsKeys.builtInDiveSitesOnMap = 'built_in_dive_sites_on_map'`,
   `SettingsKeys.builtInRegistersOnMap = 'built_in_registers_on_map'`.
@@ -191,9 +191,9 @@ Removed: `built_in_sites_toggle_button.dart` and its test;
 - Test: `test/features/dive_sites/presentation/providers/visible_built_in_sites_provider_test.dart`, `test/features/dive_sites/presentation/widgets/built_in_overlay_view_test.dart`
 
 **Interfaces:**
-- Consumes: `builtInMapLayersProvider`, `inBounds(kinds:)`.
+- Consumes: `builtInMapLayersNotifierProvider`, `inBounds(kinds:)`.
 - Produces: `showBuiltInSitesProvider` no longer exists. The reporter and
-  the caption read `builtInMapLayersProvider.select((l) => l.any)`.
+  the caption read `builtInMapLayersNotifierProvider.select((l) => l.any)`.
   `visibleBuiltInSitesProvider` and `builtInOverlayTruncatedProvider` keep
   their names and types.
 
@@ -212,7 +212,7 @@ Removed: `built_in_sites_toggle_button.dart` and its test;
   - Overlay view: the reporter reports with the default layers and stops
     with both off; the caption shows only with a layer on and a truncated
     view. Existing tests that set `showBuiltInSitesProvider` move to
-    `builtInMapLayersProvider.overrideWith(...unstored(...))`.
+    `builtInMapLayersNotifierProvider.overrideWith(...unstored(...))`.
 - [ ] **Step 2:** Run each file alone; fail.
 - [ ] **Step 3:** Implement. `_builtInSitesInViewProvider` watches the
   layers and returns the empty result at once when none is on. Delete
@@ -305,7 +305,7 @@ Removed: `built_in_sites_toggle_button.dart` and its test;
 - [ ] **Step 2:** Run each alone; fail.
 - [ ] **Step 3:** Write the mixin by moving `_selectedBuiltInId`,
   `_buildBuiltInInfoCard` and `_addBuiltInSite` out of both files as they
-  are, then add the reset rule: listen to `builtInMapLayersProvider` and
+  are, then add the reset rule: listen to `builtInMapLayersNotifierProvider` and
   to `sitesWithCountsProvider`; clear when the selected record's kind is
   not shown or `linkedCatalogueIds(userSites)` contains its id. The
   selected record's kind is read from the card's record

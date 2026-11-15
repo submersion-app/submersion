@@ -58,8 +58,10 @@ class CatalogueSiteHeader extends ConsumerWidget {
               key: const ValueKey('catalogueYourSiteHere'),
               borderRadius: BorderRadius.circular(8),
               onTap: () => context.push('/sites/${yours.site.id}'),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: kMinInteractiveDimension,
+                ),
                 child: Row(
                   children: [
                     Icon(

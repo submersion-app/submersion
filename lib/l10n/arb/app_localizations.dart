@@ -20196,18 +20196,6 @@ abstract class AppLocalizations {
   /// **'Import'**
   String get diveSites_import_button_import;
 
-  /// No description provided for @diveSites_import_detail_alreadyImported.
-  ///
-  /// In en, this message translates to:
-  /// **'Already Imported'**
-  String get diveSites_import_detail_alreadyImported;
-
-  /// No description provided for @diveSites_import_detail_importToMySites.
-  ///
-  /// In en, this message translates to:
-  /// **'Import to My Sites'**
-  String get diveSites_import_detail_importToMySites;
-
   /// No description provided for @diveSites_import_detail_source.
   ///
   /// In en, this message translates to:

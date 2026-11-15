@@ -3851,8 +3851,6 @@
   "diveSites_import_badge_imported": "Importé",
   "diveSites_import_badge_saved": "Enregistré",
   "diveSites_import_button_import": "Importer",
-  "diveSites_import_detail_alreadyImported": "Déjà importé",
-  "diveSites_import_detail_importToMySites": "Importer dans mes sites",
   "diveSites_import_detail_source": "Source : {source}",
   "diveSites_import_empty_description": "Recherche des sites de plongée dans notre base de données\nde destinations populaires à travers le monde.",
   "diveSites_import_empty_hint": "Essaie de rechercher par nom de site, pays ou région.",

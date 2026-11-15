@@ -3,9 +3,9 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/catalogue_nearby.dart';
+import 'package:submersion/features/dive_sites/presentation/built_in_site_adoption.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/catalogue_site_page_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -17,8 +17,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_pa
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_page/catalogue_source_card.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
 import 'package:submersion/features/reef/presentation/widgets/reef_section.dart';
-import 'package:submersion/features/rules/domain/rule_subject.dart';
-import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -55,62 +54,54 @@ class _CatalogueSitePageState extends ConsumerState<CatalogueSitePage> {
   /// both lead here, and the page must be replaced one time.
   bool _leaving = false;
 
+  /// Whether this page is the one on top. A page the diver has gone on
+  /// from is still built, and still hears that its record became theirs.
+  bool get _isOnTop => ModalRoute.of(context)?.isCurrent ?? true;
+
   /// Replaces this page with the page of the diver's site [siteId].
+  ///
+  /// Only while this page is on top: the router replaces whichever page
+  /// is, and one the diver has gone on to (a nearby site, a form they are
+  /// typing in) is not this page's to replace. A covered page waits, and
+  /// hands over when the diver comes back to it.
   void _openOwn(String siteId) {
-    if (_leaving) return;
+    if (_leaving || !_isOnTop) return;
     _leaving = true;
     // Not during a build, which is where the owner is first noticed.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.pushReplacement('/sites/$siteId');
+      if (!mounted) return;
+      if (!_isOnTop) {
+        // Covered in the frame between: try again when it is back on top.
+        setState(() => _leaving = false);
+        return;
+      }
+      context.pushReplacement('/sites/$siteId');
     });
   }
 
   Future<void> _add(CatalogueSite site) async {
     if (_adding || _leaving) return;
-    // Read now: adding a built-in site is creating a site by hand (#3513),
-    // and it gets its rules even though this page is replaced meanwhile.
-    final rulesAfterCreate = captureRulesAfterCreate(context, ref);
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-    final errorColor = Theme.of(context).colorScheme.error;
     setState(() => _adding = true);
-
-    final CatalogueAdoption adoption;
-    try {
-      adoption = await ref.read(catalogueSiteAdopterProvider)(site);
-    } catch (_) {
-      if (mounted) setState(() => _adding = false);
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.diveSites_map_builtInSites_addError),
-          backgroundColor: errorColor,
-        ),
-      );
-      return;
-    }
-    if (mounted) {
-      // The adoption reloads the list's notifier, not this provider, which
-      // the map and this page's own "is it mine?" check read.
-      ref.invalidate(sitesWithCountsProvider);
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.diveSites_map_builtInSites_added)),
-      );
-      _openOwn(adoption.site.id);
-    }
-    // Only a site this tap created (see CatalogueAdoption.created).
-    if (adoption.created) {
-      await rulesAfterCreate(
-        subject: RuleSubject.sites,
-        ids: [adoption.site.id],
-      );
-    }
+    final adoption = await adoptBuiltInSite(
+      context,
+      ref,
+      site,
+      // The diver's own new site takes this page's place.
+      onAdopted: (adoption) {
+        if (mounted) _openOwn(adoption.site.id);
+      },
+    );
+    // Failed, and said so: the page stays, and the diver can try again.
+    if (adoption == null && mounted) setState(() => _adding = false);
   }
 
   @override
   Widget build(BuildContext context) {
     final id = widget.catalogueId;
     // Watched, so the page is rebuilt, and moves on, whenever the record
-    // becomes the diver's: at open, after an add, or by a sync.
+    // becomes the diver's: at open, after an add, or by a sync. Read with
+    // the route's own state, so a page that was covered at the time is
+    // rebuilt, and moves on, when the diver comes back to it.
     final owner = ref.watch(catalogueOwnerSiteIdProvider(id));
     if (owner != null) _openOwn(owner);
 
@@ -124,6 +115,10 @@ class _CatalogueSitePageState extends ConsumerState<CatalogueSitePage> {
       ),
     );
     final site = record.value;
+    // A record the catalogue does not hold while the bundled catalogue is
+    // still being imported may only not be there yet.
+    final awaitingImport =
+        site == null && ref.watch(siteCatalogueImportingProvider);
 
     // Nothing of the record is drawn until it is known not to be the
     // diver's: their own page is on its way, and the built-in page must
@@ -132,6 +127,7 @@ class _CatalogueSitePageState extends ConsumerState<CatalogueSitePage> {
     if (owner != null ||
         _leaving ||
         !sitesSettled ||
+        awaitingImport ||
         (record.isLoading && !record.hasValue)) {
       return Scaffold(
         appBar: AppBar(title: Text(site?.name ?? '')),
@@ -207,6 +203,16 @@ class _CatalogueSiteContent extends ConsumerWidget {
         CatalogueNearby.empty;
     final source = ref.watch(catalogueSourceProvider(site.source)).value;
     final location = site.location;
+    // Tides for the position, unless the record says fresh water: a quarry
+    // or lake has no tides, and a nearby ocean station must not leak in.
+    // Few records say (308 of 20,931), so the position is asked as well: a
+    // lake the catalogue has no water type for has no tide data, and a card
+    // saying only that is left out like any other with nothing to show.
+    // While that is still being found out the card holds its place.
+    final showTides =
+        location != null &&
+        site.waterType != WaterType.fresh &&
+        ref.watch(hasTideDataProvider(location)).value != false;
 
     final cards = <Widget>[
       if (location != null) CatalogueSiteMapStrip(site: site),
@@ -217,10 +223,7 @@ class _CatalogueSiteContent extends ConsumerWidget {
         CatalogueHazardsCard(site: site),
       if (CatalogueLocationCard.hasContent(site))
         CatalogueLocationCard(site: site),
-      // A quarry or lake has no tides, and a nearby ocean station must not
-      // leak in.
-      if (location != null && site.waterType != WaterType.fresh)
-        TideSection(location: location),
+      if (showTides) TideSection(location: location),
       if (location != null)
         ReefSection(location: location, waterType: site.waterType),
       if (!nearby.isEmpty) CatalogueNearbyCard(nearby: nearby),

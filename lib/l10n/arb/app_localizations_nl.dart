@@ -12596,13 +12596,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_import_button_import => 'Importeren';
 
   @override
-  String get diveSites_import_detail_alreadyImported => 'Reeds geïmporteerd';
-
-  @override
-  String get diveSites_import_detail_importToMySites =>
-      'Importeren naar mijn stekken';
-
-  @override
   String diveSites_import_detail_source(Object source) {
     return 'Bron: $source';
   }

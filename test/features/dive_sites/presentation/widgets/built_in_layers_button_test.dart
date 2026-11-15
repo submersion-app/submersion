@@ -21,7 +21,7 @@ Future<ProviderContainer> _pump(
   addTearDown(tester.view.reset);
   final container = ProviderContainer(
     overrides: [
-      builtInMapLayersProvider.overrideWith(
+      builtInMapLayersNotifierProvider.overrideWith(
         (ref) => BuiltInMapLayersNotifier.unstored(layers),
       ),
     ],
@@ -92,7 +92,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      container.read(builtInMapLayersProvider),
+      container.read(builtInMapLayersNotifierProvider),
       const BuiltInMapLayers(registers: true),
     );
     // Still open, so the other layer can be changed in the same visit.
@@ -102,7 +102,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      container.read(builtInMapLayersProvider),
+      container.read(builtInMapLayersNotifierProvider),
       const BuiltInMapLayers(diveSites: false, registers: true),
     );
     expect(_ticked(tester, _siteRow), isFalse);
@@ -114,7 +114,7 @@ void main() {
     expect(find.byTooltip('Built-in sites on the map'), findsOneWidget);
 
     await container
-        .read(builtInMapLayersProvider.notifier)
+        .read(builtInMapLayersNotifierProvider.notifier)
         .setLayer(CatalogueKind.site, false);
     await tester.pump();
 
@@ -122,7 +122,7 @@ void main() {
     expect(find.byIcon(Icons.public), findsNothing);
 
     await container
-        .read(builtInMapLayersProvider.notifier)
+        .read(builtInMapLayersNotifierProvider.notifier)
         .setLayer(CatalogueKind.register, true);
     await tester.pump();
 
@@ -144,7 +144,7 @@ void main() {
     );
 
     await container
-        .read(builtInMapLayersProvider.notifier)
+        .read(builtInMapLayersNotifierProvider.notifier)
         .setLayer(CatalogueKind.site, false);
     await tester.pump();
 

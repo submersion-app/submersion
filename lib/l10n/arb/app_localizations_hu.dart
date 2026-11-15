@@ -12653,13 +12653,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_import_button_import => 'Importálás';
 
   @override
-  String get diveSites_import_detail_alreadyImported => 'Már importálva';
-
-  @override
-  String get diveSites_import_detail_importToMySites =>
-      'Importálás a helyszíneimhez';
-
-  @override
   String diveSites_import_detail_source(Object source) {
     return 'Forrás: $source';
   }

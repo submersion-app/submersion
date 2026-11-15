@@ -102,7 +102,7 @@ const _tilePixels = 256;
 /// layers, so ticking a second layer on rebuilds nothing that only needs
 /// to know the overlay is up.
 bool _watchAnyBuiltInLayer(WidgetRef ref) =>
-    ref.watch(builtInMapLayersProvider.select((layers) => layers.any));
+    ref.watch(builtInMapLayersNotifierProvider.select((layers) => layers.any));
 
 /// [BuiltInOverlayCaption] where both Sites maps put it: the top left of
 /// the map's stack, kept clear of the controls card docked top right, and

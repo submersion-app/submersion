@@ -12056,12 +12056,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_import_button_import => '导入';
 
   @override
-  String get diveSites_import_detail_alreadyImported => '已导入';
-
-  @override
-  String get diveSites_import_detail_importToMySites => '导入到我的潜水点';
-
-  @override
   String diveSites_import_detail_source(Object source) {
     return '来源: $source';
   }

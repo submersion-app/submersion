@@ -3976,8 +3976,6 @@
   "diveSites_import_badge_imported": "Importado",
   "diveSites_import_badge_saved": "Salvo",
   "diveSites_import_button_import": "Importar",
-  "diveSites_import_detail_alreadyImported": "Já Importado",
-  "diveSites_import_detail_importToMySites": "Importar para Meus Pontos",
   "diveSites_import_detail_source": "Fonte: {source}",
   "diveSites_import_empty_description": "Busque pontos de mergulho em nosso banco de dados de\ndestinos de mergulho populares ao redor do mundo.",
   "diveSites_import_empty_hint": "Tente buscar por nome do ponto, país ou região.",

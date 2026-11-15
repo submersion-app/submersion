@@ -21,7 +21,7 @@ final builtInOverlayBoundsProvider =
     StateProvider.autoDispose<CatalogueBounds?>((ref) => null);
 
 /// The built-in sites worth marking in the bounds the map reported: of
-/// the layers that are on (`builtInMapLayersProvider`), not ones the diver
+/// the layers that are on (`builtInMapLayersNotifierProvider`), not ones the diver
 /// adopted, and not ones a site they made by hand already sits on.
 /// `truncated` says the view holds more of them than are marked.
 ///
@@ -36,7 +36,7 @@ final _builtInSitesInViewProvider =
       ref.watch(siteCatalogueRevisionProvider);
       final bounds = ref.watch(builtInOverlayBoundsProvider);
       final kinds = ref.watch(
-        builtInMapLayersProvider.select((layers) => layers.kinds),
+        builtInMapLayersNotifierProvider.select((layers) => layers.kinds),
       );
       final catalogue = ref.watch(siteCatalogueProvider);
       final userSitesFuture = ref.watch(sitesWithCountsProvider.future);

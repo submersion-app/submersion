@@ -3976,8 +3976,6 @@
   "diveSites_import_badge_imported": "Geïmporteerd",
   "diveSites_import_badge_saved": "Opgeslagen",
   "diveSites_import_button_import": "Importeren",
-  "diveSites_import_detail_alreadyImported": "Reeds geïmporteerd",
-  "diveSites_import_detail_importToMySites": "Importeren naar mijn stekken",
   "diveSites_import_detail_source": "Bron: {source}",
   "diveSites_import_empty_description": "Zoek naar duikstekken uit onze database van populaire\nduikbestemmingen over de hele wereld.",
   "diveSites_import_empty_hint": "Probeer te zoeken op steknaam, land of regio.",

@@ -84,7 +84,7 @@ List<dynamic> rootProviderOverrides({
     // Unstored defaults so a map in a container without prefs still draws
     // built-in sites; here the diver's choice of layers gains persistence
     // (issue #4514).
-    builtInMapLayersProvider.overrideWith(
+    builtInMapLayersNotifierProvider.overrideWith(
       (ref) => BuiltInMapLayersNotifier(prefs),
     ),
     // Unstored (enabled) by default so a container without prefs still

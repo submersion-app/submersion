@@ -41,7 +41,7 @@ ProviderContainer _container(
   final container = ProviderContainer(
     overrides: [
       siteCatalogueProvider.overrideWithValue(catalogue),
-      builtInMapLayersProvider.overrideWith(
+      builtInMapLayersNotifierProvider.overrideWith(
         (ref) => BuiltInMapLayersNotifier.unstored(layers),
       ),
       sitesWithCountsProvider.overrideWith(
@@ -113,7 +113,7 @@ void main() {
       );
 
       await container
-          .read(builtInMapLayersProvider.notifier)
+          .read(builtInMapLayersNotifierProvider.notifier)
           .setLayer(CatalogueKind.register, false);
       final sites = await container.read(visibleBuiltInSitesProvider.future);
 

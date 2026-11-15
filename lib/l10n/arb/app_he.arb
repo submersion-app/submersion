@@ -3851,8 +3851,6 @@
   "diveSites_import_badge_imported": "יובא",
   "diveSites_import_badge_saved": "נשמר",
   "diveSites_import_button_import": "ייבא",
-  "diveSites_import_detail_alreadyImported": "כבר יובא",
-  "diveSites_import_detail_importToMySites": "ייבא לאתרים שלי",
   "diveSites_import_detail_source": "מקור: {source}",
   "diveSites_import_empty_description": "חפש אתרי צלילה ממאגר הנתונים שלנו\nשל יעדי צלילה פופולריים ברחבי העולם.",
   "diveSites_import_empty_hint": "נסה לחפש לפי שם אתר, מדינה או אזור.",

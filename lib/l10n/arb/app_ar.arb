@@ -3976,8 +3976,6 @@
   "diveSites_import_badge_imported": "مستورد",
   "diveSites_import_badge_saved": "محفوظ",
   "diveSites_import_button_import": "استيراد",
-  "diveSites_import_detail_alreadyImported": "تم الاستيراد مسبقاً",
-  "diveSites_import_detail_importToMySites": "استيراد إلى مواقعي",
   "diveSites_import_detail_source": "المصدر: {source}",
   "diveSites_import_empty_description": "ابحث عن مواقع الغوص من قاعدة بياناتنا لوجهات\nالغوص الشهيرة حول العالم.",
   "diveSites_import_empty_hint": "جرّب البحث باسم الموقع أو الدولة أو المنطقة.",

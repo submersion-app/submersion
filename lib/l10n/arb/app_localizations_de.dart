@@ -12667,13 +12667,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_import_button_import => 'Importieren';
 
   @override
-  String get diveSites_import_detail_alreadyImported => 'Bereits importiert';
-
-  @override
-  String get diveSites_import_detail_importToMySites =>
-      'Zu meinen Tauchplätzen importieren';
-
-  @override
   String diveSites_import_detail_source(Object source) {
     return 'Quelle: $source';
   }

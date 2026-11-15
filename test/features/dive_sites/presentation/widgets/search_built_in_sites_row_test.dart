@@ -240,6 +240,25 @@ void main() {
     expect(find.byKey(kSearchBuiltInSitesRowKey), findsOneWidget);
   });
 
+  testWidgets('text that does not parse is not offered after a query was '
+      'set from outside, whatever the field last said', (tester) async {
+    late WidgetRef ref;
+    await tester.pumpWidget(_app(onRef: (r) => ref = r));
+    await tester.pumpAndSettle();
+    await _type(tester, 'maxDepth >');
+    expect(find.byKey(kSearchBuiltInSitesRowKey), findsNothing);
+
+    // A saved search applied, or a filter chip removed: the field is
+    // rewritten in place and tells the header nothing.
+    ref.read(_query.notifier).state = TextNode(['wreck']);
+    await tester.pumpAndSettle();
+
+    await _type(tester, 'wreck maxDepth >');
+
+    expect(find.byKey(kSearchBuiltInSitesRowKey), findsNothing);
+    expect(find.byKey(kSearchEverywhereRowKey), findsOneWidget);
+  });
+
   testWidgets('a list that passes no rows of its own shows only Search '
       'everything', (tester) async {
     await tester.pumpWidget(_app(withRows: false));

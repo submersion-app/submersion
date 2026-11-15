@@ -7664,8 +7664,6 @@
   "diveSites_import_badge_imported": "Imported",
   "diveSites_import_badge_saved": "Saved",
   "diveSites_import_button_import": "Import",
-  "diveSites_import_detail_alreadyImported": "Already Imported",
-  "diveSites_import_detail_importToMySites": "Import to My Sites",
   "diveSites_import_detail_source": "Source: {source}",
   "diveSites_import_empty_description": "Search for dive sites from our database of popular dive destinations around the world.",
   "diveSites_import_empty_hint": "Try searching by site name, country, or region.",

@@ -183,8 +183,20 @@ void main() {
     });
   });
 
-  test('catalogueSitePath is the record\'s own page', () {
-    expect(catalogueSitePath('osm_node_1'), '/sites/catalogue/osm_node_1');
+  group('catalogueSitePath', () {
+    test('is the record\'s own page', () {
+      expect(catalogueSitePath('osm_node_1'), '/sites/catalogue/osm_node_1');
+    });
+
+    test('keeps an id that is not path-safe in one path segment', () {
+      // No id is like this today; a later source's might be.
+      final path = catalogueSitePath('researched/blue hole?v=2#a');
+
+      final segments = Uri.parse(path).pathSegments;
+      expect(segments, ['sites', 'catalogue', 'researched/blue hole?v=2#a']);
+      expect(Uri.parse(path).hasQuery, isFalse);
+      expect(Uri.parse(path).hasFragment, isFalse);
+    });
   });
 
   group('catalogueKindLabel', () {
