@@ -366,7 +366,8 @@ void main() {
               catalogueWithdrawalProvider.overrideWith(
                 (ref, id) async => withdrawn(
                   CatalogueWithdrawalReason.position,
-                  replacedBy: 'research_my_x_2',
+                  // Not path-safe: the link keeps it one path segment.
+                  replacedBy: 'research_my_x/2',
                 ),
               ),
             ],
@@ -383,7 +384,7 @@ void main() {
         await tester.tap(find.text('See the corrected record'));
         await tester.pumpAndSettle();
 
-        expect(find.text('page research_my_x_2'), findsOneWidget);
+        expect(find.text('page research_my_x/2'), findsOneWidget);
       });
 
       testWidgets('a record still in the catalogue shows its credit, not a '

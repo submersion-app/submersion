@@ -242,7 +242,7 @@ class _WithdrawnLine extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 visualDensity: VisualDensity.compact,
               ),
-              onPressed: () => context.push('/sites/catalogue/$replacedBy'),
+              onPressed: () => context.push(catalogueSitePath(replacedBy)),
               child: Text(l10n.diveSites_catalogue_withdrawnReplacement),
             ),
         ],

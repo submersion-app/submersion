@@ -87,7 +87,7 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
     ];
     final website = catalogueWebsiteUri(site.website);
     final hasLinks = widget.onDetails != null || website != null;
-    final researched = isResearched(site);
+    final researched = site.isResearched;
 
     return Card(
       child: Padding(

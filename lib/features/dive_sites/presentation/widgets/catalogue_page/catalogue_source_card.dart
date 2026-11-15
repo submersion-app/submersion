@@ -35,7 +35,7 @@ class CatalogueSourceCard extends StatelessWidget {
   static bool hasContent(CatalogueSite site, CatalogueSource? source) =>
       source != null ||
       site.kind == CatalogueKind.register ||
-      isResearched(site) ||
+      site.isResearched ||
       catalogueSourceLinkUri(site, source) != null ||
       catalogueWebsiteUri(site.website) != null;
 
@@ -102,7 +102,7 @@ class CatalogueSourceCard extends StatelessWidget {
             padding: const EdgeInsets.only(top: 8),
             child: Text(l10n.diveSites_builtInPage_notAGuide, style: muted),
           ),
-        if (isResearched(site))
+        if (site.isResearched)
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(

@@ -185,7 +185,7 @@ class _ComparisonState extends ConsumerState<_Comparison> {
                     style: muted,
                   ),
                 ],
-                if (isResearched(record)) ...[
+                if (record.isResearched) ...[
                   const SizedBox(height: 8),
                   const NotVerifiedLabel(),
                   const SizedBox(height: 4),

@@ -97,6 +97,11 @@ class CatalogueSite extends Equatable {
 
   bool get hasCoordinates => location != null;
 
+  /// Whether the record was gathered by research rather than read from a
+  /// register, and so is shown "Not verified" and never matched by GPS on
+  /// the diver's behalf.
+  bool get isResearched => trust == CatalogueTrust.researched;
+
   @override
   List<Object?> get props => [
     id,

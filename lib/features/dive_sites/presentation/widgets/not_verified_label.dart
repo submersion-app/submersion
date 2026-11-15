@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-
-/// Whether [site] was gathered by research rather than read from a
-/// register, and so is shown "Not verified".
-bool isResearched(CatalogueSite site) =>
-    site.trust == CatalogueTrust.researched;
 
 /// The small outlined "Not verified" mark beside a built-in site gathered
 /// from published sources.

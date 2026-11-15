@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+
 import 'package:submersion/features/dive_sites/presentation/widgets/not_verified_label.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -41,18 +41,5 @@ void main() {
       final text = tester.widget<Text>(find.text('Not verified'));
       expect(text.style?.color, scheme.onSurfaceVariant, reason: '$brightness');
     }
-  });
-
-  test('isResearched follows the record trust level', () {
-    const researched = CatalogueSite(
-      id: 'r',
-      name: 'r',
-      source: 'research',
-      trust: CatalogueTrust.researched,
-    );
-    const verified = CatalogueSite(id: 'v', name: 'v', source: 'osm');
-
-    expect(isResearched(researched), isTrue);
-    expect(isResearched(verified), isFalse);
   });
 }

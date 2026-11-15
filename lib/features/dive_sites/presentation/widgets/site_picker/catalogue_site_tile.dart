@@ -42,7 +42,7 @@ class CatalogueSiteTile extends ConsumerWidget {
       context.l10n,
     );
 
-    final researched = isResearched(site);
+    final researched = site.isResearched;
 
     return ListTile(
       leading: CircleAvatar(

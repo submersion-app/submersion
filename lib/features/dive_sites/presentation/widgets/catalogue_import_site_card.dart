@@ -86,7 +86,7 @@ class CatalogueImportSiteCard extends StatelessWidget {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              if (isResearched(site)) const NotVerifiedLabel(),
+                              if (site.isResearched) const NotVerifiedLabel(),
                             ],
                           ),
                           const SizedBox(height: 4),

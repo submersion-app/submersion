@@ -217,7 +217,7 @@ class _PairRow extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(catalogueGapAddsLine(pair, units, l10n, fields: fields)),
-              if (isResearched(pair.record)) const NotVerifiedLabel(),
+              if (pair.record.isResearched) const NotVerifiedLabel(),
             ],
           ),
         ],

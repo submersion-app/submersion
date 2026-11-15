@@ -56,7 +56,7 @@ class CatalogueSiteHeader extends ConsumerWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (isResearched(site)) const NotVerifiedLabel(),
+              if (site.isResearched) const NotVerifiedLabel(),
             ],
           ),
         ),

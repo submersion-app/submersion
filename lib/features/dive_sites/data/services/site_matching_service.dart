@@ -265,7 +265,7 @@ class SiteMatchingService {
             location: location,
             isExisting: false,
             isRegister: b.kind == CatalogueKind.register,
-            isResearched: b.trust == CatalogueTrust.researched,
+            isResearched: b.isResearched,
           ),
         );
       }
@@ -389,7 +389,7 @@ class SiteMatchingService {
       typeIds: b.typeIds,
       features: b.features,
       description: b.description,
-      isResearched: b.trust == CatalogueTrust.researched,
+      isResearched: b.isResearched,
     );
   }
 
