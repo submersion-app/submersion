@@ -30,6 +30,15 @@ final diveSurfacePressureField = EditField<Dive, double?>(
   ),
 );
 
+/// The key the copy of a looked-up altitude to [siteId] is held under, so
+/// that picking another site can release it (`releaseWrite`).
+String siteAltitudeWriteKey(String siteId) => 'siteAltitude:$siteId';
+
+/// The note of the altitude a lookup set in this sitting, and for which
+/// site: `({String? siteId, double meters})`. A change of site takes that
+/// altitude back, while the diver has not changed it since.
+const String altitudeFillNoteKey = 'altitudeFill';
+
 /// Looks the altitude up when the sitting has none, and sets it.
 ///
 /// The dive's own GPS comes first, then its site's stored altitude, then a
@@ -82,9 +91,10 @@ Future<void> fillAltitudeIfEmpty(
   if (meters == null || session.valueOf(diveAltitudeField) != null) return;
 
   session.set(diveAltitudeField, meters);
+  session.remember(altitudeFillNoteKey, (siteId: asked.siteId, meters: meters));
   final writeBack = resolution.siteAltitudeWriteBack;
   if (writeBack != null) {
-    session.holdWrite('siteAltitude:${writeBack.siteId}', () async {
+    session.holdWrite(siteAltitudeWriteKey(writeBack.siteId), () async {
       // Asked as the sitting is saved: a diver who has since typed another
       // altitude, or taken this one out, has not accepted the lookup, and
       // the site must not be given it.
