@@ -3082,29 +3082,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddySwap_title => 'Csere egy társsal';
 
   @override
-  String get buddySwap_nearby_heading => 'Közeli búvárok nyitott Submersionnel';
+  String get buddySwap_yourCard => 'A kártyád';
 
   @override
-  String get buddySwap_nearby_tapToSwap => 'Koppints a cseréhez';
+  String get buddySwap_nearby_title => 'A közelben';
 
   @override
-  String get buddySwap_nearby_looking => 'További keresése…';
+  String get buddySwap_nearby_status =>
+      'Búvárok keresése. A társadnál nyitva kell lennie ennek a képernyőnek, és Submersion 1.8.4 vagy újabb kell.';
 
   @override
   String get buddySwap_nearby_failed =>
-      'Nem sikerült a közeli búvárokat keresni. Az alábbi többi cseremód továbbra is működik.';
-
-  @override
-  String get buddySwap_nearby_hint =>
-      'Nem látod a társad? Mindkettőtöknél nyitva kell lennie ennek a képernyőnek, és Submersion 1.8.4 vagy újabb kell.';
-
-  @override
-  String buddySwap_sharing(String summary) {
-    return 'Megosztva: $summary';
-  }
-
-  @override
-  String get buddySwap_sharing_change => 'Módosítás';
+      'Nem sikerült a közeli búvárokat keresni. A többi cseremód továbbra is működik.';
 
   @override
   String buddySwap_dives(int count) {
@@ -3121,10 +3110,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddySwap_action_showCode => 'Kódom megjelenítése';
 
   @override
-  String get buddySwap_action_scanCode => 'Kód beolvasása';
+  String get buddySwap_action_scanCode => 'Társad kódjának beolvasása';
 
   @override
-  String get buddySwap_action_sendFile => 'Fájl küldése';
+  String get buddySwap_action_sendFile => 'Küldés fájlként';
 
   @override
   String get buddySwap_action_openFile => 'Kártyafájl megnyitása';
@@ -3137,6 +3126,48 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get buddySwap_action_receiveByTap => 'Fogadás érintéssel';
+
+  @override
+  String get buddySwap_give_heading => 'Kártyád átadása';
+
+  @override
+  String get buddySwap_get_heading => 'Társad kártyájának fogadása';
+
+  @override
+  String get buddySwap_hint_showCode => 'A társad beolvassa';
+
+  @override
+  String get buddySwap_hint_sendFile =>
+      'AirDrop, Quick Share, e-mail vagy üzenet';
+
+  @override
+  String get buddySwap_hint_writeSticker =>
+      'Aki megérinti, megkapja a kártyádat';
+
+  @override
+  String get buddySwap_hint_scanCode => 'Irányítsd a kamerát a társad kódjára';
+
+  @override
+  String get buddySwap_hint_openFile =>
+      'Egy kártyafájl, amelyet a társad küldött';
+
+  @override
+  String get buddySwap_hint_receiveByTap =>
+      'Tartsd a telefonod a társad telefonjához';
+
+  @override
+  String get buddySwap_hint_tapAndroid =>
+      'Olvasd be az androidos telefon által megosztott kártyát';
+
+  @override
+  String buddySwap_chip_since(String year) {
+    return '$year óta merül';
+  }
+
+  @override
+  String buddySwap_chip_lastDive(String date) {
+    return 'Utolsó merülés: $date';
+  }
 
   @override
   String get buddySwap_tap_prompt =>
@@ -3216,7 +3247,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get buddySwap_qr_tooLarge =>
-      'A kártyád túl hosszú egy kódhoz. Próbáld inkább a Fájl küldése lehetőséget.';
+      'A kártyád túl hosszú egy kódhoz. Próbáld inkább a Küldés fájlként lehetőséget.';
 
   @override
   String get buddySwap_sendFailed => 'A kártyafájlt nem sikerült megosztani.';

@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
-import 'package:permission_handler/permission_handler.dart' as permissions;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
@@ -19,11 +17,12 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_swap_pr
 import 'package:submersion/features/buddies/presentation/services/buddy_swap_session.dart';
 import 'package:submersion/features/buddies/presentation/utils/open_buddy_card.dart';
 import 'package:submersion/features/buddies/presentation/widgets/swap/card_summary.dart';
-import 'package:submersion/features/buddies/presentation/widgets/swap/nearby_divers_list.dart';
+import 'package:submersion/features/buddies/presentation/widgets/swap/nearby_section.dart';
 import 'package:submersion/features/buddies/presentation/widgets/swap/share_choices_sheet.dart';
 import 'package:submersion/features/buddies/presentation/widgets/swap/show_card_qr_sheet.dart';
-import 'package:submersion/features/buddies/presentation/widgets/swap/swap_fallback_buttons.dart';
+import 'package:submersion/features/buddies/presentation/widgets/swap/swap_method_groups.dart';
 import 'package:submersion/features/buddies/presentation/widgets/swap/swap_request_sheet.dart';
+import 'package:submersion/features/buddies/presentation/widgets/swap/your_card_section.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
@@ -31,8 +30,9 @@ import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart'
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Swap with a buddy (issue #3728): divers nearby first, the other ways to
-/// swap below.
+/// Swap with a buddy (issues #3728, #4598): your card on top, divers
+/// nearby, then the ways to give your card and to get theirs; two columns
+/// on a wide page.
 class BuddySwapPage extends ConsumerStatefulWidget {
   const BuddySwapPage({super.key});
 
@@ -107,10 +107,15 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
         error: e,
         stackTrace: stackTrace,
       );
-      if (mounted) setState(() => _cardFailed = true);
+      if (mounted && run == _runs) _cardGone();
       return;
     }
-    if (!mounted || card == null || run != _runs) return;
+    if (!mounted || run != _runs) return;
+    if (card == null) {
+      // No current diver: nothing to send, but receiving still works.
+      _cardGone();
+      return;
+    }
     final session = ref.read(buddySwapSessionFactoryProvider)(card);
     _session = session;
     _events = session.events.listen(_onEvent);
@@ -127,6 +132,7 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
       if (mounted && run == _runs) {
         setState(() {
           _card = card;
+          _cardFailed = false;
           _availability = null;
           _startFailed = true;
         });
@@ -141,11 +147,19 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     }
     setState(() {
       _card = card;
+      _cardFailed = false;
       _startFailed = false;
       _availability = availability;
       _peers = session.peers;
     });
   }
+
+  /// The card could not be built, now or on a rebuild: the old one (and
+  /// everything built on it) is gone too, so the page shows the failure.
+  void _cardGone() => setState(() {
+    _card = null;
+    _cardFailed = true;
+  });
 
   /// Stops at once, before any await: from [dispose] nothing after the
   /// first await is guaranteed to run before the page is gone.
@@ -393,180 +407,74 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     if (message != null && mounted) _say(message);
   }
 
+  /// Two columns from this page width (not the window's: on desktop the
+  /// page sits beside the navigation rail).
+  static const double _twoColumnWidth = 720;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final card = _card;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.buddySwap_title)),
-      body: card == null
-          ? _cardFailed
-                ? _CardFailed(onScan: _scanCode, onOpen: _openFile)
-                : const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              children: [
-                if (_availability == NearbyAvailability.ready)
-                  NearbyDiversList(
-                    peers: _peers,
-                    waitingFor: _waitingFor,
-                    onTap: _request,
-                  )
-                else
-                  _Unavailable(
-                    availability: _availability,
-                    failed: _startFailed,
-                    onRetry: _restart,
+      body: card == null && !_cardFailed
+          ? const Center(child: CircularProgressIndicator())
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final yours = <Widget>[
+                  YourCardSection(card: card, onEdit: _changeChoices),
+                  // The nearby session runs on the diver's card: none, no
+                  // nearby, and nothing to give.
+                  if (card != null)
+                    NearbySection(
+                      availability: _availability,
+                      failed: _startFailed,
+                      peers: _peers,
+                      waitingFor: _waitingFor,
+                      onTap: _request,
+                      onRetry: _restart,
+                    ),
+                ];
+                final methods = <Widget>[
+                  if (card != null)
+                    GiveCardGroup(
+                      onShowCode: () => _showCode(card),
+                      onSendFile: _sendFile,
+                      onWriteSticker: _writeSticker,
+                    ),
+                  GetCardGroup(
+                    onScanCode: _scanCode,
+                    onOpenFile: _openFile,
+                    onReadTag: _readTag,
                   ),
-                const SizedBox(height: 8),
-                _SharingLine(
-                  summary: buddyCardSummary(card, l10n),
-                  onChange: _changeChoices,
-                ),
-                SwapFallbackButtons(
-                  onShowCode: () => _showCode(card),
-                  onScanCode: _scanCode,
-                  onSendFile: _sendFile,
-                  onOpenFile: _openFile,
-                  onWriteSticker: _writeSticker,
-                  onReadTag: _readTag,
-                ),
-              ],
-            ),
-    );
-  }
-}
-
-class _SharingLine extends StatelessWidget {
-  const _SharingLine({required this.summary, required this.onChange});
-
-  final String summary;
-  final VoidCallback onChange;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          Text(
-            l10n.buddySwap_sharing(summary),
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          TextButton(
-            onPressed: onChange,
-            child: Text(l10n.buddySwap_sharing_change),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Unavailable extends StatelessWidget {
-  const _Unavailable({
-    required this.availability,
-    required this.failed,
-    required this.onRetry,
-  });
-
-  final NearbyAvailability? availability;
-  final bool failed;
-  final VoidCallback onRetry;
-
-  static bool get _isPhone =>
-      !kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS);
-
-  String _message(AppLocalizations l10n) => failed
-      ? l10n.buddySwap_nearby_failed
-      : switch (availability) {
-          NearbyAvailability.unauthorized => l10n.nearbyPair_permissionDenied,
-          NearbyAvailability.bluetoothOff => l10n.nearbyPair_bluetoothOff,
-          _ => l10n.nearbyPair_unsupported,
-        };
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    if (availability == null && !failed) {
-      return const Padding(
-        padding: EdgeInsets.all(24),
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Icon(
-            Icons.bluetooth_disabled,
-            size: 40,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 8),
-          Text(_message(l10n), textAlign: TextAlign.center),
-          if (availability != NearbyAvailability.unsupported)
-            TextButton(
-              onPressed: onRetry,
-              child: Text(l10n.common_action_tryAgain),
-            ),
-          if (availability == NearbyAvailability.unauthorized && _isPhone)
-            TextButton(
-              onPressed: () async {
-                try {
-                  await permissions.openAppSettings();
-                } on Object {
-                  // Nowhere to send the diver on this platform.
+                ];
+                const padding = EdgeInsets.symmetric(vertical: 8);
+                if (constraints.maxWidth < _twoColumnWidth) {
+                  return ListView(
+                    padding: padding,
+                    children: [...yours, ...methods],
+                  );
                 }
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: ListView(padding: padding, children: yours),
+                    ),
+                    // One primary list per route: on iOS and Android both
+                    // would attach to the route's controller, and a
+                    // status-bar tap could not tell which to scroll.
+                    Expanded(
+                      child: ListView(
+                        primary: false,
+                        padding: padding,
+                        children: methods,
+                      ),
+                    ),
+                  ],
+                );
               },
-              child: Text(l10n.nearbyPair_openSettings),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The diver's own card could not be built (a missing profile, a database
-/// error): receiving still works.
-class _CardFailed extends StatelessWidget {
-  const _CardFailed({required this.onScan, required this.onOpen});
-
-  final VoidCallback onScan;
-  final VoidCallback onOpen;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        Text(l10n.buddySwap_cardFailed, textAlign: TextAlign.center),
-        const SizedBox(height: 16),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            OutlinedButton.icon(
-              onPressed: onScan,
-              icon: const Icon(Icons.qr_code_scanner),
-              label: Text(l10n.buddySwap_action_scanCode),
-            ),
-            OutlinedButton.icon(
-              onPressed: onOpen,
-              icon: const Icon(Icons.file_open_outlined),
-              label: Text(l10n.buddySwap_action_openFile),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }

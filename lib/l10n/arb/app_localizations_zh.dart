@@ -2932,28 +2932,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddySwap_title => '与潜伴交换';
 
   @override
-  String get buddySwap_nearby_heading => '附近打开了 Submersion 的潜水员';
+  String get buddySwap_yourCard => '你的名片';
 
   @override
-  String get buddySwap_nearby_tapToSwap => '点按以交换';
+  String get buddySwap_nearby_title => '附近';
 
   @override
-  String get buddySwap_nearby_looking => '正在查找更多…';
+  String get buddySwap_nearby_status =>
+      '正在寻找潜水员。你的潜伴需要打开此页面，并使用 Submersion 1.8.4 或更高版本。';
 
   @override
-  String get buddySwap_nearby_failed => '无法搜索附近的潜水员。下方的其他交换方式仍可使用。';
-
-  @override
-  String get buddySwap_nearby_hint =>
-      '看不到你的潜伴？你们双方都需要打开此页面，并使用 Submersion 1.8.4 或更高版本。';
-
-  @override
-  String buddySwap_sharing(String summary) {
-    return '共享：$summary';
-  }
-
-  @override
-  String get buddySwap_sharing_change => '更改';
+  String get buddySwap_nearby_failed => '无法搜索附近的潜水员。其他交换方式仍可使用。';
 
   @override
   String buddySwap_dives(int count) {
@@ -2969,10 +2958,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddySwap_action_showCode => '显示我的二维码';
 
   @override
-  String get buddySwap_action_scanCode => '扫描二维码';
+  String get buddySwap_action_scanCode => '扫描对方的二维码';
 
   @override
-  String get buddySwap_action_sendFile => '发送文件';
+  String get buddySwap_action_sendFile => '以文件发送';
 
   @override
   String get buddySwap_action_openFile => '打开名片文件';
@@ -2985,6 +2974,43 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buddySwap_action_receiveByTap => '轻触接收';
+
+  @override
+  String get buddySwap_give_heading => '给出你的名片';
+
+  @override
+  String get buddySwap_get_heading => '获取对方的名片';
+
+  @override
+  String get buddySwap_hint_showCode => '让潜伴扫描';
+
+  @override
+  String get buddySwap_hint_sendFile => '隔空投送、快速分享、电子邮件或消息';
+
+  @override
+  String get buddySwap_hint_writeSticker => '任何人轻触即可获取你的名片';
+
+  @override
+  String get buddySwap_hint_scanCode => '将相机对准潜伴的二维码';
+
+  @override
+  String get buddySwap_hint_openFile => '潜伴发给你的名片文件';
+
+  @override
+  String get buddySwap_hint_receiveByTap => '将手机贴近潜伴的手机';
+
+  @override
+  String get buddySwap_hint_tapAndroid => '读取安卓手机分享的名片';
+
+  @override
+  String buddySwap_chip_since(String year) {
+    return '自 $year 年起潜水';
+  }
+
+  @override
+  String buddySwap_chip_lastDive(String date) {
+    return '上次潜水 $date';
+  }
 
   @override
   String get buddySwap_tap_prompt => '将手机靠近另一部手机或贴纸';
@@ -3055,7 +3081,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddySwap_cardFailed => '无法生成你的潜伴名片。';
 
   @override
-  String get buddySwap_qr_tooLarge => '你的名片太长，无法生成二维码。请改用发送文件。';
+  String get buddySwap_qr_tooLarge => '你的名片太长，无法生成二维码。请改用以文件发送。';
 
   @override
   String get buddySwap_sendFailed => '无法共享名片文件。';

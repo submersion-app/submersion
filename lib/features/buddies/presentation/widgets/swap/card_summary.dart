@@ -10,3 +10,20 @@ String buddyCardSummary(BuddyCard card, AppLocalizations l10n) => [
   if (card.certs.isNotEmpty) card.certs.first.name,
   if (card.dives != null) l10n.buddySwap_dives(card.dives!),
 ].join(', ');
+
+/// One chip label per item [card] carries beyond the name and photo, in
+/// the share choices order (issue #4598). [formatDate] shows the last dive
+/// date the way the diver's settings do.
+List<String> buddyCardChips(
+  BuddyCard card,
+  AppLocalizations l10n,
+  String Function(DateTime date) formatDate,
+) => [
+  ?card.phone,
+  ?card.email,
+  if (card.certs.isNotEmpty) card.certs.first.name,
+  if (card.dives != null) l10n.buddySwap_dives(card.dives!),
+  if (card.since != null) l10n.buddySwap_chip_since('${card.since}'),
+  if (card.last != null) l10n.buddySwap_chip_lastDive(formatDate(card.last!)),
+  ?card.social,
+];

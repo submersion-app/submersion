@@ -3103,30 +3103,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddySwap_title => 'Échanger avec un binôme';
 
   @override
-  String get buddySwap_nearby_heading =>
-      'Plongeurs à proximité avec Submersion ouvert';
+  String get buddySwap_yourCard => 'Votre carte';
 
   @override
-  String get buddySwap_nearby_tapToSwap => 'Touchez pour échanger';
+  String get buddySwap_nearby_title => 'À proximité';
 
   @override
-  String get buddySwap_nearby_looking => 'Recherche d\'autres plongeurs…';
+  String get buddySwap_nearby_status =>
+      'Recherche de plongeurs. Votre binôme doit ouvrir cet écran et avoir Submersion 1.8.4 ou plus récent.';
 
   @override
   String get buddySwap_nearby_failed =>
-      'Impossible de chercher des plongeurs à proximité. Les autres façons d\'échanger ci-dessous fonctionnent toujours.';
-
-  @override
-  String get buddySwap_nearby_hint =>
-      'Vous ne voyez pas votre binôme ? Vous devez tous les deux ouvrir cet écran et avoir Submersion 1.8.4 ou plus récent.';
-
-  @override
-  String buddySwap_sharing(String summary) {
-    return 'Partagé : $summary';
-  }
-
-  @override
-  String get buddySwap_sharing_change => 'Modifier';
+      'Impossible de chercher des plongeurs à proximité. Les autres façons d\'échanger fonctionnent toujours.';
 
   @override
   String buddySwap_dives(int count) {
@@ -3143,10 +3131,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddySwap_action_showCode => 'Afficher mon code';
 
   @override
-  String get buddySwap_action_scanCode => 'Scanner un code';
+  String get buddySwap_action_scanCode => 'Scanner son code';
 
   @override
-  String get buddySwap_action_sendFile => 'Envoyer un fichier';
+  String get buddySwap_action_sendFile => 'Envoyer en fichier';
 
   @override
   String get buddySwap_action_openFile => 'Ouvrir un fichier de carte';
@@ -3159,6 +3147,49 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get buddySwap_action_receiveByTap => 'Recevoir par contact';
+
+  @override
+  String get buddySwap_give_heading => 'Donner votre carte';
+
+  @override
+  String get buddySwap_get_heading => 'Recevoir sa carte';
+
+  @override
+  String get buddySwap_hint_showCode => 'Votre binôme le scanne';
+
+  @override
+  String get buddySwap_hint_sendFile =>
+      'AirDrop, Quick Share, e-mail ou un message';
+
+  @override
+  String get buddySwap_hint_writeSticker =>
+      'Quiconque le touche reçoit votre carte';
+
+  @override
+  String get buddySwap_hint_scanCode =>
+      'Pointez l\'appareil photo vers le code de votre binôme';
+
+  @override
+  String get buddySwap_hint_openFile =>
+      'Un fichier de carte envoyé par votre binôme';
+
+  @override
+  String get buddySwap_hint_receiveByTap =>
+      'Approchez votre téléphone de celui de votre binôme';
+
+  @override
+  String get buddySwap_hint_tapAndroid =>
+      'Lire la carte partagée par un téléphone Android';
+
+  @override
+  String buddySwap_chip_since(String year) {
+    return 'Plonge depuis $year';
+  }
+
+  @override
+  String buddySwap_chip_lastDive(String date) {
+    return 'Dernière plongée $date';
+  }
 
   @override
   String get buddySwap_tap_prompt =>
@@ -3238,7 +3269,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get buddySwap_qr_tooLarge =>
-      'Votre carte est trop longue pour un code. Essayez plutôt Envoyer un fichier.';
+      'Votre carte est trop longue pour un code. Essayez plutôt Envoyer en fichier.';
 
   @override
   String get buddySwap_sendFailed =>

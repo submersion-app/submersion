@@ -3173,29 +3173,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddySwap_title => 'تبادل مع رفيق';
 
   @override
-  String get buddySwap_nearby_heading => 'غواصون قريبون يفتحون Submersion';
+  String get buddySwap_yourCard => 'بطاقتك';
 
   @override
-  String get buddySwap_nearby_tapToSwap => 'انقر للتبادل';
+  String get buddySwap_nearby_title => 'بالقرب منك';
 
   @override
-  String get buddySwap_nearby_looking => 'جارٍ البحث عن المزيد…';
+  String get buddySwap_nearby_status =>
+      'جارٍ البحث عن غواصين. يحتاج رفيقك إلى فتح هذه الشاشة واستخدام Submersion 1.8.4 أو أحدث.';
 
   @override
   String get buddySwap_nearby_failed =>
-      'تعذّر البحث عن الغواصين القريبين. لا تزال طرق التبادل الأخرى أدناه تعمل.';
-
-  @override
-  String get buddySwap_nearby_hint =>
-      'لا ترى رفيقك؟ يجب أن تفتحا هذه الشاشة كلاكما وأن يكون لديكما Submersion 1.8.4 أو أحدث.';
-
-  @override
-  String buddySwap_sharing(String summary) {
-    return 'المشاركة: $summary';
-  }
-
-  @override
-  String get buddySwap_sharing_change => 'تغيير';
+      'تعذّر البحث عن الغواصين القريبين. لا تزال طرق التبادل الأخرى تعمل.';
 
   @override
   String buddySwap_dives(int count) {
@@ -3215,10 +3204,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddySwap_action_showCode => 'عرض رمزي';
 
   @override
-  String get buddySwap_action_scanCode => 'مسح الرمز';
+  String get buddySwap_action_scanCode => 'امسح رمز رفيقك';
 
   @override
-  String get buddySwap_action_sendFile => 'إرسال ملف';
+  String get buddySwap_action_sendFile => 'إرسال كملف';
 
   @override
   String get buddySwap_action_openFile => 'فتح ملف بطاقة';
@@ -3231,6 +3220,45 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buddySwap_action_receiveByTap => 'الاستلام باللمس';
+
+  @override
+  String get buddySwap_give_heading => 'أعطِ بطاقتك';
+
+  @override
+  String get buddySwap_get_heading => 'احصل على بطاقة رفيقك';
+
+  @override
+  String get buddySwap_hint_showCode => 'يمسحه رفيقك';
+
+  @override
+  String get buddySwap_hint_sendFile =>
+      'AirDrop أو Quick Share أو البريد الإلكتروني أو رسالة';
+
+  @override
+  String get buddySwap_hint_writeSticker => 'من يلمسه يحصل على بطاقتك';
+
+  @override
+  String get buddySwap_hint_scanCode => 'وجّه الكاميرا نحو رمز رفيقك';
+
+  @override
+  String get buddySwap_hint_openFile => 'ملف بطاقة أرسله إليك رفيقك';
+
+  @override
+  String get buddySwap_hint_receiveByTap => 'قرّب هاتفك من هاتف رفيقك';
+
+  @override
+  String get buddySwap_hint_tapAndroid =>
+      'اقرأ البطاقة التي يشاركها هاتف Android';
+
+  @override
+  String buddySwap_chip_since(String year) {
+    return 'يغوص منذ $year';
+  }
+
+  @override
+  String buddySwap_chip_lastDive(String date) {
+    return 'آخر غوصة $date';
+  }
 
   @override
   String get buddySwap_tap_prompt => 'قرّب هاتفك من الهاتف الآخر أو الملصق';
@@ -3304,7 +3332,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buddySwap_qr_tooLarge =>
-      'بطاقتك أطول من أن تتسع في رمز. جرّب إرسال ملف بدلًا من ذلك.';
+      'بطاقتك أطول من أن تتسع في رمز. جرّب الإرسال كملف بدلًا من ذلك.';
 
   @override
   String get buddySwap_sendFailed => 'تعذّرت مشاركة ملف البطاقة.';

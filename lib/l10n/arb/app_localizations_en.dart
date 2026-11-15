@@ -3056,29 +3056,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddySwap_title => 'Swap with a buddy';
 
   @override
-  String get buddySwap_nearby_heading => 'Divers nearby with Submersion open';
+  String get buddySwap_yourCard => 'Your card';
 
   @override
-  String get buddySwap_nearby_tapToSwap => 'Tap to swap';
+  String get buddySwap_nearby_title => 'Nearby';
 
   @override
-  String get buddySwap_nearby_looking => 'Looking for more…';
+  String get buddySwap_nearby_status =>
+      'Looking for divers. Your buddy needs this screen open and Submersion 1.8.4 or later.';
 
   @override
   String get buddySwap_nearby_failed =>
-      'Could not look for nearby divers. The other ways to swap below still work.';
-
-  @override
-  String get buddySwap_nearby_hint =>
-      'Don\'t see your buddy? Both of you need this screen open and Submersion 1.8.4 or later.';
-
-  @override
-  String buddySwap_sharing(String summary) {
-    return 'Sharing: $summary';
-  }
-
-  @override
-  String get buddySwap_sharing_change => 'Change';
+      'Could not look for nearby divers. The other ways to swap still work.';
 
   @override
   String buddySwap_dives(int count) {
@@ -3095,22 +3084,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddySwap_action_showCode => 'Show my code';
 
   @override
-  String get buddySwap_action_scanCode => 'Scan code';
+  String get buddySwap_action_scanCode => 'Scan their code';
 
   @override
-  String get buddySwap_action_sendFile => 'Send file';
+  String get buddySwap_action_sendFile => 'Send as a file';
 
   @override
-  String get buddySwap_action_openFile => 'Open card file';
+  String get buddySwap_action_openFile => 'Open a card file';
 
   @override
-  String get buddySwap_action_writeSticker => 'Write NFC sticker';
+  String get buddySwap_action_writeSticker => 'Write an NFC sticker';
 
   @override
   String get buddySwap_action_tapAndroid => 'Tap an Android phone';
 
   @override
   String get buddySwap_action_receiveByTap => 'Receive by tap';
+
+  @override
+  String get buddySwap_give_heading => 'Give your card';
+
+  @override
+  String get buddySwap_get_heading => 'Get their card';
+
+  @override
+  String get buddySwap_hint_showCode => 'Your buddy scans it';
+
+  @override
+  String get buddySwap_hint_sendFile =>
+      'AirDrop, Quick Share, email or a message';
+
+  @override
+  String get buddySwap_hint_writeSticker => 'Anyone who taps it gets your card';
+
+  @override
+  String get buddySwap_hint_scanCode =>
+      'Point the camera at your buddy\'s code';
+
+  @override
+  String get buddySwap_hint_openFile => 'A card file your buddy sent you';
+
+  @override
+  String get buddySwap_hint_receiveByTap =>
+      'Hold your phone against your buddy\'s';
+
+  @override
+  String get buddySwap_hint_tapAndroid =>
+      'Read the card an Android phone is sharing';
+
+  @override
+  String buddySwap_chip_since(String year) {
+    return 'Diving since $year';
+  }
+
+  @override
+  String buddySwap_chip_lastDive(String date) {
+    return 'Last dive $date';
+  }
 
   @override
   String get buddySwap_tap_prompt =>
@@ -3188,7 +3218,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buddySwap_qr_tooLarge =>
-      'Your card is too long for a code. Try Send file instead.';
+      'Your card is too long for a code. Try Send as a file instead.';
 
   @override
   String get buddySwap_sendFailed => 'The card file could not be shared.';
