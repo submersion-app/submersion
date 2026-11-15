@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/pinned_strip_layer_animator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_band_painter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer_data.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_line_painter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
@@ -782,6 +783,50 @@ void main() {
           .map((c) => c.painter)
           .whereType<StripLinePainter>();
       expect(lines, hasLength(1));
+    });
+
+    testWidgets('bands go under the depth curve and a deeper ghost '
+        'deepens its axis', (tester) async {
+      const data = PinnedStripLayerData(
+        bands: [
+          StripBand(
+            layer: StripLayer.phases,
+            start: 0,
+            end: 750,
+            color: Colors.blue,
+            alpha: 0.2,
+          ),
+        ],
+        ghosts: [
+          StripGhost(
+            layer: StripLayer.plannedDepth,
+            key: 'plan',
+            label: 'Plan',
+            color: Colors.purple,
+            points: [StripPoint(0, 0), StripPoint(750, 60)],
+          ),
+        ],
+      );
+      await pump(
+        tester,
+        layers: const StripLayerState(
+          data: data,
+          strengths: {StripLayer.phases: 1, StripLayer.plannedDepth: 0.5},
+          grow: 0,
+          active: {StripLayer.phases, StripLayer.plannedDepth},
+        ),
+      );
+      final painters = tester
+          .widgetList<CustomPaint>(find.byType(CustomPaint))
+          .map((c) => c.painter)
+          .toList();
+      expect(painters.whereType<StripBandPainter>(), hasLength(1));
+      // The dive reaches 30 m, the plan 60: half faded in, the axis is
+      // half way between.
+      expect(
+        painters.whereType<PinnedStripPainter>().single.extraMaxDepthMeters,
+        45,
+      );
     });
 
     testWidgets('the tooltip reads the active layer at the cursor', (

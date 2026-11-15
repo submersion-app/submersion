@@ -129,6 +129,37 @@ void main() {
       );
     });
 
+    testWidgets('an estimated tank line is drawn dashed, and kept', (
+      tester,
+    ) async {
+      const estimate = StripLine(
+        layer: StripLayer.tankPressure,
+        key: 't1',
+        color: Color(0xFF00AA00),
+        runs: [
+          [StripPoint(60, 200), StripPoint(1260, 60)],
+        ],
+        min: 60,
+        max: 200,
+        estimated: true,
+        label: 'Tank 1',
+      );
+      final p = StripLinePainter(
+        strip: _strip(),
+        layers: _state(const PinnedStripLayerData(lines: [estimate]), {
+          StripLayer.tankPressure: 1,
+        }),
+      );
+      await _pump(tester, p);
+      expect(
+        find.byType(CustomPaint),
+        paints..path(color: const Color(0xFF00AA00), strokeWidth: 1.5),
+      );
+      // Painted again through the same mapping, the dashes are reused.
+      await _pump(tester, p);
+      expect(find.byType(CustomPaint), paints..path());
+    });
+
     testWidgets('a layer at strength 0 paints nothing', (tester) async {
       await _pump(
         tester,
@@ -219,6 +250,37 @@ void main() {
       );
     });
 
+    testWidgets('a finding window has a solid edge where it starts', (
+      tester,
+    ) async {
+      const band = StripBand(
+        layer: StripLayer.safetyFindings,
+        start: 360,
+        end: 660,
+        color: Color(0xFFAA0000),
+        alpha: 0.2,
+      );
+      await _pump(
+        tester,
+        StripBandPainter(
+          strip: _strip(),
+          layers: _state(const PinnedStripLayerData(bands: [band]), {
+            StripLayer.safetyFindings: 1,
+          }),
+        ),
+      );
+      expect(
+        find.byType(CustomPaint),
+        paints
+          ..rect(rect: Rect.fromLTRB(_x(360), 0, _x(660), kPinnedStripHeight))
+          ..line(
+            p1: Offset(_x(360), 0),
+            p2: Offset(_x(360), kPinnedStripHeight),
+            color: const Color(0xFFAA0000),
+          ),
+      );
+    });
+
     testWidgets('no strength, no band', (tester) async {
       await _pump(
         tester,
@@ -272,6 +334,33 @@ void main() {
           p2: const Offset(200, kStripTickLength),
           color: const Color(0xFFFFAA00),
         ),
+      );
+    });
+
+    testWidgets('a bookmark is a ring at the top', (tester) async {
+      await _pump(
+        tester,
+        StripMarkerPainter(
+          strip: _strip(),
+          layers: _state(
+            const PinnedStripLayerData(
+              ticks: [
+                StripTick(
+                  layer: StripLayer.annotations,
+                  seconds: 660,
+                  color: Color(0xFFFFAA00),
+                  edge: StripTickEdge.top,
+                  hollow: true,
+                ),
+              ],
+            ),
+            {StripLayer.annotations: 1},
+          ),
+        ),
+      );
+      expect(
+        find.byType(CustomPaint),
+        paints..circle(x: 200, y: 4, radius: 2.5, style: PaintingStyle.stroke),
       );
     });
 
