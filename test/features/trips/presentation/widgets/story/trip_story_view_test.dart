@@ -652,22 +652,27 @@ void main() {
       expect(days[1].dives.single.dashed, isTrue);
     });
 
-    testWidgets('when the plans read fails, every dive draws as one that '
-        'happened', (tester) async {
+    testWidgets('when the plans read fails it is still not known: a plan '
+        'stays undrawn, and is never shown as dived', (tester) async {
       final story = _story(
         marchTrip,
-        dives: [_dive('plan', DateTime(2026, 3, 26, 9), planned: true)],
+        dives: [
+          _dive('d1', DateTime(2026, 3, 25, 9)),
+          _dive('plan', DateTime(2026, 3, 26, 9), planned: true),
+        ],
         today: DateTime(2026, 6, 1),
       );
       await pumpView(
         tester,
         story,
-        profiles: {'plan': _profile(20)},
+        profiles: {'d1': _profile(18), 'plan': _profile(20)},
         undivedRead: () async => throw StateError('no database'),
       );
       await tester.pump();
 
-      expect(picker(tester).model.days[1].dives.single.dashed, isFalse);
+      final days = picker(tester).model.days;
+      expect(days[0].dives.single.dashed, isFalse);
+      expect(days[1].dives, isEmpty);
     });
 
     testWidgets('a profile landing in the cache redraws the picker without '

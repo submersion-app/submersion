@@ -244,11 +244,9 @@ class _PickerState extends ConsumerState<_Picker> {
     final story = widget.story;
     final profiles = ref.watch(batchProfileCacheProvider);
     final undived = ref.watch(tripUndivedPlanIdsProvider(story.trip.id));
-    // Null until the read answers, when a plan is not drawn at all: drawn
-    // solid first, it would say it was dived. A read that failed answers
-    // with no plans, so every dive draws as one that happened.
-    final undivedPlanIds =
-        undived.valueOrNull ?? (undived.hasError ? const <String>{} : null);
+    // Null until the read answers, and while it is failing: then a plan is
+    // not drawn at all. Drawn solid, it would say it was dived.
+    final undivedPlanIds = undived.valueOrNull;
     return TripDayPicker(
       days: story.days,
       model: _model.resolve(

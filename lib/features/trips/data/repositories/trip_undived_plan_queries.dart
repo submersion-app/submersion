@@ -17,8 +17,9 @@ class TripUndivedPlanQueries {
   ///
   /// `is_planned` alone is not the test: a dive mirrored from a buddy's
   /// logged dive stays planned but happened ([diveUndivedSql], issue #3924).
-  /// Logs and returns an empty set when the read fails, so the picker draws
-  /// every dive as one that happened.
+  /// Logs and rethrows when the read fails. An empty set would be an answer,
+  /// that no plan is undived, and the picker would draw every plan as a dive
+  /// that happened; a failure leaves it not knowing, and plans undrawn.
   // stats-scope-exempt: names plans for the trip's day picker; plans are
   // outside the statistics scope by definition
   Future<Set<String>> undivedPlanIds(String tripId) async {
@@ -38,7 +39,7 @@ class TripUndivedPlanQueries {
         error: e,
         stackTrace: stackTrace,
       );
-      return const {};
+      rethrow;
     }
   }
 }

@@ -425,6 +425,25 @@ void main() {
       );
     });
 
+    testWidgets('with nothing logged yet, the under-way cards still show, '
+        'above the prompt to find its dives', (tester) async {
+      final empty = _trip(start, [0, 0, 0], today: now);
+      await pumpTripPage(
+        tester,
+        story: empty.story,
+        stats: empty.stats,
+        extra: [cylinders],
+      );
+
+      const summary = Key('trip-cylinders-summary');
+      expect(find.byKey(summary), findsOneWidget);
+      expect(find.byKey(TripStoryTripPage.totalsKey), findsNothing);
+      expect(
+        top(tester, find.byKey(summary)),
+        lessThan(top(tester, find.byType(TripStoryEmptyState))),
+      );
+    });
+
     testWidgets("today's line carries the Today chip", (tester) async {
       await pumpTripPage(
         tester,

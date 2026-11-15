@@ -110,12 +110,16 @@ class TripStoryTripPage extends ConsumerWidget {
               ],
             ),
           ),
-          if (story.isEmpty)
+          if (story.isEmpty) ...[
+            // A trip under way with nothing logged yet still has cylinders
+            // to fill and a flight to count down to. Shows nothing otherwise.
+            const SizedBox(height: 16),
+            TripUnderWayCards(trip: trip),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: TripStoryEmptyState(onScanForDives: onScanForDives),
-            )
-          else ...[
+            ),
+          ] else ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 16, 8, 16),
               child: _Totals(

@@ -55,10 +55,11 @@ void main() {
     expect(await queries.undivedPlanIds('t2'), isEmpty);
   });
 
-  test('a read that fails answers with no plans, and does not throw', () async {
+  test('a read that fails throws: it does not answer with no plans', () async {
     await db.customStatement('ALTER TABLE dives RENAME TO dives_elsewhere');
 
-    // The picker then draws every dive as one that happened.
-    expect(await queries.undivedPlanIds('t1'), isEmpty);
+    // An empty set would say every plan was dived. The failure reaches the
+    // picker instead, which goes on not knowing and leaves plans undrawn.
+    await expectLater(queries.undivedPlanIds('t1'), throwsA(anything));
   });
 }

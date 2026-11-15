@@ -73,24 +73,51 @@ void main() {
   });
 
   group('tripProfileWritesProvider', () {
-    test('counts up on each write that can change a stored profile', () async {
-      final counts = <int>[];
+    /// Writes a dive's profile samples, as a download or an import does.
+    Future<void> profile(String id, String diveId) => db.customInsert(
+      'INSERT INTO dive_profile_series (id, dive_id, sample_count, '
+      'start_timestamp, end_timestamp, max_depth, first_depth, last_depth, '
+      'codec_version, samples, created_at, updated_at) '
+      "VALUES (?, ?, 0, 0, 0, 0, 0, 0, 1, x'', 0, 0)",
+      variables: [Variable.withString(id), Variable.withString(diveId)],
+      updates: {db.diveProfileSeries},
+    );
+
+    late List<int> counts;
+
+    setUp(() {
+      counts = [];
       final sub = container.listen(tripProfileWritesProvider, (_, next) {
         final count = next.value;
         if (count != null) counts.add(count);
       }, fireImmediately: true);
       addTearDown(sub.close);
-      expect(counts, isEmpty);
+    });
 
+    test('counts up on each write of a stored profile', () async {
       await dive('first');
+      await Future<void>.delayed(settle);
+      counts.clear();
+
+      await profile('s1', 'first');
       await Future<void>.delayed(settle);
       expect(counts, [1]);
 
       // A different number each time: the same value twice would notify
       // nobody, and the trip story would not ask for its profiles again.
-      await dive('second');
+      await profile('s2', 'first');
       await Future<void>.delayed(settle);
       expect(counts, [1, 2]);
+    });
+
+    test('a dive edited without its profile does not count', () async {
+      await dive('first');
+      await dive('second');
+      await Future<void>.delayed(settle);
+
+      // Each count sends the trip story back to the database for every dive
+      // it holds no samples for; an edit to a dive's notes must not.
+      expect(counts, isEmpty);
     });
   });
 }
