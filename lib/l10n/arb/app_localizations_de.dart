@@ -39772,6 +39772,35 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_reparseDives_button => 'Alle neu auswerten';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'Die für erneutes Auswerten aufbewahrten Download-Daten ansehen und verwerfen';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'Alle verwerfen';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'Nach Tauchcomputer';
+
+  @override
+  String get settings_rawDiveData_unknownComputer =>
+      'Unbekannter Tauchcomputer';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'Keine Tauchgänge haben Tauchcomputer-Rohdaten.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge, $size',
+      one: '$count Tauchgang, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Verwerfen';
 
   @override

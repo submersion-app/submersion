@@ -39837,6 +39837,34 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_reparseDives_button => 'Reanalisar tudo';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'Ver e descartar os dados de transferência guardados para reanalisar mergulhos';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'Descartar tudo';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'Por computador de mergulho';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'Computador desconhecido';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'Nenhum mergulho guarda dados brutos do computador de mergulho.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos, $size',
+      one: '$count mergulho, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Descartar';
 
   @override

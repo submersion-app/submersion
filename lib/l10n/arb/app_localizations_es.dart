@@ -39882,6 +39882,34 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_reparseDives_button => 'Reanalizar todo';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'Ver y descartar los datos de descarga guardados para reanalizar inmersiones';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'Descartar todo';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'Por ordenador de buceo';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'Ordenador desconocido';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'Ninguna inmersión conserva datos sin procesar del ordenador de buceo.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones, $size',
+      one: '$count inmersión, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Descartar';
 
   @override

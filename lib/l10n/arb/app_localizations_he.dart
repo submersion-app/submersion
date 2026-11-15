@@ -38893,6 +38893,34 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_reparseDives_button => 'נתח הכול מחדש';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'הצג ומחק את נתוני ההורדה שנשמרים לניתוח מחדש של צלילות';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'מחק הכול';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'לפי מחשב צלילה';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'מחשב לא ידוע';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'אין צלילות עם נתונים גולמיים ממחשב צלילה.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות, $size',
+      one: '$count צלילה, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'מחק';
 
   @override

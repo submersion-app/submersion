@@ -39192,6 +39192,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_reparseDives_button => 'Re-parse all';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'See and discard the download data kept for re-parsing dives';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'Discard all';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'By dive computer';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'Unknown computer';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'No dives keep raw dive computer data.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives, $size',
+      one: '$count dive, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Discard';
 
   @override

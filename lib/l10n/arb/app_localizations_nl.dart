@@ -39591,6 +39591,34 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_reparseDives_button => 'Alles opnieuw verwerken';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'Bekijk en verwijder de downloaddata die bewaard wordt om duiken opnieuw te verwerken';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'Alles verwijderen';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'Per duikcomputer';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'Onbekende computer';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'Geen duiken bewaren ruwe duikcomputerdata.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken, $size',
+      one: '$count duik, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Verwijderen';
 
   @override

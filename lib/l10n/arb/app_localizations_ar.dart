@@ -40384,6 +40384,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_reparseDives_button => 'إعادة تحليل الكل';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'عرض بيانات التنزيل المحفوظة لإعادة تحليل الغطسات وحذفها';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'حذف الكل';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'حسب كمبيوتر الغوص';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'كمبيوتر غير معروف';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'لا توجد غطسات تحتفظ ببيانات أولية من كمبيوتر الغوص.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة، $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'حذف';
 
   @override

@@ -39968,6 +39968,34 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_reparseDives_button => 'Tout réanalyser';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'Voir et supprimer les données de téléchargement conservées pour réanalyser les plongées';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'Tout supprimer';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'Par ordinateur de plongée';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'Ordinateur inconnu';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'Aucune plongée ne conserve de données brutes d\'ordinateur de plongée.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées, $size',
+      one: '$count plongée, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Supprimer';
 
   @override

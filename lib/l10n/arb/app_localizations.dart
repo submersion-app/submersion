@@ -62461,6 +62461,42 @@ abstract class AppLocalizations {
   /// **'Re-parse all'**
   String get settings_reparseDives_button;
 
+  /// Raw dive computer data page in Data tools (issue #4590)
+  ///
+  /// In en, this message translates to:
+  /// **'See and discard the download data kept for re-parsing dives'**
+  String get settings_rawDiveData_subtitle;
+
+  /// Raw dive computer data page in Data tools (issue #4590)
+  ///
+  /// In en, this message translates to:
+  /// **'Discard all'**
+  String get settings_rawDiveData_discardAll;
+
+  /// Raw dive computer data page in Data tools (issue #4590)
+  ///
+  /// In en, this message translates to:
+  /// **'By dive computer'**
+  String get settings_rawDiveData_byComputer;
+
+  /// Raw dive computer data page in Data tools (issue #4590)
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown computer'**
+  String get settings_rawDiveData_unknownComputer;
+
+  /// Raw dive computer data page in Data tools (issue #4590)
+  ///
+  /// In en, this message translates to:
+  /// **'No dives keep raw dive computer data.'**
+  String get settings_rawDiveData_none;
+
+  /// Raw dive computer data page in Data tools (issue #4590)
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive, {size}} other{{count} dives, {size}}}'**
+  String settings_rawDiveData_computerUsage(int count, String size);
+
   /// No description provided for @diveComputer_rawData_discardAction.
   ///
   /// In en, this message translates to:

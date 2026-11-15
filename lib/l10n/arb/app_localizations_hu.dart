@@ -39651,6 +39651,33 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_reparseDives_button => 'Összes újraelemzése';
 
   @override
+  String get settings_rawDiveData_subtitle =>
+      'Az újraelemzéshez megőrzött letöltési adatok megtekintése és elvetése';
+
+  @override
+  String get settings_rawDiveData_discardAll => 'Összes elvetése';
+
+  @override
+  String get settings_rawDiveData_byComputer => 'Búvárkomputerenként';
+
+  @override
+  String get settings_rawDiveData_unknownComputer => 'Ismeretlen komputer';
+
+  @override
+  String get settings_rawDiveData_none =>
+      'Egy merüléshez sem tartozik nyers búvárkomputer-adat.';
+
+  @override
+  String settings_rawDiveData_computerUsage(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés, $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_rawData_discardAction => 'Elvetés';
 
   @override

@@ -20,3 +20,20 @@ final rawDiveDataUsageProvider = FutureProvider<RawDiveDataUsage>((ref) {
   );
   return service.getUsage();
 });
+
+/// [rawDiveDataUsageProvider] per computer, for the Raw dive computer data
+/// page (issue #4590). A renamed or deleted computer changes a row's name, so
+/// computer changes refresh it too.
+final rawDiveDataByComputerProvider =
+    FutureProvider<List<ComputerRawDiveDataUsage>>((ref) {
+      final service = ref.watch(rawDiveDataServiceProvider);
+      ref.invalidateSelfWhen(
+        service.db.tableUpdates(
+          TableUpdateQuery.onAllTables([
+            service.db.diveDataSources,
+            service.db.diveComputers,
+          ]),
+        ),
+      );
+      return service.getUsageByComputer();
+    });
