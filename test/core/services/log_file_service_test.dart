@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 
@@ -179,7 +180,7 @@ void main() {
       }
 
       final content = await File(
-        '${tempDir.path}/submersion.log',
+        p.join(tempDir.path, 'submersion.log'),
       ).readAsString();
       expect(content.length, greaterThan(200));
       expect(content, contains('number 0 '));
