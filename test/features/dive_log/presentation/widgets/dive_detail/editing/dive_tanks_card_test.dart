@@ -414,6 +414,93 @@ void main() {
     expect(tester.state(find.byType(TankRow)), isNot(same(before)));
   });
 
+  group('the rebreather panels write to the sitting', () {
+    testWidgets('a CCR deco setpoint and loop volume typed', (tester) async {
+      final c = await pumpEditor(tester, ccr);
+
+      await tester.enterText(
+        find.widgetWithText(TextField, l.diveLog_ccr_label_deco),
+        '1.6',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, l.diveLog_ccr_label_loopVolume),
+        '7',
+      );
+      await tester.pumpAndSettle();
+
+      final s = c.session!;
+      expect(s.valueOf(diveSetpointDecoField), 1.6);
+      expect(s.valueOf(diveLoopVolumeField), 7);
+      expect(s.changedCardIds, {'tanks'});
+    });
+
+    testWidgets('an SCR loop O2 typed', (tester) async {
+      final scr = oc.copyWith(
+        diveMode: DiveMode.scr,
+        scrType: ScrType.cmf,
+        diluentGas: const GasMix(o2: 40),
+      );
+      final c = await pumpEditor(tester, scr);
+
+      await tester.enterText(
+        find.widgetWithText(TextField, l.diveLog_scr_label_max),
+        '55',
+      );
+      await tester.pumpAndSettle();
+
+      expect(c.session!.valueOf(diveLoopO2MaxField), 55);
+      expect(c.session!.valueOf(diveDiluentGasField), const GasMix(o2: 40));
+    });
+  });
+
+  group('the gas switch rows', () {
+    final switches = [
+      GasSwitch(
+        id: 's1',
+        diveId: 'dive',
+        timestamp: 0,
+        tankId: 'a',
+        createdAt: t0,
+      ),
+      GasSwitch(
+        id: 's2',
+        diveId: 'dive',
+        timestamp: 1200,
+        tankId: 'b',
+        createdAt: t0,
+      ),
+    ];
+
+    GasSwitchesEditor editor(WidgetTester tester) =>
+        tester.widget<GasSwitchesEditor>(find.byType(GasSwitchesEditor));
+
+    testWidgets('are bounded by the sitting and start on the first gas', (
+      tester,
+    ) async {
+      await pumpEditor(tester, twoGas, switches: switches);
+
+      expect(editor(tester).maxTimestamp, 3000);
+      expect(editor(tester).startingTank?.id, 'a');
+      expect(editor(tester).switches.map((g) => g.id), ['s1', 's2']);
+    });
+
+    testWidgets('a row removed, then a time changed and left', (tester) async {
+      final c = await pumpEditor(tester, twoGas, switches: switches);
+
+      editor(tester).onRemove('s1');
+      await tester.pumpAndSettle();
+      expect(sittingGasSwitches(c.session!)!.current.map((g) => g.id), ['s2']);
+
+      editor(
+        tester,
+      ).onChanged(switches[1].copyWith(timestamp: 1500), GasSwitchField.time);
+      editor(tester).onTimeSettled!('s2');
+      await tester.pumpAndSettle();
+      expect(sittingGasSwitches(c.session!)!.current.single.timestamp, 1500);
+      expect(c.session!.changedCardIds, {'tanks'});
+    });
+  });
+
   testWidgets('a scan in flight delays Save until it lands', (tester) async {
     final c = await pumpEditor(tester, oc);
     final scan = Completer<void>();

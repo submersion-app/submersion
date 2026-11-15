@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gear_geofence.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_tree_view.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/geofence_suggestion_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -184,6 +185,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect([for (final g in c.session!.working.gear) g.viaSetId], [null, null]);
+  });
+
+  testWidgets('a part removed through the gear tree keeps the rest', (
+    tester,
+  ) async {
+    final c = await pump(tester, dive);
+
+    tester
+        .widget<DiveGearTreeView>(find.byType(DiveGearTreeView))
+        .onRemovePart!('fins');
+    await tester.pumpAndSettle();
+
+    expect([for (final g in c.session!.working.gear) g.item.id], ['mask']);
+    expect(c.session!.changedCardIds, {'equipment'});
   });
 
   testWidgets('Clear all empties the gear', (tester) async {
