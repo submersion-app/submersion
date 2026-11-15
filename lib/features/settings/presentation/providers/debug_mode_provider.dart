@@ -5,7 +5,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-const _kDebugModeKey = 'debug_mode_enabled';
+const _kDebugModeKey = LoggerService.debugModePrefKey;
 
 /// Notifier that manages the debug mode toggle state.
 /// Persists to SharedPreferences so debug mode survives app restarts.

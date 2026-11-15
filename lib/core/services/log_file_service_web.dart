@@ -12,11 +12,15 @@ class LogFileService {
   LogFileService({
     required this.logDirectory,
     this.maxFileSizeBytes = _defaultMaxSize,
+    this.rotates = true,
   });
 
   /// Kept for the shared constructor; nothing is written there.
   final String logDirectory;
   final int maxFileSizeBytes;
+
+  /// Kept for the shared constructor; the browser has one instance.
+  final bool rotates;
 
   static const _defaultMaxSize = 5 * 1024 * 1024;
 

@@ -68,7 +68,7 @@ Future<LogFileService> attachFileLogging(
   final logFileService = LogFileService(logDirectory: logDirectory);
   await logFileService.initialize();
 
-  final debugEnabled = prefs.getBool('debug_mode_enabled') ?? false;
+  final debugEnabled = prefs.getBool(LoggerService.debugModePrefKey) ?? false;
   LoggerService.configureFileLogging(logFileService, verbose: debugEnabled);
   unawaited(logEnvironment());
   return logFileService;

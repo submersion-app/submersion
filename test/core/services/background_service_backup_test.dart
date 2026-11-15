@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -477,6 +478,49 @@ void main() {
         BackupPreferences(prefs).getSettings().lastCloudCopyMissing,
         isFalse,
       );
+    });
+  });
+
+  group('retention (issue #4572)', () {
+    test('a scheduled backup cuts the history to the retention count and '
+        'deletes the pruned files', () async {
+      final prefs = await seedPrefs(cloudBackupEnabled: false);
+      final preferences = BackupPreferences(prefs);
+      await preferences.setRetentionCount(3);
+      final old = <BackupRecord>[];
+      for (var d = 1; d <= 4; d++) {
+        final path = p.join(_isolatedTempDir.path, 'old_automatic_$d.db');
+        await File(path).writeAsString('old $d');
+        final r = BackupRecord(
+          id: 'old$d',
+          filename: 'old_automatic_$d.db',
+          timestamp: DateTime.now().subtract(Duration(days: d)),
+          sizeBytes: 5,
+          location: BackupLocation.local,
+          diveCount: 1,
+          siteCount: 1,
+          localPath: path,
+          isAutomatic: true,
+        );
+        await preferences.addRecord(r);
+        old.add(r);
+      }
+
+      await run(prefs);
+
+      final history = preferences.getHistory();
+      expect(history, hasLength(3));
+      expect(history.first.isAutomatic, isTrue);
+      expect(
+        history.map((r) => r.id),
+        containsAll(['old1', 'old2']),
+        reason: 'the new backup and the two newest older ones are kept',
+      );
+      expect(File(old[0].localPath!).existsSync(), isTrue);
+      expect(File(old[1].localPath!).existsSync(), isTrue);
+      expect(File(old[2].localPath!).existsSync(), isFalse);
+      expect(File(old[3].localPath!).existsSync(), isFalse);
+      expect(notifications.single.success, isTrue);
     });
   });
 

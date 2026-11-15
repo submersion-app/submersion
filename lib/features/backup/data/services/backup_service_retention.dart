@@ -305,21 +305,38 @@ extension BackupServiceRetention on BackupService {
   /// The cloud backup folder's listing, or null when it cannot be read.
   /// Unlike [getCloudBackups], a failure is not an empty folder: a missing
   /// pin marker must never be inferred from a listing that failed.
+  ///
+  /// A listing that has not answered after [BackupService._cloudListingTimeout]
+  /// counts as unreadable (issue #4572): in a background isolate the silent
+  /// sign-in can stall, and a prune waiting on it never finishes.
   Future<List<CloudFileInfo>?> _listCloudFolder() async {
     final provider = _cloudProvider;
     if (provider == null) return null;
     try {
-      if (!await provider.isAuthenticated()) return null;
-      final folderId = await _getOrCreateCloudBackupFolder();
-      if (folderId == null) return null;
-      return await provider.listFiles(
-        folderId: folderId,
-        namePattern: backupFilePrefix,
+      return await _readCloudFolder(provider).timeout(_cloudListingTimeout);
+    } on TimeoutException {
+      _log.warning(
+        'Cloud backup folder listing timed out after '
+        '${_cloudListingTimeout.inSeconds} s; retried next prune',
       );
+      return null;
     } catch (e, st) {
       _log.warning('Cloud backup folder unreadable', error: e, stackTrace: st);
       return null;
     }
+  }
+
+  /// [_listCloudFolder] without its time limit and error handling.
+  Future<List<CloudFileInfo>?> _readCloudFolder(
+    CloudStorageProvider provider,
+  ) async {
+    if (!await provider.isAuthenticated()) return null;
+    final folderId = await _getOrCreateCloudBackupFolder();
+    if (folderId == null) return null;
+    return provider.listFiles(
+      folderId: folderId,
+      namePattern: backupFilePrefix,
+    );
   }
 
   /// Writes this device's marker for [record]. Never throws: the pin itself

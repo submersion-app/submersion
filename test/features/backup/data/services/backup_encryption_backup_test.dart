@@ -374,12 +374,20 @@ void main() {
       await buildService().performBackup();
     }
     await buildService().pruneOldBackups(1);
-    // Kept, local copies included, so the next prune tries again.
+    // Kept, so the next prune tries again. Their local copies went first,
+    // before any cloud call (issue #4572): the cloud copies are still there.
     final kept = preferences.getHistory();
     expect(kept, hasLength(3));
-    for (final r in kept) {
-      expect(File(r.localPath!).existsSync(), isTrue);
+    final pruned = kept.where((r) => r.localPath == null).toList();
+    expect(pruned, hasLength(2));
+    for (final r in pruned) {
+      expect(r.location, BackupLocation.cloud);
+      expect(r.cloudFileId, isNotNull);
     }
+    // The kept backup keeps its local copy, file included: three backups in
+    // one second share a filename, so the pruned ones left the shared file.
+    final local = kept.singleWhere((r) => r.localPath != null);
+    expect(File(local.localPath!).existsSync(), isTrue);
 
     keeping.failFlush = false;
     await buildService().pruneOldBackups(1);
