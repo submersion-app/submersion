@@ -327,6 +327,25 @@ as the diver passes the one before.
 - **Placement.** Directly under the "Ascent & Descent" rates card on
   Insights > Profile.
 
+### A second card: max depths added up
+
+Added during review at the user's request. A second card, "Max Depths
+Added Up", sits directly under the first and draws the same scale, strip,
+landmarks and interactions from a different figure: each dive counts once
+straight down to its stored max depth and straight back up, ignoring every
+change of depth along the way. It sets the profile figure beside a plainer
+one, so the diver can see how much the in-water up and down adds.
+
+- **Data.** Read from the dives' `max_depth` alone, through the same dive
+  query, scope and filter as the first card. No profile is decoded, so it
+  needs no cache and loads at once even while the first card is still
+  working out new profiles.
+- **Dives counted.** A dive with no max depth is left out. No figure is
+  ever estimated, so the card has no estimated note and reserves no line
+  for one.
+- **Info.** Its info sheet says that only each dive's deepest point
+  counts and that dives with no max depth are left out.
+
 ### Units and language
 
 Every figure, including each landmark's height or depth, follows the

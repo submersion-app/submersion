@@ -55,6 +55,9 @@ void main() {
           verticalDistanceTimelineProvider.overrideWith(
             (ref) async => VerticalDistanceTimeline.empty,
           ),
+          maxDepthTimelineProvider.overrideWith(
+            (ref) async => VerticalDistanceTimeline.empty,
+          ),
         ],
       ),
     );

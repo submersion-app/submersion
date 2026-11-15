@@ -65,6 +65,9 @@ void main() {
           verticalDistanceTimelineProvider.overrideWith(
             (ref) async => VerticalDistanceTimeline.empty,
           ),
+          maxDepthTimelineProvider.overrideWith(
+            (ref) async => VerticalDistanceTimeline.empty,
+          ),
           sharedPreferencesProvider.overrideWithValue(prefs),
           settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
           currentDiverIdProvider.overrideWith(
