@@ -90,4 +90,33 @@ void main() {
     expect((prefs.single as Map)['certificationRef'], 'cert_c1');
     expect((events.single as Map)['eventType'], 'refresher');
   });
+
+  test('carries the species catalogue in the metadata', () async {
+    // Issue #4578: the catalogue has no review step, so it crosses the
+    // wizard as metadata, or a species no dive sighted is lost on restore.
+    const uddf = '''
+<?xml version="1.0" encoding="UTF-8"?>
+<uddf version="3.2.0">
+  <applicationdata>
+    <submersion>
+      <species>
+        <spec id="species_s1">
+          <commonname>My Own Slug</commonname>
+          <scientificname>Slugus mine</scientificname>
+          <category>invertebrate</category>
+        </spec>
+      </species>
+    </submersion>
+  </applicationdata>
+</uddf>
+''';
+
+    final payload = await UddfImportParser().parse(
+      Uint8List.fromList(utf8.encode(uddf)),
+    );
+
+    final species = payload.metadata[ImportPayload.speciesKey] as List;
+    expect((species.single as Map)['commonName'], 'My Own Slug');
+    expect((species.single as Map)['scientificName'], 'Slugus mine');
+  });
 }

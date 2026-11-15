@@ -99,6 +99,8 @@ class UddfImportParser implements ImportParser {
             ImportPayload.currencyPrefsKey: result.currencyPrefs,
           if (result.currencyEvents.isNotEmpty)
             ImportPayload.currencyEventsKey: result.currencyEvents,
+          if (result.species.isNotEmpty)
+            ImportPayload.speciesKey: result.species,
         },
       );
     } on FormatException catch (e) {
