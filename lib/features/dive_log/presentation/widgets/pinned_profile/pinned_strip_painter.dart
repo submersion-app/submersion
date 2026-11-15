@@ -191,7 +191,6 @@ class PinnedStripPainter extends CustomPainter {
   /// Where the shading is clipped: as [clipFor] across and at the top, but
   /// down to the bottom of the box, which the shading always fills.
   /// Null without a chart plot.
-  @visibleForTesting
   Rect? fillClipFor(Size size) {
     final clip = clipFor(size);
     if (clip == null) return null;
