@@ -16,7 +16,11 @@ import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-const _stripZoom = 14.0;
+/// Wider than the strip on the diver's own site page (14), which shows a
+/// place they know. A built-in site is somewhere they have not been, and
+/// at 14 one out at sea is a blue rectangle: at 12 the strip takes in
+/// about 15 km and the nearest coast with it.
+const _stripZoom = 12.0;
 
 /// Where a built-in site is, as a strip at the top of its page: a map of
 /// its position with the depth overlay and the glyph its pin has.
