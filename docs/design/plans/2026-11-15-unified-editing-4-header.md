@@ -1293,13 +1293,12 @@ The plan was built as written in this session, then reviewed as a whole branch b
 - Unlocking still moves the hero down by the Add strip's height on a page that fits, as #4566 left it; the spec says unlocking moves nothing.
 - `setRuntime` notes the exit before a typed runtime first moved it; a runtime emptied or zero gives that exit back, unless the diver picked an exit since.
 - The site suggestion keeps its place, disabled, while a sitting is saved.
+- A code review of the pull request added: Save waits at most ten seconds for tracked work, and tells the page once the sitting is frozen; the open card reads runtime and bottom time in whole minutes cut, as the hero and the form do; the stored runtime typed back on a dive stored with no exit moves the exit the diver picked instead of clearing it; the suggestion's Assign and Create in a sitting are tracked (Save waits for them) and run one at a time, and `resolveCandidate` and `createSite` answer before their altitude lookup.
 - The planned switch waits for the dive's data sources: while they load the editor offers no switch, so a downloaded dive cannot be marked as planned before its source is known (pull request review).
 
 ### Left open
 
-- Runtime and bottom time round in the editor and truncate in the hero, so 43 min 40 s reads 43 there and 44 in the open card.
 - A location added from the suggestion during a sitting is written without the altitude lookup the immediate path runs after it.
-- Save waits for tracked work with no time limit.
 - The altitude take-back restores the stored altitude, not the value before the lookup: a stored altitude the diver cleared comes back.
 - The estimated exit, shown as the exit row's placeholder, reads much like a recorded exit.
 - Tests not written: the site picker opening on the dive's GPS or area, once per tap; a held location actually written by Save; a species refresh that throws; the hero's site tap while unlocked; the stored site picked back after two others.

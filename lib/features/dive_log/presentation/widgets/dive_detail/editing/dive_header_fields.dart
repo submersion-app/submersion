@@ -212,7 +212,8 @@ const _runtimeExitKey = 'runtimeMovedExit';
 
 /// Sets the runtime. A positive runtime moves a recorded exit to entry plus
 /// the runtime; back to the stored runtime with the stored entry, the exit
-/// goes back to the stored exit. A dive with no exit keeps none.
+/// goes back to the stored exit, when the dive was stored with one. A dive
+/// with no exit keeps none.
 ///
 /// Zero or none moves no exit of its own, and gives back the exit as it was
 /// before a runtime typed in this sitting moved it: a field emptied a digit
@@ -234,12 +235,17 @@ void setRuntime(EditSession<Dive> session, Duration? runtime) {
   if (exit == null) return;
   final entry = session.valueOf(diveEntryField);
   final stored = session.stored;
-  final DateTime? next =
-      runtime == stored.runtime && entry == diveEntryField.read(stored)
-      ? stored.exitTime
+  final storedExit = stored.exitTime;
+  // Back at the stored runtime and entry, the stored exit comes back. A dive
+  // stored with no exit has none to give back: the exit the diver picked in
+  // this sitting moves like any other.
+  final next =
+      storedExit != null &&
+          runtime == stored.runtime &&
+          entry == diveEntryField.read(stored)
+      ? storedExit
       : entry.add(runtime);
   session.set(diveExitField, next);
-  if (next == null) return;
   // The exit before the first move of this run is the one to give back.
   final before = moved != null && exit == moved.after ? moved.before : exit;
   session.remember(_runtimeExitKey, (before: before, after: next));

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
@@ -240,8 +242,73 @@ void main() {
             verify(sites.createSite(captureAny)).captured.single as DiveSite;
         expect(saved.diverId, 'diver-1');
         verifyNever(dives.setSite(any, any));
+        await pumpEventQueue();
         verify(sites.updateSiteAltitude('new-Wall', 3.0)).called(1);
       },
     );
+  });
+
+  // Code review: the site exists once it is written, and a sitting waiting
+  // for it must not also wait on the network for its altitude.
+  group('the altitude lookup does not hold the answer', () {
+    late Completer<double?> lookup;
+
+    SiteMatchingService slowService() => SiteMatchingService(
+      siteRepository: sites,
+      catalogue: catalogue,
+      adoption: CatalogueAdoptionService(siteRepository: sites),
+      diveRepository: dives,
+      mediaRepository: media,
+      diverId: 'diver-1',
+      thresholds: SiteMatchSensitivity.balanced.thresholds,
+      runInTransaction: (body) => body(),
+      fetchElevation: (_) => lookup.future,
+    );
+
+    setUp(() {
+      lookup = Completer<double?>();
+      when(
+        sites.createSite(any, classification: anyNamed('classification')),
+      ).thenAnswer((inv) async {
+        final s = inv.positionalArguments.first as DiveSite;
+        return s.copyWith(id: 'new-${s.name}');
+      });
+      when(sites.updateSiteAltitude(any, any)).thenAnswer((_) async {});
+    });
+
+    test('createSite answers before the altitude, which lands after', () async {
+      final created = await slowService()
+          .createSite(
+            const DiveSite(id: 'x', name: 'Wall', location: GeoPoint(1, 2)),
+          )
+          .timeout(const Duration(seconds: 1));
+
+      expect(created.id, 'new-Wall');
+      lookup.complete(3.0);
+      await pumpEventQueue();
+      verify(sites.updateSiteAltitude('new-Wall', 3.0)).called(1);
+    });
+
+    test('resolveCandidate answers before the altitude', () async {
+      catalogue.sites = const [
+        CatalogueSite(
+          id: 'osm_1',
+          name: 'Wreck',
+          location: GeoPoint(0, 0),
+          source: 'osm',
+        ),
+      ];
+      final s = slowService();
+      await s.computeProposals([_diveAt('d1', _eastMeters(22))]);
+
+      final resolved = await s
+          .resolveCandidate('d1', 'osm_1')
+          .timeout(const Duration(seconds: 1));
+
+      expect(resolved.site.id, 'new-Wreck');
+      lookup.complete(5.0);
+      await pumpEventQueue();
+      verify(sites.updateSiteAltitude('new-Wreck', 5.0)).called(1);
+    });
   });
 }

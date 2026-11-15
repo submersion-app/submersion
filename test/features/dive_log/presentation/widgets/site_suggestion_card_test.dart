@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -114,6 +115,7 @@ void main() {
     void Function(DiveSite)? onSiteChanged,
     List<String>? rulesLog,
     SiteSuggestionEditing editing = const SiteSuggestionNoEditing(),
+    ValueListenable<bool>? cardShown,
   }) => mediaTestApp(
     overrides: [
       siteSuggestionForDiveProvider(
@@ -129,12 +131,23 @@ void main() {
       diveTypesProvider.overrideWith((ref) async => const []),
     ],
     home: Scaffold(
-      body: SiteSuggestionCard(
-        diveId: 'd1',
-        currentSite: currentSite,
-        onSiteChanged: onSiteChanged,
-        refreshLists: () async => refreshed++,
-        editing: editing,
+      body: Builder(
+        builder: (context) {
+          final card = SiteSuggestionCard(
+            diveId: 'd1',
+            currentSite: currentSite,
+            onSiteChanged: onSiteChanged,
+            refreshLists: () async => refreshed++,
+            editing: editing,
+          );
+          // A test can take the card away while its write runs.
+          if (cardShown == null) return card;
+          return ValueListenableBuilder<bool>(
+            valueListenable: cardShown,
+            builder: (context, shown, _) =>
+                shown ? card : const SizedBox.shrink(),
+          );
+        },
       ),
     ),
   );
@@ -704,6 +717,79 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(session.valueOf(diveSiteField), isNull);
+    });
+
+    // Code review: the pick is the sitting's own work, so Save waits for
+    // it, and one tap is one resolve.
+    testWidgets('Save waits for an assign that is still resolving', (
+      tester,
+    ) async {
+      final blocking = _BlockingResolveService();
+      await tester.pumpWidget(
+        await host(
+          assignable(blocking),
+          editing: SiteSuggestionSitting(session),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('Assign Blue Hole'));
+      await tester.pump();
+      expect(session.isSettled, isFalse);
+
+      blocking.gate.complete();
+      await tester.pumpAndSettle();
+      expect(session.isSettled, isTrue);
+      expect(session.valueOf(diveSiteField)?.id, 's1');
+    });
+
+    testWidgets('a second tap while the first resolves does nothing', (
+      tester,
+    ) async {
+      final blocking = _BlockingResolveService();
+      await tester.pumpWidget(
+        await host(
+          assignable(blocking),
+          editing: SiteSuggestionSitting(session),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('Assign Blue Hole'));
+      await tester.pump();
+      await tester.tap(find.textContaining('Assign Blue Hole'));
+      await tester.pump();
+      blocking.gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(blocking.resolved, hasLength(1));
+    });
+
+    testWidgets('a failure after the card has gone still says so', (
+      tester,
+    ) async {
+      final blocking = _BlockingResolveService()
+        ..failWith = StateError('offline');
+      final cardShown = ValueNotifier(true);
+      addTearDown(cardShown.dispose);
+      await tester.pumpWidget(
+        await host(
+          assignable(blocking),
+          editing: SiteSuggestionSitting(session),
+          cardShown: cardShown,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('Assign Blue Hole'));
+      await tester.pump();
+      cardShown.value = false;
+      await tester.pump();
+      blocking.gate.complete();
+      await tester.pumpAndSettle();
+
+      final l10n = AppLocalizations.of(tester.element(find.byType(Scaffold)));
+      expect(find.text(l10n.siteMatchReview_applyError), findsOneWidget);
     });
 
     testWidgets('a failure says so and sets nothing', (tester) async {

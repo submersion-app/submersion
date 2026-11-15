@@ -435,6 +435,48 @@ void main() {
     expect(saved, const _Rec(notes: 'typed', depth: 12));
   });
 
+  // Code review: a page that drew the sitting during the wait must hear
+  // that it is now frozen, or it shows live controls through the write.
+  test(
+    'after waiting for tracked work, listeners hear the frozen sitting',
+    () async {
+      final writing = Completer<void>();
+      final controller = _controller(onSave: (_) => writing.future)
+        ..unlock(const _Rec());
+      final session = controller.session!..set(_notes, 'typed');
+      final gate = Completer<void>();
+      session.track(gate.future);
+      final frozenWhenTold = <bool>[];
+      controller.addListener(() => frozenWhenTold.add(session.isFrozen));
+
+      final saving = controller.save();
+      await Future<void>.delayed(Duration.zero);
+      gate.complete();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(frozenWhenTold, contains(true));
+      writing.complete();
+      expect(await saving, isTrue);
+    },
+  );
+
+  // Code review: tracked work that never answers must not hold the page
+  // saving, with every input blocked, for ever.
+  test('save stops waiting for tracked work after its time limit', () async {
+    _Rec? saved;
+    final controller = RecordEditController<_Rec>(
+      onSave: (session) async => saved = session.working,
+      trackedWorkTimeout: const Duration(milliseconds: 20),
+    )..unlock(const _Rec());
+    addTearDown(controller.dispose);
+    controller.session!
+      ..set(_notes, 'typed')
+      ..track(Completer<void>().future);
+
+    expect(await controller.save(), isTrue);
+    expect(saved, const _Rec(notes: 'typed'));
+  });
+
   test('a sitting whose only change is held is saved', () async {
     var saves = 0;
     final controller = _controller(onSave: (_) async => saves++)

@@ -206,6 +206,28 @@ void main() {
     expect(controller.isDirty, isFalse);
   });
 
+  // Code review: the open card reads whole minutes as the hero and the
+  // form do, so 43 min 40 s is 43 there too, and typing 43 changes nothing.
+  testWidgets('times read in whole minutes, as the hero shows them', (
+    tester,
+  ) async {
+    const runtime = Duration(minutes: 43, seconds: 40);
+    final controller = await pumpEditor(
+      tester,
+      full.copyWith(
+        runtime: runtime,
+        exitTime: entry.add(runtime),
+        bottomTime: const Duration(minutes: 41, seconds: 50),
+      ),
+    );
+
+    expect(find.text('43 min'), findsOneWidget);
+    expect(find.text('41 min'), findsOneWidget);
+
+    await type(tester, '43 min', ['4', '43']);
+    expect(controller.isDirty, isFalse);
+  });
+
   // Final review, Important 2.
   testWidgets('a runtime emptied with backspace leaves the exit where it was', (
     tester,

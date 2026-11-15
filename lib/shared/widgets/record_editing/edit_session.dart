@@ -168,9 +168,9 @@ class EditSession<T> extends ChangeNotifier {
   /// Drops what is held under [key], a write or a change, so a save does
   /// not make it: the altitude looked up for a site the diver has since
   /// moved the dive away from. Notifies when it was a change. Does nothing
-  /// while the session [isFrozen].
+  /// while the session [isFrozen] or once it has been disposed.
   void releaseWrite(String key) {
-    if (_isFrozen) return;
+    if (_isFrozen || _isDisposed) return;
     final held = _held.remove(key);
     if (held?.cardId case final cardId?) _moved({cardId});
   }

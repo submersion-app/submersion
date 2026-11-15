@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/geo_math.dart';
@@ -434,11 +436,12 @@ class SiteMatchingService {
 
   /// Best-effort altitude for every site that gained coordinates in this
   /// pass. Runs after the transaction commits so a network stall can never
-  /// hold a DB lock, and never throws.
+  /// hold a DB lock, and never throws. The sites are read before the first
+  /// lookup, so a call left running is not disturbed by the next pass.
   Future<void> _fillAltitudes() async {
     final fetch = fetchElevation;
     if (fetch == null) return;
-    for (final entry in _locatedThisPass.entries) {
+    for (final entry in Map.of(_locatedThisPass).entries) {
       try {
         final meters = await fetch(entry.value);
         if (meters != null) {
@@ -458,7 +461,8 @@ class SiteMatchingService {
   /// dive (issue #4527): an existing site, or a catalogue site adopted as
   /// the diver's, through the same dedup, adoption lookup and coincidence
   /// guard as [applyConfirmed]. An adopted site is created at once, in a
-  /// transaction, and its altitude filled best effort after it. Creating a
+  /// transaction, and its altitude filled best effort once this has
+  /// answered, so the answer never waits on the network. Creating a
   /// record is outside an editing sitting; only the dive's link waits for
   /// its Save.
   ///
@@ -486,7 +490,9 @@ class SiteMatchingService {
     await _runInTransaction(() async {
       chosen = await _siteFor(ref);
     });
-    await _fillAltitudes();
+    // The site exists now: a sitting waiting for it does not also wait on
+    // the network for its altitude.
+    unawaited(_fillAltitudes());
     return (
       site: chosen.site,
       createdSiteIds: [
@@ -496,7 +502,7 @@ class SiteMatchingService {
   }
 
   /// Creates [site] for this diver, with no link, and fills its altitude
-  /// best effort. What the site suggestion's "Create site" does during an
+  /// best effort once this has answered. What the site suggestion's "Create site" does during an
   /// editing sitting, which holds the dive's link until its Save.
   Future<DiveSite> createSite(DiveSite site) async {
     final created = await _siteRepository.createSite(
@@ -507,7 +513,8 @@ class SiteMatchingService {
     if (point != null && created.altitude == null) {
       _locatedThisPass[created.id] = point;
     }
-    await _fillAltitudes();
+    // As in [resolveCandidate]: the altitude lands after the answer.
+    unawaited(_fillAltitudes());
     return created;
   }
 

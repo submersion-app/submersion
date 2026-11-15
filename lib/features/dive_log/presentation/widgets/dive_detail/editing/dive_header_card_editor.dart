@@ -212,11 +212,13 @@ class _DiveHeaderCardEditorState extends ConsumerState<DiveHeaderCardEditor> {
         !hasProfile || span == null
         ? null
         : ProfileSuggestion(
-            value: formatFixedForInput(span.inSeconds / 60, 0),
+            value: formatFixedForInput((span.inSeconds ~/ 60).toDouble(), 0),
             onUse: () => use(span),
             tooltip: tooltip,
           );
-    double toMinutes(double seconds) => seconds / 60;
+    // Whole minutes, cut rather than rounded, as the hero and the dive form
+    // show them: 43 min 40 s reads 43 everywhere.
+    double toMinutes(double seconds) => (seconds / 60).floorToDouble();
     double toSeconds(double minutes) => minutes * 60;
     return [
       RecordNumberRow<Dive>(

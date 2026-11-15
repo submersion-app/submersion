@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/site_suggestion_actions.dart';
@@ -20,6 +21,23 @@ import 'package:submersion/features/media/presentation/widgets/quick_site_from_g
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+
+const _log = LoggerService('SiteSuggestionCard');
+
+/// The note a sitting keeps while the suggestion resolves a site for it, so
+/// a second tap meanwhile starts no second resolve.
+const _pickRunningKey = 'siteSuggestionPickRunning';
+
+/// The suggestion banner with its display filled in, given the actions it
+/// offers: null disables one.
+typedef _BannerFor =
+    SiteSuggestionBanner Function({
+      VoidCallback? onAssign,
+      VoidCallback? onChooseNearby,
+      VoidCallback? onCreate,
+      VoidCallback? onAddLocation,
+      VoidCallback? onDismiss,
+    });
 
 /// How the page showing a [SiteSuggestionCard] edits the dive (issue #4527).
 sealed class SiteSuggestionEditing {
@@ -90,24 +108,29 @@ class SiteSuggestionCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Watched in the card's own build: a sitting's changes rebuild only the
+    // builder below, which must not subscribe to providers of its own.
+    final suggestion = ref.watch(siteSuggestionForDiveProvider(diveId)).value;
+    if (suggestion == null) return const SizedBox.shrink();
+    final units = ref.watch(unitFormatterProvider);
     final editing = this.editing;
     if (editing is SiteSuggestionSitting) {
       return ListenableBuilder(
         listenable: editing.session,
-        builder: (context, _) => _buildFor(context, ref, editing),
+        builder: (context, _) =>
+            _buildFor(context, ref, suggestion, units, editing),
       );
     }
-    return _buildFor(context, ref, null);
+    return _buildFor(context, ref, suggestion, units, null);
   }
 
   Widget _buildFor(
     BuildContext context,
     WidgetRef ref,
+    SiteSuggestion suggestion,
+    UnitFormatter units,
     SiteSuggestionSitting? sitting,
   ) {
-    final suggestion = ref.watch(siteSuggestionForDiveProvider(diveId)).value;
-    if (suggestion == null) return const SizedBox.shrink();
-
     final proposal = suggestion.proposal;
     final session = sitting?.session;
     // The site the card's place is decided from: during a sitting, the dive
@@ -135,7 +158,6 @@ class SiteSuggestionCard extends ConsumerWidget {
     if (currentSite?.id != proposal.dive.site?.id) {
       return const SizedBox.shrink();
     }
-    final units = ref.watch(unitFormatterProvider);
     // Past the guard the form and the database agree, so the shown site is
     // the persisted one; no fallback to proposal.dive.site is reachable.
     final hasSite = currentSite != null;
@@ -151,42 +173,13 @@ class SiteSuggestionCard extends ConsumerWidget {
       suggestion: suggestion,
       diveRepository: ref.read(diveRepositoryProvider),
     );
-    if (session != null) {
-      return _sittingBanner(
-        context,
-        ref,
-        session,
-        suggestion,
-        actions,
-        hasSite: hasSite,
-        siteName: siteName,
-        recommended: recommended,
-        units: units,
-        live: live,
-      );
-    }
-    if (!live) {
-      return SiteSuggestionBanner(
-        pointSource: suggestion.pointSource,
-        fromDraft: proposal.dive.isDraft,
-        coordinates: units.formatCoordinates(
-          suggestion.point.latitude,
-          suggestion.point.longitude,
-        ),
-        status: proposal.status,
-        hasSite: hasSite,
-        siteName: siteName,
-        candidateCount: proposal.candidates.length,
-        recommendedDistanceMeters: recommended?.distanceMeters,
-        onAssign: null,
-        onChooseNearby: null,
-        onCreate: null,
-        onAddLocation: null,
-        onDismiss: null,
-      );
-    }
-
-    return SiteSuggestionBanner(
+    SiteSuggestionBanner banner({
+      VoidCallback? onAssign,
+      VoidCallback? onChooseNearby,
+      VoidCallback? onCreate,
+      VoidCallback? onAddLocation,
+      VoidCallback? onDismiss,
+    }) => SiteSuggestionBanner(
       pointSource: suggestion.pointSource,
       fromDraft: proposal.dive.isDraft,
       coordinates: units.formatCoordinates(
@@ -198,6 +191,27 @@ class SiteSuggestionCard extends ConsumerWidget {
       siteName: siteName,
       candidateCount: proposal.candidates.length,
       recommendedDistanceMeters: recommended?.distanceMeters,
+      onAssign: onAssign,
+      onChooseNearby: onChooseNearby,
+      onCreate: onCreate,
+      onAddLocation: onAddLocation,
+      onDismiss: onDismiss,
+    );
+    if (session != null) {
+      return _sittingBanner(
+        context,
+        ref,
+        session,
+        suggestion,
+        actions,
+        banner: banner,
+        recommended: recommended,
+        live: live,
+      );
+    }
+    if (!live) return banner();
+
+    return banner(
       onAssign: recommended == null
           ? null
           : () async {
@@ -272,26 +286,12 @@ class SiteSuggestionCard extends ConsumerWidget {
     EditSession<Dive> session,
     SiteSuggestion suggestion,
     SiteSuggestionActions actions, {
-    required bool hasSite,
-    required String siteName,
+    required _BannerFor banner,
     required MatchCandidateView? recommended,
-    required UnitFormatter units,
     required bool live,
   }) {
-    final proposal = suggestion.proposal;
-    final site = proposal.dive.site;
-    return SiteSuggestionBanner(
-      pointSource: suggestion.pointSource,
-      fromDraft: proposal.dive.isDraft,
-      coordinates: units.formatCoordinates(
-        suggestion.point.latitude,
-        suggestion.point.longitude,
-      ),
-      status: proposal.status,
-      hasSite: hasSite,
-      siteName: siteName,
-      candidateCount: proposal.candidates.length,
-      recommendedDistanceMeters: recommended?.distanceMeters,
+    final site = suggestion.proposal.dive.site;
+    return banner(
       onAssign: !live || recommended == null
           ? null
           : () {
@@ -359,27 +359,47 @@ class SiteSuggestionCard extends ConsumerWidget {
   /// Puts the site [find] answers with on the dive of [session], with its
   /// rules, if the sitting is still open and still has the site the action
   /// was for. A failure says so and sets nothing.
+  ///
+  /// The work is the sitting's own ([EditSession.track]), so a Save waits
+  /// for it, and one runs at a time: a tap while one runs does nothing.
   Future<void> _pickInSitting(
     BuildContext context,
     EditSession<Dive> session,
     Future<DiveSite?> Function() find,
-  ) async {
+  ) {
+    if (session.recall<bool>(_pickRunningKey) ?? false) return Future.value();
+    session.remember(_pickRunningKey, true);
     // Read now: the card may be gone by the time the site comes back.
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final assign = readDiveSiteAssigner(context);
     final siteBefore = session.valueOf(diveSiteField)?.id;
-    try {
-      final site = await find();
-      if (site == null || session.isDisposed || session.isFrozen) return;
-      if (session.valueOf(diveSiteField)?.id != siteBefore) return;
-      assign(session, site);
-    } catch (_) {
-      if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.siteMatchReview_applyError)),
-      );
+    Future<void> pick() async {
+      try {
+        final site = await find();
+        if (site == null || session.isDisposed || session.isFrozen) return;
+        if (session.valueOf(diveSiteField)?.id != siteBefore) return;
+        assign(session, site);
+      } catch (error, stackTrace) {
+        _log.warning(
+          'Could not resolve the suggested site in a sitting',
+          error: error,
+          stackTrace: stackTrace,
+        );
+        // The messenger is the app's: it still shows this once the card
+        // has gone. A sitting the diver ended has nobody waiting for it.
+        if (session.isDisposed) return;
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.siteMatchReview_applyError)),
+        );
+      } finally {
+        if (!session.isDisposed) session.remember(_pickRunningKey, false);
+      }
     }
+
+    final work = pick();
+    session.track(work);
+    return work;
   }
 
   Future<void> _create(

@@ -24,9 +24,17 @@ typedef RecordSave<T> = Future<void> Function(EditSession<T> session);
 /// change to what it shows (a rule that spans cards, or a value it shows
 /// that an open card owns) does notify.
 class RecordEditController<T> extends ChangeNotifier {
-  RecordEditController({required this.onSave});
+  RecordEditController({
+    required this.onSave,
+    this.trackedWorkTimeout = const Duration(seconds: 10),
+  });
 
   final RecordSave<T> onSave;
+
+  /// How long [save] waits for work the sitting tracks
+  /// ([EditSession.track]) before it writes without it. The page takes no
+  /// input while it waits, so the wait must end.
+  final Duration trackedWorkTimeout;
 
   EditSession<T>? _session;
   bool _isSaving = false;
@@ -303,14 +311,19 @@ class RecordEditController<T> extends ChangeNotifier {
     // Work the sitting started that the save depends on, such as the dive
     // types a picked site adds, lands first. The page takes no input
     // meanwhile: it reads [isSaving]. With nothing running the write starts
-    // at once, as it always has.
-    if (!session.isSettled) {
-      await session.settled();
+    // at once, as it always has. Work that has not answered within
+    // [trackedWorkTimeout] is written without: the diver can set it again.
+    final waited = !session.isSettled;
+    if (waited) {
+      await session.settled().timeout(trackedWorkTimeout, onTimeout: () {});
       // The page went away, or the sitting was discarded, while it waited.
       if (!identical(_session, session)) return false;
     }
     // What is written is what the diver saw when they asked for it.
     session.freeze();
+    // Whatever was drawn during the wait drew the sitting as it could
+    // still change: tell it that it no longer can.
+    if (waited) notifyListeners();
     try {
       await onSave(session);
     } catch (error) {

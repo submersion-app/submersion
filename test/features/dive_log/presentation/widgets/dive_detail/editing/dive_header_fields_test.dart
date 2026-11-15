@@ -271,6 +271,24 @@ void main() {
       expect(session.valueOf(diveExitField), picked);
     });
 
+    // Code review: the stored runtime typed back on a dive stored with no
+    // exit must move the exit the diver picked, not clear it.
+    test(
+      'the stored runtime typed back keeps an exit picked in the sitting',
+      () {
+        final session = sitting(
+          Dive(id: 'dive', dateTime: entry, entryTime: entry, runtime: runtime),
+        );
+        setExitTime(session, DateTime.utc(2026, 3, 9, 10, 50));
+
+        setRuntime(session, const Duration(minutes: 5));
+        setRuntime(session, runtime);
+
+        expect(session.valueOf(diveExitField), entry.add(runtime));
+        expect(session.valueOf(diveRuntimeField), seconds(runtime));
+      },
+    );
+
     test('a runtime on a dive with no exit stores no exit', () {
       final session = sitting(
         Dive(id: 'dive', dateTime: entry, entryTime: entry, runtime: runtime),

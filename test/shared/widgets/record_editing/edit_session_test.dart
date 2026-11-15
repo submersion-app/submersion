@@ -436,6 +436,16 @@ void main() {
 
       expect(session.isHeld('k'), isFalse);
     });
+
+    // Code review: a release arriving after the sitting ended must not
+    // notify a disposed session.
+    test('a disposed session releases nothing, and does not notify', () {
+      final session = EditSession(const _Rec())
+        ..holdChange('k', cardId: 'header', write: () async {})
+        ..dispose();
+
+      expect(() => session.releaseWrite('k'), returnsNormally);
+    });
   });
 
   test('a released held write is not run at save', () async {
