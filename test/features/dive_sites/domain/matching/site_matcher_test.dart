@@ -30,7 +30,54 @@ MatchCandidate _register(String id, double metersEast) => MatchCandidate(
   isRegister: true,
 );
 
+MatchCandidate _researched(String id, double metersEast) => MatchCandidate(
+  id: id,
+  location: _eastMeters(metersEast),
+  isExisting: false,
+  isResearched: true,
+);
+
 void main() {
+  group('a researched record (gathered from dive guides, not verified)', () {
+    SiteMatchOutcome match(List<MatchCandidate> candidates) => matchDive(
+      point: _origin(),
+      candidates: candidates,
+      thresholds: _balanced,
+    );
+
+    test('a lone researched record inside the inner radius is offered, '
+        'not picked', () {
+      final out = match([_researched('liberty', 40)]);
+
+      expect(out, isA<Suggested>());
+      expect((out as Suggested).candidates.single.candidate.id, 'liberty');
+    });
+
+    test('a verified dive site at 40 m is picked over a researched record '
+        'at 400 m', () {
+      final out = match([_bundled('site', 40), _researched('liberty', 400)]);
+
+      expect(out, isA<AutoMatch>());
+      expect((out as AutoMatch).siteId, 'site');
+    });
+
+    test('a researched record close behind a verified one holds back the '
+        'automatic pick', () {
+      final out = match([_bundled('site', 40), _researched('liberty', 60)]);
+
+      expect(out, isA<Suggested>());
+    });
+
+    test("the diver's own site still wins over a nearer researched "
+        'record', () {
+      final out = match([_researched('liberty', 20), _existing('mine', 30)]);
+
+      expect(out, isA<AutoMatch>());
+      expect((out as AutoMatch).siteId, 'mine');
+      expect(out.isExisting, isTrue);
+    });
+  });
+
   group('a register record (a charted wreck, a reef deployment)', () {
     SiteMatchOutcome match(List<MatchCandidate> candidates) => matchDive(
       point: _origin(),

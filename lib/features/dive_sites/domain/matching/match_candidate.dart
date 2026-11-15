@@ -12,10 +12,16 @@ class MatchCandidate {
   /// close to the dive is preferred to one of these.
   final bool isRegister;
 
+  /// Whether this is a catalogue record gathered by research and not
+  /// verified against a survey or a register. It is offered, and never
+  /// picked on the diver's behalf.
+  final bool isResearched;
+
   const MatchCandidate({
     required this.id,
     required this.location,
     required this.isExisting,
     this.isRegister = false,
+    this.isResearched = false,
   });
 }
