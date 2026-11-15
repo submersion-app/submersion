@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
@@ -2281,7 +2282,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               child: Text(
                 hasRating
                     ? context.l10n.diveSites_detail_rating_value(
-                        rating.toStringAsFixed(1),
+                        formatRatingForDisplay(rating),
                       )
                     : context.l10n.diveSites_detail_rating_notRated,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(

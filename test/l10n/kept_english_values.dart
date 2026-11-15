@@ -29,8 +29,21 @@ const _speciesName =
     'Species common name, which this locale writes the same way';
 const _germanSerial =
     'S/N is the usual German abbreviation for a serial number';
+const _placeName =
+    'Proper name of a place, wreck or structure, written the same way in this language';
 
 const Map<String, String> keptEnglishValues = {
+  'insights_landmark_benNevis': _placeName,
+  'insights_landmark_burjKhalifa': _placeName,
+  'insights_landmark_craterLake': _placeName,
+  'insights_landmark_deansBlueHole': _placeName,
+  'insights_landmark_dragonHole': _placeName,
+  'insights_landmark_empireStateBuilding': _placeName,
+  'insights_landmark_everest': _placeName,
+  'insights_landmark_greatBlueHole': _placeName,
+  'insights_landmark_montBlanc': _placeName,
+  'insights_landmark_mountKosciuszko': _placeName,
+  'insights_landmark_olympusMons': _placeName,
   'info_term_degreeHeatingWeeks_label@de': _brand,
   'info_term_nitrox_label': _abbreviation,
   'info_term_rockBottom_label': _method,

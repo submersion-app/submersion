@@ -206,7 +206,7 @@ void main() {
       final list = find.byKey(const ValueKey('summaryTopRatedList'));
       expect(list, findsOneWidget);
       expect(
-        find.descendant(of: list, matching: find.text('5.0')),
+        find.descendant(of: list, matching: find.text('5')),
         findsOneWidget,
       );
     });

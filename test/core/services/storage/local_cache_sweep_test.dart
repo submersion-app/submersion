@@ -300,6 +300,33 @@ void main() {
       );
     });
 
+    test('deletes vertical distance rows whose dive is gone', () async {
+      await addDive('dive-live');
+      for (final id in ['dive-live', 'dive-gone']) {
+        await local
+            .into(local.diveVerticalDistanceCache)
+            .insert(
+              DiveVerticalDistanceCacheCompanion.insert(
+                diveId: id,
+                meters: 20,
+                inputsHash: 'h',
+                computedAt: 0,
+              ),
+            );
+      }
+
+      final report = await sweep().run(now: now);
+
+      expect(report.verticalDistanceRows, 1);
+      expect(report.rowsDeleted, 1);
+      expect(
+        (await local.select(local.diveVerticalDistanceCache).get()).map(
+          (r) => r.diveId,
+        ),
+        ['dive-live'],
+      );
+    });
+
     test('checks ids across chunk boundaries', () async {
       // More ids than one bound-variable chunk, with the live and the
       // orphaned ones interleaved so every chunk holds both.

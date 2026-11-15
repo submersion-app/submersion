@@ -683,6 +683,9 @@ void main() {
       await tester.pump();
 
       expect(find.text('Phone Center'), findsOneWidget);
+      // A whole-star rating reads like a dive's, not "4.0" (#4573).
+      expect(find.text('4'), findsOneWidget);
+      expect(find.text('4.0'), findsNothing);
     });
 
     testWidgets('tapping a row sets highlighted dive center id', (

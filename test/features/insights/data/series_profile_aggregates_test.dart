@@ -176,4 +176,55 @@ void main() {
       expect(r, ascentDescentRates({('d1', 'c1'): descent}));
     },
   );
+
+  group('verticalDistanceByDiveFromBlobs', () {
+    const codec = ProfileSeriesCodec();
+    SeriesBlob blob(String dive, String? computer, List<(int, double)> s) =>
+        SeriesBlob(
+          diveId: dive,
+          computerId: computer,
+          samples: codec.encode([
+            for (final (t, d) in s) ProfileSample(timestamp: t, depth: d),
+          ]).bytes,
+        );
+
+    test('each dive gets its own figure', () {
+      final r = verticalDistanceByDiveFromBlobs([
+        blob('d1', 'c1', [(0, 0), (60, 20), (120, 0)]),
+        // 0 -> 30, up to 12, down to 18, up: 30 + 6.
+        blob('d2', null, [(0, 0), (60, 30), (120, 12), (180, 18), (240, 0)]),
+      ]);
+      expect(r, {'d1': 20.0, 'd2': 36.0});
+    });
+
+    test('a stream stored as two series rows is interleaved, not counted '
+        'twice', () {
+      // Read separately, each piece would count 20 on its own (40 in all).
+      final r = verticalDistanceByDiveFromBlobs([
+        blob('d1', 'c1', [(0, 0), (30, 10), (60, 20)]),
+        blob('d1', 'c1', [(90, 10), (120, 0)]),
+      ]);
+      expect(r, {'d1': 20.0});
+    });
+
+    test('two computers on one dive: the larger figure wins', () {
+      final r = verticalDistanceByDiveFromBlobs([
+        blob('d1', 'c1', [(0, 0), (60, 20), (120, 0)]),
+        blob('d1', 'c2', [(0, 0), (60, 21), (120, 0)]),
+      ]);
+      expect(r, {'d1': 21.0});
+    });
+
+    test('a dive whose only blob is corrupt is absent', () {
+      final r = verticalDistanceByDiveFromBlobs([
+        blob('d1', 'c1', [(0, 0), (60, 20), (120, 0)]),
+        SeriesBlob(
+          diveId: 'd2',
+          computerId: 'c1',
+          samples: Uint8List.fromList([1, 2, 3]),
+        ),
+      ]);
+      expect(r, {'d1': 20.0});
+    });
+  });
 }
