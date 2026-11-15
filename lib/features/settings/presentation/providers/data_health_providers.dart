@@ -115,6 +115,7 @@ final libraryHealthInputsProvider =
               currentMembershipProvider(l.id).future,
             );
             return LibraryHealthInput(
+              id: l.id,
               name: l.name,
               lastError: l.lastError,
               rolesRejected: l.rolesRejected,

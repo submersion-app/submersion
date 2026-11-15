@@ -255,4 +255,24 @@ void main() {
       HealthReason.syncSignedOut,
     );
   });
+
+  group('findings (#4561)', () {
+    test('lists every problem behind the headline', () {
+      final h = eval(inputs(autoSyncEnabled: false, conflicts: 2));
+      expect(h.reason, HealthReason.syncConflicts);
+      expect(
+        [for (final f in h.findings) f.reason],
+        [HealthReason.syncConflicts, HealthReason.syncAutoOff],
+      );
+    });
+
+    test('sync off is its own finding', () {
+      final h = eval(inputs(providerSelected: false));
+      expect([for (final f in h.findings) f.reason], [HealthReason.syncOff]);
+    });
+
+    test('a custom folder has no findings', () {
+      expect(eval(inputs(customFolder: true)).findings, isEmpty);
+    });
+  });
 }

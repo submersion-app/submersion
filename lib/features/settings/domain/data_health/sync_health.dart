@@ -72,7 +72,8 @@ FeatureHealth evaluateSyncHealth(SyncHealthInputs i, DateTime now) {
     return health(HealthLevel.notSetUp, HealthReason.syncCustomFolder);
   }
   if (!i.providerSelected) {
-    return health(HealthLevel.attention, HealthReason.syncOff);
+    final off = health(HealthLevel.attention, HealthReason.syncOff);
+    return off.copyWith(findings: [off]);
   }
 
   final lastSync = i.lastSyncAt;
