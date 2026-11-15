@@ -186,8 +186,29 @@ void main() {
     expect(find.textContaining('Tank material not set'), findsNothing);
   });
 
+  testWidgets('the header offers a what-if, not an edit (#4585)', (
+    tester,
+  ) async {
+    await _pump(tester, buoyancyOutcome());
+
+    expect(find.text('Adjust'), findsNothing);
+    await tester.tap(find.text('What if?'));
+    await tester.pumpAndSettle();
+    expect(find.text('What if you changed your weighting?'), findsOneWidget);
+  });
+
+  testWidgets('the info sheet names the What if? button', (tester) async {
+    await _pump(tester, buoyancyOutcome());
+    await tester.ensureVisible(find.byType(InfoButton));
+    await tester.tap(find.byType(InfoButton));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('“What if?” opens a sheet'), findsOneWidget);
+    expect(find.textContaining('Adjust opens'), findsNothing);
+  });
+
   testWidgets('a narrow card fits its header row', (tester) async {
-    // Half of a 700px paired row. The title, the Adjust button and the info
+    // Half of a 700px paired row. The title, the What if? button and the info
     // icon could not shrink, so the header overflowed; the title now gives
     // way instead.
     await tester.binding.setSurfaceSize(const Size(300, 1600));

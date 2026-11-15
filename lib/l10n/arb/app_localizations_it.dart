@@ -23363,7 +23363,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buoyancy_throughDive => 'Durante l\'immersione';
 
   @override
-  String get buoyancy_adjust => 'Regola';
+  String get buoyancy_whatIfButton => 'E se?';
 
   @override
   String buoyancy_readoutHeavy(String amount) {
@@ -23465,7 +23465,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_whatIfTitle => 'Regola questa immersione';
+  String get buoyancy_whatIfTitle => 'E se cambiassi la zavorra?';
+
+  @override
+  String get buoyancy_whatIfNote =>
+      'Niente di ciò che provi qui cambia l\'immersione registrata.';
 
   @override
   String get buoyancy_whatIfLead => 'Zavorra';
@@ -64116,7 +64120,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Scorri sul grafico per vedere cosa ti tirava verso il basso e cosa ti teneva su in quel momento. Regola apre un pannello che prova un\'altra quantità di zavorra o di galleggiabilità della muta su questa immersione.';
+      'Scorri sul grafico per vedere cosa ti tirava verso il basso e cosa ti teneva su in quel momento. «E se?» apre un pannello che prova un\'altra quantità di zavorra, un altro tipo d\'acqua o un\'altra galleggiabilità della muta su questa immersione, senza modificare l\'immersione.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

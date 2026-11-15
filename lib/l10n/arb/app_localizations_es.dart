@@ -23357,7 +23357,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buoyancy_throughDive => 'Durante la inmersión';
 
   @override
-  String get buoyancy_adjust => 'Ajustar';
+  String get buoyancy_whatIfButton => '¿Y si…?';
 
   @override
   String buoyancy_readoutHeavy(String amount) {
@@ -23459,7 +23459,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_whatIfTitle => 'Ajustar esta inmersión';
+  String get buoyancy_whatIfTitle => '¿Y si cambiaras tu lastre?';
+
+  @override
+  String get buoyancy_whatIfNote =>
+      'Nada de lo que pruebes aquí cambia tu inmersión registrada.';
 
   @override
   String get buoyancy_whatIfLead => 'Lastre';
@@ -64158,7 +64162,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Pasa por el gráfico para ver qué tiraba de ti hacia abajo y qué te mantenía a flote en ese momento. Ajustar abre una hoja que prueba otra cantidad de lastre u otra flotabilidad del traje en esta inmersión.';
+      'Pasa por el gráfico para ver qué tiraba de ti hacia abajo y qué te mantenía a flote en ese momento. «¿Y si…?» abre una hoja que prueba otra cantidad de lastre, otro tipo de agua u otra flotabilidad del traje en esta inmersión, sin cambiar la inmersión.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

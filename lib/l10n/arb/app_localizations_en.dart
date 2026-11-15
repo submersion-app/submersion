@@ -23020,7 +23020,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buoyancy_throughDive => 'Through the dive';
 
   @override
-  String get buoyancy_adjust => 'Adjust';
+  String get buoyancy_whatIfButton => 'What if?';
 
   @override
   String buoyancy_readoutHeavy(String amount) {
@@ -23122,7 +23122,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_whatIfTitle => 'Adjust this dive';
+  String get buoyancy_whatIfTitle => 'What if you changed your weighting?';
+
+  @override
+  String get buoyancy_whatIfNote =>
+      'Nothing you try here changes your logged dive.';
 
   @override
   String get buoyancy_whatIfLead => 'Lead';
@@ -63124,7 +63128,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Move across the chart to see what was pulling you down and holding you up at that moment. Adjust opens a sheet that tries a different amount of lead or suit buoyancy against this dive.';
+      'Move across the chart to see what was pulling you down and holding you up at that moment. “What if?” opens a sheet that tries a different amount of lead, water type or suit buoyancy against this dive, without changing the dive.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

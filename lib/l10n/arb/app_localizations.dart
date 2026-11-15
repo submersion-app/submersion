@@ -36889,11 +36889,11 @@ abstract class AppLocalizations {
   /// **'Through the dive'**
   String get buoyancy_throughDive;
 
-  /// No description provided for @buoyancy_adjust.
+  /// No description provided for @buoyancy_whatIfButton.
   ///
   /// In en, this message translates to:
-  /// **'Adjust'**
-  String get buoyancy_adjust;
+  /// **'What if?'**
+  String get buoyancy_whatIfButton;
 
   /// No description provided for @buoyancy_readoutHeavy.
   ///
@@ -37048,8 +37048,14 @@ abstract class AppLocalizations {
   /// No description provided for @buoyancy_whatIfTitle.
   ///
   /// In en, this message translates to:
-  /// **'Adjust this dive'**
+  /// **'What if you changed your weighting?'**
   String get buoyancy_whatIfTitle;
+
+  /// No description provided for @buoyancy_whatIfNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing you try here changes your logged dive.'**
+  String get buoyancy_whatIfNote;
 
   /// No description provided for @buoyancy_whatIfLead.
   ///
@@ -100655,7 +100661,7 @@ abstract class AppLocalizations {
   /// No description provided for @info_diveLog_buoyancy_howToUse.
   ///
   /// In en, this message translates to:
-  /// **'Move across the chart to see what was pulling you down and holding you up at that moment. Adjust opens a sheet that tries a different amount of lead or suit buoyancy against this dive.'**
+  /// **'Move across the chart to see what was pulling you down and holding you up at that moment. “What if?” opens a sheet that tries a different amount of lead, water type or suit buoyancy against this dive, without changing the dive.'**
   String get info_diveLog_buoyancy_howToUse;
 
   /// No description provided for @info_diveLog_waterConditions_summary.

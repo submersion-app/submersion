@@ -118,7 +118,9 @@ class BuoyancySection extends ConsumerWidget {
                     units: units,
                   ),
                   icon: const Icon(Icons.tune, size: 16),
-                  label: Text(context.l10n.buoyancy_adjust),
+                  // A what-if, not an edit: the sheet saves nothing, so an
+                  // editing verb here read as changing the dive (#4585).
+                  label: Text(context.l10n.buoyancy_whatIfButton),
                 ),
                 HeaderInfoButton(
                   title: context.l10n.diveDetailSection_buoyancy_name,
@@ -127,7 +129,7 @@ class BuoyancySection extends ConsumerWidget {
                     context.l10n,
                     infoUnits(context),
                     hasDrysuitGas: o.drysuitGasLiters > 0,
-                    canAdjust: true,
+                    canTryWhatIf: true,
                   ),
                 ),
               ],
