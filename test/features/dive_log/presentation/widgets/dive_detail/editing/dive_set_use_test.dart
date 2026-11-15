@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
@@ -133,9 +135,17 @@ void main() {
   }) async {
     late Future<SetUseResult?> running;
     await tester.runAsync(() async {
-      running = useSetInSitting(context, ref, session, warm, const [
-        wing,
-      ], auto: auto);
+      running = useSetInSitting(
+        session,
+        warm,
+        read: ref.read,
+        questions: SetUseQuestions.dialogs(
+          context,
+          const UnitFormatter(AppSettings()),
+        ),
+        const [wing],
+        auto: auto,
+      );
       await Future<void>.delayed(const Duration(milliseconds: 50));
     });
     await tester.pumpAndSettle();
@@ -240,9 +250,17 @@ void main() {
     final s = EditSession(bare);
     late Future<SetUseResult?> running;
     await tester.runAsync(() async {
-      running = useSetInSitting(context, ref, s, warm, const [
-        wing,
-      ], auto: false);
+      running = useSetInSitting(
+        s,
+        warm,
+        read: ref.read,
+        questions: SetUseQuestions.dialogs(
+          context,
+          const UnitFormatter(AppSettings()),
+        ),
+        const [wing],
+        auto: false,
+      );
     });
     s.dispose();
     await tester.runAsync(() async => running);

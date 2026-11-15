@@ -463,7 +463,7 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
           // An own cylinder, scanned (issue #2335) or picked from My
           // cylinders (issue #2599), joins the dive's gear: the Equipment
           // card gets its dot. The tank row itself never links to it.
-          onOwnCylinderUsed: (item) => addGearToSitting(ref, _session, [
+          onOwnCylinderUsed: (item) => addGearToSitting(ref.read, _session, [
             item,
           ], stillWanted: () => mounted),
           // Save waits for a scan still being read.

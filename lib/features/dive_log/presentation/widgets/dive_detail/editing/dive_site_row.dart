@@ -5,6 +5,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/utils/dive_type_autofill.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gear_geofence.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_site_assignment.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_area_anchor_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -76,13 +77,21 @@ DiveSiteAssigner readDiveSiteAssigner(BuildContext context) {
         ),
         diveTypes: await container.read(diveTypesProvider.future),
       );
-  return (session, site) => assignDiveSite(
-    session,
-    site,
-    siteDiveTypeIds: siteDiveTypeIds,
-    resolver: resolver,
-    writeSiteAltitude: sites.updateSiteAltitude,
-  );
+  return (session, site) {
+    final before = session.working.site?.id;
+    assignDiveSite(
+      session,
+      site,
+      siteDiveTypeIds: siteDiveTypeIds,
+      resolver: resolver,
+      writeSiteAltitude: sites.updateSiteAltitude,
+    );
+    // A new site also brings, or offers, its location's equipment set: a
+    // rule of the gear's, kept out of the site rules (issue #4527, plan 5).
+    if (session.working.site?.id != before) {
+      reevaluateGearForSite(session, read: container.read);
+    }
+  };
 }
 
 const _pickerOpenKey = 'sitePickerOpen';

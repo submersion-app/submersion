@@ -129,7 +129,7 @@ void main() {
       );
 
       await tester.runAsync(() async {
-        await addGearToSitting(ref, s, const [
+        await addGearToSitting(ref.read, s, const [
           fins,
           mask,
         ], stillWanted: () => true);
@@ -154,10 +154,10 @@ void main() {
       );
 
       await tester.runAsync(() async {
-        final first = addGearToSitting(ref, s, const [
+        final first = addGearToSitting(ref.read, s, const [
           fins,
         ], stillWanted: () => true);
-        final second = addGearToSitting(ref, s, const [
+        final second = addGearToSitting(ref.read, s, const [
           mask,
         ], stillWanted: () => true);
         await Future.wait([first, second]);
@@ -171,7 +171,7 @@ void main() {
     ) async {
       final ref = await refOf(tester);
       final s = EditSession(dive);
-      final add = addGearToSitting(ref, s, const [
+      final add = addGearToSitting(ref.read, s, const [
         EquipmentItem(id: 'mask', name: 'Mask', type: EquipmentType.mask),
       ], stillWanted: () => true);
       s.dispose();

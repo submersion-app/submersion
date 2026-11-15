@@ -1,5 +1,4 @@
 import 'package:submersion/core/constants/dive_detail_sections.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -86,14 +85,14 @@ const _addKey = 'gearAdd';
 /// Adds [items] as the dive form's `_addGearNow` does
 /// (`dive_edit_page.dart:4731`): for a set ([viaSetId]), only the members
 /// the dive's diver may use (issue #2046); merged by id; assemblies expanded
-/// with their parts (issue #1487).
+/// with their parts (issue #1487). Providers are read through [read].
 ///
 /// Adds run one at a time, in the order asked, each on the gear the one
 /// before it left, and Save waits for them. An add drops its result when
 /// the sitting has ended or is being saved, or [stillWanted] says no (the
-/// widget whose [ref] it reads has gone).
+/// widget that asked has gone).
 Future<void> addGearToSitting(
-  WidgetRef ref,
+  ProviderRead read,
   EditSession<Dive> session,
   List<EquipmentItem> items, {
   String? viaSetId,
@@ -103,7 +102,7 @@ Future<void> addGearToSitting(
   final run = () async {
     // The previous add's failure is its own caller's to report.
     if (previous != null) await previous.then((_) {}, onError: (_) {});
-    await _addNow(ref, session, items, viaSetId, stillWanted);
+    await _addNow(read, session, items, viaSetId, stillWanted);
   }();
   session
     ..remember(_addKey, run)
@@ -112,7 +111,7 @@ Future<void> addGearToSitting(
 }
 
 Future<void> _addNow(
-  WidgetRef ref,
+  ProviderRead read,
   EditSession<Dive> session,
   List<EquipmentItem> items,
   String? viaSetId,
@@ -126,7 +125,7 @@ Future<void> _addNow(
     // An unreadable diver adds unscoped, as before sharing, rather than
     // failing the add.
     try {
-      diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      diverId = await read(validatedCurrentDiverIdProvider.future);
     } catch (_) {
       diverId = null;
     }
@@ -154,8 +153,8 @@ Future<void> _addNow(
     for (final item in toAdd)
       if (!current.any((link) => link.item.id == item.id)) item,
   ];
-  final expansion = await expandGearOnPage(
-    ref,
+  final expansion = await expandGear(
+    read,
     additions: [
       for (final item in toAdd) (equipmentId: item.id, viaSetId: viaSetId),
     ],

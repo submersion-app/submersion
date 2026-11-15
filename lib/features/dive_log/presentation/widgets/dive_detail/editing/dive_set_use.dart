@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/cylinder_configs/domain/services/cylinder_config_applier.dart';
 import 'package:submersion/features/cylinder_configs/domain/services/dive_tank_config_adapter.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/apply_configuration_confirm_dialog.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -19,9 +19,9 @@ import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/entities/set_bundle.dart';
 import 'package:submersion/features/equipment/domain/services/set_bundle_form_plan.dart';
+import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/set_bundle_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -46,6 +46,52 @@ class SetUseResult {
   final SetUseCards after;
 }
 
+/// The two questions a set's use can ask, as dialogs over the caller's
+/// [BuildContext]. Built before the use starts, so the use itself holds no
+/// context across its awaits; a question asked once the caller has gone
+/// gets no answer, which keeps what is there.
+class SetUseQuestions {
+  SetUseQuestions.dialogs(BuildContext context, this.units)
+    : _context = context;
+
+  final BuildContext _context;
+  final UnitFormatter units;
+
+  /// Whether the caller is still on screen.
+  bool get stillWanted => _context.mounted;
+
+  /// Add the set's weights, replace them, or keep the dive's.
+  Future<SetWeightsChoice?> weights({
+    required String setName,
+    required double setTotalKg,
+    required double currentTotalKg,
+  }) async {
+    if (!_context.mounted) return null;
+    return showSetWeightsChoiceDialog(
+      _context,
+      setName: setName,
+      setTotal: units.formatWeight(setTotalKg),
+      currentTotal: units.formatWeight(currentTotalKg),
+    );
+  }
+
+  /// Whether the cylinders the set would change may be replaced.
+  Future<bool> cylinders({
+    required String setName,
+    required List<OverwriteTank> overwrites,
+    required List<DiveTank> tanks,
+  }) async {
+    if (!_context.mounted) return false;
+    return confirmCylinderOverwrites(
+      _context,
+      configName: setName,
+      overwrites: overwrites,
+      tanks: tanks,
+      units: units,
+    );
+  }
+}
+
 SetUseCards _cardsOf(EditSession<Dive> session) => (
   gear: session.valueOf(diveGearField),
   weights: session.valueOf(diveWeightsField),
@@ -64,48 +110,53 @@ SetUseCards _cardsOf(EditSession<Dive> session) => (
 /// overwrites nothing.
 ///
 /// Every step drops its result when the sitting has ended or is being
-/// saved, or [context] has gone. Save waits for the whole use. Returns what
-/// changed, or null when it stopped before the end.
+/// saved, or the caller asking the [questions] has gone. A use with [auto]
+/// asks none and needs none. Providers are read through [read]. Save waits
+/// for the whole use. Returns what changed, or null when it stopped before
+/// the end.
 Future<SetUseResult?> useSetInSitting(
-  BuildContext context,
-  WidgetRef ref,
   EditSession<Dive> session,
   EquipmentSet set,
   List<EquipmentItem> items, {
+  required ProviderRead read,
+  SetUseQuestions? questions,
   required bool auto,
 }) {
-  final run = _use(context, ref, session, set, items, auto);
+  assert(auto || questions != null, 'A use that may ask needs its questions');
+  final run = _use(questions, read, session, set, items, auto);
   session.track(run);
   return run;
 }
 
 Future<SetUseResult?> _use(
-  BuildContext context,
-  WidgetRef ref,
+  SetUseQuestions? questions,
+  ProviderRead read,
   EditSession<Dive> session,
   EquipmentSet set,
   List<EquipmentItem> items,
   bool auto,
 ) async {
-  bool alive() => !session.isDisposed && !session.isFrozen && context.mounted;
+  bool alive() =>
+      !session.isDisposed &&
+      !session.isFrozen &&
+      (questions?.stillWanted ?? true);
   if (!alive()) return null;
   final before = _cardsOf(session);
-  final units = UnitFormatter(ref.read(settingsProvider));
-  final covered = await _coveredByOuterSet(ref, session, set);
+  final covered = await _coveredByOuterSet(read, session, set);
   if (!alive()) return null;
-  final absorbedWeights = await _absorbIncludedSets(ref, session, set);
+  final absorbedWeights = await _absorbIncludedSets(read, session, set);
   if (!alive()) return null;
   await addGearToSitting(
-    ref,
+    read,
     session,
     items,
     viaSetId: set.id,
-    stillWanted: () => context.mounted,
+    stillWanted: () => questions?.stillWanted ?? true,
   );
   if (!alive()) return null;
   SetBundle? bundle;
   try {
-    bundle = await ref.read(setBundleProvider(set.id).future);
+    bundle = await read(setBundleProvider(set.id).future);
   } catch (error, stackTrace) {
     // The gear is on; the weights and cylinders cannot be read.
     _log.warning(
@@ -114,20 +165,19 @@ Future<SetUseResult?> _use(
       stackTrace: stackTrace,
     );
   }
-  if (!context.mounted || !alive()) return null;
+  if (!alive()) return null;
   if (bundle != null) {
     final weightsDone = await _applyWeights(
-      context,
+      questions,
       session,
       set,
       bundle,
       absorbedWeights,
-      units: units,
       auto: auto,
       covered: covered,
     );
-    if (!weightsDone || !context.mounted || !alive()) return null;
-    await _applyCylinders(context, session, set, bundle, units, auto: auto);
+    if (!weightsDone || !alive()) return null;
+    await _applyCylinders(questions, session, set, bundle, auto: auto);
     if (!alive()) return null;
   }
   return SetUseResult(before: before, after: _cardsOf(session));
@@ -136,7 +186,7 @@ Future<SetUseResult?> _use(
 /// Whether a set already on the dive includes [set]: its lead is then
 /// already counted, and adding it again would double it.
 Future<bool> _coveredByOuterSet(
-  WidgetRef ref,
+  ProviderRead read,
   EditSession<Dive> session,
   EquipmentSet set,
 ) async {
@@ -146,9 +196,9 @@ Future<bool> _coveredByOuterSet(
   };
   if (others.isEmpty) return false;
   try {
-    final onDive = await ref
-        .read(equipmentSetRepositoryProvider)
-        .getAllSets(ids: others.toList());
+    final onDive = await read(
+      equipmentSetRepositoryProvider,
+    ).getAllSets(ids: others.toList());
     return onDive.any((outer) => outer.includedSetIds.contains(set.id));
   } catch (_) {
     // Sets unavailable: the question is asked as usual.
@@ -160,7 +210,7 @@ Future<bool> _coveredByOuterSet(
 /// shows one set. Returns the weights they filled between them, or null
 /// when none was on the dive.
 Future<List<WeightEntryDraft>?> _absorbIncludedSets(
-  WidgetRef ref,
+  ProviderRead read,
   EditSession<Dive> session,
   EquipmentSet set,
 ) async {
@@ -172,7 +222,7 @@ Future<List<WeightEntryDraft>?> _absorbIncludedSets(
   if (absorbed.isEmpty) return null;
   var weights = const <WeightEntryDraft>[];
   try {
-    final bundles = await ref.read(setBundleLoaderProvider).load(absorbed);
+    final bundles = await read(setBundleLoaderProvider).load(absorbed);
     weights = [for (final b in bundles) ...b.weights];
   } catch (_) {
     // The tags still move; the weights question is then asked as usual.
@@ -194,12 +244,11 @@ Future<List<WeightEntryDraft>?> _absorbIncludedSets(
 /// The set's weights, as [planSetWeights] decides. False when the sitting
 /// went while the question was open.
 Future<bool> _applyWeights(
-  BuildContext context,
+  SetUseQuestions? questions,
   EditSession<Dive> session,
   EquipmentSet set,
   SetBundle bundle,
   List<WeightEntryDraft>? absorbedWeights, {
-  required UnitFormatter units,
   required bool auto,
   required bool covered,
 }) async {
@@ -213,14 +262,11 @@ Future<bool> _applyWeights(
   );
   var add = false;
   if (step == SetWeightsStep.ask) {
-    if (!context.mounted) return false;
-    final choice = await showSetWeightsChoiceDialog(
-      context,
+    // Only a use that may ask reaches here: auto never plans to ask.
+    final choice = await questions?.weights(
       setName: set.name,
-      setTotal: units.formatWeight(bundle.totalWeightKg),
-      currentTotal: units.formatWeight(
-        onDive.fold<double>(0, (sum, w) => sum + w.amountKg),
-      ),
+      setTotalKg: bundle.totalWeightKg,
+      currentTotalKg: onDive.fold<double>(0, (sum, w) => sum + w.amountKg),
     );
     if (session.isDisposed || session.isFrozen) return false;
     switch (choice) {
@@ -247,11 +293,10 @@ Future<bool> _applyWeights(
 /// change is asked first, unless [auto], which changes nothing already on
 /// the dive.
 Future<void> _applyCylinders(
-  BuildContext context,
+  SetUseQuestions? questions,
   EditSession<Dive> session,
   EquipmentSet set,
-  SetBundle bundle,
-  UnitFormatter units, {
+  SetBundle bundle, {
   required bool auto,
 }) async {
   if (bundle.cylinders.isEmpty) return;
@@ -263,14 +308,13 @@ Future<void> _applyCylinders(
     newId: (_) => newSittingTankId(),
   );
   if (result.overwrites.isNotEmpty && !auto) {
-    if (!context.mounted) return;
-    final confirmed = await confirmCylinderOverwrites(
-      context,
-      configName: set.name,
-      overwrites: result.overwrites,
-      tanks: tanks,
-      units: units,
-    );
+    final confirmed =
+        await questions?.cylinders(
+          setName: set.name,
+          overwrites: result.overwrites,
+          tanks: tanks,
+        ) ??
+        false;
     if (!confirmed || session.isDisposed || session.isFrozen) return;
     result = adapter.apply(
       tanks: tanks,
