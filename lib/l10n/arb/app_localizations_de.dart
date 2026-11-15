@@ -12698,13 +12698,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_import_button_import => 'Importieren';
 
   @override
-  String get diveSites_import_detail_alreadyImported => 'Bereits importiert';
-
-  @override
-  String get diveSites_import_detail_importToMySites =>
-      'Zu meinen Tauchplätzen importieren';
-
-  @override
   String diveSites_import_detail_source(Object source) {
     return 'Quelle: $source';
   }
@@ -13383,20 +13376,71 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zu deinen Tauchplätzen hinzugefügt';
 
   @override
-  String get diveSites_map_builtInSites_hide =>
-      'Integrierte Tauchplätze ausblenden';
+  String get diveSites_map_layers_tooltip =>
+      'Integrierte Tauchplätze auf der Karte';
 
   @override
-  String get diveSites_map_builtInSites_off =>
-      'Integrierte Tauchplätze ausgeblendet';
+  String get diveSites_map_layers_diveSites => 'Integrierte Tauchplätze';
 
   @override
-  String get diveSites_map_builtInSites_on =>
-      'Integrierte Tauchplätze angezeigt';
+  String get diveSites_map_layers_registers => 'Verzeichnete Wracks und Riffe';
 
   @override
-  String get diveSites_map_builtInSites_show =>
-      'Integrierte Tauchplätze anzeigen';
+  String diveSites_map_semantics_registerMarker(String name) {
+    return 'Verzeichnetes Wrack oder Riff: $name';
+  }
+
+  @override
+  String get diveSites_builtIn_details => 'Details';
+
+  @override
+  String get diveSites_builtInPage_kindDiveSite => 'Integrierter Tauchplatz';
+
+  @override
+  String get diveSites_builtInPage_kindWreck => 'Verzeichnetes Wrack';
+
+  @override
+  String get diveSites_builtInPage_kindReef => 'Verzeichnetes Riff';
+
+  @override
+  String get diveSites_builtInPage_notYours => 'Nicht in deinen Tauchplätzen';
+
+  @override
+  String diveSites_builtInPage_yourSiteHere(String distance, String name) {
+    return 'Dein Tauchplatz „$name“ liegt $distance von hier';
+  }
+
+  @override
+  String get diveSites_builtInPage_about => 'Überblick';
+
+  @override
+  String get diveSites_builtInPage_nearbyYours => 'Deine Tauchplätze';
+
+  @override
+  String get diveSites_builtInPage_source => 'Quelle';
+
+  @override
+  String diveSites_builtInPage_credit(String credit) {
+    return 'Quellenangabe: $credit';
+  }
+
+  @override
+  String diveSites_builtInPage_licence(String licence) {
+    return 'Lizenz: $licence';
+  }
+
+  @override
+  String get diveSites_builtInPage_notAGuide =>
+      'Eine verzeichnete Position, kein Tauchführer. Nicht zur Navigation.';
+
+  @override
+  String get diveSites_builtInPage_notFound =>
+      'Dieser integrierte Tauchplatz ist nicht mehr verfügbar';
+
+  @override
+  String diveSites_search_builtIn(String text) {
+    return 'Integrierte Tauchplätze nach „$text“ durchsuchen';
+  }
 
   @override
   String get diveSites_map_empty_description =>

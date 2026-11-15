@@ -8,6 +8,15 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// How a built-in catalogue site is put into words on screen: in the site
 /// picker's rows, on the details card and on the map.
 
+/// Where a built-in record's own page is. A record that is already one of
+/// the diver's sites opens that site's page from there.
+///
+/// The id is one path segment whatever it holds. Every id is path-safe
+/// today, but ids come from the catalogue file, and a later source's need
+/// not be.
+String catalogueSitePath(String catalogueId) =>
+    '/sites/catalogue/${Uri.encodeComponent(catalogueId)}';
+
 /// The site's depth in the diver's unit: a range when it has both ends, the
 /// one depth it has otherwise, null with none.
 String? catalogueDepthRange(CatalogueSite site, UnitFormatter units) {
@@ -72,5 +81,46 @@ Uri? catalogueWebsiteUri(String? raw) {
   final uri = Uri.tryParse(raw?.trim() ?? '');
   if (uri == null || uri.host.isEmpty) return null;
   if (uri.scheme != 'https' && uri.scheme != 'http') return null;
+  return uri;
+}
+
+/// What kind of record a built-in site is, in words: a dive site, or a
+/// charted wreck or reef. A register record typed as a wreck (a ship sunk
+/// as a reef among them) is a wreck; any other is a reef.
+String catalogueKindLabel(CatalogueSite site, AppLocalizations l10n) =>
+    switch (site.kind) {
+      CatalogueKind.site => l10n.diveSites_builtInPage_kindDiveSite,
+      CatalogueKind.register =>
+        site.typeIds.contains('wreck')
+            ? l10n.diveSites_builtInPage_kindWreck
+            : l10n.diveSites_builtInPage_kindReef,
+    };
+
+/// Endings of an address that is a data file to download, not a page to
+/// read.
+const _dataFileEndings = [
+  '.kml',
+  '.kmz',
+  '.zip',
+  '.csv',
+  '.json',
+  '.geojson',
+  '.xml',
+  '.gpx',
+];
+
+/// The page a built-in record's "Source" link opens, or null for none.
+///
+/// A record's `sourceRef` is the record's own page for some sources and
+/// the whole dataset's for most. It is not offered when it is not a web
+/// address ([catalogueWebsiteUri]), when it is the same address as the
+/// [source]'s licence link beside it, or when it is a data file: a button
+/// labelled "Source" should open something to read.
+Uri? catalogueSourceLinkUri(CatalogueSite site, CatalogueSource? source) {
+  final uri = catalogueWebsiteUri(site.sourceRef);
+  if (uri == null) return null;
+  if (uri == catalogueWebsiteUri(source?.licenceUrl)) return null;
+  final path = uri.path.toLowerCase();
+  if (_dataFileEndings.any(path.endsWith)) return null;
   return uri;
 }

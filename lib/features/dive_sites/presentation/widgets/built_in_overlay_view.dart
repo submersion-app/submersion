@@ -7,6 +7,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/built_in_map_layers_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -18,8 +19,8 @@ const _settle = Duration(milliseconds: 300);
 ///
 /// A layer that draws nothing: placed among a [FlutterMap]'s children, it
 /// sees every camera change, and reports the view once it rests. The first
-/// view after the overlay is turned on is reported at once. With the
-/// overlay off it reports nothing, so the catalogue is not read.
+/// view after a built-in layer is turned on is reported at once. With
+/// every layer off it reports nothing, so the catalogue is not read.
 class BuiltInOverlayBoundsReporter extends ConsumerStatefulWidget {
   const BuiltInOverlayBoundsReporter({super.key});
 
@@ -48,7 +49,7 @@ class _BuiltInOverlayBoundsReporterState
 
   @override
   Widget build(BuildContext context) {
-    final show = ref.watch(showBuiltInSitesProvider);
+    final show = _watchAnyBuiltInLayer(ref);
     // Held for as long as this map is on screen, whoever else reads it.
     ref.listen(builtInOverlayBoundsProvider, (_, _) {});
     final bounds = catalogueBoundsOf(MapCamera.of(context));
@@ -97,6 +98,12 @@ CatalogueBounds catalogueBoundsOf(MapCamera camera) {
 /// The width of the world at zoom 0, in logical pixels.
 const _tilePixels = 256;
 
+/// Whether the Sites map draws any built-in layer. Selected out of the
+/// layers, so ticking a second layer on rebuilds nothing that only needs
+/// to know the overlay is up.
+bool _watchAnyBuiltInLayer(WidgetRef ref) =>
+    ref.watch(builtInMapLayersNotifierProvider.select((layers) => layers.any));
+
 /// [BuiltInOverlayCaption] where both Sites maps put it: the top left of
 /// the map's stack, kept clear of the controls card docked top right, and
 /// wrapping where its language is long.
@@ -116,14 +123,14 @@ class BuiltInOverlayCaptionSlot extends StatelessWidget {
 }
 
 /// Says to zoom in when the map's view holds more built-in sites than it
-/// marks. Nothing with the overlay off, or when every site in view is
+/// marks. Nothing with every layer off, or when every site in view is
 /// marked.
 class BuiltInOverlayCaption extends ConsumerWidget {
   const BuiltInOverlayCaption({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!ref.watch(showBuiltInSitesProvider) ||
+    if (!_watchAnyBuiltInLayer(ref) ||
         !ref.watch(builtInOverlayTruncatedProvider)) {
       return const SizedBox.shrink();
     }

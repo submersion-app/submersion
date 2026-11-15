@@ -28,6 +28,12 @@ final siteCatalogueImporterProvider = Provider<SiteCatalogueImporter>(
   (ref) => SiteCatalogueImporter(),
 );
 
+/// Whether the bundled catalogue is being imported right now.
+///
+/// A record the catalogue does not hold while this is true may only not
+/// be there yet: a screen that would say "no longer available" waits.
+final siteCatalogueImportingProvider = StateProvider<bool>((ref) => false);
+
 /// Imports the bundled catalogue if it changed, then tells its readers.
 ///
 /// Called once after the first frame (see `app.dart`). Startup never waits
@@ -35,11 +41,17 @@ final siteCatalogueImporterProvider = Provider<SiteCatalogueImporter>(
 // no-tick: the value is a function that starts the import, not data.
 final siteCatalogueImportProvider = Provider<Future<void> Function()>((ref) {
   return () async {
-    final outcome = await ref
-        .read(siteCatalogueImporterProvider)
-        .importIfChanged();
-    if (outcome == SiteCatalogueImportOutcome.imported) {
-      ref.read(siteCatalogueRevisionProvider.notifier).state++;
+    final importing = ref.read(siteCatalogueImportingProvider.notifier);
+    importing.state = true;
+    try {
+      final outcome = await ref
+          .read(siteCatalogueImporterProvider)
+          .importIfChanged();
+      if (outcome == SiteCatalogueImportOutcome.imported) {
+        ref.read(siteCatalogueRevisionProvider.notifier).state++;
+      }
+    } finally {
+      importing.state = false;
     }
   };
 });

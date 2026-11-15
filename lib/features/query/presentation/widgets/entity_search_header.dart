@@ -3,9 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/compiler/query_validator.dart';
+import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/presentation/query_text_field.dart';
+import 'package:submersion/core/query/presentation/query_tree_edit.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/features/query/presentation/entity_query_editor.dart';
 import 'package:submersion/features/query/presentation/providers/entity_search_providers.dart';
@@ -38,6 +42,7 @@ class EntitySearchHeader extends ConsumerStatefulWidget {
     required this.onChanged,
     this.hintText,
     this.alwaysShown = false,
+    this.extraRows,
   });
 
   final QuerySubject subject;
@@ -52,6 +57,13 @@ class EntitySearchHeader extends ConsumerStatefulWidget {
   /// has always shown its search field; the Close button then clears
   /// rather than hides.
   final bool alwaysShown;
+
+  /// Rows of the list's own beneath "Search everything", shown with it
+  /// (the field focused, with text in it): other places the typed text can
+  /// be taken. Given the text as typed, and the tree that text parses to
+  /// in this list's language, which is null when it does not parse. No
+  /// rows when null.
+  final List<Widget> Function(String text, QueryNode? parsed)? extraRows;
 
   @override
   ConsumerState<EntitySearchHeader> createState() => _EntitySearchHeaderState();
@@ -141,6 +153,24 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
     });
   }
 
+  /// The tree [text] parses to in this list's language, or null when it
+  /// does not parse or is blank.
+  ///
+  /// Read from the text itself each time, not from what the field last
+  /// reported: the field says only when its validity changes, and says
+  /// nothing when a query set from outside rewrites it, so a flag kept
+  /// from its reports can call text it never checked valid.
+  static QueryNode? _cleanTree(QueryEditorContext context, String text) {
+    if (text.trim().isEmpty) return null;
+    return switch (context.parser.parse(text)) {
+      ParseOk(:final node) =>
+        validateQuery(node, context.root, context.registry).isEmpty
+            ? normalizeQuery(node)
+            : null,
+      ParseFailure() => null,
+    };
+  }
+
   /// Close: the row hides (unless [EntitySearchHeader.alwaysShown]) and the
   /// query clears, text still waiting on the debounce included.
   void _close() {
@@ -177,6 +207,7 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
     }
     final l10n = context.l10n;
     final showEverywhere = _text.trim().isNotEmpty && _focus.hasFocus;
+    final editorContext = watchQueryEditorContext(context, ref, widget.root);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -188,7 +219,7 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
             children: [
               Expanded(
                 child: QueryTextField(
-                  context: watchQueryEditorContext(context, ref, widget.root),
+                  context: editorContext,
                   value: _local,
                   onChanged: _onQueryChanged,
                   hintText: widget.hintText ?? l10n.search_fieldHint,
@@ -209,7 +240,10 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
             ],
           ),
         ),
-        if (showEverywhere) SearchEverywhereRow(text: _text),
+        if (showEverywhere) ...[
+          SearchEverywhereRow(text: _text),
+          ...?widget.extraRows?.call(_text, _cleanTree(editorContext, _text)),
+        ],
       ],
     );
   }

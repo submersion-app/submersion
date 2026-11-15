@@ -12627,13 +12627,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_import_button_import => 'Importeren';
 
   @override
-  String get diveSites_import_detail_alreadyImported => 'Reeds geïmporteerd';
-
-  @override
-  String get diveSites_import_detail_importToMySites =>
-      'Importeren naar mijn stekken';
-
-  @override
   String diveSites_import_detail_source(Object source) {
     return 'Bron: $source';
   }
@@ -13302,16 +13295,71 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_map_builtInSites_added => 'Toegevoegd aan je stekken';
 
   @override
-  String get diveSites_map_builtInSites_hide => 'Ingebouwde stekken verbergen';
+  String get diveSites_map_layers_tooltip => 'Ingebouwde stekken op de kaart';
 
   @override
-  String get diveSites_map_builtInSites_off => 'Ingebouwde stekken verborgen';
+  String get diveSites_map_layers_diveSites => 'Ingebouwde duikstekken';
 
   @override
-  String get diveSites_map_builtInSites_on => 'Ingebouwde stekken getoond';
+  String get diveSites_map_layers_registers =>
+      'In kaart gebrachte wrakken en riffen';
 
   @override
-  String get diveSites_map_builtInSites_show => 'Ingebouwde stekken tonen';
+  String diveSites_map_semantics_registerMarker(String name) {
+    return 'In kaart gebracht wrak of rif: $name';
+  }
+
+  @override
+  String get diveSites_builtIn_details => 'Details';
+
+  @override
+  String get diveSites_builtInPage_kindDiveSite => 'Ingebouwde duikstek';
+
+  @override
+  String get diveSites_builtInPage_kindWreck => 'In kaart gebracht wrak';
+
+  @override
+  String get diveSites_builtInPage_kindReef => 'In kaart gebracht rif';
+
+  @override
+  String get diveSites_builtInPage_notYours => 'Niet in je stekken';
+
+  @override
+  String diveSites_builtInPage_yourSiteHere(String distance, String name) {
+    return 'Je stek \"$name\" ligt $distance hiervandaan';
+  }
+
+  @override
+  String get diveSites_builtInPage_about => 'Over deze stek';
+
+  @override
+  String get diveSites_builtInPage_nearbyYours => 'Je stekken';
+
+  @override
+  String get diveSites_builtInPage_source => 'Bron';
+
+  @override
+  String diveSites_builtInPage_credit(String credit) {
+    return 'Bronvermelding: $credit';
+  }
+
+  @override
+  String diveSites_builtInPage_licence(String licence) {
+    return 'Licentie: $licence';
+  }
+
+  @override
+  String get diveSites_builtInPage_notAGuide =>
+      'Een in kaart gebrachte positie, geen duikgids. Niet voor navigatie.';
+
+  @override
+  String get diveSites_builtInPage_notFound =>
+      'Deze ingebouwde stek is niet meer beschikbaar';
+
+  @override
+  String diveSites_search_builtIn(String text) {
+    return 'Ingebouwde stekken doorzoeken op \"$text\"';
+  }
 
   @override
   String get diveSites_map_empty_description =>

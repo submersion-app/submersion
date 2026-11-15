@@ -12684,13 +12684,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_import_button_import => 'Importálás';
 
   @override
-  String get diveSites_import_detail_alreadyImported => 'Már importálva';
-
-  @override
-  String get diveSites_import_detail_importToMySites =>
-      'Importálás a helyszíneimhez';
-
-  @override
   String diveSites_import_detail_source(Object source) {
     return 'Forrás: $source';
   }
@@ -13356,20 +13349,72 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_map_builtInSites_added => 'Hozzáadva a merülőhelyeihez';
 
   @override
-  String get diveSites_map_builtInSites_hide =>
-      'Beépített merülőhelyek elrejtése';
+  String get diveSites_map_layers_tooltip =>
+      'Beépített merülőhelyek a térképen';
 
   @override
-  String get diveSites_map_builtInSites_off =>
-      'Beépített merülőhelyek elrejtve';
+  String get diveSites_map_layers_diveSites => 'Beépített merülőhelyek';
 
   @override
-  String get diveSites_map_builtInSites_on =>
-      'Beépített merülőhelyek megjelenítve';
+  String get diveSites_map_layers_registers =>
+      'Térképezett roncsok és zátonyok';
 
   @override
-  String get diveSites_map_builtInSites_show =>
-      'Beépített merülőhelyek megjelenítése';
+  String diveSites_map_semantics_registerMarker(String name) {
+    return 'Térképezett roncs vagy zátony: $name';
+  }
+
+  @override
+  String get diveSites_builtIn_details => 'Részletek';
+
+  @override
+  String get diveSites_builtInPage_kindDiveSite => 'Beépített merülőhely';
+
+  @override
+  String get diveSites_builtInPage_kindWreck => 'Térképezett roncs';
+
+  @override
+  String get diveSites_builtInPage_kindReef => 'Térképezett zátony';
+
+  @override
+  String get diveSites_builtInPage_notYours => 'Nincs a merülőhelyei között';
+
+  @override
+  String diveSites_builtInPage_yourSiteHere(String distance, String name) {
+    return 'A(z) „$name” nevű merülőhelye $distance távolságra van innen';
+  }
+
+  @override
+  String get diveSites_builtInPage_about => 'Áttekintés';
+
+  @override
+  String get diveSites_builtInPage_nearbyYours => 'Saját merülőhelyek';
+
+  @override
+  String get diveSites_builtInPage_source => 'Forrás';
+
+  @override
+  String diveSites_builtInPage_credit(String credit) {
+    return 'Forrásmegjelölés: $credit';
+  }
+
+  @override
+  String diveSites_builtInPage_licence(String licence) {
+    return 'Licenc: $licence';
+  }
+
+  @override
+  String get diveSites_builtInPage_notAGuide =>
+      'Térképezett pozíció, nem merülési útmutató. Navigációra nem használható.';
+
+  @override
+  String get diveSites_builtInPage_notFound =>
+      'Ez a beépített merülőhely már nem érhető el';
+
+  @override
+  String diveSites_search_builtIn(String text) {
+    return '„$text” keresése a beépített merülőhelyek között';
+  }
 
   @override
   String get diveSites_map_empty_description =>

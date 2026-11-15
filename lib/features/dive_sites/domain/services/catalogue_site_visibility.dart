@@ -17,6 +17,23 @@ Set<String> linkedCatalogueIds(Iterable<DiveSite> userSites) => {
   ],
 };
 
+/// The id of the site among [userSites] that stands for the catalogue
+/// record [catalogueId], or null when none of them claims it.
+///
+/// The site adopted from the record comes first; failing that, one a merge
+/// folded a site adopted from it into. A record with an owner is shown as
+/// that site wherever it is opened, never as a built-in record.
+String? catalogueOwnerSiteId(Iterable<DiveSite> userSites, String catalogueId) {
+  String? merged;
+  for (final site in userSites) {
+    if (site.catalogueId == catalogueId) return site.id;
+    if (merged == null && site.catalogueAnswers.also.contains(catalogueId)) {
+      merged = site.id;
+    }
+  }
+  return merged;
+}
+
 /// The catalogue [sites] worth offering to a diver who has [userSites], in
 /// their given order.
 ///

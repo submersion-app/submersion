@@ -88,20 +88,25 @@ class LocalSiteCatalogue implements SiteCatalogue {
   Future<CatalogueBoundsResult> inBounds(
     CatalogueBounds bounds, {
     int limit = 1500,
+    Set<CatalogueKind> kinds = const {
+      CatalogueKind.site,
+      CatalogueKind.register,
+    },
   }) => _read((sites: const <CatalogueSite>[], truncated: false), (db) async {
-    Expression<bool> inside($SiteCatalogueEntriesTable t, CatalogueKind kind) =>
-        _ofKind(t, kind, _inBounds(t, bounds));
-
-    // One more than the limit is asked for, to learn that there was more.
-    // Nearest the middle first, as for the register records below: with no
-    // order a full view keeps whatever the index lists first, its
-    // southernmost sites.
-    final sites =
-        await (db.select(db.siteCatalogueEntries)
-              ..where((t) => inside(t, CatalogueKind.site))
+    // The rows of one kind nearest the middle, one more than [room] of
+    // them, to learn that there was more. With no order a full view keeps
+    // whatever the index lists first, its southernmost sites.
+    Future<List<SiteCatalogueRow>> nearest(CatalogueKind kind, int room) =>
+        (db.select(db.siteCatalogueEntries)
+              ..where((t) => _ofKind(t, kind, _inBounds(t, bounds)))
               ..orderBy([(t) => OrderingTerm.asc(_farFrom(t, bounds.center))])
-              ..limit(limit + 1))
+              ..limit(room + 1))
             .get();
+
+    // A kind the caller did not ask for is not read at all.
+    final sites = kinds.contains(CatalogueKind.site)
+        ? await nearest(CatalogueKind.site, limit)
+        : const <SiteCatalogueRow>[];
     if (sites.length > limit) {
       return (
         sites: sites.take(limit).map(catalogueSiteFromRow).toList(),
@@ -109,12 +114,9 @@ class LocalSiteCatalogue implements SiteCatalogue {
       );
     }
     final room = limit - sites.length;
-    final registers =
-        await (db.select(db.siteCatalogueEntries)
-              ..where((t) => inside(t, CatalogueKind.register))
-              ..orderBy([(t) => OrderingTerm.asc(_farFrom(t, bounds.center))])
-              ..limit(room + 1))
-            .get();
+    final registers = kinds.contains(CatalogueKind.register)
+        ? await nearest(CatalogueKind.register, room)
+        : const <SiteCatalogueRow>[];
     return (
       sites: [
         ...sites,
