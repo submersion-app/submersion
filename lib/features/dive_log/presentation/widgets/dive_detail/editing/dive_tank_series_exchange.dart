@@ -70,7 +70,7 @@ void exchangeTankSeries(
           : t.id == tankIdB
           ? _recordedFrom(t, a)
           : t,
-  ]);
+  ], replaced: true);
   if (next.isEmpty) {
     session.releaseWrite(tankSeriesExchangeKey);
     return;

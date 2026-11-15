@@ -324,5 +324,5 @@ Future<void> _applyCylinders(
     );
   }
   if (!result.changed) return;
-  setTanks(session, result.tanks);
+  setTanks(session, result.tanks, replaced: true);
 }

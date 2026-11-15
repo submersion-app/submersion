@@ -44,11 +44,31 @@ const _suggestedKey = 'tankSlotsSuggested';
 /// The cylinders whose suggestion the diver turned down with None.
 const _declinedKey = 'tankSlotsDeclined';
 
+/// How many times the cylinders were replaced from outside their rows.
+const _replacedKey = 'tankRowsReplaced';
+
+/// Moves each time the sitting's cylinders are replaced from outside their
+/// rows (a saved configuration, a set, the last dive at a center, a site's
+/// location set taken back, an exchange). The Cylinders editor keys its
+/// rows with it, so an open row is built again from its cylinder instead of
+/// keeping the text it was showing, which its next keystroke would write
+/// back over the new values.
+int tankRowsGeneration(EditSession<Dive> session) =>
+    session.recall<int>(_replacedKey) ?? 0;
+
 /// Sets the sitting's cylinders. Their order is left as given: renumbering
 /// is [removeSittingTank]'s, as it is the form's (`_removeTank`). Switches
 /// whose cylinder is gone go with it ([dropGasSwitchesWithoutTank]).
-void setTanks(EditSession<Dive> session, List<DiveTank> tanks) {
+/// [replaced] is a change made from outside the rows ([tankRowsGeneration]).
+void setTanks(
+  EditSession<Dive> session,
+  List<DiveTank> tanks, {
+  bool replaced = false,
+}) {
   if (session.isFrozen || session.isDisposed) return;
+  if (replaced) {
+    session.remember(_replacedKey, tankRowsGeneration(session) + 1);
+  }
   session.set(diveTanksField, List<DiveTank>.unmodifiable(tanks));
   dropGasSwitchesWithoutTank(session);
 }

@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ccr_settings_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_rules.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_series_exchange.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_fields.dart';
@@ -339,6 +340,20 @@ void main() {
 
     expect([for (final g in c.session!.working.gear) g.item.id], ['own']);
     expect(c.session!.changedCardIds, {'equipment'});
+  });
+
+  testWidgets('cylinders replaced from another card rebuild their rows; a '
+      'row\'s own change keeps it', (tester) async {
+    final c = await pumpEditor(tester, oc);
+    final before = tester.state(find.byType(TankRow));
+
+    setTanks(c.session!, [back.copyWith(endPressure: 70)]);
+    await tester.pumpAndSettle();
+    expect(tester.state(find.byType(TankRow)), same(before));
+
+    setTanks(c.session!, [back.copyWith(volume: 15)], replaced: true);
+    await tester.pumpAndSettle();
+    expect(tester.state(find.byType(TankRow)), isNot(same(before)));
   });
 
   testWidgets('a scan in flight delays Save until it lands', (tester) async {

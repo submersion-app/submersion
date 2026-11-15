@@ -157,6 +157,6 @@ void _takeBack(EditSession<Dive> session) {
     session.valueOf(diveTanksField),
     applied.after.tanks,
   )) {
-    setTanks(session, applied.before.tanks);
+    setTanks(session, applied.before.tanks, replaced: true);
   }
 }

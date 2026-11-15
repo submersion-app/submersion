@@ -143,5 +143,6 @@ void applyLastDiveInSitting(
       startPressure: defaultStartPressure,
       endPressure: 50.0,
     ),
+    replaced: true,
   );
 }

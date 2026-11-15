@@ -58,11 +58,6 @@ class DiveTanksCardEditor extends ConsumerStatefulWidget {
 }
 
 class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
-  /// Moves when the cylinders are replaced from outside a row (a saved
-  /// configuration, an exchange), so each row is built again from its
-  /// cylinder instead of keeping the text it was showing.
-  int _rowGeneration = 0;
-
   TankPresetEntity? _defaultPreset;
 
   @override
@@ -172,8 +167,7 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
       );
       return;
     }
-    setState(() => _rowGeneration++);
-    setTanks(_session, result.tanks);
+    setTanks(_session, result.tanks, replaced: true);
     messenger.showSnackBar(
       SnackBar(
         content: Text(
@@ -198,7 +192,6 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
       tankPressures: pressures,
       onExchange: (a, b) async {
         if (!mounted) return;
-        setState(() => _rowGeneration++);
         exchangeTankSeries(
           _session,
           a,
@@ -416,7 +409,7 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
       FormCaption(l10n.diveLog_edit_tanksCaption),
       for (var i = 0; i < tanks.length; i++)
         TankRow(
-          key: ValueKey((tanks[i].id, _rowGeneration)),
+          key: ValueKey((tanks[i].id, tankRowsGeneration(_session))),
           tank: tanks[i],
           tankNumber: i + 1,
           units: units,
