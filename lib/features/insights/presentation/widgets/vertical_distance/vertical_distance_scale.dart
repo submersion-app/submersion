@@ -310,7 +310,20 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
             ),
           ),
           const SizedBox(width: 4),
-          Text(units.formatDepthWhole(m.landmark.meters), style: style),
+          // Only at a very large text size can the figure alone outgrow the
+          // column; then it scales down rather than overflow.
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: math.max(0, g.width - g.columnInset - 4),
+            ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                units.formatDepthWhole(m.landmark.meters),
+                style: style,
+              ),
+            ),
+          ),
         ],
       ),
     );

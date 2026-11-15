@@ -480,6 +480,15 @@ void main() {
     expect(tester.getSize(find.byType(VerticalDistanceCard)).height, loading);
   });
 
+  testWidgets('a pinned strip fits large text', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await pump(tester, width: 320);
+    await tester.tapAt(at(tester, 100));
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('lays out right to left', (tester) async {
     await pump(tester, width: 320, locale: const Locale('ar'));
     expect(tester.takeException(), isNull);

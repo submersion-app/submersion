@@ -30,7 +30,9 @@ class VerticalDistanceStrip extends StatelessWidget {
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 400;
         return Container(
-          height: kVerticalStripHeight,
+          // A minimum, not a fixed height: at a large text size the two
+          // lines grow the strip instead of overflowing it.
+          constraints: const BoxConstraints(minHeight: kVerticalStripHeight),
           padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
           decoration: BoxDecoration(
             color: scheme.surfaceContainerHighest,
