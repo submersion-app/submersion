@@ -304,6 +304,36 @@ void main() {
       );
     });
 
+    testWidgets('dots too close to tell apart are drawn as one', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        StripMarkerPainter(
+          strip: _strip(),
+          layers: _state(
+            const PinnedStripLayerData(
+              dots: [
+                StripDot(seconds: 660, depthMeters: 20),
+                StripDot(seconds: 663, depthMeters: 20),
+              ],
+            ),
+            {StripLayer.media: 1},
+          ),
+        ),
+      );
+      expect(
+        find.byType(CustomPaint),
+        paints
+          ..circle(radius: kStripClusterRadius)
+          ..circle(radius: kStripClusterRadius),
+      );
+      expect(
+        find.byType(CustomPaint),
+        isNot(paints..circle(radius: kStripDotRadius)),
+      );
+    });
+
     testWidgets('a media dot sits on the depth line', (tester) async {
       await _pump(
         tester,

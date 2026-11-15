@@ -371,11 +371,15 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
 }
 
 /// Room below the strip for a tooltip of [rows] rows: more for each row a
-/// card layer adds, but never over half of a screen [screenHeight] tall, or
-/// its last rows would fall off it. Past that its box scales down to fit.
+/// card layer adds, but never over half of a screen [screenHeight] tall, a
+/// short window included, or its last rows would fall off it. Past that its
+/// box scales down to fit.
 double _tooltipRoomFor(int rows, double screenHeight) {
-  final wanted = _tooltipRoom + (rows - _ownTooltipRows) * _tooltipRowRoom;
-  return wanted.clamp(_tooltipRoom, math.max(_tooltipRoom, screenHeight / 2));
+  final wanted = math.max(
+    _tooltipRoom,
+    _tooltipRoom + (rows - _ownTooltipRows) * _tooltipRowRoom,
+  );
+  return math.min(wanted, screenHeight / 2);
 }
 
 /// The deepest point of the ghost depth lines showing, faded in with them,

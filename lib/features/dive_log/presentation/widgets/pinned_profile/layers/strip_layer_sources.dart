@@ -136,6 +136,7 @@ PinnedStripLayerData buildStripLayerData(
     List<double?>? curve, {
     double? min,
     double? max,
+    double? maxFloor,
     double pad = 0,
     bool breakAtNull = false,
   }) {
@@ -154,6 +155,7 @@ PinnedStripLayerData buildStripLayerData(
       runs,
       min: min,
       max: max,
+      maxFloor: maxFloor,
       pad: pad,
     );
   }
@@ -174,7 +176,8 @@ PinnedStripLayerData buildStripLayerData(
       ProfileMetric.surfaceGf,
       analysis?.surfaceGfCurve,
       min: ProfileMetricBands.surfaceGf.min,
-      max: ProfileMetricBands.surfaceGf.fixedMax,
+      // As the full chart: its band, or past it when the dive goes higher.
+      maxFloor: ProfileMetricBands.surfaceGf.fixedMax,
     ),
     ..._tankLines(inputs, style, end),
     indexed(
@@ -196,7 +199,7 @@ PinnedStripLayerData buildStripLayerData(
       ProfileMetric.tts,
       [for (final s in analysis?.ttsCurve ?? const <int>[]) s.toDouble()],
       min: ProfileMetricBands.tts.min,
-      max: ProfileMetricBands.tts.fixedMax,
+      maxFloor: ProfileMetricBands.tts.fixedMax,
     ),
     indexed(StripLayer.heartRate, ProfileMetric.heartRate, [
       for (final p in profile) p.heartRate?.toDouble(),
@@ -256,6 +259,7 @@ StripLine? _line(
   List<List<StripPoint>> runs, {
   double? min,
   double? max,
+  double? maxFloor,
   double pad = 0,
   bool estimated = false,
   String? label,
@@ -272,6 +276,7 @@ StripLine? _line(
   ].isNotEmpty;
   final low = min ?? values.reduce(math.min) - pad;
   var high = max ?? values.reduce(math.max) + pad;
+  if (maxFloor != null) high = math.max(high, maxFloor);
   // A fixed floor with nothing above it (no CNS at all) keeps its line at
   // the floor: a flat series on its own range would sit half way up.
   if (min != null && high <= low) high = low + 1;

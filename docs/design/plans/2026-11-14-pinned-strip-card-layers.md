@@ -17,7 +17,7 @@
 - New strings in every ARB file under `lib/l10n/arb/`, then `flutter gen-l10n`.
 - No new dependencies; no schema change; no new setting.
 - Strip grows from `kPinnedStripHeight` (44) to `kPinnedStripGrownHeight` (72).
-- A card is in view with at least 96 px (or all of it when shorter) between a fixed edge 72 px below the overlay's top and the viewport's bottom.
+- A card is in view once 75% of it (or, for a card taller than the room, 75% of the room) lies between a fixed edge 72 px below the overlay's top and the viewport's bottom, with 16 px of hysteresis. (Changed from the first build's 96 px at the diver's request; Task 2's tests were rewritten to match.)
 - Fades and growth: 250 ms, `Curves.easeInOut`; none with `MediaQuery.disableAnimations`.
 - Layers and growth only while the strip is settled (condense 1).
 - No em dashes; immutable data; `dart format .` before each commit.

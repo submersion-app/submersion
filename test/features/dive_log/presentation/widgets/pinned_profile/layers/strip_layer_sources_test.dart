@@ -171,6 +171,17 @@ void main() {
     expect(line.max, greaterThan(line.min));
   });
 
+  test('surface GF and TTS ranges grow past their floors, as the chart', () {
+    final data = _build(
+      analysis: ProfileAnalysis.empty().copyWith(
+        surfaceGfCurve: [for (var i = 0; i < 10; i++) i * 20.0],
+        ttsCurve: [for (var i = 0; i < 10; i++) i * 600],
+      ),
+    );
+    expect(_line(data, StripLayer.surfaceGf).max, 180);
+    expect(_line(data, StripLayer.tts).max, 5400);
+  });
+
   test('surface GF ranges 0 to 150', () {
     final data = _build(
       analysis: ProfileAnalysis.empty().copyWith(

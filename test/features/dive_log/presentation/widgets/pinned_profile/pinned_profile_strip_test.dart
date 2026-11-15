@@ -838,6 +838,25 @@ void main() {
       expect(tester.getRect(tooltip()).bottom, lessThanOrEqualTo(600));
     });
 
+    testWidgets('on a window under 480 px the room is still half of it', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 400);
+      addTearDown(tester.view.reset);
+      final c = await pump(tester, layers: state());
+      await setCursor(c, tester, 75);
+      final room = tester.getSize(
+        find
+            .ancestor(
+              of: tooltip(),
+              matching: find.byType(CustomSingleChildLayout),
+            )
+            .first,
+      );
+      expect(room.height, lessThanOrEqualTo(200));
+    });
+
     testWidgets('the semantics value reads the layer row too', (tester) async {
       final handle = tester.ensureSemantics();
       final c = await pump(tester, layers: state());
