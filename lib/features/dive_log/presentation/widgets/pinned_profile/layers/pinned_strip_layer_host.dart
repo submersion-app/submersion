@@ -20,7 +20,9 @@ import 'package:submersion/features/dive_log/presentation/utils/sac_normalizatio
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show ChartSourceOverlay;
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/pinned_strip_layer_animator.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_input_memo.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer_data.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer_sources.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_highlight.dart';
@@ -70,6 +72,10 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
   /// The locale the style's tank names were made in.
   Locale? _styleLocale;
 
+  /// What the inputs derive from the providers, kept while those values
+  /// are, so unchanged inputs are the same objects and the data is reused.
+  final StripInputMemo _memo = StripInputMemo();
+
   @override
   Widget build(BuildContext context) {
     if (!widget.shown) {
@@ -83,7 +89,10 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
     final inputs = _watchInputs();
     final style = _style(context);
     final from = _builtFrom;
-    if (from == null || !from.sameAs(inputs) || _builtWith != style) {
+    // While the strip condenses no layer can show yet, and the data built
+    // last (or none) serves; it is rebuilt once the strip settles.
+    final stale = from == null || !from.sameAs(inputs) || _builtWith != style;
+    if (stale && (from == null || widget.settled)) {
       _builtFrom = inputs;
       _builtWith = style;
       _data = buildStripLayerData(inputs, style);
@@ -169,10 +178,17 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
       computerEvents:
           ref.watch(diveComputerEventsProvider(id).select((a) => a.value)) ??
           const [],
-      findings: safety.enabled
-          ? chartSafetyFindings(review, safety.disabled)
-          : const [],
-      plan: plan?.copyWith(name: context.l10n.diveLog_legend_label_plan),
+      findings: _memo.remember(
+        'findings',
+        [review, safety.disabled, safety.enabled],
+        () => safety.enabled
+            ? chartSafetyFindings(review, safety.disabled)
+            : const <SafetyFinding>[],
+      ),
+      plan: _memo.remember('plan', [
+        plan,
+        context.l10n.diveLog_legend_label_plan,
+      ], () => plan?.copyWith(name: context.l10n.diveLog_legend_label_plan)),
       otherSources: _otherSources(id, sourceId),
     );
   }
@@ -182,14 +198,7 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
   List<({int seconds, double depthMeters})> _mediaMoments(
     List<MediaItem> media,
     List<DiveProfilePoint> profile,
-  ) {
-    final previous = _builtFrom;
-    if (previous != null &&
-        identical(media, _momentsOf) &&
-        identical(profile, previous.profile)) {
-      return previous.media;
-    }
-    _momentsOf = media;
+  ) => _memo.remember('media', [media, profile], () {
     if (profile.isEmpty || media.isEmpty) return const [];
     return List.unmodifiable([
       for (final m in photoMarkersFromMedia(
@@ -198,9 +207,7 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
       ))
         (seconds: m.elapsedSeconds, depthMeters: m.depthMeters),
     ]);
-  }
-
-  Object? _momentsOf;
+  });
 
   /// The dive's other computers' records of it, as the full chart's source
   /// overlays draw them. Only on a dive two computers recorded together;
@@ -212,13 +219,27 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
     final sources =
         ref.watch(diveDataSourcesProvider(id).select((a) => a.value)) ??
         const <DiveDataSource>[];
+    final labels = sourceNameLabelsFor(context);
+    return _memo.remember('otherSources', [
+      profiles,
+      sources,
+      activeSourceId,
+      Localizations.localeOf(context),
+    ], () => _overlaysOf(profiles, sources, activeSourceId, labels));
+  }
+
+  List<ChartSourceOverlay> _overlaysOf(
+    Map<String, SourceProfile> profiles,
+    List<DiveDataSource> sources,
+    String? activeSourceId,
+    SourceNameLabels labels,
+  ) {
     if (!usesPerSourceRendering(sources, profiles.values)) return const [];
     final primary =
         sources.where((s) => s.isPrimary).firstOrNull ?? sources.firstOrNull;
     final active = activeSourceId == null
         ? primary
         : sources.where((s) => s.id == activeSourceId).firstOrNull ?? primary;
-    final labels = sourceNameLabelsFor(context);
     return [
       for (final (index, source) in sources.indexed)
         if (source.id != active?.id && profiles[source.id] != null)
