@@ -5,6 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
+import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
+import 'package:submersion/features/cylinder_configs/presentation/providers/cylinder_config_providers.dart';
 import 'package:submersion/features/dive_log/data/services/diver_gas_switch_writer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -74,6 +77,7 @@ void main() {
     AppSettings settings = const AppSettings(),
     List<GasSwitch> switches = const [],
     Map<String, List<TankPressurePoint>> pressures = const {},
+    List<CylinderConfig> configs = const [],
   }) async {
     tester.view.physicalSize = const Size(900, 3600);
     tester.view.devicePixelRatio = 1;
@@ -99,6 +103,7 @@ void main() {
             settingsNotifier: MockSettingsNotifier(settings),
           ),
           tankPressuresProvider(dive.id).overrideWith((ref) async => pressures),
+          cylinderConfigsProvider.overrideWith((ref) async => configs),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
         ],
         child: MaterialApp(
@@ -238,6 +243,59 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(c.session!.working.tanks.single.endPressure, 70);
+  });
+
+  group('a saved configuration', () {
+    // Its back gas is a 15 L steel twin: applied to the dive's 12 L back gas,
+    // it changes the size, which is asked first (issue #2563).
+    CylinderConfig twin() => CylinderConfig(
+      id: 'cfg',
+      name: 'Twin 15s',
+      items: [
+        CylinderConfigItem(
+          id: 'i',
+          configId: 'cfg',
+          tankRole: TankRole.backGas,
+          volumeL: 15,
+          workingPressureBar: 232,
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+      ],
+      createdAt: t0,
+      updatedAt: t0,
+    );
+
+    Future<void> apply(WidgetTester tester) async {
+      await tester.tap(find.byTooltip(l.cylinderConfigs_applyAction));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Twin 15s').last);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('that overwrites asks first; declining changes nothing', (
+      tester,
+    ) async {
+      final c = await pumpEditor(tester, oc, configs: [twin()]);
+
+      await apply(tester);
+      expect(find.text(l.cylinderConfigs_overwriteTitle), findsOneWidget);
+      await tester.tap(find.text(l.common_action_cancel));
+      await tester.pumpAndSettle();
+
+      expect(c.session!.isDirty, isFalse);
+    });
+
+    testWidgets('replaced, the cylinder takes its size', (tester) async {
+      final c = await pumpEditor(tester, oc, configs: [twin()]);
+
+      await apply(tester);
+      await tester.tap(find.text(l.cylinderConfigs_overwriteConfirm));
+      await tester.pumpAndSettle();
+
+      expect(c.session!.working.tanks.single.volume, 15);
+      expect(c.session!.changedCardIds, {'tanks'});
+    });
   });
 
   testWidgets('O2 that cannot be read refuses Done', (tester) async {

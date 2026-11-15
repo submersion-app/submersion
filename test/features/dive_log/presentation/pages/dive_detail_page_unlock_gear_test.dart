@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -140,7 +141,8 @@ void main() {
 
   RecordEditController<Dive> controllerOf(WidgetTester tester) =>
       RecordEditScope.maybeOf<Dive>(
-        tester.element(find.byType(CylindersCard).first),
+        // Any card on the page: every one is framed under the scope.
+        tester.element(find.byType(RecordCardFrame<Dive>).first),
       )!;
 
   Future<void> tapSave(WidgetTester tester) async {
