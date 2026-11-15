@@ -23731,7 +23731,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buoyancy_throughDive => 'خلال الغطسة';
 
   @override
-  String get buoyancy_adjust => 'تعديل';
+  String get buoyancy_whatIfButton => 'ماذا لو؟';
 
   @override
   String buoyancy_readoutHeavy(String amount) {
@@ -23833,7 +23833,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_whatIfTitle => 'تعديل هذه الغطسة';
+  String get buoyancy_whatIfTitle => 'ماذا لو غيّرت أوزانك؟';
+
+  @override
+  String get buoyancy_whatIfNote =>
+      'لا شيء مما تجربه هنا يغيّر غطستك المسجّلة.';
 
   @override
   String get buoyancy_whatIfLead => 'الرصاص';
@@ -65032,7 +65036,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'مرِّر على المخطط لترى ما كان يسحبك إلى الأسفل وما كان يرفعك في تلك اللحظة. يفتح زر الضبط لوحة تجرب كمية مختلفة من الرصاص أو طفو البدلة على هذه الغطسة.';
+      'مرِّر على المخطط لترى ما كان يسحبك إلى الأسفل وما كان يرفعك في تلك اللحظة. يفتح زر «ماذا لو؟» لوحة تجرب كمية مختلفة من الرصاص أو نوعًا آخر من الماء أو طفوًا آخر للبدلة على هذه الغطسة، دون تغيير الغطسة.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

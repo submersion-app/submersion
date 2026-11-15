@@ -3,12 +3,13 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_content.dart';
 
-/// The Buoyancy section.
+/// The Buoyancy section. [canTryWhatIf] adds the how-to-use text, which
+/// names the card's What if? button.
 InfoContent buoyancyInfo(
   AppLocalizations l10n,
   UnitFormatter units, {
   required bool hasDrysuitGas,
-  required bool canAdjust,
+  required bool canTryWhatIf,
 }) {
   return InfoContent(
     title: l10n.diveDetailSection_buoyancy_name,
@@ -19,6 +20,6 @@ InfoContent buoyancyInfo(
       DiveTerm.minDitchable,
       if (hasDrysuitGas) DiveTerm.drysuitGas,
     ]),
-    howToUse: canAdjust ? l10n.info_diveLog_buoyancy_howToUse : null,
+    howToUse: canTryWhatIf ? l10n.info_diveLog_buoyancy_howToUse : null,
   );
 }

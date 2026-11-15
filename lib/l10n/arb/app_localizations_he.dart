@@ -22858,7 +22858,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buoyancy_throughDive => 'לאורך הצלילה';
 
   @override
-  String get buoyancy_adjust => 'התאמה';
+  String get buoyancy_whatIfButton => 'מה אם?';
 
   @override
   String buoyancy_readoutHeavy(String amount) {
@@ -22960,7 +22960,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_whatIfTitle => 'התאמת צלילה זו';
+  String get buoyancy_whatIfTitle => 'מה אם היית משנה את המשקולות?';
+
+  @override
+  String get buoyancy_whatIfNote =>
+      'שום דבר שתנסה כאן לא משנה את הצלילה שתיעדת.';
 
   @override
   String get buoyancy_whatIfLead => 'משקולות';
@@ -62797,7 +62801,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'עבור על התרשים כדי לראות מה משך אותך למטה ומה החזיק אותך למעלה באותו רגע. כוונון פותח חלונית שמנסה כמות משקולות או ציפת חליפה אחרת על הצלילה הזו.';
+      'עבור על התרשים כדי לראות מה משך אותך למטה ומה החזיק אותך למעלה באותו רגע. „מה אם?” פותח חלונית שמנסה כמות משקולות, סוג מים או ציפת חליפה אחרים על הצלילה הזו, בלי לשנות את הצלילה.';
 
   @override
   String get info_diveLog_waterConditions_summary =>

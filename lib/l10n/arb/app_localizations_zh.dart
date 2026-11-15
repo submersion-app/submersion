@@ -22198,7 +22198,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buoyancy_throughDive => '整个潜水过程';
 
   @override
-  String get buoyancy_adjust => '调整';
+  String get buoyancy_whatIfButton => '假如…';
 
   @override
   String buoyancy_readoutHeavy(String amount) {
@@ -22300,7 +22300,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get buoyancy_whatIfTitle => '调整此次潜水';
+  String get buoyancy_whatIfTitle => '如果换一种配重会怎样？';
+
+  @override
+  String get buoyancy_whatIfNote => '在这里尝试的任何更改都不会改变已记录的潜水。';
 
   @override
   String get buoyancy_whatIfLead => '配重';
@@ -60165,7 +60168,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      '在图表上移动，查看那一刻是什么把你往下拉、什么把你往上托。“调整”会打开一个面板，用不同的配重或潜水服浮力重新计算本次潜水。';
+      '在图表上移动，查看那一刻是什么把你往下拉、什么把你往上托。“假如…”会打开一个面板，用不同的配重、水的类型或潜水服浮力重新计算本次潜水，而不会更改这次潜水。';
 
   @override
   String get info_diveLog_waterConditions_summary =>

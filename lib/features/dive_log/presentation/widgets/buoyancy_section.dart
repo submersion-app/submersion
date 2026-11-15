@@ -86,7 +86,6 @@ class BuoyancySection extends ConsumerWidget {
     BuoyancyTwinOutcome outcome,
     Widget throughDive,
   ) {
-    final theme = Theme.of(context);
     final o = outcome.outputs;
     return Card(
       child: Padding(
@@ -94,44 +93,7 @@ class BuoyancySection extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.waves, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                // Expanded rather than a Spacer after it: on a narrow card
-                // (half of a paired row) the title gives way to the button.
-                Expanded(
-                  child: Text(
-                    context.l10n.diveDetailSection_buoyancy_name.toUpperCase(),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      letterSpacing: 0.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: () => showBuoyancyWhatIfSheet(
-                    context,
-                    baseInput: outcome.result.input,
-                    units: units,
-                  ),
-                  icon: const Icon(Icons.tune, size: 16),
-                  label: Text(context.l10n.buoyancy_adjust),
-                ),
-                HeaderInfoButton(
-                  title: context.l10n.diveDetailSection_buoyancy_name,
-                  height: 40,
-                  content: (context) => buoyancyInfo(
-                    context.l10n,
-                    infoUnits(context),
-                    hasDrysuitGas: o.drysuitGasLiters > 0,
-                    canAdjust: true,
-                  ),
-                ),
-              ],
-            ),
+            _header(context, outcome),
             const SizedBox(height: 12),
             throughDive,
             const SizedBox(height: 4),
@@ -150,6 +112,99 @@ class BuoyancySection extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// The title row. When the What if? label cannot fit beside the title
+  /// and the info icon (a narrow half-row card, a long translation or a
+  /// large text scale), the button keeps only its icon and carries the label
+  /// as its tooltip, rather than overflowing the row.
+  Widget _header(BuildContext context, BuoyancyTwinOutcome outcome) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final label = l10n.buoyancy_whatIfButton;
+    void openWhatIf() => showBuoyancyWhatIfSheet(
+      context,
+      baseInput: outcome.result.input,
+      units: units,
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact =
+            constraints.maxWidth <
+            _whatIfLabelWidth(context, label) + _headerChromeWidth;
+        return Row(
+          children: [
+            Icon(Icons.waves, color: theme.colorScheme.primary),
+            const SizedBox(width: 8),
+            // Expanded rather than a Spacer after it: on a narrow card
+            // (half of a paired row) the title gives way to the button.
+            Expanded(
+              child: Text(
+                l10n.diveDetailSection_buoyancy_name.toUpperCase(),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  letterSpacing: 0.5,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            // A what-if, not an edit: the sheet saves nothing, so an editing
+            // verb here read as changing the dive (#4585).
+            if (compact)
+              IconButton(
+                onPressed: openWhatIf,
+                tooltip: label,
+                icon: const Icon(Icons.tune, size: 20),
+              )
+            else
+              TextButton.icon(
+                onPressed: openWhatIf,
+                icon: const Icon(Icons.tune, size: 16),
+                label: Text(label, maxLines: 1),
+              ),
+            HeaderInfoButton(
+              title: l10n.diveDetailSection_buoyancy_name,
+              height: 40,
+              width: _infoSlotWidth,
+              content: (context) => buoyancyInfo(
+                context.l10n,
+                infoUnits(context),
+                hasDrysuitGas: outcome.outputs.drysuitGasLiters > 0,
+                canTryWhatIf: true,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// The info icon's slot in the header row.
+  static const double _infoSlotWidth = 48;
+
+  /// Everything in the header row besides the button's label: the waves
+  /// icon and its gap (32), the text button's icon, gap and padding at
+  /// standard density (52), and the info slot. The title may shrink to
+  /// nothing, as it always could. Compact density trims the button's
+  /// padding, so this errs toward collapsing a few pixels early, never
+  /// toward overflowing.
+  static const double _headerChromeWidth = 32 + 52 + _infoSlotWidth;
+
+  /// The rendered width of [label] in the text button's style.
+  static double _whatIfLabelWidth(BuildContext context, String label) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: Theme.of(context).textTheme.labelLarge,
+      ),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    final width = painter.width;
+    painter.dispose();
+    return width;
   }
 
   Widget _breakdown(BuildContext context, TwinOutputs o) {
