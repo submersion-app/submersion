@@ -29,7 +29,7 @@ class VerticalDistanceCard extends ConsumerWidget {
           units,
           title: context.l10n.insights_profile_verticalDistance_title,
           summary: context.l10n.info_insights_verticalDistance_summary(
-            units.formatDepth(verticalDistanceDeadbandMeters, decimals: 0),
+            units.formatDepthWhole(verticalDistanceDeadbandMeters),
           ),
         );
       },

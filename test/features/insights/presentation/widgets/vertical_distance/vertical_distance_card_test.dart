@@ -189,6 +189,16 @@ void main() {
     );
   });
 
+  testWidgets('the info sheet writes the deadband like the card figures', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tap(find.byIcon(Icons.info_outline));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('ignoring wobble under 1 m.'), findsOneWidget);
+  });
+
   testWidgets('says how many dives were estimated', (tester) async {
     await pump(tester);
     expect(find.text('5 of 58 dives counted from max depth'), findsOneWidget);

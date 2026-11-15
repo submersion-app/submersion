@@ -64,12 +64,12 @@ class UnitFormatter {
     return '${formatFixedForDisplay(shown, decimals)}${settings.depthUnit.symbol}';
   }
 
-  /// Get depth unit symbol
   /// A whole number grouped in the active locale, then its unit symbol:
   /// "6,380 m". Shared by the long-distance formats.
   static String _wholeWithSymbol(int value, String symbol) =>
       '${NumberFormat('#,##0').format(value)} $symbol';
 
+  /// Get depth unit symbol
   String get depthSymbol => settings.depthUnit.symbol;
 
   /// A long vertical distance given in metres, in whole display units with

@@ -82,6 +82,10 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
     super.dispose();
   }
 
+  /// The landmark the dashed mark on [d]'s side shows, as the layout chose
+  /// it, so the headline and semantics always name the one drawn.
+  VerticalLandmark _next(VerticalLeg d) => _layout.marksOn(d).last.landmark;
+
   void _set(VerticalSelection next) {
     if (!identical(next, _selection.value)) _selection.value = next;
   }
@@ -196,8 +200,8 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
       ],
     );
 
-    final nextUp = nextLandmark(VerticalLeg.ascent, total);
-    final nextDown = nextLandmark(VerticalLeg.descent, total);
+    final nextUp = _next(VerticalLeg.ascent);
+    final nextDown = _next(VerticalLeg.descent);
     return SizedBox(
       key: const Key('verticalScale'),
       width: width,
@@ -338,7 +342,7 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final total = widget.timeline.totalMeters;
-    final next = nextLandmark(d, total);
+    final next = _next(d);
     final bar = _layout.barPx;
     const height = 72.0;
     // The ascent headline is anchored by its bottom edge, which sits level
