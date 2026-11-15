@@ -22724,6 +22724,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Il profilo mostra la controdiffusione isobarica';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy =>
+      'Il profilo mostra l\'assetto';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Avviso di pianificazione accettato';
 
@@ -23710,6 +23714,9 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'Controdiffusione isobarica';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'Assetto';
 
   @override
   String get settings_appearance_metric_events => 'Eventi';

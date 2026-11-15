@@ -22584,6 +22584,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Profiel toont isobare tegendiffusie';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy =>
+      'Profiel toont drijfvermogen';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planningswaarschuwing geaccepteerd';
 
@@ -23566,6 +23570,9 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'Isobare tegendiffusie';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'Drijfvermogen';
 
   @override
   String get settings_appearance_metric_events => 'Gebeurtenissen';

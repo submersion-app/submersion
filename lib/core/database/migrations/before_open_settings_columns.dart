@@ -60,5 +60,8 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // v366 backstop: diver_settings.default_show_counterdiffusion (issue
     // #4530).
     await _assertDefaultShowCounterdiffusionColumn();
+
+    // v370 backstop: diver_settings.default_show_buoyancy (issue #4593).
+    await _assertDefaultShowBuoyancyColumn();
   }
 }

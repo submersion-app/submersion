@@ -14378,6 +14378,7 @@
   "planning_disclaimer_dialog_body": "The tools in this section are for planning purposes only. They do not replace your dive training or your dive computer. Always verify every calculation yourself before using it for a safety decision.",
   "planning_disclaimer_dialog_confirm": "I Understand",
   "settings_conflict_field_defaultShowCounterdiffusion": "Profile shows isobaric counterdiffusion",
+  "settings_conflict_field_defaultShowBuoyancy": "Profile shows buoyancy",
   "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Planning disclaimer accepted",
   "planning_section_tools": "Tools",
   "planning_summary_prompt": "Select a tool to get started",
@@ -14979,6 +14980,7 @@
   "settings_appearance_pinProfileOnScroll_subtitle": "Keep a thin, scrubbable profile at the top of dive details",
   "settings_appearance_metric_ceiling": "Ceiling",
   "settings_appearance_metric_counterdiffusion": "Isobaric counterdiffusion",
+  "settings_appearance_metric_buoyancy": "Buoyancy",
   "settings_appearance_metric_events": "Events",
   "settings_appearance_metric_estimatedTankPressure": "Estimated Tank Pressure",
   "@settings_appearance_metric_estimatedTankPressure": {

@@ -35,6 +35,10 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(defaultShowCounterdiffusion: value);
 
   @override
+  Future<void> setDefaultShowBuoyancy(bool value) async =>
+      state = state.copyWith(defaultShowBuoyancy: value);
+
+  @override
   Future<void> setO2CellUnit(O2CellUnit value) async =>
       state = state.copyWith(o2CellUnit: value);
 
@@ -186,6 +190,25 @@ void main() {
       SwitchListTile,
       'Isobaric counterdiffusion',
     );
+    await tester.dragUntilVisible(
+      tile,
+      find.byType(Scrollable),
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.widget<SwitchListTile>(tile).value, isFalse);
+
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+    expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+  });
+
+  testWidgets('toggles buoyancy line default', (tester) async {
+    // Issue #4593: the buoyancy line is off until the diver turns it on here.
+    await tester.pumpWidget(buildPage(_StubSettingsNotifier()));
+    await tester.pumpAndSettle();
+
+    final tile = find.widgetWithText(SwitchListTile, 'Buoyancy');
     await tester.dragUntilVisible(
       tile,
       find.byType(Scrollable),

@@ -22713,6 +22713,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'El perfil muestra la contradifusión isobárica';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy =>
+      'El perfil muestra la flotabilidad';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Aviso de planificación aceptado';
 
@@ -23706,6 +23710,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'Contradifusión isobárica';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'Flotabilidad';
 
   @override
   String get settings_appearance_metric_events => 'Eventos';

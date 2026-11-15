@@ -23075,6 +23075,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'الملف يعرض الانتشار العكسي متساوي الضغط';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy => 'الملف يعرض الطفو';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'تم قبول تنبيه التخطيط';
 
@@ -24074,6 +24077,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'الانتشار العكسي متساوي الضغط';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'الطفو';
 
   @override
   String get settings_appearance_metric_events => 'الأحداث';

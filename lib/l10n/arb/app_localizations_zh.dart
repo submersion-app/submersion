@@ -21600,6 +21600,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '剖面显示等压逆向扩散';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy => '剖面显示浮力';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer => '已接受计划提示';
 
   @override
@@ -22514,6 +22517,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_counterdiffusion => '等压逆向扩散';
+
+  @override
+  String get settings_appearance_metric_buoyancy => '浮力';
 
   @override
   String get settings_appearance_metric_events => '事件';

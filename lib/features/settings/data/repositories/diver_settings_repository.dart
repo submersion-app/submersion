@@ -408,6 +408,7 @@ class DiverSettingsRepository {
                 defaultShowCounterdiffusion: Value(
                   s.defaultShowCounterdiffusion,
                 ),
+                defaultShowBuoyancy: Value(s.defaultShowBuoyancy),
                 defaultShowEstimatedTankPressure: Value(
                   s.defaultShowEstimatedTankPressure,
                 ),
@@ -805,6 +806,7 @@ class DiverSettingsRepository {
       defaultShowGasTimeline: Value(settings.defaultShowGasTimeline),
       defaultShowO2CellMv: Value(settings.defaultShowO2CellMv),
       defaultShowCounterdiffusion: Value(settings.defaultShowCounterdiffusion),
+      defaultShowBuoyancy: Value(settings.defaultShowBuoyancy),
       defaultShowEstimatedTankPressure: Value(
         settings.defaultShowEstimatedTankPressure,
       ),
@@ -1086,6 +1088,7 @@ class DiverSettingsRepository {
       defaultShowGasTimeline: row.defaultShowGasTimeline,
       defaultShowO2CellMv: row.defaultShowO2CellMv,
       defaultShowCounterdiffusion: row.defaultShowCounterdiffusion,
+      defaultShowBuoyancy: row.defaultShowBuoyancy,
       defaultShowEstimatedTankPressure: row.defaultShowEstimatedTankPressure,
       defaultShowAscentRateLine: row.defaultShowAscentRateLine,
       notificationsEnabled: row.notificationsEnabled,

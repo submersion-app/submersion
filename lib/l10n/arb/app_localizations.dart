@@ -35923,6 +35923,12 @@ abstract class AppLocalizations {
   /// **'Profile shows isobaric counterdiffusion'**
   String get settings_conflict_field_defaultShowCounterdiffusion;
 
+  /// No description provided for @settings_conflict_field_defaultShowBuoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile shows buoyancy'**
+  String get settings_conflict_field_defaultShowBuoyancy;
+
   /// No description provided for @settings_conflict_field_hasAcceptedPlanningDisclaimer.
   ///
   /// In en, this message translates to:
@@ -37458,6 +37464,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Isobaric counterdiffusion'**
   String get settings_appearance_metric_counterdiffusion;
+
+  /// No description provided for @settings_appearance_metric_buoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy'**
+  String get settings_appearance_metric_buoyancy;
 
   /// No description provided for @settings_appearance_metric_events.
   ///

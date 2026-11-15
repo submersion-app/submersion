@@ -22783,6 +22783,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le profil affiche la contre-diffusion isobare';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy =>
+      'Le profil affiche la flottabilité';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Avertissement de planification accepté';
 
@@ -23774,6 +23778,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'Contre-diffusion isobare';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'Flottabilité';
 
   @override
   String get settings_appearance_metric_events => 'Événements';

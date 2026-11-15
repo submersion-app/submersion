@@ -22389,6 +22389,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Profile shows isobaric counterdiffusion';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy =>
+      'Profile shows buoyancy';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planning disclaimer accepted';
 
@@ -23364,6 +23368,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'Isobaric counterdiffusion';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'Buoyancy';
 
   @override
   String get settings_appearance_metric_events => 'Events';

@@ -22232,6 +22232,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'הפרופיל מציג דיפוזיה נגדית איזוברית';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy => 'הפרופיל מציג ציפה';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'אזהרת תכנון אושרה';
 
@@ -23197,6 +23200,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'דיפוזיה נגדית איזוברית';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'ציפה';
 
   @override
   String get settings_appearance_metric_events => 'אירועים';

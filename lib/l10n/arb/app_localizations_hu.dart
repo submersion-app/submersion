@@ -22648,6 +22648,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A profil mutatja az izobár ellendiffúziót';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy =>
+      'A profil mutatja a felhajtóerőt';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Tervezési figyelmeztetés elfogadva';
 
@@ -23636,6 +23640,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'Izobár ellendiffúzió';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'Felhajtóerő';
 
   @override
   String get settings_appearance_metric_events => 'Események';

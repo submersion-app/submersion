@@ -235,5 +235,11 @@ extension RungsFromV340 on AppDatabase {
     // 365 for #4537, 367 for #4539 and 368 for #4544.
     if (from < 369) await _assertSiteCatalogueAnswersColumns();
     if (from < 369) await reportProgress();
+
+    // v370: diver_settings.default_show_buoyancy, the default visibility of
+    // the net buoyancy line on the dive profile (issue #4593). Column only,
+    // defaulted off; re-asserted in beforeOpen.
+    if (from < 370) await _assertDefaultShowBuoyancyColumn();
+    if (from < 370) await reportProgress();
   }
 }

@@ -22694,6 +22694,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Profil zeigt isobare Gegendiffusion';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy =>
+      'Profil zeigt Auftrieb';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planungs-Hinweis bestätigt';
 
@@ -23677,6 +23681,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'Isobare Gegendiffusion';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'Auftrieb';
 
   @override
   String get settings_appearance_metric_events => 'Ereignisse';

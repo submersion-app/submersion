@@ -239,6 +239,7 @@ Future<void> _changeEverySetting(SettingsNotifier n) {
     n.setDefaultShowGasTimeline(!d.defaultShowGasTimeline),
     n.setDefaultShowO2CellMv(!d.defaultShowO2CellMv),
     n.setDefaultShowCounterdiffusion(!d.defaultShowCounterdiffusion),
+    n.setDefaultShowBuoyancy(!d.defaultShowBuoyancy),
     n.setDefaultShowEstimatedTankPressure(!d.defaultShowEstimatedTankPressure),
     n.setDefaultShowAscentRateLine(!d.defaultShowAscentRateLine),
     n.setNotificationsEnabled(false),
