@@ -10,7 +10,8 @@ import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
 
-/// Up to three observations at the top of the Insights landing (#2381).
+/// Up to three observations at the top of the Insights Overview page
+/// (#2381, moved off the phone landing in #4559).
 /// Takes no space at all while loading or when there is nothing to say;
 /// [padding] applies only when it shows something.
 class ObservationsStrip extends ConsumerWidget {
