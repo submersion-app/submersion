@@ -136,6 +136,39 @@ void main() {
   bool isTicked(WidgetTester tester, String label) =>
       tester.widget<Checkbox>(tick(label)).value!;
 
+  testWidgets('a researched record is marked and explained', (tester) async {
+    const pair = CataloguePair(
+      site: DiveSite(id: 's1', name: 'Liberty', location: _siteAt),
+      record: CatalogueSite(
+        id: 'research_id_usat_liberty',
+        name: 'USAT Liberty',
+        location: _wreckAt,
+        maxDepth: 30,
+        source: 'research',
+        trust: CatalogueTrust.researched,
+      ),
+      kind: CataloguePairKind.nearby,
+      fields: {CatalogueGapField.depth},
+      distanceMeters: 40,
+    );
+    await open(tester, pair);
+
+    expect(find.text('Not verified'), findsOneWidget);
+    expect(
+      find.text(
+        'Gathered from published sources, not from a survey. Check the '
+        'position locally before you rely on it.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a verified record carries neither', (tester) async {
+    await open(tester, _nearby);
+
+    expect(find.text('Not verified'), findsNothing);
+  });
+
   testWidgets('shows the site, the record and where the record is from', (
     tester,
   ) async {

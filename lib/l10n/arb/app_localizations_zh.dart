@@ -12450,6 +12450,33 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveSites_catalogue_notVerified => '未经核实';
+
+  @override
+  String get diveSites_catalogue_notVerifiedExplanation =>
+      '根据已发布的资料整理，并非实地测量。依赖之前请在当地核实位置。';
+
+  @override
+  String get diveSites_catalogue_withdrawn => '内置记录已撤回。';
+
+  @override
+  String diveSites_catalogue_withdrawnBecause(String reason) {
+    return '内置记录已撤回：$reason。';
+  }
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonPosition => '其位置有误';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonNotASite => '这不是潜水点';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonDuplicate => '重复列出了某个潜水点';
+
+  @override
+  String get diveSites_catalogue_withdrawnReplacement => '查看更正后的记录';
+
+  @override
   String get diveSites_list_menu_catalogueReview => '与内置目录比对潜水点';
 
   @override

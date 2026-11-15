@@ -13103,6 +13103,37 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveSites_catalogue_notVerified => 'Non verificato';
+
+  @override
+  String get diveSites_catalogue_notVerifiedExplanation =>
+      'Raccolto da fonti pubblicate, non da un rilievo. Verifica la posizione sul posto prima di fidarti.';
+
+  @override
+  String get diveSites_catalogue_withdrawn => 'Scheda integrata ritirata.';
+
+  @override
+  String diveSites_catalogue_withdrawnBecause(String reason) {
+    return 'Scheda integrata ritirata: $reason.';
+  }
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonPosition =>
+      'la posizione era sbagliata';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonNotASite =>
+      'non è un sito di immersione';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonDuplicate =>
+      'duplicava un sito';
+
+  @override
+  String get diveSites_catalogue_withdrawnReplacement =>
+      'Vedi la scheda corretta';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'Confronta i siti con il catalogo integrato';
 

@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_row
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_name_key.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_withdrawal.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/repositories/site_catalogue.dart';
 
@@ -260,6 +261,17 @@ class LocalSiteCatalogue implements SiteCatalogue {
     return decodeCatalogueSources(
       row?.value,
     ).where((source) => source.key == key).firstOrNull;
+  });
+
+  @override
+  Future<CatalogueWithdrawal?> withdrawal(String id) => _read(null, (db) async {
+    final row =
+        await (db.select(db.siteCatalogueMeta)
+              ..where((meta) => meta.key.equals(kSiteCatalogueMetaWithdrawn)))
+            .getSingleOrNull();
+    return decodeCatalogueWithdrawals(
+      row?.value,
+    ).where((withdrawal) => withdrawal.id == id).firstOrNull;
   });
 
   /// Runs [body] against the local cache, answering [fallback] when the

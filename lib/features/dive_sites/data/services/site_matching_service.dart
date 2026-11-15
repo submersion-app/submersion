@@ -42,6 +42,9 @@ class MatchCandidateView {
   final List<String> features; // bundled: the source's tags (drift, sharks)
   final String? description;
 
+  /// A built-in record gathered by research, shown "Not verified".
+  final bool isResearched;
+
   const MatchCandidateView({
     required this.id,
     required this.name,
@@ -58,6 +61,7 @@ class MatchCandidateView {
     this.typeIds = const [],
     this.features = const [],
     this.description,
+    this.isResearched = false,
   });
 }
 
@@ -261,6 +265,7 @@ class SiteMatchingService {
             location: location,
             isExisting: false,
             isRegister: b.kind == CatalogueKind.register,
+            isResearched: b.isResearched,
           ),
         );
       }
@@ -384,6 +389,7 @@ class SiteMatchingService {
       typeIds: b.typeIds,
       features: b.features,
       description: b.description,
+      isResearched: b.isResearched,
     );
   }
 

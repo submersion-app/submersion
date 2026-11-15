@@ -20752,6 +20752,54 @@ abstract class AppLocalizations {
   /// **'From the built-in site catalogue. Source: {source}'**
   String diveSites_catalogue_credit(Object source);
 
+  /// No description provided for @diveSites_catalogue_notVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not verified'**
+  String get diveSites_catalogue_notVerified;
+
+  /// No description provided for @diveSites_catalogue_notVerifiedExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Gathered from published sources, not from a survey. Check the position locally before you rely on it.'**
+  String get diveSites_catalogue_notVerifiedExplanation;
+
+  /// No description provided for @diveSites_catalogue_withdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in record withdrawn.'**
+  String get diveSites_catalogue_withdrawn;
+
+  /// No description provided for @diveSites_catalogue_withdrawnBecause.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in record withdrawn: {reason}.'**
+  String diveSites_catalogue_withdrawnBecause(String reason);
+
+  /// No description provided for @diveSites_catalogue_withdrawnReasonPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'its position was wrong'**
+  String get diveSites_catalogue_withdrawnReasonPosition;
+
+  /// No description provided for @diveSites_catalogue_withdrawnReasonNotASite.
+  ///
+  /// In en, this message translates to:
+  /// **'it is not a dive site'**
+  String get diveSites_catalogue_withdrawnReasonNotASite;
+
+  /// No description provided for @diveSites_catalogue_withdrawnReasonDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'it listed a site twice'**
+  String get diveSites_catalogue_withdrawnReasonDuplicate;
+
+  /// No description provided for @diveSites_catalogue_withdrawnReplacement.
+  ///
+  /// In en, this message translates to:
+  /// **'See the corrected record'**
+  String get diveSites_catalogue_withdrawnReplacement;
+
   /// No description provided for @diveSites_list_menu_catalogueReview.
   ///
   /// In en, this message translates to:

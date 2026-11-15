@@ -13098,6 +13098,37 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveSites_catalogue_notVerified => 'Não verificado';
+
+  @override
+  String get diveSites_catalogue_notVerifiedExplanation =>
+      'Reunido a partir de fontes publicadas, não de um levantamento. Confirme a posição no local antes de confiar nela.';
+
+  @override
+  String get diveSites_catalogue_withdrawn => 'Registo integrado retirado.';
+
+  @override
+  String diveSites_catalogue_withdrawnBecause(String reason) {
+    return 'Registo integrado retirado: $reason.';
+  }
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonPosition =>
+      'a posição estava errada';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonNotASite =>
+      'não é um ponto de mergulho';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonDuplicate =>
+      'duplicava um ponto';
+
+  @override
+  String get diveSites_catalogue_withdrawnReplacement =>
+      'Ver o registo corrigido';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'Comparar pontos com o catálogo integrado';
 

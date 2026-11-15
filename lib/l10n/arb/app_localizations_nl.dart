@@ -13012,6 +13012,38 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveSites_catalogue_notVerified => 'Niet geverifieerd';
+
+  @override
+  String get diveSites_catalogue_notVerifiedExplanation =>
+      'Verzameld uit gepubliceerde bronnen, niet uit een opmeting. Controleer de positie ter plaatse voordat je erop vertrouwt.';
+
+  @override
+  String get diveSites_catalogue_withdrawn =>
+      'Ingebouwde vermelding ingetrokken.';
+
+  @override
+  String diveSites_catalogue_withdrawnBecause(String reason) {
+    return 'Ingebouwde vermelding ingetrokken: $reason.';
+  }
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonPosition =>
+      'de positie klopte niet';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonNotASite =>
+      'het is geen duikstek';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonDuplicate =>
+      'het vermeldde een stek dubbel';
+
+  @override
+  String get diveSites_catalogue_withdrawnReplacement =>
+      'Bekijk de gecorrigeerde vermelding';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'Stekken vergelijken met ingebouwde catalogus';
 

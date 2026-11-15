@@ -48,6 +48,16 @@ https://github.com/submersion-app/submersion
 Sites added by the Submersion project (scripts/dive_sites_curated.json),
 under the Open Database License 1.0.
 
+Submersion site research: dive sites researched by the Submersion
+project, under the Open Database License 1.0. Each of their facts cites
+the published pages it was read from, in the source repository
+(scripts/site_catalogue/research/sites.json); no wording from those
+pages is kept.
+
+The researched sites and the sites added by the Submersion project are
+gathered from published sources and are marked "Not verified" in the
+app: check their positions locally before relying on them.
+
 UK Hydrographic Office Wrecks and Obstructions. Contains public sector
 information, licensed under the Open Government Licence v3.0, from the UK
 Hydrographic Office.

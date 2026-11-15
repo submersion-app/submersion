@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_imp
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_withdrawal.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 class _Bundle extends AssetBundle {
@@ -682,6 +683,38 @@ void main() {
     expect(await catalogue.source('rumour'), isNull);
   });
 
+  test('withdrawal returns the listed withdrawal or null', () async {
+    final json = jsonDecode(_fixture) as Map<String, dynamic>;
+    (json['metadata'] as Map<String, dynamic>)['withdrawn'] = {
+      'research_id_gone': {
+        'reason': 'position',
+        'date': '2026-12-02',
+        'replaced_by': 'full',
+      },
+    };
+    final db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+    await SiteCatalogueImporter(
+      database: db,
+      bundle: _Bundle(jsonEncode(json)),
+    ).importIfChanged();
+    final withdrawn = LocalSiteCatalogue(database: db);
+
+    expect(
+      await withdrawn.withdrawal('research_id_gone'),
+      const CatalogueWithdrawal(
+        id: 'research_id_gone',
+        reason: CatalogueWithdrawalReason.position,
+        date: '2026-12-02',
+        replacedBy: 'full',
+      ),
+    );
+    expect(await withdrawn.withdrawal('full'), isNull);
+    expect(await catalogue.withdrawal('research_id_gone'), isNull);
+  });
+
   test('every method answers empty when the database is not open', () async {
     LocalCacheDatabaseService.instance.resetForTesting();
     addTearDown(LocalCacheDatabaseService.instance.resetForTesting);
@@ -691,6 +724,7 @@ void main() {
     expect(await unopened.search('reef'), isEmpty);
     expect(await unopened.byId('full'), isNull);
     expect(await unopened.source('osm'), isNull);
+    expect(await unopened.withdrawal('research_id_gone'), isNull);
     expect(
       await unopened.countNear(
         _saltPier,

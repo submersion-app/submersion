@@ -54,7 +54,31 @@ Future<void> _pump(
   await tester.pumpAndSettle();
 }
 
+const _researched = CatalogueSite(
+  id: 'research_id_usat_liberty',
+  name: 'USAT Liberty',
+  source: 'research',
+  trust: CatalogueTrust.researched,
+);
+
+const _explanation =
+    'Gathered from published sources, not from a survey. Check the '
+    'position locally before you rely on it.';
+
 void main() {
+  testWidgets('a researched record explains its mark', (tester) async {
+    await _pump(tester, _researched, null);
+
+    expect(find.text(_explanation), findsOneWidget);
+    expect(CatalogueSourceCard.hasContent(_researched, null), isTrue);
+  });
+
+  testWidgets('a verified record does not', (tester) async {
+    await _pump(tester, _site, _osm);
+
+    expect(find.text(_explanation), findsNothing);
+  });
+
   testWidgets('each link opens its own address, outside the app', (
     tester,
   ) async {

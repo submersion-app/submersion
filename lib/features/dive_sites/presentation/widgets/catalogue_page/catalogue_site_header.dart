@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/catalogue_nearby.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/not_verified_label.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The top of a built-in site's page: its name, where it is, and a line
@@ -43,12 +44,20 @@ class CatalogueSiteHeader extends ConsumerWidget {
           ),
         Padding(
           padding: const EdgeInsets.only(top: 4),
-          child: Text(
-            '${catalogueKindLabel(site, l10n)}'
-            ' · ${l10n.diveSites_builtInPage_notYours}',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                '${catalogueKindLabel(site, l10n)}'
+                ' · ${l10n.diveSites_builtInPage_notYours}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              if (site.isResearched) const NotVerifiedLabel(),
+            ],
           ),
         ),
         if (yours != null)

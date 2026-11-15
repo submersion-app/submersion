@@ -32,6 +32,9 @@ List<RankedCandidate> rankCandidates(
 /// 3. The nearest in the pool is a clear [AutoMatch] when it has no in-pool
 ///    competitor, or the runner-up is farther by at least the separation
 ///    margin. Otherwise -> [Suggested] (all in-range candidates, both pools).
+///    A researched record is never an [AutoMatch]: when it is the nearest
+///    in the pool the diver chooses ([Suggested]). It still counts as a
+///    competitor for the runner-up rule.
 SiteMatchOutcome matchRanked(
   List<RankedCandidate> ranked,
   MatchThresholds thresholds,
@@ -61,6 +64,7 @@ SiteMatchOutcome matchRanked(
   if (pool.isEmpty) return Suggested(inRange);
 
   final nearest = pool.first;
+  if (nearest.candidate.isResearched) return Suggested(inRange);
   if (nearest.candidate.isRegister) {
     // The pool is register records only. A dive site just outside the
     // inner radius is still too near to say which of the two was dived.

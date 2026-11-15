@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_sites/presentation/catalogue_gap_displa
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/catalogue_gap_review_notifier.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_gap_comparison_sheet.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/not_verified_label.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -210,7 +211,15 @@ class _PairRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (found != null) Text(found),
-          Text(catalogueGapAddsLine(pair, units, l10n, fields: fields)),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(catalogueGapAddsLine(pair, units, l10n, fields: fields)),
+              if (pair.record.isResearched) const NotVerifiedLabel(),
+            ],
+          ),
         ],
       ),
       isThreeLine: found != null,

@@ -13145,6 +13145,37 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveSites_catalogue_notVerified => 'Non vérifié';
+
+  @override
+  String get diveSites_catalogue_notVerifiedExplanation =>
+      'Rassemblé à partir de sources publiées, pas d\'un relevé. Vérifie la position sur place avant de t\'y fier.';
+
+  @override
+  String get diveSites_catalogue_withdrawn => 'Fiche intégrée retirée.';
+
+  @override
+  String diveSites_catalogue_withdrawnBecause(String reason) {
+    return 'Fiche intégrée retirée : $reason.';
+  }
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonPosition =>
+      'sa position était fausse';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonNotASite =>
+      'ce n\'est pas un site de plongée';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonDuplicate =>
+      'elle répétait un site déjà listé';
+
+  @override
+  String get diveSites_catalogue_withdrawnReplacement =>
+      'Voir la fiche corrigée';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'Comparer les sites au catalogue intégré';
 

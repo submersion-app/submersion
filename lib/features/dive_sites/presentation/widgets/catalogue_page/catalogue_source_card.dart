@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_page/catalogue_page_card.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/not_verified_label.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Where a built-in site's record came from: the source's name, the
@@ -29,10 +30,12 @@ class CatalogueSourceCard extends StatelessWidget {
   /// it or has not answered yet.
   final CatalogueSource? source;
 
-  /// Whether there is a source, a link or the register sentence to show.
+  /// Whether there is a source, a link, the register sentence or the
+  /// researched sentence to show.
   static bool hasContent(CatalogueSite site, CatalogueSource? source) =>
       source != null ||
       site.kind == CatalogueKind.register ||
+      site.isResearched ||
       catalogueSourceLinkUri(site, source) != null ||
       catalogueWebsiteUri(site.website) != null;
 
@@ -98,6 +101,14 @@ class CatalogueSourceCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(l10n.diveSites_builtInPage_notAGuide, style: muted),
+          ),
+        if (site.isResearched)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              notVerifiedExplanation(context),
+              style: theme.textTheme.bodySmall,
+            ),
           ),
       ],
     );

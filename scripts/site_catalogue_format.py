@@ -13,6 +13,7 @@ never has to guess what "stair" or "speleology" means.
 import hashlib
 import json
 import re
+from datetime import date
 from pathlib import Path
 
 FORMAT = 2
@@ -52,6 +53,15 @@ SOURCES = {
         "licence": "ODbL-1.0",
         "licence_url": _ODBL,
         "credit": "Submersion contributors",
+    },
+    # Sites found by research: facts read from published sources,
+    # each one citing its pages in scripts/site_catalogue/research/. See
+    # docs/design/specs/2026-11-15-site-catalogue-researched-sites-design.md.
+    "research": {
+        "name": "Submersion site research",
+        "licence": "ODbL-1.0",
+        "licence_url": _ODBL,
+        "credit": "Submersion site research",
     },
     "ukho": {
         "name": "UK Hydrographic Office Wrecks and Obstructions",
@@ -247,6 +257,26 @@ NOTICE = catalogue_notice()
 
 TRUST_LEVELS = ("verified", "researched")
 
+# The sources whose records were gathered by research rather than read
+# from a register: every record of theirs is `researched`, and every
+# record of any other source `verified`.
+RESEARCHED_SOURCES = ("curated", "research")
+
+# Why a researched record was withdrawn from the catalogue.
+WITHDRAWAL_REASONS = ("position", "not_a_site", "duplicate", "other")
+
+
+def is_iso_date(value) -> bool:
+    """Whether [value] is a calendar date written YYYY-MM-DD, the only
+    form the app reads a withdrawal's date in."""
+    if not isinstance(value, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+        return False
+    try:
+        date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
+
 # The ids of the app's built-in site types
 # (lib/core/database/site_type_seed.dart, kBuiltInSiteTypes).
 SITE_TYPE_IDS = (
@@ -295,6 +325,8 @@ _ENTRY_ALIASES = {
     "steps": "ladder",
     "ladder": "ladder",
     "pier": "jetty",
+    # The app's own names, which researched sites are written in.
+    **{method.lower(): method for method in ENTRY_METHODS},
 }
 
 _ENTRY_SPLIT = re.compile(r"[:;,/]|\bor\b")
@@ -389,6 +421,7 @@ def to_catalogue_record(
     country_code: str | None,
     country: str | None,
     kind: str = "site",
+    trust: str = "verified",
 ) -> dict:
     """A catalogue record from a site in the harvester's working shape.
 
@@ -428,7 +461,9 @@ def to_catalogue_record(
         record["kind"] = kind
     record["source"] = source
     put("source_ref", source_ref)
-    record["trust"] = "verified"
+    if trust not in TRUST_LEVELS:
+        raise ValueError(f"{legacy['id']}: trust {trust!r}")
+    record["trust"] = trust
     return record
 
 
@@ -457,6 +492,13 @@ def validate_catalogue(doc: dict) -> list[str]:
             )
         if record.get("trust") not in TRUST_LEVELS:
             problems.append(f"{site_id}: trust {record.get('trust')!r}")
+        elif (record.get("trust") == "researched") != (
+            record.get("source") in RESEARCHED_SOURCES
+        ):
+            problems.append(
+                f"{site_id}: trust {record.get('trust')!r} does not fit "
+                f"source {record.get('source')!r}"
+            )
         if ("lat" in record) != ("lon" in record):
             problems.append(f"{site_id}: lat and lon must come together")
         kind = record.get("kind", "site")
@@ -477,6 +519,34 @@ def validate_catalogue(doc: dict) -> list[str]:
         max_depth = record.get("max_depth_m")
         if min_depth is not None and max_depth is not None and min_depth > max_depth:
             problems.append(f"{site_id}: min_depth_m above max_depth_m")
+    problems.extend(_withdrawal_problems(metadata.get("withdrawn"), seen))
+    return problems
+
+
+def _withdrawal_problems(withdrawn, shipped: set[str]) -> list[str]:
+    """What is wrong with a file's list of withdrawn records: an id the
+    file still ships, a reason outside the list, no date, or a
+    replacement the file does not hold."""
+    problems: list[str] = []
+    for site_id, entry in (withdrawn or {}).items():
+        if site_id in shipped:
+            problems.append(f"{site_id}: withdrawn but still in the file")
+        if not isinstance(entry, dict):
+            problems.append(f"{site_id}: withdrawal is not an object")
+            continue
+        if entry.get("reason") not in WITHDRAWAL_REASONS:
+            problems.append(
+                f"{site_id}: withdrawal reason {entry.get('reason')!r}"
+            )
+        if not is_iso_date(entry.get("date")):
+            problems.append(f"{site_id}: withdrawal date is not YYYY-MM-DD")
+        replaced_by = entry.get("replaced_by")
+        if replaced_by is not None and (
+            not isinstance(replaced_by, str) or replaced_by not in shipped
+        ):
+            problems.append(
+                f"{site_id}: replaced by {replaced_by!r}, not in the file"
+            )
     return problems
 
 
@@ -495,6 +565,7 @@ def write_catalogue(
     generated_at: str,
     *,
     open_only: bool = False,
+    withdrawn: dict | None = None,
 ) -> None:
     """Writes the catalogue and its version sidecar into [directory].
 
@@ -503,6 +574,10 @@ def write_catalogue(
 
     With [open_only], the records of own-terms sources are left out: the
     ODbL database alone.
+
+    [withdrawn] maps the id of each researched record taken out of the
+    catalogue to its reason, date and any replacement; it is written as
+    `metadata.withdrawn`, and left out when empty.
 
     Raises ValueError, and writes nothing, when the records do not validate.
     """
@@ -526,6 +601,10 @@ def write_catalogue(
         },
         "sites": records,
     }
+    if withdrawn:
+        doc["metadata"]["withdrawn"] = {
+            key: withdrawn[key] for key in sorted(withdrawn)
+        }
     problems = validate_catalogue(doc)
     if problems:
         raise ValueError(

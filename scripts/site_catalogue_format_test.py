@@ -57,6 +57,12 @@ class EntryTest(unittest.TestCase):
         for raw in ("stone", "yes", "", None):
             self.assertEqual(fmt.map_entry(raw), [])
 
+    def test_the_app_s_own_entry_names_map_to_themselves(self):
+        self.assertEqual(
+            fmt.map_entry("boat, giantStride, backRoll"),
+            ["boat", "giantStride", "backRoll"],
+        )
+
     def test_an_entry_named_twice_is_listed_once(self):
         self.assertEqual(fmt.map_entry("stair;ladder"), ["ladder"])
 
@@ -406,7 +412,14 @@ class DeclaredSourcesTest(unittest.TestCase):
             self.assertNotIn(absent, notice, absent)
 
     def test_with_every_source_the_notice_is_the_full_one(self):
-        records = [_record(id=f"x_{key}", source=key) for key in fmt.SOURCES]
+        records = [
+            _record(
+                id=f"x_{key}",
+                source=key,
+                trust="researched" if key in fmt.RESEARCHED_SOURCES else "verified",
+            )
+            for key in fmt.SOURCES
+        ]
         metadata = self._doc(records)["metadata"]
         self.assertEqual(metadata["notice"], fmt.NOTICE)
         self.assertEqual(metadata["sources"], fmt.SOURCES)
@@ -476,6 +489,7 @@ class SourcesTest(unittest.TestCase):
                     "hi_dar",
                     "tpwd",
                     "nc_dmf",
+                    "research",
                 ]
             ),
         )
@@ -584,6 +598,115 @@ class LinesTest(unittest.TestCase):
             "may not be used commercially", doc["metadata"]["notice"]
         )
         self.assertIn("Open Database License", doc["metadata"]["notice"])
+
+
+class ResearchedTrustTest(unittest.TestCase):
+    def _legacy(self):
+        return {"id": "research_id_x", "name": "X", "latitude": 1.0,
+                "longitude": 2.0}
+
+    def test_trust_is_written_as_given(self):
+        record = fmt.to_catalogue_record(
+            self._legacy(), source="research", source_ref=None,
+            country_code="ID", country="Indonesia", trust="researched",
+        )
+        self.assertEqual(record["trust"], "researched")
+        default = fmt.to_catalogue_record(
+            self._legacy(), source="osm", source_ref=None,
+            country_code=None, country=None,
+        )
+        self.assertEqual(default["trust"], "verified")
+        with self.assertRaises(ValueError):
+            fmt.to_catalogue_record(
+                self._legacy(), source="research", source_ref=None,
+                country_code=None, country=None, trust="probably",
+            )
+
+    def test_research_source_declared(self):
+        self.assertEqual(
+            fmt.SOURCES["research"],
+            {
+                "name": "Submersion site research",
+                "licence": "ODbL-1.0",
+                "licence_url": "https://opendatacommons.org/licenses/odbl/1-0/",
+                "credit": "Submersion site research",
+            },
+        )
+        self.assertNotIn("research", fmt.OWN_TERMS_SOURCES)
+        self.assertIn("Submersion site research", fmt.catalogue_notice())
+        self.assertEqual(fmt.RESEARCHED_SOURCES, ("curated", "research"))
+
+    def test_validate_rejects_researched_trust_outside_researched_sources(self):
+        problems = fmt.validate_catalogue(
+            _doc([_record(trust="researched")])
+        )
+        self.assertTrue(any("trust" in p for p in problems), problems)
+        for source in ("research", "curated"):
+            problems = fmt.validate_catalogue(
+                _doc([_record(id=f"{source}_x", source=source)])
+            )
+            self.assertTrue(any("trust" in p for p in problems), problems)
+            self.assertEqual(
+                fmt.validate_catalogue(
+                    _doc([_record(id=f"{source}_x", source=source,
+                                  trust="researched")])
+                ),
+                [],
+            )
+
+
+class WithdrawnTest(unittest.TestCase):
+    def _write(self, records, withdrawn):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            fmt.write_catalogue(
+                directory, records, "2026-02-01T02:12:29Z", withdrawn=withdrawn
+            )
+            return json.loads(
+                (directory / "site_catalogue.json").read_text(encoding="utf-8")
+            )
+
+    def test_withdrawn_written_to_metadata(self):
+        withdrawn = {
+            "research_my_a": {"reason": "position", "date": "2026-12-02",
+                              "replaced_by": "osm_node_1"},
+            "research_my_b": {"reason": "not_a_site", "date": "2026-12-03"},
+        }
+        doc = self._write([_record()], withdrawn)
+        self.assertEqual(doc["metadata"]["withdrawn"], withdrawn)
+        self.assertNotIn("withdrawn", self._write([_record()], {})["metadata"])
+        self.assertNotIn("withdrawn", self._write([_record()], None)["metadata"])
+
+    def _problems(self, withdrawn, records=None):
+        doc = _doc(records or [_record()])
+        doc["metadata"]["withdrawn"] = withdrawn
+        return fmt.validate_catalogue(doc)
+
+    def test_validate_rejects_withdrawn_id_still_shipped(self):
+        problems = self._problems(
+            {"osm_node_1": {"reason": "other", "date": "2026-12-02"}}
+        )
+        self.assertTrue(any("osm_node_1" in p for p in problems), problems)
+
+    def test_validate_rejects_bad_withdrawal(self):
+        self.assertTrue(self._problems(
+            {"research_x": {"reason": "bored", "date": "2026-12-02"}}))
+        self.assertTrue(self._problems({"research_x": {"reason": "other"}}))
+        self.assertTrue(self._problems({"research_x": "position"}))
+        self.assertTrue(self._problems({"research_x": {
+            "reason": "other", "date": "2026-12-02", "replaced_by": ["osm_node_1"]}}))
+        self.assertTrue(self._problems(
+            {"research_x": {"reason": "other", "date": 20261202}}))
+        self.assertTrue(self._problems(
+            {"research_x": {"reason": "other", "date": "2 Dec 2026"}}))
+        self.assertTrue(self._problems(
+            {"research_x": {"reason": "position", "date": "2026-12-02",
+                            "replaced_by": "research_gone"}}))
+        self.assertEqual(self._problems(
+            {"research_x": {"reason": "position", "date": "2026-12-02",
+                            "replaced_by": "osm_node_1"}}), [])
+        self.assertEqual(fmt.WITHDRAWAL_REASONS,
+                         ("position", "not_a_site", "duplicate", "other"))
 
 
 if __name__ == "__main__":

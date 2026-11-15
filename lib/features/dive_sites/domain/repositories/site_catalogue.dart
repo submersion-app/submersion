@@ -1,5 +1,6 @@
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_withdrawal.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// The built-in site catalogue, as every screen reads it.
@@ -69,4 +70,8 @@ abstract interface class SiteCatalogue {
 
   /// The source a record names in its `source`.
   Future<CatalogueSource?> source(String key);
+
+  /// Why the record [id] was withdrawn from the catalogue, or null when
+  /// the catalogue lists no withdrawal for it.
+  Future<CatalogueWithdrawal?> withdrawal(String id);
 }

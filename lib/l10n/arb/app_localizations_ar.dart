@@ -13283,6 +13283,34 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveSites_catalogue_notVerified => 'غير موثّق';
+
+  @override
+  String get diveSites_catalogue_notVerifiedExplanation =>
+      'جُمعت من مصادر منشورة، وليس من مسح ميداني. تحقّق من الموقع محليًا قبل الاعتماد عليه.';
+
+  @override
+  String get diveSites_catalogue_withdrawn => 'سُحب السجل المدمج.';
+
+  @override
+  String diveSites_catalogue_withdrawnBecause(String reason) {
+    return 'سُحب السجل المدمج: $reason.';
+  }
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonPosition => 'كان موقعه خاطئًا';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonNotASite => 'ليس موقع غوص';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonDuplicate =>
+      'كرّر موقعًا مدرجًا';
+
+  @override
+  String get diveSites_catalogue_withdrawnReplacement => 'عرض السجل المصحَّح';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'مطابقة المواقع مع الكتالوج المدمج';
 

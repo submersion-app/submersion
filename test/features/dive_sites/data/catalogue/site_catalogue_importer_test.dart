@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_imp
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_row_mapper.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_withdrawal.dart';
 
 /// Serves the catalogue assets, and the sea table when a test gives one,
 /// from memory, and counts each read.
@@ -141,6 +142,37 @@ void main() {
     expect(jsonDecode(row.read<String>('type_ids')), ['reef']);
     expect(jsonDecode(row.read<String>('entry_methods')), ['boat']);
     expect(row.read<double>('latitude'), 21.1);
+  });
+
+  test('stores the withdrawn list beside the sources', () async {
+    final json = jsonDecode(_three) as Map<String, dynamic>;
+    (json['metadata'] as Map<String, dynamic>)['withdrawn'] = {
+      'research_id_x': {'reason': 'duplicate', 'date': '2026-12-02'},
+    };
+    await SiteCatalogueImporter(
+      database: db,
+      bundle: _Bundle(catalogue: jsonEncode(json), version: 'v1'),
+    ).importIfChanged();
+
+    expect(
+      decodeCatalogueWithdrawals(await meta(kSiteCatalogueMetaWithdrawn)),
+      const [
+        CatalogueWithdrawal(
+          id: 'research_id_x',
+          reason: CatalogueWithdrawalReason.duplicate,
+          date: '2026-12-02',
+        ),
+      ],
+    );
+  });
+
+  test('a file without a withdrawn list stores an empty one', () async {
+    await SiteCatalogueImporter(
+      database: db,
+      bundle: _Bundle(catalogue: _three, version: 'v1'),
+    ).importIfChanged();
+
+    expect(await meta(kSiteCatalogueMetaWithdrawn), '[]');
   });
 
   test('a register record is stored and read back as one', () async {

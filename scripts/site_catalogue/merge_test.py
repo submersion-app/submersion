@@ -110,6 +110,9 @@ class _Places:
     def on_dry_land(self, lat, lon):
         return (round(lat, 1), round(lon, 1)) in self.dry
 
+    def country_name(self, code):
+        return {"ID": "Indonesia", "GB": "United Kingdom", "MY": "Malaysia"}.get(code)
+
     def place(self, lat, lon):
         return self.special.get((round(lat, 1), round(lon, 1)), self.default)
 
@@ -192,6 +195,15 @@ class BuildTest(unittest.TestCase):
         self.assertEqual(
             site["source_ref"], "https://www.openstreetmap.org/node/663869401"
         )
+
+    def test_curated_written_researched(self):
+        for site_id in ("curated_nj_pocopson", "curated_shore"):
+            self.assertEqual(self.by_id[site_id]["trust"], "researched")
+
+    def test_other_sources_verified(self):
+        for record in self.records:
+            if record["source"] != "curated":
+                self.assertEqual(record["trust"], "verified", record["id"])
 
     def test_a_curated_site_keeps_its_own_region_and_details(self):
         wreck = self.by_id["curated_nj_pocopson"]

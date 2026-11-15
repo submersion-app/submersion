@@ -1,0 +1,19 @@
+{
+  "counting": {},
+  "cite_only": {
+    "aroundus.com": "aggregator of map points",
+    "divebuddy.com": "directory of user-entered sites",
+    "diveplannerpro.com": "mirror of directory pages",
+    "divessi.com": "agency directory",
+    "padi.com": "agency directory",
+    "sygic.com": "travel app",
+    "yachtway.com": "aggregator of map points",
+    "zentacle.com": "directory of user-entered sites"
+  },
+  "never": {
+    "diveboard.com": "proprietary",
+    "wannadive.net": "all rights reserved",
+    "wikivoyage.org": "CC BY-SA, cannot join an ODbL database",
+    "wrecksite.eu": "proprietary"
+  }
+}

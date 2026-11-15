@@ -13088,6 +13088,38 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveSites_catalogue_notVerified => 'Nicht geprüft';
+
+  @override
+  String get diveSites_catalogue_notVerifiedExplanation =>
+      'Aus veröffentlichten Quellen zusammengetragen, nicht aus einer Vermessung. Prüfe die Position vor Ort, bevor du dich darauf verlässt.';
+
+  @override
+  String get diveSites_catalogue_withdrawn =>
+      'Integrierter Eintrag zurückgezogen.';
+
+  @override
+  String diveSites_catalogue_withdrawnBecause(String reason) {
+    return 'Integrierter Eintrag zurückgezogen: $reason.';
+  }
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonPosition =>
+      'die Position war falsch';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonNotASite =>
+      'es ist kein Tauchplatz';
+
+  @override
+  String get diveSites_catalogue_withdrawnReasonDuplicate =>
+      'er führte einen Tauchplatz doppelt';
+
+  @override
+  String get diveSites_catalogue_withdrawnReplacement =>
+      'Korrigierten Eintrag ansehen';
+
+  @override
   String get diveSites_list_menu_catalogueReview =>
       'Tauchplätze mit integriertem Katalog abgleichen';
 
