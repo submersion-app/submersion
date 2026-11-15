@@ -55,9 +55,10 @@ class VerticalDistanceScale extends ConsumerStatefulWidget {
 
   final VerticalDistanceTimeline timeline;
 
-  /// Whether the estimated-dives note has a row under the strip. False for a
-  /// timeline that can never estimate a dive, which would only leave the row
-  /// blank.
+  /// Whether the estimated-dives note keeps its row under the strip while it
+  /// has nothing to say. False for a timeline that can never estimate a
+  /// dive, which would only leave the row blank; a note is shown either way
+  /// when there is one.
   final bool reservesNote;
 
   @override
@@ -146,9 +147,10 @@ class _VerticalDistanceScaleState extends ConsumerState<VerticalDistanceScale> {
               );
             },
           ),
-          // The note's line is always reserved, so the card is the same
-          // height with or without it, and while loading.
-          if (widget.reservesNote)
+          // Where the card reserves the note's line, the card is the same
+          // height with or without it, and while loading. A note to show is
+          // always shown, reserved or not.
+          if (widget.reservesNote || timeline.estimatedDives > 0)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: ConstrainedBox(

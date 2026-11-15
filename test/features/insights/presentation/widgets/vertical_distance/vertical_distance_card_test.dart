@@ -455,10 +455,13 @@ void main() {
     expect(find.text('Pinned'), findsOneWidget);
   });
 
-  testWidgets('the card keeps its height from loading to loaded', (
-    tester,
+  /// Shows [card] still loading: both timelines wait on [pending], so a
+  /// test can measure the loading state and then complete it.
+  Future<void> pumpLoading(
+    WidgetTester tester,
+    Widget card,
+    Completer<VerticalDistanceTimeline> pending,
   ) async {
-    final pending = Completer<VerticalDistanceTimeline>();
     tester.view.physicalSize = const Size(1000, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -468,28 +471,37 @@ void main() {
           verticalDistanceTimelineProvider.overrideWith(
             (ref) => pending.future,
           ),
+          maxDepthTimelineProvider.overrideWith((ref) => pending.future),
           sharedPreferencesProvider.overrideWithValue(prefs),
           settingsProvider.overrideWith(
             (ref) => _MockSettingsNotifier(const AppSettings()),
           ),
         ],
-        child: const MaterialApp(
-          locale: Locale('en'),
+        child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: SingleChildScrollView(child: VerticalDistanceCard()),
-          ),
+          home: Scaffold(body: SingleChildScrollView(child: card)),
         ),
       ),
     );
     await tester.pump();
-    final loading = tester.getSize(find.byType(VerticalDistanceCard)).height;
+  }
+
+  double cardHeight(WidgetTester tester) =>
+      tester.getSize(find.byType(VerticalDistanceCard)).height;
+
+  testWidgets('the card keeps its height from loading to loaded', (
+    tester,
+  ) async {
+    final pending = Completer<VerticalDistanceTimeline>();
+    await pumpLoading(tester, const VerticalDistanceCard(), pending);
+    final loading = cardHeight(tester);
 
     pending.complete(_timeline);
     await tester.pumpAndSettle();
 
-    expect(tester.getSize(find.byType(VerticalDistanceCard)).height, loading);
+    expect(cardHeight(tester), loading);
   });
 
   testWidgets('a pinned strip fits large text', (tester) async {
@@ -553,45 +565,46 @@ void main() {
     testWidgets('it reserves no note row, from loading to loaded', (
       tester,
     ) async {
-      double height() =>
-          tester.getSize(find.byType(VerticalDistanceCard)).height;
       await pump(tester, timeline: twoDives);
-      final withNoteRow = height();
+      final withNoteRow = cardHeight(tester);
       // A fresh scope, not the same one with a different set of overrides.
       await tester.pumpWidget(const SizedBox());
 
       final pending = Completer<VerticalDistanceTimeline>();
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            maxDepthTimelineProvider.overrideWith((ref) => pending.future),
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            settingsProvider.overrideWith(
-              (ref) => _MockSettingsNotifier(const AppSettings()),
-            ),
-          ],
-          child: const MaterialApp(
-            locale: Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: VerticalDistanceCard.maxDepths(),
-                ),
-              ),
-            ),
-          ),
-        ),
+      await pumpLoading(
+        tester,
+        const VerticalDistanceCard.maxDepths(),
+        pending,
       );
-      await tester.pump();
-      final loading = height();
+      final loading = cardHeight(tester);
       pending.complete(twoDives);
       await tester.pumpAndSettle();
 
-      expect(height(), loading);
-      expect(height(), withNoteRow - 8 - kVerticalNoteHeight);
+      expect(cardHeight(tester), loading);
+      expect(cardHeight(tester), withNoteRow - 8 - kVerticalNoteHeight);
+    });
+
+    testWidgets('an estimated dive still gets its note', (tester) async {
+      await pump(
+        tester,
+        card: const VerticalDistanceCard.maxDepths(),
+        maxDepths: VerticalDistanceTimeline([
+          const DiveVerticalDistance(
+            diveId: 'a',
+            startMillis: 0,
+            meters: 15,
+            estimated: true,
+          ),
+          const DiveVerticalDistance(
+            diveId: 'b',
+            startMillis: 1,
+            meters: 15,
+            estimated: false,
+          ),
+        ]),
+      );
+
+      expect(find.text('1 of 2 dives counted from max depth'), findsOneWidget);
     });
 
     testWidgets('its info sheet says only the deepest point counts', (
