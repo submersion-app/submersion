@@ -10,6 +10,8 @@ import 'package:submersion/features/dive_log/data/services/dive_edit_save_servic
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_fields.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 
@@ -48,6 +50,16 @@ void main() {
     service = DiveEditSaveService(dives);
     await insertDiver(db, 'me');
     await insertDive(db, 'dive', diverId: 'me', notes: 'Calm');
+    await db
+        .into(db.diveSites)
+        .insert(
+          DiveSitesCompanion.insert(
+            id: 'site',
+            name: 'Lake',
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
     await db
         .into(db.diveTanks)
         .insert(DiveTanksCompanion.insert(id: 'tank', diveId: 'dive'));
@@ -214,5 +226,129 @@ void main() {
     final reverted = await stored();
     expect(reverted.notes, 'Calm');
     expect(reverted.tags.map((tag) => tag.id).toSet(), {'wreck', 'night'});
+  });
+
+  // The dive's writer stores every column it is handed, so a value the diver
+  // emptied reaches storage only if the field hands it a null.
+  test('a cleared altitude is stored as null', () async {
+    await dives.updateDive(
+      (await stored()).copyWith(altitude: 900, surfacePressure: 0.9),
+    );
+    await changeLog.settleAll();
+    await clearLog(db);
+    expect((await stored()).altitude, 900);
+
+    await service.save(
+      diveId: 'dive',
+      apply: (dive) => diveAltitudeField.write(dive, null),
+      changedCardIds: ['altitude'],
+    );
+
+    final saved = await stored();
+    expect(saved.altitude, isNull);
+    expect(saved.surfacePressure, 0.9);
+    final events = await logEvents(db);
+    expect(await logFields(db, events.single['id']! as int), {
+      'altitude': (900.0, null),
+    });
+  });
+
+  // A sitting can owe a write to another record: the altitude a lookup
+  // found, copied back to the dive's site. It is written with the sitting.
+  group('a write to another record', () {
+    Future<double?> siteAltitude() async {
+      final row = await db
+          .customSelect("SELECT altitude FROM dive_sites WHERE id = 'site'")
+          .getSingle();
+      return row.data['altitude'] as double?;
+    }
+
+    test('is written in the same History entry as the dive', () async {
+      final sites = SiteRepository();
+
+      await service.save(
+        diveId: 'dive',
+        apply: (dive) => dive.copyWith(notes: 'Current'),
+        changedCardIds: ['notes'],
+        alsoWrite: () => sites.updateSiteAltitude('site', 512),
+      );
+
+      expect((await stored()).notes, 'Current');
+      expect(await siteAltitude(), 512);
+      final operation = (await operations()).single;
+      final events = await logEvents(db);
+      expect(
+        {for (final e in events) e['table_name']},
+        {'dives', 'dive_sites'},
+      );
+      expect({for (final e in events) e['operation_id']}, {operation['id']});
+    });
+
+    test('that fails rolls the dive write back', () async {
+      await expectLater(
+        service.save(
+          diveId: 'dive',
+          apply: (dive) => dive.copyWith(notes: 'Current'),
+          changedCardIds: ['notes'],
+          alsoWrite: () async => throw StateError('no'),
+        ),
+        throwsStateError,
+      );
+
+      expect((await stored()).notes, 'Calm');
+      expect(await logEvents(db), isEmpty);
+    });
+
+    test('that fails part way leaves the other record as it was', () async {
+      final sites = SiteRepository();
+
+      await expectLater(
+        service.save(
+          diveId: 'dive',
+          apply: (dive) => dive.copyWith(notes: 'Current'),
+          changedCardIds: ['notes'],
+          alsoWrite: () async {
+            await sites.updateSiteAltitude('site', 512);
+            throw StateError('no');
+          },
+        ),
+        throwsStateError,
+      );
+
+      expect((await stored()).notes, 'Calm');
+      expect(await siteAltitude(), isNull);
+      expect(await logEvents(db), isEmpty);
+    });
+
+    test('is not made when the sitting changed nothing', () async {
+      var ran = 0;
+
+      final result = await service.save(
+        diveId: 'dive',
+        apply: (dive) => dive,
+        changedCardIds: const [],
+        alsoWrite: () async => ran++,
+      );
+
+      expect(result, isNull);
+      expect(ran, 0);
+    });
+
+    test('is undone when the sitting is reverted', () async {
+      final sites = SiteRepository();
+      await service.save(
+        diveId: 'dive',
+        apply: (dive) => dive.copyWith(notes: 'Current'),
+        changedCardIds: ['notes'],
+        alsoWrite: () => sites.updateSiteAltitude('site', 512),
+      );
+      final operationId = (await operations()).single['id']! as String;
+
+      final revert = ChangeLogRevertService(afterDiveWrites: (_) {});
+      await revert.execute(await revert.planOperation(operationId));
+
+      expect((await stored()).notes, 'Calm');
+      expect(await siteAltitude(), isNull);
+    });
   });
 }

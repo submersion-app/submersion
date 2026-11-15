@@ -546,6 +546,12 @@ class UnitFormatter {
   String get surfacePressureSymbol =>
       settings.depthUnit == DepthUnit.meters ? 'mbar' : 'inHg';
 
+  /// How many decimals a surface pressure carries in the diver's barometric
+  /// unit: mbar are whole, inHg carry two. An input uses this so it shows the
+  /// number [formatSurfacePressure] shows.
+  int get surfacePressureDecimals =>
+      settings.depthUnit == DepthUnit.meters ? 0 : 2;
+
   /// A stored surface pressure (bar) in the diver's barometric unit: mbar
   /// for a metric diver, inHg for an imperial one.
   double convertSurfacePressure(double bar) =>

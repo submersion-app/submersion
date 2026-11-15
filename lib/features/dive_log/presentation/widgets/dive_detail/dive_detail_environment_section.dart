@@ -14,12 +14,13 @@ import 'package:submersion/features/weather/presentation/widgets/weather_descrip
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 /// The Environment card: what the diver logged about the weather and the
 /// dive conditions, then the satellite water conditions on the dive date.
 ///
 /// Each subsection shows only when it has something to say, so callers gate
-/// the card as a whole on [watchHasEnvironmentData].
+/// the card as a whole on `diveCardIsShown`.
 class DiveEnvironmentSection extends ConsumerWidget {
   const DiveEnvironmentSection({super.key, required this.dive});
 
@@ -55,9 +56,8 @@ class DiveEnvironmentSection extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                context.l10n.diveLog_detail_section_environment,
-                style: Theme.of(context).textTheme.titleMedium,
+              RecordCardHeader(
+                title: context.l10n.diveLog_detail_section_environment,
               ),
               const Divider(),
               if (hasWeather) ...[

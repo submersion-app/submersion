@@ -3163,6 +3163,7 @@
   "recordEdit_unsavedChanges": "Modifiche non salvate",
   "recordEdit_hiddenCard": "{card}, nascosto",
   "recordEdit_saveFailed": "Impossibile salvare le modifiche. Non è stato modificato nulla.",
+  "recordEdit_fixInvalid": "Alcuni valori non sono leggibili. Correggili prima di salvare.",
   "siteMatchReview_title": "Associa siti",
   "siteMatchReview_diveNumber": "Immersione #{number}",
   "siteMatchReview_empty": "Niente da associare.",

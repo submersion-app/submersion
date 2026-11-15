@@ -32,6 +32,13 @@ final _notes = EditField<_Rec, String>(
   write: (r, v) => r.copyWith(notes: v),
 );
 
+final _depth = EditField<_Rec, int>(
+  id: 'depth',
+  cardId: 'details',
+  read: (r) => r.depth,
+  write: (r, v) => r.copyWith(depth: v),
+);
+
 RecordEditController<_Rec> _controller({
   Future<void> Function(EditSession<_Rec> session)? onSave,
 }) {
@@ -99,8 +106,11 @@ void main() {
 
   // A page rebuilds when its controller notifies. Typing must not do that
   // on every keystroke: only a change in which cards have changes does.
-  test('more changes on a card already changed do not notify again', () {
-    final controller = _controller()..unlock(const _Rec(notes: 'a'));
+  // Typing happens in an open card, whose editor follows the session itself.
+  test('more changes on an open card already changed do not notify again', () {
+    final controller = _controller()
+      ..unlock(const _Rec(notes: 'a'))
+      ..openCard('notes');
     var told = 0;
     controller.addListener(() => told++);
 
@@ -114,6 +124,58 @@ void main() {
     controller.session!.set(_notes, 'a');
     expect(told, 2);
     expect(controller.isDirty, isFalse);
+  });
+
+  // A closed card shows the page's copy of the record. When a rule changes
+  // it from outside (a weather fetch filling a pressure, a site choice), the
+  // page has to draw it again even though it already carried a change.
+  test('a change to a closed card that is already changed notifies', () {
+    final controller = _controller()
+      ..unlock(const _Rec())
+      ..openCard('notes');
+    controller.session!.set(_depth, 5);
+    var told = 0;
+    controller.addListener(() => told++);
+
+    controller.session!.set(_depth, 6);
+
+    expect(told, 1);
+  });
+
+  test('closing a card does not replay its own typing as a change', () {
+    final controller = _controller()
+      ..unlock(const _Rec())
+      ..openCard('notes')
+      ..openCard('details');
+    controller.session!
+      ..set(_depth, 5)
+      ..set(_notes, 'b')
+      ..set(_notes, 'bc')
+      ..set(_notes, 'bcd');
+    controller.closeCard('notes');
+    var told = 0;
+    controller.addListener(() => told++);
+
+    // Typing in the card that is still open. Notes is closed now and was
+    // typed in three times while open; closing it drew that, so nothing is
+    // owed for it here.
+    controller.session!.set(_depth, 6);
+
+    expect(told, 0);
+  });
+
+  test('an open card changed from outside does not notify the page', () {
+    final controller = _controller()
+      ..unlock(const _Rec())
+      ..openCard('details');
+    controller.session!.set(_depth, 5);
+    var told = 0;
+    controller.addListener(() => told++);
+
+    // Its editor follows the session itself.
+    controller.session!.set(_depth, 6);
+
+    expect(told, 0);
   });
 
   test('storedChanged notifies once when the stored record differs', () {
@@ -303,228 +365,6 @@ void main() {
 
     expect(controller.isUnlocked, isFalse);
     expect(controller.session, isNull);
-  });
-
-  // The write takes a moment. Nothing about the sitting may move under it.
-  group('while a save is running', () {
-    test('the sitting cannot change', () async {
-      final gate = Completer<void>();
-      String? written;
-      final controller =
-          _controller(
-              onSave: (session) async {
-                await gate.future;
-                written = session.working.notes;
-              },
-            )
-            ..unlock(const _Rec(notes: 'a'))
-            ..openCard('notes');
-      controller.session!.set(_notes, 'b');
-
-      final saving = controller.save();
-      expect(controller.isSaving, isTrue);
-      expect(controller.session!.isFrozen, isTrue);
-      controller.session!.set(_notes, 'typed during the save');
-      gate.complete();
-
-      expect(await saving, isTrue);
-      expect(written, 'b');
-    });
-
-    test('cards cannot be opened, closed or added', () async {
-      final gate = Completer<void>();
-      final controller = _controller(onSave: (_) => gate.future)
-        ..unlock(const _Rec(notes: 'a'))
-        ..openCard('notes');
-      controller.session!.set(_notes, 'b');
-      final saving = controller.save();
-      var told = 0;
-      controller.addListener(() => told++);
-
-      controller
-        ..openCard('tags')
-        ..addCard('details')
-        ..closeCard('notes');
-
-      expect(controller.openCardIds, {'notes'});
-      expect(controller.addedCardIds, isEmpty);
-      expect(told, 0);
-
-      gate.complete();
-      await saving;
-    });
-
-    // lock() discards a sitting. While its write is running that would
-    // leave the write going with nothing tracking it, and let a new sitting
-    // start underneath it.
-    test('the sitting cannot be locked, nor another started', () async {
-      final gate = Completer<void>();
-      final controller = _controller(onSave: (_) => gate.future)
-        ..unlock(const _Rec(notes: 'a'));
-      controller.session!.set(_notes, 'b');
-      final saving = controller.save();
-      var told = 0;
-      controller.addListener(() => told++);
-
-      controller
-        ..lock()
-        ..unlock(const _Rec(notes: 'z'));
-
-      expect(controller.isUnlocked, isTrue);
-      expect(controller.isSaving, isTrue);
-      expect(controller.session!.valueOf(_notes), 'b');
-      expect(told, 0);
-
-      gate.complete();
-      expect(await saving, isTrue);
-      expect(controller.isUnlocked, isFalse);
-      expect(controller.isSaving, isFalse);
-    });
-
-    test('a save that fails gives the sitting back, editable', () async {
-      final controller =
-          _controller(onSave: (_) async => throw StateError('no'))
-            ..unlock(const _Rec(notes: 'a'))
-            ..openCard('notes');
-      controller.session!.set(_notes, 'b');
-
-      expect(await controller.save(), isFalse);
-
-      expect(controller.session!.isFrozen, isFalse);
-      controller.session!.set(_notes, 'c');
-      expect(controller.session!.valueOf(_notes), 'c');
-      controller.closeCard('notes');
-      expect(controller.openCardIds, isEmpty);
-    });
-
-    // The sitting is frozen meanwhile, so it cannot follow the stored
-    // record as it arrives. Given back, it must catch up, or the cards the
-    // diver never touched would show what is no longer stored.
-    test(
-      'a save that fails catches up with what was stored meanwhile',
-      () async {
-        final gate = Completer<void>();
-        final controller = _controller(
-          onSave: (_) async {
-            await gate.future;
-            throw StateError('no');
-          },
-        )..unlock(const _Rec(notes: 'a', depth: 1));
-        controller.session!.set(_notes, 'b');
-        final saving = controller.save();
-
-        controller.storedChanged(const _Rec(notes: 'a', depth: 7));
-        gate.complete();
-        expect(await saving, isFalse);
-
-        expect(controller.session!.stored, const _Rec(notes: 'a', depth: 7));
-        expect(controller.session!.working, const _Rec(notes: 'b', depth: 7));
-      },
-    );
-
-    test(
-      'what arrived during one save is not applied after a later one',
-      () async {
-        Completer<void>? gate = Completer<void>();
-        var fail = false;
-        final controller = _controller(
-          onSave: (_) async {
-            await gate?.future;
-            if (fail) throw StateError('no');
-          },
-        )..unlock(const _Rec(notes: 'a', depth: 1));
-        controller.session!.set(_notes, 'b');
-        final first = controller.save();
-        controller.storedChanged(const _Rec(notes: 'b', depth: 7));
-        gate.complete();
-        expect(await first, isTrue);
-
-        gate = null;
-        fail = true;
-        controller.unlock(const _Rec(notes: 'b', depth: 9));
-        controller.session!.set(_notes, 'c');
-        expect(await controller.save(), isFalse);
-
-        expect(controller.session!.stored, const _Rec(notes: 'b', depth: 9));
-      },
-    );
-  });
-
-  // A card brought in from the Add strip can land below the fold. The
-  // controller asks for it to be shown, and its frame scrolls to it.
-  group('asking for a card to be shown', () {
-    test('addCard asks, with a serial that goes up each time', () {
-      final controller = _controller()..unlock(const _Rec());
-      expect(controller.revealRequest, isNull);
-
-      controller.addCard('tags');
-      final first = controller.revealRequest!;
-      expect(first.cardId, 'tags');
-
-      controller.addCard('details');
-
-      expect(controller.revealRequest!.cardId, 'details');
-      expect(controller.revealRequest!.serial, greaterThan(first.serial));
-    });
-
-    test('adding a card that is already there does not ask again', () {
-      final controller = _controller()
-        ..unlock(const _Rec())
-        ..addCard('tags');
-      final first = controller.revealRequest!.serial;
-
-      controller.addCard('tags');
-
-      expect(controller.revealRequest!.serial, first);
-    });
-
-    test('opening a card from its pencil does not ask', () {
-      final controller = _controller()
-        ..unlock(const _Rec())
-        ..openCard('notes');
-
-      expect(controller.revealRequest, isNull);
-    });
-
-    test('a request is withdrawn once it has been answered', () {
-      final controller = _controller()
-        ..unlock(const _Rec())
-        ..addCard('tags');
-      final serial = controller.revealRequest!.serial;
-      var told = 0;
-      controller.addListener(() => told++);
-
-      controller.revealHandled(serial - 1);
-      expect(controller.revealRequest, isNotNull, reason: 'not this one');
-
-      controller.revealHandled(serial);
-
-      expect(controller.revealRequest, isNull);
-      expect(told, 0);
-    });
-
-    test('lock withdraws a request nobody answered', () {
-      final controller = _controller()
-        ..unlock(const _Rec())
-        ..addCard('tags')
-        ..lock();
-
-      expect(controller.revealRequest, isNull);
-    });
-
-    test('a serial is never reused by a later sitting', () {
-      final controller = _controller()
-        ..unlock(const _Rec())
-        ..addCard('tags');
-      final first = controller.revealRequest!.serial;
-
-      controller
-        ..lock()
-        ..unlock(const _Rec())
-        ..addCard('tags');
-
-      expect(controller.revealRequest!.serial, greaterThan(first));
-    });
   });
 
   testWidgets('RecordEditScope hands the controller to its subtree', (

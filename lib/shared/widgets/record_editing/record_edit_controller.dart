@@ -17,9 +17,12 @@ typedef RecordSave<T> = Future<void> Function(EditSession<T> session);
 ///
 /// It notifies when the lock, the open or added cards, the saving state, or
 /// the set of cards with changes changes, and when the stored record changes
-/// underneath. It does not notify for each further change to a card that
-/// already has one: a page listening here must not rebuild on every
-/// keystroke. An editor that needs every value listens to [session].
+/// underneath. It does not notify for each further change to an open card
+/// that already has one: a page listening here must not rebuild on every
+/// keystroke, and an open card's editor listens to [session] for every
+/// value. A card that is not open shows the page's copy of the record, so a
+/// change to what it shows (a rule that spans cards, or a value it shows
+/// that an open card owns) does notify.
 class RecordEditController<T> extends ChangeNotifier {
   RecordEditController({required this.onSave});
 
@@ -34,11 +37,22 @@ class RecordEditController<T> extends ChangeNotifier {
   /// The cards that had changes when listeners were last told.
   Set<String> _toldChangedCardIds = const {};
 
+  /// Each card's [EditSession.revisionOf] when listeners were last told, or
+  /// when the card was last opened or closed.
+  Map<String, int> _toldRevisions = {};
+
+  T? _layoutRecord;
+
+  /// Fields holding text that cannot be read as a value, by card id, in the
+  /// order each card first got one.
+  final Map<String, Set<String>> _invalidFields = {};
+  bool _refusedForInvalidInput = false;
+
   /// The stored record that last arrived while a save was running, when
   /// the sitting could not follow it. A save that fails rebases onto it.
   ({T stored})? _storedDuringSave;
 
-  ({String cardId, int serial})? _revealRequest;
+  ({String cardId, String? fieldId, int serial})? _revealRequest;
 
   /// Never reset, so a request in a later sitting is never mistaken for one
   /// a card has already answered.
@@ -62,25 +76,73 @@ class RecordEditController<T> extends ChangeNotifier {
   /// Cards brought in from the Add strip during this sitting.
   Set<String> get addedCardIds => Set.unmodifiable(_addedCardIds);
 
-  /// The card last asked to scroll into view, if no card has answered yet.
-  /// The serial goes up on every request, so the same card can be asked
-  /// twice. A card answers with [revealHandled].
-  ({String cardId, int serial})? get revealRequest => _revealRequest;
+  /// The record the page lays itself out from while a card is open: the
+  /// working record as it was when the first card opened. Null while every
+  /// card is closed, when the page follows the working record.
+  ///
+  /// Which cards a page shows, and where, depends on what the record holds,
+  /// and typing changes that. A card that appeared above an open editor
+  /// would push it down the page under the diver's hands, so cards come and
+  /// go only once the last editor has closed.
+  T? get layoutRecord => _layoutRecord;
 
-  /// Withdraws the request numbered [serial], once the card it names has
+  /// Cards holding input that cannot be read as a value, such as `1.2.3` in
+  /// a number field. Such text never reaches the [session], so a card that
+  /// holds it stays open ([closeCard]) and the sitting cannot be saved
+  /// ([save]) until it is fixed.
+  Set<String> get invalidCardIds => Set.unmodifiable(_invalidFields.keys);
+
+  /// What was last asked to scroll into view, if nothing has answered yet.
+  ///
+  /// With no field it is the card as a whole, which its frame answers: a
+  /// card just added from the strip. With a field it is that field's row,
+  /// which answers for itself: the unreadable input that stopped a card
+  /// closing or the sitting saving, and which on a tall card can be far
+  /// from the card's top. The serial goes up on every request, so the same
+  /// thing can be asked for twice. Whoever answers calls [revealHandled].
+  ({String cardId, String? fieldId, int serial})? get revealRequest =>
+      _revealRequest;
+
+  /// Withdraws the request numbered [serial], once what it names has
   /// scrolled into view. It does not notify: nothing is drawn from it.
   void revealHandled(int serial) {
     if (_revealRequest?.serial == serial) _revealRequest = null;
   }
 
-  void _requestReveal(String cardId) {
-    _revealSerial++;
-    _revealRequest = (cardId: cardId, serial: _revealSerial);
+  /// True when the last [save] was refused for unreadable input. Cleared by
+  /// the next save and by [lock].
+  bool get refusedForInvalidInput => _refusedForInvalidInput;
+
+  /// Records whether [fieldId] on [cardId] holds text that cannot be read.
+  ///
+  /// It does not notify: a field calls it from its text listener and from
+  /// its dispose, where a page may not rebuild, and nothing on the page
+  /// draws the mark. The field shows its own message.
+  void setFieldInvalid(String cardId, String fieldId, {required bool invalid}) {
+    if (!isUnlocked) return;
+    if (invalid) {
+      (_invalidFields[cardId] ??= {}).add(fieldId);
+      return;
+    }
+    final fields = _invalidFields[cardId];
+    if (fields == null) return;
+    fields.remove(fieldId);
+    if (fields.isEmpty) _invalidFields.remove(cardId);
   }
+
+  void _requestReveal(String cardId, {String? fieldId}) {
+    _revealSerial++;
+    _revealRequest = (cardId: cardId, fieldId: fieldId, serial: _revealSerial);
+  }
+
+  /// Asks for the first unreadable field of [cardId] to be shown.
+  void _requestRevealOfInvalid(String cardId) =>
+      _requestReveal(cardId, fieldId: _invalidFields[cardId]?.first);
 
   void unlock(T stored) {
     if (isUnlocked) return;
     _toldChangedCardIds = const {};
+    _toldRevisions = {};
     _session = EditSession<T>(stored)..addListener(_onSessionChanged);
     notifyListeners();
   }
@@ -100,40 +162,70 @@ class RecordEditController<T> extends ChangeNotifier {
     _dropSession(session);
     _openCardIds.clear();
     _addedCardIds.clear();
+    _invalidFields.clear();
+    _refusedForInvalidInput = false;
     _revealRequest = null;
+    _layoutRecord = null;
     _saveError = null;
     _isSaving = false;
     _storedDuringSave = null;
     notifyListeners();
   }
 
+  /// Fixes the page's layout as the first card opens. Call before the card
+  /// is added to the open ones.
+  void _holdLayoutFor(EditSession<T> session) {
+    if (_openCardIds.isEmpty) _layoutRecord = session.working;
+  }
+
   /// Opens [cardId]'s editor. Like every change to the cards, it is
   /// refused while a save is running.
   void openCard(String cardId) {
-    if (!isUnlocked || _isSaving) return;
-    if (_openCardIds.add(cardId)) notifyListeners();
+    final session = _session;
+    if (session == null || _isSaving) return;
+    if (_openCardIds.contains(cardId)) return;
+    _holdLayoutFor(session);
+    _openCardIds.add(cardId);
+    _toldRevisions[cardId] = session.revisionOf(cardId);
+    notifyListeners();
   }
 
   /// Closes [cardId]. A card that came from the Add strip and was given no
-  /// change goes back to the strip.
+  /// change goes back to the strip. A card with unreadable input stays open
+  /// and is asked to show itself instead ([revealRequest]).
   void closeCard(String cardId) {
     final session = _session;
     if (session == null || _isSaving) return;
+    if (_invalidFields.containsKey(cardId)) {
+      _requestRevealOfInvalid(cardId);
+      notifyListeners();
+      return;
+    }
     final wasOpen = _openCardIds.remove(cardId);
     final wasAdded =
         !session.changedCardIds.contains(cardId) &&
         _addedCardIds.remove(cardId);
-    if (wasOpen || wasAdded) notifyListeners();
+    if (!wasOpen && !wasAdded) return;
+    // With the last editor closed the page follows the record again.
+    if (_openCardIds.isEmpty) _layoutRecord = null;
+    // What was typed while it was open is drawn by this notification.
+    _toldRevisions[cardId] = session.revisionOf(cardId);
+    notifyListeners();
   }
 
   /// Brings in a card the page was leaving out, already open, and asks for
   /// it to be scrolled into view ([revealRequest]): it takes its place in
   /// the page's order, which may be below what is on screen.
   void addCard(String cardId) {
-    if (!isUnlocked || _isSaving) return;
-    final added = _addedCardIds.add(cardId);
-    final opened = _openCardIds.add(cardId);
-    if (!added && !opened) return;
+    final session = _session;
+    if (session == null || _isSaving) return;
+    if (_addedCardIds.contains(cardId) && _openCardIds.contains(cardId)) {
+      return;
+    }
+    _holdLayoutFor(session);
+    _addedCardIds.add(cardId);
+    _openCardIds.add(cardId);
+    _toldRevisions[cardId] = session.revisionOf(cardId);
     _requestReveal(cardId);
     notifyListeners();
   }
@@ -154,24 +246,52 @@ class RecordEditController<T> extends ChangeNotifier {
     session.rebase(stored);
     // Cards the diver has not touched now show other values, whether or not
     // the set of changed cards moved.
-    _toldChangedCardIds = session.changedCardIds;
+    _rememberTold(session);
     notifyListeners();
   }
 
   void _onSessionChanged() {
-    final changed = _session?.changedCardIds ?? const <String>{};
-    if (setEquals(changed, _toldChangedCardIds)) return;
-    _toldChangedCardIds = changed;
+    final session = _session;
+    if (session == null) return;
+    final changed = session.changedCardIds;
+    final setMoved = !setEquals(changed, _toldChangedCardIds);
+    // What a card that is not open shows has moved: its own value changed
+    // by a rule, or a value it shows that another card owns. Nothing else
+    // will redraw it.
+    final closedCardMoved = session.revisedCardIds.any(
+      (id) =>
+          !_openCardIds.contains(id) &&
+          session.revisionOf(id) != (_toldRevisions[id] ?? 0),
+    );
+    if (!setMoved && !closedCardMoved) return;
+    _rememberTold(session);
     notifyListeners();
   }
 
+  /// Records what listeners are about to be told about the cards.
+  void _rememberTold(EditSession<T> session) {
+    _toldChangedCardIds = session.changedCardIds;
+    _toldRevisions = {
+      for (final id in session.revisedCardIds) id: session.revisionOf(id),
+    };
+  }
+
   /// Writes the sitting and locks. False when nothing was saved: the page
-  /// was locked, a save was already running, or the write failed (see
-  /// [saveError]); a failed save leaves the diver's changes exactly as they
-  /// were, on top of whatever was stored while it ran ([storedChanged]).
+  /// was locked, a save was already running, a card holds unreadable input
+  /// (see [refusedForInvalidInput]), or the write failed (see [saveError]).
+  /// A save that did not happen leaves the diver's changes exactly as they
+  /// were; one whose write failed puts them on top of whatever was stored
+  /// while it ran ([storedChanged]).
   Future<bool> save() async {
     final session = _session;
     if (session == null || _isSaving) return false;
+    _refusedForInvalidInput = false;
+    if (_invalidFields.isNotEmpty) {
+      _refusedForInvalidInput = true;
+      _requestRevealOfInvalid(_invalidFields.keys.first);
+      notifyListeners();
+      return false;
+    }
     if (!session.isDirty) {
       lock();
       return true;
@@ -194,7 +314,7 @@ class RecordEditController<T> extends ChangeNotifier {
       final missed = _storedDuringSave;
       _storedDuringSave = null;
       if (missed != null) session.rebase(missed.stored);
-      _toldChangedCardIds = session.changedCardIds;
+      _rememberTold(session);
       notifyListeners();
       return false;
     }

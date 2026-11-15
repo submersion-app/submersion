@@ -9511,6 +9511,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recordEdit_saveFailed => '无法保存更改。未做任何更改。';
 
   @override
+  String get recordEdit_fixInvalid => '部分数值无法识别。请更正后再保存。';
+
+  @override
   String get settings_manage_setupAssistant => '设置向导';
 
   @override

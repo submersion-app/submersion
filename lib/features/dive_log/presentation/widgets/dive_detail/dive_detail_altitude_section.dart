@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/info/altitude_info.dar
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 /// Informational note shown when the site records a meaningful altitude
 /// but the dive itself has none, so deco replay ran at sea-level pressure.
@@ -26,7 +27,11 @@ class DiveAltitudeMismatchNote extends StatelessWidget {
         title: Text(context.l10n.diveLog_detail_altitudeMismatch_title),
         subtitle: Text(context.l10n.diveLog_detail_altitudeMismatch_subtitle),
         trailing: const Icon(Icons.edit_outlined, size: 18),
-        onTap: () => context.push('/dives/${dive.id}/edit'),
+        // Unlocked, the note sits in the Altitude card's frame and opens
+        // it. Locked, it goes where it always has.
+        onTap:
+            RecordCardFrameScope.maybeOf(context)?.onOpen ??
+            () => context.push('/dives/${dive.id}/edit'),
       ),
     );
   }
@@ -52,73 +57,24 @@ class DiveAltitudeSection extends ConsumerWidget {
         dive.surfacePressure ??
         AltitudeCalculator.calculateBarometricPressure(dive.altitude!);
 
-    Color getGroupColor(AltitudeWarningLevel level) {
-      switch (level) {
-        case AltitudeWarningLevel.none:
-          return colorScheme.surfaceContainerHighest;
-        case AltitudeWarningLevel.info:
-          return colorScheme.primaryContainer;
-        case AltitudeWarningLevel.caution:
-          return colorScheme.tertiaryContainer;
-        case AltitudeWarningLevel.warning:
-          return colorScheme.errorContainer;
-        case AltitudeWarningLevel.severe:
-          return colorScheme.error;
-      }
-    }
-
-    Color getGroupForeground(AltitudeWarningLevel level) {
-      switch (level) {
-        case AltitudeWarningLevel.none:
-          return colorScheme.onSurface;
-        case AltitudeWarningLevel.info:
-          return colorScheme.onPrimaryContainer;
-        case AltitudeWarningLevel.caution:
-          return colorScheme.onTertiaryContainer;
-        case AltitudeWarningLevel.warning:
-          return colorScheme.onErrorContainer;
-        case AltitudeWarningLevel.severe:
-          return colorScheme.onError;
-      }
-    }
-
-    IconData getGroupIcon(AltitudeWarningLevel level) {
-      switch (level) {
-        case AltitudeWarningLevel.none:
-          return Icons.check_circle_outline;
-        case AltitudeWarningLevel.info:
-          return Icons.info_outline;
-        case AltitudeWarningLevel.caution:
-          return Icons.warning_amber;
-        case AltitudeWarningLevel.warning:
-          return Icons.warning;
-        case AltitudeWarningLevel.severe:
-          return Icons.dangerous;
-      }
-    }
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.terrain, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    context.l10n.diveLog_detail_section_altitudeDive,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                HeaderInfoButton(
-                  title: context.l10n.diveLog_detail_section_altitudeDive,
-                  content: (context) =>
-                      altitudeInfo(context.l10n, infoUnits(context)),
-                ),
-              ],
+            RecordCardHeader(
+              leading: Icon(
+                Icons.terrain,
+                size: 20,
+                color: colorScheme.primary,
+              ),
+              title: context.l10n.diveLog_detail_section_altitudeDive,
+              trailing: HeaderInfoButton(
+                title: context.l10n.diveLog_detail_section_altitudeDive,
+                content: (context) =>
+                    altitudeInfo(context.l10n, infoUnits(context)),
+              ),
             ),
             const Divider(),
             Row(
@@ -172,56 +128,88 @@ class DiveAltitudeSection extends ConsumerWidget {
             ),
             if (altitudeGroup != AltitudeGroup.seaLevel) ...[
               const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: getGroupColor(altitudeGroup.warningLevel),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      getGroupIcon(altitudeGroup.warningLevel),
-                      size: 24,
-                      color: getGroupForeground(altitudeGroup.warningLevel),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            altitudeGroup.localizedName(context.l10n),
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: getGroupForeground(
-                                    altitudeGroup.warningLevel,
-                                  ),
-                                ),
-                          ),
-                          Text(
-                            altitudeGroup.rangeDescription,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: getGroupForeground(
-                                    altitudeGroup.warningLevel,
-                                  ).withValues(alpha: 0.8),
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              AltitudeGroupBanner(group: altitudeGroup),
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The coloured banner naming an altitude group and its range, shared by
+/// the Altitude card and its editor. Draws nothing at sea level.
+class AltitudeGroupBanner extends StatelessWidget {
+  const AltitudeGroupBanner({super.key, required this.group});
+
+  final AltitudeGroup group;
+
+  @override
+  Widget build(BuildContext context) {
+    if (group == AltitudeGroup.seaLevel) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final (background, foreground, icon) = switch (group.warningLevel) {
+      AltitudeWarningLevel.none => (
+        scheme.surfaceContainerHighest,
+        scheme.onSurface,
+        Icons.check_circle_outline,
+      ),
+      AltitudeWarningLevel.info => (
+        scheme.primaryContainer,
+        scheme.onPrimaryContainer,
+        Icons.info_outline,
+      ),
+      AltitudeWarningLevel.caution => (
+        scheme.tertiaryContainer,
+        scheme.onTertiaryContainer,
+        Icons.warning_amber,
+      ),
+      AltitudeWarningLevel.warning => (
+        scheme.errorContainer,
+        scheme.onErrorContainer,
+        Icons.warning,
+      ),
+      AltitudeWarningLevel.severe => (
+        scheme.error,
+        scheme.onError,
+        Icons.dangerous,
+      ),
+    };
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 24, color: foreground),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  group.localizedName(context.l10n),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: foreground,
+                  ),
+                ),
+                Text(
+                  group.localizedRange(context.l10n),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: foreground.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

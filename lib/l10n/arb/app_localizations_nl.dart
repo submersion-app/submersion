@@ -9967,6 +9967,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kon de wijzigingen niet opslaan. Er is niets gewijzigd.';
 
   @override
+  String get recordEdit_fixInvalid =>
+      'Sommige waarden kunnen niet worden gelezen. Corrigeer ze voordat je opslaat.';
+
+  @override
   String get settings_manage_setupAssistant => 'Configuratie-assistent';
 
   @override

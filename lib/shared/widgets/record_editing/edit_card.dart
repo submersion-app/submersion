@@ -14,6 +14,7 @@ class EditCard<T> {
     required this.title,
     required this.isEmpty,
     required this.editorBuilder,
+    this.leading,
   });
 
   /// Stable id, shared with the `cardId` of the fields it owns.
@@ -21,6 +22,10 @@ class EditCard<T> {
 
   /// The card's title, localised.
   final String Function(BuildContext context) title;
+
+  /// What the card draws before its title, such as its icon, so the open
+  /// card's header matches the one the card shows while reading.
+  final Widget Function(BuildContext context)? leading;
 
   /// Whether the page leaves this card out for [record] because it has
   /// nothing to show. Such a card is reached from the Add strip instead.
