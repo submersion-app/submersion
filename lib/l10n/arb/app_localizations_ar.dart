@@ -33019,6 +33019,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'كل الغطسات مجمّعة وموضوعة في سياقها';
 
   @override
+  String get insights_profile_verticalDistance_maxDepthsTitle =>
+      'مجموع أقصى الأعماق';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsSubtitle =>
+      'كل غطسة مباشرةً إلى أعمق نقطة فيها ثم العودة';
+
+  @override
   String get insights_profile_verticalDistance_totalAscent => 'إجمالي الصعود';
 
   @override
@@ -65326,6 +65334,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get info_insights_ascentDescent_summary =>
       'متوسط السرعة في النزول والصعود، محسوبًا من المخططات.';
+
+  @override
+  String get info_insights_verticalDistance_maxDepthsSummary =>
+      'تُحتسب كل غطسة نزولًا مباشرًا إلى أقصى عمق لها وصعودًا مباشرًا، مع تجاهل كل تغيّر في العمق على طول الطريق. تُستبعد الغطسة التي لا عمق أقصى لها.';
 
   @override
   String info_insights_verticalDistance_summary(String deadband) {

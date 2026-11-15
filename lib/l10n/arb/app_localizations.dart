@@ -52038,6 +52038,18 @@ abstract class AppLocalizations {
   /// **'Every dive added up and put into perspective'**
   String get insights_profile_verticalDistance_subtitle;
 
+  /// No description provided for @insights_profile_verticalDistance_maxDepthsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Max Depths Added Up'**
+  String get insights_profile_verticalDistance_maxDepthsTitle;
+
+  /// No description provided for @insights_profile_verticalDistance_maxDepthsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Each dive straight down to its deepest point and back'**
+  String get insights_profile_verticalDistance_maxDepthsSubtitle;
+
   /// No description provided for @insights_profile_verticalDistance_totalAscent.
   ///
   /// In en, this message translates to:
@@ -101119,6 +101131,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Average speed going down and coming up, worked out from the profiles.'**
   String get info_insights_ascentDescent_summary;
+
+  /// No description provided for @info_insights_verticalDistance_maxDepthsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Each dive is counted straight down to its max depth and straight back up, ignoring every change of depth along the way. A dive with no max depth is left out.'**
+  String get info_insights_verticalDistance_maxDepthsSummary;
 
   /// No description provided for @info_insights_verticalDistance_summary.
   ///

@@ -28,24 +28,7 @@ extension InsightsRepositoryVerticalDistance on InsightsRepository {
     final List<QueryRow> rows;
     final Map<String, String> fingerprints;
     try {
-      final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd');
-      final params = [?diverId, ...df.params];
-      rows = await _db
-          .customSelect(
-            '''
-        SELECT
-          d.id AS id,
-          ${diveStartMillisSql('d')} AS start_ms,
-          d.max_depth AS max_depth
-        FROM dives d
-        WHERE 1 = 1 $diverFilter ${df.clause}
-        ORDER BY start_ms, d.id
-        ''',
-            variables: params.map((p) => Variable(p)).toList(),
-            readsFrom: {_db.dives},
-          )
-          .get();
+      rows = await _verticalDistanceDiveRows(diverId, filter);
       if (rows.isEmpty) return VerticalDistanceTimeline.empty;
       fingerprints = await _primarySeriesFingerprints([
         for (final r in rows) r.read<String>('id'),
@@ -73,6 +56,61 @@ extension InsightsRepositoryVerticalDistance on InsightsRepository {
           figures[r.read<String>('id')],
         ),
     ]);
+  }
+
+  /// Every in-scope dive's max depth, in dive order: each dive counted once
+  /// straight down to its deepest point and back, whatever its profile did
+  /// on the way. A dive with no max depth adds nothing. Reads no profiles,
+  /// so it needs no cache.
+  Future<VerticalDistanceTimeline> getMaxDepthTimeline({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    try {
+      final rows = await _verticalDistanceDiveRows(diverId, filter);
+      return VerticalDistanceTimeline([
+        for (final r in rows)
+          DiveVerticalDistance(
+            diveId: r.read<String>('id'),
+            startMillis: r.read<int>('start_ms'),
+            meters: r.readNullable<double>('max_depth') ?? 0,
+            estimated: false,
+          ),
+      ]);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get max depth timeline',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// The in-scope dives' id, start and max depth, in dive order: the rows
+  /// both timelines are built from.
+  Future<List<QueryRow>> _verticalDistanceDiveRows(
+    String? diverId,
+    DiveFilterState filter,
+  ) {
+    final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
+    final df = _diveFilter(filter, alias: 'd');
+    final params = [?diverId, ...df.params];
+    return _db
+        .customSelect(
+          '''
+      SELECT
+        d.id AS id,
+        ${diveStartMillisSql('d')} AS start_ms,
+        d.max_depth AS max_depth
+      FROM dives d
+      WHERE 1 = 1 $diverFilter ${df.clause}
+      ORDER BY start_ms, d.id
+      ''',
+          variables: params.map((p) => Variable(p)).toList(),
+          readsFrom: {_db.dives},
+        )
+        .get();
   }
 
   DiveVerticalDistance _diveVerticalDistance(

@@ -32636,6 +32636,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Alle Tauchgänge zusammengezählt und ins Verhältnis gesetzt';
 
   @override
+  String get insights_profile_verticalDistance_maxDepthsTitle =>
+      'Maximaltiefen zusammengezählt';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsSubtitle =>
+      'Jeder Tauchgang direkt zum tiefsten Punkt und zurück';
+
+  @override
   String get insights_profile_verticalDistance_totalAscent => 'Aufstieg gesamt';
 
   @override
@@ -64274,6 +64282,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get info_insights_ascentDescent_summary =>
       'Durchschnittliche Geschwindigkeit beim Ab- und Auftauchen, aus den Profilen ermittelt.';
+
+  @override
+  String get info_insights_verticalDistance_maxDepthsSummary =>
+      'Jeder Tauchgang zählt direkt hinab bis zur Maximaltiefe und direkt wieder hinauf, ohne jede Tiefenänderung unterwegs. Ein Tauchgang ohne Maximaltiefe wird nicht gezählt.';
 
   @override
   String info_insights_verticalDistance_summary(String deadband) {

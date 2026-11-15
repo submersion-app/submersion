@@ -42,6 +42,8 @@ class InsightsProfilePage extends ConsumerWidget {
           const SizedBox(height: 16),
           const VerticalDistanceCard(),
           const SizedBox(height: 16),
+          const VerticalDistanceCard.maxDepths(),
+          const SizedBox(height: 16),
           _buildTimeAtDepthSection(context, ref, units),
           const SizedBox(height: 16),
           _buildDecoSection(context, ref),

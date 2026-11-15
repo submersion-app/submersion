@@ -384,4 +384,67 @@ void main() {
   test('no dives give the empty timeline', () async {
     expect((await timeline()).isEmpty, isTrue);
   });
+
+  group('max depths added up', () {
+    Future<VerticalDistanceTimeline> maxDepths({
+      String? diverId,
+      DiveFilterState filter = const DiveFilterState(),
+    }) => repo.getMaxDepthTimeline(diverId: diverId, filter: filter);
+
+    test('each dive counts its max depth, never its profile', () async {
+      await dive('a', at: day1, maxDepth: 20);
+      // The profile goes 20 m, back to 10 m and down to 20 m again: 30 m
+      // travelled, but only its 20 m max depth counts here.
+      await profile('a', [(0, 0), (60, 20), (120, 10), (180, 20), (240, 0)]);
+      await dive('b', at: day2, maxDepth: 15);
+
+      final t = await maxDepths();
+
+      expect(t.totalMeters, 35);
+      expect(t.countedDives, 2);
+      expect(t.estimatedDives, 0);
+      expect(t.crossingAt(10)!.diveId, 'a');
+      expect(t.crossingAt(25)!.diveId, 'b');
+      expect(t.crossingAt(25)!.startMillis, day2);
+    });
+
+    test('a dive with no max depth adds nothing', () async {
+      await dive('a', at: day1);
+      await profile('a', to20);
+      await dive('b', at: day2, maxDepth: 12);
+
+      final t = await maxDepths();
+
+      expect(t.totalMeters, 12);
+      expect(t.countedDives, 1);
+    });
+
+    test('the diver and the Insights scope narrow it', () async {
+      await diver('x');
+      await diver('y');
+      await dive('a', at: day1, maxDepth: 10, diverId: 'x');
+      await dive('b', at: day2, maxDepth: 30, diverId: 'y');
+      await dive('plan', at: day2, maxDepth: 50, diverId: 'x', isPlanned: true);
+      await dive(
+        'skip',
+        at: day3,
+        maxDepth: 70,
+        diverId: 'x',
+        excludedFromStats: true,
+      );
+      await dive('c', at: day3, maxDepth: 40, diverId: 'x');
+
+      expect((await maxDepths(diverId: 'x')).totalMeters, 50);
+      expect((await maxDepths(diverId: 'y')).totalMeters, 30);
+      final filtered = await maxDepths(
+        diverId: 'x',
+        filter: DiveFilterState(startDate: DateTime(2026, 1, 3)),
+      );
+      expect(filtered.totalMeters, 40);
+    });
+
+    test('no dives give the empty timeline', () async {
+      expect((await maxDepths()).isEmpty, isTrue);
+    });
+  });
 }

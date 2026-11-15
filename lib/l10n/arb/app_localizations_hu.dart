@@ -32551,6 +32551,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Minden merülés összeadva, perspektívába helyezve';
 
   @override
+  String get insights_profile_verticalDistance_maxDepthsTitle =>
+      'Maximális mélységek összeadva';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsSubtitle =>
+      'Minden merülés egyenesen a legmélyebb pontjáig és vissza';
+
+  @override
   String get insights_profile_verticalDistance_totalAscent =>
       'összes felszállás';
 
@@ -64057,6 +64065,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get info_insights_ascentDescent_summary =>
       'Átlagsebesség lefelé és felfelé, a profilokból számítva.';
+
+  @override
+  String get info_insights_verticalDistance_maxDepthsSummary =>
+      'Minden merülés egyenesen lefelé a maximális mélységéig és egyenesen vissza számít, figyelmen kívül hagyva minden közbenső mélységváltozást. A maximális mélység nélküli merülés kimarad.';
 
   @override
   String info_insights_verticalDistance_summary(String deadband) {

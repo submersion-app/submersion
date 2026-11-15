@@ -30810,6 +30810,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_profile_verticalDistance_subtitle => '所有潜水累加，放进更大的视野';
 
   @override
+  String get insights_profile_verticalDistance_maxDepthsTitle => '最大深度累加';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsSubtitle =>
+      '每次潜水直达最深点再返回';
+
+  @override
   String get insights_profile_verticalDistance_totalAscent => '累计上升';
 
   @override
@@ -60437,6 +60444,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get info_insights_ascentDescent_summary => '根据潜水曲线计算的平均下潜和上升速度。';
+
+  @override
+  String get info_insights_verticalDistance_maxDepthsSummary =>
+      '每次潜水按直接下潜到最大深度再直接上升计算，忽略途中所有深度变化。没有最大深度的潜水不计入。';
 
   @override
   String info_insights_verticalDistance_summary(String deadband) {

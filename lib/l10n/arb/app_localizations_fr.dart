@@ -32804,6 +32804,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Toutes vos plongées additionnées et mises en perspective';
 
   @override
+  String get insights_profile_verticalDistance_maxDepthsTitle =>
+      'Profondeurs maximales additionnées';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsSubtitle =>
+      'Chaque plongée droit jusqu\'à son point le plus profond et retour';
+
+  @override
   String get insights_profile_verticalDistance_totalAscent => 'remontée totale';
 
   @override
@@ -64556,6 +64564,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get info_insights_ascentDescent_summary =>
       'Vitesse moyenne à la descente et à la remontée, calculée depuis les profils.';
+
+  @override
+  String get info_insights_verticalDistance_maxDepthsSummary =>
+      'Chaque plongée compte droit jusqu\'à sa profondeur maximale et droit retour, sans tenir compte des changements de profondeur en chemin. Une plongée sans profondeur maximale n\'est pas comptée.';
 
   @override
   String info_insights_verticalDistance_summary(String deadband) {

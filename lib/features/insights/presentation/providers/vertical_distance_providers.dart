@@ -20,3 +20,17 @@ final verticalDistanceTimelineProvider =
         filter: filter,
       );
     });
+
+/// Every in-scope dive's max depth, in dive order: the same scale counting
+/// each dive straight down to its deepest point and back. Keyed and
+/// refreshed like [verticalDistanceTimelineProvider].
+final maxDepthTimelineProvider = FutureProvider<VerticalDistanceTimeline>((
+  ref,
+) async {
+  final repository = ref.watch(insightsRepositoryProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  ref.invalidateSelfWhen(repository.watchInsightsChanges(filter: filter));
+  final diverId = ref.watch(currentDiverIdProvider);
+  await awaitInsightsFilterCaches(ref);
+  return repository.getMaxDepthTimeline(diverId: diverId, filter: filter);
+});

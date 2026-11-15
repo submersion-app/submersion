@@ -32691,6 +32691,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Todos os mergulhos somados e postos em perspectiva';
 
   @override
+  String get insights_profile_verticalDistance_maxDepthsTitle =>
+      'Profundidades máximas somadas';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsSubtitle =>
+      'Cada mergulho direto ao ponto mais profundo e de volta';
+
+  @override
   String get insights_profile_verticalDistance_totalAscent => 'subida total';
 
   @override
@@ -64391,6 +64399,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get info_insights_ascentDescent_summary =>
       'Velocidade média a descer e a subir, calculada a partir dos perfis.';
+
+  @override
+  String get info_insights_verticalDistance_maxDepthsSummary =>
+      'Cada mergulho conta direto até a profundidade máxima e direto de volta, ignorando qualquer mudança de profundidade pelo caminho. Um mergulho sem profundidade máxima não é contado.';
 
   @override
   String info_insights_verticalDistance_summary(String deadband) {

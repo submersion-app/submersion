@@ -76,6 +76,8 @@ void main() {
     AppSettings settings = const AppSettings(),
     double width = 1000,
     Locale locale = const Locale('en'),
+    Widget card = const VerticalDistanceCard(),
+    VerticalDistanceTimeline? maxDepths,
   }) async {
     tester.view.physicalSize = Size(width, 900);
     tester.view.devicePixelRatio = 1.0;
@@ -85,15 +87,12 @@ void main() {
       routes: [
         GoRoute(
           path: '/',
-          builder: (context, state) => const Scaffold(
+          builder: (context, state) => Scaffold(
             body: SingleChildScrollView(
               child: Column(
                 children: [
-                  Padding(
-                    padding: EdgeInsets.all(16),
-                    child: VerticalDistanceCard(),
-                  ),
-                  SizedBox(height: 1200),
+                  Padding(padding: const EdgeInsets.all(16), child: card),
+                  const SizedBox(height: 1200),
                 ],
               ),
             ),
@@ -113,6 +112,9 @@ void main() {
         overrides: [
           verticalDistanceTimelineProvider.overrideWith(
             (ref) async => timeline ?? _copy(_timeline),
+          ),
+          maxDepthTimelineProvider.overrideWith(
+            (ref) async => maxDepths ?? VerticalDistanceTimeline.empty,
           ),
           sharedPreferencesProvider.overrideWithValue(prefs),
           settingsProvider.overrideWith(
@@ -519,5 +521,50 @@ void main() {
     expect(titanic, findsOneWidget);
     expect(tester.getSemantics(titanic), isSemantics(hasTapAction: true));
     handle.dispose();
+  });
+
+  group('max depths added up', () {
+    final twoDives = VerticalDistanceTimeline([
+      for (final (i, id) in ['a', 'b'].indexed)
+        DiveVerticalDistance(
+          diveId: id,
+          startMillis: DateTime.utc(2024, 1, 1 + i).millisecondsSinceEpoch,
+          meters: 15,
+          estimated: false,
+        ),
+    ]);
+
+    testWidgets('reads its own timeline under its own title', (tester) async {
+      await pump(
+        tester,
+        card: const VerticalDistanceCard.maxDepths(),
+        maxDepths: twoDives,
+      );
+
+      expect(find.text('Max Depths Added Up'), findsOneWidget);
+      expect(
+        find.text('Each dive straight down to its deepest point and back'),
+        findsOneWidget,
+      );
+      expect(find.text('30 m'), findsNWidgets(2));
+      expect(find.text('6,380 m'), findsNothing);
+    });
+
+    testWidgets('its info sheet says only the deepest point counts', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        card: const VerticalDistanceCard.maxDepths(),
+        maxDepths: twoDives,
+      );
+      await tester.tap(find.byIcon(Icons.info_outline));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('ignoring every change of depth along the way'),
+        findsOneWidget,
+      );
+    });
   });
 }

@@ -32159,6 +32159,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Every dive added up and put into perspective';
 
   @override
+  String get insights_profile_verticalDistance_maxDepthsTitle =>
+      'Max Depths Added Up';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsSubtitle =>
+      'Each dive straight down to its deepest point and back';
+
+  @override
   String get insights_profile_verticalDistance_totalAscent => 'total ascent';
 
   @override
@@ -63416,6 +63424,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get info_insights_ascentDescent_summary =>
       'Average speed going down and coming up, worked out from the profiles.';
+
+  @override
+  String get info_insights_verticalDistance_maxDepthsSummary =>
+      'Each dive is counted straight down to its max depth and straight back up, ignoring every change of depth along the way. A dive with no max depth is left out.';
 
   @override
   String info_insights_verticalDistance_summary(String deadband) {

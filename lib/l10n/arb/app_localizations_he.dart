@@ -31894,6 +31894,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'כל הצלילות מסוכמות ומוצגות בפרספקטיבה';
 
   @override
+  String get insights_profile_verticalDistance_maxDepthsTitle =>
+      'סכום העומקים המרביים';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsSubtitle =>
+      'כל צלילה ישר לנקודה העמוקה ביותר שלה וחזרה';
+
+  @override
   String get insights_profile_verticalDistance_totalAscent => 'עלייה כוללת';
 
   @override
@@ -63088,6 +63096,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get info_insights_ascentDescent_summary =>
       'מהירות ממוצעת בירידה ובעלייה, מחושבת מהפרופילים.';
+
+  @override
+  String get info_insights_verticalDistance_maxDepthsSummary =>
+      'כל צלילה נספרת ישר מטה עד לעומק המרבי שלה וישר חזרה למעלה, בלי להתחשב בשינויי עומק בדרך. צלילה ללא עומק מרבי אינה נספרת.';
 
   @override
   String info_insights_verticalDistance_summary(String deadband) {

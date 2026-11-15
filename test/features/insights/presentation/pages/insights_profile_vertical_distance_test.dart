@@ -29,8 +29,8 @@ class _MockCurrentDiverIdNotifier extends StateNotifier<String?>
   Future<void> clearCurrentDiver() async => state = null;
 }
 
-/// The total ascent and descent card sits on the Profile page under the
-/// average rates card (issue #4569).
+/// The total ascent and descent card, then the max depths card, sit on the
+/// Profile page under the average rates card (issue #4569).
 void main() {
   late SharedPreferences prefs;
 
@@ -39,7 +39,7 @@ void main() {
     prefs = await SharedPreferences.getInstance();
   });
 
-  testWidgets('the card sits between the rates and time at depth', (
+  testWidgets('both cards sit between the rates and time at depth', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1000, 3000);
@@ -66,6 +66,16 @@ void main() {
               ),
             ]),
           ),
+          maxDepthTimelineProvider.overrideWith(
+            (ref) async => VerticalDistanceTimeline([
+              const DiveVerticalDistance(
+                diveId: 'a',
+                startMillis: 0,
+                meters: 20,
+                estimated: false,
+              ),
+            ]),
+          ),
           sharedPreferencesProvider.overrideWithValue(prefs),
           settingsProvider.overrideWith(
             (ref) => _MockSettingsNotifier(const AppSettings()),
@@ -88,5 +98,8 @@ void main() {
     final card = top('Total Ascent & Descent');
     expect(card, greaterThan(top('Average Ascent & Descent Rates')));
     expect(card, lessThan(top('Time at Depth Ranges')));
+    final maxDepths = top('Max Depths Added Up');
+    expect(maxDepths, greaterThan(card));
+    expect(maxDepths, lessThan(top('Time at Depth Ranges')));
   });
 }

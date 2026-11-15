@@ -32490,6 +32490,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Al je duiken opgeteld en in perspectief geplaatst';
 
   @override
+  String get insights_profile_verticalDistance_maxDepthsTitle =>
+      'Maximale diepten opgeteld';
+
+  @override
+  String get insights_profile_verticalDistance_maxDepthsSubtitle =>
+      'Elke duik recht naar het diepste punt en terug';
+
+  @override
   String get insights_profile_verticalDistance_totalAscent =>
       'totale opstijging';
 
@@ -64021,6 +64029,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get info_insights_ascentDescent_summary =>
       'Gemiddelde snelheid bij afdalen en opstijgen, afgeleid uit de profielen.';
+
+  @override
+  String get info_insights_verticalDistance_maxDepthsSummary =>
+      'Elke duik telt recht omlaag tot de maximale diepte en recht weer omhoog, zonder rekening te houden met dieptewisselingen onderweg. Een duik zonder maximale diepte telt niet mee.';
 
   @override
   String info_insights_verticalDistance_summary(String deadband) {
