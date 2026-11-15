@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -16,6 +17,15 @@ void main() {
   late AppLocalizations fr;
   const metric = UnitFormatter(AppSettings());
   const imperial = UnitFormatter(AppSettings(altitudeUnit: AltitudeUnit.feet));
+
+  // The ranges group digits by the process-wide Intl.defaultLocale, which
+  // another test may have changed. Pin English so "2,953" keeps its comma.
+  late String? previousLocale;
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+  tearDown(() => Intl.defaultLocale = previousLocale);
 
   setUpAll(() {
     en = lookupAppLocalizations(const Locale('en'));

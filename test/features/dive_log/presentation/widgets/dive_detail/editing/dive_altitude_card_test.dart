@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
@@ -68,6 +69,15 @@ const _cardId = 'altitude';
 void main() {
   final bare = Dive(id: 'dive', dateTime: DateTime(2024, 6, 1, 10));
   final high = bare.copyWith(altitude: 1200, surfacePressure: 0.87);
+
+  // The ranges group digits by the process-wide Intl.defaultLocale, which
+  // another test may have changed. Pin English so "2,953" keeps its comma.
+  late String? previousLocale;
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+  tearDown(() => Intl.defaultLocale = previousLocale);
 
   const lakeNoAltitude = DiveSite(
     id: 'site-1',
