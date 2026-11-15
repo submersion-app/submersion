@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart' show StateProvider;
 import 'package:flutter_test/flutter_test.dart';
@@ -316,6 +317,25 @@ void builtInMapContract({
 
       expect(find.text('built-in page a'), findsOneWidget);
 
+      handle.dispose();
+    });
+
+    testWidgets('a tap on the bare map puts the card away', (tester) async {
+      final handle = tester.ensureSemantics();
+      await pump(tester, extraOverrides: onePin());
+
+      await semanticsTap(tester, 'Built-in dive site: A');
+      expect(find.text('Add to my sites'), findsOneWidget);
+
+      // A corner of the map, away from the pin at its centre.
+      await tester.tapAt(
+        tester.getTopLeft(find.byType(FlutterMap)) + const Offset(5, 5),
+      );
+      // The map waits out a possible double tap before it reports one.
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle(tester);
+
+      expect(find.text('Add to my sites'), findsNothing);
       handle.dispose();
     });
 

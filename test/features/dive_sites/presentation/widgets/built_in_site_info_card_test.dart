@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_catal
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_info_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/recording_url_launcher.dart';
 
 const _osm = CatalogueSource(
   key: 'osm',
@@ -162,6 +165,26 @@ void main() {
     expect(find.text('Website'), findsNothing);
     expect(find.textContaining('Source:'), findsNothing);
     expect(find.byIcon(Icons.warning_amber_outlined), findsNothing);
+  });
+
+  testWidgets('Website opens the site\'s website, outside the app', (
+    tester,
+  ) async {
+    final launcher = useRecordingUrlLauncher();
+    await _pump(
+      tester,
+      BuiltInSiteInfoCard(
+        site: _full,
+        actionLabel: 'Add to my sites',
+        onAction: () async {},
+      ),
+    );
+
+    await tester.tap(find.text('Website'));
+    await tester.pump();
+
+    expect(launcher.launched, ['https://example.org/salt-pier']);
+    expect(launcher.modes, [PreferredLaunchMode.externalApplication]);
   });
 
   testWidgets('a website that is not a web address shows no button', (
