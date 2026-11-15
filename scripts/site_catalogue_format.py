@@ -541,7 +541,9 @@ def _withdrawal_problems(withdrawn, shipped: set[str]) -> list[str]:
         if not is_iso_date(entry.get("date")):
             problems.append(f"{site_id}: withdrawal date is not YYYY-MM-DD")
         replaced_by = entry.get("replaced_by")
-        if replaced_by is not None and replaced_by not in shipped:
+        if replaced_by is not None and (
+            not isinstance(replaced_by, str) or replaced_by not in shipped
+        ):
             problems.append(
                 f"{site_id}: replaced by {replaced_by!r}, not in the file"
             )

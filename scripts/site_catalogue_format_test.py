@@ -693,6 +693,8 @@ class WithdrawnTest(unittest.TestCase):
             {"research_x": {"reason": "bored", "date": "2026-12-02"}}))
         self.assertTrue(self._problems({"research_x": {"reason": "other"}}))
         self.assertTrue(self._problems({"research_x": "position"}))
+        self.assertTrue(self._problems({"research_x": {
+            "reason": "other", "date": "2026-12-02", "replaced_by": ["osm_node_1"]}}))
         self.assertTrue(self._problems(
             {"research_x": {"reason": "other", "date": 20261202}}))
         self.assertTrue(self._problems(

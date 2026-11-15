@@ -186,6 +186,15 @@ def _check_shape(checked: CheckedEntry, ids: set[str], today: date) -> None:
             checked.fail("shape", f"withdrawn.reason is one of {WITHDRAWAL_REASONS}")
         elif not is_iso_date(withdrawn.get("date")):
             checked.fail("shape", "a withdrawal carries its date, YYYY-MM-DD")
+        elif "replaced_by" in withdrawn and not _is_record_id(
+            withdrawn["replaced_by"]
+        ):
+            checked.fail("shape", "withdrawn.replaced_by is a record id")
+
+
+def _is_record_id(value) -> bool:
+    """Whether [value] can name a catalogue record: a non-empty string."""
+    return isinstance(value, str) and bool(value.strip())
 
 
 def _check_domains(checked: CheckedEntry, domains) -> None:
@@ -380,8 +389,7 @@ def withdrawn_curated_problems(items) -> list[str]:
             problems.append(f"{site_id}: withdrawal reason {item.get('reason')!r}")
         if not is_iso_date(item.get("date")):
             problems.append(f"{site_id}: withdrawal date is not YYYY-MM-DD")
-        replaced_by = item.get("replaced_by")
-        if replaced_by is not None and not isinstance(replaced_by, str):
+        if "replaced_by" in item and not _is_record_id(item["replaced_by"]):
             problems.append(f"{site_id}: replaced_by is a record id")
     return problems
 
