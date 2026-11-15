@@ -45,6 +45,7 @@ class FieldTextBinding<T, V> {
     required this.format,
     required this.parse,
     this.onUnreadableChanged,
+    this.onEdited,
   }) : controller = TextEditingController(
          text: format(session.valueOf(field)),
        ) {
@@ -65,6 +66,12 @@ class FieldTextBinding<T, V> {
   /// Told when the text becomes, or stops being, unreadable.
   final ValueChanged<bool>? onUnreadableChanged;
 
+  /// Told after the diver's own edit has reached the session: text they
+  /// typed that reads as a value. Not told of text this binding put there
+  /// from the session, so a rule that follows from the diver's edit does
+  /// not run for a value that arrived from elsewhere.
+  final VoidCallback? onEdited;
+
   final TextEditingController controller;
 
   late String _lastText;
@@ -83,6 +90,7 @@ class FieldTextBinding<T, V> {
       case FieldValue<V>(:final value):
         _setUnreadable(false);
         session.set(field, value);
+        onEdited?.call();
       case FieldUnreadable<V>():
         _setUnreadable(true);
     }
