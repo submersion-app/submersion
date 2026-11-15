@@ -841,7 +841,7 @@
   "buddySwap_get_heading": "Recibir su tarjeta",
   "buddySwap_hint_showCode": "Tu compañero lo escanea",
   "buddySwap_hint_sendFile": "AirDrop, Quick Share, correo o un mensaje",
-  "buddySwap_hint_writeSticker": "Quien la acerque recibe tu tarjeta",
+  "buddySwap_hint_writeSticker": "Cualquiera que la acerque recibe tu tarjeta",
   "buddySwap_hint_scanCode": "Apunta la cámara al código de tu compañero",
   "buddySwap_hint_openFile": "Un archivo de tarjeta que te envió tu compañero",
   "buddySwap_hint_receiveByTap": "Acerca tu teléfono al de tu compañero",

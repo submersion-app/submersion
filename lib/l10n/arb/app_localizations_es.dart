@@ -3150,7 +3150,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get buddySwap_hint_writeSticker =>
-      'Quien la acerque recibe tu tarjeta';
+      'Cualquiera que la acerque recibe tu tarjeta';
 
   @override
   String get buddySwap_hint_scanCode =>
