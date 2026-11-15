@@ -207,9 +207,11 @@ class PinnedStripPainter extends CustomPainter {
   /// the bottom (the water below the diver), clear above. It runs on to the
   /// bottom of the box of [size], past the curve area's breathing room, so
   /// no band of bare surface shows under it (#4579).
-  Path? fillPathFor(Size size) => profile.length < 2
-      ? null
-      : _fillPath(mappingFor(size), _fillBottom(mappingFor(size), size));
+  Path? fillPathFor(Size size) {
+    if (profile.length < 2) return null;
+    final m = mappingFor(size);
+    return _fillPath(m, _fillBottom(m, size));
+  }
 
   double _fillBottom(PlotMapping m, Size size) =>
       math.max(m.rect.bottom, size.height);

@@ -121,7 +121,7 @@ double condenseMorphProgress(double t, {required double fadeEnd}) {
 }
 
 /// The mapping to hand the strip's painter as where its line starts
-/// ([PinnedStripPainter.from], in the strip's own coordinates) so that the
+/// (`PinnedStripPainter.from`, in the strip's own coordinates) so that the
 /// line is drawn [morph] of the way from [start] to [end], both on the page,
 /// while the strip's [box] (on the page) is itself on its way.
 ///
