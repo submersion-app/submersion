@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip_layout.dart';
 
 /// One card an unlocked page is leaving out, offered in the [AddStrip].
 @immutable
@@ -25,8 +26,9 @@ class AddStripEntry {
 /// card the page is leaving out because it is empty or hidden.
 ///
 /// A locked page shows only what has a value, and the diver can hide cards.
-/// This strip is how an unlocked page still reaches every one of them, and
-/// it sits outside the scrolling content so nothing on the page moves.
+/// This strip is how an unlocked page still reaches every one of them. It
+/// sits outside the scrolling content, in an [AddStripLayout], which keeps
+/// the page still as the strip comes and goes.
 class AddStrip extends StatelessWidget {
   const AddStrip({super.key, required this.entries, required this.onAdd});
 
