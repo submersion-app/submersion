@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -975,7 +976,7 @@ class DiveCenterListTile extends ConsumerWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          center.rating!.toStringAsFixed(1),
+                          formatRatingForDisplay(center.rating!),
                           style: theme.textTheme.bodySmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),

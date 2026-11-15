@@ -4,6 +4,7 @@ import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -301,7 +302,7 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
     }
     if (center.rating != null) {
       subtitle += subtitle.isNotEmpty ? ' \u2022 ' : '';
-      subtitle += '\u2605 ${center.rating!.toStringAsFixed(1)}';
+      subtitle += '\u2605 ${formatRatingForDisplay(center.rating!)}';
     }
     if (center.affiliations.isNotEmpty) {
       subtitle += subtitle.isNotEmpty ? ' \u2022 ' : '';

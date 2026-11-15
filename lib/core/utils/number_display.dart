@@ -49,6 +49,23 @@ String formatDecimalForDisplay(double value) {
   return localiseDoubleText(value, stripTrailingZero: false);
 }
 
+/// A dive site's or dive center's star [rating] as the app shows it beside a
+/// star: "3" for three stars, the way a dive's whole-star rating reads.
+///
+/// Sites and centers store the rating as a double, so the editor's whole
+/// stars came out as "3.0" (issue #4573). A fraction is real data rather than
+/// float noise (UDDF, MacDive and CSV imports can carry 3.5), so it keeps one
+/// decimal in the locale's convention; only a trailing ".0" is dropped, after
+/// rounding, so 4.96 reads "5". A non-finite value renders as empty text.
+String formatRatingForDisplay(double rating) {
+  if (!rating.isFinite) return '';
+  final fixed = rating.toStringAsFixed(1);
+  final text = fixed.endsWith('.0')
+      ? fixed.substring(0, fixed.length - 2)
+      : fixed;
+  return localiseNumberSeparators(text);
+}
+
 /// [value] floored to [fractionDigits] decimals, the safe side for a limit
 /// such as a MOD, or a best-mix oxygen percentage.
 ///
