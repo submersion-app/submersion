@@ -1,6 +1,6 @@
 # Net buoyancy line on the dive profile
 
-Issue: to be opened from this design.
+Issue: #4593
 
 ## Intent
 
