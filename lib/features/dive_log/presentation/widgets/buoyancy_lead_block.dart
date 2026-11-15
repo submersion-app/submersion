@@ -55,43 +55,50 @@ class BuoyancyLeadBlock extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 24,
-          runSpacing: 12,
-          crossAxisAlignment: WrapCrossAlignment.end,
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Flexible(
-                  child: _figure(
-                    context,
-                    l10n.buoyancy_leadCarried,
-                    recorded
-                        ? units.formatWeight(carriedKg)
-                        : l10n.buoyancy_leadNotRecorded,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
-                  child: Icon(
-                    Icons.arrow_forward,
-                    size: 18,
-                    color: theme.colorScheme.outline,
-                  ),
-                ),
-                Flexible(
-                  child: _figure(
-                    context,
-                    l10n.buoyancy_leadSuggested,
-                    units.formatWeight(outcome.outputs.idealLeadKg),
-                  ),
-                ),
-              ],
+            Flexible(
+              child: _figure(
+                context,
+                l10n.buoyancy_leadCarried,
+                recorded
+                    ? units.formatWeight(carriedKg)
+                    : l10n.buoyancy_leadNotRecorded,
+              ),
             ),
-            BuoyancyHistoryStrip(diveId: diveId, units: units),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+              child: Icon(
+                Icons.arrow_forward,
+                size: 18,
+                color: theme.colorScheme.outline,
+              ),
+            ),
+            Flexible(
+              child: _figure(
+                context,
+                l10n.buoyancy_leadSuggested,
+                units.formatWeight(outcome.outputs.idealLeadKg),
+              ),
+            ),
           ],
+        ),
+        // Full width under the figures: the chart needs room for its axis and
+        // a date under each dive.
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: BuoyancyHistoryStrip(
+            diveId: diveId,
+            units: units,
+            current: recorded
+                ? BuoyancyHistoryCurrent(
+                    carriedKg: carriedKg,
+                    idealKg: outcome.outputs.idealLeadKg,
+                  )
+                : null,
+          ),
         ),
       ],
     );

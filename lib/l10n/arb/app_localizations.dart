@@ -36763,12 +36763,6 @@ abstract class AppLocalizations {
   /// **'Carried'**
   String get buoyancy_historyCarried;
 
-  /// No description provided for @buoyancy_historyModeled.
-  ///
-  /// In en, this message translates to:
-  /// **'Modeled'**
-  String get buoyancy_historyModeled;
-
   /// No description provided for @buoyancy_historyMore.
   ///
   /// In en, this message translates to:
@@ -36780,6 +36774,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You typically carry {delta} less than the model suggests'**
   String buoyancy_historyLess(String delta);
+
+  /// Caption over the lead history chart on the Buoyancy card. count includes this dive when its lead was recorded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Lead on your last dive in this suit} other{Lead on your last {count} dives in this suit}}'**
+  String buoyancy_historyCaption(int count);
+
+  /// Date-axis label for the dive being viewed, in the lead history chart
+  ///
+  /// In en, this message translates to:
+  /// **'This dive'**
+  String get buoyancy_historyThisDive;
+
+  /// The selected dive in the lead history chart: its date (or This dive), then the lead carried and the lead the model suggests, each already labelled
+  ///
+  /// In en, this message translates to:
+  /// **'{date}: {carried}, {suggested}'**
+  String buoyancy_historyPoint(String date, String carried, String suggested);
 
   /// No description provided for @buoyancy_throughDive.
   ///

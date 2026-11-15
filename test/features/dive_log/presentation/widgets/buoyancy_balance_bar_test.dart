@@ -28,6 +28,7 @@ Future<void> _pump(
   Locale locale = const Locale('en'),
   AppSettings settings = const AppSettings(),
   ThemeData? theme,
+  Map<TwinBalancePartKind, (double, double)>? ranges,
 }) async {
   await tester.binding.setSurfaceSize(Size(width, 400));
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -42,6 +43,7 @@ Future<void> _pump(
           balance: balance,
           scaleKg: scaleKg,
           units: UnitFormatter(settings),
+          partRangesKg: ranges,
         ),
       ),
     ),
@@ -52,8 +54,18 @@ Future<void> _pump(
 Finder _segment(TwinBalancePartKind kind) =>
     find.byKey(ValueKey('balance-${kind.name}'));
 
-Finder _swatch(TwinBalancePartKind kind) =>
-    find.byKey(ValueKey('balance-legend-${kind.name}'));
+Finder _callout(TwinBalancePartKind kind) =>
+    find.byKey(ValueKey('balance-callout-${kind.name}'));
+
+Finder _heading(String side) => find.byKey(ValueKey('balance-heading-$side'));
+
+String _headingText(WidgetTester tester, String side) =>
+    tester.widget<Text>(_heading(side)).textSpan!.toPlainText();
+
+Finder _rulerLabel(String text) => find.descendant(
+  of: find.byKey(const ValueKey('balance-ruler')),
+  matching: find.text(text),
+);
 
 Color _fill(WidgetTester tester, Finder box) =>
     (tester.widget<Container>(box).decoration! as BoxDecoration).color!;
@@ -126,54 +138,258 @@ void main() {
     );
   });
 
-  testWidgets('a narrow segment lists its label in the legend', (tester) async {
+  testWidgets('a narrow segment floats its label in a callout above it', (
+    tester,
+  ) async {
     await _pump(tester, _balance(suit: 0.3), width: 300);
     expect(tester.takeException(), isNull);
-    expect(find.text('Suit 0.3 kg'), findsOneWidget);
+    final suit = _segment(TwinBalancePartKind.suit);
+    expect(
+      find.descendant(of: suit, matching: find.text('Suit 0.3 kg')),
+      findsNothing,
+    );
     expect(
       find.descendant(
-        of: _segment(TwinBalancePartKind.suit),
+        of: _callout(TwinBalancePartKind.suit),
         matching: find.text('Suit 0.3 kg'),
       ),
-      findsNothing,
+      findsOneWidget,
+    );
+    expect(
+      tester.getRect(_callout(TwinBalancePartKind.suit)).bottom,
+      lessThanOrEqualTo(tester.getRect(suit).top),
     );
   });
 
-  testWidgets('a mid-width segment keeps its name and lists the figure', (
-    tester,
-  ) async {
-    // At 400 px the lead segment is about 95 px: room for "Lead", not for
-    // "Lead 6.0 kg".
+  testWidgets('a segment too narrow for its label shows its icon and a '
+      'callout', (tester) async {
+    // At 400 px the lead segment is about 95 px: too narrow for
+    // "Lead 6.0 kg" in the test font.
     await _pump(tester, _balance(), width: 400);
     final lead = _segment(TwinBalancePartKind.lead);
     expect(
-      find.descendant(of: lead, matching: find.text('Lead')),
+      find.descendant(of: lead, matching: find.byType(Text)),
+      findsNothing,
+    );
+    expect(
+      find.descendant(
+        of: lead,
+        matching: find.byIcon(SubmersionIcons.weightPocket),
+      ),
       findsOneWidget,
     );
-    expect(find.text('Lead 6.0 kg'), findsOneWidget);
     expect(
-      find.descendant(of: lead, matching: find.text('Lead 6.0 kg')),
-      findsNothing,
+      find.descendant(
+        of: _callout(TwinBalancePartKind.lead),
+        matching: find.text('Lead 6.0 kg'),
+      ),
+      findsOneWidget,
     );
   });
 
-  testWidgets('the legend reads in the same order as the bar', (tester) async {
-    await _pump(tester, _balance(), width: 300);
-    final legend = find.byKey(const ValueKey('balance-legend'));
-    final labels = [
-      for (final text in tester.widgetList<Text>(
-        find.descendant(of: legend, matching: find.byType(Text)),
-      ))
-        text.data,
+  testWidgets('a wide segment that carries its label has no callout', (
+    tester,
+  ) async {
+    await _pump(tester, _balance());
+    expect(_callout(TwinBalancePartKind.lead), findsNothing);
+  });
+
+  testWidgets('a lone callout sits right over its segment', (tester) async {
+    const parts = [
+      TwinBalancePart(kind: TwinBalancePartKind.lead, kg: -6.0),
+      TwinBalancePart(kind: TwinBalancePartKind.suit, kg: 0.3),
+      TwinBalancePart(kind: TwinBalancePartKind.body, kg: 5.0),
     ];
-    // Down side from the outer edge in, then up side from the centre out.
-    expect(labels, [
-      'Cylinders 2.0 kg',
-      'Gear 1.0 kg',
-      'Lead 6.0 kg',
-      'Body 5.0 kg',
-      'Suit 3.0 kg',
-    ]);
+    await _pump(tester, const TwinBalance(parts: parts, netKg: -0.7));
+    expect(
+      tester.getCenter(_callout(TwinBalancePartKind.suit)).dx,
+      closeTo(tester.getCenter(_segment(TwinBalancePartKind.suit)).dx, 0.5),
+    );
+  });
+
+  testWidgets('callouts read in the same order as the bar', (tester) async {
+    // At 800 px the cylinders, gear and suit segments are too narrow for
+    // their labels in the test font; lead and body carry theirs.
+    await _pump(tester, _balance());
+    final xs = [
+      for (final kind in [
+        TwinBalancePartKind.tanks,
+        TwinBalancePartKind.gear,
+        TwinBalancePartKind.suit,
+      ])
+        tester.getCenter(_callout(kind)).dx,
+    ];
+    expect(xs[0], lessThan(xs[1]));
+    expect(xs[1], lessThan(xs[2]));
+  });
+
+  testWidgets('a callout is outlined in its side colour', (tester) async {
+    final theme = ThemeData(brightness: Brightness.light);
+    await _pump(tester, _balance(), theme: theme);
+    Color outline(TwinBalancePartKind kind) =>
+        ((tester.widget<Container>(_callout(kind)).decoration! as BoxDecoration)
+                    .border!
+                as Border)
+            .top
+            .color;
+    expect(outline(TwinBalancePartKind.tanks), theme.colorScheme.tertiary);
+    expect(outline(TwinBalancePartKind.suit), theme.colorScheme.primary);
+  });
+
+  testWidgets('the bar stays put whether or not parts need callouts', (
+    tester,
+  ) async {
+    // Lead and body alone both carry their labels at 800 px: no callouts.
+    const plain = [
+      TwinBalancePart(kind: TwinBalancePartKind.lead, kg: -6.0),
+      TwinBalancePart(kind: TwinBalancePartKind.body, kg: 5.0),
+    ];
+    await _pump(tester, const TwinBalance(parts: plain, netKg: -1.0));
+    expect(find.byKey(const ValueKey('balance-callout-lead')), findsNothing);
+    final before = tester.getRect(_segment(TwinBalancePartKind.lead)).top;
+    await _pump(tester, _balance());
+    expect(_callout(TwinBalancePartKind.suit), findsOneWidget);
+    expect(tester.getRect(_segment(TwinBalancePartKind.lead)).top, before);
+  });
+
+  testWidgets('with the dive ranges the bar holds still when a second row of '
+      'callouts appears', (tester) async {
+    // On a 300 px phone, lead and body alone need one row of callouts; with
+    // every part a sliver they need two.
+    const plain = [
+      TwinBalancePart(kind: TwinBalancePartKind.lead, kg: -6.0),
+      TwinBalancePart(kind: TwinBalancePartKind.body, kg: 5.0),
+    ];
+    const ranges = {
+      TwinBalancePartKind.lead: (6.0, 6.0),
+      TwinBalancePartKind.tanks: (2.0, 2.0),
+      TwinBalancePartKind.gear: (1.0, 1.0),
+      TwinBalancePartKind.suit: (0.3, 3.0),
+      TwinBalancePartKind.body: (5.0, 5.0),
+    };
+    Future<double> leadTop(
+      TwinBalance b, {
+      Map<TwinBalancePartKind, (double, double)>? r,
+    }) async {
+      await _pump(tester, b, width: 300, ranges: r);
+      return tester.getRect(_segment(TwinBalancePartKind.lead)).top;
+    }
+
+    const one = TwinBalance(parts: plain, netKg: -1.0);
+    final crowded = _balance(suit: 0.3);
+    // Without the ranges the lane grows, which is the jump being prevented.
+    expect(await leadTop(crowded), greaterThan(await leadTop(one)));
+    // With them it already has the room.
+    expect(await leadTop(crowded, r: ranges), await leadTop(one, r: ranges));
+  });
+
+  testWidgets('a callout does not repeat its part to a screen reader', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await _pump(tester, _balance());
+    expect(find.bySemanticsLabel('Suit 3.0 kg'), findsNothing);
+    expect(
+      find.bySemanticsLabel('Holding you up: Suit 3.0 kg'),
+      findsOneWidget,
+    );
+    handle.dispose();
+  });
+
+  group('headings', () {
+    testWidgets('each side has its arrow', (tester) async {
+      await _pump(tester, _balance());
+      expect(
+        find.descendant(
+          of: _heading('down'),
+          matching: find.byIcon(Icons.arrow_downward),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: _heading('up'),
+          matching: find.byIcon(Icons.arrow_upward),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('each side names its total', (tester) async {
+      // Down: 6 lead, 2 cylinders, 1 gear. Up: 3 suit, 5 body.
+      await _pump(tester, _balance());
+      expect(_headingText(tester, 'down'), contains('Pulling you down'));
+      expect(_headingText(tester, 'down'), contains('9.0 kg'));
+      expect(_headingText(tester, 'up'), contains('Holding you up'));
+      expect(_headingText(tester, 'up'), contains('8.0 kg'));
+    });
+
+    testWidgets('the totals follow the diver unit', (tester) async {
+      await _pump(
+        tester,
+        _balance(),
+        settings: const AppSettings(weightUnit: WeightUnit.pounds),
+      );
+      expect(_headingText(tester, 'down'), contains('19.8 lbs'));
+    });
+  });
+
+  group('ruler', () {
+    testWidgets('marks round weights out from the centre on both sides', (
+      tester,
+    ) async {
+      await _pump(tester, _balance());
+      expect(_rulerLabel('0'), findsOneWidget);
+      expect(_rulerLabel('5 kg'), findsNWidgets(2));
+      expect(_rulerLabel('10 kg'), findsNWidgets(2));
+    });
+
+    testWidgets('a mark sits where a part of that weight would end', (
+      tester,
+    ) async {
+      await _pump(tester, _balance());
+      final width = tester.getSize(find.byType(BuoyancyBalanceBar)).width;
+      final half = (width - 2) / 2;
+      final usable = half - 8;
+      final xs = [
+        for (final e in tester.widgetList(_rulerLabel('10 kg')))
+          tester.getCenter(find.byWidget(e)).dx,
+      ]..sort();
+      // The scale is 12 kg, so 10 kg is ten twelfths of the usable half out
+      // from the rule.
+      expect(xs.first, closeTo(half - usable * 10 / 12, 0.5));
+      expect(xs.last, closeTo(half + 2 + usable * 10 / 12, 0.5));
+    });
+
+    testWidgets('pounds get their own round marks', (tester) async {
+      await _pump(
+        tester,
+        _balance(),
+        settings: const AppSettings(weightUnit: WeightUnit.pounds),
+      );
+      // 12 kg is 26.5 lb.
+      expect(_rulerLabel('10 lbs'), findsNWidgets(2));
+      expect(_rulerLabel('20 lbs'), findsNWidgets(2));
+    });
+
+    testWidgets('a narrow bar gets fewer marks, none overlapping', (
+      tester,
+    ) async {
+      await _pump(tester, _balance(), width: 300);
+      expect(tester.takeException(), isNull);
+      final rects = [
+        for (final e in tester.widgetList(
+          find.descendant(
+            of: find.byKey(const ValueKey('balance-ruler')),
+            matching: find.byType(Text),
+          ),
+        ))
+          tester.getRect(find.byWidget(e)),
+      ]..sort((a, b) => a.left.compareTo(b.left));
+      for (var i = 1; i < rects.length; i++) {
+        expect(rects[i].left, greaterThanOrEqualTo(rects[i - 1].right));
+      }
+    });
   });
 
   testWidgets('slivers beside a full side shrink to fit, not overflow', (
@@ -257,30 +473,6 @@ void main() {
         ),
         findsNothing,
       );
-    });
-
-    testWidgets('each legend entry carries its part icon and its shade', (
-      tester,
-    ) async {
-      await _pump(tester, _balance(), width: 300);
-      for (final (kind, icon) in [
-        (TwinBalancePartKind.lead, SubmersionIcons.weightPocket),
-        (TwinBalancePartKind.tanks, SubmersionIcons.tankBackGas),
-        (TwinBalancePartKind.gear, SubmersionIcons.bcd),
-        (TwinBalancePartKind.suit, SubmersionIcons.wetsuit),
-        (TwinBalancePartKind.body, Icons.accessibility_new),
-      ]) {
-        expect(
-          find.descendant(of: _swatch(kind), matching: find.byIcon(icon)),
-          findsOneWidget,
-          reason: kind.name,
-        );
-        expect(
-          _fill(tester, _swatch(kind)),
-          _fill(tester, _segment(kind)),
-          reason: kind.name,
-        );
-      }
     });
 
     testWidgets('parts on the same side have different shades', (tester) async {
@@ -376,12 +568,23 @@ void main() {
     final l10n = lookupAppLocalizations(locale);
     final centre = _barCentre(tester);
     final leadX = tester.getCenter(_segment(TwinBalancePartKind.lead)).dx;
-    final downCaptionX = tester
-        .getCenter(find.text(l10n.buoyancy_pullingDown))
-        .dx;
+    expect(_headingText(tester, 'down'), contains(l10n.buoyancy_pullingDown));
+    final downCaptionX = tester.getCenter(_heading('down')).dx;
     // Mirrored: the down half is now on the right, and so is its caption.
     expect(leadX, greaterThan(centre));
     expect(downCaptionX, greaterThan(centre));
+  });
+
+  testWidgets('right to left mirrors the callouts with their segments', (
+    tester,
+  ) async {
+    await _pump(tester, _balance(), locale: const Locale('ar'));
+    final suit = _segment(TwinBalancePartKind.suit);
+    expect(tester.getCenter(suit).dx, lessThan(_barCentre(tester)));
+    expect(
+      tester.getCenter(_callout(TwinBalancePartKind.suit)).dx,
+      lessThan(_barCentre(tester)),
+    );
   });
 
   testWidgets('imperial settings format the labels in lb', (tester) async {

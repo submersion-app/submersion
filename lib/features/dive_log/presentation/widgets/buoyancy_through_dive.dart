@@ -12,8 +12,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What buoyancy did through the dive, as one instrument: a readout, the
-/// net-buoyancy chart, and under it the parts pulling the diver down and
-/// holding them up at the moment under the cursor.
+/// parts pulling the diver down and holding them up at the moment under the
+/// cursor, and under them the net-buoyancy chart that moves the cursor.
 ///
 /// At rest everything describes the final stop, where weighting is judged.
 /// With [onCursorSeconds] the host owns the cursor (the dive profile's);
@@ -41,6 +41,7 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
 
   // Derived from the outcome once, not on every scrub frame.
   late double _scaleKg;
+  late Map<TwinBalancePartKind, (double, double)> _partRangesKg;
   late TwinMoments _moments;
   late List<TwinSample> _plotted;
 
@@ -73,6 +74,10 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
     final outcome = widget.outcome;
     _markerCache = null;
     _scaleKg = TwinBalance.scaleKg(outcome.result, outcome.outputs.verdict);
+    _partRangesKg = TwinBalance.partRangesKg(
+      outcome.result,
+      outcome.outputs.verdict,
+    );
     _moments = TwinMoments.of(outcome.result, outcome.outputs.verdict);
     _plotted = BuoyancyChart.plottableSamples(
       outcome.result.samples,
@@ -104,8 +109,17 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _readout(context, balance.netKg, sample, verdict.anchor),
+        // Above the chart, not under it: on a phone the finger scrubbing the
+        // chart would otherwise cover the parts it is moving.
+        const SizedBox(height: 8),
+        BuoyancyBalanceBar(
+          balance: balance,
+          scaleKg: _scaleKg,
+          units: units,
+          partRangesKg: _partRangesKg,
+        ),
         if (hasChart) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           BuoyancyChart(
             result: result,
             units: units,
@@ -120,8 +134,6 @@ class _BuoyancyThroughDiveState extends State<BuoyancyThroughDive> {
             restSeconds: _moments.finalStopSeconds,
           ),
         ],
-        const SizedBox(height: 8),
-        BuoyancyBalanceBar(balance: balance, scaleKg: _scaleKg, units: units),
         ..._causeNotes(context),
       ],
     );

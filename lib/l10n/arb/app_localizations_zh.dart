@@ -22112,9 +22112,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buoyancy_historyCarried => '实际携带';
 
   @override
-  String get buoyancy_historyModeled => '模型建议';
-
-  @override
   String buoyancy_historyMore(String delta) {
     return '你通常比模型建议多带 $delta';
   }
@@ -22122,6 +22119,24 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String buoyancy_historyLess(String delta) {
     return '你通常比模型建议少带 $delta';
+  }
+
+  @override
+  String buoyancy_historyCaption(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '最近 $count 次穿这套潜水服的配重',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buoyancy_historyThisDive => '本次潜水';
+
+  @override
+  String buoyancy_historyPoint(String date, String carried, String suggested) {
+    return '$date：$carried，$suggested';
   }
 
   @override

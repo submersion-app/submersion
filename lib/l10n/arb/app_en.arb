@@ -14701,7 +14701,6 @@
   "buoyancy_chartNet": "Net",
   "buoyancy_chartMinutes": "Time (min)",
   "buoyancy_historyCarried": "Carried",
-  "buoyancy_historyModeled": "Modeled",
   "buoyancy_historyMore": "You typically carry {delta} more than the model suggests",
   "@buoyancy_historyMore": {
     "placeholders": {
@@ -14714,6 +14713,34 @@
   "@buoyancy_historyLess": {
     "placeholders": {
       "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "buoyancy_historyCaption": "{count, plural, one{Lead on your last dive in this suit} other{Lead on your last {count} dives in this suit}}",
+  "@buoyancy_historyCaption": {
+    "description": "Caption over the lead history chart on the Buoyancy card. count includes this dive when its lead was recorded.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "buoyancy_historyThisDive": "This dive",
+  "@buoyancy_historyThisDive": {
+    "description": "Date-axis label for the dive being viewed, in the lead history chart"
+  },
+  "buoyancy_historyPoint": "{date}: {carried}, {suggested}",
+  "@buoyancy_historyPoint": {
+    "description": "The selected dive in the lead history chart: its date (or This dive), then the lead carried and the lead the model suggests, each already labelled",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "carried": {
+        "type": "String"
+      },
+      "suggested": {
         "type": "String"
       }
     }

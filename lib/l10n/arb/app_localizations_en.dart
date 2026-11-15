@@ -22929,9 +22929,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buoyancy_historyCarried => 'Carried';
 
   @override
-  String get buoyancy_historyModeled => 'Modeled';
-
-  @override
   String buoyancy_historyMore(String delta) {
     return 'You typically carry $delta more than the model suggests';
   }
@@ -22939,6 +22936,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String buoyancy_historyLess(String delta) {
     return 'You typically carry $delta less than the model suggests';
+  }
+
+  @override
+  String buoyancy_historyCaption(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Lead on your last $count dives in this suit',
+      one: 'Lead on your last dive in this suit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buoyancy_historyThisDive => 'This dive';
+
+  @override
+  String buoyancy_historyPoint(String date, String carried, String suggested) {
+    return '$date: $carried, $suggested';
   }
 
   @override

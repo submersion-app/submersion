@@ -23201,9 +23201,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buoyancy_historyCarried => 'Vitt';
 
   @override
-  String get buoyancy_historyModeled => 'Modellezett';
-
-  @override
   String buoyancy_historyMore(String delta) {
     return 'Általában $delta-mal többet viszel, mint amit a modell javasol';
   }
@@ -23211,6 +23208,25 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String buoyancy_historyLess(String delta) {
     return 'Általában $delta-mal kevesebbet viszel, mint amit a modell javasol';
+  }
+
+  @override
+  String buoyancy_historyCaption(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ólom az utolsó $count merülésen ebben a ruhában',
+      one: 'Ólom a legutóbbi merülésen ebben a ruhában',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buoyancy_historyThisDive => 'Ez a merülés';
+
+  @override
+  String buoyancy_historyPoint(String date, String carried, String suggested) {
+    return '$date: $carried, $suggested';
   }
 
   @override
