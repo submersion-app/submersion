@@ -220,26 +220,30 @@ class _BuoyancyHistoryStripState extends ConsumerState<BuoyancyHistoryStrip> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Each pair below reads its own values to a screen reader, so
+                  // the axis and the dates would only repeat them.
                   SizedBox(
                     width: axisWidth,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        for (var i = 0; i < axis.ticks.length; i++)
-                          PositionedDirectional(
-                            end: _axisGap,
-                            top:
-                                _plotHeight -
-                                axis.ticks[i] / top * _plotHeight -
-                                tickSizes[i].height / 2,
-                            child: Text(
-                              tickLabels[i],
-                              maxLines: 1,
-                              softWrap: false,
-                              style: labelStyle,
+                    child: ExcludeSemantics(
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          for (var i = 0; i < axis.ticks.length; i++)
+                            PositionedDirectional(
+                              end: _axisGap,
+                              top:
+                                  _plotHeight -
+                                  axis.ticks[i] / top * _plotHeight -
+                                  tickSizes[i].height / 2,
+                              child: Text(
+                                tickLabels[i],
+                                maxLines: 1,
+                                softWrap: false,
+                                style: labelStyle,
+                              ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   Expanded(
@@ -281,14 +285,16 @@ class _BuoyancyHistoryStripState extends ConsumerState<BuoyancyHistoryStrip> {
               ),
             ),
             const SizedBox(height: 4),
-            _dates(
-              context,
-              points,
-              axisWidth: axisWidth,
-              slot: slot,
-              width: constraints.maxWidth,
-              style: labelStyle,
-              measure: measure,
+            ExcludeSemantics(
+              child: _dates(
+                context,
+                points,
+                axisWidth: axisWidth,
+                slot: slot,
+                width: constraints.maxWidth,
+                style: labelStyle,
+                measure: measure,
+              ),
             ),
           ],
         );
@@ -407,7 +413,8 @@ class _BuoyancyHistoryStripState extends ConsumerState<BuoyancyHistoryStrip> {
       children: [
         Container(width: 8, height: 8, color: c),
         const SizedBox(width: 4),
-        Text(label, style: theme.textTheme.bodySmall),
+        // Wraps rather than overflowing a very narrow card.
+        Flexible(child: Text(label, style: theme.textTheme.bodySmall)),
       ],
     );
     return Wrap(

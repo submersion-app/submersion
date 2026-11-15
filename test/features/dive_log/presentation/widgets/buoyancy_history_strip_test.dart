@@ -195,6 +195,29 @@ void main() {
     }
   });
 
+  testWidgets('many dives on a very narrow card still fit their slots', (
+    tester,
+  ) async {
+    // Eleven pairs in about 90 px of plot leave each slot under the 8 px two
+    // full-width bars and their gap would need.
+    await _pump(
+      tester,
+      history: [for (var d = 1; d <= 10; d++) _entry(d, 6, 5)],
+      width: 130,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the axis and dates are left to the pairs for a screen reader', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await _pump(tester);
+    expect(find.bySemanticsLabel('10 kg'), findsNothing);
+    expect(find.bySemanticsLabel('May 1'), findsNothing);
+    handle.dispose();
+  });
+
   testWidgets('a pair tapped on one dive is not kept for the next', (
     tester,
   ) async {
