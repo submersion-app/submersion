@@ -129,6 +129,26 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     });
   }
 
+  /// Where the sitting's photo last was in the viewer's list.
+  int _sittingSlot = 0;
+
+  /// [list] with the sitting's photo kept in it, at the place it last had,
+  /// while its row exists (Eric, 2026-11-16): another device dropping it from
+  /// this list (untagging the species, moving the dive out of the trip) does
+  /// not end the sitting. Only the photo's deletion does ([followStoredPhoto]).
+  List<MediaItem> keepSittingPhoto(List<MediaItem> list) {
+    final session = photoSitting;
+    if (session == null) return list;
+    final photo = session.stored.item;
+    final at = list.indexWhere((m) => m.id == photo.id);
+    if (at >= 0) {
+      _sittingSlot = at;
+      return list;
+    }
+    final slot = _sittingSlot.clamp(0, list.length);
+    return [...list.sublist(0, slot), photo, ...list.sublist(slot)];
+  }
+
   /// Where the sitting's photo is in [list], or null when it is not there.
   /// A photo gone from the list ends the sitting.
   int? sittingIndexIn(List<MediaItem> list) {

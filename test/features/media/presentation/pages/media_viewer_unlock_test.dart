@@ -437,6 +437,34 @@ void main() {
       expect(gallery(tester).pageController!.page, 0);
     });
 
+    testWidgets('the sitting\'s photo leaves the list but still exists: the '
+        'sitting stays on it (Eric, 2026-11-16)', (tester) async {
+      await pumpViewerApp(
+        tester,
+        const PhotoViewerPage(
+          diveId: 'd1',
+          initialMediaId: 'p2',
+          unlockEditing: true,
+        ),
+      );
+      await tapUnlock(tester);
+      await change(tester);
+
+      // A repository write, so the dive's list hears of it.
+      await tester.runAsync(() => MediaRepository().unlinkFromDive(['p2']));
+      await settleViewer(tester, rounds: 10);
+
+      final controller = photoController(tester);
+      expect(controller.isUnlocked, isTrue);
+      expect(controller.isDirty, isTrue);
+      expect(controller.session!.stored.item.id, 'p2');
+      expect(find.byType(RecordEditBar), findsOneWidget);
+      expect(
+        find.text('This photo was removed. Your changes were not saved.'),
+        findsNothing,
+      );
+    });
+
     testWidgets('the sitting\'s photo removed: the sitting ends with the '
         'message; nothing written', (tester) async {
       await pumpViewerApp(

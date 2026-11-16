@@ -290,7 +290,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   /// the second of two quick presses instead of advancing two items.
   void _stepPage(int delta) {
     if (!_pageController.hasClients) return;
-    final count = _pageableMedia.length;
+    final count = keepSittingPhoto(_pageableMedia).length;
     if (count == 0) return;
     // The gallery is live and can shrink under the viewer, stranding the nav
     // target past the new end. Clamp to the same bounds the arrows and the
@@ -349,7 +349,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
 
   @override
   Widget build(BuildContext context) {
-    final mediaList = _pageableMedia;
+    // A sitting keeps its photo here while the photo exists (issue #4527).
+    final mediaList = keepSittingPhoto(_pageableMedia);
     // The gallery is live: a delete elsewhere, a dive-deletion cascade, or a
     // sync pull can shrink it under the open viewer. Clamp once here and use
     // this everywhere rather than writing it back during build -- PageView

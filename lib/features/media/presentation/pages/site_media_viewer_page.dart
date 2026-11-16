@@ -227,7 +227,10 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
           body: sourceAsync.when(
             skipLoadingOnReload: true,
             data: (all) {
-              final mediaList = all.where((m) => !m.isDocument).toList();
+              // A sitting keeps its photo here while the photo exists.
+              final mediaList = keepSittingPhoto(
+                all.where((m) => !m.isDocument).toList(),
+              );
               if (mediaList.isEmpty) {
                 // Nothing left to tap means no exit button (a sync can empty the
                 // list under the viewer).
