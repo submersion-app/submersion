@@ -89,10 +89,10 @@ void main() {
       revert: ChangeLogRevertService(
         repository: changeLog,
         afterDiveWrites: (_) {},
+        rearmDocuments: (documents) async =>
+            armed.addAll(documents.map((d) => d.id)),
       ),
       changeLog: changeLog,
-      rearmDocuments: (documents) async =>
-          armed.addAll(documents.map((d) => d.id)),
     );
     armed = [];
     context = AgentToolContext(db: db, clientName: 'test');

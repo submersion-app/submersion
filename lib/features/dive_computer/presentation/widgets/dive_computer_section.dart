@@ -11,6 +11,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// acting on the most recently downloaded registration behind it; an item
 /// added by hand offers to connect, which binds the discovered device to
 /// this item.
+///
+/// It brings its own bottom gap, so while it loads, or when it fails, it
+/// takes no room at all instead of leaving a doubled gap at the top of the
+/// page (issue #4622).
 class DiveComputerSection extends ConsumerWidget {
   const DiveComputerSection({super.key, required this.equipmentId});
 
@@ -20,9 +24,12 @@ class DiveComputerSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final computers = ref.watch(computersForEquipmentProvider(equipmentId));
     return computers.when(
-      data: (list) => list.isEmpty
-          ? _ConnectCard(equipmentId: equipmentId)
-          : DiveComputerControls(computerId: list.first.id),
+      data: (list) => Padding(
+        padding: const EdgeInsets.only(bottom: 24),
+        child: list.isEmpty
+            ? _ConnectCard(equipmentId: equipmentId)
+            : DiveComputerControls(computerId: list.first.id),
+      ),
       loading: () => const SizedBox.shrink(),
       error: (error, stack) => const SizedBox.shrink(),
     );

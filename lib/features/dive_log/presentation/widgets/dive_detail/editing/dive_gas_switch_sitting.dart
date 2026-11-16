@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_switches_editor.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 const _log = LoggerService('DiveGasSwitchSitting');
@@ -218,22 +219,58 @@ void dropGasSwitchesWithoutTank(EditSession<Dive> session) {
 /// bottom time, else exit minus entry; no latest when nothing says how long
 /// the dive was. The earliest is the profile's first sample or a loaded
 /// switch, when either lies before 0.
-({int min, int? max}) gasSwitchTimeLimits(EditSession<Dive> session) {
+({int min, int? max}) gasSwitchTimeLimits(EditSession<Dive> session) =>
+    _timeLimits(session, session.valueOf);
+
+/// [gasSwitchTimeLimits] for the dive as stored, before the sitting.
+({int min, int? max}) _storedTimeLimits(EditSession<Dive> session) =>
+    _timeLimits(session, <V>(EditField<Dive, V> f) => f.read(session.stored));
+
+({int min, int? max}) _timeLimits(
+  EditSession<Dive> session,
+  V Function<V>(EditField<Dive, V> field) value,
+) {
   final profile = session.stored.profile;
   final floor = sittingGasSwitches(session)?.floor ?? 0;
   final profileStart = profileTimeDomain(profile).min;
   final min = profileStart < floor ? profileStart : floor;
   if (profile.isNotEmpty) return (min: min, max: profile.last.timestamp);
-  final runtime = session.valueOf(diveRuntimeField);
+  final runtime = value(diveRuntimeField);
   if (runtime != null && runtime > 0) return (min: min, max: runtime.floor());
-  final bottom = session.valueOf(diveBottomTimeField);
+  final bottom = value(diveBottomTimeField);
   if (bottom != null && bottom > 0) return (min: min, max: bottom.floor());
-  final exit = session.valueOf(diveExitField);
+  final exit = value(diveExitField);
   if (exit != null) {
-    final seconds = exit.difference(session.valueOf(diveEntryField)).inSeconds;
+    final seconds = exit.difference(value(diveEntryField)).inSeconds;
     if (seconds > 0) return (min: min, max: seconds);
   }
   return (min: min, max: null);
+}
+
+/// The ids of switches stored already outside the dive's limits or on a
+/// second another stored switch shares, and still as loaded. They block
+/// nothing: a Notes edit must not wait on an old import's switch. Changed
+/// in any way, a switch is the diver's and is checked again.
+Set<String> gasSwitchesInvalidAsStored(EditSession<Dive> session) {
+  final held = sittingGasSwitches(session);
+  if (held == null) return const {};
+  final limits = _storedTimeLimits(session);
+  final max = limits.max;
+  final perSecond = <int, int>{};
+  for (final g in held.loaded) {
+    perSecond[g.timestamp] = (perSecond[g.timestamp] ?? 0) + 1;
+  }
+  final invalid = {
+    for (final g in held.loaded)
+      if (g.timestamp < limits.min ||
+          (max != null && g.timestamp > max) ||
+          perSecond[g.timestamp]! > 1)
+        g.id: g,
+  };
+  return {
+    for (final g in held.current)
+      if (invalid[g.id] == g) g.id,
+  };
 }
 
 /// Whether the editor shows the switches: two breathing cylinders or more,
@@ -250,19 +287,26 @@ bool gasSwitchesShown(EditSession<Dive> session) {
 /// False when a shown switch falls outside [gasSwitchTimeLimits], shares a
 /// second with another, or names a cylinder not on the dive. The Tanks
 /// card's own check: a runtime shortened on the header can make a switch
-/// invalid while the Tanks card is closed.
+/// invalid while the Tanks card is closed. A switch stored that way and
+/// left alone ([gasSwitchesInvalidAsStored]) is not checked, though its
+/// second still counts against one the diver moves onto it.
 bool gasSwitchesValid(EditSession<Dive> session) {
   final held = sittingGasSwitches(session);
   if (held == null || !gasSwitchesShown(session)) return true;
   final limits = gasSwitchTimeLimits(session);
   final max = limits.max;
   final tankIds = {for (final t in session.working.tanks) t.id};
-  final seen = <int>{};
+  final asStored = gasSwitchesInvalidAsStored(session);
+  final perSecond = <int, int>{};
   for (final g in held.current) {
+    perSecond[g.timestamp] = (perSecond[g.timestamp] ?? 0) + 1;
+  }
+  for (final g in held.current) {
+    if (asStored.contains(g.id)) continue;
     if (g.timestamp < limits.min || (max != null && g.timestamp > max)) {
       return false;
     }
-    if (!seen.add(g.timestamp)) return false;
+    if (perSecond[g.timestamp]! > 1) return false;
     if (!tankIds.contains(g.tankId)) return false;
   }
   return true;
