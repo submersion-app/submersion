@@ -227,6 +227,82 @@ void main() {
       expect(reported, [null]);
     });
 
+    // Issue #4611: a drag that strays off the chart is still a scrub. The
+    // mouse tracker reports the pointer leaving while the button is held;
+    // that exit must not drop the cursor back to its rest.
+    testWidgets('leaving the chart mid-drag keeps the scrub', (tester) async {
+      final reported = <int?>[];
+      await pumpChart(tester, onCursorSeconds: reported.add);
+      touchData(tester).touchCallback!(
+        const FlPointerExitEvent(
+          PointerExitEvent(buttons: kPrimaryButton, down: true),
+        ),
+        null,
+      );
+      expect(reported, isEmpty);
+    });
+
+    // Entering with a button held is either the same scrub coming back, which
+    // its pan updates already track, or a drag that began elsewhere and is
+    // not this chart's to follow.
+    testWidgets('entering the chart with a button held reports nothing', (
+      tester,
+    ) async {
+      final reported = <int?>[];
+      await pumpChart(tester, onCursorSeconds: reported.add);
+      touchData(tester).touchCallback!(
+        const FlPointerEnterEvent(
+          PointerEnterEvent(buttons: kPrimaryButton, down: true),
+        ),
+        touching(barOf(tester), 2),
+      );
+      expect(reported, isEmpty);
+    });
+
+    testWidgets('dragging reports the sample under the pointer', (
+      tester,
+    ) async {
+      final reported = <int?>[];
+      await pumpChart(tester, onCursorSeconds: reported.add);
+      touchData(tester).touchCallback!(
+        FlPanUpdateEvent(DragUpdateDetails(globalPosition: Offset.zero)),
+        touching(barOf(tester), 3),
+      );
+      expect(reported, [180]);
+    });
+
+    testWidgets('ending a drag returns the cursor to rest', (tester) async {
+      final reported = <int?>[];
+      await pumpChart(tester, onCursorSeconds: reported.add);
+      touchData(tester).touchCallback!(
+        FlPanEndEvent(DragEndDetails()),
+        touching(barOf(tester), 3),
+      );
+      expect(reported, [null]);
+    });
+
+    // With fl_chart's default 10 px threshold, a pointer between sparse
+    // samples or past either end of the dive resolved to no spot, and the
+    // line fell back to its rest mid-scrub. Any position reads the nearest
+    // sample by time, so a drag past an end holds the line on that end.
+    testWidgets('a touch anywhere resolves to the nearest sample', (
+      tester,
+    ) async {
+      await pumpChart(tester, onCursorSeconds: (_) {});
+      expect(touchData(tester).touchSpotThreshold, double.infinity);
+    });
+
+    // fl_chart lerps old chart data to new over 150 ms by default, so the
+    // cursor line slid after the pointer instead of sitting under it, and
+    // travelled across the plot whenever it moved to or from its rest.
+    testWidgets('the chart draws each frame without animating', (tester) async {
+      await pumpChart(tester, cursorSeconds: 60);
+      expect(
+        tester.widget<LineChart>(find.byType(LineChart)).duration,
+        Duration.zero,
+      );
+    });
+
     testWidgets('a touch that hits no spot reports null', (tester) async {
       final reported = <int?>[];
       await pumpChart(tester, onCursorSeconds: reported.add);

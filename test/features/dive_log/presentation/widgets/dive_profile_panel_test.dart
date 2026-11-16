@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -1013,6 +1014,78 @@ void main() {
       await tester.pump();
 
       expect(find.byType(DiveProfileChart), findsOneWidget);
+    });
+
+    // Issue #4611: the panel's own MouseRegion clears the shared cursor on
+    // exit, and a drag that strays off the chart with the button held
+    // reports that exit too. It must not drop the cursor mid-scrub.
+    testWidgets('a mouse drag off the panel keeps the shared cursor', (
+      tester,
+    ) async {
+      const diveId = 'drag-off-test';
+      final dive = _makeDiveWithProfile(id: diveId);
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            highlightedDiveIdProvider.overrideWith((ref) => diveId),
+            _listedInTable(diveId),
+            diveProvider(diveId).overrideWith((ref) => Future.value(dive)),
+            diveDataSourcesProvider(
+              diveId,
+            ).overrideWith((ref) => Future.value(<DiveDataSource>[])),
+            profileAnalysisProvider(
+              diveId,
+            ).overrideWith((ref) => Future.value(null)),
+            gasSwitchesProvider(diveId).overrideWith((ref) => Future.value([])),
+            tankPressuresProvider(
+              diveId,
+            ).overrideWith((ref) => Future.value({})),
+          ],
+          child: const Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(height: 350, width: 600, child: DiveProfilePanel()),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfilePanel)),
+      );
+      final writes = <int?>[];
+      final sub = container.listen<int?>(
+        profileTrackingIndexProvider(diveId),
+        (_, next) => writes.add(next),
+      );
+      addTearDown(sub.close);
+
+      final rect = tester.getRect(find.byType(LineChart).first);
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await gesture.addPointer(location: Offset.zero);
+      addTearDown(gesture.removePointer);
+      await gesture.moveTo(rect.center);
+      await tester.pump();
+      await gesture.down(rect.center);
+      await tester.pump();
+      await gesture.moveTo(rect.center + const Offset(40, 0));
+      await tester.pump();
+      expect(writes.last, isNotNull);
+
+      // Below the panel (350 px tall in a 600 px view), button still held.
+      writes.clear();
+      await gesture.moveTo(Offset(rect.center.dx + 40, 520));
+      await tester.pump();
+      expect(writes.where((w) => w == null), isEmpty);
+
+      await gesture.up();
+      await tester.pump();
+      expect(container.read(profileTrackingIndexProvider(diveId)), isNull);
     });
     // -----------------------------------------------------------------------
     // Multi-source dives (#543)

@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dive_log/presentation/utils/chart_drag_crossing.dart';
+
 /// One stretch of the dive in [SacTimeColumns].
 class SacTimeColumn {
   /// Where the column starts on the time axis, in seconds from dive start.
@@ -229,9 +231,11 @@ class SacTimeColumns extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     return MouseRegion(
       onHover: (event) => _hoverAt(width, event.localPosition.dx),
-      onExit: (_) {
+      onExit: (event) {
         onHover(null);
-        onCursorSeconds?.call(null);
+        // A scrub that strays off the plot goes on until its drag ends,
+        // which clears the cursor (issue #4611).
+        if (!isDragCrossing(event)) onCursorSeconds?.call(null);
       },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
