@@ -129,8 +129,10 @@ extension _DiveDetailSectionContent on DiveDetailSectionList {
       case DiveDetailSectionId.buddies:
         return DiveBuddiesSection(dive: dive);
       case DiveDetailSectionId.signatures:
-        // It shows a training signature for a dive with a course: from the
-        // dive as stored, as every card with no editor.
+        // It shows a training signature for a dive with a course, and the
+        // buddies' signatures: a course or a buddy added in a sitting must
+        // not bring it in above an open editor.
+        if (!_onPage(ref, id, presence, stored, edit)) return null;
         return DiveSignaturesSection(dive: dive);
       case DiveDetailSectionId.equipment:
         if (!_onPage(ref, id, presence, stored, edit)) return null;
