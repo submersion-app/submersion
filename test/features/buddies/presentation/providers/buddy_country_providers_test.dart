@@ -1,9 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_country_providers.dart';
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 
@@ -14,17 +12,7 @@ void main() {
   test('used buddy and site countries come first, then the ISO list', () async {
     final container = ProviderContainer(
       overrides: [
-        allBuddiesProvider.overrideWith(
-          (ref) async => [
-            Buddy(
-              id: 'b1',
-              name: 'Marco',
-              country: 'Malta',
-              createdAt: DateTime(2026),
-              updatedAt: DateTime(2026),
-            ),
-          ],
-        ),
+        usedBuddyCountriesProvider.overrideWith((ref) async => ['Malta']),
         sitesProvider.overrideWith(
           (ref) async => [
             const DiveSite(id: 's1', name: 'Reef', country: 'Bonaire'),

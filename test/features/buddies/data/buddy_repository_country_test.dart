@@ -135,4 +135,52 @@ void main() {
     expect(read!.country, 'Malta');
     expect(read.countryCode, 'MT');
   });
+
+  test('undoing a merge brings back each buddy country', () async {
+    final repo = BuddyRepository();
+    final survivor = await repo.createBuddy(buddy(country: 'Italy'));
+    final duplicate = await repo.createBuddy(
+      domain.Buddy(
+        id: 'b-country-2',
+        name: 'M.',
+        country: 'Malta',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      ),
+    );
+    final stored = await repo.getBuddyById(survivor.id);
+    final result = await BuddyMergeRepository().mergeBuddies(
+      mergedBuddy: stored!.copyWith(country: 'Malta'),
+      buddyIds: [survivor.id, duplicate.id],
+    );
+    await BuddyMergeRepository().undoMerge(result!.snapshot!);
+
+    final back = await repo.getBuddyById(survivor.id);
+    expect(back!.country, 'Italy');
+    expect(back.countryCode, 'IT');
+    final restored = await repo.getBuddyById(duplicate.id);
+    expect(restored!.country, 'Malta');
+    expect(restored.countryCode, 'MT');
+  });
+
+  test('the countries in use are listed once each, blanks left out', () async {
+    final repo = BuddyRepository();
+    await repo.createBuddy(buddy(country: 'Italy'));
+    for (final (id, country) in [
+      ('b2', 'Italy'),
+      ('b3', null),
+      ('b4', 'Malta'),
+    ]) {
+      await repo.createBuddy(
+        domain.Buddy(
+          id: id,
+          name: id,
+          country: country,
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+      );
+    }
+    expect(await repo.getUsedCountries(), unorderedEquals(['Italy', 'Malta']));
+  });
 }
