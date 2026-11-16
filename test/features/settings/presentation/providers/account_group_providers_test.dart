@@ -130,6 +130,24 @@ void main() {
       ]);
     });
 
+    test('the checks name the kind still pending and offer the rest', () async {
+      final drive = Completer<bool>();
+      final c = _container(_gates(driveCheck: () => drive.future));
+      c.listen(accountKindOfferChecksProvider, (_, _) {});
+      await c.read(iCloudAvailabilityProvider.future);
+      final checks = c.read(accountKindOfferChecksProvider);
+      expect(checks.pending, {AccountKindOffer.googleDrive});
+      expect(checks.offers, [
+        AccountKindOffer.icloud,
+        AccountKindOffer.dropbox,
+        AccountKindOffer.ownServer,
+        AccountKindOffer.git,
+      ]);
+      drive.complete(true);
+      await c.read(googleDriveAvailableProvider.future);
+      expect(c.read(accountKindOfferChecksProvider).pending, isEmpty);
+    });
+
     test('no list until the iCloud check settles', () async {
       final icloud = Completer<ICloudAvailability>();
       final c = _container(_gates(icloudCheck: () => icloud.future));

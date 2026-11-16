@@ -113,6 +113,14 @@ class _AccountChooserState extends ConsumerState<AccountChooser> {
   bool _allowed(AccountKind kind) =>
       widget.allowedKinds?.contains(kind) ?? kind != AccountKind.adobeLightroom;
 
+  /// The offers while a check is still running, when this chooser could not
+  /// show the kind it checks anyway (an own-server-only library chooser and
+  /// Google Drive, say); null while a kind it shows is still pending.
+  List<AccountKindOffer>? _settledOffers() {
+    final checks = ref.watch(accountKindOfferChecksProvider);
+    return checks.pending.any(_offerAllowed) ? null : checks.offers;
+  }
+
   bool _offerAllowed(AccountKindOffer offer) => switch (kindOfOffer(offer)) {
     final kind? => _allowed(kind),
     null => _allowed(AccountKind.s3) || _allowed(AccountKind.webdav),
@@ -243,7 +251,8 @@ class _AccountChooserState extends ConsumerState<AccountChooser> {
     // partial one while the kinds to offer are still being checked: a row
     // added later moves the rows under a tap (issue #4612).
     final groupsAsync = ref.watch(_groupsProvider);
-    final offerable = ref.watch(offerableAccountKindsProvider);
+    final offerable =
+        ref.watch(offerableAccountKindsProvider) ?? _settledOffers();
     if (!groupsAsync.hasValue || offerable == null) {
       return Center(
         child: !groupsAsync.hasValue && groupsAsync.hasError

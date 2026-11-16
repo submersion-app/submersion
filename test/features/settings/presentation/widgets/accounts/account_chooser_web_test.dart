@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_chooser.dart';
@@ -161,5 +162,51 @@ void main() {
         .dy;
     expect(driveTop, lessThan(dropboxTop));
     expect(dropboxTop, lessThan(ownServerTop));
+  });
+
+  // A chooser that can only add an own server has nothing to wait for while
+  // Google Drive is checked: that check cannot add a row it shows.
+  testWidgets('an own-server-only chooser does not wait on Google Drive', (
+    tester,
+  ) async {
+    const kinds = {AccountKind.s3, AccountKind.webdav};
+    await tester.binding.setSurfaceSize(const Size(500, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
+          accountGroupsOfKindsProvider(
+            accountKindsKey(kinds),
+          ).overrideWith((ref) async => const []),
+          // Never answers.
+          googleDriveAvailableProvider.overrideWith(
+            (ref) => Completer<bool>().future,
+          ),
+          dropboxConfiguredProvider.overrideWithValue(true),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: AccountChooser(
+              embedded: true,
+              allowedKinds: kinds,
+              onChosen: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text(en.settings_accounts_ownServer_title), findsOneWidget);
+    expect(
+      find.text(en.settings_cloudSync_provider_dropbox_title),
+      findsNothing,
+    );
   });
 }

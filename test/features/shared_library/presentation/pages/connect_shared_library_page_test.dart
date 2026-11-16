@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_location_fields.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_location.dart';
@@ -93,11 +91,6 @@ Widget _connectApp(
   List<ConnectedAccount> Function() accounts,
 ) => testApp(
   overrides: [
-    // The real iCloud check answers on the real event loop, never on the
-    // test's fake clock, and the add list waits for it (issue #4612).
-    iCloudAvailabilityProvider.overrideWith(
-      (ref) async => ICloudAvailability.unsupported,
-    ),
     ...base,
     accountGroupsProvider.overrideWith(
       (ref) async => signedInGroupsOf(accounts()),
