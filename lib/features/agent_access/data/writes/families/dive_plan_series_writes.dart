@@ -1,5 +1,6 @@
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_plan_series_create.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_plan_series_names.dart';
 import 'package:submersion/features/agent_access/data/writes/families/planned_dives_effect.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -12,8 +13,8 @@ import 'package:submersion/features/planner/domain/services/plan_series_calculat
 
 /// Repetitive dive series, through the repository the planner saves them
 /// with. A series is created from its dives, as `compute_plan` takes them,
-/// or as a copy of another; here it is renamed, its dives kept, reordered
-/// or dropped (a dropped dive's plan goes with it), dissolved into one
+/// or as a copy of another; here it is renamed, its dives renamed, kept,
+/// reordered or dropped (a dropped dive's plan goes with it), dissolved into one
 /// plan, or deleted with its plans; and its dives written to the log as
 /// planned dives, on a create or an update.
 class DivePlanSeriesWrites extends WritableEntry {
@@ -32,6 +33,7 @@ class DivePlanSeriesWrites extends WritableEntry {
   static const _dissolve = 'dissolve_keeping_plan_id';
   static const _dives = 'dives';
   static const _follow = 'followed_dive_id';
+  static const _names = 'dive_names';
 
   @override
   String get name => 'dive_plan_series';
@@ -42,10 +44,13 @@ class DivePlanSeriesWrites extends WritableEntry {
   @override
   String get note =>
       'plan_ids are the series\' dives in order, a selection of the ones it '
-      'holds; a plan left out is deleted. $_dissolve turns the series back '
+      'holds; a plan left out is deleted. $_names names dives by plan id, '
+      'null going back to the letter, which also names their planned '
+      'entries; a dive left out keeps its name, and a dived one cannot be '
+      'renamed. $_dissolve turns the series back '
       'into that one plan, deleting the rest. A new series takes a name and '
       '$_dives, as compute_plan takes them (a dive\'s resolved_inputs save '
-      'unchanged), and $_follow for the logged dive it follows; or it is a '
+      'unchanged; each may have a name), and $_follow for the logged dive it follows; or it is a '
       'copy, $_copy. A single dive is a dive_plans record. '
       '${PlannedDivesEffect.note} ${PlannedDivesEffect.deleteRemoved} '
       'deletes the planned entries of dives plan_ids drops in the same '
@@ -59,6 +64,7 @@ class DivePlanSeriesWrites extends WritableEntry {
     _copy: const FieldCodec.reference('dive_plan_series'),
     _dives: const PlanSeriesDivesCodec(),
     _follow: const FieldCodec.reference('dives'),
+    _names: const SeriesDiveNamesCodec(),
     PlannedDivesEffect.field: PlannedDivesEffect.codec,
   };
 
@@ -93,7 +99,9 @@ class DivePlanSeriesWrites extends WritableEntry {
     ];
     final v = check.values;
     if (v.containsKey(_dissolve) &&
-        (v.containsKey('plan_ids') || v[PlannedDivesEffect.field] != null)) {
+        (v.containsKey('plan_ids') ||
+            v.containsKey(_names) ||
+            v[PlannedDivesEffect.field] != null)) {
       return const PlanBlock(
         BlockReason.notPermitted,
         'Dissolve a series in a change of its own.',
@@ -114,6 +122,11 @@ class DivePlanSeriesWrites extends WritableEntry {
         );
       }
     }
+    if (v.containsKey(_names)) {
+      if (await _refuseNames(check.id!, v, held) case final block?) {
+        return block;
+      }
+    }
     if (PlannedDivesRequest.of(v[PlannedDivesEffect.field]) case final ask?) {
       if (_changedEarlier(check.soFar, check.id!, held) case final block?) {
         return block;
@@ -121,6 +134,51 @@ class DivePlanSeriesWrites extends WritableEntry {
       return PlannedDivesEffect.blockOf(
         await _outlookOfUpdate(check.id!, v, ask, check.pass),
       );
+    }
+    return null;
+  }
+
+  /// A block when [values]' dive names are not of dives the series keeps,
+  /// [held] or the ones `plan_ids` gives, or would rename a dive that has
+  /// been dived, whose details the planner no longer changes (issue #4626).
+  /// Giving a dived dive the name it has is no change, so is let through.
+  Future<PlanBlock?> _refuseNames(
+    String id,
+    Map<String, Object?> values,
+    List<String> held,
+  ) async {
+    final names = SeriesDiveNamesCodec.names(values[_names]);
+    final kept = switch (values['plan_ids']) {
+      final Object raw => _texts(raw),
+      null => held,
+    };
+    for (final planId in names.keys) {
+      if (!kept.contains(planId)) {
+        return PlanBlock(
+          BlockReason.invalidValue,
+          held.contains(planId)
+              ? '$_names: $planId is dropped by plan_ids in the same change.'
+              : '$_names: $planId is not a dive of this series.',
+        );
+      }
+    }
+    final series = await _series(id);
+    for (final dive in series.dives) {
+      if (!names.containsKey(dive.plan.id) ||
+          names[dive.plan.id] == dive.name) {
+        continue;
+      }
+      final logged = switch (dive.plan.linkedDiveId) {
+        final diveId? => await _r.dives.getDiveById(diveId),
+        null => null,
+      };
+      if (logged != null && !logged.isPlanned) {
+        return PlanBlock(
+          BlockReason.notPermitted,
+          '$_names: ${dive.plan.id} has been dived, so its name stays as it '
+          'is.',
+        );
+      }
     }
     return null;
   }
@@ -178,18 +236,29 @@ class DivePlanSeriesWrites extends WritableEntry {
   Future<String?> _ownerOf(StoredSeries series) async =>
       series.diverId ?? await _r.activeDiverId?.call();
 
-  /// [series] with an update's name and order, as [update] saves it.
+  /// [series] with an update's name, order and dive names, as [update]
+  /// saves it.
   static StoredSeries _updated(StoredSeries series, Map<String, Object?> v) {
     final raw = v['plan_ids'];
+    final names = SeriesDiveNamesCodec.names(v[_names]);
     final byPlan = {for (final d in series.dives) d.plan.id: d};
+    final ordered = raw == null
+        ? series.dives
+        : [for (final planId in _texts(raw)) byPlan[planId]!];
     return StoredSeries(
       id: series.id,
       name: v['name'] as String? ?? series.name,
       diverId: series.diverId,
       followedDiveId: series.followedDiveId,
-      dives: raw == null
-          ? series.dives
-          : [for (final planId in _texts(raw)) byPlan[planId]!],
+      dives: [
+        for (final dive in ordered)
+          if (!names.containsKey(dive.plan.id))
+            dive
+          else if (names[dive.plan.id] case final String name)
+            dive.copyWith(name: name)
+          else
+            dive.copyWith(clearName: true),
+      ],
     );
   }
 
@@ -381,12 +450,11 @@ class DivePlanSeriesWrites extends WritableEntry {
       return;
     }
     final ask = PlannedDivesRequest.of(v[PlannedDivesEffect.field]);
-    // Read only when the save or the planned dives need it: a rename alone
-    // reads nothing.
-    final before = v['plan_ids'] != null || ask != null
-        ? await _series(id)
-        : null;
-    if (v['plan_ids'] != null) {
+    // Read only when the save or the planned dives need it: a rename of the
+    // series alone reads nothing.
+    final saves = v['plan_ids'] != null || v[_names] != null;
+    final before = saves || ask != null ? await _series(id) : null;
+    if (saves) {
       await repo.saveSeries(_updated(before!, v));
     } else if (v['name'] case final String name) {
       await repo.renameSeries(id, name);

@@ -4,6 +4,7 @@ import 'package:clock/clock.dart';
 
 import 'package:submersion/features/agent_access/data/planning/plan_request.dart';
 import 'package:submersion/features/agent_access/data/planning/plan_request_series.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_plan_series_names.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/planner/data/services/stored_series_results.dart';
@@ -11,32 +12,68 @@ import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
 /// The dives of a series created from scratch, each as `compute_plan` takes
-/// one, so a dive's `resolved_inputs` save unchanged. Only its shape is
-/// checked here; [seriesFromDives] reads each dive as `compute_plan` does,
-/// with the owner's settings, which a codec does not have.
+/// one, so a dive's `resolved_inputs` save unchanged, and each with an
+/// optional `name` of its own (issue #4626), which `compute_plan` does not
+/// take. Only its shape and the names are checked here; [seriesFromDives]
+/// reads each dive as `compute_plan` does, with the owner's settings, which
+/// a codec does not have.
 ///
-/// The parsed value is the list as JSON.
+/// The parsed value is the list as JSON, each name as [seriesDiveName]
+/// keeps it.
 class PlanSeriesDivesCodec extends FieldCodec {
   const PlanSeriesDivesCodec();
 
   @override
   String get describe =>
       'a list of 2 to $maxPlanRequestDives dives, each as compute_plan\'s '
-      'dives take one (its resolved_inputs save unchanged)';
+      'dives take one (its resolved_inputs save unchanged), each with an '
+      'optional name of at most ${StoredSeriesDive.maxNameLength} characters '
+      '(none: shown by its letter)';
 
   @override
   Object parseValue(Object raw) {
     if (raw is! List || raw.any((dive) => dive is! Map)) {
       throw const FieldRefusal('This field takes a list of dive objects.');
     }
-    return jsonEncode(raw);
+    return jsonEncode([
+      for (final (i, dive) in raw.indexed)
+        {
+          for (final MapEntry(:key, :value) in (dive as Map).entries)
+            if (key != _name) key: value,
+          if (_nameAt(dive, i) case final String name) _name: name,
+        },
+    ]);
+  }
+
+  static const _name = 'name';
+
+  static String? _nameAt(Map<Object?, Object?> dive, int index) {
+    try {
+      return seriesDiveName(dive[_name]);
+    } on FieldRefusal catch (e) {
+      throw FieldRefusal('dives[$index].name: ${e.reason}');
+    }
   }
 
   @override
   Object? wire(Object? value) => value is String ? jsonDecode(value) : value;
 
-  /// [value], parsed by this codec, as `compute_plan`'s `dives` argument.
-  static List<Object?> dives(Object? value) =>
+  /// [value], parsed by this codec, as `compute_plan`'s `dives` argument:
+  /// each dive without its name.
+  static List<Object?> dives(Object? value) => [
+    for (final dive in _decoded(value))
+      {
+        for (final MapEntry(:key, :value) in (dive! as Map).entries)
+          if (key != _name) key: value,
+      },
+  ];
+
+  /// The name of each of [value]'s dives, in order; null for none.
+  static List<String?> names(Object? value) => [
+    for (final dive in _decoded(value)) (dive! as Map)[_name] as String?,
+  ];
+
+  static List<Object?> _decoded(Object? value) =>
       jsonDecode(value! as String) as List<Object?>;
 }
 
@@ -53,7 +90,8 @@ String? seriesDiveCountProblem(Object? dives) {
 }
 
 /// The series [dives] describe, as the planner would save it: each dive's
-/// plan named [name], where its tanks carry from, how it is timed, and the
+/// plan named [name], the dive its own name if it has one, where its tanks
+/// carry from, how it is timed, and the
 /// summary [config] computes for it (issue #4203). [followedDiveId] is the
 /// logged dive it follows, read through [followOf].
 ///
@@ -82,6 +120,7 @@ Future<StoredSeries> seriesFromDives({
     );
   }
   final built = storedSeriesFor(request, follow: follow, now: clock.now());
+  final names = PlanSeriesDivesCodec.names(dives);
   final computed = computeSeriesFromStored(
     built.stored,
     follow: follow,
@@ -95,6 +134,7 @@ Future<StoredSeries> seriesFromDives({
     dives: [
       for (final (i, dive) in built.stored.dives.indexed)
         dive.copyWith(
+          name: names[i],
           plan: dive.plan.copyWith(name: name),
           summaryMaxDepth: computed.results[i].outcome.maxDepth,
           summaryRuntimeSeconds: computed.results[i].outcome.runtimeSeconds,

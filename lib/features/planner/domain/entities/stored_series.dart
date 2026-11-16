@@ -7,6 +7,9 @@ import 'package:submersion/features/planner/domain/entities/plan_setting_group.d
 /// places it in the series. What it carries in from the dive before is
 /// derived when it is opened, never stored.
 class StoredSeriesDive extends Equatable {
+  /// Longest [name], so a chip in the planner's navigator stays a chip.
+  static const maxNameLength = 40;
+
   final DivePlan plan;
 
   /// The diver's own name for the dive; null = shown by its letter.
