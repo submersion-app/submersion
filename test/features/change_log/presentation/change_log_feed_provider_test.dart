@@ -50,7 +50,7 @@ class _HeldPages extends ChangeLogRepository {
 
   @override
   Future<Map<String, ChangeLogPreview>> getPreviewFields(
-    List<String> operationIds, {
+    List<ChangeLogOperation> operations, {
     int perOperation = 2,
   }) async => const {};
 

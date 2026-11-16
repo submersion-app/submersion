@@ -353,12 +353,15 @@ void main() {
     // would read as the dive's own.
     test('its feed row previews no field of the document', () async {
       await repository.settleAll();
-      final id = (await repository.getFeed(
+      final operation = (await repository.getFeed(
         diverId: 'me',
         filter: _noFilter,
-      )).single.id;
+      )).single;
 
-      expect((await repository.getPreviewFields([id]))[id], isNull);
+      expect(
+        (await repository.getPreviewFields([operation]))[operation.id],
+        isNull,
+      );
     });
   });
 
@@ -388,7 +391,9 @@ void main() {
     );
     await repository.settleAll();
 
-    final preview = (await repository.getPreviewFields([id]))[id]!;
+    final preview = (await repository.getPreviewFields([
+      (await repository.getOperation(id))!,
+    ]))[id]!;
     expect(preview.fields.map((f) => (f.table, f.column)), [
       ('dives', 'altitude'),
     ]);
@@ -541,7 +546,7 @@ void main() {
       filter: _noFilter,
     )).single;
 
-    final previews = await repository.getPreviewFields([operation.id]);
+    final previews = await repository.getPreviewFields([operation]);
 
     final preview = previews[operation.id]!;
     expect(preview.fields, hasLength(2));
@@ -559,7 +564,7 @@ void main() {
     )).single;
 
     final preview = (await repository.getPreviewFields([
-      operation.id,
+      operation,
     ]))[operation.id]!;
 
     expect(preview.total, 1);
@@ -577,7 +582,7 @@ void main() {
     )).single;
 
     final preview = (await repository.getPreviewFields([
-      operation.id,
+      operation,
     ]))[operation.id];
 
     expect(preview?.total ?? 0, 0);
@@ -593,7 +598,7 @@ void main() {
     )).single;
 
     final preview = (await repository.getPreviewFields([
-      operation.id,
+      operation,
     ]))[operation.id]!;
 
     expect(preview.rootAction, ChangeLogAction.delete);
@@ -609,7 +614,7 @@ void main() {
     )).single;
 
     final preview = (await repository.getPreviewFields([
-      operation.id,
+      operation,
     ]))[operation.id]!;
 
     expect(preview.rootAction, ChangeLogAction.insert);

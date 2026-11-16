@@ -51,6 +51,14 @@ void main() {
               .getSingle())
           .data;
 
+  Future<List<String>> operationIds() async => [
+    for (final row
+        in await db
+            .customSelect('SELECT id FROM change_log_operations ORDER BY id')
+            .get())
+      row.read<String>('id'),
+  ];
+
   Future<void> editNotes() => db.customStatement(
     "UPDATE dives SET notes = 'Current' WHERE id = 'dive'",
   );
@@ -238,7 +246,10 @@ void main() {
     expect((await operation(id))['root_id'], isNull);
   });
 
-  test('a part split off for another diver is not pinned', () async {
+  // One entry about the dive, whoever owns the other records it wrote: the
+  // site's owner sees the site's rows of it (ChangeLogRepository.getFeed).
+  test("a sitting's write to another diver's shared site stays in its one "
+      'entry', () async {
     final id = await inSitting(() async {
       await editNotes();
       await copyAltitude('shared');
@@ -246,21 +257,38 @@ void main() {
     await repository.settleAll();
 
     expectAboutTheDive(await operation(id));
-    final split = await operation('$id:them');
-    expect(split['root_table'], 'dive_sites');
-    expect(split['root_id'], 'shared');
-    expect(split['diver_id'], 'them');
+    expect(await operationIds(), [id]);
+    expect({for (final e in await logEvents(db)) e['operation_id']}, {id});
   });
 
-  test('a sitting whose only write is to another diver\'s shared site files '
-      'it under that diver', () async {
+  test("a sitting whose only write is to another diver's shared site is "
+      'about the dive', () async {
     final id = await inSitting(() => copyAltitude('shared'));
     await repository.settleAll();
 
-    final split = await operation('$id:them');
-    expect(split['root_table'], 'dive_sites');
-    expect(split['root_id'], 'shared');
-    expect(split['diver_id'], 'them');
+    expectAboutTheDive(await operation(id));
+    expect(await operationIds(), [id]);
+  });
+
+  test("reverting the sitting puts another diver's shared site back, and "
+      'the whole entry reads as reverted', () async {
+    final id = await inSitting(() async {
+      await editNotes();
+      await copyAltitude('shared');
+    });
+    await repository.settleAll();
+    final service = ChangeLogRevertService(afterDiveWrites: (_) {});
+
+    final revert = (await service.execute(
+      await service.planOperation(id),
+    )).operationId;
+    await repository.settleAll();
+
+    final site = await db
+        .customSelect("SELECT altitude FROM dive_sites WHERE id = 'shared'")
+        .getSingle();
+    expect(site.data['altitude'], isNull);
+    expect((await operation(id))['reverted_by_id'], revert);
   });
 
   test('an unscoped save is untouched', () async {

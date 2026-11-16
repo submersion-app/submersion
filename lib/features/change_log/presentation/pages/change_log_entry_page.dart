@@ -337,7 +337,10 @@ class _RevertAction extends ConsumerWidget {
             onPressed: () => runChangeLogRevert(
               context,
               ref,
-              plan: (service) => service.planOperation(operation.id),
+              plan: (service) => service.planOperation(
+                operation.id,
+                onlyRoots: operation.shownRoots,
+              ),
               bulk: bulk,
             ),
             child: Text(label),

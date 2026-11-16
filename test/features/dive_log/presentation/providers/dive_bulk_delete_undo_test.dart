@@ -9,6 +9,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
+import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_revert_plan.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -505,6 +506,8 @@ class _FailingRevert extends ChangeLogRevertService {
   _FailingRevert() : super(afterDiveWrites: (_) {});
 
   @override
-  Future<ChangeLogRevertPlan> planOperation(String operationId) =>
-      Future.error(StateError('the log is unreadable'));
+  Future<ChangeLogRevertPlan> planOperation(
+    String operationId, {
+    Set<ChangeLogRoot>? onlyRoots,
+  }) => Future.error(StateError('the log is unreadable'));
 }

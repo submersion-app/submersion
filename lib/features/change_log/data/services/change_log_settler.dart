@@ -321,11 +321,13 @@ class _SettlePass {
   /// A feed shows one diver's entries, so a scope that touched two divers'
   /// records, as a sync pull can, is filed as one operation each.
   ///
-  /// A pinned scope belongs to its record's owner from the start, so a
-  /// sitting whose first write is to another diver's shared site files that
-  /// write under the site's owner too.
+  /// A pinned scope is the exception: a sitting is one entry about its
+  /// record, listed and reverted whole, whoever owns the other records it
+  /// wrote (issue #4527). The owner of such a record sees that record's rows
+  /// of it (`ChangeLogRepository.getFeed`).
   Future<_Operation> _forOwner(_Operation scope, String? owner) async {
-    final scopeOwner = await _scopeOwnerOf(scope);
+    if (scope.pinned != null) return scope;
+    final scopeOwner = scope.diverId;
     if (owner == null || scopeOwner == null || scopeOwner == owner) {
       return scope;
     }
@@ -368,8 +370,9 @@ class _SettlePass {
   /// The record an operation row is about whatever else it touches: the
   /// record a diver's editing sitting names in its label, or for a revert
   /// the pinned record of the operation it reverts, up the chain. Null for a
-  /// part split off for another owner ([_forOwner]), which is about that
-  /// owner's record, and for every other operation. An agent's label is its
+  /// part split off for another owner, which only an unpinned scope makes
+  /// ([_forOwner]) and which is about that owner's record, and for every
+  /// other operation. An agent's label is its
   /// own free text, so one that happens to read like a sitting's pins
   /// nothing.
   Future<ChangeLogRoot?> _pinnedRootOf(Map<String, Object?> row) async {
