@@ -107,7 +107,7 @@ void main() {
 
   test('a dismissal reads as the moment it was made', () {
     const ms = 1794825060000;
-    final units = UnitFormatter(const AppSettings());
+    const units = UnitFormatter(AppSettings());
 
     expect(
       formatter().value('dive_safety_findings', 'dismissed_at', ms),
