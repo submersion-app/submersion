@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/database/local_cache_site_catalogue_tables.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_row_mapper.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 
@@ -8,7 +9,7 @@ import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.da
 /// a counting page's map. Matching gives such a record a wider reach and
 /// no say in the automatic pick, so the flag is stored with the record.
 
-/// The table as v22 left it, before the position's origin existed.
+/// The table as v23 left it, before the position's origin existed.
 const _v23Table = '''
   CREATE TABLE site_catalogue (
     id TEXT NOT NULL,
@@ -105,12 +106,14 @@ void main() {
     expect(await db.select(db.siteCatalogueEntries).get(), hasLength(1));
   });
 
-  test('opening twice adds the column once', () async {
+  test('running the column helper again adds nothing', () async {
     final db = _existing(23);
     addTearDown(db.close);
     await _columnsOf(db);
 
-    await db.customStatement('SELECT 1');
+    // The rung and the open backstop both call it: a second run must be a
+    // no-op, not a duplicate-column error.
+    await addSiteCataloguePositionFrom(db);
     expect(
       (await _columnsOf(db)).where((name) => name == 'position_from'),
       hasLength(1),

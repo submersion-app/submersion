@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Never write the em-dash character in code, comments, docs or commit messages; no en-dash as punctuation.
-- No mention of Claude, Claude Code or Anthropic in any commit, comment or PR text.
+- No tool or model attribution in any commit, comment or PR text.
 - Files stay at 800 lines or fewer. `lib/core/database/local_cache_database.dart` is at 792: its new rung and backstop calls must fit, so the column helper lives in `lib/core/database/local_cache_site_catalogue_tables.dart`.
 - Python runs as `python3.14`. Each script test file runs directly (`python3.14 path/to/x_test.py`), as CI does.
 - Never run the whole flutter suite locally; run the named test files plus `test/architecture/`.

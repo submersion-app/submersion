@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/matching/match_candidate.dart';
 import 'package:submersion/features/dive_sites/domain/matching/match_thresholds.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_outcome.dart';
+import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_matcher.dart';
 
 const _balanced = MatchThresholds(
@@ -98,12 +99,9 @@ void main() {
     });
 
     test('map-placed reach is never below 2 km', () {
-      const strict = MatchThresholds(
-        innerRadiusMeters: 100,
-        outerRadiusMeters: 500,
-        separationMeters: 100,
-      );
-      final out = match([_mapPlaced('garden', 1500)], strict);
+      final out = match([
+        _mapPlaced('garden', 1500),
+      ], SiteMatchSensitivity.strict.thresholds);
 
       expect(out, isA<Suggested>());
       expect(ids(out), ['garden']);
