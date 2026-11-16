@@ -199,6 +199,50 @@ class ShapeTest(unittest.TestCase):
             self.assertIn("shape", _rules(_one(entry)), bad)
 
 
+def _named(*urls):
+    return {
+        "place": "Tulamben Bay",
+        "sources": [{"url": u, "read": "2026-11-16"} for u in urls],
+    }
+
+
+class NamedTest(unittest.TestCase):
+    """Two counting pages on different domains name the site (wider
+    sources design, section 2), unless its position is confirmed."""
+
+    def test_named_by_two_counting_domains_passes_existence(self):
+        entry = _entry(named=_named("https://opa.com/sites", "https://pressb.org/y"))
+        self.assertNotIn("named_sources", _rules(_one(entry)))
+
+    def test_named_by_one_counting_domain_fails(self):
+        one = _with(["position", "sources"], [dict(_A)])
+        one["named"] = _named("https://opa.com/sites")
+        self.assertIn("named_sources", _rules(_one(one)))
+
+    def test_named_twice_on_one_domain_fails(self):
+        one = _with(["position", "sources"], [dict(_A)])
+        one["named"] = _named("https://opa.com/a", "https://opa.com/b")
+        self.assertIn("named_sources", _rules(_one(one)))
+
+    def test_confirmed_position_proves_existence(self):
+        # Slice 3's passing entry has no `named` fact and still passes.
+        self.assertTrue(_one(_entry()).ok)
+
+    def test_new_fields_are_not_free_text(self):
+        entry = _entry(
+            named=_named("https://opa.com/s", "https://pressb.org/y"),
+            distinct_from=["research_id_other"],
+        )
+        entry["position"]["sources"][0].update(
+            {"method": "map", "map": "https://opa.com/m.jpg"}
+        )
+        self.assertNotIn("text_field", _rules(_one(entry)))
+
+    def test_named_sources_need_read_dates(self):
+        entry = _entry(named={"place": "x", "sources": [{"url": "https://opa.com/s"}]})
+        self.assertIn("read_date", _rules(_one(entry)))
+
+
 class DomainTest(unittest.TestCase):
     def test_unknown_domain_fails(self):
         entry = _with(("types", "sources", 0, "url"), "https://elsewhere.net/x")

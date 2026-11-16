@@ -58,11 +58,13 @@ FEET = 0.3048
 NAME_MAX = 60
 
 ENTRY_FIELDS = frozenset({
-    "id", "name", "area", "country_code", "position", "max_depth_m",
+    "id", "name", "area", "country_code", "named", "position", "max_depth_m",
     "min_depth_m", "entry", "types", "hazards", "review", "withdrawn", "note",
+    "distinct_from",
 })
 SOURCE_FIELDS = frozenset({
     "url", "read", "lat", "lon", "value", "unit", "contradicts", "archive",
+    "method", "map",
 })
 FACTS = {
     "entry": frozenset(ENTRY_METHODS),
@@ -89,12 +91,17 @@ class CheckedEntry:
     entry: dict
     findings: list = field(default_factory=list)
     position: tuple | None = None
+    # How the position was reached: "confirmed" (two stated figures
+    # agree), "stated" (one) or "map" (map-grade figures).
+    route: str | None = None
     min_depth: float | None = None
     max_depth: float | None = None
     types: list = field(default_factory=list)
     entries: list = field(default_factory=list)
     hazards: list = field(default_factory=list)
     left_out: list = field(default_factory=list)
+    # Points for the reviewer that block nothing (see flag()).
+    flags: list = field(default_factory=list)
 
     @property
     def ok(self) -> bool:
@@ -124,6 +131,13 @@ class CheckedEntry:
         self.findings.append(Finding(self.id, rule, message, fatal=False))
         self.left_out.append(message)
 
+    def flag(self, rule: str, message: str) -> None:
+        """A point for the reviewer to look at: it blocks nothing and
+        leaves nothing out."""
+        finding = Finding(self.id, rule, message, fatal=False)
+        self.findings.append(finding)
+        self.flags.append(finding)
+
 
 def _sources(fact) -> list[dict]:
     if isinstance(fact, dict) and isinstance(fact.get("sources"), list):
@@ -133,7 +147,7 @@ def _sources(fact) -> list[dict]:
 
 def _all_sources(entry: dict) -> list[dict]:
     found = []
-    for key in ("position", "max_depth_m", "min_depth_m", *FACTS):
+    for key in ("named", "position", "max_depth_m", "min_depth_m", *FACTS):
         found.extend(_sources(entry.get(key)))
     return found
 
@@ -267,6 +281,7 @@ def _check_position(checked: CheckedEntry, domains) -> None:
         _mean_longitude([f[2] for f in counting]),
     )
     checked.position = mean
+    checked.route = "confirmed"
     try:
         stated = (float(position["lat"]), float(position["lon"]))
     except (KeyError, TypeError, ValueError):
@@ -274,6 +289,19 @@ def _check_position(checked: CheckedEntry, domains) -> None:
         return
     if evidence.metres_between(*stated, *mean) > MEAN_M:
         checked.fail("position_mean", "lat and lon are not the counting mean")
+
+
+def _check_named(checked: CheckedEntry, domains) -> None:
+    """Two counting pages on different domains name the site. A position
+    two counting pages confirm proves that already."""
+    if checked.route == "confirmed":
+        return
+    named = _counting(_sources(checked.entry.get("named")), domains)
+    hosts = {evidence.registrable_domain(s["url"]) for s in named}
+    if len(hosts) < 2:
+        checked.fail(
+            "named_sources", "two counting pages on different domains name the site"
+        )
 
 
 def _depth_values(checked: CheckedEntry, key: str, domains) -> list[float]:
@@ -350,6 +378,7 @@ def check_entries(entries, domains, *, today: date) -> list[CheckedEntry]:
         ids.add(checked.id)
         _check_domains(checked, domains)
         _check_position(checked, domains)
+        _check_named(checked, domains)
         _check_depth(checked, domains)
         _check_facts(checked, domains)
         results.append(checked)
