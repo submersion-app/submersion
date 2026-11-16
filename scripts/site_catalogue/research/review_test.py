@@ -21,7 +21,7 @@ sys.path[:0] = [_HERE, os.path.dirname(_HERE), os.path.dirname(os.path.dirname(_
 
 import check  # noqa: E402
 import review  # noqa: E402
-from check_test import DOMAINS, TODAY, _entry  # noqa: E402
+from check_test import _A, DOMAINS, TODAY, _entry, _map_source, _placed  # noqa: E402
 
 
 def _page(*entries):
@@ -38,8 +38,8 @@ class ReviewPageTest(unittest.TestCase):
 
     def test_one_row_per_entry_grouped_by_area(self):
         second = _entry(id="research_my_barracuda_point", name="Barracuda Point",
-                        area="Sipadan", note="apart")
-        page = _page(_entry(), second)
+                        area="Sipadan", distinct_from=["research_id_usat_liberty"])
+        page = _page(_entry(distinct_from=["research_my_barracuda_point"]), second)
         self.assertEqual(page.count('class="entry'), 2)
         self.assertLess(page.index("Sipadan"), page.index("Tulamben"))
 
@@ -109,12 +109,92 @@ class ReviewPageTest(unittest.TestCase):
         self.assertIn("&lt;b&gt;Liberty", page)
 
     def test_decided_entries_are_folded_below(self):
-        approved = _entry(id="research_id_b", name="Coral Garden", note="apart",
+        # Both stand at one point: each names the other as a separate site.
+        approved = _entry(id="research_id_b", name="Coral Garden",
+                          distinct_from=["research_id_usat_liberty"],
                           review={"state": "approved", "date": "2026-11-17"})
-        page = _page(_entry(), approved)
+        page = _page(_entry(distinct_from=["research_id_b"]), approved)
         self.assertIn("<details", page)
         self.assertLess(page.index("USAT Liberty"), page.index("<details"))
         self.assertGreater(page.index("Coral Garden"), page.index("<details"))
+
+    def test_a_map_read_entry_shows_its_map_link(self):
+        page = _page(_placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937))
+        self.assertIn('href="https://opa.com/m.jpg"', page)
+        self.assertIn("map image", page)
+
+    def test_a_stated_pin_links_its_map_layer(self):
+        # A pin on the publisher's embedded map is stated, and its map
+        # field names the layer (wider sources design, section 1).
+        entry = _entry()
+        entry["position"]["sources"][0]["map"] = "https://opa.com/layer.kml"
+        page = _page(entry)
+        self.assertIn('href="https://opa.com/layer.kml"', page)
+        self.assertIn("map layer", page)
+
+    def test_the_route_is_shown(self):
+        page = _page(_placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937))
+        self.assertIn("Placed by", page)
+        self.assertIn("map-grade figures at their mean", page)
+        self.assertIn("two or more fine stated figures that agree", _page(_entry()))
+        one = _placed([dict(_A)], _A["lat"], _A["lon"])
+        self.assertIn("one fine stated figure", _page(one))
+
+    def test_a_coarse_figure_alone_is_not_said_to_be_read_off_a_map(self):
+        # The map route also takes a coarse stated figure (check.py), so
+        # its wording must not claim a map was read.
+        source = {"url": "https://opa.com/w", "read": "2026-11-16",
+                  "lat": -8.27, "lon": 115.59}
+        page = _page(_placed([source], -8.27, 115.59))
+        self.assertIn("map-grade figures at their mean", page)
+        self.assertNotIn("counting page&#x27;s map", page)
+
+    def test_a_flag_is_shown_and_does_not_block_approval(self):
+        a = _placed([_map_source(-8.2700, 115.5929)], -8.2700, 115.5929,
+                    id="research_id_a", name="A")
+        b = _placed([_map_source(-8.2727, 115.5929)], -8.2727, 115.5929,
+                    id="research_id_b", name="B")
+        page = _page(a, b)
+        self.assertIn("neighbour_near", page)
+        self.assertNotIn("Not offered for approval", page)
+        self.assertIn("Approve or reject", page)
+
+    def test_the_naming_pages_are_shown(self):
+        entry = _placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937)
+        page = _page(entry)
+        self.assertIn("Named in", page)
+        self.assertIn("Tulamben Bay", page)
+        self.assertIn('href="https://opa.com/sites"', page)
+        self.assertIn('href="https://pressb.org/y"', page)
+
+    def test_two_figures_show_the_distance_between_them(self):
+        a = _map_source(-8.2700, 115.5929)
+        b = _map_source(-8.2754, 115.5929, url="https://pressb.org/m")
+        page = _page(_placed([a, b], -8.2727, 115.5929))
+        self.assertIn("Between figures", page)
+        self.assertIn("600 m", page)
+
+    def test_a_stray_naming_source_is_left_out(self):
+        entry = _placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937)
+        entry["named"]["sources"].append("not a source")
+        page = _page(entry)
+        self.assertIn('href="https://opa.com/sites"', page)
+        self.assertNotIn("not a source", page)
+
+    def test_an_unreadable_counting_figure_shows_no_distance(self):
+        # Skipping the unreadable one would leave two readable figures and a
+        # distance that hides it.
+        a = _map_source(-8.2700, 115.5929)
+        b = dict(_map_source(-8.2754, 115.5929, url="https://pressb.org/m"),
+                 lat="north of the jetty")
+        c = _map_source(-8.2754, 115.5929, url="https://pressb.org/n")
+        page = _page(_placed([a, b, c], -8.2727, 115.5929))
+        self.assertIn("north of the jetty", page)
+        self.assertNotIn("Between figures", page)
+
+    def test_the_openstreetmap_link_is_at_the_shipped_point(self):
+        page = _page(_placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937))
+        self.assertIn("mlat=-8.275900", page)
 
     def test_a_source_without_a_usable_address_still_renders(self):
         entry = _entry()

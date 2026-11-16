@@ -439,8 +439,12 @@ def to_catalogue_record(
     country: str | None,
     kind: str = "site",
     trust: str = "verified",
+    position_from: str | None = None,
 ) -> dict:
     """A catalogue record from a site in the harvester's working shape.
+
+    [position_from] is "map" for a researched record placed from a
+    counting page's map (wider sources design, section 4).
 
     Empty values are left out, never written as null. The key order here is
     the file's key order.
@@ -481,6 +485,7 @@ def to_catalogue_record(
     if trust not in TRUST_LEVELS:
         raise ValueError(f"{legacy['id']}: trust {trust!r}")
     record["trust"] = trust
+    put("position_from", position_from)
     return record
 
 
@@ -516,6 +521,19 @@ def validate_catalogue(doc: dict) -> list[str]:
                 f"{site_id}: trust {record.get('trust')!r} does not fit "
                 f"source {record.get('source')!r}"
             )
+        if "position_from" in record:
+            if record["position_from"] != "map":
+                problems.append(
+                    f"{site_id}: position_from {record['position_from']!r}"
+                )
+            elif record.get("trust") != "researched":
+                problems.append(
+                    f"{site_id}: position_from on a record that is not researched"
+                )
+            elif "lat" not in record or "lon" not in record:
+                problems.append(
+                    f"{site_id}: position_from on a record with no position"
+                )
         if ("lat" in record) != ("lon" in record):
             problems.append(f"{site_id}: lat and lon must come together")
         kind = record.get("kind", "site")

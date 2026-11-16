@@ -95,6 +95,7 @@ SiteCatalogueEntriesCompanion catalogueSiteToRow(CatalogueSite site) =>
       sourceRef: Value(site.sourceRef),
       trust: Value(site.trust.name),
       kind: Value(site.kind.name),
+      positionFrom: Value(site.positionFromMap ? 'map' : null),
     );
 
 /// The catalogue site a local cache row holds.
@@ -126,6 +127,7 @@ CatalogueSite catalogueSiteFromRow(SiteCatalogueRow row) => CatalogueSite(
   sourceRef: row.sourceRef,
   trust: catalogueTrustByName[row.trust] ?? CatalogueTrust.verified,
   kind: catalogueKindsByName[row.kind] ?? CatalogueKind.site,
+  positionFromMap: row.positionFrom == 'map',
 );
 
 /// The stored form of the catalogue's sources.

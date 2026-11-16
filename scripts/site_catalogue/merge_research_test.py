@@ -65,6 +65,16 @@ class ResearchInTheMergeTest(unittest.TestCase):
         self.assertEqual(record["entry"], ["shore"])
         self.assertEqual(report["research"]["written"], 1)
 
+    def test_a_map_read_record_keeps_position_from_in_the_catalogue(self):
+        records, _ = self._build(_batch([
+            _research_record("research_id_m", "Coral Garden", -8.2759, 115.5937,
+                             position_from="map"),
+            _research_record("research_id_s", "Seraya", -8.2001, 115.6001),
+        ]))
+        by_id = {r["id"]: r for r in records}
+        self.assertEqual(by_id["research_id_m"]["position_from"], "map")
+        self.assertNotIn("position_from", by_id["research_id_s"])
+
     def test_country_mismatch_fails(self):
         with self.assertRaises(ValueError) as raised:
             self._build(_batch([
