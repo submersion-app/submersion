@@ -5,6 +5,7 @@ import 'package:submersion/features/divers/data/repositories/item_shares_reposit
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode;
+import 'package:submersion/features/planner/domain/entities/plan_log_state.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_gas_switches.dart';
@@ -225,10 +226,9 @@ class PlannedDivesWriter {
       for (final dive in series.dives)
         dive.state.id: lookups.entries[dive.state.id],
     };
-    bool dived(int i) {
-      final entry = entries[series.dives[i].state.id];
-      return entry != null && !entry.isPlanned;
-    }
+    bool dived(int i) =>
+        PlanLogState.of(entries[series.dives[i].state.id]) ==
+        PlanLogState.dived;
 
     if (!series.isSeries && dived(0)) {
       if (!moveDivedLink) return const PlannedDivesPlan(needsLinkMove: true);
@@ -269,11 +269,11 @@ class PlannedDivesWriter {
     return PlannedDiveStep(
       index: index,
       planId: series.dives[index].state.id,
-      action: entry == null
-          ? PlannedDiveAction.create
-          : entry.isPlanned
-          ? PlannedDiveAction.update
-          : PlannedDiveAction.skipDived,
+      action: switch (PlanLogState.of(entry)) {
+        PlanLogState.planned => PlannedDiveAction.create,
+        PlanLogState.loggedAsPlanned => PlannedDiveAction.update,
+        PlanLogState.dived => PlannedDiveAction.skipDived,
+      },
       entry: entry,
       result: result,
       name: plannedEntryName(series, index, result),
