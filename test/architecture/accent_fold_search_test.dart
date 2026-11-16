@@ -71,20 +71,35 @@ void main() {
       r'|\.(?:name|label|title|displayName|commonName)!?\s*\.\s*compareTo\(',
     );
     // Raw compares of a name that is not a person's or a place's: an enum's
-    // stored name, or a file name, where code-unit order is the intent.
+    // stored name, or a file name, where code-unit order is the intent. Each
+    // entry exempts one expression in one file, so any other name sort in
+    // the same file is still checked.
     const allowed = {
       // Backup file names carry a timestamp; their order is chronological.
-      'lib/features/backup/data/services/cross_device_retention.dart',
+      'lib/features/backup/data/services/cross_device_retention.dart':
+          'a.name.compareTo(b.name)',
       // Garmin activity file names, staged in a stable order.
-      'lib/features/universal_import/data/services/garmin_mtp_stager.dart',
+      'lib/features/universal_import/data/services/garmin_mtp_stager.dart':
+          'a.name.compareTo(b.name)',
       // Enum names (`EquipmentType.name`, an exposure unit's key).
-      'lib/features/equipment/presentation/providers/equipment_providers.dart',
-      'lib/features/equipment/domain/entities/exposure_unit.dart',
+      'lib/features/equipment/presentation/providers/equipment_providers.dart':
+          'a.type.name.compareTo(b.type.name)',
+      'lib/features/equipment/domain/entities/exposure_unit.dart':
+          'a.key.name.compareTo(b.key.name)',
     };
     final offenders = <String>[];
     for (final (path, masked) in libSources()) {
-      if (allowed.contains(path)) continue;
+      final exempt = allowed[path];
       for (final m in lowerCompare.allMatches(masked.code)) {
+        if (exempt != null) {
+          // The exempt expression starts at the operand before the match.
+          final start = masked.code.lastIndexOf(exempt, m.end);
+          if (start != -1 &&
+              start + exempt.length > m.start &&
+              start <= m.start) {
+            continue;
+          }
+        }
         offenders.add('$path:${masked.lineOf(m.start)}');
       }
     }
