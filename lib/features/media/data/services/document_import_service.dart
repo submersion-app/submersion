@@ -100,6 +100,30 @@ class DocumentImportService {
     String? siteId,
     String? equipmentId,
   }) async {
+    final created = <MediaItem>[];
+    for (final item in await prepareDocuments(
+      picked: picked,
+      diveId: diveId,
+      siteId: siteId,
+      equipmentId: equipmentId,
+    )) {
+      final saved = await mediaRepository.createMedia(item);
+      onMediaCreated?.call(saved.id);
+      created.add(saved);
+    }
+    return created;
+  }
+
+  /// The rows [importDocuments] would write for [picked], each under a
+  /// fresh id of its own, and none written: a sitting on the dive holds
+  /// them until Save (issue #4527). The file references (bookmarks,
+  /// persisted URIs) are taken now, as they are for a write.
+  Future<List<MediaItem>> prepareDocuments({
+    required List<({String path, String filename, String? identifier})> picked,
+    String? diveId,
+    String? siteId,
+    String? equipmentId,
+  }) async {
     // A runtime check, not just an assert: asserts are stripped in release,
     // and a row created with no parent (or two) is not a benign bug. With no
     // parent it is unreferenced the moment it is written, so the orphan sweep
@@ -170,9 +194,7 @@ class DocumentImportService {
         createdAt: now,
         updatedAt: now,
       );
-      final saved = await mediaRepository.createMedia(item);
-      onMediaCreated?.call(saved.id);
-      created.add(saved);
+      created.add(item);
     }
     return created;
   }

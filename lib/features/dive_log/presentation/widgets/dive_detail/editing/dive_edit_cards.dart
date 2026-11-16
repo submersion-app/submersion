@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_nav_track_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_route_links_sitting.dart';
@@ -267,6 +268,13 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     offeredWhenEmpty: (_) => false,
     editorBuilder: (context, session) =>
         DiveCompareCardEditor(session: session),
+  ),
+  DiveDetailSectionId.media: EditCard<Dive>(
+    id: DiveDetailSectionId.media.name,
+    title: (context) => context.l10n.media_diveMediaSection_title,
+    // Always on the page: with none, it says so.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) => DiveMediaCardEditor(session: session),
   ),
   DiveDetailSectionId.documents: EditCard<Dive>(
     id: DiveDetailSectionId.documents.name,

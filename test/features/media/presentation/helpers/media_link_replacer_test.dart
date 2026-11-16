@@ -175,4 +175,23 @@ void main() {
     // bytes and does not deduplicate the re-upload against the old hash.
     expect(repair.applied.single.single.confidence, RepairConfidence.edited);
   });
+
+  testWidgets('with onHold the proposal is handed over, not applied '
+      '(issue #4527)', (tester) async {
+    final h = await host(tester);
+    final held = <RepairProposal>[];
+    final pending = replaceMediaLink(
+      h.context,
+      h.ref,
+      _item(contentHash: _pickedHash),
+      pickPath: () async => _pickedPath,
+      hashFile: _fakeHash,
+      onHold: held.add,
+    );
+    await tester.pumpAndSettle();
+
+    expect(await pending, isTrue);
+    expect(held.single.candidate!.path, _pickedPath);
+    expect(repair.applied, isEmpty);
+  });
 }

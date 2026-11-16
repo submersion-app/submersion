@@ -52,6 +52,7 @@ void main() {
         DiveDetailSectionId.buddies,
         DiveDetailSectionId.signatures,
         DiveDetailSectionId.sightings,
+        DiveDetailSectionId.media,
         DiveDetailSectionId.documents,
         DiveDetailSectionId.diveLab,
         DiveDetailSectionId.customFields,
