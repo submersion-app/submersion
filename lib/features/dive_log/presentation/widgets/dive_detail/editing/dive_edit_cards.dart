@@ -19,7 +19,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_signatures_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_sitting.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_safety_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tags_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/safety_review_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_series_exchange.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_weights_card_editor.dart';
@@ -68,6 +70,7 @@ void startDiveSitting(EditSession<Dive> session, ProviderRead read) {
   diveSightingsList.load(session);
   diveSignaturesList.load(session);
   loadDiveAnnotations(session, read);
+  holdSafetyDismissals(session, read);
 }
 
 /// The held writes that are the dive's own rows (its gas switches, the
@@ -80,6 +83,7 @@ final Set<String> diveOwnHeldWriteKeys = {
   diveSignaturesList.key,
   annotationsKey,
   annotationsWriteKey,
+  safetyDismissalsKey,
 };
 
 /// Why a card of the dive page has nothing to edit, for those that have
@@ -111,6 +115,16 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     offeredWhenEmpty: (_) => false,
     editorBuilder: (context, session) =>
         DiveProfileCardEditor(session: session),
+  ),
+  DiveDetailSectionId.safetyReview: EditCard<Dive>(
+    id: DiveDetailSectionId.safetyReview.name,
+    title: (context) => context.l10n.safetyReview_sectionTitle,
+    // The card decides for itself whether it has findings to show.
+    isEmpty: (_) => false,
+    // Findings are worked out, never added.
+    offeredWhenEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        SafetyReviewSection(diveId: session.stored.id, editing: session),
   ),
   DiveDetailSectionId.notes: EditCard<Dive>(
     id: DiveDetailSectionId.notes.name,

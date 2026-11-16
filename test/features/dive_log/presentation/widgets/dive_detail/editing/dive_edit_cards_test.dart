@@ -36,25 +36,29 @@ void main() {
   group('the dive cards', () {
     // A card registered here gains a pencil on the dive page. Naming them
     // makes adding one a deliberate change to this test.
-    test('are Profile, Notes, Tags, Altitude, Environment, Details, Cylinders, '
-        'Weight, Equipment, Buddies, Signatures, Sightings and Custom '
-        'fields', () {
-      expect(diveEditCards.keys, {
-        DiveDetailSectionId.profile,
-        DiveDetailSectionId.notes,
-        DiveDetailSectionId.tags,
-        DiveDetailSectionId.altitude,
-        DiveDetailSectionId.environment,
-        DiveDetailSectionId.details,
-        DiveDetailSectionId.tanks,
-        DiveDetailSectionId.weights,
-        DiveDetailSectionId.equipment,
-        DiveDetailSectionId.buddies,
-        DiveDetailSectionId.signatures,
-        DiveDetailSectionId.sightings,
-        DiveDetailSectionId.customFields,
-      });
-    });
+    test(
+      'are Profile, Safety review, Notes, Tags, Altitude, Environment, Details, Cylinders, '
+      'Weight, Equipment, Buddies, Signatures, Sightings and Custom '
+      'fields',
+      () {
+        expect(diveEditCards.keys, {
+          DiveDetailSectionId.profile,
+          DiveDetailSectionId.safetyReview,
+          DiveDetailSectionId.notes,
+          DiveDetailSectionId.tags,
+          DiveDetailSectionId.altitude,
+          DiveDetailSectionId.environment,
+          DiveDetailSectionId.details,
+          DiveDetailSectionId.tanks,
+          DiveDetailSectionId.weights,
+          DiveDetailSectionId.equipment,
+          DiveDetailSectionId.buddies,
+          DiveDetailSectionId.signatures,
+          DiveDetailSectionId.sightings,
+          DiveDetailSectionId.customFields,
+        });
+      },
+    );
 
     test('Equipment is left out of a dive with no gear', () {
       final equipment = diveEditCards[DiveDetailSectionId.equipment]!;
