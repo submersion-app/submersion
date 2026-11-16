@@ -25,8 +25,11 @@ class DiveCenterLogoField extends StatelessWidget {
       child: Semantics(
         button: true,
         label: context.l10n.diveCenters_field_logo,
-        child: GestureDetector(
+        // An InkWell rather than a GestureDetector, so the logo takes keyboard
+        // focus and Enter or Space opens the picker on desktop and web.
+        child: InkWell(
           onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
           child: Stack(
             children: [
               DiveCenterAvatar(

@@ -81,8 +81,7 @@ class DiveCenterAvatar extends StatelessWidget {
     if (bytes == null) return iconBox;
     // Decode at the drawn size, as ProfileAvatar does: a bare MemoryImage
     // holds the full 512 px bitmap for every logo in a long list.
-    final devicePixelRatio = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1.0;
-    final int target = (side * devicePixelRatio).round().clamp(1, 512);
+    final target = storedAvatarDecodeSize(context, side);
     return ClipRRect(
       borderRadius: borderRadius,
       child: Image(
@@ -101,9 +100,10 @@ class DiveCenterAvatar extends StatelessWidget {
   }
 }
 
-/// What sits inside a dive center map marker's coloured ring: the logo
-/// filling the circle, or with none the bare store icon the markers always
-/// drew, so a center without a logo looks exactly as it did (#4460).
+/// What sits inside a dive center map marker's coloured circle: the logo,
+/// sized by the caller to leave a band of the marker's rating (or selection)
+/// colour showing around it, or with none the bare store icon the markers
+/// always drew, so a center without a logo looks exactly as it did (#4460).
 class DiveCenterMarkerGlyph extends StatelessWidget {
   const DiveCenterMarkerGlyph({
     super.key,
