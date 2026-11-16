@@ -85,7 +85,7 @@ class MediaInfoPanel extends ConsumerWidget {
       children: [
         Text(l10n.media_info_title, style: _titleStyle(context)),
         const SizedBox(height: 16),
-        MediaInfoTagsSection(item: live),
+        MediaInfoTagsSection(item: live, readOnly: readOnly, sitting: sitting),
         const SizedBox(height: 12),
         _FileSection(
           item: live,

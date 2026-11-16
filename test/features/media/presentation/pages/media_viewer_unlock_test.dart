@@ -588,6 +588,18 @@ void main() {
 
       expect(find.text('Media info'), findsWidgets);
       expect(find.text('Set time in dive'), findsNothing);
+      // The photo's own tags (#1970) are a change too.
+      expect(find.byKey(const ValueKey('media_info_editTags')), findsNothing);
+    });
+
+    testWidgets('unlocked: the info sheet offers Edit tags', (tester) async {
+      await pumpViewer(tester);
+      await tapUnlock(tester);
+
+      await tester.tap(find.byKey(const ValueKey('viewer_info')));
+      await settleViewer(tester);
+
+      expect(find.byKey(const ValueKey('media_info_editTags')), findsOneWidget);
     });
   });
 

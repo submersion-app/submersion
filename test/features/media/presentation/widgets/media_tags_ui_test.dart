@@ -10,6 +10,10 @@ import 'package:submersion/features/media/presentation/widgets/media_tag_sheet.d
 import 'package:submersion/features/tags/data/repositories/tag_link_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/domain/value_objects/photo_tag_edits.dart';
+import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -174,5 +178,70 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(container.read(mediaLibraryFilterProvider).tagIds, {'wreck'});
+  });
+
+  group('the photo\'s lock (issue #4527)', () {
+    EditSession<PhotoRecord> sittingOver() {
+      final session = EditSession<PhotoRecord>(
+        PhotoRecord(item: item, species: const [], people: const []),
+      );
+      addTearDown(session.dispose);
+      return session;
+    }
+
+    testWidgets('read only: the tags section offers no Edit tags', (
+      tester,
+    ) async {
+      await pump(tester, MediaInfoTagsSection(item: item, readOnly: true));
+
+      expect(find.byKey(const ValueKey('media_info_editTags')), findsNothing);
+    });
+
+    testWidgets('in a sitting: the section shows the held tags', (
+      tester,
+    ) async {
+      final sitting = sittingOver();
+      sitting.set(
+        photoTagsField,
+        MediaTagEdits.between(const [], [
+          Tag(
+            id: 'wreck',
+            name: 'Wreck',
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+        ]),
+      );
+
+      await pump(tester, MediaInfoTagsSection(item: item, sitting: sitting));
+
+      expect(find.text('Wreck'), findsOneWidget);
+    });
+
+    testWidgets('in a sitting: the sheet holds a typed tag; no link written', (
+      tester,
+    ) async {
+      final sitting = sittingOver();
+      await pump(tester, MediaTagSheet(item: item, sitting: sitting));
+
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(TagInputWidget),
+          matching: find.byType(TextField),
+        ),
+        'Funny',
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      final stored = await tester.runAsync(tagIds);
+      expect(stored, isEmpty);
+      expect(
+        sitting.valueOf(photoTagsField).added.values.map((t) => t.name),
+        ['Funny'],
+      );
+      // The tag input refocuses on a short timer after a submit.
+      await tester.pump(const Duration(seconds: 1));
+    });
   });
 }

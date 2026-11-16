@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 /// The species a photo's sitting tagged and untagged (issue #4527).
 ///
@@ -180,6 +181,55 @@ class PersonTagEdits extends Equatable {
 
   @override
   List<Object?> get props => [added, changed, removed];
+}
+
+/// The photo's own tags (#1970) a sitting added and removed (issue #4527),
+/// held as edits for the reason [SpeciesTagEdits] is.
+@immutable
+class MediaTagEdits extends Equatable {
+  const MediaTagEdits({this.added = const {}, this.removed = const {}});
+
+  static const none = MediaTagEdits();
+
+  /// Tags added in the sitting, by tag id.
+  final Map<String, Tag> added;
+
+  /// Stored tags removed in the sitting.
+  final Set<String> removed;
+
+  bool get isEmpty => added.isEmpty && removed.isEmpty;
+
+  /// The edits that turn [stored] into [chosen], as the tag sheet hands back
+  /// the whole set.
+  factory MediaTagEdits.between(List<Tag> stored, List<Tag> chosen) {
+    final had = {for (final tag in stored) tag.id};
+    final has = {for (final tag in chosen) tag.id};
+    return MediaTagEdits(
+      added: {
+        for (final tag in chosen)
+          if (!had.contains(tag.id)) tag.id: tag,
+      },
+      removed: had.difference(has),
+    );
+  }
+
+  /// [stored] without the removed tags, then the added ones it does not
+  /// have already.
+  List<Tag> applyTo(List<Tag> stored) {
+    final kept = [
+      for (final tag in stored)
+        if (!removed.contains(tag.id)) tag,
+    ];
+    final have = {for (final tag in kept) tag.id};
+    return [
+      ...kept,
+      for (final tag in added.values)
+        if (!have.contains(tag.id)) tag,
+    ];
+  }
+
+  @override
+  List<Object?> get props => [added, removed];
 }
 
 /// Whether [a] and [b] name the same person at the same spot and moment;

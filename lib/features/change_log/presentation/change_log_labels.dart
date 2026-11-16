@@ -112,6 +112,7 @@ String _photoChangeName(AppLocalizations l, String id) => switch (id) {
   photoTimeCardId => l.media_editCard_timeInDive,
   photoColorCardId => l.media_editCard_color,
   photoDetailsCardId => l.media_editCard_details,
+  photoTagsCardId => l.media_info_tags,
   _ => id,
 };
 

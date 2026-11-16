@@ -82,6 +82,13 @@ void main() {
       );
     });
 
+    test('a photo sitting names its tags', () {
+      expect(
+        changeLogStoredLabel(l, 'record_edit:media:tags'),
+        'Edited photo: Tags',
+      );
+    });
+
     test('an unknown photo card id is shown as written', () {
       expect(
         changeLogStoredLabel(l, 'record_edit:media:species,zzz'),

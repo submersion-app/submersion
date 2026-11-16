@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
@@ -12,6 +14,7 @@ import 'package:submersion/features/media/data/services/species_tagging_service.
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/domain/value_objects/attachment_details_edit.dart';
 import 'package:submersion/features/media/domain/value_objects/photo_tag_edits.dart';
+import 'package:submersion/features/tags/data/repositories/tag_link_repository.dart';
 
 /// Saves one editing sitting on a photo or video (issue #4527).
 ///
@@ -32,7 +35,9 @@ class PhotoEditSaveService {
     required MediaColorAdjustmentRepository colors,
     required SiteAttachmentRepository attachments,
     required DiveRepository dives,
-  }) : _reader = reader,
+    required TagLinkRepository tags,
+  }) : _tags = tags,
+       _reader = reader,
        _tagging = tagging,
        _people = people,
        _media = media,
@@ -47,6 +52,7 @@ class PhotoEditSaveService {
   final MediaColorAdjustmentRepository _colors;
   final SiteAttachmentRepository _attachments;
   final DiveRepository _dives;
+  final TagLinkRepository _tags;
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -111,6 +117,10 @@ class PhotoEditSaveService {
     );
     if (!details.isEmpty) {
       await _attachments.setAttachmentDetails(id, details);
+    }
+    final tagIds = [for (final tag in after.tags) tag.id];
+    if (!setEquals(tagIds.toSet(), {for (final t in before.tags) t.id})) {
+      await _tags.replaceTags(id, tagIds);
     }
     final diveId = after.item.diveId;
     final shift = after.diveShiftSeconds;

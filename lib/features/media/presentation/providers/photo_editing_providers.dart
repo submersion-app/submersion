@@ -10,12 +10,15 @@ import 'package:submersion/features/media/presentation/providers/media_people_pr
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
 
 final photoRecordReaderProvider = Provider<PhotoRecordReader>(
   (ref) => PhotoRecordReader(
     media: ref.watch(mediaRepositoryProvider),
     species: ref.watch(mediaSpeciesRepositoryProvider),
     people: ref.watch(mediaPeopleRepositoryProvider),
+    tags: ref.watch(tagLinkRepositoryProvider(TagScope.media)),
   ),
 );
 
@@ -38,6 +41,9 @@ final photoRecordProvider = FutureProvider.autoDispose
         ref.watch(buddyRepositoryProvider).watchBuddiesChanges(),
       );
       ref.invalidateSelfWhen(
+        ref.watch(tagLinkRepositoryProvider(TagScope.media)).watchChanges(),
+      );
+      ref.invalidateSelfWhen(
         ref.watch(diveRepositoryProvider).watchDivesChanges(),
       );
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
@@ -55,5 +61,6 @@ final photoEditSaveServiceProvider = Provider<PhotoEditSaveService>(
     colors: ref.watch(mediaColorAdjustmentRepositoryProvider),
     attachments: ref.watch(siteAttachmentRepositoryProvider),
     dives: ref.watch(diveRepositoryProvider),
+    tags: ref.watch(tagLinkRepositoryProvider(TagScope.media)),
   ),
 );

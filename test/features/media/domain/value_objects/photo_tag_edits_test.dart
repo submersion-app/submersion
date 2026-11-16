@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/domain/value_objects/photo_tag_edits.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 SpeciesTagChip _species(String id) => SpeciesTagChip(
   speciesId: id,
@@ -190,6 +191,41 @@ void main() {
       final storedNow = [...stored, _person('t9', diverId: 'me')];
 
       expect(edits.applyTo(storedNow).map((c) => c.tag.id), ['t9']);
+    });
+  });
+
+  group('MediaTagEdits (#1970 tags)', () {
+    Tag tag(String id) => Tag(
+      id: id,
+      name: id,
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
+    );
+
+    test('the tags chosen, as edits on the stored ones', () {
+      final edits = MediaTagEdits.between(
+        [tag('wreck'), tag('night')],
+        [tag('night'), tag('macro')],
+      );
+
+      expect(edits.added.keys, ['macro']);
+      expect(edits.removed, {'wreck'});
+    });
+
+    test('the stored tags chosen again is no edit', () {
+      expect(
+        MediaTagEdits.between([tag('wreck')], [tag('wreck')]),
+        MediaTagEdits.none,
+      );
+    });
+
+    test('applyTo keeps a tag the edits never named', () {
+      final edits = MediaTagEdits.between([tag('wreck')], [tag('macro')]);
+
+      expect(edits.applyTo([tag('wreck'), tag('synced')]).map((t) => t.id), [
+        'synced',
+        'macro',
+      ]);
     });
   });
 }

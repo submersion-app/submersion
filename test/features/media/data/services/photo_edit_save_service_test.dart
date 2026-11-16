@@ -22,6 +22,9 @@ import 'package:submersion/features/media/domain/value_objects/photo_tag_edits.d
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/editing/photo_held_writes.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/features/tags/data/repositories/tag_link_repository.dart';
+import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../repositories/species_photo_fixtures.dart';
@@ -62,6 +65,7 @@ void main() {
         colors: colors,
         attachments: SiteAttachmentRepository(),
         dives: dives ?? DiveRepository(),
+        tags: TagLinkRepository(TagScope.media),
       );
 
   Future<List<Map<String, Object?>>> operations() async {
@@ -125,6 +129,7 @@ void main() {
       media: media,
       species: MediaSpeciesRepository(),
       people: people,
+      tags: TagLinkRepository(TagScope.media),
     );
     await insertTestDiver('me');
     await insertTestSite('s1', 'Blue Hole');
@@ -351,4 +356,44 @@ void main() {
       expect(await reader.read('p1', diverId: 'me'), isNull);
     },
   );
+
+  test('photo tags held: written at Save; a tag added elsewhere meanwhile '
+      'is kept; the label names tags', () async {
+    final tags = TagRepository();
+    final wreck = await tags.getOrCreateTag(
+      'Wreck',
+      diverId: 'me',
+      scope: TagScope.media,
+    );
+    final macro = await tags.getOrCreateTag(
+      'Macro',
+      diverId: 'me',
+      scope: TagScope.media,
+    );
+    final night = await tags.getOrCreateTag(
+      'Night',
+      diverId: 'me',
+      scope: TagScope.media,
+    );
+    final links = TagLinkRepository(TagScope.media);
+    await links.replaceTags('p1', [wreck.id]);
+    await changeLog.settleAll();
+    await db.customStatement('DELETE FROM change_log_operations');
+    final session = await sitting('p1');
+    session.set(
+      photoTagsField,
+      MediaTagEdits.between(session.stored.tags, [macro]),
+    );
+    await links.replaceTags('p1', [wreck.id, night.id]);
+
+    await save(session);
+
+    final after = await stored('p1');
+    expect(after.tags.map((t) => t.id).toSet(), {night.id, macro.id});
+    final labelled = [
+      for (final op in await operations())
+        if (op['label'] != null) op['label'],
+    ];
+    expect(labelled, ['record_edit:media:tags']);
+  });
 }
