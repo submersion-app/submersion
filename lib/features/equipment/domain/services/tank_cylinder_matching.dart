@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/twin_pair_specs.dart';
 
 /// Volumes closer than this are the same cylinder size (the tolerance
 /// [TankPresets] matches specs with).
@@ -90,17 +91,12 @@ bool cylinderMatchesTank(EquipmentItem item, DiveTank tank) {
 /// both cylinders share.
 bool pairMatchesTank(EquipmentItem a, EquipmentItem b, DiveTank tank) {
   if (_isSuitTank(tank)) return false;
-  final va = a.volumeL;
-  final vb = b.volumeL;
-  final pa = a.workingPressureBar;
-  final pb = b.workingPressureBar;
-  final pressure = pa == null ? pb : (pb == null || pa < pb ? pa : pb);
   final ma = a.tankMaterial;
   final mb = b.tankMaterial;
   if (ma != null && mb != null && ma != mb) return false;
   return _specMatches(
-    volumeL: va == null || vb == null ? null : va + vb,
-    workingPressureBar: pressure,
+    volumeL: twinPairVolume(a, b),
+    workingPressureBar: twinPairWorkingPressure(a, b),
     material: ma ?? mb,
     tank: tank,
   );
@@ -122,7 +118,7 @@ List<CylinderProposal> proposeCylinders(
     if (tank.equipmentId != null || volume == null || volume <= 0) continue;
     if (owned.any((item) => cylinderMatchesTank(item, tank))) continue;
     if (ownedPairs.any((p) => pairMatchesTank(p.$1, p.$2, tank))) continue;
-    groups.putIfAbsent(_GroupKey.of(tank), () => []).add(ref);
+    groups.putIfAbsent(_groupKeyOf(tank), () => []).add(ref);
   }
   final proposals = [for (final refs in groups.values) _proposalOf(refs)];
   // A stable sort, so equal rows keep the order the tanks came in.
@@ -183,29 +179,16 @@ String? _suggestedName(List<TankRef> refs, DiveTank first) {
 /// to the bar, the material, and whether it is a suit inflation bottle. An
 /// absent rating or material is its own value, not a wildcard, so a tank
 /// with only a volume never merges into a row that states more.
-class _GroupKey {
-  const _GroupKey(this.decilitres, this.bar, this.material, this.suit);
+typedef _GroupKey = (
+  int decilitres,
+  int? bar,
+  TankMaterial? material,
+  bool suit,
+);
 
-  factory _GroupKey.of(DiveTank tank) => _GroupKey(
-    (tank.volume! * 10).round(),
-    tank.workingPressure?.round(),
-    tank.material,
-    _isSuitTank(tank),
-  );
-
-  final int decilitres;
-  final int? bar;
-  final TankMaterial? material;
-  final bool suit;
-
-  @override
-  bool operator ==(Object other) =>
-      other is _GroupKey &&
-      other.decilitres == decilitres &&
-      other.bar == bar &&
-      other.material == material &&
-      other.suit == suit;
-
-  @override
-  int get hashCode => Object.hash(decilitres, bar, material, suit);
-}
+_GroupKey _groupKeyOf(DiveTank tank) => (
+  (tank.volume! * 10).round(),
+  tank.workingPressure?.round(),
+  tank.material,
+  _isSuitTank(tank),
+);

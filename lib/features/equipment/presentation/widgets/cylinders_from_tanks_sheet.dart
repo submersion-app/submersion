@@ -87,9 +87,16 @@ class _RowEdit {
     return read is NumberValue ? units.pressureToBar(read.value) : null;
   }
 
+  /// In cubic feet the figure depends on the working pressure, so once the
+  /// pressure changes the shown figure is read again at the new one rather
+  /// than kept as the logged liters.
   double? volumeL(UnitFormatter units) => tankVolumeFromInput(
     volume.text,
-    initialText: volumeText,
+    initialText:
+        units.settings.volumeUnit == VolumeUnit.cubicFeet &&
+            pressure.text.trim() != pressureText.trim()
+        ? ''
+        : volumeText,
     initialLiters: proposal.volumeL,
     workingPressureBar: pressureBar(units),
     unit: units.settings.volumeUnit,

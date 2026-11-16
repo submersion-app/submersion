@@ -44,6 +44,19 @@ void main() {
       );
     });
 
+    test('a typed rated figure reads back as that preset', () {
+      expect(
+        tankVolumeFromInput(
+          '77.4',
+          initialText: '',
+          initialLiters: 0,
+          workingPressureBar: 206.843,
+          unit: VolumeUnit.cubicFeet,
+        ),
+        11.1,
+      );
+    });
+
     test('metric reads liters', () {
       expect(
         tankVolumeFromInput(
