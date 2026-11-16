@@ -203,6 +203,49 @@ void main() {
       ]);
     });
 
+    test('siteLocations reads one area typed in two cases as one', () {
+      const saved = DiveSite(
+        id: 'site-1',
+        name: 'Elphinstone',
+        region: 'Red Sea',
+        country: 'Egypt',
+      );
+      const imported = DiveSite(
+        id: 'site-2',
+        name: 'Abu Dabab',
+        region: 'Red sea',
+        country: 'egypt',
+      );
+      const town = DiveSite(
+        id: 'site-3',
+        name: 'Marsa Shona',
+        city: 'Marsa Alam',
+        region: 'RED SEA',
+        country: 'EGYPT',
+      );
+      final day = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        dives: [
+          _dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 7), site: saved),
+          _dive(id: 'd2', dateTime: DateTime(2026, 3, 8, 9), site: imported),
+        ],
+      );
+      expect(day.siteLocations, ['Red Sea, Egypt']);
+
+      final withTown = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        dives: [
+          _dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 7), site: saved),
+          _dive(id: 'd3', dateTime: DateTime(2026, 3, 8, 11), site: town),
+        ],
+      );
+      expect(withTown.siteLocations, ['Marsa Alam · RED SEA, EGYPT']);
+    });
+
     test('empty day has no content and null maxDepth', () {
       final day = TripStoryDay(
         date: date,

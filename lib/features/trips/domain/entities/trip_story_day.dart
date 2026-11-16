@@ -106,17 +106,23 @@ class TripStoryDay extends Equatable {
   /// Several sites in one area read as that area once, and an area a finer
   /// location already names is left out: "Red Sea, Egypt" beside
   /// "Marsa Alam · Red Sea, Egypt" would say the same place twice. A site
-  /// with no town, region or country set adds nothing.
+  /// with no town, region or country set adds nothing. Both checks ignore
+  /// case, since one area is often typed two ways; the first spelling wins.
   List<String> get siteLocations {
     final seen = <String>{};
     final locations = <String>[];
     for (final dive in dives) {
       final location = dive.site?.locationString ?? '';
-      if (location.isNotEmpty && seen.add(location)) locations.add(location);
+      if (location.isNotEmpty && seen.add(location.toLowerCase())) {
+        locations.add(location);
+      }
     }
-    bool namedWithin(String coarse, String fine) =>
-        fine != coarse &&
-        (fine.endsWith(' · $coarse') || fine.endsWith(', $coarse'));
+    bool namedWithin(String coarse, String fine) {
+      final c = coarse.toLowerCase();
+      final f = fine.toLowerCase();
+      return f != c && (f.endsWith(' · $c') || f.endsWith(', $c'));
+    }
+
     return [
       for (final location in locations)
         if (!locations.any((other) => namedWithin(location, other))) location,

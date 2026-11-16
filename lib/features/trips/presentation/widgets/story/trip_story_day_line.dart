@@ -38,9 +38,10 @@ class TripStoryDayLine extends ConsumerWidget {
     final parts = tripDaySubtitleParts(context, day);
     // A location already holds a "·" ("Marsa Alam · Red Sea, Egypt"), so two
     // of them are kept apart with a semicolon instead.
-    final locations = day.siteLocations.join('; ');
+    final siteLocations = day.siteLocations;
+    final locations = siteLocations.join('; ');
     // Said with commas: a screen reader reads the "·" out as a word.
-    final spokenLocations = day.siteLocations
+    final spokenLocations = siteLocations
         .map((location) => location.replaceAll(' · ', ', '))
         .join('; ');
     final quiet = day.isSurface || day.isPlannedRest;
