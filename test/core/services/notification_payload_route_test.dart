@@ -9,6 +9,29 @@ void main() {
     expect(notificationPayloadRoute('document:abc'), '/documents/abc');
   });
 
+  test('a document reminder that names its diver opens the document '
+      '(#4609)', () {
+    expect(
+      notificationPayloadRoute(documentReminderPayload('abc', 'd1')),
+      '/documents/abc',
+    );
+  });
+
+  test('a document reminder payload carries the document and its diver; '
+      'one from before carries the document alone (#4609)', () {
+    expect(parseDocumentReminderPayload(documentReminderPayload('abc', 'd1')), (
+      documentId: 'abc',
+      diverId: 'd1',
+    ));
+    expect(parseDocumentReminderPayload('document:abc'), (
+      documentId: 'abc',
+      diverId: null,
+    ));
+    expect(parseDocumentReminderPayload('document:'), isNull);
+    expect(parseDocumentReminderPayload('document:?diver=d1'), isNull);
+    expect(parseDocumentReminderPayload('e-42'), isNull);
+  });
+
   test('an equipment reminder opens the item', () {
     expect(notificationPayloadRoute('e-42'), '/equipment/e-42');
   });

@@ -313,6 +313,38 @@ void main() {
     },
   );
 
+  test('a delete names the divers who lost a medical clearance, owner '
+      'deletes too (#4609)', () async {
+    final named = <Set<String>>[];
+    final withHook = DocumentRepository(
+      cancelReminders: (_) async {},
+      clearancesDeleted: named.add,
+    );
+    final permit = await withHook.save(
+      newDoc(type: DocumentType.permit),
+      const [],
+    );
+    await withHook.save(
+      newDoc(
+        type: DocumentType.medicalClearance,
+        owner: const DocumentOwner(DocumentOwnerKind.trip, 't1'),
+      ),
+      const [],
+    );
+    final personal = await withHook.save(
+      newDoc(type: DocumentType.medicalClearance),
+      const [],
+    );
+    await withHook.delete(permit.id);
+    expect(named, isEmpty);
+    await withHook.deleteForOwner(DocumentOwnerKind.trip, 't1');
+    await withHook.delete(personal.id);
+    expect(named, [
+      {'d1'},
+      {'d1'},
+    ]);
+  });
+
   test('a restored snapshot drops the delete\'s tombstones', () async {
     final saved = await repo.save(
       newDoc(owner: const DocumentOwner(DocumentOwnerKind.trip, 't1')),

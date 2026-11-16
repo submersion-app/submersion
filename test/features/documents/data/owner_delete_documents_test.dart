@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/data/services/clearance_delete_events.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -302,6 +303,36 @@ void main() {
     await _addDoc(DocumentOwnerKind.diveCenter, 'x1');
     await DiveCenterRepository().deleteDiveCenter('x1');
     await expectGone();
+  });
+
+  test('deleting a record that holds a medical clearance names its diver, '
+      'so the clearance it superseded reminds again (#4609)', () async {
+    await db
+        .into(db.diveCenters)
+        .insert(
+          DiveCentersCompanion.insert(
+            id: 'x1',
+            diverId: const Value('d1'),
+            name: 'Buddy Dive',
+            createdAt: _now,
+            updatedAt: _now,
+          ),
+        );
+    await DocumentRepository().save(
+      Document(
+        id: '',
+        diverId: 'd1',
+        owner: const DocumentOwner(DocumentOwnerKind.diveCenter, 'x1'),
+        type: DocumentType.medicalClearance,
+        expiryDate: DateTime(2030),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+      const [],
+    );
+    final named = ClearanceDeleteEvents.stream.first;
+    await DiveCenterRepository().deleteDiveCenter('x1');
+    expect(await named.timeout(const Duration(seconds: 5)), {'d1'});
   });
 
   test('deleting a diver deletes every document they filed', () async {

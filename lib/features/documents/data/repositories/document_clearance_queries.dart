@@ -41,6 +41,22 @@ mixin _DocumentClearanceQueries {
     return rows.map(documentFromRow).toList();
   }
 
+  /// The divers whose documents among [ids] include a medical clearance:
+  /// the ones a delete of [ids] has to re-arm (#4609).
+  Future<Set<String>> _clearanceDiversOf(List<String> ids) async {
+    final diverId = _db.documents.diverId;
+    final out = <String>{};
+    for (final chunk in ids.slices(DocumentRepository._inListChunk)) {
+      final q = _db.selectOnly(_db.documents, distinct: true)
+        ..addColumns([diverId])
+        ..where(
+          _db.documents.id.isIn(chunk) & _db.documents.type.equals(_clearance),
+        );
+      out.addAll(await q.map((r) => r.read(diverId)!).get());
+    }
+    return out;
+  }
+
   /// The expiry of each diver's current medical clearance, the one that
   /// alone reminds (currentClearances): their own, not one filed under a
   /// buddy. A diver whose current clearance has no expiry has none here.

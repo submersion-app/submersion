@@ -1,5 +1,7 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
+import 'package:submersion/features/documents/data/services/clearance_delete_events.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
 import 'package:submersion/features/notifications/data/repositories/scheduled_notification_repository.dart';
@@ -27,6 +29,32 @@ final notificationSchedulerProvider = Provider<NotificationScheduler>((ref) {
       scheduledNotificationRepositoryProvider,
     ),
   );
+});
+
+/// Re-arms the medical clearances of every diver a delete took one from
+/// (#4609), so the clearance it superseded reminds again: a delete on the
+/// documents page or by the agent, and a record's delete taking the
+/// documents filed under it. The app keeps it alive from its root.
+final clearanceDeleteRearmProvider = Provider<void>((ref) {
+  final log = LoggerService.forClass(NotificationScheduler);
+  final sub = ClearanceDeleteEvents.stream.listen((diverIds) async {
+    final scheduler = ref.read(notificationSchedulerProvider);
+    final settings = ref.read(settingsProvider);
+    for (final diverId in diverIds) {
+      // A reminder failure never fails the delete: the next full
+      // reschedule repairs it.
+      try {
+        await scheduler.updateClearancesForDiver(diverId, settings);
+      } catch (e, stackTrace) {
+        log.warning(
+          'Clearance reminders of $diverId not re-armed',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+  });
+  ref.onDispose(sub.cancel);
 });
 
 /// Provider to check if notification permission is granted

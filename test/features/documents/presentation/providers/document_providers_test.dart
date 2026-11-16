@@ -21,15 +21,23 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 import '../../document_repository_doubles.dart';
 
-/// Records which documents had their reminders rescheduled.
+/// Records which documents, and which divers' clearances, had their
+/// reminders rescheduled.
 class _RecordingScheduler extends NotificationScheduler {
   final updated = <String>[];
+  final clearanceDivers = <String>[];
 
   @override
   Future<void> updateForDocument(
     Document document,
     AppSettings settings,
   ) async => updated.add(document.id);
+
+  @override
+  Future<void> updateClearancesForDiver(
+    String diverId,
+    AppSettings settings,
+  ) async => clearanceDivers.add(diverId);
 }
 
 DocumentPage _scan(List<int> bytes) => DocumentPage(
@@ -270,6 +278,8 @@ void main() {
       ],
     );
     addTearDown(c.dispose);
+    // The app keeps the re-arm listening from its root (#4609).
+    c.read(clearanceDeleteRearmProvider);
     final repo = c.read(documentRepositoryProvider);
     final mutations = c.read(documentMutationsProvider);
     final clearance = await repo.save(
@@ -281,9 +291,12 @@ void main() {
       const [],
     );
     await mutations.delete(permit.id);
-    expect(scheduler.updated, isEmpty);
+    await pumpEventQueue();
+    expect(scheduler.clearanceDivers, isEmpty);
     await mutations.delete(clearance.id);
-    expect(scheduler.updated, [clearance.id]);
+    await pumpEventQueue();
+    expect(scheduler.clearanceDivers, ['d1']);
+    expect(scheduler.updated, isEmpty);
   });
 
   ProviderContainer recording(_RecordingScheduler scheduler) {

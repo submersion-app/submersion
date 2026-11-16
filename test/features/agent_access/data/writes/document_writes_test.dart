@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
+import 'package:submersion/features/documents/data/services/clearance_delete_events.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -95,17 +96,21 @@ void main() {
     },
   );
 
-  test('deleting a renewal re-arms the clearance it superseded (#4541); '
-      'a delete that leaves no clearance re-arms nothing', () async {
+  test('deleting a clearance names its diver, so the one it superseded '
+      'reminds again (#4541, #4609); deleting another type names no '
+      'one', () async {
+    final named = <Set<String>>[];
+    final sub = ClearanceDeleteEvents.stream.listen(named.add);
+    addTearDown(sub.cancel);
     final permit = await make('documents', {
       'type': 'permit',
       'expiry_date': '2026-01-31',
     });
-    rearmed.clear();
     await h.run([deleteOp('documents', permit)]);
-    expect(rearmed, isEmpty);
+    await pumpEventQueue();
+    expect(named, isEmpty);
 
-    final old = await make('documents', {
+    await make('documents', {
       'type': 'medicalClearance',
       'expiry_date': '2026-01-31',
     });
@@ -115,7 +120,12 @@ void main() {
     });
     rearmed.clear();
     await h.run([deleteOp('documents', renewal)]);
-    expect(rearmed, [old]);
+    await pumpEventQueue();
+    expect(named, [
+      {kDiverA},
+    ]);
+    // The delete re-arms through the repository, not afterApply.
+    expect(rearmed, isEmpty);
   });
 
   test('is_primary on a non-insurance document is refused', () async {

@@ -34,9 +34,36 @@ const String kHealthReviewPayload = 'healthReview';
 /// The payload prefix of a document reminder: `document:<id>`.
 const String _documentPayloadPrefix = 'document:';
 
+/// What follows the document id in a payload that names its diver.
+const String _documentPayloadDiver = '?diver=';
+
+/// A document reminder's payload: `document:<id>?diver=<diverId>`. The
+/// diver lets a full schedule settle the clearances of a profile whose
+/// document was deleted on another device (#4609), when the row that
+/// said whose it was is gone. Payloads from before carry the id alone.
+String documentReminderPayload(String documentId, String diverId) =>
+    '$_documentPayloadPrefix$documentId$_documentPayloadDiver$diverId';
+
+/// The document a reminder's [payload] is about and the diver it names,
+/// null when the payload names none. Null for any other payload, or one
+/// without a document id.
+({String documentId, String? diverId})? parseDocumentReminderPayload(
+  String payload,
+) {
+  if (!payload.startsWith(_documentPayloadPrefix)) return null;
+  final rest = payload.substring(_documentPayloadPrefix.length);
+  final at = rest.indexOf(_documentPayloadDiver);
+  final documentId = at < 0 ? rest : rest.substring(0, at);
+  if (documentId.isEmpty) return null;
+  final diverId = at < 0
+      ? ''
+      : rest.substring(at + _documentPayloadDiver.length);
+  return (documentId: documentId, diverId: diverId.isEmpty ? null : diverId);
+}
+
 /// The route a tapped reminder opens: a document reminder (payload
-/// `document:<id>`, issue #2613) opens the document, any other payload is
-/// an equipment id. Null for an empty payload.
+/// `document:<id>`, issue #2613, now with its diver) opens the document,
+/// any other payload is an equipment id. Null for an empty payload.
 String? notificationPayloadRoute(String payload) {
   // The dive mark notification (issue #637) opens the GPS log.
   if (payload == kDiveMarkPayload) return kTracksLocation;
@@ -49,8 +76,8 @@ String? notificationPayloadRoute(String payload) {
   if (payload == kWatchDivesPayload) return '/dives';
   if (payload == kHealthReviewPayload) return '/settings/wearable-import';
   if (payload.startsWith(_documentPayloadPrefix)) {
-    final id = payload.substring(_documentPayloadPrefix.length);
-    return id.isEmpty ? null : '/documents/$id';
+    final id = parseDocumentReminderPayload(payload)?.documentId;
+    return id == null ? null : '/documents/$id';
   }
   return payload.isEmpty ? null : '/equipment/$payload';
 }
@@ -505,9 +532,11 @@ class NotificationService {
 
   /// One-shot document expiry reminder (issue #2613). The id is stable per
   /// document and stage, so rescheduling replaces rather than duplicates.
-  /// [title] and [body] arrive localized from the scheduler.
+  /// [title] and [body] arrive localized from the scheduler; [diverId] is
+  /// the document's, carried in the payload (documentReminderPayload).
   Future<int> scheduleDocumentReminder({
     required String documentId,
+    required String diverId,
     required String title,
     required String body,
     required DocumentReminderStage stage,
@@ -539,7 +568,7 @@ class NotificationService {
       body: body,
       scheduledDate: scheduledTz,
       notificationDetails: details,
-      payload: '$_documentPayloadPrefix$documentId',
+      payload: documentReminderPayload(documentId, diverId),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
     );
     _log.info(
@@ -556,18 +585,25 @@ class NotificationService {
     }
   }
 
-  /// The ids of documents with a reminder pending in the OS, read from the
-  /// payloads, so a full schedule can cancel the ones whose document was
-  /// deleted elsewhere (a sync, an owner delete) or no longer reminds.
-  Future<Set<String>> pendingDocumentReminderIds() async {
+  /// The documents with a reminder pending in the OS, each with the diver
+  /// its payload names (null for a payload from before #4609), so a full
+  /// schedule can cancel the ones whose document was deleted elsewhere (a
+  /// sync, an owner delete) or no longer reminds, and settle that diver's
+  /// clearances.
+  Future<Map<String, String?>> pendingDocumentReminders() async {
     if (!_isMobilePlatform) return const {};
     final pending = await _plugin.pendingNotificationRequests();
-    return {
-      for (final p in pending)
-        if (p.payload case final payload?
-            when payload.startsWith(_documentPayloadPrefix))
-          payload.substring(_documentPayloadPrefix.length),
-    };
+    final out = <String, String?>{};
+    for (final p in pending) {
+      if (p.payload case final payload?) {
+        if (parseDocumentReminderPayload(payload) case final r?) {
+          // A document's two stages can differ while their payloads are
+          // rewritten: keep the diver either one names.
+          out[r.documentId] = r.diverId ?? out[r.documentId];
+        }
+      }
+    }
+    return out;
   }
 
   /// One-shot reminder for a draft dive left waiting for its download

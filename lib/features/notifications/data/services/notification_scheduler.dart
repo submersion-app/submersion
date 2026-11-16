@@ -446,14 +446,25 @@ class NotificationScheduler {
     // synced in must not leave the old expiry announcing itself. A medical
     // clearance rebuilds its diver's whole set (#4541), so once per diver.
     // One of [diverId]'s that a later clearance supersedes is cancelled.
+    // A gone document of another profile may have been its current
+    // clearance, and the one it superseded has no reminder to be found
+    // by: the payload's diver settles that profile's set (#4609).
     final reminding = diverId == null
         ? const <Document>[]
         : await _documentRepository.getRemindingForDiver(diverId);
     final remindingIds = {for (final d in reminding) d.id};
     final clearanceDiversRebuilt = <String>{};
-    for (final id in await _notificationService.pendingDocumentReminderIds()) {
+    final pending = await _notificationService.pendingDocumentReminders();
+    for (final MapEntry(key: id, value: payloadDiver) in pending.entries) {
       final document = await _documentRepository.getById(id);
-      if (document == null || !document.remindsOnExpiry) {
+      if (document == null) {
+        await _notificationService.cancelDocumentReminders(id);
+        if (payloadDiver != null &&
+            payloadDiver != diverId &&
+            clearanceDiversRebuilt.add(payloadDiver)) {
+          await _settleClearances(payloadDiver, settings);
+        }
+      } else if (!document.remindsOnExpiry) {
         await _notificationService.cancelDocumentReminders(id);
       } else if (document.diverId != diverId) {
         // Only a clearance settles its diver's others: a type change is an
@@ -493,6 +504,17 @@ class NotificationScheduler {
     }
     await _armDocument(document, settings);
     await _settleClearances(document.diverId, settings);
+  }
+
+  /// Re-arms [diverId]'s medical clearances from the database, so only
+  /// the current one reminds: after a delete took one (#4609), the one it
+  /// superseded reminds again.
+  Future<void> updateClearancesForDiver(
+    String diverId,
+    AppSettings settings,
+  ) async {
+    if (DemoModeGate.instance.isActive) return;
+    await _settleClearances(diverId, settings);
   }
 
   Future<void> _updateClearances(Document changed, AppSettings settings) async {
@@ -536,6 +558,7 @@ class NotificationScheduler {
       final expiryDay = r.stage == DocumentReminderStage.expiryDay;
       await _notificationService.scheduleDocumentReminder(
         documentId: document.id,
+        diverId: document.diverId,
         title: expiryDay
             ? l10n.notifications_document_expiresToday_title(title)
             : l10n.notifications_document_expiresSoon_title(title),
