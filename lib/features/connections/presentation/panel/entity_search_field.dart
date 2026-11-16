@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
@@ -125,10 +127,10 @@ class _EntitySearchFieldState extends ConsumerState<EntitySearchField> {
   /// [query] but whose stored name does not (those the SQL search already
   /// finds), sorted and comma-joined so the provider key is stable.
   String _translatedMatches(AppLocalizations l10n, String query) {
-    final q = query.toLowerCase();
+    final q = foldForSearch(query);
     bool hit(String translated, String stored) =>
-        translated.toLowerCase().contains(q) &&
-        !stored.toLowerCase().contains(q);
+        foldForSearch(translated).contains(q) &&
+        !foldForSearch(stored).contains(q);
     final species = ref.watch(allSpeciesProvider).value ?? const [];
     final types = ref.watch(diveTypesProvider).value ?? const [];
     final wires = <String>[
@@ -155,7 +157,7 @@ class _EntitySearchFieldState extends ConsumerState<EntitySearchField> {
     final busiestFirst = byRef.values.toList()
       ..sort((a, b) {
         final byDives = b.diveCount.compareTo(a.diveCount);
-        return byDives != 0 ? byDives : a.label.compareTo(b.label);
+        return byDives != 0 ? byDives : compareTextForSort(a.label, b.label);
       });
     // Only dive type nodes can be starred: a site or species sharing a
     // starred id (or a blank one from corrupt data) keeps its place.

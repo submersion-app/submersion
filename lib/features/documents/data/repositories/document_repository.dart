@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/documents/data/repositories/document_owner_options_repository.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/documents/data/repositories/document_row_mapper.dart';
+import 'package:submersion/features/documents/data/services/clearance_delete_events.dart';
 import 'package:submersion/features/documents/domain/clearance_supersession.dart';
 import 'package:submersion/features/documents/domain/document_ids.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -79,13 +80,20 @@ typedef DocumentSnapshotEntry = ({
 class DocumentRepository with _DocumentClearanceQueries {
   /// [cancelReminders] cancels a deleted document's expiry reminders; it
   /// defaults to the platform notifications (a no-op on desktop).
+  /// [clearancesDeleted] gets the medical clearances a delete took, by
+  /// diver (#4609), so the one each superseded can remind again; it
+  /// defaults to [ClearanceDeleteEvents], which the app re-arms from.
   DocumentRepository({
     Future<void> Function(String documentId)? cancelReminders,
+    void Function(Map<String, Set<String>> deletedByDiver)? clearancesDeleted,
   }) : _cancelReminders =
            cancelReminders ??
-           NotificationService.instance.cancelDocumentReminders;
+           NotificationService.instance.cancelDocumentReminders,
+       _clearancesDeleted = clearancesDeleted ?? ClearanceDeleteEvents.notify;
 
   final Future<void> Function(String documentId) _cancelReminders;
+  final void Function(Map<String, Set<String>> deletedByDiver)
+  _clearancesDeleted;
 
   /// Cancels the reminders of documents a caller deleted without going
   /// through this repository (the diver delete's raw steps).
@@ -536,6 +544,8 @@ class DocumentRepository with _DocumentClearanceQueries {
 
   Future<void> _deleteIds(List<String> ids) async {
     if (ids.isEmpty) return;
+    // Read before the rows go: afterwards nothing says whose they were.
+    final clearances = await _clearancesByDiverOf(ids);
     final pageIds = <String>[];
     for (final chunk in ids.slices(_inListChunk)) {
       pageIds.addAll(
@@ -558,7 +568,8 @@ class DocumentRepository with _DocumentClearanceQueries {
     );
     await _syncRepository.logDeletions(entityType: _docEntity, recordIds: ids);
     // Every delete path comes through here, owner deletes included, so a
-    // deleted permit can never still announce its expiry.
+    // deleted permit can never still announce its expiry, and a deleted
+    // clearance always hands its reminders back to the one it superseded.
     for (final id in ids) {
       try {
         await _cancelReminders(id);
@@ -569,6 +580,16 @@ class DocumentRepository with _DocumentClearanceQueries {
           stackTrace: stackTrace,
         );
       }
+    }
+    if (clearances.isEmpty) return;
+    try {
+      _clearancesDeleted(clearances);
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not re-arm the clearances of ${clearances.keys}',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 

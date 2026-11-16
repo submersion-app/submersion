@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/certification_levels.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/certification_agencies/domain/agency_colors.dart';
 import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
 import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_level.dart';
@@ -168,7 +169,7 @@ class CertificationCatalog {
   /// then Other.
   List<AgencyEntry> get agencies {
     final custom = _agencies.values.where(_agencyVisible).toList()
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      ..sort((a, b) => compareTextForSort(a.name, b.name));
     return [
       for (final a in CertificationAgency.values)
         if (a != CertificationAgency.other) _builtInAgency(a),
@@ -229,7 +230,7 @@ class CertificationCatalog {
           .toList()
         ..sort((a, b) {
           final byOrder = a.sortOrder.compareTo(b.sortOrder);
-          return byOrder != 0 ? byOrder : a.name.compareTo(b.name);
+          return byOrder != 0 ? byOrder : compareTextForSort(a.name, b.name);
         });
 
   /// The agency's ranked ladder: its built-in rungs, then the visible custom
@@ -253,9 +254,7 @@ class CertificationCatalog {
               .where((l) => l.agencyId == agencyId && !l.isProgression)
               .where(_levelVisible)
               .toList()
-            ..sort(
-              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
-            ));
+            ..sort((a, b) => compareTextForSort(a.name, b.name)));
     return [
       if (!_isCustomAgency(agencyId))
         for (final l in CertificationLevelCatalog.specialtiesFor(

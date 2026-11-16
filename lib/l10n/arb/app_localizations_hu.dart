@@ -2139,6 +2139,46 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll =>
+      'Minden palack ugyanazt a szerepet kapja';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition =>
+      'Szerep palackpozíció szerint';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'Pozíció hozzáadása';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'Pozíció eltávolítása';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Csak a pontosan $count palackos merülések kapják meg ezeket a szerepeket, palacksorrendben.',
+      one:
+          'Csak a pontosan $count palackos merülések kapják meg ezt a szerepet.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count merülés nem illeszkedik a palackpozíciókhoz, ezért a palackszerepeik változatlanok maradnak.',
+      one:
+          '$count merülés nem illeszkedik a palackpozíciókhoz, ezért a palackszerepei változatlanok maradnak.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => 'Alkalmazza a módosításokat?';
 
   @override

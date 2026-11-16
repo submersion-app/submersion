@@ -2144,6 +2144,46 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll =>
+      'Mesma função para cada cilindro';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition =>
+      'Função por posição do cilindro';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'Adicionar posição';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'Remover posição';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Apenas mergulhos com exatamente $count cilindros recebem estas funções, pela ordem dos cilindros.',
+      one:
+          'Apenas mergulhos com exatamente $count cilindro recebem esta função.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count mergulhos não correspondem às posições dos cilindros, por isso as funções ficam como estão.',
+      one:
+          '$count mergulho não corresponde às posições dos cilindros, por isso as funções ficam como estão.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => 'Aplicar alterações?';
 
   @override

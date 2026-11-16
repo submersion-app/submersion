@@ -2149,6 +2149,45 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll =>
+      'Même rôle pour chaque bloc';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition =>
+      'Rôle selon la position du bloc';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'Ajouter une position';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'Supprimer la position';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Seules les plongées avec exactement $count blocs reçoivent ces rôles, dans l\'ordre des blocs.',
+      one: 'Seules les plongées avec exactement $count bloc reçoivent ce rôle.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count plongées ne correspondent pas aux positions des blocs, leurs rôles de bloc restent inchangés.',
+      one:
+          '$count plongée ne correspond pas aux positions des blocs, ses rôles de bloc restent inchangés.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => 'Appliquer les modifications ?';
 
   @override

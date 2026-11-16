@@ -2060,6 +2060,38 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll => '每个气瓶使用相同用途';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition => '按气瓶位置设置用途';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => '添加位置';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => '移除位置';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '仅恰好有 $count 个气瓶的潜水会按气瓶顺序获得这些用途。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水与气瓶位置不匹配，其气瓶用途保持不变。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => '应用更改？';
 
   @override

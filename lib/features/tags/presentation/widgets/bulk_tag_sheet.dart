@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/tags/data/services/bulk_tag_service.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
@@ -167,7 +168,7 @@ class _BulkTagSheetState extends ConsumerState<BulkTagSheet> {
       BulkMembershipItem(id: id, label: label, icon: Icons.label_outline);
 
   static int _byLabel(BulkMembershipItem a, BulkMembershipItem b) =>
-      a.label.toLowerCase().compareTo(b.label.toLowerCase());
+      compareTextForSort(a.label, b.label);
 
   Future<void> _load() async {
     final counts = await ref

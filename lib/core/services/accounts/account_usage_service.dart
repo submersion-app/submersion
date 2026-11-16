@@ -6,6 +6,7 @@ import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 
 /// A feature that depends on a connected account (issue #3388).
@@ -132,8 +133,7 @@ class AccountUsageService {
       mediaStoreAccountId: attachedStoreId == null ? null : attachedAccountId,
       libraryNamesByAccount: {
         for (final MapEntry(:key, :value) in libraryNames.entries)
-          key: [...value]
-            ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())),
+          key: [...value]..sort((a, b) => compareTextForSort(a, b)),
       },
     );
   }

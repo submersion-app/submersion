@@ -29,8 +29,8 @@ final courseQueryEntity = QueryEntity(
   table: 'courses',
   diverScopeColumn: 'diver_id',
   textSearchSql: const [
-    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.location) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.location) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     _text('name', 'name'),

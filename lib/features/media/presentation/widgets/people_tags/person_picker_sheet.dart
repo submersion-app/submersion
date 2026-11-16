@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
@@ -66,7 +67,7 @@ class _PersonPickerSheetState extends ConsumerState<_PersonPickerSheet> {
   }
 
   bool _matches(Buddy b) =>
-      _query.isEmpty || b.name.toLowerCase().contains(_query.toLowerCase());
+      _query.isEmpty || foldForSearch(b.name).contains(foldForSearch(_query));
 
   Future<void> _createBuddy(String? diverId) async {
     final name = _nameController.text.trim();
@@ -159,9 +160,9 @@ class _PersonPickerSheetState extends ConsumerState<_PersonPickerSheet> {
                 shrinkWrap: true,
                 children: [
                   if (meDiverId != null &&
-                      l10n.media_people_me.toLowerCase().contains(
-                        _query.toLowerCase(),
-                      ))
+                      foldForSearch(
+                        l10n.media_people_me,
+                      ).contains(foldForSearch(_query)))
                     ListTile(
                       leading: const CircleAvatar(child: Icon(Icons.person)),
                       title: Text(l10n.media_people_me),

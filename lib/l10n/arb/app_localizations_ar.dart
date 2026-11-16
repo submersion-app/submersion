@@ -2207,6 +2207,56 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll => 'الدور نفسه لكل أسطوانة';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition => 'الدور حسب موضع الأسطوانة';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'إضافة موضع';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'إزالة الموضع';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'فقط الغطسات التي تحتوي على $count أسطوانة بالضبط تحصل على هذه الأدوار، بترتيب الأسطوانات.',
+      many:
+          'فقط الغطسات التي تحتوي على $count أسطوانة بالضبط تحصل على هذه الأدوار، بترتيب الأسطوانات.',
+      few:
+          'فقط الغطسات التي تحتوي على $count أسطوانات بالضبط تحصل على هذه الأدوار، بترتيب الأسطوانات.',
+      two:
+          'فقط الغطسات التي تحتوي على أسطوانتين بالضبط تحصل على هذين الدورين، بترتيب الأسطوانات.',
+      one:
+          'فقط الغطسات التي تحتوي على أسطوانة واحدة بالضبط تحصل على هذا الدور.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count غطسة لا تطابق مواضع الأسطوانات، لذا تبقى أدوار أسطواناتها كما هي.',
+      many:
+          '$count غطسة لا تطابق مواضع الأسطوانات، لذا تبقى أدوار أسطواناتها كما هي.',
+      few:
+          '$count غطسات لا تطابق مواضع الأسطوانات، لذا تبقى أدوار أسطواناتها كما هي.',
+      two:
+          'غطستان لا تطابقان مواضع الأسطوانات، لذا تبقى أدوار أسطواناتهما كما هي.',
+      one:
+          'غطسة واحدة لا تطابق مواضع الأسطوانات، لذا تبقى أدوار أسطواناتها كما هي.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => 'تطبيق التغييرات؟';
 
   @override

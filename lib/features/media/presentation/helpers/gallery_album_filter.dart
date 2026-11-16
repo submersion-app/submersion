@@ -1,3 +1,4 @@
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 
 /// One choice in the Gallery tab's album filter: an album name and how many
@@ -31,7 +32,7 @@ List<GalleryAlbumOption> galleryAlbumOptions(List<AssetInfo> assets) {
   options.sort((a, b) {
     final byCount = b.count.compareTo(a.count);
     if (byCount != 0) return byCount;
-    return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    return compareTextForSort(a.name, b.name);
   });
   return options;
 }

@@ -177,19 +177,13 @@ class DocumentMutations {
     return saved;
   }
 
-  /// Deletes [id]; the repository cancels its reminders on every delete.
-  /// A document can hold tens of MB of pages, so a delete is when the next
-  /// launch may be worth a compaction.
-  ///
-  /// A deleted medical clearance may have superseded another (#4541), so
-  /// its diver's clearances are re-armed: the scheduler reads them from the
-  /// database, without the deleted one.
+  /// Deletes [id]; the repository cancels its reminders on every delete,
+  /// and names the diver of a deleted medical clearance so the one it
+  /// superseded reminds again (#4541, #4609). A document can hold tens of
+  /// MB of pages, so a delete is when the next launch may be worth a
+  /// compaction.
   Future<void> delete(String id) async {
-    final document = await _repo.getById(id);
     await _repo.delete(id);
-    if (document?.type == DocumentType.medicalClearance) {
-      await _rearm(document!);
-    }
     unawaited(_ref.read(databaseCompactionMonitorProvider)());
   }
 

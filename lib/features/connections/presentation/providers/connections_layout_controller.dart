@@ -1,6 +1,7 @@
 import 'package:flutter/animation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/insights/label_propagation.dart';
@@ -297,7 +298,9 @@ class ConnectionsLayoutController extends ChangeNotifier {
   static List<NodeRef> _byDives(ConnectionGraph graph) =>
       ([...graph.nodes]..sort((a, b) {
             final byDives = b.diveCount.compareTo(a.diveCount);
-            return byDives != 0 ? byDives : a.label.compareTo(b.label);
+            return byDives != 0
+                ? byDives
+                : compareTextForSort(a.label, b.label);
           }))
           .map((n) => n.ref)
           .toList();

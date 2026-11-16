@@ -2141,6 +2141,45 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll =>
+      'Gleiche Rolle für jede Flasche';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition =>
+      'Rolle nach Flaschenposition';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'Position hinzufügen';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'Position entfernen';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nur Tauchgänge mit genau $count Flaschen erhalten diese Rollen, in Flaschenreihenfolge.',
+      one: 'Nur Tauchgänge mit genau $count Flasche erhalten diese Rolle.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Tauchgänge passen nicht zu den Flaschenpositionen, daher bleiben ihre Flaschenrollen unverändert.',
+      one:
+          '$count Tauchgang passt nicht zu den Flaschenpositionen, daher bleiben seine Flaschenrollen unverändert.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => 'Änderungen anwenden?';
 
   @override

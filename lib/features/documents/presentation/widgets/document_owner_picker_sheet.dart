@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
@@ -150,11 +152,9 @@ class _OwnerPickerSheetState extends ConsumerState<_OwnerPickerSheet> {
             // The query sorts by stored name, which is empty for a derived
             // certification title, so certifications sort by title here.
             if (kind == DocumentOwnerKind.certification) {
-              named.sort(
-                (a, b) => a.$2.toLowerCase().compareTo(b.$2.toLowerCase()),
-              );
+              named.sort((a, b) => compareTextForSort(a.$2, b.$2));
             }
-            final q = _query.trim().toLowerCase();
+            final q = foldForSearch(_query.trim());
             final shown = [
               for (final (o, name) in named)
                 if (q.isEmpty ||
@@ -162,7 +162,7 @@ class _OwnerPickerSheetState extends ConsumerState<_OwnerPickerSheet> {
                       name,
                       o.subtitle,
                       dateOf(o),
-                    ].any((v) => v != null && v.toLowerCase().contains(q)))
+                    ].any((v) => v != null && foldForSearch(v).contains(q)))
                   (o, name),
             ];
             if (shown.isEmpty) {

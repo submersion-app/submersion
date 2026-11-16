@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -41,7 +42,7 @@ String sharingSummary(
 ) {
   if (sharing.everyone) return l10n.sharedItems_sharedWith_everyone;
   final names = [for (final id in sharing.profileIds) ?namesById[id]]
-    ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    ..sort((a, b) => compareTextForSort(a, b));
   return names.isEmpty ? l10n.sharedItems_sharedWith_none : names.join(', ');
 }
 

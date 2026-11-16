@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
@@ -47,7 +49,7 @@ class _MediaPeopleFilterPickerState
   String _query = '';
 
   bool _matches(String label) =>
-      _query.isEmpty || label.toLowerCase().contains(_query.toLowerCase());
+      _query.isEmpty || foldForSearch(label).contains(foldForSearch(_query));
 
   bool _ticked(_Row row) => switch (row.pick) {
     _Pick.noPeople => _selection.noPeople,
@@ -73,8 +75,7 @@ class _MediaPeopleFilterPickerState
     final l10n = context.l10n;
     final picked = widget.initial.buddyIds;
 
-    int byName(Buddy a, Buddy b) =>
-        a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    int byName(Buddy a, Buddy b) => compareTextForSort(a.name, b.name);
     final known = {for (final b in all ?? const <Buddy>[]) b.id};
     final first = [
       for (final b in all ?? const <Buddy>[])

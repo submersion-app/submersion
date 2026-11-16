@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_rule.dart';
 import 'package:submersion/features/certifications/presentation/currency_rule_display.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_currency_providers.dart';
@@ -45,7 +46,7 @@ class ManageCurrencyRulesPage extends ConsumerWidget {
           final custom = [
             for (final r in rules)
               if (!r.isBuiltIn) r,
-          ]..sort((a, b) => a.name.compareTo(b.name));
+          ]..sort((a, b) => compareTextForSort(a.name, b.name));
           final builtIn =
               [
                 for (final r in rules)

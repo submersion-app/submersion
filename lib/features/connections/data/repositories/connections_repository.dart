@@ -2,6 +2,8 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/connections/data/connections_around_loader.dart';
@@ -103,7 +105,7 @@ class ConnectionsRepository {
     final reader = ConnectionsReader(_db);
     // Lowered to meet unicode_lower on the label: LIKE folds ASCII only
     // (#3032).
-    final pattern = '%${escapeLike(needle.toLowerCase())}%';
+    final pattern = '%${escapeLike(foldForSearch(needle))}%';
     final hits = <ConnectionNode>[
       for (final kind in ConnectionKind.values)
         ...await reader.nodes(
@@ -116,7 +118,7 @@ class ConnectionsRepository {
     ];
     hits.sort((a, b) {
       final byDives = b.diveCount.compareTo(a.diveCount);
-      return byDives != 0 ? byDives : a.label.compareTo(b.label);
+      return byDives != 0 ? byDives : compareTextForSort(a.label, b.label);
     });
     return hits.take(limit).toList();
   }

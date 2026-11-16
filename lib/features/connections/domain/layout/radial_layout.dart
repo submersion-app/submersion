@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
@@ -62,7 +63,9 @@ class RadialLayout {
         final group = byKind[k]!
           ..sort((a, b) {
             final byWeight = weightTo[b.ref]!.compareTo(weightTo[a.ref]!);
-            return byWeight != 0 ? byWeight : a.label.compareTo(b.label);
+            return byWeight != 0
+                ? byWeight
+                : compareTextForSort(a.label, b.label);
           });
         final arc = 2 * math.pi * group.length / members.length;
         var placed = 0;
