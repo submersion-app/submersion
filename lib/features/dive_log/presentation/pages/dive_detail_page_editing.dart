@@ -209,13 +209,19 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
           // emptiness counts a gauge dive, and its editor is where the mode
           // is changed back (issue #4527, plan 5).
           if (!open.contains(card.id) &&
-              (!diveCardIsOnPage(
-                    ref,
-                    section.id,
-                    layout: presence,
-                    working: working,
-                    stored: editController.session?.stored,
-                  ) ||
+              ((!diveCardIsOnPage(
+                        ref,
+                        section.id,
+                        layout: presence,
+                        working: working,
+                        stored: editController.session?.stored,
+                        edit: editController,
+                      ) &&
+                      // A card with nothing to edit until something else
+                      // exists stays out, unless the diver hid it.
+                      (!section.visible ||
+                          editController.session == null ||
+                          card.isOfferedWhenEmpty(editController.session!))) ||
                   (!section.visible && !added.contains(card.id))))
             AddStripEntry(
               cardId: card.id,

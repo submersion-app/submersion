@@ -64,6 +64,9 @@ class RecordEditController<T> extends ChangeNotifier {
 
   T? _layoutRecord;
 
+  /// What [layoutAnswer] was told while the layout has been held.
+  final Map<String, bool> _layoutAnswers = {};
+
   /// Fields holding text that cannot be read as a value, by card id, in the
   /// order each card first got one.
   final Map<String, Set<String>> _invalidFields = {};
@@ -106,6 +109,16 @@ class RecordEditController<T> extends ChangeNotifier {
   /// would push it down the page under the diver's hands, so cards come and
   /// go only once the last editor has closed.
   T? get layoutRecord => _layoutRecord;
+
+  /// What [ask] answers about the page's layout, asked once under [key] for
+  /// as long as the layout is held ([layoutRecord]) and every time while it
+  /// is not. For what a page lays itself out from that is not on the
+  /// record, such as whether a card's own rows are empty: like a value of
+  /// the record, it must not bring a card in above an open editor.
+  bool layoutAnswer(String key, bool Function() ask) {
+    if (_layoutRecord == null) return ask();
+    return _layoutAnswers.putIfAbsent(key, ask);
+  }
 
   /// Cards holding input that cannot be read as a value, such as `1.2.3` in
   /// a number field. Such text never reaches the [session], so a card that
@@ -190,6 +203,7 @@ class RecordEditController<T> extends ChangeNotifier {
     _refusedForInvalidInput = false;
     _revealRequest = null;
     _layoutRecord = null;
+    _layoutAnswers.clear();
     _saveError = null;
     _isSaving = false;
     _storedDuringSave = null;
@@ -199,7 +213,10 @@ class RecordEditController<T> extends ChangeNotifier {
   /// Fixes the page's layout as the first card opens. Call before the card
   /// is added to the open ones.
   void _holdLayoutFor(EditSession<T> session) {
-    if (_openCardIds.isEmpty) _layoutRecord = session.working;
+    if (_openCardIds.isEmpty) {
+      _layoutRecord = session.working;
+      _layoutAnswers.clear();
+    }
   }
 
   /// Opens [cardId]'s editor. Like every change to the cards, it is
@@ -236,7 +253,10 @@ class RecordEditController<T> extends ChangeNotifier {
         _addedCardIds.remove(cardId);
     if (!wasOpen && !wasAdded) return;
     // With the last editor closed the page follows the record again.
-    if (_openCardIds.isEmpty) _layoutRecord = null;
+    if (_openCardIds.isEmpty) {
+      _layoutRecord = null;
+      _layoutAnswers.clear();
+    }
     // What was typed while it was open is drawn by this notification.
     _toldRevisions[cardId] = session.revisionOf(cardId);
     notifyListeners();
