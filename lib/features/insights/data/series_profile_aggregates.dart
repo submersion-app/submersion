@@ -342,9 +342,9 @@ void _foldDepthSeconds(
 }
 
 /// The bars a [timeAtDepthSecondsFromBlobs] total describes (issue #4600):
-/// one per band from the surface down to the deepest band holding any time,
-/// so a band nobody dived in still shows, as zero, and the depth axis stays
-/// continuous.
+/// one per band from the surface down to the deepest band holding at least
+/// a rounded minute, so a band nobody dived in above it still shows, as zero,
+/// and the depth axis stays continuous.
 ///
 /// No more than [maxBars] come back. When time sits deeper than the last of
 /// them, that last bar takes all of it and turns open-ended ([upperDepth]
