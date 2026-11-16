@@ -37,9 +37,8 @@ final importCylinderProposalsProvider = FutureProvider.autoDispose
         await ref.watch(activeEquipmentProvider.future),
       );
       final byId = {for (final item in owned) item.id: item};
-      final pairings = await ref
-          .read(cylinderPairingRepositoryProvider)
-          .getAll();
+      // Watched, so a twin set paired while the summary is open counts.
+      final pairings = await ref.watch(allPairingsProvider.future);
       final ownedPairs = [
         for (final p in pairings)
           if ((byId[p.cylinderAId], byId[p.cylinderBId]) case (
