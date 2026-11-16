@@ -212,6 +212,24 @@ void main() {
       await scheduler.updateForDocument(renewal, const AppSettings());
       expect(service.scheduled.map((s) => s.documentId).toSet(), {old.id});
     });
+
+    test('retyping the renewal as another type makes the old clearance '
+        'remind again', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await save(DocumentType.medicalClearance, inDays(60));
+      final retyped = await DocumentRepository().save(
+        renewal.copyWith(type: DocumentType.permit),
+        const [],
+      );
+      await scheduler.updateForDocument(retyped, const AppSettings());
+      expect(service.scheduled.map((s) => s.documentId).toSet(), {
+        old.id,
+        retyped.id,
+      });
+      // Only the re-arm's own cancel: settling the clearances afterwards
+      // must not take back the reminders just armed for the permit.
+      expect(service.cancelled.where((id) => id == retyped.id), hasLength(1));
+    });
   });
 
   test('the background refresh, with no active profile, refreshes pending '

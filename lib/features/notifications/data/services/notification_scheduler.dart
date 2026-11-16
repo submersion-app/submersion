@@ -454,7 +454,13 @@ class NotificationScheduler {
       if (document == null || !document.remindsOnExpiry) {
         await _notificationService.cancelDocumentReminders(id);
       } else if (document.diverId != diverId) {
-        await updateForDocument(document, settings);
+        // Only a clearance settles its diver's others: a type change is an
+        // edit's concern, not a full schedule's.
+        if (document.type == DocumentType.medicalClearance) {
+          await updateForDocument(document, settings);
+        } else {
+          await _armDocument(document, settings);
+        }
       } else if (!remindingIds.contains(id)) {
         await _notificationService.cancelDocumentReminders(id);
       }
@@ -471,6 +477,10 @@ class NotificationScheduler {
   /// database instead, so only the current one reminds (#4541): saving a
   /// renewal silences the one it supersedes, and passing a deleted
   /// renewal brings the superseded one back.
+  ///
+  /// Any other type settles its diver's clearances too, since the document
+  /// may have been the current clearance before an edit changed its type,
+  /// and the one it superseded should remind again.
   Future<void> updateForDocument(
     Document document,
     AppSettings settings,
@@ -480,16 +490,26 @@ class NotificationScheduler {
       return _updateClearances(document, settings);
     }
     await _armDocument(document, settings);
+    await _settleClearances(document.diverId, settings);
   }
 
   Future<void> _updateClearances(Document changed, AppSettings settings) async {
-    final clearances = await _documentRepository.getMedicalClearancesForDiver(
-      changed.diverId,
-    );
-    final superseded = supersededClearanceIds(clearances);
+    final clearances = await _settleClearances(changed.diverId, settings);
     if (!clearances.any((c) => c.id == changed.id)) {
       await _notificationService.cancelDocumentReminders(changed.id);
     }
+  }
+
+  /// Arms [diverId]'s current clearance and cancels the ones it supersedes;
+  /// returns the clearances it read.
+  Future<List<Document>> _settleClearances(
+    String diverId,
+    AppSettings settings,
+  ) async {
+    final clearances = await _documentRepository.getMedicalClearancesForDiver(
+      diverId,
+    );
+    final superseded = supersededClearanceIds(clearances);
     for (final clearance in clearances) {
       if (superseded.contains(clearance.id)) {
         await _notificationService.cancelDocumentReminders(clearance.id);
@@ -497,6 +517,7 @@ class NotificationScheduler {
         await _armDocument(clearance, settings);
       }
     }
+    return clearances;
   }
 
   Future<void> _armDocument(Document document, AppSettings settings) async {
