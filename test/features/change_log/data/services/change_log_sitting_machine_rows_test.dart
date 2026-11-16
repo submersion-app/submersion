@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -118,6 +119,68 @@ void main() {
     );
 
     expect(await logEvents(db), isEmpty);
+  });
+
+  test('a finding a review deletes in a sitting is dropped while the dive '
+      'lives', () async {
+    await inSitting(
+      () => db.customStatement(
+        "DELETE FROM dive_safety_findings WHERE id = 'finding'",
+      ),
+    );
+    await repository.settleAll();
+
+    expect(await logEvents(db), isEmpty);
+  });
+
+  group('a sitting that only dismissed a finding, reverted', () {
+    Future<String> revertOf(String operationId) async {
+      final result = await service.execute(
+        await service.planOperation(operationId),
+      );
+      await repository.settleAll();
+      return result.operationId!;
+    }
+
+    Future<Map<String, Object?>?> operationRow(String id) async =>
+        (await db
+                .customSelect(
+                  'SELECT * FROM change_log_operations WHERE id = ?',
+                  variables: [Variable<String>(id)],
+                )
+                .getSingleOrNull())
+            ?.data;
+
+    test('leaves a revert entry the sitting points at', () async {
+      final sitting = await inSitting(dismiss);
+      await repository.settleAll();
+
+      final revert = await revertOf(sitting);
+
+      expect(await operationRow(revert), isNotNull);
+      expect((await operationRow(sitting))!['reverted_by_id'], revert);
+      expect(
+        await cell(
+          "SELECT dismissed_at FROM dive_safety_findings WHERE id = 'finding'",
+        ),
+        isNull,
+      );
+    });
+
+    test('and reverting that revert dismisses it again', () async {
+      final sitting = await inSitting(dismiss);
+      await repository.settleAll();
+      final revert = await revertOf(sitting);
+
+      await revertOf(revert);
+
+      expect(
+        await cell(
+          "SELECT dismissed_at FROM dive_safety_findings WHERE id = 'finding'",
+        ),
+        7000,
+      );
+    });
   });
 
   test('both survive settling while the dive lives', () async {

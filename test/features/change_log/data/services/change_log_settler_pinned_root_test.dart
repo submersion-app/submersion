@@ -207,6 +207,17 @@ void main() {
     expect(split['diver_id'], 'them');
   });
 
+  test('a sitting whose only write is to another diver\'s shared site files '
+      'it under that diver', () async {
+    final id = await inSitting(() => copyAltitude('shared'));
+    await repository.settleAll();
+
+    final split = await operation('$id:them');
+    expect(split['root_table'], 'dive_sites');
+    expect(split['root_id'], 'shared');
+    expect(split['diver_id'], 'them');
+  });
+
   test('an unscoped save is untouched', () async {
     await editNotes();
     await repository.settleAll();

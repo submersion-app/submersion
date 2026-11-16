@@ -13,18 +13,18 @@ abstract final class RecordEditLabel {
 
   /// The label for a sitting on the record [id] of [table] that changed
   /// [cardIds]. The ids are sorted, so the same sitting always gets the same
-  /// label. Throws [ArgumentError] for an empty [id] or one holding the
-  /// separator.
+  /// label. An empty [id], or one holding the separator, is left out: the
+  /// label then names only the cards, and the sitting is not pinned to its
+  /// record, since logging must never stop a save.
   static String encode({
     required String table,
     required String id,
     required Iterable<String> cardIds,
   }) {
-    if (id.isEmpty || id.contains(':')) {
-      throw ArgumentError.value(id, 'id', 'must be non-empty without ":"');
-    }
     final sorted = cardIds.toSet().toList()..sort();
-    return '$prefix:$table:$id:${sorted.join(',')}';
+    final cards = sorted.join(',');
+    if (id.isEmpty || id.contains(':')) return '$prefix:$table:$cards';
+    return '$prefix:$table:$id:$cards';
   }
 
   /// The table, record and card ids of a label [encode] wrote, or null for

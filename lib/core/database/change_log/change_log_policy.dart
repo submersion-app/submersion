@@ -586,8 +586,16 @@ const Set<String> changeLogSeriesUpdateLabels = {
 /// whatever their label. An agent's change set is labelled with its own free
 /// text, so no label could opt it in, and rewriting a planned entry's
 /// profile in place must revert with the rest of the set (issue #4203).
-/// Kept equal to `ChangeLogSource.agent.name`, which this file cannot import.
-const Set<String> changeLogSeriesUpdateSources = {'agent'};
+///
+/// A revert too (issue #4527): it writes back only what was logged, so the
+/// machine rows it puts back are exactly those an opted-in operation
+/// recorded, and its own entry must hold them to be reverted in turn. A
+/// sitting that only dismissed a finding would otherwise leave a revert
+/// with no events, which the settler deletes.
+///
+/// Kept equal to `ChangeLogSource.agent.name` and `ChangeLogSource.revert
+/// .name`, which this file cannot import.
+const Set<String> changeLogSeriesUpdateSources = {'agent', 'revert'};
 
 /// Machine tables whose row belongs to another row besides its root, by
 /// column and that row's table. Such a row's delete copy is kept when that

@@ -316,8 +316,15 @@ class _SettlePass {
 
   /// A feed shows one diver's entries, so a scope that touched two divers'
   /// records, as a sync pull can, is filed as one operation each.
+  ///
+  /// A pinned scope belongs to its record's owner from the start, so a
+  /// sitting whose first write is to another diver's shared site files that
+  /// write under the site's owner too.
   Future<_Operation> _forOwner(_Operation scope, String? owner) async {
-    if (owner == null || scope.diverId == null || scope.diverId == owner) {
+    final pinned = scope.pinned;
+    final scopeOwner =
+        scope.diverId ?? (pinned == null ? null : await _ownerOf(pinned));
+    if (owner == null || scopeOwner == null || scopeOwner == owner) {
       return scope;
     }
     final id = '${scope.id}:$owner';
@@ -575,8 +582,12 @@ class _SettlePass {
   /// [changeLogOptsInMachineRows] accepts.
   Future<bool> _optedInMachineRows(_Event event) async {
     final operationId = event.operationId;
+    // A table whose opt-in is limited to some columns opts in its updates
+    // only: a review deleting a finding that stopped firing is a sweep, not
+    // the diver's change, so its delete copy goes while the dive lives.
     if (operationId == null ||
-        !changeLogOptInUpdateTables.contains(event.table)) {
+        !changeLogOptInUpdateTables.contains(event.table) ||
+        changeLogOptInUpdateColumns.containsKey(event.table)) {
       return false;
     }
     final operation = await _loadOperation(operationId);

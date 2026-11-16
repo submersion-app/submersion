@@ -24,17 +24,22 @@ void main() {
     );
   });
 
-  test('encode refuses an empty id or one with a colon', () {
-    expect(
-      () => RecordEditLabel.encode(table: 'dives', id: '', cardIds: ['notes']),
-      throwsArgumentError,
-    );
-    expect(
-      () =>
-          RecordEditLabel.encode(table: 'dives', id: 'a:b', cardIds: ['notes']),
-      throwsArgumentError,
-    );
-  });
+  test(
+    'an id the label cannot hold writes an unpinned label, never throws',
+    () {
+      // Logging must never stop a save: a sitting on such a record is still
+      // labelled with its cards, only not pinned to the record.
+      for (final id in ['', 'a:b']) {
+        final label = RecordEditLabel.encode(
+          table: 'dives',
+          id: id,
+          cardIds: ['notes'],
+        );
+        expect(label, 'record_edit:dives:notes', reason: id);
+        expect(RecordEditLabel.decode(label)!.id, isNull, reason: id);
+      }
+    },
+  );
 
   test('decode reverses encode, id included', () {
     final label = RecordEditLabel.encode(
