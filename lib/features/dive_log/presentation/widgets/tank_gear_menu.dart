@@ -87,7 +87,15 @@ class TankGearMenu extends ConsumerWidget {
         }
       case _TankGearAction.unlink:
         try {
-          await service.unlinkTank(tank.id);
+          // False when the tank was relinked since the menu opened: the
+          // newer link stands, and the diver is told this one did not change.
+          final unlinked = await service.unlinkTank(
+            tankId: tank.id,
+            equipmentId: tank.equipmentId!,
+          );
+          if (!unlinked) {
+            messenger?.showSnackBar(SnackBar(content: Text(failed)));
+          }
         } catch (_) {
           messenger?.showSnackBar(SnackBar(content: Text(failed)));
         }

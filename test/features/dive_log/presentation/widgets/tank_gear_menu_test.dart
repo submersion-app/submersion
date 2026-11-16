@@ -12,9 +12,16 @@ import '../../../../helpers/test_app.dart';
 
 class _FakeService extends CylinderFromTankService {
   final unlinked = <String>[];
+  bool unlinkResult = true;
 
   @override
-  Future<void> unlinkTank(String tankId) async => unlinked.add(tankId);
+  Future<bool> unlinkTank({
+    required String tankId,
+    required String equipmentId,
+  }) async {
+    unlinked.add('$tankId:$equipmentId');
+    return unlinkResult;
+  }
 }
 
 void main() {
@@ -67,6 +74,18 @@ void main() {
     expect(find.text('Link to a cylinder I own'), findsNothing);
     await tester.tap(find.text('Unlink cylinder'));
     await tester.pumpAndSettle();
-    expect(service.unlinked, ['t']);
+    expect(service.unlinked, ['t:mine']);
+    expect(find.text("Couldn't change the cylinder link"), findsNothing);
+  });
+
+  testWidgets('a stale unlink says the link did not change', (tester) async {
+    await pumpMenu(
+      tester,
+      const DiveTank(id: 't', volume: 11.1, equipmentId: 'mine'),
+    );
+    service.unlinkResult = false;
+    await tester.tap(find.text('Unlink cylinder'));
+    await tester.pumpAndSettle();
+    expect(find.text("Couldn't change the cylinder link"), findsOneWidget);
   });
 }

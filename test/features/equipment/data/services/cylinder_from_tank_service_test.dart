@@ -246,6 +246,34 @@ void main() {
     expect((await tankRow('t-a')).equipmentId, 'other');
   });
 
+  test('makes no item when every tank was linked meanwhile', () async {
+    await dive('a');
+    final ref = await tank('a', 't-a');
+    final proposal = proposalForTank(ref);
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'other',
+            name: 'Other',
+            type: 'tank',
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    await (db.update(db.diveTanks)..where((t) => t.id.equals('t-a'))).write(
+      const DiveTanksCompanion(equipmentId: Value('other')),
+    );
+
+    final created = await CylinderFromTankService().create([
+      unchanged(proposal, 'AL80'),
+    ], diverId: 'me');
+
+    expect(created, isEmpty);
+    final items = await db.select(db.equipment).get();
+    expect(items.map((e) => e.id), ['other']);
+  });
+
   test('marks linked tanks pending for sync', () async {
     await dive('a');
     final ref = await tank('a', 't-a');
@@ -279,7 +307,10 @@ void main() {
     expect((await tankRow('t-a')).volume, 11.1);
     expect(await gearOf('a'), contains('mine'));
 
-    await service.unlinkTank('t-a');
+    expect(
+      await service.unlinkTank(tankId: 't-a', equipmentId: 'mine'),
+      isTrue,
+    );
     expect((await tankRow('t-a')).equipmentId, isNull);
     expect(await gearOf('a'), contains('mine'));
   });
@@ -313,5 +344,32 @@ void main() {
     expect(linked, isFalse);
     expect((await tankRow('t-a')).equipmentId, 'other');
     expect(await gearOf('a'), isNot(contains('mine')));
+  });
+
+  test('unlinkTank keeps a link changed since the menu opened', () async {
+    await dive('a');
+    await tank('a', 't-a');
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'other',
+            name: 'other',
+            type: 'tank',
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    await (db.update(db.diveTanks)..where((t) => t.id.equals('t-a'))).write(
+      const DiveTanksCompanion(equipmentId: Value('other')),
+    );
+
+    final unlinked = await CylinderFromTankService().unlinkTank(
+      tankId: 't-a',
+      equipmentId: 'mine',
+    );
+
+    expect(unlinked, isFalse);
+    expect((await tankRow('t-a')).equipmentId, 'other');
   });
 }

@@ -57,7 +57,9 @@ class CylinderFromTankService {
   /// Creates each draft's cylinders, links each to its tanks and adds it to
   /// those dives' gear, in one transaction. A row making several cylinders
   /// numbers them ("AL80 1", "AL80 2"). A tank linked elsewhere since the
-  /// proposal was built keeps that link. Returns the items created.
+  /// proposal was built keeps that link, and a cylinder whose tanks were all
+  /// linked meanwhile is not made, so a stale sheet adds no unlinked
+  /// duplicate. Returns the items created.
   Future<List<EquipmentItem>> create(
     List<CylinderDraft> drafts, {
     required String? diverId,
@@ -70,6 +72,10 @@ class CylinderFromTankService {
         final proposal = draft.proposal;
         final count = proposal.cylinderCount;
         for (var i = 0; i < count; i++) {
+          final free = await _unlinkedTankIds([
+            for (final ref in proposal.tanksByCylinder[i]) ref.tank.id,
+          ]);
+          if (free.isEmpty) continue;
           final item = await _equipment.createEquipment(
             EquipmentItem(
               id: '',
@@ -88,6 +94,7 @@ class CylinderFromTankService {
           items.add(item);
           final linkedDives = <String>{};
           for (final ref in proposal.tanksByCylinder[i]) {
+            if (!free.contains(ref.tank.id)) continue;
             final linked = await _writeLink(
               ref.tank.id,
               item.id,
@@ -124,20 +131,42 @@ class CylinderFromTankService {
     return linked;
   }
 
-  /// Clears the tank's cylinder link. The cylinder stays in the dive's gear,
-  /// where the diver removes it if it was not used.
-  Future<void> unlinkTank(String tankId) async {
+  /// Clears the tank's link to [equipmentId], the cylinder the diver saw it
+  /// linked to. The cylinder stays in the dive's gear, where the diver
+  /// removes it if it was not used. A tank relinked since (by sync or
+  /// another view) keeps the newer link; returns whether this one was
+  /// cleared.
+  Future<bool> unlinkTank({
+    required String tankId,
+    required String equipmentId,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _db.transaction(() async {
-      await (_db.update(_db.diveTanks)..where((t) => t.id.equals(tankId)))
-          .write(const DiveTanksCompanion(equipmentId: Value(null)));
+    final cleared = await _db.transaction(() async {
+      // child-clock: marked pending just below once the write lands; the
+      // count it returns keeps the mark off a tank this call left alone.
+      final written =
+          await (_db.update(_db.diveTanks)..where(
+                (t) => t.id.equals(tankId) & t.equipmentId.equals(equipmentId),
+              ))
+              .write(const DiveTanksCompanion(equipmentId: Value(null)));
+      if (written == 0) return false;
       await _sync.markRecordPending(
         entityType: 'diveTanks',
         recordId: tankId,
         localUpdatedAt: now,
       );
+      return true;
     });
-    SyncEventBus.notifyLocalChange();
+    if (cleared) SyncEventBus.notifyLocalChange();
+    return cleared;
+  }
+
+  /// Which of [tankIds] still have no cylinder link.
+  Future<Set<String>> _unlinkedTankIds(List<String> tankIds) async {
+    final rows = await (_db.select(
+      _db.diveTanks,
+    )..where((t) => t.id.isIn(tankIds) & t.equipmentId.isNull())).get();
+    return {for (final row in rows) row.id};
   }
 
   /// Writes the link (and [spec], when the diver corrected it) onto the
