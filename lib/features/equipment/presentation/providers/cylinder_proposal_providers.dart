@@ -25,7 +25,8 @@ List<EquipmentItem> _ownedCylinders(List<EquipmentItem> gear) => [
 ];
 
 /// The cylinders a download could add to the diver's gear: its new dives'
-/// tanks that no owned cylinder or twin set matches, grouped by spec. Ticks
+/// tanks that no owned cylinder or twin set covers (each covers one tank per
+/// dive), grouped by spec. Ticks
 /// on the diver's gear and on any tank write, so the summary tile goes away
 /// once the diver has added or linked them.
 final importCylinderProposalsProvider = FutureProvider.autoDispose

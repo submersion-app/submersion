@@ -287,6 +287,90 @@ void main() {
     });
   });
 
+  group('per-dive capacity', () {
+    test('one owned AL80 covers one tank of a sidemount dive', () {
+      final proposals = proposeCylinders(
+        [
+          TankRef(diveId: 'd1', tank: _tank('right', order: 1)),
+          TankRef(diveId: 'd1', tank: _tank('left')),
+        ],
+        owned: [al80],
+        ownedPairs: const [],
+      );
+      expect(proposals, hasLength(1));
+      expect(proposals.single.cylinderCount, 1);
+      expect(proposals.single.allTanks.single.tank.id, 'right');
+    });
+
+    test('one owned AL80 covers a single tank on every dive', () {
+      final proposals = proposeCylinders(
+        [
+          for (var i = 0; i < 3; i++)
+            TankRef(diveId: 'd$i', tank: _tank('t$i')),
+        ],
+        owned: [al80],
+        ownedPairs: const [],
+      );
+      expect(proposals, isEmpty);
+    });
+
+    test('a tank linked to the owned cylinder uses it on that dive', () {
+      final proposals = proposeCylinders(
+        [
+          TankRef(
+            diveId: 'd1',
+            tank: _tank('linked', equipmentId: 'al80'),
+          ),
+          TankRef(diveId: 'd1', tank: _tank('free', order: 1)),
+        ],
+        owned: [al80],
+        ownedPairs: const [],
+      );
+      expect(proposals.single.allTanks.single.tank.id, 'free');
+    });
+
+    test('a looser cylinder goes to the tank only it fits', () {
+      final any = _cylinder('any', volume: 11.1);
+      final alu = _cylinder('alu', volume: 11.1, material: 'aluminum');
+      final proposals = proposeCylinders(
+        [
+          TankRef(
+            diveId: 'd1',
+            tank: _tank('alu-tank', material: TankMaterial.aluminum),
+          ),
+          TankRef(
+            diveId: 'd1',
+            tank: _tank('steel-tank', material: TankMaterial.steel, order: 1),
+          ),
+        ],
+        owned: [any, alu],
+        ownedPairs: const [],
+      );
+      expect(proposals, isEmpty);
+    });
+
+    test('one owned twin set covers one doubles tank per dive', () {
+      final a = _cylinder('a', volume: 12, pressure: 232, material: 'steel');
+      final b = _cylinder('b', volume: 12, pressure: 232, material: 'steel');
+      DiveTank doubles(String id, int order) => _tank(
+        id,
+        volume: 24,
+        pressure: 232,
+        material: TankMaterial.steel,
+        order: order,
+      );
+      final proposals = proposeCylinders(
+        [
+          TankRef(diveId: 'd1', tank: doubles('first', 0)),
+          TankRef(diveId: 'd1', tank: doubles('second', 1)),
+        ],
+        owned: [a, b],
+        ownedPairs: [(a, b)],
+      );
+      expect(proposals.single.allTanks.single.tank.id, 'second');
+    });
+  });
+
   group('suggestedName', () {
     test('a tank name wins', () {
       final p = proposeCylinders(

@@ -110,21 +110,31 @@ bool pairMatchesTank(EquipmentItem a, EquipmentItem b, DiveTank tank) {
 }
 
 /// Groups the [tanks] no cylinder in [owned] (or twin set in [ownedPairs])
-/// matches into one proposal per spec, the rows covering the most dives
-/// first. Tanks already linked to a gear item, and tanks with no volume,
-/// are left out: there is nothing to create or nothing to prefill.
+/// covers into one proposal per spec, the rows covering the most dives
+/// first. An owned cylinder covers one tank per dive, so one owned AL80 on a
+/// sidemount dive with two leaves the other proposed; a twin set covers one
+/// tank with both its cylinders. Tanks already linked to a gear item, and
+/// tanks with no volume, are left out: there is nothing to create or nothing
+/// to prefill.
 List<CylinderProposal> proposeCylinders(
   List<TankRef> tanks, {
   required List<EquipmentItem> owned,
   required List<(EquipmentItem, EquipmentItem)> ownedPairs,
 }) {
+  final byDive = <String, List<TankRef>>{};
+  for (final ref in tanks) {
+    byDive.putIfAbsent(ref.diveId, () => []).add(ref);
+  }
+  final covered = <TankRef>{
+    for (final diveTanks in byDive.values)
+      ..._coveredOnDive(diveTanks, owned, ownedPairs),
+  };
   final groups = <List<TankRef>>[];
   for (final ref in tanks) {
     final tank = ref.tank;
     final volume = tank.volume;
     if (tank.equipmentId != null || volume == null || volume <= 0) continue;
-    if (owned.any((item) => cylinderMatchesTank(item, tank))) continue;
-    if (ownedPairs.any((p) => pairMatchesTank(p.$1, p.$2, tank))) continue;
+    if (covered.contains(ref)) continue;
     final group = groups.where((g) => _sameRow(g.first.tank, tank));
     if (group.isEmpty) {
       groups.add([ref]);
@@ -140,6 +150,62 @@ List<CylinderProposal> proposeCylinders(
       return byDives != 0 ? byDives : a.$1.compareTo(b.$1);
     });
   return [for (final (_, p) in indexed) p];
+}
+
+/// The unlinked tanks of one dive that the diver's own gear covers, each
+/// owned cylinder at most once. A cylinder a tank of the dive is already
+/// linked to is in use. Single cylinders are assigned as a maximum matching
+/// (so a cylinder recording no material does not take the tank a stricter
+/// one fits, leaving the other tank uncovered), then twin sets whose two
+/// cylinders are both still free.
+Set<TankRef> _coveredOnDive(
+  List<TankRef> diveTanks,
+  List<EquipmentItem> owned,
+  List<(EquipmentItem, EquipmentItem)> ownedPairs,
+) {
+  final inUse = <String>{for (final ref in diveTanks) ?ref.tank.equipmentId};
+  final open = [
+    for (final ref in diveTanks)
+      if (ref.tank.equipmentId == null) ref,
+  ]..sort((a, b) => a.tank.order.compareTo(b.tank.order));
+  final fits = [
+    for (final ref in open)
+      [
+        for (final item in owned)
+          if (!inUse.contains(item.id) && cylinderMatchesTank(item, ref.tank))
+            item.id,
+      ],
+  ];
+  // Kuhn's augmenting paths: which open tank each cylinder covers.
+  final tankOf = <String, int>{};
+  bool assign(int tank, Set<String> tried) {
+    for (final id in fits[tank]) {
+      if (!tried.add(id)) continue;
+      final holder = tankOf[id];
+      if (holder == null || assign(holder, tried)) {
+        tankOf[id] = tank;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  for (var i = 0; i < open.length; i++) {
+    assign(i, <String>{});
+  }
+  final busy = {...inUse, ...tankOf.keys};
+  final covered = {for (final i in tankOf.values) open[i]};
+  for (final ref in open) {
+    if (covered.contains(ref)) continue;
+    for (final (a, b) in ownedPairs) {
+      if (busy.contains(a.id) || busy.contains(b.id)) continue;
+      if (!pairMatchesTank(a, b, ref.tank)) continue;
+      busy.addAll([a.id, b.id]);
+      covered.add(ref);
+      break;
+    }
+  }
+  return covered;
 }
 
 /// The per-tank "Add to my gear" proposal: one cylinder for [ref] alone,

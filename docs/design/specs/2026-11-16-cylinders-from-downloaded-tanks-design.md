@@ -106,6 +106,12 @@ Special cases (builder's calls, marked as such):
   is the pair's combined volume (the existing twin-pair volume rule, #4242),
   so a logged 24 L double is not offered as a new 24 L cylinder. Created
   items are always single cylinders.
+- *One tank per dive.* An owned cylinder covers at most one tank on a dive,
+  and a twin set covers one tank with both its cylinders, so one owned AL80
+  on a sidemount dive with two AL80s leaves the second offered (decided
+  2026-11-16 during review). A cylinder a tank of the dive is already linked
+  to is in use on it. Cylinders are assigned as a maximum matching, so one
+  recording no material does not take the tank a stricter one fits.
 
 A tank with no volume matches nothing and is not listed on the summary card
 (there is nothing to prefill). The per-tank action still works on it.
