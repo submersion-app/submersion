@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -70,15 +71,12 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  Future<double?> listedWeight(
-    ProviderContainer container,
+  /// [read] once it satisfies [done], or its last value after about two
+  /// seconds of waiting.
+  Future<double?> settle(
+    double? Function() read,
     bool Function(double?) done,
   ) async {
-    double? read() => container
-        .read(diveListNotifierProvider)
-        .value
-        ?.singleOrNull
-        ?.recordedWeightKg;
     for (var i = 0; i < 200; i++) {
       final value = read();
       if (done(value)) return value;
@@ -87,18 +85,31 @@ void main() {
     return read();
   }
 
-  ProviderContainer container() {
+  /// A container that keeps [watched] alive for the test.
+  ProviderContainer container(ProviderListenable<Object?> watched) {
     final container = ProviderContainer(
       overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
     );
     addTearDown(container.dispose);
-    final sub = container.listen(diveListNotifierProvider, (_, _) {});
+    final sub = container.listen(watched, (_, _) {});
     addTearDown(sub.close);
     return container;
   }
 
+  Future<double?> listedWeight(
+    ProviderContainer container,
+    bool Function(double?) done,
+  ) => settle(
+    () => container
+        .read(diveListNotifierProvider)
+        .value
+        ?.singleOrNull
+        ?.recordedWeightKg,
+    done,
+  );
+
   test('a weight row written alone reaches the list', () async {
-    final c = container();
+    final c = container(diveListNotifierProvider);
     expect(await listedWeight(c, (kg) => kg == 2.5), 2.5);
 
     await db
@@ -121,7 +132,7 @@ void main() {
   });
 
   test("a weights item's dry weight edited alone reaches the list", () async {
-    final c = container();
+    final c = container(diveListNotifierProvider);
     expect(await listedWeight(c, (kg) => kg == 2.5), 2.5);
 
     final updated =
@@ -141,19 +152,11 @@ void main() {
   });
 
   test('a weight row written alone reaches the dive page', () async {
-    final c = ProviderContainer(
-      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    final c = container(diveProvider('dive'));
+    Future<double?> shownWeight(double expected) => settle(
+      () => c.read(diveProvider('dive')).value?.recordedWeightKg,
+      (kg) => kg == expected,
     );
-    addTearDown(c.dispose);
-    final sub = c.listen(diveProvider('dive'), (_, _) {});
-    addTearDown(sub.close);
-    Future<double?> shownWeight(double expected) async {
-      double? read() => c.read(diveProvider('dive')).value?.recordedWeightKg;
-      for (var i = 0; i < 200 && read() != expected; i++) {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
-      }
-      return read();
-    }
 
     expect(await shownWeight(2.5), 2.5);
 
