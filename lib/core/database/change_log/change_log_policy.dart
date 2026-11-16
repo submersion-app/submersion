@@ -4,6 +4,7 @@
 /// to the log, or kept out of it, here and nowhere else.
 library;
 
+import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
@@ -526,11 +527,40 @@ const Set<String> changeLogDeviceLocalTables = {'dive_profile_series_history'};
 /// time and nothing the diver did, so they stay out of the log. A promotion
 /// also shifts photo placements along the re-zeroed timeline, so
 /// media_enrichment is here too.
+///
+/// An editing sitting opts in as well (issue #4527): it moves readings
+/// between cylinders, and dismisses safety findings, which are machine rows
+/// the diver changes. Its History entry must revert every one, so
+/// dive_safety_findings is here, limited by [changeLogOptInUpdateColumns].
 const Set<String> changeLogOptInUpdateTables = {
   'dive_profile_series',
+  'dive_safety_findings',
   'media_enrichment',
   'tank_pressure_series',
 };
+
+/// Opt-in tables whose update records only these columns. A finding is
+/// written once by the safety review, except dismissed_at, which the diver
+/// toggles; a review recomputed while a sitting is being saved must not log
+/// its other columns.
+const Map<String, Set<String>> changeLogOptInUpdateColumns = {
+  'dive_safety_findings': {'dismissed_at'},
+};
+
+/// The start of an editing sitting's label, `RecordEditLabel.prefix` and its
+/// separator.
+const String changeLogRecordEditLabelStart = '${RecordEditLabel.prefix}:';
+
+/// Whether an operation with [label] from [source] records updates to
+/// [changeLogOptInUpdateTables]: one of [changeLogSeriesUpdateLabels], one
+/// of [changeLogSeriesUpdateSources], or an editing sitting.
+bool changeLogOptsInMachineRows({
+  required String? label,
+  required String source,
+}) =>
+    changeLogSeriesUpdateLabels.contains(label) ||
+    changeLogSeriesUpdateSources.contains(source) ||
+    (label?.startsWith(changeLogRecordEditLabelStart) ?? false);
 
 /// The operation labels that record updates to [changeLogOptInUpdateTables].
 /// Kept equal to `ChangeLogLabels.removeSource`,

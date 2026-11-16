@@ -161,6 +161,36 @@ void main() {
     }
   });
 
+  test('every opt-in column exists on its table, an opt-in table', () {
+    final columns = _columnsByTable(db);
+    for (final entry in changeLogOptInUpdateColumns.entries) {
+      expect(changeLogOptInUpdateTables, contains(entry.key));
+      for (final column in entry.value) {
+        expect(columns[entry.key], contains(column), reason: entry.key);
+      }
+    }
+  });
+
+  test('a sitting opts in to machine rows; a free manual label does not', () {
+    expect(
+      changeLogOptsInMachineRows(
+        label: 'record_edit:dives:dive:tanks',
+        source: 'manual',
+      ),
+      isTrue,
+    );
+    expect(
+      changeLogOptsInMachineRows(label: 'record_editor', source: 'manual'),
+      isFalse,
+    );
+    expect(changeLogOptsInMachineRows(label: null, source: 'manual'), isFalse);
+    expect(
+      changeLogOptsInMachineRows(label: 'remove_source', source: 'manual'),
+      isTrue,
+    );
+    expect(changeLogOptsInMachineRows(label: 'x', source: 'agent'), isTrue);
+  });
+
   test('a device-local settings key is filtered out of the triggers', () {
     expect(
       changeLogRowGuard('settings', 'NEW'),

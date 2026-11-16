@@ -536,9 +536,8 @@ class _SettlePass {
   }
 
   /// Whether [event] was recorded inside an operation that keeps its machine
-  /// rows: a series table of [changeLogOptInUpdateTables] under one of
-  /// [changeLogSeriesUpdateLabels], or from one of
-  /// [changeLogSeriesUpdateSources].
+  /// rows: a table of [changeLogOptInUpdateTables] in an operation
+  /// [changeLogOptsInMachineRows] accepts.
   Future<bool> _optedInMachineRows(_Event event) async {
     final operationId = event.operationId;
     if (operationId == null ||
@@ -547,8 +546,10 @@ class _SettlePass {
     }
     final operation = await _loadOperation(operationId);
     if (operation == null) return false;
-    return changeLogSeriesUpdateLabels.contains(operation.label) ||
-        changeLogSeriesUpdateSources.contains(operation.source);
+    return changeLogOptsInMachineRows(
+      label: operation.label,
+      source: operation.source,
+    );
   }
 
   /// Whether the row a machine row belongs to, other than its root, has gone.
