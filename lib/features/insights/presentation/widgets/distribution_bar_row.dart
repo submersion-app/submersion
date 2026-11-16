@@ -2,6 +2,19 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// The colours of a category bar list with no pie (dive types, #3048; the
+/// diver's own roles, #4409), taken in order.
+const kDistributionBarColors = [
+  Color(0xFF42A5F5), // blue.shade400
+  Color(0xFF26A69A), // teal.shade400
+  Color(0xFFFFA726), // orange.shade400
+  Color(0xFFAB47BC), // purple.shade400
+  Color(0xFF66BB6A), // green.shade400
+  Color(0xFFEF5350), // red.shade400
+  Color(0xFF5C6BC0), // indigo.shade400
+  Color(0xFFFFCA28), // amber.shade400
+];
+
 /// One row of the bar list that replaced the separate pie legend + full-list
 /// combination below each pie (issue #3074): a label, a bar whose length is
 /// proportional to [fraction], and the same "count • duration" trailing text

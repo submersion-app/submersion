@@ -28,7 +28,7 @@ extension InsightsRepositoryRoles on InsightsRepository {
       );
       final runtime = measuredRuntimeSecondsSql('d');
 
-      final roleRows = await _db.customSelect('''
+      final roleQuery = _db.customSelect('''
         SELECT
           dr.id AS role_id,
           COUNT(*) AS count,
@@ -39,13 +39,15 @@ extension InsightsRepositoryRoles on InsightsRepository {
         GROUP BY dr.id
         ORDER BY count DESC, dr.sort_order, dr.id
         ''', variables: variables).get();
-      final notSet = await _db.customSelect('''
+      final notSetQuery = _db.customSelect('''
         SELECT COUNT(*) AS count, SUM($runtime) AS total_time
         FROM dives d
         WHERE (d.diver_role IS NULL OR d.diver_role = '')
           $diverFilter ${df.clause}
         ''', variables: variables).getSingle();
 
+      // Independent reads: issue them together.
+      final (roleRows, notSet) = await (roleQuery, notSetQuery).wait;
       final rows = [
         for (final row in roleRows)
           (

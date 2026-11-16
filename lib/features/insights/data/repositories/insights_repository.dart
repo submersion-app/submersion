@@ -311,6 +311,9 @@ class InsightsRepository with InsightsChartDives {
           // Role sets (#1221); solo detection reads the primary, which a
           // junction-only write can still accompany through sync.
           TableUpdateQuery.onTable(_db.diveDiverRoles),
+          // The My role card joins the role rows (#4409); a custom role can
+          // sync in after the dives that hold it.
+          TableUpdateQuery.onTable(_db.diveRoles),
           TableUpdateQuery.onTable(_db.diveBuddyRoles),
           TableUpdateQuery.onTable(_db.sightings),
           TableUpdateQuery.onTable(_db.species),

@@ -12,18 +12,6 @@ import 'package:submersion/features/insights/presentation/widgets/distribution_b
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// One colour per role bar, in order; Not set is always grey.
-final _roleColors = [
-  Colors.blue.shade400,
-  Colors.teal.shade400,
-  Colors.orange.shade400,
-  Colors.purple.shade400,
-  Colors.green.shade400,
-  Colors.red.shade400,
-  Colors.indigo.shade400,
-  Colors.amber.shade400,
-];
-
 /// Dives per role the diver held (issue #4409), with Not set as its own
 /// bar. A dive with several roles counts under each, so there is no pie:
 /// the bars are not shares of one total, as on the dive types list.
@@ -83,7 +71,8 @@ class MyRoleCard extends ConsumerWidget {
                       totalDurationSeconds: segment.totalDurationSeconds,
                       color: segment.label == kNotRecordedDistributionKey
                           ? Colors.grey.shade500
-                          : _roleColors[index % _roleColors.length],
+                          : kDistributionBarColors[index %
+                                kDistributionBarColors.length],
                       fraction: segment.count / maxCount,
                       fillKey: ValueKey('my-role-bar-fill-${segment.label}'),
                       onTap: () => open(segment.label),

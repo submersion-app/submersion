@@ -31,6 +31,11 @@ import 'package:submersion/features/marine_life/query/sighting_text_search.dart'
 
 String _label(String key) => 'query_dives_$key';
 
+/// A dive with no role of the diver's own (#3622): the `role` field's
+/// empty form and, written against `{from}`, the `myRole` relation's
+/// (#4409), so `myRole:none` keeps meaning `role:none`.
+const _noRoleSql = "({r}.diver_role IS NULL OR {r}.diver_role = '')";
+
 const _weekday =
     "CAST(strftime('%w', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
 const _year =
@@ -583,7 +588,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
       key: 'role',
       type: FieldType.text,
       sql: '{r}.diver_role',
-      emptySql: "({r}.diver_role IS NULL OR {r}.diver_role = '')",
+      emptySql: _noRoleSql,
       labelKey: _label('role'),
       ops: const {QueryOp.isEmpty, QueryOp.isSet},
     ),
@@ -697,7 +702,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
           '{to}.id IN (${diverRoleIdsOfDiveSql(diveId: '{from}.id', scalar: '{from}.diver_role')})',
       isMany: true,
       labelKey: _label('myRole'),
-      emptySql: "({from}.diver_role IS NULL OR {from}.diver_role = '')",
+      emptySql: _noRoleSql.replaceAll('{r}', '{from}'),
       tables: const ['dive_diver_roles'],
     ),
     QueryRelation(
