@@ -232,6 +232,37 @@ void main() {
     expect((await repo.latestClearanceExpiryByDiver())['d1'], DateTime(2028));
   });
 
+  test('latest clearance expiry reads the diver\'s own current clearance: '
+      'not a buddy\'s, none when an undated renewal is current', () async {
+    await db.customStatement(
+      'INSERT INTO buddies (id, name, created_at, updated_at) '
+      "VALUES ('b1', 'Student', 0, 0)",
+    );
+    await repo.save(
+      newDoc(type: DocumentType.medicalClearance, expiry: DateTime(2026, 6)),
+      const [],
+    );
+    await repo.save(
+      newDoc(
+        type: DocumentType.medicalClearance,
+        owner: const DocumentOwner(DocumentOwnerKind.buddy, 'b1'),
+        expiry: DateTime(2029),
+      ),
+      const [],
+    );
+    expect(
+      (await repo.latestClearanceExpiryByDiver())['d1'],
+      DateTime(2026, 6),
+    );
+    await repo.save(
+      newDoc(
+        type: DocumentType.medicalClearance,
+      ).copyWith(issueDate: DateTime(2026, 9)),
+      const [],
+    );
+    expect(await repo.latestClearanceExpiryByDiver(), isEmpty);
+  });
+
   test('getForOwner separates personal and owned documents', () async {
     await repo.save(newDoc(), const []);
     await repo.save(
@@ -594,5 +625,148 @@ void main() {
       const [],
     );
     expect(await repo.getRemindingForDiver('d1'), hasLength(1));
+  });
+
+  test('reminding documents drop a clearance a later one supersedes '
+      '(#4541)', () async {
+    await repo.save(
+      newDoc(type: DocumentType.medicalClearance, expiry: DateTime(2024)),
+      const [],
+    );
+    final current = await repo.save(
+      newDoc(type: DocumentType.medicalClearance, expiry: DateTime(2027)),
+      const [],
+    );
+    final permit = await repo.save(
+      newDoc(type: DocumentType.permit, expiry: DateTime(2024)),
+      const [],
+    );
+    expect((await repo.getRemindingForDiver('d1')).map((d) => d.id).toSet(), {
+      current.id,
+      permit.id,
+    });
+  });
+
+  test('an undated renewal issued later drops the dated clearance from the '
+      'reminding documents, a buddy\'s keeps its own', () async {
+    await db.customStatement(
+      'INSERT INTO buddies (id, name, created_at, updated_at) '
+      "VALUES ('b1', 'Student', 0, 0)",
+    );
+    await repo.save(
+      newDoc(type: DocumentType.medicalClearance, expiry: DateTime(2025, 6)),
+      const [],
+    );
+    await repo.save(
+      newDoc(
+        type: DocumentType.medicalClearance,
+      ).copyWith(issueDate: DateTime(2026)),
+      const [],
+    );
+    final buddys = await repo.save(
+      newDoc(
+        type: DocumentType.medicalClearance,
+        owner: const DocumentOwner(DocumentOwnerKind.buddy, 'b1'),
+        expiry: DateTime(2024),
+      ),
+      const [],
+    );
+    expect((await repo.getRemindingForDiver('d1')).map((d) => d.id), [
+      buddys.id,
+    ]);
+  });
+
+  test('getMedicalClearancesForDiver returns every clearance, undated '
+      'ones too', () async {
+    final dated = await repo.save(
+      newDoc(type: DocumentType.medicalClearance, expiry: DateTime(2024)),
+      const [],
+    );
+    final undated = await repo.save(
+      newDoc(type: DocumentType.medicalClearance),
+      const [],
+    );
+    await repo.save(
+      newDoc(type: DocumentType.permit, expiry: DateTime(2024)),
+      const [],
+    );
+    expect(
+      (await repo.getMedicalClearancesForDiver('d1')).map((d) => d.id).toSet(),
+      {dated.id, undated.id},
+    );
+  });
+
+  group('medical clearances list newest first (#4508)', () {
+    Future<List<String>> saveClearances() async {
+      Future<String> clearance(String title, DateTime? expiry) async =>
+          (await repo.save(
+            newDoc(
+              type: DocumentType.medicalClearance,
+              expiry: expiry,
+            ).copyWith(title: title),
+            const [],
+          )).id;
+      // Titles in the opposite order, so a title sort would fail the test.
+      final oldest = await clearance('C', DateTime(2023));
+      final newest = await clearance('A', DateTime(2027));
+      final middle = await clearance('B', DateTime(2025));
+      final undated = await clearance('0', null);
+      return [newest, middle, oldest, undated];
+    }
+
+    test('in the library', () async {
+      final expected = await saveClearances();
+      final entries = await repo.getAllForDiver('d1');
+      expect([for (final e in entries) e.document.id], expected);
+    });
+
+    test('under their owner', () async {
+      final expected = await saveClearances();
+      final docs = await repo.getForOwner(const DocumentOwner.personal());
+      expect([for (final d in docs) d.id], expected);
+    });
+
+    test('a tie on expiry lists the clearance that reminds first: the '
+        'later issued, then the later uploaded', () async {
+      // An explicit id keeps the given creation time.
+      Future<String> clearance(
+        String title,
+        DateTime? issued,
+        DateTime created,
+      ) async => (await repo.save(
+        newDoc(
+          id: 'clearance-$title',
+          type: DocumentType.medicalClearance,
+          expiry: DateTime(2027),
+        ).copyWith(title: title, issueDate: issued, createdAt: created),
+        const [],
+      )).id;
+      final older = await clearance('A', null, DateTime(2026, 1));
+      final newer = await clearance('B', null, DateTime(2026, 2));
+      final issued = await clearance('C', DateTime(2025), DateTime(2025, 1));
+      final entries = await repo.getAllForDiver('d1');
+      expect([for (final e in entries) e.document.id], [issued, newer, older]);
+      final docs = await repo.getForOwner(const DocumentOwner.personal());
+      expect([for (final d in docs) d.id], [issued, newer, older]);
+    });
+
+    test('other types keep their title order', () async {
+      final b = await repo.save(
+        newDoc(
+          type: DocumentType.permit,
+          expiry: DateTime(2027),
+        ).copyWith(title: 'B'),
+        const [],
+      );
+      final a = await repo.save(
+        newDoc(
+          type: DocumentType.permit,
+          expiry: DateTime(2023),
+        ).copyWith(title: 'A'),
+        const [],
+      );
+      final entries = await repo.getAllForDiver('d1');
+      expect([for (final e in entries) e.document.id], [a.id, b.id]);
+    });
   });
 }

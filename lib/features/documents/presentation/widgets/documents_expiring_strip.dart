@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/clearance_supersession.dart';
 import 'package:submersion/features/documents/domain/document_expiry.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_expiry_badge.dart';
@@ -14,19 +15,33 @@ class DocumentsExpiringStrip extends ConsumerWidget {
   final List<DocumentListEntry> entries;
   final ValueChanged<String> onOpen;
 
+  /// Every entry of the library, for [due]'s superseded clearances; null
+  /// means [entries].
+  final List<DocumentListEntry>? among;
+
   const DocumentsExpiringStrip({
     super.key,
     required this.entries,
     required this.onOpen,
+    this.among,
   });
 
-  /// The entries that need attention, expired first, then soonest.
+  /// The entries that need attention, expired first, then soonest. A
+  /// medical clearance a later one in [among] (default [entries])
+  /// supersedes needs none (#4541): a filter that hides the renewal must
+  /// not bring the old one back.
   static List<(DocumentListEntry, DocumentExpiryStatus)> due(
     List<DocumentListEntry> entries,
-    DateTime now,
-  ) {
+    DateTime now, {
+    List<DocumentListEntry>? among,
+  }) {
+    final superseded = supersededClearanceIds([
+      for (final e in among ?? entries) e.document,
+    ]);
     final out = [
-      for (final e in entries) (e, documentExpiryStatus(e.document, now)),
+      for (final e in entries)
+        if (!superseded.contains(e.document.id))
+          (e, documentExpiryStatus(e.document, now)),
     ].where((e) => e.$2.needsAttention).toList();
     out.sort((a, b) => a.$2.daysLeft!.compareTo(b.$2.daysLeft!));
     return out;
@@ -37,7 +52,7 @@ class DocumentsExpiringStrip extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = ref.watch(unitFormatterProvider);
-    final items = due(entries, DateTime.now());
+    final items = due(entries, DateTime.now(), among: among);
     if (items.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

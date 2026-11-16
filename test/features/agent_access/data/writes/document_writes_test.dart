@@ -95,6 +95,29 @@ void main() {
     },
   );
 
+  test('deleting a renewal re-arms the clearance it superseded (#4541); '
+      'a delete that leaves no clearance re-arms nothing', () async {
+    final permit = await make('documents', {
+      'type': 'permit',
+      'expiry_date': '2026-01-31',
+    });
+    rearmed.clear();
+    await h.run([deleteOp('documents', permit)]);
+    expect(rearmed, isEmpty);
+
+    final old = await make('documents', {
+      'type': 'medicalClearance',
+      'expiry_date': '2026-01-31',
+    });
+    final renewal = await make('documents', {
+      'type': 'medicalClearance',
+      'expiry_date': '2028-01-31',
+    });
+    rearmed.clear();
+    await h.run([deleteOp('documents', renewal)]);
+    expect(rearmed, [old]);
+  });
+
   test('is_primary on a non-insurance document is refused', () async {
     final plan = await h.preview([
       createOp('documents', {'type': 'permit', 'is_primary': true}),
