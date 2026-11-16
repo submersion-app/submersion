@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dar
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
 import 'package:submersion/features/dive_log/query/dive_number_query.dart';
 import 'package:submersion/features/dive_log/query/dive_word_meanings.dart';
+import 'package:submersion/features/dive_roles/data/diver_role_set_sql.dart';
 import 'package:submersion/features/dive_types/query/dive_type_text_search.dart';
 import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
@@ -29,6 +30,11 @@ import 'package:submersion/features/marine_life/query/sighting_text_search.dart'
 /// correlated subquery; values are never interpolated.
 
 String _label(String key) => 'query_dives_$key';
+
+/// A dive with no role of the diver's own (#3622): the `role` field's
+/// empty form and, written against `{from}`, the `myRole` relation's
+/// (#4409), so `myRole:none` keeps meaning `role:none`.
+final _noRoleSql = diverRoleUnsetSql('{r}.diver_role');
 
 const _weekday =
     "CAST(strftime('%w', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
@@ -575,15 +581,14 @@ final QueryEntity diveQueryEntity = QueryEntity(
     _text('legacyBuddy', 'buddy'),
     // The diver's own role (#3622), present or not. A null or blank
     // diver_role is no role whatever dive_diver_roles holds, as
-    // DiveRoleSet.resolve reads it. Matching a named role would need that
-    // resolution in SQL and a name subject for custom roles, so only the
-    // presence operators are offered.
+    // DiveRoleSet.resolve reads it. Named roles go through the `myRole`
+    // relation (#4409), which took this field's old `myRole` alias: fields
+    // resolve before relations, so the alias would have shadowed it.
     QueryField(
       key: 'role',
-      aliases: const ['myRole'],
       type: FieldType.text,
       sql: '{r}.diver_role',
-      emptySql: "({r}.diver_role IS NULL OR {r}.diver_role = '')",
+      emptySql: _noRoleSql,
       labelKey: _label('role'),
       ops: const {QueryOp.isEmpty, QueryOp.isSet},
     ),
@@ -684,6 +689,22 @@ final QueryEntity diveQueryEntity = QueryEntity(
       'dive_dive_types',
       'dive_type_id',
       aliases: ['type', 'diveType'],
+    ),
+    // The diver's own roles by name (#4409): the set DiveRoleSet.resolve
+    // reads, so a secondary role matches and a junction an older version's
+    // scalar outdates does not. `:none` is the `role` field's empty form.
+    QueryRelation(
+      key: 'myRole',
+      aliases: const ['myRoles'],
+      target: QuerySubject.diveRoles,
+      shape: RelationShape.custom,
+      joinSql:
+          '{to}.id IN (${diverRoleIdsOfDiveSql(diveId: '{from}.id', scalar: '{from}.diver_role')}) '
+          "AND ${diveRoleVisibleSql(role: '{to}', diveDiverId: '{from}.diver_id')}",
+      isMany: true,
+      labelKey: _label('myRole'),
+      emptySql: _noRoleSql.replaceAll('{r}', '{from}'),
+      tables: const ['dive_diver_roles'],
     ),
     QueryRelation(
       key: 'gear',

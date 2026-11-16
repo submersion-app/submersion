@@ -516,6 +516,9 @@ class DiverSettings extends Table {
   // (issue #4593).
   BoolColumn get defaultShowBuoyancy =>
       boolean().withDefault(const Constant(false))();
+  // v371: the dive types this diver starred to list first in the pickers, a
+  // sorted JSON list of ids (issue #4413). Null means none.
+  TextColumn get favouriteDiveTypeIds => text().nullable()();
   // v163: whether synthesized ("(est.)") tank pressure lines are drawn on the
   // profile chart at all (issue #731). Defaults to true, preserving the
   // behavior estimates shipped with. Ignored for coverage for the reason

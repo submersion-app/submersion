@@ -261,6 +261,7 @@ void main() {
       gas: '',
       turnAt: '',
       minGas: '',
+      problemSolving: '',
       noTurnRule: '',
       noStartPressure: '',
       noVolume: '',

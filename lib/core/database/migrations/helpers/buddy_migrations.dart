@@ -302,8 +302,8 @@ extension BuddyMigrations on AppDatabase {
     );
   }
 
-  /// v371: buddies.country and buddies.country_code (issue #4457).
-  /// Nullable, so an older peer omits them. Safe from both the v371 rung and
+  /// v372: buddies.country and buddies.country_code (issue #4457).
+  /// Nullable, so an older peer omits them. Safe from both the v372 rung and
   /// the beforeOpen backstop.
   Future<void> _assertBuddyCountryColumns() async {
     await _addColumnIfMissing('buddies', 'country', 'TEXT');

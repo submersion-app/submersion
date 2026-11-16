@@ -244,7 +244,8 @@ void main() {
       'clauses': const [],
     });
     expect(q.subject, ParsedSubject.dives);
-    expect(kQuerySchemaVersion, 5);
+    // 6 since #4409 added the myRole field.
+    expect(kQuerySchemaVersion, 6);
   });
 
   group('time (#2838)', () {

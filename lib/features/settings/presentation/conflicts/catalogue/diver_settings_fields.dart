@@ -435,6 +435,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_hasAcceptedPlanningDisclaimer,
     FieldKind.boolean,
   ),
+  'favouriteDiveTypeIds': ConflictField(
+    (l) => l.settings_conflict_field_favouriteDiveTypeIds,
+    FieldKind.opaque,
+  ),
   'hiddenBuiltInIds': ConflictField(
     (l) => l.settings_conflict_field_hiddenBuiltInIds,
     FieldKind.opaque,

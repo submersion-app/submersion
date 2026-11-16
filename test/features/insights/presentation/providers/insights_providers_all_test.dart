@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_gas_lane_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/my_role_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -56,6 +57,7 @@ void main() {
     );
     expect(await container.read(gasMixDistributionProvider.future), isEmpty);
     expect(await container.read(diveTypeDistributionProvider.future), isEmpty);
+    expect(await container.read(diverRoleDistributionProvider.future), isEmpty);
     expect(await container.read(depthProgressionTrendProvider.future), isEmpty);
     expect(await container.read(bottomTimeTrendProvider.future), isEmpty);
     expect(await container.read(runtimeTrendProvider.future), isEmpty);

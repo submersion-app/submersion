@@ -24,6 +24,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
 /// Top-level entry for `compute()`: a plain function crosses the isolate
@@ -389,7 +390,7 @@ class ScenarioEngine {
       );
       planOutcome = engine.compute(plan, startState: branch.tissueState);
     }
-    if (!planOutcome.isDiveable) {
+    if (!isReplanCompletable(planOutcome)) {
       flags.add(const ScenarioFlag(ScenarioFlagKind.replanNotCompletable));
     }
     final isLoop =
@@ -684,3 +685,10 @@ class ScenarioEngine {
     ];
   }
 }
+
+/// Whether a branch replan can be flown to the surface as computed: no
+/// critical issue but a short emergency margin, which is critical yet still
+/// surfaces (#4475). That issue is listed on its own.
+bool isReplanCompletable(PlanOutcome outcome) => !outcome.issues.any(
+  (i) => i.severity == PlanIssueSeverity.critical && !i.type.isMarginShortfall,
+);

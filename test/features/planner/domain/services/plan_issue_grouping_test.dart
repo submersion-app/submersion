@@ -54,6 +54,30 @@ void main() {
     expect(worstFirst.issue.value, 0.09);
   });
 
+  // A pressure left in a cylinder is worse the lower it is: two back gases
+  // both short at the bottom keep the shorter one (#4475).
+  for (final type in [
+    PlanIssueType.minGasViolation,
+    PlanIssueType.minGasAscentViolation,
+    PlanIssueType.gasReserveViolation,
+    PlanIssueType.gasOut,
+    PlanIssueType.bailoutGasHypoxic,
+  ]) {
+    test('the worst of several ${type.name} issues is the lowest value', () {
+      for (final values in [
+        [70.0, 40.0],
+        [40.0, 70.0],
+      ]) {
+        final grouped = groupPlanIssues([
+          for (final value in values)
+            _issue(type, PlanIssueSeverity.warning, value: value),
+        ]).single;
+        expect(grouped.count, 2);
+        expect(grouped.issue.value, 40.0);
+      }
+    });
+  }
+
   test(
     'repeats of the same issue collapse to one row with the worst value',
     () {

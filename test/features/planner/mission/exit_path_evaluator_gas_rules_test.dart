@@ -385,11 +385,14 @@ void main() {
       // The plan's SAC factor counts the divers sharing one supply. A mission
       // budgets each diver separately, so one diver matches a factor of 1.
       final plan = _plan().copyWith(problemSolvingMinutes: 3, sacFactor: 1);
-      final engineUsed = const PlanEngine()
+      // The plan holds its problem-solving gas apart from what it uses
+      // (#4475); a diver failing at the bottom spends both.
+      final engineUsage = const PlanEngine()
           .compute(plan.copyWith(segments: _outbound))
           .tankUsages
-          .single
-          .litersUsed;
+          .single;
+      final engineUsed =
+          engineUsage.litersUsed + engineUsage.problemSolvingLiters;
       final schedule = const PlanEngine()
           .compute(plan.copyWith(segments: _outbound))
           .schedule;

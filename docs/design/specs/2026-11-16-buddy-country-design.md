@@ -52,7 +52,8 @@ Approach 2 was chosen.
 
 ## The design
 
-- **Schema v371:** two nullable `TEXT` columns on `buddies`, `country` and
+- **Schema v372 (renumbered from v371, which main took for #4413):** two
+  nullable `TEXT` columns on `buddies`, `country` and
   `country_code`, added in a rung and re-asserted in `beforeOpen`. No
   backfill: no buddy has a country yet. Nullable columns, so the
   compatibility floor does not move and an older peer simply omits them.

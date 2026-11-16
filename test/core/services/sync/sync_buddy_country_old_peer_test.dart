@@ -15,7 +15,7 @@ import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/test_database.dart';
 
-/// A peer below v371 republishes a buddy without `country` and
+/// A peer below v372 republishes a buddy without `country` and
 /// `countryCode` (issue #4457). Its edit must apply, and the country this
 /// device holds must survive, as cross_version_roundtrip_test.dart proves
 /// for the columns of earlier rungs.
@@ -46,7 +46,7 @@ void main() {
     expect(row['country'], 'Italy', reason: 'precondition');
     await SyncRepository().resetSyncState();
 
-    // A pre-371 peer's republished shape: the keys are absent, not null.
+    // A pre-372 peer's republished shape: the keys are absent, not null.
     final peerRow = Map<String, dynamic>.from(row)
       ..remove('country')
       ..remove('countryCode')
@@ -54,7 +54,7 @@ void main() {
       ..['hlc'] = Hlc(
         Hlc.parse(row['hlc'] as String).physicalTime + 60000,
         0,
-        'peer-pre371',
+        'peer-pre372',
       ).toString()
       ..['updatedAt'] = (row['updatedAt'] as int) + 60000;
 
@@ -62,14 +62,14 @@ void main() {
     final payload = SyncPayload(
       version: syncFormatVersion,
       exportedAt: 9000,
-      deviceId: 'peer-pre371',
+      deviceId: 'peer-pre372',
       checksum: sha256
           .convert(utf8.encode(jsonEncode(data.toJson())))
           .toString(),
       data: data,
       deletions: const {},
     );
-    await seedPeerBaseFromPayload(cloud, 'peer-pre371', payload);
+    await seedPeerBaseFromPayload(cloud, 'peer-pre372', payload);
     final result = await SyncService(
       syncRepository: SyncRepository(),
       serializer: SyncDataSerializer(),

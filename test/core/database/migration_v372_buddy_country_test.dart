@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v371: buddies.country and buddies.country_code, a buddy's country
+/// Schema v372: buddies.country and buddies.country_code, a buddy's country
 /// as written and the ISO code read from it (issue #4457). Nullable, no
 /// backfill, so the sync floor holds.
 void main() {
@@ -18,17 +18,17 @@ void main() {
     },
   );
 
-  test('v371 is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(371));
-    expect(AppDatabase.migrationVersions, contains(371));
+  test('v372 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(372));
+    expect(AppDatabase.migrationVersions, contains(372));
   });
 
   test('the new columns keep the floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(371));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(372));
   });
 
-  test('upgrading from v370 adds both columns, empty', () async {
-    final db = AppDatabase(dbAt(370));
+  test('upgrading from v371 adds both columns, empty', () async {
+    final db = AppDatabase(dbAt(371));
     addTearDown(db.close);
     final row = await db
         .customSelect('SELECT country, country_code FROM buddies')

@@ -9388,7 +9388,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen instapmethode vastgelegd';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Geen rol toegewezen';
+  String get diveLog_filter_sectionMyRole => 'Mijn rol';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Niet ingesteld';
 
   @override
   String get diveLog_filter_noTagsYet => 'Nog geen tags aangemaakt';
@@ -9457,10 +9460,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Toon alleen duiken zonder bekende instapmethode';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Toon alleen duiken zonder je eigen rol';
 
   @override
   String get diveLog_filter_startDate => 'Startdatum';
@@ -13738,6 +13737,19 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveTypes_deleteTooltip => 'Duiktype verwijderen';
+
+  @override
+  String diveTypes_favourite_add(String name) {
+    return '$name aan favorieten toevoegen';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return '$name uit favorieten verwijderen';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'Favorieten';
 
   @override
   String get diveTypes_editDialog_builtInNameHelper =>
@@ -22435,6 +22447,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'probleemoplossing: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'Gasdichtheid $value g/L boven harde limiet';
   }
@@ -22450,8 +22467,13 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'Fles eindigt onder het rock-bottom-minimum van $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return 'Verlaat de bodem met $remaining, onder het rock-bottom-minimum van $minimum: geen gas achtergehouden voor de tijd voor probleemoplossing';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return 'Verlaat de bodem met $remaining, onder de $minimum die een noodopstijging nodig heeft';
   }
 
   @override
@@ -22617,6 +22639,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'Minimum gas';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'Probleemoplossing';
 
   @override
   String get plannerCanvas_slate_saved => 'Slate opgeslagen';
@@ -32941,6 +32966,15 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String insights_profile_timeAtDepth_hoursFormat(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString u';
+  }
+
+  @override
   String get insights_progression_appBar_title => 'Duikprogressie';
 
   @override
@@ -33445,6 +33479,22 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_social_soloVsBuddy_withBuddy => 'Met buddy';
+
+  @override
+  String get insights_social_myRole_title => 'Mijn rol';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Duiken per eigen rol; een duik met meerdere rollen telt bij elke rol';
+
+  @override
+  String get insights_social_myRole_empty => 'Geen duikgegevens beschikbaar';
+
+  @override
+  String get insights_social_myRole_error => 'Kan rolgegevens niet laden';
+
+  @override
+  String get insights_social_myRole_notSet => 'Niet ingesteld';
 
   @override
   String get insights_social_topBuddies_error =>
@@ -36632,6 +36682,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get units_profileMetric_min => 'min';
+
+  @override
+  String get units_profileMetric_h => 'u';
 
   @override
   String get units_profileMetric_percent => '%';
@@ -52413,6 +52466,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count rollen';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count flesconfiguraties';
   }
@@ -59143,6 +59201,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_divePlans_site => 'Duikstek';
 
   @override
+  String get query_diveRoles_builtIn => 'Ingebouwd';
+
+  @override
+  String get query_diveRoles_name => 'Naam';
+
+  @override
   String get query_diveTypes_builtIn => 'Ingebouwd';
 
   @override
@@ -59249,6 +59313,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Mijn rol';
+
+  @override
+  String get query_dives_myRole => 'Mijn rollen';
 
   @override
   String get query_dives_media => 'Media';
@@ -59384,6 +59451,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Duiktypes';
+
+  @override
+  String get query_entity_diveRoles => 'Duikrollen';
 
   @override
   String get query_entity_dives => 'Duiken';
@@ -61046,6 +61116,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'Verborgen ingebouwde items';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'Favoriete duiktypes';
 
   @override
   String get backup_restore_copyInOtherAccount =>

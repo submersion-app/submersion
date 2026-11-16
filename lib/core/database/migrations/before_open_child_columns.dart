@@ -100,7 +100,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // library_site_notes. Every read of either table selects the whole row.
     await _assertSiteCatalogueAnswersColumns();
 
-    // v371: buddies.country and buddies.country_code (issue #4457). Every
+    // v372: buddies.country and buddies.country_code (issue #4457). Every
     // buddy read selects the whole row.
     await _assertBuddyCountryColumns();
   }

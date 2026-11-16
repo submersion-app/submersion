@@ -9448,7 +9448,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sem método de entrada registado';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Sem Função Atribuída';
+  String get diveLog_filter_sectionMyRole => 'Minha função';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Não definida';
 
   @override
   String get diveLog_filter_noTagsYet => 'Nenhuma tag criada ainda';
@@ -9521,10 +9524,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Mostrar apenas mergulhos sem método de entrada conhecido';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Mostrar apenas mergulhos sem a sua função';
 
   @override
   String get diveLog_filter_startDate => 'Data Inicial';
@@ -13830,6 +13829,19 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveTypes_deleteTooltip => 'Excluir tipo de mergulho';
+
+  @override
+  String diveTypes_favourite_add(String name) {
+    return 'Adicionar $name aos favoritos';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return 'Remover $name dos favoritos';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'Favoritos';
 
   @override
   String get diveTypes_editDialog_builtInNameHelper =>
@@ -22575,6 +22587,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'resolução do problema: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'Densidade do gás $value g/L acima do limite máximo';
   }
@@ -22590,8 +22607,13 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'O cilindro termina abaixo do mínimo rock bottom de $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return 'Sai do fundo com $remaining, abaixo do mínimo rock bottom de $minimum: nenhum gás reservado para o tempo de resolução do problema';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return 'Sai do fundo com $remaining, abaixo dos $minimum de que uma subida de emergência precisa';
   }
 
   @override
@@ -22757,6 +22779,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'Gás mínimo';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'Resolução do problema';
 
   @override
   String get plannerCanvas_slate_saved => 'Prancheta salva';
@@ -33147,6 +33172,15 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String insights_profile_timeAtDepth_hoursFormat(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString h';
+  }
+
+  @override
   String get insights_progression_appBar_title => 'Progressão de Mergulho';
 
   @override
@@ -33657,6 +33691,24 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get insights_social_soloVsBuddy_withBuddy => 'Com Dupla';
+
+  @override
+  String get insights_social_myRole_title => 'Minha função';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Mergulhos pela sua função; um mergulho com várias funções conta em cada uma';
+
+  @override
+  String get insights_social_myRole_empty =>
+      'Nenhum dado de mergulho disponível';
+
+  @override
+  String get insights_social_myRole_error =>
+      'Falha ao carregar os dados de funções';
+
+  @override
+  String get insights_social_myRole_notSet => 'Não definida';
 
   @override
   String get insights_social_topBuddies_error =>
@@ -36865,6 +36917,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get units_profileMetric_min => 'min';
+
+  @override
+  String get units_profileMetric_h => 'h';
 
   @override
   String get units_profileMetric_percent => '%';
@@ -52730,6 +52785,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count funções';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count configurações de cilindros';
   }
@@ -59508,6 +59568,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get query_divePlans_site => 'Ponto de mergulho';
 
   @override
+  String get query_diveRoles_builtIn => 'Predefinido';
+
+  @override
+  String get query_diveRoles_name => 'Nome';
+
+  @override
   String get query_diveTypes_builtIn => 'Predefinido';
 
   @override
@@ -59614,6 +59680,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Minha função';
+
+  @override
+  String get query_dives_myRole => 'Minhas funções';
 
   @override
   String get query_dives_media => 'Mídia';
@@ -59749,6 +59818,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Tipos de mergulho';
+
+  @override
+  String get query_entity_diveRoles => 'Funções de mergulho';
 
   @override
   String get query_entity_dives => 'Mergulhos';
@@ -61411,6 +61483,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'Entradas integradas ocultas';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'Tipos de mergulho favoritos';
 
   @override
   String get backup_restore_copyInOtherAccount =>

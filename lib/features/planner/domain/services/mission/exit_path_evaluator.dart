@@ -233,14 +233,16 @@ class ExitPathEvaluator {
     );
   }
 
-  /// Whether [outcome] breaks a critical plan-engine limit other than gas
-  /// running out: ppO2, hypoxic gas, gas density or CNS. Gas running out is
-  /// judged per diver by this evaluator, not at the plan's single SAC.
+  /// Whether [outcome] breaks a critical plan-engine limit other than gas:
+  /// ppO2, hypoxic gas, gas density or CNS. Gas running out, or leaving the
+  /// bottom short of an emergency ascent (#4475), is judged per diver by
+  /// this evaluator, not at the plan's single SAC.
   static bool breaksCriticalLimit(PlanOutcome outcome) {
     return outcome.issues.any(
       (i) =>
           i.severity == PlanIssueSeverity.critical &&
-          i.type != PlanIssueType.gasOut,
+          i.type != PlanIssueType.gasOut &&
+          !i.type.isMarginShortfall,
     );
   }
 
