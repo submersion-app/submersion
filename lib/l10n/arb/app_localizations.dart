@@ -98688,6 +98688,12 @@ abstract class AppLocalizations {
   /// **'Removed duplicate cylinders'**
   String get changeLog_label_removeDuplicateCylinders;
 
+  /// Change log entry title for the planner's Create / Update planned dives, which writes a plan's dives into the log as planned entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated planned dives'**
+  String get changeLog_label_updatePlannedDives;
+
   /// Change log entry title for one editing sitting. cards is a list of card titles, already joined.
   ///
   /// In en, this message translates to:

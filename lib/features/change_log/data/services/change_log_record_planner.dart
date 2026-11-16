@@ -100,10 +100,12 @@ class ChangeLogRecordPlanner {
   }
 
   /// Removals for the inserts among [events]. A record that has already gone
-  /// has nothing left to remove.
+  /// has nothing left to remove. [releasing] are the links the same revert
+  /// takes back (see [settleRemovals]).
   Future<List<ChangeLogRevertItem>> planRemovals(
-    List<ChangeLogEvent> events,
-  ) async {
+    List<ChangeLogEvent> events, {
+    Map<String, Object?> releasing = const {},
+  }) async {
     final created = <ChangeLogEvent>[];
     final changed = <String>{};
     for (final event in events) {
@@ -124,18 +126,34 @@ class ChangeLogRecordPlanner {
               changed.contains(_keyOf(event)) ||
               changed.contains(_rootKeyOf(event)),
         ),
-    ]);
+    ], releasing: releasing);
   }
+
+  /// The links [edits] put back, as [settleRemovals] takes them: each column
+  /// an edit that applies returns to another value, by
+  /// [changeLogLinkKey], with the value it returns to.
+  static Map<String, Object?> releasedLinks(
+    Iterable<ChangeLogRevertItem> edits,
+  ) => {
+    for (final item in edits)
+      if (item.column case final column? when !item.isBlocked)
+        changeLogLinkKey(item.event.table, item.event.recordId, column):
+            item.target,
+  };
 
   /// Marks [items] that data outside them still uses. Keeping one can keep
   /// another that it points at, and everything that belongs to it, so this
-  /// repeats until nothing changes.
+  /// repeats until nothing changes. A link the same revert sets back to
+  /// another value, one of [releasing] (see [releasedLinks]), is no use:
+  /// edits go back before created records go, so it has gone by then, as
+  /// when an operation made a dive and linked a plan to it.
   /// Both kinds of foreign key need this: a no-action key would fail the
   /// removal and roll back the whole undo, and a cascading one would silently
   /// strip the record from later data.
   Future<List<ChangeLogRevertItem>> settleRemovals(
-    List<ChangeLogRevertItem> items,
-  ) async {
+    List<ChangeLogRevertItem> items, {
+    Map<String, Object?> releasing = const {},
+  }) async {
     final removing = {for (final item in items) _keyOf(item.event)};
     final kept = <String>{};
     final referencesOf = <String, List<ChangeLogReference>>{};
@@ -147,10 +165,17 @@ class ChangeLogRecordPlanner {
         if (!removing.contains(key)) continue;
         final references = referencesOf[key] ??= await _dependencies
             .referencesTo(item.event.table, item.event.recordId);
+        bool released(ChangeLogReference r) {
+          final link = changeLogLinkKey(r.table, r.recordId, r.column);
+          return releasing.containsKey(link) &&
+              releasing[link] != item.event.recordId;
+        }
+
         final inUse = references.any(
           (r) =>
               !r.isOwnedChild &&
-              !removing.contains(changeLogRecordKey(r.table, r.recordId)),
+              !removing.contains(changeLogRecordKey(r.table, r.recordId)) &&
+              !released(r),
         );
         // A record that stays keeps what belongs to it.
         if (!inUse && !await _ownerKept(item.event, kept)) continue;

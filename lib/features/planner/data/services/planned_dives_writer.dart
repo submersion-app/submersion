@@ -22,6 +22,14 @@ String? plannedEntryName(
   SeriesDiveResult result,
 ) => series.isSeries ? series.dives[index].name : result.state.name;
 
+/// Whether "Update planned dives" must ask for the first dive's start: a
+/// series where some dive still to write has none to lay it out on. A dived
+/// dive starts when it did, and the dives after it carry from that, so a
+/// series begun by one needs none.
+bool seriesNeedsFirstStart(PlanSeries series, List<SeriesDiveResult> results) =>
+    series.isSeries &&
+    results.any((r) => r.actual == null && r.state.startDateTime == null);
+
 /// What "Create / Update planned dives" does with one dive of a plan
 /// (issue #3565).
 enum PlannedDiveAction {

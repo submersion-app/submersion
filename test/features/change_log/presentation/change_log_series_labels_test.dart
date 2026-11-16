@@ -15,6 +15,13 @@ void main() {
     );
   });
 
+  test('an update of planned dives is named in the change log', () {
+    expect(
+      changeLogStoredLabel(l, ChangeLogLabels.updatePlannedDives),
+      'Updated planned dives',
+    );
+  });
+
   test('a duplicate cylinder removal is named in the change log', () {
     expect(
       changeLogStoredLabel(l, ChangeLogLabels.removeDuplicateCylinders),

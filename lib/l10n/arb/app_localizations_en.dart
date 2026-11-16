@@ -61921,6 +61921,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Removed duplicate cylinders';
 
   @override
+  String get changeLog_label_updatePlannedDives => 'Updated planned dives';
+
+  @override
   String changeLog_label_recordEdit(String cards) {
     return 'Edited: $cards';
   }

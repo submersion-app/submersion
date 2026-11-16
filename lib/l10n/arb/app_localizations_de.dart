@@ -62770,6 +62770,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Doppelte Flaschen entfernt';
 
   @override
+  String get changeLog_label_updatePlannedDives =>
+      'Geplante Tauchgänge aktualisiert';
+
+  @override
   String changeLog_label_recordEdit(String cards) {
     return 'Bearbeitet: $cards';
   }

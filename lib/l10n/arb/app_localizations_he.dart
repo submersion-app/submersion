@@ -61595,6 +61595,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get changeLog_label_removeDuplicateCylinders => 'מכלים כפולים הוסרו';
 
   @override
+  String get changeLog_label_updatePlannedDives => 'צלילות מתוכננות עודכנו';
+
+  @override
   String changeLog_label_recordEdit(String cards) {
     return 'נערך: $cards';
   }

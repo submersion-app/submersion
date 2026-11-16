@@ -59044,6 +59044,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changeLog_label_removeDuplicateCylinders => '已移除重复气瓶';
 
   @override
+  String get changeLog_label_updatePlannedDives => '已更新计划潜水';
+
+  @override
   String changeLog_label_recordEdit(String cards) {
     return '已编辑：$cards';
   }

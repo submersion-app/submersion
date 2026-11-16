@@ -63043,6 +63043,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Blocs en double supprimés';
 
   @override
+  String get changeLog_label_updatePlannedDives =>
+      'Plongées planifiées mises à jour';
+
+  @override
   String changeLog_label_recordEdit(String cards) {
     return 'Modifié : $cards';
   }

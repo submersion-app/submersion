@@ -67,7 +67,8 @@ import 'package:submersion/features/planner/data/services/stored_series_results.
 class WriteCatalog {
   /// [refreshReminders] re-arms an item's service reminders after a write
   /// to its clocks or history, as the service dialogs do. [followOf] reads
-  /// the logged dive a new series follows.
+  /// the logged dive a new series follows, and the dived dives a saved plan
+  /// is computed with before its planned dives are written.
   WriteCatalog(
     RecordRepositories repositories, {
     LibraryEditStamper? stamper,
@@ -160,7 +161,7 @@ class WriteCatalog {
       PreDiveTemplateWrites(repositories),
       PreDiveSessionWrites(repositories),
       PreDiveSessionItemWrites(repositories),
-      DivePlanWrites(repositories),
+      DivePlanWrites(repositories, followOf: followOf),
       DivePlanSeriesWrites(repositories, followOf: followOf),
       RuleWrites(repositories),
       SavedQueryWrites(repositories),
