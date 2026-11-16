@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -226,16 +225,26 @@ class SiteMatchingService {
       final point = resolved.point;
       _pointByDive[dive.id] = point;
 
-      // Map-placed records are offered from further out than the rest;
-      // the matcher and the views below keep every other record to the
-      // outer radius.
-      final bundled = await _catalogue.near(
+      // Map-placed records are offered from further out than the rest,
+      // and are read on their own there: in one wider read, the records
+      // nearer the dive could fill its limit first.
+      final inRadius = await _catalogue.near(
         point,
-        radiusMeters: math.max(
-          thresholds.outerRadiusMeters,
-          kMapPlacedReachMeters,
-        ),
+        radiusMeters: thresholds.outerRadiusMeters,
       );
+      final mapPlaced = kMapPlacedReachMeters > thresholds.outerRadiusMeters
+          ? await _catalogue.near(
+              point,
+              radiusMeters: kMapPlacedReachMeters,
+              mapPlacedOnly: true,
+            )
+          : const <CatalogueSite>[];
+      final inRadiusIds = {for (final b in inRadius) b.id};
+      final bundled = [
+        ...inRadius,
+        for (final b in mapPlaced)
+          if (!inRadiusIds.contains(b.id)) b,
+      ];
 
       final refs = <String, _CandidateRef>{};
       final candidates = <MatchCandidate>[];

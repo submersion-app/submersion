@@ -113,6 +113,20 @@ void main() {
     expect(proposal.candidates.map((c) => c.id), ['near']);
   });
 
+  test('500 nearer records past the outer radius do not crowd out a '
+      'map-placed record 1.9 km away', () async {
+    catalogue.sites = [
+      for (var i = 0; i < 500; i++) _site('wreck_$i', 1100 + i.toDouble()),
+      _researched('research_id_coral_garden', 1900, fromMap: true),
+    ];
+
+    final proposal = (await service().computeProposals([
+      _diveAt('d1', const GeoPoint(0, 0)),
+    ])).single;
+
+    expect(proposal.candidates.map((c) => c.id), ['research_id_coral_garden']);
+  });
+
   test('a dive whose site has no position lists a map-placed record 1.5 km '
       'away', () async {
     catalogue.sites = [
