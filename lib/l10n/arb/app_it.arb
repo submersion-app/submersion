@@ -2887,6 +2887,7 @@
   "diveLog_edit_weightPreset_saved": "Preset di zavorra “{name}” salvato",
   "diveLog_edit_weightTotal": "Totale: {total}",
   "diveLog_edit_weightGearNote": "Già conteggiati: {weight} portati come attrezzatura ({items}). Aggiungi qui solo zavorra separata.",
+  "diveLog_edit_weightGearNote_listSeparator": ", ",
   "diveLog_emptyFiltered_clearFilters": "Cancella filtri",
   "diveLog_emptyFiltered_subtitle": "Prova a modificare o cancellare i filtri",
   "diveLog_emptyFiltered_title": "Nessuna immersione corrisponde ai filtri",

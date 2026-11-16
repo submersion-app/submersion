@@ -2887,6 +2887,7 @@
   "diveLog_edit_weightPreset_saved": "קבוע המשקולות «{name}» נשמר",
   "diveLog_edit_weightTotal": "סה\"כ: {total}",
   "diveLog_edit_weightGearNote": "נספר גם: {weight} שנישאים כציוד ({items}). הוסיפו כאן משקולת רק אם היא עופרת נפרדת.",
+  "diveLog_edit_weightGearNote_listSeparator": ", ",
   "diveLog_emptyFiltered_clearFilters": "ניקוי מסננים",
   "diveLog_emptyFiltered_subtitle": "נסה לשנות או לנקות את המסננים",
   "diveLog_emptyFiltered_title": "אין צלילות התואמות את המסננים",

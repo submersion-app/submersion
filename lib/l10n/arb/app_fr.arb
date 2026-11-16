@@ -2887,6 +2887,7 @@
   "diveLog_edit_weightPreset_saved": "Preset de lestage « {name} » enregistré",
   "diveLog_edit_weightTotal": "Total : {total}",
   "diveLog_edit_weightGearNote": "Également compté : {weight} porté comme équipement ({items}). N'ajoutez ici que du lest supplémentaire.",
+  "diveLog_edit_weightGearNote_listSeparator": ", ",
   "diveLog_emptyFiltered_clearFilters": "Effacer les filtres",
   "diveLog_emptyFiltered_subtitle": "Essaie d'ajuster ou d'effacer tes filtres",
   "diveLog_emptyFiltered_title": "Aucune plongée ne correspond à tes filtres",

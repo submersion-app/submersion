@@ -3126,6 +3126,7 @@
   "diveLog_edit_weatherFetched": "天气数据已加载",
   "diveLog_edit_weightTotal": "总计：{total}",
   "diveLog_edit_weightGearNote": "已计入：作为装备携带的 {weight}（{items}）。仅在有额外配重时于此处添加。",
+  "diveLog_edit_weightGearNote_listSeparator": "、",
   "diveLog_emptyFiltered_clearFilters": "清除筛选",
   "diveLog_emptyFiltered_subtitle": "尝试调整或清除您的筛选条件",
   "diveLog_emptyFiltered_title": "没有匹配筛选条件的潜水",

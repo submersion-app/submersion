@@ -26,7 +26,9 @@ class GearLeadNote extends StatelessWidget {
     if (items.isEmpty) return const SizedBox.shrink();
     final theme = Theme.of(context);
     final muted = theme.colorScheme.onSurfaceVariant;
-    final names = [for (final item in items) item.name].join(', ');
+    final names = [
+      for (final item in items) item.name,
+    ].join(context.l10n.diveLog_edit_weightGearNote_listSeparator);
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 4, 14, 4),
       child: Row(

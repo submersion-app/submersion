@@ -5824,13 +5824,20 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Widget _weightChild(UnitFormatter units) {
-    final totalWeight = _weights.fold(0.0, (sum, w) => sum + w.amountKg);
+    // Lead the attached weights gear already carries is in the total, as on
+    // the dive page's Weight card (issue #4442).
+    final leadGear = EquipmentLead.carriers(
+      gearLinksFor(_selectedEquipment, _gearRows),
+    );
+    final totalWeight =
+        _weights.fold(0.0, (sum, w) => sum + w.amountKg) +
+        EquipmentLead.totalKg(leadGear);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FormOverline(
           label: context.l10n.diveLog_edit_section_weight,
-          trailingText: _weights.isEmpty
+          trailingText: _weights.isEmpty && leadGear.isEmpty
               ? null
               : context.l10n.diveLog_edit_weightTotal(
                   units.formatWeight(totalWeight),
@@ -5872,13 +5879,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ],
             ),
           ),
-        // Lead the attached weights gear already carries (issue #4442).
-        GearLeadNote(
-          items: EquipmentLead.carriers(
-            gearLinksFor(_selectedEquipment, _gearRows),
-          ),
-          units: units,
-        ),
+        GearLeadNote(items: leadGear, units: units),
         FormAppendRow(
           label: context.l10n.diveLog_edit_addWeightEntry,
           onTap: () {

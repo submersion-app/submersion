@@ -2887,6 +2887,7 @@
   "diveLog_edit_weightPreset_saved": "„{name}” súlyzat-séma elmentve",
   "diveLog_edit_weightTotal": "Összes: {total}",
   "diveLog_edit_weightGearNote": "Szintén beszámítva: {weight} felszerelésként viselve ({items}). Itt csak külön ólmot adjon meg.",
+  "diveLog_edit_weightGearNote_listSeparator": ", ",
   "diveLog_emptyFiltered_clearFilters": "Szűrők törlése",
   "diveLog_emptyFiltered_subtitle": "Próbálja módosítani vagy törölni a szűrőket",
   "diveLog_emptyFiltered_title": "Nincs a szűrőknek megfelelő merülés",

@@ -173,6 +173,8 @@ void main() {
         ),
         findsOneWidget,
       );
+      // The total counts the gear, as the read card does.
+      expect(find.text(l.diveLog_edit_weightTotal('7.0 kg')), findsOneWidget);
     });
 
     testWidgets('says nothing when no gear carries lead', (tester) async {
@@ -182,6 +184,13 @@ void main() {
       );
 
       expect(find.textContaining('Also counted'), findsNothing);
+      expect(find.text(l.diveLog_edit_weightTotal('4.5 kg')), findsOneWidget);
+    });
+
+    testWidgets('shows a total when gear alone carries lead', (tester) async {
+      await pumpEditor(tester, dive(gear: const [plate]));
+
+      expect(find.text(l.diveLog_edit_weightTotal('2.5 kg')), findsOneWidget);
     });
   });
 }

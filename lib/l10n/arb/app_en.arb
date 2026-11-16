@@ -5471,6 +5471,8 @@
   "diveLog_edit_weightPreset_saved": "Weight preset “{name}” saved",
   "diveLog_edit_weightTotal": "Total: {total}",
   "diveLog_edit_weightGearNote": "Also counted: {weight} carried as equipment ({items}). Add a weight here only for separate lead.",
+  "diveLog_edit_weightGearNote_listSeparator": ", ",
+  "@diveLog_edit_weightGearNote_listSeparator": {"description": "Joins the names of weights gear in the note under the Weights editor. Include any trailing space your language uses."},
   "diveLog_emptyFiltered_clearFilters": "Clear Filters",
   "diveLog_emptyFiltered_subtitle": "Try adjusting or clearing your filters",
   "diveLog_emptyFiltered_title": "No dives match your filters",

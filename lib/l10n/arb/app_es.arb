@@ -3013,6 +3013,7 @@
   "diveLog_edit_weightPreset_saved": "Preajuste de lastre «{name}» guardado",
   "diveLog_edit_weightTotal": "Total: {total}",
   "diveLog_edit_weightGearNote": "También se cuenta: {weight} de lastre llevado como equipo ({items}). Añade aquí solo lastre adicional.",
+  "diveLog_edit_weightGearNote_listSeparator": ", ",
   "diveLog_emptyFiltered_clearFilters": "Borrar filtros",
   "diveLog_emptyFiltered_subtitle": "Intenta ajustar o borrar tus filtros",
   "diveLog_emptyFiltered_title": "Ninguna inmersión coincide con tus filtros",

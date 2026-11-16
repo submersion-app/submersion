@@ -9106,6 +9106,9 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_weightGearNote_listSeparator => ', ';
+
+  @override
   String get diveLog_emptyFiltered_clearFilters => 'Cancella filtri';
 
   @override

@@ -3039,6 +3039,7 @@
   "diveLog_edit_weightPreset_saved": "Bleivorlage „{name}“ gespeichert",
   "diveLog_edit_weightTotal": "Gesamt: {total}",
   "diveLog_edit_weightGearNote": "Ebenfalls gezählt: {weight} als Ausrüstung getragen ({items}). Trag hier nur zusätzliches Blei ein.",
+  "diveLog_edit_weightGearNote_listSeparator": ", ",
   "diveLog_emptyFiltered_clearFilters": "Filter zurücksetzen",
   "diveLog_emptyFiltered_subtitle": "Versuche, deine Filter anzupassen oder zurückzusetzen",
   "diveLog_emptyFiltered_title": "Keine Tauchgänge entsprechen deinen Filtern",

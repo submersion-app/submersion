@@ -3013,6 +3013,7 @@
   "diveLog_edit_weightPreset_saved": "Loodvoorinstelling ‘{name}’ opgeslagen",
   "diveLog_edit_weightTotal": "Totaal: {total}",
   "diveLog_edit_weightGearNote": "Ook meegeteld: {weight} gedragen als uitrusting ({items}). Voeg hier alleen extra lood toe.",
+  "diveLog_edit_weightGearNote_listSeparator": ", ",
   "diveLog_emptyFiltered_clearFilters": "Filters wissen",
   "diveLog_emptyFiltered_subtitle": "Probeer uw filters aan te passen of te wissen",
   "diveLog_emptyFiltered_title": "Geen duiken komen overeen met uw filters",

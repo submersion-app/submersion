@@ -14259,6 +14259,12 @@ abstract class AppLocalizations {
   /// **'Also counted: {weight} carried as equipment ({items}). Add a weight here only for separate lead.'**
   String diveLog_edit_weightGearNote(Object items, Object weight);
 
+  /// Joins the names of weights gear in the note under the Weights editor. Include any trailing space your language uses.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get diveLog_edit_weightGearNote_listSeparator;
+
   /// No description provided for @diveLog_emptyFiltered_clearFilters.
   ///
   /// In en, this message translates to:

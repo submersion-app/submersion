@@ -3013,6 +3013,7 @@
   "diveLog_edit_weightPreset_saved": "Predefinição de lastro “{name}” guardada",
   "diveLog_edit_weightTotal": "Total: {total}",
   "diveLog_edit_weightGearNote": "Também contabilizado: {weight} levado como equipamento ({items}). Adicione aqui apenas lastro separado.",
+  "diveLog_edit_weightGearNote_listSeparator": ", ",
   "diveLog_emptyFiltered_clearFilters": "Limpar Filtros",
   "diveLog_emptyFiltered_subtitle": "Tente ajustar ou limpar seus filtros",
   "diveLog_emptyFiltered_title": "Nenhum mergulho corresponde aos seus filtros",

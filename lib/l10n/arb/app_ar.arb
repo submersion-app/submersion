@@ -3013,6 +3013,7 @@
   "diveLog_edit_weightPreset_saved": "تم حفظ إعداد الأوزان «{name}»",
   "diveLog_edit_weightTotal": "الإجمالي: {total}",
   "diveLog_edit_weightGearNote": "محسوب أيضًا: {weight} محمولة ضمن المعدات ({items}). أضف ثقلًا هنا فقط إذا كان رصاصًا منفصلًا.",
+  "diveLog_edit_weightGearNote_listSeparator": "، ",
   "diveLog_emptyFiltered_clearFilters": "مسح عوامل التصفية",
   "diveLog_emptyFiltered_subtitle": "حاول تعديل أو مسح عوامل التصفية",
   "diveLog_emptyFiltered_title": "لا توجد غوصات تطابق عوامل التصفية",
