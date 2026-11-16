@@ -152,7 +152,10 @@ class _PhotoItem extends ConsumerWidget {
       fit: StackFit.expand,
       children: [
         MediaItemView(
-          item: _withLiveColor(ref, item),
+          // The sitting's photo is drawn as the sitting has it (issue #4527).
+          item: sittingIsOver(people.sitting, item.id)
+              ? item
+              : _withLiveColor(ref, item),
           fit: BoxFit.contain,
           showAccessActions: true,
           onImageSize: (size) => people.onImageSize(item.id, size),

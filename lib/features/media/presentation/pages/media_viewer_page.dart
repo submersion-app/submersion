@@ -28,6 +28,7 @@ import 'package:submersion/features/media/domain/entities/media_dive_window.dart
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
 import 'package:submersion/features/media/presentation/editing/photo_viewer_editing.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
@@ -137,13 +138,17 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   @override
   EditSession<PhotoRecord>? get peopleSitting => photoSitting;
 
+  /// Adjust color holds its changes in the photo's sitting.
+  @override
+  EditSession<PhotoRecord>? get colorSitting => photoSitting;
+
+  @override
+  bool get colorLockOffered => editingOffered;
+
   /// Locking, by any route, closes what changes the photo.
   @override
   void onPhotoLocked() {
-    setState(() {
-      colorPanelOpen = false;
-      pickingWhite = false;
-    });
+    closeColorEditing();
     if (taggingPeople) togglePeopleTagging();
   }
 

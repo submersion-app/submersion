@@ -18,6 +18,8 @@ import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_panel.dart';
+import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -586,6 +588,63 @@ void main() {
 
       expect(find.text('Media info'), findsWidgets);
       expect(find.text('Set time in dive'), findsNothing);
+    });
+  });
+
+  group('colour (Task 9)', () {
+    MediaItem drawn(WidgetTester tester) => tester
+        .widgetList<MediaItemView>(find.byType(MediaItemView))
+        .map((v) => v.item)
+        .firstWhere((item) => item.id == 'p2');
+
+    Future<void> dragWarmth(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('viewer_adjust_color')));
+      await settleViewer(tester);
+      final slider = find.byKey(const Key('color_slider_warmth'));
+      final gesture = await tester.startGesture(tester.getCenter(slider));
+      await gesture.moveBy(const Offset(40, 0));
+      await tester.pump();
+      await gesture.up();
+      await settleViewer(tester);
+    }
+
+    testWidgets('a colour is drawn from the sitting, written only at Save', (
+      tester,
+    ) async {
+      await pumpViewer(tester);
+      await tapUnlock(tester);
+
+      await dragWarmth(tester);
+
+      expect(drawn(tester).colorAdjustment!.warmth, greaterThan(0));
+      final before = (await tester.runAsync(
+        () => MediaRepository().getMediaById('p2'),
+      ))!;
+      expect(before.colorAdjustment, isNull);
+
+      await tester.tap(find.text('Save'));
+      await settleViewer(tester, rounds: 10);
+
+      final after = (await tester.runAsync(
+        () => MediaRepository().getMediaById('p2'),
+      ))!;
+      expect(after.colorAdjustment!.warmth, greaterThan(0));
+    });
+
+    testWidgets('Cancel draws the stored colour again and closes the panel', (
+      tester,
+    ) async {
+      await pumpViewer(tester);
+      await tapUnlock(tester);
+      await dragWarmth(tester);
+
+      await tester.tap(find.text('Cancel'));
+      await settleViewer(tester);
+      await tester.tap(find.text('Discard'));
+      await settleViewer(tester);
+
+      expect(find.byType(ColorAdjustPanel), findsNothing);
+      expect(drawn(tester).colorAdjustment, isNull);
     });
   });
 

@@ -6,6 +6,9 @@ import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/color_correction_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/features/media/presentation/editing/photo_held_writes.dart';
 
 final _log = LoggerService.forClass(ColorAdjustment);
 
@@ -20,8 +23,9 @@ Future<void> runApplyToDive(
   BuildContext context,
   WidgetRef ref,
   MediaItem item,
-  ColorAdjustment source,
-) async {
+  ColorAdjustment source, {
+  EditSession<PhotoRecord>? sitting,
+}) async {
   final diveId = item.diveId;
   if (diveId == null) return;
   final l10n = context.l10n;
@@ -49,6 +53,13 @@ Future<void> runApplyToDive(
     ),
   );
   if (confirmed != true) return;
+  // In a sitting it is held until Save, with the photo's own colour, and
+  // Cancel undoes it: no Undo is offered (issue #4527).
+  if (sitting != null) {
+    if (sitting.isDisposed || sitting.isFrozen) return;
+    holdColorToDive(sitting, diveId: diveId, repository: repository);
+    return;
+  }
 
   final Map<String, ColorAdjustment?> prior;
   try {
