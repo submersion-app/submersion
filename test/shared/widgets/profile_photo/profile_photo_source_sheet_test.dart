@@ -9,6 +9,7 @@ Future<void> _open(
   WidgetTester tester, {
   required bool hasPhoto,
   required bool allowContacts,
+  String? title,
 }) async {
   await tester.pumpWidget(
     testApp(
@@ -19,6 +20,7 @@ Future<void> _open(
             context: context,
             hasPhoto: hasPhoto,
             allowContacts: allowContacts,
+            title: title,
           ),
           child: const Text('open'),
         ),
@@ -31,6 +33,12 @@ Future<void> _open(
 }
 
 void main() {
+  testWidgets('uses the given title in place of Profile Photo', (tester) async {
+    await _open(tester, hasPhoto: false, allowContacts: false, title: 'Logo');
+    expect(find.text('Logo'), findsOneWidget);
+    expect(find.text('Profile Photo'), findsNothing);
+  });
+
   testWidgets('hides Remove Photo when there is no photo', (tester) async {
     await _open(tester, hasPhoto: false, allowContacts: false);
     expect(find.text('Profile Photo'), findsOneWidget);

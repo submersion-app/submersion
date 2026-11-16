@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +13,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_fill_hours_section.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_logo_field.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -20,6 +23,7 @@ import 'package:submersion/shared/widgets/forms/coordinate_validation_messages.d
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
+import 'package:submersion/shared/widgets/profile_photo/profile_photo_picker.dart';
 
 class DiveCenterEditPage extends ConsumerStatefulWidget {
   final String? centerId;
@@ -59,6 +63,9 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
   int? _fillOpensAt;
   int? _fillClosesAt;
   bool _isPermanentlyClosed = false;
+
+  /// The center's logo (#4460): the 512 px JPEG the photo flow encodes.
+  Uint8List? _logo;
 
   /// Set by a save the fill hours blocked, so their error shows from then.
   bool _fillHoursChecked = false;
@@ -215,6 +222,22 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     _fillOpensAt = center.fillOpensAt;
     _fillClosesAt = center.fillClosesAt;
     _isPermanentlyClosed = center.isPermanentlyClosed;
+    _logo = center.logo;
+  }
+
+  Future<void> _pickLogo() async {
+    final result = await pickProfilePhoto(
+      context: context,
+      hasPhoto: _logo != null,
+      // A shop is not in the address book.
+      allowContacts: false,
+      sheetTitle: context.l10n.diveCenters_field_logo,
+    );
+    if (result == null || !mounted) return;
+    setState(() {
+      _logo = result.removed ? null : result.bytes;
+      _hasChanges = true;
+    });
   }
 
   Future<void> _save() async {
@@ -275,6 +298,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
         fillOpensAt: _fillOpensAt,
         fillClosesAt: _fillClosesAt,
         isPermanentlyClosed: _isPermanentlyClosed,
+        logo: _logo,
         createdAt: now,
         updatedAt: now,
       );
@@ -395,6 +419,9 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          DiveCenterLogoField(logo: _logo, onTap: _pickLogo),
+          const SizedBox(height: 16),
+
           // Basic Info Section
           Text(
             context.l10n.diveCenters_section_basicInfo,

@@ -7,7 +7,9 @@ enum ProfilePhotoSource { camera, library, contacts, remove }
 
 /// Asks the user where the profile photo should come from.
 ///
-/// Returns null if the sheet was dismissed without a choice.
+/// Returns null if the sheet was dismissed without a choice. [title]
+/// replaces the "Profile Photo" heading, for an image that is not a person's
+/// photo (a dive center's logo).
 ///
 /// Opened from a page's own build context, never from a dialog action:
 /// `showModalBottomSheet` defaults to `useRootNavigator: false`, so a sheet
@@ -17,6 +19,7 @@ Future<ProfilePhotoSource?> showProfilePhotoSourceSheet({
   required BuildContext context,
   required bool hasPhoto,
   required bool allowContacts,
+  String? title,
 }) {
   // defaultTargetPlatform rather than dart:io's Platform: web-safe, and
   // overridable in tests so the camera option can actually be exercised.
@@ -36,7 +39,7 @@ Future<ProfilePhotoSource?> showProfilePhotoSourceSheet({
           children: [
             ListTile(
               title: Text(
-                l10n.profilePhoto_sheet_title,
+                title ?? l10n.profilePhoto_sheet_title,
                 style: Theme.of(sheetContext).textTheme.titleMedium,
               ),
             ),
