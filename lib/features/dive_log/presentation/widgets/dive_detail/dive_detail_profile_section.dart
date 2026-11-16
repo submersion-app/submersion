@@ -304,10 +304,18 @@ class DiveDetailProfileSection extends ConsumerWidget {
     // Root navigator, not the ShellRoute's: pushing on the shell navigator
     // renders the page inside MainScaffold, leaving the bottom navigation
     // bar painted under a supposedly fullscreen chart (#811).
+    // On a page that offers editing, the fullscreen page edits only the open
+    // Profile card's sitting, and otherwise reads (issue #4527).
+    final readOnly = RecordEditScope.maybeOf<Dive>(context) != null;
+    final session = editing;
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
-        builder: (context) =>
-            FullscreenProfilePage(diveId: diveId, onOpenInNotes: onOpenInNotes),
+        builder: (context) => FullscreenProfilePage(
+          diveId: diveId,
+          onOpenInNotes: onOpenInNotes,
+          session: session,
+          readOnly: readOnly && session == null,
+        ),
       ),
     );
   }
