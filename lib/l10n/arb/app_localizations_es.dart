@@ -62826,6 +62826,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Botellas duplicadas eliminadas';
 
   @override
+  String get changeLog_label_updatePlannedDives =>
+      'Inmersiones planificadas actualizadas';
+
+  @override
   String changeLog_label_recordEdit(String cards) {
     return 'Editado: $cards';
   }

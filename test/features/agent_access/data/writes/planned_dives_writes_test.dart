@@ -2,7 +2,6 @@ import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive, DivePlan;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
-import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/planned_dives_effect.dart';
 import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
 import 'package:submersion/features/agent_access/data/writes/write_plan.dart';
@@ -27,7 +26,13 @@ void main() {
   late AppDatabase db;
   late ChildWriteHarness h;
   final followed = <String, SeriesFollow>{};
-  Future<SeriesFollow?> followOf(String id) async => followed[id];
+  // Each read of a dived dive, once per time the saved plan is computed.
+  var follows = 0;
+  Future<SeriesFollow?> followOf(String id) async {
+    follows++;
+    return followed[id];
+  }
+
   final nine = DateTime.utc(2026, 10, 27, 9);
 
   /// Dives A, at nine, and B, two hours after A surfaces, for [diverId].
@@ -84,13 +89,18 @@ void main() {
     [diveId],
   );
 
+  /// The active diver, which a test can switch between preview and apply.
+  var active = kDiverA;
+
   setUp(() async {
     db = await setUpTestDatabase();
     addTearDown(SyncCoordinator.reset);
     followed.clear();
+    active = kDiverA;
     h = ChildWriteHarness(
       db,
       catalog: (repositories) => WriteCatalog(repositories, followOf: followOf),
+      activeDiverId: () async => active,
     );
     await h.seed();
   });
@@ -153,6 +163,24 @@ void main() {
       expect(preview.items.single.alsoChanges, {'dives': 1});
     });
 
+    test('is computed once per preview, and again at apply', () async {
+      await saveSeries(start: nine);
+      await h.run([writeSeries()]);
+      await markDived((await linkOf('a'))!);
+
+      follows = 0;
+      final preview = await h.preview([writeSeries()]);
+      // The refusal check and the side effects share one computation.
+      expect(follows, 1);
+
+      follows = 0;
+      await h.apply(preview);
+      // Never from the preview: the apply checks the plan is current before
+      // asking and again inside its transaction, each afresh, then the write
+      // computes once more.
+      expect(follows, 3);
+    });
+
     test('needs the first dive\'s start', () async {
       await saveSeries();
 
@@ -190,7 +218,12 @@ void main() {
         ]);
         final item = preview.items.single;
         expect(item.block, isNull);
-        expect(item.reach.parts, {'dive_plans': 1, 'dives': 1});
+        expect(item.reach.parts, containsPair('dive_plans', 1));
+        expect(item.reach.parts, containsPair('dives', 1));
+        // What goes with the entry, as a delete of the dive lists it.
+        expect(item.reach.parts['dive_tanks'], greaterThan(0));
+        // The dropped plan's link goes with the plan, not left unlinked.
+        expect(item.reach.unlinked, isNot(contains('dive_plans')));
         expect(entriesOf(item).last, {
           'dive': 'removed',
           'action': 'delete_removed',
@@ -285,6 +318,54 @@ void main() {
         expect(preview.items.last.block!.reason, BlockReason.notPermitted);
       },
     );
+
+    test('refuses a later change to an entry it rewrites', () async {
+      await saveSeries(start: nine);
+      await h.run([writeSeries()]);
+
+      final preview = await h.preview([
+        writeSeries(),
+        updateOp('dives', (await linkOf('a'))!, {'notes': 'Bring a torch'}),
+      ]);
+
+      expect(preview.items.first.block, isNull);
+      final block = preview.items.last.block!;
+      expect(block.reason, BlockReason.notPermitted);
+      expect(block.detail, contains('rewrites'));
+    });
+
+    test(
+      'refuses a later change to a record of an entry it rewrites',
+      () async {
+        await saveSeries(start: nine);
+        await h.run([writeSeries()]);
+        final tank = await db
+            .customSelect(
+              'SELECT id FROM dive_tanks WHERE dive_id = ? ORDER BY id LIMIT 1',
+              variables: [Variable.withString((await linkOf('a'))!)],
+            )
+            .getSingle();
+
+        final preview = await h.preview([
+          writeSeries(),
+          updateOp('dive_tanks', tank.read<String>('id'), {'name': 'Left'}),
+        ]);
+
+        expect(preview.items.last.block!.reason, BlockReason.notPermitted);
+      },
+    );
+
+    test('leaves a later change to another dive alone', () async {
+      await saveSeries(start: nine);
+      await h.run([writeSeries()]);
+
+      final preview = await h.preview([
+        writeSeries(),
+        updateOp('dives', 'd1', {'notes': 'Bring a torch'}),
+      ]);
+
+      expect(preview.items.map((i) => i.block), [isNull, isNull]);
+    });
 
     test('with no owner, writes its entries for the active diver', () async {
       await saveSeries(start: nine, diverId: null);
@@ -475,6 +556,17 @@ void main() {
       },
     );
 
+    test('previewed for one diver is stale once another is active', () async {
+      await savePlan();
+      final preview = await h.preview([writePlan()]);
+      expect(preview.items.single.block, isNull);
+
+      active = kDiverB;
+
+      await expectLater(h.apply(preview), throwsA(anything));
+      expect(await linkOf('p'), isNull);
+    });
+
     test('linked to a dived dive needs move_dived_link', () async {
       await savePlan(linkedDiveId: 'd1');
 
@@ -599,16 +691,6 @@ void main() {
 
       expect(await linkOf('p'), 'd1');
       expect(await logSnapshot(), before);
-    });
-  });
-
-  test('the log is dives and every record that belongs to one', () {
-    // A new child of a dive must join logEntities, or an earlier change to
-    // it in a set would be overwritten by the planned dives after it.
-    expect(PlannedDivesEffect.logEntities, {
-      'dives',
-      for (final entry in WriteCatalog(RecordRepositories()).all)
-        if (entry.parent?.entity == 'dives') entry.name,
     });
   });
 }

@@ -18398,6 +18398,7 @@
   "changeLog_label_splitDive": "Duik gesplitst",
   "changeLog_label_removeSource": "Gegevensbron verwijderd",
   "changeLog_label_removeDuplicateCylinders": "Dubbele flessen verwijderd",
+  "changeLog_label_updatePlannedDives": "Geplande duiken bijgewerkt",
   "changeLog_undoIncomplete": "Ongedaan maken kon niet alles terugzetten. De rest staat onder Instellingen > Gegevens > Wijzigingslog.",
   "changeLog_label_gearTransfer": "Uitrusting overgedragen",
   "changeLog_label_mediaRepair": "Medialinks hersteld",

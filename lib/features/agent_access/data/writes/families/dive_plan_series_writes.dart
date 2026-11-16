@@ -119,7 +119,7 @@ class DivePlanSeriesWrites extends WritableEntry {
         return block;
       }
       return PlannedDivesEffect.blockOf(
-        await _outlookOfUpdate(check.id!, v, ask),
+        await _outlookOfUpdate(check.id!, v, ask, check.pass),
       );
     }
     return null;
@@ -150,20 +150,26 @@ class DivePlanSeriesWrites extends WritableEntry {
   }
 
   /// The series as an update of [values] leaves it, computed for writing its
-  /// planned dives.
+  /// planned dives. Computed once per preview in [pass]: the refusal and the
+  /// side effects of one change ask with the same values.
   Future<PlannedDivesOutlook> _outlookOfUpdate(
     String id,
     Map<String, Object?> values,
     PlannedDivesRequest ask,
-  ) async {
-    final current = await _series(id);
-    final next = _updated(current, values);
-    return _planned.outlook(
-      await _computed(next),
-      ownerId: await _ownerOf(next),
-      request: ask,
-      removed: _removedEntries(current, next),
-    );
+    PlanningPass? pass,
+  ) {
+    Future<PlannedDivesOutlook> read() async {
+      final current = await _series(id);
+      final next = _updated(current, values);
+      return _planned.outlook(
+        await _computed(next),
+        ownerId: await _ownerOf(next),
+        request: ask,
+        removed: _removedEntries(current, next),
+      );
+    }
+
+    return pass?.once((this, id, values), read) ?? read();
   }
 
   /// Whom [series]' planned dives are written for, with whose settings it is
@@ -312,13 +318,17 @@ class DivePlanSeriesWrites extends WritableEntry {
       return SideEffects(parts: {if (dropped > 0) 'dive_plans': dropped});
     }
     final planned = PlannedDivesEffect.effectsOf(
-      await _outlookOfUpdate(id, v, ask),
+      await _outlookOfUpdate(id, v, ask, update.pass),
     );
     return SideEffects(
       fields: planned.fields,
       created: planned.created,
       touched: planned.touched,
       parts: {if (dropped > 0) 'dive_plans': dropped, ...planned.parts},
+      records: planned.records,
+      unlinked: planned.unlinked,
+      rewrites: planned.rewrites,
+      basis: planned.basis,
     );
   }
 

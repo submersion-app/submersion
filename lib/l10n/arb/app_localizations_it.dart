@@ -62782,6 +62782,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Bombole duplicate rimosse';
 
   @override
+  String get changeLog_label_updatePlannedDives =>
+      'Immersioni pianificate aggiornate';
+
+  @override
   String changeLog_label_recordEdit(String cards) {
     return 'Modificato: $cards';
   }

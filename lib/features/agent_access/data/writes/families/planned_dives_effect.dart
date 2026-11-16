@@ -1,4 +1,5 @@
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/json_object_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -47,8 +48,14 @@ class PlannedDivesOutlook {
     required this.results,
     required this.decided,
     required this.needsFirstStart,
+    this.ownerId,
     this.removed = const [],
+    this.reach = const DeleteReach(),
   });
+
+  /// Whose log a new entry goes into, and whose settings it is computed
+  /// with.
+  final String? ownerId;
 
   final PlanSeries series;
   final List<SeriesDiveResult> results;
@@ -60,6 +67,10 @@ class PlannedDivesOutlook {
   /// Entries of dives the same update takes out of the series, with whether
   /// they go: (dive id, deleted). A dived entry never does.
   final List<(String, bool)> removed;
+
+  /// What the entries [removed] deletes take with them, as a delete of those
+  /// dives lists it.
+  final DeleteReach reach;
 }
 
 /// The `planned_dives` effect field of `dive_plan_series` and `dive_plans`
@@ -111,42 +122,25 @@ class PlannedDivesEffect {
     };
   }
 
-  /// The entities whose records are the log: dives, and every record that
-  /// belongs to one. Writing a planned entry replaces its tanks, gas
-  /// switches, notes and safety review, so a change to any of these earlier
-  /// in the set would be decided on and then overwritten.
-  static const logEntities = {
-    'dives',
-    'dive_tanks',
-    'dive_weights',
-    'dive_custom_fields',
-    'dive_events',
-    'dive_scenarios',
-    'gas_switches',
-    'safety_findings',
-    'sightings',
-  };
-
   /// Whether a change earlier in the set, as [soFar] holds it, writes the
-  /// log, links a dive to a plan (which takes it off any other plan), or
-  /// writes a record [owns] names: the plan or series being written, and a
-  /// series' plans. The planned dives would be decided without any of it.
+  /// log (a dive, or any record that belongs to one, as the planner counts
+  /// them in [SetSoFar.touched]), links a dive to a plan (which takes it off
+  /// any other plan), or writes a record [owns] names: the plan or series
+  /// being written, and a series' plans. The planned dives would be decided
+  /// without any of it, and the rewrite would overwrite some of it.
   static bool changedEarlier(
     SetSoFar soFar,
     bool Function(String entity, String id) owns,
   ) {
-    bool touches(String entity, String id) =>
-        logEntities.contains(entity) || owns(entity, id);
     bool links(Map<String, Object?> values) => values['linked_dive_id'] != null;
-    return soFar.values.entries.any(
-          (e) =>
-              touches(e.key.$1, e.key.$2) ||
-              (e.key.$1 == 'dive_plans' && links(e.value)),
+    return (soFar.touched['dives']?.isNotEmpty ?? false) ||
+        (soFar.created['dives']?.isNotEmpty ?? false) ||
+        soFar.touched.entries.any(
+          (e) => e.value.any((id) => owns(e.key, id)),
         ) ||
-        soFar.deleted.entries.any(
-          (e) => e.value.any((id) => touches(e.key, id)),
+        soFar.values.entries.any(
+          (e) => e.key.$1 == 'dive_plans' && links(e.value),
         ) ||
-        logEntities.any((e) => soFar.created[e]?.isNotEmpty ?? false) ||
         (soFar.created['dive_plans'] ?? const []).any(links);
   }
 
@@ -211,8 +205,37 @@ class PlannedDivesEffect {
       results: computed.results,
       decided: decided,
       needsFirstStart: seriesNeedsFirstStart(computed.series, computed.results),
+      ownerId: ownerId,
       removed: gone,
+      reach: await _reachOf({
+        for (final (id, deleted) in gone)
+          if (deleted) id,
+      }),
     );
+  }
+
+  /// What deleting [ids] takes with them, as the dives' own delete counts
+  /// it. The plans that link them go with the series save first, so their
+  /// links are not counted as left behind.
+  Future<DeleteReach> _reachOf(Set<String> ids) async {
+    if (ids.isEmpty) return const DeleteReach();
+    final dives = DiveWrites(_r);
+    final records = <String, int>{};
+    final parts = <String, int>{};
+    final unlinked = <String, int>{};
+    void add(Map<String, int> into, Map<String, int> counts) {
+      for (final MapEntry(:key, :value) in counts.entries) {
+        into[key] = (into[key] ?? 0) + value;
+      }
+    }
+
+    for (final id in ids) {
+      final reach = await dives.deleteReach(id, alongside: {'dives': ids});
+      add(records, reach.records);
+      add(parts, reach.parts);
+      add(unlinked, {...reach.unlinked}..remove('dive_plans'));
+    }
+    return DeleteReach(records: records, parts: parts, unlinked: unlinked);
   }
 
   /// Why [outlook] cannot be written, or null when it can.
@@ -255,12 +278,28 @@ class PlannedDivesEffect {
         steps.where((s) => s.action == action).length;
     final created = count(PlannedDiveAction.create);
     final updated = count(PlannedDiveAction.update);
-    final deleted = outlook.removed.where((r) => r.$2).length;
+    final deleted = {
+      for (final (id, gone) in outlook.removed)
+        if (gone) id,
+    };
+    final reach = outlook.reach;
     return SideEffects(
       fields: {entriesKey: entriesOf(outlook)},
       created: {if (created > 0) 'dives': created},
       touched: {if (updated > 0) 'dives': updated},
-      parts: {if (deleted > 0) 'dives': deleted},
+      parts: {...reach.parts, if (deleted.isNotEmpty) 'dives': deleted.length},
+      records: reach.records,
+      unlinked: reach.unlinked,
+      rewrites: {
+        'dives': {
+          for (final step in steps)
+            if (step.action == PlannedDiveAction.update) step.entry!.id,
+          ...deleted,
+        },
+      }..removeWhere((_, ids) => ids.isEmpty),
+      // A new entry goes into this diver's log: another diver active at
+      // apply makes the plan stale.
+      basis: 'owner:${outlook.ownerId ?? ''}',
     );
   }
 

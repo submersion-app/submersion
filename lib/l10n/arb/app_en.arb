@@ -37146,6 +37146,10 @@
   "@changeLog_label_removeDuplicateCylinders": {
     "description": "Change log entry title for merging duplicate cylinders on dives."
   },
+  "changeLog_label_updatePlannedDives": "Updated planned dives",
+  "@changeLog_label_updatePlannedDives": {
+    "description": "Change log entry title for the planner's Create / Update planned dives, which writes a plan's dives into the log as planned entries."
+  },
   "changeLog_label_recordEdit": "Edited: {cards}",
   "@changeLog_label_recordEdit": {
     "description": "Change log entry title for one editing sitting. cards is a list of card titles, already joined.",

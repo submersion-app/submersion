@@ -155,7 +155,8 @@ rewritten in place, a dived one is left alone.
   (`computeStoredSeries` / `computeStoredPlan`) with the owner's settings and
   decided by the writer, without writing. The item lists new entries in
   `also_creates`, rewritten ones in `also_changes`, and removed entries it
-  deletes in `also_reaches`. An update also lists each dive's outcome in the
+  deletes in `also_reaches`, with what goes with each as a delete of the dive
+  counts it (its tanks, profile, documents and media). An update also lists each dive's outcome in the
   indirect field `planned_dive_entries` (`create`, `update`, `skip_dived`,
   `delete_removed`, `keep_removed`, with the entry's id). That list is part of
   the footprint, so an entry dived between preview and apply makes the plan
@@ -163,18 +164,27 @@ rewritten in place, a dived one is left alone.
   so every dive gets one, and `also_creates` counts them. (A create's item
   carries only the record's own fields, as `createDefaults` fills them.)
 - **What stays current.** The footprint holds what the preview shows: the
-  plan's own record and each entry's outcome. The profile each entry gets is
+  plan's own record and each entry's outcome, plus a hidden `basis` naming
+  whose log a new entry goes into, so a profile switch between preview and
+  apply makes a plan in no series stale. The profile each entry gets is
   computed again at apply with the owner's settings as they are then, as the
   planner's own "Update planned dives" does, so a settings change in between
   does not make the plan stale.
+- **Cost.** The refusal and the side effects of one change share one
+  computation through the preview's `PlanningPass`, which the planner closes
+  once the preview is made, so the apply's stale check always computes
+  afresh.
 - **Refusals.** A series whose first dive has no `start_date_time`; a dive
   with no segments or a critical warning; a single plan linked to a dived dive
   without `move_dived_link`; a plan in a series (the series writes them all);
   a copy; and a change set where an earlier change writes the plan, links a
   dive to any plan (which takes it off another), or writes the log: a dive or
-  any record that belongs to one (`PlannedDivesEffect.logEntities`, pinned to
-  the catalog by a test), which the decision would be made without and the
-  rewrite would overwrite.
+  any record that belongs to one. The planner counts those in
+  `SetSoFar.touched`, a child under its parent, so no entity list is kept by
+  hand. The other way round, the effect names the entries it rewrites or
+  deletes in `SideEffects.rewrites`, and a later change in the set to one of
+  them, or to a record that belongs to one, is refused: it would be planned
+  against values the apply replaces.
 - **Owner.** A series' entries belong to its diver and are computed with that
   diver's settings; a plan in no series, or a series with no diver, uses the
   active diver's, as the planner does.
@@ -185,8 +195,11 @@ rewritten in place, a dived one is left alone.
   fails part way is rethrown, so nothing is left half written. The change log
   records profile series updates for any `agent` operation
   (`changeLogSeriesUpdateSources`), so a rewritten entry gets its old samples
-  back. A revert does not count a link it takes back itself as a use, so the
-  plan's new link does not keep the new entry.
+  back. The planner's own "Update planned dives" files its entries, the plan's
+  save and the links as one entry labelled `update_planned_dives`, one of
+  `changeLogSeriesUpdateLabels`, so reverting it restores the samples too. A
+  revert does not count a link it takes back itself as a use, so the plan's
+  new link does not keep the new entry.
 
 ## Writes
 

@@ -18398,6 +18398,7 @@
   "changeLog_label_splitDive": "Inmersión dividida",
   "changeLog_label_removeSource": "Fuente de datos eliminada",
   "changeLog_label_removeDuplicateCylinders": "Botellas duplicadas eliminadas",
+  "changeLog_label_updatePlannedDives": "Inmersiones planificadas actualizadas",
   "changeLog_undoIncomplete": "Deshacer no pudo restaurarlo todo. El resto está en Ajustes > Datos > Registro de cambios.",
   "changeLog_label_gearTransfer": "Equipo transferido",
   "changeLog_label_mediaRepair": "Enlaces multimedia reparados",

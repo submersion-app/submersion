@@ -63683,6 +63683,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'إزالة الأسطوانات المكررة';
 
   @override
+  String get changeLog_label_updatePlannedDives => 'تم تحديث الغطسات المخططة';
+
+  @override
   String changeLog_label_recordEdit(String cards) {
     return 'تم التعديل: $cards';
   }

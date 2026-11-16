@@ -201,12 +201,27 @@ class DivePlanWrites extends WritableEntry {
       );
     }
     return PlannedDivesEffect.blockOf(
-      await _outlook(
-        await _plannedPlan(check.id, v),
-        await _plannedOwner(check.ownerId),
-        ask,
-      ),
+      await _outlookOf(check.id, v, check.ownerId, ask, check.pass),
     );
+  }
+
+  /// What writing the planned dive of the plan [values] save does, for
+  /// [ownerId] as [_plannedOwner] works it out. Computed once per preview in
+  /// [pass]: the refusal and the side effects of one change ask with the
+  /// same values.
+  Future<PlannedDivesOutlook> _outlookOf(
+    String? id,
+    Map<String, Object?> values,
+    String? ownerId,
+    PlannedDivesRequest ask,
+    PlanningPass? pass,
+  ) {
+    Future<PlannedDivesOutlook> read() async => _outlook(
+      await _plannedPlan(id, values),
+      await _plannedOwner(ownerId),
+      ask,
+    );
+    return pass?.once((this, id, values), read) ?? read();
   }
 
   /// The plan [values] save, over the stored one for an update of [id] or a
@@ -292,11 +307,7 @@ class DivePlanWrites extends WritableEntry {
     final planned = ask == null
         ? const SideEffects()
         : PlannedDivesEffect.effectsOf(
-            await _outlook(
-              await _plannedPlan(id, update.values),
-              await _plannedOwner(ownerId),
-              ask,
-            ),
+            await _outlookOf(id, update.values, ownerId, ask, update.pass),
           );
     final diveId = update.values['linked_dive_id'];
     if (diveId is! String) return planned;

@@ -62396,6 +62396,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dubbele flessen verwijderd';
 
   @override
+  String get changeLog_label_updatePlannedDives => 'Geplande duiken bijgewerkt';
+
+  @override
   String changeLog_label_recordEdit(String cards) {
     return 'Bewerkt: $cards';
   }

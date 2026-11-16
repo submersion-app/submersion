@@ -273,10 +273,11 @@ void main() {
     expect(changeLogSeriesUpdateSources, {ChangeLogSource.agent.name});
   });
 
-  test('the opt-in labels are the removal labels', () {
+  test('the opt-in labels are the removals and the planned dives update', () {
     expect(changeLogSeriesUpdateLabels, {
       ChangeLogLabels.removeSource,
       ChangeLogLabels.removeDuplicateCylinders,
+      ChangeLogLabels.updatePlannedDives,
     });
   });
 

@@ -62442,6 +62442,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ismétlődő palackok eltávolítva';
 
   @override
+  String get changeLog_label_updatePlannedDives =>
+      'Tervezett merülések frissítve';
+
+  @override
   String changeLog_label_recordEdit(String cards) {
     return 'Szerkesztve: $cards';
   }

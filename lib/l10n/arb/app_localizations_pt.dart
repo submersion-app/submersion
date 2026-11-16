@@ -62762,6 +62762,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Cilindros duplicados removidos';
 
   @override
+  String get changeLog_label_updatePlannedDives =>
+      'Mergulhos planeados atualizados';
+
+  @override
   String changeLog_label_recordEdit(String cards) {
     return 'Editado: $cards';
   }

@@ -18398,6 +18398,7 @@
   "changeLog_label_splitDive": "Plongée scindée",
   "changeLog_label_removeSource": "Source de données supprimée",
   "changeLog_label_removeDuplicateCylinders": "Blocs en double supprimés",
+  "changeLog_label_updatePlannedDives": "Plongées planifiées mises à jour",
   "changeLog_undoIncomplete": "Annuler n'a pas pu tout rétablir. Le reste se trouve dans Réglages > Données > Journal des modifications.",
   "changeLog_label_gearTransfer": "Équipement transféré",
   "changeLog_label_mediaRepair": "Liens multimédias réparés",

@@ -533,11 +533,15 @@ const Set<String> changeLogOptInUpdateTables = {
 };
 
 /// The operation labels that record updates to [changeLogOptInUpdateTables].
-/// Kept equal to `ChangeLogLabels.removeSource` and
-/// `ChangeLogLabels.removeDuplicateCylinders`, which this file cannot import.
+/// Kept equal to `ChangeLogLabels.removeSource`,
+/// `ChangeLogLabels.removeDuplicateCylinders` and
+/// `ChangeLogLabels.updatePlannedDives`, which this file cannot import. The
+/// planner's Update planned dives rewrites a planned entry's profile in
+/// place, so its revert needs the old samples too (issue #4203).
 const Set<String> changeLogSeriesUpdateLabels = {
   'remove_source',
   'remove_duplicate_cylinders',
+  'update_planned_dives',
 };
 
 /// The operation sources that record updates to [changeLogOptInUpdateTables]

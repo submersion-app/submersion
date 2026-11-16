@@ -18398,6 +18398,7 @@
   "changeLog_label_splitDive": "Merülés szétválasztva",
   "changeLog_label_removeSource": "Adatforrás eltávolítva",
   "changeLog_label_removeDuplicateCylinders": "Ismétlődő palackok eltávolítva",
+  "changeLog_label_updatePlannedDives": "Tervezett merülések frissítve",
   "changeLog_undoIncomplete": "A visszavonás nem tudott mindent visszaállítani. A többi a Beállítások > Adatok > Változásnapló alatt található.",
   "changeLog_label_gearTransfer": "Felszerelés átadva",
   "changeLog_label_mediaRepair": "Médiahivatkozások javítva",
