@@ -170,6 +170,32 @@ void main() {
     },
   );
 
+  test('Cancel after a change on several cards: nothing written; the buddy, '
+      'species and document made on the way remain', () async {
+    final session = await started();
+    changeEveryCard(session);
+    unlinkMediaInSitting(session, {'m1'});
+    expect(session.isDirty, isTrue);
+
+    session.dispose();
+
+    final now = await stored();
+    expect(now.buddies, 0);
+    expect(now.sightings, 0);
+    expect(now.annotations, 0);
+    expect(now.documentDive, isNull);
+    expect((await dives.getDiveById('d1'))!.notes, isEmpty);
+    expect(await BuddyRepository().getBuddyById('b1'), isNotNull);
+    expect(await SpeciesRepository().getSpeciesById(turtle), isNotNull);
+    expect(
+      (await DocumentRepository().getForOwner(
+        const DocumentOwner.personal(),
+        diverId: 'me',
+      )).map((d) => d.id),
+      [card.id],
+    );
+  });
+
   test('a Save whose media write throws: no buddy, sighting, annotation or '
       'document written', () async {
     final session = await started();
