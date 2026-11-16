@@ -509,6 +509,86 @@ void main() {
     });
   });
 
+  group('time in the dive (Task 8)', () {
+    Future<void> pinAt(WidgetTester tester, String text) async {
+      await tester.tap(find.byIcon(Icons.timer_off_outlined));
+      await settleViewer(tester);
+      await tester.enterText(find.byType(TextField), text);
+      await tester.tap(find.text('Save').last);
+      await settleViewer(tester);
+    }
+
+    testWidgets('a pin moves the chip and the depth at once; nothing written '
+        'until Save', (tester) async {
+      await pumpViewer(tester);
+      await tapUnlock(tester);
+
+      await pinAt(tester, '2:00');
+
+      expect(find.text('+2:00'), findsOneWidget);
+      expect(find.text('12.0m'), findsOneWidget);
+      final before = (await tester.runAsync(
+        () => MediaRepository().getMediaById('p2'),
+      ))!;
+      expect(before.manualElapsedSeconds, isNull);
+
+      await tester.tap(find.text('Save'));
+      await settleViewer(tester, rounds: 10);
+
+      final after = (await tester.runAsync(
+        () => MediaRepository().getMediaById('p2'),
+      ))!;
+      expect(after.manualElapsedSeconds, 120);
+    });
+
+    testWidgets('the dialog reopened in the sitting starts at the held time', (
+      tester,
+    ) async {
+      await pumpViewer(tester);
+      await tapUnlock(tester);
+      await pinAt(tester, '2:00');
+
+      await tester.tap(find.byIcon(Icons.push_pin_outlined));
+      await settleViewer(tester);
+
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        '2:00',
+      );
+    });
+
+    testWidgets(
+      'the dialog answering after the sitting ended changes nothing',
+      (tester) async {
+        await pumpViewer(tester);
+        await tapUnlock(tester);
+        await tester.tap(find.byIcon(Icons.timer_off_outlined));
+        await settleViewer(tester);
+
+        photoController(tester).lock();
+        await tester.enterText(find.byType(TextField), '2:00');
+        await tester.tap(find.text('Save').last);
+        await settleViewer(tester);
+
+        final after = (await tester.runAsync(
+          () => MediaRepository().getMediaById('p2'),
+        ))!;
+        expect(after.manualElapsedSeconds, isNull);
+        expect(photoController(tester).isUnlocked, isFalse);
+      },
+    );
+
+    testWidgets('locked: the info sheet offers no Set time', (tester) async {
+      await pumpViewer(tester);
+
+      await tester.tap(find.byKey(const ValueKey('viewer_info')));
+      await settleViewer(tester);
+
+      expect(find.text('Media info'), findsWidgets);
+      expect(find.text('Set time in dive'), findsNothing);
+    });
+  });
+
   testWidgets('pushed over a record page in a sitting: Cancel here leaves that '
       'sitting open', (tester) async {
     final notes = EditField<Dive, String?>(

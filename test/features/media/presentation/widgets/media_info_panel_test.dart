@@ -32,6 +32,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/media/presentation/helpers/media_time_pinner.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_panel.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
@@ -175,6 +178,8 @@ void main() {
     /// Single-element holder so a test can swap the stored row mid-flight,
     /// which is what a persisted action really does.
     List<MediaItem>? liveRow,
+    bool readOnly = false,
+    EditSession<PhotoRecord>? sitting,
   }) async {
     // Four stacked sections overflow a default 800x600 surface, and a
     // ListView does not build what is below the fold, so the Serving block
@@ -210,7 +215,13 @@ void main() {
         ],
         child: localizedMaterialApp(
           locale: const Locale('en'),
-          home: Scaffold(body: MediaInfoPanel(item: item)),
+          home: Scaffold(
+            body: MediaInfoPanel(
+              item: item,
+              readOnly: readOnly,
+              sitting: sitting,
+            ),
+          ),
         ),
       ),
     );
@@ -1040,6 +1051,84 @@ void main() {
 
       expect(applied, hasLength(1));
       expect((applied.single as MediaTimePinned).elapsedSeconds, 300);
+    });
+
+    group('the photo\'s lock (issue #4527)', () {
+      testWidgets('read only: no Set time', (tester) async {
+        await pump(
+          tester,
+          linked(enrichment: enrichmentAt(750)),
+          extra: [diveOverride],
+          readOnly: true,
+        );
+
+        expect(find.text('Time in dive'), findsOneWidget);
+        expect(find.text('Set time in dive'), findsNothing);
+      });
+
+      testWidgets('read only: no Locate', (tester) async {
+        await pump(
+          tester,
+          _item(
+            sourceType: MediaSourceType.localFile,
+            platformAssetId: null,
+            localPath: '/gone/reef.jpg',
+            isOrphaned: true,
+          ),
+          readOnly: true,
+        );
+
+        expect(find.text('Locate file...'), findsNothing);
+      });
+
+      testWidgets('in a sitting: Set time holds the pin; nothing applied', (
+        tester,
+      ) async {
+        final applied = <MediaTimeChoice>[];
+        final item = linked(enrichment: enrichmentAt(750));
+        final sitting = EditSession<PhotoRecord>(
+          PhotoRecord(item: item, species: const [], people: const []),
+        );
+        addTearDown(sitting.dispose);
+        await pump(
+          tester,
+          item,
+          extra: [
+            diveOverride,
+            mediaTimePinnerProvider.overrideWithValue(
+              _CapturingPinner(applied),
+            ),
+          ],
+          sitting: sitting,
+        );
+
+        await tester.tap(find.text('Set time in dive'));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), '5:00');
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+
+        expect(applied, isEmpty);
+        expect(sitting.valueOf(photoPinField), 300);
+      });
+
+      testWidgets('in a sitting: Locate is not offered until it can be held', (
+        tester,
+      ) async {
+        final item = _item(
+          sourceType: MediaSourceType.localFile,
+          platformAssetId: null,
+          localPath: '/gone/reef.jpg',
+          isOrphaned: true,
+        );
+        final sitting = EditSession<PhotoRecord>(
+          PhotoRecord(item: item, species: const [], people: const []),
+        );
+        addTearDown(sitting.dispose);
+        await pump(tester, item, sitting: sitting);
+
+        expect(find.text('Locate file...'), findsNothing);
+      });
     });
   });
 

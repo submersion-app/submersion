@@ -62,6 +62,13 @@ extension _ViewerActions on _MediaViewerPageState {
     List<DiveProfilePoint> profile,
   ) async {
     final pinner = ref.read(mediaTimePinnerProvider);
+    // In a sitting the choice is held (issue #4527). Captured first: one
+    // that ends while the dialog is open must not turn into a write.
+    final sitting = photoSitting;
+    final held = sitting != null && sitting.stored.item.id == item.id
+        ? sitting
+        : null;
+    final automatic = pinner.automaticTimeFor(item);
     final choice = await showSetMediaTimeDialog(
       context,
       profile: profile,
@@ -71,9 +78,11 @@ extension _ViewerActions on _MediaViewerPageState {
       ),
       isPinned: item.manualElapsedSeconds != null,
       settings: ref.read(settingsProvider),
-      automatic: pinner.automaticTimeFor(item),
+      automatic: automatic,
     );
     if (choice == null || !mounted) return;
+    if (held != null) return holdTimeChoice(held, item.id, choice, automatic);
+    if (editingOffered) return;
     await pinner.apply(item, choice);
   }
 

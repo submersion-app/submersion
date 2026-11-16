@@ -31,6 +31,9 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/utils/byte_format.dart';
 import 'package:submersion/shared/utils/file_reveal.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
@@ -43,9 +46,22 @@ import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 /// machinery that already exists; the only capability added for the panel is
 /// checking a single item's source.
 class MediaInfoPanel extends ConsumerWidget {
-  const MediaInfoPanel({super.key, required this.item, this.scrollController});
+  const MediaInfoPanel({
+    super.key,
+    required this.item,
+    this.scrollController,
+    this.readOnly = false,
+    this.sitting,
+  });
 
   final MediaItem item;
+
+  /// No action that changes the photo's record (Set time, Locate): the photo
+  /// is locked, or shown where it has no lock of its own (issue #4527).
+  final bool readOnly;
+
+  /// The photo's sitting: Set time is held in it until Save.
+  final EditSession<PhotoRecord>? sitting;
 
   /// Supplied when hosted in a DraggableScrollableSheet, which owns scrolling.
   final ScrollController? scrollController;
@@ -71,9 +87,20 @@ class MediaInfoPanel extends ConsumerWidget {
         const SizedBox(height: 16),
         MediaInfoTagsSection(item: live),
         const SizedBox(height: 12),
-        _FileSection(item: live, units: units),
+        _FileSection(
+          item: live,
+          units: units,
+          readOnly: readOnly,
+          sitting: sitting,
+        ),
         const SizedBox(height: 12),
-        _OriginSection(item: live, origin: provenance.origin, units: units),
+        _OriginSection(
+          item: live,
+          origin: provenance.origin,
+          units: units,
+          // Locate is not offered in a sitting until it can be held.
+          canLocate: !readOnly && sitting == null,
+        ),
         const SizedBox(height: 12),
         _BackupSection(item: live, backup: provenance.backup, units: units),
         const SizedBox(height: 12),
@@ -130,10 +157,17 @@ class _Section extends StatelessWidget {
 }
 
 class _FileSection extends ConsumerWidget {
-  const _FileSection({required this.item, required this.units});
+  const _FileSection({
+    required this.item,
+    required this.units,
+    required this.readOnly,
+    required this.sitting,
+  });
 
   final MediaItem item;
   final UnitFormatter units;
+  final bool readOnly;
+  final EditSession<PhotoRecord>? sitting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -170,9 +204,10 @@ class _FileSection extends ConsumerWidget {
       title: l10n.media_info_fileSection,
       actions: [
         // Pinning needs a profile to pin against.
-        if (diveId != null && profile.isNotEmpty && canEdit)
+        if (diveId != null && profile.isNotEmpty && canEdit && !readOnly)
           _SetTimeButton(
             item: item,
+            sitting: sitting,
             profile: profile,
             initialElapsedSeconds: setTimeSeedFor(
               item,
@@ -222,6 +257,7 @@ class _FileSection extends ConsumerWidget {
 class _SetTimeButton extends ConsumerWidget {
   const _SetTimeButton({
     required this.item,
+    required this.sitting,
     required this.profile,
     required this.initialElapsedSeconds,
   });
@@ -229,6 +265,7 @@ class _SetTimeButton extends ConsumerWidget {
   final MediaItem item;
   final List<DiveProfilePoint> profile;
   final int initialElapsedSeconds;
+  final EditSession<PhotoRecord>? sitting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -237,16 +274,19 @@ class _SetTimeButton extends ConsumerWidget {
       label: Text(context.l10n.media_timeInDive_setAction),
       onPressed: () async {
         final pinner = ref.read(mediaTimePinnerProvider);
+        final held = sitting;
+        final automatic = pinner.automaticTimeFor(item);
         final choice = await showSetMediaTimeDialog(
           context,
           profile: profile,
           initialElapsedSeconds: initialElapsedSeconds,
           isPinned: item.manualElapsedSeconds != null,
           settings: ref.read(settingsProvider),
-          automatic: pinner.automaticTimeFor(item),
+          automatic: automatic,
         );
         if (choice == null || !context.mounted) return;
-        await pinner.apply(item, choice);
+        if (held == null) return pinner.apply(item, choice);
+        await holdTimeChoice(held, item.id, choice, automatic);
       },
     );
   }
@@ -257,11 +297,15 @@ class _OriginSection extends ConsumerWidget {
     required this.item,
     required this.origin,
     required this.units,
+    required this.canLocate,
   });
 
   final MediaItem item;
   final OriginFacts origin;
   final UnitFormatter units;
+
+  /// Whether Locate may relink the photo here.
+  final bool canLocate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -300,7 +344,10 @@ class _OriginSection extends ConsumerWidget {
         // points at a path, so this is not offered for a missing gallery
         // asset, where picking a file would relink it to the wrong source
         // type.
-        if (origin.health == OriginHealth.missing && isLocalFile && canEdit)
+        if (origin.health == OriginHealth.missing &&
+            isLocalFile &&
+            canEdit &&
+            canLocate)
           _LocateButton(item: item),
         if (pointer != null && isLocalFile && canRevealInFileManager)
           TextButton(

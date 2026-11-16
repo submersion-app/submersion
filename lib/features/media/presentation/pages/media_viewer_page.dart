@@ -27,6 +27,7 @@ import 'package:submersion/features/media/data/services/metadata_write_service.d
 import 'package:submersion/features/media/domain/entities/media_dive_window.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/editing/photo_viewer_editing.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';

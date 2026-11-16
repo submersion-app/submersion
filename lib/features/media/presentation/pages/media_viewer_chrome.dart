@@ -19,7 +19,12 @@ extension _ViewerChrome on _MediaViewerPageState {
     totalCount: totalCount,
     onClose: _close,
     onEnterFullscreen: enterFullscreen,
-    onShowInfo: () => showMediaInfoSheet(context, currentItem),
+    onShowInfo: () => showMediaInfoSheet(
+      context,
+      currentItem,
+      readOnly: editingOffered && !photoUnlocked,
+      sitting: photoSitting,
+    ),
     onReupload: mediaReuploadAvailable(ref)
         ? (anchor) => showMediaReuploadMenu(anchor, ref, currentItem)
         : null,

@@ -119,6 +119,24 @@ void applyTimeChoice(
   }
 }
 
+/// Holds the Set time dialog's [choice] for [mediaId] in [session], once
+/// [automatic] (the dialog's own lookup) has answered. Does nothing when the
+/// sitting ended, is being saved, or is over another photo by then.
+Future<void> holdTimeChoice(
+  EditSession<PhotoRecord> session,
+  String mediaId,
+  MediaTimeChoice choice,
+  Future<MediaAutomaticTime?> automatic,
+) async {
+  final place = await automatic;
+  if (session.isDisposed ||
+      session.isFrozen ||
+      session.stored.item.id != mediaId) {
+    return;
+  }
+  applyTimeChoice(session, choice, automatic: place);
+}
+
 /// Where the sitting puts the photo in its dive, in seconds from the
 /// start; null when its time is as stored, or when where it lands is not
 /// known (no automatic time), so the stored position stands.
