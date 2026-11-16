@@ -5965,6 +5965,7 @@
   "media_photoPicker_files_offsetBackTooltip": "Eltolás {amount} korábbra",
   "media_photoPicker_files_offsetForwardTooltip": "Eltolás {amount} későbbre",
   "media_photoPicker_files_linkedCount": "{count, plural, =1{1 elem összekapcsolva} other{{count} elem összekapcsolva}}",
+  "media_picker_otherDivesLeftOut": "{count, plural, =1{{count} fájl egy másik merüléshez tartozik, ezért kimaradt} other{{count} fájl más merülésekhez tartozik, ezért kimaradt}}",
   "media_photoPicker_files_attachedToSiteCount": "{count, plural, =1{1 elem csatolva ehhez a helyszínhez} other{{count} elem csatolva ehhez a helyszínhez}}",
   "media_photoPicker_files_undo": "Visszavonás",
   "media_perdixOverlay_labelCns": "CNS",

@@ -21130,6 +21130,18 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count arquivos correspondem a outros mergulhos e foram deixados de fora',
+      one: '$count arquivo corresponde a outro mergulho e foi deixado de fora',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

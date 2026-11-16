@@ -5965,6 +5965,7 @@
   "media_photoPicker_files_offsetBackTooltip": "Sposta di {amount} prima",
   "media_photoPicker_files_offsetForwardTooltip": "Sposta di {amount} dopo",
   "media_photoPicker_files_linkedCount": "{count, plural, =1{1 elemento collegato} other{{count} elementi collegati}}",
+  "media_picker_otherDivesLeftOut": "{count, plural, =1{{count} file corrisponde a un'altra immersione ed è stato escluso} other{{count} file corrispondono ad altre immersioni e sono stati esclusi}}",
   "media_photoPicker_files_attachedToSiteCount": "{count, plural, =1{1 elemento allegato a questo sito} other{{count} elementi allegati a questo sito}}",
   "media_photoPicker_files_undo": "Annulla",
   "media_perdixOverlay_labelCns": "CNS",

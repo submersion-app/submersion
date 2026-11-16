@@ -6242,6 +6242,7 @@
   "media_photoPicker_files_offsetBackTooltip": "提前 {amount}",
   "media_photoPicker_files_offsetForwardTooltip": "推后 {amount}",
   "media_photoPicker_files_linkedCount": "{count, plural, other{已关联 {count} 个项目}}",
+  "media_picker_otherDivesLeftOut": "{count, plural, other{{count} 个文件属于其他潜水，已略过}}",
   "media_photoPicker_files_attachedToSiteCount": "{count, plural, other{已将 {count} 个项目附加到此潜点}}",
   "media_photoPicker_files_undo": "撤消",
   "media_perdixOverlay_labelCns": "CNS",

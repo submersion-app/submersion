@@ -33352,6 +33352,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Linked 1 item} other{Linked {count} items}}'**
   String media_photoPicker_files_linkedCount(int count);
 
+  /// Shown after the photo picker, opened while a dive is being edited, hands its files to that dive: how many staged files matched other dives and were left out.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} file matches another dive and was left out} other{{count} files match other dives and were left out}}'**
+  String media_picker_otherDivesLeftOut(int count);
+
   /// No description provided for @media_photoPicker_files_attachedToSiteCount.
   ///
   /// In en, this message translates to:

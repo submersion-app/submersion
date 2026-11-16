@@ -21462,6 +21462,20 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملف يطابق غطسات أخرى وتم استبعاده',
+      many: '$count ملفًا تطابق غطسات أخرى وتم استبعادها',
+      few: '$count ملفات تطابق غطسات أخرى وتم استبعادها',
+      two: 'ملفان يطابقان غطسات أخرى وتم استبعادهما',
+      one: 'ملف واحد يطابق غطسة أخرى وتم استبعاده',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

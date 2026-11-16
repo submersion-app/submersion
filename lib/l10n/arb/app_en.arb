@@ -12789,6 +12789,15 @@
       }
     }
   },
+  "media_picker_otherDivesLeftOut": "{count, plural, =1{{count} file matches another dive and was left out} other{{count} files match other dives and were left out}}",
+  "@media_picker_otherDivesLeftOut": {
+    "description": "Shown after the photo picker, opened while a dive is being edited, hands its files to that dive: how many staged files matched other dives and were left out.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "media_photoPicker_files_attachedToSiteCount": "{count, plural, =1{Attached 1 item to this site} other{Attached {count} items to this site}}",
   "@media_photoPicker_files_attachedToSiteCount": {
     "placeholders": {

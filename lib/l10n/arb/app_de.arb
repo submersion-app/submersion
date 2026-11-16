@@ -6217,6 +6217,7 @@
   "media_photoPicker_files_offsetBackTooltip": "Um {amount} früher verschieben",
   "media_photoPicker_files_offsetForwardTooltip": "Um {amount} später verschieben",
   "media_photoPicker_files_linkedCount": "{count, plural, =1{1 Element verknüpft} other{{count} Elemente verknüpft}}",
+  "media_picker_otherDivesLeftOut": "{count, plural, =1{{count} Datei passt zu einem anderen Tauchgang und wurde ausgelassen} other{{count} Dateien passen zu anderen Tauchgängen und wurden ausgelassen}}",
   "media_photoPicker_files_attachedToSiteCount": "{count, plural, =1{1 Element diesem Tauchplatz zugeordnet} other{{count} Elemente diesem Tauchplatz zugeordnet}}",
   "media_photoPicker_files_undo": "Rückgängig",
   "media_perdixOverlay_labelCns": "CNS",

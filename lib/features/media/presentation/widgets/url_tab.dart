@@ -19,6 +19,7 @@ import 'package:submersion/features/media/presentation/providers/url_tab_provide
 import 'package:submersion/features/media/presentation/widgets/manifest_mode_panel.dart';
 import 'package:submersion/features/media/presentation/widgets/network_signin_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/url_review_pane.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 
 /// URL tab in the photo picker.
 ///
@@ -74,6 +75,17 @@ class _UrlTabState extends ConsumerState<UrlTab> {
     if (!mounted) return;
 
     final target = widget.target;
+    // Opened from a sitting on a dive (issue #4527): the fetched media are
+    // handed to the sitting and inserted at Save; Cancel leaves nothing.
+    final hold = MediaHoldScope.maybeOf(context);
+    if (hold != null && target != null) {
+      final requests = requestsForTarget(resolved, target);
+      hold([for (final r in requests) HeldNetworkMedia(r, networkPreview(r))]);
+      notifier.clearDraft();
+      _draftBecameRows();
+      navigator.pop();
+      return;
+    }
     if (target != null) {
       final ids = await notifier.commitRequests(
         requestsForTarget(resolved, target),

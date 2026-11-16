@@ -6091,6 +6091,7 @@
   "media_photoPicker_files_offsetBackTooltip": "Deslocar {amount} antes",
   "media_photoPicker_files_offsetForwardTooltip": "Deslocar {amount} depois",
   "media_photoPicker_files_linkedCount": "{count, plural, =1{{count} item vinculado} other{{count} itens vinculados}}",
+  "media_picker_otherDivesLeftOut": "{count, plural, =1{{count} arquivo corresponde a outro mergulho e foi deixado de fora} other{{count} arquivos correspondem a outros mergulhos e foram deixados de fora}}",
   "media_photoPicker_files_attachedToSiteCount": "{count, plural, =1{{count} item anexado a este ponto} other{{count} itens anexados a este ponto}}",
   "media_photoPicker_files_undo": "Desfazer",
   "media_perdixOverlay_labelCns": "CNS",

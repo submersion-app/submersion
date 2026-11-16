@@ -6091,6 +6091,7 @@
   "media_photoPicker_files_offsetBackTooltip": "إزاحة {amount} للخلف",
   "media_photoPicker_files_offsetForwardTooltip": "إزاحة {amount} للأمام",
   "media_photoPicker_files_linkedCount": "{count, plural, =1{تم ربط عنصر واحد} two{تم ربط عنصرين} few{تم ربط {count} عناصر} many{تم ربط {count} عنصرًا} other{تم ربط {count} عنصر}}",
+  "media_picker_otherDivesLeftOut": "{count, plural, =1{ملف واحد يطابق غطسة أخرى وتم استبعاده} two{ملفان يطابقان غطسات أخرى وتم استبعادهما} few{{count} ملفات تطابق غطسات أخرى وتم استبعادها} many{{count} ملفًا تطابق غطسات أخرى وتم استبعادها} other{{count} ملف يطابق غطسات أخرى وتم استبعاده}}",
   "media_photoPicker_files_attachedToSiteCount": "{count, plural, =1{تم إرفاق عنصر واحد بهذا الموقع} two{تم إرفاق عنصرين بهذا الموقع} few{تم إرفاق {count} عناصر بهذا الموقع} many{تم إرفاق {count} عنصرًا بهذا الموقع} other{تم إرفاق {count} عنصر بهذا الموقع}}",
   "media_photoPicker_files_undo": "تراجع",
   "media_perdixOverlay_labelCns": "CNS",

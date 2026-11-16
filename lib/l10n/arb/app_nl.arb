@@ -6091,6 +6091,7 @@
   "media_photoPicker_files_offsetBackTooltip": "{amount} eerder verschuiven",
   "media_photoPicker_files_offsetForwardTooltip": "{amount} later verschuiven",
   "media_photoPicker_files_linkedCount": "{count, plural, =1{1 item gekoppeld} other{{count} items gekoppeld}}",
+  "media_picker_otherDivesLeftOut": "{count, plural, =1{{count} bestand hoort bij een andere duik en is weggelaten} other{{count} bestanden horen bij andere duiken en zijn weggelaten}}",
   "media_photoPicker_files_attachedToSiteCount": "{count, plural, =1{1 item aan deze duiklocatie gekoppeld} other{{count} items aan deze duiklocatie gekoppeld}}",
   "media_photoPicker_files_undo": "Ongedaan maken",
   "media_perdixOverlay_labelCns": "CNS",

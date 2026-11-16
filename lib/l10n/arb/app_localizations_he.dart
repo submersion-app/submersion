@@ -20669,6 +20669,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קבצים תואמים צלילות אחרות והושמטו',
+      one: 'קובץ אחד תואם צלילה אחרת והושמט',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

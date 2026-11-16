@@ -15,6 +15,7 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 
 /// Helper for importing photos for a dive.
 ///
@@ -34,6 +35,7 @@ class PhotoImportHelper {
     required WidgetRef ref,
     required Dive dive,
     List<String>? initialFilePaths,
+    MediaHoldSink? onHold,
   }) async {
     // Calculate time window with 30-minute buffer
     // The dive's window as its camera reads it, so the picker opens on the
@@ -49,6 +51,7 @@ class PhotoImportHelper {
     // Gallery assets already linked to this dive, as this device knows them:
     // a row linked on another device carries that device's asset id (#885).
     final mediaRepo = ref.read(mediaRepositoryProvider);
+    final importService = ref.read(mediaImportServiceProvider);
     final alreadyLinkedIds = await ref
         .read(linkedGalleryAssetsProvider)
         .idsOnThisDevice(await mediaRepo.getGalleryLinksForDive(dive.id));
@@ -85,6 +88,7 @@ class PhotoImportHelper {
       // Lets the Files tab link photos this dive's date window rejected.
       target: DiveAttachTarget(dive.id),
       initialFilePaths: initialFilePaths,
+      onHold: onHold,
       loadAssets: (isActive) => DiveGalleryLookup.find(
         windowStart: windowStart,
         windowEnd: windowEnd,
@@ -97,6 +101,17 @@ class PhotoImportHelper {
     // User cancelled or context no longer valid
     if (selectedAssets == null || selectedAssets.isEmpty || !context.mounted) {
       return false;
+    }
+
+    // A sitting on the dive (issue #4527) holds the picks until Save: the
+    // rows are built, and written then.
+    if (onHold != null) {
+      final prepared = await importService.prepareForDive(
+        selectedAssets: selectedAssets,
+        dive: dive,
+      );
+      onHold([for (final p in prepared) HeldMediaRow(p)]);
+      return true;
     }
 
     // Defer dialog display to avoid Navigator lock issues.

@@ -5965,6 +5965,7 @@
   "media_photoPicker_files_offsetBackTooltip": "הסטה של {amount} אחורה",
   "media_photoPicker_files_offsetForwardTooltip": "הסטה של {amount} קדימה",
   "media_photoPicker_files_linkedCount": "{count, plural, =1{פריט אחד קושר} other{{count} פריטים קושרו}}",
+  "media_picker_otherDivesLeftOut": "{count, plural, =1{קובץ אחד תואם צלילה אחרת והושמט} other{{count} קבצים תואמים צלילות אחרות והושמטו}}",
   "media_photoPicker_files_attachedToSiteCount": "{count, plural, =1{פריט אחד צורף לאתר זה} other{{count} פריטים צורפו לאתר זה}}",
   "media_photoPicker_files_undo": "ביטול",
   "media_perdixOverlay_labelCns": "CNS",

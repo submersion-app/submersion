@@ -20999,6 +20999,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestanden horen bij andere duiken en zijn weggelaten',
+      one: '$count bestand hoort bij een andere duik en is weggelaten',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
