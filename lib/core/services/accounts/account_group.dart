@@ -8,6 +8,7 @@ import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/text/text_sort.dart';
 
 /// What a roster row is for on its server. The folder is part of the row's
 /// id, so a server used for sync and photos is two rows (spec section 7.2).
@@ -141,7 +142,7 @@ List<AccountGroup> groupAccounts({
   groups.sort((a, b) {
     final byKind = _kindOrder(a.kind).compareTo(_kindOrder(b.kind));
     if (byKind != 0) return byKind;
-    final byLabel = a.label.toLowerCase().compareTo(b.label.toLowerCase());
+    final byLabel = compareTextForSort(a.label, b.label);
     return byLabel != 0 ? byLabel : a.key.compareTo(b.key);
   });
   return groups;

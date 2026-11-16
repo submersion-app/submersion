@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
 import 'package:submersion/features/insights/domain/ccr_gas_use_trend.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_gas_lane_provider.dart';
 import 'package:submersion/features/insights/data/services/deco_classification_service.dart';
@@ -774,19 +775,22 @@ final ascentDescentRatesProvider =
       );
     });
 
-final timeAtDepthRangesProvider =
-    FutureProvider<List<({int lowerDepth, int? upperDepth, int minutes})>>((
-      ref,
-    ) async {
-      await _keepAliveWithExpiry(ref);
-      final repository = ref.watch(insightsRepositoryProvider);
-      final currentDiverId = ref.watch(currentDiverIdProvider);
-      final filter = ref.watch(insightsFilterProvider);
-      return repository.getTimeAtDepthRanges(
-        diverId: currentDiverId,
-        filter: filter,
-      );
-    });
+/// Time at depth, banded in the diver's own depth unit (issue #4600): a unit
+/// change re-bands the samples rather than relabelling meter bands.
+final timeAtDepthRangesProvider = FutureProvider<List<DepthBucket>>((
+  ref,
+) async {
+  await _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  final depthUnit = ref.watch(settingsProvider.select((s) => s.depthUnit));
+  return repository.getTimeAtDepthRanges(
+    diverId: currentDiverId,
+    filter: filter,
+    depthUnit: depthUnit,
+  );
+});
 
 /// Deco obligation counts for the Insights card.
 typedef DecoObligationStats = ({

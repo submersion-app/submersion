@@ -3280,6 +3280,42 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 selected dive has no tanks and will be skipped.} other{{count} selected dives have no tanks and will be skipped.}}'**
   String diveLog_bulkEdit_tankSpecsSkipped(int count);
 
+  /// No description provided for @diveLog_bulkEdit_tankRoleSameForAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Same role on every tank'**
+  String get diveLog_bulkEdit_tankRoleSameForAll;
+
+  /// No description provided for @diveLog_bulkEdit_tankRoleByPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Role by tank position'**
+  String get diveLog_bulkEdit_tankRoleByPosition;
+
+  /// No description provided for @diveLog_bulkEdit_tankRoleAddPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Add position'**
+  String get diveLog_bulkEdit_tankRoleAddPosition;
+
+  /// No description provided for @diveLog_bulkEdit_tankRoleRemovePosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove position'**
+  String get diveLog_bulkEdit_tankRoleRemovePosition;
+
+  /// No description provided for @diveLog_bulkEdit_tankRolesByPositionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Only dives with exactly {count} tank get this role.} other{Only dives with exactly {count} tanks get these roles, in tank order.}}'**
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count);
+
+  /// No description provided for @diveLog_bulkEdit_tankRolesSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive doesn\'t match the tank positions, so its tank roles stay as they are.} other{{count} dives don\'t match the tank positions, so their tank roles stay as they are.}}'**
+  String diveLog_bulkEdit_tankRolesSkipped(int count);
+
   /// No description provided for @diveLog_bulkEdit_confirmTitle.
   ///
   /// In en, this message translates to:
@@ -14763,11 +14799,17 @@ abstract class AppLocalizations {
   /// **'No entry method recorded'**
   String get diveLog_filter_noEntryMethodOnly;
 
-  /// No description provided for @diveLog_filter_noRoleOnly.
+  /// Heading of the dive filter's chips for the diver's own role on the dive
   ///
   /// In en, this message translates to:
-  /// **'No Role Assigned'**
-  String get diveLog_filter_noRoleOnly;
+  /// **'My role'**
+  String get diveLog_filter_sectionMyRole;
+
+  /// Filter chip: keep dives where the diver's own role is not set
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get diveLog_filter_myRoleNotSet;
 
   /// No description provided for @diveLog_filter_noTagsYet.
   ///
@@ -14900,12 +14942,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show only dives with no known entry method'**
   String get diveLog_filter_showOnlyNoEntryMethod;
-
-  /// No description provided for @diveLog_filter_showOnlyNoRole.
-  ///
-  /// In en, this message translates to:
-  /// **'Show only dives where your role is not set'**
-  String get diveLog_filter_showOnlyNoRole;
 
   /// No description provided for @diveLog_filter_startDate.
   ///
@@ -21874,6 +21910,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete dive type'**
   String get diveTypes_deleteTooltip;
+
+  /// Tooltip and screen-reader label on the star button that makes a dive type a favorite, listed first in the dive type pickers
+  ///
+  /// In en, this message translates to:
+  /// **'Add {name} to favorites'**
+  String diveTypes_favourite_add(String name);
+
+  /// Tooltip and screen-reader label on the filled star button that removes a dive type from the favorites
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from favorites'**
+  String diveTypes_favourite_remove(String name);
+
+  /// Heading above the starred dive types at the top of the dive type checklist
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get diveTypes_favourites_header;
 
   /// No description provided for @diveTypes_editDialog_builtInNameHelper.
   ///
@@ -35572,6 +35626,12 @@ abstract class AppLocalizations {
   /// **'end: {reading}'**
   String plannerCanvas_gas_endReading(String reading);
 
+  /// No description provided for @plannerCanvas_gas_problemSolvingReading.
+  ///
+  /// In en, this message translates to:
+  /// **'problem solving: {reading}'**
+  String plannerCanvas_gas_problemSolvingReading(String reading);
+
   /// No description provided for @plannerCanvas_issue_gasDensityCritical.
   ///
   /// In en, this message translates to:
@@ -35593,8 +35653,14 @@ abstract class AppLocalizations {
   /// No description provided for @plannerCanvas_issue_minGas.
   ///
   /// In en, this message translates to:
-  /// **'Tank ends below the rock-bottom minimum of {pressure}'**
-  String plannerCanvas_issue_minGas(String pressure);
+  /// **'Leaves the bottom with {remaining}, under the rock-bottom minimum of {minimum}: no gas held back for problem-solving time'**
+  String plannerCanvas_issue_minGas(String remaining, String minimum);
+
+  /// No description provided for @plannerCanvas_issue_minGasAscent.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaves the bottom with {remaining}, under the {minimum} an emergency ascent needs'**
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum);
 
   /// No description provided for @plannerCanvas_issue_noUsableGas.
   ///
@@ -35862,6 +35928,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Min gas'**
   String get plannerCanvas_slate_minGas;
+
+  /// No description provided for @plannerCanvas_slate_problemSolving.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem solving'**
+  String get plannerCanvas_slate_problemSolving;
 
   /// No description provided for @plannerCanvas_slate_saved.
   ///
@@ -52680,6 +52752,12 @@ abstract class AppLocalizations {
   /// **'{value} min'**
   String insights_profile_timeAtDepth_valueFormat(Object value);
 
+  /// Time at depth value in whole hours, shown once a band holds 100 hours or more
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h'**
+  String insights_profile_timeAtDepth_hoursFormat(int hours);
+
   /// No description provided for @insights_progression_appBar_title.
   ///
   /// In en, this message translates to:
@@ -53381,6 +53459,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'With Buddy'**
   String get insights_social_soloVsBuddy_withBuddy;
+
+  /// Title of the Insights card breaking dives down by the diver's own role
+  ///
+  /// In en, this message translates to:
+  /// **'My role'**
+  String get insights_social_myRole_title;
+
+  /// Subtitle of the My role card; explains that a dive holding several roles counts under each
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by the role you held; a dive with several roles counts under each'**
+  String get insights_social_myRole_subtitle;
+
+  /// Shown on the My role card when there are no dives
+  ///
+  /// In en, this message translates to:
+  /// **'No dive data available'**
+  String get insights_social_myRole_empty;
+
+  /// Shown on the My role card when its data fails to load
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load role data'**
+  String get insights_social_myRole_error;
+
+  /// Bar label on the My role card for dives where the diver's own role is not set
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get insights_social_myRole_notSet;
 
   /// No description provided for @insights_social_topBuddies_error.
   ///
@@ -57943,6 +58051,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'min'**
   String get units_profileMetric_min;
+
+  /// Unit for time in hours
+  ///
+  /// In en, this message translates to:
+  /// **'h'**
+  String get units_profileMetric_h;
 
   /// Percent unit symbol
   ///
@@ -83172,6 +83286,12 @@ abstract class AppLocalizations {
   /// **'{count} water types'**
   String diveLog_filterChip_waterTypeCount(Object count);
 
+  /// Active filter chip for the diver's own role axis when several choices are picked (roles, or a role and Not set)
+  ///
+  /// In en, this message translates to:
+  /// **'{count} roles'**
+  String diveLog_filterChip_roleCount(int count);
+
   /// No description provided for @diveLog_filterChip_tankConfigCount.
   ///
   /// In en, this message translates to:
@@ -93425,6 +93545,18 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Built-in'**
+  String get query_diveRoles_builtIn;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_diveRoles_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
   String get query_diveTypes_builtIn;
 
   /// Field label in the query builder
@@ -93636,6 +93768,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My role'**
   String get query_dives_role;
+
+  /// Field label in the query builder: the diver's own roles on the dive, by name (a dive can hold several)
+  ///
+  /// In en, this message translates to:
+  /// **'My roles'**
+  String get query_dives_myRole;
 
   /// Field label in the query builder
   ///
@@ -93906,6 +94044,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive types'**
   String get query_entity_diveTypes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive roles'**
+  String get query_entity_diveRoles;
 
   /// Field label in the query builder
   ///
@@ -96638,6 +96782,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hidden built-in entries'**
   String get settings_conflict_field_hiddenBuiltInIds;
+
+  /// Sync conflict dialog label for the dive types a diver starred to list first in the pickers
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite dive types'**
+  String get settings_conflict_field_favouriteDiveTypeIds;
 
   /// Restore failed because the backup's only copy is in a cloud account the backup copy no longer goes to
   ///

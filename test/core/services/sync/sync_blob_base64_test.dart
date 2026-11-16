@@ -369,7 +369,7 @@ void main() {
           centerRecord('center-old-peer', logo: logo),
         );
 
-        // A peer below v371 knows no logo column, so its row omits the key.
+        // A peer below v372 knows no logo column, so its row omits the key.
         final remote = centerRecord('center-old-peer')
           ..remove('logo')
           ..['name'] = 'Blue Reef Divers';

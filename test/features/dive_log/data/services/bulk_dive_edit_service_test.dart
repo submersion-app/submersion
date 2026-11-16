@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart'
-    show TankMaterial, WeightType;
+    show TankMaterial, TankRole, WeightType;
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
@@ -655,6 +655,44 @@ void main() {
       expect(row.volume, isNull); // prior NULL restored
       expect(row.id, priorId); // undo did not re-insert under a new id
       expect(row.startPressure, 200);
+    });
+
+    // Issue #4412: roles set by position come back on undo, row by row.
+    test('undo restores roles set by position', () async {
+      await seed('d1');
+      await diveRepo.bulkAddTanks(
+        ['d1'],
+        const [
+          domain.DiveTank(id: '', role: TankRole.stage),
+          domain.DiveTank(id: '', role: TankRole.deco),
+        ],
+      );
+      Future<List<String>> roles() async => [
+        for (final r
+            in await (db.select(db.diveTanks)
+                  ..where((t) => t.diveId.equals('d1'))
+                  ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+                .get())
+          r.tankRole,
+      ];
+
+      final snap = await service.apply(
+        const BulkEditRequest(
+          diveIds: ['d1'],
+          ops: [
+            TankSpecsOp(
+              specs: domain.DiveTank(id: ''),
+              fields: {TankSpecField.role},
+              slotRoles: [TankRole.sidemountLeft, TankRole.sidemountRight],
+            ),
+          ],
+        ),
+      );
+      expect(await roles(), ['sidemountLeft', 'sidemountRight']);
+
+      await service.undo(snap);
+
+      expect(await roles(), ['stage', 'deco']);
     });
   });
 

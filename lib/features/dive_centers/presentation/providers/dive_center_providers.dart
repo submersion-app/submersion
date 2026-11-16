@@ -3,6 +3,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/data/services/dive_center_api_service.dart';
 import 'package:submersion/features/dive_centers/domain/constants/dive_center_field.dart';
@@ -68,7 +69,7 @@ List<DiveCenter> applyDiveCenterSorting(
   final sorted = List<DiveCenter>.from(centers);
 
   int compareNames(DiveCenter a, DiveCenter b) =>
-      a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      compareTextForSort(a.name, b.name);
 
   final ascending = sort.direction == SortDirection.ascending;
 

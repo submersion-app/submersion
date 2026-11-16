@@ -100,7 +100,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // library_site_notes. Every read of either table selects the whole row.
     await _assertSiteCatalogueAnswersColumns();
 
-    // v371: dive_centers.logo (issue #4460). Every center read selects the
+    // v372: dive_centers.logo (issue #4460). Every center read selects the
     // whole row.
     await _assertDiveCenterLogoColumn();
   }

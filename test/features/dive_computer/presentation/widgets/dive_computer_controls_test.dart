@@ -236,6 +236,30 @@ void main() {
       );
     });
 
+    // Issue #4622: Download is what the page is opened for, so its card leads
+    // the section instead of following the info, connections and stats cards.
+    testWidgets('the download actions lead the section (#4622)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildTestWidget(computer: _makeComputer()));
+      await tester.pumpAndSettle();
+
+      final downloadTop = tester.getTopLeft(find.text('Download Dives')).dy;
+      expect(
+        downloadTop,
+        lessThan(tester.getTopLeft(find.text('Shearwater Perdix 2')).dy),
+      );
+      expect(
+        downloadTop,
+        lessThan(tester.getTopLeft(find.text('Dives Imported')).dy),
+      );
+      // Still under the section title and its favourite and merge actions.
+      expect(
+        downloadTop,
+        greaterThan(tester.getTopLeft(find.text('Dive Computer')).dy),
+      );
+    });
+
     testWidgets('shows dive count in stats', (tester) async {
       await tester.pumpWidget(
         _buildTestWidget(computer: _makeComputer(diveCount: 42)),

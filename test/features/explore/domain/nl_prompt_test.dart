@@ -46,6 +46,17 @@ void main() {
     expect(text, contains('weekday: mon, tue, wed, thu, fri, sat, sun.'));
   });
 
+  test('the diver\'s own role is offered by name (#4409)', () {
+    final text = NlPrompt.instructions();
+    expect(
+      text,
+      contains(
+        "myRole: the name of the diver's own role on the dive, such as "
+        'Instructor or Dive Guide.',
+      ),
+    );
+  });
+
   test('the cold-water example places SAC and the final stop', () {
     final text = NlPrompt.instructions();
     expect(text, contains('"field":"sacChange"'));

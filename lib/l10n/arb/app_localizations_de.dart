@@ -2141,6 +2141,45 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll =>
+      'Gleiche Rolle für jede Flasche';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition =>
+      'Rolle nach Flaschenposition';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'Position hinzufügen';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'Position entfernen';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nur Tauchgänge mit genau $count Flaschen erhalten diese Rollen, in Flaschenreihenfolge.',
+      one: 'Nur Tauchgänge mit genau $count Flasche erhalten diese Rolle.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Tauchgänge passen nicht zu den Flaschenpositionen, daher bleiben ihre Flaschenrollen unverändert.',
+      one:
+          '$count Tauchgang passt nicht zu den Flaschenpositionen, daher bleiben seine Flaschenrollen unverändert.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => 'Änderungen anwenden?';
 
   @override
@@ -9396,7 +9435,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Einstiegsmethode erfasst';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Keine Rolle zugewiesen';
+  String get diveLog_filter_sectionMyRole => 'Meine Rolle';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Nicht festgelegt';
 
   @override
   String get diveLog_filter_noTagsYet => 'Noch keine Tags erstellt';
@@ -9468,10 +9510,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Nur Tauchgänge ohne bekannte Einstiegsmethode anzeigen';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Nur Tauchgänge ohne eigene Rolle anzeigen';
 
   @override
   String get diveLog_filter_startDate => 'Startdatum';
@@ -13780,6 +13818,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveTypes_deleteTooltip => 'Tauchgangstyp löschen';
+
+  @override
+  String diveTypes_favourite_add(String name) {
+    return '$name zu Favoriten hinzufügen';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return '$name aus Favoriten entfernen';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'Favoriten';
 
   @override
   String get diveTypes_editDialog_builtInNameHelper =>
@@ -22504,6 +22555,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'Problemlösung: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'Gasdichte $value g/L über hartem Limit';
   }
@@ -22519,8 +22575,13 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'Flasche endet unter dem Rock-Bottom-Minimum von $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return 'Verlässt den Grund mit $remaining, unter dem Rock-Bottom-Minimum von $minimum: kein Gas für die Zeit zur Problemlösung zurückgehalten';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return 'Verlässt den Grund mit $remaining, unter den $minimum, die ein Notaufstieg braucht';
   }
 
   @override
@@ -22686,6 +22747,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'Min-Gas';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'Problemlösung';
 
   @override
   String get plannerCanvas_slate_saved => 'Slate gespeichert';
@@ -33050,6 +33114,15 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String insights_profile_timeAtDepth_hoursFormat(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString h';
+  }
+
+  @override
   String get insights_progression_appBar_title => 'Tauchentwicklung';
 
   @override
@@ -33559,6 +33632,23 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_social_soloVsBuddy_withBuddy => 'Mit Buddy';
+
+  @override
+  String get insights_social_myRole_title => 'Meine Rolle';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Tauchgänge nach eigener Rolle; ein Tauchgang mit mehreren Rollen zählt bei jeder';
+
+  @override
+  String get insights_social_myRole_empty => 'Keine Tauchgangdaten verfügbar';
+
+  @override
+  String get insights_social_myRole_error =>
+      'Rollendaten konnten nicht geladen werden';
+
+  @override
+  String get insights_social_myRole_notSet => 'Nicht festgelegt';
 
   @override
   String get insights_social_topBuddies_error =>
@@ -36758,6 +36848,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get units_profileMetric_min => 'min';
+
+  @override
+  String get units_profileMetric_h => 'h';
 
   @override
   String get units_profileMetric_percent => '%';
@@ -52585,6 +52678,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count Rollen';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count Flaschenkonfigurationen';
   }
@@ -59342,6 +59440,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_divePlans_site => 'Tauchplatz';
 
   @override
+  String get query_diveRoles_builtIn => 'Vordefiniert';
+
+  @override
+  String get query_diveRoles_name => 'Name';
+
+  @override
   String get query_diveTypes_builtIn => 'Vordefiniert';
 
   @override
@@ -59448,6 +59552,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Meine Rolle';
+
+  @override
+  String get query_dives_myRole => 'Meine Rollen';
 
   @override
   String get query_dives_media => 'Medien';
@@ -59583,6 +59690,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Tauchgangsarten';
+
+  @override
+  String get query_entity_diveRoles => 'Tauchrollen';
 
   @override
   String get query_entity_dives => 'Tauchgänge';
@@ -61246,6 +61356,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'Ausgeblendete integrierte Einträge';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'Favorisierte Tauchgangstypen';
 
   @override
   String get backup_restore_copyInOtherAccount =>

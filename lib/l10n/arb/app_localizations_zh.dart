@@ -2060,6 +2060,38 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll => '每个气瓶使用相同用途';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition => '按气瓶位置设置用途';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => '添加位置';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => '移除位置';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '仅恰好有 $count 个气瓶的潜水会按气瓶顺序获得这些用途。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水与气瓶位置不匹配，其气瓶用途保持不变。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => '应用更改？';
 
   @override
@@ -8917,7 +8949,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_noEntryMethodOnly => '未记录入水方式';
 
   @override
-  String get diveLog_filter_noRoleOnly => '无角色';
+  String get diveLog_filter_sectionMyRole => '我的角色';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => '未设置';
 
   @override
   String get diveLog_filter_noTagsYet => '尚未创建标签';
@@ -8984,9 +9019,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_filter_showOnlyNoEntryMethod => '仅显示入水方式未知的潜水';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole => '仅显示未设置我的角色的潜水';
 
   @override
   String get diveLog_filter_startDate => '开始日期';
@@ -13105,6 +13137,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveTypes_deleteTooltip => '删除潜水类型';
+
+  @override
+  String diveTypes_favourite_add(String name) {
+    return '将$name添加到收藏';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return '从收藏中移除$name';
+  }
+
+  @override
+  String get diveTypes_favourites_header => '收藏';
 
   @override
   String get diveTypes_editDialog_builtInNameHelper => '内置名称无法更改';
@@ -21414,6 +21459,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return '问题处理: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return '气体密度 $value g/L 超过硬性上限';
   }
@@ -21429,8 +21479,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return '气瓶终压低于最低保底气量 $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return '离开水底时剩余 $remaining，低于最低保底气量 $minimum：没有为问题处理时间预留气体';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return '离开水底时剩余 $remaining，低于紧急上升所需的 $minimum';
   }
 
   @override
@@ -21591,6 +21646,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => '最低气量';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => '问题处理';
 
   @override
   String get plannerCanvas_slate_saved => '潜水板已保存';
@@ -31200,6 +31258,15 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String insights_profile_timeAtDepth_hoursFormat(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString小时';
+  }
+
+  @override
   String get insights_progression_appBar_title => '潜水进展';
 
   @override
@@ -31671,6 +31738,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_social_soloVsBuddy_withBuddy => '与潜伴';
+
+  @override
+  String get insights_social_myRole_title => '我的角色';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      '按你担任的角色统计潜水；有多个角色的潜水在每个角色下各计一次';
+
+  @override
+  String get insights_social_myRole_empty => '无潜水数据可用';
+
+  @override
+  String get insights_social_myRole_error => '无法加载角色数据';
+
+  @override
+  String get insights_social_myRole_notSet => '未设置';
 
   @override
   String get insights_social_topBuddies_error => '加载潜伴排名失败';
@@ -34681,6 +34764,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get units_profileMetric_min => '分';
+
+  @override
+  String get units_profileMetric_h => '小时';
 
   @override
   String get units_profileMetric_percent => '%';
@@ -49511,6 +49597,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count 个角色';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count 种气瓶配置';
   }
@@ -55774,6 +55865,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_divePlans_site => '潜点';
 
   @override
+  String get query_diveRoles_builtIn => '内置';
+
+  @override
+  String get query_diveRoles_name => '名称';
+
+  @override
   String get query_diveTypes_builtIn => '内置';
 
   @override
@@ -55880,6 +55977,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_dives_role => '我的角色';
+
+  @override
+  String get query_dives_myRole => '我担任的角色';
 
   @override
   String get query_dives_media => '媒体';
@@ -56015,6 +56115,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => '潜水类型';
+
+  @override
+  String get query_entity_diveRoles => '潜水角色';
 
   @override
   String get query_entity_dives => '潜水';
@@ -57623,6 +57726,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_hiddenBuiltInIds => '已隐藏的内置项目';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds => '收藏的潜水类型';
 
   @override
   String get backup_restore_copyInOtherAccount =>

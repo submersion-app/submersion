@@ -35,6 +35,7 @@ void main() {
       'getCcrGasUsePerDive': (r) => r.getCcrGasUsePerDive(),
       'getRoleConsumptionPerDive': (r) => r.getRoleConsumptionPerDive(),
       'getDiveTypeDistribution': (r) => r.getDiveTypeDistribution(),
+      'getDiverRoleDistribution': (r) => r.getDiverRoleDistribution(),
       'getCalendarDayMatrix': (r) => r.getCalendarDayMatrix(),
       'getDepthPerDive': (r) => r.getDepthPerDive(),
       'getBottomTimePerDive': (r) => r.getBottomTimePerDive(),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
@@ -86,7 +87,9 @@ class _ImportTagsFieldState extends State<ImportTagsField> {
     final selectedNames = widget.tags.map((t) => t.name.toLowerCase()).toSet();
 
     return widget.existingTags.where((tag) {
-      final matchesQuery = tag.name.toLowerCase().contains(query.toLowerCase());
+      final matchesQuery = foldForSearch(
+        tag.name,
+      ).contains(foldForSearch(query));
       final notAlreadySelected = !selectedNames.contains(
         tag.name.toLowerCase(),
       );

@@ -55,17 +55,6 @@ final Map<String, String> _aliases = {
     countryLookupKey(key): value,
 };
 
-/// Latin letters past [textSortKey]'s table, mirrored by _WIDER_LATIN in
-/// scripts/geography/generate_country_names.py: names in Central European
-/// and Turkish spellings ("Česko", "Łódź") fold like their plain forms.
-const Map<String, String> _widerLatin = {
-  'ă': 'a', 'ą': 'a', 'ā': 'a', 'ć': 'c', 'č': 'c', 'ď': 'd', 'đ': 'd', //
-  'ę': 'e', 'ě': 'e', 'ē': 'e', 'ğ': 'g', 'ı': 'i', 'ī': 'i', 'ł': 'l', //
-  'ń': 'n', 'ň': 'n', 'ō': 'o', 'ř': 'r', 'ś': 's', 'š': 's', 'ş': 's', //
-  'ș': 's', 'ť': 't', 'ţ': 't', 'ț': 't', 'ū': 'u', 'ů': 'u', 'ź': 'z', //
-  'ż': 'z', 'ž': 'z',
-};
-
 /// Punctuation people type in more than one way, mirrored by _PUNCTUATION in
 /// scripts/geography/generate_country_names.py: a typed straight apostrophe
 /// finds CLDR's curly one ("Cote d'Ivoire"), and a hyphen or dash reads as a
@@ -90,11 +79,11 @@ final RegExp _whitespace = RegExp(r'\s+');
 /// names the same way.
 String countryLookupKey(String text) {
   final folded = StringBuffer();
+  // textSortKey already folds Latin Extended-A ("Česko", "Łódź") and drops
+  // decomposed accents (#4498); only punctuation is left to even out.
   for (final rune in textSortKey(text).runes) {
-    // Decomposed accents ("e" + U+0301) drop their mark.
-    if (rune >= 0x300 && rune <= 0x36F) continue;
     final char = String.fromCharCode(rune);
-    folded.write(_widerLatin[char] ?? _punctuation[char] ?? char);
+    folded.write(_punctuation[char] ?? char);
   }
   final key = folded
       .toString()

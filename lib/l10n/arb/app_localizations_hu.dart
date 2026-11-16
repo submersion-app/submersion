@@ -2139,6 +2139,46 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll =>
+      'Minden palack ugyanazt a szerepet kapja';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition =>
+      'Szerep palackpozíció szerint';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'Pozíció hozzáadása';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'Pozíció eltávolítása';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Csak a pontosan $count palackos merülések kapják meg ezeket a szerepeket, palacksorrendben.',
+      one:
+          'Csak a pontosan $count palackos merülések kapják meg ezt a szerepet.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count merülés nem illeszkedik a palackpozíciókhoz, ezért a palackszerepeik változatlanok maradnak.',
+      one:
+          '$count merülés nem illeszkedik a palackpozíciókhoz, ezért a palackszerepei változatlanok maradnak.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => 'Alkalmazza a módosításokat?';
 
   @override
@@ -9381,7 +9421,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs rögzített beszállási mód';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Nincs szerep hozzárendelve';
+  String get diveLog_filter_sectionMyRole => 'Saját szerep';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Nincs megadva';
 
   @override
   String get diveLog_filter_noTagsYet => 'Még nincsenek létrehozott címkék';
@@ -9454,10 +9497,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Csak ismert beszállási mód nélküli merülések mutatása';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Csak saját szerep nélküli merülések mutatása';
 
   @override
   String get diveLog_filter_startDate => 'Kezdés dátuma';
@@ -13753,6 +13792,19 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveTypes_deleteTooltip => 'Merülés típus törlése';
+
+  @override
+  String diveTypes_favourite_add(String name) {
+    return '$name hozzáadása a kedvencekhez';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return '$name eltávolítása a kedvencekből';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'Kedvencek';
 
   @override
   String get diveTypes_editDialog_builtInNameHelper =>
@@ -22457,6 +22509,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'problémamegoldás: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'Gázsűrűség $value g/L a szigorú határ felett';
   }
@@ -22472,8 +22529,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'A palack a rock-bottom minimum ($pressure) alatt végez';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return '$remaining nyomással hagyja el a fenéket, a rock-bottom minimum ($minimum) alatt: nem marad gáz a problémamegoldási időre';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return '$remaining nyomással hagyja el a fenéket, a vészhelyzeti feljutáshoz szükséges mennyiség ($minimum) alatt';
   }
 
   @override
@@ -22639,6 +22701,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'Minimális gáz';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'Problémamegoldás';
 
   @override
   String get plannerCanvas_slate_saved => 'Tábla mentve';
@@ -32965,6 +33030,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String insights_profile_timeAtDepth_hoursFormat(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString ó';
+  }
+
+  @override
   String get insights_progression_appBar_title => 'Merülési fejlődés';
 
   @override
@@ -33465,6 +33539,23 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_social_soloVsBuddy_withBuddy => 'Merülőtárssal';
+
+  @override
+  String get insights_social_myRole_title => 'Saját szerep';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Merülések a saját szerep szerint; a több szerepű merülés mindegyiknél számít';
+
+  @override
+  String get insights_social_myRole_empty => 'Nincsenek merülési adatok';
+
+  @override
+  String get insights_social_myRole_error =>
+      'Nem sikerült betölteni a szerepadatokat';
+
+  @override
+  String get insights_social_myRole_notSet => 'Nincs megadva';
 
   @override
   String get insights_social_topBuddies_error =>
@@ -36650,6 +36741,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get units_profileMetric_min => 'min';
+
+  @override
+  String get units_profileMetric_h => 'ó';
 
   @override
   String get units_profileMetric_percent => '%';
@@ -52421,6 +52515,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count szerep';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count palackkonfiguráció';
   }
@@ -59161,6 +59260,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_divePlans_site => 'Merülőhely';
 
   @override
+  String get query_diveRoles_builtIn => 'Beépített';
+
+  @override
+  String get query_diveRoles_name => 'Név';
+
+  @override
   String get query_diveTypes_builtIn => 'Beépített';
 
   @override
@@ -59267,6 +59372,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Saját szerep';
+
+  @override
+  String get query_dives_myRole => 'Saját szerepek';
 
   @override
   String get query_dives_media => 'Média';
@@ -59402,6 +59510,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Merülés típusok';
+
+  @override
+  String get query_entity_diveRoles => 'Merülési szerepek';
 
   @override
   String get query_entity_dives => 'Merülések';
@@ -61058,6 +61169,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'Elrejtett beépített elemek';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'Kedvenc merülés típusok';
 
   @override
   String get backup_restore_copyInOtherAccount =>

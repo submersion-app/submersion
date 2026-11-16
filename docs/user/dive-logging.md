@@ -370,6 +370,16 @@ own in **Settings > Manage > Dive Types** with a name and an optional short name
 Built-in names cannot be changed. For each type you can choose whether its badge
 shows in the dive list and in the dive's header.
 
+Tap the star next to a type to make it a **favorite**. Favorites come first,
+under their own heading, in the dive types checklist, and first in the dive type
+filter and the connections search. You can star a type on the Dive Types page or
+right in the checklist; a type starred in the open checklist moves up the next
+time you open it. Each diver profile keeps its own favorites. Hiding a built-in
+type wins over its star: a hidden type stays out of the checklist and keeps its
+usual place in the filter and the search. The one exception is a dive that
+already has a hidden type: its checklist still offers that type, and lists it
+with your favorites if you starred it.
+
 ## Custom fields
 
 Need to record something Submersion does not have a field for, such as a

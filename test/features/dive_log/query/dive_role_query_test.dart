@@ -108,7 +108,8 @@ void main() {
     expect(await ids('role:any'), {'instructor', 'custom'});
   });
 
-  test('myRole is an alias of role', () async {
+  // `myRole` is a relation since #4409; its `:none` keeps this meaning.
+  test('myRole:none keeps the dives role:none keeps', () async {
     expect(await ids('myRole:none'), {'unset', 'blank', 'stale'});
   });
 

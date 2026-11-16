@@ -425,11 +425,15 @@ void main() {
         DiveBulkDeleteService(
           dives: DiveRepository(),
           changeLog: ChangeLogRepository(),
-          revert: revert ?? ChangeLogRevertService(afterDiveWrites: (_) {}),
+          revert:
+              revert ??
+              ChangeLogRevertService(
+                afterDiveWrites: (_) {},
+                rearmDocuments: (documents) async =>
+                    rearmed.addAll(documents.map((d) => d.id)),
+              ),
           restoreDocuments: (entries) async =>
               rebuilt.addAll(entries.map((e) => e.document.id)),
-          rearmDocuments: (documents) async =>
-              rearmed.addAll(documents.map((d) => d.id)),
         );
 
     setUp(() async {

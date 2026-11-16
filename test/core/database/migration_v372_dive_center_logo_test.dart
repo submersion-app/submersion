@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v371: dive_centers.logo, a dive center's logo as a 512x512 square
+/// Schema v372: dive_centers.logo, a dive center's logo as a 512x512 square
 /// JPEG (issue #4460). Nullable, no backfill, so the sync floor holds.
 void main() {
   NativeDatabase dbAt(int version, {bool withLogo = false}) =>
@@ -39,17 +39,17 @@ void main() {
     );
   }
 
-  test('v371 is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(371));
-    expect(AppDatabase.migrationVersions, contains(371));
+  test('v372 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(372));
+    expect(AppDatabase.migrationVersions, contains(372));
   });
 
   test('the new column kept the floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(371));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(372));
   });
 
-  test('upgrading from v370 adds a null logo and keeps the row', () async {
-    final db = AppDatabase(dbAt(370));
+  test('upgrading from v371 adds a null logo and keeps the row', () async {
+    final db = AppDatabase(dbAt(371));
     addTearDown(db.close);
     final row = await storedRow(db);
     expect(row.name, 'Blue Reef');
@@ -57,7 +57,7 @@ void main() {
   });
 
   test('a database already carrying the column keeps its logo', () async {
-    final db = AppDatabase(dbAt(370, withLogo: true));
+    final db = AppDatabase(dbAt(371, withLogo: true));
     addTearDown(db.close);
     expect((await storedRow(db)).logo, [1, 2, 3]);
   });

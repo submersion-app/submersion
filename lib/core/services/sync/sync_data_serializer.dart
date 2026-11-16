@@ -10625,7 +10625,7 @@ class SyncDataSerializer {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
-    // Dive centers carry the logo BLOB (v371); base64-encode it.
+    // Dive centers carry the logo BLOB (v372); base64-encode it.
     return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
   }
 

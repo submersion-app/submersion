@@ -344,6 +344,8 @@ void main() {
       'buddies',
       'tags',
       'dive_types',
+      // The diver's own roles, named by `dives.myRole` (#4409).
+      'dive_roles',
       'equipment',
       // Rule actions name equipment sets (#4284).
       'equipment_sets',
@@ -479,6 +481,33 @@ void main() {
       expect(index.labelOf(types, 'reef'), french);
       expect(index.refs(types), contains(RefValue('reef', french)));
       expect(index.resolve(types, 'reef'), RefValue('reef', french));
+    });
+
+    // Issue #4409: `dives.myRole` names roles the same way.
+    test('a built-in dive role is named in the diver\'s language', () async {
+      final index = await loadFr();
+      const roles = QuerySubject.diveRoles;
+      final french = fr.diveRole_builtin_instructor;
+      expect(french, isNot('Instructor'));
+      expect(index.labelOf(roles, 'instructor'), french);
+      expect(
+        index.resolve(roles, 'Instructor'),
+        RefValue('instructor', french),
+      );
+      expect(index.resolve(roles, french), RefValue('instructor', french));
+    });
+
+    test('a custom dive role keeps its own name', () async {
+      await db.customStatement(
+        "INSERT INTO dive_roles (id, diver_id, name, is_built_in, "
+        "sort_order, created_at, updated_at) "
+        "VALUES ('cave-guide', 'me', 'Cave Guide', 0, 9, 0, 0)",
+      );
+      final index = await loadFr();
+      expect(
+        index.resolve(QuerySubject.diveRoles, 'cave guide'),
+        const RefValue('cave-guide', 'Cave Guide'),
+      );
     });
 
     test('the English name is an alternate, never a second row', () async {
