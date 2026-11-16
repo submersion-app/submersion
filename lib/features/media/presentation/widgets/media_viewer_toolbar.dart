@@ -399,13 +399,18 @@ class MediaViewerToolbar extends ConsumerWidget {
       left: 0,
       right: 0,
       height: MediaQuery.paddingOf(context).top + kMediaViewerToolbarHeight,
-      child: RecordEditBar(
-        title: bar.title,
-        canSave: bar.canSave,
-        isSaving: bar.isSaving,
-        onCancel: bar.onCancel,
-        onSave: bar.onSave,
-        actions: _buttons(context, split, null),
+      // A semantics container of its own, so the bar's nodes do not mix
+      // with the viewer's full-screen tap target under it.
+      child: Semantics(
+        container: true,
+        child: RecordEditBar(
+          title: bar.title,
+          canSave: bar.canSave,
+          isSaving: bar.isSaving,
+          onCancel: bar.onCancel,
+          onSave: bar.onSave,
+          actions: _buttons(context, split, null),
+        ),
       ),
     );
   }
