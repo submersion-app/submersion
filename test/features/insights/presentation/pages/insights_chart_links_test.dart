@@ -6,6 +6,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
@@ -20,6 +22,7 @@ import 'package:submersion/features/insights/presentation/pages/insights_social_
 import 'package:submersion/features/insights/presentation/pages/insights_time_patterns_page.dart';
 import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/my_role_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_card_parts.dart';
 import 'package:submersion/features/insights/presentation/widgets/distribution_bar_row.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
@@ -432,6 +435,68 @@ void main() {
       expect(filter.diveIds, ['unrecorded-dive']);
       expect(filter.diveIdsLabel, 'Solo vs Buddy Dives: Not recorded');
     });
+
+    // The My role card (#4409): a bar narrows the scope by that role, and
+    // Not set by the empty role.
+    for (final (name, label, node) in [
+      (
+        'Instructor',
+        'My role: Instructor',
+        ConditionNode(
+          FieldPath(const ['myRole']),
+          QueryOp.eq,
+          const RefValue('instructor', 'instructor'),
+        ),
+      ),
+      (
+        'Not set',
+        'My role: Not set',
+        ConditionNode(FieldPath(const ['role']), QueryOp.isEmpty, null),
+      ),
+    ]) {
+      testWidgets('My role: $name opens its dives', (tester) async {
+        await pumpPage(tester, const InsightsSocialPage(embedded: true), [
+          soloVsBuddyCountProvider.overrideWith(
+            (ref) async => (solo: 0, buddy: 0, notRecorded: 0),
+          ),
+          diverRoleDistributionProvider.overrideWith(
+            (ref) async => [
+              DistributionSegment(
+                label: 'instructor',
+                count: 2,
+                percentage: 50,
+                totalDurationSeconds: 3600,
+              ),
+              DistributionSegment(
+                label: kNotRecordedDistributionKey,
+                count: 2,
+                percentage: 50,
+                totalDurationSeconds: 3600,
+              ),
+            ],
+          ),
+          diveRoleMapProvider.overrideWith(
+            (ref) async => {
+              'instructor': DiveRole(
+                id: 'instructor',
+                name: 'Instructor',
+                isBuiltIn: true,
+                createdAt: DateTime(2020),
+                updatedAt: DateTime(2020),
+              ),
+            },
+          ),
+          topBuddiesProvider.overrideWith((ref) async => const []),
+          topDiveCentersProvider.overrideWith((ref) async => const []),
+        ]);
+
+        await tester.ensureVisible(find.text(name));
+        await tester.tap(find.text(name));
+        await tester.pumpAndSettle();
+
+        expectOpened(tester, label, node);
+      });
+    }
 
     testWidgets('a gas mix row asks for its gas', (tester) async {
       await pumpPage(tester, const InsightsGasPage(embedded: true), [

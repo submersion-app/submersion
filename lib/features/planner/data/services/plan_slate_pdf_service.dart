@@ -29,6 +29,10 @@ class PlanSlateLabels {
   final String turnAt;
   final String minGas;
 
+  /// The gas table's column for the problem-solving gas held back at the
+  /// bottom, which is not part of what the cylinder uses (#4475).
+  final String problemSolving;
+
   /// What a back gas's Turn cell says when no turn rule applies (#3603).
   final String noTurnRule;
 
@@ -64,6 +68,7 @@ class PlanSlateLabels {
     required this.gas,
     required this.turnAt,
     required this.minGas,
+    required this.problemSolving,
     required this.noTurnRule,
     required this.noStartPressure,
     required this.noVolume,
@@ -91,6 +96,12 @@ String planSlateGasLimitCell(
     null => '--',
   };
 }
+
+/// One Problem solving cell of the slate's gas table: the gas held back for
+/// problem-solving time, in the diver's volume unit, and a dash on a
+/// cylinder that holds none (#4475).
+String planSlateProblemSolvingCell(double liters, UnitFormatter units) =>
+    liters > 0 ? units.convertVolume(liters).toStringAsFixed(0) : '--';
 
 /// The slate's bailout section: the worst case's time and gas, or, when no
 /// carried gas reaches the plan, that instead of an ascent nothing can make
@@ -390,6 +401,10 @@ class PlanSlatePdfService {
             cell(labels.gas, header: true),
             cell(units.volumeSymbol, header: true),
             cell('%', header: true),
+            cell(
+              '${labels.problemSolving} (${units.volumeSymbol})',
+              header: true,
+            ),
             cell(labels.turnAt, header: true),
             cell(labels.minGas, header: true),
           ],
@@ -400,6 +415,9 @@ class PlanSlatePdfService {
               cell(tankLabel(usage.tankId)),
               cell(units.convertVolume(usage.litersUsed).toStringAsFixed(0)),
               cell('${usage.percentUsed.toStringAsFixed(0)}%'),
+              cell(
+                planSlateProblemSolvingCell(usage.problemSolvingLiters, units),
+              ),
               cell(
                 planSlateGasLimitCell(
                   usage.turnPressureBar,

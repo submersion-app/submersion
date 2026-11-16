@@ -9,6 +9,53 @@ void main() {
     expect(notificationPayloadRoute('document:abc'), '/documents/abc');
   });
 
+  test('a document reminder that names its diver opens the document '
+      '(#4609)', () {
+    expect(
+      notificationPayloadRoute(documentReminderPayload('abc', 'd1')),
+      '/documents/abc',
+    );
+  });
+
+  test('a document reminder payload carries the document and its diver; '
+      'one from before carries the document alone (#4609)', () {
+    expect(parseDocumentReminderPayload(documentReminderPayload('abc', 'd1')), (
+      documentId: 'abc',
+      diverId: 'd1',
+    ));
+    expect(parseDocumentReminderPayload('document:abc'), (
+      documentId: 'abc',
+      diverId: null,
+    ));
+    expect(parseDocumentReminderPayload('document:'), isNull);
+    expect(parseDocumentReminderPayload('document:?diver=d1'), isNull);
+    expect(parseDocumentReminderPayload('e-42'), isNull);
+  });
+
+  test('pending payloads fold into each document and the diver either '
+      'stage names; other payloads are left out (#4609)', () {
+    expect(
+      documentRemindersFromPayloads([
+        documentReminderPayload('a', 'd1'),
+        'document:a',
+        'document:b',
+        documentReminderPayload('c', 'd2'),
+        null,
+        'e-42',
+        'dive:x',
+      ]),
+      {'a': 'd1', 'b': null, 'c': 'd2'},
+    );
+    // The order of the stages does not matter.
+    expect(
+      documentRemindersFromPayloads([
+        'document:a',
+        documentReminderPayload('a', 'd1'),
+      ]),
+      {'a': 'd1'},
+    );
+  });
+
   test('an equipment reminder opens the item', () {
     expect(notificationPayloadRoute('e-42'), '/equipment/e-42');
   });

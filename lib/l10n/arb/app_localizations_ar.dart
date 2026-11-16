@@ -2207,6 +2207,56 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll => 'الدور نفسه لكل أسطوانة';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition => 'الدور حسب موضع الأسطوانة';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'إضافة موضع';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'إزالة الموضع';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'فقط الغطسات التي تحتوي على $count أسطوانة بالضبط تحصل على هذه الأدوار، بترتيب الأسطوانات.',
+      many:
+          'فقط الغطسات التي تحتوي على $count أسطوانة بالضبط تحصل على هذه الأدوار، بترتيب الأسطوانات.',
+      few:
+          'فقط الغطسات التي تحتوي على $count أسطوانات بالضبط تحصل على هذه الأدوار، بترتيب الأسطوانات.',
+      two:
+          'فقط الغطسات التي تحتوي على أسطوانتين بالضبط تحصل على هذين الدورين، بترتيب الأسطوانات.',
+      one:
+          'فقط الغطسات التي تحتوي على أسطوانة واحدة بالضبط تحصل على هذا الدور.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count غطسة لا تطابق مواضع الأسطوانات، لذا تبقى أدوار أسطواناتها كما هي.',
+      many:
+          '$count غطسة لا تطابق مواضع الأسطوانات، لذا تبقى أدوار أسطواناتها كما هي.',
+      few:
+          '$count غطسات لا تطابق مواضع الأسطوانات، لذا تبقى أدوار أسطواناتها كما هي.',
+      two:
+          'غطستان لا تطابقان مواضع الأسطوانات، لذا تبقى أدوار أسطواناتهما كما هي.',
+      one:
+          'غطسة واحدة لا تطابق مواضع الأسطوانات، لذا تبقى أدوار أسطواناتها كما هي.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => 'تطبيق التغييرات؟';
 
   @override
@@ -9533,7 +9583,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_noEntryMethodOnly => 'لم تُسجَّل طريقة دخول';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'بدون دور';
+  String get diveLog_filter_sectionMyRole => 'دوري';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'غير محدد';
 
   @override
   String get diveLog_filter_noTagsYet => 'لم يتم إنشاء وسوم بعد';
@@ -9601,10 +9654,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'عرض الغوصات التي لا تُعرف طريقة دخولها فقط';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'عرض الغوصات التي لم يُحدَّد فيها دورك فقط';
 
   @override
   String get diveLog_filter_startDate => 'تاريخ البدء';
@@ -13966,6 +14015,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveTypes_deleteTooltip => 'حذف نوع الغوص';
+
+  @override
+  String diveTypes_favourite_add(String name) {
+    return 'إضافة $name إلى المفضلة';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return 'إزالة $name من المفضلة';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'المفضلة';
 
   @override
   String get diveTypes_editDialog_builtInNameHelper =>
@@ -22892,6 +22954,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'حل المشكلة: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'كثافة الغاز $value g/L تتجاوز الحد الأقصى';
   }
@@ -22907,8 +22974,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'تنتهي الأسطوانة تحت الحد الأدنى الآمن $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return 'تغادر القاع بضغط $remaining، تحت الحد الأدنى الآمن $minimum: لا يبقى غاز محجوز لزمن حل المشكلة';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return 'تغادر القاع بضغط $remaining، تحت $minimum اللازمة للصعود الطارئ';
   }
 
   @override
@@ -23074,6 +23146,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'الحد الأدنى من الغاز';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'حل المشكلة';
 
   @override
   String get plannerCanvas_slate_saved => 'تم حفظ اللوح';
@@ -33435,6 +33510,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String insights_profile_timeAtDepth_hoursFormat(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString س';
+  }
+
+  @override
   String get insights_progression_appBar_title => 'تقدم الغوص';
 
   @override
@@ -33951,6 +34035,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_social_soloVsBuddy_withBuddy => 'مع رفيق';
+
+  @override
+  String get insights_social_myRole_title => 'دوري';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'الغوصات حسب دورك؛ الغوصة ذات الأدوار المتعددة تُحتسب في كل دور';
+
+  @override
+  String get insights_social_myRole_empty => 'لا توجد بيانات غوصات متاحة';
+
+  @override
+  String get insights_social_myRole_error => 'تعذّر تحميل بيانات الأدوار';
+
+  @override
+  String get insights_social_myRole_notSet => 'غير محدد';
 
   @override
   String get insights_social_topBuddies_error => 'فشل تحميل تصنيف الرفاق';
@@ -37321,6 +37421,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get units_profileMetric_min => 'min';
+
+  @override
+  String get units_profileMetric_h => 'س';
 
   @override
   String get units_profileMetric_percent => '%';
@@ -53427,6 +53530,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count أدوار';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count تكوينات أسطوانات';
   }
@@ -60285,6 +60393,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_divePlans_site => 'الموقع';
 
   @override
+  String get query_diveRoles_builtIn => 'مدمج';
+
+  @override
+  String get query_diveRoles_name => 'الاسم';
+
+  @override
   String get query_diveTypes_builtIn => 'مدمج';
 
   @override
@@ -60391,6 +60505,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_dives_role => 'دوري';
+
+  @override
+  String get query_dives_myRole => 'أدواري';
 
   @override
   String get query_dives_media => 'الوسائط';
@@ -60526,6 +60643,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'أنواع الغوص';
+
+  @override
+  String get query_entity_diveRoles => 'أدوار الغوص';
 
   @override
   String get query_entity_dives => 'الغطسات';
@@ -62214,6 +62334,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'العناصر المضمنة المخفية';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'أنواع الغوص المفضلة';
 
   @override
   String get backup_restore_copyInOtherAccount =>

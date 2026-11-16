@@ -6,6 +6,7 @@ import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/utils/usable_set_items.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -1493,6 +1494,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   DiveTank _bulkTankSpecs = const DiveTank(id: 'bulk-tank-specs');
   Set<TankSpecField> _bulkTankSpecFields = {};
 
+  /// A role per tank position for Update's Role field, or null for the
+  /// template's single role on every tank (issue #4412).
+  List<TankRole>? _bulkTankSlotRoles;
+
   // Bulk tri-state membership state for each reference collection: the members
   // shown across the selected dives (existing + picker-added), their per-item
   // dive counts, and the resulting add/remove delta.
@@ -1934,6 +1939,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       return BulkTankSpecsEditor(
         specs: _bulkTankSpecs,
         fields: _bulkTankSpecFields,
+        slotRoles: _bulkTankSlotRoles,
+        onSlotRolesChanged: (r) => setState(() {
+          _markDirty();
+          _bulkTankSlotRoles = r;
+        }),
         onSpecsChanged: (t) => setState(() {
           _markDirty();
           _bulkTankSpecs = t;
@@ -2306,7 +2316,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // rather than sending a no-op op through the engine.
       if (_bulkTankSpecFields.isNotEmpty) {
         ops.add(
-          TankSpecsOp(specs: _bulkTankSpecs, fields: _bulkTankSpecFields),
+          TankSpecsOp(
+            specs: _bulkTankSpecs,
+            fields: _bulkTankSpecFields,
+            // Only while Role is ticked: positions picked and then unticked
+            // must not reach the dives (#4412).
+            slotRoles: _bulkTankSpecFields.contains(TankSpecField.role)
+                ? _bulkTankSlotRoles
+                : null,
+          ),
         );
       }
     } else if (tanksMode != null) {
@@ -2714,6 +2732,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final skipped = ops.any((o) => o is TankSpecsOp)
         ? await ref.read(diveRepositoryProvider).divesWithoutTanksCount(ids)
         : 0;
+    // Roles by position leave dives whose tanks do not line up alone (#4412).
+    final slotRoles = ops.whereType<TankSpecsOp>().firstOrNull?.slotRoles;
+    final roleSkipped = slotRoles == null
+        ? 0
+        : await ref
+              .read(diveRepositoryProvider)
+              .divesWithSlotRoleMismatchCount(ids, slotRoles);
     if (!mounted) return;
 
     // Name every membership change up front: a stray removal otherwise lands
@@ -2765,7 +2790,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.diveLog_bulkEdit_confirmTitle),
-        content: skipped > 0 || changes.isNotEmpty
+        content: skipped > 0 || roleSkipped > 0 || changes.isNotEmpty
             ? SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -2783,6 +2808,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       ),
                     if (skipped > 0)
                       Text(l10n.diveLog_bulkEdit_tankSpecsSkipped(skipped)),
+                    if (roleSkipped > 0)
+                      Text(l10n.diveLog_bulkEdit_tankRolesSkipped(roleSkipped)),
                   ],
                 ),
               )
@@ -4921,7 +4948,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     // Gear needs no sort here: it renders through the gear arrangement, whose
     // comparisons all end in a total tie-break.
     int byLabel(BulkMembershipItem a, BulkMembershipItem b) =>
-        a.label.toLowerCase().compareTo(b.label.toLowerCase());
+        compareTextForSort(a.label, b.label);
     setState(() {
       _equipmentCounts = equipCounts;
       _bulkGear = equip;

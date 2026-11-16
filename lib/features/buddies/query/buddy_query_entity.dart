@@ -17,9 +17,9 @@ final buddyQueryEntity = QueryEntity(
   diverScopeColumn: 'diver_id',
   // The buddy search route's columns (name, email, phone).
   textSearchSql: const [
-    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.email) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.phone) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.email) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.phone) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     const QueryField(

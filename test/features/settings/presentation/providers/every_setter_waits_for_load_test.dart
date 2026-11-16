@@ -95,6 +95,7 @@ Future<void> _changeEverySetting(SettingsNotifier n) {
     n.setDefaultTankPreset('hp100'),
     n.setTankPresetHidden('al80', true),
     n.setBuiltInHidden(BuiltInCatalog.diveTypes, 'recreational', true),
+    n.setDiveTypeFavourite('recreational', true),
     n.setApplyDefaultTankToImports(!d.applyDefaultTankToImports),
     n.setGfHigh(80),
     n.setGfLow(40),

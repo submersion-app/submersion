@@ -68,10 +68,10 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
   Iterable<String> _optionsFor(String text) {
     final query = text.trim();
     if (query.isEmpty) return const Iterable<String>.empty();
-    final lower = query.toLowerCase();
+    final lower = foldForSearch(query);
 
     final substring = widget.suggestions
-        .where((s) => s.toLowerCase().contains(lower))
+        .where((s) => foldForSearch(s).contains(lower))
         .toList();
     if (!widget.enableFuzzy) return substring;
 

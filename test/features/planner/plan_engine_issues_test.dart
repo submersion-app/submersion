@@ -293,9 +293,12 @@ void main() {
       expect(outcome.tankUsages.single.turnPressureBar, isNull);
     });
 
-    test('rock-bottom violation fires when the tank survives but short', () {
-      // AL80 at 40 m for 18 min ends with gas remaining, but below the
-      // ~124 bar two-diver stressed rock bottom for that depth.
+    test('rock-bottom violation fires when the tank leaves the bottom '
+        'short', () {
+      // AL80 at 40 m for 18 min leaves the bottom with gas remaining, but
+      // below the two-diver stressed rock bottom for that depth. With no
+      // problem-solving time, rock bottom is the ascent alone, so falling
+      // short of it is critical (#4475).
       final outcome = engine.compute(
         _airPlan(
           depth: 40.0,
@@ -312,9 +315,11 @@ void main() {
       );
       final usage = outcome.tankUsages.single;
       expect(usage.minGasBar, isNotNull);
+      expect(usage.minGasAscentBar, closeTo(usage.minGasBar!, 1e-9));
       expect(usage.remainingPressure!, greaterThan(0));
-      expect(usage.remainingPressure!, lessThan(usage.minGasBar!));
-      expect(_types(outcome), contains(PlanIssueType.minGasViolation));
+      expect(usage.bottomEndPressure!, lessThan(usage.minGasBar!));
+      expect(_types(outcome), contains(PlanIssueType.minGasAscentViolation));
+      expect(_types(outcome), isNot(contains(PlanIssueType.minGasViolation)));
     });
 
     test('rock-bottom satisfied on a big tank', () {
@@ -333,6 +338,10 @@ void main() {
         ),
       );
       expect(_types(outcome), isNot(contains(PlanIssueType.minGasViolation)));
+      expect(
+        _types(outcome),
+        isNot(contains(PlanIssueType.minGasAscentViolation)),
+      );
     });
   });
 
@@ -479,6 +488,45 @@ void main() {
         ).copyWith(clearTurnPressureRule: true),
       );
       expect(_types(outcome), contains(PlanIssueType.noUsableGas));
+    });
+
+    // #4475: under the ascent-only minimum is critical even when the fill
+    // is already under full rock bottom.
+    test('a fill under the ascent alone is critical as well', () {
+      final outcome = engine.compute(
+        deepPlan(
+          domain.TurnPressureRule.thirds,
+          startPressure: 80,
+        ).copyWith(problemSolvingMinutes: 0),
+      );
+      final usage = outcome.tankUsages.single;
+      expect(usage.minGasAscentBar!, greaterThan(80.0));
+      expect(_types(outcome), contains(PlanIssueType.noUsableGas));
+      final issue = outcome.issues.firstWhere(
+        (i) => i.type == PlanIssueType.minGasAscentViolation,
+      );
+      expect(issue.severity, PlanIssueSeverity.critical);
+      expect(outcome.isDiveable, isFalse);
+    });
+
+    test('a fill under rock bottom but over the ascent alone only alerts', () {
+      domain.DivePlan withTime(double startPressure) => deepPlan(
+        domain.TurnPressureRule.thirds,
+        startPressure: startPressure,
+      ).copyWith(problemSolvingMinutes: 2);
+      final minGas = engine.compute(withTime(207)).tankUsages.single.minGasBar!;
+      // Just under full rock bottom: the short bottom leaves it well over
+      // the ascent-only minimum.
+      final outcome = engine.compute(withTime(minGas - 5));
+      final usage = outcome.tankUsages.single;
+      expect(usage.bottomEndPressure!, greaterThan(usage.minGasAscentBar!));
+      expect(_types(outcome), contains(PlanIssueType.noUsableGas));
+      expect(
+        _types(outcome),
+        isNot(contains(PlanIssueType.minGasAscentViolation)),
+      );
+      expect(_types(outcome), isNot(contains(PlanIssueType.minGasViolation)));
+      expect(outcome.isDiveable, isTrue);
     });
   });
 

@@ -63,6 +63,14 @@ Map<String, Object?> planResultDocument(
           'turn_pressure_missing': usage.turnPressureGap?.name,
           'min_gas_bar': _maybeRound(usage.minGasBar, 1),
           'min_gas_missing': usage.minGasGap?.name,
+          // Minimum gas is checked against the cylinder as the diver leaves
+          // the bottom: under min_gas_ascent_bar is critical, between it and
+          // min_gas_bar a warning (#4475).
+          'min_gas_ascent_bar': _maybeRound(usage.minGasAscentBar, 1),
+          'bottom_end_pressure_bar': _maybeRound(usage.bottomEndPressure, 1),
+          // Held back for problem_solving_minutes at the deepest point; not
+          // part of litres_used (#4475).
+          'problem_solving_litres': _round(usage.problemSolvingLiters, 1),
         },
     ],
     'cns_end_percent': _round(outcome.cnsEnd, 1),
@@ -220,7 +228,8 @@ Map<String, Object?> effectiveSettings(DivePlan plan, PlanEngineConfig config) {
     'sac_bottom_l_min': own(plan.sacBottom, config.sacBottom),
     'sac_deco_l_min': own(plan.sacDeco, config.sacDeco),
     // The problem-solving allowance: problem_solving_minutes at the deepest
-    // point on bottom SAC x sac_factor, included in litres_used.
+    // point on bottom SAC x sac_factor, reported as tank_usage's
+    // problem_solving_litres and not included in litres_used (#4475).
     'sac_factor': own(plan.sacFactor, config.buddyFactor),
     'problem_solving_minutes': own(
       plan.problemSolvingMinutes,

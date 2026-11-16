@@ -2118,6 +2118,43 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll => 'אותו תפקיד לכל מכל';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition => 'תפקיד לפי מיקום המכל';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'הוספת מיקום';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'הסרת מיקום';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'רק צלילות עם בדיוק $count מכלים יקבלו את התפקידים האלה, לפי סדר המכלים.',
+      one: 'רק צלילות עם מכל אחד בדיוק יקבלו את התפקיד הזה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count צלילות אינן תואמות את מיקומי המכלים, ולכן תפקידי המכלים שלהן נשארים כפי שהם.',
+      one:
+          'צלילה אחת אינה תואמת את מיקומי המכלים, ולכן תפקידי המכלים שלה נשארים כפי שהם.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => 'להחיל שינויים?';
 
   @override
@@ -9196,7 +9233,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_noEntryMethodOnly => 'לא נרשמה שיטת כניסה';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'ללא תפקיד';
+  String get diveLog_filter_sectionMyRole => 'התפקיד שלי';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'לא הוגדר';
 
   @override
   String get diveLog_filter_noTagsYet => 'לא נוצרו תגיות עדיין';
@@ -9264,9 +9304,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'הצגת צלילות ללא שיטת כניסה ידועה בלבד';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole => 'הצגת צלילות ללא התפקיד שלך בלבד';
 
   @override
   String get diveLog_filter_startDate => 'תאריך התחלה';
@@ -13491,6 +13528,19 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveTypes_deleteTooltip => 'מחק סוג צלילה';
+
+  @override
+  String diveTypes_favourite_add(String name) {
+    return 'הוספת $name למועדפים';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return 'הסרת $name מהמועדפים';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'מועדפים';
 
   @override
   String get diveTypes_editDialog_builtInNameHelper =>
@@ -22053,6 +22103,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'פתרון תקלה: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'צפיפות הגז $value g/L מעל הגבול המרבי';
   }
@@ -22068,8 +22123,13 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'המיכל מסתיים מתחת למינימום rock bottom של $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return 'עוזב את הקרקעית עם $remaining, מתחת למינימום rock bottom של $minimum: לא נשמר גז לזמן לפתרון תקלה';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return 'עוזב את הקרקעית עם $remaining, מתחת ל-$minimum שנדרשים לעלייה בחירום';
   }
 
   @override
@@ -22234,6 +22294,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'גז מינימלי';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'פתרון תקלה';
 
   @override
   String get plannerCanvas_slate_saved => 'הלוח נשמר';
@@ -32307,6 +32370,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String insights_profile_timeAtDepth_hoursFormat(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString שע\'';
+  }
+
+  @override
   String get insights_progression_appBar_title => 'התקדמות צלילה';
 
   @override
@@ -32806,6 +32878,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_social_soloVsBuddy_withBuddy => 'עם שותף';
+
+  @override
+  String get insights_social_myRole_title => 'התפקיד שלי';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'צלילות לפי התפקיד שלך; צלילה עם כמה תפקידים נספרת בכל אחד מהם';
+
+  @override
+  String get insights_social_myRole_empty => 'אין נתוני צלילה זמינים';
+
+  @override
+  String get insights_social_myRole_error => 'טעינת נתוני התפקידים נכשלה';
+
+  @override
+  String get insights_social_myRole_notSet => 'לא הוגדר';
 
   @override
   String get insights_social_topBuddies_error => 'שגיאה בטעינת דירוג שותפים';
@@ -35952,6 +36040,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get units_profileMetric_min => 'min';
+
+  @override
+  String get units_profileMetric_h => 'שע\'';
 
   @override
   String get units_profileMetric_percent => '%';
@@ -51586,6 +51677,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count תפקידים';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count תצורות בלונים';
   }
@@ -58238,6 +58334,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_divePlans_site => 'אתר';
 
   @override
+  String get query_diveRoles_builtIn => 'מובנה';
+
+  @override
+  String get query_diveRoles_name => 'שם';
+
+  @override
   String get query_diveTypes_builtIn => 'מובנה';
 
   @override
@@ -58344,6 +58446,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_dives_role => 'התפקיד שלי';
+
+  @override
+  String get query_dives_myRole => 'התפקידים שלי';
 
   @override
   String get query_dives_media => 'מדיה';
@@ -58479,6 +58584,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'סוגי צלילה';
+
+  @override
+  String get query_entity_diveRoles => 'תפקידי צלילה';
 
   @override
   String get query_entity_dives => 'צלילות';
@@ -60123,6 +60231,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'פריטים מובנים מוסתרים';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'סוגי צלילה מועדפים';
 
   @override
   String get backup_restore_copyInOtherAccount =>

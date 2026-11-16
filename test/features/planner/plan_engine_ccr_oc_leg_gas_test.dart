@@ -273,22 +273,25 @@ void main() {
     });
   });
 
+  // #4475: held apart from used gas, as on an open-circuit plan.
   group('problem-solving time on a CCR plan', () {
-    test('is charged to the OC cylinder when the bottom is off the loop', () {
+    test('is held on the OC cylinder when the bottom is off the loop', () {
       final plan = _plan(problemSolvingMinutes: 2);
       final baseline = _usage(engine.compute(_plan()), 'bo').litersUsed;
+      final usage = _usage(engine.compute(plan), 'bo');
 
+      expect(usage.litersUsed, closeTo(baseline, 1e-6));
       expect(
-        _usage(engine.compute(plan), 'bo').litersUsed,
+        usage.problemSolvingLiters,
         closeTo(
-          baseline +
-              _sac * engine.config.buddyFactor * 2 * _pressureAt(plan, 30),
+          _sac * engine.config.buddyFactor * 2 * _pressureAt(plan, 30),
           1e-6,
         ),
       );
+      expect(usage.problemSolvingPressure, isNotNull);
     });
 
-    test('is charged to the OC cylinder a bailout leaves the bottom on', () {
+    test('is held on the OC cylinder a bailout leaves the bottom on', () {
       List<PlanSegment> segments() => [
         _descent,
         _hold(tankId: 'dil', minutes: 5, mode: null),
@@ -308,18 +311,19 @@ void main() {
         engine.compute(_plan(segments: segments())),
         'bo',
       ).litersUsed;
+      final usage = _usage(engine.compute(plan), 'bo');
 
+      expect(usage.litersUsed, closeTo(baseline, 1e-6));
       expect(
-        _usage(engine.compute(plan), 'bo').litersUsed,
+        usage.problemSolvingLiters,
         closeTo(
-          baseline +
-              _sac * engine.config.buddyFactor * 2 * _pressureAt(plan, 30),
+          _sac * engine.config.buddyFactor * 2 * _pressureAt(plan, 30),
           1e-6,
         ),
       );
     });
 
-    test('charges nothing while the bottom stays on the loop', () {
+    test('holds nothing while the bottom stays on the loop', () {
       // The loop carries the diver up to 15 m before the OC leg starts, so
       // no off-loop leg touches max depth.
       List<PlanSegment> segments() => [
@@ -337,15 +341,24 @@ void main() {
         _hold(depth: 15, minutes: 5, order: 3),
       ];
 
+      final usage = _usage(
+        engine.compute(_plan(segments: segments(), problemSolvingMinutes: 2)),
+        'bo',
+      );
       expect(
-        _usage(
-          engine.compute(_plan(segments: segments(), problemSolvingMinutes: 2)),
-          'bo',
-        ).litersUsed,
+        usage.litersUsed,
         closeTo(
           _usage(engine.compute(_plan(segments: segments())), 'bo').litersUsed,
           1e-6,
         ),
+      );
+      expect(usage.problemSolvingLiters, 0);
+      expect(
+        engine
+            .compute(_plan(segments: segments(), problemSolvingMinutes: 2))
+            .tankUsages
+            .every((u) => u.problemSolvingLiters == 0),
+        isTrue,
       );
     });
   });

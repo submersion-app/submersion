@@ -1,3 +1,4 @@
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 
 /// Busiest first, then by label, then by id, so equal nodes keep one order
@@ -5,7 +6,7 @@ import 'package:submersion/features/connections/domain/entities/connection_node.
 int compareDivesLabel(ConnectionNode a, ConnectionNode b) {
   final byDives = b.diveCount.compareTo(a.diveCount);
   if (byDives != 0) return byDives;
-  final byLabel = a.label.compareTo(b.label);
+  final byLabel = compareTextForSort(a.label, b.label);
   return byLabel != 0 ? byLabel : a.ref.id.compareTo(b.ref.id);
 }
 

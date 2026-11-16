@@ -101,6 +101,12 @@ String planIssueMessage(
       );
     case PlanIssueType.minGasViolation:
       return l10n.plannerCanvas_issue_minGas(
+        units.formatPressure(issue.value ?? 0),
+        units.formatPressure(issue.threshold ?? 0),
+      );
+    case PlanIssueType.minGasAscentViolation:
+      return l10n.plannerCanvas_issue_minGasAscent(
+        units.formatPressure(issue.value ?? 0),
         units.formatPressure(issue.threshold ?? 0),
       );
     case PlanIssueType.noUsableGas:

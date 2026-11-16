@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/rule_field_value.dart';
@@ -152,10 +153,10 @@ class _PickerSheetState extends State<_PickerSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final q = _search.trim().toLowerCase();
+    final q = foldForSearch(_search.trim());
     final shown = [
       for (final t in widget.templates)
-        if (q.isEmpty || t.label(l10n).toLowerCase().contains(q)) t,
+        if (q.isEmpty || foldForSearch(t.label(l10n)).contains(q)) t,
     ];
     return SafeArea(
       child: Padding(

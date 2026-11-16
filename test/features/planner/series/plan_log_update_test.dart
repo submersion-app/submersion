@@ -270,6 +270,10 @@ void main() {
   test(
     'a dive of a series that cannot be logged is named, and stops it',
     () async {
+      // Long enough that B, starting on what A leaves, runs out of gas.
+      c
+          .read(divePlanNotifierProvider.notifier)
+          .addSimplePlan(maxDepth: 18, bottomTimeMinutes: 30);
       series().addDive();
 
       final result = await updatePlannedDives(c);

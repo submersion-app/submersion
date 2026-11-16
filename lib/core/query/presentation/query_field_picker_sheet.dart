@@ -4,6 +4,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_registry.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 
 /// What the picker hands back: a dotted path ending in a field, or ending in
 /// a relation the row will compare as a ref (`site = X`, `buddies:none`).
@@ -84,9 +85,9 @@ class _FieldPickerSheetState extends State<_FieldPickerSheet> {
   bool get _canAddHop => widget.hopsUsed + _segments.length + 1 <= kMaxPathHops;
 
   bool _matches(String key, String label) {
-    final s = _search.text.trim().toLowerCase();
+    final s = foldForSearch(_search.text.trim());
     if (s.isEmpty) return true;
-    return key.toLowerCase().contains(s) || label.toLowerCase().contains(s);
+    return foldForSearch(key).contains(s) || foldForSearch(label).contains(s);
   }
 
   void _descend(String key) => setState(() {

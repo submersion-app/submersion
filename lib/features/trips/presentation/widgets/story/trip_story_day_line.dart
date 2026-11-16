@@ -8,8 +8,8 @@ import 'package:submersion/features/trips/presentation/widgets/day/today_chip.da
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One day of a trip as a line on the Trip page: its number, its date, what
-/// kind of day it was and where, and what was dived. Tapping it opens that
-/// day.
+/// kind of day it was, the sites dived and the area they are in, and what was
+/// dived. Tapping it opens that day.
 ///
 /// A surface day is drawn muted and shows no dive figures, so the dived days
 /// stand out when the list is scanned. Today carries its chip, and a day
@@ -36,6 +36,14 @@ class TripStoryDayLine extends ConsumerWidget {
     final units = ref.watch(unitFormatterProvider);
     final date = units.formatWeekdayMonthDay(day.date);
     final parts = tripDaySubtitleParts(context, day);
+    // A location already holds a "·" ("Marsa Alam · Red Sea, Egypt"), so two
+    // of them are kept apart with a semicolon instead.
+    final siteLocations = day.siteLocations;
+    final locations = siteLocations.join('; ');
+    // Said with commas: a screen reader reads the "·" out as a word.
+    final spokenLocations = siteLocations
+        .map((location) => location.replaceAll(' · ', ', '))
+        .join('; ');
     final quiet = day.isSurface || day.isPlannedRest;
     final maxDepth = day.maxDepth;
     final hasDives = day.dives.isNotEmpty;
@@ -58,6 +66,7 @@ class TripStoryDayLine extends ConsumerWidget {
     final spoken = [
       date,
       ...parts,
+      if (spokenLocations.isNotEmpty) spokenLocations,
       ?diveCount,
       if (depth != null) l10n.trips_story_dayTile_deepest(depth),
       if (day.kind == TripStoryDayKind.today) l10n.trips_story_today,
@@ -101,7 +110,8 @@ class TripStoryDayLine extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final scale = MediaQuery.textScalerOf(context).scale(1);
+              final scaler = MediaQuery.textScalerOf(context);
+              final scale = scaler.scale(1);
               final roomy = constraints.maxWidth / scale >= _roomyWidth;
               return Row(
                 crossAxisAlignment: roomy
@@ -137,12 +147,31 @@ class TripStoryDayLine extends ConsumerWidget {
                               ?chip,
                             ],
                           ),
+                        // Every site is read in full, wrapping as it must:
+                        // a day of three dives would otherwise lose two.
                         if (parts.isNotEmpty)
-                          Text(
-                            parts.join(' · '),
-                            style: subtitleStyle,
-                            maxLines: roomy ? 1 : 2,
-                            overflow: TextOverflow.ellipsis,
+                          Text(parts.join(' · '), style: subtitleStyle),
+                        if (locations.isNotEmpty)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Sized with the text beside it, so the pin
+                              // keeps to its first line at any text size.
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  top: scaler.scale(1),
+                                  right: 4,
+                                ),
+                                child: Icon(
+                                  Icons.place_outlined,
+                                  size: scaler.scale(14),
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(locations, style: subtitleStyle),
+                              ),
+                            ],
                           ),
                         if (!roomy && diveCount != null)
                           Text(

@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/species_description_lookup.dart';
 import 'package:submersion/features/marine_life/presentation/species_ids.dart';
@@ -138,7 +140,7 @@ List<Species> withLocalizedSpeciesMatches({
   required String query,
   required AppLocalizations l10n,
 }) {
-  final needle = query.trim().toLowerCase();
+  final needle = foldForSearch(query.trim());
   if (needle.isEmpty) return results;
 
   final seen = results.map((s) => s.id).toSet();
@@ -147,16 +149,16 @@ List<Species> withLocalizedSpeciesMatches({
     ...catalog.where(
       (s) =>
           !seen.contains(s.id) &&
-          s.localizedCommonName(l10n).toLowerCase().contains(needle),
+          foldForSearch(s.localizedCommonName(l10n)).contains(needle),
     ),
   ];
   merged.sort((a, b) {
     final byCategory = a.category.index.compareTo(b.category.index);
     if (byCategory != 0) return byCategory;
-    return a
-        .localizedCommonName(l10n)
-        .toLowerCase()
-        .compareTo(b.localizedCommonName(l10n).toLowerCase());
+    return compareTextForSort(
+      a.localizedCommonName(l10n),
+      b.localizedCommonName(l10n),
+    );
   });
   return merged;
 }

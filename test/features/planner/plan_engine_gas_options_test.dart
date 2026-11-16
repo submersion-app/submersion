@@ -169,31 +169,35 @@ void main() {
       expect(highMinGas / lowMinGas, closeTo(4.0, 1e-6));
     });
 
-    test(
-      'problem-solving time adds N minutes at max depth times SAC factor to used gas',
-      () {
-        const engine = PlanEngine();
-        final none = engine.compute(
-          _decoPlan(sacFactor: 2.0, problemSolvingMinutes: 0),
-        );
-        final extra = engine.compute(
-          _decoPlan(sacFactor: 2.0, problemSolvingMinutes: 2),
-        );
-        final env = DiveEnvironment.forConditions(
-          salinityPpt: DiveEnvironment.salinityPptFromDensity(
-            DiveEnvironment.en13319Density,
-          ),
-        );
-        final expected = 15.0 * 2.0 * 2 * env.pressureAtDepth(42.0);
-        final noneUsed = none.tankUsages
-            .firstWhere((u) => u.tankId == 'back')
-            .litersUsed;
-        final extraUsed = extra.tankUsages
-            .firstWhere((u) => u.tankId == 'back')
-            .litersUsed;
-        expect(extraUsed - noneUsed, closeTo(expected, 1.0));
-      },
-    );
+    // #4475: the allowance is its own figure, not part of used gas.
+    test('problem-solving time is N minutes at max depth times SAC factor, '
+        'held apart from used gas', () {
+      const engine = PlanEngine();
+      final none = engine.compute(
+        _decoPlan(sacFactor: 2.0, problemSolvingMinutes: 0),
+      );
+      final extra = engine.compute(
+        _decoPlan(sacFactor: 2.0, problemSolvingMinutes: 2),
+      );
+      final env = DiveEnvironment.forConditions(
+        salinityPpt: DiveEnvironment.salinityPptFromDensity(
+          DiveEnvironment.en13319Density,
+        ),
+      );
+      final expected = 15.0 * 2.0 * 2 * env.pressureAtDepth(42.0);
+      final noneBack = none.tankUsages.firstWhere((u) => u.tankId == 'back');
+      final extraBack = extra.tankUsages.firstWhere((u) => u.tankId == 'back');
+      expect(extraBack.litersUsed, closeTo(noneBack.litersUsed, 1e-6));
+      expect(noneBack.problemSolvingLiters, 0);
+      expect(extraBack.problemSolvingLiters, closeTo(expected, 1e-6));
+      // Only the cylinder the bottom is breathed from holds it.
+      expect(
+        extra.tankUsages
+            .firstWhere((u) => u.tankId == 'deco')
+            .problemSolvingLiters,
+        0,
+      );
+    });
 
     test(
       'problemSolvingMinutes changes the minimum-gas figure by hand calculation',

@@ -43,9 +43,9 @@ final certificationQueryEntity = QueryEntity(
   diverScopeColumn: 'diver_id',
   // The certification search route's columns.
   textSearchSql: const [
-    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.agency) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.card_number) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.agency) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.card_number) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     _text('name', 'name'),
