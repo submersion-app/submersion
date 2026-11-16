@@ -6,6 +6,7 @@ import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/utils/usable_set_items.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -4921,7 +4922,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     // Gear needs no sort here: it renders through the gear arrangement, whose
     // comparisons all end in a total tie-break.
     int byLabel(BulkMembershipItem a, BulkMembershipItem b) =>
-        a.label.toLowerCase().compareTo(b.label.toLowerCase());
+        compareTextForSort(a.label, b.label);
     setState(() {
       _equipmentCounts = equipCounts;
       _bulkGear = equip;

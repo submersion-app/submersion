@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -334,7 +335,7 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
       ..sort((a, b) {
         final an = kindsById[a]?.name ?? a;
         final bn = kindsById[b]?.name ?? b;
-        return an.toLowerCase().compareTo(bn.toLowerCase());
+        return compareTextForSort(an, bn);
       });
     return [
       null,

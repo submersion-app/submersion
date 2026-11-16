@@ -1,0 +1,80 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+
+import 'source_mask.dart';
+
+/// Searches and name sorts ignore accents as well as case (issue #4498).
+///
+/// A buddy saved as "Jérémie" sorted after "Joachim", and typing "jeremie"
+/// found nothing, because a search compared `unicode_lower(...)` (case only)
+/// and a sort compared `toLowerCase()` text by code unit, which puts every
+/// accented letter after "z". Every offender was converted; these scans are
+/// the ratchet.
+void main() {
+  bool isGenerated(String path) =>
+      path.startsWith('lib/l10n/') || path.endsWith('.g.dart');
+
+  Iterable<(String, MaskedSource)> libSources() sync* {
+    for (final entity in Directory('lib').listSync(recursive: true)) {
+      if (entity is! File || !entity.path.endsWith('.dart')) continue;
+      final path = entity.path.replaceAll(r'\', '/');
+      if (isGenerated(path)) continue;
+      // Migrations are history, as in unicode_case_fold_test.dart.
+      if (path.startsWith('lib/core/database/migrations/')) continue;
+      yield (path, MaskedSource(entity.readAsStringSync()));
+    }
+  }
+
+  test('lib/ is where the scans look', () {
+    expect(
+      File('lib/core/text/text_sort.dart').existsSync(),
+      isTrue,
+      reason: 'a wrong working directory would make every scan pass',
+    );
+  });
+
+  test('a search LIKE folds accents with search_fold', () {
+    final sqlLike = RegExp(
+      r'\bunicode_lower\s*\([^()]*\)\s+LIKE\b',
+      caseSensitive: false,
+    );
+    final driftLike = RegExp(r'\.unicodeLower\(\)\s*\.\s*(contains|like)\(');
+    final offenders = <String>[];
+    for (final (path, masked) in libSources()) {
+      for (final m in sqlLike.allMatches(masked.text)) {
+        offenders.add('$path:${masked.lineOf(m.start)}: ${m[0]}');
+      }
+      for (final m in driftLike.allMatches(masked.code)) {
+        offenders.add('$path:${masked.lineOf(m.start)}: ${m[0]}');
+      }
+    }
+    expect(
+      offenders,
+      isEmpty,
+      reason:
+          'Match a search with search_fold(column) LIKE ? (or '
+          '.searchFold().contains(...)) and fold the needle with '
+          'foldForSearch, so "jeremie" finds "Jérémie":\n'
+          '${offenders.join('\n')}',
+    );
+  });
+
+  test('names sort with the shared collator, not a lowercase compare', () {
+    final lowerCompare = RegExp(r'\.toLowerCase\(\)\s*\.\s*compareTo\(');
+    final offenders = <String>[];
+    for (final (path, masked) in libSources()) {
+      for (final m in lowerCompare.allMatches(masked.code)) {
+        offenders.add('$path:${masked.lineOf(m.start)}');
+      }
+    }
+    expect(
+      offenders,
+      isEmpty,
+      reason:
+          'Sort names with compareTextForSort, TextCollator or '
+          'sortedByText (lib/core/text/text_sort.dart), which fold accents '
+          'so "Jérémie" sorts before "Joachim":\n${offenders.join('\n')}',
+    );
+  });
+}

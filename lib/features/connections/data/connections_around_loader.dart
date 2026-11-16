@@ -1,3 +1,4 @@
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/connections/data/connections_budget.dart';
 import 'package:submersion/features/connections/data/connections_node_sql.dart';
 import 'package:submersion/features/connections/data/connections_reader.dart';
@@ -137,7 +138,7 @@ class AroundLoader {
     if (byKind != 0) return byKind;
     final byDives = b.diveCount.compareTo(a.diveCount);
     if (byDives != 0) return byDives;
-    final byLabel = a.label.compareTo(b.label);
+    final byLabel = compareTextForSort(a.label, b.label);
     return byLabel != 0 ? byLabel : a.ref.id.compareTo(b.ref.id);
   }
 }

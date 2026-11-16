@@ -5,6 +5,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 
 /// The rows a ref picker can offer: the resolver's rows when it can list
 /// them, otherwise nothing (the text tab still resolves typed names). Rows
@@ -132,10 +133,10 @@ class _RefPickerSheetState extends State<_RefPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final search = _search.toLowerCase();
+    final search = foldForSearch(_search);
     final shown = [
       for (final r in widget.entries)
-        if (search.isEmpty || r.label.toLowerCase().contains(search)) r,
+        if (search.isEmpty || foldForSearch(r.label).contains(search)) r,
     ];
     final presence = widget.presence.entries.toList();
     // Lifted by the keyboard inset: the search field autofocuses, and the

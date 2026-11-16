@@ -55,11 +55,11 @@ final siteQueryEntity = QueryEntity(
   table: 'dive_sites',
   diverScopeColumn: 'diver_id',
   textSearchSql: const [
-    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.country) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.region) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.city) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.island) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.country) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.region) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.city) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.island) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     _text('name', 'name'),

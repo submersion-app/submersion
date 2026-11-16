@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -141,7 +142,7 @@ final chamberListingsProvider = FutureProvider<List<ChamberListing>>((
     if (byCountry != 0) return byCountry;
     // List.sort is not stable, so break remaining ties deterministically or
     // the widget tests flake on reordering.
-    return a.chamber.name.compareTo(b.chamber.name);
+    return compareTextForSort(a.chamber.name, b.chamber.name);
   });
 
   return listings;

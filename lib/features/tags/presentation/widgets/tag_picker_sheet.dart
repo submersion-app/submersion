@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -240,11 +241,11 @@ class _TagPickerSheetState extends ConsumerState<TagPickerSheet> {
         .toList();
 
     final name = _query.trim();
-    final query = name.toLowerCase();
+    final query = foldForSearch(name);
     final visible = query.isEmpty
         ? available
         : available
-              .where((stat) => stat.tag.name.toLowerCase().contains(query))
+              .where((stat) => foldForSearch(stat.tag.name).contains(query))
               .toList();
 
     // The empty state tells a diver to type a tag's name, so typing one the

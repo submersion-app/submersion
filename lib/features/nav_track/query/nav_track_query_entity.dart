@@ -31,9 +31,9 @@ final navTrackQueryEntity = QueryEntity(
   table: 'nav_tracks',
   diverScopeColumn: 'diver_id',
   textSearchSql: const [
-    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.source_ref) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.device_name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.source_ref) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.device_name) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     _text('name', 'name'),

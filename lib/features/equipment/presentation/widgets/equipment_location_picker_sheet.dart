@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_pick_sheet.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
@@ -88,13 +89,13 @@ class _EquipmentLocationPickerState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final query = _search.trim().toLowerCase();
+    final query = foldForSearch(_search.trim());
     final places = [
       for (final p
           in ref.watch(equipmentLocationsProvider).value ??
               const <EquipmentLocation>[])
         if (!p.isArchived &&
-            (query.isEmpty || p.name.toLowerCase().contains(query)))
+            (query.isEmpty || foldForSearch(p.name).contains(query)))
           p,
     ];
     return SafeArea(
