@@ -22196,6 +22196,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'problem solving: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'Gas density $value g/L over hard limit';
   }
@@ -22211,8 +22216,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'Tank ends below the rock-bottom minimum of $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return 'Leaves the bottom with $remaining, under the rock-bottom minimum of $minimum: no gas held back for problem-solving time';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return 'Leaves the bottom with $remaining, under the $minimum an emergency ascent needs';
   }
 
   @override
@@ -22377,6 +22387,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'Min gas';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'Problem solving';
 
   @override
   String get plannerCanvas_slate_saved => 'Slate saved';

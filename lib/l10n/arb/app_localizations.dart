@@ -35566,6 +35566,12 @@ abstract class AppLocalizations {
   /// **'end: {reading}'**
   String plannerCanvas_gas_endReading(String reading);
 
+  /// No description provided for @plannerCanvas_gas_problemSolvingReading.
+  ///
+  /// In en, this message translates to:
+  /// **'problem solving: {reading}'**
+  String plannerCanvas_gas_problemSolvingReading(String reading);
+
   /// No description provided for @plannerCanvas_issue_gasDensityCritical.
   ///
   /// In en, this message translates to:
@@ -35587,8 +35593,14 @@ abstract class AppLocalizations {
   /// No description provided for @plannerCanvas_issue_minGas.
   ///
   /// In en, this message translates to:
-  /// **'Tank ends below the rock-bottom minimum of {pressure}'**
-  String plannerCanvas_issue_minGas(String pressure);
+  /// **'Leaves the bottom with {remaining}, under the rock-bottom minimum of {minimum}: no gas held back for problem-solving time'**
+  String plannerCanvas_issue_minGas(String remaining, String minimum);
+
+  /// No description provided for @plannerCanvas_issue_minGasAscent.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaves the bottom with {remaining}, under the {minimum} an emergency ascent needs'**
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum);
 
   /// No description provided for @plannerCanvas_issue_noUsableGas.
   ///
@@ -35856,6 +35868,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Min gas'**
   String get plannerCanvas_slate_minGas;
+
+  /// No description provided for @plannerCanvas_slate_problemSolving.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem solving'**
+  String get plannerCanvas_slate_problemSolving;
 
   /// No description provided for @plannerCanvas_slate_saved.
   ///

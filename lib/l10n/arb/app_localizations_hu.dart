@@ -22454,6 +22454,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'problémamegoldás: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'Gázsűrűség $value g/L a szigorú határ felett';
   }
@@ -22469,8 +22474,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'A palack a rock-bottom minimum ($pressure) alatt végez';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return '$remaining nyomással hagyja el a fenéket, a rock-bottom minimum ($minimum) alatt: nem marad gáz a problémamegoldási időre';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return '$remaining nyomással hagyja el a fenéket, a vészhelyzeti feljutáshoz szükséges mennyiség ($minimum) alatt';
   }
 
   @override
@@ -22636,6 +22646,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'Minimális gáz';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'Problémamegoldás';
 
   @override
   String get plannerCanvas_slate_saved => 'Tábla mentve';

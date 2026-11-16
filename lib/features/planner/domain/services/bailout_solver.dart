@@ -318,8 +318,9 @@ class BailoutSolver {
     // Gas authored off-loop segments have breathed from each bailout cylinder
     // so far, and its snapshot at each point, same index. It is gone by the
     // time the loop dies at that point, charged as PlanEngine charges those
-    // segments in the main plan (#3898), problem-solving time included so the
-    // two rows for a cylinder agree.
+    // segments in the main plan (#3898), so the two rows for a cylinder
+    // agree. Problem-solving time is held apart there, not spent (#4475), so
+    // it is not spent here either.
     final spent = <String, double>{};
     final spentAtPoints = <Map<String, double>>[];
     double totalSpentAt(int index) =>
@@ -330,24 +331,11 @@ class BailoutSolver {
     String chargedTankId(ResolvedLeg leg) =>
         planTankIds.contains(leg.tankId) ? leg.tankId : plan.tanks.first.id;
     bool isOffLoop(ResolvedLeg leg) => modeFor(plan, leg.segment) != plan.mode;
-    final offLoopBottomLeg = PlanEngine.lastLegAtMaxDepth(
-      plan,
-      legs.where(isOffLoop),
-    );
 
     for (final leg in legs) {
       final segment = leg.segment;
       final tankId = chargedTankId(leg);
       final offLoop = isOffLoop(leg) && bailoutTankIds.contains(tankId);
-      if (offLoop && identical(leg, offLoopBottomLeg)) {
-        spent[tankId] =
-            (spent[tankId] ?? 0) +
-            config.problemSolvingLiters(
-              plan,
-              environment,
-              mode: modeFor(plan, segment),
-            );
-      }
       var covered = 0;
       while (covered < segment.durationSeconds) {
         final chunk = (segment.durationSeconds - covered) < sampleInterval

@@ -293,9 +293,12 @@ void main() {
       expect(outcome.tankUsages.single.turnPressureBar, isNull);
     });
 
-    test('rock-bottom violation fires when the tank survives but short', () {
-      // AL80 at 40 m for 18 min ends with gas remaining, but below the
-      // ~124 bar two-diver stressed rock bottom for that depth.
+    test('rock-bottom violation fires when the tank leaves the bottom '
+        'short', () {
+      // AL80 at 40 m for 18 min leaves the bottom with gas remaining, but
+      // below the two-diver stressed rock bottom for that depth. With no
+      // problem-solving time, rock bottom is the ascent alone, so falling
+      // short of it is critical (#4475).
       final outcome = engine.compute(
         _airPlan(
           depth: 40.0,
@@ -312,9 +315,11 @@ void main() {
       );
       final usage = outcome.tankUsages.single;
       expect(usage.minGasBar, isNotNull);
+      expect(usage.minGasAscentBar, closeTo(usage.minGasBar!, 1e-9));
       expect(usage.remainingPressure!, greaterThan(0));
-      expect(usage.remainingPressure!, lessThan(usage.minGasBar!));
-      expect(_types(outcome), contains(PlanIssueType.minGasViolation));
+      expect(usage.bottomEndPressure!, lessThan(usage.minGasBar!));
+      expect(_types(outcome), contains(PlanIssueType.minGasAscentViolation));
+      expect(_types(outcome), isNot(contains(PlanIssueType.minGasViolation)));
     });
 
     test('rock-bottom satisfied on a big tank', () {
@@ -333,6 +338,10 @@ void main() {
         ),
       );
       expect(_types(outcome), isNot(contains(PlanIssueType.minGasViolation)));
+      expect(
+        _types(outcome),
+        isNot(contains(PlanIssueType.minGasAscentViolation)),
+      );
     });
   });
 

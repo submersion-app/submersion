@@ -22036,6 +22036,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'פתרון תקלה: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'צפיפות הגז $value g/L מעל הגבול המרבי';
   }
@@ -22051,8 +22056,13 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'המיכל מסתיים מתחת למינימום rock bottom של $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return 'עוזב את הקרקעית עם $remaining, מתחת למינימום rock bottom של $minimum: לא נשמר גז לזמן לפתרון תקלה';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return 'עוזב את הקרקעית עם $remaining, מתחת ל-$minimum שנדרשים לעלייה בחירום';
   }
 
   @override
@@ -22217,6 +22227,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'גז מינימלי';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'פתרון תקלה';
 
   @override
   String get plannerCanvas_slate_saved => 'הלוח נשמר';

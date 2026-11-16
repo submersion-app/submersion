@@ -50,6 +50,7 @@ PlanSlateLabels planSlateLabels(AppLocalizations l10n) => PlanSlateLabels(
   gas: l10n.plannerCanvas_table_gas,
   turnAt: l10n.plannerCanvas_slate_turn,
   minGas: l10n.plannerCanvas_slate_minGas,
+  problemSolving: l10n.plannerCanvas_slate_problemSolving,
   noTurnRule: l10n.plannerCanvas_slate_noTurnRule,
   noStartPressure: l10n.plannerCanvas_slate_noStartPressure,
   noVolume: l10n.plannerCanvas_slate_noVolume,
