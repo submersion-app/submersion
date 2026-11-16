@@ -183,6 +183,7 @@ class BuddyRepository {
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
+      Variable.withString(searchTerm),
       if (diverId != null) Variable.withString(diverId),
     ];
 
@@ -190,7 +191,8 @@ class BuddyRepository {
       SELECT * FROM buddies
       WHERE (unicode_lower(name) LIKE ?
          OR unicode_lower(email) LIKE ?
-         OR phone LIKE ?)
+         OR phone LIKE ?
+         OR unicode_lower(country) LIKE ?)
       $diverFilter
       ORDER BY name COLLATE NOCASE ASC
     ''', variables: variables).get();
@@ -1015,7 +1017,7 @@ class BuddyRepository {
         if (idList != null) 'b.id IN $idList',
         if (query != null && query.isNotEmpty)
           '(unicode_lower(b.name) LIKE ? OR unicode_lower(b.email) LIKE ? '
-              'OR b.phone LIKE ?)',
+              'OR b.phone LIKE ? OR unicode_lower(b.country) LIKE ?)',
       ];
       final where = conditions.isEmpty
           ? ''
@@ -1030,6 +1032,7 @@ class BuddyRepository {
         if (diverId != null) Variable.withString(diverId),
         ...idVariables,
         if (searchTerm != null) ...[
+          Variable.withString(searchTerm),
           Variable.withString(searchTerm),
           Variable.withString(searchTerm),
           Variable.withString(searchTerm),

@@ -16,13 +16,12 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_merge.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_country_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_profile_link_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_country_field.dart';
 import 'package:submersion/features/buddies/presentation/widgets/linked_profile_field.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
-import 'package:submersion/features/dive_sites/domain/services/site_suggestions.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/linked_profile_suggestion.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_profile_link_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -362,17 +361,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     );
   }
 
-  /// Countries already written on buddies and sites first, then the ISO
-  /// list (issue #4457), as the site country field offers them.
-  List<String> _countrySuggestions() {
-    final buddies = ref.watch(allBuddiesProvider).value ?? const [];
-    final sites = ref.watch(sitesProvider).value ?? const [];
-    return suggestedCountryNames([
-      for (final buddy in buddies) buddy.country,
-      for (final site in sites) site.country,
-    ]);
-  }
-
   Widget _buildFormBody(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -498,7 +486,8 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             const SizedBox(height: 16),
             BuddyCountryField(
               controller: _countryController,
-              suggestions: _countrySuggestions(),
+              suggestions:
+                  ref.watch(buddyCountrySuggestionsProvider).value ?? const [],
               decoration: _withMergeTextDecoration(
                 key: 'country',
                 decoration: InputDecoration(

@@ -6,6 +6,8 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_card_columns.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_country_columns.dart';
+import 'package:submersion/core/geography/country_code_save.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
@@ -276,8 +278,16 @@ class BuddyMergeRepository {
       var placeLinks = const <String, String>{};
 
       await _db.transaction(() async {
-        // Update survivor with merged fields
-        await _updateBuddyRow(linkedSurvivor, now);
+        // Update survivor with merged fields. Its country code is read
+        // against the stored row, as every other write does (issue #4457).
+        await _updateBuddyRow(
+          linkedSurvivor,
+          now,
+          countryBefore: (
+            country: originalSurvivor.country,
+            code: originalSurvivor.countryCode,
+          ),
+        );
         await _syncRepository.markRecordPending(
           entityType: 'buddies',
           recordId: survivorId,
@@ -782,7 +792,25 @@ class BuddyMergeRepository {
     }
   }
 
-  Future<void> _updateBuddyRow(domain.Buddy buddy, int now) async {
+  /// Writes [buddy] over its row. With [countryBefore] (a merge), the
+  /// country goes through [BuddyCountryColumns]; without it (an undo
+  /// restoring a snapshot), the stored country and code come back as they
+  /// were.
+  Future<void> _updateBuddyRow(
+    domain.Buddy buddy,
+    int now, {
+    KnownCountryCode? countryBefore,
+  }) async {
+    final country = countryBefore == null
+        ? BuddiesCompanion(
+            country: Value(buddy.country),
+            countryCode: Value(buddy.countryCode),
+          )
+        : BuddyCountryColumns.of(
+            country: buddy.country,
+            code: buddy.countryCode,
+            before: countryBefore,
+          );
     await (_db.update(_db.buddies)..where((t) => t.id.equals(buddy.id))).write(
       BuddyCardColumns.of(buddy).copyWith(
         diverId: Value(buddy.diverId),
@@ -790,8 +818,8 @@ class BuddyMergeRepository {
         name: Value(buddy.name),
         email: Value(buddy.email),
         phone: Value(buddy.phone),
-        country: Value(buddy.country),
-        countryCode: Value(buddy.countryCode),
+        country: country.country,
+        countryCode: country.countryCode,
         photoPath: Value(buddy.photoPath),
         photo: Value(buddy.photo),
         notes: Value(buddy.notes),

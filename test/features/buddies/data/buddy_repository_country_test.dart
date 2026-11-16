@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
@@ -94,5 +95,44 @@ void main() {
     });
     expect(row.country, isNull);
     expect(row.countryCode, isNull);
+  });
+
+  group('search', () {
+    test('the buddy picker search finds a buddy by country', () async {
+      final repo = BuddyRepository();
+      await repo.createBuddy(buddy(country: 'Italy'));
+      final found = await repo.getAllBuddiesWithDiveCount(query: 'ital');
+      expect([for (final b in found) b.buddy.id], ['b-country-1']);
+    });
+
+    test('searchBuddies finds a buddy by country', () async {
+      final repo = BuddyRepository();
+      await repo.createBuddy(buddy(country: 'Italy'));
+      final found = await repo.searchBuddies('ital');
+      expect([for (final b in found) b.id], ['b-country-1']);
+    });
+  });
+
+  test('a merge that changes the country re-reads the code', () async {
+    final repo = BuddyRepository();
+    final survivor = await repo.createBuddy(buddy(country: 'Italy'));
+    final duplicate = await repo.createBuddy(
+      domain.Buddy(
+        id: 'b-country-2',
+        name: 'M.',
+        country: 'Malta',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      ),
+    );
+    final stored = await repo.getBuddyById(survivor.id);
+    // A merged buddy built by copying the survivor carries its old code.
+    await BuddyMergeRepository().mergeBuddies(
+      mergedBuddy: stored!.copyWith(country: 'Malta'),
+      buddyIds: [survivor.id, duplicate.id],
+    );
+    final read = await repo.getBuddyById(survivor.id);
+    expect(read!.country, 'Malta');
+    expect(read.countryCode, 'MT');
   });
 }
