@@ -201,6 +201,29 @@ void main() {
     expect((await h.one('trips', id))!['start_date'], '2024-03-14');
   });
 
+  // Most dives have no name: the plan lists one as the dive page titles it,
+  // by its number (issue #4614).
+  test('assigning an unnamed dive lists it by its number', () async {
+    final id = await created({});
+    await db.customStatement(
+      "UPDATE dives SET name = NULL, dive_number = 266 WHERE id = 'd1'",
+    );
+
+    final plan = await h.preview([
+      {
+        ...updateOp('trips', id, {}),
+        'relations': {
+          'dive_ids': {
+            'add': ['d1'],
+          },
+        },
+      },
+    ]);
+
+    expect(plan.items.single.block, isNull);
+    expect(plan.items.single.names, {'d1': '#266'});
+  });
+
   // stretchTripsToCoverDives moves a larger trip only when its side trip
   // moves: a side trip may sit past the larger trip's end on purpose.
   test('a side trip that covers the dive stretches nothing', () async {
