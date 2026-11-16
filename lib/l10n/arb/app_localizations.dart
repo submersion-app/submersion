@@ -14793,11 +14793,17 @@ abstract class AppLocalizations {
   /// **'No entry method recorded'**
   String get diveLog_filter_noEntryMethodOnly;
 
-  /// No description provided for @diveLog_filter_noRoleOnly.
+  /// Heading of the dive filter's chips for the diver's own role on the dive
   ///
   /// In en, this message translates to:
-  /// **'No Role Assigned'**
-  String get diveLog_filter_noRoleOnly;
+  /// **'My role'**
+  String get diveLog_filter_sectionMyRole;
+
+  /// Filter chip: keep dives where the diver's own role is not set
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get diveLog_filter_myRoleNotSet;
 
   /// No description provided for @diveLog_filter_noTagsYet.
   ///
@@ -14930,12 +14936,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show only dives with no known entry method'**
   String get diveLog_filter_showOnlyNoEntryMethod;
-
-  /// No description provided for @diveLog_filter_showOnlyNoRole.
-  ///
-  /// In en, this message translates to:
-  /// **'Show only dives where your role is not set'**
-  String get diveLog_filter_showOnlyNoRole;
 
   /// No description provided for @diveLog_filter_startDate.
   ///
@@ -53412,6 +53412,36 @@ abstract class AppLocalizations {
   /// **'With Buddy'**
   String get insights_social_soloVsBuddy_withBuddy;
 
+  /// Title of the Insights card breaking dives down by the diver's own role
+  ///
+  /// In en, this message translates to:
+  /// **'My role'**
+  String get insights_social_myRole_title;
+
+  /// Subtitle of the My role card; explains that a dive holding several roles counts under each
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by the role you held; a dive with several roles counts under each'**
+  String get insights_social_myRole_subtitle;
+
+  /// Shown on the My role card when there are no dives
+  ///
+  /// In en, this message translates to:
+  /// **'No dive data available'**
+  String get insights_social_myRole_empty;
+
+  /// Shown on the My role card when its data fails to load
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load role data'**
+  String get insights_social_myRole_error;
+
+  /// Bar label on the My role card for dives where the diver's own role is not set
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get insights_social_myRole_notSet;
+
   /// No description provided for @insights_social_topBuddies_error.
   ///
   /// In en, this message translates to:
@@ -83208,6 +83238,12 @@ abstract class AppLocalizations {
   /// **'{count} water types'**
   String diveLog_filterChip_waterTypeCount(Object count);
 
+  /// Active filter chip for the diver's own role axis when several choices are picked (roles, or a role and Not set)
+  ///
+  /// In en, this message translates to:
+  /// **'{count} roles'**
+  String diveLog_filterChip_roleCount(int count);
+
   /// No description provided for @diveLog_filterChip_tankConfigCount.
   ///
   /// In en, this message translates to:
@@ -93461,6 +93497,18 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Built-in'**
+  String get query_diveRoles_builtIn;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_diveRoles_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
   String get query_diveTypes_builtIn;
 
   /// Field label in the query builder
@@ -93672,6 +93720,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My role'**
   String get query_dives_role;
+
+  /// Field label in the query builder: the diver's own roles on the dive, by name (a dive can hold several)
+  ///
+  /// In en, this message translates to:
+  /// **'My roles'**
+  String get query_dives_myRole;
 
   /// Field label in the query builder
   ///
@@ -93942,6 +93996,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive types'**
   String get query_entity_diveTypes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive roles'**
+  String get query_entity_diveRoles;
 
   /// Field label in the query builder
   ///

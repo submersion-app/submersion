@@ -7,13 +7,14 @@ library;
 
 import 'dart:convert';
 
-const int kQuerySchemaVersion = 5;
+const int kQuerySchemaVersion = 6;
 
 /// The oldest schema version a stored or model-written parse may carry.
 /// Versions 2 and 3 only added fields and units (3: each subject's own
-/// fields, phase 3), 4 only changed how time is written, and 5 only added
-/// the noRole flag (#3622), so every older payload is a valid current one
-/// and a diver's recent sentences survive the bumps.
+/// fields, phase 3), 4 only changed how time is written, 5 only added the
+/// noRole flag (#3622), and 6 only added the myRole field (#4409), so every
+/// older payload is a valid current one and a diver's recent sentences
+/// survive the bumps.
 const int kMinReadableQuerySchemaVersion = 1;
 
 /// The oldest prompt whose stored parse is worth replaying. Before version 4

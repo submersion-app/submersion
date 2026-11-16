@@ -174,6 +174,8 @@ const List<ExploreField> kExploreFields = [
     tokens: kWeekdayTokens,
   ),
   ExploreField('diveType', ['types', 'name'], ExploreValueKind.typeName),
+  // The diver's own roles by name (#4409), through the `myRole` relation.
+  ExploreField('myRole', ['myRole', 'name'], ExploreValueKind.typeName),
   ExploreField(
     'sac',
     ['sac'],

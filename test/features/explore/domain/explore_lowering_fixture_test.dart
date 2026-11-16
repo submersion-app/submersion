@@ -88,6 +88,10 @@ void main() {
       q(clauses: [_c('noRole', ClauseOp.eq, true)]),
       {'d2', 'd3', 'd4'},
     ),
+    'my role instructor': (
+      q(clauses: [_c('myRole', ClauseOp.eq, 'instructor')]),
+      {'d1'},
+    ),
     'place Bonaire': (
       q(mentions: [_m(MentionKind.place, 'Bonaire')]),
       {'d1', 'd2', 'd3'},

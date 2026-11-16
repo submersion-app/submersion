@@ -9441,7 +9441,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun metodo di ingresso registrato';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Nessun ruolo assegnato';
+  String get diveLog_filter_sectionMyRole => 'Il mio ruolo';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Non impostato';
 
   @override
   String get diveLog_filter_noTagsYet => 'Nessun tag creato';
@@ -9514,10 +9517,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Mostra solo le immersioni senza metodo di ingresso noto';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Mostra solo le immersioni senza il tuo ruolo';
 
   @override
   String get diveLog_filter_startDate => 'Data di inizio';
@@ -33689,6 +33688,24 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'Con compagno';
 
   @override
+  String get insights_social_myRole_title => 'Il mio ruolo';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Immersioni per il tuo ruolo; un\'immersione con più ruoli conta per ciascuno';
+
+  @override
+  String get insights_social_myRole_empty =>
+      'Nessun dato sulle immersioni disponibile';
+
+  @override
+  String get insights_social_myRole_error =>
+      'Impossibile caricare i dati dei ruoli';
+
+  @override
+  String get insights_social_myRole_notSet => 'Non impostato';
+
+  @override
   String get insights_social_topBuddies_error =>
       'Impossibile caricare la classifica dei compagni';
 
@@ -52756,6 +52773,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count ruoli';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count configurazioni di bombole';
   }
@@ -59521,6 +59543,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_divePlans_site => 'Sito';
 
   @override
+  String get query_diveRoles_builtIn => 'Predefinito';
+
+  @override
+  String get query_diveRoles_name => 'Nome';
+
+  @override
   String get query_diveTypes_builtIn => 'Predefinito';
 
   @override
@@ -59627,6 +59655,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Il mio ruolo';
+
+  @override
+  String get query_dives_myRole => 'I miei ruoli';
 
   @override
   String get query_dives_media => 'Media';
@@ -59762,6 +59793,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Tipi di immersione';
+
+  @override
+  String get query_entity_diveRoles => 'Ruoli di immersione';
 
   @override
   String get query_entity_dives => 'Immersioni';

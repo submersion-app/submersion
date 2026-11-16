@@ -9233,7 +9233,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_noEntryMethodOnly => 'לא נרשמה שיטת כניסה';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'ללא תפקיד';
+  String get diveLog_filter_sectionMyRole => 'התפקיד שלי';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'לא הוגדר';
 
   @override
   String get diveLog_filter_noTagsYet => 'לא נוצרו תגיות עדיין';
@@ -9301,9 +9304,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'הצגת צלילות ללא שיטת כניסה ידועה בלבד';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole => 'הצגת צלילות ללא התפקיד שלך בלבד';
 
   @override
   String get diveLog_filter_startDate => 'תאריך התחלה';
@@ -32837,6 +32837,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'עם שותף';
 
   @override
+  String get insights_social_myRole_title => 'התפקיד שלי';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'צלילות לפי התפקיד שלך; צלילה עם כמה תפקידים נספרת בכל אחד מהם';
+
+  @override
+  String get insights_social_myRole_empty => 'אין נתוני צלילה זמינים';
+
+  @override
+  String get insights_social_myRole_error => 'טעינת נתוני התפקידים נכשלה';
+
+  @override
+  String get insights_social_myRole_notSet => 'לא הוגדר';
+
+  @override
   String get insights_social_topBuddies_error => 'שגיאה בטעינת דירוג שותפים';
 
   @override
@@ -51618,6 +51634,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count תפקידים';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count תצורות בלונים';
   }
@@ -58258,6 +58279,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_divePlans_site => 'אתר';
 
   @override
+  String get query_diveRoles_builtIn => 'מובנה';
+
+  @override
+  String get query_diveRoles_name => 'שם';
+
+  @override
   String get query_diveTypes_builtIn => 'מובנה';
 
   @override
@@ -58364,6 +58391,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_dives_role => 'התפקיד שלי';
+
+  @override
+  String get query_dives_myRole => 'התפקידים שלי';
 
   @override
   String get query_dives_media => 'מדיה';
@@ -58499,6 +58529,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'סוגי צלילה';
+
+  @override
+  String get query_entity_diveRoles => 'תפקידי צלילה';
 
   @override
   String get query_entity_dives => 'צלילות';

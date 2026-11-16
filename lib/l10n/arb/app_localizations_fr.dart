@@ -9468,7 +9468,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune méthode d\'entrée renseignée';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Aucun rôle assigné';
+  String get diveLog_filter_sectionMyRole => 'Mon rôle';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Non défini';
 
   @override
   String get diveLog_filter_noTagsYet => 'Aucun tag créé pour le moment';
@@ -9544,10 +9547,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Afficher uniquement les plongées sans méthode d\'entrée connue';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Afficher uniquement les plongées sans votre rôle';
 
   @override
   String get diveLog_filter_startDate => 'Date de début';
@@ -33780,6 +33779,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'Avec binôme';
 
   @override
+  String get insights_social_myRole_title => 'Mon rôle';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Plongées selon votre rôle ; une plongée avec plusieurs rôles compte pour chacun';
+
+  @override
+  String get insights_social_myRole_empty =>
+      'Aucune donnée de plongée disponible';
+
+  @override
+  String get insights_social_myRole_error =>
+      'Impossible de charger les données de rôle';
+
+  @override
+  String get insights_social_myRole_notSet => 'Non défini';
+
+  @override
   String get insights_social_topBuddies_error =>
       'Échec du chargement du classement des binômes';
 
@@ -52862,6 +52879,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count rôles';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count configurations de blocs';
   }
@@ -59648,6 +59670,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_divePlans_site => 'Site';
 
   @override
+  String get query_diveRoles_builtIn => 'Prédéfini';
+
+  @override
+  String get query_diveRoles_name => 'Nom';
+
+  @override
   String get query_diveTypes_builtIn => 'Prédéfini';
 
   @override
@@ -59754,6 +59782,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Mon rôle';
+
+  @override
+  String get query_dives_myRole => 'Mes rôles';
 
   @override
   String get query_dives_media => 'Médias';
@@ -59889,6 +59920,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Types de plongée';
+
+  @override
+  String get query_entity_diveRoles => 'Rôles de plongée';
 
   @override
   String get query_entity_dives => 'Plongées';

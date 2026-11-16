@@ -9418,7 +9418,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs rögzített beszállási mód';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Nincs szerep hozzárendelve';
+  String get diveLog_filter_sectionMyRole => 'Saját szerep';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Nincs megadva';
 
   @override
   String get diveLog_filter_noTagsYet => 'Még nincsenek létrehozott címkék';
@@ -9491,10 +9494,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Csak ismert beszállási mód nélküli merülések mutatása';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Csak saját szerep nélküli merülések mutatása';
 
   @override
   String get diveLog_filter_startDate => 'Kezdés dátuma';
@@ -33510,6 +33509,23 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'Merülőtárssal';
 
   @override
+  String get insights_social_myRole_title => 'Saját szerep';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Merülések a saját szerep szerint; a több szerepű merülés mindegyiknél számít';
+
+  @override
+  String get insights_social_myRole_empty => 'Nincsenek merülési adatok';
+
+  @override
+  String get insights_social_myRole_error =>
+      'Nem sikerült betölteni a szerepadatokat';
+
+  @override
+  String get insights_social_myRole_notSet => 'Nincs megadva';
+
+  @override
   String get insights_social_topBuddies_error =>
       'Nem sikerült a merülőtárs rangsor betöltése';
 
@@ -52467,6 +52483,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count szerep';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count palackkonfiguráció';
   }
@@ -59207,6 +59228,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_divePlans_site => 'Merülőhely';
 
   @override
+  String get query_diveRoles_builtIn => 'Beépített';
+
+  @override
+  String get query_diveRoles_name => 'Név';
+
+  @override
   String get query_diveTypes_builtIn => 'Beépített';
 
   @override
@@ -59313,6 +59340,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Saját szerep';
+
+  @override
+  String get query_dives_myRole => 'Saját szerepek';
 
   @override
   String get query_dives_media => 'Média';
@@ -59448,6 +59478,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Merülés típusok';
+
+  @override
+  String get query_entity_diveRoles => 'Merülési szerepek';
 
   @override
   String get query_entity_dives => 'Merülések';

@@ -9442,7 +9442,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sem método de entrada registado';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Sem Função Atribuída';
+  String get diveLog_filter_sectionMyRole => 'Minha função';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Não definida';
 
   @override
   String get diveLog_filter_noTagsYet => 'Nenhuma tag criada ainda';
@@ -9515,10 +9518,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Mostrar apenas mergulhos sem método de entrada conhecido';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Mostrar apenas mergulhos sem a sua função';
 
   @override
   String get diveLog_filter_startDate => 'Data Inicial';
@@ -33662,6 +33661,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'Com Dupla';
 
   @override
+  String get insights_social_myRole_title => 'Minha função';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Mergulhos pela sua função; um mergulho com várias funções conta em cada uma';
+
+  @override
+  String get insights_social_myRole_empty =>
+      'Nenhum dado de mergulho disponível';
+
+  @override
+  String get insights_social_myRole_error =>
+      'Falha ao carregar os dados de funções';
+
+  @override
+  String get insights_social_myRole_notSet => 'Não definida';
+
+  @override
   String get insights_social_topBuddies_error =>
       'Falha ao carregar ranking de duplas';
 
@@ -52730,6 +52747,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count funções';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count configurações de cilindros';
   }
@@ -59505,6 +59527,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get query_divePlans_site => 'Ponto de mergulho';
 
   @override
+  String get query_diveRoles_builtIn => 'Predefinido';
+
+  @override
+  String get query_diveRoles_name => 'Nome';
+
+  @override
   String get query_diveTypes_builtIn => 'Predefinido';
 
   @override
@@ -59611,6 +59639,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Minha função';
+
+  @override
+  String get query_dives_myRole => 'Minhas funções';
 
   @override
   String get query_dives_media => 'Mídia';
@@ -59746,6 +59777,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Tipos de mergulho';
+
+  @override
+  String get query_entity_diveRoles => 'Funções de mergulho';
 
   @override
   String get query_entity_dives => 'Mergulhos';

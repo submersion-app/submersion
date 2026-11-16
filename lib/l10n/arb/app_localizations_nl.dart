@@ -9382,7 +9382,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen instapmethode vastgelegd';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Geen rol toegewezen';
+  String get diveLog_filter_sectionMyRole => 'Mijn rol';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Niet ingesteld';
 
   @override
   String get diveLog_filter_noTagsYet => 'Nog geen tags aangemaakt';
@@ -9451,10 +9454,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Toon alleen duiken zonder bekende instapmethode';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Toon alleen duiken zonder je eigen rol';
 
   @override
   String get diveLog_filter_startDate => 'Startdatum';
@@ -33450,6 +33449,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'Met buddy';
 
   @override
+  String get insights_social_myRole_title => 'Mijn rol';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Duiken per eigen rol; een duik met meerdere rollen telt bij elke rol';
+
+  @override
+  String get insights_social_myRole_empty => 'Geen duikgegevens beschikbaar';
+
+  @override
+  String get insights_social_myRole_error => 'Kan rolgegevens niet laden';
+
+  @override
+  String get insights_social_myRole_notSet => 'Niet ingesteld';
+
+  @override
   String get insights_social_topBuddies_error =>
       'Kan buddyranglijst niet laden';
 
@@ -52413,6 +52428,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count rollen';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count flesconfiguraties';
   }
@@ -59140,6 +59160,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_divePlans_site => 'Duikstek';
 
   @override
+  String get query_diveRoles_builtIn => 'Ingebouwd';
+
+  @override
+  String get query_diveRoles_name => 'Naam';
+
+  @override
   String get query_diveTypes_builtIn => 'Ingebouwd';
 
   @override
@@ -59246,6 +59272,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Mijn rol';
+
+  @override
+  String get query_dives_myRole => 'Mijn rollen';
 
   @override
   String get query_dives_media => 'Media';
@@ -59381,6 +59410,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Duiktypes';
+
+  @override
+  String get query_entity_diveRoles => 'Duikrollen';
 
   @override
   String get query_entity_dives => 'Duiken';

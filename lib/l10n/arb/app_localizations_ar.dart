@@ -9583,7 +9583,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_noEntryMethodOnly => 'لم تُسجَّل طريقة دخول';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'بدون دور';
+  String get diveLog_filter_sectionMyRole => 'دوري';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'غير محدد';
 
   @override
   String get diveLog_filter_noTagsYet => 'لم يتم إنشاء وسوم بعد';
@@ -9651,10 +9654,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'عرض الغوصات التي لا تُعرف طريقة دخولها فقط';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'عرض الغوصات التي لم يُحدَّد فيها دورك فقط';
 
   @override
   String get diveLog_filter_startDate => 'تاريخ البدء';
@@ -33996,6 +33995,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'مع رفيق';
 
   @override
+  String get insights_social_myRole_title => 'دوري';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'الغوصات حسب دورك؛ الغوصة ذات الأدوار المتعددة تُحتسب في كل دور';
+
+  @override
+  String get insights_social_myRole_empty => 'لا توجد بيانات غوصات متاحة';
+
+  @override
+  String get insights_social_myRole_error => 'تعذّر تحميل بيانات الأدوار';
+
+  @override
+  String get insights_social_myRole_notSet => 'غير محدد';
+
+  @override
   String get insights_social_topBuddies_error => 'فشل تحميل تصنيف الرفاق';
 
   @override
@@ -53473,6 +53488,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count أدوار';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count تكوينات أسطوانات';
   }
@@ -60319,6 +60339,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_divePlans_site => 'الموقع';
 
   @override
+  String get query_diveRoles_builtIn => 'مدمج';
+
+  @override
+  String get query_diveRoles_name => 'الاسم';
+
+  @override
   String get query_diveTypes_builtIn => 'مدمج';
 
   @override
@@ -60425,6 +60451,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_dives_role => 'دوري';
+
+  @override
+  String get query_dives_myRole => 'أدواري';
 
   @override
   String get query_dives_media => 'الوسائط';
@@ -60560,6 +60589,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'أنواع الغوص';
+
+  @override
+  String get query_entity_diveRoles => 'أدوار الغوص';
 
   @override
   String get query_entity_dives => 'الغطسات';
