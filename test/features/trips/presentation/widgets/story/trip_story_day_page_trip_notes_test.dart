@@ -10,6 +10,7 @@ import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_page.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_plan.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 
@@ -98,6 +99,19 @@ void main() {
 
     expect(find.byKey(TripStoryDayPlan.fromTripNotesKey), findsNothing);
     expect(find.byKey(TripStoryDayPage.noDivesKey), findsOneWidget);
+  });
+
+  testWidgets('a passage keeps the indentation of its first line', (
+    tester,
+  ) async {
+    // Four spaces make an indented code block; trimming them would turn it
+    // into a paragraph.
+    await _pump(tester, _day(), tripNotes: '    nitrox 32 to 30 m\n');
+
+    final view = tester.widget<MarkdownNotesView>(
+      find.byKey(TripStoryDayPlan.tripNotesKey),
+    );
+    expect(view.source, '    nitrox 32 to 30 m');
   });
 
   testWidgets("the itinerary's own note comes before the trip notes", (

@@ -125,5 +125,45 @@ void main() {
     test('a note without the heading is left alone', () {
       expect(dropUntouchedDayHeading('Intro', '## Day 3'), 'Intro');
     });
+
+    test('reads a Windows line ending as the end of a heading', () {
+      expect(
+        dropUntouchedDayHeading('## Day 3\r\n## Day 4\r\nX', '## Day 3'),
+        '## Day 4\r\nX',
+      );
+    });
+  });
+
+  group('DayNotePlacement.toSave', () {
+    test('Notes left as they opened are saved as they were loaded', () {
+      // The empty heading sits right above Day 4, so a line is added.
+      const notes = '## Day 3\n## Day 4\nX';
+      final placed = place(notes);
+      expect(placed.text, isNot(notes));
+
+      expect(placed.toSave(placed.text), notes);
+    });
+
+    test('a closed code block goes too while nothing was written', () {
+      const notes = 'Gear\n```\nfins';
+      final placed = place(notes);
+
+      expect(placed.toSave(placed.text), notes);
+    });
+
+    test('words under the added heading are kept', () {
+      final placed = place('Intro');
+
+      expect(
+        placed.toSave('${placed.text}Turtle'),
+        'Intro\n\n## Day 3\nTurtle',
+      );
+    });
+
+    test('an edit elsewhere drops the empty added heading', () {
+      final placed = place('Intro');
+
+      expect(placed.toSave('Intro, edited\n\n## Day 3\n'), 'Intro, edited');
+    });
   });
 }

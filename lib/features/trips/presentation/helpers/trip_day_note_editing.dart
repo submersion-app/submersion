@@ -6,10 +6,14 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// where the caret goes, and the heading it appended, if it did.
 class DayNotePlacement {
   const DayNotePlacement({
+    required this.original,
     required this.text,
     required this.cursor,
     this.insertedHeading,
   });
+
+  /// The Notes as they were loaded, before anything was added for the day.
+  final String original;
 
   final String text;
   final int cursor;
@@ -17,6 +21,16 @@ class DayNotePlacement {
   /// The heading line Add note appended, or null when the Notes already had
   /// one for the day.
   final String? insertedHeading;
+
+  /// [notes], the Notes field's text, as it should be saved. Notes left as
+  /// they opened are saved as they were loaded, so a line or a code fence
+  /// added for the caret never lands on its own; otherwise an added heading
+  /// that still has nothing under it is left out.
+  String toSave(String notes) {
+    if (notes == text) return original;
+    final inserted = insertedHeading;
+    return inserted == null ? notes : dropUntouchedDayHeading(notes, inserted);
+  }
 }
 
 /// Opens [day]'s note in [notes]: at the end of its last passage, under its
@@ -32,14 +46,14 @@ DayNotePlacement placeDayNote(
   final scanned = tripDayNotes(notes, [day], vocabulary);
   final passageEnd = scanned.passageEnds[day.date];
   if (passageEnd != null) {
-    return DayNotePlacement(text: notes, cursor: passageEnd);
+    return DayNotePlacement(original: notes, text: notes, cursor: passageEnd);
   }
   final headingEnd = scanned.headingLineEnds[day.date];
   if (headingEnd != null) {
     // A heading on the last line gets a line of its own under it.
     if (headingEnd == notes.length) {
       final text = notes.endsWith('\n') ? notes : '$notes\n';
-      return DayNotePlacement(text: text, cursor: text.length);
+      return DayNotePlacement(original: notes, text: text, cursor: text.length);
     }
     // A heading right above another line (the next heading, with no blank
     // line between) gets an empty line of its own, so what is typed under
@@ -51,12 +65,13 @@ DayNotePlacement placeDayNote(
     );
     if (nextLine.trim().isNotEmpty) {
       return DayNotePlacement(
+        original: notes,
         text:
             '${notes.substring(0, headingEnd)}\n${notes.substring(headingEnd)}',
         cursor: headingEnd,
       );
     }
-    return DayNotePlacement(text: notes, cursor: headingEnd);
+    return DayNotePlacement(original: notes, text: notes, cursor: headingEnd);
   }
   final level = scanned.dayHeadingLevel ?? 2;
   final heading = '${'#' * level} $headingLabel';
@@ -67,6 +82,7 @@ DayNotePlacement placeDayNote(
       : '${notes.trimRight()}\n$fence';
   final text = before.isEmpty ? '$heading\n' : '$before\n\n$heading\n';
   return DayNotePlacement(
+    original: notes,
     text: text,
     cursor: text.length,
     insertedHeading: heading,
@@ -86,8 +102,6 @@ DayNotePlacement placeDayNoteIn(
   headingLabel: l10n.trips_story_dayLabel(day.dayNumber),
 );
 
-final RegExp _headingLevel = RegExp(r'^ {0,3}(#{1,6})(?:[ \t]|$)');
-
 /// [notes] without [insertedHeading] when nothing was written under it:
 /// the last line equal to it, the blank lines up to the next heading at its
 /// level or higher, and the blank lines just before it. Anything else is
@@ -99,13 +113,13 @@ String dropUntouchedDayHeading(String notes, String insertedHeading) {
     (line) => line.trimRight() == insertedHeading,
   );
   if (at < 0) return notes;
-  final level = _headingLevel.firstMatch(insertedHeading)?[1]?.length ?? 6;
+  final level = atxHeadingLevel(insertedHeading) ?? 6;
 
   var after = at + 1;
   while (after < lines.length) {
     final line = lines[after];
-    final heading = _headingLevel.firstMatch(line);
-    if (heading != null && heading[1]!.length <= level) break;
+    final heading = atxHeadingLevel(line);
+    if (heading != null && heading <= level) break;
     if (line.trim().isNotEmpty) return notes;
     after++;
   }

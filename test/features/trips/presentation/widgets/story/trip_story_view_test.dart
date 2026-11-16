@@ -210,6 +210,27 @@ void main() {
       expect(find.text('Current was strong'), findsOneWidget);
     });
 
+    testWidgets('edited Notes reach the day page', (tester) async {
+      final stories = ValueNotifier(noted);
+      addTearDown(stories.dispose);
+      await pumpView(
+        tester,
+        noted,
+        stories: stories,
+        selection: ValueNotifier(TripStorySelection.day(day2)),
+      );
+      expect(dayPage(tester).tripNotes, 'Current was strong');
+
+      stories.value = _story(
+        marchTrip.copyWith(notes: 'Intro\n\n## Day 2\nMantas at dusk'),
+        dives: [_dive('d1', DateTime(2026, 3, 25, 9))],
+        today: DateTime(2026, 6, 1),
+      );
+      await tester.pumpAndSettle();
+
+      expect(dayPage(tester).tripNotes, 'Mantas at dusk');
+    });
+
     testWidgets('another day has no passage', (tester) async {
       await pumpView(
         tester,

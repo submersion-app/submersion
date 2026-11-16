@@ -437,7 +437,10 @@ void main() {
   group('TripEditPage - opening at a day note (#4625)', () {
     final day3 = TripNoteDay(date: DateTime(2024, 1, 17), dayNumber: 3);
 
-    Future<_MockTripListNotifier> pump(WidgetTester tester) async {
+    Future<_MockTripListNotifier> pump(
+      WidgetTester tester, {
+      String notes = 'Intro',
+    }) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
@@ -461,7 +464,7 @@ void main() {
         ProviderScope(
           overrides: [
             tripRepositoryProvider.overrideWithValue(
-              _MockTripRepositoryWithNotedTrip(),
+              _MockTripRepositoryWithNotedTrip(notes),
             ),
             tripListNotifierProvider.overrideWith((ref) => notifier),
             validatedCurrentDiverIdProvider.overrideWith(
@@ -548,6 +551,25 @@ void main() {
         find.byWidgetPredicate((widget) => widget is PopScope),
       );
       expect(popScope.canPop, isTrue);
+    });
+
+    testWidgets('untouched Notes are saved as they were loaded', (
+      tester,
+    ) async {
+      // The Day 3 heading has nothing under it and Day 4 follows at once,
+      // so opening there adds a line for the caret.
+      const notes = 'Intro\n\n## Day 3\n## Day 4\nShark';
+      final notifier = await pump(tester, notes: notes);
+      expect(notesField(tester).controller.text, isNot(notes));
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Trip Name *'),
+        'Renamed',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.lastUpdated?.notes, notes);
     });
   });
 
@@ -2866,9 +2888,13 @@ class _RecordingScanRepo extends _MockTripRepositoryWithTrip {
 
 /// [_MockTripRepositoryWithTrip]'s trip, with Notes (#4625).
 class _MockTripRepositoryWithNotedTrip extends _MockTripRepositoryWithTrip {
+  _MockTripRepositoryWithNotedTrip([this.notes = 'Intro']);
+
+  final String notes;
+
   @override
   Future<Trip?> getTripById(String id) async =>
-      (await super.getTripById(id))?.copyWith(notes: 'Intro');
+      (await super.getTripById(id))?.copyWith(notes: notes);
 }
 
 /// Mock repository that returns a test trip

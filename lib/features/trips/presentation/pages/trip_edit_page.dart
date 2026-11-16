@@ -1092,13 +1092,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         NumberValue() || NumberBlank() || NumberInvalid() => null,
       };
 
-  /// The Notes as saved: without a day heading Add note added that still has
-  /// nothing under it.
+  /// The Notes as saved: what opening at a day's note added is left out
+  /// while nothing was written there ([DayNotePlacement.toSave]).
   String _savedNotes() {
-    final inserted = _dayNote?.insertedHeading;
     final text = _notesController.text;
-    return (inserted == null ? text : dropUntouchedDayHeading(text, inserted))
-        .trim();
+    return (_dayNote?.toSave(text) ?? text).trim();
   }
 
   Future<void> _saveTrip() async {

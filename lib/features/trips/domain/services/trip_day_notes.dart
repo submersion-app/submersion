@@ -173,6 +173,11 @@ DateTime? dayNamedByHeading(
   TripDayNotesVocabulary vocabulary,
 ) => _parseDayHeading(headingText, vocabulary)?.resolve(days);
 
+/// The level (1 to 6) of [line] as an ATX heading, by the rule the scanner
+/// uses, or null when it is not one. A trailing `\r` is ignored.
+int? atxHeadingLevel(String line) =>
+    _Heading.parse(_withoutCarriageReturn(line))?.level;
+
 /// What a day heading says, before it is matched to a trip's days: a day
 /// number, or a date whose year and weekday may be missing.
 class _NamedDay {
@@ -287,30 +292,19 @@ _NamedDay? _monthDay(
       if (token.isNotEmpty)
         token.endsWith('.') ? token.substring(0, token.length - 1) : token,
   ];
-  var index = 0;
-  if (tokens.length < 2) return null;
+  if (tokens.length < 2 || tokens.length > 3) return null;
 
-  int? month;
-  int? day;
-  final first = tokens[index];
-  final second = tokens[index + 1];
+  final [first, second, ...rest] = tokens;
   final firstMonth = vocabulary.months[first];
-  if (firstMonth != null) {
-    month = firstMonth;
-    day = _dayNumber(second);
-  } else {
-    day = _dayNumber(first);
-    month = vocabulary.months[second];
-  }
+  final month = firstMonth ?? vocabulary.months[second];
+  final day = _dayNumber(firstMonth == null ? first : second);
   if (month == null || day == null) return null;
-  index += 2;
 
   int? year;
-  if (index < tokens.length && _year.hasMatch(tokens[index])) {
-    year = int.parse(tokens[index]);
-    index++;
+  if (rest.isNotEmpty) {
+    if (!_year.hasMatch(rest.single)) return null;
+    year = int.parse(rest.single);
   }
-  if (index != tokens.length) return null;
   return _NamedDay.date(year: year, month: month, day: day, weekday: weekday);
 }
 

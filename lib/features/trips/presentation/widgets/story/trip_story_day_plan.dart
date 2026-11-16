@@ -73,7 +73,9 @@ class TripStoryDayPlan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final notes = day.itineraryDay?.notes.trim() ?? '';
-    final fromTrip = tripNotes?.trim() ?? '';
+    // Only the end is trimmed: four spaces leading the first line make an
+    // indented code block, and the scanner already drops blank lines.
+    final fromTrip = tripNotes?.trimRight() ?? '';
     final bodySmall = Theme.of(context).textTheme.bodySmall;
     final progress = _progress(day);
     final site = historySite(day);
