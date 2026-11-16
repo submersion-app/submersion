@@ -20,6 +20,7 @@ class _CapturingRepairService implements MediaRepairService {
   Future<RepairApplyReport> apply(
     List<RepairProposal> accepted, {
     RepairLogSource source = RepairLogSource.manual,
+    List<Future<void> Function()>? afterCommit,
   }) async {
     applied.add(accepted);
     return const RepairApplyReport(
