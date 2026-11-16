@@ -708,7 +708,7 @@ shown on a linked site's page and on the details card.
 | `ukho` | UK Hydrographic Office Wrecks and Obstructions | OGL-UK-3.0 | UK Hydrographic Office |
 | `awois` | NOAA Automated Wreck and Obstruction Information System | CC0-1.0 | NOAA Office of Coast Survey |
 | `fwc` | Artificial Reefs in Florida | Public domain | Florida Fish and Wildlife Conservation Commission, FWRI |
-| `noaa_reefs` | MarineCadastre Artificial Reefs | No licence stated | NOAA Office for Coastal Management and BOEM |
+| `noaa_reefs` | MarineCadastre Artificial Reefs | US Government data, no restriction stated | NOAA Office for Coastal Management and BOEM |
 | `fknms` | Florida Keys National Marine Sanctuary buoys | US Government work | NOAA Florida Keys National Marine Sanctuary |
 | `nms_ie` | Wreck Inventory of Ireland Database | CC-BY-4.0 | National Monuments Service, Government of Ireland |
 | `wikidata` | Wikidata | CC0-1.0 | Wikidata |
@@ -811,8 +811,13 @@ publishers' pages after slices 2 to 5 shipped:
 
 - The federal file's NOAA record (InPort item 54191) states no licence. It
   gives "For coastal and ocean planning" as its use constraint and links a
-  disclaimer. The `noaa_reefs` licence now reads "No licence stated" rather
-  than "Public domain", so the label claims no more than NOAA does.
+  disclaimer. The `noaa_reefs` licence now reads "US Government data, no
+  restriction stated" rather than "Public domain", so the label claims no
+  more than NOAA does. Its records stay in the ODbL database as an
+  unrestricted government source under the Constraints rule above: NOAA
+  states a purpose, not a limit on reuse, and the states that ship through
+  the file state no restriction (below). Carrying them as own-terms
+  records instead was weighed and not chosen.
 - TPWD's copyright policy asks that information reproduced verbatim carry
   "Information courtesy Texas Parks and Wildlife Department © <year>". The
   `tpwd` credit now uses that line, with 2022, the year NOAA's record gives

@@ -82,7 +82,10 @@ void main() {
         'Information courtesy Texas Parks and Wildlife Department © 2022';
 
     expect((sources['tpwd'] as Map)['credit'], texasLine);
-    expect((sources['noaa_reefs'] as Map)['licence'], 'No licence stated');
+    expect(
+      (sources['noaa_reefs'] as Map)['licence'],
+      'US Government data, no restriction stated',
+    );
     expect(metadata['notice'], contains(texasLine));
   });
 

@@ -155,15 +155,17 @@ void main() {
     );
   });
 
-  test('the federal reef file claims no licence NOAA does not state', () async {
+  test('the federal reef file says on what basis it joins the ODbL '
+      'database', () async {
     final text = await licenceText();
 
     expect(
       text,
       contains(
-        'compiled from the reef programs of the states. NOAA publishes it '
-        'with no licence stated; its metadata gives its use as coastal and '
-        'ocean planning.',
+        'compiled from the reef programs of the states. United States '
+        'Government data, published with no licence and no restriction on '
+        'reuse stated; its metadata gives its use as coastal and ocean '
+        'planning.',
       ),
     );
     expect(text, isNot(contains('of the states. Public domain.')));

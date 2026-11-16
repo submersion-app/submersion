@@ -89,9 +89,11 @@ SOURCES = {
     },
     "noaa_reefs": {
         "name": "MarineCadastre Artificial Reefs",
-        # NOAA's record for the file states no licence, only the use "For
-        # coastal and ocean planning", so the label claims no more.
-        "licence": "No licence stated",
+        # NOAA's record for the file states no licence and no restriction,
+        # only the use "For coastal and ocean planning". It joins the ODbL
+        # database as an unrestricted government source, and the label
+        # says so rather than claiming a public domain grant NOAA never made.
+        "licence": "US Government data, no restriction stated",
         "licence_url": "https://www.fisheries.noaa.gov/inport/item/54191",
         "credit": "NOAA Office for Coastal Management and BOEM",
     },

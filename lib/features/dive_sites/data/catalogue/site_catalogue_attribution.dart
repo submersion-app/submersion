@@ -74,8 +74,9 @@ https://www.arcgis.com/home/item.html?id=eb2bfd225149405bba23604f20159f56
 
 MarineCadastre Artificial Reefs, NOAA Office for Coastal Management and
 Bureau of Ocean Energy Management, compiled from the reef programs of the
-states. NOAA publishes it with no licence stated; its metadata gives its
-use as coastal and ocean planning.
+states. United States Government data, published with no licence and no
+restriction on reuse stated; its metadata gives its use as coastal and
+ocean planning.
 https://www.fisheries.noaa.gov/inport/item/54191
 
 Florida Keys National Marine Sanctuary buoys, NOAA Florida Keys National
