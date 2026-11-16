@@ -63,9 +63,27 @@ void main() {
   });
 
   test('names sort with the shared collator, not a lowercase compare', () {
-    final lowerCompare = RegExp(r'\.toLowerCase\(\)\s*\.\s*compareTo\(');
+    final lowerCompare = RegExp(
+      // A lowercase compare, a lowercasing key helper, or a raw compare of
+      // a name-like member, which also orders by code unit.
+      r'\.toLowerCase\(\)\s*\.\s*compareTo\('
+      r'|\blegacyNameKey\((?:[^()]|\([^()]*\))*\)\s*\.\s*compareTo\('
+      r'|\.(?:name|label|title|displayName|commonName)!?\s*\.\s*compareTo\(',
+    );
+    // Raw compares of a name that is not a person's or a place's: an enum's
+    // stored name, or a file name, where code-unit order is the intent.
+    const allowed = {
+      // Backup file names carry a timestamp; their order is chronological.
+      'lib/features/backup/data/services/cross_device_retention.dart',
+      // Garmin activity file names, staged in a stable order.
+      'lib/features/universal_import/data/services/garmin_mtp_stager.dart',
+      // Enum names (`EquipmentType.name`, an exposure unit's key).
+      'lib/features/equipment/presentation/providers/equipment_providers.dart',
+      'lib/features/equipment/domain/entities/exposure_unit.dart',
+    };
     final offenders = <String>[];
     for (final (path, masked) in libSources()) {
+      if (allowed.contains(path)) continue;
       for (final m in lowerCompare.allMatches(masked.code)) {
         offenders.add('$path:${masked.lineOf(m.start)}');
       }
