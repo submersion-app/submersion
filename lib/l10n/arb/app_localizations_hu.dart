@@ -10765,6 +10765,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_map_tooltip_fitAllSites => 'Összes merülőhely mutatása';
 
   @override
+  String get diveLog_media_dropUnlockHint =>
+      'Oldd fel a merülés zárolását, hogy fotókat adhass hozzá.';
+
+  @override
   String get diveLog_numbering_actions => 'Műveletek';
 
   @override

@@ -10552,6 +10552,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_map_tooltip_fitAllSites => 'התאמה לכל האתרים';
 
   @override
+  String get diveLog_media_dropUnlockHint =>
+      'בטל את נעילת הצלילה כדי להוסיף לה תמונות.';
+
+  @override
   String get diveLog_numbering_actions => 'פעולות';
 
   @override

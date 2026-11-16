@@ -3429,6 +3429,7 @@
   "diveLog_map_emptyTitle": "Geen duikactiviteit om weer te geven",
   "diveLog_map_errorLoading": "Fout bij laden van duikgegevens: {error}",
   "diveLog_map_tooltip_fitAllSites": "Alle stekken passend maken",
+  "diveLog_media_dropUnlockHint": "Ontgrendel deze duik om er foto's aan toe te voegen.",
   "diveLog_numbering_actions": "Acties",
   "diveLog_numbering_allCorrect": "Alle duiken correct genummerd",
   "diveLog_numbering_assignMissing": "Ontbrekende nummers toewijzen",

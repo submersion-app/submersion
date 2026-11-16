@@ -3544,6 +3544,7 @@
   "diveLog_map_emptyTitle": "无潜水活动可显示",
   "diveLog_map_errorLoading": "加载潜水数据出错：{error}",
   "diveLog_map_tooltip_fitAllSites": "适应所有潜水点",
+  "diveLog_media_dropUnlockHint": "解锁此潜水后才能添加照片。",
   "diveLog_numbering_actions": "操作",
   "diveLog_numbering_allCorrect": "所有潜水编号正确",
   "diveLog_numbering_assignMissing": "分配缺失编号",

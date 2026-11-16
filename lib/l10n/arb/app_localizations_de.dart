@@ -10782,6 +10782,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_map_tooltip_fitAllSites => 'Alle Tauchplätze anzeigen';
 
   @override
+  String get diveLog_media_dropUnlockHint =>
+      'Entsperre diesen Tauchgang, um Fotos hinzuzufügen.';
+
+  @override
   String get diveLog_numbering_actions => 'Aktionen';
 
   @override

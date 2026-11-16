@@ -3429,6 +3429,7 @@
   "diveLog_map_emptyTitle": "No hay actividad de buceo para mostrar",
   "diveLog_map_errorLoading": "Error al cargar datos de inmersiones: {error}",
   "diveLog_map_tooltip_fitAllSites": "Ajustar a todos los puntos",
+  "diveLog_media_dropUnlockHint": "Desbloquea esta inmersión para añadirle fotos.",
   "diveLog_numbering_actions": "Acciones",
   "diveLog_numbering_allCorrect": "Todas las inmersiones están numeradas correctamente",
   "diveLog_numbering_assignMissing": "Asignar números faltantes",

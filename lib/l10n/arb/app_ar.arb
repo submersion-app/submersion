@@ -3429,6 +3429,7 @@
   "diveLog_map_emptyTitle": "لا يوجد نشاط غوص لعرضه",
   "diveLog_map_errorLoading": "خطأ في تحميل بيانات الغوص: {error}",
   "diveLog_map_tooltip_fitAllSites": "احتواء جميع المواقع",
+  "diveLog_media_dropUnlockHint": "افتح قفل هذه الغطسة لإضافة صور إليها.",
   "diveLog_numbering_actions": "الإجراءات",
   "diveLog_numbering_allCorrect": "جميع الغوصات مرقمة بشكل صحيح",
   "diveLog_numbering_assignMissing": "تعيين الأرقام المفقودة",

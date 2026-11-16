@@ -30,18 +30,61 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
           for (final card in diveEditCards.values)
             if (card.isValid?.call(session) == false) card.id,
         ],
-        // Whatever unlocked the page.
-        onStart: (session) => startDiveSitting(session, ref.read),
+        // Whatever unlocked the page. The container's read, not the
+        // page's: a held write can run after the page has gone.
+        onStart: (session) => startDiveSitting(
+          session,
+          ProviderScope.containerOf(context, listen: false).read,
+        ),
       )..addListener(_onEditChanged);
+
+  /// Where a drop finds the open sitting, read with the controller so it
+  /// can still be cleared once the page has gone.
+  late final StateController<OpenDiveSitting?> _openSittingSlot = ref.read(
+    openDiveSittingProvider.notifier,
+  );
+
+  /// The sitting this page last told [openDiveSittingProvider] about.
+  EditSession<Dive>? _toldSitting;
 
   /// Whether a sitting is in progress.
   bool get isSittingOpen => _editController?.isUnlocked ?? false;
 
   void _onEditChanged() {
+    _tellOpenSitting(_editController?.session);
     if (mounted) setState(() {});
   }
 
-  void disposeEditing() => _editController?.dispose();
+  /// Tells a drop which sitting is open, or that this page's has ended.
+  /// Set after the frame's work, since a lock can come while the page is
+  /// being built (another dive handed to it); a drop in between finds the
+  /// ended sitting disposed and is refused.
+  void _tellOpenSitting(EditSession<Dive>? session) {
+    if (session == _toldSitting) return;
+    final told = _toldSitting;
+    _toldSitting = session;
+    final slot = _openSittingSlot;
+    final open = session == null
+        ? null
+        : OpenDiveSitting(
+            diveId: session.stored.id,
+            session: session,
+            showMediaCard: () =>
+                _editController?.addCard(DiveDetailSectionId.media.name),
+          );
+    Future.microtask(() {
+      // The app (its provider scope) may have gone with the page.
+      if (!slot.mounted) return;
+      // Only this page's own: another page may have unlocked since.
+      if (open == null && slot.state?.session != told) return;
+      slot.state = open;
+    });
+  }
+
+  void disposeEditing() {
+    _tellOpenSitting(null);
+    _editController?.dispose();
+  }
 
   /// The dive the cards display: the diver's working copy during a
   /// sitting, or the dive as just saved, else [stored]. Either is used only

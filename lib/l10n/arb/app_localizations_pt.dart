@@ -10786,6 +10786,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_map_tooltip_fitAllSites => 'Ajustar Todos os Pontos';
 
   @override
+  String get diveLog_media_dropUnlockHint =>
+      'Desbloqueie este mergulho para adicionar fotos a ele.';
+
+  @override
   String get diveLog_numbering_actions => 'Ações';
 
   @override

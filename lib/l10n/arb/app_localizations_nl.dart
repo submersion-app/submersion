@@ -10720,6 +10720,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_map_tooltip_fitAllSites => 'Alle stekken passend maken';
 
   @override
+  String get diveLog_media_dropUnlockHint =>
+      'Ontgrendel deze duik om er foto\'s aan toe te voegen.';
+
+  @override
   String get diveLog_numbering_actions => 'Acties';
 
   @override

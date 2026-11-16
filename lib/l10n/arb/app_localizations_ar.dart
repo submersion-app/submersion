@@ -10942,6 +10942,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_map_tooltip_fitAllSites => 'احتواء جميع المواقع';
 
   @override
+  String get diveLog_media_dropUnlockHint =>
+      'افتح قفل هذه الغطسة لإضافة صور إليها.';
+
+  @override
   String get diveLog_numbering_actions => 'الإجراءات';
 
   @override

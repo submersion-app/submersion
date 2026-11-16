@@ -16993,6 +16993,12 @@ abstract class AppLocalizations {
   /// **'Fit All Sites'**
   String get diveLog_map_tooltip_fitAllSites;
 
+  /// Shown when photos or videos are dropped on a dive that is locked: dives are edited only while unlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock this dive to add photos to it.'**
+  String get diveLog_media_dropUnlockHint;
+
   /// No description provided for @diveLog_numbering_actions.
   ///
   /// In en, this message translates to:

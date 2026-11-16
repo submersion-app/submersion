@@ -3303,6 +3303,7 @@
   "diveLog_map_emptyTitle": "אין פעילות צלילה להצגה",
   "diveLog_map_errorLoading": "שגיאה בטעינת נתוני צלילה: {error}",
   "diveLog_map_tooltip_fitAllSites": "התאמה לכל האתרים",
+  "diveLog_media_dropUnlockHint": "בטל את נעילת הצלילה כדי להוסיף לה תמונות.",
   "diveLog_numbering_actions": "פעולות",
   "diveLog_numbering_allCorrect": "כל הצלילות ממוספרות נכון",
   "diveLog_numbering_assignMissing": "הקצאת מספרים חסרים",

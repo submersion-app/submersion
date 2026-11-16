@@ -10825,6 +10825,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_map_tooltip_fitAllSites => 'Ajuster à tous les sites';
 
   @override
+  String get diveLog_media_dropUnlockHint =>
+      'Déverrouillez cette plongée pour y ajouter des photos.';
+
+  @override
   String get diveLog_numbering_actions => 'Actions';
 
   @override
