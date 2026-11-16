@@ -2127,6 +2127,43 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll => 'Same role on every tank';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition => 'Role by tank position';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'Add position';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'Remove position';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Only dives with exactly $count tanks get these roles, in tank order.',
+      one: 'Only dives with exactly $count tank get this role.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count dives don\'t match the tank positions, so their tank roles stay as they are.',
+      one:
+          '$count dive doesn\'t match the tank positions, so its tank roles stay as they are.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => 'Apply changes?';
 
   @override

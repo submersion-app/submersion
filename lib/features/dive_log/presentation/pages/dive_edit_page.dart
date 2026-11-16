@@ -1493,6 +1493,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   DiveTank _bulkTankSpecs = const DiveTank(id: 'bulk-tank-specs');
   Set<TankSpecField> _bulkTankSpecFields = {};
 
+  /// A role per tank position for Update's Role field, or null for the
+  /// template's single role on every tank (issue #4412).
+  List<TankRole>? _bulkTankSlotRoles;
+
   // Bulk tri-state membership state for each reference collection: the members
   // shown across the selected dives (existing + picker-added), their per-item
   // dive counts, and the resulting add/remove delta.
@@ -1934,6 +1938,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       return BulkTankSpecsEditor(
         specs: _bulkTankSpecs,
         fields: _bulkTankSpecFields,
+        slotRoles: _bulkTankSlotRoles,
+        onSlotRolesChanged: (r) => setState(() {
+          _markDirty();
+          _bulkTankSlotRoles = r;
+        }),
         onSpecsChanged: (t) => setState(() {
           _markDirty();
           _bulkTankSpecs = t;

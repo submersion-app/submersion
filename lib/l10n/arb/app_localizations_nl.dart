@@ -2134,6 +2134,44 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll =>
+      'Dezelfde rol voor elke fles';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition => 'Rol per flespositie';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'Positie toevoegen';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'Positie verwijderen';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Alleen duiken met precies $count flessen krijgen deze rollen, in flesvolgorde.',
+      one: 'Alleen duiken met precies $count fles krijgen deze rol.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count duiken passen niet bij de flesposities, dus hun flesrollen blijven ongewijzigd.',
+      one:
+          '$count duik past niet bij de flesposities, dus de flesrollen blijven ongewijzigd.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => 'Wijzigingen toepassen?';
 
   @override
