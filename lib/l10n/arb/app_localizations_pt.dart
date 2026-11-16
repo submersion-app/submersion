@@ -13825,6 +13825,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveTypes_deleteTooltip => 'Excluir tipo de mergulho';
 
   @override
+  String diveTypes_favourite_add(String name) {
+    return 'Adicionar $name aos favoritos';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return 'Remover $name dos favoritos';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'Favoritos';
+
+  @override
   String get diveTypes_editDialog_builtInNameHelper =>
       'Os nomes internos não podem ser alterados';
 
@@ -61455,6 +61468,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'Entradas integradas ocultas';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'Tipos de mergulho favoritos';
 
   @override
   String get backup_restore_copyInOtherAccount =>

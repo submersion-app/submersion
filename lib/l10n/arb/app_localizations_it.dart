@@ -13827,6 +13827,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveTypes_deleteTooltip => 'Elimina tipo immersione';
 
   @override
+  String diveTypes_favourite_add(String name) {
+    return 'Aggiungi $name ai preferiti';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return 'Rimuovi $name dai preferiti';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'Preferiti';
+
+  @override
   String get diveTypes_editDialog_builtInNameHelper =>
       'I nomi predefiniti non possono essere modificati';
 
@@ -61474,6 +61487,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'Voci integrate nascoste';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'Tipi di immersione preferiti';
 
   @override
   String get backup_restore_copyInOtherAccount =>

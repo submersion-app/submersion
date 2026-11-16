@@ -5,8 +5,10 @@ import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/built_ins/visible_built_ins.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/dive_types/presentation/widgets/dive_type_favourite_button.dart';
 import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -84,19 +86,28 @@ class DiveTypeMultiSelectField extends ConsumerWidget {
 
     return InkWell(
       // Hidden built-ins leave the checklist (issue #401), except the ones
-      // this dive already has. The list is fixed while the sheet is open, so
-      // unticking a hidden type there does not make it vanish.
-      onTap: () => _openPicker(
-        context,
-        visibleBuiltIns(
+      // this dive already has; favourites then lead it (issue #4413). The
+      // list is fixed while the sheet is open, so unticking a hidden type or
+      // starring one there does not move or remove a row.
+      onTap: () {
+        final visible = visibleBuiltIns(
           types,
           hidden,
           isBuiltIn: (t) => t.isBuiltIn,
           idOf: (t) => t.id,
           keep: [...selectedTypeIds, ...keepTypeIds],
-        ),
-        label,
-      ),
+        );
+        final favourites = ref.read(favouriteDiveTypeIdsProvider);
+        _openPicker(
+          context,
+          favouritesFirst(visible, favourites, idOf: (t) => t.id),
+          {
+            for (final t in visible)
+              if (favourites.contains(t.id)) t.id,
+          },
+          label,
+        );
+      },
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: label,
@@ -121,6 +132,7 @@ class DiveTypeMultiSelectField extends ConsumerWidget {
   Future<void> _openPicker(
     BuildContext context,
     List<DiveTypeEntity> types,
+    Set<String> favouriteIds,
     String title,
   ) {
     return showModalBottomSheet<void>(
@@ -131,6 +143,7 @@ class DiveTypeMultiSelectField extends ConsumerWidget {
       builder: (context) => _DiveTypePickerSheet(
         title: title,
         types: types,
+        favouriteIds: favouriteIds,
         selectedTypeIds: selectedTypeIds,
         allowEmpty: allowEmpty,
         onChanged: onChanged,
@@ -146,6 +159,7 @@ class _DiveTypePickerSheet extends StatefulWidget {
   const _DiveTypePickerSheet({
     required this.title,
     required this.types,
+    required this.favouriteIds,
     required this.selectedTypeIds,
     required this.allowEmpty,
     required this.onChanged,
@@ -153,6 +167,11 @@ class _DiveTypePickerSheet extends StatefulWidget {
 
   final String title;
   final List<DiveTypeEntity> types;
+
+  /// The ids that were starred, and offered, when the sheet opened: the rows
+  /// under the Favorites heading. Starring in the open sheet does not change
+  /// it, so rows stay put until the sheet is reopened.
+  final Set<String> favouriteIds;
   final List<String> selectedTypeIds;
   final bool allowEmpty;
   final ValueChanged<List<String>> onChanged;
@@ -210,12 +229,48 @@ class _DiveTypePickerSheetState extends State<_DiveTypePickerSheet> {
               child: ListView(
                 shrinkWrap: true,
                 children: [
-                  for (final t in widget.types)
-                    CheckboxListTile(
-                      value: _working.contains(t.id),
-                      onChanged: (v) => _toggle(t.id, v ?? false),
-                      title: Text(t.localizedName(context.l10n)),
+                  if (widget.favouriteIds.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          context.l10n.diveTypes_favourites_header,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ),
                     ),
+                  for (final (i, t) in widget.types.indexed) ...[
+                    // The starred rows lead the list, so the divider goes
+                    // right after the last of them.
+                    if (widget.favouriteIds.isNotEmpty &&
+                        i == widget.favouriteIds.length)
+                      const Divider(),
+                    // The star sits beside the tile, not in its `secondary`:
+                    // CheckboxListTile merges its semantics, which would fold
+                    // the star into the row for a screen reader.
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CheckboxListTile(
+                            value: _working.contains(t.id),
+                            onChanged: (v) => _toggle(t.id, v ?? false),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            title: Text(t.localizedName(context.l10n)),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsetsDirectional.only(end: 8),
+                          child: DiveTypeFavouriteButton(
+                            diveTypeId: t.id,
+                            diveTypeName: t.localizedName(context.l10n),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

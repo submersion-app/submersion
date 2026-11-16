@@ -13733,6 +13733,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveTypes_deleteTooltip => 'Duiktype verwijderen';
 
   @override
+  String diveTypes_favourite_add(String name) {
+    return '$name aan favorieten toevoegen';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return '$name uit favorieten verwijderen';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'Favorieten';
+
+  @override
   String get diveTypes_editDialog_builtInNameHelper =>
       'Ingebouwde namen kunnen niet worden gewijzigd';
 
@@ -61088,6 +61101,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'Verborgen ingebouwde items';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'Favoriete duiktypes';
 
   @override
   String get backup_restore_copyInOtherAccount =>

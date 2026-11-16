@@ -21905,6 +21905,24 @@ abstract class AppLocalizations {
   /// **'Delete dive type'**
   String get diveTypes_deleteTooltip;
 
+  /// Tooltip and screen-reader label on the star button that makes a dive type a favorite, listed first in the dive type pickers
+  ///
+  /// In en, this message translates to:
+  /// **'Add {name} to favorites'**
+  String diveTypes_favourite_add(String name);
+
+  /// Tooltip and screen-reader label on the filled star button that removes a dive type from the favorites
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from favorites'**
+  String diveTypes_favourite_remove(String name);
+
+  /// Heading above the starred dive types at the top of the dive type checklist
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get diveTypes_favourites_header;
+
   /// No description provided for @diveTypes_editDialog_builtInNameHelper.
   ///
   /// In en, this message translates to:
@@ -96752,6 +96770,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hidden built-in entries'**
   String get settings_conflict_field_hiddenBuiltInIds;
+
+  /// Sync conflict dialog label for the dive types a diver starred to list first in the pickers
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite dive types'**
+  String get settings_conflict_field_favouriteDiveTypeIds;
 
   /// Restore failed because the backup's only copy is in a cloud account the backup copy no longer goes to
   ///

@@ -14011,6 +14011,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveTypes_deleteTooltip => 'حذف نوع الغوص';
 
   @override
+  String diveTypes_favourite_add(String name) {
+    return 'إضافة $name إلى المفضلة';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return 'إزالة $name من المفضلة';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'المفضلة';
+
+  @override
   String get diveTypes_editDialog_builtInNameHelper =>
       'لا يمكن تغيير الأسماء المدمجة';
 
@@ -62293,6 +62306,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'العناصر المضمنة المخفية';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'أنواع الغوص المفضلة';
 
   @override
   String get backup_restore_copyInOtherAccount =>

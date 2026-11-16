@@ -13791,6 +13791,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveTypes_deleteTooltip => 'Merülés típus törlése';
 
   @override
+  String diveTypes_favourite_add(String name) {
+    return '$name hozzáadása a kedvencekhez';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return '$name eltávolítása a kedvencekből';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'Kedvencek';
+
+  @override
   String get diveTypes_editDialog_builtInNameHelper =>
       'A beépített nevek nem módosíthatók';
 
@@ -61150,6 +61163,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'Elrejtett beépített elemek';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'Kedvenc merülés típusok';
 
   @override
   String get backup_restore_copyInOtherAccount =>
