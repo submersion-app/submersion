@@ -36,13 +36,26 @@ DayNotePlacement placeDayNote(
   final headingEnd = scanned.headingLineEnds[day.date];
   if (headingEnd != null) {
     // A heading on the last line gets a line of its own under it.
-    final text = headingEnd == notes.length && !notes.endsWith('\n')
-        ? '$notes\n'
-        : notes;
-    return DayNotePlacement(
-      text: text,
-      cursor: headingEnd == notes.length ? text.length : headingEnd,
+    if (headingEnd == notes.length) {
+      final text = notes.endsWith('\n') ? notes : '$notes\n';
+      return DayNotePlacement(text: text, cursor: text.length);
+    }
+    // A heading right above another line (the next heading, with no blank
+    // line between) gets an empty line of its own, so what is typed under
+    // it never runs into that line.
+    final nextLineEnd = notes.indexOf('\n', headingEnd);
+    final nextLine = notes.substring(
+      headingEnd,
+      nextLineEnd < 0 ? notes.length : nextLineEnd,
     );
+    if (nextLine.trim().isNotEmpty) {
+      return DayNotePlacement(
+        text:
+            '${notes.substring(0, headingEnd)}\n${notes.substring(headingEnd)}',
+        cursor: headingEnd,
+      );
+    }
+    return DayNotePlacement(text: notes, cursor: headingEnd);
   }
   final heading = '## $headingLabel';
   final before = notes.trimRight();

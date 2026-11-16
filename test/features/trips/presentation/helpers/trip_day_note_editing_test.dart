@@ -50,6 +50,14 @@ void main() {
       expect(placed.insertedHeading, isNull);
     });
 
+    test('an empty heading right above another gets a line of its own', () {
+      const notes = 'Intro\n## Day 3\n## Day 4\nX';
+      final placed = place(notes);
+      expect(placed.text, 'Intro\n## Day 3\n\n## Day 4\nX');
+      expect(placed.cursor, 'Intro\n## Day 3\n'.length);
+      expect(placed.insertedHeading, isNull);
+    });
+
     test('an empty heading on the last line gets a line under it', () {
       final placed = place('Intro\n## Day 3');
       expect(placed.text, 'Intro\n## Day 3\n');

@@ -2850,11 +2850,6 @@ class _RecordingScanRepo extends _MockTripRepositoryWithTrip {
   }
 }
 
-/// Mock repository that returns a test trip
-/// Serves a trip whose range spans the 2027-03-14 spring-forward, pinned to
-/// explicit calendar dates so the window crosses a transition on every run in
-/// a DST-observing zone, and carrying times of day so the calendar-versus-
-/// elapsed distinction survives in UTC too.
 /// [_MockTripRepositoryWithTrip]'s trip, with Notes (#4625).
 class _MockTripRepositoryWithNotedTrip extends _MockTripRepositoryWithTrip {
   @override
@@ -2862,6 +2857,11 @@ class _MockTripRepositoryWithNotedTrip extends _MockTripRepositoryWithTrip {
       (await super.getTripById(id))?.copyWith(notes: 'Intro');
 }
 
+/// Mock repository that returns a test trip
+/// Serves a trip whose range spans the 2027-03-14 spring-forward, pinned to
+/// explicit calendar dates so the window crosses a transition on every run in
+/// a DST-observing zone, and carrying times of day so the calendar-versus-
+/// elapsed distinction survives in UTC too.
 class _MockTripRepositoryWithDstTrip extends _MockTripRepositoryWithTrip {
   @override
   Future<Trip?> getTripById(String id) async {

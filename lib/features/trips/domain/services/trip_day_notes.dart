@@ -70,6 +70,11 @@ class TripDayNotes {
 /// text names a day ([dayNamedByHeading]). Its passage runs to the next
 /// heading at the same level or a higher one, so deeper subheadings stay in
 /// it. Text outside day headings belongs to no day.
+///
+/// A heading shaped like a day that is not one of [days] (`Day 12` on a
+/// seven-day trip, or any day but the one asked for) holds its deeper
+/// headings the same way and records nothing, so scanning for one day finds
+/// what scanning for all of them does.
 TripDayNotes tripDayNotes(
   String notes,
   List<TripNoteDay> days,
@@ -81,14 +86,17 @@ TripDayNotes tripDayNotes(
   final ends = <DateTime, int>{};
   final headingEnds = <DateTime, int>{};
 
-  // The open day passage: its day, its heading level and where its body
-  // starts in the source.
+  // The open day passage: its day (null for a day shape outside [days]),
+  // its heading level and where its body starts in the source.
+  var open = false;
   DateTime? openDay;
   var openLevel = 0;
   var openStart = 0;
 
   void close(int end) {
     final day = openDay;
+    open = false;
+    openDay = null;
     if (day == null) return;
     final body = notes.substring(openStart, end);
     final trimmed = _trimBlankLines(body);
@@ -96,7 +104,6 @@ TripDayNotes tripDayNotes(
       (parts[day] ??= []).add(trimmed);
       ends[day] = openStart + _lastContentEnd(body);
     }
-    openDay = null;
   }
 
   _Fence? fence;
@@ -112,14 +119,16 @@ TripDayNotes tripDayNotes(
     }
     final heading = _Heading.parse(line.text);
     if (heading == null) continue;
-    if (openDay != null && heading.level <= openLevel) close(line.start);
-    if (openDay != null) continue;
-    final day = dayNamedByHeading(heading.text, days, vocabulary);
-    if (day == null) continue;
+    if (open && heading.level <= openLevel) close(line.start);
+    if (open) continue;
+    final named = _parseDayHeading(heading.text, vocabulary);
+    if (named == null) continue;
+    final day = named.resolve(days);
+    open = true;
     openDay = day;
     openLevel = heading.level;
     openStart = line.end;
-    headingEnds[day] = line.end;
+    if (day != null) headingEnds[day] = line.end;
   }
   close(notes.length);
 
@@ -144,6 +153,48 @@ DateTime? dayNamedByHeading(
   String headingText,
   List<TripNoteDay> days,
   TripDayNotesVocabulary vocabulary,
+) => _parseDayHeading(headingText, vocabulary)?.resolve(days);
+
+/// What a day heading says, before it is matched to a trip's days: a day
+/// number, or a date whose year and weekday may be missing.
+class _NamedDay {
+  const _NamedDay.number(int this.dayNumber)
+    : year = null,
+      month = 0,
+      day = 0,
+      weekday = null;
+
+  const _NamedDay.date({
+    required this.year,
+    required this.month,
+    required this.day,
+    this.weekday,
+  }) : dayNumber = null;
+
+  final int? dayNumber;
+  final int? year;
+  final int month;
+  final int day;
+  final int? weekday;
+
+  DateTime? resolve(List<TripNoteDay> days) {
+    final number = dayNumber;
+    if (number != null) {
+      for (final candidate in days) {
+        if (candidate.dayNumber == number) return candidate.date;
+      }
+      return null;
+    }
+    final date = _find(days, year: year, month: month, day: day);
+    if (date == null) return null;
+    if (weekday != null && date.weekday != weekday) return null;
+    return date;
+  }
+}
+
+_NamedDay? _parseDayHeading(
+  String headingText,
+  TripDayNotesVocabulary vocabulary,
 ) {
   var text = headingText.trim().toLowerCase();
   if (text.endsWith('.') || text.endsWith(':')) {
@@ -152,23 +203,38 @@ DateTime? dayNamedByHeading(
   if (text.isEmpty) return null;
 
   final number = _labelNumber(text, vocabulary);
-  if (number != null) {
-    for (final day in days) {
-      if (day.dayNumber == number) return day.date;
-    }
-    return null;
-  }
+  if (number != null) return _NamedDay.number(number);
 
   final iso = _isoDate.firstMatch(text);
   if (iso != null) {
-    return _find(
-      days,
+    return _NamedDay.date(
       year: int.parse(iso[1]!),
       month: int.parse(iso[2]!),
       day: int.parse(iso[3]!),
     );
   }
-  return _monthDay(text, days, vocabulary);
+
+  // A leading weekday, possibly of several words (Hebrew `yom hamishi`).
+  // A month can share its abbreviation with a weekday (`mar` is March and
+  // Tuesday in Spanish, Italian and French), so the text is also read with
+  // no weekday at all.
+  for (final entry in vocabulary.weekdays.entries) {
+    final rest = _afterWord(text, entry.key);
+    if (rest == null) continue;
+    final date = _monthDay(rest, vocabulary, weekday: entry.value);
+    if (date != null) return date;
+  }
+  return _monthDay(text, vocabulary);
+}
+
+/// [text] after a leading [word] (and an abbreviation's period), when a
+/// space or comma follows it; otherwise null.
+String? _afterWord(String text, String word) {
+  if (!text.startsWith(word)) return null;
+  var rest = text.substring(word.length);
+  if (rest.startsWith('.')) rest = rest.substring(1);
+  if (rest.isEmpty || !_separatorStart.hasMatch(rest)) return null;
+  return rest.replaceFirst(_separatorStart, '');
 }
 
 final RegExp _isoDate = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
@@ -176,6 +242,7 @@ final RegExp _digits = RegExp(r'^\d+$');
 final RegExp _dayOfMonth = RegExp(r'^(\d{1,2})(st|nd|rd|th)?$');
 final RegExp _year = RegExp(r'^\d{4}$');
 final RegExp _separators = RegExp(r'[\s,]+');
+final RegExp _separatorStart = RegExp(r'^[\s,]+');
 
 int? _labelNumber(String text, TripDayNotesVocabulary vocabulary) {
   for (final label in vocabulary.dayLabels) {
@@ -191,20 +258,19 @@ int? _labelNumber(String text, TripDayNotesVocabulary vocabulary) {
   return null;
 }
 
-DateTime? _monthDay(
+/// A month and day in either order, then an optional year, and nothing else.
+_NamedDay? _monthDay(
   String text,
-  List<TripNoteDay> days,
-  TripDayNotesVocabulary vocabulary,
-) {
+  TripDayNotesVocabulary vocabulary, {
+  int? weekday,
+}) {
   final tokens = [
     for (final token in text.split(_separators))
       if (token.isNotEmpty)
         token.endsWith('.') ? token.substring(0, token.length - 1) : token,
   ];
   var index = 0;
-  final weekday = tokens.isNotEmpty ? vocabulary.weekdays[tokens[0]] : null;
-  if (weekday != null) index++;
-  if (tokens.length - index < 2) return null;
+  if (tokens.length < 2) return null;
 
   int? month;
   int? day;
@@ -227,11 +293,7 @@ DateTime? _monthDay(
     index++;
   }
   if (index != tokens.length) return null;
-
-  final date = _find(days, year: year, month: month, day: day);
-  if (date == null) return null;
-  if (weekday != null && date.weekday != weekday) return null;
-  return date;
+  return _NamedDay.date(year: year, month: month, day: day, weekday: weekday);
 }
 
 int? _dayNumber(String token) {
@@ -268,7 +330,7 @@ List<_Line> _lines(String source) {
     if (breakAt < 0) {
       if (start < source.length) {
         lines.add((
-          text: source.substring(start),
+          text: _withoutCarriageReturn(source.substring(start)),
           start: start,
           end: source.length,
         ));
@@ -276,7 +338,7 @@ List<_Line> _lines(String source) {
       break;
     }
     lines.add((
-      text: source.substring(start, breakAt),
+      text: _withoutCarriageReturn(source.substring(start, breakAt)),
       start: start,
       end: breakAt + 1,
     ));
@@ -284,6 +346,10 @@ List<_Line> _lines(String source) {
   }
   return lines;
 }
+
+/// A line's text without the `\r` a Windows line ending leaves on it.
+String _withoutCarriageReturn(String line) =>
+    line.endsWith('\r') ? line.substring(0, line.length - 1) : line;
 
 /// An open fenced code block: the character and length of its opening run.
 class _Fence {
@@ -298,6 +364,9 @@ class _Fence {
     final match = _opening.firstMatch(line);
     if (match == null) return null;
     final run = match[1]!;
+    // A backtick run with another backtick after it on the line is a code
+    // span (```npm i```), not a fence, as in CommonMark.
+    if (run[0] == '`' && line.substring(match.end).contains('`')) return null;
     return _Fence(run[0], run.length);
   }
 

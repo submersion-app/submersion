@@ -114,6 +114,71 @@ void main() {
     });
   });
 
+  group('review fixes', () {
+    test('a month that is also a weekday word still reads as the month', () {
+      // Spanish, Italian and French abbreviate both March and Tuesday "mar".
+      const spanish = TripDayNotesVocabulary(
+        dayLabels: [],
+        months: {'mar': 3},
+        weekdays: {'mar': DateTime.tuesday, 'vie': DateTime.friday},
+      );
+      final march = _days(DateTime(2027, 3, 2), 7);
+      final mar5 = DateTime(2027, 3, 5);
+      expect(dayNamedByHeading('Mar 5', march, spanish), mar5);
+      expect(dayNamedByHeading('Mar 5, 2027', march, spanish), mar5);
+      expect(dayNamedByHeading('vie mar 5', march, spanish), mar5);
+    });
+
+    test('a weekday name with a space in it is read whole', () {
+      const hebrew = TripDayNotesVocabulary(
+        dayLabels: [],
+        months: {'\u05e0\u05d5\u05d1\u05de\u05d1\u05e8': 11},
+        weekdays: {
+          '\u05d9\u05d5\u05dd \u05d7\u05de\u05d9\u05e9\u05d9':
+              DateTime.thursday,
+        },
+      );
+      expect(
+        dayNamedByHeading(
+          '\u05d9\u05d5\u05dd \u05d7\u05de\u05d9\u05e9\u05d9 5 \u05e0\u05d5\u05d1\u05de\u05d1\u05e8',
+          days,
+          hebrew,
+        ),
+        nov5,
+      );
+    });
+
+    test('Windows line endings still mark headings', () {
+      final notes = tripDayNotes(
+        '## Day 3\r\nVis\r\n## Day 4\r\nX\r\n',
+        days,
+        _english,
+      );
+      expect(notes.passages, {nov5: 'Vis', nov6: 'X'});
+    });
+
+    test('a one-line code span is not a fence', () {
+      final notes = tripDayNotes('```npm i```\n## Day 3\nVis', days, _english);
+      expect(notes.passages, {nov5: 'Vis'});
+    });
+
+    test(
+      'a day heading outside the days asked for still holds its subheadings',
+      () {
+        // The editor scans for one day; the story scans for all of them. Both
+        // must agree that day 3 here sits inside day 2.
+        final onlyDay3 = [days[2]];
+        final notes = tripDayNotes(
+          '## Day 2\n### Day 3\nWreck',
+          onlyDay3,
+          _english,
+        );
+        expect(notes.passages, isEmpty);
+        expect(notes.headingLineEnds, isEmpty);
+      },
+    );
+  });
+
   group('tripDayNotes', () {
     TripDayNotes scan(String notes) => tripDayNotes(notes, days, _english);
 
