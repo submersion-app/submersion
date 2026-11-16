@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_nav_track_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_route_links_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_plan_link_sitting.dart';
@@ -81,6 +82,7 @@ void startDiveSitting(EditSession<Dive> session, ProviderRead read) {
   loadDiveRouteLinks(session, read);
   loadDivePlanLink(session, read);
   holdDocumentLinks(session, read);
+  holdSittingMedia(session, SittingMediaWriters.read(read));
 }
 
 /// The held writes that are the dive's own rows (its gas switches, the
@@ -97,6 +99,7 @@ final Set<String> diveOwnHeldWriteKeys = {
   routeLinksKey,
   planLinkKey,
   documentLinksKey,
+  mediaKey,
 };
 
 /// Why a card of the dive page has nothing to edit, for those that have

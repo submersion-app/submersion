@@ -1,0 +1,108 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+
+/// Photos added, unlinked and relinked in a sitting, written at Save
+/// (issue #4527, plan 6).
+void main() {
+  final dive = Dive(id: 'dive-1', dateTime: DateTime.utc(2026));
+  MediaItem row(String id, int minute) => MediaItem(
+    id: id,
+    diveId: 'dive-1',
+    mediaType: MediaType.photo,
+    takenAt: DateTime.utc(2026, 1, 1, 10, minute),
+    createdAt: DateTime.utc(2026),
+    updatedAt: DateTime.utc(2026),
+  );
+  final stored = [row('s1', 5), row('s2', 20)];
+
+  late List<String> calls;
+  late List<String> queued;
+  late bool failRows;
+
+  setUp(() {
+    calls = [];
+    queued = [];
+    failRows = false;
+  });
+
+  EditSession<Dive> started() {
+    final session = EditSession<Dive>(dive);
+    addTearDown(() {
+      if (!session.isDisposed) session.dispose();
+    });
+    holdSittingMedia(
+      session,
+      SittingMediaWriters(
+        writeRows: (prepared) async {
+          if (failRows) throw StateError('disk full');
+          calls.add('rows ${[for (final p in prepared) p.item.id]}');
+          return [for (final p in prepared) p.item.id];
+        },
+        insertNetwork: (requests) async => const [],
+        unlink: (ids) async => calls.add('unlink $ids'),
+        replace: (proposals) async => calls.add('replace ${proposals.length}'),
+        enqueueUpload: queued.add,
+      ),
+    );
+    return session;
+  }
+
+  HeldMediaAdd added(String id, int minute) =>
+      HeldMediaRow((item: row(id, minute), enrichment: null));
+
+  test('an added photo and an unlinked one: written at Save, uploads queued '
+      'after; Cancel writes nothing', () async {
+    final session = started();
+    addMediaToSitting(session, [added('n1', 10)]);
+    unlinkMediaInSitting(session, {'s2'});
+    expect(session.changedCardIds, {'media'});
+    expect(calls, isEmpty);
+
+    await session.runHeldWrites();
+    expect(calls, ['rows [n1]', 'unlink [s2]']);
+    expect(queued, isEmpty);
+    for (final step in mediaAfterCommit(session)) {
+      await step();
+    }
+    expect(queued, ['n1']);
+
+    final cancelled = started();
+    addMediaToSitting(cancelled, [added('n2', 12)]);
+    calls.clear();
+    cancelled.dispose();
+    expect(calls, isEmpty);
+  });
+
+  test('a photo added then unlinked in the sitting: nothing held', () {
+    final session = started();
+    addMediaToSitting(session, [added('n1', 10)]);
+    unlinkMediaInSitting(session, {'n1'});
+    expect(session.isDirty, isFalse);
+    expect(sittingMedia(session).added, isEmpty);
+  });
+
+  test('mediaInSitting: unlinked gone, added shown in time order, one synced '
+      'in meanwhile kept', () {
+    final session = started();
+    addMediaToSitting(session, [added('n1', 10)]);
+    unlinkMediaInSitting(session, {'s1'});
+    final synced = [...stored, row('s3', 30)];
+    expect(mediaInSitting(session, synced).map((m) => m.id), [
+      'n1',
+      's2',
+      's3',
+    ]);
+  });
+
+  test('a failing write leaves no after-commit work', () async {
+    failRows = true;
+    final session = started();
+    addMediaToSitting(session, [added('n1', 10)]);
+    await expectLater(session.runHeldWrites(), throwsStateError);
+    expect(mediaAfterCommit(session), isEmpty);
+  });
+}

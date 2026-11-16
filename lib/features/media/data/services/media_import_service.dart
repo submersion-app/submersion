@@ -1,3 +1,4 @@
+import 'package:uuid/uuid.dart';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -18,6 +19,9 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+
+/// A row prepared for a dive and not yet written, with its enrichment.
+typedef PreparedMedia = ({MediaItem item, MediaEnrichment? enrichment});
 
 /// Result of a media import operation.
 class ImportResult {
@@ -298,6 +302,86 @@ class MediaImportService {
       failures: failures,
       skippedDuplicates: skippedCount,
     );
+  }
+
+  /// What [importPhotosForDive] would write for [selectedAssets], for a
+  /// sitting on the dive that holds it until Save (issue #4527): the
+  /// duplicates left out the same way, each row under a fresh id of its
+  /// own, with its enrichment worked out. Writes nothing.
+  Future<List<PreparedMedia>> prepareForDive({
+    required List<AssetInfo> selectedAssets,
+    required Dive dive,
+  }) async {
+    bool hasPath(AssetInfo a) => a.filePath != null && a.filePath!.isNotEmpty;
+    final gallery = selectedAssets.where((a) => !hasPath(a)).toList();
+    final newGalleryIds = gallery.isEmpty
+        ? const <String>{}
+        : await _unlinkedGalleryIds(
+            gallery,
+            await _mediaRepository.getGalleryLinksForDive(dive.id),
+          );
+    final existingPaths = selectedAssets.any(hasPath)
+        ? await _mediaRepository.getLinkedLocalPathsForDive(dive.id)
+        : const <String>{};
+    final newAssets = selectedAssets.where((a) {
+      if (hasPath(a)) return !existingPaths.contains(a.filePath);
+      return newGalleryIds.contains(a.id);
+    }).toList();
+    final cloudIds = await _cloudIdsFor(newAssets);
+    final clock = dive.profile.isEmpty || newAssets.isEmpty
+        ? null
+        : DiveMediaClock.forDive(
+            dive,
+            primarySourceEntry: await _readPrimarySourceEntry(dive.id),
+          );
+    return [
+      for (final asset in newAssets)
+        _prepared(
+          asset,
+          dive: dive,
+          clock: clock,
+          cloudAssetId: cloudIds[asset.id],
+        ),
+    ];
+  }
+
+  PreparedMedia _prepared(
+    AssetInfo asset, {
+    required Dive dive,
+    required DiveMediaClock? clock,
+    required String? cloudAssetId,
+  }) {
+    final item = _createMediaItemFromAsset(
+      asset,
+      diveId: dive.id,
+      cloudAssetId: cloudAssetId,
+    ).copyWith(id: const Uuid().v4());
+    return (
+      item: item,
+      enrichment: _calculateEnrichment(
+        asset: asset,
+        dive: dive,
+        clock: clock,
+        mediaId: item.id,
+      ),
+    );
+  }
+
+  /// Writes [prepared] as [importPhotosForDive] writes each row: the row,
+  /// then its enrichment. Throws on the first failure, so a sitting's save
+  /// writes all or none of them. Queues no upload: that waits for the
+  /// sitting's write to commit. Returns the rows written.
+  Future<List<MediaItem>> writePrepared(List<PreparedMedia> prepared) async {
+    final written = <MediaItem>[];
+    for (final p in prepared) {
+      final saved = await _mediaRepository.createMedia(p.item);
+      final enrichment = p.enrichment;
+      if (enrichment != null) {
+        await _mediaRepository.saveEnrichment(enrichment);
+      }
+      written.add(saved);
+    }
+    return written;
   }
 
   /// Import selected assets as direct site attachments. Same dedupe
