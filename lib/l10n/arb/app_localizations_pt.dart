@@ -63541,7 +63541,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_buoyancyProfile_body =>
-      'A linha mostra a tua flutuabilidade líquida durante o mergulho, com o mesmo modelo do cartão Flutuabilidade, para o computador que o gráfico mostra. É verde enquanto flutuas e laranja quando tens peso a mais, e a linha tracejada marca o neutro.';
+      'A linha mostra a tua flutuabilidade líquida durante o mergulho, com o mesmo modelo do cartão Flutuabilidade, para o computador que o gráfico mostra. É verde enquanto flutuas e magenta quando tens peso a mais, e a linha tracejada marca o neutro.';
 
   @override
   String get info_term_hypercapnia_label => 'Hipercapnia';

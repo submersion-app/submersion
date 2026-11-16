@@ -63563,7 +63563,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get info_term_buoyancyProfile_body =>
-      'La linea mostra il tuo assetto netto durante l\'immersione, con lo stesso modello della scheda Assetto, per il computer mostrato dal grafico. È verde quando sei positivo e arancione quando sei pesante, e la linea tratteggiata indica il neutro.';
+      'La linea mostra il tuo assetto netto durante l\'immersione, con lo stesso modello della scheda Assetto, per il computer mostrato dal grafico. È verde quando sei positivo e magenta quando sei pesante, e la linea tratteggiata indica il neutro.';
 
   @override
   String get info_term_hypercapnia_label => 'Ipercapnia';

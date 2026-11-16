@@ -63704,7 +63704,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get info_term_buoyancyProfile_body =>
-      'La ligne montre ta flottabilité nette pendant la plongée, avec le même modèle que la carte Flottabilité, pour l\'ordinateur affiché par le graphique. Elle est verte quand tu es positif et orange quand tu es trop lourd, et la ligne pointillée marque le neutre.';
+      'La ligne montre ta flottabilité nette pendant la plongée, avec le même modèle que la carte Flottabilité, pour l\'ordinateur affiché par le graphique. Elle est verte quand tu es positif et magenta quand tu es trop lourd, et la ligne pointillée marque le neutre.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnie';

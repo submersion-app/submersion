@@ -63429,7 +63429,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get info_term_buoyancyProfile_body =>
-      'Die Linie zeigt deinen Nettoauftrieb während des Tauchgangs, aus demselben Modell wie die Auftriebskarte, für den Computer, den das Diagramm zeigt. Grün heißt, du hast Auftrieb, orange, du bist zu schwer; die gestrichelte Linie markiert neutral.';
+      'Die Linie zeigt deinen Nettoauftrieb während des Tauchgangs, aus demselben Modell wie die Auftriebskarte, für den Computer, den das Diagramm zeigt. Grün heißt, du hast Auftrieb, Magenta, du bist zu schwer; die gestrichelte Linie markiert neutral.';
 
   @override
   String get info_term_hypercapnia_label => 'Hyperkapnie';

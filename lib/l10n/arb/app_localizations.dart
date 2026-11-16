@@ -99731,7 +99731,7 @@ abstract class AppLocalizations {
   /// No description provided for @info_term_buoyancyProfile_body.
   ///
   /// In en, this message translates to:
-  /// **'The line shows your net buoyancy through the dive, from the same model as the Buoyancy card, for the computer the chart is showing. It is green while you are buoyant and orange while you are heavy, and the dashed line marks neutral.'**
+  /// **'The line shows your net buoyancy through the dive, from the same model as the Buoyancy card, for the computer the chart is showing. It is green while you are buoyant and magenta while you are heavy, and the dashed line marks neutral.'**
   String get info_term_buoyancyProfile_body;
 
   /// No description provided for @info_term_hypercapnia_label.

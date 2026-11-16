@@ -63606,7 +63606,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get info_term_buoyancyProfile_body =>
-      'La línea muestra tu flotabilidad neta durante la inmersión, con el mismo modelo que la tarjeta de Flotabilidad, para el ordenador que muestra el gráfico. Es verde mientras flotas y naranja mientras pesas de más, y la línea discontinua marca el punto neutro.';
+      'La línea muestra tu flotabilidad neta durante la inmersión, con el mismo modelo que la tarjeta de Flotabilidad, para el ordenador que muestra el gráfico. Es verde mientras flotas y magenta mientras pesas de más, y la línea discontinua marca el punto neutro.';
 
   @override
   String get info_term_hypercapnia_label => 'Hipercapnia';

@@ -63175,7 +63175,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get info_term_buoyancyProfile_body =>
-      'De lijn toont je netto drijfvermogen tijdens de duik, uit hetzelfde model als de kaart Drijfvermogen, voor de computer die de grafiek toont. Hij is groen zolang je drijft en oranje zolang je te zwaar bent, en de stippellijn markeert neutraal.';
+      'De lijn toont je netto drijfvermogen tijdens de duik, uit hetzelfde model als de kaart Drijfvermogen, voor de computer die de grafiek toont. Hij is groen zolang je drijft en magenta zolang je te zwaar bent, en de stippellijn markeert neutraal.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnie';

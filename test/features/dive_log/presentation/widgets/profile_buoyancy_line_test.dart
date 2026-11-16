@@ -148,6 +148,15 @@ void main() {
       expect(buoyant, isNot(heavy));
     });
 
+    test('heavy stays clear of the tank pressure orange', () {
+      // The two lines are often on together; a heavy line in an orange hue
+      // reads as a second pressure trace.
+      final heavyHue = HSVColor.fromColor(heavy).hue;
+      final pressureHue = HSVColor.fromColor(ProfileMetricColors.pressure).hue;
+      final apart = (heavyHue - pressureHue).abs();
+      expect(apart > 180 ? 360 - apart : apart, greaterThan(45));
+    });
+
     test('reach 3:1 against every theme surface, light and dark', () {
       for (final preset in AppThemeRegistry.presets) {
         for (final theme in [preset.lightTheme, preset.darkTheme]) {

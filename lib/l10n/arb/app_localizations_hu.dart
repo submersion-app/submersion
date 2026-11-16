@@ -63212,7 +63212,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_term_buoyancyProfile_body =>
-      'A vonal a merülés alatti nettó felhajtóerődet mutatja, ugyanabból a modellből, mint a Felhajtóerő kártya, a diagramon látható számítógéphez. Zöld, amíg felhajt, és narancssárga, amíg túl nehéz vagy, a szaggatott vonal pedig a semleges szintet jelöli.';
+      'A vonal a merülés alatti nettó felhajtóerődet mutatja, ugyanabból a modellből, mint a Felhajtóerő kártya, a diagramon látható számítógéphez. Zöld, amíg felhajt, és bíbor, amíg túl nehéz vagy, a szaggatott vonal pedig a semleges szintet jelöli.';
 
   @override
   String get info_term_hypercapnia_label => 'Hiperkapnia';
