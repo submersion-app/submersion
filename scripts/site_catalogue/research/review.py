@@ -71,11 +71,17 @@ def _map_link(lat: float, lon: float) -> str:
     return f'<a href="{_e(url)}">map</a>'
 
 
-# How each route placed the site, as the reviewer reads it.
+# How each route placed the site, as the reviewer reads it. The map route
+# also takes coarse figures and fine ones that do not confirm each other
+# (check.py, _check_position), so its wording claims no map; the source
+# rows below say how each figure was read.
 _ROUTES = {
-    "confirmed": "two stated figures that agree",
-    "stated": "one stated figure",
-    "map": "a counting page's map",
+    "confirmed": "two or more fine stated figures that agree",
+    "stated": "one fine stated figure",
+    "map": (
+        "map-grade figures at their mean (a map reading, a coarse figure, "
+        "or figures that do not confirm each other)"
+    ),
 }
 
 

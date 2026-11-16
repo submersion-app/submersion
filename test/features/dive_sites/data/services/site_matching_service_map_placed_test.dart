@@ -53,14 +53,16 @@ void main() {
   late MockDiveRepository dives;
   late MockMediaRepository media;
 
-  SiteMatchingService service() => SiteMatchingService(
+  SiteMatchingService service({
+    SiteMatchSensitivity sensitivity = SiteMatchSensitivity.balanced,
+  }) => SiteMatchingService(
     siteRepository: sites,
     catalogue: catalogue,
     adoption: CatalogueAdoptionService(siteRepository: sites),
     diveRepository: dives,
     mediaRepository: media,
     diverId: 'diver-1',
-    thresholds: SiteMatchSensitivity.balanced.thresholds,
+    thresholds: sensitivity.thresholds,
     runInTransaction: (body) => body(),
   );
 
@@ -125,6 +127,23 @@ void main() {
     ])).single;
 
     expect(proposal.candidates.map((c) => c.id), ['research_id_coral_garden']);
+  });
+
+  test('at the relaxed setting, whose outer radius is the 2 km reach, 500 '
+      'nearer records do not crowd out a map-placed record', () async {
+    catalogue.sites = [
+      for (var i = 0; i < 500; i++) _site('wreck_$i', 1000 + i.toDouble()),
+      _researched('research_id_coral_garden', 1900, fromMap: true),
+    ];
+
+    final proposal = (await service(
+      sensitivity: SiteMatchSensitivity.relaxed,
+    ).computeProposals([_diveAt('d1', const GeoPoint(0, 0))])).single;
+
+    expect(
+      proposal.candidates.map((c) => c.id),
+      contains('research_id_coral_garden'),
+    );
   });
 
   test('a dive whose site has no position lists a map-placed record 1.5 km '

@@ -226,20 +226,18 @@ class SiteMatchingService {
       _pointByDive[dive.id] = point;
 
       // Map-placed records are offered from further out than the rest,
-      // and are read on their own there: in one wider read, the records
-      // nearer the dive could fill its limit first.
+      // and are always read on their own: in a shared read, the records
+      // nearer the dive could fill its limit first, even when the outer
+      // radius is already as wide as the map-placed reach.
       final inRadius = await _catalogue.near(
         point,
         radiusMeters: thresholds.outerRadiusMeters,
       );
-      final mapReach = mapPlacedReachMeters(thresholds);
-      final mapPlaced = mapReach > thresholds.outerRadiusMeters
-          ? await _catalogue.near(
-              point,
-              radiusMeters: mapReach,
-              mapPlacedOnly: true,
-            )
-          : const <CatalogueSite>[];
+      final mapPlaced = await _catalogue.near(
+        point,
+        radiusMeters: mapPlacedReachMeters(thresholds),
+        mapPlacedOnly: true,
+      );
       final inRadiusIds = {for (final b in inRadius) b.id};
       final bundled = [
         ...inRadius,

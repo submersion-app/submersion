@@ -21,7 +21,7 @@ sys.path[:0] = [_HERE, os.path.dirname(_HERE), os.path.dirname(os.path.dirname(_
 
 import check  # noqa: E402
 import review  # noqa: E402
-from check_test import DOMAINS, TODAY, _entry, _map_source, _placed  # noqa: E402
+from check_test import _A, DOMAINS, TODAY, _entry, _map_source, _placed  # noqa: E402
 
 
 def _page(*entries):
@@ -135,8 +135,19 @@ class ReviewPageTest(unittest.TestCase):
     def test_the_route_is_shown(self):
         page = _page(_placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937))
         self.assertIn("Placed by", page)
-        self.assertIn("a counting page&#x27;s map", page)
-        self.assertIn("two stated figures that agree", _page(_entry()))
+        self.assertIn("map-grade figures at their mean", page)
+        self.assertIn("two or more fine stated figures that agree", _page(_entry()))
+        one = _placed([dict(_A)], _A["lat"], _A["lon"])
+        self.assertIn("one fine stated figure", _page(one))
+
+    def test_a_coarse_figure_alone_is_not_said_to_be_read_off_a_map(self):
+        # The map route also takes a coarse stated figure (check.py), so
+        # its wording must not claim a map was read.
+        source = {"url": "https://opa.com/w", "read": "2026-11-16",
+                  "lat": -8.27, "lon": 115.59}
+        page = _page(_placed([source], -8.27, 115.59))
+        self.assertIn("map-grade figures at their mean", page)
+        self.assertNotIn("counting page&#x27;s map", page)
 
     def test_a_flag_is_shown_and_does_not_block_approval(self):
         a = _placed([_map_source(-8.2700, 115.5929)], -8.2700, 115.5929,
