@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_
 import 'package:submersion/features/dive_log/presentation/utils/filter_option_search.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_gear_attributes_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/searchable_filter_dropdown.dart';
+import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
@@ -213,7 +214,12 @@ class _RefineGasEquipmentGroupState
                 searchHintText: l10n.diveLog_filter_searchTypesHint,
                 icon: Icons.category,
                 options: [
-                  for (final type in types)
+                  // Starred types lead, as in the type checklist (#4413).
+                  for (final type in favouritesFirst(
+                    types,
+                    ref.watch(favouriteDiveTypeIdsProvider),
+                    idOf: (t) => t.id,
+                  ))
                     FilterDropdownOption(
                       value: type.id,
                       label: type.localizedName(l10n),
