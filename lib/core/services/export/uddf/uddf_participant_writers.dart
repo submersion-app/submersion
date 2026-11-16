@@ -59,6 +59,15 @@ abstract final class UddfParticipantWriters {
               }
             },
           );
+          // Where the buddy is from (issue #4457), in UDDF's address
+          // element; personal details, so a trimmed export leaves it out.
+          final country = buddy.country?.trim();
+          if (!trimmed && country != null && country.isNotEmpty) {
+            builder.element(
+              'address',
+              nest: () => builder.element('country', nest: country),
+            );
+          }
           if (buddy.certificationLevel != null ||
               buddy.certificationAgency != null) {
             builder.element(
