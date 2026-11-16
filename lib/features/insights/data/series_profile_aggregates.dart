@@ -332,7 +332,11 @@ void _foldDepthSeconds(
   for (var i = 0; i + 1 < samples.length; i++) {
     final gap = samples[i + 1].timestamp - samples[i].timestamp;
     if (gap <= 0) continue;
-    final band = scale.bandOf(samples[i].depth);
+    final depth = samples[i].depth;
+    // A sample with no usable depth (a corrupt import) says nothing about
+    // where the diver was, and flooring it would throw.
+    if (!depth.isFinite) continue;
+    final band = scale.bandOf(depth);
     seconds[band] = (seconds[band] ?? 0) + (gap < cap ? gap.toDouble() : cap);
   }
 }
@@ -347,6 +351,10 @@ void _foldDepthSeconds(
 /// null). Its minutes are rounded from the summed seconds, not summed from
 /// rounded minutes, so several slivers of deep time are not each rounded
 /// away.
+///
+/// Bars at the deep end that round to no minutes are left off: a depth
+/// spike a few seconds long, common in recorded profiles, would otherwise
+/// stretch the chart with bars reading 0. The first bar always stays.
 List<DepthBucket> bucketsFromSeconds(
   Map<int, double> seconds, {
   DepthBandScale scale = DepthBandScale.metric,
@@ -365,7 +373,7 @@ List<DepthBucket> bucketsFromSeconds(
     return total;
   }
 
-  return [
+  final bars = <DepthBucket>[
     for (var band = 0; band <= last; band++)
       (
         lowerDepth: band * scale.step,
@@ -373,4 +381,9 @@ List<DepthBucket> bucketsFromSeconds(
         minutes: (secondsAt(band) / 60).round(),
       ),
   ];
+  var length = bars.length;
+  while (length > 1 && bars[length - 1].minutes == 0) {
+    length--;
+  }
+  return bars.sublist(0, length);
 }

@@ -776,7 +776,7 @@ final ascentDescentRatesProvider =
     });
 
 /// Time at depth, banded in the diver's own depth unit (issue #4600): a unit
-/// change re-bands the samples rather than relabelling metre bands.
+/// change re-bands the samples rather than relabelling meter bands.
 final timeAtDepthRangesProvider = FutureProvider<List<DepthBucket>>((
   ref,
 ) async {

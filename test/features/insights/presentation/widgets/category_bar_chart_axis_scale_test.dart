@@ -16,6 +16,13 @@ Future<void> _pump(WidgetTester tester, Widget chart) => tester.pumpWidget(
 );
 
 void main() {
+  test('a scale below one is rejected', () {
+    expect(
+      () => CategoryBarChart(data: const [], yAxisScale: 0),
+      throwsAssertionError,
+    );
+  });
+
   testWidgets('default scale keeps whole-count ticks', (tester) async {
     await _pump(
       tester,

@@ -46,6 +46,9 @@ hides the spread that matters most to deep and technical divers.
 - Bands run from 0 down to the deepest band that holds any time. Bands in
   between that hold no time show as zero-height bars, so the depth axis stays
   continuous.
+- Bars at the deep end that round to no minutes are left off (found in
+  review): a depth spike a few seconds long would otherwise stretch the chart
+  with bars reading 0.
 - At most 8 bars. When time exists deeper than the 8th band, the 8th bar
   becomes an open-ended band holding all time from its lower edge down:
   "70+" in metres, "210+" in feet.

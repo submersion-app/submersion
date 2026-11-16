@@ -101,6 +101,20 @@ void main() {
       expect(r.last.minutes, ((40 + 2912) / 60).round());
     });
 
+    test('a sample with no usable depth is skipped, not thrown on', () {
+      final r = timeAtDepthRanges({
+        ('d1', null): const [
+          ProfileSample(timestamp: 0, depth: 5.0),
+          ProfileSample(timestamp: 60, depth: double.nan),
+          ProfileSample(timestamp: 120, depth: double.infinity),
+          ProfileSample(timestamp: 180, depth: 5.0),
+          ProfileSample(timestamp: 240, depth: 5.0),
+        ],
+      });
+      // Only the first and last intervals start at a real depth.
+      expect(r, [(lowerDepth: 0, upperDepth: 10, minutes: 2)]);
+    });
+
     test('a stream with a single sample contributes nothing', () {
       expect(
         timeAtDepthRanges({

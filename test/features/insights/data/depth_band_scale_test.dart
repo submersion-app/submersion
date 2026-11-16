@@ -61,6 +61,26 @@ void main() {
       expect(buckets.map((b) => b.upperDepth), [30, 60, 90]);
     });
 
+    test('a sliver of deep time does not add empty trailing bars', () {
+      // A two-second glitch at 95 m rounds to no minutes at all.
+      expect(bucketsFromSeconds({0: 600, 9: 2}), [
+        (lowerDepth: 0, upperDepth: 10, minutes: 10),
+      ]);
+    });
+
+    test('an open-ended bar that rounds to nothing is dropped too', () {
+      expect(bucketsFromSeconds({0: 600, 1: 600, 7: 20, 12: 5}), [
+        (lowerDepth: 0, upperDepth: 10, minutes: 10),
+        (lowerDepth: 10, upperDepth: 20, minutes: 10),
+      ]);
+    });
+
+    test('a log of slivers still keeps its first bar', () {
+      expect(bucketsFromSeconds({3: 10}), [
+        (lowerDepth: 0, upperDepth: 10, minutes: 0),
+      ]);
+    });
+
     test('empty seconds give no buckets', () {
       expect(bucketsFromSeconds(const {}), isEmpty);
     });

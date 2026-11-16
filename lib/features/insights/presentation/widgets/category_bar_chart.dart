@@ -23,6 +23,7 @@ class CategoryBarChart extends StatefulWidget {
   /// How many counts make one unit of the y axis. The bars stay in counts;
   /// only the ticks change: at 60 a chart of minutes steps and labels its
   /// axis in whole hours (issue #4600). 1 labels the counts themselves.
+  /// Must be at least 1.
   final int yAxisScale;
 
   /// Optional callback to shorten x-axis labels when bars are crowded
@@ -64,7 +65,7 @@ class CategoryBarChart extends StatefulWidget {
     this.compactXLabelFormatter,
     this.compactXLabelsToFit = false,
     this.onOpenBar,
-  });
+  }) : assert(yAxisScale > 0, 'yAxisScale must be at least 1');
 
   @override
   State<CategoryBarChart> createState() => _CategoryBarChartState();
