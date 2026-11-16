@@ -13779,6 +13779,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveTypes_deleteTooltip => 'Tauchgangstyp löschen';
 
   @override
+  String get diveTypes_favourite_add => 'Zu Favoriten hinzufügen';
+
+  @override
+  String get diveTypes_favourite_remove => 'Aus Favoriten entfernen';
+
+  @override
+  String get diveTypes_favourites_header => 'Favoriten';
+
+  @override
   String get diveTypes_editDialog_builtInNameHelper =>
       'Interne Namen können nicht geändert werden';
 
@@ -61240,6 +61249,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'Ausgeblendete integrierte Einträge';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'Favorisierte Tauchgangstypen';
 
   @override
   String get backup_restore_copyInOtherAccount =>

@@ -13104,6 +13104,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveTypes_deleteTooltip => '删除潜水类型';
 
   @override
+  String get diveTypes_favourite_add => '添加到收藏';
+
+  @override
+  String get diveTypes_favourite_remove => '从收藏中移除';
+
+  @override
+  String get diveTypes_favourites_header => '收藏';
+
+  @override
   String get diveTypes_editDialog_builtInNameHelper => '内置名称无法更改';
 
   @override
@@ -57617,6 +57626,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_hiddenBuiltInIds => '已隐藏的内置项目';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds => '收藏的潜水类型';
 
   @override
   String get backup_restore_copyInOtherAccount =>

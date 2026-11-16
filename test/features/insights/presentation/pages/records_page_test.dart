@@ -12,6 +12,7 @@ import 'package:submersion/core/constants/first_day_of_week.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -142,6 +143,17 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
         catalog,
         id,
         hidden,
+      ),
+    );
+  }
+
+  @override
+  Future<void> setDiveTypeFavourite(String id, bool favourite) async {
+    state = state.copyWith(
+      favouriteDiveTypeIds: withDiveTypeFavourite(
+        state.favouriteDiveTypeIds,
+        id,
+        favourite,
       ),
     );
   }

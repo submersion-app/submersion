@@ -1,4 +1,5 @@
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
+import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain
     show TurnPressureRule;
@@ -227,6 +228,17 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
         catalog,
         id,
         hidden,
+      ),
+    );
+  }
+
+  @override
+  Future<void> setDiveTypeFavourite(String id, bool favourite) async {
+    state = state.copyWith(
+      favouriteDiveTypeIds: withDiveTypeFavourite(
+        state.favouriteDiveTypeIds,
+        id,
+        favourite,
       ),
     );
   }

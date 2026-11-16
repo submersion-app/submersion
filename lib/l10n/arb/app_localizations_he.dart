@@ -13486,6 +13486,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveTypes_deleteTooltip => 'מחק סוג צלילה';
 
   @override
+  String get diveTypes_favourite_add => 'הוספה למועדפים';
+
+  @override
+  String get diveTypes_favourite_remove => 'הסרה מהמועדפים';
+
+  @override
+  String get diveTypes_favourites_header => 'מועדפים';
+
+  @override
   String get diveTypes_editDialog_builtInNameHelper =>
       'לא ניתן לשנות שמות מובנים';
 
@@ -60094,6 +60103,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'פריטים מובנים מוסתרים';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'סוגי צלילה מועדפים';
 
   @override
   String get backup_restore_copyInOtherAccount =>

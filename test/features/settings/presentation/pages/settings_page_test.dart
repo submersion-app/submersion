@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
+import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -183,6 +184,17 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
         catalog,
         id,
         hidden,
+      ),
+    );
+  }
+
+  @override
+  Future<void> setDiveTypeFavourite(String id, bool favourite) async {
+    state = state.copyWith(
+      favouriteDiveTypeIds: withDiveTypeFavourite(
+        state.favouriteDiveTypeIds,
+        id,
+        favourite,
       ),
     );
   }

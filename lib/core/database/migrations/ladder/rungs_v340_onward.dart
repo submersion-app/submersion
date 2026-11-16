@@ -241,5 +241,11 @@ extension RungsFromV340 on AppDatabase {
     // defaulted off; re-asserted in beforeOpen.
     if (from < 370) await _assertDefaultShowBuoyancyColumn();
     if (from < 370) await reportProgress();
+
+    // v371: diver_settings.favourite_dive_type_ids, the dive types a diver
+    // starred to list first in the pickers (issue #4413). Nullable, no
+    // backfill, so the floor does not move; re-asserted in beforeOpen.
+    if (from < 371) await _assertFavouriteDiveTypeIdsColumn();
+    if (from < 371) await reportProgress();
   }
 }
