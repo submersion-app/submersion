@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -87,6 +89,13 @@ ToolbarActionSplit splitToolbarActions(
     List.unmodifiable(actions.where((a) => !keep.contains(a))),
   );
 }
+
+/// The room the editing bar gives its actions in a bar [width] wide:
+/// Cancel, Save and the title keep about 240 px, and the actions take what
+/// is left, up to half the bar, so a phone still reads the title. Never
+/// less than one button, which holds the overflow menu.
+double editBarActionsWidth(double width) =>
+    math.max(kToolbarButtonExtent, math.min(width - 240, width / 2));
 
 /// What the toolbar draws while the photo is unlocked (issue #4527): the
 /// shared editing bar, with Cancel, [title] and Save.
@@ -390,13 +399,6 @@ class MediaViewerToolbar extends ConsumerWidget {
     MediaViewerEditBar bar,
     List<MediaViewerAction> actions,
   ) {
-    // Cancel, Save and the title keep about 240 px; the actions take what
-    // is left, up to half the bar, so a phone still reads the title.
-    final width = MediaQuery.sizeOf(context).width;
-    final split = splitToolbarActions(
-      actions,
-      (width - 240).clamp(kToolbarButtonExtent, width / 2),
-    );
     return Positioned(
       top: 0,
       left: 0,
@@ -406,13 +408,24 @@ class MediaViewerToolbar extends ConsumerWidget {
       // with the viewer's full-screen tap target under it.
       child: Semantics(
         container: true,
-        child: RecordEditBar(
-          title: bar.title,
-          canSave: bar.canSave,
-          isSaving: bar.isSaving,
-          onCancel: bar.onCancel,
-          onSave: bar.onSave,
-          actions: _buttons(context, split, null),
+        // The bar's own width: Adjust color docked beside the viewer takes
+        // part of the window.
+        child: LayoutBuilder(
+          builder: (context, constraints) => RecordEditBar(
+            title: bar.title,
+            canSave: bar.canSave,
+            isSaving: bar.isSaving,
+            onCancel: bar.onCancel,
+            onSave: bar.onSave,
+            actions: _buttons(
+              context,
+              splitToolbarActions(
+                actions,
+                editBarActionsWidth(constraints.maxWidth),
+              ),
+              null,
+            ),
+          ),
         ),
       ),
     );

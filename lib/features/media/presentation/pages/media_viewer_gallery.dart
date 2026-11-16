@@ -77,6 +77,7 @@ class _PhotoGallery extends ConsumerWidget {
               maxScale: PhotoViewComputedScale.contained,
               child: _ConnectorVideoItem(
                 item: item,
+                sitting: people.sitting,
                 fullscreen: fullscreen,
                 showControls: showOverlay,
                 onFullscreenTap: onFullscreenTap,
@@ -197,8 +198,13 @@ class _ConnectorVideoItem extends ConsumerWidget {
   final bool showControls;
   final VoidCallback? onFullscreenTap;
 
+  /// The photo's sitting, whose colour the poster is drawn with when it is
+  /// over this item (issue #4527).
+  final EditSession<PhotoRecord>? sitting;
+
   const _ConnectorVideoItem({
     required this.item,
+    this.sitting,
     this.fullscreen = false,
     this.showControls = true,
     this.onFullscreenTap,
@@ -256,7 +262,12 @@ class _ConnectorVideoItem extends ConsumerWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          MediaItemView(item: _withLiveColor(ref, item), fit: BoxFit.contain),
+          MediaItemView(
+            item: sittingIsOver(sitting, item.id)
+                ? item
+                : _withLiveColor(ref, item),
+            fit: BoxFit.contain,
+          ),
           if (!fullscreen)
             badge
           else if (showControls)

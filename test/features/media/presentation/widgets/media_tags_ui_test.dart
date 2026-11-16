@@ -242,5 +242,64 @@ void main() {
       // The tag input refocuses on a short timer after a submit.
       await tester.pump(const Duration(seconds: 1));
     });
+
+    testWidgets('in a sitting: the card redraws as the held tags change', (
+      tester,
+    ) async {
+      final sitting = sittingOver();
+      await pump(tester, MediaInfoTagsSection(item: item, sitting: sitting));
+      expect(find.text('No tags yet'), findsOneWidget);
+
+      sitting.set(
+        photoTagsField,
+        MediaTagEdits.between(const [], [
+          Tag(
+            id: 'wreck',
+            name: 'Wreck',
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Wreck'), findsOneWidget);
+    });
+
+    testWidgets('a sitting that has ended: the card offers no Edit tags', (
+      tester,
+    ) async {
+      final sitting = EditSession<PhotoRecord>(
+        PhotoRecord(item: item, species: const [], people: const []),
+      )..dispose();
+
+      await pump(tester, MediaInfoTagsSection(item: item, sitting: sitting));
+
+      expect(find.byKey(const ValueKey('media_info_editTags')), findsNothing);
+    });
+
+    testWidgets('a sitting that ended under the sheet: no tag is written', (
+      tester,
+    ) async {
+      final sitting = EditSession<PhotoRecord>(
+        PhotoRecord(item: item, species: const [], people: const []),
+      );
+      await pump(tester, MediaTagSheet(item: item, sitting: sitting));
+
+      // The photo was deleted elsewhere, say: the sitting ends, then a tag
+      // tick rebuilds the sheet.
+      sitting.dispose();
+      await tester.runAsync(() => links.replaceTags('m1', ['wreck']));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byType(TagInputWidget),
+          matching: find.byType(TextField),
+        ),
+        findsNothing,
+      );
+      expect(await tester.runAsync(tagIds), {'wreck'});
+    });
   });
 }

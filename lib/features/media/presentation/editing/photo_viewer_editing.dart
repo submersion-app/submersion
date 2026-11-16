@@ -115,8 +115,8 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     photoEditController.unlock(stored);
   }
 
-  /// The sitting's photo is no longer stored, or no longer in the list: the
-  /// sitting ends, and the diver is told nothing was saved.
+  /// The sitting's photo is no longer stored: the sitting ends, and the
+  /// diver is told nothing was saved.
   void _endForGonePhoto() {
     final controller = _photoController;
     if (controller == null || !controller.isUnlocked) return;
@@ -132,12 +132,17 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   /// Where the sitting's photo last was in the viewer's list.
   int _sittingSlot = 0;
 
+  /// Whether the last [keepSittingPhoto] had to put the sitting's photo in:
+  /// it is in the list only while the sitting lasts.
+  bool _keptOnly = false;
+
   /// [list] with the sitting's photo kept in it, at the place it last had,
   /// while its row exists (Eric, 2026-11-16): another device dropping it from
   /// this list (untagging the species, moving the dive out of the trip) does
   /// not end the sitting. Only the photo's deletion does ([followStoredPhoto]).
   List<MediaItem> keepSittingPhoto(List<MediaItem> list) {
     final session = photoSitting;
+    _keptOnly = false;
     if (session == null) return list;
     final photo = session.stored.item;
     final at = list.indexWhere((m) => m.id == photo.id);
@@ -145,21 +150,18 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
       _sittingSlot = at;
       return list;
     }
+    _keptOnly = true;
     final slot = _sittingSlot.clamp(0, list.length);
     return [...list.sublist(0, slot), photo, ...list.sublist(slot)];
   }
 
-  /// Where the sitting's photo is in [list], or null when it is not there.
-  /// A photo gone from the list ends the sitting.
+  /// Where the sitting's photo is in [list], a list [keepSittingPhoto]
+  /// returned, or null with no sitting.
   int? sittingIndexIn(List<MediaItem> list) {
     final id = _sittingId;
     if (id == null) return null;
     final index = list.indexWhere((m) => m.id == id);
-    if (index < 0) {
-      _endForGonePhoto();
-      return null;
-    }
-    return index;
+    return index < 0 ? null : index;
   }
 
   /// [stored] with the sitting's photo drawn as the sitting has it.
@@ -183,16 +185,23 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     return photoShownItem(session, profile);
   }
 
-  /// Steps to another photo through the check: with changes it asks first;
-  /// either way the photo is locked before [step], so every photo opens
-  /// locked.
-  Future<void> stepGuarded(VoidCallback step) async {
+  /// Steps [delta] photos through the check: with changes it asks first;
+  /// either way the photo is locked before [step] runs, so every photo
+  /// opens locked.
+  ///
+  /// A photo kept in the list only by its sitting leaves it as the sitting
+  /// ends, and the photo after it slides into its place: a step forward has
+  /// then been taken already, so [step] is given one less.
+  Future<void> stepGuarded(int delta, void Function(int delta) step) async {
     final controller = _photoController;
     if (controller == null || !controller.isUnlocked) {
-      step();
+      step(delta);
       return;
     }
-    if (await cancelSitting(context, controller) && mounted) step();
+    final keptOnly = _keptOnly;
+    if (await cancelSitting(context, controller) && mounted) {
+      step(keptOnly && delta > 0 ? delta - 1 : delta);
+    }
   }
 
   /// For a way out that `PopScope` does not see (the close button, the

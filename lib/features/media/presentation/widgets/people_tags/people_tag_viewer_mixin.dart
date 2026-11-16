@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:submersion/core/platform/host_platform.dart';
@@ -24,7 +25,6 @@ import 'package:submersion/features/media/presentation/widgets/people_tags/peopl
 import 'package:submersion/features/media/presentation/widgets/people_tags/person_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
-import 'package:uuid/uuid.dart';
 
 /// Whether a face box can be placed on [item] here (issue #1745). A photo
 /// needs its size known, to map a tap onto it. A video also needs a player

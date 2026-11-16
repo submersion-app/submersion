@@ -73,6 +73,7 @@ void main() {
       String? writeMetadataDisabledReason,
       bool editing = false,
       bool canSave = false,
+      double dockedPanel = 0,
     }) async {
       tester.view.physicalSize = Size(width, 800);
       tester.view.devicePixelRatio = 1.0;
@@ -96,40 +97,52 @@ void main() {
               ).copyWith(textScaler: TextScaler.linear(textScale)),
               child: child!,
             ),
+            // [dockedPanel] takes the right of the window, as Adjust color
+            // does from the desktop breakpoint.
             home: Scaffold(
-              body: Stack(
+              body: Row(
                 children: [
-                  MediaViewerToolbar(
-                    item: item,
-                    currentIndex: 11,
-                    totalCount: 345,
-                    onClose: () => calls.add('close'),
-                    onEnterFullscreen: () => calls.add('fullscreen'),
-                    onShare: (_) => calls.add('share'),
-                    onShowInfo: () => calls.add('info'),
-                    onWriteMetadata: () => calls.add('write_metadata'),
-                    onTagSpecies: () => calls.add('species'),
-                    canWriteMetadata: true,
-                    showPerdixToggle: true,
-                    perdixEnabled: false,
-                    onTogglePerdix: () => calls.add('perdix'),
-                    onOpenInLightroom: () => calls.add('lightroom'),
-                    onGoToDive: () => calls.add('go_to_dive'),
-                    onReupload: (_) => calls.add('reupload'),
-                    onAdjustColor: () => calls.add('adjust_color'),
-                    onUnlock: unlockable ? () => calls.add('unlock') : null,
-                    writeControls: writeControls,
-                    writeMetadataDisabledReason: writeMetadataDisabledReason,
-                    editBar: editing
-                        ? MediaViewerEditBar(
-                            title: 'Editing photo',
-                            canSave: canSave,
-                            isSaving: false,
-                            onCancel: () => calls.add('cancel'),
-                            onSave: () => calls.add('save'),
-                          )
-                        : null,
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        MediaViewerToolbar(
+                          item: item,
+                          currentIndex: 11,
+                          totalCount: 345,
+                          onClose: () => calls.add('close'),
+                          onEnterFullscreen: () => calls.add('fullscreen'),
+                          onShare: (_) => calls.add('share'),
+                          onShowInfo: () => calls.add('info'),
+                          onWriteMetadata: () => calls.add('write_metadata'),
+                          onTagSpecies: () => calls.add('species'),
+                          canWriteMetadata: true,
+                          showPerdixToggle: true,
+                          perdixEnabled: false,
+                          onTogglePerdix: () => calls.add('perdix'),
+                          onOpenInLightroom: () => calls.add('lightroom'),
+                          onGoToDive: () => calls.add('go_to_dive'),
+                          onReupload: (_) => calls.add('reupload'),
+                          onAdjustColor: () => calls.add('adjust_color'),
+                          onUnlock: unlockable
+                              ? () => calls.add('unlock')
+                              : null,
+                          writeControls: writeControls,
+                          writeMetadataDisabledReason:
+                              writeMetadataDisabledReason,
+                          editBar: editing
+                              ? MediaViewerEditBar(
+                                  title: 'Editing photo',
+                                  canSave: canSave,
+                                  isSaving: false,
+                                  onCancel: () => calls.add('cancel'),
+                                  onSave: () => calls.add('save'),
+                                )
+                              : null,
+                        ),
+                      ],
+                    ),
                   ),
+                  if (dockedPanel > 0) SizedBox(width: dockedPanel),
                 ],
               ),
             ),
@@ -388,6 +401,27 @@ void main() {
         );
         expect(icons, findsNWidgets(2));
         expect(find.byKey(const ValueKey('viewer_overflow')), findsOneWidget);
+      });
+
+      testWidgets(
+        'editBar beside a docked panel fits the bar, not the window',
+        (tester) async {
+          // 800 px wide with Adjust color docked: the bar is 480 px.
+          await pumpFull(tester, 800, editing: true, dockedPanel: 320);
+          expect(tester.takeException(), isNull);
+          expect(find.byKey(const ValueKey('viewer_overflow')), findsOneWidget);
+          expect(find.text('Save'), findsOneWidget);
+        },
+      );
+
+      test('the actions get what Cancel, Save and the title leave, up to '
+          'half the bar, and one button however narrow', () {
+        expect(editBarActionsWidth(1280), 640);
+        expect(editBarActionsWidth(480), 240);
+        expect(editBarActionsWidth(300), 60);
+        expect(editBarActionsWidth(260), kToolbarButtonExtent);
+        // Under two buttons wide, half the bar is less than one button.
+        expect(editBarActionsWidth(90), kToolbarButtonExtent);
       });
 
       testWidgets('a read-only device offers no lock', (tester) async {

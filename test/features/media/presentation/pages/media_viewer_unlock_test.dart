@@ -465,6 +465,35 @@ void main() {
       );
     });
 
+    testWidgets('Next from a photo kept only by its sitting: the photo that '
+        'took its place, none skipped', (tester) async {
+      await tester.runAsync(
+        () => insertTestMedia(
+          id: 'p4',
+          diveId: 'd1',
+          takenAt: DateTime(2024, 1, 10, 9, 3),
+        ),
+      );
+      await pumpViewerApp(
+        tester,
+        const PhotoViewerPage(
+          diveId: 'd1',
+          initialMediaId: 'p2',
+          unlockEditing: true,
+        ),
+      );
+      await tapUnlock(tester);
+      await tester.runAsync(() => MediaRepository().unlinkFromDive(['p2']));
+      await settleViewer(tester, rounds: 10);
+
+      await tester.tap(find.byTooltip('Next media'));
+      await settleViewer(tester, rounds: 10);
+
+      // [p1, p3, p4] once the sitting ends: p3 is in p2's place.
+      expect(find.byType(RecordEditBar), findsNothing);
+      expect(gallery(tester).pageController!.page, 1);
+    });
+
     testWidgets('the sitting\'s photo removed: the sitting ends with the '
         'message; nothing written', (tester) async {
       await pumpViewerApp(

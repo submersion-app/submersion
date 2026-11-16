@@ -34,9 +34,23 @@ class MediaInfoTagsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // The info sheet is a route of its own, which the viewer's redraws do
+    // not reach: the card follows the sitting itself.
+    final session = sitting;
+    if (session == null || session.isDisposed) return _card(context, ref);
+    return ListenableBuilder(
+      listenable: session,
+      builder: (context, _) => _card(context, ref),
+    );
+  }
+
+  Widget _card(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final held = sittingIsOver(sitting, item.id) ? sitting : null;
+    // A sitting that has ended offers nothing: Edit tags without it would
+    // write at once, outside the lock.
+    final canEdit = !readOnly && (sitting == null || held != null);
     final tags = held != null
         ? held.working.tags
         : ref
@@ -77,7 +91,7 @@ class MediaInfoTagsSection extends ConsumerWidget {
                     ),
                 ],
               ),
-            if (!readOnly) ...[
+            if (canEdit) ...[
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,

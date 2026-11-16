@@ -90,7 +90,7 @@ extension _ViewerChrome on _MediaViewerPageState {
   /// photo opens locked.
   void _step(int delta) {
     if (!editingOffered) return _stepPage(delta);
-    unawaited(stepGuarded(() => _stepPage(delta)));
+    unawaited(stepGuarded(delta, _stepPage));
   }
 
   /// Closes the viewer; while unlocked, through the check, as the close

@@ -327,10 +327,13 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
                 child: AspectRatio(
                   aspectRatio: controller.value.aspectRatio,
                   child: VideoColorFilter(
-                    // The live row, so a saved adjustment shows (#3520).
-                    item:
-                        ref.watch(mediaByIdProvider(widget.item.id)).value ??
-                        widget.item,
+                    // The live row, so a saved adjustment shows (#3520);
+                    // in its sitting, the item as the sitting has it
+                    // (issue #4527).
+                    item: sittingIsOver(widget.people.sitting, widget.item.id)
+                        ? widget.item
+                        : ref.watch(mediaByIdProvider(widget.item.id)).value ??
+                              widget.item,
                     player: controller,
                     path: _playbackPath,
                     child: VideoPlayer(controller),

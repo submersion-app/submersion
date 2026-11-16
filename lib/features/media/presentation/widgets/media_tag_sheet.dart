@@ -64,7 +64,9 @@ class MediaTagSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = sitting;
-    if (session == null) return _sheet(context, ref, null);
+    if (session == null || session.isDisposed) {
+      return _sheet(context, ref, session);
+    }
     return ListenableBuilder(
       listenable: session,
       builder: (context, _) => _sheet(context, ref, session),
@@ -80,6 +82,9 @@ class MediaTagSheet extends ConsumerWidget {
     final key = (scope: TagScope.media, itemId: item.id);
     final stored = ref.watch(tagsForItemProvider(key));
     final held = session != null && !session.isDisposed ? session : null;
+    // A sitting that has ended takes nothing, and does not fall back to
+    // writing at once either: that would change the photo outside its lock.
+    final ended = session != null && held == null;
 
     return ListView(
       controller: scrollController,
@@ -92,9 +97,10 @@ class MediaTagSheet extends ConsumerWidget {
           selectedTags: held?.working.tags ?? stored.value ?? const [],
           // Editing before the stored tags load would save a set built
           // without them, dropping them. A sitting holds them already.
-          enabled: held != null || stored.hasValue,
-          onTagsChanged: (tags) =>
-              held == null ? _save(context, ref, tags) : _hold(held, tags),
+          enabled: !ended && (held != null || stored.hasValue),
+          onTagsChanged: (tags) => session == null
+              ? _save(context, ref, tags)
+              : _hold(session, tags),
         ),
       ],
     );

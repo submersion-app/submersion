@@ -86,7 +86,7 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
   /// Steps through the check while unlocked, so the next photo opens locked.
   void _step(int delta, int totalCount) {
     if (!editingOffered) return _stepPage(delta, totalCount);
-    unawaited(stepGuarded(() => _stepPage(delta, totalCount)));
+    unawaited(stepGuarded(delta, (by) => _stepPage(by, totalCount)));
   }
 
   /// Closes the viewer, through the check while unlocked.

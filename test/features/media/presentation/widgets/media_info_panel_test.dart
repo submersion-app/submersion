@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
-import 'package:submersion/features/media/data/services/dive_media_enricher.dart';
 import 'package:submersion/features/media/data/services/media_health_report.dart';
 import 'package:submersion/features/media/data/services/media_health_reporter.dart';
 import 'package:submersion/features/media/data/services/media_item_verifier.dart';
@@ -13,7 +12,6 @@ import 'package:submersion/features/media/domain/value_objects/verify_result.dar
 import 'package:submersion/features/media/presentation/providers/photo_access_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
@@ -26,57 +24,13 @@ import 'package:submersion/features/media/domain/value_objects/media_source_data
 import 'package:submersion/features/media/presentation/providers/media_health_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_provenance_providers.dart';
-import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart'
-    as domain;
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/media/presentation/helpers/media_time_pinner.dart';
-import 'package:submersion/features/media/presentation/widgets/media_info_panel.dart';
-import 'package:submersion/features/media/domain/entities/photo_record.dart';
-import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
-import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
-
 import '../../../../helpers/fake_photo_picker_service.dart';
-import '../../../../helpers/l10n_test_helpers.dart';
-import '../../../../helpers/mock_providers.dart';
+import 'media_info_panel_harness.dart';
 
-MediaItem _item({
-  MediaSourceType sourceType = MediaSourceType.platformGallery,
-  String? platformAssetId = 'asset-1',
-  String? localPath,
-  String? originalFilename = 'reef.jpg',
-  int? width = 4032,
-  int? height = 3024,
-  int? contentSizeBytes = 3 * 1024 * 1024,
-  String? originDeviceId,
-  bool isOrphaned = false,
-  DateTime? lastVerifiedAt,
-  DateTime? remoteUploadedAt,
-  DateTime? remoteThumbUploadedAt,
-}) => MediaItem(
-  id: 'm1',
-  mediaType: MediaType.photo,
-  sourceType: sourceType,
-  platformAssetId: platformAssetId,
-  localPath: localPath,
-  originalFilename: originalFilename,
-  width: width,
-  height: height,
-  contentSizeBytes: contentSizeBytes,
-  originDeviceId: originDeviceId,
-  isOrphaned: isOrphaned,
-  lastVerifiedAt: lastVerifiedAt,
-  remoteUploadedAt: remoteUploadedAt,
-  remoteThumbUploadedAt: remoteThumbUploadedAt,
-  takenAt: DateTime(2026, 3, 12, 9, 14),
-  createdAt: DateTime(2026, 3, 12),
-  updatedAt: DateTime(2026, 3, 12),
-);
+const _item = infoPanelItem;
 
 /// Reports a fixed result and records what it was asked to verify.
 class _FakeVerifier implements MediaItemVerifier {
@@ -134,23 +88,6 @@ class _CapturingQueue implements MediaTransferQueueRepository {
       throw UnimplementedError('${invocation.memberName} is not stubbed');
 }
 
-class _CapturingPinner implements MediaTimePinner {
-  _CapturingPinner(this.applied);
-  final List<MediaTimeChoice> applied;
-
-  @override
-  Future<void> apply(MediaItem item, MediaTimeChoice choice) async {
-    applied.add(choice);
-  }
-
-  @override
-  Future<MediaAutomaticTime?> automaticTimeFor(MediaItem item) async => null;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      throw UnimplementedError('${invocation.memberName} is not stubbed');
-}
-
 void main() {
   late String? previousDefaultLocale;
   late MediaServingRecorder recorder;
@@ -174,59 +111,19 @@ void main() {
     String thisDevice = 'device-here',
     Stream<Map<String, String>>? peerNames,
     List<dynamic> extra = const [],
-
-    /// Single-element holder so a test can swap the stored row mid-flight,
-    /// which is what a persisted action really does.
     List<MediaItem>? liveRow,
-    bool readOnly = false,
-    EditSession<PhotoRecord>? sitting,
-  }) async {
-    // Four stacked sections overflow a default 800x600 surface, and a
-    // ListView does not build what is below the fold, so the Serving block
-    // would simply not exist for the finders. A taller viewport is cheaper
-    // and less brittle than scrolling to each assertion.
-    tester.view.physicalSize = const Size(800, 2400);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          mediaStoreAttachedProvider.overrideWith((ref) async => attached),
-          mediaQueueFactsProvider.overrideWith(
-            (ref, id) => Stream.value(queue),
-          ),
-          mediaStoreIdentityProvider.overrideWith((ref) async => identity),
-          currentDeviceIdProvider.overrideWith((ref) async => thisDevice),
-          peerDeviceNamesProvider.overrideWith(
-            (ref) => peerNames ?? Stream.value(const {}),
-          ),
-          mediaServingRecorderProvider.overrideWithValue(recorder),
-          // UnitFormatter reads the diver's date and time preferences, and
-          // the real notifier wants SharedPreferences.
-          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          // The panel re-reads the row so persisted actions show up; without
-          // an override this would reach for an uninitialised database.
-          mediaByIdProvider.overrideWith(
-            (ref, id) async => liveRow == null ? item : liveRow.first,
-          ),
-          ...extra.cast(),
-        ],
-        child: localizedMaterialApp(
-          locale: const Locale('en'),
-          home: Scaffold(
-            body: MediaInfoPanel(
-              item: item,
-              readOnly: readOnly,
-              sitting: sitting,
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-  }
+  }) => pumpInfoPanel(
+    tester,
+    item,
+    recorder: recorder,
+    attached: attached,
+    queue: queue,
+    identity: identity,
+    thisDevice: thisDevice,
+    peerNames: peerNames,
+    extra: extra,
+    liveRow: liveRow,
+  );
 
   group('File block', () {
     testWidgets('renders filename, dimensions, size and taken date', (
@@ -941,42 +838,9 @@ void main() {
   });
 
   group('Time in dive (issue #1090)', () {
-    final dive = domain.Dive(
-      id: 'd1',
-      dateTime: DateTime.utc(2026, 3, 12, 9),
-      profile: const [
-        domain.DiveProfilePoint(timestamp: 0, depth: 0),
-        domain.DiveProfilePoint(timestamp: 600, depth: 20),
-        domain.DiveProfilePoint(timestamp: 1800, depth: 0),
-      ],
-    );
-
-    MediaItem linked({MediaEnrichment? enrichment}) => MediaItem(
-      id: 'm1',
-      diveId: 'd1',
-      mediaType: MediaType.photo,
-      sourceType: MediaSourceType.platformGallery,
-      platformAssetId: 'asset-1',
-      takenAt: DateTime(2026, 3, 12, 9, 14),
-      createdAt: DateTime(2026, 3, 12),
-      updatedAt: DateTime(2026, 3, 12),
-      enrichment: enrichment,
-    );
-
-    MediaEnrichment enrichmentAt(
-      int elapsedSeconds, {
-      MatchConfidence confidence = MatchConfidence.exact,
-    }) => MediaEnrichment(
-      id: 'e1',
-      mediaId: 'm1',
-      diveId: 'd1',
-      elapsedSeconds: elapsedSeconds,
-      depthMeters: 12,
-      matchConfidence: confidence,
-      createdAt: DateTime(2026, 3, 12),
-    );
-
-    final diveOverride = diveProvider('d1').overrideWith((ref) async => dive);
+    const linked = infoPanelLinked;
+    const enrichmentAt = infoPanelEnrichmentAt;
+    final diveOverride = infoPanelDiveOverride();
 
     testWidgets('renders the automatic position as mm:ss', (tester) async {
       await pump(
@@ -1037,7 +901,7 @@ void main() {
         linked(enrichment: enrichmentAt(750)),
         extra: [
           diveOverride,
-          mediaTimePinnerProvider.overrideWithValue(_CapturingPinner(applied)),
+          mediaTimePinnerProvider.overrideWithValue(CapturingPinner(applied)),
         ],
       );
 
@@ -1051,84 +915,6 @@ void main() {
 
       expect(applied, hasLength(1));
       expect((applied.single as MediaTimePinned).elapsedSeconds, 300);
-    });
-
-    group('the photo\'s lock (issue #4527)', () {
-      testWidgets('read only: no Set time', (tester) async {
-        await pump(
-          tester,
-          linked(enrichment: enrichmentAt(750)),
-          extra: [diveOverride],
-          readOnly: true,
-        );
-
-        expect(find.text('Time in dive'), findsOneWidget);
-        expect(find.text('Set time in dive'), findsNothing);
-      });
-
-      testWidgets('read only: no Locate', (tester) async {
-        await pump(
-          tester,
-          _item(
-            sourceType: MediaSourceType.localFile,
-            platformAssetId: null,
-            localPath: '/gone/reef.jpg',
-            isOrphaned: true,
-          ),
-          readOnly: true,
-        );
-
-        expect(find.text('Locate file...'), findsNothing);
-      });
-
-      testWidgets('in a sitting: Set time holds the pin; nothing applied', (
-        tester,
-      ) async {
-        final applied = <MediaTimeChoice>[];
-        final item = linked(enrichment: enrichmentAt(750));
-        final sitting = EditSession<PhotoRecord>(
-          PhotoRecord(item: item, species: const [], people: const []),
-        );
-        addTearDown(sitting.dispose);
-        await pump(
-          tester,
-          item,
-          extra: [
-            diveOverride,
-            mediaTimePinnerProvider.overrideWithValue(
-              _CapturingPinner(applied),
-            ),
-          ],
-          sitting: sitting,
-        );
-
-        await tester.tap(find.text('Set time in dive'));
-        await tester.pumpAndSettle();
-        await tester.enterText(find.byType(TextField), '5:00');
-        await tester.tap(find.text('Save'));
-        await tester.pumpAndSettle();
-
-        expect(applied, isEmpty);
-        expect(sitting.valueOf(photoPinField), 300);
-      });
-
-      testWidgets('in a sitting: Locate is not offered until it can be held', (
-        tester,
-      ) async {
-        final item = _item(
-          sourceType: MediaSourceType.localFile,
-          platformAssetId: null,
-          localPath: '/gone/reef.jpg',
-          isOrphaned: true,
-        );
-        final sitting = EditSession<PhotoRecord>(
-          PhotoRecord(item: item, species: const [], people: const []),
-        );
-        addTearDown(sitting.dispose);
-        await pump(tester, item, sitting: sitting);
-
-        expect(find.text('Locate file...'), findsNothing);
-      });
     });
   });
 
