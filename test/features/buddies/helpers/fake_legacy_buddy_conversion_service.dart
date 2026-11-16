@@ -55,6 +55,22 @@ class FakeLegacyBuddyConversionService implements LegacyBuddyConversionService {
     );
   }
 
+  /// What [resolveForSitting] was asked to resolve.
+  final List<ConversionPlan> resolvedForSitting = [];
+
+  @override
+  Future<List<({String buddyId, String roleId})>> resolveForSitting(
+    ConversionPlan plan, {
+    required String diverId,
+    required String newBuddyNote,
+  }) async {
+    resolvedForSitting.add(plan);
+    return [
+      for (final (i, link) in plan.links.indexed)
+        (buddyId: 'resolved-$i', roleId: link.roleId),
+    ];
+  }
+
   @override
   Future<ConversionReceipt> apply(
     List<ConversionPlan> plans, {
