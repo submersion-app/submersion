@@ -1,4 +1,4 @@
-import 'package:submersion/core/constants/enums.dart' show WeightType;
+import 'package:submersion/core/constants/enums.dart' show TankRole, WeightType;
 import 'package:submersion/core/database/database.dart' show DivesCompanion;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     show BuddyWithRole;
@@ -139,7 +139,20 @@ enum TankSpecField {
 class TankSpecsOp extends BulkCollectionOp {
   final DiveTank specs;
   final Set<TankSpecField> fields;
-  const TankSpecsOp({required this.specs, required this.fields});
+
+  /// A role per tank position, read only when [fields] has
+  /// [TankSpecField.role] (issue #4412): the dive's first tank by order takes
+  /// the first role, and so on, in place of [specs]' single role. A dive whose
+  /// tanks do not line up (see `slotRolesForDive`) keeps its roles, while
+  /// every other field in [fields] still applies to it. Null means the
+  /// template role goes to every tank.
+  final List<TankRole>? slotRoles;
+
+  const TankSpecsOp({
+    required this.specs,
+    required this.fields,
+    this.slotRoles,
+  });
 }
 
 class WeightsOp extends BulkCollectionOp {
