@@ -11,6 +11,7 @@ import 'package:submersion/features/media/presentation/helpers/lightroom_scan_he
 import 'package:submersion/features/media/presentation/helpers/media_link_replacer.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/utils/file_reveal.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
@@ -571,6 +572,10 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                         ),
                       ],
                     ),
+                  // Its pencil, while the dive is unlocked.
+                  RecordCardPencil(
+                    cardTitle: context.l10n.media_diveMediaSection_title,
+                  ),
                 ],
               ),
             const SizedBox(height: 16),

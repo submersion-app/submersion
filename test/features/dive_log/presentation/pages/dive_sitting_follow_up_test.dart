@@ -29,7 +29,7 @@ void main() {
     container = ProviderContainer(
       overrides: [
         unitFormatterProvider.overrideWithValue(
-          UnitFormatter(const AppSettings()),
+          const UnitFormatter(AppSettings()),
         ),
         diveGearRefreshProvider.overrideWithValue((_) {}),
         divePlanLinkAdoptProvider.overrideWithValue(
