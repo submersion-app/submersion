@@ -577,7 +577,6 @@ final diveBulkDeleteServiceProvider = Provider<DiveBulkDeleteService>((ref) {
     changeLog: ref.watch(changeLogRepositoryProvider),
     revert: ref.watch(changeLogRevertServiceProvider),
     restoreDocuments: documents.restoreSnapshot,
-    rearmDocuments: documents.rearmReminders,
   );
 });
 
