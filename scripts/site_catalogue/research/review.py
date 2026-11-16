@@ -79,6 +79,49 @@ _ROUTES = {
 }
 
 
+def _named_rows(checked, domains) -> list[str]:
+    """The pages that name the site: for a stated or map-read site, the
+    only proof it exists."""
+    named = checked.entry.get("named")
+    if not isinstance(named, dict):
+        return []
+    rows = [f"<tr><td>Named in</td><td>{_e(named.get('place') or '(no place)')}</td></tr>"]
+    for source in named.get("sources") or []:
+        if not isinstance(source, dict):
+            continue
+        url = source.get("url")
+        url = url if isinstance(url, str) else ""
+        domain = _domain(url)
+        kind = domains.kind_of(url) or "on no list"
+        link = f'<a href="{_e(url)}">page</a>' if domain else ""
+        rows.append(
+            f"<tr><td></td><td>{_e(domain or url or '(no address)')} &nbsp; "
+            f"{_e(kind.replace('_', ' '))} &nbsp; {link}</td></tr>"
+        )
+    return rows
+
+
+def _between_row(position: dict, domains) -> list[str]:
+    """The distance between the two counting figures, when there are two."""
+    points = []
+    for source in position.get("sources") or []:
+        if not isinstance(source, dict) or not isinstance(source.get("url"), str):
+            continue
+        if domains.kind_of(source["url"]) != "counting":
+            continue
+        try:
+            points.append((
+                evidence.parse_coordinate(source.get("lat"), "lat")[0],
+                evidence.parse_coordinate(source.get("lon"), "lon")[0],
+            ))
+        except ValueError:
+            return []
+    if len(points) != 2:
+        return []
+    apart = _metres(evidence.metres_between(*points[0], *points[1]))
+    return [f"<tr><td>Between figures</td><td>{_e(apart)}</td></tr>"]
+
+
 def _position_rows(checked, domains) -> list[str]:
     position = checked.entry.get("position") or {}
     rows = []
@@ -113,7 +156,7 @@ def _position_rows(checked, domains) -> list[str]:
             f"&nbsp; {_e(_figure(source))} &nbsp; {_e(distance)} &nbsp; "
             f"{_e(kind.replace('_', ' '))} &nbsp; {link}</td></tr>"
         )
-    return rows
+    return rows + _between_row(position, domains)
 
 
 def _depth(checked) -> str:
@@ -126,7 +169,7 @@ def _depth(checked) -> str:
 
 def _entry_html(checked, domains) -> str:
     entry = checked.entry
-    rows = _position_rows(checked, domains)
+    rows = _named_rows(checked, domains) + _position_rows(checked, domains)
     rows.append(f"<tr><td>Depth</td><td>{_e(_depth(checked))}</td></tr>")
     rows.append(f"<tr><td>Entry</td><td>{_e(', '.join(checked.entries) or 'none')}</td></tr>")
     rows.append(f"<tr><td>Type</td><td>{_e(', '.join(checked.types) or 'none')}</td></tr>")

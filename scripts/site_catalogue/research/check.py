@@ -242,12 +242,23 @@ def _counting(sources, domains) -> list[dict]:
 
 
 def _mean_longitude(values: list[float]) -> float:
-    """The mean of longitudes that agree within 150 m, taken the short way
+    """The mean of longitudes no more than 2 km apart, taken the short way
     round: two figures either side of 180 degrees average to 180, not 0."""
     first = values[0]
     unwrapped = [first + (v - first + 180.0) % 360.0 - 180.0 for v in values]
     mean = sum(unwrapped) / len(unwrapped)
     return (mean + 180.0) % 360.0 - 180.0 if not -180.0 <= mean <= 180.0 else mean
+
+
+def _is_web_address(value) -> bool:
+    """Whether [value] is an http(s) address with a host: a map reading
+    names a map the reviewer can open."""
+    if not isinstance(value, str) or not re.match(r"^https?://", value):
+        return False
+    try:
+        return bool(evidence.registrable_domain(value))
+    except ValueError:
+        return False
 
 
 def _mean_point(figures) -> tuple:
@@ -271,7 +282,7 @@ def _check_position(checked: CheckedEntry, domains) -> None:
             checked.fail("shape", f"{source.get('url')}: method is stated or map")
             return
         if source.get("method") == "map" and (
-            source not in counted or not isinstance(source.get("map"), str)
+            source not in counted or not _is_web_address(source.get("map"))
         ):
             checked.fail(
                 "position_domains",
@@ -330,7 +341,8 @@ def _check_position(checked: CheckedEntry, domains) -> None:
 def _check_named(checked: CheckedEntry, domains) -> None:
     """Two counting pages on different domains name the site. A position
     two counting pages confirm proves that already."""
-    if checked.route == "confirmed":
+    # No route: the position check stopped on a failure already reported.
+    if checked.route in (None, "confirmed"):
         return
     named = _counting(_sources(checked.entry.get("named")), domains)
     hosts = {evidence.registrable_domain(s["url"]) for s in named}
@@ -502,6 +514,8 @@ def report(results: list[CheckedEntry]) -> str:
             f"{states['rejected']} rejected, {withdrawn} withdrawn"
         )
     for checked in results:
+        if checked.route:
+            lines.append(f"  {checked.id} placed by {checked.route}")
         for finding in checked.findings:
             mark = "FAIL" if finding.fatal else "note"
             lines.append(f"  {mark} {finding.entry_id} [{finding.rule}] {finding.message}")

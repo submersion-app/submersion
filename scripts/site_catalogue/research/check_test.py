@@ -336,6 +336,23 @@ class PositionTest(unittest.TestCase):
         self.assertTrue(checked.ok, checked.findings)
         self.assertEqual(checked.route, "confirmed")
 
+    def test_a_map_address_that_is_not_a_web_address_fails(self):
+        for value in ("", "see page", "opa.com/m.jpg"):
+            source = _map_source(-8.2759, 115.5937)
+            source["map"] = value
+            entry = _placed([source], -8.2759, 115.5937)
+            self.assertIn("position_domains", _rules(_one(entry)), value)
+
+    def test_an_aborted_position_check_adds_no_named_failure(self):
+        entry = _entry()
+        entry["position"]["sources"].append(
+            {"url": "https://opa.com/z", "read": "2026-11-16",
+             "lat": "nowhere", "lon": 115.59}
+        )
+        rules = _rules(_one(entry))
+        self.assertIn("shape", rules)
+        self.assertNotIn("named_sources", rules)
+
     def test_map_mean_across_the_antimeridian(self):
         sources = [
             _map_source(-16.80012, 179.999),
@@ -581,6 +598,11 @@ class MainTest(unittest.TestCase):
                     ["--file", str(sites), "--domains", str(domains)], today=TODAY
                 )
             return code, out.getvalue()
+
+    def test_the_report_says_how_each_entry_was_placed(self):
+        code, text = self._run([_entry()])
+        self.assertEqual(code, 0)
+        self.assertIn("research_id_usat_liberty placed by confirmed", text)
 
     def test_a_clean_file_exits_zero_and_reports(self):
         code, text = self._run([_entry()])

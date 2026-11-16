@@ -139,6 +139,21 @@ class ReviewPageTest(unittest.TestCase):
         self.assertNotIn("Not offered for approval", page)
         self.assertIn("Approve or reject", page)
 
+    def test_the_naming_pages_are_shown(self):
+        entry = _placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937)
+        page = _page(entry)
+        self.assertIn("Named in", page)
+        self.assertIn("Tulamben Bay", page)
+        self.assertIn('href="https://opa.com/sites"', page)
+        self.assertIn('href="https://pressb.org/y"', page)
+
+    def test_two_figures_show_the_distance_between_them(self):
+        a = _map_source(-8.2700, 115.5929)
+        b = _map_source(-8.2754, 115.5929, url="https://pressb.org/m")
+        page = _page(_placed([a, b], -8.2727, 115.5929))
+        self.assertIn("Between figures", page)
+        self.assertIn("600 m", page)
+
     def test_the_openstreetmap_link_is_at_the_shipped_point(self):
         page = _page(_placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937))
         self.assertIn("mlat=-8.275900", page)
