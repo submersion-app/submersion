@@ -104,12 +104,13 @@ class TripStoryDay extends Equatable {
   /// Where the day's sites are, each distinct location once in dive order, as
   /// [DiveSite.locationString] gives it ("Marsa Alam · Red Sea, Egypt").
   /// Several sites in one area read as that area once, and a location whose
-  /// every part (town, region, country) a fuller one repeats is left out:
-  /// "Red Sea, Egypt", "Marsa Alam" or "Red Sea" beside
-  /// "Marsa Alam · Red Sea, Egypt" would say the same place twice. A site
-  /// with no town, region or country set adds nothing. The parts compare
-  /// without case, since one area is often typed two ways; the first spelling
-  /// wins.
+  /// every part (town or island, region, country) a fuller one repeats is
+  /// left out: "Red Sea, Egypt", "Marsa Alam" or "Red Sea" beside
+  /// "Marsa Alam · Red Sea, Egypt" would say the same place twice. The town is
+  /// [DiveSite.locality], so a site with only an island set reads as that
+  /// island; one with no town, island, region or country adds nothing. The
+  /// parts compare without case, since one area is often typed two ways; the
+  /// first spelling wins.
   List<String> get siteLocations {
     final seen = <String>{};
     final areas = <({String location, List<String> parts})>[];
