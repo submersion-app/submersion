@@ -17,6 +17,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_buddies_email;
     case 'query_buddies_favorite':
       return l10n.query_buddies_favorite;
+    case 'query_buddies_country':
+      return l10n.query_buddies_country;
     case 'query_buddies_lastDived':
       return l10n.query_buddies_lastDived;
     case 'query_buddies_name':
