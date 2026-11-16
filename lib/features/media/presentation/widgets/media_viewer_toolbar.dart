@@ -390,9 +390,12 @@ class MediaViewerToolbar extends ConsumerWidget {
     MediaViewerEditBar bar,
     List<MediaViewerAction> actions,
   ) {
+    // Cancel, Save and the title keep about 240 px; the actions take what
+    // is left, up to half the bar, so a phone still reads the title.
+    final width = MediaQuery.sizeOf(context).width;
     final split = splitToolbarActions(
       actions,
-      MediaQuery.sizeOf(context).width / 2,
+      (width - 240).clamp(kToolbarButtonExtent, width / 2),
     );
     return Positioned(
       top: 0,

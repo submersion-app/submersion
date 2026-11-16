@@ -374,6 +374,22 @@ void main() {
         expect(find.text('Save'), findsOneWidget);
       });
 
+      testWidgets('editBar at a 390 px phone leaves the title room: two icons '
+          'and the menu', (tester) async {
+        await pumpFull(tester, 390, editing: true);
+        final icons = find.descendant(
+          of: find.byType(RecordEditBar),
+          matching: find.byWidgetPredicate(
+            (w) =>
+                w is Builder &&
+                w.key is ValueKey<String> &&
+                (w.key! as ValueKey<String>).value.startsWith('viewer_'),
+          ),
+        );
+        expect(icons, findsNWidgets(2));
+        expect(find.byKey(const ValueKey('viewer_overflow')), findsOneWidget);
+      });
+
       testWidgets('a read-only device offers no lock', (tester) async {
         await pumpFull(tester, 1024, browser: true, unlockable: true);
         expect(find.byKey(const ValueKey('viewer_unlock')), findsNothing);
