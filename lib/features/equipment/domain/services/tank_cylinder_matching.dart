@@ -88,9 +88,11 @@ bool cylinderMatchesTank(EquipmentItem item, DiveTank tank) {
 
 /// Whether the twin set of [a] and [b] (issue #4242) is what [tank] logged:
 /// the pair's combined volume, the lower working pressure, and a material
-/// both cylinders share.
+/// both cylinders share. A pair holding a suit inflation bottle is no back
+/// gas twin set, so it matches no tank.
 bool pairMatchesTank(EquipmentItem a, EquipmentItem b, DiveTank tank) {
   if (_isSuitTank(tank)) return false;
+  if (a.isSuitInflationCylinder || b.isSuitInflationCylinder) return false;
   final ma = a.tankMaterial;
   final mb = b.tankMaterial;
   if (ma != null && mb != null && ma != mb) return false;

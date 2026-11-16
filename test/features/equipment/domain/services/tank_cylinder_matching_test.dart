@@ -141,6 +141,14 @@ void main() {
       expect(pairMatchesTank(a, b, _tank('s', volume: 12)), isFalse);
     });
 
+    test('a pair holding a suit inflation bottle matches no tank', () {
+      final argon = _cylinder('argon', volume: 0.85, suit: true);
+      final al80 = _cylinder('al80', volume: 11.1);
+      final tank = _tank('t', volume: 11.95);
+      expect(pairMatchesTank(argon, al80, tank), isFalse);
+      expect(pairMatchesTank(al80, argon, tank), isFalse);
+    });
+
     test('an owned pair keeps the doubles tank off the proposals', () {
       final proposals = proposeCylinders(
         [TankRef(diveId: 'd1', tank: doubles)],

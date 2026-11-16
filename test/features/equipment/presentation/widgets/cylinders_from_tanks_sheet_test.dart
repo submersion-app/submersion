@@ -194,4 +194,51 @@ void main() {
     expect(service.drafts.single.volumeL, 11.1);
     expect(service.drafts.single.workingPressureBar, closeTo(206.84, 0.01));
   });
+
+  testWidgets('imperial: a zero working pressure blocks adding', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      settings: const AppSettings(
+        volumeUnit: VolumeUnit.cubicFeet,
+        pressureUnit: PressureUnit.psi,
+      ),
+      only: [
+        proposalForTank(
+          const TankRef(
+            diveId: 'd',
+            tank: DiveTank(id: 't', volume: 11.1, workingPressure: 206.843),
+          ),
+        ),
+      ],
+    );
+    final fields = find.descendant(
+      of: find.byKey(const Key('cylinders-from-tanks-row-0')),
+      matching: find.byType(TextField),
+    );
+    // A cubic feet figure cannot be read at 0 psi, so the row cannot save.
+    await tester.enterText(fields.at(2), '0');
+    await tester.pump();
+    final add = tester.widget<FilledButton>(
+      find.byKey(const Key('cylinders-from-tanks-add')),
+    );
+    expect(add.onPressed, isNull);
+  });
+
+  testWidgets('a zero working pressure blocks adding in liters', (
+    tester,
+  ) async {
+    await pumpSheet(tester);
+    final fields = find.descendant(
+      of: find.byKey(const Key('cylinders-from-tanks-row-0')),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(fields.at(2), '0');
+    await tester.pump();
+    final add = tester.widget<FilledButton>(
+      find.byKey(const Key('cylinders-from-tanks-add')),
+    );
+    expect(add.onPressed, isNull);
+  });
 }

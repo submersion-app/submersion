@@ -84,15 +84,23 @@ class _RowEdit {
 
   /// Whether the pressure field holds a number or nothing: a mistyped one
   /// must not save as "no working pressure" onto the cylinder and its tanks.
+  /// Blank (no rating) or a positive figure. Zero is no rating a cylinder
+  /// has, and a cubic feet volume cannot be read at it.
   bool get pressureReadable =>
-      readNumber(pressure.text, allowNegative: false) is! NumberInvalid;
+      switch (readNumber(pressure.text, allowNegative: false)) {
+        NumberBlank() => true,
+        NumberValue(:final value) => value > 0,
+        NumberInvalid() => false,
+      };
 
   double? pressureBar(UnitFormatter units) {
     if (pressure.text.trim() == pressureText.trim()) {
       return proposal.workingPressureBar;
     }
     final read = readNumber(pressure.text, allowNegative: false);
-    return read is NumberValue ? units.pressureToBar(read.value) : null;
+    return read is NumberValue && read.value > 0
+        ? units.pressureToBar(read.value)
+        : null;
   }
 
   /// Whether the volume field is in cubic feet. Fixed when the row opens,
