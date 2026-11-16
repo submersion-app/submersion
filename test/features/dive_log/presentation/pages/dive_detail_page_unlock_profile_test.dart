@@ -6,6 +6,10 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/annotation_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
@@ -134,5 +138,70 @@ void main() {
 
   test('DatabaseService has a database for the page', () {
     expect(DatabaseService.instance.databaseOrNull, isNotNull);
+  });
+
+  // The spec: what Done leaves is the working copy, on every card that
+  // draws it, the closed chart among them.
+  testWidgets('a finding dismissed in the open Safety review card leaves '
+      'the chart', (tester) async {
+    final found = SafetyFinding(
+      id: 'f1',
+      diveId: dive.id,
+      ruleId: SafetyRuleId.rapidAscent,
+      severity: SafetySeverity.significant,
+      startTimestamp: 1000,
+      endTimestamp: 1040,
+      value: 14.2,
+      engineVersion: 1,
+      createdAt: DateTime.utc(2026),
+    );
+    await pumpPage(
+      tester,
+      stored: profiled,
+      visible: const {
+        DiveDetailSectionId.profile,
+        DiveDetailSectionId.safetyReview,
+      },
+      size: size,
+      extra: [
+        safetyReviewProvider(dive.id).overrideWith(
+          (ref) async => SafetyReview(
+            diveId: dive.id,
+            engineVersion: 1,
+            reviewedAt: DateTime.utc(2026),
+            findings: [found],
+          ),
+        ),
+      ],
+    );
+    await settleLong(tester);
+    List<String> charted() => [
+      for (final f
+          in tester
+                  .widget<DiveProfileChart>(find.byType(DiveProfileChart).first)
+                  .safetyFindings ??
+              const <SafetyFinding>[])
+        f.id,
+    ];
+    expect(charted(), ['f1']);
+
+    await unlock(tester);
+    final pencil = find.descendant(
+      of: find.byKey(const ValueKey('diveSection_safetyReview')),
+      matching: find.byType(RecordPencilIcon),
+    );
+    if (pencil.evaluate().isNotEmpty) {
+      await tester.ensureVisible(pencil);
+      await tester.tap(pencil);
+    } else {
+      await tapStripChip(tester, DiveDetailSectionId.safetyReview.name);
+    }
+    await settleLong(tester);
+    await tester.tap(find.text('Dismiss all'));
+    await settleLong(tester);
+    await tester.tap(find.text('Done'));
+    await settleLong(tester);
+
+    expect(charted(), isEmpty);
   });
 }

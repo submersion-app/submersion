@@ -122,6 +122,7 @@ class DiveProfileChartHost extends ConsumerWidget {
     this.findingsDismissable = true,
     this.annotationsInSitting,
     this.gasSwitchesInSitting,
+    this.safetyReviewInSitting,
     this.onPlotFrame,
     this.viewport,
     this.onViewportChanged,
@@ -164,6 +165,10 @@ class DiveProfileChartHost extends ConsumerWidget {
   /// (issue #4527), drawn in place of the stored ones. Null draws those.
   final List<ProfileEvent>? annotationsInSitting;
   final List<GasSwitchWithTank>? gasSwitchesInSitting;
+
+  /// The stored safety review as that sitting has it, its dismissals
+  /// applied, so a finding dismissed in the open card leaves the lane.
+  final SafetyReview Function(SafetyReview stored)? safetyReviewInSitting;
 
   /// Whether a finding's callout offers Dismiss. A page that offers editing
   /// dismisses findings in the open Safety review card only (issue #4527).
@@ -372,9 +377,13 @@ class DiveProfileChartHost extends ConsumerWidget {
 
     final trackingIndex = ref.watch(profileTrackingIndexProvider(diveId));
     final selectedFinding = ref.watch(selectedSafetyFindingProvider(diveId));
-    final safetyReview = ref.watch(
+    final storedReview = ref.watch(
       safetyReviewProvider(diveId).select((a) => a.value),
     );
+    final inSitting = safetyReviewInSitting;
+    final safetyReview = storedReview == null || inSitting == null
+        ? storedReview
+        : inSitting(storedReview);
     final appSettings = ref.watch(
       settingsProvider.select(
         (s) => (

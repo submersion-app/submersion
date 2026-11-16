@@ -96,18 +96,16 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
     return CollapsibleSection(
       title: l10n.safetyReview_sectionTitle,
       icon: Icons.health_and_safety_outlined,
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            l10n.safetyReview_findingCount(active.length),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          // Its pencil, while the dive is unlocked.
-          RecordCardPencil(cardTitle: l10n.safetyReview_sectionTitle),
-        ],
+      trailing: Text(
+        l10n.safetyReview_findingCount(active.length),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+      // Its pencil, while the dive is unlocked: in the header's actions,
+      // which show expanded as well as collapsed.
+      headerActions: RecordCardPencil(
+        cardTitle: l10n.safetyReview_sectionTitle,
       ),
       isExpanded: _expanded,
       onToggle: (expanded) => setState(() => _expanded = expanded),

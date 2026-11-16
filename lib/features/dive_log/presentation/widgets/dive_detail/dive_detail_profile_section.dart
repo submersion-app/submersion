@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dar
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/annotation_edits.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_safety_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_annotations_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -279,6 +280,9 @@ class DiveDetailProfileSection extends ConsumerWidget {
                 findingsDismissable: scope == null,
                 annotationsInSitting: annotationsInSitting,
                 gasSwitchesInSitting: gasSwitchesInSitting,
+                safetyReviewInSitting: session == null
+                    ? null
+                    : (stored) => reviewInSitting(session, stored),
                 onSafetyFindingDetails: (_) => onSafetyFindingDetails(),
                 // fl_chart's own tooltip bubble (issue #2228 follow-up): this
                 // is the exact pre-#2228 presentation for the embedded chart,
