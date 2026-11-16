@@ -8,9 +8,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The download summary's offer to add the new dives' cylinders to the
-/// diver's gear (issue #4494): how many tanks no owned cylinder matches, and
-/// a Review button opening the sheet. Nothing shows when every tank is
-/// matched or linked, so a diver on their own cylinders never sees it again.
+/// diver's gear (issue #4494): how many tanks no owned cylinder covers (each
+/// covers one tank per dive), and a Review button opening the sheet. Nothing
+/// shows when every tank is covered or linked, so a diver on their own cylinders never sees it again.
 class ImportCylindersTile extends ConsumerWidget {
   const ImportCylindersTile({super.key, required this.importedDiveIds});
 

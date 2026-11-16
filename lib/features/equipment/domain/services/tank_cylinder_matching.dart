@@ -156,8 +156,9 @@ List<CylinderProposal> proposeCylinders(
 /// owned cylinder at most once. A cylinder a tank of the dive is already
 /// linked to is in use. Single cylinders are assigned as a maximum matching
 /// (so a cylinder recording no material does not take the tank a stricter
-/// one fits, leaving the other tank uncovered), then twin sets whose two
-/// cylinders are both still free.
+/// one fits, leaving the other tank uncovered). A twin set then covers a
+/// tank left over when the singles can do without its two cylinders, so a
+/// spare cylinder takes the stage and the set takes the doubles.
 Set<TankRef> _coveredOnDive(
   List<TankRef> diveTanks,
   List<EquipmentItem> owned,
@@ -176,11 +177,42 @@ Set<TankRef> _coveredOnDive(
             item.id,
       ],
   ];
-  // Kuhn's augmenting paths: which open tank each cylinder covers.
+  final pairUsed = <String>{...inUse};
+  final pairTanks = <int>{};
+  var singles = _matchSingles(fits, pairUsed, pairTanks);
+  for (var t = 0; t < open.length; t++) {
+    if (singles.containsValue(t)) continue;
+    for (final (a, b) in ownedPairs) {
+      if (pairUsed.contains(a.id) || pairUsed.contains(b.id)) continue;
+      if (!pairMatchesTank(a, b, open[t].tank)) continue;
+      // The set may take this tank only if the singles lose no tank to it.
+      final without = {...pairUsed, a.id, b.id};
+      final trial = _matchSingles(fits, without, {...pairTanks, t});
+      if (trial.length < singles.length) continue;
+      singles = trial;
+      pairUsed.addAll([a.id, b.id]);
+      pairTanks.add(t);
+      break;
+    }
+  }
+  return {
+    for (final i in singles.values) open[i],
+    for (final i in pairTanks) open[i],
+  };
+}
+
+/// A maximum matching by Kuhn's augmenting paths of the tanks (by index into
+/// [fits], skipping [skipTanks]) to the cylinders each fits, leaving out
+/// [taken]. Returns which tank each assigned cylinder covers.
+Map<String, int> _matchSingles(
+  List<List<String>> fits,
+  Set<String> taken,
+  Set<int> skipTanks,
+) {
   final tankOf = <String, int>{};
   bool assign(int tank, Set<String> tried) {
     for (final id in fits[tank]) {
-      if (!tried.add(id)) continue;
+      if (taken.contains(id) || !tried.add(id)) continue;
       final holder = tankOf[id];
       if (holder == null || assign(holder, tried)) {
         tankOf[id] = tank;
@@ -190,22 +222,10 @@ Set<TankRef> _coveredOnDive(
     return false;
   }
 
-  for (var i = 0; i < open.length; i++) {
-    assign(i, <String>{});
+  for (var i = 0; i < fits.length; i++) {
+    if (!skipTanks.contains(i)) assign(i, <String>{});
   }
-  final busy = {...inUse, ...tankOf.keys};
-  final covered = {for (final i in tankOf.values) open[i]};
-  for (final ref in open) {
-    if (covered.contains(ref)) continue;
-    for (final (a, b) in ownedPairs) {
-      if (busy.contains(a.id) || busy.contains(b.id)) continue;
-      if (!pairMatchesTank(a, b, ref.tank)) continue;
-      busy.addAll([a.id, b.id]);
-      covered.add(ref);
-      break;
-    }
-  }
-  return covered;
+  return tankOf;
 }
 
 /// The per-tank "Add to my gear" proposal: one cylinder for [ref] alone,

@@ -349,6 +349,41 @@ void main() {
       expect(proposals, isEmpty);
     });
 
+    test(
+      'a single cylinder takes the stage so the twin set takes the doubles',
+      () {
+        final a = _cylinder('a', volume: 12, pressure: 232, material: 'steel');
+        final b = _cylinder('b', volume: 12, pressure: 232, material: 'steel');
+        final c = _cylinder('c', volume: 12, pressure: 232, material: 'steel');
+        final proposals = proposeCylinders(
+          [
+            TankRef(
+              diveId: 'd1',
+              tank: _tank(
+                'doubles',
+                volume: 24,
+                pressure: 232,
+                material: TankMaterial.steel,
+              ),
+            ),
+            TankRef(
+              diveId: 'd1',
+              tank: _tank(
+                'stage',
+                volume: 12,
+                pressure: 232,
+                material: TankMaterial.steel,
+                order: 1,
+              ),
+            ),
+          ],
+          owned: [a, b, c],
+          ownedPairs: [(a, b)],
+        );
+        expect(proposals, isEmpty);
+      },
+    );
+
     test('one owned twin set covers one doubles tank per dive', () {
       final a = _cylinder('a', volume: 12, pressure: 232, material: 'steel');
       final b = _cylinder('b', volume: 12, pressure: 232, material: 'steel');

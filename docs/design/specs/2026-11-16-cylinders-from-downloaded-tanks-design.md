@@ -50,7 +50,8 @@ cylinder the diver already owns.
    per-tank action on the dive's Tanks card.
 2. **When an owned cylinder already matches, the summary stays quiet**
    (option 1): no card for that tank and no link written. Linking stays
-   available from the per-tank action.
+   available from the per-tank action. Each owned cylinder covers one tank
+   per dive (see Matching), so a second tank of the same spec is offered.
 3. **Approach A** (below): a live check on the summary over the import's new
    dive ids, like "Match sites".
 4. **Group by spec across the download.** One sheet row per distinct spec,
@@ -69,7 +70,7 @@ cylinder the diver already owns.
 ## Approaches
 
 - **A. Live check on the summary (chosen).** A provider over the import's
-  new dive ids returns the tanks no owned cylinder matches; the summary card
+  new dive ids returns the tanks no owned cylinder covers; the summary card
   and the per-tank action open one review sheet. Costs one query when the
   summary renders, which is small at download sizes. Stays correct if the
   diver adds a cylinder elsewhere before tapping.
@@ -111,7 +112,9 @@ Special cases (builder's calls, marked as such):
   on a sidemount dive with two AL80s leaves the second offered (decided
   2026-11-16 during review). A cylinder a tank of the dive is already linked
   to is in use on it. Cylinders are assigned as a maximum matching, so one
-  recording no material does not take the tank a stricter one fits.
+  recording no material does not take the tank a stricter one fits, and a
+  twin set takes a leftover tank whenever the single cylinders can spare its
+  two (a spare takes the stage, the set takes the doubles).
 
 A tank with no volume matches nothing and is not listed on the summary card
 (there is nothing to prefill). The per-tank action still works on it.
