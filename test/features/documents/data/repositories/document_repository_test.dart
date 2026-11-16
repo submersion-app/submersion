@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/data/services/clearance_delete_events.dart';
 import 'package:submersion/features/documents/domain/document_ids.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
@@ -347,6 +348,28 @@ void main() {
         'd1': {personal.id},
       },
     ]);
+  });
+
+  test('a re-arm hook that throws never fails the delete (#4609)', () async {
+    final withHook = DocumentRepository(
+      cancelReminders: (_) async {},
+      clearancesDeleted: (_) => throw StateError('no listener'),
+    );
+    final clearance = await withHook.save(
+      newDoc(type: DocumentType.medicalClearance),
+      const [],
+    );
+    await withHook.delete(clearance.id);
+    expect(await withHook.getById(clearance.id), isNull);
+  });
+
+  test('an empty set of deleted clearances posts nothing (#4609)', () async {
+    final named = <Map<String, Set<String>>>[];
+    final sub = ClearanceDeleteEvents.stream.listen(named.add);
+    addTearDown(sub.cancel);
+    ClearanceDeleteEvents.notify(const {});
+    await pumpEventQueue();
+    expect(named, isEmpty);
   });
 
   test('a restored snapshot drops the delete\'s tombstones', () async {

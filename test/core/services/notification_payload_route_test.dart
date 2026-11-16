@@ -32,6 +32,30 @@ void main() {
     expect(parseDocumentReminderPayload('e-42'), isNull);
   });
 
+  test('pending payloads fold into each document and the diver either '
+      'stage names; other payloads are left out (#4609)', () {
+    expect(
+      documentRemindersFromPayloads([
+        documentReminderPayload('a', 'd1'),
+        'document:a',
+        'document:b',
+        documentReminderPayload('c', 'd2'),
+        null,
+        'e-42',
+        'dive:x',
+      ]),
+      {'a': 'd1', 'b': null, 'c': 'd2'},
+    );
+    // The order of the stages does not matter.
+    expect(
+      documentRemindersFromPayloads([
+        'document:a',
+        documentReminderPayload('a', 'd1'),
+      ]),
+      {'a': 'd1'},
+    );
+  });
+
   test('an equipment reminder opens the item', () {
     expect(notificationPayloadRoute('e-42'), '/equipment/e-42');
   });

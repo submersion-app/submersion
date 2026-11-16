@@ -64,6 +64,21 @@ String documentReminderPayload(String documentId, String diverId) =>
   );
 }
 
+/// The documents [payloads] remind of, each with the diver its payload
+/// names, null for a payload from before #4609. Other payloads are left
+/// out. A document's two stages can differ while their payloads are
+/// rewritten: the diver either one names is kept.
+Map<String, String?> documentRemindersFromPayloads(Iterable<String?> payloads) {
+  final out = <String, String?>{};
+  for (final payload in payloads) {
+    if (payload == null) continue;
+    if (parseDocumentReminderPayload(payload) case final r?) {
+      out[r.documentId] = r.diverId ?? out[r.documentId];
+    }
+  }
+  return out;
+}
+
 /// The route a tapped reminder opens: a document reminder (payload
 /// `document:<id>`, issue #2613, now with its diver) opens the document,
 /// any other payload is an equipment id. Null for an empty payload.
@@ -596,17 +611,7 @@ class NotificationService {
   Future<Map<String, String?>> pendingDocumentReminders() async {
     if (!_isMobilePlatform) return const {};
     final pending = await _plugin.pendingNotificationRequests();
-    final out = <String, String?>{};
-    for (final p in pending) {
-      if (p.payload case final payload?) {
-        if (parseDocumentReminderPayload(payload) case final r?) {
-          // A document's two stages can differ while their payloads are
-          // rewritten: keep the diver either one names.
-          out[r.documentId] = r.diverId ?? out[r.documentId];
-        }
-      }
-    }
-    return out;
+    return documentRemindersFromPayloads(pending.map((p) => p.payload));
   }
 
   /// One-shot reminder for a draft dive left waiting for its download
