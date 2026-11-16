@@ -508,17 +508,22 @@ class NotificationScheduler {
 
   /// Re-arms [diverId]'s medical clearances from the database, so only
   /// the current one reminds: after a delete took [deletedIds] (#4609),
-  /// the one they superseded reminds again. [deletedIds] are cancelled
-  /// once more afterwards: an earlier re-arm that read them before they
-  /// went may have armed them since their delete cancelled them.
+  /// the one they superseded reminds again. Those of [deletedIds] still
+  /// gone are cancelled once more afterwards: an earlier re-arm that read
+  /// them before they went may have armed them since their delete
+  /// cancelled them. One still present is a delete that rolled back, and
+  /// the settle has just armed it as it should.
   Future<void> updateClearancesForDiver(
     String diverId,
     AppSettings settings, {
     Iterable<String> deletedIds = const [],
   }) async {
     if (DemoModeGate.instance.isActive) return;
-    await _settleClearances(diverId, settings);
+    final present = {
+      for (final c in await _settleClearances(diverId, settings)) c.id,
+    };
     for (final id in deletedIds) {
+      if (present.contains(id)) continue;
       await _notificationService.cancelDocumentReminders(id);
     }
   }

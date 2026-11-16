@@ -305,6 +305,21 @@ void main() {
       expect(service.scheduled.map((s) => s.documentId), contains(old.id));
     });
 
+    test('a re-arm after a rolled-back delete keeps the restored clearance '
+        'reminding (#4609)', () async {
+      await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await save(DocumentType.medicalClearance, inDays(400));
+      // The delete named the renewal, then its transaction rolled back.
+      await scheduler.updateClearancesForDiver(
+        'd1',
+        const AppSettings(),
+        deletedIds: [renewal.id],
+      );
+      expect(service.scheduled.map((s) => s.documentId).toSet(), {renewal.id});
+      // Only the arm's own cancel, before it schedules.
+      expect(service.cancelled.where((id) => id == renewal.id), hasLength(1));
+    });
+
     group('a renewal deleted on another device (#4609)', () {
       late Document old;
       late Document renewal;
