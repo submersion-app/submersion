@@ -1564,17 +1564,9 @@ class PlanEngine {
   }
 
   /// Surface liters [tank] holds at its start pressure; null without one.
-  double? _fillLiters(DiveTank tank) {
-    final start = tank.startPressure;
-    if (start == null) return null;
-    return gasVolume(
-      tankSizeLiters: tank.volume ?? 11.0,
-      pressureBar: start,
-      o2Percent: tank.gasMix.o2,
-      hePercent: tank.gasMix.he,
-      model: config.gasModel,
-    );
-  }
+  double? _fillLiters(DiveTank tank) => tank.startPressure == null
+      ? null
+      : fillCapacityLiters(tank, config.gasModel);
 
   /// [tank]'s pressure once [used] surface liters are drawn from its start
   /// pressure; null without one. Negative once [used] exceeds the fill: the
@@ -1622,8 +1614,9 @@ class PlanEngine {
     ambientBar: environment.pressureAtDepth(leg.avgDepth),
   );
 
-  /// The last of [legs] at [plan]'s max depth, which is what problem-solving
-  /// time is charged to, or null when none of them reaches it.
+  /// The last of [legs] at [plan]'s max depth, or null when none of them
+  /// reaches it: the cylinder problem-solving time is held against, and
+  /// where the bottom ends for the minimum gas check (#4475).
   static ResolvedLeg? lastLegAtMaxDepth(
     domain.DivePlan plan,
     Iterable<ResolvedLeg> legs,

@@ -128,6 +128,47 @@ void main() {
       expect(usage.bottomEndPressure!, greaterThan(usage.remainingPressure!));
     });
 
+    test('a shallower level after the bottom is not read as the bottom', () {
+      final deepOnly = _back(engine.compute(_plan()));
+      final plan = _plan();
+      final multiLevel = _back(
+        engine.compute(
+          plan.copyWith(
+            segments: [
+              ...plan.segments,
+              PlanSegment.travel(
+                id: 'up',
+                fromDepth: 30,
+                targetDepth: 15,
+                tankId: 'back',
+                gasMix: _air,
+                order: 2,
+                ratePerMinute: 9,
+              ),
+              PlanSegment.hold(
+                id: 'shallow',
+                depth: 15,
+                durationMinutes: 20,
+                tankId: 'back',
+                gasMix: _air,
+                order: 3,
+              ),
+            ],
+          ),
+        ),
+      );
+
+      // Read as the diver leaves 30 m, before the 15 m level is breathed.
+      expect(
+        multiLevel.bottomEndPressure,
+        closeTo(deepOnly.bottomEndPressure!, 1e-6),
+      );
+      expect(
+        multiLevel.remainingPressure!,
+        lessThan(deepOnly.remainingPressure!),
+      );
+    });
+
     test('the ascent-only minimum is rock bottom less its problem-solving '
         'time', () {
       final usage = _back(engine.compute(_plan()));
