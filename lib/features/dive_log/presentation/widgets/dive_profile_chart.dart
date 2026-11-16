@@ -1496,13 +1496,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           ? ProfileRightAxisMetric.ascentRate
           : null);
 
-  /// Drops the cursor-following tooltip and the hover-driven highlight/axis
-  /// override. Called from every place a pointer stops actively hovering the
-  /// chart (mouse exit, pointer up, pointer cancel) -- each of these used to
-  /// only need to reset pan/gesture bookkeeping, before this state existed;
-  /// skip the call entirely when nothing would actually change, so a plain
-  /// pointer-up on a chart that was never hovered does not force an
-  /// unnecessary rebuild.
   /// The mouse has left the chart: drop the hover fallback's selection and
   /// every hover-driven overlay.
   void _onMouseLeft() {
@@ -1518,6 +1511,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _clearCursorHoverState();
   }
 
+  /// Drops the cursor-following tooltip and the hover-driven highlight/axis
+  /// override. Called from every place a pointer stops actively hovering the
+  /// chart (mouse exit, pointer up, pointer cancel) -- each of these used to
+  /// only need to reset pan/gesture bookkeeping, before this state existed;
+  /// skip the call entirely when nothing would actually change, so a plain
+  /// pointer-up on a chart that was never hovered does not force an
+  /// unnecessary rebuild.
   void _clearCursorHoverState() {
     if (_lastPointerLocal == null &&
         _liveCursorTooltipRows.isEmpty &&
