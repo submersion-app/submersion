@@ -107,7 +107,13 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   bool canUnlock(MediaItem item, PhotoRecord? stored) =>
       editingOffered && stored != null && !item.isDocument;
 
-  void unlockPhoto(PhotoRecord stored) => photoEditController.unlock(stored);
+  /// The dive the sitting's photo was on when it was unlocked.
+  ({String? id})? _diveAtUnlock;
+
+  void unlockPhoto(PhotoRecord stored) {
+    _diveAtUnlock = (id: stored.item.diveId);
+    photoEditController.unlock(stored);
+  }
 
   /// The sitting's photo is no longer stored, or no longer in the list: the
   /// sitting ends, and the diver is told nothing was saved.
@@ -206,6 +212,9 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
       changedCardIds: changed,
       alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
       alsoWriteIsAChange: session.hasHeldChanges,
+      // Moved to another dive meanwhile: its time and its writes to the dive
+      // were made for the dive it was on.
+      diveAtStart: _diveAtUnlock,
     );
     // The write is committed. Placing the dive's photos again is derived,
     // and best effort: a failure here is not a failed save.

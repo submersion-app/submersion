@@ -65,6 +65,11 @@ class PhotoEditSaveService {
   /// [alsoWrite] is not a change in its own right ([alsoWriteIsAChange]).
   /// Throws [StateError] when the photo no longer exists. [diverId] scopes
   /// the people tags read, as the viewer's are.
+  ///
+  /// [diveAtStart] is the dive the photo was on when the sitting began.
+  /// When the photo has since been moved to another dive, the save is
+  /// refused with a [StateError]: the sitting's time and its writes to the
+  /// dive were made for the other one.
   Future<({PhotoRecord before, PhotoRecord after})?> save({
     required String mediaId,
     required String? diverId,
@@ -72,6 +77,7 @@ class PhotoEditSaveService {
     required Iterable<String> changedCardIds,
     Future<void> Function()? alsoWrite,
     bool alsoWriteIsAChange = false,
+    ({String? id})? diveAtStart,
   }) {
     // The scope goes outside the transaction it covers, as its own contract
     // requires. An operation that ends with no events is removed when the
@@ -84,6 +90,9 @@ class PhotoEditSaveService {
         final stored = await _reader.read(mediaId, diverId: diverId);
         if (stored == null) {
           throw StateError('Media $mediaId no longer exists');
+        }
+        if (diveAtStart != null && stored.item.diveId != diveAtStart.id) {
+          throw StateError('Media $mediaId moved to another dive');
         }
         final merged = apply(stored);
         if (merged == stored) {

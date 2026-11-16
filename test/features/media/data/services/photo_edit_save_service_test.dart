@@ -338,6 +338,40 @@ void main() {
     },
   );
 
+  test('a photo moved to another dive since the sitting started: refused, '
+      'nothing written', () async {
+    await insertTestDive(id: 'd2', at: DateTime(2024, 1, 11), diverId: 'me');
+    final session = await sitting('p1');
+    session
+      ..set(photoPinField, 90)
+      ..set(photoDiveShiftField, 30);
+    holdAddBuddyToDive(
+      session,
+      diveId: 'd1',
+      buddyId: 'b2',
+      repository: buddies,
+    );
+    await db.customStatement("UPDATE media SET dive_id = 'd2' WHERE id = 'p1'");
+
+    await expectLater(
+      serviceWith().save(
+        mediaId: 'p1',
+        diverId: 'me',
+        apply: session.applyTo,
+        changedCardIds: session.changedCardIds,
+        alsoWrite: session.runHeldWrites,
+        alsoWriteIsAChange: true,
+        diveAtStart: (id: 'd1'),
+      ),
+      throwsStateError,
+    );
+
+    final after = await stored('p1');
+    expect(after.item.manualElapsedSeconds, isNull);
+    expect(after.diveShiftSeconds, 0);
+    expect(await buddies.getBuddiesForDive('d1'), isEmpty);
+  });
+
   test('nothing changed: null, and no operation left behind', () async {
     final session = await sitting('p1');
 
