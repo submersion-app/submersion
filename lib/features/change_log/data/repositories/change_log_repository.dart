@@ -93,13 +93,19 @@ class ChangeLogRepository {
     ];
 
     if (filter.isRecord) {
+      // An entry about the record (an editing sitting on it, issue #4527)
+      // belongs in its History even when every record it changed was
+      // another one, such as a document filed under a dive.
       where.add(
-        'o.id IN (SELECT operation_id FROM change_log_events '
-        'WHERE root_table = ? AND root_id = ?)',
+        '(o.id IN (SELECT operation_id FROM change_log_events '
+        'WHERE root_table = ? AND root_id = ?) '
+        'OR (o.root_table = ? AND o.root_id = ?))',
       );
-      variables
-        ..add(Variable<Object>(filter.rootTable!))
-        ..add(Variable<Object>(filter.rootId!));
+      for (final _ in const [0, 1]) {
+        variables
+          ..add(Variable<Object>(filter.rootTable!))
+          ..add(Variable<Object>(filter.rootId!));
+      }
     }
     if (filter.rootTables.isNotEmpty) {
       final tables = filter.rootTables.toList();

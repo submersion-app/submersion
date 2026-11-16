@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_filter.dart';
@@ -302,6 +303,51 @@ void main() {
     expect(field.column, 'notes');
     expect(field.oldValue, 'Calm');
     expect(field.newValue, 'One');
+  });
+
+  group('a sitting that wrote only another record', () {
+    setUp(() async {
+      await db.customStatement(
+        'INSERT INTO documents (id, diver_id, type, created_at, updated_at) '
+        "VALUES ('doc', 'me', 'other', 0, 0)",
+      );
+      await repository.settleAll();
+      await db.customStatement('DELETE FROM change_log_operations');
+      await clearLog(db);
+      await ChangeLogScope.run(
+        db,
+        source: ChangeLogSource.manual,
+        label: RecordEditLabel.encode(
+          table: 'dives',
+          id: 'mine',
+          cardIds: ['documents'],
+        ),
+        body: () => db.customStatement(
+          "UPDATE documents SET dive_id = 'mine' WHERE id = 'doc'",
+        ),
+      );
+    });
+
+    test('the record filter finds it under the record it is pinned to, with '
+        'no event of its own', () async {
+      expect(
+        await feedRoots(
+          'me',
+          filter: const ChangeLogFilter(rootTable: 'dives', rootId: 'mine'),
+        ),
+        ['mine'],
+      );
+    });
+
+    test('the record filter still finds it under the document', () async {
+      expect(
+        await feedRoots(
+          'me',
+          filter: const ChangeLogFilter(rootTable: 'documents', rootId: 'doc'),
+        ),
+        ['mine'],
+      );
+    });
   });
 
   test('entry detail hides machine rows by default', () async {
