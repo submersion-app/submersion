@@ -23,6 +23,7 @@ const _noteDateKey = 'noteDate';
 const _noteDayKey = 'noteDay';
 
 final RegExp _isoDate = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
+final RegExp _dayNumber = RegExp(r'^\d{1,4}$');
 
 /// [day] as edit-route query parameters.
 Map<String, String> tripNoteDayQuery(TripNoteDay day) {
@@ -38,7 +39,7 @@ Map<String, String> tripNoteDayQuery(TripNoteDay day) {
 /// missing or malformed.
 TripNoteDay? tripNoteDayFromQuery(Map<String, String> query) {
   final date = _isoDate.firstMatch(query[_noteDateKey] ?? '');
-  final number = int.tryParse(query[_noteDayKey] ?? '');
+  final number = _dayNumber.firstMatch(query[_noteDayKey] ?? '');
   if (date == null || number == null) return null;
   return TripNoteDay(
     date: DateTime(
@@ -46,7 +47,7 @@ TripNoteDay? tripNoteDayFromQuery(Map<String, String> query) {
       int.parse(date[2]!),
       int.parse(date[3]!),
     ),
-    dayNumber: number,
+    dayNumber: int.parse(number[0]!),
   );
 }
 
