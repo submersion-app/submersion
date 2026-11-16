@@ -59155,6 +59155,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_divePlans_site => 'Merülőhely';
 
   @override
+  String get query_diveRoles_builtIn => 'Beépített';
+
+  @override
+  String get query_diveRoles_name => 'Név';
+
+  @override
   String get query_diveTypes_builtIn => 'Beépített';
 
   @override
@@ -59261,6 +59267,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Saját szerep';
+
+  @override
+  String get query_dives_myRole => 'Saját szerepek';
 
   @override
   String get query_dives_media => 'Média';
@@ -59396,6 +59405,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Merülés típusok';
+
+  @override
+  String get query_entity_diveRoles => 'Merülési szerepek';
 
   @override
   String get query_entity_dives => 'Merülések';

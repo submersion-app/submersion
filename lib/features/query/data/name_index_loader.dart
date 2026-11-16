@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
@@ -33,6 +34,8 @@ class NameIndexLoader {
     QuerySubject.buddies,
     QuerySubject.tags,
     QuerySubject.diveTypes,
+    // The diver's own roles (#4409), named by `dives.myRole`.
+    QuerySubject.diveRoles,
     QuerySubject.equipment,
     // Rule actions name equipment sets (#4284). No relation points at a
     // set, so no query sentence resolves to one.
@@ -49,6 +52,7 @@ class NameIndexLoader {
     QuerySubject.species: ['scientific_name', 'is_built_in'],
     QuerySubject.equipment: ['brand', 'model'],
     QuerySubject.diveTypes: ['is_built_in'],
+    QuerySubject.diveRoles: ['is_built_in'],
     QuerySubject.siteTypes: ['is_built_in'],
   };
 
@@ -294,6 +298,7 @@ class NameIndexLoader {
     return switch (subject) {
       QuerySubject.diveTypes => builtIn(builtInDiveTypeName),
       QuerySubject.siteTypes => builtIn(builtInSiteTypeName),
+      QuerySubject.diveRoles => builtIn(builtInDiveRoleName),
       _ => null,
     };
   }

@@ -93413,6 +93413,18 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Built-in'**
+  String get query_diveRoles_builtIn;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_diveRoles_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
   String get query_diveTypes_builtIn;
 
   /// Field label in the query builder
@@ -93624,6 +93636,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My role'**
   String get query_dives_role;
+
+  /// Field label in the query builder: the diver's own roles on the dive, by name (a dive can hold several)
+  ///
+  /// In en, this message translates to:
+  /// **'My roles'**
+  String get query_dives_myRole;
 
   /// Field label in the query builder
   ///
@@ -93894,6 +93912,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive types'**
   String get query_entity_diveTypes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive roles'**
+  String get query_entity_diveRoles;
 
   /// Field label in the query builder
   ///

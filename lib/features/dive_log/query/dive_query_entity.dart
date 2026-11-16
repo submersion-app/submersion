@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dar
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
 import 'package:submersion/features/dive_log/query/dive_number_query.dart';
 import 'package:submersion/features/dive_log/query/dive_word_meanings.dart';
+import 'package:submersion/features/dive_roles/data/diver_role_set_sql.dart';
 import 'package:submersion/features/dive_types/query/dive_type_text_search.dart';
 import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
@@ -575,12 +576,11 @@ final QueryEntity diveQueryEntity = QueryEntity(
     _text('legacyBuddy', 'buddy'),
     // The diver's own role (#3622), present or not. A null or blank
     // diver_role is no role whatever dive_diver_roles holds, as
-    // DiveRoleSet.resolve reads it. Matching a named role would need that
-    // resolution in SQL and a name subject for custom roles, so only the
-    // presence operators are offered.
+    // DiveRoleSet.resolve reads it. Named roles go through the `myRole`
+    // relation (#4409), which took this field's old `myRole` alias: fields
+    // resolve before relations, so the alias would have shadowed it.
     QueryField(
       key: 'role',
-      aliases: const ['myRole'],
       type: FieldType.text,
       sql: '{r}.diver_role',
       emptySql: "({r}.diver_role IS NULL OR {r}.diver_role = '')",
@@ -684,6 +684,21 @@ final QueryEntity diveQueryEntity = QueryEntity(
       'dive_dive_types',
       'dive_type_id',
       aliases: ['type', 'diveType'],
+    ),
+    // The diver's own roles by name (#4409): the set DiveRoleSet.resolve
+    // reads, so a secondary role matches and a junction an older version's
+    // scalar outdates does not. `:none` is the `role` field's empty form.
+    QueryRelation(
+      key: 'myRole',
+      aliases: const ['myRoles'],
+      target: QuerySubject.diveRoles,
+      shape: RelationShape.custom,
+      joinSql:
+          '{to}.id IN (${diverRoleIdsOfDiveSql(diveId: '{from}.id', scalar: '{from}.diver_role')})',
+      isMany: true,
+      labelKey: _label('myRole'),
+      emptySql: "({from}.diver_role IS NULL OR {from}.diver_role = '')",
+      tables: const ['dive_diver_roles'],
     ),
     QueryRelation(
       key: 'gear',

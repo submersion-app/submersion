@@ -59469,6 +59469,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_divePlans_site => 'Sito';
 
   @override
+  String get query_diveRoles_builtIn => 'Predefinito';
+
+  @override
+  String get query_diveRoles_name => 'Nome';
+
+  @override
   String get query_diveTypes_builtIn => 'Predefinito';
 
   @override
@@ -59575,6 +59581,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Il mio ruolo';
+
+  @override
+  String get query_dives_myRole => 'I miei ruoli';
 
   @override
   String get query_dives_media => 'Media';
@@ -59710,6 +59719,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Tipi di immersione';
+
+  @override
+  String get query_entity_diveRoles => 'Ruoli di immersione';
 
   @override
   String get query_entity_dives => 'Immersioni';

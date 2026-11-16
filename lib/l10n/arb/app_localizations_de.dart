@@ -59336,6 +59336,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_divePlans_site => 'Tauchplatz';
 
   @override
+  String get query_diveRoles_builtIn => 'Vordefiniert';
+
+  @override
+  String get query_diveRoles_name => 'Name';
+
+  @override
   String get query_diveTypes_builtIn => 'Vordefiniert';
 
   @override
@@ -59442,6 +59448,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Meine Rolle';
+
+  @override
+  String get query_dives_myRole => 'Meine Rollen';
 
   @override
   String get query_dives_media => 'Medien';
@@ -59577,6 +59586,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Tauchgangsarten';
+
+  @override
+  String get query_entity_diveRoles => 'Tauchrollen';
 
   @override
   String get query_entity_dives => 'Tauchgänge';

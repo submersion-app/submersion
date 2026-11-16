@@ -60257,6 +60257,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_divePlans_site => 'الموقع';
 
   @override
+  String get query_diveRoles_builtIn => 'مدمج';
+
+  @override
+  String get query_diveRoles_name => 'الاسم';
+
+  @override
   String get query_diveTypes_builtIn => 'مدمج';
 
   @override
@@ -60363,6 +60369,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_dives_role => 'دوري';
+
+  @override
+  String get query_dives_myRole => 'أدواري';
 
   @override
   String get query_dives_media => 'الوسائط';
@@ -60498,6 +60507,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'أنواع الغوص';
+
+  @override
+  String get query_entity_diveRoles => 'أدوار الغوص';
 
   @override
   String get query_entity_dives => 'الغطسات';

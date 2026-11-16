@@ -44,4 +44,8 @@ enum QuerySubject {
   divePlans,
   gpsTracks,
   navTracks,
+
+  /// The diver's own per-dive roles (#4409), a relation target of dives
+  /// (`dives.myRole`). Last, so no earlier subject's index moves.
+  diveRoles,
 }

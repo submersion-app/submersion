@@ -59090,6 +59090,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_divePlans_site => 'Duikstek';
 
   @override
+  String get query_diveRoles_builtIn => 'Ingebouwd';
+
+  @override
+  String get query_diveRoles_name => 'Naam';
+
+  @override
   String get query_diveTypes_builtIn => 'Ingebouwd';
 
   @override
@@ -59196,6 +59202,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Mijn rol';
+
+  @override
+  String get query_dives_myRole => 'Mijn rollen';
 
   @override
   String get query_dives_media => 'Media';
@@ -59331,6 +59340,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Duiktypes';
+
+  @override
+  String get query_entity_diveRoles => 'Duikrollen';
 
   @override
   String get query_entity_dives => 'Duiken';

@@ -55768,6 +55768,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_divePlans_site => '潜点';
 
   @override
+  String get query_diveRoles_builtIn => '内置';
+
+  @override
+  String get query_diveRoles_name => '名称';
+
+  @override
   String get query_diveTypes_builtIn => '内置';
 
   @override
@@ -55874,6 +55880,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_dives_role => '我的角色';
+
+  @override
+  String get query_dives_myRole => '我担任的角色';
 
   @override
   String get query_dives_media => '媒体';
@@ -56009,6 +56018,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => '潜水类型';
+
+  @override
+  String get query_entity_diveRoles => '潜水角色';
 
   @override
   String get query_entity_dives => '潜水';

@@ -58209,6 +58209,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_divePlans_site => 'אתר';
 
   @override
+  String get query_diveRoles_builtIn => 'מובנה';
+
+  @override
+  String get query_diveRoles_name => 'שם';
+
+  @override
   String get query_diveTypes_builtIn => 'מובנה';
 
   @override
@@ -58315,6 +58321,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_dives_role => 'התפקיד שלי';
+
+  @override
+  String get query_dives_myRole => 'התפקידים שלי';
 
   @override
   String get query_dives_media => 'מדיה';
@@ -58450,6 +58459,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'סוגי צלילה';
+
+  @override
+  String get query_entity_diveRoles => 'תפקידי צלילה';
 
   @override
   String get query_entity_dives => 'צלילות';
