@@ -239,11 +239,14 @@ class _AccountChooserState extends ConsumerState<AccountChooser> {
     }
 
     // Never an empty list while the accounts load (or failed to): it would
-    // hide the diver's accounts and offer to add ones that exist.
+    // hide the diver's accounts and offer to add ones that exist. Nor a
+    // partial one while the kinds to offer are still being checked: a row
+    // added later moves the rows under a tap (issue #4612).
     final groupsAsync = ref.watch(_groupsProvider);
-    if (!groupsAsync.hasValue) {
+    final offerable = ref.watch(offerableAccountKindsProvider);
+    if (!groupsAsync.hasValue || offerable == null) {
       return Center(
-        child: groupsAsync.hasError
+        child: !groupsAsync.hasValue && groupsAsync.hasError
             ? Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(l10n.settings_connectedAccounts_loadError),
@@ -279,7 +282,7 @@ class _AccountChooserState extends ConsumerState<AccountChooser> {
         ? ref.watch(unavailableAccountKindsProvider)
         : const <AccountKindOffer, String Function(AppLocalizations)>{};
     final offers = [
-      for (final o in ref.watch(offerableAccountKindsProvider))
+      for (final o in offerable)
         if (_offerAllowed(o) && !alreadyAdded(o) && !unavailable.containsKey(o))
           o,
     ];

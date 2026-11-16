@@ -207,19 +207,30 @@ enum AccountKindOffer { icloud, googleDrive, dropbox, ownServer, git }
 
 /// The kinds this platform and build can sign in to, gated exactly as the
 /// sync page gates its providers today.
+///
+/// Null while a check that could add a kind is still running. A list shown
+/// before then grew a row once the check answered, which moved every row
+/// below it: a tap aimed at My own server opened Dropbox (issue #4612). A
+/// check that fails settles as "not offered".
 final offerableAccountKindsProvider =
-    Provider.autoDispose<List<AccountKindOffer>>((ref) {
+    Provider.autoDispose<List<AccountKindOffer>?>((ref) {
       final caps = ref.watch(deviceCapabilitiesProvider);
-      final icloud = ref.watch(iCloudAvailabilityProvider).value;
+      // Asked only where the kind could be offered, so a check that never
+      // answers on another platform cannot hold the list back.
+      final icloudCheck = caps.cloudICloud && ref.watch(isApplePlatformProvider)
+          ? ref.watch(iCloudAvailabilityProvider)
+          : null;
+      final driveCheck = caps.cloudGoogleDrive
+          ? ref.watch(googleDriveAvailableProvider)
+          : null;
+      bool pending(AsyncValue<Object?>? check) =>
+          check != null && !check.hasValue && !check.hasError;
+      if (pending(icloudCheck) || pending(driveCheck)) return null;
+      final icloud = icloudCheck?.value;
       return [
-        if (caps.cloudICloud &&
-            ref.watch(isApplePlatformProvider) &&
-            icloud != null &&
-            icloud != ICloudAvailability.unsupported)
+        if (icloud != null && icloud != ICloudAvailability.unsupported)
           AccountKindOffer.icloud,
-        if (caps.cloudGoogleDrive &&
-            (ref.watch(googleDriveAvailableProvider).value ?? false))
-          AccountKindOffer.googleDrive,
+        if (driveCheck?.value ?? false) AccountKindOffer.googleDrive,
         if (ref.watch(dropboxConfiguredProvider)) AccountKindOffer.dropbox,
         AccountKindOffer.ownServer,
         if (caps.cloudGit) AccountKindOffer.git,
