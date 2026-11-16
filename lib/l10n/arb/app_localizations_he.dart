@@ -2118,6 +2118,43 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll => 'אותו תפקיד לכל מכל';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition => 'תפקיד לפי מיקום המכל';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'הוספת מיקום';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'הסרת מיקום';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'רק צלילות עם בדיוק $count מכלים יקבלו את התפקידים האלה, לפי סדר המכלים.',
+      one: 'רק צלילות עם מכל אחד בדיוק יקבלו את התפקיד הזה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count צלילות אינן תואמות את מיקומי המכלים, ולכן תפקידי המכלים שלהן נשארים כפי שהם.',
+      one:
+          'צלילה אחת אינה תואמת את מיקומי המכלים, ולכן תפקידי המכלים שלה נשארים כפי שהם.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => 'להחיל שינויים?';
 
   @override

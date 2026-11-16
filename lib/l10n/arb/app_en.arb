@@ -1292,6 +1292,26 @@
       }
     }
   },
+  "diveLog_bulkEdit_tankRoleSameForAll": "Same role on every tank",
+  "diveLog_bulkEdit_tankRoleByPosition": "Role by tank position",
+  "diveLog_bulkEdit_tankRoleAddPosition": "Add position",
+  "diveLog_bulkEdit_tankRoleRemovePosition": "Remove position",
+  "diveLog_bulkEdit_tankRolesByPositionHint": "{count, plural, one{Only dives with exactly {count} tank get this role.} other{Only dives with exactly {count} tanks get these roles, in tank order.}}",
+  "@diveLog_bulkEdit_tankRolesByPositionHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_bulkEdit_tankRolesSkipped": "{count, plural, one{{count} dive doesn't match the tank positions, so its tank roles stay as they are.} other{{count} dives don't match the tank positions, so their tank roles stay as they are.}}",
+  "@diveLog_bulkEdit_tankRolesSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_bulkEdit_confirmTitle": "Apply changes?",
   "diveLog_bulkEdit_confirmApply": "Apply",
   "diveLog_bulkEdit_confirmAdding": "{count, plural, =1{Adding to 1 dive} other{Adding to all {count} dives}}",
