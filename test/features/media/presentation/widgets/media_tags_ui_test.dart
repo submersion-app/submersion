@@ -236,10 +236,9 @@ void main() {
 
       final stored = await tester.runAsync(tagIds);
       expect(stored, isEmpty);
-      expect(
-        sitting.valueOf(photoTagsField).added.values.map((t) => t.name),
-        ['Funny'],
-      );
+      expect(sitting.valueOf(photoTagsField).added.values.map((t) => t.name), [
+        'Funny',
+      ]);
       // The tag input refocuses on a short timer after a submit.
       await tester.pump(const Duration(seconds: 1));
     });
