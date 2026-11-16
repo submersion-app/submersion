@@ -19,6 +19,7 @@ part 'write_planner_children.dart';
 part 'write_planner_merge.dart';
 part 'write_planner_references.dart';
 part 'write_planner_relations.dart';
+part 'write_planner_set_so_far.dart';
 
 /// Turns a change set into a plan by reading, and only reading. It opens no
 /// transaction and writes nothing, because the spec forbids even one that is
@@ -47,6 +48,8 @@ class WritePlanner {
     for (final op in set.operations) {
       await pass.plan(op);
     }
+    // What the entities read for this preview is not reused at apply.
+    pass.planning.close();
     return WritePlan(
       id: const Uuid().v4(),
       label: set.label,
@@ -77,6 +80,9 @@ class _Pass {
   final items = <PlanItem>[];
   final unchanged = <UnchangedRecord>[];
   final markers = <RecordMarker>[];
+
+  /// Shared by every entity's refusal and side effects in this preview.
+  final planning = PlanningPass();
 
   final _rows = <String, Map<String, _Row>>{};
   final _seen = <(String, String)>{};
@@ -114,56 +120,11 @@ class _Pass {
   final _createdSoFar = <String, List<Map<String, Object?>>>{};
   final _valuesSoFar = <(String, String), Map<String, Object?>>{};
   final _unlinkedSoFar = <(String, String), Map<String, Set<String>>>{};
+  final _touchedSoFar = <String, Set<String>>{};
 
-  /// What the set does before the change being planned, for its rules.
-  SetSoFar get _soFar => SetSoFar(
-    deleted: _deletedSoFar,
-    values: _valuesSoFar,
-    unlinked: _unlinkedSoFar,
-    created: _createdSoFar,
-  );
-
-  /// [_soFar] as it stands now, for a read that runs again at apply, after
-  /// the later changes of the set have been planned.
-  SetSoFar get _soFarSnapshot => SetSoFar(
-    deleted: {
-      for (final MapEntry(:key, :value) in _deletedSoFar.entries)
-        key: {...value},
-    },
-    values: {..._valuesSoFar},
-    unlinked: {
-      for (final MapEntry(:key, :value) in _unlinkedSoFar.entries)
-        key: {
-          for (final MapEntry(key: entity, value: ids) in value.entries)
-            entity: {...ids},
-        },
-    },
-    created: {
-      for (final MapEntry(:key, :value) in _createdSoFar.entries)
-        key: [...value],
-    },
-  );
-
-  /// Notes what an update the plan keeps writes and unlinks, for the rules
-  /// of the changes after it.
-  void _recordSoFar(
-    UpdateOp op,
-    WritableEntry entry,
-    Map<String, Object?> values,
-    Map<String, RelationDelta> deltas,
-    Map<String, Set<String>> detached,
-  ) {
-    _valuesSoFar[(op.entity, op.id)] = values;
-    for (final MapEntry(key: entity, value: ids) in detached.entries) {
-      ((_unlinkedSoFar[(op.entity, op.id)] ??= {})[entity] ??= {}).addAll(ids);
-    }
-    for (final MapEntry(key: name, value: delta) in deltas.entries) {
-      final target = entry.relations[name]!.refEntity;
-      for (final id in delta.remove) {
-        ((_unlinkedSoFar[(target, id)] ??= {})[op.entity] ??= {}).add(op.id);
-      }
-    }
-  }
+  /// The records an earlier change's side effects rewrite or delete, by
+  /// entity and id, to the operation that does.
+  final _rewritten = <(String, String), int>{};
 
   /// Each unique key a change in the set claims, by entity and owner, to the
   /// operation that claimed it first.
@@ -307,14 +268,17 @@ class _Pass {
       ownerId: diverId,
       values: values,
       soFar: _soFar,
+      pass: planning,
     );
     final block =
+        _rewrittenFirst(entry, null, owner.parentId) ??
         await _checkFieldRefs(entry, values, diverId) ??
         await entry.refuse(check) ??
         _claimUnique(op, entry, check);
     if (block == null) {
       await _markFieldRefs(entry, values);
       (_createdSoFar[op.entity] ??= []).add(values);
+      _touch(entry, null, owner.parentId);
     }
     final parent = await _parentContext(entry, owner.parentId, diverId);
     _add(
@@ -354,10 +318,12 @@ class _Pass {
       relations: links.deltas,
       document: document,
       soFar: _soFar,
+      pass: planning,
     );
     final block =
         parsed.block ??
         links.block ??
+        _rewrittenFirst(entry, op.id, row.parentId) ??
         _fixed(entry, parsed) ??
         await _checkFieldRefs(entry, parsed.values, row.ownerId) ??
         await entry.refuse(check) ??
@@ -366,6 +332,7 @@ class _Pass {
       values: parsed.values,
       relations: links.deltas,
       soFar: _soFarSnapshot,
+      pass: planning,
     );
     Future<SideEffects> readEffects() =>
         entry.sideEffects(op.id, row.ownerId, update, document);
@@ -409,7 +376,14 @@ class _Pass {
       );
       await _markReferences(entry, links.deltas);
       await _markFieldRefs(entry, parsed.values);
-      _recordSoFar(op, entry, parsed.values, links.deltas, effects.detached);
+      _recordSoFar(
+        op,
+        entry,
+        parsed.values,
+        links.deltas,
+        effects,
+        row.parentId,
+      );
     }
     final parent = await _parentContext(entry, row.parentId, row.ownerId);
     _add(
@@ -428,7 +402,11 @@ class _Pass {
       relations: links.deltas,
       indirectRelations: effects.relations,
       indirectLost: effects.lost,
-      reach: DeleteReach(parts: effects.parts),
+      reach: DeleteReach(
+        parts: effects.parts,
+        records: effects.records,
+        unlinked: effects.unlinked,
+      ),
       alsoCreates: effects.created,
       alsoChanges: effects.touched,
       names: {
@@ -436,7 +414,7 @@ class _Pass {
           ...effects.relations,
           for (final MapEntry(:key, :value) in effects.lost.entries)
             key: {...?effects.relations[key], ...value},
-        }),
+        }, row.ownerId),
         ...await _referenceNames(entry, fields, row.ownerId),
       },
       block: block,
@@ -455,6 +433,7 @@ class _Pass {
             ? null
             : await entry.refuseMerge(op.id, into, row.ownerId)) ??
         _parentWritten(entry, row.parentId, ChangeKind.delete) ??
+        _rewrittenFirst(entry, op.id, row.parentId) ??
         await entry.refuse(
           WriteCheck(
             kind: ChangeKind.delete,
@@ -463,6 +442,7 @@ class _Pass {
             document: document,
             soFar: _soFar,
             mergeInto: into,
+            pass: planning,
           ),
         );
     // Held as locals, so the closure a marker keeps holds these and not this
@@ -487,6 +467,7 @@ class _Pass {
     }
     if (block == null) {
       (_deletedSoFar[op.entity] ??= {}).add(op.id);
+      _touch(entry, op.id, row.parentId);
       markers.add(
         await _marker(
           entry,

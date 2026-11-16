@@ -83,12 +83,34 @@ class RelationDelta {
   bool get isEmpty => add.isEmpty && remove.isEmpty;
 }
 
+/// One preview, which an entity may cache its reads in: the refusal and the
+/// side effects of one change often read the same rows. The planner closes
+/// it once the preview is made, so a read the apply runs again to check the
+/// plan is still current never comes from here.
+class PlanningPass {
+  final _reads = <Object, Future<Object?>>{};
+  var _open = true;
+
+  bool get isOpen => _open;
+
+  /// What [read] returns, read once per [key] while the preview is open and
+  /// on every call once it has closed.
+  Future<T> once<T>(Object key, Future<T> Function() read) =>
+      _open ? _reads.putIfAbsent(key, read) as Future<T> : read();
+
+  void close() {
+    _open = false;
+    _reads.clear();
+  }
+}
+
 /// What an update changes: parsed field values, keyed as in the document.
 class RecordUpdate {
   const RecordUpdate({
     this.values = const {},
     this.relations = const {},
     this.soFar = const SetSoFar(),
+    this.pass,
   });
 
   final Map<String, Object?> values;
@@ -98,6 +120,10 @@ class RecordUpdate {
   /// [WritableEntry.sideEffects] reads other records as the apply will find
   /// them. Empty at apply, where those changes have already run.
   final SetSoFar soFar;
+
+  /// The preview this update is planned in, shared with its [WriteCheck];
+  /// null at apply.
+  final PlanningPass? pass;
 }
 
 /// What an entity is asked to judge before a change is planned.
@@ -111,11 +137,16 @@ class WriteCheck {
     this.document,
     this.soFar = const SetSoFar(),
     this.mergeInto,
+    this.pass,
   });
 
   final ChangeKind kind;
   final String? id;
   final String? ownerId;
+
+  /// The preview this change is planned in, shared with its
+  /// [RecordUpdate].
+  final PlanningPass? pass;
 
   /// What the rest of the set does before this change, for a rule that
   /// reads stored rows the set changes first.
@@ -153,11 +184,19 @@ class SetSoFar {
     this.values = const {},
     this.unlinked = const {},
     this.created = const {},
+    this.touched = const {},
   });
 
   /// The records deletes earlier in the set take away, by entity, counting
   /// only those the plan keeps.
   final Map<String, Set<String>> deleted;
+
+  /// Every record earlier changes in the set write, by entity, counting only
+  /// those the plan keeps: what an update or delete names, the record a
+  /// child belongs to (a tank's dive), and what a link added or removed
+  /// points at. A rule that cares whether a record was written first reads
+  /// it here, whichever entity wrote it.
+  final Map<String, Set<String>> touched;
 
   /// The fields earlier updates in the set write, parsed, by entity and id.
   final Map<(String, String), Map<String, Object?>> values;
@@ -179,12 +218,17 @@ class AppliedChange {
     required this.kind,
     required this.id,
     this.parentId,
+    this.diverId,
     this.changed = const {},
   });
 
   final ChangeKind kind;
   final String id;
   final String? parentId;
+
+  /// The profile the record belonged to, which a delete can no longer read
+  /// from the row.
+  final String? diverId;
   final Set<String> changed;
 }
 
@@ -208,6 +252,10 @@ class SideEffects {
     this.detached = const {},
     this.touched = const {},
     this.created = const {},
+    this.records = const {},
+    this.unlinked = const {},
+    this.rewrites = const {},
+    this.basis = '',
   });
 
   /// Document key to the value it will hold, as a document would read.
@@ -237,6 +285,26 @@ class SideEffects {
   /// lists them: the items a template brings to a checklist.
   final Map<String, int> created;
 
+  /// Records with a life of their own the update deletes along with rows it
+  /// deletes, by table, as [DeleteReach.records] lists them for a delete:
+  /// the documents of a dive it removes.
+  final Map<String, int> records;
+
+  /// Records that stay but lose their link to rows the update deletes, by
+  /// table, as [DeleteReach.unlinked] lists them for a delete.
+  final Map<String, int> unlinked;
+
+  /// Records of other entities the update rewrites or deletes through its
+  /// own rules, by entity, such as the planned dives a plan writes. A later
+  /// change in the set to one of them, or to a record that belongs to one,
+  /// is refused: it would be planned against values the apply replaces.
+  final Map<String, Set<String>> rewrites;
+
+  /// What the effects were worked out for that the counts would not show,
+  /// such as whose log a plan writes into. The plan compares it at apply and
+  /// never shows it, as [DeleteReach.basis].
+  final String basis;
+
   bool get isEmpty =>
       fields.isEmpty &&
       relations.isEmpty &&
@@ -244,7 +312,10 @@ class SideEffects {
       parts.isEmpty &&
       detached.isEmpty &&
       touched.isEmpty &&
-      created.isEmpty;
+      created.isEmpty &&
+      records.isEmpty &&
+      unlinked.isEmpty &&
+      rewrites.isEmpty;
 
   /// The same text for the same effects, to compare a preview with a later
   /// read.
@@ -267,6 +338,13 @@ class SideEffects {
     }),
     'touched': _sorted(touched),
     'created': _sorted(created),
+    'records': _sorted(records),
+    'unlinked': _sorted(unlinked),
+    'rewrites': _sorted({
+      for (final MapEntry(:key, :value) in rewrites.entries)
+        key: (value.toList()..sort()),
+    }),
+    'basis': basis,
   });
 }
 

@@ -11,6 +11,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/info/dive_profile_info.dart';
+import 'package:submersion/features/dive_log/presentation/utils/chart_drag_crossing.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
 import 'package:submersion/features/dive_log/presentation/utils/profile_time_domain.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gtr_format.dart';
@@ -1494,6 +1495,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       (_hoveredAscentRateTimestamp != null
           ? ProfileRightAxisMetric.ascentRate
           : null);
+
+  /// The mouse has left the chart: drop the hover fallback's selection and
+  /// every hover-driven overlay.
+  void _onMouseLeft() {
+    if (_lastHoverIndex != null) {
+      _lastHoverIndex = null;
+      _lastHoverOnLeadIn = false;
+      _reportSelection(null);
+    }
+    // The mouse leaving the chart entirely (not just panning off the touched
+    // sample) must also drop the in-chart tooltip and the hover-driven
+    // highlight/axis-override; otherwise they freeze at their last position
+    // instead of disappearing (issue #2228 follow-up).
+    _clearCursorHoverState();
+  }
 
   /// Drops the cursor-following tooltip and the hover-driven highlight/axis
   /// override. Called from every place a pointer stops actively hovering the
@@ -3569,7 +3585,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               },
               onPointerUp: (event) {
                 if (_activePointerCount > 0) _activePointerCount--;
-                _clearCursorHoverState();
+                // A mouse drag released off the chart skipped its exit (see
+                // the MouseRegion below), so the mouse leaves now. Not every
+                // drag is fl_chart's scrub, whose end clears the selection:
+                // one begun in an axis gutter would leave the hover's stuck.
+                if (event.kind != PointerDeviceKind.touch &&
+                    !constraints.biggest.contains(event.localPosition)) {
+                  _onMouseLeft();
+                } else {
+                  _clearCursorHoverState();
+                }
                 if (event.kind == PointerDeviceKind.touch) {
                   _touchPositions.remove(event.pointer);
                   if (_pinchPointers.contains(event.pointer)) {
@@ -3691,18 +3716,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 }
               },
               child: MouseRegion(
-                onExit: (_) {
-                  if (_lastHoverIndex != null) {
-                    _lastHoverIndex = null;
-                    _lastHoverOnLeadIn = false;
-                    _reportSelection(null);
-                  }
-                  // The mouse leaving the chart entirely (not just panning
-                  // off the touched sample) must also drop the in-chart
-                  // tooltip and the hover-driven highlight/axis-override --
-                  // otherwise they freeze at their last position instead of
-                  // disappearing (issue #2228 follow-up).
-                  _clearCursorHoverState();
+                onExit: (event) {
+                  // Mid-drag, not a hover leaving: onPointerUp lets the mouse
+                  // leave once the button is released (issue #4611).
+                  if (isDragCrossing(event)) return;
+                  _onMouseLeft();
                 },
                 // The only part a pan, zoom or hover frame rebuilds. Everything
                 // above it, the gesture handling included, stays mounted.
@@ -4846,6 +4864,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 // the pinch owns the interaction, so ignore its events. The
                 // same applies while a one-finger pan drag is claimed.
                 if (_activePointerCount >= 2 || _touchDragClaimed) return;
+                // A mouse drag that strays off the chart is still a scrub: its
+                // pan updates and end carry the selection (issue #4611).
+                if (crossesChartEdgeMidDrag(event)) return;
                 final isTouchEnd =
                     event is FlPointerExitEvent ||
                     event is FlLongPressEnd ||

@@ -137,7 +137,6 @@ void main() {
       changeLog: ChangeLogRepository(),
       revert: ChangeLogRevertService(afterDiveWrites: (_) {}),
       restoreDocuments: (_) async {},
-      rearmDocuments: (_) async {},
     );
     final dive = await makeDive();
     await mediaRepository.createMedia(

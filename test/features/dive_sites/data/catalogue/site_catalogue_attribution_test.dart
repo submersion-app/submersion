@@ -171,6 +171,21 @@ void main() {
     expect(text, isNot(contains('of the states. Public domain.')));
   });
 
+  test("the federal reef file acknowledges the State of Maryland and ships "
+      "its metadata", () async {
+    final text = await licenceText();
+
+    expect(
+      text,
+      contains(
+        "Its Maryland records are derived from data of the State of "
+        "Maryland, Department of Natural Resources. Maryland's metadata for "
+        'that data ships with the app, unmodified '
+        '(assets/data/site_catalogue_md_dnr_metadata.xml).',
+      ),
+    );
+  });
+
   test('the credit is filed under one heading', () {
     expect(SiteCatalogueAttribution.packageName, 'Dive site data');
   });

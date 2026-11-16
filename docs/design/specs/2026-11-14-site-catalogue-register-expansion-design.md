@@ -802,7 +802,7 @@ Mississippi state no licence and no restriction, only liability and
 navigation disclaimers. South Carolina asks that acknowledgment "would be
 appreciated". Delaware's portal calls its data "public data". Maryland's
 "can be freely distributed as long as the metadata entry is not modified or
-deleted". California's state material is "considered in the public domain".
+deleted" (its metadata ships since 2026-11-15, see below). California's state material is "considered in the public domain".
 Alabama has no source citation in the federal metadata at all; the state's
 own page publishes the same list with no terms.
 
@@ -824,10 +824,44 @@ publishers' pages after slices 2 to 5 shipped:
   for TPWD's contribution. The reef layer's own Terms of Use on TPWD's
   current viewer are a disclaimer only and add no restriction.
 
+**The federal file's remaining states, 2026-11-15.** Five states shipped
+through the federal file without their terms on record. NOAA's record
+credits a source for four of them and states no terms for any:
+
+- Maryland (38 records): the open-data record for Maryland's own reef
+  layer (MD iMAP, Maryland Artificial Reef Initiative, 38 points; ArcGIS
+  item `cffdac5749c94f9c818c836fd4b6d297`) says "The Data can be freely
+  distributed as long as the metadata entry is not modified or deleted.
+  Any data derived from the Data must acknowledge the State of Maryland in
+  the metadata." That allows commercial reuse, so the records stay in the
+  ODbL database. Fetching the federal file now saves that item's metadata,
+  the merge ships it unmodified as
+  `assets/data/site_catalogue_md_dnr_metadata.xml` whenever the federal
+  records ship (the open-only catalogue included), and the notice and the
+  licence page acknowledge the State of Maryland.
+- Massachusetts (5 records): Mass.gov's Terms of Use say the Commonwealth
+  "forbids any copying or use other than fair use" of material it holds
+  copyright in, without permission. Like New York, it is now excluded
+  from the federal file. All five rows had shipped as records of their
+  own, neither beaten by nor beating another record, so the shipped file
+  lost exactly those five lines rather than being re-merged.
+- Virginia (23 records): the Marine Resources Commission's reef list
+  states no terms; the only related text is the state portal's general
+  fair-use note, not attached to this data. They stay, as a state with no
+  stated terms.
+- Rhode Island (1 record): the Coastal Resources Management Council's
+  site makes its content available "without obligation" and states no
+  prohibition; the meeting document NOAA cites is gone. It stays.
+- Puerto Rico (7 records): NOAA's record names no source for them, so
+  there are no terms to read beyond NOAA's own. They stay under the
+  federal file's label.
+
 **Stays out.** New York: "Any other use, including the reproduction,
 modification, distribution, transmission, republication, display, or
 performance is prohibited" beyond educational use
 (`dec.ny.gov/about/website-usage-and-policies/website-content-usage`).
+Massachusetts: Mass.gov's Terms of Use forbid copying beyond fair use
+without permission (`mass.gov/massgov-terms-of-use`).
 SHOM: CC BY-SA 4.0. wrecksite.eu, uboat.net and WannaDive: proprietary.
 Diveboard was not re-checked.
 

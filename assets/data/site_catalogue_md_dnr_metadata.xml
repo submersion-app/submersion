@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><metadata xml:lang="en">
+	<dataIdInfo>
+		<idCitation>
+			<resTitle>Maryland Finfish - Maryland Artificial Reef Initiative Center Points</resTitle>
+			<date>
+				<pubDate>2017-07-01T08:21:51.080-05:00</pubDate>
+			</date>
+			<citRespParty>
+				<rpOrgName>DNR</rpOrgName>
+				<role>
+					<RoleCd value="006"/>
+				</role>
+			</citRespParty>
+		</idCitation>
+		<idAbs>&lt;font size='2'&gt;&lt;span style='font-family: Arial;'&gt;&lt;span style='overflow: auto;'&gt;&lt;span&gt;&lt;div&gt;The Maryland Artificial Reef Initiative (MARI) is a state-run initiative, managed by the Maryland Department of Natural Resources, aimed at developing new fish habitats in the Chesapeake Bay by way of depositing artificial materials (such as concrete reef balls or recycled porcelain) to the bottom of designated sections of water in the Chesapeake Bay. The goal is to see an oyster population develop on the artificial materials, which can attract fish and other marine creatures to the site.&lt;br /&gt;&lt;/div&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/font&gt;&lt;font size='2'&gt;&lt;br /&gt;&lt;font face='Arial'&gt;The Department of Natural Resources makes no warranty, expressed or implied, as to the use or appropriateness of Spatial Data, and there are no warranties of merchantability or fitness for a particular purpose or use. The information contained in Spatial Data is from publicly available sources, but no representation is made as to the accuracy or completeness of Spatial Data. The Department of Natural Resources shall not be subject to liability for human error, error due to software conversion, defect, or failure of machines, or any material used in the connection with the machines, including tapes, disks, CD-ROM’s or DVD-ROM’s and energy. The Department of Natural Resources shall not be liable for any lost profits, consequential damages, or claims against the Department of Natural Resources by third parties. The liability of the Department of Natural Resources for damage regardless of the form of the action shall not exceed any distribution fees that may have been paid in obtaining Spatial Data.&lt;/font&gt;&lt;/font&gt;&lt;div&gt;&lt;font size='2'&gt;&lt;br /&gt;&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;span style='font-family: Arial; font-size: small; color: rgb(77, 77, 77); line-height: 1.38462;'&gt;&lt;br /&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style='font-family: Arial; font-size: small; color: rgb(77, 77, 77); line-height: 1.38462;'&gt;This is a MD iMAP hosted service. Find more informa&lt;/span&gt;&lt;span style='font-family: Arial; font-size: small; color: rgb(77, 77, 77); line-height: 1.38462;'&gt;tion at &lt;/span&gt;&lt;span style='font-family: Arial; font-size: small; color: rgb(77, 77, 77); line-height: 1.38462;'&gt;&lt;a href='https://imap.maryland.gov/' target='_blank' rel='nofollow ugc noopener noreferrer'&gt;https://imap.maryland.gov&lt;/a&gt;.&lt;/span&gt;&lt;font size='2'&gt;&lt;br /&gt;&lt;font face='Arial'&gt;&lt;br /&gt;&lt;/font&gt;&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font size='2'&gt;&lt;font face='Arial'&gt;Feature Service Link:&lt;/font&gt;&lt;br /&gt;&lt;/font&gt;&lt;a href='https://mdgeodata.md.gov/imap/rest/services/Biota/MD_Finfish/FeatureServer/8' target='_blank' rel='nofollow ugc noopener noreferrer'&gt;&lt;font size='2'&gt;https://mdgeodata.md.gov/imap/rest/services/Biota/MD_Finfish/FeatureServer/8&lt;/font&gt;&lt;/a&gt;&lt;font size='2'&gt;&lt;br /&gt;&lt;/font&gt;&lt;/div&gt;</idAbs>
+		<idPurp>Maryland Finfish - Maryland Artificial Reef Initiative Center Points</idPurp>
+		<idCredit>MD iMAP, DNR</idCredit>
+		<dataChar>
+			<CharSetCd value="004"/>
+		</dataChar>
+		<searchKeys>
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<keyword>BIOT</keyword><keyword>biota</keyword><keyword>environment</keyword><keyword>fisheries</keyword><keyword>fish</keyword><keyword>WMS</keyword><keyword>WFS</keyword><keyword>MD</keyword><keyword>Maryland</keyword><keyword>Vector</keyword><keyword>Dynamic</keyword><keyword>Maryland Department of Natural Resources</keyword><keyword>Spawning Habitat</keyword><keyword>Juvenile Habitat</keyword><keyword>Tidal</keyword><keyword>Adult Habitat</keyword><keyword>Artificial Reef</keyword><keyword>fishing grounds</keyword><keyword>active pound net sites</keyword><keyword>MD iMAP</keyword><keyword>KML</keyword></searchKeys>
+		<resConst>
+			<Consts>
+				<useLimit>The Spatial Data, and the information therein, (collectively the "Data") is provided "as is" without warranty of any kind, either expressed, implied, or statutory. The user assumes the entire risk as to quality and performance of the Data. No guarantee of accuracy is granted, nor is any responsibility for reliance thereon assumed. In no event shall the State of Maryland be liable for direct, indirect, incidental, consequential or special damages of any kind. The State of Maryland does not accept liability for any damages or misrepresentation caused by inaccuracies in the Data or as a result to changes to the Data, nor is there responsibility assumed to maintain the Data in any manner or form. The Data can be freely distributed as long as the metadata entry is not modified or deleted. Any data derived from the Data must acknowledge the State of Maryland in the metadata.</useLimit>
+			</Consts>
+		</resConst>
+	<resMaint>
+<maintFreq>
+<MaintFreqCd value="009"/>
+</maintFreq>
+</resMaint>
+</dataIdInfo>
+	<distInfo>
+		<distTranOps>
+			<onLineSrc>
+				<linkage>https://geodata.md.gov/imap/rest/services/Biota/MD_Finfish/FeatureServer/8</linkage>
+			</onLineSrc>
+		</distTranOps>
+	</distInfo>
+	<Esri>
+		<ArcGISstyle>FGDC CSDGM Metadata</ArcGISstyle>
+		<CreaDate>2017-08-03</CreaDate>
+		<CreaTime>13:18:54.35</CreaTime>
+		<ModDate>2019-03-06</ModDate>
+		<ModTime>16:16:13.00</ModTime>
+		<ArcGISFormat>1.0</ArcGISFormat>
+		<ArcGISProfile>FGDC</ArcGISProfile>
+		<PublishStatus>editor:esri.dijit.metadata.editor</PublishStatus>
+	</Esri>
+	<mdDateSt>2017-08-03</mdDateSt>
+	<mdFileID>cffdac5749c94f9c818c836fd4b6d297</mdFileID>
+	<mdChar>
+		<CharSetCd value="004"/>
+	</mdChar>
+	<mdContact>
+		<role>
+			<RoleCd value="007"/>
+		</role>
+	</mdContact>
+</metadata>

@@ -18434,6 +18434,7 @@
   "changeLog_label_splitDive": "צלילה פוצלה",
   "changeLog_label_removeSource": "מקור נתונים הוסר",
   "changeLog_label_removeDuplicateCylinders": "מכלים כפולים הוסרו",
+  "changeLog_label_updatePlannedDives": "צלילות מתוכננות עודכנו",
   "changeLog_undoIncomplete": "הביטול לא הצליח להחזיר הכול. השאר נמצא בהגדרות > נתונים > יומן שינויים.",
   "changeLog_label_gearTransfer": "ציוד הועבר",
   "changeLog_label_mediaRepair": "קישורי מדיה תוקנו",

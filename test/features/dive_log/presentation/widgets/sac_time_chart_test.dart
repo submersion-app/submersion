@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -464,6 +465,73 @@ void main() {
     final fiftyMinutes = [
       for (var i = 0; i < 10; i++) sacSegment(i * 5, (i + 1) * 5),
     ];
+
+    // Issue #4611: a scrub that strays off the plot with the button held
+    // reports a mouse exit. The drag goes on, so it must not drop the
+    // profile cursor; the hover highlight still goes, as no hover follows.
+    testWidgets('a mouse drag off the plot keeps the cursor until release', (
+      tester,
+    ) async {
+      final cursor = <int?>[];
+      final hovers = <int?>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: 342,
+                child: SacTimeColumns(
+                  columns: const [
+                    SacTimeColumn(
+                      startSeconds: 0,
+                      durationSeconds: 1500,
+                      heightFactor: 1,
+                      semanticLabel: 'first',
+                    ),
+                    SacTimeColumn(
+                      startSeconds: 1500,
+                      durationSeconds: 1500,
+                      heightFactor: 0.5,
+                      semanticLabel: 'second',
+                    ),
+                  ],
+                  averageFactor: 0.5,
+                  activeIndex: null,
+                  endLabel: (minutes) => '$minutes min',
+                  onTap: (_) {},
+                  onScrub: (_) {},
+                  onHover: hovers.add,
+                  onCursorSeconds: cursor.add,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      final plot = tester.getRect(find.byKey(SacTimeColumns.plotKey));
+      final start = Offset(plot.left + plot.width * 0.3, plot.center.dy);
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: Offset.zero);
+      addTearDown(mouse.removePointer);
+      await mouse.moveTo(start);
+      await tester.pump();
+      await mouse.down(start);
+      await tester.pump();
+      await mouse.moveTo(start + const Offset(60, 0));
+      await tester.pump();
+      expect(cursor.last, isNotNull);
+
+      cursor.clear();
+      await mouse.moveTo(Offset(start.dx + 60, 500));
+      await tester.pump();
+      expect(cursor.where((c) => c == null), isEmpty);
+      expect(hovers.last, isNull);
+
+      await mouse.up();
+      await tester.pump();
+      expect(cursor.last, isNull, reason: 'releasing ends the scrub');
+    });
 
     testWidgets('measures once while only the selection changes', (
       tester,

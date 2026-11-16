@@ -301,6 +301,39 @@ void main() {
     expect(cursor(c), closeTo(75, 1));
   });
 
+  // Issue #4611: a scrub that strays off the strip with the button held
+  // reports a mouse exit. The drag goes on, so the cursor must not drop.
+  testWidgets('a mouse drag off the strip keeps the cursor until release', (
+    tester,
+  ) async {
+    final c = await pump(tester);
+    final writes = <int?>[];
+    final sub = c.listen<int?>(
+      profileTrackingIndexProvider(dive.id),
+      (_, next) => writes.add(next),
+    );
+    addTearDown(sub.close);
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(mouse.removePointer);
+    await mouse.addPointer(location: const Offset(1, 500));
+    await mouse.moveTo(at(tester, 0.3));
+    await tester.pump();
+    await mouse.down(at(tester, 0.3));
+    await tester.pump();
+    await mouse.moveTo(at(tester, 0.5));
+    await tester.pump();
+    expect(cursor(c), closeTo(75, 1));
+
+    writes.clear();
+    await mouse.moveTo(Offset(at(tester, 0.5).dx, 500));
+    await tester.pump();
+    expect(writes.where((w) => w == null), isEmpty);
+
+    await mouse.up();
+    await tester.pump();
+    expect(cursor(c), isNull, reason: 'releasing ends the scrub');
+  });
+
   testWidgets('a vertical drag scrolls the page and leaves the cursor', (
     tester,
   ) async {

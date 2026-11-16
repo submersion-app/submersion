@@ -493,6 +493,10 @@ class MainTest(unittest.TestCase):
                 (self.cache / merge.NJDEP_METADATA_FILE).write_text(
                     "<metadata>NJDEP</metadata>", encoding="utf-8"
                 )
+            if self.with_maryland_metadata:
+                (self.cache / merge.MD_DNR_METADATA_FILE).write_text(
+                    "<metadata>Maryland</metadata>", encoding="utf-8"
+                )
         output = io.StringIO()
         with redirect_stdout(output):
             code = merge.main(
@@ -506,6 +510,7 @@ class MainTest(unittest.TestCase):
         self._tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self._tmp.cleanup)
         self.with_metadata = True
+        self.with_maryland_metadata = True
 
     def _doc(self):
         return json.loads((self.out / "site_catalogue.json").read_text("utf-8"))
@@ -638,6 +643,36 @@ class MainTest(unittest.TestCase):
             )
         self.assertEqual(code, 2)
         self.assertIn("--without", output.getvalue())
+
+    def test_maryland_s_metadata_travels_with_the_federal_records(self):
+        # Maryland's rows ride in the federal file and stay in the ODbL
+        # database, so the open-only catalogue carries the metadata too.
+        for arguments in ((), ("--open-only",)):
+            code, _ = self._run(*arguments)
+            self.assertEqual(code, 0, arguments)
+            shipped = self.out / "site_catalogue_md_dnr_metadata.xml"
+            self.assertEqual(
+                shipped.read_text(encoding="utf-8"),
+                "<metadata>Maryland</metadata>",
+                arguments,
+            )
+
+    def test_the_federal_records_do_not_ship_without_maryland_s_metadata(self):
+        # Maryland's data is freely distributed only while its metadata
+        # entry is not modified or deleted.
+        self.with_maryland_metadata = False
+        code, output = self._run()
+        self.assertEqual(code, 2)
+        self.assertIn("Maryland", output)
+        self.assertFalse((self.out / "site_catalogue.json").exists())
+
+    def test_without_the_federal_file_no_maryland_metadata_ships(self):
+        self.with_maryland_metadata = False
+        code, _ = self._run("--without", "noaa_reefs", leave_out=("noaa_reefs",))
+        self.assertEqual(code, 0)
+        self.assertFalse(
+            (self.out / "site_catalogue_md_dnr_metadata.xml").exists()
+        )
 
     def test_the_open_only_catalogue_ships_no_new_jersey_metadata(self):
         code, _ = self._run("--open-only")

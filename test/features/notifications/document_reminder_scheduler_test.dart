@@ -175,6 +175,117 @@ void main() {
     );
   });
 
+  group('medical clearances (#4541)', () {
+    DateTime inDays(int n) => DateTime(now.year, now.month, now.day + n);
+
+    test('saving a renewal cancels the old clearance\'s reminders and arms '
+        'the new one\'s', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await save(DocumentType.medicalClearance, inDays(400));
+      await scheduler.updateForDocument(renewal, const AppSettings());
+      expect(service.cancelled, containsAll([old.id, renewal.id]));
+      expect(service.scheduled.map((s) => s.documentId).toSet(), {renewal.id});
+    });
+
+    test('updating a superseded clearance schedules nothing for it', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      await save(DocumentType.medicalClearance, inDays(400));
+      await scheduler.updateForDocument(old, const AppSettings());
+      expect(service.cancelled, contains(old.id));
+      expect(service.scheduled.where((s) => s.documentId == old.id), isEmpty);
+    });
+
+    test('a full schedule cancels a superseded clearance\'s pending '
+        'reminders', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await save(DocumentType.medicalClearance, inDays(400));
+      service.pending = {old.id};
+      await scheduler.scheduleAll(settings: const AppSettings(), diverId: 'd1');
+      expect(service.cancelled, contains(old.id));
+      expect(service.scheduled.map((s) => s.documentId).toSet(), {renewal.id});
+    });
+
+    test('once the renewal is gone, the old clearance reminds again', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await save(DocumentType.medicalClearance, inDays(400));
+      await DocumentRepository().delete(renewal.id);
+      await scheduler.updateForDocument(renewal, const AppSettings());
+      expect(service.scheduled.map((s) => s.documentId).toSet(), {old.id});
+    });
+
+    test('an undated renewal issued later silences the dated clearance and '
+        'reminds of nothing itself', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await DocumentRepository().save(
+        Document(
+          id: '',
+          diverId: 'd1',
+          owner: const DocumentOwner.personal(),
+          type: DocumentType.medicalClearance,
+          issueDate: inDays(30),
+          createdAt: now,
+          updatedAt: now,
+        ),
+        const [],
+      );
+      await scheduler.updateForDocument(renewal, const AppSettings());
+      expect(service.cancelled, contains(old.id));
+      expect(service.scheduled, isEmpty);
+    });
+
+    test(
+      'another profile\'s pending clearances rebuild its set once',
+      () async {
+        await DatabaseService.instance.database.customStatement(
+          'INSERT INTO divers (id, name, is_default, created_at, updated_at) '
+          "VALUES ('d2', 'Ben', 0, 0, 0)",
+        );
+        Future<Document> clearance(DateTime expiry) =>
+            DocumentRepository().save(
+              Document(
+                id: '',
+                diverId: 'd2',
+                owner: const DocumentOwner.personal(),
+                type: DocumentType.medicalClearance,
+                expiryDate: expiry,
+                createdAt: now,
+                updatedAt: now,
+              ),
+              const [],
+            );
+        final old = await clearance(inDays(10));
+        final renewal = await clearance(inDays(400));
+        service.pending = {old.id, renewal.id};
+        await scheduler.scheduleAll(
+          settings: const AppSettings(),
+          diverId: 'd1',
+        );
+        expect(service.cancelled.where((id) => id == old.id), hasLength(1));
+        expect(service.scheduled.map((s) => s.documentId).toSet(), {
+          renewal.id,
+        });
+      },
+    );
+
+    test('retyping the renewal as another type makes the old clearance '
+        'remind again', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await save(DocumentType.medicalClearance, inDays(60));
+      final retyped = await DocumentRepository().save(
+        renewal.copyWith(type: DocumentType.permit),
+        const [],
+      );
+      await scheduler.updateForDocument(retyped, const AppSettings());
+      expect(service.scheduled.map((s) => s.documentId).toSet(), {
+        old.id,
+        retyped.id,
+      });
+      // Only the re-arm's own cancel: settling the clearances afterwards
+      // must not take back the reminders just armed for the permit.
+      expect(service.cancelled.where((id) => id == retyped.id), hasLength(1));
+    });
+  });
+
   test('the background refresh, with no active profile, refreshes pending '
       'reminders too', () async {
     final permit = await save(

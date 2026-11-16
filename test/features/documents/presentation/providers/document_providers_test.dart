@@ -234,6 +234,95 @@ void main() {
     expect(list.first.$2.kind, DocumentExpiryKind.expired);
   });
 
+  test('attention list leaves out a clearance a later one supersedes '
+      '(#4541)', () async {
+    final c = container();
+    final now = DateTime.now();
+    DateTime day(int offset) => DateTime(now.year, now.month, now.day + offset);
+    final mutations = c.read(documentMutationsProvider);
+    // The archived one is long expired; the renewal is itself due soon, so
+    // it alone asks for attention.
+    await mutations.save(
+      doc(DocumentType.medicalClearance, day(-400), 'old'),
+      const [],
+    );
+    await mutations.save(
+      doc(DocumentType.medicalClearance, day(5), 'renewed'),
+      const [],
+    );
+    expect(
+      [
+        for (final (d, _) in await c.read(attentionDocumentsProvider.future))
+          d.title,
+      ],
+      ['renewed'],
+    );
+  });
+
+  test('deleting a clearance re-arms the diver\'s clearances; deleting '
+      'another type re-arms nothing', () async {
+    final scheduler = _RecordingScheduler();
+    final c = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        notificationSchedulerProvider.overrideWithValue(scheduler),
+      ],
+    );
+    addTearDown(c.dispose);
+    final repo = c.read(documentRepositoryProvider);
+    final mutations = c.read(documentMutationsProvider);
+    final clearance = await repo.save(
+      doc(DocumentType.medicalClearance, DateTime(2030), 'med'),
+      const [],
+    );
+    final permit = await repo.save(
+      doc(DocumentType.permit, DateTime(2030), 'Park'),
+      const [],
+    );
+    await mutations.delete(permit.id);
+    expect(scheduler.updated, isEmpty);
+    await mutations.delete(clearance.id);
+    expect(scheduler.updated, [clearance.id]);
+  });
+
+  ProviderContainer recording(_RecordingScheduler scheduler) {
+    final c = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        notificationSchedulerProvider.overrideWithValue(scheduler),
+      ],
+    );
+    addTearDown(c.dispose);
+    return c;
+  }
+
+  test('rearmReminders re-arms one clearance per diver, since the scheduler '
+      'rebuilds its whole set', () async {
+    final scheduler = _RecordingScheduler();
+    final c = recording(scheduler);
+    final repo = c.read(documentRepositoryProvider);
+    final old = await repo.save(
+      doc(DocumentType.medicalClearance, DateTime(2027), 'old'),
+      const [],
+    );
+    final renewal = await repo.save(
+      doc(DocumentType.medicalClearance, DateTime(2030), 'new'),
+      const [],
+    );
+    final permit = await repo.save(
+      doc(DocumentType.permit, DateTime(2030), 'Park'),
+      const [],
+    );
+    await c.read(documentMutationsProvider).rearmReminders([
+      old,
+      renewal,
+      permit,
+    ]);
+    expect(scheduler.updated, [old.id, permit.id]);
+  });
+
   test('owner, all and by-id providers see a saved document', () async {
     final c = container();
     final saved = await c

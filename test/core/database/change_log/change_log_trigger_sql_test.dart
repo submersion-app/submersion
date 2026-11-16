@@ -97,7 +97,10 @@ void main() {
     final update = statements.singleWhere((s) => s.contains('AFTER UPDATE'));
     expect(
       update,
-      contains("o.label IN ('remove_duplicate_cylinders', 'remove_source')"),
+      contains(
+        "o.label IN ('remove_duplicate_cylinders', 'remove_source', "
+        "'update_planned_dives')",
+      ),
     );
   });
 

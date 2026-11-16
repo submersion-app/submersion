@@ -63,6 +63,8 @@ String changeLogStoredLabel(AppLocalizations l, String label) =>
       ChangeLogLabels.removeSource => l.changeLog_label_removeSource,
       ChangeLogLabels.removeDuplicateCylinders =>
         l.changeLog_label_removeDuplicateCylinders,
+      ChangeLogLabels.updatePlannedDives =>
+        l.changeLog_label_updatePlannedDives,
       _ => label,
     };
 

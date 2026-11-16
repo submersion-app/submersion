@@ -18434,6 +18434,7 @@
   "changeLog_label_splitDive": "已拆分潜水",
   "changeLog_label_removeSource": "已移除数据源",
   "changeLog_label_removeDuplicateCylinders": "已移除重复气瓶",
+  "changeLog_label_updatePlannedDives": "已更新计划潜水",
   "changeLog_undoIncomplete": "撤销未能恢复全部内容。其余内容见 设置 > 数据 > 更改日志。",
   "changeLog_label_gearTransfer": "已转移装备",
   "changeLog_label_mediaRepair": "已修复媒体链接",

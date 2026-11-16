@@ -18559,6 +18559,7 @@
   "changeLog_label_splitDive": "Tauchgang geteilt",
   "changeLog_label_removeSource": "Datenquelle entfernt",
   "changeLog_label_removeDuplicateCylinders": "Doppelte Flaschen entfernt",
+  "changeLog_label_updatePlannedDives": "Geplante Tauchgänge aktualisiert",
   "changeLog_undoIncomplete": "Rückgängig konnte nicht alles wiederherstellen. Der Rest steht unter Einstellungen > Daten > Änderungsprotokoll.",
   "changeLog_label_gearTransfer": "Ausrüstung übertragen",
   "changeLog_label_mediaRepair": "Medienverknüpfungen repariert",

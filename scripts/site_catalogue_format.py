@@ -218,6 +218,15 @@ def catalogue_notice(*, open_only: bool = False, present=None) -> str:
             "Conservation Commission, Fish and Wildlife Research Institute "
             "(FWC-FWRI)."
         )
+    if "noaa_reefs" in sources:
+        # Maryland's terms: derived data acknowledges the State of Maryland
+        # in the metadata, and the metadata entry travels unmodified.
+        parts.append(
+            "Maryland's artificial reef records are derived from data of the "
+            "State of Maryland, Department of Natural Resources. Its "
+            "metadata for that data ships unmodified beside this file "
+            "(site_catalogue_md_dnr_metadata.xml)."
+        )
     own = [key for key in OWN_TERMS_SOURCES if key in sources]
     if own:
         own_lines = [

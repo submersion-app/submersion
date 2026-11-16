@@ -18434,6 +18434,7 @@
   "changeLog_label_splitDive": "Mergulho dividido",
   "changeLog_label_removeSource": "Fonte de dados removida",
   "changeLog_label_removeDuplicateCylinders": "Cilindros duplicados removidos",
+  "changeLog_label_updatePlannedDives": "Mergulhos planeados atualizados",
   "changeLog_undoIncomplete": "Desfazer não conseguiu restaurar tudo. O resto está em Ajustes > Dados > Registro de alterações.",
   "changeLog_label_gearTransfer": "Equipamento transferido",
   "changeLog_label_mediaRepair": "Ligações multimédia reparadas",

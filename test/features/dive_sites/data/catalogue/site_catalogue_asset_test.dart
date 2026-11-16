@@ -118,11 +118,35 @@ void main() {
     expect(metadata.readAsStringSync(), contains('<metadata'));
   });
 
+  test("Maryland's metadata ships beside the federal file's records", () {
+    // Maryland's reef data "can be freely distributed as long as the
+    // metadata entry is not modified or deleted".
+    expect(
+      sites.where((s) => '${s['id']}'.startsWith('usreef_md_')),
+      isNotEmpty,
+    );
+    final metadata = File(
+      p.join('assets', 'data', 'site_catalogue_md_dnr_metadata.xml'),
+    );
+    expect(metadata.existsSync(), isTrue);
+    expect(
+      metadata.readAsStringSync(),
+      contains(
+        'freely distributed as long as the metadata entry is not modified '
+        'or deleted',
+      ),
+    );
+  });
+
+  test('no Massachusetts reef ships: its terms forbid copying', () {
+    expect(sites.where((s) => '${s['id']}'.startsWith('usreef_ma_')), isEmpty);
+  });
+
   test('every record is complete, unique and from a declared source', () {
     final sources = (doc['metadata'] as Map<String, dynamic>)['sources'] as Map;
     final ids = <String>{};
 
-    expect(sites, hasLength(20931));
+    expect(sites, hasLength(20926));
     for (final site in sites) {
       final id = site['id'] as String;
       expect(ids.add(id), isTrue, reason: 'duplicate id $id');
@@ -168,7 +192,8 @@ void main() {
       }
     }
     final registers = sites.where((s) => s['kind'] == 'register').length;
-    expect(registers, 17000);
+    // 17,000 less the five Massachusetts reefs (2026-11-15).
+    expect(registers, 16995);
     expect(sites.length - registers, 3931);
   });
 
@@ -350,7 +375,7 @@ void main() {
       const CatalogueBounds(south: -90, west: -180, north: 90, east: 180),
       limit: 1000000,
     );
-    expect(located.sites, hasLength(20931));
+    expect(located.sites, hasLength(20926));
     expect(located.truncated, isFalse);
     // Salt Pier, by name and by place.
     final found = await catalogue.search('salt pier');

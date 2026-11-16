@@ -1,4 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -9,12 +11,13 @@ import 'package:submersion/features/planner/data/repositories/dive_plan_reposito
 import 'package:submersion/features/planner/data/services/planned_dives_writer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
-import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart'
-    show SeriesDiveResult;
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
+
+export 'package:submersion/features/planner/data/services/planned_dives_writer.dart'
+    show seriesNeedsFirstStart;
 
 /// What "Create / Update planned dives" did (issue #3565).
 class PlannedDivesUpdate {
@@ -90,8 +93,6 @@ Future<PlannedDivesUpdate> updatePlannedDives(
   bool moveDivedLink = false,
 }) async {
   final notifier = container.read(planSeriesNotifierProvider.notifier);
-  final editor = container.read(divePlanNotifierProvider.notifier);
-  final log = container.read(paginatedDiveListProvider.notifier);
   final writer = plannedDivesWriterOf(container);
 
   // Read before the plan is read for writing: the diver can still edit
@@ -124,6 +125,50 @@ Future<PlannedDivesUpdate> updatePlannedDives(
     );
   }
 
+  // One entry in the change log for the entries, the plan's save and the
+  // links, labelled so the profiles it rewrites in place are recorded and a
+  // revert puts them back with the rest.
+  final (:written, :adopted) = await ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.updatePlannedDives,
+    body: () => _writePlannedDives(container, writer, plan, diverId),
+  );
+  if (notifier.mounted) notifier.adoptLinks(adopted);
+
+  final selected = series.dives[series.selectedIndex].state.id;
+  final selectedDiveId =
+      written.newEntries[selected] ??
+      plan.steps
+          .where((step) => step.planId == selected)
+          .firstOrNull
+          ?.entry
+          ?.id;
+  if (written.failure case final failure?) {
+    Error.throwWithStackTrace(failure, written.failureStack!);
+  }
+
+  return PlannedDivesUpdate(
+    created: written.created,
+    updated: written.updated,
+    skipped: written.skipped,
+    selectedDiveId: selectedDiveId,
+    orphans: await writer.orphans(notifier.removedLinkedDiveIds),
+  );
+}
+
+/// Writes the entries [plan] decides on, saves the plan, then links each new
+/// entry to its dive. A write that fails part way is in the result, not
+/// thrown, so what was written is still linked.
+Future<({PlannedDivesWritten written, Map<String, String> adopted})>
+_writePlannedDives(
+  ProviderContainer container,
+  PlannedDivesWriter writer,
+  PlannedDivesPlan plan,
+  String? diverId,
+) async {
+  final notifier = container.read(planSeriesNotifierProvider.notifier);
+  final editor = container.read(divePlanNotifierProvider.notifier);
+  final log = container.read(paginatedDiveListProvider.notifier);
   final written = await writer.write(
     plan,
     config: container.read(planEngineConfigProvider),
@@ -136,15 +181,6 @@ Future<PlannedDivesUpdate> updatePlannedDives(
     ),
     updateDive: log.updateDive,
   );
-
-  final selected = series.dives[series.selectedIndex].state.id;
-  final selectedDiveId =
-      written.newEntries[selected] ??
-      plan.steps
-          .where((step) => step.planId == selected)
-          .firstOrNull
-          ?.entry
-          ?.id;
 
   // A removed dive's row still links its entry until the series is saved,
   // so it is saved even when every dive left has been dived.
@@ -166,24 +202,5 @@ Future<PlannedDivesUpdate> updatePlannedDives(
 
   // By plan id, which saving keeps: the diver may have edited meanwhile.
   final adopted = await writer.link(written, onLinked: editor.adoptLink);
-  if (notifier.mounted) notifier.adoptLinks(adopted);
-  if (written.failure case final failure?) {
-    Error.throwWithStackTrace(failure, written.failureStack!);
-  }
-
-  return PlannedDivesUpdate(
-    created: written.created,
-    updated: written.updated,
-    skipped: written.skipped,
-    selectedDiveId: selectedDiveId,
-    orphans: await writer.orphans(notifier.removedLinkedDiveIds),
-  );
+  return (written: written, adopted: adopted);
 }
-
-/// Whether "Update planned dives" must ask for the first dive's start: a
-/// series where some dive still to write has none to lay it out on. A dived
-/// dive starts when it did, and the dives after it carry from that, so a
-/// series begun by one needs none.
-bool seriesNeedsFirstStart(PlanSeries series, List<SeriesDiveResult> results) =>
-    series.isSeries &&
-    results.any((r) => r.actual == null && r.state.startDateTime == null);

@@ -237,12 +237,34 @@ class DocumentWrites extends WritableEntry {
     ];
     try {
       if (saved.isNotEmpty) await rearm(saved);
+      await _rearmClearancesAfterDeletes(changes, rearm);
     } catch (e, stackTrace) {
       _log.warning(
         'Document reminders not re-armed',
         error: e,
         stackTrace: stackTrace,
       );
+    }
+  }
+
+  /// A deleted medical clearance may have superseded another (#4541). The
+  /// row is gone, so its type is unknown: each profile that lost a document
+  /// re-arms its clearances, as the documents page does after a delete.
+  /// One is enough, since the scheduler re-arms a clearance's whole set
+  /// from the database, and re-arming an unchanged set changes nothing.
+  Future<void> _rearmClearancesAfterDeletes(
+    List<AppliedChange> changes,
+    DocumentRearm rearm,
+  ) async {
+    final divers = {
+      for (final c in changes)
+        if (c.kind == ChangeKind.delete) ?c.diverId,
+    };
+    for (final diverId in divers) {
+      final clearances = await _r.documents.getMedicalClearancesForDiver(
+        diverId,
+      );
+      if (clearances.isNotEmpty) await rearm([clearances.first]);
     }
   }
 

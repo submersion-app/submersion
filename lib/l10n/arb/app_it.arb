@@ -18434,6 +18434,7 @@
   "changeLog_label_splitDive": "Immersione divisa",
   "changeLog_label_removeSource": "Fonte dati rimossa",
   "changeLog_label_removeDuplicateCylinders": "Bombole duplicate rimosse",
+  "changeLog_label_updatePlannedDives": "Immersioni pianificate aggiornate",
   "changeLog_undoIncomplete": "Annulla non ha potuto ripristinare tutto. Il resto è in Impostazioni > Dati > Registro modifiche.",
   "changeLog_label_gearTransfer": "Attrezzatura trasferita",
   "changeLog_label_mediaRepair": "Collegamenti multimediali riparati",

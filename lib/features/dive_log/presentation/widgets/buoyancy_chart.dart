@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/utils/chart_drag_crossing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A named moment on the buoyancy chart: a dot on the line and a labelled
@@ -31,7 +32,10 @@ class BuoyancyChartMarker {
 /// It can follow the dive profile's cursor both ways (issue #4423):
 /// [cursorSeconds] draws a marker at that moment, and [onCursorSeconds]
 /// reports the touched or hovered sample's time, then null when the touch
-/// lifts or the mouse leaves. With no cursor the line rests on [restSeconds].
+/// lifts or the mouse leaves. A drag that strays off the chart is still a
+/// scrub: it reports the sample nearest the pointer, the first or last once
+/// the pointer is past an end, until the button is released (issue #4611).
+/// With no cursor the line rests on [restSeconds].
 ///
 /// The chart shows no tooltip of its own: whoever hosts it reads the cursor
 /// and says what was happening at that moment.
@@ -175,9 +179,16 @@ class BuoyancyChart extends StatelessWidget {
               maxX: maxX,
               maxY: maxY,
               lineTouchData: LineTouchData(
+                // Any position reads the nearest sample by time, however
+                // sparse the samples: fl_chart's default 10 px threshold found
+                // no spot between them or past either end, which dropped the
+                // cursor to its rest mid-scrub. A drag past an end therefore
+                // holds the line on that end (issue #4611).
+                touchSpotThreshold: double.infinity,
                 touchCallback: onCursorSeconds == null
                     ? null
                     : (event, response) {
+                        if (crossesChartEdgeMidDrag(event)) return;
                         final spot = response?.lineBarSpots?.firstOrNull;
                         onCursorSeconds!(
                           event.isInterestedForInteractions && spot != null
@@ -318,6 +329,11 @@ class BuoyancyChart extends StatelessWidget {
                 ),
               ],
             ),
+            // The chart rebuilds on every cursor move. fl_chart's default
+            // 150 ms animation lerps the old data to the new, so the cursor
+            // line slid after the pointer and travelled across the plot each
+            // time it moved to or from its rest. Draw each frame as it is.
+            duration: Duration.zero,
           );
         },
       ),
