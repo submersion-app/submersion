@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -194,6 +195,38 @@ void main() {
       await add;
 
       expect([for (final g in s.working.gear) g.item.id], ['fins', 'mask']);
+    });
+
+    test('gear that keeps changing while the parts are read is never '
+        'written back stale', () async {
+      final container = ProviderContainer(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          equipmentComponentsIndexProvider.overrideWith(
+            (ref) async => ComponentsIndex.empty,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final s = EditSession(dive);
+      // Each parts read, the diver takes one more row off.
+      var reads = 0;
+      T read<T>(ProviderListenable<T> provider) {
+        final value = container.read(provider);
+        if (value is Future<ComponentsIndex>) {
+          reads++;
+          final gear = s.valueOf(diveGearField);
+          if (gear.isNotEmpty) s.set(diveGearField, gear.sublist(1));
+        }
+        return value;
+      }
+
+      await addGearToSitting(read, s, const [
+        EquipmentItem(id: 'mask', name: 'Mask', type: EquipmentType.mask),
+      ]);
+
+      expect(reads, greaterThan(3));
+      expect([for (final g in s.working.gear) g.item.id], ['mask']);
     });
 
     testWidgets('an add answering after the sitting ended sets nothing', (

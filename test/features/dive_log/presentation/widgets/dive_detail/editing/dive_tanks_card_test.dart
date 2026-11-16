@@ -11,6 +11,8 @@ import 'package:submersion/features/cylinder_configs/presentation/providers/cyli
 import 'package:submersion/features/dive_log/data/services/diver_gas_switch_writer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/data_quality/domain/detectors/missing_gas_switches.dart';
+import 'package:submersion/features/dive_log/presentation/providers/detected_gas_switches_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ccr_settings_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
@@ -78,6 +80,7 @@ void main() {
     List<GasSwitch> switches = const [],
     Map<String, List<TankPressurePoint>> pressures = const {},
     List<CylinderConfig> configs = const [],
+    MissedSwitches? detected,
   }) async {
     tester.view.physicalSize = const Size(900, 3600);
     tester.view.devicePixelRatio = 1;
@@ -104,6 +107,10 @@ void main() {
           ),
           tankPressuresProvider(dive.id).overrideWith((ref) async => pressures),
           cylinderConfigsProvider.overrideWith((ref) async => configs),
+          if (detected != null)
+            detectedGasSwitchesProvider(
+              dive.id,
+            ).overrideWith((ref) async => detected),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
         ],
         child: MaterialApp(
@@ -500,6 +507,99 @@ void main() {
       expect(editor(tester).maxTimestamp, 3000);
       expect(editor(tester).startingTank?.id, 'a');
       expect(editor(tester).switches.map((g) => g.id), ['s1', 's2']);
+    });
+
+    // Each cylinder breathed at its own time: a from the start, b at 20 min.
+    final readings = {
+      'a': const [
+        TankPressurePoint(tankId: 'a', timestamp: 0, pressure: 200),
+        TankPressurePoint(tankId: 'a', timestamp: 60, pressure: 190),
+        TankPressurePoint(tankId: 'a', timestamp: 600, pressure: 150),
+        TankPressurePoint(tankId: 'a', timestamp: 1200, pressure: 150),
+      ],
+      'b': const [
+        TankPressurePoint(tankId: 'b', timestamp: 0, pressure: 200),
+        TankPressurePoint(tankId: 'b', timestamp: 1200, pressure: 200),
+        TankPressurePoint(tankId: 'b', timestamp: 1260, pressure: 190),
+        TankPressurePoint(tankId: 'b', timestamp: 1800, pressure: 150),
+      ],
+    };
+
+    testWidgets('breath starts follow a held reassign onto the cylinder that '
+        'now holds the readings', (tester) async {
+      final c = await pumpEditor(
+        tester,
+        twoGas,
+        switches: switches,
+        pressures: readings,
+      );
+      final before = editor(tester).breathStarts;
+      expect(before, isNotEmpty);
+
+      exchangeTankSeries(c.session!, 'a', 'b', exchange: (_, _) async {});
+      await tester.pumpAndSettle();
+
+      expect(editor(tester).breathStarts, {
+        'a': ?before['b'],
+        'b': ?before['a'],
+      });
+    });
+
+    testWidgets('the detected switches are not offered while a reassign is '
+        'held', (tester) async {
+      final c = await pumpEditor(
+        tester,
+        twoGas,
+        switches: switches,
+        pressures: readings,
+        detected: (
+          addable: const <MissedSwitch>[],
+          deep: const <DeepStart>[],
+          unplaced: null,
+          startingTankId: 'a',
+        ),
+      );
+      expect(editor(tester).onFillDetected, isNotNull);
+
+      exchangeTankSeries(c.session!, 'a', 'b', exchange: (_, _) async {});
+      await tester.pumpAndSettle();
+
+      expect(editor(tester).onFillDetected, isNull);
+    });
+
+    testWidgets('the time sheet draws each cylinder with the readings it '
+        'holds in the sitting', (tester) async {
+      final c = await pumpEditor(
+        tester,
+        twoGas.copyWith(
+          profile: const [
+            DiveProfilePoint(timestamp: 0, depth: 0),
+            DiveProfilePoint(timestamp: 1200, depth: 21),
+            DiveProfilePoint(timestamp: 3000, depth: 0),
+          ],
+        ),
+        switches: switches,
+        pressures: readings,
+      );
+      exchangeTankSeries(c.session!, 'a', 'b', exchange: (_, _) async {});
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('gas-switch-pick-s2')),
+      );
+      await tester.tap(find.byKey(const ValueKey('gas-switch-pick-s2')));
+      await tester.pumpAndSettle();
+
+      final sheet = tester.widget(
+        find.byWidgetPredicate(
+          (w) => w.runtimeType.toString() == '_GasSwitchTimeSheet',
+        ),
+      );
+      final drawn =
+          (sheet as dynamic).tankPressures
+              as Map<String, List<TankPressurePoint>>;
+      expect(drawn['a'], readings['b']);
+      expect(drawn['b'], readings['a']);
     });
 
     testWidgets('a row removed, then a time changed and left', (tester) async {

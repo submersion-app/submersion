@@ -151,8 +151,10 @@ Future<void> _addNow(
   if (toAdd.isEmpty) return;
   // The gear can change while the parts are read (a row removed, Clear
   // all): the add is then worked out again on what is there now, so it
-  // never puts back what the diver took off. A few tries, then it goes on.
-  for (var attempt = 1; ; attempt++) {
+  // never puts back what the diver took off. It is only ever written over
+  // the gear it was worked out on; each try again waits on the diver
+  // changing the gear once more, so the tries end.
+  while (true) {
     final current = session.valueOf(diveGearField);
     final merged = [
       for (final link in current) link.item,
@@ -169,9 +171,7 @@ Future<void> _addNow(
       diverId: diverId,
     );
     if (!alive()) return;
-    if (attempt < 3 && !identical(session.valueOf(diveGearField), current)) {
-      continue;
-    }
+    if (!identical(session.valueOf(diveGearField), current)) continue;
     session.set(
       diveGearField,
       gearLinksFor([...merged, ...expansion.newItems], expansion.provenance),

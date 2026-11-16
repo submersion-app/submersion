@@ -186,7 +186,7 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
   }
 
   /// [pressures] are the readings as the sitting holds them
-  /// ([tankPressuresInSitting]). A cylinder added in the sitting has none
+  /// ([tankReadingsInSitting]). A cylinder added in the sitting has none
   /// and no row yet to move them onto, so it is left out.
   Future<void> _reassign(Map<String, List<TankPressurePoint>> pressures) {
     final repository = ref.read(tankPressureRepositoryProvider);
@@ -462,7 +462,7 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
   List<Widget> _reassignRows(BuildContext context) {
     // Moved by the exchanges already held, so a second reassign shows what
     // each cylinder holds now.
-    final pressures = tankPressuresInSitting(
+    final pressures = tankReadingsInSitting(
       _session,
       ref.watch(tankPressuresProvider(_session.stored.id)).value,
     );

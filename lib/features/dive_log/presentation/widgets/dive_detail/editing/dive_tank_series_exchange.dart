@@ -16,12 +16,13 @@ typedef TankSeriesExchange =
 List<(String, String)> heldTankSeriesExchanges(EditSession<Dive> session) =>
     session.recall<List<(String, String)>>(tankSeriesExchangeKey) ?? const [];
 
-/// [stored] (the readings as the database holds them, by cylinder) with
-/// the held exchanges made, oldest first: what each cylinder holds in the
-/// sitting, for a reassign sheet opened again. Null while unread.
-Map<String, List<TankPressurePoint>>? tankPressuresInSitting(
+/// [stored] (what the database holds by cylinder: the readings, or what is
+/// worked out from them) with the held exchanges made, oldest first: what
+/// each cylinder holds in the sitting, for the reassign sheet, the switch
+/// time sheet and the breath starts. Null while unread.
+Map<String, V>? tankReadingsInSitting<V>(
   EditSession<Dive> session,
-  Map<String, List<TankPressurePoint>>? stored,
+  Map<String, V>? stored,
 ) {
   if (stored == null) return null;
   final held = heldTankSeriesExchanges(session);

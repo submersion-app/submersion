@@ -109,14 +109,14 @@ void main() {
     const b = [TankPressurePoint(tankId: 'tB', timestamp: 0, pressure: 210)];
     final stored = {'tA': a, 'tB': b};
 
-    expect(tankPressuresInSitting(s, stored), stored);
+    expect(tankReadingsInSitting(s, stored), stored);
     exchangeTankSeries(s, 'tA', 'tB', exchange: exchange);
-    expect(tankPressuresInSitting(s, stored), {'tA': b, 'tB': a});
+    expect(tankReadingsInSitting(s, stored), {'tA': b, 'tB': a});
     // Onto a cylinder with no readings: they move, and nothing is left.
     setTanks(s, [...s.working.tanks, const DiveTank(id: 'tC', order: 2)]);
     exchangeTankSeries(s, 'tA', 'tC', exchange: exchange);
-    expect(tankPressuresInSitting(s, stored), {'tB': a, 'tC': b});
-    expect(tankPressuresInSitting(s, null), isNull);
+    expect(tankReadingsInSitting(s, stored), {'tB': a, 'tC': b});
+    expect(tankReadingsInSitting(s, null), isNull);
   });
 
   test('the same exchange again leaves the sitting clean', () async {

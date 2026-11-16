@@ -166,8 +166,9 @@ class RecordEditController<T> extends ChangeNotifier {
     _toldRevisions = {};
     final session = _session = EditSession<T>(stored)
       ..addListener(_onSessionChanged);
-    onStart?.call(session);
+    // Told first, so the page shows the sitting whatever [onStart] does.
     notifyListeners();
+    onStart?.call(session);
   }
 
   /// Ends the sitting and discards whatever it held. Refused while a save

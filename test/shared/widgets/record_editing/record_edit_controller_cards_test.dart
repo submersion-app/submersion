@@ -477,6 +477,20 @@ void main() {
       expect(started.last, same(c.session));
     });
 
+    test('the page is told of the sitting even when onStart fails', () {
+      var told = 0;
+      final c = RecordEditController<_Rec>(
+        onSave: (_) async {},
+        onStart: (_) => throw StateError('no repository'),
+      )..addListener(() => told++);
+      addTearDown(c.dispose);
+
+      expect(() => c.unlock(const _Rec()), throwsStateError);
+
+      expect(c.isUnlocked, isTrue);
+      expect(told, 1);
+    });
+
     test('a sitting with no changes locks though a stored value fails a '
         'check: there is nothing to write', () async {
       var saves = 0;

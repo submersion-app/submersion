@@ -1157,14 +1157,13 @@ The plan was built as written in this session (Eric chose "Native"), then review
 - A gear add that finds the gear changed while it read the parts works itself out again on what is there, so it never puts back what the diver took off. A saved configuration or a set's cylinders confirmed over an overwrite are applied to the cylinders as they are after the answer.
 - Location set lookups run one after another, each with its own token: one still putting its set on when the site changes again stops, what it put on is remembered and taken back by the next. Site A, B, A acts on the last lookup only.
 - A trip changed and changed back gives the stored cylinders their own slot links back.
-- The reassign sheet in a sitting shows the readings after the held exchanges (`tankPressuresInSitting`), lists only cylinders the dive is stored with, and its Move to offers those, not the dive as stored.
+- The reassign sheet in a sitting shows the readings after the held exchanges (`tankReadingsInSitting`), lists only cylinders the dive is stored with, and its Move to offers those, not the dive as stored. The switch time sheet and the breath-start chips read the readings the same way, and the detected switches are not offered while a reassign is held: they are found with the gas of the cylinder the readings are stored on.
 - Save as preset that cannot be written logs it and says so.
 - `DiveTank.copyWith` gained `clearStartPressure` and `clearEndPressure` for the exchange.
 - Plan 3's test that the volume hint is a plain note during a sitting now pins that it opens the Cylinders card.
 
 ### Left open
 
-- While an exchange is held, fill-detected switches and the time sheet read the stored readings.
 - A stored switch already out of range blocks Done on an opened Cylinders card, and Save of a sitting that changed anything, as the form's validator does today. A sitting with nothing to write ends on Save.
 - Exchanged readings are not in the sitting's History entry until plan 9.
 - Tests not written: the gauge mode picked in a sitting leaving deco, tissue and SAC segments until Save; the pairs in a sitting; Save as set surviving Cancel; a set used across three cards at page level (it hangs on database reads in the fake clock).
