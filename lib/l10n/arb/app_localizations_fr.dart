@@ -33731,6 +33731,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'Avec binôme';
 
   @override
+  String get insights_social_myRole_title => 'Mon rôle';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Plongées selon votre rôle ; une plongée avec plusieurs rôles compte pour chacun';
+
+  @override
+  String get insights_social_myRole_empty =>
+      'Aucune donnée de plongée disponible';
+
+  @override
+  String get insights_social_myRole_error =>
+      'Impossible de charger les données de rôle';
+
+  @override
+  String get insights_social_myRole_notSet => 'Non défini';
+
+  @override
   String get insights_social_topBuddies_error =>
       'Échec du chargement du classement des binômes';
 

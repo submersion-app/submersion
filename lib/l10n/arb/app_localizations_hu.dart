@@ -33460,6 +33460,23 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'Merülőtárssal';
 
   @override
+  String get insights_social_myRole_title => 'Saját szerep';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Merülések a saját szerep szerint; a több szerepű merülés mindegyiknél számít';
+
+  @override
+  String get insights_social_myRole_empty => 'Nincsenek merülési adatok';
+
+  @override
+  String get insights_social_myRole_error =>
+      'Nem sikerült betölteni a szerepadatokat';
+
+  @override
+  String get insights_social_myRole_notSet => 'Nincs megadva';
+
+  @override
   String get insights_social_topBuddies_error =>
       'Nem sikerült a merülőtárs rangsor betöltése';
 

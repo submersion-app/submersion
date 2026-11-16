@@ -33058,6 +33058,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'With Buddy';
 
   @override
+  String get insights_social_myRole_title => 'My role';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Dives by the role you held; a dive with several roles counts under each';
+
+  @override
+  String get insights_social_myRole_empty => 'No dive data available';
+
+  @override
+  String get insights_social_myRole_error => 'Failed to load role data';
+
+  @override
+  String get insights_social_myRole_notSet => 'Not set';
+
+  @override
   String get insights_social_topBuddies_error =>
       'Failed to load buddy rankings';
 

@@ -33612,6 +33612,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'Com Dupla';
 
   @override
+  String get insights_social_myRole_title => 'Minha função';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Mergulhos pela sua função; um mergulho com várias funções conta em cada uma';
+
+  @override
+  String get insights_social_myRole_empty =>
+      'Nenhum dado de mergulho disponível';
+
+  @override
+  String get insights_social_myRole_error =>
+      'Falha ao carregar os dados de funções';
+
+  @override
+  String get insights_social_myRole_notSet => 'Não definida';
+
+  @override
   String get insights_social_topBuddies_error =>
       'Falha ao carregar ranking de duplas';
 

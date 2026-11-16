@@ -33554,6 +33554,23 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'Mit Buddy';
 
   @override
+  String get insights_social_myRole_title => 'Meine Rolle';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Tauchgänge nach eigener Rolle; ein Tauchgang mit mehreren Rollen zählt bei jeder';
+
+  @override
+  String get insights_social_myRole_empty => 'Keine Tauchgangdaten verfügbar';
+
+  @override
+  String get insights_social_myRole_error =>
+      'Rollendaten konnten nicht geladen werden';
+
+  @override
+  String get insights_social_myRole_notSet => 'Nicht festgelegt';
+
+  @override
   String get insights_social_topBuddies_error =>
       'Buddy-Rangliste konnte nicht geladen werden';
 

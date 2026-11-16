@@ -35,6 +35,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_use.dart';
 import 'package:submersion/features/dive_log/data/sql/analysis_inputs_stamp_sql.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/features/dive_roles/data/diver_role_set_sql.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
@@ -74,6 +75,7 @@ part 'insights_repository_conditions.dart';
 part 'insights_repository_focus.dart';
 part 'insights_repository_focus_series.dart';
 part 'insights_repository_role_consumption.dart';
+part 'insights_repository_roles.dart';
 part 'insights_repository_tank_configuration.dart';
 part 'insights_repository_time_of_day.dart';
 part 'insights_repository_twin_set_candidates.dart';

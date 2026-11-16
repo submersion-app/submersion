@@ -33402,6 +33402,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'Met buddy';
 
   @override
+  String get insights_social_myRole_title => 'Mijn rol';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Duiken per eigen rol; een duik met meerdere rollen telt bij elke rol';
+
+  @override
+  String get insights_social_myRole_empty => 'Geen duikgegevens beschikbaar';
+
+  @override
+  String get insights_social_myRole_error => 'Kan rolgegevens niet laden';
+
+  @override
+  String get insights_social_myRole_notSet => 'Niet ingesteld';
+
+  @override
   String get insights_social_topBuddies_error =>
       'Kan buddyranglijst niet laden';
 

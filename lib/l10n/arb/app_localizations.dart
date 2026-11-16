@@ -53370,6 +53370,36 @@ abstract class AppLocalizations {
   /// **'With Buddy'**
   String get insights_social_soloVsBuddy_withBuddy;
 
+  /// Title of the Insights card breaking dives down by the diver's own role
+  ///
+  /// In en, this message translates to:
+  /// **'My role'**
+  String get insights_social_myRole_title;
+
+  /// Subtitle of the My role card; explains that a dive holding several roles counts under each
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by the role you held; a dive with several roles counts under each'**
+  String get insights_social_myRole_subtitle;
+
+  /// Shown on the My role card when there are no dives
+  ///
+  /// In en, this message translates to:
+  /// **'No dive data available'**
+  String get insights_social_myRole_empty;
+
+  /// Shown on the My role card when its data fails to load
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load role data'**
+  String get insights_social_myRole_error;
+
+  /// Bar label on the My role card for dives where the diver's own role is not set
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get insights_social_myRole_notSet;
+
   /// No description provided for @insights_social_topBuddies_error.
   ///
   /// In en, this message translates to:

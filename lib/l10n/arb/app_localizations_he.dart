@@ -32791,6 +32791,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'עם שותף';
 
   @override
+  String get insights_social_myRole_title => 'התפקיד שלי';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'צלילות לפי התפקיד שלך; צלילה עם כמה תפקידים נספרת בכל אחד מהם';
+
+  @override
+  String get insights_social_myRole_empty => 'אין נתוני צלילה זמינים';
+
+  @override
+  String get insights_social_myRole_error => 'טעינת נתוני התפקידים נכשלה';
+
+  @override
+  String get insights_social_myRole_notSet => 'לא הוגדר';
+
+  @override
   String get insights_social_topBuddies_error => 'שגיאה בטעינת דירוג שותפים';
 
   @override

@@ -33936,6 +33936,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'مع رفيق';
 
   @override
+  String get insights_social_myRole_title => 'دوري';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'الغوصات حسب دورك؛ الغوصة ذات الأدوار المتعددة تُحتسب في كل دور';
+
+  @override
+  String get insights_social_myRole_empty => 'لا توجد بيانات غوصات متاحة';
+
+  @override
+  String get insights_social_myRole_error => 'تعذّر تحميل بيانات الأدوار';
+
+  @override
+  String get insights_social_myRole_notSet => 'غير محدد';
+
+  @override
   String get insights_social_topBuddies_error => 'فشل تحميل تصنيف الرفاق';
 
   @override

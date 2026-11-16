@@ -33648,6 +33648,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => 'Con compañero';
 
   @override
+  String get insights_social_myRole_title => 'Mi rol';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Inmersiones según tu rol; una inmersión con varios roles cuenta en cada uno';
+
+  @override
+  String get insights_social_myRole_empty =>
+      'No hay datos de inmersiones disponibles';
+
+  @override
+  String get insights_social_myRole_error =>
+      'No se pudieron cargar los datos de roles';
+
+  @override
+  String get insights_social_myRole_notSet => 'Sin definir';
+
+  @override
   String get insights_social_topBuddies_error =>
       'Error al cargar el ranking de compañeros';
 

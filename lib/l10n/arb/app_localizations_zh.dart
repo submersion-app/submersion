@@ -31667,6 +31667,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_social_soloVsBuddy_withBuddy => '与潜伴';
 
   @override
+  String get insights_social_myRole_title => '我的角色';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      '按你担任的角色统计潜水；有多个角色的潜水在每个角色下各计一次';
+
+  @override
+  String get insights_social_myRole_empty => '无潜水数据可用';
+
+  @override
+  String get insights_social_myRole_error => '无法加载角色数据';
+
+  @override
+  String get insights_social_myRole_notSet => '未设置';
+
+  @override
   String get insights_social_topBuddies_error => '加载潜伴排名失败';
 
   @override
