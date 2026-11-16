@@ -217,14 +217,58 @@ Dive fitRebreatherToMode(Dive dive) {
   );
 }
 
+/// Puts [field]'s value on one dive onto another, typed by the field.
+Dive Function(Dive into, Dive from) _carry<V>(EditField<Dive, V> field) =>
+    (into, from) => field.write(into, field.read(from));
+
+/// The rebreather values by the modes that use them, as
+/// [fitRebreatherToMode] clears them.
+final _ccrValues = [
+  _carry(diveSetpointLowField),
+  _carry(diveSetpointHighField),
+  _carry(diveSetpointDecoField),
+  _carry(diveLoopVolumeField),
+];
+final _loopValues = [_carry(diveDiluentGasField), _carry(diveScrubberField)];
+final _scrValues = [
+  _carry(diveScrTypeField),
+  _carry(diveScrInjectionRateField),
+  _carry(diveScrAdditionRatioField),
+  _carry(diveScrOrificeSizeField),
+  _carry(diveAssumedVo2Field),
+  _carry(diveLoopO2MinField),
+  _carry(diveLoopO2MaxField),
+  _carry(diveLoopO2AvgField),
+];
+
+/// [merged] with the rebreather values its mode does not use as they are
+/// on [stored].
+Dive _unusedAsStored(Dive merged, Dive stored) {
+  final ccr = merged.diveMode == DiveMode.ccr;
+  final scr = merged.diveMode == DiveMode.scr;
+  var kept = merged;
+  for (final carry in [
+    if (!ccr) ..._ccrValues,
+    if (!ccr && !scr) ..._loopValues,
+    if (!scr) ..._scrValues,
+  ]) {
+    kept = carry(kept, stored);
+  }
+  return kept;
+}
+
 /// What Save applies to the dive as [stored]: the sitting's changes, then,
 /// when the sitting changed the dive mode, [fitRebreatherToMode]. A dive
-/// whose mode the diver left alone keeps every value it was stored with.
+/// whose mode the diver left alone keeps every value it was stored with:
+/// one typed under a mode picked and left again is not this dive's, and is
+/// not written.
 Dive diveSittingApply(EditSession<Dive> session, Dive stored) {
   final merged = session.applyTo(stored);
   final modeChanged = !diveModeField.same(
     session.valueOf(diveModeField),
     diveModeField.read(session.stored),
   );
-  return modeChanged ? fitRebreatherToMode(merged) : merged;
+  return modeChanged
+      ? fitRebreatherToMode(merged)
+      : _unusedAsStored(merged, stored);
 }

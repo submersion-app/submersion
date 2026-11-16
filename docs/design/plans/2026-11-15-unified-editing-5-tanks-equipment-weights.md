@@ -1143,7 +1143,10 @@ The plan was built as written in this session (Eric chose "Native"), then review
 | `applyLastDiveInSitting(session, last)` | Takes `defaultStartPressure` |
 | `DiveSittingFollowUp.run(..., changedCardIds:)` required | Required, as above; the refresh is `diveGearRefreshProvider` (quality scan, derived metrics, sensor summary) |
 | The volume hint in two places | One widget, `DiveVolumeHint`: in a sitting it calls `addCard('tanks')` |
-| Dialogs inside the form | `showSaveGearAsSetDialog` and `confirmApplyLastDive` are files of their own, called by the form and the cards |
+| Dialogs inside the form | `showSaveGearAsSetDialog(context, topLevelIds:)` and `confirmApplyLastDive` are files of their own, called by the form and the cards; the set dialog is a widget that owns its text fields and reads its own `ref` |
+| Rows keyed by `tankRowsGeneration` alone | Also by `StoredFollow` (`shared/widgets/record_editing/stored_follow.dart`), which moves when a stored value the sitting follows changes underneath; the Weight editor keys its rows with it in place of a counter of its own |
+| The site list refreshed for any held write | Only for a held write other than the dive's own rows (`diveOwnHeldWriteKeys` in `dive_edit_cards.dart`, read through `EditSession.heldKeys`) |
+| `_inTimeOrder` in the form and the sitting | `gasSwitchesInTimeOrder` in `gas_switch_editing.dart`, for both |
 | Test files | Read cards and the page end to end are in `dive_detail_page_unlock_gear_cards_test.dart` and `dive_detail_page_unlock_gear_test.dart`; the Details rules in `dive_details_gear_rules_test.dart` |
 
 ### Decided while building
@@ -1159,6 +1162,11 @@ The plan was built as written in this session (Eric chose "Native"), then review
 - A trip changed and changed back gives the stored cylinders their own slot links back.
 - The reassign sheet in a sitting shows the readings after the held exchanges (`tankReadingsInSitting`), lists only cylinders the dive is stored with, and its Move to offers those, not the dive as stored. The switch time sheet and the breath-start chips read the readings the same way, and the detected switches are not offered while a reassign is held: they are found with the gas of the cylinder the readings are stored on.
 - Save as preset that cannot be written logs it and says so.
+- An open Cylinders or Weight row is built again when the dive changes underneath and the sitting follows it, so its next keystroke cannot write the old text back. A row the diver has changed is left alone.
+- A Save refused after waiting for tracked work gives the sitting the record stored meanwhile, as a failed write does.
+- The closed Cylinders card in a sitting draws each cylinder's series and cursor line where a held reassign has moved them.
+- A check-in in a sitting is for gear and cylinders the dive is stored with; one only in the sitting shows its state, as the locked page does.
+- With the mode as stored, a rebreather value typed under a mode picked and left again is not written: the values the mode does not use stay as stored.
 - `DiveTank.copyWith` gained `clearStartPressure` and `clearEndPressure` for the exchange.
 - Plan 3's test that the volume hint is a plain note during a sitting now pins that it opens the Cylinders card.
 

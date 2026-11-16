@@ -19,6 +19,7 @@ import 'package:submersion/shared/widgets/forms/form_overline.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_form.dart';
 import 'package:submersion/shared/widgets/record_editing/record_number_row.dart';
+import 'package:submersion/shared/widgets/record_editing/stored_follow.dart';
 
 const _log = LoggerService('DiveWeightsCardEditor');
 
@@ -39,9 +40,10 @@ class DiveWeightsCardEditor extends ConsumerStatefulWidget {
 }
 
 class _DiveWeightsCardEditorState extends ConsumerState<DiveWeightsCardEditor> {
-  /// Moves when the rows are replaced from outside them (a preset), so each
-  /// is built again from its weight.
-  int _rowGeneration = 0;
+  /// Moves when the stored weights change underneath (a sync), so the rows
+  /// show the new amounts. Rows replaced from outside them (a preset, a set,
+  /// the last dive at a center) are fresh rows with ids of their own.
+  final _followed = StoredFollow<Dive, List<DiveWeight>>(diveWeightsField);
 
   EditSession<Dive> get _session => widget.session;
 
@@ -70,7 +72,6 @@ class _DiveWeightsCardEditorState extends ConsumerState<DiveWeightsCardEditor> {
     );
     if (preset == null || !mounted) return;
     if (_session.isDisposed || _session.isFrozen) return;
-    setState(() => _rowGeneration++);
     applyWeightPresetInSitting(_session, preset);
     messenger.showSnackBar(SnackBar(content: Text(applied)));
   }
@@ -137,6 +138,7 @@ class _DiveWeightsCardEditorState extends ConsumerState<DiveWeightsCardEditor> {
   List<Widget> _weightRows(BuildContext context, UnitFormatter units) {
     final l10n = context.l10n;
     final rows = _session.valueOf(diveWeightsField);
+    final generation = _followed.generationOf(_session);
     final total = rows.fold(0.0, (sum, w) => sum + w.amountKg);
     return [
       FormOverline(
@@ -168,7 +170,7 @@ class _DiveWeightsCardEditorState extends ConsumerState<DiveWeightsCardEditor> {
               children: [
                 for (final weight in rows)
                   DiveWeightEntryRow(
-                    key: ValueKey((weight.id, _rowGeneration)),
+                    key: ValueKey((weight.id, generation)),
                     weight: weight,
                     units: units,
                     onChanged: _replace,

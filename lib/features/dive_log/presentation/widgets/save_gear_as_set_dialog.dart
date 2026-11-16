@@ -11,16 +11,90 @@ import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.da
 /// its own. Shared by the dive form and the dive page's Equipment card,
 /// where it outlives a cancelled sitting (issue #4527).
 void showSaveGearAsSetDialog(
-  BuildContext context,
-  WidgetRef ref, {
+  BuildContext context, {
   required List<String> topLevelIds,
 }) {
-  final nameController = TextEditingController();
-  final descriptionController = TextEditingController();
-
-  showDialog(
+  showDialog<void>(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (context) => _SaveGearAsSetDialog(topLevelIds: topLevelIds),
+  );
+}
+
+/// The dialog itself: it owns its text fields, which go with it.
+class _SaveGearAsSetDialog extends ConsumerStatefulWidget {
+  const _SaveGearAsSetDialog({required this.topLevelIds});
+
+  final List<String> topLevelIds;
+
+  @override
+  ConsumerState<_SaveGearAsSetDialog> createState() =>
+      _SaveGearAsSetDialogState();
+}
+
+class _SaveGearAsSetDialogState extends ConsumerState<_SaveGearAsSetDialog> {
+  final _nameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.diveLog_edit_saveAsSetDialog_validation),
+        ),
+      );
+      return;
+    }
+
+    try {
+      final set = EquipmentSet(
+        id: '',
+        name: name,
+        description: _descriptionController.text.trim(),
+        equipmentIds: widget.topLevelIds,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      // Route through the notifier so the set is stamped with the active
+      // diver id. Calling the repository directly leaves diverId null,
+      // orphaning the set from the diver-scoped list (it silently "doesn't
+      // save"). addSet also refreshes the list providers.
+      await ref.read(equipmentSetListNotifierProvider.notifier).addSet(set);
+
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.diveLog_edit_saveAsSetDialog_success(name),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.diveLog_edit_saveAsSetDialog_error(e.toString()),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
       title: Text(context.l10n.diveLog_edit_saveAsSetDialog_title),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -28,13 +102,13 @@ void showSaveGearAsSetDialog(
         children: [
           Text(
             context.l10n.diveLog_edit_saveAsSetDialog_content(
-              topLevelIds.length,
+              widget.topLevelIds.length,
             ),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
           TextField(
-            controller: nameController,
+            controller: _nameController,
             decoration: InputDecoration(
               labelText: context.l10n.diveLog_edit_saveAsSetDialog_setName,
               hintText: context.l10n.diveLog_edit_saveAsSetDialog_setNameHint,
@@ -45,7 +119,7 @@ void showSaveGearAsSetDialog(
           ),
           const SizedBox(height: 12),
           MarkdownNotesField(
-            controller: descriptionController,
+            controller: _descriptionController,
             decoration: InputDecoration(
               labelText: context.l10n.diveLog_edit_saveAsSetDialog_description,
               hintText:
@@ -62,65 +136,10 @@ void showSaveGearAsSetDialog(
           child: Text(context.l10n.diveLog_edit_cancel),
         ),
         FilledButton(
-          onPressed: () async {
-            final name = nameController.text.trim();
-            if (name.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    context.l10n.diveLog_edit_saveAsSetDialog_validation,
-                  ),
-                ),
-              );
-              return;
-            }
-
-            try {
-              final set = EquipmentSet(
-                id: '',
-                name: name,
-                description: descriptionController.text.trim(),
-                equipmentIds: topLevelIds,
-                createdAt: DateTime.now(),
-                updatedAt: DateTime.now(),
-              );
-
-              // Route through the notifier so the set is stamped with the
-              // active diver id. Calling the repository directly leaves
-              // diverId null, orphaning the set from the diver-scoped list
-              // (it silently "doesn't save"). addSet also refreshes the
-              // list providers.
-              await ref
-                  .read(equipmentSetListNotifierProvider.notifier)
-                  .addSet(set);
-
-              if (context.mounted) {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      context.l10n.diveLog_edit_saveAsSetDialog_success(name),
-                    ),
-                  ),
-                );
-              }
-            } catch (e) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      context.l10n.diveLog_edit_saveAsSetDialog_error(
-                        e.toString(),
-                      ),
-                    ),
-                  ),
-                );
-              }
-            }
-          },
+          onPressed: _save,
           child: Text(context.l10n.diveLog_edit_save),
         ),
       ],
-    ),
-  );
+    );
+  }
 }

@@ -195,6 +195,26 @@ void main() {
     expect(find.byType(DiveWeightEntryRow), findsOneWidget);
   });
 
+  testWidgets('a change that arrives underneath is shown in the rows', (
+    tester,
+  ) async {
+    final c = await pumpEditor(tester, dive);
+
+    // A sync: the belt's amount changes while the weights are untouched.
+    c.storedChanged(
+      dive.copyWith(weights: [belt.copyWith(amountKg: 6), pocket]),
+    );
+    await tester.pumpAndSettle();
+
+    final shown = tester.widget<EditableText>(
+      find.descendant(
+        of: amountOf('w1').first,
+        matching: find.byType(EditableText),
+      ),
+    );
+    expect(shown.controller.text, '6');
+  });
+
   testWidgets('Save as preset creates it at once, and the sitting is '
       'untouched', (tester) async {
     await seedDivers(DatabaseService.instance.database, ['me']);

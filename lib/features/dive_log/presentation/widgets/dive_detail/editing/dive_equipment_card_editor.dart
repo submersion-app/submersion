@@ -274,7 +274,6 @@ class _DiveEquipmentCardEditorState
                         TextButton.icon(
                           onPressed: () => showSaveGearAsSetDialog(
                             context,
-                            ref,
                             topLevelIds: [
                               for (final link in links)
                                 if (link.isTopLevel) link.item.id,

@@ -37,6 +37,7 @@ import 'package:submersion/shared/widgets/forms/form_overline.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_form.dart';
+import 'package:submersion/shared/widgets/record_editing/stored_follow.dart';
 
 const _log = LoggerService('DiveTanksCardEditor');
 
@@ -59,6 +60,10 @@ class DiveTanksCardEditor extends ConsumerStatefulWidget {
 
 class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
   TankPresetEntity? _defaultPreset;
+
+  /// Moves when the stored cylinders change underneath (a sync), so the
+  /// rows show the new values instead of writing their old text back.
+  final _followed = StoredFollow<Dive, List<DiveTank>>(diveTanksField);
 
   @override
   void initState() {
@@ -417,12 +422,16 @@ class _DiveTanksCardEditorState extends ConsumerState<DiveTanksCardEditor> {
         .firstOrNull
         ?.id;
     final suggested = suggestedTankIds(_session);
+    final generation = (
+      tankRowsGeneration(_session),
+      _followed.generationOf(_session),
+    );
     return [
       FormOverline(label: l10n.diveLog_edit_overline_tanks),
       FormCaption(l10n.diveLog_edit_tanksCaption),
       for (var i = 0; i < tanks.length; i++)
         TankRow(
-          key: ValueKey((tanks[i].id, tankRowsGeneration(_session))),
+          key: ValueKey((tanks[i].id, generation)),
           tank: tanks[i],
           tankNumber: i + 1,
           units: units,

@@ -102,15 +102,6 @@ class SittingGasSwitches {
 SittingGasSwitches? sittingGasSwitches(EditSession<Dive> session) =>
     session.recall<SittingGasSwitches>(gasSwitchesKey);
 
-/// Time order, ties broken by id, so two rows on one second never swap
-/// between builds.
-List<GasSwitch> _inTimeOrder(Iterable<GasSwitch> switches) =>
-    [...switches]..sort(
-      (a, b) => a.timestamp != b.timestamp
-          ? a.timestamp.compareTo(b.timestamp)
-          : a.id.compareTo(b.id),
-    );
-
 /// Reads the switches that apply to the dive's primary computer
 /// (`GasSwitch.shownInEditor`), once per sitting, and keeps the write the
 /// edits below hold: through the writer [writer] makes when the write runs
@@ -138,7 +129,9 @@ void loadGasSwitches(
     }
     if (session.isDisposed || session.isFrozen) return;
     final computer = session.stored.computerId;
-    final loaded = _inTimeOrder(all.where((g) => g.shownInEditor(computer)));
+    final loaded = gasSwitchesInTimeOrder(
+      all.where((g) => g.shownInEditor(computer)),
+    );
     session
       ..remember(
         gasSwitchesKey,
@@ -340,7 +333,7 @@ void addGasSwitch(EditSession<Dive> session) {
   if (tank == null) return;
   setGasSwitches(
     session,
-    _inTimeOrder([
+    gasSwitchesInTimeOrder([
       ...held.current,
       GasSwitch(
         id: _uuid.v4(),
@@ -372,7 +365,7 @@ void fillDetectedGasSwitches(EditSession<Dive> session, GasSwitchEdits edits) {
   final now = DateTime.now();
   setGasSwitches(
     session,
-    _inTimeOrder([
+    gasSwitchesInTimeOrder([
       for (final g in held.current)
         if (edits.retanked[g.id] case final tankId?)
           g.copyWith(tankId: tankId)
@@ -397,7 +390,7 @@ void fillDetectedGasSwitches(EditSession<Dive> session, GasSwitchEdits edits) {
 void gasSwitchTimeSettled(EditSession<Dive> session, String id) {
   final held = sittingGasSwitches(session);
   if (held == null) return;
-  final ordered = _inTimeOrder(held.current);
+  final ordered = gasSwitchesInTimeOrder(held.current);
   if (listEquals(ordered, held.current)) return;
   setGasSwitches(session, ordered, depthTouched: held.depthTouched);
 }

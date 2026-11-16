@@ -459,6 +459,28 @@ void main() {
       expect(s.isFrozen, isFalse);
     });
 
+    test(
+      'a record stored while save waited, then refused, is followed',
+      () async {
+        final c = _controller(invalidCards: negativeDepth)
+          ..unlock(const _Rec(notes: 'old'));
+        final s = c.session!..set(_depth, 3);
+        final gate = Completer<void>();
+        s.track(gate.future.then((_) => s.set(_depth, -1)));
+
+        final saving = c.save();
+        // A sync lands while the save waits: the sitting is kept frozen out
+        // of it until the save is done.
+        c.storedChanged(const _Rec(notes: 'synced'));
+        gate.complete();
+
+        expect(await saving, isFalse);
+        expect(s.stored.notes, 'synced');
+        expect(s.valueOf(_notes), 'synced');
+        expect(s.valueOf(_depth), -1);
+      },
+    );
+
     test('onStart is told of each sitting as unlock starts it', () {
       final started = <EditSession<_Rec>>[];
       final c = RecordEditController<_Rec>(

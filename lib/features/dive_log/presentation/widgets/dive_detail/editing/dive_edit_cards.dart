@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tags_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_series_exchange.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_weights_card_editor.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -51,6 +52,13 @@ bool _sameTagIds(List<Tag> a, List<Tag> b) {
 /// (issue #4527, plan 5).
 void startDiveSitting(EditSession<Dive> session, ProviderRead read) =>
     loadDiveGasSwitches(session, read);
+
+/// The held writes that are the dive's own rows (its gas switches, the
+/// readings a reassign moves): every other held write reaches the site.
+const Set<String> diveOwnHeldWriteKeys = {
+  gasSwitchesKey,
+  tankSeriesExchangeKey,
+};
 
 /// The cards of the dive page that can be edited in place, by section. A
 /// card's id is its section's `name`, so the section list, the Add strip

@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
+import 'package:submersion/features/dive_log/data/services/estimated_tank_pressure_synthesizer.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinder_block.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_series_exchange.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_cursor_line.dart';
@@ -40,6 +42,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_cylinder_p
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
@@ -71,9 +74,20 @@ class CylindersCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // With unlock-to-edit offered (issue #4527) nothing here writes while
+    // the dive is locked: Reassign moves into the open card, a check-in
+    // waits for the unlock, and Assign, which links this and other dives'
+    // cylinders at once, shows only in a sitting with nothing unsaved.
+    final edit = RecordEditScope.maybeOf<Dive>(context);
+    final sitting = edit?.session;
     // `.value`, not `valueOrNull`, here and below: a reload keeps what is
-    // already shown rather than dropping it from every row.
-    final tankPressures = ref.watch(tankPressuresProvider(dive.id)).value;
+    // already shown rather than dropping it from every row. In a sitting a
+    // held reassign has moved the readings: each cylinder is drawn with
+    // what it holds then, as its pressures already are.
+    final storedPressures = ref.watch(tankPressuresProvider(dive.id)).value;
+    final tankPressures = sitting == null
+        ? storedPressures
+        : tankReadingsInSitting(sitting, storedPressures);
     // Each tank's own series, matched as everywhere else when it is still
     // keyed by an old tank id (#276), so the figure's Start and End read the
     // same series as its cursor line.
@@ -86,7 +100,7 @@ class CylindersCard extends ConsumerWidget {
     // room for its cursor label before the cursor arrives.
     final cursorLines = TankCursorLine.forTanks(
       dive.tanks,
-      watchChartTankSeries(ref, dive.id),
+      _chartSeriesInSitting(sitting, watchChartTankSeries(ref, dive.id)),
     );
     final dataSources =
         ref.watch(diveDataSourcesProvider(dive.id)).value ??
@@ -126,14 +140,15 @@ class CylindersCard extends ConsumerWidget {
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    // With unlock-to-edit offered (issue #4527) nothing here writes while
-    // the dive is locked: Reassign moves into the open card, a check-in
-    // waits for the unlock, and Assign, which links this and other dives'
-    // cylinders at once, shows only in a sitting with nothing unsaved.
-    final edit = RecordEditScope.maybeOf<Dive>(context);
     final offered = edit != null;
     final canAssign = !offered || (edit.isUnlocked && !edit.isDirty);
-    final checkInReadOnly = offered && !edit.isUnlocked;
+    // A check-in writes at once, so in a sitting it is for a cylinder the
+    // dive is stored with: one only in the sitting may never be saved.
+    final storedGearIds = sitting == null
+        ? null
+        : {for (final t in sitting.stored.tanks) ?t.equipmentId};
+    bool checkInReadOnly(DiveTank tank) =>
+        offered && !(storedGearIds?.contains(tank.equipmentId) ?? false);
     final rows = [
       for (final entry in dive.tanks.asMap().entries)
         _tankRow(
@@ -150,7 +165,7 @@ class CylindersCard extends ConsumerWidget {
           slotLabel: slotLabels[entry.value.tripCylinderId],
           showRole: showRoles,
           canAssign: canAssign,
-          checkInReadOnly: checkInReadOnly,
+          checkInReadOnly: checkInReadOnly(entry.value),
         ),
     ];
 
@@ -279,6 +294,24 @@ class CylindersCard extends ConsumerWidget {
       byComputer[tank.computerId] = (byComputer[tank.computerId] ?? 0) + 1;
     }
     return byComputer.values.any((n) => n >= 2);
+  }
+
+  /// The chart's lines for the figures' cursor labels, moved as [sitting]'s
+  /// held reassign moves the readings ([tankReadingsInSitting]), so a figure
+  /// reads the same series at the cursor as its start and end.
+  static EstimatedTankPressures? _chartSeriesInSitting(
+    EditSession<Dive>? sitting,
+    EstimatedTankPressures? chart,
+  ) {
+    if (sitting == null || chart == null) return chart;
+    if (heldTankSeriesExchanges(sitting).isEmpty) return chart;
+    final estimated = tankReadingsInSitting(sitting, {
+      for (final id in chart.estimatedTankIds) id: true,
+    })!;
+    return EstimatedTankPressures(
+      tankReadingsInSitting(sitting, chart.pressures)!,
+      estimated.keys.toSet(),
+    );
   }
 
   /// Where the profile cursor is, in seconds into the dive. The cursor is an

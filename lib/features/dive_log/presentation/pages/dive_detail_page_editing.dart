@@ -89,8 +89,13 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     // Read now: the write may finish after the page has gone.
     final service = ref.read(diveEditSaveServiceProvider);
     final list = ref.read(paginatedDiveListProvider.notifier);
-    // The sitting's writes to other records are, so far, all to the site.
-    final sites = session.hasHeldWrites
+    // The sitting's writes to other records all reach the site (an
+    // altitude, a location); its gas switches and a reassign's readings are
+    // the dive's own rows, and leave the site list as it is.
+    final writesSites = session.heldKeys
+        .difference(diveOwnHeldWriteKeys)
+        .isNotEmpty;
+    final sites = writesSites
         ? ref.read(siteListNotifierProvider.notifier)
         : null;
     final followUp = DiveSittingFollowUp.read(context, ref);

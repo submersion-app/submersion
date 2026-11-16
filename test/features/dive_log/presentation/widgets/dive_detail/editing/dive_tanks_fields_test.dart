@@ -180,6 +180,25 @@ void main() {
       expect(saved.tanks, const [back]);
     });
 
+    test('a value typed under a mode picked and left again is not saved; '
+        'the dive keeps what it was stored with', () {
+      final leftover = oc.copyWith(loopVolume: 5);
+      final s = EditSession(leftover);
+      setDiveMode(s, DiveMode.scr, seedLow: 0.7, seedHigh: 1.2);
+      s.set(diveScrInjectionRateField, 9.5);
+      setDiveMode(s, DiveMode.ccr, seedLow: 0.7, seedHigh: 1.2);
+      s
+        ..set(diveDiluentGasField, const GasMix(o2: 21))
+        ..set(diveLoopVolumeField, 7.0);
+      setDiveMode(s, DiveMode.oc, seedLow: 0.7, seedHigh: 1.2);
+
+      final saved = diveSittingApply(s, leftover);
+      expect(saved.diveMode, DiveMode.oc);
+      expect(saved.scrInjectionRate, isNull);
+      expect(saved.diluentGas, isNull);
+      expect(saved.loopVolume, 5);
+    });
+
     test('changes are applied to the dive as stored at Save', () {
       final s = EditSession(oc)..set(diveTanksField, const [back]);
       final newer = oc.copyWith(notes: 'synced');

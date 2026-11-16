@@ -8,13 +8,17 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_equipment_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_weight_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_fields.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_series_exchange.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_selector.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_figure.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import 'dive_detail_page_unlock_harness.dart';
 
@@ -206,6 +210,68 @@ void main() {
       find.text(l.diveLog_tank_assignTransmitter).hitTestable(),
       findsNothing,
     );
+  });
+
+  testWidgets('a reassign held in a sitting moves each series on the closed '
+      'Cylinders card, with the pressures', (tester) async {
+    // Cylinder a has no pressures of its own: its figure reads its series.
+    await open(
+      tester,
+      stored: geared.copyWith(
+        tanks: [
+          geared.tanks.first.copyWith(
+            clearStartPressure: true,
+            clearEndPressure: true,
+          ),
+          geared.tanks.last,
+        ],
+      ),
+    );
+    await unlock(tester);
+    final edit = RecordEditScope.maybeOf<Dive>(
+      tester.element(find.byType(CylindersCard)),
+    )!;
+
+    exchangeTankSeries(edit.session!, 'a', 'b', exchange: (_, _) async {});
+    await settle(tester);
+
+    // b now holds a's readings, 200 down to 60, and no pressures of its own.
+    final figures = tester
+        .widgetList<TankFigure>(find.byType(TankFigure))
+        .toList();
+    expect(figures, hasLength(2));
+    expect(figures.last.endLabel, contains('60'));
+  });
+
+  testWidgets('check-in is for gear the dive is stored with: one added in '
+      'the sitting shows its state only', (tester) async {
+    await open(tester);
+    await unlock(tester);
+    final edit = RecordEditScope.maybeOf<Dive>(
+      tester.element(find.byType(DiveEquipmentSection)),
+    )!;
+    const mask = EquipmentItem(
+      id: 'mask',
+      name: 'Mask',
+      type: EquipmentType.mask,
+    );
+
+    edit.session!.set(diveGearField, const [
+      GearLink(item: fins),
+      GearLink(item: mask),
+    ]);
+    await settle(tester);
+
+    final chips = {
+      for (final chip in tester.widgetList<ObservationStatusChip>(
+        find.descendant(
+          of: find.byType(DiveEquipmentSection),
+          matching: find.byType(ObservationStatusChip),
+        ),
+      ))
+        chip.equipment.id: chip.readOnly,
+    };
+    expect(chips, {'fins': false, 'mask': true});
   });
 
   testWidgets('a gauge dive: Cylinders is in the strip, and opens with the '

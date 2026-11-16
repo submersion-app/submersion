@@ -128,6 +128,9 @@ class EditSession<T> extends ChangeNotifier {
   /// Whether the sitting holds a write to another record, or a change.
   bool get hasHeldWrites => _held.isNotEmpty;
 
+  /// The keys of the held writes and changes.
+  Set<String> get heldKeys => {..._held.keys};
+
   /// Whether any held entry must run before the record is written.
   bool get hasHeldWritesBeforeRecord =>
       _held.values.any((held) => held.beforeRecord);

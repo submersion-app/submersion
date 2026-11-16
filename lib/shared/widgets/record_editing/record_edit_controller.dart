@@ -367,6 +367,8 @@ class RecordEditController<T> extends ChangeNotifier {
       if (failing.isNotEmpty) {
         _isSaving = false;
         _refusedForInvalidInput = true;
+        // A record stored while it waited was kept for after the save.
+        _followStoredDuringSave(session);
         _openToShow(session, failing.first);
         notifyListeners();
         return false;
@@ -386,15 +388,21 @@ class RecordEditController<T> extends ChangeNotifier {
       session.thaw();
       _saveError = error;
       _isSaving = false;
-      final missed = _storedDuringSave;
-      _storedDuringSave = null;
-      if (missed != null) session.rebase(missed.stored);
-      _rememberTold(session);
+      _followStoredDuringSave(session);
       notifyListeners();
       return false;
     }
     _endSitting();
     return true;
+  }
+
+  /// A save that did not go through gives the sitting the record stored
+  /// while it ran ([storedChanged]), which it could not follow then.
+  void _followStoredDuringSave(EditSession<T> session) {
+    final missed = _storedDuringSave;
+    _storedDuringSave = null;
+    if (missed != null) session.rebase(missed.stored);
+    _rememberTold(session);
   }
 
   void _dropSession(EditSession<T> session) {

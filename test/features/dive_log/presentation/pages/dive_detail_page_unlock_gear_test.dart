@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_weights_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_weights_fields.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -249,6 +250,34 @@ void main() {
     expect(save.calls, hasLength(1));
     expect(save.calls.single.merged.tanks.map((t) => t.id), ['a']);
     expect(writer.saved.single, isEmpty);
+  });
+
+  testWidgets('a save whose held writes are the dive\'s own (switches, a '
+      'reassign) does not read the site list again', (tester) async {
+    final writer = _Writer();
+    SpySites? sites;
+    final stored = await seedWithSwitch(tester, geared);
+    await open(
+      tester,
+      stored: stored,
+      extra: [
+        diveGasSwitchWriterProvider.overrideWithValue(() => writer),
+        siteListNotifierProvider.overrideWith(
+          (ref) => sites = SpySites(ref.watch(siteRepositoryProvider), ref),
+        ),
+      ],
+    );
+    await unlock(tester);
+    final s = controllerOf(tester).session!;
+    await tester.runAsync(s.settled);
+    exchangeTankSeries(s, 'a', 'b', exchange: (x, y) async {});
+    removeGasSwitch(s, 'g');
+    await settle(tester);
+
+    await tapSave(tester);
+
+    expect(writer.saved, hasLength(1));
+    expect(sites?.refreshes ?? 0, 0);
   });
 
   testWidgets('a weight and the gear changed: one save names both cards', (

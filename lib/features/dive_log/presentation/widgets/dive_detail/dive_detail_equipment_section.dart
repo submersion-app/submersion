@@ -39,7 +39,14 @@ class DiveEquipmentSection extends ConsumerWidget {
     );
 
     final edit = RecordEditScope.maybeOf<Dive>(context);
-    final checkInReadOnly = edit != null && !edit.isUnlocked;
+    // A check-in writes at once: a locked page shows its state only, and a
+    // sitting offers it for gear the dive is stored with, not for gear that
+    // is only in the sitting and may never be saved.
+    final storedGearIds = edit?.session == null
+        ? null
+        : {for (final link in edit!.session!.stored.gear) link.item.id};
+    bool checkInReadOnly(String equipmentId) =>
+        edit != null && !(storedGearIds?.contains(equipmentId) ?? false);
     final card = CollapsibleCardSection(
       title: context.l10n.diveLog_detail_section_equipment,
       icon: Icons.backpack,
@@ -82,11 +89,10 @@ class DiveEquipmentSection extends ConsumerWidget {
           ),
           onTap: (item) => context.push('/equipment/${item.id}'),
           // The check-in chip for each row (condition phase 3a).
-          // A check-in writes, so a locked page shows its state only.
           rowTrailing: (item) => ObservationStatusChip(
             equipment: item,
             dive: dive,
-            readOnly: checkInReadOnly,
+            readOnly: checkInReadOnly(item.id),
           ),
         ),
       ),

@@ -439,6 +439,52 @@ void main() {
     expect(tester.state(find.byType(TankRow)), isNot(same(before)));
   });
 
+  testWidgets('a change that arrives underneath rebuilds the rows, so the '
+      'next keystroke keeps it', (tester) async {
+    final c = await pumpEditor(tester, oc);
+    final row = find.descendant(
+      of: find.byType(TankRow),
+      matching: find.byType(InkWell),
+    );
+    await tester.tap(row.first);
+    await tester.pumpAndSettle();
+
+    // A sync: the start pressure changes on a cylinder the diver has not
+    // touched, so the sitting follows it.
+    c.storedChanged(oc.copyWith(tanks: [back.copyWith(startPressure: 180)]));
+    await tester.pumpAndSettle();
+    if (find
+        .widgetWithText(TextFormField, l.diveLog_tank_label_o2)
+        .evaluate()
+        .isEmpty) {
+      await tester.tap(row.first);
+      await tester.pumpAndSettle();
+    }
+    await tester.enterText(
+      find.widgetWithText(TextFormField, l.diveLog_tank_label_o2),
+      '30',
+    );
+    await tester.pump();
+
+    final tank = c.session!.working.tanks.single;
+    expect(tank.gasMix.o2, 30);
+    expect(tank.startPressure, 180);
+  });
+
+  testWidgets('a change underneath leaves the rows alone once the diver '
+      'has changed the cylinders', (tester) async {
+    final c = await pumpEditor(tester, oc);
+    setTanks(c.session!, [back.copyWith(endPressure: 70)]);
+    await tester.pumpAndSettle();
+    final before = tester.state(find.byType(TankRow));
+
+    c.storedChanged(oc.copyWith(tanks: [back.copyWith(startPressure: 180)]));
+    await tester.pumpAndSettle();
+
+    expect(tester.state(find.byType(TankRow)), same(before));
+    expect(c.session!.working.tanks.single.endPressure, 70);
+  });
+
   group('the rebreather panels write to the sitting', () {
     testWidgets('a CCR deco setpoint and loop volume typed', (tester) async {
       final c = await pumpEditor(tester, ccr);

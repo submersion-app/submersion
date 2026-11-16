@@ -5332,7 +5332,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     // parts when the set is applied (issue #1487).
     showSaveGearAsSetDialog(
       context,
-      ref,
       topLevelIds: [
         for (final g in gearLinksFor(_selectedEquipment, _gearRows))
           if (g.isTopLevel) g.item.id,
