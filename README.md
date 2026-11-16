@@ -292,7 +292,10 @@ flutter build linux
 
 </details>
 
-### Running a debug build without an Apple Developer account
+<a id="running-a-debug-build-without-an-apple-developer-account"></a>
+
+<details>
+<summary><b>Running a debug build without an Apple Developer account</b></summary>
 
 `flutter run -d macos` builds the Debug configuration. On macOS that
 configuration pins `CODE_SIGN_IDENTITY` to `Apple Development` against the
@@ -389,6 +392,8 @@ contributors.
 For a *release* build without a certificate, no edits are needed. Use the
 no-sandbox script described under "macOS: building without a developer
 certificate" below.
+
+</details>
 
 <details>
 <summary><b>macOS: building without a developer certificate</b></summary>
