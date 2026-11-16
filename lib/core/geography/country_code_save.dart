@@ -21,8 +21,10 @@ String? countryCodeOnSave({
 }
 
 /// The code to store for a record whose [country] and [code] are being
-/// written (issues #4426, #4457), the one rule every write of a site or a
-/// buddy passes.
+/// written (issues #4426, #4457), the rule every whole-record write of a
+/// site or a buddy passes. A buddy's partial write (agent access) has no
+/// stored row in hand and reads the code from the text it sets instead
+/// (`BuddyCountryColumns.withDerivedCode`).
 ///
 /// Writers that change the country text but carry the old code over (a
 /// `copyWith` that sets only the country) would leave the old country's

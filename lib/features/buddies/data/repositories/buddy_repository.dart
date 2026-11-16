@@ -210,15 +210,24 @@ class BuddyRepository {
   /// Country field's suggestions; [diverId] narrows them to that diver's
   /// people. Reads only the one column, not whole buddies.
   Future<List<String>> getUsedCountries({String? diverId}) async {
-    final rows = await _db
-        .customSelect(
-          'SELECT DISTINCT country FROM buddies '
-          "WHERE country IS NOT NULL AND TRIM(country) != ''"
-          '${diverId == null ? '' : ' AND diver_id = ?'}',
-          variables: [if (diverId != null) Variable.withString(diverId)],
-        )
-        .get();
-    return [for (final row in rows) row.read<String>('country')];
+    try {
+      final rows = await _db
+          .customSelect(
+            'SELECT DISTINCT country FROM buddies '
+            "WHERE country IS NOT NULL AND TRIM(country) != ''"
+            '${diverId == null ? '' : ' AND diver_id = ?'}',
+            variables: [if (diverId != null) Variable.withString(diverId)],
+          )
+          .get();
+      return [for (final row in rows) row.read<String>('country')];
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to read buddy countries',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   /// Create a new buddy
