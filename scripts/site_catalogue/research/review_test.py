@@ -38,8 +38,8 @@ class ReviewPageTest(unittest.TestCase):
 
     def test_one_row_per_entry_grouped_by_area(self):
         second = _entry(id="research_my_barracuda_point", name="Barracuda Point",
-                        area="Sipadan", note="apart")
-        page = _page(_entry(), second)
+                        area="Sipadan", distinct_from=["research_id_usat_liberty"])
+        page = _page(_entry(distinct_from=["research_my_barracuda_point"]), second)
         self.assertEqual(page.count('class="entry'), 2)
         self.assertLess(page.index("Sipadan"), page.index("Tulamben"))
 
@@ -109,9 +109,11 @@ class ReviewPageTest(unittest.TestCase):
         self.assertIn("&lt;b&gt;Liberty", page)
 
     def test_decided_entries_are_folded_below(self):
-        approved = _entry(id="research_id_b", name="Coral Garden", note="apart",
+        # Both stand at one point: each names the other as a separate site.
+        approved = _entry(id="research_id_b", name="Coral Garden",
+                          distinct_from=["research_id_usat_liberty"],
                           review={"state": "approved", "date": "2026-11-17"})
-        page = _page(_entry(), approved)
+        page = _page(_entry(distinct_from=["research_id_b"]), approved)
         self.assertIn("<details", page)
         self.assertLess(page.index("USAT Liberty"), page.index("<details"))
         self.assertGreater(page.index("Coral Garden"), page.index("<details"))
