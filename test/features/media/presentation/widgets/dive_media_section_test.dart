@@ -310,6 +310,12 @@ void main() {
           .map((t) => t.item.id);
       expect(tiles, ['n1', 's2']);
       expect(find.byIcon(Icons.add_photo_alternate), findsOneWidget);
+
+      // Not stored yet, so the viewer, which reads stored media, has
+      // nothing to open it on.
+      await tester.tap(find.byType(MediaThumbnailTile).first);
+      await tester.pumpAndSettle();
+      expect(find.byType(PhotoViewerPage), findsNothing);
     });
   });
 }

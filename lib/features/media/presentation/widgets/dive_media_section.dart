@@ -615,6 +615,16 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                   onSelectionModeChanged: (_) {},
                   onItemTap: (index) {
                     final item = media[index];
+                    // Held until Save: the viewer reads stored media only.
+                    final session =
+                        widget.editing ??
+                        RecordEditScope.maybeOf<Dive>(context)?.session;
+                    if (session != null &&
+                        sittingMedia(
+                          session,
+                        ).added.any((a) => a.preview.id == item.id)) {
+                      return;
+                    }
                     if (item.isDocument) {
                       widget.onOpenDocument?.call(item);
                       return;
