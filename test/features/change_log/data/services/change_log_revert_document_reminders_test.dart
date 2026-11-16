@@ -175,6 +175,7 @@ void main() {
 
     await revertNewest();
 
+    expect(await db.select(db.buddies).get(), isEmpty);
     expect(cancelled, isEmpty);
     expect(armed, isEmpty);
   });
