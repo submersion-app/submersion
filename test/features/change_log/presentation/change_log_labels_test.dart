@@ -37,11 +37,19 @@ void main() {
     final tags = DiveDetailSectionId.tags.localizedDisplayName(l);
     final label = RecordEditLabel.encode(
       table: 'dives',
+      id: 'dive',
       cardIds: ['tags', 'notes'],
     );
 
     test('its stored label reads as Edited: with the card titles', () {
       expect(changeLogStoredLabel(l, label), 'Edited: $notes, $tags');
+    });
+
+    test('a label written before it named its record reads the same', () {
+      expect(
+        changeLogStoredLabel(l, 'record_edit:dives:notes,tags'),
+        'Edited: $notes, $tags',
+      );
     });
 
     // The header block is not a section (issue #4527, plan 4).
