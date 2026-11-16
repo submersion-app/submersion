@@ -83,6 +83,8 @@ void main() {
     expect(stored?.signerName, 'Ines');
     expect(stored?.imageData, png);
     expect(stored?.id, isNot('held-1'));
+    // Signed when it was captured, however long before Save.
+    expect(stored?.signedAt, epoch);
 
     final other = await started();
     addCapturedSignature(other, fromAna());
@@ -112,6 +114,7 @@ void main() {
 
     final buddySignatures = await service.getBuddySignaturesForDive('d1');
     expect(buddySignatures.single.signerId, 'b1');
+    expect(buddySignatures.single.signedAt, epoch);
   });
 
   test('a buddy removed after signing: the signature is not written', () async {

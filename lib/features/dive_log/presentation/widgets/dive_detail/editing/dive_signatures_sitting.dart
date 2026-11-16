@@ -39,6 +39,7 @@ final diveSignaturesList = SittingList<Dive, Signature>(
           buddyId: buddyId,
           buddyName: signature.signerName,
           role: signature.role ?? '',
+          signedAt: signature.signedAt,
         );
       } else {
         await service.saveSignature(
@@ -46,6 +47,7 @@ final diveSignaturesList = SittingList<Dive, Signature>(
           imageBytes: bytes,
           signerName: signature.signerName,
           signerId: signature.signerId,
+          signedAt: signature.signedAt,
         );
       }
     }
