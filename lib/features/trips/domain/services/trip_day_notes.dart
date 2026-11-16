@@ -39,9 +39,17 @@ class TripDayNotesVocabulary extends Equatable {
 
 /// A trip's Notes cut into the passages that belong to its days.
 class TripDayNotes {
-  const TripDayNotes({required this.passages, required this.passageEnds});
+  const TripDayNotes({
+    required this.passages,
+    required this.passageEnds,
+    required this.headingLineEnds,
+  });
 
-  static const empty = TripDayNotes(passages: {}, passageEnds: {});
+  static const empty = TripDayNotes(
+    passages: {},
+    passageEnds: {},
+    headingLineEnds: {},
+  );
 
   /// Day date to its passages, in note order, joined by a blank line.
   final Map<DateTime, String> passages;
@@ -49,6 +57,11 @@ class TripDayNotes {
   /// Day date to the source offset just after the last non-blank character
   /// of its last passage: where a caret goes to add to that day.
   final Map<DateTime, int> passageEnds;
+
+  /// Day date to the source offset where its last heading line ends (the
+  /// start of the next line, or the note's end). Present for every day a
+  /// heading names, even one with nothing under it yet.
+  final Map<DateTime, int> headingLineEnds;
 }
 
 /// Cuts [notes] into one passage per day of [days] (#4625).
@@ -66,6 +79,7 @@ TripDayNotes tripDayNotes(
   final lines = _lines(notes);
   final parts = <DateTime, List<String>>{};
   final ends = <DateTime, int>{};
+  final headingEnds = <DateTime, int>{};
 
   // The open day passage: its day, its heading level and where its body
   // starts in the source.
@@ -105,6 +119,7 @@ TripDayNotes tripDayNotes(
     openDay = day;
     openLevel = heading.level;
     openStart = line.end;
+    headingEnds[day] = line.end;
   }
   close(notes.length);
 
@@ -113,6 +128,7 @@ TripDayNotes tripDayNotes(
       for (final entry in parts.entries) entry.key: entry.value.join('\n\n'),
     },
     passageEnds: ends,
+    headingLineEnds: headingEnds,
   );
 }
 

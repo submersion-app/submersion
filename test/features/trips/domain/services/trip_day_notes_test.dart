@@ -194,6 +194,23 @@ void main() {
       );
     });
 
+    test('an empty day heading is still found, by where its line ends', () {
+      const source = 'Intro\n## Day 3\n\n## Day 4\nX';
+      final notes = scan(source);
+      expect(notes.passages.containsKey(nov5), isFalse);
+      expect(
+        notes.headingLineEnds[nov5],
+        source.indexOf('## Day 3') + '## Day 3\n'.length,
+      );
+    });
+
+    test('a heading on the last line ends at the end of the note', () {
+      expect(
+        scan('Intro\n## Day 3').headingLineEnds[nov5],
+        'Intro\n## Day 3'.length,
+      );
+    });
+
     test('an empty note has no passages', () {
       expect(scan('').passages, isEmpty);
       expect(scan('').passageEnds, isEmpty);
