@@ -229,6 +229,9 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final all = ref.watch(filteredDocumentsProvider);
+    // The whole library, unnarrowed by search or filters: a clearance is
+    // superseded by a later one whether or not that one is shown (#4541).
+    final library = ref.watch(allDocumentsProvider).valueOrNull;
     final units = ref.watch(unitFormatterProvider);
     final tagsByDocument =
         ref.watch(tagsByItemProvider(TagScope.documents)).value ??
@@ -272,6 +275,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
                 for (final (e, _) in DocumentsExpiringStrip.due(
                   shown,
                   DateTime.now(),
+                  among: library ?? entries,
                 ))
                   e,
               ]
@@ -346,6 +350,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
               SliverToBoxAdapter(
                 child: DocumentsExpiringStrip(
                   entries: shown,
+                  among: library ?? entries,
                   onOpen: widget.onOpen,
                 ),
               ),
