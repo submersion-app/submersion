@@ -95,8 +95,12 @@ Dive types                     Close
 
 ### Refine filter dropdown and connections search
 
-- Favourites first in the same order. No header or divider in these (a single
-  dropdown or search list), and no star buttons.
+- The Refine dropdown lists favourites first, in the same order as the sheet.
+- The connections search mixes every entity kind and ranks hits busiest
+  first. A starred dive type that matches the search moves to the top of the
+  hits; every other hit keeps the busiest-first order. Confirmed with Eric
+  after planning showed the search is not a dive type picker.
+- No header, divider or star buttons in either.
 
 ### Dive Types settings page
 
