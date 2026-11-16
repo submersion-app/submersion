@@ -91,14 +91,35 @@ SittingMedia sittingMedia(EditSession<Dive> session) =>
     (session.isDisposed ? null : session.recall<SittingMedia>(_noteKey)) ??
     const SittingMedia();
 
-/// Adds what a picker handed the sitting.
+/// What makes two media the same file: the gallery asset, the local file
+/// or the address it was fetched from. Null for one with none of them.
+String? _sameFileKey(MediaItem m) => m.platformAssetId != null
+    ? 'asset:${m.platformAssetId}'
+    : m.localPath != null
+    ? 'file:${m.localPath}'
+    : m.url != null
+    ? 'url:${m.url}'
+    : null;
+
+/// Adds what a picker handed the sitting. One the sitting already holds
+/// (the gallery scan finding photos Add photos just picked, a file dropped
+/// and then picked) is left out: the pickers check only what is stored.
 void addMediaToSitting(EditSession<Dive> session, List<HeldMediaAdd> adds) {
-  if (adds.isEmpty) return;
   final held = sittingMedia(session);
+  final seen = {for (final a in held.added) ?_sameFileKey(a.preview)};
+  final fresh = [
+    for (final a in adds)
+      if (switch (_sameFileKey(a.preview)) {
+        null => true,
+        final key => seen.add(key),
+      })
+        a,
+  ];
+  if (fresh.isEmpty) return;
   _set(
     session,
     SittingMedia(
-      added: [...held.added, ...adds],
+      added: [...held.added, ...fresh],
       unlinked: held.unlinked,
       replaced: held.replaced,
     ),

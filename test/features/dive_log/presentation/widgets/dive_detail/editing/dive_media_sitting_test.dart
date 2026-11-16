@@ -78,6 +78,32 @@ void main() {
     expect(calls, isEmpty);
   });
 
+  // Add photos then Scan gallery, or a drop then the same file picked:
+  // each finds what the other already holds, which is not stored yet.
+  test('the same photo added twice in a sitting is held once', () async {
+    final session = started();
+    HeldMediaAdd asset(String id, String assetId) => HeldMediaRow((
+      item: row(id, 10).copyWith(platformAssetId: assetId),
+      enrichment: null,
+    ));
+    HeldMediaAdd file(String id, String path) => HeldMediaRow((
+      item: row(id, 11).copyWith(localPath: path),
+      enrichment: null,
+    ));
+    addMediaToSitting(session, [
+      asset('n1', 'gallery-7'),
+      file('n2', '/a.jpg'),
+    ]);
+    addMediaToSitting(session, [
+      asset('n3', 'gallery-7'),
+      file('n4', '/a.jpg'),
+      asset('n5', 'gallery-8'),
+    ]);
+
+    await session.runHeldWrites();
+    expect(calls, ['rows [n1, n2, n5]']);
+  });
+
   test('a photo added then unlinked in the sitting: nothing held', () {
     final session = started();
     addMediaToSitting(session, [added('n1', 10)]);
