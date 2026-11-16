@@ -37,7 +37,7 @@ void main() {
     // A card registered here gains a pencil on the dive page. Naming them
     // makes adding one a deliberate change to this test.
     test('are Notes, Tags, Altitude, Environment, Details, Cylinders, '
-        'Weight, Equipment and Custom fields', () {
+        'Weight, Equipment, Buddies and Custom fields', () {
       expect(diveEditCards.keys, {
         DiveDetailSectionId.notes,
         DiveDetailSectionId.tags,
@@ -47,6 +47,7 @@ void main() {
         DiveDetailSectionId.tanks,
         DiveDetailSectionId.weights,
         DiveDetailSectionId.equipment,
+        DiveDetailSectionId.buddies,
         DiveDetailSectionId.customFields,
       });
     });

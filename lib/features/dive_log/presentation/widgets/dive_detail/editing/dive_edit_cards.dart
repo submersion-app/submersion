@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_gates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_custom_fields_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
@@ -150,6 +151,14 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     isEmpty: (dive) => !diveHasWeights(dive),
     editorBuilder: (context, session) =>
         DiveWeightsCardEditor(session: session),
+  ),
+  DiveDetailSectionId.buddies: EditCard<Dive>(
+    id: DiveDetailSectionId.buddies.name,
+    title: (context) => context.l10n.diveLog_detail_section_buddies,
+    // Always on the page: with no one on the dive it says so.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        DiveBuddiesCardEditor(session: session),
   ),
   DiveDetailSectionId.customFields: EditCard<Dive>(
     id: DiveDetailSectionId.customFields.name,

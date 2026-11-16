@@ -53,12 +53,17 @@ class SittingList<T, E> {
   /// Reads the rows unless the diver has changed them in this sitting.
   /// Tracked. A read that answers after the list was changed, after a
   /// later read was asked for, or after the sitting ended, is dropped.
-  void load(EditSession<T> session) {
-    if (session.isDisposed || session.isFrozen || isChanged(session)) return;
+  ///
+  /// Completes when the read has answered, so an editor can draw the rows
+  /// then: keeping them does not notify the sitting's listeners.
+  Future<void> load(EditSession<T> session) {
+    if (session.isDisposed || session.isFrozen || isChanged(session)) {
+      return Future<void>.value();
+    }
     final asked = Object();
     session.remember(_readKey, asked);
     final record = session.stored;
-    session.track(() async {
+    final work = () async {
       final List<E> rows;
       try {
         rows = await read(record);
@@ -74,7 +79,9 @@ class SittingList<T, E> {
       if (!identical(session.recall<Object>(_readKey), asked)) return;
       if (isChanged(session)) return;
       session.remember(_loadedKey, List<E>.unmodifiable(rows));
-    }());
+    }();
+    session.track(work);
+    return work;
   }
 
   /// The rows as last loaded, or null before the first load.
