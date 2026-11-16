@@ -49,6 +49,16 @@ class _RecordingScheduler extends NotificationScheduler {
   }
 }
 
+/// Settings whose current diver's load has not landed until [_load] does.
+class _LoadingSettingsNotifier extends MockSettingsNotifier {
+  _LoadingSettingsNotifier(this._load);
+
+  final Completer<void> _load;
+
+  @override
+  Future<void> get settingsLoaded => _load.future;
+}
+
 DocumentPage _scan(List<int> bytes) => DocumentPage(
   id: '',
   documentId: '',
@@ -306,6 +316,25 @@ void main() {
     await pumpEventQueue();
     expect(scheduler.clearanceDivers, ['d1']);
     expect(scheduler.updated, isEmpty);
+  });
+
+  test('a re-arm waits for the current diver\'s settings (#4609)', () async {
+    final scheduler = _RecordingScheduler();
+    final load = Completer<void>();
+    final c = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => _LoadingSettingsNotifier(load)),
+        notificationSchedulerProvider.overrideWithValue(scheduler),
+      ],
+    );
+    addTearDown(c.dispose);
+    c.read(clearanceDeleteRearmProvider);
+    ClearanceDeleteEvents.notify({'d1'});
+    await pumpEventQueue();
+    expect(scheduler.clearanceDivers, isEmpty);
+    load.complete();
+    await pumpEventQueue();
+    expect(scheduler.clearanceDivers, ['d1']);
   });
 
   test('a diver whose re-arm fails does not stop the others (#4609)', () async {

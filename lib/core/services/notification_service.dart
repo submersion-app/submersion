@@ -195,8 +195,8 @@ class NotificationService {
     if (DiveMarkActions.instance.handle(response.actionId)) return;
     _log.info('Notification tapped: ${response.payload}');
     if (response.payload != null) {
-      // A document reminder carries `document:<id>`; the router maps every
-      // payload to its route (notificationPayloadRoute).
+      // A document reminder carries `document:<id>?diver=<diverId>`; the
+      // router maps every payload to its route (notificationPayloadRoute).
       _selectedEquipmentId = response.payload;
       onNotificationTapped?.call(response.payload!);
     }
