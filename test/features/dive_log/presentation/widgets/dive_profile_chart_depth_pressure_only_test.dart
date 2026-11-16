@@ -183,6 +183,35 @@ void main() {
     expect(chosen.last, greaterThan(1100));
   });
 
+  // Issue #4611: a mouse drag that strays off the chart is still a scrub, as
+  // a touch drag always was, so releasing it there chooses the moment it
+  // reached rather than nothing.
+  testWidgets('a mouse drag released off the chart chooses where it reached', (
+    tester,
+  ) async {
+    final chosen = <int>[];
+    await _pump(tester, onTimeChosen: chosen.add);
+
+    final chart = tester.getRect(find.byType(LineChart).first);
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: Offset.zero);
+    addTearDown(mouse.removePointer);
+    await mouse.moveTo(chart.center);
+    await tester.pump();
+    await mouse.down(chart.center);
+    await tester.pump();
+    await mouse.moveTo(chart.center + Offset(chart.width / 4, 0));
+    await tester.pump();
+    // Below the chart (400 px tall in a 600 px view), button still held.
+    await mouse.moveTo(Offset(chart.center.dx + chart.width / 4, 500));
+    await tester.pump();
+    await mouse.up();
+    await tester.pumpAndSettle();
+
+    expect(chosen, hasLength(1));
+    expect(chosen.single, greaterThan(1100));
+  });
+
   testWidgets('hovering shows the usual tooltip with depth and pressure only', (
     tester,
   ) async {
