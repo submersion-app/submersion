@@ -20,6 +20,7 @@ class MinutesSecondsField extends StatefulWidget {
     this.validator,
     this.onSettled,
     this.suffixIcon,
+    this.helperText,
   });
 
   final int? seconds;
@@ -31,6 +32,9 @@ class MinutesSecondsField extends StatefulWidget {
 
   /// A control at the end of the field, for another way to set the time.
   final Widget? suffixIcon;
+
+  /// A note under the field that does not fail validation.
+  final String? helperText;
 
   @override
   State<MinutesSecondsField> createState() => _MinutesSecondsFieldState();
@@ -84,6 +88,8 @@ class _MinutesSecondsFieldState extends State<MinutesSecondsField> {
         labelText: widget.label,
         isDense: true,
         suffixIcon: widget.suffixIcon,
+        helperText: widget.helperText,
+        helperMaxLines: 2,
       ),
       keyboardType: TextInputType.datetime,
       validator: (text) {

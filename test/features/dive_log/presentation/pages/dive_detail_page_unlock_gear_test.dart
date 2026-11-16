@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_sitting_follow_up.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
@@ -226,6 +227,33 @@ void main() {
     expect(save.calls, isEmpty);
     expect(find.byType(DiveTanksCardEditor), findsOneWidget);
     expect(find.text(l.recordEdit_fixInvalid), findsOneWidget);
+  });
+
+  testWidgets('a switch stored past the end does not stop Done on Cylinders '
+      'or a Save of the notes', (tester) async {
+    // The seeded switch is at 40 minutes, on a dive stored as 30.
+    final short = await seedWithSwitch(
+      tester,
+      geared.copyWith(profile: const [], runtime: const Duration(minutes: 30)),
+    );
+    final save = await open(tester, stored: short);
+    await unlock(tester);
+    final s = controllerOf(tester).session!;
+    await tester.runAsync(s.settled);
+
+    await tester.tap(find.byTooltip('Edit Cylinders'));
+    await settle(tester);
+    expect(find.text('Must be within the dive'), findsOneWidget);
+    await tester.tap(find.text('Done'));
+    await settle(tester);
+    expect(find.byType(DiveTanksCardEditor), findsNothing);
+
+    s.set(diveNotesField, 'Strong current at the wall');
+    await settle(tester);
+    await tapSave(tester);
+
+    expect(save.calls, hasLength(1));
+    expect(save.calls.single.merged.notes, 'Strong current at the wall');
   });
 
   testWidgets('a cylinder removed with a switch and an exchange on it saves '

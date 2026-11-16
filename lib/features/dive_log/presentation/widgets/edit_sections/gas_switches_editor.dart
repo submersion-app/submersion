@@ -46,6 +46,7 @@ class GasSwitchesEditor extends StatelessWidget {
     this.onPickTime,
     this.detectedEditCount = 0,
     this.onFillDetected,
+    this.invalidAsStoredIds = const {},
   });
 
   /// The switches in the order to show them.
@@ -92,6 +93,11 @@ class GasSwitchesEditor extends StatelessWidget {
   /// Fills in the switches the cylinder pressures show.
   final VoidCallback? onFillDetected;
 
+  /// Switches saved already outside the dive or on a shared second, and not
+  /// changed since (issue #4527): each row says so in a note that does not
+  /// fail the form, so an old import never blocks an unrelated edit.
+  final Set<String> invalidAsStoredIds;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -134,6 +140,7 @@ class GasSwitchesEditor extends StatelessWidget {
             onRemove: onRemove,
             onTimeSettled: onTimeSettled,
             onPickTime: onPickTime,
+            invalidAsStored: invalidAsStoredIds.contains(sw.id),
           ),
         if (onFillDetected case final fill? when detectedEditCount > 0)
           FormAppendRow(
@@ -174,6 +181,7 @@ class _GasSwitchRow extends StatefulWidget {
     required this.onRemove,
     required this.onTimeSettled,
     required this.onPickTime,
+    required this.invalidAsStored,
   });
 
   final GasSwitch gasSwitch;
@@ -187,6 +195,9 @@ class _GasSwitchRow extends StatefulWidget {
   final ValueChanged<String> onRemove;
   final ValueChanged<String>? onTimeSettled;
   final ValueChanged<GasSwitch>? onPickTime;
+
+  /// Saved this way and untouched: its problem is a note, not an error.
+  final bool invalidAsStored;
 
   @override
   State<_GasSwitchRow> createState() => _GasSwitchRowState();
@@ -269,7 +280,11 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
       seconds: sw.timestamp,
       label: l10n.diveLog_edit_gasSwitches_time,
       formatErrorText: l10n.diveLog_edit_gasSwitches_timeFormatError,
-      validator: (seconds) => _timeError(l10n, seconds),
+      validator: (seconds) =>
+          widget.invalidAsStored ? null : _timeError(l10n, seconds),
+      helperText: widget.invalidAsStored
+          ? _timeError(l10n, sw.timestamp)
+          : null,
       onSettled: () => widget.onTimeSettled?.call(sw.id),
       suffixIcon: onPickTime == null
           ? null
