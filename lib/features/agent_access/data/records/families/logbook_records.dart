@@ -2,6 +2,7 @@ import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/agent_access/data/documents/logbook_documents.dart';
 import 'package:submersion/features/agent_access/data/documents/plan_documents.dart';
 import 'package:submersion/features/agent_access/data/documents/track_documents.dart';
+import 'package:submersion/features/agent_access/data/records/families/plan_record_loads.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/records/record_scope.dart';
@@ -12,8 +13,6 @@ import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/media/domain/entities/media_smart_album.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
-import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
-import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/query/domain/entities/saved_query.dart';
 import 'package:submersion/features/rules/domain/entities/rule.dart';
@@ -94,23 +93,30 @@ List<RecordEntry> logbookEntries(RecordRepositories r) => [
     summaryKeys: const ['subject', 'name'],
   ),
   // The planner lists every plan for every profile, whatever its diver_id.
-  RecordEntity<DivePlan>(
+  // Each with where its dive stands in the log (issue #4203).
+  RecordEntity<LoggedPlan>(
     name: 'dive_plans',
     table: 'dive_plans',
     scope: everyone(),
     orderBy: 'r0.updated_at DESC',
-    load: (ids, _) => loadEach(ids, r.divePlans.getPlan),
-    document: divePlanDocument,
-    summaryKeys: const ['name', 'mode', 'start_date_time', 'linked_dive_id'],
+    load: (ids, _) => loadLoggedPlans(r, ids),
+    document: (p) => divePlanDocument(p.plan, logged: p.logged),
+    summaryKeys: const [
+      'name',
+      'mode',
+      'start_date_time',
+      'linked_dive_id',
+      'log_state',
+    ],
   ),
   // A saved repetitive series, listed for every profile as its plans are.
-  RecordEntity<StoredSeries>(
+  RecordEntity<LoggedSeries>(
     name: 'dive_plan_series',
     table: 'dive_plan_series',
     scope: everyone(),
     orderBy: 'r0.updated_at DESC',
-    load: (ids, _) => loadEach(ids, r.divePlanSeries.getSeries),
-    document: divePlanSeriesDocument,
+    load: (ids, _) => loadLoggedSeries(r, ids),
+    document: (s) => divePlanSeriesDocument(s.series, logged: s.logged),
     summaryKeys: const ['name', 'followed_dive_id'],
   ),
   RecordEntity<Document>(
