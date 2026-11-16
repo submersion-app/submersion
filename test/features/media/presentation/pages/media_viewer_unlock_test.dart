@@ -7,6 +7,7 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -26,6 +27,7 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../data/repositories/species_photo_fixtures.dart';
 import 'media_viewer_unlock_harness.dart';
 
 /// The photo viewer's own lock (issue #4527, plan 10).
@@ -456,6 +458,54 @@ void main() {
       );
       expect(find.byType(RecordEditBar), findsNothing);
       expect((await tester.runAsync(() => eventCount(db)))!, mark);
+    });
+  });
+
+  group('species (Task 6)', () {
+    testWidgets('tag, Save: the photo is tagged, the dive has the sighting, '
+        'one History entry', (tester) async {
+      await tester.runAsync(
+        () =>
+            insertTestSighting(id: 'sg1', diveId: 'd1', speciesId: 'sp_turtle'),
+      );
+      await pumpViewer(tester);
+      await tapUnlock(tester);
+
+      await tester.tap(find.byKey(const ValueKey('viewer_species')));
+      await settleViewer(tester);
+      await tester.tap(find.widgetWithText(FilterChip, 'Turtle'));
+      await settleViewer(tester);
+      final tags = await tester.runAsync(
+        () => db.select(db.mediaSpecies).get(),
+      );
+      expect(tags, isEmpty, reason: 'held until Save');
+      await tester.tapAt(const Offset(640, 20));
+      await settleViewer(tester);
+
+      await tester.tap(find.text('Save'));
+      await settleViewer(tester, rounds: 10);
+
+      final saved = (await tester.runAsync(
+        () => db.select(db.mediaSpecies).get(),
+      ))!;
+      expect(saved.single.mediaId, 'p2');
+      expect(saved.single.speciesId, 'sp_turtle');
+      final sightings = (await tester.runAsync(
+        () => db.select(db.sightings).get(),
+      ))!;
+      expect(sightings, hasLength(1));
+      await tester.runAsync(() => ChangeLogRepository().settleAll());
+      final ops = (await tester.runAsync(
+        () => db
+            .customSelect(
+              'SELECT label FROM change_log_operations WHERE label IS NOT NULL',
+            )
+            .get(),
+      ))!;
+      expect(ops.map((r) => r.read<String?>('label')), [
+        'record_edit:media:species',
+      ]);
+      expect(find.byType(RecordEditBar), findsNothing);
     });
   });
 

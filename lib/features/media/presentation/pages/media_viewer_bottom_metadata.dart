@@ -16,6 +16,9 @@ class _BottomMetadataOverlay extends StatelessWidget {
   /// A video face tag's chip was tapped (issue #1745).
   final ValueChanged<MediaPersonTag>? onMomentTap;
 
+  /// The photo's sitting, whose held tags the chips show (issue #4527).
+  final EditSession<PhotoRecord>? sitting;
+
   const _BottomMetadataOverlay({
     required this.item,
     required this.settings,
@@ -23,6 +26,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
     this.onSetTime,
     this.siteName,
     this.onMomentTap,
+    this.sitting,
   });
 
   @override
@@ -84,7 +88,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
                   const SizedBox(height: 8),
                 ],
                 MediaPeopleChipsRow(mediaId: item.id, onMomentTap: onMomentTap),
-                MediaSpeciesChipsRow(mediaId: item.id),
+                MediaSpeciesChipsRow(mediaId: item.id, sitting: sitting),
                 // Metadata row
                 Row(
                   children: [

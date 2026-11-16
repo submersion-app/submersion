@@ -11,6 +11,10 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/features/media/domain/value_objects/photo_tag_edits.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -78,6 +82,7 @@ Future<void> _pump(
   required MediaItem item,
   required _RecordingTaggingService service,
   List<SpeciesTagChip> chips = const [],
+  EditSession<PhotoRecord>? sitting,
 }) async {
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
@@ -89,7 +94,7 @@ Future<void> _pump(
         mediaTagChipsProvider('p1').overrideWith((ref) async => chips),
         diveSightingsProvider('d1').overrideWith((ref) async => _sightings),
       ],
-      child: MediaSpeciesSheet(item: item),
+      child: MediaSpeciesSheet(item: item, sitting: sitting),
     ),
   );
   await tester.pumpAndSettle();
@@ -164,5 +169,96 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Other species...'), findsOneWidget);
+  });
+  group('in a sitting (issue #4527)', () {
+    const whale = SpeciesTagChip(
+      speciesId: 'sp_whale_shark',
+      storedName: 'Whale Shark',
+      category: SpeciesCategory.shark,
+      isBuiltIn: true,
+    );
+
+    EditSession<PhotoRecord> sittingWith(List<SpeciesTagChip> stored) {
+      final session = EditSession<PhotoRecord>(
+        PhotoRecord(
+          item: _photo(diveId: 'd1'),
+          species: stored,
+          people: const [],
+        ),
+      );
+      addTearDown(session.dispose);
+      return session;
+    }
+
+    testWidgets('a toggle holds the tag; nothing is written', (tester) async {
+      final service = _RecordingTaggingService();
+      final sitting = sittingWith(const [whale]);
+      await _pump(
+        tester,
+        item: _photo(diveId: 'd1'),
+        service: service,
+        chips: const [whale],
+        sitting: sitting,
+      );
+
+      await tester.tap(find.widgetWithText(FilterChip, 'My Nudibranch'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilterChip, 'Whale Shark'));
+      await tester.pump();
+
+      expect(service.tagged, isEmpty);
+      expect(service.untagged, isEmpty);
+      expect(sitting.working.species.map((c) => c.speciesId), ['c1']);
+      expect(
+        tester
+            .widget<FilterChip>(
+              find.widgetWithText(FilterChip, 'My Nudibranch'),
+            )
+            .selected,
+        isTrue,
+      );
+      expect(
+        tester
+            .widget<FilterChip>(find.widgetWithText(FilterChip, 'Whale Shark'))
+            .selected,
+        isFalse,
+      );
+    });
+
+    test('a species from the picker is held', () {
+      final sitting = sittingWith(const [whale]);
+
+      holdPickedSpecies(
+        sitting,
+        const Species(
+          id: 'c9',
+          commonName: 'Frogfish',
+          category: SpeciesCategory.fish,
+        ),
+      );
+
+      expect(sitting.valueOf(photoSpeciesField).added.keys, ['c9']);
+    });
+
+    test('the picker answering after the sitting ended changes nothing', () {
+      final session = EditSession<PhotoRecord>(
+        PhotoRecord(
+          item: _photo(diveId: 'd1'),
+          species: const [],
+          people: const [],
+        ),
+      )..dispose();
+
+      holdPickedSpecies(
+        session,
+        const Species(
+          id: 'c9',
+          commonName: 'Frogfish',
+          category: SpeciesCategory.fish,
+        ),
+      );
+
+      expect(session.valueOf(photoSpeciesField), SpeciesTagEdits.none);
+    });
   });
 }

@@ -67,6 +67,7 @@ import 'package:submersion/features/media/data/streaming/video_playback_plan.dar
 import 'package:submersion/features/media_store/presentation/widgets/media_reupload_menu.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
 
@@ -613,6 +614,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                           item: currentItem,
                           settings: units.settings,
                           onMomentTap: (tag) => _showMoment(currentItem, tag),
+                          sitting: photoSitting,
                           profileLengthSeconds: profileLength,
                           // Pinning needs a profile to pin against; a dive with
                           // none has no moments to choose from.
