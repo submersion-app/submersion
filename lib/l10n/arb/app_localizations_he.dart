@@ -55670,6 +55670,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLab_compare_waiting => 'ממתין לצלילה';
 
   @override
+  String diveLab_compare_heldLink(String plan) {
+    return '$plan יקושר בשמירה.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink => 'קישור התוכנית יבוטל בשמירה.';
+
+  @override
   String get diveLab_link_unlinkTitle => 'לבטל את קישור התוכנית?';
 
   @override

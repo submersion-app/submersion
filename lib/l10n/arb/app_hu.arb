@@ -16794,6 +16794,8 @@
   "diveLab_compare_planTable": "Terv és merülés",
   "diveLab_compare_plannedSchedule": "Tervezett menetrend",
   "diveLab_compare_waiting": "Várakozás a merülésre",
+  "diveLab_compare_heldLink": "A(z) {plan} mentéskor lesz összekapcsolva.",
+  "diveLab_compare_heldUnlink": "A terv mentéskor lesz leválasztva.",
   "diveLab_link_unlinkTitle": "Leválasztod ezt a tervet?",
   "diveLab_link_unlinkBody": "A terv és a merülés is megmarad, csak már nem hasonlítjuk össze őket.",
   "diveLab_link_unlinkConfirm": "Leválasztás",

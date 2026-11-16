@@ -33880,6 +33880,19 @@
   "diveLab_compare_planTable": "Plan against dive",
   "diveLab_compare_plannedSchedule": "Planned schedule",
   "diveLab_compare_waiting": "Waiting for the dive",
+  "diveLab_compare_heldLink": "{plan} is linked at Save.",
+  "@diveLab_compare_heldLink": {
+    "description": "The closed Compare card while a dive is unlocked and a plan has been linked but not saved yet: names the plan Save will link.",
+    "placeholders": {
+      "plan": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLab_compare_heldUnlink": "The plan is unlinked at Save.",
+  "@diveLab_compare_heldUnlink": {
+    "description": "The closed Compare card while a dive is unlocked and its plan has been unlinked but not saved yet."
+  },
   "diveLab_link_unlinkTitle": "Unlink this plan?",
   "diveLab_link_unlinkBody": "The plan and the dive both stay. They just stop being compared.",
   "diveLab_link_unlinkConfirm": "Unlink",

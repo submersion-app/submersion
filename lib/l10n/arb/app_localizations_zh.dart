@@ -53336,6 +53336,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLab_compare_waiting => '等待潜水';
 
   @override
+  String diveLab_compare_heldLink(String plan) {
+    return '保存时将关联 $plan。';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink => '保存时将取消关联该计划。';
+
+  @override
   String get diveLab_link_unlinkTitle => '取消关联此计划？';
 
   @override

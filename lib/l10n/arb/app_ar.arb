@@ -16794,6 +16794,8 @@
   "diveLab_compare_planTable": "الخطة مقابل الغطسة",
   "diveLab_compare_plannedSchedule": "الجدول المخطط",
   "diveLab_compare_waiting": "بانتظار الغطسة",
+  "diveLab_compare_heldLink": "سيُربط {plan} عند الحفظ.",
+  "diveLab_compare_heldUnlink": "سيُلغى ربط الخطة عند الحفظ.",
   "diveLab_link_unlinkTitle": "إلغاء ربط هذه الخطة؟",
   "diveLab_link_unlinkBody": "تبقى الخطة والغطسة معاً، لكن لن تتم مقارنتهما بعد الآن.",
   "diveLab_link_unlinkConfirm": "إلغاء الربط",

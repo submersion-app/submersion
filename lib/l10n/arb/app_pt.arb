@@ -16794,6 +16794,8 @@
   "diveLab_compare_planTable": "Plano e mergulho",
   "diveLab_compare_plannedSchedule": "Programação planejada",
   "diveLab_compare_waiting": "À espera do mergulho",
+  "diveLab_compare_heldLink": "{plan} será vinculado ao salvar.",
+  "diveLab_compare_heldUnlink": "O plano será desvinculado ao salvar.",
   "diveLab_link_unlinkTitle": "Desassociar este plano?",
   "diveLab_link_unlinkBody": "O plano e o mergulho permanecem. Apenas deixam de ser comparados.",
   "diveLab_link_unlinkConfirm": "Desassociar",

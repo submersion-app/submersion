@@ -56566,6 +56566,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLab_compare_waiting => 'Várakozás a merülésre';
 
   @override
+  String diveLab_compare_heldLink(String plan) {
+    return 'A(z) $plan mentéskor lesz összekapcsolva.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink => 'A terv mentéskor lesz leválasztva.';
+
+  @override
   String get diveLab_link_unlinkTitle => 'Leválasztod ezt a tervet?';
 
   @override

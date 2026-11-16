@@ -16794,6 +16794,8 @@
   "diveLab_compare_planTable": "Plan en duik",
   "diveLab_compare_plannedSchedule": "Gepland schema",
   "diveLab_compare_waiting": "Wacht op de duik",
+  "diveLab_compare_heldLink": "{plan} wordt gekoppeld bij Opslaan.",
+  "diveLab_compare_heldUnlink": "Het plan wordt ontkoppeld bij Opslaan.",
   "diveLab_link_unlinkTitle": "Dit plan ontkoppelen?",
   "diveLab_link_unlinkBody": "Het plan en de duik blijven allebei bestaan. Ze worden alleen niet meer vergeleken.",
   "diveLab_link_unlinkConfirm": "Ontkoppelen",

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_plan_link_sitting.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/presentation/widgets/chart_zoom_controls.dart';
 import 'package:submersion/core/database/database.dart' as db;
@@ -159,6 +161,9 @@ void main() {
       testApp(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          divePlanRepositoryProvider.overrideWithValue(
+            _Plans(linked: 'plan-0'),
+          ),
           divePlanSummariesProvider.overrideWith(
             (ref) async => const <domain.DivePlanSummary>[],
           ),
@@ -615,4 +620,65 @@ void main() {
     expect(find.text('Link a plan'), findsNothing);
     expect(find.text('Ask a what-if'), findsOneWidget);
   });
+
+  group('a plan link held in a sitting (issue #4527)', () {
+    Future<RecordEditController<Dive>> heldTo(String? planId) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(Dive(id: _diveId, dateTime: DateTime.utc(2026)));
+      addTearDown(controller.dispose);
+      final session = controller.session!;
+      final container = ProviderContainer(
+        overrides: [
+          divePlanRepositoryProvider.overrideWithValue(
+            _Plans(linked: 'plan-0'),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      loadDivePlanLink(session, container.read);
+      await session.settled();
+      setPlanLink(session, planId);
+      return controller;
+    }
+
+    testWidgets('linked: the closed card names the plan Save links, not the '
+        'stored comparison', (tester) async {
+      final controller = await tester.runAsync(() => heldTo('plan-1'));
+      await pump(tester, comparison: _comparison(), lockable: controller);
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pump();
+
+      expect(find.text('Reef plan is linked at Save.'), findsOneWidget);
+      expect(find.byType(CompareTable), findsNothing);
+    });
+
+    testWidgets('unlinked: the closed card says so', (tester) async {
+      final controller = await tester.runAsync(() => heldTo(null));
+      await pump(tester, comparison: _comparison(), lockable: controller);
+
+      expect(find.text('The plan is unlinked at Save.'), findsOneWidget);
+      expect(find.byType(CompareTable), findsNothing);
+    });
+  });
+}
+
+class _Plans extends DivePlanRepository {
+  _Plans({required this.linked});
+
+  final String linked;
+
+  @override
+  Future<domain.DivePlan?> getPlanByLinkedDiveId(String diveId) async =>
+      _plan(linked, 'Old plan');
+
+  @override
+  Future<domain.DivePlan?> getPlan(String id) async =>
+      _plan(id, id == 'plan-1' ? 'Reef plan' : 'Old plan');
+
+  domain.DivePlan _plan(String id, String name) => domain.DivePlan(
+    id: id,
+    name: name,
+    createdAt: DateTime.utc(2026),
+    updatedAt: DateTime.utc(2026),
+  );
 }

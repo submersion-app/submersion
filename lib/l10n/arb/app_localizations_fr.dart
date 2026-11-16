@@ -56999,6 +56999,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLab_compare_waiting => 'En attente de la plongée';
 
   @override
+  String diveLab_compare_heldLink(String plan) {
+    return '$plan sera lié à l\'enregistrement.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink =>
+      'Le plan sera délié à l\'enregistrement.';
+
+  @override
   String get diveLab_link_unlinkTitle => 'Dissocier ce plan ?';
 
   @override

@@ -56858,6 +56858,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLab_compare_waiting => 'À espera do mergulho';
 
   @override
+  String diveLab_compare_heldLink(String plan) {
+    return '$plan será vinculado ao salvar.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink =>
+      'O plano será desvinculado ao salvar.';
+
+  @override
   String get diveLab_link_unlinkTitle => 'Desassociar este plano?';
 
   @override

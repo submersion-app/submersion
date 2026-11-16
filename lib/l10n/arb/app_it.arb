@@ -16794,6 +16794,8 @@
   "diveLab_compare_planTable": "Piano e immersione",
   "diveLab_compare_plannedSchedule": "Programma pianificato",
   "diveLab_compare_waiting": "In attesa dell'immersione",
+  "diveLab_compare_heldLink": "{plan} verrà collegato al salvataggio.",
+  "diveLab_compare_heldUnlink": "Il piano verrà scollegato al salvataggio.",
   "diveLab_link_unlinkTitle": "Scollegare questo piano?",
   "diveLab_link_unlinkBody": "Il piano e l'immersione restano entrambi. Semplicemente non vengono più confrontati.",
   "diveLab_link_unlinkConfirm": "Scollega",

@@ -16948,6 +16948,8 @@
   "diveLab_compare_planTable": "Plan und Tauchgang",
   "diveLab_compare_plannedSchedule": "Geplanter Ablauf",
   "diveLab_compare_waiting": "Wartet auf den Tauchgang",
+  "diveLab_compare_heldLink": "{plan} wird beim Speichern verknüpft.",
+  "diveLab_compare_heldUnlink": "Der Plan wird beim Speichern getrennt.",
   "diveLab_link_unlinkTitle": "Diesen Plan trennen?",
   "diveLab_link_unlinkBody": "Plan und Tauchgang bleiben beide erhalten. Sie werden nur nicht mehr verglichen.",
   "diveLab_link_unlinkConfirm": "Trennen",

@@ -16794,6 +16794,8 @@
   "diveLab_compare_planTable": "תוכנית מול צלילה",
   "diveLab_compare_plannedSchedule": "לוח זמנים מתוכנן",
   "diveLab_compare_waiting": "ממתין לצלילה",
+  "diveLab_compare_heldLink": "{plan} יקושר בשמירה.",
+  "diveLab_compare_heldUnlink": "קישור התוכנית יבוטל בשמירה.",
   "diveLab_link_unlinkTitle": "לבטל את קישור התוכנית?",
   "diveLab_link_unlinkBody": "התוכנית והצלילה נשארות. הן פשוט לא יושוו יותר.",
   "diveLab_link_unlinkConfirm": "ביטול קישור",

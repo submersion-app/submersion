@@ -89375,6 +89375,18 @@ abstract class AppLocalizations {
   /// **'Waiting for the dive'**
   String get diveLab_compare_waiting;
 
+  /// The closed Compare card while a dive is unlocked and a plan has been linked but not saved yet: names the plan Save will link.
+  ///
+  /// In en, this message translates to:
+  /// **'{plan} is linked at Save.'**
+  String diveLab_compare_heldLink(String plan);
+
+  /// The closed Compare card while a dive is unlocked and its plan has been unlinked but not saved yet.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan is unlinked at Save.'**
+  String get diveLab_compare_heldUnlink;
+
   /// No description provided for @diveLab_link_unlinkTitle.
   ///
   /// In en, this message translates to:

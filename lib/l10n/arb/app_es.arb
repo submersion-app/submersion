@@ -16794,6 +16794,8 @@
   "diveLab_compare_planTable": "Plan e inmersión",
   "diveLab_compare_plannedSchedule": "Programa planificado",
   "diveLab_compare_waiting": "A la espera de la inmersión",
+  "diveLab_compare_heldLink": "{plan} se vincula al guardar.",
+  "diveLab_compare_heldUnlink": "El plan se desvincula al guardar.",
   "diveLab_link_unlinkTitle": "¿Desvincular este plan?",
   "diveLab_link_unlinkBody": "El plan y la inmersión se conservan. Solo dejan de compararse.",
   "diveLab_link_unlinkConfirm": "Desvincular",

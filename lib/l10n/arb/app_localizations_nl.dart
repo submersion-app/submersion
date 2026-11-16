@@ -56514,6 +56514,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLab_compare_waiting => 'Wacht op de duik';
 
   @override
+  String diveLab_compare_heldLink(String plan) {
+    return '$plan wordt gekoppeld bij Opslaan.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink =>
+      'Het plan wordt ontkoppeld bij Opslaan.';
+
+  @override
   String get diveLab_link_unlinkTitle => 'Dit plan ontkoppelen?';
 
   @override

@@ -56745,6 +56745,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLab_compare_waiting => 'Wartet auf den Tauchgang';
 
   @override
+  String diveLab_compare_heldLink(String plan) {
+    return '$plan wird beim Speichern verknüpft.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink =>
+      'Der Plan wird beim Speichern getrennt.';
+
+  @override
   String get diveLab_link_unlinkTitle => 'Diesen Plan trennen?';
 
   @override

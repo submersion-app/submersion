@@ -57640,6 +57640,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLab_compare_waiting => 'بانتظار الغطسة';
 
   @override
+  String diveLab_compare_heldLink(String plan) {
+    return 'سيُربط $plan عند الحفظ.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink => 'سيُلغى ربط الخطة عند الحفظ.';
+
+  @override
   String get diveLab_link_unlinkTitle => 'إلغاء ربط هذه الخطة؟';
 
   @override

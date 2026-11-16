@@ -16794,6 +16794,8 @@
   "diveLab_compare_planTable": "Plan et plongée",
   "diveLab_compare_plannedSchedule": "Programme prévu",
   "diveLab_compare_waiting": "En attente de la plongée",
+  "diveLab_compare_heldLink": "{plan} sera lié à l'enregistrement.",
+  "diveLab_compare_heldUnlink": "Le plan sera délié à l'enregistrement.",
   "diveLab_link_unlinkTitle": "Dissocier ce plan ?",
   "diveLab_link_unlinkBody": "Le plan et la plongée sont conservés. Ils ne sont simplement plus comparés.",
   "diveLab_link_unlinkConfirm": "Dissocier",

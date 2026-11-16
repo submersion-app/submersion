@@ -11,6 +11,13 @@ const _log = LoggerService('DivePlanLinkSitting');
 /// The held change of the Compare card: the plan linked to the dive.
 const String planLinkKey = 'planLink';
 
+/// The plan link the sitting changed, for a closed card to say what Save
+/// will do: null while it holds no change.
+({String? planId})? heldPlanLinkChange(EditSession<Dive> session) =>
+    session.isDisposed || !session.isHeld(planLinkKey)
+    ? null
+    : sittingPlanLink(session);
+
 /// The links the save changed, as (plan, dive or null), for the planner to
 /// adopt once the write is committed (issue #4527, plan 6).
 const String planLinkAdoptKey = 'planLink.adopt';
