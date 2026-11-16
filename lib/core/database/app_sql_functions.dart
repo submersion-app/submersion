@@ -122,11 +122,15 @@ Object? _diveAmbientBar(SqliteArguments arguments) {
   return environment.pressureAtDepth(depth);
 }
 
-Object? _unicodeLower(SqliteArguments arguments) {
-  final value = arguments[0];
+Object? _unicodeLower(SqliteArguments arguments) =>
+    _foldText(arguments[0], (s) => s.toLowerCase());
+
+/// [value] through [fold] when it is text, the way `LOWER()` treats its
+/// argument: NULL stays NULL and a number renders as text, unfolded.
+Object? _foldText(Object? value, String Function(String text) fold) {
   return switch (value) {
     null => null,
-    final String s => s.toLowerCase(),
+    final String s => fold(s),
     final num n => n.toString(),
     // A blob is returned unchanged: no text column here holds one, and
     // guessing at its encoding would be worse than leaving it alone.
@@ -134,16 +138,8 @@ Object? _unicodeLower(SqliteArguments arguments) {
   };
 }
 
-Object? _searchFold(SqliteArguments arguments) {
-  final value = arguments[0];
-  return switch (value) {
-    null => null,
-    final String s => foldForSearch(s),
-    final num n => n.toString(),
-    // A blob is returned unchanged, as [_unicodeLower] does.
-    _ => value,
-  };
-}
+Object? _searchFold(SqliteArguments arguments) =>
+    _foldText(arguments[0], foldForSearch);
 
 extension UnicodeLowerExpression on Expression<String> {
   /// This text lower-cased by [kUnicodeLowerFunction]; the Unicode-aware

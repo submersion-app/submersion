@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import 'source_mask.dart';
 
@@ -28,7 +29,7 @@ void main() {
 
   test('lib/ is where the scans look', () {
     expect(
-      File('lib/core/text/text_sort.dart').existsSync(),
+      File(p.join('lib', 'core', 'text', 'text_sort.dart')).existsSync(),
       isTrue,
       reason: 'a wrong working directory would make every scan pass',
     );
@@ -36,7 +37,8 @@ void main() {
 
   test('a search LIKE folds accents with search_fold', () {
     final sqlLike = RegExp(
-      r'\bunicode_lower\s*\([^()]*\)\s+LIKE\b',
+      // One level of nested parentheses, for unicode_lower(COALESCE(x, '')).
+      r'\bunicode_lower\s*\((?:[^()]|\([^()]*\))*\)\s+LIKE\b',
       caseSensitive: false,
     );
     final driftLike = RegExp(r'\.unicodeLower\(\)\s*\.\s*(contains|like)\(');

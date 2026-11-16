@@ -250,10 +250,12 @@ class _TagPickerSheetState extends ConsumerState<TagPickerSheet> {
 
     // The empty state tells a diver to type a tag's name, so typing one the
     // diver has no tag for offers to create it. The match is the one
-    // getOrCreateTag makes: trimmed, ignoring case.
+    // getOrCreateTag makes: trimmed, ignoring case but not accents, so it
+    // compares the typed name lowercased, not the accent-folded [query].
+    final typed = name.toLowerCase();
     final canCreate =
         query.isNotEmpty &&
-        !ordered.any((stat) => stat.tag.name.trim().toLowerCase() == query);
+        !ordered.any((stat) => stat.tag.name.trim().toLowerCase() == typed);
 
     if (visible.isEmpty && !canCreate) {
       return _EmptyState(

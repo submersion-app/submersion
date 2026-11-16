@@ -403,7 +403,7 @@ void main() {
     // If this fails because sea_areas.json changed: raise
     // kSiteCatalogueImportRevision, then put the new revision and hash here.
     const pinned = (
-      revision: 4,
+      revision: 5,
       seaTable:
           '184175e914bbc5cdde973767181c50a75af59b49b1f5def95ff845eb89e659a6',
     );

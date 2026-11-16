@@ -137,9 +137,11 @@ List<BuddyWithDiveCount> applyBuddyWithDiveCountSorting(
   SortState<BuddySortField> sort,
 ) {
   final sorted = List<BuddyWithDiveCount>.from(buddies);
+  // Folds each name once for the whole sort, not once per comparison.
+  final collator = TextCollator();
 
   int byNameAscending(BuddyWithDiveCount a, BuddyWithDiveCount b) =>
-      compareTextForSort(a.buddy.name, b.buddy.name);
+      collator.compare(a.buddy.name, b.buddy.name);
 
   sorted.sort((a, b) {
     switch (sort.field) {
@@ -210,6 +212,7 @@ List<Buddy> applyBuddySorting(
   SortState<BuddySortField> sort,
 ) {
   final sorted = List<Buddy>.from(buddies);
+  final collator = TextCollator();
 
   sorted.sort((a, b) {
     // Every field compares names here: the plain Buddy entity carries neither
@@ -217,7 +220,7 @@ List<Buddy> applyBuddySorting(
     // alphabet. Only the direction differs between the fields, so that is all
     // the switch decides. It stays exhaustive, so a new BuddySortField has to
     // be considered in this function too.
-    final comparison = compareTextForSort(a.name, b.name);
+    final comparison = collator.compare(a.name, b.name);
     final invertForText = switch (sort.field) {
       // For text fields, invert direction (user expects descending = A→Z)
       BuddySortField.name => true,

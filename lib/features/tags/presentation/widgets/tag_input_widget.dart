@@ -158,7 +158,10 @@ class _TagInputWidgetState extends ConsumerState<TagInputWidget> {
                     .toList();
 
                 final exactMatch = allTags.any(
-                  (tag) => tag.name.toLowerCase() == query.toLowerCase(),
+                  // Case only: [query] is accent-folded for the search.
+                  (tag) =>
+                      tag.name.toLowerCase() ==
+                      _textController.text.toLowerCase(),
                 );
 
                 if (filteredTags.isEmpty && exactMatch) {
