@@ -9472,6 +9472,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_counterdiffusion => 'Tegendiffusie';
 
   @override
+  String get diveLog_legend_label_buoyancy => 'Drijfvermogen';
+
+  @override
   String get diveLog_counterdiffusion_segment_icd => 'ICD';
 
   @override
@@ -11460,6 +11463,24 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_density => 'Dichtheid';
+
+  @override
+  String get diveLog_tooltip_buoyancy => 'Drijfvermogen';
+
+  @override
+  String diveLog_buoyancy_readout_buoyant(String value) {
+    return '$value drijvend';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_heavy(String value) {
+    return '$value zwaar';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_neutral(String value) {
+    return '$value neutraal';
+  }
 
   @override
   String get diveLog_tooltip_depth => 'Diepte';
@@ -22665,6 +22686,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Profiel toont isobare tegendiffusie';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy =>
+      'Profiel toont drijfvermogen';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planningswaarschuwing geaccepteerd';
 
@@ -23651,6 +23676,9 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'Isobare tegendiffusie';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'Drijfvermogen';
 
   @override
   String get settings_appearance_metric_events => 'Gebeurtenissen';
@@ -55858,7 +55886,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_profileMetric_o2CellMv => 'O2-cellen';
 
   @override
+  String get enum_profileMetric_buoyancy => 'Drijfvermogen';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Cellen';
+
+  @override
+  String get enum_profileMetric_buoyancy_short => 'Drijfverm.';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2-celspreiding';
@@ -63481,6 +63515,13 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get info_term_counterdiffusionProfile_body =>
       'Op het duikprofiel markeert een oranje band waar een compartiment al meer inert gas bevat dan wordt ingeademd en toch merkbaar gas opneemt. In het Bühlmann-model verlaat helium het weefsel sneller dan stikstof binnenkomt, dus een wissel van trimix naar nitrox toont zelden een band; de stippellijn bij de wissel toont in plaats daarvan de vijfderegel.';
+
+  @override
+  String get info_term_buoyancyProfile_label => 'Drijfvermogen in het profiel';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'De lijn toont je netto drijfvermogen tijdens de duik, uit hetzelfde model als de kaart Drijfvermogen, voor de computer die de grafiek toont. Hij is groen zolang je drijft en magenta zolang je te zwaar bent, en de stippellijn markeert neutraal.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnie';

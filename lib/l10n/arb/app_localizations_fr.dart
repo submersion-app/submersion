@@ -9566,6 +9566,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_legend_label_counterdiffusion => 'Contre-diffusion';
 
   @override
+  String get diveLog_legend_label_buoyancy => 'Flottabilité';
+
+  @override
   String get diveLog_counterdiffusion_segment_icd => 'ICD';
 
   @override
@@ -11573,6 +11576,24 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_density => 'Densité';
+
+  @override
+  String get diveLog_tooltip_buoyancy => 'Flottabilité';
+
+  @override
+  String diveLog_buoyancy_readout_buoyant(String value) {
+    return '$value positive';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_heavy(String value) {
+    return '$value négative';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_neutral(String value) {
+    return '$value neutre';
+  }
 
   @override
   String get diveLog_tooltip_depth => 'Profondeur';
@@ -22864,6 +22885,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le profil affiche la contre-diffusion isobare';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy =>
+      'Le profil affiche la flottabilité';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Avertissement de planification accepté';
 
@@ -23859,6 +23884,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'Contre-diffusion isobare';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'Flottabilité';
 
   @override
   String get settings_appearance_metric_events => 'Événements';
@@ -56338,7 +56366,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_profileMetric_o2CellMv => 'Cellules O2';
 
   @override
+  String get enum_profileMetric_buoyancy => 'Flottabilité';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Cellules';
+
+  @override
+  String get enum_profileMetric_buoyancy_short => 'Flottab.';
 
   @override
   String get diveLog_o2CellSpread_label => 'Écart des cellules O2';
@@ -64013,6 +64047,13 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get info_term_counterdiffusionProfile_body =>
       'Sur le profil, une bande orange marque l\'endroit où un compartiment contient déjà plus de gaz inerte que celui respiré et en absorbe pourtant nettement. Dans le modèle de Bühlmann l\'hélium sort plus vite que l\'azote n\'entre, si bien qu\'un passage du trimix au nitrox montre rarement une bande ; la ligne pointillée au changement indique plutôt la règle des cinquièmes.';
+
+  @override
+  String get info_term_buoyancyProfile_label => 'Flottabilité sur le profil';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'La ligne montre ta flottabilité nette pendant la plongée, avec le même modèle que la carte Flottabilité, pour l\'ordinateur affiché par le graphique. Elle est verte quand tu es positif et magenta quand tu es trop lourd, et la ligne pointillée marque le neutre.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnie';

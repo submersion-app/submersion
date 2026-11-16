@@ -9511,6 +9511,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_counterdiffusion => 'Ellendiffúzió';
 
   @override
+  String get diveLog_legend_label_buoyancy => 'Felhajtóerő';
+
+  @override
   String get diveLog_counterdiffusion_segment_icd => 'ICD';
 
   @override
@@ -11506,6 +11509,24 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_density => 'Sűrűség';
+
+  @override
+  String get diveLog_tooltip_buoyancy => 'Felhajtóerő';
+
+  @override
+  String diveLog_buoyancy_readout_buoyant(String value) {
+    return '$value felhajt';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_heavy(String value) {
+    return '$value lehúz';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_neutral(String value) {
+    return '$value semleges';
+  }
 
   @override
   String get diveLog_tooltip_depth => 'Mélység';
@@ -22729,6 +22750,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A profil mutatja az izobár ellendiffúziót';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy =>
+      'A profil mutatja a felhajtóerőt';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Tervezési figyelmeztetés elfogadva';
 
@@ -23721,6 +23746,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'Izobár ellendiffúzió';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'Felhajtóerő';
 
   @override
   String get settings_appearance_metric_events => 'Események';
@@ -55909,7 +55937,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_profileMetric_o2CellMv => 'O2-cellák';
 
   @override
+  String get enum_profileMetric_buoyancy => 'Felhajtóerő';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Cellák';
+
+  @override
+  String get enum_profileMetric_buoyancy_short => 'Felhajtó';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2-cellák szórása';
@@ -63516,6 +63550,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get info_term_counterdiffusionProfile_body =>
       'A merülési profilon narancssárga sáv jelzi, ahol egy kompartment már több inert gázt tartalmaz, mint amennyit belélegzünk, és mégis érezhetően telítődik. A Bühlmann-modellben a hélium gyorsabban távozik, mint ahogy a nitrogén belép, ezért a trimixről nitroxra váltás ritkán mutat sávot; a váltásnál lévő szaggatott vonal helyette az ötödszabályt mutatja.';
+
+  @override
+  String get info_term_buoyancyProfile_label => 'Felhajtóerő a profilon';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'A vonal a merülés alatti nettó felhajtóerődet mutatja, ugyanabból a modellből, mint a Felhajtóerő kártya, a diagramon látható számítógéphez. Zöld, amíg felhajt, és bíbor, amíg túl nehéz vagy, a szaggatott vonal pedig a semleges szintet jelöli.';
 
   @override
   String get info_term_hypercapnia_label => 'Hiperkapnia';

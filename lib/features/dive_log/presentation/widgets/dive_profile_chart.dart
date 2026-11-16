@@ -41,6 +41,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_bar_window.dart';
@@ -546,6 +547,14 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Gas density curve in g/L
   final List<double>? densityCurve;
 
+  /// Net buoyancy in kg for each sample of [profile] (issue #4593); a null
+  /// entry is a gap. Null while the model is loading or the line is off.
+  final List<double?>? buoyancyCurve;
+
+  /// The dive can be modelled, so the buoyancy line is offered in the
+  /// legend and chart options (issue #4593).
+  final bool buoyancyAvailable;
+
   /// Gradient Factor % curve (0-100+)
   final List<double>? gfCurve;
 
@@ -897,6 +906,8 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.ppHeCurve,
     this.modCurve,
     this.densityCurve,
+    this.buoyancyCurve,
+    this.buoyancyAvailable = false,
     this.gfCurve,
     this.surfaceGfCurve,
     this.meanDepthCurve,
@@ -1000,6 +1011,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   O2CellUnit _o2CellUnit = O2CellUnit.ppO2;
   bool _showMod = false;
   bool _showDensity = false;
+  bool _showBuoyancy = false;
   bool _showGf = false;
   bool _showSurfaceGf = false;
   bool _showMeanDepth = false;
@@ -2543,6 +2555,30 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
+    // Net buoyancy (issue #4593): the value, its sign and its side in words,
+    // with the bullet in that side's colour.
+    if (_showBuoyancy && widget.buoyancyCurve != null) {
+      final raw = _curveValueAt(widget.buoyancyCurve, spot.spotIndex);
+      final kg = raw != null && raw.isFinite ? raw : null;
+      rows.add(
+        TooltipRow(
+          label: l10n.diveLog_tooltip_buoyancy,
+          value: kg == null
+              ? '-'
+              : formatBuoyancyReadout(
+                  kg,
+                  units,
+                  l10n,
+                  direction: Directionality.of(context),
+                ),
+          bulletColor: kg != null && kg < 0
+              ? ProfileMetricColors.buoyancyHeavy
+              : ProfileMetricColors.buoyancyBuoyant,
+          metric: ProfileRightAxisMetric.buoyancy,
+        ),
+      );
+    }
+
     // GF% (always shown once enabled; see the Ceiling row comment).
     if (_showGf) {
       final gf = _curveValueAt(widget.gfCurve, spot.spotIndex);
@@ -3047,6 +3083,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showO2Cells = false;
     _showMod = false;
     _showDensity = false;
+    _showBuoyancy = false;
     _showGf = false;
     _showSurfaceGf = false;
     _showMeanDepth = false;
@@ -3164,6 +3201,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _o2CellUnit = legendState.o2CellUnit;
     _showMod = legendState.showMod;
     _showDensity = legendState.showDensity;
+    _showBuoyancy = legendState.showBuoyancy;
     _showGf = legendState.showGf;
     _showSurfaceGf = legendState.showSurfaceGf;
     _showMeanDepth = legendState.showMeanDepth;
@@ -3257,6 +3295,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasBothO2CellUnits: hasBothO2CellUnits,
       hasModData: hasModData,
       hasDensityData: hasDensityData,
+      hasBuoyancy: widget.buoyancyAvailable,
+      hasBuoyancyLine: _hasDataForMetric(ProfileRightAxisMetric.buoyancy),
       hasGfData: hasGfData,
       hasSurfaceGfData: hasSurfaceGfData,
       hasMeanDepthData: hasMeanDepthData,
@@ -4002,6 +4042,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       identityHashCode(widget.ppHeCurve),
       identityHashCode(widget.modCurve),
       identityHashCode(widget.densityCurve),
+      identityHashCode(widget.buoyancyCurve),
       identityHashCode(widget.gfCurve),
       identityHashCode(widget.surfaceGfCurve),
       identityHashCode(widget.meanDepthCurve),
@@ -4012,6 +4053,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       identityHashCode(widget.o2SensorCurves),
       identityHashCode(widget.o2CellMvCurves),
       vpBucket,
+      // The buoyancy neutral rule spans the time axis, which an overlaid
+      // computer can widen without touching the profile (#4593).
+      bounds.totalMinTime,
+      bounds.totalMaxTime,
     ]);
     _markersSig = _sigOf([
       commonSig,
@@ -4327,6 +4372,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? [_buildOtuLine(metricBand)]
               : const <LineChartBarData>[];
 
+          // Net buoyancy (if showing): one bar per run on one side of
+          // neutral, plus the dashed neutral rule (issue #4593).
+          final buoyancyRange = (_showBuoyancy && widget.buoyancyCurve != null)
+              ? buoyancyAxisRange(widget.buoyancyCurve!)
+              : null;
+          final buoyancyLines = buoyancyRange == null
+              ? const <LineChartBarData>[]
+              : _buildBuoyancyLines(metricBand, buoyancyRange);
+          final neutralRule = buoyancyRange == null
+              ? const <LineChartBarData>[]
+              : [_buildNeutralRule(metricBand, buoyancyRange)];
+
           return [
             ..._tagAll(decoStopBand, ChartOnlyMetric.decoStop),
             ..._tagAll(ceilingLines, ChartOnlyMetric.ceiling),
@@ -4346,6 +4403,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             ..._tagAll(gtrLines, ProfileRightAxisMetric.gtr),
             ..._tagAll(cnsLines, ProfileRightAxisMetric.cns),
             ..._tagAll(otuLines, ProfileRightAxisMetric.otu),
+            ..._tagAll(neutralRule, null),
+            ..._tagAll(buoyancyLines, ProfileRightAxisMetric.buoyancy),
           ];
         }),
         ..._barsCache.series('markers', _markersSig, () {
@@ -4667,6 +4726,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           context,
                         ).textTheme.labelSmall?.copyWith(color: metricColor),
                         maxLines: 1,
+                        // A number reads left to right in every locale: in
+                        // RTL text a signed tick ("-4.1") would otherwise
+                        // draw its sign at the far end ("4.1-").
+                        textDirection: TextDirection.ltr,
                       ),
                     );
                   },
@@ -7402,6 +7465,70 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _withFlatSurfaceLeadIn,
     _seriesGetsLeadIn,
   );
+
+  /// [widget.buoyancyCurve] with its gaps as 0, for choosing which samples
+  /// to draw only; the gaps themselves are kept from the real curve. Memoized
+  /// on the curve's identity, which is what the decimation cache keys on.
+  List<double> _buoyancyForDecimation() {
+    final curve = widget.buoyancyCurve!;
+    if (!identical(_buoyancyFilledFor, curve)) {
+      _buoyancyFilledFor = curve;
+      _buoyancyFilled = [
+        for (final v in curve) v != null && v.isFinite ? v : 0.0,
+      ];
+    }
+    return _buoyancyFilled!;
+  }
+
+  List<double?>? _buoyancyFilledFor;
+  List<double>? _buoyancyFilled;
+
+  /// The net buoyancy line (issue #4593): runs of one sign, buoyant and
+  /// heavy in their own colours, starting flat from the surface like GF.
+  List<LineChartBarData> _buildBuoyancyLines(
+    MetricBand band,
+    ({double min, double max}) range,
+  ) {
+    final curve = widget.buoyancyCurve!;
+    final indices = keepBuoyancyGaps(
+      _decimatedCurveIndices(_buoyancyForDecimation()),
+      curve,
+      length: widget.profile.length,
+    );
+    final kgs = <double?>[for (final i in indices) curve[i]];
+    final timestamps = <int>[
+      for (final i in indices) widget.profile[i].timestamp,
+    ];
+    if (indices.isNotEmpty &&
+        indices.first == 0 &&
+        kgs.first != null &&
+        shouldDrawSurfaceLeadIn(widget.profile)) {
+      kgs.insert(0, kgs.first);
+      timestamps.insert(0, 0);
+    }
+    return buildBuoyancyLines(
+      runs: buoyancySignRuns(kgs, timestamps),
+      band: band,
+      range: range,
+      buoyant: ProfileMetricColors.buoyancyBuoyant,
+      heavy: ProfileMetricColors.buoyancyHeavy,
+    );
+  }
+
+  /// The dashed neutral (0 kg) rule drawn with the buoyancy line.
+  LineChartBarData _buildNeutralRule(
+    MetricBand band,
+    ({double min, double max}) range,
+  ) {
+    final domain = _timeDomain();
+    return buildNeutralRule(
+      band: band,
+      range: range,
+      minX: domain.min.toDouble(),
+      maxX: domain.max.toDouble(),
+      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.7),
+    );
+  }
 
   /// Translucent band for the externally highlighted time range. [span] is
   /// precomputed by [_buildChart] via [highlightBandSpan]: clamped to the

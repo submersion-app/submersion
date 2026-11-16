@@ -186,6 +186,26 @@ void main() {
     });
   });
 
+  group('BuoyancyTwinAssembler.isModelable', () {
+    test('false with no tanks and no suit', () {
+      expect(BuoyancyTwinAssembler.isModelable(diveWith()), isFalse);
+    });
+
+    test('true with a tank', () {
+      expect(
+        BuoyancyTwinAssembler.isModelable(diveWith(tanks: [tank('t1')])),
+        isTrue,
+      );
+    });
+
+    test('true with an exposure suit and no tank', () {
+      expect(
+        BuoyancyTwinAssembler.isModelable(diveWith(equipment: [wetsuit])),
+        isTrue,
+      );
+    });
+  });
+
   group('BuoyancyTwinAssembler.droppableLeadKg', () {
     test('sums only belt and integrated rows', () {
       final dive = diveWith(

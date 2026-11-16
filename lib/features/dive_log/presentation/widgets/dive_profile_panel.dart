@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/dive_log/presentation/widgets/estimated_profile_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/chart_buoyancy_inputs.dart';
 
 /// Panel that displays the dive profile chart for the currently highlighted
 /// dive, while the active filter lists it. Tooltip floats as an Overlay on
@@ -292,6 +293,9 @@ class _DiveProfilePanelContentState
       dive,
       activeSourceProfile?.points ?? dive.profile,
     );
+    // The net buoyancy line (issue #4593), modelled on the drawn series.
+    final buoyancy = watchChartBuoyancy(ref, widget.diveId, chartProfile);
+
     // AsyncValue.value, not the valueOrNull polyfill: it keeps the previous
     // value across a provider reload so the chart does not drop a series for
     // a frame when a background write ticks the dive.
@@ -387,6 +391,8 @@ class _DiveProfilePanelContentState
               ppHeCurve: analysis?.ppHeCurve,
               modCurve: analysis?.modCurve,
               densityCurve: analysis?.densityCurve,
+              buoyancyCurve: buoyancy.curve,
+              buoyancyAvailable: buoyancy.available,
               gfCurve: analysis?.gfCurve,
               surfaceGfCurve: analysis?.surfaceGfCurve,
               meanDepthCurve: analysis?.meanDepthCurve,

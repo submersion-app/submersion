@@ -56,6 +56,11 @@ class DefaultVisibleMetricsPage extends ConsumerWidget {
             onChanged: notifier.setDefaultShowSac,
           ),
           SwitchListTile(
+            title: Text(context.l10n.settings_appearance_metric_buoyancy),
+            value: settings.defaultShowBuoyancy,
+            onChanged: notifier.setDefaultShowBuoyancy,
+          ),
+          SwitchListTile(
             title: Text(context.l10n.settings_appearance_metric_events),
             value: settings.defaultShowEvents,
             onChanged: notifier.setDefaultShowEvents,

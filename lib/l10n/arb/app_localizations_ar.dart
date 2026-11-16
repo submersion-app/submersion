@@ -9660,6 +9660,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_counterdiffusion => 'الانتشار العكسي';
 
   @override
+  String get diveLog_legend_label_buoyancy => 'الطفو';
+
+  @override
   String get diveLog_counterdiffusion_segment_icd => 'ICD';
 
   @override
@@ -11680,6 +11683,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_density => 'الكثافة';
+
+  @override
+  String get diveLog_tooltip_buoyancy => 'الطفو';
+
+  @override
+  String diveLog_buoyancy_readout_buoyant(String value) {
+    return '$value طافٍ';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_heavy(String value) {
+    return '$value ثقيل';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_neutral(String value) {
+    return '$value متعادل';
+  }
 
   @override
   String get diveLog_tooltip_depth => 'العمق';
@@ -23150,6 +23171,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'الملف يعرض الانتشار العكسي متساوي الضغط';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy => 'الملف يعرض الطفو';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'تم قبول تنبيه التخطيط';
 
@@ -24153,6 +24177,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'الانتشار العكسي متساوي الضغط';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'الطفو';
 
   @override
   String get settings_appearance_metric_events => 'الأحداث';
@@ -56990,7 +57017,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_profileMetric_o2CellMv => 'خلايا الأكسجين';
 
   @override
+  String get enum_profileMetric_buoyancy => 'الطفو';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'الخلايا';
+
+  @override
+  String get enum_profileMetric_buoyancy_short => 'الطفو';
 
   @override
   String get diveLog_o2CellSpread_label => 'تشتت خلايا O2';
@@ -64786,6 +64819,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get info_term_counterdiffusionProfile_body =>
       'في مخطط الغوص يحدد شريط برتقالي المواضع التي يحمل فيها نسيج غازًا خاملًا أكثر مما يُستنشق ومع ذلك يمتص الغاز بشكل ملحوظ. في نموذج بولمان يخرج الهيليوم أسرع مما يدخل النيتروجين، لذا نادرًا ما يُظهر التبديل من التريمكس إلى النيتروكس شريطًا؛ ويُظهر الخط المتقطع عند التبديل قاعدة الأخماس بدلًا من ذلك.';
+
+  @override
+  String get info_term_buoyancyProfile_label => 'الطفو على الملف';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'يعرض الخط صافي طفوك طوال الغطسة، من النموذج نفسه المستخدم في بطاقة الطفو، للحاسوب الذي يعرضه المخطط. يكون أخضر عندما تكون طافيًا وأرجوانيًا عندما تكون ثقيلًا، ويحدد الخط المتقطع نقطة التعادل.';
 
   @override
   String get info_term_hypercapnia_label => 'فرط ثاني أكسيد الكربون';

@@ -65,6 +65,7 @@ enum DiveTerm {
   salinity,
   isobaricCounterdiffusion,
   counterdiffusionProfile,
+  buoyancyProfile,
   hypercapnia,
   turnPressure,
   minGas,
@@ -239,6 +240,7 @@ String _label(AppLocalizations l10n, DiveTerm term) {
       l10n.info_term_isobaricCounterdiffusion_label,
     DiveTerm.counterdiffusionProfile =>
       l10n.info_term_counterdiffusionProfile_label,
+    DiveTerm.buoyancyProfile => l10n.info_term_buoyancyProfile_label,
     DiveTerm.hypercapnia => l10n.info_term_hypercapnia_label,
     DiveTerm.turnPressure => l10n.info_term_turnPressure_label,
     DiveTerm.minGas => l10n.info_term_minGas_label,
@@ -381,6 +383,7 @@ String _body(AppLocalizations l10n, UnitFormatter units, DiveTerm term) {
       l10n.info_term_isobaricCounterdiffusion_body,
     DiveTerm.counterdiffusionProfile =>
       l10n.info_term_counterdiffusionProfile_body,
+    DiveTerm.buoyancyProfile => l10n.info_term_buoyancyProfile_body,
     DiveTerm.hypercapnia => l10n.info_term_hypercapnia_body,
     DiveTerm.turnPressure => l10n.info_term_turnPressure_body,
     DiveTerm.minGas => l10n.info_term_minGas_body,

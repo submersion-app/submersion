@@ -9322,6 +9322,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_counterdiffusion => 'דיפוזיה נגדית';
 
   @override
+  String get diveLog_legend_label_buoyancy => 'ציפה';
+
+  @override
   String get diveLog_counterdiffusion_segment_icd => 'ICD';
 
   @override
@@ -11277,6 +11280,24 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_density => 'צפיפות';
+
+  @override
+  String get diveLog_tooltip_buoyancy => 'ציפה';
+
+  @override
+  String diveLog_buoyancy_readout_buoyant(String value) {
+    return '$value צף';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_heavy(String value) {
+    return '$value כבד';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_neutral(String value) {
+    return '$value ניטרלי';
+  }
 
   @override
   String get diveLog_tooltip_depth => 'עומק';
@@ -22308,6 +22329,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'הפרופיל מציג דיפוזיה נגדית איזוברית';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy => 'הפרופיל מציג ציפה';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'אזהרת תכנון אושרה';
 
@@ -23277,6 +23301,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'דיפוזיה נגדית איזוברית';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'ציפה';
 
   @override
   String get settings_appearance_metric_events => 'אירועים';
@@ -55030,7 +55057,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_profileMetric_o2CellMv => 'תאי O2';
 
   @override
+  String get enum_profileMetric_buoyancy => 'ציפה';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'תאים';
+
+  @override
+  String get enum_profileMetric_buoyancy_short => 'ציפה';
 
   @override
   String get diveLog_o2CellSpread_label => 'פיזור תאי O2';
@@ -62546,6 +62579,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get info_term_counterdiffusionProfile_body =>
       'בפרופיל הצלילה פס כתום מסמן היכן מדור מכיל כבר יותר גז אינרטי ממה שנשאף ועדיין קולט גז באופן מורגש. במודל בולמן ההליום יוצא מהר יותר משהחנקן נכנס, ולכן מעבר מטרימיקס לניטרוקס מראה פס לעתים רחוקות; הקו המקווקו במעבר מראה במקום זאת את כלל החמישיות.';
+
+  @override
+  String get info_term_buoyancyProfile_label => 'ציפה בפרופיל';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'הקו מציג את הציפה הנטו שלך לאורך הצלילה, לפי אותו מודל של כרטיס הציפה, עבור המחשב שהתרשים מציג. הוא ירוק כשאתה צף ומג\'נטה כשאתה כבד, והקו המקווקו מסמן ציפה ניטרלית.';
 
   @override
   String get info_term_hypercapnia_label => 'היפרקפניה';

@@ -512,6 +512,10 @@ class DiverSettings extends Table {
   // dive profile (issue #4530).
   BoolColumn get defaultShowCounterdiffusion =>
       boolean().withDefault(const Constant(false))();
+  // v370: default visibility for the net buoyancy line on the dive profile
+  // (issue #4593).
+  BoolColumn get defaultShowBuoyancy =>
+      boolean().withDefault(const Constant(false))();
   // v163: whether synthesized ("(est.)") tank pressure lines are drawn on the
   // profile chart at all (issue #731). Defaults to true, preserving the
   // behavior estimates shipped with. Ignored for coverage for the reason

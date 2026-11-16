@@ -9385,6 +9385,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_legend_label_counterdiffusion => 'Counterdiffusion';
 
   @override
+  String get diveLog_legend_label_buoyancy => 'Buoyancy';
+
+  @override
   String get diveLog_counterdiffusion_segment_icd => 'ICD';
 
   @override
@@ -11354,6 +11357,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_density => 'Density';
+
+  @override
+  String get diveLog_tooltip_buoyancy => 'Buoyancy';
+
+  @override
+  String diveLog_buoyancy_readout_buoyant(String value) {
+    return '$value buoyant';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_heavy(String value) {
+    return '$value heavy';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_neutral(String value) {
+    return '$value neutral';
+  }
 
   @override
   String get diveLog_tooltip_depth => 'Depth';
@@ -22469,6 +22490,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Profile shows isobaric counterdiffusion';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy =>
+      'Profile shows buoyancy';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planning disclaimer accepted';
 
@@ -23448,6 +23473,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'Isobaric counterdiffusion';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'Buoyancy';
 
   @override
   String get settings_appearance_metric_events => 'Events';
@@ -55333,7 +55361,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_profileMetric_o2CellMv => 'O2 Cells';
 
   @override
+  String get enum_profileMetric_buoyancy => 'Buoyancy';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Cells';
+
+  @override
+  String get enum_profileMetric_buoyancy_short => 'Buoyancy';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2 Cell Spread';
@@ -62876,6 +62910,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get info_term_counterdiffusionProfile_body =>
       'On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.';
+
+  @override
+  String get info_term_buoyancyProfile_label => 'Buoyancy on the profile';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'The line shows your net buoyancy through the dive, from the same model as the Buoyancy card, for the computer the chart is showing. It is green while you are buoyant and magenta while you are heavy, and the dashed line marks neutral.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnia';

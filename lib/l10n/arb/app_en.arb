@@ -5616,6 +5616,7 @@
   "diveLog_legend_label_gasDensity": "Gas Density",
   "diveLog_legend_label_lateGasSwitches": "Late gas switches",
   "diveLog_legend_label_counterdiffusion": "Counterdiffusion",
+  "diveLog_legend_label_buoyancy": "Buoyancy",
   "diveLog_counterdiffusion_segment_icd": "ICD",
   "diveLog_counterdiffusion_segment_all": "All",
   "diveLog_tooltip_counterdiffusion_icd": "Counterdiffusion (ICD)",
@@ -6562,6 +6563,37 @@
   "diveLog_tooltip_decoStop": "Deco stop",
   "diveLog_tooltip_cns": "CNS",
   "diveLog_tooltip_density": "Density",
+  "diveLog_tooltip_buoyancy": "Buoyancy",
+  "diveLog_buoyancy_readout_buoyant": "{value} buoyant",
+  "@diveLog_buoyancy_readout_buoyant": {
+    "description": "Profile tooltip value for net buoyancy above neutral, with its signed weight.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "+0.9 kg"
+      }
+    }
+  },
+  "diveLog_buoyancy_readout_heavy": "{value} heavy",
+  "@diveLog_buoyancy_readout_heavy": {
+    "description": "Profile tooltip value for net buoyancy below neutral, with its signed weight.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "-2.4 kg"
+      }
+    }
+  },
+  "diveLog_buoyancy_readout_neutral": "{value} neutral",
+  "@diveLog_buoyancy_readout_neutral": {
+    "description": "Profile tooltip value for net buoyancy at neutral, with its weight.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "0.0 kg"
+      }
+    }
+  },
   "diveLog_tooltip_depth": "Depth",
   "diveLog_tooltip_gfPercent": "GF%",
   "diveLog_tooltip_hr": "HR",
@@ -14447,6 +14479,7 @@
   "planning_disclaimer_dialog_body": "The tools in this section are for planning purposes only. They do not replace your dive training or your dive computer. Always verify every calculation yourself before using it for a safety decision.",
   "planning_disclaimer_dialog_confirm": "I Understand",
   "settings_conflict_field_defaultShowCounterdiffusion": "Profile shows isobaric counterdiffusion",
+  "settings_conflict_field_defaultShowBuoyancy": "Profile shows buoyancy",
   "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Planning disclaimer accepted",
   "planning_section_tools": "Tools",
   "planning_summary_prompt": "Select a tool to get started",
@@ -15049,6 +15082,7 @@
   "settings_appearance_pinProfileOnScroll_subtitle": "Keep a thin, scrubbable profile at the top of dive details",
   "settings_appearance_metric_ceiling": "Ceiling",
   "settings_appearance_metric_counterdiffusion": "Isobaric counterdiffusion",
+  "settings_appearance_metric_buoyancy": "Buoyancy",
   "settings_appearance_metric_events": "Events",
   "settings_appearance_metric_estimatedTankPressure": "Estimated Tank Pressure",
   "@settings_appearance_metric_estimatedTankPressure": {
@@ -33608,7 +33642,9 @@
     "description": "Confirmation shown after queueing an upload"
   },
   "enum_profileMetric_o2CellMv": "O2 Cells",
+  "enum_profileMetric_buoyancy": "Buoyancy",
   "enum_profileMetric_o2CellMv_short": "Cells",
+  "enum_profileMetric_buoyancy_short": "Buoyancy",
   "diveLog_o2CellSpread_label": "O2 Cell Spread",
   "media_status_broken": "Missing and not backed up",
   "media_servedFrom_localDisk": "On this device",
@@ -37524,6 +37560,8 @@
   "info_term_isobaricCounterdiffusion_body": "A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop.",
   "info_term_counterdiffusionProfile_label": "Counterdiffusion on the profile",
   "info_term_counterdiffusionProfile_body": "On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.",
+  "info_term_buoyancyProfile_label": "Buoyancy on the profile",
+  "info_term_buoyancyProfile_body": "The line shows your net buoyancy through the dive, from the same model as the Buoyancy card, for the computer the chart is showing. It is green while you are buoyant and magenta while you are heavy, and the dashed line marks neutral.",
   "info_term_hypercapnia_label": "Hypercapnia",
   "info_term_hypercapnia_body": "A build-up of carbon dioxide in the body. Dense gas and hard work make it more likely.",
   "info_term_turnPressure_label": "Turn pressure",

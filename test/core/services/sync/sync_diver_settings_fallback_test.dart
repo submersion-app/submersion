@@ -351,6 +351,42 @@ void main() {
     expect(row.defaultShowCounterdiffusion, isFalse);
   });
 
+  test('applies a pre-v370 diver_settings payload missing '
+      'defaultShowBuoyancy', () async {
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.diverSettings)
+        .insert(
+          DiverSettingsCompanion.insert(
+            id: 'ds-buoy',
+            diverId: 'diver-buoy',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    final exported = await serializer.fetchRecord('diverSettings', 'ds-buoy');
+    expect(exported, isNotNull);
+
+    // A peer still on v369 exports no defaultShowBuoyancy. The
+    // column is NOT NULL, so an unseeded import would throw in
+    // DiverSetting.fromJson.
+    final legacy = Map<String, dynamic>.from(exported!)
+      ..remove('defaultShowBuoyancy');
+
+    await (db.delete(
+      db.diverSettings,
+    )..where((t) => t.id.equals('ds-buoy'))).go();
+
+    await serializer.upsertRecord('diverSettings', legacy);
+
+    final row = await (db.select(
+      db.diverSettings,
+    )..where((t) => t.id.equals('ds-buoy'))).getSingle();
+    expect(row.defaultShowBuoyancy, isFalse);
+  });
+
   test(
     'applies a pre-v163 diver_settings payload missing the estimate default',
     () async {

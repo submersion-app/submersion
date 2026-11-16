@@ -645,6 +645,10 @@ class AppSettings implements UnitFormatterSettings {
   /// profile (issue #4530)
   final bool defaultShowCounterdiffusion;
 
+  /// Default visibility for the net buoyancy line on the dive profile
+  /// (issue #4593)
+  final bool defaultShowBuoyancy;
+
   /// Whether synthesized ("(est.)") tank pressure lines are drawn on the dive
   /// profile at all. Off means the estimate is never built, so no legend chip,
   /// tooltip row, or chart-options entry appears for it (issue #731).
@@ -939,6 +943,7 @@ class AppSettings implements UnitFormatterSettings {
     this.defaultShowGasTimeline = false,
     this.defaultShowO2CellMv = false,
     this.defaultShowCounterdiffusion = false,
+    this.defaultShowBuoyancy = false,
     this.defaultShowEstimatedTankPressure = true,
     this.defaultShowAscentRateLine = false,
     // Notification defaults
@@ -1175,6 +1180,7 @@ class AppSettings implements UnitFormatterSettings {
     bool? defaultShowGasTimeline,
     bool? defaultShowO2CellMv,
     bool? defaultShowCounterdiffusion,
+    bool? defaultShowBuoyancy,
     bool? defaultShowEstimatedTankPressure,
     bool? defaultShowAscentRateLine,
     bool? notificationsEnabled,
@@ -1417,6 +1423,7 @@ class AppSettings implements UnitFormatterSettings {
       defaultShowO2CellMv: defaultShowO2CellMv ?? this.defaultShowO2CellMv,
       defaultShowCounterdiffusion:
           defaultShowCounterdiffusion ?? this.defaultShowCounterdiffusion,
+      defaultShowBuoyancy: defaultShowBuoyancy ?? this.defaultShowBuoyancy,
       defaultShowEstimatedTankPressure:
           defaultShowEstimatedTankPressure ??
           this.defaultShowEstimatedTankPressure,
@@ -3173,6 +3180,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDefaultShowCounterdiffusion(bool value) =>
       _update((s) => s.copyWith(defaultShowCounterdiffusion: value));
+
+  Future<void> setDefaultShowBuoyancy(bool value) =>
+      _update((s) => s.copyWith(defaultShowBuoyancy: value));
 
   Future<void> setDefaultShowEstimatedTankPressure(bool value) =>
       _update((s) => s.copyWith(defaultShowEstimatedTankPressure: value));

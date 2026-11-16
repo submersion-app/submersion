@@ -216,6 +216,15 @@ class ChartOptionsDialog extends StatelessWidget {
           isEnabled: legendState.showSac,
           onTap: legendNotifier.toggleSac,
         ),
+      if (config.hasBuoyancy)
+        buildToggleItem(
+          context,
+          label: context.l10n.diveLog_legend_label_buoyancy,
+          color: ProfileMetricColors.buoyancyBuoyant,
+          secondColor: ProfileMetricColors.buoyancyHeavy,
+          isEnabled: legendState.showBuoyancy,
+          onTap: legendNotifier.toggleBuoyancy,
+        ),
       if (config.hasAscentRates)
         buildToggleItem(
           context,

@@ -49,6 +49,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/chart_buoyancy_inputs.dart';
 
 /// Fullscreen dive review: full-height profile chart with a dive-computer
 /// instrument bar, playback, and scrubbing (issues #443, #169).
@@ -376,6 +377,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
       dive,
       resolvedActive?.points ?? dive.profile,
     );
+    // The net buoyancy line (issue #4593), modelled on the drawn series.
+    final buoyancy = watchChartBuoyancy(ref, widget.diveId, chartProfile);
+
     final chartActions = annotationActions.onProfile(chartProfile);
 
     // Keep the range and playback extents on this page's own drawn series
@@ -580,6 +584,8 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                             ppHeCurve: analysis?.ppHeCurve,
                             modCurve: analysis?.modCurve,
                             densityCurve: analysis?.densityCurve,
+                            buoyancyCurve: buoyancy.curve,
+                            buoyancyAvailable: buoyancy.available,
                             gfCurve: analysis?.gfCurve,
                             surfaceGfCurve: analysis?.surfaceGfCurve,
                             meanDepthCurve: analysis?.meanDepthCurve,

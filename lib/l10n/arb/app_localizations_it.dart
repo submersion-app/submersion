@@ -9534,6 +9534,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_counterdiffusion => 'Controdiffusione';
 
   @override
+  String get diveLog_legend_label_buoyancy => 'Assetto';
+
+  @override
   String get diveLog_counterdiffusion_segment_icd => 'ICD';
 
   @override
@@ -11534,6 +11537,24 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_density => 'Densità';
+
+  @override
+  String get diveLog_tooltip_buoyancy => 'Assetto';
+
+  @override
+  String diveLog_buoyancy_readout_buoyant(String value) {
+    return '$value positivo';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_heavy(String value) {
+    return '$value negativo';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_neutral(String value) {
+    return '$value neutro';
+  }
 
   @override
   String get diveLog_tooltip_depth => 'Profondità';
@@ -22806,6 +22827,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Il profilo mostra la controdiffusione isobarica';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy =>
+      'Il profilo mostra l\'assetto';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Avviso di pianificazione accettato';
 
@@ -23796,6 +23821,9 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_appearance_metric_counterdiffusion =>
       'Controdiffusione isobarica';
+
+  @override
+  String get settings_appearance_metric_buoyancy => 'Assetto';
 
   @override
   String get settings_appearance_metric_events => 'Eventi';
@@ -56206,7 +56234,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_profileMetric_o2CellMv => 'Celle O2';
 
   @override
+  String get enum_profileMetric_buoyancy => 'Assetto';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Celle';
+
+  @override
+  String get enum_profileMetric_buoyancy_short => 'Assetto';
 
   @override
   String get diveLog_o2CellSpread_label => 'Dispersione delle celle O2';
@@ -63871,6 +63905,13 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get info_term_counterdiffusionProfile_body =>
       'Sul profilo una banda arancione segna dove un compartimento contiene già più gas inerte di quello respirato e continua comunque ad assorbirne in modo apprezzabile. Nel modello di Bühlmann l\'elio esce più in fretta di quanto entri l\'azoto, quindi un cambio da trimix a nitrox mostra raramente una banda; la linea tratteggiata al cambio mostra invece la regola dei quinti.';
+
+  @override
+  String get info_term_buoyancyProfile_label => 'Assetto sul profilo';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      'La linea mostra il tuo assetto netto durante l\'immersione, con lo stesso modello della scheda Assetto, per il computer mostrato dal grafico. È verde quando sei positivo e magenta quando sei pesante, e la linea tratteggiata indica il neutro.';
 
   @override
   String get info_term_hypercapnia_label => 'Ipercapnia';

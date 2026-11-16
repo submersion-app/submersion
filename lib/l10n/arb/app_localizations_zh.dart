@@ -9039,6 +9039,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_counterdiffusion => '逆向扩散';
 
   @override
+  String get diveLog_legend_label_buoyancy => '浮力';
+
+  @override
   String get diveLog_counterdiffusion_segment_icd => 'ICD';
 
   @override
@@ -10948,6 +10951,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_density => '密度';
+
+  @override
+  String get diveLog_tooltip_buoyancy => '浮力';
+
+  @override
+  String diveLog_buoyancy_readout_buoyant(String value) {
+    return '$value 正浮力';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_heavy(String value) {
+    return '$value 负浮力';
+  }
+
+  @override
+  String diveLog_buoyancy_readout_neutral(String value) {
+    return '$value 中性浮力';
+  }
 
   @override
   String get diveLog_tooltip_depth => '深度';
@@ -21673,6 +21694,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '剖面显示等压逆向扩散';
 
   @override
+  String get settings_conflict_field_defaultShowBuoyancy => '剖面显示浮力';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer => '已接受计划提示';
 
   @override
@@ -22590,6 +22614,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_counterdiffusion => '等压逆向扩散';
+
+  @override
+  String get settings_appearance_metric_buoyancy => '浮力';
 
   @override
   String get settings_appearance_metric_events => '事件';
@@ -52710,7 +52737,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_profileMetric_o2CellMv => 'O2 电池';
 
   @override
+  String get enum_profileMetric_buoyancy => '浮力';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => '电池';
+
+  @override
+  String get enum_profileMetric_buoyancy_short => '浮力';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2电池离散度';
@@ -59953,6 +59986,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get info_term_counterdiffusionProfile_body =>
       '在潜水曲线上，橙色条带标出隔室所含惰性气体已多于吸入量、却仍明显吸收气体的时段。在 Bühlmann 模型中氦排出快于氮进入，因此从三混气换到高氧时很少出现条带；换气处的虚线则显示五分之一规则。';
+
+  @override
+  String get info_term_buoyancyProfile_label => '剖面上的浮力';
+
+  @override
+  String get info_term_buoyancyProfile_body =>
+      '这条线显示你在整个潜水过程中的净浮力，使用与浮力卡片相同的模型，针对图表当前显示的电脑。正浮力时为绿色，负浮力时为品红色，虚线标出中性浮力。';
 
   @override
   String get info_term_hypercapnia_label => '高碳酸血症';
