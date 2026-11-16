@@ -3,11 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
+import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 
 import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/test_database.dart';
@@ -175,4 +178,38 @@ void main() {
     expect(cancelled, isEmpty);
     expect(armed, isEmpty);
   });
+
+  test('the app\'s revert service re-arms what a revert restores', () async {
+    // The Revert sheet and the table editor take the service from this
+    // provider, so it has to carry the documents' re-arm.
+    final container = ProviderContainer(
+      overrides: [
+        documentMutationsProvider.overrideWith(
+          (ref) => _RecordingMutations(ref, armed),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    service = container.read(changeLogRevertServiceProvider);
+    final permit = await documents.save(
+      dated(DocumentType.permit, now.add(const Duration(days: 10))),
+      const [],
+    );
+    await startFresh();
+    await documents.delete(permit.id);
+
+    await revertNewest();
+
+    expect([for (final d in armed) d.id], [permit.id]);
+  });
+}
+
+class _RecordingMutations extends DocumentMutations {
+  _RecordingMutations(super.ref, this.armed);
+
+  final List<Document> armed;
+
+  @override
+  Future<void> rearmReminders(Iterable<Document> documents) async =>
+      armed.addAll(documents);
 }
