@@ -22,17 +22,24 @@ void main() {
     expect(find.byType(ProfileAvatar), findsNothing);
   });
 
-  testWidgets('shows the logo through ProfileAvatar', (tester) async {
+  testWidgets('shows the logo clipped to a circle at drawn size', (
+    tester,
+  ) async {
     final logo = _jpeg();
     await tester.pumpWidget(
       testApp(child: DiveCenterAvatar(logo: logo, radius: 24)),
     );
 
     expect(find.byIcon(Icons.store), findsNothing);
-    final avatar = tester.widget<ProfileAvatar>(find.byType(ProfileAvatar));
+    expect(find.byType(ClipOval), findsOneWidget);
+    final image = tester.widget<Image>(find.byType(Image));
+    expect(image.width, 48);
     // The same instance, so the image cache keeps one decode per logo.
-    expect(identical(avatar.photo, logo), isTrue);
-    expect(avatar.radius, 24);
+    final provider = image.image as ResizeImage;
+    expect(
+      identical((provider.imageProvider as MemoryImage).bytes, logo),
+      isTrue,
+    );
   });
 
   testWidgets('the fallback icon keeps the given colours and size', (
@@ -143,6 +150,20 @@ void main() {
     });
   });
 
+  testWidgets('unreadable bytes in a circle fall back to the store icon', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(child: DiveCenterAvatar(logo: Uint8List.fromList([1, 2, 3, 4]))),
+    );
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 200)),
+    );
+    await tester.pump();
+
+    expect(find.byIcon(Icons.store), findsOneWidget);
+  });
+
   group('DiveCenterMarkerGlyph', () {
     testWidgets('no logo is the bare store icon, as markers drew it', (
       tester,
@@ -178,9 +199,8 @@ void main() {
       );
 
       expect(find.byIcon(Icons.store), findsNothing);
-      final avatar = tester.widget<ProfileAvatar>(find.byType(ProfileAvatar));
-      expect(identical(avatar.photo, logo), isTrue);
-      expect(avatar.radius, 18);
+      expect(find.byType(ClipOval), findsOneWidget);
+      expect(tester.getSize(find.byType(Image)), const Size(36, 36));
     });
   });
 }

@@ -54,49 +54,43 @@ class DiveCenterAvatar extends StatelessWidget {
       size: iconSize ?? radius,
     );
 
-    if (shape == DiveCenterAvatarShape.circle) {
-      if (bytes != null) {
-        return ProfileAvatar(
-          photo: bytes,
-          initials: '',
-          radius: radius,
-          backgroundColor: background,
-        );
-      }
-      return CircleAvatar(
-        radius: radius,
-        backgroundColor: background,
-        child: icon,
-      );
-    }
-
     final side = radius * 2;
+    final circle = shape == DiveCenterAvatarShape.circle;
     final borderRadius = BorderRadius.circular(cornerRadius);
-    final iconBox = Container(
+    final Widget iconOnly = circle
+        ? CircleAvatar(radius: radius, backgroundColor: background, child: icon)
+        : Container(
+            width: side,
+            height: side,
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: borderRadius,
+            ),
+            child: icon,
+          );
+    if (bytes == null) return iconOnly;
+
+    final image = Image(
+      // Decoded at the drawn size, as ProfileAvatar does: a bare MemoryImage
+      // holds the full 512 px bitmap for every logo in a long list.
+      image: ResizeImage(
+        MemoryImage(bytes),
+        width: storedAvatarDecodeSize(context, side),
+        height: storedAvatarDecodeSize(context, side),
+      ),
       width: side,
       height: side,
-      decoration: BoxDecoration(color: background, borderRadius: borderRadius),
-      child: icon,
+      fit: BoxFit.cover,
+      gaplessPlayback: true,
+      // The name beside it already says which center this is.
+      excludeFromSemantics: true,
+      // Bytes that will not decode show the store icon in either shape, not
+      // a blank or a debug error box.
+      errorBuilder: (_, _, _) => iconOnly,
     );
-    if (bytes == null) return iconBox;
-    // Decode at the drawn size, as ProfileAvatar does: a bare MemoryImage
-    // holds the full 512 px bitmap for every logo in a long list.
-    final target = storedAvatarDecodeSize(context, side);
-    return ClipRRect(
-      borderRadius: borderRadius,
-      child: Image(
-        image: ResizeImage(MemoryImage(bytes), width: target, height: target),
-        width: side,
-        height: side,
-        fit: BoxFit.cover,
-        gaplessPlayback: true,
-        // The name beside it already says which center this is.
-        excludeFromSemantics: true,
-        // Bytes that will not decode show the store icon, not a blank or a
-        // debug error box.
-        errorBuilder: (_, _, _) => iconBox,
-      ),
-    );
+    return circle
+        ? ClipOval(child: image)
+        : ClipRRect(borderRadius: borderRadius, child: image);
   }
 }
 
