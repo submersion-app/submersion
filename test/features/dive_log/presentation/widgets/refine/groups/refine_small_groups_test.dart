@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, TagsCompanion;
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -207,6 +208,53 @@ void main() {
       await tester.tap(find.byKey(kRefineRoleNotSetChipKey));
       await tester.pump();
       expect(h.draft.noRoleOnly, isNull);
+    });
+
+    // A divers write (a diver edited, a sync) reloads the role list through
+    // its diver id dependency; the unpicked role chips stay until the new
+    // list lands rather than vanishing for the reload.
+    testWidgets('a role list reload keeps the role chips', (tester) async {
+      final trigger = NotifierProvider<_Trigger, int>(_Trigger.new);
+      final list = [
+        DiveRole(
+          id: 'instructor',
+          name: 'Instructor',
+          isBuiltIn: true,
+          createdAt: DateTime(2020),
+          updatedAt: DateTime(2020),
+        ),
+        DiveRole(
+          id: 'r1',
+          diverId: 'me',
+          name: 'Cave Guide',
+          createdAt: DateTime(2020),
+          updatedAt: DateTime(2020),
+        ),
+      ];
+      var next = Completer<List<DiveRole>>()..complete(list);
+      await pumpGroup(
+        tester,
+        (d, on) => RefinePeopleGroup(draft: d, onChanged: on),
+        initial: const DiveFilterState(diverRoleIds: ['instructor']),
+        overrides: [
+          allDiveRolesProvider.overrideWith((ref) {
+            ref.watch(trigger);
+            return next.future;
+          }),
+          allBuddiesProvider.overrideWith((ref) async => const <Buddy>[]),
+          allSpeciesProvider.overrideWith((ref) async => const <Species>[]),
+        ],
+      );
+      expect(find.byKey(refineRoleChipKey('r1')), findsOneWidget);
+
+      next = Completer<List<DiveRole>>();
+      ProviderScope.containerOf(
+        tester.element(find.byType(RefinePeopleGroup)),
+      ).read(trigger.notifier).bump();
+      await tester.pump();
+      expect(find.byKey(refineRoleChipKey('r1')), findsOneWidget);
+      expect(find.text('Cave Guide'), findsOneWidget);
+      next.complete(list);
     });
 
     testWidgets('built-in role chips are in the diver\'s language', (
@@ -442,4 +490,11 @@ void main() {
       'customFieldValue',
     });
   });
+}
+
+class _Trigger extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void bump() => state = state + 1;
 }

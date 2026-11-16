@@ -131,8 +131,10 @@ class _RefinePeopleGroupState extends ConsumerState<RefinePeopleGroup> {
     final allSpecies =
         ref.watch(allSpeciesProvider).valueOrNull ?? const <Species>[];
     final speciesById = {for (final s in allSpecies) s.id: s};
+    // `value`, not `valueOrNull`: a diver change reloads the list, and the
+    // role chips stay until the new one lands.
     final allRoles =
-        ref.watch(allDiveRolesProvider).valueOrNull ?? const <DiveRole>[];
+        ref.watch(allDiveRolesProvider).value ?? const <DiveRole>[];
     final knownRoleIds = {for (final r in allRoles) r.id};
     // A picked role the list no longer holds keeps a chip, so it can be
     // turned off.
