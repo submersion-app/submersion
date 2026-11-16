@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 
@@ -75,6 +77,17 @@ void main() {
     test('two centers differing only in it are not equal', () {
       final open = buildCenter();
       expect(open.copyWith(isPermanentlyClosed: true), isNot(open));
+    });
+  });
+
+  group('logo', () {
+    test('copyWith(logo: null) clears it and omitting it keeps it', () {
+      final withLogo = buildCenter().copyWith(
+        logo: Uint8List.fromList([9, 8, 7]),
+      );
+
+      expect(withLogo.copyWith(name: 'Renamed').logo, [9, 8, 7]);
+      expect(withLogo.copyWith(logo: null).logo, isNull);
     });
   });
 }
