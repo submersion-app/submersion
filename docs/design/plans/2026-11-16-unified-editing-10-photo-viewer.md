@@ -933,3 +933,51 @@ Tasks 1 to 12 are one pull request, `Refs #4527`. Task 13 joins it if plan 6 has
 - **Plan 7.** `recordEdit_unlockToUseThis` and `recordEdit_saveOrCancelFirst` exist; the dive's menu caption can reuse the second and add a plural of the first. `RecordEditBar.actions` is where the unlocked dive bar's menu goes.
 - **Plan 9.** A photo's sitting writes only tracked tables (`media`, `media_species`, `media_people`, `sightings`, `dive_buddies`, `dives`), so its History entry is complete without plan 9. `media_enrichment` stays `deleteCopyOnly`: it is derived, and the pass runs after the save.
 - **Plan 11.** The switch-over turns both viewers' `unlockEditing` on with the dive page's, and removes the immediate paths each widget keeps for `sitting == null` only where nothing else calls them (the library selection bar still tags at once).
+
+---
+
+## After the review
+
+Tasks 1 to 12 were built as written in one session (Eric chose "Native"), then reviewed as a whole branch by a fresh reviewer. Task 13 is not built: it waits for plan 6. This is what differs from the task text above, for whoever builds Task 13 and writes plan 11.
+
+### Decided by Eric after the review (2026-11-16)
+
+- **The photo's own tags (#1970) are held.** The info sheet's Edit tags wrote at once, even locked; the plan had missed them. Locked, and wherever the info sheet opens outside the viewer, Edit tags is not offered. In a sitting the tag sheet holds the chosen tags (`photoTagsField`, `MediaTagEdits`, card id `tags`, read in History as "Tags" with the existing `media_info_tags`), written by `TagLinkRepository.replaceTags` in the sitting's transaction.
+- **A photo that leaves the viewer's list keeps its sitting** while its row exists (another device untagging the species, moving the dive out of a trip, unlinking it): `keepSittingPhoto` keeps it on screen in its place. Only the photo's deletion ends the sitting with `media_viewer_photoGoneWhileEditing`.
+
+### Names that changed, or were added
+
+| Above | Now |
+| --- | --- |
+| `PersonTagEdits.add(chip, {shown, isVideo})` | `add(chip, {stored, isVideo})`, like `change` and `remove`: it works out what is shown |
+| `holdAddBuddyToDive(session, {diveId, buddy, repository})` | Takes `buddyId` |
+| `holdColorToDive(session, {diveId, source, repository})` | No `source`: the colour is read from the sitting when the write runs |
+| `PhotoRecordReader({media, species, people, dives})` | `({media, species, people, tags})`: the dive shift is one column query, not `DiveRepository.getDiveById` (which loads the profile) |
+| `PhotoEditSaveService.save(...)` | Gains `diveAtStart`: a photo moved to another dive since the sitting began is refused with a `StateError` (review) |
+| `followStoredPhoto(onScreen)` returns nothing | Returns the stored `PhotoRecord` of the photo on screen; `canUnlock(item, stored)` and `unlockPhoto(stored)` take it |
+| `photo_sitting_shown.dart` in Task 5 | Created in Task 6, where it is first used |
+| `MediaInfoPanel` | Its tags section (`MediaInfoTagsSection`) and tag sheet (`showMediaTagSheet`) take `readOnly` and `sitting` too |
+| `PhotoViewerPage` | Gains `unlockEditing`, passed to the viewer, so a test can open the dive's viewer with the lock |
+
+### Added
+
+- **The viewer redraws on every change to its sitting** (the mixin listens to the session); the chip and box widgets take the sitting as a parameter rather than each listening.
+- **Both editing bars are semantics containers of their own.** Without it, in the site viewer, a dialog closing over a dirty sitting tripped Flutter's `node.built` semantics check.
+- **The editing bar's actions take what Cancel, Save and the title leave**, up to half the bar, so a phone still reads the title.
+- **The add-to-dive offer made in a sitting closes when the sitting ends** (`dismissHeldOffer`), so a late Add is never dropped unsaid.
+- **The colour field counts null and the neutral adjustment as the same colour**, as the repository stores a cleared one as neutral.
+- **`media_viewer_page.dart`** was split by moving the gallery, the video item, the bottom chips, the Perdix resolver, the write to the file, the controls' actions and the toolbar's construction into part files (`media_viewer_*.dart`, extensions on the page state). It ends at 758 lines.
+
+### Left open (deferred minors from the review)
+
+- Escape while Pick white or the colour panel is open cancels the sitting rather than stepping back through them.
+- A photo deleted while its save runs shows the gone message without ending the sitting.
+- The info sheet's Set time is seeded from the stored row, so with a pin held from the chip it does not know the photo is pinned.
+- The site viewer's editing bar does not split its actions by width.
+- While unlocked the mini profile still hides on a tap; following the sitting's photo clears the people tag selection.
+- The add-to-dive snackbar covers tag mode's bar for its four seconds (as before this plan).
+
+### For Task 13 and plan 11
+
+- **Task 13.** Locate is hidden in a sitting until it can be held. `MediaInfoPanel(sitting:)` is where its hold goes; `PhotoEditSaveService.save(alsoWrite:)` takes the relink. The Media card opening the viewer on `mediaInSitting` gets "no unlock" for a held photo for free: `canUnlock` needs a stored row.
+- **Plan 11.** Both viewers' `unlockEditing` default to `kUnlockEditing`; nothing else reads the switch here except the library grid and the status badge (`readOnly: kUnlockEditing` on the info sheet).
