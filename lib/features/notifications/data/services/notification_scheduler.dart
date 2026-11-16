@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -15,6 +17,7 @@ import 'package:submersion/features/notifications/domain/draft_reminder_plan.dar
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/data/services/clearance_delete_events.dart';
 import 'package:submersion/features/documents/domain/clearance_supersession.dart';
 import 'package:submersion/features/documents/domain/document_reminder_plan.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -36,6 +39,9 @@ class NotificationScheduler {
   final DiveDraftRepository _drafts;
   final Future<bool> Function() _draftRemindersOn;
 
+  /// The medical clearance deletes (ClearanceDeleteEvents), by diver.
+  final Stream<Map<String, Set<String>>> _clearanceDeletes;
+
   /// What each draft reminder this scheduler set was set with: its time
   /// and locale. A reminder still pending with the same pair is left alone,
   /// so a dive change does not reschedule every reminder.
@@ -55,7 +61,9 @@ class NotificationScheduler {
     DiveDraftRepository? draftRepository,
     Future<bool> Function()? draftRemindersOn,
     DateTime Function()? clock,
-  }) : _documentRepository = documentRepository ?? DocumentRepository(),
+    Stream<Map<String, Set<String>>>? clearanceDeletes,
+  }) : _clearanceDeletes = clearanceDeletes ?? ClearanceDeleteEvents.stream,
+       _documentRepository = documentRepository ?? DocumentRepository(),
        _drafts = draftRepository ?? DiveDraftRepository(),
        _draftRemindersOn = draftRemindersOn ?? _draftRemindersSwitch,
        _clock = clock ?? DateTime.now,
@@ -435,7 +443,34 @@ class NotificationScheduler {
   }
 
   /// Expiry reminders for every reminding document of [diverId] (#2613).
+  ///
+  /// The run arms from what it read at its start, so a medical clearance
+  /// deleted meanwhile, after its own re-arm, would be armed again and the
+  /// one it superseded left silent. Each diver a delete named during the
+  /// run is settled again once it is done, from the database as it is then
+  /// (#4609). A delete heard only after the run is re-armed after it by
+  /// the delete listener.
   Future<void> _scheduleDocumentReminders({
+    required AppSettings settings,
+    String? diverId,
+  }) async {
+    final deletedMeanwhile = <String, Set<String>>{};
+    final heard = _clearanceDeletes.listen((deletedByDiver) {
+      for (final MapEntry(key: diver, value: ids) in deletedByDiver.entries) {
+        (deletedMeanwhile[diver] ??= {}).addAll(ids);
+      }
+    });
+    try {
+      await _armDocumentReminders(settings: settings, diverId: diverId);
+    } finally {
+      await heard.cancel();
+    }
+    for (final MapEntry(key: diver, value: ids) in deletedMeanwhile.entries) {
+      await updateClearancesForDiver(diver, settings, deletedIds: ids);
+    }
+  }
+
+  Future<void> _armDocumentReminders({
     required AppSettings settings,
     String? diverId,
   }) async {
