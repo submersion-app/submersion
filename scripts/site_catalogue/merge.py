@@ -20,6 +20,7 @@ ODbL database alone, for the ODbL offer and for anyone redistributing
 commercially. It must be told where to write (`--out`): the default is the
 catalogue the app ships, which it would replace. `--out assets/data` does
 that on purpose, and takes New Jersey's metadata away with its records.
+Maryland's metadata stays: its records are part of the ODbL database.
 
 It prints, per source, what was read, what each gate dropped and what was
 written, then the ids that left and joined the catalogue it replaces.
@@ -36,6 +37,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import NamedTuple
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 for _path in (_HERE, os.path.dirname(_HERE)):
@@ -81,9 +83,23 @@ SOURCE_STEPS = {
     "wikidata_wrecks": src_wikidata.wreck_records,
 }
 
-# New Jersey's metadata: read from the cache, shipped beside the catalogue.
+# New Jersey's and Maryland's metadata: read from the cache, shipped beside
+# the catalogue.
 NJDEP_METADATA_FILE = src_reefs.NJDEP_METADATA_CACHE_FILE
 NJDEP_METADATA_SHIPPED = "site_catalogue_njdep_metadata.xml"
+MD_DNR_METADATA_FILE = src_reefs.MD_DNR_METADATA_CACHE_FILE
+MD_DNR_METADATA_SHIPPED = "site_catalogue_md_dnr_metadata.xml"
+
+
+class _TravellingMetadata(NamedTuple):
+    """A publisher's metadata that must ship whenever its records do."""
+
+    cached: Path
+    shipped_name: str
+    ships: bool
+    label: str
+    fetch: str
+    source_key: str
 
 # The sources that are not hydrographic: OpenStreetMap's historic=wreck
 # and Wikidata's shipwrecks include aircraft on mountains and hulls in
@@ -480,16 +496,37 @@ def main(argv=None, *, places=None, curated=None, research=None) -> int:
         print("Every source is named with --without: there is nothing to merge.")
         return 2
 
-    # NJDEP's agreement: its data is not redistributed without its metadata.
-    ships_new_jersey = "njdep" in snapshots and not arguments.open_only
-    metadata = arguments.cache / NJDEP_METADATA_FILE
-    if ships_new_jersey and not metadata.exists():
-        print(
-            f"New Jersey's metadata ({metadata}) is missing: its records may "
-            "not ship without it. Run src_reefs.fetch_njdep again, or name "
-            "njdep with --without."
-        )
-        return 2
+    # NJDEP's agreement: its data is not redistributed without its
+    # metadata. Maryland's terms: its data is freely distributed while the
+    # metadata entry is not modified or deleted; its rows ride in the
+    # federal file and stay in the ODbL database, so they ship in the
+    # open-only catalogue too.
+    travelling = [
+        _TravellingMetadata(
+            cached=arguments.cache / NJDEP_METADATA_FILE,
+            shipped_name=NJDEP_METADATA_SHIPPED,
+            ships="njdep" in snapshots and not arguments.open_only,
+            label="New Jersey's metadata",
+            fetch="src_reefs.fetch_njdep",
+            source_key="njdep",
+        ),
+        _TravellingMetadata(
+            cached=arguments.cache / MD_DNR_METADATA_FILE,
+            shipped_name=MD_DNR_METADATA_SHIPPED,
+            ships="noaa_reefs" in snapshots,
+            label="Maryland's metadata",
+            fetch="src_reefs.fetch_federal",
+            source_key="noaa_reefs",
+        ),
+    ]
+    for metadata in travelling:
+        if metadata.ships and not metadata.cached.exists():
+            print(
+                f"{metadata.label} ({metadata.cached}) is missing: its "
+                f"records may not ship without it. Run {metadata.fetch} "
+                f"again, or name {metadata.source_key} with --without."
+            )
+            return 2
 
     if places is None:
         answers = [
@@ -530,11 +567,12 @@ def main(argv=None, *, places=None, curated=None, research=None) -> int:
     except ValueError as error:
         print(error)
         return 2
-    shipped_metadata = arguments.out / NJDEP_METADATA_SHIPPED
-    if ships_new_jersey:
-        shipped_metadata.write_bytes(metadata.read_bytes())
-    elif shipped_metadata.exists():
-        shipped_metadata.unlink()
+    for metadata in travelling:
+        shipped = arguments.out / metadata.shipped_name
+        if metadata.ships:
+            shipped.write_bytes(metadata.cached.read_bytes())
+        elif shipped.exists():
+            shipped.unlink()
     _print_report(
         report,
         None if old_ids is None else id_changes(old_ids, {r["id"] for r in catalogue}),

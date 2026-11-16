@@ -408,8 +408,22 @@ class DeclaredSourcesTest(unittest.TestCase):
         self.assertIn("Open Database License", notice)
         self.assertIn("not for navigation", notice)
         for absent in ("Hydrographic", "Florida", "New Jersey", "Hawaii",
-                       "North Carolina", "Texas", "Wikidata"):
+                       "North Carolina", "Texas", "Wikidata", "Maryland"):
             self.assertNotIn(absent, notice, absent)
+
+    def test_the_federal_file_s_notice_acknowledges_the_state_of_maryland(self):
+        # Maryland's terms: data derived from its reef data acknowledges
+        # the State of Maryland in the metadata, and the metadata entry
+        # travels unmodified.
+        notice = fmt.catalogue_notice(present={"osm", "noaa_reefs"})
+        self.assertIn(
+            "Maryland's artificial reef records are derived from data of the "
+            "State of Maryland, Department of Natural Resources. Its "
+            "metadata for that data ships unmodified beside this file "
+            "(site_catalogue_md_dnr_metadata.xml).",
+            notice,
+        )
+        self.assertIn("State of Maryland", fmt.NOTICE)
 
     def test_with_every_source_the_notice_is_the_full_one(self):
         records = [

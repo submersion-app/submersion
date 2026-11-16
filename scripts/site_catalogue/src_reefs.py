@@ -5,11 +5,14 @@
 - `noaa_reefs`: MarineCadastre's compilation of the other states' reefs
   (US Government data: NOAA states no licence or restriction for it, only
   its use for coastal and ocean planning). It is a compilation: each
-  state's own
-  terms decide what ships. New York's forbid distribution, so its rows
-  are dropped. Florida, New Jersey and North Carolina are read from their
-  own files instead. Hawaii and Texas allow non-commercial use only, so
-  their rows become own-terms sources (`hi_dar`, `tpwd`).
+  state's own terms decide what ships. New York's forbid distribution and
+  Massachusetts' forbid copying beyond fair use, so their rows are
+  dropped. Florida, New Jersey and North Carolina are read from their own
+  files instead. Hawaii and Texas allow non-commercial use only, so their
+  rows become own-terms sources (`hi_dar`, `tpwd`). Maryland's data is
+  free to distribute while its metadata travels unmodified, so its
+  metadata is saved with the federal file and shipped beside the
+  catalogue.
 - `njdep`: New Jersey's deployments, from the state's own layer, under its
   Data Distribution Agreement (own terms).
 - `nc_dmf`: North Carolina's reef sites, carried exactly as published (its
@@ -68,6 +71,16 @@ NJDEP_METADATA_URL = (
 # agreement requires the metadata to travel with the data, so the merge
 # ships this file with the catalogue.
 NJDEP_METADATA_CACHE_FILE = "njdep_metadata.xml"
+# Maryland's metadata for its reef layer (MD iMAP, Maryland Artificial Reef
+# Initiative). Its data "can be freely distributed as long as the metadata
+# entry is not modified or deleted", and Maryland's rows ride in the
+# federal file, so fetching that file saves this beside it and the merge
+# ships it whenever the federal records ship.
+MD_DNR_METADATA_URL = (
+    "https://www.arcgis.com/sharing/rest/content/items/"
+    "cffdac5749c94f9c818c836fd4b6d297/info/metadata/metadata.xml"
+)
+MD_DNR_METADATA_CACHE_FILE = "md_dnr_metadata.xml"
 NC_DMF_URL = (
     "https://services2.arcgis.com/kCu40SDxsCGcuUWO/arcgis/rest/services/"
     "DMF_ReefGuide/FeatureServer/0"
@@ -84,8 +97,10 @@ FKNMS_URL = (
 FKNMS_REF = "https://floridakeys.noaa.gov/mbuoy/allmbuoys.html"
 
 # Rows of the federal file that never ship from it: New York's terms forbid
-# distribution; the other three are read from their own, fuller files.
-EXCLUDED_STATES = ("FL", "NJ", "NC", "NY")
+# distribution, and Mass.gov's forbid any copying beyond fair use without
+# permission; Florida, New Jersey and North Carolina are read from their
+# own, fuller files.
+EXCLUDED_STATES = ("FL", "MA", "NJ", "NC", "NY")
 # States whose terms allow non-commercial use only: their own source keys.
 OWN_TERMS_STATES = {"HI": "hi_dar", "TX": "tpwd"}
 
@@ -589,6 +604,9 @@ def _identifier(name: str) -> str:
 
 
 def fetch_federal():
+    # Maryland's rows may not ship without its metadata: fetched first, so a
+    # failure leaves no snapshot that could be merged without it.
+    save_md_dnr_metadata()
     archive = zipfile.ZipFile(io.BytesIO(http_get(FEDERAL_URL, timeout=600)))
     name = next(n for n in archive.namelist() if n.lower().endswith(".gpkg"))
     with tempfile.TemporaryDirectory() as folder:
@@ -614,15 +632,29 @@ def fetch_federal():
     return write_snapshot("noaa_reefs", FEDERAL_URL, rows)
 
 
-def save_njdep_metadata(cache=CACHE_DIR):
-    """Downloads NJDEP's metadata document for the layer into the cache."""
-    body = http_get(NJDEP_METADATA_URL)
+def _save_metadata(url, file_name, label, cache):
+    body = http_get(url)
     if not body.strip():
-        raise ValueError("njdep: the metadata document came back empty")
+        raise ValueError(f"{label}: the metadata document came back empty")
     cache.mkdir(parents=True, exist_ok=True)
-    path = cache / NJDEP_METADATA_CACHE_FILE
+    path = cache / file_name
     path.write_bytes(body)
     return path
+
+
+def save_njdep_metadata(cache=CACHE_DIR):
+    """Downloads NJDEP's metadata document for the layer into the cache."""
+    return _save_metadata(
+        NJDEP_METADATA_URL, NJDEP_METADATA_CACHE_FILE, "njdep", cache
+    )
+
+
+def save_md_dnr_metadata(cache=CACHE_DIR):
+    """Downloads Maryland's metadata document for its reef layer into the
+    cache."""
+    return _save_metadata(
+        MD_DNR_METADATA_URL, MD_DNR_METADATA_CACHE_FILE, "maryland", cache
+    )
 
 
 def fetch_njdep():

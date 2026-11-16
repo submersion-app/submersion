@@ -98,6 +98,25 @@ class FederalTest(unittest.TestCase):
                     record["id"].startswith(f"usreef_{state}_"), record["id"]
                 )
 
+    def test_massachusetts_rows_never_ship(self):
+        # Mass.gov's terms forbid any copying beyond fair use without
+        # permission, as New York's forbid distribution.
+        row = {
+            "reefIdentifier": None,
+            "reefName": "Harwich reef",
+            "reefComposition": "Concrete",
+            "reefStructure": None,
+            "reefYear": 2016,
+            "stateAbbreviation": "MA",
+            "waterDepthFeet": 33,
+            "latitudeDMS": "41 37 36.1 N",
+            "longitudeDMS": "70 4 17.0 W",
+        }
+        records, dropped = src_reefs.federal_records([row])
+        self.assertEqual(records, [])
+        self.assertEqual(dropped["excluded_state"], 1)
+        self.assertIn("MA", src_reefs.EXCLUDED_STATES)
+
     def test_a_state_with_no_stated_terms_ships_under_the_federal_source(self):
         tank = self.by_name["Tank 47"]
         self.assertEqual(tank["source"], "noaa_reefs")
@@ -398,6 +417,51 @@ class NjdepMetadataTest(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     src_reefs.save_njdep_metadata(Path(tmp))
             self.assertFalse((Path(tmp) / "njdep_metadata.xml").exists())
+
+
+class MarylandMetadataTest(unittest.TestCase):
+    # Maryland's reef data "can be freely distributed as long as the
+    # metadata entry is not modified or deleted", and its rows ride in the
+    # federal file: fetching that file saves Maryland's metadata too.
+    def test_the_fetch_saves_maryland_s_metadata_beside_the_snapshot(self):
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(
+                src_reefs, "http_get", return_value=b"<metadata/>"
+            ) as get:
+                path = src_reefs.save_md_dnr_metadata(Path(tmp))
+            self.assertEqual(path, Path(tmp) / "md_dnr_metadata.xml")
+            self.assertEqual(path.read_bytes(), b"<metadata/>")
+            self.assertEqual(
+                get.call_args.args[0], src_reefs.MD_DNR_METADATA_URL
+            )
+            self.assertIn(
+                "cffdac5749c94f9c818c836fd4b6d297",
+                src_reefs.MD_DNR_METADATA_URL,
+            )
+
+    def test_an_empty_answer_is_not_saved_as_maryland_s_metadata(self):
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(src_reefs, "http_get", return_value=b" "):
+                with self.assertRaises(ValueError):
+                    src_reefs.save_md_dnr_metadata(Path(tmp))
+            self.assertFalse((Path(tmp) / "md_dnr_metadata.xml").exists())
+
+    def test_fetching_the_federal_file_fetches_maryland_s_metadata(self):
+        from unittest import mock
+
+        with mock.patch.object(src_reefs, "save_md_dnr_metadata") as save, \
+                mock.patch.object(src_reefs, "http_get", side_effect=OSError):
+            with self.assertRaises(OSError):
+                src_reefs.fetch_federal()
+        save.assert_called_once_with()
 
 
 class NcDmfTest(unittest.TestCase):

@@ -145,6 +145,7 @@ class ResearchInMainTest(unittest.TestCase):
         for key, rows in _snapshots().items():
             snapshots.write_snapshot(key, "https://example.org", rows, cache)
         (cache / merge.NJDEP_METADATA_FILE).write_text("<m/>", encoding="utf-8")
+        (cache / merge.MD_DNR_METADATA_FILE).write_text("<m/>", encoding="utf-8")
         batch = _batch([], withdrawn={
             "curated_shore": {"reason": "not_a_site", "date": "2026-12-01"}})
         with redirect_stdout(io.StringIO()) as printed:
@@ -168,6 +169,7 @@ class ResearchInMainTest(unittest.TestCase):
         for key, rows in _snapshots().items():
             snapshots.write_snapshot(key, "https://example.org", rows, cache)
         (cache / merge.NJDEP_METADATA_FILE).write_text("<m/>", encoding="utf-8")
+        (cache / merge.MD_DNR_METADATA_FILE).write_text("<m/>", encoding="utf-8")
         batch = _batch([], withdrawn={"research_id_a": {
             "reason": "position", "date": "2026-12-01",
             "replaced_by": "research_id_pending"}})
@@ -187,6 +189,7 @@ class ResearchInMainTest(unittest.TestCase):
         for key, rows in _snapshots().items():
             snapshots.write_snapshot(key, "https://example.org", rows, cache)
         (cache / merge.NJDEP_METADATA_FILE).write_text("<m/>", encoding="utf-8")
+        (cache / merge.MD_DNR_METADATA_FILE).write_text("<m/>", encoding="utf-8")
         previous = '{"metadata":{},"sites":[{"id":"research_id_gone"}]}'
         (out / "site_catalogue.json").write_text(previous, encoding="utf-8")
         with redirect_stdout(io.StringIO()) as printed:
