@@ -475,19 +475,43 @@ void main() {
       expect(_types(outcome), isNot(contains(PlanIssueType.minGasViolation)));
     });
 
-    test('no usable gas alert stays quiet while gas is left above it', () {
-      final outcome = engine.compute(deepPlan(domain.TurnPressureRule.thirds));
-      expect(_types(outcome), isNot(contains(PlanIssueType.noUsableGas)));
-    });
-
-    test('no usable gas alert fires without a turn rule too', () {
+    // #4475: under the ascent-only minimum is critical even when the fill
+    // is already under full rock bottom.
+    test('a fill under the ascent alone is critical as well', () {
       final outcome = engine.compute(
         deepPlan(
           domain.TurnPressureRule.thirds,
           startPressure: 80,
-        ).copyWith(clearTurnPressureRule: true),
+        ).copyWith(problemSolvingMinutes: 0),
       );
+      final usage = outcome.tankUsages.single;
+      expect(usage.minGasAscentBar!, greaterThan(80.0));
       expect(_types(outcome), contains(PlanIssueType.noUsableGas));
+      final issue = outcome.issues.firstWhere(
+        (i) => i.type == PlanIssueType.minGasAscentViolation,
+      );
+      expect(issue.severity, PlanIssueSeverity.critical);
+      expect(outcome.isDiveable, isFalse);
+    });
+
+    test('a fill under rock bottom but over the ascent alone only alerts', () {
+      domain.DivePlan withTime(double startPressure) => deepPlan(
+        domain.TurnPressureRule.thirds,
+        startPressure: startPressure,
+      ).copyWith(problemSolvingMinutes: 2);
+      final minGas = engine.compute(withTime(207)).tankUsages.single.minGasBar!;
+      // Just under full rock bottom: the short bottom leaves it well over
+      // the ascent-only minimum.
+      final outcome = engine.compute(withTime(minGas - 5));
+      final usage = outcome.tankUsages.single;
+      expect(usage.bottomEndPressure!, greaterThan(usage.minGasAscentBar!));
+      expect(_types(outcome), contains(PlanIssueType.noUsableGas));
+      expect(
+        _types(outcome),
+        isNot(contains(PlanIssueType.minGasAscentViolation)),
+      );
+      expect(_types(outcome), isNot(contains(PlanIssueType.minGasViolation)));
+      expect(outcome.isDiveable, isTrue);
     });
   });
 

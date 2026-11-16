@@ -2355,8 +2355,11 @@ class PlanEngine {
       }
       final minGas = usage.minGasBar;
       final start = usage.startPressure;
-      // A fill at or under rock bottom always ends under it too, so the
-      // no-usable-gas alert stands in for the ends-below-minimum one.
+      // Gas running out stands in for a short bottom: it is critical already.
+      final minGasIssue = remaining > 0 ? _minGasIssue(usage, drawOnset) : null;
+      // A fill at or under rock bottom always leaves the bottom under it too,
+      // so the no-usable-gas alert stands in for the warning. Short of the
+      // ascent alone is still critical, and is said as well (#4475).
       if (minGas != null && start != null && minGas >= start) {
         issues.add(
           PlanIssue(
@@ -2373,11 +2376,11 @@ class PlanEngine {
             threshold: start,
           ),
         );
-      } else if (_minGasIssue(usage, drawOnset) case final issue?
-          when remaining > 0) {
-        // Gas running out stands in for a short bottom: it is critical
-        // already.
-        issues.add(issue);
+        if (minGasIssue?.type == PlanIssueType.minGasAscentViolation) {
+          issues.add(minGasIssue!);
+        }
+      } else if (minGasIssue != null) {
+        issues.add(minGasIssue);
       }
     }
 
