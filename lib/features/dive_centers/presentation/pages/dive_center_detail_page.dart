@@ -30,6 +30,7 @@ import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
 
 class DiveCenterDetailPage extends ConsumerStatefulWidget {
   final String centerId;
@@ -177,14 +178,10 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
       ),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.store, color: colorScheme.onPrimaryContainer),
+          DiveCenterAvatar(
+            logo: center.logo,
+            shape: DiveCenterAvatarShape.roundedSquare,
+            iconSize: 24,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -332,18 +329,11 @@ class _HeaderSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.store,
-                  size: 32,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
+              DiveCenterAvatar(
+                logo: center.logo,
+                radius: 32,
+                shape: DiveCenterAvatarShape.roundedSquare,
+                cornerRadius: 12,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -689,10 +679,11 @@ class _MapSectionState extends ConsumerState<_MapSection> {
                             ],
                           ),
                           child: Center(
-                            child: Icon(
-                              Icons.store,
-                              size: 24,
-                              color: colorScheme.onPrimary,
+                            child: DiveCenterMarkerGlyph(
+                              logo: center.logo,
+                              radius: 23,
+                              iconColor: colorScheme.onPrimary,
+                              iconSize: 24,
                             ),
                           ),
                         ),
@@ -788,10 +779,11 @@ class _MapSectionState extends ConsumerState<_MapSection> {
                           ],
                         ),
                         child: Center(
-                          child: Icon(
-                            Icons.store,
-                            size: 24,
-                            color: colorScheme.onPrimary,
+                          child: DiveCenterMarkerGlyph(
+                            logo: center.logo,
+                            radius: 23,
+                            iconColor: colorScheme.onPrimary,
+                            iconSize: 24,
                           ),
                         ),
                       ),

@@ -99,3 +99,36 @@ class DiveCenterAvatar extends StatelessWidget {
     );
   }
 }
+
+/// What sits inside a dive center map marker's coloured ring: the logo
+/// filling the circle, or with none the bare store icon the markers always
+/// drew, so a center without a logo looks exactly as it did (#4460).
+class DiveCenterMarkerGlyph extends StatelessWidget {
+  const DiveCenterMarkerGlyph({
+    super.key,
+    required this.logo,
+    required this.radius,
+    required this.iconColor,
+    required this.iconSize,
+  });
+
+  final Uint8List? logo;
+
+  /// Radius of the circle inside the marker's border.
+  final double radius;
+  final Color iconColor;
+  final double iconSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final bytes = logo;
+    if (bytes == null) {
+      return Icon(Icons.store, size: iconSize, color: iconColor);
+    }
+    return DiveCenterAvatar(
+      logo: bytes,
+      radius: radius,
+      backgroundColor: Colors.transparent,
+    );
+  }
+}

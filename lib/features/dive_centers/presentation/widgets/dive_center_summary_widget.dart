@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
 
 /// Summary widget shown when no dive center is selected.
 class DiveCenterSummaryWidget extends ConsumerWidget {
@@ -205,17 +206,10 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
           child: Column(
             children: previewCenters.map((center) {
               final tile = ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.store,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
+                leading: DiveCenterAvatar(
+                  logo: center.logo,
+                  shape: DiveCenterAvatarShape.roundedSquare,
+                  iconSize: 24,
                 ),
                 title: DiveCenterNameWithTag(
                   closed: center.isPermanentlyClosed,

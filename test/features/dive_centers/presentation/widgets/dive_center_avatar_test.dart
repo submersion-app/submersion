@@ -105,4 +105,45 @@ void main() {
       );
     });
   });
+
+  group('DiveCenterMarkerGlyph', () {
+    testWidgets('no logo is the bare store icon, as markers drew it', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          child: const DiveCenterMarkerGlyph(
+            logo: null,
+            radius: 18,
+            iconColor: Colors.white,
+            iconSize: 20,
+          ),
+        ),
+      );
+
+      final icon = tester.widget<Icon>(find.byIcon(Icons.store));
+      expect(icon.color, Colors.white);
+      expect(icon.size, 20);
+      expect(find.byType(CircleAvatar), findsNothing);
+    });
+
+    testWidgets('a logo fills the marker circle', (tester) async {
+      final logo = _jpeg();
+      await tester.pumpWidget(
+        testApp(
+          child: DiveCenterMarkerGlyph(
+            logo: logo,
+            radius: 18,
+            iconColor: Colors.white,
+            iconSize: 20,
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.store), findsNothing);
+      final avatar = tester.widget<ProfileAvatar>(find.byType(ProfileAvatar));
+      expect(identical(avatar.photo, logo), isTrue);
+      expect(avatar.radius, 18);
+    });
+  });
 }
