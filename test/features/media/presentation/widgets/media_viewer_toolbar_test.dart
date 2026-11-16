@@ -6,6 +6,7 @@ import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
 MediaViewerAction action(String id, int priority) => MediaViewerAction(
   id: id,
@@ -67,6 +68,11 @@ void main() {
       double width, {
       double textScale = 1.0,
       bool browser = false,
+      bool unlockable = false,
+      bool writeControls = true,
+      String? writeMetadataDisabledReason,
+      bool editing = false,
+      bool canSave = false,
     }) async {
       tester.view.physicalSize = Size(width, 800);
       tester.view.devicePixelRatio = 1.0;
@@ -111,6 +117,18 @@ void main() {
                     onGoToDive: () => calls.add('go_to_dive'),
                     onReupload: (_) => calls.add('reupload'),
                     onAdjustColor: () => calls.add('adjust_color'),
+                    onUnlock: unlockable ? () => calls.add('unlock') : null,
+                    writeControls: writeControls,
+                    writeMetadataDisabledReason: writeMetadataDisabledReason,
+                    editBar: editing
+                        ? MediaViewerEditBar(
+                            title: 'Editing photo',
+                            canSave: canSave,
+                            isSaving: false,
+                            onCancel: () => calls.add('cancel'),
+                            onSave: () => calls.add('save'),
+                          )
+                        : null,
                   ),
                 ],
               ),
@@ -248,6 +266,118 @@ void main() {
       await tester.tap(find.byTooltip('Full screen'));
       await tester.tap(find.byTooltip('Close photo viewer'));
       expect(calls, ['fullscreen', 'close']);
+    });
+    group('the lock (issue #4527)', () {
+      testWidgets('defaults: no lock, and the same actions as today', (
+        tester,
+      ) async {
+        await pumpFull(tester, 1024);
+        expect(find.byKey(const ValueKey('viewer_unlock')), findsNothing);
+        expect(find.byType(RecordEditBar), findsNothing);
+      });
+
+      testWidgets('onUnlock: a lock action that calls back', (tester) async {
+        final calls = await pumpFull(tester, 1024, unlockable: true);
+        await tester.tap(find.byKey(const ValueKey('viewer_unlock')));
+        expect(calls, ['unlock']);
+        expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+      });
+
+      testWidgets('the lock stays visible at phone width', (tester) async {
+        await pumpFull(tester, 360, unlockable: true);
+        expect(find.byKey(const ValueKey('viewer_unlock')), findsOneWidget);
+      });
+
+      testWidgets('writeControls false: no species, people or adjust colour', (
+        tester,
+      ) async {
+        await pumpFull(tester, 1024, writeControls: false);
+        for (final id in ['species', 'people', 'adjust_color']) {
+          expect(find.byKey(ValueKey('viewer_$id')), findsNothing, reason: id);
+        }
+        expect(find.byKey(const ValueKey('viewer_info')), findsOneWidget);
+      });
+
+      testWidgets('write data with a reason: disabled, the reason as tooltip', (
+        tester,
+      ) async {
+        final calls = await pumpFull(
+          tester,
+          1024,
+          writeMetadataDisabledReason: 'Unlock to use this',
+        );
+        final button = tester.widget<IconButton>(
+          find.descendant(
+            of: find.byKey(const ValueKey('viewer_write_metadata')),
+            matching: find.byType(IconButton),
+          ),
+        );
+        expect(button.onPressed, isNull);
+        expect(find.byTooltip('Unlock to use this'), findsOneWidget);
+        await tester.tap(
+          find.byKey(const ValueKey('viewer_write_metadata')),
+          warnIfMissed: false,
+        );
+        expect(calls, isEmpty);
+      });
+
+      testWidgets('write data with a reason, in the menu: disabled, with the '
+          'reason', (tester) async {
+        await pumpFull(
+          tester,
+          360,
+          writeMetadataDisabledReason: 'Unlock to use this',
+        );
+        await tester.tap(find.byKey(const ValueKey('viewer_overflow')));
+        await tester.pumpAndSettle();
+        final item = tester.widget<PopupMenuItem<MediaViewerAction>>(
+          find.byKey(const ValueKey('viewer_menu_write_metadata')),
+        );
+        expect(item.enabled, isFalse);
+        expect(find.text('Unlock to use this'), findsOneWidget);
+      });
+
+      testWidgets('editBar: Cancel, the title, the actions and Save; no close, '
+          'fullscreen or lock', (tester) async {
+        final calls = await pumpFull(
+          tester,
+          1024,
+          unlockable: true,
+          editing: true,
+          canSave: true,
+        );
+        expect(find.byType(RecordEditBar), findsOneWidget);
+        expect(find.text('Editing photo'), findsOneWidget);
+        expect(find.byTooltip('Close photo viewer'), findsNothing);
+        expect(find.byTooltip('Full screen'), findsNothing);
+        expect(find.byKey(const ValueKey('viewer_unlock')), findsNothing);
+        expect(find.byKey(const ValueKey('viewer_species')), findsOneWidget);
+        await tester.tap(find.text('Save'));
+        await tester.tap(find.text('Cancel'));
+        expect(calls, ['save', 'cancel']);
+      });
+
+      testWidgets('editBar: the band is the toolbar\'s 64 px', (tester) async {
+        await pumpFull(tester, 1024, editing: true);
+        expect(
+          tester.getSize(find.byType(RecordEditBar)).height,
+          kMediaViewerToolbarHeight,
+        );
+      });
+
+      testWidgets('editBar at 360 px wide: what does not fit is in the menu', (
+        tester,
+      ) async {
+        await pumpFull(tester, 360, editing: true);
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(const ValueKey('viewer_overflow')), findsOneWidget);
+        expect(find.text('Save'), findsOneWidget);
+      });
+
+      testWidgets('a read-only device offers no lock', (tester) async {
+        await pumpFull(tester, 1024, browser: true, unlockable: true);
+        expect(find.byKey(const ValueKey('viewer_unlock')), findsNothing);
+      });
     });
   });
 }

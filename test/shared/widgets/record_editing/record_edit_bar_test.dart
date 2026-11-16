@@ -13,6 +13,7 @@ Widget _host({
   VoidCallback? onCancel,
   VoidCallback? onSave,
   ThemeData? theme,
+  List<Widget> actions = const [],
 }) {
   return MaterialApp(
     theme: theme,
@@ -26,6 +27,7 @@ Widget _host({
         isSaving: isSaving,
         onCancel: onCancel ?? () {},
         onSave: onSave ?? () {},
+        actions: actions,
       ),
     ),
   );
@@ -37,6 +39,28 @@ AppBarTextAction _action(WidgetTester tester, String label) =>
     );
 
 void main() {
+  testWidgets('actions sit between the title and Save; none by default', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_host());
+    expect(find.byIcon(Icons.sell_outlined), findsNothing);
+
+    await tester.pumpWidget(
+      _host(
+        actions: [
+          IconButton(icon: const Icon(Icons.sell_outlined), onPressed: () {}),
+        ],
+      ),
+    );
+
+    final action = tester.getCenter(find.byIcon(Icons.sell_outlined)).dx;
+    expect(
+      action,
+      greaterThan(tester.getCenter(find.text('Editing dive 214')).dx),
+    );
+    expect(action, lessThan(tester.getCenter(find.text('Save')).dx));
+  });
+
   testWidgets('shows Cancel, the title and Save', (tester) async {
     await tester.pumpWidget(_host());
 
