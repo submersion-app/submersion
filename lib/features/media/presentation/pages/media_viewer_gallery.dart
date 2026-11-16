@@ -26,6 +26,10 @@ class _PhotoGallery extends ConsumerWidget {
   /// The viewer's people tag mode (issue #1745).
   final PeopleTagSession people;
 
+  /// Whether paging by swipe is off: a sitting is stepped out of only
+  /// through its check (issue #4527).
+  final bool pagingLocked;
+
   const _PhotoGallery({
     required this.mediaList,
     required this.pageController,
@@ -38,13 +42,14 @@ class _PhotoGallery extends ConsumerWidget {
     required this.onVideoControllerChanged,
     required this.currentIndex,
     required this.people,
+    this.pagingLocked = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PhotoViewGallery.builder(
       // Tag mode holds the page still, so dragging a box never swipes.
-      scrollPhysics: people.active
+      scrollPhysics: people.active || pagingLocked
           ? const NeverScrollableScrollPhysics()
           : const BouncingScrollPhysics(),
       pageController: pageController,
