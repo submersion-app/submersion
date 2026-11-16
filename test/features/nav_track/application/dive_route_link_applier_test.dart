@@ -60,6 +60,10 @@ class _RecordingRepository extends NavTrackRepository {
     calls.add('update $routeId');
     return !gone.contains(routeId);
   }
+
+  @override
+  Future<void> setPrimary(String routeId) async =>
+      calls.add('primary $routeId');
 }
 
 void main() {
@@ -216,5 +220,12 @@ void main() {
       expect(after.isPrimary, isTrue);
       expect(await routes.getSourceFile(routeId), file);
     });
+  });
+
+  test('sets the primary after linking, while it is still linked', () async {
+    final repository = _RecordingRepository();
+    final draft = DiveRouteLinkDraft.initial([a]).add(b).withPrimary('b');
+    await applyDiveRouteLinkDraft(repository, diveId: 'd1', draft: draft);
+    expect(repository.calls, ['link b d1 manual', 'primary b']);
   });
 }

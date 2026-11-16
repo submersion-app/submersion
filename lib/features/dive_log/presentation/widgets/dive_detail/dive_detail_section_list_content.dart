@@ -116,6 +116,14 @@ extension _DiveDetailSectionContent on DiveDetailSectionList {
             dive.id,
           ).select((a) => a.value?.isNotEmpty ?? false),
         );
+        // In a sitting the routes it holds decide, from the held layout.
+        if (edit?.session != null) {
+          return _onPage(ref, id, presence, stored, edit) &&
+                  (hasRoutes ||
+                      (sittingRouteDraft(edit!.session!)?.hasChanges ?? false))
+              ? NavTrackSection(dive: dive)
+              : null;
+        }
         return hasRoutes ? NavTrackSection(dive: dive) : null;
       case DiveDetailSectionId.weights:
         if (!_onPage(ref, id, presence, stored, edit)) return null;

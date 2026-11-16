@@ -11,7 +11,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_nav_track_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_route_links_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_profile_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
@@ -71,6 +73,7 @@ void startDiveSitting(EditSession<Dive> session, ProviderRead read) {
   diveSignaturesList.load(session);
   loadDiveAnnotations(session, read);
   holdSafetyDismissals(session, read);
+  loadDiveRouteLinks(session, read);
 }
 
 /// The held writes that are the dive's own rows (its gas switches, the
@@ -84,6 +87,7 @@ final Set<String> diveOwnHeldWriteKeys = {
   annotationsKey,
   annotationsWriteKey,
   safetyDismissalsKey,
+  routeLinksKey,
 };
 
 /// Why a card of the dive page has nothing to edit, for those that have
@@ -195,6 +199,19 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         DiveBuddiesCardEditor(session: session),
+  ),
+  DiveDetailSectionId.navTrack: EditCard<Dive>(
+    id: DiveDetailSectionId.navTrack.name,
+    title: (context) =>
+        DiveDetailSectionId.navTrack.localizedDisplayName(context.l10n),
+    // Locked, the card shows only once its routes load.
+    isEmpty: (_) => false,
+    isEmptyInSitting: (session) =>
+        sittingRouteDraft(session)?.current.isEmpty ?? false,
+    // A planned dive has no route (plan 4).
+    offeredWhenEmpty: (session) => !session.working.isPlanned,
+    editorBuilder: (context, session) =>
+        DiveNavTrackCardEditor(session: session),
   ),
   DiveDetailSectionId.signatures: EditCard<Dive>(
     id: DiveDetailSectionId.signatures.name,

@@ -41,5 +41,14 @@ Future<List<String>> applyDiveRouteLinkDraft(
     );
     if (!linked) skipped.add(routeId);
   }
+  // Set primary is held with the links in a sitting (issue #4527), and
+  // runs once they are written, while the route is still on the dive.
+  final primary = draft.primaryId;
+  if (draft.changesPrimary &&
+      primary != null &&
+      draft.contains(primary) &&
+      !skipped.contains(primary)) {
+    await repository.setPrimary(primary);
+  }
   return List.unmodifiable(skipped);
 }
