@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_location_fields.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -119,6 +121,11 @@ Widget _app(
     ],
   ),
   overrides: [
+    // The real iCloud check answers on the real event loop, never on the
+    // test's fake clock, and the add list waits for it (issue #4612).
+    iCloudAvailabilityProvider.overrideWith(
+      (ref) async => ICloudAvailability.unsupported,
+    ),
     validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
     sharedLibrariesProvider.overrideWith(
       (ref) => Stream.value([
