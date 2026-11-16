@@ -6539,6 +6539,67 @@
   "diveLog_tank_ownCylinderFailed": "Could not fill the tank from that cylinder. Try again.",
   "diveLog_tank_ownCylinderHint": "Copies the cylinder's size and latest fill into this tank and adds the cylinder to this dive's equipment.",
   "diveLog_tank_ownCylinderTitle": "My cylinders",
+  "cylindersFromTanks_title": "Add cylinders to your gear",
+  "cylindersFromTanks_onDives": "{count, plural, =1{on {count} dive} other{on {count} dives}}",
+  "@cylindersFromTanks_onDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_makes": "{count, plural, =1{{count} cylinder} other{{count} cylinders}}",
+  "@cylindersFromTanks_makes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_add": "{count, plural, =1{Add {count} cylinder} other{Add {count} cylinders}}",
+  "@cylindersFromTanks_add": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_added": "{count, plural, =1{Added {count} cylinder to your gear} other{Added {count} cylinders to your gear}}",
+  "@cylindersFromTanks_added": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_summary": "{count, plural, =1{{count} tank isn't in your gear} other{{count} tanks aren't in your gear}}",
+  "@cylindersFromTanks_summary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_review": "Review",
+  "cylindersFromTanks_name": "Name",
+  "cylindersFromTanks_sizeName": "{size} {material}",
+  "@cylindersFromTanks_sizeName": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "material": {
+        "type": "String"
+      }
+    }
+  },
+  "cylindersFromTanks_failed": "Couldn't add the cylinders",
+  "diveLog_tank_gearMenu": "Cylinder options",
+  "diveLog_tank_addToGear": "Add to my gear",
+  "diveLog_tank_linkCylinder": "Link to a cylinder I own",
+  "diveLog_tank_linkCylinderHint": "Links this tank to the cylinder and adds the cylinder to this dive's equipment. The tank keeps its recorded size.",
+  "diveLog_tank_unlinkCylinder": "Unlink cylinder",
+  "diveLog_tank_linkFailed": "Couldn't change the cylinder link",
   "diveLog_tank_regulatorLabel": "Regulator",
   "diveLog_tank_regulatorNone": "None",
   "diveLog_tank_regulatorShowLeftKit": "Show retired and sold regulators",

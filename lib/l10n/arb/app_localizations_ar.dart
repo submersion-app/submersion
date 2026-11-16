@@ -11630,6 +11630,112 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_ownCylinderTitle => 'أسطواناتي';
 
   @override
+  String get cylindersFromTanks_title => 'إضافة أسطوانات إلى معداتك';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'في $count غطسة',
+      many: 'في $count غطسة',
+      few: 'في $count غطسات',
+      two: 'في غطستين',
+      one: 'في غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أسطوانة',
+      many: '$count أسطوانة',
+      few: '$count أسطوانات',
+      two: 'أسطوانتان',
+      one: 'أسطوانة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إضافة $count أسطوانة',
+      many: 'إضافة $count أسطوانة',
+      few: 'إضافة $count أسطوانات',
+      two: 'إضافة أسطوانتين',
+      one: 'إضافة أسطوانة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أُضيفت $count أسطوانة إلى معداتك',
+      many: 'أُضيفت $count أسطوانة إلى معداتك',
+      few: 'أُضيفت $count أسطوانات إلى معداتك',
+      two: 'أُضيفت أسطوانتان إلى معداتك',
+      one: 'أُضيفت أسطوانة واحدة إلى معداتك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أسطوانة ليست في معداتك',
+      many: '$count أسطوانة ليست في معداتك',
+      few: '$count أسطوانات ليست في معداتك',
+      two: 'أسطوانتان ليستا في معداتك',
+      one: 'أسطوانة واحدة ليست في معداتك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => 'مراجعة';
+
+  @override
+  String get cylindersFromTanks_name => 'الاسم';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size $material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed => 'تعذرت إضافة الأسطوانات';
+
+  @override
+  String get diveLog_tank_gearMenu => 'خيارات الأسطوانة';
+
+  @override
+  String get diveLog_tank_addToGear => 'إضافة إلى معداتي';
+
+  @override
+  String get diveLog_tank_linkCylinder => 'ربط بأسطوانة أملكها';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      'يربط هذه الأسطوانة بالأسطوانة الموجودة في المعدات ويضيفها إلى معدات هذه الغطسة. تحتفظ الأسطوانة بحجمها المسجل.';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => 'إلغاء ربط الأسطوانة';
+
+  @override
+  String get diveLog_tank_linkFailed => 'تعذر تغيير ربط الأسطوانة';
+
+  @override
   String get diveLog_tank_regulatorLabel => 'منظم التنفس';
 
   @override

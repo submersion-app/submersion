@@ -18151,6 +18151,102 @@ abstract class AppLocalizations {
   /// **'My cylinders'**
   String get diveLog_tank_ownCylinderTitle;
 
+  /// No description provided for @cylindersFromTanks_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add cylinders to your gear'**
+  String get cylindersFromTanks_title;
+
+  /// No description provided for @cylindersFromTanks_onDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{on {count} dive} other{on {count} dives}}'**
+  String cylindersFromTanks_onDives(int count);
+
+  /// No description provided for @cylindersFromTanks_makes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} cylinder} other{{count} cylinders}}'**
+  String cylindersFromTanks_makes(int count);
+
+  /// No description provided for @cylindersFromTanks_add.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Add {count} cylinder} other{Add {count} cylinders}}'**
+  String cylindersFromTanks_add(int count);
+
+  /// No description provided for @cylindersFromTanks_added.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Added {count} cylinder to your gear} other{Added {count} cylinders to your gear}}'**
+  String cylindersFromTanks_added(int count);
+
+  /// No description provided for @cylindersFromTanks_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} tank isn\'t in your gear} other{{count} tanks aren\'t in your gear}}'**
+  String cylindersFromTanks_summary(int count);
+
+  /// No description provided for @cylindersFromTanks_review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get cylindersFromTanks_review;
+
+  /// No description provided for @cylindersFromTanks_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get cylindersFromTanks_name;
+
+  /// No description provided for @cylindersFromTanks_sizeName.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} {material}'**
+  String cylindersFromTanks_sizeName(String size, String material);
+
+  /// No description provided for @cylindersFromTanks_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add the cylinders'**
+  String get cylindersFromTanks_failed;
+
+  /// No description provided for @diveLog_tank_gearMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder options'**
+  String get diveLog_tank_gearMenu;
+
+  /// No description provided for @diveLog_tank_addToGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to my gear'**
+  String get diveLog_tank_addToGear;
+
+  /// No description provided for @diveLog_tank_linkCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a cylinder I own'**
+  String get diveLog_tank_linkCylinder;
+
+  /// No description provided for @diveLog_tank_linkCylinderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Links this tank to the cylinder and adds the cylinder to this dive\'s equipment. The tank keeps its recorded size.'**
+  String get diveLog_tank_linkCylinderHint;
+
+  /// No description provided for @diveLog_tank_unlinkCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink cylinder'**
+  String get diveLog_tank_unlinkCylinder;
+
+  /// No description provided for @diveLog_tank_linkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t change the cylinder link'**
+  String get diveLog_tank_linkFailed;
+
   /// No description provided for @diveLog_tank_regulatorLabel.
   ///
   /// In en, this message translates to:

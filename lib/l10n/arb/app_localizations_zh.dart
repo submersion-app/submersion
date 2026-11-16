@@ -10900,6 +10900,97 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_ownCylinderTitle => '我的气瓶';
 
   @override
+  String get cylindersFromTanks_title => '将气瓶加入装备';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '用于 $count 次潜水',
+      one: '用于 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个气瓶',
+      one: '$count 个气瓶',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '添加 $count 个气瓶',
+      one: '添加 $count 个气瓶',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已将 $count 个气瓶加入装备',
+      one: '已将 $count 个气瓶加入装备',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个气瓶不在装备中',
+      one: '$count 个气瓶不在装备中',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => '查看';
+
+  @override
+  String get cylindersFromTanks_name => '名称';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size$material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed => '无法添加气瓶';
+
+  @override
+  String get diveLog_tank_gearMenu => '气瓶选项';
+
+  @override
+  String get diveLog_tank_addToGear => '加入我的装备';
+
+  @override
+  String get diveLog_tank_linkCylinder => '关联到我的气瓶';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      '将此气瓶关联到装备中的气瓶，并将其加入本次潜水的装备。气瓶保留记录的规格。';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => '取消关联气瓶';
+
+  @override
+  String get diveLog_tank_linkFailed => '无法更改气瓶关联';
+
+  @override
   String get diveLog_tank_regulatorLabel => '调节器';
 
   @override
