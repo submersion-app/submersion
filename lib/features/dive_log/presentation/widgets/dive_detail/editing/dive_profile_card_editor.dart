@@ -29,15 +29,24 @@ class DiveProfileEditorSource extends InheritedWidget {
 
 /// The Profile card's editor: the chart with its pin, placement and marker
 /// actions writing to the sitting, held until Save (issue #4527, plan 6).
-class DiveProfileCardEditor extends StatelessWidget {
+class DiveProfileCardEditor extends StatefulWidget {
   const DiveProfileCardEditor({super.key, required this.session});
 
   final EditSession<Dive> session;
 
   @override
+  State<DiveProfileCardEditor> createState() => _DiveProfileCardEditorState();
+}
+
+class _DiveProfileCardEditorState extends State<DiveProfileCardEditor> {
+  /// The chart's key, held so a rebuild (each change in the sitting) keeps
+  /// the plot rather than mounting it again.
+  final _exportKey = GlobalKey();
+
+  @override
   Widget build(BuildContext context) {
     final section = DiveProfileEditorSource.maybeOf(context);
     if (section == null) return const SizedBox.shrink();
-    return section.editingIn(session);
+    return section.editingIn(widget.session, exportKey: _exportKey);
   }
 }

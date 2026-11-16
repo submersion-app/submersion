@@ -86,19 +86,24 @@ class DiveDetailProfileSection extends ConsumerWidget {
     this.editing,
   });
 
-  /// This section with the same inputs, drawn as the open Profile card's
-  /// editor over [session]. With no key: the page's key stays with the
+  /// This section with the same inputs, the page's zoom among them, drawn
+  /// as the open Profile card's editor over [session]. [exportKey] is the
+  /// editor's own, kept across its rebuilds: the page's stays with the
   /// read card it marks.
-  DiveDetailProfileSection editingIn(EditSession<Dive> session) =>
-      DiveDetailProfileSection(
-        diveId: diveId,
-        exportKey: GlobalKey(),
-        onSafetyFindingDetails: onSafetyFindingDetails,
-        onSetPrimarySource: onSetPrimarySource,
-        onOpenInNotes: onOpenInNotes,
-        fillHeight: fillHeight,
-        editing: session,
-      );
+  DiveDetailProfileSection editingIn(
+    EditSession<Dive> session, {
+    required GlobalKey exportKey,
+  }) => DiveDetailProfileSection(
+    diveId: diveId,
+    exportKey: exportKey,
+    onSafetyFindingDetails: onSafetyFindingDetails,
+    onSetPrimarySource: onSetPrimarySource,
+    onOpenInNotes: onOpenInNotes,
+    fillHeight: fillHeight,
+    viewport: viewport,
+    onViewportChanged: onViewportChanged,
+    editing: session,
+  );
 
   final String diveId;
 
