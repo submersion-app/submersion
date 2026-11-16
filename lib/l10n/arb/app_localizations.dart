@@ -2797,6 +2797,24 @@ abstract class AppLocalizations {
   /// **'Day {number}'**
   String trips_story_dayLabel(int number);
 
+  /// Caption over the part of a trip's Notes that belongs to the day shown; tapping it opens the trip's Notes.
+  ///
+  /// In en, this message translates to:
+  /// **'From trip notes'**
+  String get trips_story_fromTripNotes;
+
+  /// Button on a trip day's page that opens the trip editor at a new heading for that day in the trip's Notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add note'**
+  String get trips_story_addDayNote;
+
+  /// Button on a trip day's page that opens the trip editor at the end of that day's part of the trip's Notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit note'**
+  String get trips_story_editDayNote;
+
   /// No description provided for @trips_story_surfaceDay.
   ///
   /// In en, this message translates to:

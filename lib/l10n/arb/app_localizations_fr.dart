@@ -1804,6 +1804,15 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'Extrait des notes du voyage';
+
+  @override
+  String get trips_story_addDayNote => 'Ajouter une note';
+
+  @override
+  String get trips_story_editDayNote => 'Modifier la note';
+
+  @override
   String get trips_story_surfaceDay => 'Journée en surface';
 
   @override

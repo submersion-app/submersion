@@ -1071,6 +1071,18 @@
       }
     }
   },
+  "trips_story_fromTripNotes": "From trip notes",
+  "@trips_story_fromTripNotes": {
+    "description": "Caption over the part of a trip's Notes that belongs to the day shown; tapping it opens the trip's Notes."
+  },
+  "trips_story_addDayNote": "Add note",
+  "@trips_story_addDayNote": {
+    "description": "Button on a trip day's page that opens the trip editor at a new heading for that day in the trip's Notes."
+  },
+  "trips_story_editDayNote": "Edit note",
+  "@trips_story_editDayNote": {
+    "description": "Button on a trip day's page that opens the trip editor at the end of that day's part of the trip's Notes."
+  },
   "trips_story_surfaceDay": "Surface day",
   "trips_story_today": "Today",
   "trips_story_tripTile": "Trip",

@@ -1777,6 +1777,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'מתוך הערות הטיול';
+
+  @override
+  String get trips_story_addDayNote => 'הוסף הערה';
+
+  @override
+  String get trips_story_editDayNote => 'ערוך הערה';
+
+  @override
   String get trips_story_surfaceDay => 'יום פני השטח';
 
   @override

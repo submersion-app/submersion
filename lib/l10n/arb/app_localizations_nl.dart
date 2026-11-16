@@ -1791,6 +1791,15 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'Uit de reisnotities';
+
+  @override
+  String get trips_story_addDayNote => 'Notitie toevoegen';
+
+  @override
+  String get trips_story_editDayNote => 'Notitie bewerken';
+
+  @override
   String get trips_story_surfaceDay => 'Oppervlaktedag';
 
   @override

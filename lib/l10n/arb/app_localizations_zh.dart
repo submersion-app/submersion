@@ -1728,6 +1728,15 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => '来自行程备注';
+
+  @override
+  String get trips_story_addDayNote => '添加备注';
+
+  @override
+  String get trips_story_editDayNote => '编辑备注';
+
+  @override
   String get trips_story_surfaceDay => '水面日';
 
   @override
