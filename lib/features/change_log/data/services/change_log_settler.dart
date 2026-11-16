@@ -8,6 +8,7 @@ import 'package:submersion/core/database/change_log/change_log_policy.dart';
 import 'package:submersion/core/database/change_log/change_log_trigger_sql.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 
 /// Manual saves on one record this close together are one entry.
@@ -82,9 +83,10 @@ class _Operation {
     required this.startedAt,
     required this.endedAt,
     required this.hasEvents,
+    this.pinned,
   });
 
-  _Operation.fromRow(Map<String, Object?> row)
+  _Operation.fromRow(Map<String, Object?> row, {ChangeLogRoot? pinned})
     : this(
         id: row['id']! as String,
         source: row['source']! as String,
@@ -99,6 +101,7 @@ class _Operation {
         startedAt: row['started_at']! as int,
         endedAt: row['ended_at']! as int,
         hasEvents: (row['event_count']! as int) > 0,
+        pinned: pinned,
       );
 
   final String id;
@@ -112,6 +115,12 @@ class _Operation {
   /// False until the first event, which is what tells "no root yet" from
   /// "touched several roots", both of which leave [root] empty.
   final bool hasEvents;
+
+  /// The record this operation is about whatever else it touches (issue
+  /// #4527): an editing sitting's record, and that of the sitting a revert
+  /// undoes. Null for every other operation, whose root is the one record
+  /// all its events share, if any.
+  final ChangeLogRoot? pinned;
 
   /// A save with no scope. A labelled bulk action is manual too, but it is
   /// over when it ends, so the next save does not join it.
@@ -136,6 +145,7 @@ class _Operation {
     startedAt: startedAt ?? this.startedAt,
     endedAt: endedAt ?? this.endedAt,
     hasEvents: hasEvents ?? this.hasEvents,
+    pinned: pinned,
   );
 }
 
@@ -236,18 +246,24 @@ class _SettlePass {
   ) async {
     final operation = _operations[operationId]!;
     final first = !operation.hasEvents;
-    final label = first ? await _labelOf(root) : null;
+    // A pinned operation is about its record whichever record this event
+    // changed, so it takes that record's name and owner.
+    final pinned = operation.pinned;
+    final about = pinned ?? root;
+    final label = first ? await _labelOf(about) : null;
     final later = event.changedAt > operation.endedAt || operation.isPlainSave;
     _operations[operationId] = operation.copyWith(
-      diverId: operation.diverId ?? owner,
+      diverId:
+          operation.diverId ??
+          (pinned == null ? owner : await _ownerOf(pinned) ?? owner),
       root: first
           ? (
-              table: root.table,
-              id: root.id,
+              table: about.table,
+              id: about.id,
               label: label?.label,
               ordinal: label?.ordinal,
             )
-          : (operation.hasRoot(root) ? null : _noRoot),
+          : (pinned != null || operation.hasRoot(root) ? null : _noRoot),
       startedAt: first ? event.changedAt : null,
       endedAt: later ? event.changedAt : null,
       hasEvents: true,
@@ -328,7 +344,26 @@ class _SettlePass {
         )
         .getSingleOrNull();
     if (row == null) return null;
-    return _operations[id] = _Operation.fromRow(row.data);
+    final pinned = await _pinnedRootOf(row.data);
+    return _operations[id] = _Operation.fromRow(row.data, pinned: pinned);
+  }
+
+  /// The record an operation row is about whatever else it touches: the
+  /// record an editing sitting's label names, or for a revert the pinned
+  /// record of the operation it reverts, up the chain. Null for a part split
+  /// off for another owner ([_forOwner]), which is about that owner's
+  /// record, and for every other operation.
+  Future<ChangeLogRoot?> _pinnedRootOf(Map<String, Object?> row) async {
+    if ((row['id']! as String).contains(':')) return null;
+    final label = row['label'] as String?;
+    final edit = label == null ? null : RecordEditLabel.decode(label);
+    if (edit != null) {
+      final id = edit.id;
+      return id == null ? null : (table: edit.table, id: id);
+    }
+    final revertOf = row['revert_of_id'] as String?;
+    if (revertOf == null) return null;
+    return (await _loadOperation(revertOf))?.pinned;
   }
 
   Future<_Operation?> _loadLatestManual(ChangeLogRoot root) async {
