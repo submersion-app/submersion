@@ -47,10 +47,11 @@ issue #4460.
 - **Storage.** A 512x512 square JPEG (`ImageEncodeSpec.avatar`) in a new
   nullable `logo` BLOB column on `dive_centers`, added by a new schema rung.
   Existing rows read null; nothing is backfilled.
-- **Transparency.** The shared encoder flattens transparent pixels onto white
-  before JPEG encoding, so a transparent PNG never turns black. This applies to
-  buddy and diver photos too (proposed and accepted in the design chat as a
-  fix, not a regression).
+- **Transparency.** A transparent PNG never turns black: package:image's
+  JPEG encoder already blends alpha onto white, so the shared encoder needs
+  no change and buddy and diver photos behave as before. A codec test pins
+  it. (The design chat proposed adding the fill; building found it was
+  already there.)
 - **Sync.** Dive center rows are exported, fetched and applied with the BLOB
   serializer (base64), in every arm where buddies already use it, and the
   base-export table entry is marked as carrying a BLOB.
