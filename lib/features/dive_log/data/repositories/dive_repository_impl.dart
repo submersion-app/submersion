@@ -467,6 +467,10 @@ class DiveRepository {
   /// Also watches `equipment_attributes`: each gear item is hydrated with its
   /// attributes, and its colour tints the diver figure in the equipment card
   /// (issue #2326). A synced colour edit writes only this table.
+  ///
+  /// Also watches `dive_weights`: the Weights card and the buoyancy model add
+  /// the rows to the lead carried as gear (issue #4442), and a synced row
+  /// never restamps its dive (#1769).
   Stream<void> watchDiveDetailChanges() => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
@@ -477,6 +481,7 @@ class DiveRepository {
           TableUpdateQuery.onTable(_db.diveEquipment),
           TableUpdateQuery.onTable(_db.equipment),
           TableUpdateQuery.onTable(_db.equipmentAttributes),
+          TableUpdateQuery.onTable(_db.diveWeights),
           TableUpdateQuery.onTable(_db.gasSwitches),
           TableUpdateQuery.onTable(_db.diveDataSources),
           TableUpdateQuery.onTable(_db.diveComputers),

@@ -20,11 +20,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../../../helpers/test_database.dart';
 
-/// The dive table's Total weight reads the hydrated list's
+/// The dive table's Total weight and the dive page's Weights card both read
 /// `Dive.recordedWeightKg`: the weight rows plus the lead carried as weights
 /// gear (#4442). A sync pull of a weight row, or an edit of a weights item's
-/// dry weight, writes only those tables, never the dive row, so the list
-/// must reload on them as well as on `dives`.
+/// dry weight, writes only those tables, never the dive row, so the list and
+/// the dive page must reload on them as well as on `dives`.
 void main() {
   late SharedPreferences prefs;
   late AppDatabase db;
@@ -137,6 +137,42 @@ void main() {
       await listedWeight(c, (kg) => kg == 3.5),
       3.5,
       reason: 'the dives tick never fires for an attribute-only write',
+    );
+  });
+
+  test('a weight row written alone reaches the dive page', () async {
+    final c = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    );
+    addTearDown(c.dispose);
+    final sub = c.listen(diveProvider('dive'), (_, _) {});
+    addTearDown(sub.close);
+    Future<double?> shownWeight(double expected) async {
+      double? read() => c.read(diveProvider('dive')).value?.recordedWeightKg;
+      for (var i = 0; i < 200 && read() != expected; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      return read();
+    }
+
+    expect(await shownWeight(2.5), 2.5);
+
+    await db
+        .into(db.diveWeights)
+        .insert(
+          const DiveWeightsCompanion(
+            id: Value('belt'),
+            diveId: Value('dive'),
+            weightType: Value('belt'),
+            amountKg: Value(4.5),
+            createdAt: Value(1),
+          ),
+        );
+
+    expect(
+      await shownWeight(7.0),
+      7.0,
+      reason: 'the detail tick never fires for a weight-row-only write',
     );
   });
 }
