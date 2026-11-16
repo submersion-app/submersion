@@ -26,6 +26,7 @@ import 'package:submersion/features/media/data/services/asset_resolution_service
 import 'package:submersion/features/media/data/services/metadata_write_service.dart';
 import 'package:submersion/features/media/domain/entities/media_dive_window.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_viewer_editing.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
@@ -71,6 +72,7 @@ import 'package:submersion/features/media/presentation/match_confidence_display.
 
 part 'media_viewer_actions.dart';
 part 'media_viewer_bottom_metadata.dart';
+part 'media_viewer_chrome.dart';
 part 'media_viewer_gallery.dart';
 part 'media_viewer_perdix.dart';
 part 'media_viewer_video_item.dart';
@@ -137,32 +139,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       pickingWhite = false;
     });
     if (taggingPeople) togglePeopleTagging();
-  }
-
-  /// Steps [delta] photos; while unlocked, through the check, so the next
-  /// photo opens locked.
-  void _step(int delta) {
-    if (!editingOffered) return _stepPage(delta);
-    unawaited(stepGuarded(() => _stepPage(delta)));
-  }
-
-  /// Closes the viewer; while unlocked, through the check, as the close
-  /// button and the swipe down pop past the leave guard.
-  void _close() {
-    if (!editingOffered) return Navigator.of(context).pop();
-    unawaited(() async {
-      if (await leaveGuarded() && mounted) Navigator.of(context).pop();
-    }());
-  }
-
-  /// Keeps the pager on the sitting's photo when the list moves under it.
-  void _followSittingTo(int index) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_pageController.hasClients) return;
-      _currentIndex = index;
-      _navTargetIndex = index;
-      _pageController.jumpToPage(index);
-    });
   }
 
   /// The pageable subset of [MediaViewerPage.mediaList].
@@ -575,82 +551,16 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                         !isFullscreen &&
                         !pickingWhite) ...[
                       // Top app bar
-                      MediaViewerToolbar(
-                        item: currentItem,
+                      _toolbar(
+                        context,
+                        currentItem: currentItem,
                         currentIndex: currentIndex,
                         totalCount: mediaList.length,
-                        onClose: _close,
-                        onEnterFullscreen: enterFullscreen,
-                        onShowInfo: () =>
-                            showMediaInfoSheet(context, currentItem),
-                        onReupload: mediaReuploadAvailable(ref)
-                            ? (anchor) => showMediaReuploadMenu(
-                                anchor,
-                                ref,
-                                currentItem,
-                              )
-                            : null,
-                        onShare: (anchor) =>
-                            _shareCurrentPhoto(currentItem, anchor),
-                        onWriteMetadata: () =>
-                            _writeMetadataToPhoto(currentItem),
-                        onTagSpecies: () =>
-                            showMediaSpeciesSheet(context, currentItem),
-                        onTagPeople: () => togglePeopleTagging(
-                          pauseVideo: _videoControllers[currentItem.id]?.pause,
-                        ),
-                        peopleTaggingActive: taggingPeople,
-                        onAdjustColor: () => openColorPanel(),
-                        onUnlock:
-                            !photoUnlocked &&
-                                canUnlock(currentItem, storedPhoto)
-                            ? () => unlockPhoto(storedPhoto!)
-                            : null,
-                        writeControls: !editingOffered || photoUnlocked,
-                        editBar: photoUnlocked
-                            ? MediaViewerEditBar(
-                                title: currentItem.isVideo
-                                    ? context.l10n.media_viewer_editingVideo
-                                    : context.l10n.media_viewer_editingPhoto,
-                                canSave: photoEditController.isDirty,
-                                isSaving: photoEditController.isSaving,
-                                onCancel: () => unawaited(cancelPhotoSitting()),
-                                onSave: () => unawaited(savePhotoAndReport()),
-                              )
-                            : null,
-                        // The viewer is deliberately NOT popped first: leaving it
-                        // on the stack is what lets Back return the user to the
-                        // photo they launched from, with its page index, zoom and
-                        // overlay toggles intact, rather than to the bare grid.
-                        onGoToDive: widget.showGoToDive && currentDiveId != null
-                            ? () => unawaited(() async {
-                                // Following the link replaces the viewer, so a
-                                // sitting is asked about first.
-                                if (await leaveGuarded() && context.mounted) {
-                                  context.pushOrReturnTo(
-                                    '/dives/$currentDiveId',
-                                  );
-                                }
-                              }())
-                            : null,
-                        canWriteMetadata:
-                            enrichment?.depthMeters != null &&
-                            _metadataWriter.canWriteTo(currentItem),
-                        showPerdixToggle: perdixToggleAvailable,
+                        currentDiveId: currentDiveId,
+                        enrichment: enrichment,
+                        perdixToggleAvailable: perdixToggleAvailable,
                         perdixEnabled: settings.perdixOverlayEnabled,
-                        onTogglePerdix: () => ref
-                            .read(settingsProvider.notifier)
-                            .setPerdixOverlayEnabled(
-                              !settings.perdixOverlayEnabled,
-                            ),
-                        onOpenInLightroom: _lightroomWebUrl(currentItem) == null
-                            ? null
-                            : () => unawaited(
-                                launchUrl(
-                                  Uri.parse(_lightroomWebUrl(currentItem)!),
-                                  mode: LaunchMode.externalApplication,
-                                ),
-                              ),
+                        storedPhoto: storedPhoto,
                       ),
 
                       // What colour correction the item is drawn with.
