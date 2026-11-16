@@ -125,4 +125,19 @@ void main() {
     expect(read!.country, 'Italy');
     expect(read.countryCode, 'IT');
   });
+
+  testWidgets('submitting the field takes the first suggestion', (
+    tester,
+  ) async {
+    final id = await tester.runAsync(() => createBuddy());
+    await pumpEdit(tester, id!);
+    await tester.enterText(countryField(), 'Ital');
+    await tester.pumpAndSettle();
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextFormField>(countryField()).controller!.text,
+      'Italy',
+    );
+  });
 }

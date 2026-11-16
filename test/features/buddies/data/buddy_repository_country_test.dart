@@ -183,4 +183,22 @@ void main() {
     }
     expect(await repo.getUsedCountries(), unorderedEquals(['Italy', 'Malta']));
   });
+
+  test(
+    'a partial write that sets the country and a code keeps the code',
+    () async {
+      final repo = BuddyRepository();
+      await repo.createBuddy(buddy(country: 'Italy'));
+      await repo.updateFields(
+        'b-country-1',
+        const BuddiesCompanion(
+          country: Value('Korea'),
+          countryCode: Value('KR'),
+        ),
+      );
+      final read = await repo.getBuddyById('b-country-1');
+      expect(read!.country, 'Korea');
+      expect(read.countryCode, 'KR');
+    },
+  );
 }

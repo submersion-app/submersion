@@ -46,4 +46,9 @@ void main() {
     expect(BuddyField.country.categoryName, 'contact');
     expect(adapter.fieldsByCategory['contact'], contains(BuddyField.country));
   });
+
+  test('the field has its English labels', () {
+    expect(BuddyField.country.displayName, 'Country');
+    expect(BuddyField.country.shortLabel, 'Country');
+  });
 }
