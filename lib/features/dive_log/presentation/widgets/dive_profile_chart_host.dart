@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dive_log/presentation/utils/chart_drag_crossing.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -402,7 +403,10 @@ class DiveProfileChartHost extends ConsumerWidget {
     );
 
     return MouseRegion(
-      onExit: (_) {
+      onExit: (event) {
+        // A drag that strays off the chart is still a scrub; the chart
+        // clears the cursor through onPointSelected when it ends (#4611).
+        if (isDragCrossing(event)) return;
         ref.read(profileTrackingIndexProvider(diveId).notifier).state = null;
       },
       child: DiveProfileChart(

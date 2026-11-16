@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import 'package:submersion/features/dive_log/presentation/utils/chart_drag_crossing.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -359,7 +360,10 @@ class _DiveProfilePanelContentState
     return _framed(context, dive, [
       // Chart with cursor tracking
       MouseRegion(
-        onExit: (_) {
+        onExit: (event) {
+          // A drag that strays off the chart is still a scrub; the chart
+          // clears the cursor through onPointSelected when it ends (#4611).
+          if (isDragCrossing(event)) return;
           ref.read(profileTrackingIndexProvider(widget.diveId).notifier).state =
               null;
         },
