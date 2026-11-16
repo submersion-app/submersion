@@ -8275,6 +8275,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_detail_section_weight => 'Lestage';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'Depuis l\'équipement';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'Appuie pour ajouter la vérification du moniteur pour cette plongée de formation';
 
@@ -9119,6 +9122,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String diveLog_edit_weightTotal(Object total) {
     return 'Total : $total';
+  }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'Également compté : $weight porté comme équipement ($items). N\'ajoutez ici que du lest supplémentaire.';
   }
 
   @override

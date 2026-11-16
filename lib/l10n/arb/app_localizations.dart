@@ -12954,6 +12954,12 @@ abstract class AppLocalizations {
   /// **'Weight'**
   String get diveLog_detail_section_weight;
 
+  /// No description provided for @diveLog_detail_weight_fromEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'From equipment'**
+  String get diveLog_detail_weight_fromEquipment;
+
   /// No description provided for @diveLog_detail_signatureDescription.
   ///
   /// In en, this message translates to:
@@ -14246,6 +14252,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total: {total}'**
   String diveLog_edit_weightTotal(Object total);
+
+  /// No description provided for @diveLog_edit_weightGearNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Also counted: {weight} carried as equipment ({items}). Add a weight here only for separate lead.'**
+  String diveLog_edit_weightGearNote(Object items, Object weight);
 
   /// No description provided for @diveLog_emptyFiltered_clearFilters.
   ///

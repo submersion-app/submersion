@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
 import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -533,13 +534,33 @@ class Dive extends Equatable {
   /// Total weight from all weight entries
   double get totalWeight => weights.fold(0.0, (sum, w) => sum + w.amountKg);
 
-  /// The lead the detail page shows, or null when none is recorded: the weight
-  /// entries when there are any, else a positive legacy [weightAmount]. The
-  /// Dart spelling of `recordedWeightKgSql` (issue #3914).
-  double? get recordedWeightKg {
+  /// The lead typed in the Weights section, or null when none is recorded:
+  /// the weight entries when there are any, else a positive legacy
+  /// [weightAmount].
+  double? get typedWeightKg {
     if (weights.isNotEmpty) return totalWeight;
     final legacy = weightAmount;
     return legacy != null && legacy > 0 ? legacy : null;
+  }
+
+  /// The weights gear on this dive that carries lead, with no part of its
+  /// own attached (an assembly counts through its parts), in link order.
+  List<EquipmentItem> get leadGear => EquipmentLead.carriers(gear);
+
+  /// Lead carried as weights gear (issue #1103), 0 when none declares any.
+  double get gearWeightKg => EquipmentLead.totalKg(leadGear);
+
+  /// Every kilogram of lead the diver carried, or null when none is
+  /// recorded: [typedWeightKg] plus [gearWeightKg]. The two are different
+  /// lead (a belt beside a weighted backplate), so they add rather than one
+  /// standing in for the other (issue #4442). This is what the detail page,
+  /// the buoyancy model, Insights and the query language all read; the Dart
+  /// spelling of `recordedWeightKgSql` (issue #3914).
+  double? get recordedWeightKg {
+    final typed = typedWeightKg;
+    final gearKg = gearWeightKg;
+    if (typed == null && gearKg <= 0) return null;
+    return (typed ?? 0) + gearKg;
   }
 
   // CCR/SCR computed properties

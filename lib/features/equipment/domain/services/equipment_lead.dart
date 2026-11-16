@@ -1,6 +1,8 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 
 /// Lead a diver carries as gear rather than as typed per-dive weight rows.
 ///
@@ -61,6 +63,14 @@ abstract final class EquipmentLead {
   static double kgFor(EquipmentItem item) => item.type == EquipmentType.weights
       ? ballastKg(dryWeightKg: item.weightKg, buoyancyKg: item.buoyancyKg)
       : 0.0;
+
+  /// The weights items among a dive's [links] that carry lead, in link
+  /// order. Only rows with no part attached count ([GearTree.leafItems]), so
+  /// an assembly counts through its parts and is never added twice.
+  static List<EquipmentItem> carriers(List<GearLink> links) => [
+    for (final item in GearTree.leafItems(links))
+      if (kgFor(item) > 0) item,
+  ];
 
   /// Total gear-carried ballast across [items].
   static double totalKg(Iterable<EquipmentItem> items) =>

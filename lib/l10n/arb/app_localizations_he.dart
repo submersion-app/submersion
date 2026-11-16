@@ -8080,6 +8080,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_section_weight => 'משקולות';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'מהציוד';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'הקש להוספת אימות מדריך לצלילת הכשרה זו';
 
@@ -8906,6 +8909,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveLog_edit_weightTotal(Object total) {
     return 'סה\"כ: $total';
+  }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'נספר גם: $weight שנישאים כציוד ($items). הוסיפו כאן משקולת רק אם היא עופרת נפרדת.';
   }
 
   @override

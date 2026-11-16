@@ -8253,6 +8253,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_section_weight => 'Zavorra';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'Dall\'attrezzatura';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'Tocca per aggiungere la verifica dell\'istruttore per questa immersione di addestramento';
 
@@ -9095,6 +9098,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String diveLog_edit_weightTotal(Object total) {
     return 'Totale: $total';
+  }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'Già conteggiati: $weight portati come attrezzatura ($items). Aggiungi qui solo zavorra separata.';
   }
 
   @override

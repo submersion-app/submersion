@@ -8130,6 +8130,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_detail_section_weight => 'Weight';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'From equipment';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'Tap to add instructor verification for this training dive';
 
@@ -8962,6 +8965,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String diveLog_edit_weightTotal(Object total) {
     return 'Total: $total';
+  }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'Also counted: $weight carried as equipment ($items). Add a weight here only for separate lead.';
   }
 
   @override

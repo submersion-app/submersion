@@ -2471,8 +2471,8 @@ class InsightsRepository with InsightsChartDives {
 
   /// Total lead carried on every dive in scope, in kilograms, ordered by date.
   ///
-  /// Sums the dive's weight rows, or reads the legacy scalar when it has none
-  /// ([recordedWeightKgSql]). The monthly version this replaced averaged
+  /// Sums the dive's weight rows, or reads the legacy scalar when it has none,
+  /// plus any lead carried as weights gear ([recordedWeightKgSql]). The monthly version this replaced averaged
   /// across rows, so a 4 kg belt plus 2 kg of trim weights was reported as
   /// 3 kg rather than the 6 kg actually carried.
   Future<List<TrendDataPoint>> getWeightPerDive({

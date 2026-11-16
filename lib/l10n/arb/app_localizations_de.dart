@@ -8252,6 +8252,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_detail_section_weight => 'Gewicht';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'Aus der Ausrüstung';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'Tippe, um die Verifizierung des Tauchlehrers für diesen Ausbildungstauchgang hinzuzufügen';
 
@@ -9091,6 +9094,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String diveLog_edit_weightTotal(Object total) {
     return 'Gesamt: $total';
+  }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'Ebenfalls gezählt: $weight als Ausrüstung getragen ($items). Trag hier nur zusätzliches Blei ein.';
   }
 
   @override

@@ -7840,6 +7840,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_section_weight => '配重';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => '来自装备';
+
+  @override
   String get diveLog_detail_signatureDescription => '点击为此培训潜水添加教练验证';
 
   @override
@@ -8634,6 +8637,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveLog_edit_weightTotal(Object total) {
     return '总计：$total';
+  }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return '已计入：作为装备携带的 $weight（$items）。仅在有额外配重时于此处添加。';
   }
 
   @override

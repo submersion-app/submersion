@@ -8253,6 +8253,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_detail_section_weight => 'Lastro';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'Do equipamento';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'Toque para adicionar verificação do instrutor para este mergulho de treinamento';
 
@@ -9096,6 +9099,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String diveLog_edit_weightTotal(Object total) {
     return 'Total: $total';
+  }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'Também contabilizado: $weight levado como equipamento ($items). Adicione aqui apenas lastro separado.';
   }
 
   @override
