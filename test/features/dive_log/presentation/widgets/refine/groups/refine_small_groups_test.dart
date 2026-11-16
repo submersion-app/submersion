@@ -404,6 +404,24 @@ void main() {
     });
   });
 
+  test('the role axis counts once in the People group badge (#4409)', () {
+    expect(
+      RefinePeopleGroup.activeCount(
+        const DiveFilterState(
+          diverRoleIds: ['instructor', 'student'],
+          noRoleOnly: true,
+        ),
+      ),
+      1,
+    );
+    expect(
+      RefinePeopleGroup.activeCount(
+        const DiveFilterState(diverRoleIds: ['instructor']),
+      ),
+      1,
+    );
+  });
+
   test('the four groups declare their fields', () {
     expect(RefineLocationGroup.fields, {'siteId', 'tripId', 'diveCenterId'});
     expect(RefinePeopleGroup.fields, {
