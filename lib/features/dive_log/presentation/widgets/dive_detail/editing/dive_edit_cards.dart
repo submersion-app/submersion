@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_gates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_custom_fields_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_card_editor.dart';
@@ -143,6 +144,13 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     isEmpty: (dive) => !diveHasWeights(dive),
     editorBuilder: (context, session) =>
         DiveWeightsCardEditor(session: session),
+  ),
+  DiveDetailSectionId.customFields: EditCard<Dive>(
+    id: DiveDetailSectionId.customFields.name,
+    title: (context) => context.l10n.diveLog_detail_section_customFields,
+    isEmpty: (dive) => dive.customFields.isEmpty,
+    editorBuilder: (context, session) =>
+        DiveCustomFieldsCardEditor(session: session),
   ),
   DiveDetailSectionId.equipment: EditCard<Dive>(
     id: DiveDetailSectionId.equipment.name,
