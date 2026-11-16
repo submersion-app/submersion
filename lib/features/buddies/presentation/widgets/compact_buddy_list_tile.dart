@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
@@ -60,9 +61,15 @@ class CompactBuddyListTile extends ConsumerWidget {
     final title =
         slotText(resolveCardSlot(slots, 'title', BuddyField.buddyName)) ??
         buddy.name;
-    final subtitle = slotText(
-      resolveCardSlot(slots, 'subtitle', BuddyField.certificationLevel),
+    final subtitleField = resolveCardSlot(
+      slots,
+      'subtitle',
+      BuddyField.certificationLevel,
     );
+    final subtitle = slotText(subtitleField);
+    // A subtitle naming the country gets its flag, as a site row's does
+    // (issue #4457).
+    final flagBuddy = subtitleField == BuddyField.country ? buddy : null;
     final stat2Field = resolveCardSlot(slots, 'stat2', BuddyField.lastDive);
     final showSecondLine = subtitle != null || slotText(stat2Field) != null;
 
@@ -149,12 +156,19 @@ class CompactBuddyListTile extends ConsumerWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                subtitle ?? '',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: secondaryTextColor),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              child: Align(
+                                alignment: AlignmentDirectional.centerStart,
+                                child: LocationWithFlag(
+                                  country: flagBuddy?.country,
+                                  countryCode: flagBuddy?.countryCode,
+                                  text: Text(
+                                    subtitle ?? '',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(color: secondaryTextColor),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),

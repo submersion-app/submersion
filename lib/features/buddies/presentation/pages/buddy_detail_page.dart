@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/core/geography/country_code.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
@@ -155,6 +157,7 @@ class _BuddyDetailContent extends ConsumerWidget {
           // Contact info
           if (buddy.hasContactInfo ||
               buddy.socialHandle != null ||
+              buddy.country != null ||
               buddy.linkedDiverId != null) ...[
             _buildContactSection(context, ref),
             const SizedBox(height: 24),
@@ -499,6 +502,13 @@ class _BuddyDetailContent extends ConsumerWidget {
                 contentPadding: EdgeInsets.zero,
                 trailing: const Icon(Icons.open_in_new, size: 16),
               ),
+            if (buddy.country != null)
+              ListTile(
+                leading: _countryLeading(ref),
+                title: Text(buddy.country!),
+                subtitle: Text(context.l10n.buddies_field_country),
+                contentPadding: EdgeInsets.zero,
+              ),
             if (buddy.socialHandle != null)
               ListTile(
                 leading: const Icon(Icons.alternate_email),
@@ -510,6 +520,20 @@ class _BuddyDetailContent extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// The country row's flag (issue #4457), or a globe when flags are off
+  /// or the country is one the flag table cannot draw.
+  Widget _countryLeading(WidgetRef ref) {
+    final code = ref.watch(showCountryFlagsProvider)
+        ? siteFlagCode(country: buddy.country, code: buddy.countryCode)
+        : null;
+    return code != null && CountryFlag.canDraw(code)
+        ? SizedBox(
+            width: 24,
+            child: Center(child: CountryFlag(code: code, height: 14)),
+          )
+        : const Icon(Icons.public);
   }
 
   Widget _buildCertificationSection(BuildContext context, WidgetRef ref) {
