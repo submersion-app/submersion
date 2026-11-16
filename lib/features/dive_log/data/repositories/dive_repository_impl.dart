@@ -289,6 +289,8 @@ class DiveRepository {
   /// [_mapRowsWithPreloadedData] embeds. See [watchDiveHydrationWrites].
   static const Set<String> diveHydrationTables = {
     'dive_tanks',
+    // A dive's total weight adds its rows to its gear lead (#4442).
+    'dive_weights',
     'dive_sites',
     'dive_centers',
     'trips',
@@ -676,15 +678,16 @@ class DiveRepository {
   ///
   /// No sample is read, so `profile` stays empty and what [_mapRowToDive]
   /// derives from samples stays missing, apart from `profileSpan`, which keeps
-  /// [domain.Dive.measuredRuntime] the same on both. Weights are left to the
-  /// callers that show them, through [weightsByDive].
-  Future<List<domain.Dive>> _mapRowsWithPreloadedData(
-    List<Dive> rows, {
-    Map<String, List<domain.DiveWeight>> weightsByDive = const {},
-  }) async {
+  /// [domain.Dive.measuredRuntime] the same on both.
+  ///
+  /// Weights are always read: [domain.Dive.recordedWeightKg] adds them to the
+  /// lead carried as gear, which is hydrated here too, so a dive without its
+  /// rows would report the gear's share alone as its total weight (#4442).
+  Future<List<domain.Dive>> _mapRowsWithPreloadedData(List<Dive> rows) async {
     if (rows.isEmpty) return [];
 
     final diveIds = rows.map((r) => r.id).toList();
+    final weightsByDive = await _weightsForDives(diveIds);
 
     // Load all tanks for these dives in one query
     final allTanks =
@@ -3364,12 +3367,7 @@ class DiveRepository {
                 .map((r) => _mapRowToDive(r, offUiIsolate: offUiIsolate)),
           );
           final chunkDives = [
-            ...await _mapRowsWithPreloadedData(
-              lean,
-              weightsByDive: await _weightsForDives([
-                for (final row in lean) row.id,
-              ]),
-            ),
+            ...await _mapRowsWithPreloadedData(lean),
             // [_mapRowToDive] leaves the buddy junction unloaded.
             ...await _buddyRepository.withBuddies(sampled),
           ];

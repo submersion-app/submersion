@@ -92,9 +92,13 @@ void main() {
         )
         .getSingle();
     final dive = await diveRepo.getDiveById('d');
+    // The dive list hydrates in a batch, apart from getDiveById; its dives
+    // must carry the weight rows too, or the gear share reads as the total.
+    final listed = (await diveRepo.getDiveListSnapshot()).dives.single;
 
     expect(row.read<double?>('kg'), closeToOrNull(kg), reason: 'SQL');
     expect(dive!.recordedWeightKg, closeToOrNull(kg), reason: 'Dart');
+    expect(listed.recordedWeightKg, closeToOrNull(kg), reason: 'dive list');
   }
 
   test('weights gear alone is recorded weight', () async {
