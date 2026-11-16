@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -27,9 +26,7 @@ void main() {
           );
     });
 
-    tearDown(() {
-      DatabaseService.instance.resetForTesting();
-    });
+    tearDown(tearDownTestDatabase);
 
     test('new settings default defaultShowBuoyancy to false', () async {
       await repository.createSettingsForDiver('d1');

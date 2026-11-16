@@ -48,13 +48,14 @@ Widget _harness({
   void Function(List<TooltipRow>? rows)? onTooltipData,
   List<DiveProfilePoint>? profile,
   List<ChartSourceOverlay>? overlays,
+  Locale locale = const Locale('en'),
 }) {
   return ProviderScope(
     overrides: [
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
     ],
     child: MaterialApp(
-      locale: const Locale('en'),
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -177,6 +178,43 @@ void main() {
     expect(swatches, hasLength(1));
   });
 
+  testWidgets('no legend entry until the line has a curve to draw', (
+    tester,
+  ) async {
+    // Loading, or a model that failed: advertising a line the chart does not
+    // draw leaves the diver looking for it.
+    await tester.pumpWidget(
+      _harness(settings: const AppSettings(defaultShowBuoyancy: true)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Buoyancy'), findsNothing);
+  });
+
+  testWidgets('signed axis ticks stay left to right in RTL locales', (
+    tester,
+  ) async {
+    // Without it "-4.1" draws as "4.1-" in Arabic and Hebrew.
+    await tester.pumpWidget(
+      _harness(
+        settings: const AppSettings(
+          defaultShowBuoyancy: true,
+          defaultRightAxisMetric: ProfileRightAxisMetric.buoyancy,
+        ),
+        buoyancyCurve: _crossingCurve(),
+        locale: const Locale('he'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final signed = tester
+        .widgetList<Text>(find.byType(Text))
+        .where((w) => RegExp(r'^[+-]\d').hasMatch(w.data ?? ''))
+        .toList();
+    expect(signed, isNotEmpty);
+    for (final tick in signed) {
+      expect(tick.textDirection, TextDirection.ltr, reason: tick.data);
+    }
+  });
+
   testWidgets('no legend entry when the dive cannot be modelled', (
     tester,
   ) async {
@@ -228,6 +266,19 @@ void main() {
       expect(formatBuoyancyReadout(-2.36, metric, l10n), '-2.4 kg heavy');
       expect(formatBuoyancyReadout(0.04, metric, l10n), '0.0 kg neutral');
       expect(formatBuoyancyReadout(-0.04, metric, l10n), '0.0 kg neutral');
+    });
+
+    test('keeps the signed value whole in right-to-left text', () {
+      // An isolate stops bidi reordering moving the sign to the far end.
+      expect(
+        formatBuoyancyReadout(
+          -2.36,
+          metric,
+          l10n,
+          direction: TextDirection.rtl,
+        ),
+        '\u2066-2.4 kg\u2069 heavy',
+      );
     });
 
     test('tooltip in pounds', () {

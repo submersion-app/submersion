@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/bidi_isolate.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
@@ -106,15 +107,23 @@ List<BuoyancyRun> buoyancySignRuns(
 }
 
 /// [picked] (sample indices the decimation kept, ascending) with the first
-/// index of every gap in [curveKg] added, so the line still breaks there.
+/// index of every gap in [curveKg] added, so the line still breaks there. A
+/// gap is a missing or non-finite value, as [buoyancySignRuns] reads it.
+/// Only the first [length] samples (the drawn profile's) are scanned.
 ///
 /// Decimation sees gaps as 0 and keeps each bucket's extremes; a gap between
 /// a heavy and a buoyant sample is neither, and dropping it would bridge the
 /// missing data.
-List<int> keepBuoyancyGaps(List<int> picked, List<double?> curveKg) {
+List<int> keepBuoyancyGaps(
+  List<int> picked,
+  List<double?> curveKg, {
+  int? length,
+}) {
+  bool isGap(int i) => !(curveKg[i]?.isFinite ?? false);
+  final n = math.min(curveKg.length, length ?? curveKg.length);
   final gapStarts = <int>[
-    for (var i = 0; i < curveKg.length; i++)
-      if (curveKg[i] == null && (i == 0 || curveKg[i - 1] != null)) i,
+    for (var i = 0; i < n; i++)
+      if (isGap(i) && (i == 0 || !isGap(i - 1))) i,
   ];
   if (gapStarts.isEmpty) return picked;
   return ({...picked, ...gapStarts}.toList()..sort());
@@ -169,20 +178,30 @@ LineChartBarData buildNeutralRule({
 /// The tooltip value for a net buoyancy of [kg]: one decimal in the diver's
 /// weight unit, signed, with the side named in words so colour is never the
 /// only cue ("+0.9 kg buoyant", "-2.4 kg heavy", "0.0 kg neutral").
+///
+/// In right-to-left text ([direction]) the value is isolated, so bidi
+/// reordering cannot move its sign to the far end of the number.
 String formatBuoyancyReadout(
   double kg,
   UnitFormatter units,
-  AppLocalizations l10n,
-) {
+  AppLocalizations l10n, {
+  TextDirection direction = TextDirection.ltr,
+}) {
   final display = units.convertWeight(kg);
   final rounded = double.parse(display.toStringAsFixed(1));
   if (rounded == 0) {
     return l10n.diveLog_buoyancy_readout_neutral(
-      '${formatFixedForDisplay(0, 1)} ${units.weightSymbol}',
+      isolateForDirection(
+        '${formatFixedForDisplay(0, 1)} ${units.weightSymbol}',
+        direction,
+      ),
     );
   }
   final number = formatFixedForDisplay(rounded, 1);
-  final value = '${rounded > 0 ? '+' : ''}$number ${units.weightSymbol}';
+  final value = isolateForDirection(
+    '${rounded > 0 ? '+' : ''}$number ${units.weightSymbol}',
+    direction,
+  );
   return rounded > 0
       ? l10n.diveLog_buoyancy_readout_buoyant(value)
       : l10n.diveLog_buoyancy_readout_heavy(value);

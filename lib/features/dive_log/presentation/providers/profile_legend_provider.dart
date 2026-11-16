@@ -599,11 +599,11 @@ class ProfileLegend extends _$ProfileLegend {
 
   /// Get the effective right axis metric (session override or settings default).
   /// Returns null when the user has explicitly chosen "None".
-  ProfileRightAxisMetric? getEffectiveRightAxisMetric() {
-    if (state.rightAxisHidden) return null;
-    return state.rightAxisMetric ??
-        ref.read(settingsProvider).defaultRightAxisMetric;
-  }
+  ProfileRightAxisMetric? getEffectiveRightAxisMetric() =>
+      effectiveRightAxisMetricOf(
+        state,
+        ref.read(settingsProvider).defaultRightAxisMetric,
+      );
 
   // Primary toggle methods
   void toggleTemperature() {
@@ -830,3 +830,12 @@ class ProfileLegend extends _$ProfileLegend {
     ref.invalidateSelf();
   }
 }
+
+/// The right-axis metric [state] shows: none when the diver hid the axis,
+/// else the session's pick, else [defaultMetric] from settings. Shared by
+/// the chart and by the surfaces that decide whether a metric's data must
+/// be computed for the axis (#4593).
+ProfileRightAxisMetric? effectiveRightAxisMetricOf(
+  ProfileLegendState state,
+  ProfileRightAxisMetric defaultMetric,
+) => state.rightAxisHidden ? null : (state.rightAxisMetric ?? defaultMetric);

@@ -56,7 +56,10 @@ void main() {
       // Issue #4593.
       const on = ProfileLegendState(showBuoyancy: true);
       expect(
-        profileOverlayTerms(const ProfileLegendConfig(hasBuoyancy: true), on),
+        profileOverlayTerms(
+          const ProfileLegendConfig(hasBuoyancyLine: true),
+          on,
+        ),
         contains(DiveTerm.buoyancyProfile),
       );
       expect(
@@ -65,7 +68,7 @@ void main() {
       );
       expect(
         profileOverlayTerms(
-          const ProfileLegendConfig(hasBuoyancy: true),
+          const ProfileLegendConfig(hasBuoyancyLine: true),
           const ProfileLegendState(),
         ),
         isNot(contains(DiveTerm.buoyancyProfile)),

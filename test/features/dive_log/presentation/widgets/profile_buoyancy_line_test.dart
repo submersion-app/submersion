@@ -180,6 +180,16 @@ void main() {
       expect(keepBuoyancyGaps([0, 1, 3, 6], curve), [0, 1, 3, 5, 6]);
     });
 
+    test('a non-finite value is a gap too', () {
+      final curve = <double?>[-1, double.nan, 1];
+      expect(keepBuoyancyGaps([0, 2], curve), [0, 1, 2]);
+    });
+
+    test('never adds an index past the drawn profile', () {
+      final curve = <double?>[1, 2, 3, null];
+      expect(keepBuoyancyGaps([0, 2], curve, length: 3), [0, 2]);
+    });
+
     test('no gaps leaves the picked indices alone', () {
       expect(keepBuoyancyGaps([0, 3], <double?>[1, 2, 3, 4]), [0, 3]);
     });

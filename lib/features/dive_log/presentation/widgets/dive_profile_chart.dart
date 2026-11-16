@@ -2558,11 +2558,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // Net buoyancy (issue #4593): the value, its sign and its side in words,
     // with the bullet in that side's colour.
     if (_showBuoyancy && widget.buoyancyCurve != null) {
-      final kg = _curveValueAt(widget.buoyancyCurve, spot.spotIndex);
+      final raw = _curveValueAt(widget.buoyancyCurve, spot.spotIndex);
+      final kg = raw != null && raw.isFinite ? raw : null;
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_buoyancy,
-          value: kg == null ? '-' : formatBuoyancyReadout(kg, units, l10n),
+          value: kg == null
+              ? '-'
+              : formatBuoyancyReadout(
+                  kg,
+                  units,
+                  l10n,
+                  direction: Directionality.of(context),
+                ),
           bulletColor: kg != null && kg < 0
               ? ProfileMetricColors.buoyancyHeavy
               : ProfileMetricColors.buoyancyBuoyant,
@@ -3288,6 +3296,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasModData: hasModData,
       hasDensityData: hasDensityData,
       hasBuoyancy: widget.buoyancyAvailable,
+      hasBuoyancyLine: _hasDataForMetric(ProfileRightAxisMetric.buoyancy),
       hasGfData: hasGfData,
       hasSurfaceGfData: hasSurfaceGfData,
       hasMeanDepthData: hasMeanDepthData,
@@ -4717,6 +4726,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           context,
                         ).textTheme.labelSmall?.copyWith(color: metricColor),
                         maxLines: 1,
+                        // A number reads left to right in every locale: in
+                        // RTL text a signed tick ("-4.1") would otherwise
+                        // draw its sign at the far end ("4.1-").
+                        textDirection: TextDirection.ltr,
                       ),
                     );
                   },
@@ -7460,7 +7473,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final curve = widget.buoyancyCurve!;
     if (!identical(_buoyancyFilledFor, curve)) {
       _buoyancyFilledFor = curve;
-      _buoyancyFilled = [for (final v in curve) v ?? 0.0];
+      _buoyancyFilled = [
+        for (final v in curve) v != null && v.isFinite ? v : 0.0,
+      ];
     }
     return _buoyancyFilled!;
   }
@@ -7478,6 +7493,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final indices = keepBuoyancyGaps(
       _decimatedCurveIndices(_buoyancyForDecimation()),
       curve,
+      length: widget.profile.length,
     );
     final kgs = <double?>[for (final i in indices) curve[i]];
     final timestamps = <int>[

@@ -106,6 +106,11 @@ class ProfileLegendConfig {
   /// The dive can be modelled (a tank or an exposure suit), so the buoyancy
   /// line can be offered (#4593).
   final bool hasBuoyancy;
+
+  /// A buoyancy curve the line can draw has arrived, so the legend and the
+  /// info sheet can name it. Unlike [hasBuoyancy], false while the model
+  /// is loading or if it failed (#4593).
+  final bool hasBuoyancyLine;
   final bool hasPhotoMarkers;
   final bool hasMultiTankPressure;
   final bool hasGasData;
@@ -169,6 +174,7 @@ class ProfileLegendConfig {
     this.hasLateGasSwitches = false,
     this.hasCounterdiffusion = false,
     this.hasBuoyancy = false,
+    this.hasBuoyancyLine = false,
     this.hasPhotoMarkers = false,
     this.hasMultiTankPressure = false,
     this.hasGasData = false,

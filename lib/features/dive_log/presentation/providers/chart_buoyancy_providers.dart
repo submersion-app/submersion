@@ -40,6 +40,8 @@ final chartBuoyancyTwinProvider = FutureProvider.autoDispose
         final outcome = await ref.watch(buoyancyTwinProvider(diveId).future);
         return outcome?.result;
       }
+      // A secondary whose samples have not arrived yet: nothing to model.
+      if (active.points.isEmpty) return null;
 
       final (dive, tankPressures) = await (
         ref.watch(diveProvider(diveId).future),

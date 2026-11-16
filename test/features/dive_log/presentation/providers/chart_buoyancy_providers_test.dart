@@ -162,6 +162,21 @@ void main() {
     expect(result.samples, hasLength(3));
   });
 
+  test('a secondary source still loading its samples models nothing', () async {
+    // The empty placeholder drawn before the profiles arrive.
+    final c = container(
+      active: const SourceProfile(
+        sourceId: 's2',
+        computerId: 'computer-s2',
+        isEdited: false,
+        points: [],
+      ),
+      sources: [source('s1', isPrimary: true), source('s2', isPrimary: false)],
+      card: cardOutcome(),
+    );
+    expect(await c.read(chartBuoyancyTwinProvider(diveId).future), isNull);
+  });
+
   test('an unmodelable dive gives null on a secondary source', () async {
     final c = ProviderContainer(
       overrides: [

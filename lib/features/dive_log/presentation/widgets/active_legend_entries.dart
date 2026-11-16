@@ -169,7 +169,7 @@ List<ActiveLegendEntry> activeLegendEntries(
   );
   // One entry for the two-coloured line (#4593).
   add(
-    config.hasBuoyancy,
+    config.hasBuoyancyLine,
     state.showBuoyancy,
     l10n.diveLog_legend_label_buoyancy,
     ProfileMetricColors.buoyancyBuoyant,
