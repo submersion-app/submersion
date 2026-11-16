@@ -404,6 +404,7 @@ class RecordEditController<T> extends ChangeNotifier {
     } catch (error) {
       // The page went away, or the sitting was discarded, while the write
       // was running: there is no one left to tell.
+      if (_droppedWhileSaving(session)) return false;
       if (!identical(_session, session)) return false;
       session.thaw();
       _saveError = error;
@@ -412,7 +413,20 @@ class RecordEditController<T> extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    if (_droppedWhileSaving(session)) return true;
     _endSitting();
+    return true;
+  }
+
+  /// The sitting of a controller disposed while [session] was being
+  /// written: kept until the write ended, since its held writes read it.
+  EditSession<T>? _endsAfterSave;
+
+  /// Ends [session] if the controller was disposed while it was written.
+  bool _droppedWhileSaving(EditSession<T> session) {
+    if (!identical(_endsAfterSave, session)) return false;
+    _endsAfterSave = null;
+    session.dispose();
     return true;
   }
 
@@ -435,7 +449,14 @@ class RecordEditController<T> extends ChangeNotifier {
   @override
   void dispose() {
     final session = _session;
-    if (session != null) _dropSession(session);
+    if (session != null && _isSaving) {
+      // Its write is running and still reads it: it ends when that does.
+      session.removeListener(_onSessionChanged);
+      _session = null;
+      _endsAfterSave = session;
+    } else if (session != null) {
+      _dropSession(session);
+    }
     super.dispose();
   }
 }
