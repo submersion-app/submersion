@@ -13,6 +13,8 @@ extension _ViewerWriteMetadata on _MediaViewerPageState {
   }
 
   Future<void> _writeMetadataToPhoto(MediaItem item) async {
+    // Only unlocked with nothing unsaved; the toolbar disables it otherwise.
+    if (_writeMetadataBlockedBy(context) != null) return;
     final l10n = context.l10n;
     debugPrint('[MediaViewerPage] _writeMetadataToPhoto called');
 

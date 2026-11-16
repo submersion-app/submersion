@@ -14,6 +14,9 @@ extension _ViewerChrome on _MediaViewerPageState {
     required bool perdixEnabled,
     required PhotoRecord? storedPhoto,
   }) => MediaViewerToolbar(
+    // Writing to the photo file is a whole-record operation (issue #4527):
+    // it needs the unlock and a sitting with nothing unsaved.
+    writeMetadataDisabledReason: _writeMetadataBlockedBy(context),
     item: currentItem,
     currentIndex: currentIndex,
     totalCount: totalCount,
@@ -107,5 +110,15 @@ extension _ViewerChrome on _MediaViewerPageState {
       _navTargetIndex = index;
       _pageController.jumpToPage(index);
     });
+  }
+
+  /// Why writing to the photo file cannot be used now, or null when it can.
+  String? _writeMetadataBlockedBy(BuildContext context) {
+    if (!editingOffered) return null;
+    if (!photoUnlocked) return context.l10n.recordEdit_unlockToUseThis;
+    if (photoEditController.isDirty) {
+      return context.l10n.recordEdit_saveOrCancelFirst;
+    }
+    return null;
   }
 }
