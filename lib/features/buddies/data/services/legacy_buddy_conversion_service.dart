@@ -91,6 +91,22 @@ class LegacyBuddyConversionService {
     ),
   );
 
+  /// Creates or claims the buddies [plan] names, at once, and links none:
+  /// a sitting on the dive holds the links until it is saved (issue #4527).
+  Future<List<({String buddyId, String roleId})>> resolveForSitting(
+    ConversionPlan plan, {
+    required String diverId,
+    required String newBuddyNote,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkEdit,
+    body: () => _repository.resolveLegacyForSitting(
+      plan,
+      diverId: diverId,
+      newBuddyNote: newBuddyNote,
+    ),
+  );
+
   Future<void> undo(ConversionReceipt receipt) => ChangeLogScope.bulk(
     DatabaseService.instance.databaseOrNull,
     label: ChangeLogLabels.bulkEdit,

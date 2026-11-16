@@ -1298,6 +1298,16 @@ class BuddyRepository {
     newBuddyNote: newBuddyNote,
   );
 
+  Future<List<({String buddyId, String roleId})>> resolveLegacyForSitting(
+    ConversionPlan plan, {
+    required String diverId,
+    required String newBuddyNote,
+  }) => BuddyConversionRepository().resolveForSitting(
+    plan,
+    diverId: diverId,
+    newBuddyNote: newBuddyNote,
+  );
+
   Future<void> undoLegacyConversion(ConversionReceipt receipt) =>
       BuddyConversionRepository().undo(receipt);
 

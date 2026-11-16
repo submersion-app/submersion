@@ -159,6 +159,39 @@ class BuddyConversionRepository {
     }
   }
 
+  /// The buddy each link of [plan] names, created or claimed at once as
+  /// [apply] does, with no link written: for a sitting on the dive, which
+  /// holds the links until it is saved (issue #4527). Each buddy once, in
+  /// the plan's order, with the role its link carries.
+  Future<List<({String buddyId, String roleId})>> resolveForSitting(
+    ConversionPlan plan, {
+    required String diverId,
+    required String newBuddyNote,
+  }) async {
+    final resolved = await _db.transaction(() async {
+      final run = _ApplyRun(
+        matcher: BuddyNameMatcher(
+          await candidateBuddies(diverId),
+          diverId: diverId,
+        ),
+        diverId: diverId,
+        newBuddyNote: newBuddyNote,
+        now: DateTime.now().millisecondsSinceEpoch,
+      );
+      final seen = <String>{};
+      final links = <({String buddyId, String roleId})>[];
+      for (final link in plan.links) {
+        final buddyId = await _resolve(link.target, run);
+        if (seen.add(buddyId)) {
+          links.add((buddyId: buddyId, roleId: link.roleId));
+        }
+      }
+      return links;
+    });
+    SyncEventBus.notifyLocalChange();
+    return resolved;
+  }
+
   /// Reverses [receipt]: its links, the buddies it created that nothing else
   /// has linked since, and its ownership claims on buddies none of the
   /// diver's dives link any more. One transaction, one notify.

@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_gates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_custom_fields_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
@@ -52,14 +53,19 @@ bool _sameTagIds(List<Tag> a, List<Tag> b) {
 /// a runtime shortened on the header can put a switch past the end of the
 /// dive, and Save checks every card whether it was opened or not
 /// (issue #4527, plan 5).
-void startDiveSitting(EditSession<Dive> session, ProviderRead read) =>
-    loadDiveGasSwitches(session, read);
+void startDiveSitting(EditSession<Dive> session, ProviderRead read) {
+  loadDiveGasSwitches(session, read);
+  // A dive's own rows that are not columns of the dive: read now, so each
+  // card's read layout can show the sitting's list once it changes.
+  diveBuddiesList.load(session);
+}
 
 /// The held writes that are the dive's own rows (its gas switches, the
 /// readings a reassign moves): every other held write reaches the site.
-const Set<String> diveOwnHeldWriteKeys = {
+final Set<String> diveOwnHeldWriteKeys = {
   gasSwitchesKey,
   tankSeriesExchangeKey,
+  diveBuddiesList.key,
 };
 
 /// Why a card of the dive page has nothing to edit, for those that have
