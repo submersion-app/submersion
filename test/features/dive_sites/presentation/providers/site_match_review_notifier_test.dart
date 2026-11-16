@@ -119,6 +119,9 @@ void main() {
     when(
       dives.watchDiveHydrationWrites(),
     ).thenAnswer((_) => const Stream<void>.empty());
+    // The hydrated dive list ticks on `dives` and the weight tables its
+    // Total weight reads (#4442).
+    when(dives.watchTables(any)).thenAnswer((_) => const Stream<void>.empty());
     when(
       sites.watchSitesChanges(),
     ).thenAnswer((_) => const Stream<void>.empty());

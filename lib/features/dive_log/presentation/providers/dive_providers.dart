@@ -15,6 +15,7 @@ import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_bulk_delete_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
@@ -613,20 +614,29 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     // whatever tables the filter names; a write to one of them (a synced
     // buddy link, a weight row) changes the answer without a dives write,
     // so the tick follows the filter's tables beyond `dives` (#1915).
+    //
+    // The table's Total weight reads each dive's weight rows and the lead its
+    // weights gear carries (`Dive.recordedWeightKg`, #4442). A synced weight
+    // row or an edit of a weights item's dry weight writes only those tables,
+    // so they are in the base tick beside `dives`, as one debounced stream.
     final divesTick = FilterAwareTick(
-      plain: _repository.watchDivesChanges,
-      baseTables: const {'dives'},
+      plain: () => _repository.watchTables(_listBaseTables),
+      baseTables: _listBaseTables,
       watchTables: _repository.watchTables,
       onTick: _silentReload,
     );
     Set<String> extra(DiveFilterState f) =>
-        diveFilterTablesTouched(f).difference({'dives'});
+        diveFilterTablesTouched(f).difference(_listBaseTables);
     _ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
       divesTick.follow(extra(next));
     });
     divesTick.follow(extra(_ref.read(diveFilterProvider)));
     _ref.onDispose(divesTick.cancel);
   }
+
+  /// What the hydrated list's rows read that a write can change without
+  /// touching `dives`, and that the list ticks on whatever the filter.
+  static const _listBaseTables = {'dives', ...recordedWeightTables};
 
   Future<void> _loadDives() async {
     state = const AsyncValue.loading();
