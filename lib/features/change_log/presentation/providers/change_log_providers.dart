@@ -12,6 +12,7 @@ import 'package:submersion/features/change_log/domain/entities/change_log_filter
 import 'package:submersion/features/change_log/domain/entities/change_log_operation.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_revert_plan.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 const int kChangeLogPageSize = 50;
@@ -22,8 +23,13 @@ final changeLogRepositoryProvider = Provider<ChangeLogRepository>(
   (ref) => ChangeLogRepository(),
 );
 
+/// Every revert in the app goes through this service, so it re-arms the
+/// reminders of the documents a revert restores or edits (#4607).
 final changeLogRevertServiceProvider = Provider<ChangeLogRevertService>(
-  (ref) => ChangeLogRevertService(),
+  (ref) => ChangeLogRevertService(
+    rearmDocuments: (documents) =>
+        ref.read(documentMutationsProvider).rearmReminders(documents),
+  ),
 );
 
 final changeLogMaintenanceProvider = Provider<ChangeLogMaintenance>((ref) {

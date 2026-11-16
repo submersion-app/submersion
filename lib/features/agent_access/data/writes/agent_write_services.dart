@@ -51,6 +51,7 @@ class AgentWriteServices {
   late final revert = ChangeLogRevertService(
     repository: changeLog,
     afterDiveWrites: _afterDiveWrites,
+    rearmDocuments: rearmDocuments,
   );
 
   late final applier = WriteApplier(

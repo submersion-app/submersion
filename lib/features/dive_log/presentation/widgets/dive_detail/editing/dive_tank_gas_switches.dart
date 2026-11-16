@@ -49,6 +49,7 @@ class DiveTankGasSwitches extends ConsumerWidget {
       minTimestamp: limits.min,
       startingTank: gasSwitchStartingTank(session),
       removedWithTankCount: held.removedWithTank,
+      invalidAsStoredIds: gasSwitchesInvalidAsStored(session),
       onChanged: (updated, field) => changeGasSwitch(session, updated, field),
       onRemove: (id) => removeGasSwitch(session, id),
       onAdd: () => addGasSwitch(session),
