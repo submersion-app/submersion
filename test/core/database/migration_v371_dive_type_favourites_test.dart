@@ -21,7 +21,7 @@ void main() {
     },
   );
 
-  test('v371 is at or below the current schema version and in the ladder', () {
+  test('v371 is in the ladder', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(371));
     expect(AppDatabase.migrationVersions, contains(371));
   });

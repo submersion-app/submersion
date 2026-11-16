@@ -183,12 +183,6 @@ class _DiveTypePickerSheet extends StatefulWidget {
 class _DiveTypePickerSheetState extends State<_DiveTypePickerSheet> {
   late List<String> _working = [...widget.selectedTypeIds];
 
-  /// The first row below the favourites, where the divider goes. Null when
-  /// every row is starred.
-  late final DiveTypeEntity? _firstUnstarred = widget.types
-      .where((t) => !widget.favouriteIds.contains(t.id))
-      .firstOrNull;
-
   void _toggle(String id, bool selected) {
     final next = [..._working];
     if (selected) {
@@ -248,8 +242,11 @@ class _DiveTypePickerSheetState extends State<_DiveTypePickerSheet> {
                         ),
                       ),
                     ),
-                  for (final t in widget.types) ...[
-                    if (widget.favouriteIds.isNotEmpty && t == _firstUnstarred)
+                  for (final (i, t) in widget.types.indexed) ...[
+                    // The starred rows lead the list, so the divider goes
+                    // right after the last of them.
+                    if (widget.favouriteIds.isNotEmpty &&
+                        i == widget.favouriteIds.length)
                       const Divider(),
                     // The star sits beside the tile, not in its `secondary`:
                     // CheckboxListTile merges its semantics, which would fold

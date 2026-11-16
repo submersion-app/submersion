@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -19,7 +18,6 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/presentation/formatters/tank_configuration_labels.dart';
-import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
@@ -221,13 +219,7 @@ class _RefineGasEquipmentGroupState
                   // but hiding wins over a star: they are not lifted.
                   for (final type in favouritesFirst(
                     types,
-                    ref
-                        .watch(favouriteDiveTypeIdsProvider)
-                        .difference(
-                          ref.watch(
-                            hiddenBuiltInIdsProvider(BuiltInCatalog.diveTypes),
-                          ),
-                        ),
+                    ref.watch(liftedFavouriteDiveTypeIdsProvider),
                     idOf: (t) => t.id,
                   ))
                     FilterDropdownOption(

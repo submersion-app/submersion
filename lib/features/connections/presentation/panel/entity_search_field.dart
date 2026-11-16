@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
@@ -10,7 +9,6 @@ import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart'
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -82,13 +80,7 @@ class _EntitySearchFieldState extends ConsumerState<EntitySearchField> {
                 hits.value,
                 extra?.value,
                 // Hiding wins: a hidden built-in is not lifted (#4413).
-                ref
-                    .watch(favouriteDiveTypeIdsProvider)
-                    .difference(
-                      ref.watch(
-                        hiddenBuiltInIdsProvider(BuiltInCatalog.diveTypes),
-                      ),
-                    ),
+                ref.watch(liftedFavouriteDiveTypeIdsProvider),
               )
               case final nodes)
             nodes.isEmpty

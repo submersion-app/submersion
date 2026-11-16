@@ -49,6 +49,20 @@ void main() {
     expect(find.byIcon(Icons.star_border), findsOneWidget);
   });
 
+  test('a blank id, as a non-Latin custom name slugs to, stays starred', () {
+    final c = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith(
+          (ref) => MockSettingsNotifier(
+            const AppSettings(favouriteDiveTypeIds: {''}),
+          ),
+        ),
+      ],
+    );
+    addTearDown(c.dispose);
+    expect(c.read(favouriteDiveTypeIdsProvider), {''});
+  });
+
   test('the provider rebuilds only when the favourites change', () async {
     final settings = MockSettingsNotifier(
       const AppSettings(favouriteDiveTypeIds: {'cave'}),
