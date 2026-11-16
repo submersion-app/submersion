@@ -29,7 +29,9 @@ class TankGearMenu extends ConsumerWidget {
     return PopupMenuButton<_TankGearAction>(
       key: Key('tank-gear-menu-${tank.id}'),
       tooltip: l10n.diveLog_tank_gearMenu,
-      icon: const Icon(Icons.more_vert),
+      // Horizontal, so the page's own overflow stays the only vertical one
+      // on the dive page.
+      icon: const Icon(Icons.more_horiz),
       onSelected: (action) => _run(context, ref, action),
       itemBuilder: (context) => [
         if (!linked) ...[
