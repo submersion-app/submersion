@@ -22,6 +22,7 @@ import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_list_scaffold.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 
 class DiveCenterMapPage extends ConsumerStatefulWidget {
   const DiveCenterMapPage({super.key});
@@ -310,7 +311,7 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
     final colorScheme = Theme.of(context).colorScheme;
     final markerColor = _getMarkerColor(context, center.rating);
 
-    return AnimatedContainer(
+    final marker = AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
         color: isSelected ? colorScheme.primary : markerColor,
@@ -327,16 +328,22 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
           ),
         ],
       ),
-      // The logo fills the ring; with none, the store icon sits on the
-      // rating colour as before (#4460).
+      // The logo sits inside the rating colour, leaving a 4 px band of it
+      // showing; with none, the store icon sits on it as before (#4460).
       child: Center(
         child: DiveCenterMarkerGlyph(
           logo: center.logo,
-          radius: isSelected ? 23 : 18,
+          radius: isSelected ? 19 : 14,
           iconColor: isSelected ? colorScheme.onPrimary : Colors.white,
           iconSize: isSelected ? 24 : 20,
         ),
       ),
+    );
+    // A permanently closed center is still on the map, drawn faded (#3379),
+    // except while selected, as on the master-detail map.
+    return greyIfClosed(
+      closed: center.isPermanentlyClosed && !isSelected,
+      child: marker,
     );
   }
 

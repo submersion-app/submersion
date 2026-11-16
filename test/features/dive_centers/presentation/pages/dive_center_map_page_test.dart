@@ -10,6 +10,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_map_page.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -260,6 +261,26 @@ void main() {
       expect(after.center.latitude, closeTo(-30.0, 1e-6));
       expect(after.center.longitude, closeTo(-60.0, 1e-6));
       expect(after.zoom, closeTo(14.0, 1e-9));
+    });
+  });
+  group('a permanently closed center (#3379)', () {
+    Finder faded() => find.descendant(
+      of: find.byWidgetPredicate(
+        (w) => w is Opacity && w.opacity == kClosedDiveCenterOpacity,
+      ),
+      matching: find.byIcon(Icons.store),
+    );
+
+    testWidgets('draws its marker faded, as the master-detail map does', (
+      tester,
+    ) async {
+      await _pumpPage(tester, [_southWest.copyWith(isPermanentlyClosed: true)]);
+      expect(faded(), findsWidgets);
+    });
+
+    testWidgets('an open center is not faded', (tester) async {
+      await _pumpPage(tester, [_southWest]);
+      expect(faded(), findsNothing);
     });
   });
 }
