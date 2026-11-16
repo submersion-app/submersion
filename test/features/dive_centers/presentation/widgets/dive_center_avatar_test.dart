@@ -165,6 +165,13 @@ void main() {
   });
 
   group('DiveCenterMarkerGlyph', () {
+    test('radiusFor leaves a 4 px band inside a 2 px marker border', () {
+      // The selected and unselected marker sizes on both maps and the
+      // detail page.
+      expect(DiveCenterMarkerGlyph.radiusFor(50), 19);
+      expect(DiveCenterMarkerGlyph.radiusFor(40), 14);
+    });
+
     testWidgets('no logo is the bare store icon, as markers drew it', (
       tester,
     ) async {

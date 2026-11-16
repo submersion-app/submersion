@@ -70,13 +70,14 @@ class DiveCenterAvatar extends StatelessWidget {
           );
     if (bytes == null) return iconOnly;
 
+    // Decoded at the drawn size, as ProfileAvatar does: a bare MemoryImage
+    // holds the full 512 px bitmap for every logo in a long list.
+    final decodeSize = storedAvatarDecodeSize(context, side);
     final image = Image(
-      // Decoded at the drawn size, as ProfileAvatar does: a bare MemoryImage
-      // holds the full 512 px bitmap for every logo in a long list.
       image: ResizeImage(
         MemoryImage(bytes),
-        width: storedAvatarDecodeSize(context, side),
-        height: storedAvatarDecodeSize(context, side),
+        width: decodeSize,
+        height: decodeSize,
       ),
       width: side,
       height: side,
@@ -107,9 +108,18 @@ class DiveCenterMarkerGlyph extends StatelessWidget {
     required this.iconSize,
   });
 
+  /// The [radius] for a marker [markerSize] wide: inside its 2 px border,
+  /// less a 4 px band of the marker's colour, so the rating stays readable
+  /// around a logo.
+  static double radiusFor(double markerSize) =>
+      markerSize / 2 - _markerBorder - _ratingBand;
+
+  static const _markerBorder = 2.0;
+  static const _ratingBand = 4.0;
+
   final Uint8List? logo;
 
-  /// Radius of the circle inside the marker's border.
+  /// Radius of the logo circle; [radiusFor] gives it from the marker size.
   final double radius;
   final Color iconColor;
   final double iconSize;

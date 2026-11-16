@@ -333,7 +333,7 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
       child: Center(
         child: DiveCenterMarkerGlyph(
           logo: center.logo,
-          radius: isSelected ? 19 : 14,
+          radius: DiveCenterMarkerGlyph.radiusFor(isSelected ? 50 : 40),
           iconColor: isSelected ? colorScheme.onPrimary : Colors.white,
           iconSize: isSelected ? 24 : 20,
         ),

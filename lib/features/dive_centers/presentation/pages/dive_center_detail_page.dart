@@ -681,7 +681,7 @@ class _MapSectionState extends ConsumerState<_MapSection> {
                           child: Center(
                             child: DiveCenterMarkerGlyph(
                               logo: center.logo,
-                              radius: 19,
+                              radius: DiveCenterMarkerGlyph.radiusFor(50),
                               iconColor: colorScheme.onPrimary,
                               iconSize: 24,
                             ),
@@ -781,7 +781,7 @@ class _MapSectionState extends ConsumerState<_MapSection> {
                         child: Center(
                           child: DiveCenterMarkerGlyph(
                             logo: center.logo,
-                            radius: 19,
+                            radius: DiveCenterMarkerGlyph.radiusFor(50),
                             iconColor: colorScheme.onPrimary,
                             iconSize: 24,
                           ),
