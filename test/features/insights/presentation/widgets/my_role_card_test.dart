@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -94,6 +96,27 @@ void main() {
     await tester.tap(find.text('Cave Guide'));
     await tester.tap(find.text('Not set'));
     expect(opened, ['r1=Cave Guide', '$kNotRecordedDistributionKey=Not set']);
+  });
+
+  testWidgets('a load in flight shows progress', (tester) async {
+    final pending = Completer<List<DistributionSegment>>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          diverRoleDistributionProvider.overrideWith((ref) => pending.future),
+          diveRoleMapProvider.overrideWith((ref) async => roles),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: MyRoleCard()),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    pending.complete(const []);
+    await tester.pumpAndSettle();
   });
 
   testWidgets('no dives shows the empty message', (tester) async {

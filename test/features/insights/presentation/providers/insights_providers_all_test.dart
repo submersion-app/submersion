@@ -56,6 +56,7 @@ void main() {
     );
     expect(await container.read(gasMixDistributionProvider.future), isEmpty);
     expect(await container.read(diveTypeDistributionProvider.future), isEmpty);
+    expect(await container.read(diverRoleDistributionProvider.future), isEmpty);
     expect(await container.read(depthProgressionTrendProvider.future), isEmpty);
     expect(await container.read(bottomTimeTrendProvider.future), isEmpty);
     expect(await container.read(runtimeTrendProvider.future), isEmpty);
