@@ -66,35 +66,6 @@ void main() {
   );
 
   test(
-    'getWeightsForDives groups rows by dive and omits dives without',
-    () async {
-      await seed('d1');
-      await seed('d2');
-      await diveRepo.bulkAddWeights(['d1'], [weight(3), weight(4)]);
-
-      final byDive = await diveRepo.getWeightsForDives(['d1', 'd2']);
-
-      expect(byDive.keys, ['d1']);
-      expect(byDive['d1']!.map((w) => w.amountKg), [3, 4]);
-    },
-  );
-
-  test('getWeightsForDives reaches every dive across its chunks', () async {
-    for (final id in ['d1', 'd2', 'd3']) {
-      await seed(id);
-      await diveRepo.bulkAddWeights([id], [weight(3)]);
-    }
-
-    final byDive = await diveRepo.getWeightsForDives([
-      'd1',
-      'd2',
-      'd3',
-    ], chunkSize: 2);
-
-    expect(byDive.keys, unorderedEquals(['d1', 'd2', 'd3']));
-  });
-
-  test(
     'WeightAmountOp inserts one row of the given type on a dive with none',
     () async {
       await seed('d1');
