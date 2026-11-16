@@ -174,13 +174,18 @@ class DiveDetailProfileSection extends ConsumerWidget {
     // A page that offers editing changes the profile in the open card only.
     final readOnly = scope != null && editing == null;
     final session = editing ?? scope?.session;
+    // In the open card, annotations are edited only once the sitting holds
+    // them: until then (or after a failed read) a pin, a move or a removal
+    // would go nowhere.
+    final annotationsReadOnly =
+        readOnly || (editing != null && sittingAnnotations(editing) == null);
     final annotationActions = DiveDetailAnnotationActions(
       ref: ref,
       context: context,
       dive: dive,
       onOpenInNotes: onOpenInNotes,
       edits: editing == null ? null : SittingAnnotationEdits(editing),
-      readOnly: readOnly,
+      readOnly: annotationsReadOnly,
     );
     final placement = ref.watch(annotationPlacementProvider(dive.id));
     final annotationsInSitting =
@@ -194,10 +199,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _RangeToggle(diveId: dive.id),
-        // In the open card, only once the sitting holds the annotations: a
-        // pin placed before (or after a failed read) would go nowhere.
-        if (!readOnly &&
-            (editing == null || sittingAnnotations(editing) != null))
+        if (!annotationsReadOnly)
           AnnotationPinButton(
             active: placement != null,
             onPressed: annotationActions.onPinPressed,

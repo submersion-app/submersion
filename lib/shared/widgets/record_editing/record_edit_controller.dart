@@ -379,7 +379,9 @@ class RecordEditController<T> extends ChangeNotifier {
     final waited = !session.isSettled;
     if (waited) {
       await session.settled().timeout(trackedWorkTimeout, onTimeout: () {});
-      // The page went away, or the sitting was discarded, while it waited.
+      // The page went away, or the sitting was discarded, while it waited:
+      // nothing was written, and a sitting dispose kept for the write ends.
+      if (_droppedWhileSaving(session)) return false;
       if (!identical(_session, session)) return false;
       // What landed meanwhile (switches read from the database, a set's
       // cylinders) is checked as the rest was.

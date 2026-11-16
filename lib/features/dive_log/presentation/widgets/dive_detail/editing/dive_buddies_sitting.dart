@@ -55,17 +55,19 @@ final diveBuddiesList = SittingList<Dive, BuddyWithRole>(
   same: (a, b) => setEquals(_identities(a), _identities(b)),
 );
 
-const String _claimsKey = 'buddies.claims';
+/// The held write that claims the unowned buddies a legacy link named: a
+/// write of the dive's own buddies, reaching no site.
+const String buddyClaimsKey = 'buddies.claims';
 
 /// Holds the claim of [ids], unowned buddies the legacy link named, for
 /// Save: there each one the dive still links becomes the diver's, so
 /// Cancel leaves it as it was, visible to every profile.
 void _holdClaims(EditSession<Dive> session, Set<String> ids, String diverId) {
   if (ids.isEmpty || session.isDisposed || session.isFrozen) return;
-  final held = {...?session.recall<Set<String>>(_claimsKey), ...ids};
+  final held = {...?session.recall<Set<String>>(buddyClaimsKey), ...ids};
   session
-    ..remember(_claimsKey, held)
-    ..holdWrite(_claimsKey, () async {
+    ..remember(buddyClaimsKey, held)
+    ..holdWrite(buddyClaimsKey, () async {
       final linked = {
         for (final b in diveBuddiesList.current(session) ?? const [])
           b.buddy.id,

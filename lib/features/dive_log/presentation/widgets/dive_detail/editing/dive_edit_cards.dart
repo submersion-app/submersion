@@ -92,6 +92,7 @@ final Set<String> diveOwnHeldWriteKeys = {
   gasSwitchesKey,
   tankSeriesExchangeKey,
   diveBuddiesList.key,
+  buddyClaimsKey,
   diveSightingsList.key,
   diveSignaturesList.key,
   annotationsKey,

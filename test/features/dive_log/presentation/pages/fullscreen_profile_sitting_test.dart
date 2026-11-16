@@ -118,6 +118,24 @@ void main() {
 
   Finder pin() => find.byTooltip('Add annotation');
 
+  /// Taps the one annotation's dot, opening its popup.
+  Future<void> tapDot(WidgetTester tester) async {
+    final layerFinder = find.byType(AnnotationMarkerLayer);
+    final layer = tester.widget<AnnotationMarkerLayer>(layerFinder);
+    final center = annotationDotCenters(
+      annotations: layer.annotations,
+      size: tester.getSize(layerFinder),
+      insets: layer.insets,
+      visibleMinSeconds: layer.visibleMinSeconds,
+      visibleMaxSeconds: layer.visibleMaxSeconds,
+      visibleMinDepth: layer.visibleMinDepth,
+      visibleMaxDepth: layer.visibleMaxDepth,
+      depthAt: layer.depthAt,
+    ).single!;
+    await tester.tapAt(tester.getTopLeft(layerFinder) + center);
+    await settle(tester, frames: 4);
+  }
+
   testWidgets('read only: no pin', (tester) async {
     await pumpPage(tester, readOnly: true);
     expect(find.byType(AnnotationMarkerLayer), findsOneWidget);
@@ -175,5 +193,30 @@ void main() {
 
     await pumpPage(tester, session: session);
     expect(pin(), findsNothing);
+
+    // Nor can a stored marker be moved or removed: it would go nowhere.
+    await tapDot(tester);
+    expect(find.text('Remove'), findsNothing);
+  });
+
+  testWidgets('with a sitting that has ended: writes nothing, rather than '
+      'straight to the database', (tester) async {
+    final dive = (await tester.runAsync(() => repository.getDiveById(diveId)))!;
+    final session = EditSession<Dive>(dive);
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    loadDiveAnnotations(session, container.read);
+    await tester.runAsync(session.settled);
+    await pumpPage(tester, session: session);
+    expect(pin(), findsOneWidget);
+
+    // The sitting ends underneath the page, which then draws again.
+    session.dispose();
+    tester.element(find.byType(FullscreenProfilePage)).markNeedsBuild();
+    await settle(tester, frames: 2);
+
+    expect(pin(), findsNothing);
+    await tapDot(tester);
+    expect(find.text('Remove'), findsNothing);
   });
 }

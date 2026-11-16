@@ -219,7 +219,15 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     final session = widget.session;
     // A sitting that has ended (the dive changed elsewhere) edits nothing.
     final sitting = session == null || session.isDisposed ? null : session;
-    final writesNothing = widget.readOnly && sitting == null;
+    // Read only as asked, or once a sitting it was handed has ended: with no
+    // sitting the edits would otherwise go straight to the database.
+    final writesNothing =
+        widget.readOnly || (session != null && sitting == null);
+    // In a sitting, annotations are edited only once it holds them: until
+    // then a pin, a move or a removal would go nowhere.
+    final annotationsReadOnly =
+        writesNothing ||
+        (sitting != null && sittingAnnotations(sitting) == null);
     final gasSwitches =
         (sitting == null ? null : sittingGasSwitchesWithTanks(sitting)) ??
         ref.watch(gasSwitchesProvider(widget.diveId)).value;
@@ -340,7 +348,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
       context: context,
       dive: dive,
       edits: sitting == null ? null : SittingAnnotationEdits(sitting),
-      readOnly: writesNothing,
+      readOnly: annotationsReadOnly,
       onOpenInNotes: openInNotes == null
           ? null
           : (id) {
@@ -578,11 +586,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                   // No trailing gap: the info icon's slot
                                   // after it spaces the pair, and the group
                                   // must fit a 320 pt phone.
-                                  // With a sitting, only once it holds the
-                                  // annotations: a pin would go nowhere.
-                                  if (!writesNothing &&
-                                      (sitting == null ||
-                                          sittingAnnotations(sitting) != null))
+                                  if (!annotationsReadOnly)
                                     AnnotationPinButton(
                                       active: annotationPlacement != null,
                                       onPressed: chartActions.onPinPressed,

@@ -204,6 +204,9 @@ void main() {
     expect(await ownerOfEve(), isNull);
 
     final saved = await linked();
+    // Every write it holds is the dive's own: none reaches a site, so the
+    // page does not reload the site list after this Save.
+    expect(saved.heldKeys.difference(diveOwnHeldWriteKeys), isEmpty);
     await saved.runHeldWrites();
     expect(await ownerOfEve(), 'me');
     expect((await repo.getBuddiesForDive('d1')).map((b) => b.buddy.id), ['b4']);
