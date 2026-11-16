@@ -9252,14 +9252,20 @@ class DiveRepository {
   Map<String, TankRole> _slotRolesByTankId(
     List<DiveTank> rows,
     List<TankRole> slotRoles,
+  ) => {
+    for (final tanks in _tankPositionsByDive(rows).values)
+      ...?slotRolesForDive(tanks, slotRoles),
+  };
+
+  /// Each dive's tanks in [rows] as `slotRolesForDive` reads them.
+  Map<String, List<({String id, int order})>> _tankPositionsByDive(
+    List<DiveTank> rows,
   ) {
     final byDive = <String, List<({String id, int order})>>{};
     for (final row in rows) {
       (byDive[row.diveId] ??= []).add((id: row.id, order: row.tankOrder));
     }
-    return {
-      for (final tanks in byDive.values) ...?slotRolesForDive(tanks, slotRoles),
-    };
+    return byDive;
   }
 
   /// How many of [diveIds] have tanks that do not line up with [slotRoles]:
@@ -9275,13 +9281,9 @@ class DiveRepository {
     final rows = await (_db.select(
       _db.diveTanks,
     )..where((t) => t.diveId.isIn(diveIds))).get();
-    final withTanks = rows.map((r) => r.diveId).toSet();
-    final matched = _slotRolesByTankId(rows, slotRoles).keys.toSet();
-    final matchedDives = {
-      for (final r in rows)
-        if (matched.contains(r.id)) r.diveId,
-    };
-    return withTanks.difference(matchedDives).length;
+    return _tankPositionsByDive(rows).values
+        .where((tanks) => slotRolesForDive(tanks, slotRoles) == null)
+        .length;
   }
 
   /// How many of [diveIds] have no tank rows at all. Used to warn before an

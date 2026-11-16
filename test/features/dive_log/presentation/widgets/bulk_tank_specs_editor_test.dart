@@ -16,7 +16,11 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
-Future<void> _pump(WidgetTester tester, Widget child) async {
+Future<void> _pump(
+  WidgetTester tester,
+  Widget child, {
+  Locale locale = const Locale('en'),
+}) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   final presets = TankPresets.all
@@ -36,7 +40,7 @@ Future<void> _pump(WidgetTester tester, Widget child) async {
         tankPresetsProvider.overrideWith((ref) => Future.value(presets)),
       ].cast(),
       child: MaterialApp(
-        locale: const Locale('en'),
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(body: SingleChildScrollView(child: child)),
@@ -107,6 +111,25 @@ void main() {
       expect(sameRole, findsOneWidget);
       expect(byPosition, findsOneWidget);
       expect(templateRole, findsOneWidget);
+    });
+
+    // Both choices must fit a phone: a SegmentedButton gave each the width
+    // of the longer label and overflowed.
+    testWidgets('the role layout fits a phone-width form', (tester) async {
+      tester.view.physicalSize = const Size(360, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      // German has the longest labels.
+      await _pump(
+        tester,
+        const _Harness(fields: {TankSpecField.role}),
+        locale: const Locale('de'),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Gleiche Rolle für jede Flasche'), findsOneWidget);
+      expect(find.text('Rolle nach Flaschenposition'), findsOneWidget);
     });
 
     testWidgets('by position starts with sidemount left and right', (
