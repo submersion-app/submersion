@@ -140,6 +140,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         nameController: _nameController,
         emailController: _emailController,
         phoneController: _phoneController,
+        countryController: _countryController,
         notesController: _notesController,
       );
       _excludedFromRankings = _mergeCtrl!.mergedExcludedFromRankings;
@@ -257,6 +258,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       'name' => _nameController,
       'email' => _emailController,
       'phone' => _phoneController,
+      'country' => _countryController,
       'notes' => _notesController,
       _ => _nameController,
     };
