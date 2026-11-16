@@ -47,6 +47,11 @@ class SiteCatalogueEntries extends Table {
   /// on it, so it is a column and not part of the JSON.
   TextColumn get kind => text().withDefault(const Constant('site'))();
 
+  /// `map` when a researched record's position was read off a counting
+  /// page's map; null otherwise (CatalogueSite.positionFromMap). Added in
+  /// v24.
+  TextColumn get positionFrom => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -95,6 +100,7 @@ const String kCreateSiteCatalogueTableSql = '''
     source_ref TEXT NULL,
     trust TEXT NOT NULL DEFAULT 'verified',
     kind TEXT NOT NULL DEFAULT 'site',
+    position_from TEXT NULL,
     PRIMARY KEY (id)
   )
 ''';
@@ -104,6 +110,39 @@ const String kCreateSiteCatalogueTableSql = '''
 /// existed.
 const String kAddSiteCatalogueKindSql =
     "ALTER TABLE site_catalogue ADD COLUMN kind TEXT NOT NULL DEFAULT 'site'";
+
+/// Adds [SiteCatalogueEntries.positionFrom] to a table created before v24.
+/// The rows already there were not placed from a map: no record was.
+const String kAddSiteCataloguePositionFromSql =
+    'ALTER TABLE site_catalogue ADD COLUMN position_from TEXT NULL';
+
+Future<Set<String>> _siteCatalogueColumns(GeneratedDatabase db) async {
+  final columns = await db
+      .customSelect("SELECT name FROM pragma_table_info('site_catalogue')")
+      .get();
+  return columns.map((c) => c.read<String>('name')).toSet();
+}
+
+/// Idempotent, so the v22 rung and the open backstop share it: adds the
+/// kind column to a catalogue table created without it, then its index.
+/// A table v21 has not created yet is left for the backstop, which
+/// creates it with the column.
+Future<void> addSiteCatalogueKind(GeneratedDatabase db) async {
+  final names = await _siteCatalogueColumns(db);
+  if (names.isEmpty) return;
+  if (!names.contains('kind')) {
+    await db.customStatement(kAddSiteCatalogueKindSql);
+  }
+  await db.customStatement(kCreateSiteCatalogueKindIndexSql);
+}
+
+/// Idempotent, so the v24 rung and the open backstop share it: adds the
+/// position_from column to a catalogue table created without it.
+Future<void> addSiteCataloguePositionFrom(GeneratedDatabase db) async {
+  final names = await _siteCatalogueColumns(db);
+  if (names.isEmpty || names.contains('position_from')) return;
+  await db.customStatement(kAddSiteCataloguePositionFromSql);
+}
 
 /// The open backstop's copy of [SiteCatalogueMeta].
 const String kCreateSiteCatalogueMetaTableSql = '''

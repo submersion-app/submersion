@@ -355,7 +355,7 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 23;
+  int get schemaVersion => 24;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -551,10 +551,12 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       // v22: a catalogue record's kind (dive site or register record), and
       // the index that reads one kind near a point.
       if (from < 22) {
-        await _addSiteCatalogueKind();
+        await addSiteCatalogueKind(this);
       }
       // v23: each dive's vertical distance (issue #4569).
       if (from < 23) await m.createTable(diveVerticalDistanceCache);
+      // v24: where a researched catalogue record's position came from.
+      if (from < 24) await addSiteCataloguePositionFrom(this);
     },
     beforeOpen: (details) async {
       // Ladder-collision self-heal: a parallel branch that also claimed v7
@@ -718,27 +720,13 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       await customStatement(kCreateSiteCatalogueMetaTableSql);
       await _createSiteCatalogueIndex();
       // v22 mirror, for a database a colliding branch stamped at v22 first.
-      await _addSiteCatalogueKind();
+      await addSiteCatalogueKind(this);
       // v23 mirror, for a database a colliding branch stamped at v23 first.
       await customStatement(kCreateDiveVerticalDistanceCacheSql);
+      // v24 mirror, for a database a colliding branch stamped at v24 first.
+      await addSiteCataloguePositionFrom(this);
     },
   );
-
-  /// Idempotent, so the v22 rung and the open backstop share it: adds the
-  /// kind column to a catalogue table created without it, then its index.
-  /// A table v21 has not created yet is left for the backstop, which
-  /// creates it with the column.
-  Future<void> _addSiteCatalogueKind() async {
-    final columns = await customSelect(
-      "SELECT name FROM pragma_table_info('site_catalogue')",
-    ).get();
-    final names = columns.map((c) => c.read<String>('name')).toSet();
-    if (names.isEmpty) return;
-    if (!names.contains('kind')) {
-      await customStatement(kAddSiteCatalogueKindSql);
-    }
-    await customStatement(kCreateSiteCatalogueKindIndexSql);
-  }
 
   /// Idempotent, so the v21 rung and the open backstop (which also covers
   /// a fresh create) share it.

@@ -143,6 +143,7 @@ CatalogueSite? _site(Map<String, dynamic> raw, SeaNamer? seaAt) {
     // A record is a dive site unless it says it is a register record; a
     // kind this build does not know is read as a dive site too.
     kind: catalogueKindsByName[raw['kind']] ?? CatalogueKind.site,
+    positionFromMap: raw['position_from'] == 'map',
   );
 }
 

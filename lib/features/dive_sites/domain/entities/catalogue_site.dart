@@ -69,6 +69,12 @@ class CatalogueSite extends Equatable {
   final CatalogueTrust trust;
   final CatalogueKind kind;
 
+  /// Whether a researched record's position was read off a counting page's
+  /// map rather than stated as a figure. Such a position is only good
+  /// enough to name the dive: matching offers the record from further away
+  /// and never lets it stand in the way of an automatic match.
+  final bool positionFromMap;
+
   const CatalogueSite({
     required this.id,
     required this.name,
@@ -93,6 +99,7 @@ class CatalogueSite extends Equatable {
     this.sourceRef,
     this.trust = CatalogueTrust.verified,
     this.kind = CatalogueKind.site,
+    this.positionFromMap = false,
   });
 
   bool get hasCoordinates => location != null;
@@ -127,6 +134,7 @@ class CatalogueSite extends Equatable {
     sourceRef,
     trust,
     kind,
+    positionFromMap,
   ];
 }
 
