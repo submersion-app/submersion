@@ -10,12 +10,12 @@ import 'package:submersion/features/agent_access/data/writes/writable_entity.dar
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart'
     show PlanSummaryData;
-import 'package:submersion/features/planner/data/services/plan_engine_settings.dart';
 import 'package:submersion/features/planner/data/services/stored_series_results.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
+import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
-    show AppSettings;
+import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart'
+    show SeriesDiveResult;
 
 /// Saved dive plans, through the repository the planner canvas saves with:
 /// the whole plan, its tanks and its segments, and the depth and run time
@@ -190,22 +190,22 @@ class DivePlanWrites extends WritableEntry {
     }
     // An earlier change to the log refuses a new plan as well as a stored
     // one, as it refuses a new series, so the rule has no exception.
-    final soFar = check.soFar;
-    final earlier =
-        soFar.values.keys.any(
-          (k) => k.$1 == 'dives' || (id != null && k.$1 == name && k.$2 == id),
-        ) ||
-        (soFar.deleted['dives']?.isNotEmpty ?? false) ||
-        (soFar.created['dives']?.isNotEmpty ?? false);
-    if (earlier) {
+    if (PlannedDivesEffect.changedEarlier(
+      check.soFar,
+      (entity, record) => id != null && entity == name && record == id,
+    )) {
       return const PlanBlock(
         BlockReason.notPermitted,
         '$_plannedField: write a planned dive in a change set after the one '
-        'that changes this plan or the log.',
+        'that changes this plan, a plan\'s link or the log.',
       );
     }
     return PlannedDivesEffect.blockOf(
-      await _outlook(await _plannedPlan(check.id, v), check.ownerId, ask),
+      await _outlook(
+        await _plannedPlan(check.id, v),
+        await _plannedOwner(check.ownerId),
+        ask,
+      ),
     );
   }
 
@@ -220,63 +220,57 @@ class DivePlanWrites extends WritableEntry {
             createdAt: now,
             updatedAt: now,
           )
-        : await _r.divePlans.getPlan(id) ??
-              (throw AgentToolException(
-                AgentToolErrorCode.writeRefused,
-                'Dive plan $id no longer exists.',
-                details: {'id': id},
-              ));
+        : await _storedPlan(id);
     return applyPlanValues(base, values);
   }
 
-  /// Whose plan this is for writing its planned dive: [ownerId] for a
-  /// create, else as [update] works it out.
+  /// Whose plan this is, for its summary and its planned dive: [ownerId],
+  /// which a create and a plan in a series have, else the active diver, as
+  /// the planner computes a plan on its own.
   Future<String?> _plannedOwner(String? ownerId) async =>
       ownerId ?? await _r.activeDiverId?.call();
 
+  /// What writing [plan]'s planned dive for [owner] does.
   Future<PlannedDivesOutlook> _outlook(
     DivePlan plan,
-    String? ownerId,
+    String? owner,
     PlannedDivesRequest ask,
-  ) async {
-    final owner = await _plannedOwner(ownerId);
-    return _planned.outlook(
-      await computeStoredPlan(
-        plan,
-        config: await _planned.configFor(owner),
-        dives: _r.dives,
-        followOf: _planned.followOf,
-      ),
-      ownerId: owner,
-      request: ask,
-    );
-  }
+  ) async => _planned.outlook(
+    await _computedPlan(plan, owner),
+    ownerId: owner,
+    request: ask,
+  );
 
-  /// Writes the planned dive of the saved plan [id] for [ownerId].
+  /// [plan] computed as the planner opens it, with [owner]'s settings.
+  Future<({PlanSeries series, List<SeriesDiveResult> results})> _computedPlan(
+    DivePlan plan,
+    String? owner,
+  ) async => computeStoredPlan(
+    plan,
+    config: await _planned.configFor(owner),
+    dives: _r.dives,
+    followOf: _planned.followOf,
+  );
+
+  /// Writes the planned dive of the saved plan [id] for [owner].
   Future<void> _writePlanned(
     String id,
-    String? ownerId,
+    String? owner,
     PlannedDivesRequest ask,
-  ) async {
-    final plan =
-        await _r.divePlans.getPlan(id) ??
-        (throw AgentToolException(
-          AgentToolErrorCode.writeRefused,
-          'Dive plan $id no longer exists.',
-          details: {'id': id},
-        ));
-    final owner = await _plannedOwner(ownerId);
-    await _planned.write(
-      await computeStoredPlan(
-        plan,
-        config: await _planned.configFor(owner),
-        dives: _r.dives,
-        followOf: _planned.followOf,
-      ),
-      ownerId: owner,
-      request: ask,
-    );
-  }
+  ) async => _planned.write(
+    await _computedPlan(await _storedPlan(id), owner),
+    ownerId: owner,
+    request: ask,
+  );
+
+  /// The stored plan [id], or a refusal when it has gone.
+  Future<DivePlan> _storedPlan(String id) async =>
+      await _r.divePlans.getPlan(id) ??
+      (throw AgentToolException(
+        AgentToolErrorCode.writeRefused,
+        'Dive plan $id no longer exists.',
+        details: {'id': id},
+      ));
 
   @override
   Future<Map<String, int>> alsoCreates(
@@ -298,7 +292,11 @@ class DivePlanWrites extends WritableEntry {
     final planned = ask == null
         ? const SideEffects()
         : PlannedDivesEffect.effectsOf(
-            await _outlook(await _plannedPlan(id, update.values), ownerId, ask),
+            await _outlook(
+              await _plannedPlan(id, update.values),
+              await _plannedOwner(ownerId),
+              ask,
+            ),
           );
     final diveId = update.values['linked_dive_id'];
     if (diveId is! String) return planned;
@@ -348,14 +346,8 @@ class DivePlanWrites extends WritableEntry {
 
   @override
   Future<void> update(String id, String? ownerId, RecordUpdate update) async {
-    final current =
-        await _r.divePlans.getPlan(id) ??
-        (throw AgentToolException(
-          AgentToolErrorCode.writeRefused,
-          'Dive plan $id no longer exists.',
-          details: {'id': id},
-        ));
-    final owner = ownerId ?? await _r.activeDiverId?.call();
+    final current = await _storedPlan(id);
+    final owner = await _plannedOwner(ownerId);
     await _save(
       current,
       update.values,
@@ -391,7 +383,7 @@ class DivePlanWrites extends WritableEntry {
     var saved = plan;
     if (changesPlan) {
       final outcome = PlanEngine(
-        config: await _configFor(ownerId),
+        config: await _planned.configFor(ownerId),
       ).compute(next);
       saved = await _r.divePlans.savePlan(
         next,
@@ -411,15 +403,6 @@ class DivePlanWrites extends WritableEntry {
       }
     }
     return saved;
-  }
-
-  /// The planner settings of [ownerId], or the defaults for a plan with no
-  /// owner or an owner with no settings of their own.
-  Future<PlanEngineConfig> _configFor(String? ownerId) async {
-    final settings = ownerId == null
-        ? null
-        : await _r.diverSettings.getSettingsForDiver(ownerId);
-    return planEngineConfigFromSettings(settings ?? const AppSettings());
   }
 
   Future<String?> _seriesOf(String id) async {

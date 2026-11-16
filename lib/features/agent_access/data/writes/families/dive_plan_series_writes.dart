@@ -4,14 +4,11 @@ import 'package:submersion/features/agent_access/data/writes/families/planned_di
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
-import 'package:submersion/features/planner/data/services/plan_engine_settings.dart';
 import 'package:submersion/features/planner/data/services/stored_series_results.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart'
     show SeriesDiveResult;
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
-    show AppSettings;
 
 /// Repetitive dive series, through the repository the planner saves them
 /// with. A series is created from its dives, as `compute_plan` takes them,
@@ -95,13 +92,8 @@ class DivePlanSeriesWrites extends WritableEntry {
         (d as Map)['plan_id'] as String,
     ];
     final v = check.values;
-    if (v.containsKey(_dissolve) && v.containsKey('plan_ids')) {
-      return const PlanBlock(
-        BlockReason.notPermitted,
-        'Dissolve a series in a change of its own.',
-      );
-    }
-    if (v.containsKey(_dissolve) && v[PlannedDivesEffect.field] != null) {
+    if (v.containsKey(_dissolve) &&
+        (v.containsKey('plan_ids') || v[PlannedDivesEffect.field] != null)) {
       return const PlanBlock(
         BlockReason.notPermitted,
         'Dissolve a series in a change of its own.',
@@ -127,35 +119,32 @@ class DivePlanSeriesWrites extends WritableEntry {
         return block;
       }
       return PlannedDivesEffect.blockOf(
-        await _outlookOfUpdate(check.id!, check.ownerId, v, ask),
+        await _outlookOfUpdate(check.id!, v, ask),
       );
     }
     return null;
   }
 
   /// A block when an earlier change in the set writes this series, its
-  /// plans or the log, which the planned dives would be decided without.
+  /// plans, a plan's link or the log, which the planned dives would be
+  /// decided without (see [PlannedDivesEffect.changedEarlier]).
   static PlanBlock? _changedEarlier(
     SetSoFar soFar,
     String id,
     List<String> planIds,
   ) {
     final plans = planIds.toSet();
-    bool touches(String entity, String record) =>
-        entity == 'dives' ||
-        (entity == 'dive_plans' && plans.contains(record)) ||
-        (entity == 'dive_plan_series' && record == id);
-    final earlier =
-        soFar.values.keys.any((key) => touches(key.$1, key.$2)) ||
-        soFar.deleted.entries.any(
-          (e) => e.value.any((record) => touches(e.key, record)),
-        ) ||
-        (soFar.created['dives']?.isNotEmpty ?? false);
-    return earlier
+    return PlannedDivesEffect.changedEarlier(
+          soFar,
+          (entity, record) =>
+              (entity == 'dive_plans' && plans.contains(record)) ||
+              (entity == 'dive_plan_series' && record == id),
+        )
         ? const PlanBlock(
             BlockReason.notPermitted,
             '${PlannedDivesEffect.field}: write planned dives in a change set '
-            'after the one that changes this series, its plans or the log.',
+            'after the one that changes this series, its plans, a plan\'s '
+            'link or the log.',
           )
         : null;
   }
@@ -164,7 +153,6 @@ class DivePlanSeriesWrites extends WritableEntry {
   /// planned dives.
   Future<PlannedDivesOutlook> _outlookOfUpdate(
     String id,
-    String? ownerId,
     Map<String, Object?> values,
     PlannedDivesRequest ask,
   ) async {
@@ -172,11 +160,17 @@ class DivePlanSeriesWrites extends WritableEntry {
     final next = _updated(current, values);
     return _planned.outlook(
       await _computed(next),
-      ownerId: next.diverId ?? ownerId,
+      ownerId: await _ownerOf(next),
       request: ask,
       removed: _removedEntries(current, next),
     );
   }
+
+  /// Whom [series]' planned dives are written for, with whose settings it is
+  /// computed: its diver, or for a series with none the active diver, as the
+  /// planner and a plan in no series have it.
+  Future<String?> _ownerOf(StoredSeries series) async =>
+      series.diverId ?? await _r.activeDiverId?.call();
 
   /// [series] with an update's name and order, as [update] saves it.
   static StoredSeries _updated(StoredSeries series, Map<String, Object?> v) {
@@ -203,12 +197,12 @@ class DivePlanSeriesWrites extends WritableEntry {
   }
 
   /// [series] computed as the planner computes it on opening, with its
-  /// diver's planner settings.
+  /// owner's planner settings (see [_ownerOf]).
   Future<({PlanSeries series, List<SeriesDiveResult> results})> _computed(
     StoredSeries series,
   ) async => computeStoredSeries(
     series,
-    config: await _planned.configFor(series.diverId),
+    config: await _planned.configFor(await _ownerOf(series)),
     dives: _r.dives,
     followOf: _planned.followOf,
   );
@@ -289,17 +283,14 @@ class DivePlanSeriesWrites extends WritableEntry {
   Future<StoredSeries> _built(
     Map<String, Object?> values,
     String diverId,
-  ) async {
-    final settings = await _r.diverSettings.getSettingsForDiver(diverId);
-    return seriesFromDives(
-      dives: values[_dives],
-      name: values['name']! as String,
-      diverId: diverId,
-      followedDiveId: values[_follow] as String?,
-      config: planEngineConfigFromSettings(settings ?? const AppSettings()),
-      followOf: _followOf,
-    );
-  }
+  ) async => seriesFromDives(
+    dives: values[_dives],
+    name: values['name']! as String,
+    diverId: diverId,
+    followedDiveId: values[_follow] as String?,
+    config: await _planned.configFor(diverId),
+    followOf: _followOf,
+  );
 
   @override
   Future<SideEffects> sideEffects(
@@ -321,7 +312,7 @@ class DivePlanSeriesWrites extends WritableEntry {
       return SideEffects(parts: {if (dropped > 0) 'dive_plans': dropped});
     }
     final planned = PlannedDivesEffect.effectsOf(
-      await _outlookOfUpdate(id, ownerId, v, ask),
+      await _outlookOfUpdate(id, v, ask),
     );
     return SideEffects(
       fields: planned.fields,
@@ -379,20 +370,25 @@ class DivePlanSeriesWrites extends WritableEntry {
       await repo.dissolveSeries(id, keepPlanId: keep);
       return;
     }
-    final before = await _series(id);
+    final ask = PlannedDivesRequest.of(v[PlannedDivesEffect.field]);
+    // Read only when the save or the planned dives need it: a rename alone
+    // reads nothing.
+    final before = v['plan_ids'] != null || ask != null
+        ? await _series(id)
+        : null;
     if (v['plan_ids'] != null) {
-      await repo.saveSeries(_updated(before, v));
+      await repo.saveSeries(_updated(before!, v));
     } else if (v['name'] case final String name) {
       await repo.renameSeries(id, name);
     }
-    if (PlannedDivesRequest.of(v[PlannedDivesEffect.field]) case final ask?) {
+    if (ask != null) {
       // Read again after the save, which keeps each plan's link.
       final after = await _series(id);
       await _planned.write(
         await _computed(after),
-        ownerId: after.diverId ?? ownerId,
+        ownerId: await _ownerOf(after),
         request: ask,
-        removed: _removedEntries(before, after),
+        removed: _removedEntries(before!, after),
       );
     }
   }

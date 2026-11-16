@@ -1,6 +1,8 @@
+import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive, DivePlan;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/planned_dives_effect.dart';
 import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
 import 'package:submersion/features/agent_access/data/writes/write_plan.dart';
@@ -28,31 +30,34 @@ void main() {
   Future<SeriesFollow?> followOf(String id) async => followed[id];
   final nine = DateTime.utc(2026, 10, 27, 9);
 
-  /// Dives A, at nine, and B, two hours after A surfaces, for diver A.
-  Future<StoredSeries> saveSeries({DateTime? start, double depthB = 30}) =>
-      DivePlanSeriesRepository().saveSeries(
-        StoredSeries(
-          id: 's1',
-          name: 'Reef day',
-          diverId: kDiverA,
-          dives: [
-            StoredSeriesDive(
-              plan: divePlanFromState(
-                seriesDiveState(id: 'a').copyWith(startDateTime: start),
-              ),
-            ),
-            StoredSeriesDive(
-              plan: divePlanFromState(
-                seriesDiveState(
-                  id: 'b',
-                  depth: depthB,
-                  surfaceInterval: const Duration(hours: 2),
-                ),
-              ),
-            ),
-          ],
+  /// Dives A, at nine, and B, two hours after A surfaces, for [diverId].
+  Future<StoredSeries> saveSeries({
+    DateTime? start,
+    double depthB = 30,
+    String? diverId = kDiverA,
+  }) => DivePlanSeriesRepository().saveSeries(
+    StoredSeries(
+      id: 's1',
+      name: 'Reef day',
+      diverId: diverId,
+      dives: [
+        StoredSeriesDive(
+          plan: divePlanFromState(
+            seriesDiveState(id: 'a').copyWith(startDateTime: start),
+          ),
         ),
-      );
+        StoredSeriesDive(
+          plan: divePlanFromState(
+            seriesDiveState(
+              id: 'b',
+              depth: depthB,
+              surfaceInterval: const Duration(hours: 2),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 
   Map<String, Object?> writeSeries([
     Map<String, Object?> options = const {},
@@ -238,6 +243,59 @@ void main() {
         expect(preview.items.last.block!.reason, BlockReason.notPermitted);
       },
     );
+
+    test(
+      'cannot follow an earlier change to an entry\'s tank in the same set',
+      () async {
+        await saveSeries(start: nine);
+        await h.run([writeSeries()]);
+        final tank = await db
+            .customSelect(
+              'SELECT id FROM dive_tanks WHERE dive_id = ? ORDER BY id LIMIT 1',
+              variables: [Variable.withString((await linkOf('a'))!)],
+            )
+            .getSingle();
+
+        final preview = await h.preview([
+          updateOp('dive_tanks', tank.read<String>('id'), {'name': 'Left'}),
+          writeSeries(),
+        ]);
+
+        final block = preview.items.last.block!;
+        expect(block.reason, BlockReason.notPermitted);
+        expect(block.detail, contains('the log'));
+      },
+    );
+
+    test(
+      'cannot follow an earlier link that takes one of its entries',
+      () async {
+        await saveSeries(start: nine);
+        await h.run([writeSeries()]);
+        await DivePlanRepository().savePlan(
+          divePlanFromState(seriesDiveState(id: 'q')),
+        );
+
+        final preview = await h.preview([
+          updateOp('dive_plans', 'q', {'linked_dive_id': await linkOf('a')}),
+          writeSeries(),
+        ]);
+
+        expect(preview.items.first.block, isNull);
+        expect(preview.items.last.block!.reason, BlockReason.notPermitted);
+      },
+    );
+
+    test('with no owner, writes its entries for the active diver', () async {
+      await saveSeries(start: nine, diverId: null);
+
+      await h.run([writeSeries()]);
+
+      for (final planId in ['a', 'b']) {
+        final dive = await diveOf(await linkOf(planId));
+        expect(dive!.diverId, kDiverA, reason: planId);
+      }
+    });
 
     test('cannot be dissolved in the same change', () async {
       await saveSeries(start: nine);
@@ -499,6 +557,58 @@ void main() {
       await h.revert(result);
 
       expect(await logSnapshot(), before);
+    });
+
+    test('of delete_removed brings the entry and its plan back', () async {
+      await saveSeries(start: nine);
+      await h.run([writeSeries()]);
+      final dropped = (await linkOf('b'))!;
+      final before = await logSnapshot();
+
+      final result = await h.run([
+        writeSeries(
+          {PlannedDivesEffect.deleteRemoved: true},
+          {
+            'plan_ids': ['a'],
+          },
+        ),
+      ]);
+      expect(await diveOf(dropped), isNull);
+      await h.revert(result);
+
+      expect(await logSnapshot(), before);
+      expect(await linkOf('b'), dropped);
+    });
+
+    test('of a moved link puts it back on the dived dive', () async {
+      await DivePlanRepository().savePlan(
+        divePlanFromState(
+          seriesDiveState(id: 'p').copyWith(startDateTime: nine),
+        ),
+      );
+      await DivePlanRepository().linkPlanToDive('p', 'd1');
+      final before = await logSnapshot();
+
+      final result = await h.run([
+        updateOp('dive_plans', 'p', {
+          PlannedDivesEffect.field: {PlannedDivesEffect.moveDivedLink: true},
+        }),
+      ]);
+      expect(await linkOf('p'), isNot('d1'));
+      await h.revert(result);
+
+      expect(await linkOf('p'), 'd1');
+      expect(await logSnapshot(), before);
+    });
+  });
+
+  test('the log is dives and every record that belongs to one', () {
+    // A new child of a dive must join logEntities, or an earlier change to
+    // it in a set would be overwritten by the planned dives after it.
+    expect(PlannedDivesEffect.logEntities, {
+      'dives',
+      for (final entry in WriteCatalog(RecordRepositories()).all)
+        if (entry.parent?.entity == 'dives') entry.name,
     });
   });
 }

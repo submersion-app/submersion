@@ -170,8 +170,14 @@ rewritten in place, a dived one is left alone.
 - **Refusals.** A series whose first dive has no `start_date_time`; a dive
   with no segments or a critical warning; a single plan linked to a dived dive
   without `move_dived_link`; a plan in a series (the series writes them all);
-  a copy; and a change set where an earlier change writes the plan or the log,
-  which the decision would be made without.
+  a copy; and a change set where an earlier change writes the plan, links a
+  dive to any plan (which takes it off another), or writes the log: a dive or
+  any record that belongs to one (`PlannedDivesEffect.logEntities`, pinned to
+  the catalog by a test), which the decision would be made without and the
+  rewrite would overwrite.
+- **Owner.** A series' entries belong to its diver and are computed with that
+  diver's settings; a plan in no series, or a series with no diver, uses the
+  active diver's, as the planner does.
 - **Removed dives.** Only the dives the same update drops through `plan_ids`.
   Their planned entries are deleted with `delete_removed`, else kept unlinked;
   a dived one always stays.

@@ -111,6 +111,45 @@ class PlannedDivesEffect {
     };
   }
 
+  /// The entities whose records are the log: dives, and every record that
+  /// belongs to one. Writing a planned entry replaces its tanks, gas
+  /// switches, notes and safety review, so a change to any of these earlier
+  /// in the set would be decided on and then overwritten.
+  static const logEntities = {
+    'dives',
+    'dive_tanks',
+    'dive_weights',
+    'dive_custom_fields',
+    'dive_events',
+    'dive_scenarios',
+    'gas_switches',
+    'safety_findings',
+    'sightings',
+  };
+
+  /// Whether a change earlier in the set, as [soFar] holds it, writes the
+  /// log, links a dive to a plan (which takes it off any other plan), or
+  /// writes a record [owns] names: the plan or series being written, and a
+  /// series' plans. The planned dives would be decided without any of it.
+  static bool changedEarlier(
+    SetSoFar soFar,
+    bool Function(String entity, String id) owns,
+  ) {
+    bool touches(String entity, String id) =>
+        logEntities.contains(entity) || owns(entity, id);
+    bool links(Map<String, Object?> values) => values['linked_dive_id'] != null;
+    return soFar.values.entries.any(
+          (e) =>
+              touches(e.key.$1, e.key.$2) ||
+              (e.key.$1 == 'dive_plans' && links(e.value)),
+        ) ||
+        soFar.deleted.entries.any(
+          (e) => e.value.any((id) => touches(e.key, id)),
+        ) ||
+        logEntities.any((e) => soFar.created[e]?.isNotEmpty ?? false) ||
+        (soFar.created['dive_plans'] ?? const []).any(links);
+  }
+
   /// What the tool description says about the field.
   static const note =
       '$field writes the plan\'s dives into the log as planned dives, as the '
@@ -288,8 +327,10 @@ class PlannedDivesEffect {
     }
     await writer.link(written);
     if (!request.deleteRemoved) return;
-    for (final dive in await writer.orphans(removed)) {
-      await _r.dives.deleteDive(dive.id);
-    }
+    final orphans = [for (final dive in await writer.orphans(removed)) dive.id];
+    if (orphans.isEmpty) return;
+    // As a dive's own delete runs: a revert restores the rows, and its
+    // media needs the blobs still there.
+    await _r.dives.bulkDeleteDives(orphans, holdRemoteMedia: true);
   }
 }
