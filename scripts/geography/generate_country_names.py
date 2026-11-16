@@ -77,18 +77,6 @@ _DIACRITICS = {
 }
 
 
-# Latin letters past the shared table, mirrored by _widerLatin in
-# lib/core/geography/country_code.dart: names in Central European and
-# Turkish spellings ("Česko", "Łódź") fold like their plain forms.
-_WIDER_LATIN = {
-    "ă": "a", "ą": "a", "ā": "a", "ć": "c", "č": "c", "ď": "d", "đ": "d",
-    "ę": "e", "ě": "e", "ē": "e", "ğ": "g", "ı": "i", "ī": "i", "ł": "l",
-    "ń": "n", "ň": "n", "ō": "o", "ř": "r", "ś": "s", "š": "s", "ş": "s",
-    "ș": "s", "ť": "t", "ţ": "t", "ț": "t", "ū": "u", "ů": "u", "ź": "z",
-    "ż": "z", "ž": "z",
-}
-
-
 # Punctuation people type in more than one way, mirrored by _punctuation in
 # lib/core/geography/country_code.dart: a typed straight apostrophe finds
 # CLDR's curly one ("Cote d'Ivoire"), and a hyphen or dash reads as a space
@@ -113,10 +101,10 @@ def fold(text: str) -> str:
     "Trinidad and Tobago" all find their country.
     """
     folded = "".join(_DIACRITICS.get(ord(ch), ch) for ch in text.strip().lower())
-    # Decomposed accents ("e" + U+0301) drop their mark; wider Latin letters
-    # fold to plain ones, and apostrophes and dashes to one form each.
+    # Decomposed accents ("e" + U+0301) drop their mark, as normalize drops
+    # them, and apostrophes and dashes fold to one form each.
     folded = "".join(
-        _WIDER_LATIN.get(ch, _PUNCTUATION.get(ch, ch))
+        _PUNCTUATION.get(ch, ch)
         for ch in folded
         if not _is_combining_mark(ch)
     )
