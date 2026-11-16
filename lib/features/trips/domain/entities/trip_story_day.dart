@@ -103,29 +103,41 @@ class TripStoryDay extends Equatable {
 
   /// Where the day's sites are, each distinct location once in dive order, as
   /// [DiveSite.locationString] gives it ("Marsa Alam · Red Sea, Egypt").
-  /// Several sites in one area read as that area once, and an area a finer
-  /// location already names is left out: "Red Sea, Egypt" beside
+  /// Several sites in one area read as that area once, and a location whose
+  /// every part (town, region, country) a fuller one repeats is left out:
+  /// "Red Sea, Egypt", "Marsa Alam" or "Red Sea" beside
   /// "Marsa Alam · Red Sea, Egypt" would say the same place twice. A site
-  /// with no town, region or country set adds nothing. Both checks ignore
-  /// case, since one area is often typed two ways; the first spelling wins.
+  /// with no town, region or country set adds nothing. The parts compare
+  /// without case, since one area is often typed two ways; the first spelling
+  /// wins.
   List<String> get siteLocations {
     final seen = <String>{};
-    final locations = <String>[];
+    final areas = <({String location, List<String> parts})>[];
     for (final dive in dives) {
-      final location = dive.site?.locationString ?? '';
-      if (location.isNotEmpty && seen.add(location.toLowerCase())) {
-        locations.add(location);
+      final site = dive.site;
+      if (site == null || site.locationString.isEmpty) continue;
+      final parts = [
+        site.locality,
+        site.region?.trim() ?? '',
+        site.country?.trim() ?? '',
+      ].map((part) => part.toLowerCase()).toList();
+      if (seen.add(parts.join('\n'))) {
+        areas.add((location: site.locationString, parts: parts));
       }
     }
-    bool namedWithin(String coarse, String fine) {
-      final c = coarse.toLowerCase();
-      final f = fine.toLowerCase();
-      return f != c && (f.endsWith(' · $c') || f.endsWith(', $c'));
-    }
+    // [coarse] says nothing [fine] does not: each part it sets, [fine] sets
+    // the same. Two areas that differ in any set part are both kept.
+    bool repeats(List<String> coarse, List<String> fine) =>
+        !identical(coarse, fine) &&
+        [
+          for (var i = 0; i < coarse.length; i++)
+            coarse[i].isEmpty || coarse[i] == fine[i],
+        ].every((same) => same);
 
     return [
-      for (final location in locations)
-        if (!locations.any((other) => namedWithin(location, other))) location,
+      for (final area in areas)
+        if (!areas.any((other) => repeats(area.parts, other.parts)))
+          area.location,
     ];
   }
 

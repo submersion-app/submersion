@@ -203,6 +203,58 @@ void main() {
       ]);
     });
 
+    test('siteLocations leaves out a town or a region alone that a fuller '
+        'location names, and keeps one that differs', () {
+      const full = DiveSite(
+        id: 'site-1',
+        name: 'Elphinstone',
+        city: 'Marsa Alam',
+        region: 'Red Sea',
+        country: 'Egypt',
+      );
+      const townOnly = DiveSite(
+        id: 'site-2',
+        name: 'Abu Dabab',
+        city: 'Marsa Alam',
+      );
+      const regionOnly = DiveSite(
+        id: 'site-3',
+        name: 'Daedalus',
+        region: 'Red Sea',
+      );
+      const islandOnly = DiveSite(
+        id: 'site-4',
+        name: 'Zabargad',
+        island: 'Zabargad',
+      );
+      const otherTown = DiveSite(
+        id: 'site-5',
+        name: 'Brothers',
+        city: 'El Quseir',
+        region: 'Red Sea',
+        country: 'Egypt',
+      );
+      final day = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        dives: [
+          _dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 7), site: townOnly),
+          _dive(id: 'd2', dateTime: DateTime(2026, 3, 8, 9), site: regionOnly),
+          _dive(id: 'd3', dateTime: DateTime(2026, 3, 8, 11), site: full),
+          _dive(id: 'd4', dateTime: DateTime(2026, 3, 8, 13), site: islandOnly),
+          _dive(id: 'd5', dateTime: DateTime(2026, 3, 8, 15), site: otherTown),
+        ],
+      );
+
+      // "Red Sea" alone is in both full locations; each town is its own.
+      expect(day.siteLocations, [
+        'Marsa Alam · Red Sea, Egypt',
+        'Zabargad',
+        'El Quseir · Red Sea, Egypt',
+      ]);
+    });
+
     test('siteLocations reads one area typed in two cases as one', () {
       const saved = DiveSite(
         id: 'site-1',
