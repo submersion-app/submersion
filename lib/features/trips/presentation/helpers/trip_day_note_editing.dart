@@ -20,8 +20,9 @@ class DayNotePlacement {
 }
 
 /// Opens [day]'s note in [notes]: at the end of its last passage, under its
-/// last heading when that has nothing yet, or at a new `## ` + [headingLabel]
-/// heading appended after a blank line.
+/// last heading when that has nothing yet, or at a new [headingLabel] heading
+/// appended after a blank line, at the level the note's day headings use
+/// (`##` when it has none).
 DayNotePlacement placeDayNote(
   String notes,
   TripNoteDay day,
@@ -57,7 +58,8 @@ DayNotePlacement placeDayNote(
     }
     return DayNotePlacement(text: notes, cursor: headingEnd);
   }
-  final heading = '## $headingLabel';
+  final level = scanned.dayHeadingLevel ?? 2;
+  final heading = '${'#' * level} $headingLabel';
   final before = notes.trimRight();
   final text = before.isEmpty ? '$heading\n' : '$before\n\n$heading\n';
   return DayNotePlacement(

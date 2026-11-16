@@ -43,6 +43,7 @@ class TripDayNotes {
     required this.passages,
     required this.passageEnds,
     required this.headingLineEnds,
+    this.dayHeadingLevel,
   });
 
   static const empty = TripDayNotes(
@@ -62,6 +63,11 @@ class TripDayNotes {
   /// start of the next line, or the note's end). Present for every day a
   /// heading names, even one with nothing under it yet.
   final Map<DateTime, int> headingLineEnds;
+
+  /// The shallowest level (1 to 6) of the note's day headings, for one or
+  /// any day, or null when it has none: a heading added for another day
+  /// takes this level, so it does not nest inside an earlier day.
+  final int? dayHeadingLevel;
 }
 
 /// Cuts [notes] into one passage per day of [days] (#4625).
@@ -80,11 +86,12 @@ TripDayNotes tripDayNotes(
   List<TripNoteDay> days,
   TripDayNotesVocabulary vocabulary,
 ) {
-  if (notes.isEmpty || days.isEmpty) return TripDayNotes.empty;
+  if (notes.isEmpty) return TripDayNotes.empty;
   final lines = _lines(notes);
   final parts = <DateTime, List<String>>{};
   final ends = <DateTime, int>{};
   final headingEnds = <DateTime, int>{};
+  int? dayHeadingLevel;
 
   // The open day passage: its day (null for a day shape outside [days]),
   // its heading level and where its body starts in the source.
@@ -124,6 +131,9 @@ TripDayNotes tripDayNotes(
     final named = _parseDayHeading(heading.text, vocabulary);
     if (named == null) continue;
     final day = named.resolve(days);
+    if (dayHeadingLevel == null || heading.level < dayHeadingLevel) {
+      dayHeadingLevel = heading.level;
+    }
     open = true;
     openDay = day;
     openLevel = heading.level;
@@ -138,6 +148,7 @@ TripDayNotes tripDayNotes(
     },
     passageEnds: ends,
     headingLineEnds: headingEnds,
+    dayHeadingLevel: dayHeadingLevel,
   );
 }
 

@@ -114,11 +114,13 @@ class _FromTripNotesCaption extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             TripDaySectionCaption(text: context.l10n.trips_story_fromTripNotes),
-            Icon(
-              Icons.chevron_right,
-              size: 16,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            // Only a caption that opens something says so.
+            if (onTap != null)
+              Icon(
+                Icons.chevron_right,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
           ],
         ),
       ),

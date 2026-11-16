@@ -39,6 +39,13 @@ TripDayNotesVocabulary tripDayNotesVocabularyFor(AppLocalizations l10n) {
   }
   months.remove('');
   weekdays.remove('');
+  // English abbreviations people write that intl's patterns do not use.
+  months.putIfAbsent('sept', () => DateTime.september);
+  weekdays
+    ..putIfAbsent('tues', () => DateTime.tuesday)
+    ..putIfAbsent('weds', () => DateTime.wednesday)
+    ..putIfAbsent('thur', () => DateTime.thursday)
+    ..putIfAbsent('thurs', () => DateTime.thursday);
 
   return TripDayNotesVocabulary(
     dayLabels: dayLabels.toList(),

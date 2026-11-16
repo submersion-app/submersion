@@ -36,6 +36,37 @@ void main() {
     expect(dayNamedByHeading('Nov 5', days, vocabulary), day3);
   });
 
+  test('common English abbreviations intl does not use are read', () {
+    final vocabulary = tripDayNotesVocabularyFor(
+      lookupAppLocalizations(const Locale('en')),
+    );
+    final september = [
+      for (var i = 0; i < 7; i++)
+        TripNoteDay(date: DateTime(2026, 9, 7 + i), dayNumber: i + 1),
+    ];
+    // 8 September 2026 is a Tuesday, the 9th a Wednesday, the 10th a Thursday.
+    expect(
+      dayNamedByHeading('Sept 8', september, vocabulary),
+      DateTime(2026, 9, 8),
+    );
+    expect(
+      dayNamedByHeading('Tues Sept 8', september, vocabulary),
+      DateTime(2026, 9, 8),
+    );
+    expect(
+      dayNamedByHeading('Weds 9 Sep', september, vocabulary),
+      DateTime(2026, 9, 9),
+    );
+    expect(
+      dayNamedByHeading('Thurs Sep 10', september, vocabulary),
+      DateTime(2026, 9, 10),
+    );
+    expect(
+      dayNamedByHeading('Thur Sep 10', september, vocabulary),
+      DateTime(2026, 9, 10),
+    );
+  });
+
   test("the app's language gives month and weekday names", () {
     final vocabulary = tripDayNotesVocabularyFor(
       lookupAppLocalizations(const Locale('de')),

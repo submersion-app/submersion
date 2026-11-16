@@ -128,6 +128,28 @@ void main() {
     expect(opened, 1);
   });
 
+  testWidgets('the caption shows its chevron only when it can open', (
+    tester,
+  ) async {
+    await _pump(tester, _day(), tripNotes: 'Vis 30 m');
+    expect(
+      find.descendant(
+        of: find.byKey(TripStoryDayPlan.fromTripNotesKey),
+        matching: find.byIcon(Icons.chevron_right),
+      ),
+      findsNothing,
+    );
+
+    await _pump(tester, _day(), tripNotes: 'Vis 30 m', onOpenTripNotes: () {});
+    expect(
+      find.descendant(
+        of: find.byKey(TripStoryDayPlan.fromTripNotesKey),
+        matching: find.byIcon(Icons.chevron_right),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('a day with no passage offers Add note', (tester) async {
     var edits = 0;
     await _pump(tester, _day(), onEditNote: () => edits++);

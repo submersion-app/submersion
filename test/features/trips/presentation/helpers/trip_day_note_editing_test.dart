@@ -27,6 +27,12 @@ void main() {
       expect(place('Trip intro').text, 'Trip intro\n\n## Day 3\n');
     });
 
+    test('the added heading matches the level of the day headings', () {
+      final placed = place('# Day 1\nA\n# Day 2\nB');
+      expect(placed.text, '# Day 1\nA\n# Day 2\nB\n\n# Day 3\n');
+      expect(placed.insertedHeading, '# Day 3');
+    });
+
     test('trailing blank lines are not doubled', () {
       expect(place('Trip intro\n\n').text, 'Trip intro\n\n## Day 3\n');
     });
