@@ -10,8 +10,9 @@ extension InsightsRepositoryRoles on InsightsRepository {
   /// `myRole` query relation uses, so a dive holding several roles counts
   /// once under each (the counts can sum past the dive total, as the dive
   /// types list does) and every bar equals the dives its drill-in opens.
-  /// A role id with no `dive_roles` row is not a bar: the relation could not
-  /// match it either. Each segment also sums the dives' measured runtime.
+  /// A role id with no `dive_roles` row, or another diver's custom role
+  /// (`diveRoleVisibleSql`), is not a bar: the relation cannot match it
+  /// either. Each segment also sums the dives' measured runtime.
   Future<List<DistributionSegment>> getDiverRoleDistribution({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -35,6 +36,7 @@ extension InsightsRepositoryRoles on InsightsRepository {
           SUM($runtime) AS total_time
         FROM dives d
         JOIN dive_roles dr ON dr.id IN ($roles)
+          AND ${diveRoleVisibleSql(role: 'dr', diveDiverId: 'd.diver_id')}
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY dr.id
         ORDER BY count DESC, dr.sort_order, dr.id

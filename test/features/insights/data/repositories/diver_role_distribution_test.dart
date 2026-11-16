@@ -18,12 +18,25 @@ void main() {
   setUp(() async {
     db = await setUpTestDatabase();
     repository = InsightsRepository();
+    for (final id in ['me', 'other']) {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    }
     await db
-        .into(db.divers)
+        .into(db.diveRoles)
         .insert(
-          DiversCompanion.insert(
-            id: 'me',
-            name: 'me',
+          DiveRolesCompanion.insert(
+            id: 'their-role',
+            diverId: const Value('other'),
+            name: 'Their Role',
             createdAt: now,
             updatedAt: now,
           ),
@@ -73,6 +86,8 @@ void main() {
     // Older versions changed the scalar after the junction was written.
     await dive('e', 'buddy', junction: ['instructor', 'buddy']);
     await dive('f', 'solo', junction: ['solo', 'buddy']);
+    // Another diver's custom role is not borrowed (resolveDiveRole).
+    await dive('g', 'their-role');
   });
   tearDown(tearDownTestDatabase);
 

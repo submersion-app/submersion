@@ -44,3 +44,15 @@ String diverRoleIdsOfDiveSql({required String diveId, required String scalar}) {
       'UNION SELECT j.role_id AS role_id $rows AND $hasRole AND $current '
       "AND j.role_id <> '' AND (j.role_id <> '$solo' OR $scalar = '$solo')";
 }
+
+/// Whether the `dive_roles` row [role] (a table alias) is one a dive owned
+/// by [diveDiverId] can hold, by the rule `resolveDiveRole` reads: a
+/// built-in or ownerless role, or the dive owner's own custom role. Another
+/// diver's custom role is not borrowed (#1806), so neither the `myRole`
+/// relation nor the My role card counts it (#4409).
+String diveRoleVisibleSql({
+  required String role,
+  required String diveDiverId,
+}) =>
+    '($role.is_built_in = 1 OR $role.diver_id IS NULL '
+    'OR $diveDiverId IS NULL OR $role.diver_id = $diveDiverId)';

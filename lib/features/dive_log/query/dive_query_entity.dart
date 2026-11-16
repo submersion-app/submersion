@@ -699,7 +699,8 @@ final QueryEntity diveQueryEntity = QueryEntity(
       target: QuerySubject.diveRoles,
       shape: RelationShape.custom,
       joinSql:
-          '{to}.id IN (${diverRoleIdsOfDiveSql(diveId: '{from}.id', scalar: '{from}.diver_role')})',
+          '{to}.id IN (${diverRoleIdsOfDiveSql(diveId: '{from}.id', scalar: '{from}.diver_role')}) '
+          "AND ${diveRoleVisibleSql(role: '{to}', diveDiverId: '{from}.diver_id')}",
       isMany: true,
       labelKey: _label('myRole'),
       emptySql: _noRoleSql.replaceAll('{r}', '{from}'),

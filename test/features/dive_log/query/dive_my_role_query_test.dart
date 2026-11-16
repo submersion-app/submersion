@@ -19,15 +19,31 @@ void main() {
   late AppDatabase db;
   final now = DateTime(2025, 6, 1).millisecondsSinceEpoch;
   const caveGuide = 'c0000000-0000-4000-8000-000000000001';
+  const theirRole = 'c0000000-0000-4000-8000-000000000002';
 
   setUp(() async {
     db = await setUpTestDatabase();
+    for (final id in ['me', 'other']) {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    }
+    // Another diver's custom role: not borrowed by a dive of mine, as
+    // resolveDiveRole reads it.
     await db
-        .into(db.divers)
+        .into(db.diveRoles)
         .insert(
-          DiversCompanion.insert(
-            id: 'me',
-            name: 'me',
+          DiveRolesCompanion.insert(
+            id: theirRole,
+            diverId: const Value('other'),
+            name: 'Their Role',
             createdAt: now,
             updatedAt: now,
           ),
@@ -81,6 +97,7 @@ void main() {
     // An older version changed the scalar to Buddy after the junction.
     await dive('staleJunction', 'buddy', ['instructor', 'buddy']);
     await dive('cave', caveGuide, [caveGuide]);
+    await dive('foreign', theirRole, [theirRole]);
   });
   tearDown(tearDownTestDatabase);
 
@@ -97,6 +114,7 @@ void main() {
           'Safety Diver': 'safetyDiver',
           'Buddy': 'buddy',
           'Cave Guide': caveGuide,
+          'Their Role': theirRole,
         },
       }),
     ),
@@ -135,6 +153,10 @@ void main() {
   test('a junction the scalar outdates does not match', () async {
     expect(await ids('myRole = Instructor'), {'instructor'});
     expect(await ids('myRole = Buddy'), {'staleJunction'});
+  });
+
+  test('another diver\'s custom role is not my role', () async {
+    expect(await ids('myRole = "Their Role"'), isEmpty);
   });
 
   test('a custom role matches by its name', () async {
