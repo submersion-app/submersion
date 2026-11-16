@@ -38,4 +38,25 @@ void main() {
     await tester.tap(find.bySemanticsLabel('Logo'));
     expect(taps, 1);
   });
+
+  testWidgets('keyboard focus draws a visible ring around the logo', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: DiveCenterLogoField(logo: null, onTap: () {}),
+      ),
+    );
+    Finder ring() => find.byKey(DiveCenterLogoField.focusRingKey);
+    BoxDecoration ringDecoration() =>
+        tester.widget<DecoratedBox>(ring()).decoration as BoxDecoration;
+
+    expect(ringDecoration().border, isNull);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+
+    expect(ringDecoration().border, isNotNull);
+  });
 }
