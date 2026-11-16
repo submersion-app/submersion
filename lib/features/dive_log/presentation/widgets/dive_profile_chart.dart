@@ -4527,7 +4527,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               DiveProfileChart._bottomTickReservedSize,
           units: units,
           onFindingTap: widget.onSafetyFindingTap!,
-          onFindingDismiss: widget.onSafetyFindingDismiss ?? (_) {},
+          onFindingDismiss: widget.onSafetyFindingDismiss,
           onFindingDetails: widget.onSafetyFindingDetails,
           showLane: lane,
           showCallout: !lane,

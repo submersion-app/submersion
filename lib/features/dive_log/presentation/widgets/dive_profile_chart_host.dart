@@ -118,6 +118,7 @@ class DiveProfileChartHost extends ConsumerWidget {
     this.onTooltipData,
     this.onSafetyFindingDetails,
     this.annotationActions,
+    this.findingsDismissable = true,
     this.onPlotFrame,
     this.viewport,
     this.onViewportChanged,
@@ -155,6 +156,10 @@ class DiveProfileChartHost extends ConsumerWidget {
   /// popup and the right-click menu. Null for a host that only shows the
   /// profile (the dashboard preview, a plan's logged dive).
   final DiveDetailAnnotationActions? annotationActions;
+
+  /// Whether a finding's callout offers Dismiss. A page that offers editing
+  /// dismisses findings in the open Safety review card only (issue #4527).
+  final bool findingsDismissable;
 
   /// "Show me the details" on a safety finding's callout. Null hides the
   /// action, which is right wherever the safety section is not on screen to
@@ -516,8 +521,13 @@ class DiveProfileChartHost extends ConsumerWidget {
           );
           notifier.state = notifier.state?.id == finding.id ? null : finding;
         },
-        onSafetyFindingDismiss: (finding) =>
-            setSafetyFindingDismissed(ref, finding: finding, dismissed: true),
+        onSafetyFindingDismiss: findingsDismissable
+            ? (finding) => setSafetyFindingDismissed(
+                ref,
+                finding: finding,
+                dismissed: true,
+              )
+            : null,
         onSafetyFindingDetails: onSafetyFindingDetails,
         // Range handles are drawn by the chart itself so they land on the
         // plot rect at any zoom (#1579).
