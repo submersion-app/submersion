@@ -180,19 +180,27 @@ Set<TankRef> _coveredOnDive(
   final pairUsed = <String>{...inUse};
   final pairTanks = <int>{};
   var singles = _matchSingles(fits, pairUsed, pairTanks);
-  for (var t = 0; t < open.length; t++) {
-    if (singles.containsValue(t)) continue;
-    for (final (a, b) in ownedPairs) {
-      if (pairUsed.contains(a.id) || pairUsed.contains(b.id)) continue;
-      if (!pairMatchesTank(a, b, open[t].tank)) continue;
-      // The set may take this tank only if the singles lose no tank to it.
-      final without = {...pairUsed, a.id, b.id};
-      final trial = _matchSingles(fits, without, {...pairTanks, t});
-      if (trial.length < singles.length) continue;
-      singles = trial;
-      pairUsed.addAll([a.id, b.id]);
-      pairTanks.add(t);
-      break;
+  // Each set placed covers one more tank, so this ends within one pass per
+  // set. The singles shift each time, so the scan starts over: a tank they
+  // let go of may now fit a set the first pass already looked past.
+  var placed = true;
+  while (placed) {
+    placed = false;
+    for (var t = 0; t < open.length && !placed; t++) {
+      if (pairTanks.contains(t) || singles.containsValue(t)) continue;
+      for (final (a, b) in ownedPairs) {
+        if (pairUsed.contains(a.id) || pairUsed.contains(b.id)) continue;
+        if (!pairMatchesTank(a, b, open[t].tank)) continue;
+        // The set may take this tank only if the singles lose no tank to it.
+        final without = {...pairUsed, a.id, b.id};
+        final trial = _matchSingles(fits, without, {...pairTanks, t});
+        if (trial.length < singles.length) continue;
+        singles = trial;
+        pairUsed.addAll([a.id, b.id]);
+        pairTanks.add(t);
+        placed = true;
+        break;
+      }
     }
   }
   return {
