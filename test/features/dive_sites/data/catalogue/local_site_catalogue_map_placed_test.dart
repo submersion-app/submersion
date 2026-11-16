@@ -84,6 +84,18 @@ void main() {
     expect(sites.single.positionFromMap, isTrue);
   });
 
+  test('the limit counts map-placed records alone', () async {
+    // Two nearer records would fill a limit of one if they were counted.
+    final sites = await catalogue.near(
+      _point,
+      radiusMeters: 2000,
+      limit: 1,
+      mapPlacedOnly: true,
+    );
+
+    expect(sites.map((s) => s.id), ['garden']);
+  });
+
   test('near without it reads every record in the radius', () async {
     final sites = await catalogue.near(_point, radiusMeters: 2000);
 

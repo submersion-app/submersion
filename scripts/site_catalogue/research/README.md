@@ -144,8 +144,10 @@ the batch's PR. The first wider sources batch adds no replacement areas.
 
 - **id:** `research_<country code, lower case>_<name slug>`, formed once
   and never changed, never reused.
-- **named:** `place` is your words for the bay, island or reef system;
-  `sources` are the pages that name the site there.
+- **named:** `place` is your words for the bay, island or reef system,
+  and is required; `sources` are the pages that name the site there.
+  A fact holds only its own fields (`place`, `sources`, `value`, `lat`,
+  `lon`), never a page's words.
 - **position:** every page that states one, each figure as the page wrote
   it (decimal degrees, or degrees and minutes, or degrees, minutes and
   seconds, with N, S, E or W). A point read off a map image carries
@@ -154,7 +156,8 @@ the batch's PR. The first wider sources batch adds no replacement areas.
   the layer's address. `lat` and `lon` are the shipped point of the route
   the checker finds; it says when they are not.
 - **distinct_from:** for two separate sites closer than 150 m, each
-  entry lists the other's id. A `note` no longer lets both stand.
+  entry lists the other's id (a list, even for one). A `note` no longer
+  lets both stand.
 - **Depths:** each page's figure; add `"unit": "ft"` for feet. The shipped
   depth is worked out by the checker, never written by hand.
 - **entry, types:** the app's names (`shore`, `boat`, `giantStride`;

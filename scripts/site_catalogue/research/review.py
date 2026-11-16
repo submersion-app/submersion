@@ -148,9 +148,12 @@ def _position_rows(checked, domains) -> list[str]:
         domain = _domain(url)
         where = domain or url or "(no address)"
         link = f'<a href="{_e(url)}">page</a>' if domain else ""
+        # A map reading names the image it was read off; a stated pin on the
+        # publisher's embedded map names the map's layer.
         image = source.get("map")
-        if source.get("method") == "map" and isinstance(image, str) and _domain(image):
-            link += f' <a href="{_e(image)}">map image</a>'
+        if isinstance(image, str) and _domain(image):
+            label = "map image" if source.get("method") == "map" else "map layer"
+            link += f' <a href="{_e(image)}">{label}</a>'
         rows.append(
             f"<tr><td></td><td>{_e(where)} "
             f"&nbsp; {_e(_figure(source))} &nbsp; {_e(distance)} &nbsp; "

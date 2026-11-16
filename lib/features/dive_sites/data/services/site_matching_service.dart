@@ -232,10 +232,11 @@ class SiteMatchingService {
         point,
         radiusMeters: thresholds.outerRadiusMeters,
       );
-      final mapPlaced = kMapPlacedReachMeters > thresholds.outerRadiusMeters
+      final mapReach = mapPlacedReachMeters(thresholds);
+      final mapPlaced = mapReach > thresholds.outerRadiusMeters
           ? await _catalogue.near(
               point,
-              radiusMeters: kMapPlacedReachMeters,
+              radiusMeters: mapReach,
               mapPlacedOnly: true,
             )
           : const <CatalogueSite>[];

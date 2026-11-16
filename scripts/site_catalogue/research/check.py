@@ -79,6 +79,15 @@ FACTS = {
     "types": frozenset(SITE_TYPE_IDS),
     "hazards": frozenset(evidence.HAZARD_SENTENCES),
 }
+# The fields each fact may hold: its sources and what they say, never a
+# page's words.
+FACT_FIELDS = {
+    "named": frozenset({"place", "sources"}),
+    "position": frozenset({"lat", "lon", "sources"}),
+    "max_depth_m": frozenset({"sources"}),
+    "min_depth_m": frozenset({"sources"}),
+    **{key: frozenset({"value", "sources"}) for key in FACTS},
+}
 REVIEW_STATES = ("pending", "approved", "rejected")
 _COUNTRY = re.compile(r"^[A-Z]{2}$")
 
@@ -173,6 +182,20 @@ def _check_shape(checked: CheckedEntry, ids: set[str], today: date) -> None:
         checked.fail("id_repeat", "the id is used by another entry")
     for key in sorted(set(entry) - ENTRY_FIELDS):
         checked.fail("text_field", f"no field {key!r}: a page's text is never kept")
+    for fact_key, allowed in FACT_FIELDS.items():
+        fact = entry.get(fact_key)
+        for key in sorted(set(fact) - allowed) if isinstance(fact, dict) else ():
+            checked.fail("text_field", f"no field {fact_key}.{key}")
+    named = entry.get("named")
+    if named is not None and not (
+        isinstance(named, dict) and _has_words(named.get("place"))
+    ):
+        checked.fail("shape", "named.place is the bay, island or reef system")
+    distinct = entry.get("distinct_from")
+    if distinct is not None and not (
+        isinstance(distinct, list) and all(_is_record_id(i) for i in distinct)
+    ):
+        checked.fail("shape", "distinct_from is a list of entry ids")
     name = entry.get("name")
     if not isinstance(name, str) or not name.strip():
         checked.fail("shape", "no name")
@@ -218,9 +241,14 @@ def _check_shape(checked: CheckedEntry, ids: set[str], today: date) -> None:
             checked.fail("shape", "withdrawn.replaced_by is a record id")
 
 
+def _has_words(value) -> bool:
+    """Whether [value] is a string with something other than spaces."""
+    return isinstance(value, str) and bool(value.strip())
+
+
 def _is_record_id(value) -> bool:
     """Whether [value] can name a catalogue record: a non-empty string."""
-    return isinstance(value, str) and bool(value.strip())
+    return _has_words(value)
 
 
 def _check_domains(checked: CheckedEntry, domains) -> None:
@@ -271,9 +299,10 @@ def _mean_point(figures) -> tuple:
 def _check_position(checked: CheckedEntry, domains) -> None:
     """Places the site by one of three routes (wider sources design,
     section 2): two fine stated figures that agree ("confirmed"), one fine
-    stated figure ("stated"), or map-grade figures ("map"): points read off
-    a counting page's map, figures coarser than a tenth of a minute, or
-    stated figures that disagree."""
+    stated figure with no map reading beside it ("stated"), or map-grade
+    figures ("map"): points read off a counting page's map, figures
+    coarser than a tenth of a minute, stated figures that disagree, or a
+    fine figure beside a map reading."""
     position = checked.entry.get("position")
     sources = _sources(position)
     counted = _counting(sources, domains)

@@ -18,7 +18,7 @@ class MatchCandidate {
   final bool isResearched;
 
   /// Whether this researched record's position was read off a counting
-  /// page's map. It is offered from up to [kMapPlacedReachMeters] away and
+  /// page's map. It is offered from up to `kMapPlacedReachMeters` away and
   /// never stands in the way of an automatic match.
   final bool isMapPlaced;
 

@@ -4,8 +4,10 @@
 Run: python3 scripts/site_catalogue/research/check_test.py
 
 A researched site ships only when its evidence meets the rules of the
-slice 3 design: two counting pages that agree on its position, depths
-that agree well enough, every fact sourced, and no text from any page.
+slice 3 design as the wider sources design widens them: two counting
+pages that name it or confirm its position, a counting page that places
+it, depths that agree well enough, every fact sourced, and no text from
+any page.
 Each test breaks one rule on an entry that otherwise passes.
 """
 
@@ -132,6 +134,13 @@ class ShapeTest(unittest.TestCase):
         entry = _with(("position", "sources", 0, "quote"), "lovely wreck")
         self.assertIn("text_field", _rules(_one(entry)))
 
+    def test_free_text_inside_a_fact_fails(self):
+        # A fact holds its sources and values, never a page's words.
+        for key in ("named", "position", "max_depth_m", "min_depth_m", "types"):
+            entry = _entry(named=_named("https://opa.com/s", "https://pressb.org/y"))
+            entry[key]["quote"] = "lovely wreck"
+            self.assertIn("text_field", _rules(_one(entry)), key)
+
     def test_name_over_60_fails(self):
         self.assertIn("name_length", _rules(_one(_entry(name="x" * 61))))
 
@@ -237,6 +246,16 @@ class NamedTest(unittest.TestCase):
             {"method": "map", "map": "https://opa.com/m.jpg"}
         )
         self.assertNotIn("text_field", _rules(_one(entry)))
+
+    def test_named_without_a_place_fails_shape(self):
+        # The place is what the reviewer judges the naming pages against.
+        for place in (None, "", "  ", 7):
+            named = _named("https://opa.com/s", "https://pressb.org/y")
+            named["place"] = place
+            self.assertIn("shape", _rules(_one(_entry(named=named))), place)
+        named = _named("https://opa.com/s", "https://pressb.org/y")
+        del named["place"]
+        self.assertIn("shape", _rules(_one(_entry(named=named))))
 
     def test_named_sources_need_read_dates(self):
         entry = _entry(named={"place": "x", "sources": [{"url": "https://opa.com/s"}]})
@@ -555,6 +574,10 @@ class NeighbourTest(unittest.TestCase):
         liberty = _entry(distinct_from=["research_id_coral_garden"])
         checked = _check(liberty, self._near())
         self.assertIn("neighbour", _rules(checked[1]))
+
+    def test_distinct_from_is_a_list_of_ids(self):
+        for bad in ("research_id_coral_garden", [7], [""], {"id": "x"}):
+            self.assertIn("shape", _rules(_one(_entry(distinct_from=bad))), bad)
 
     def test_distinct_from_naming_no_entry_still_fails(self):
         liberty = _entry(distinct_from=["research_id_elsewhere"])

@@ -107,6 +107,18 @@ void main() {
       expect(ids(out), ['garden']);
     });
 
+    test('the map-placed reach is 2 km, or the outer radius when wider', () {
+      const wide = MatchThresholds(
+        innerRadiusMeters: 150,
+        outerRadiusMeters: 3000,
+        separationMeters: 50,
+      );
+
+      expect(mapPlacedReachMeters(_balanced), kMapPlacedReachMeters);
+      expect(mapPlacedReachMeters(wide), 3000);
+      expect(reachMeters(_mapPlaced('garden', 0), wide), 3000);
+    });
+
     test('a verified record beyond the outer radius is still out of '
         'range', () {
       final out = match([_bundled('far', 1500)]);

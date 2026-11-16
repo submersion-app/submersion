@@ -10,11 +10,17 @@ import 'package:submersion/features/dive_sites/domain/matching/site_match_outcom
 /// only good enough to name the dive (wider sources design, section 5).
 const double kMapPlacedReachMeters = 2000;
 
-/// How far from the dive [candidate] is in range: the outer radius, or at
-/// least [kMapPlacedReachMeters] for a map-placed record.
+/// How far from the dive a map-placed record is in range:
+/// [kMapPlacedReachMeters], or the outer radius when that is wider. The
+/// matching service reads the catalogue out to it, so the two agree.
+double mapPlacedReachMeters(MatchThresholds thresholds) =>
+    math.max(thresholds.outerRadiusMeters, kMapPlacedReachMeters);
+
+/// How far from the dive [candidate] is in range: the outer radius, or
+/// [mapPlacedReachMeters] for a map-placed record.
 double reachMeters(MatchCandidate candidate, MatchThresholds thresholds) =>
     candidate.isMapPlaced
-    ? math.max(thresholds.outerRadiusMeters, kMapPlacedReachMeters)
+    ? mapPlacedReachMeters(thresholds)
     : thresholds.outerRadiusMeters;
 
 /// Ranks [candidates] by great-circle distance from [point], nearest first.

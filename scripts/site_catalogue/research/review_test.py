@@ -123,6 +123,15 @@ class ReviewPageTest(unittest.TestCase):
         self.assertIn('href="https://opa.com/m.jpg"', page)
         self.assertIn("map image", page)
 
+    def test_a_stated_pin_links_its_map_layer(self):
+        # A pin on the publisher's embedded map is stated, and its map
+        # field names the layer (wider sources design, section 1).
+        entry = _entry()
+        entry["position"]["sources"][0]["map"] = "https://opa.com/layer.kml"
+        page = _page(entry)
+        self.assertIn('href="https://opa.com/layer.kml"', page)
+        self.assertIn("map layer", page)
+
     def test_the_route_is_shown(self):
         page = _page(_placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937))
         self.assertIn("Placed by", page)
