@@ -1256,7 +1256,7 @@ class SyncDataSerializer {
       blob: false,
       full: null,
     ),
-    (key: 'diveCenters', table: _db.diveCenters, blob: false, full: null),
+    (key: 'diveCenters', table: _db.diveCenters, blob: true, full: null),
     (
       key: 'diveCenterGearNotes',
       table: _db.diveCenterGearNotes,
@@ -3676,7 +3676,7 @@ class SyncDataSerializer {
         final row = await (_db.select(
           _db.diveCenters,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
-        return row?.toJson();
+        return row?.toJson(serializer: _syncBlobSerializer);
       case 'diveCenterGearNotes':
         final row = await (_db.select(
           _db.diveCenterGearNotes,
@@ -4356,7 +4356,9 @@ class SyncDataSerializer {
         final rows = await (_db.select(
           _db.diveCenters,
         )..where((t) => t.id.isIn(idList))).get();
-        return {for (final r in rows) r.id: r.toJson()};
+        return {
+          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+        };
       case 'diveCenterGearNotes':
         final rows = await (_db.select(
           _db.diveCenterGearNotes,
@@ -5902,7 +5904,10 @@ class SyncDataSerializer {
         await _db
             .into(_db.diveCenters)
             .insertOnConflictUpdate(
-              DiveCenter.fromJson(data).toCompanion(false),
+              DiveCenter.fromJson(
+                data,
+                serializer: _syncBlobSerializer,
+              ).toCompanion(false),
             );
         return;
       case 'diveCenterGearNotes':
@@ -7111,7 +7116,12 @@ class SyncDataSerializer {
           (b) => b.insertAllOnConflictUpdate(
             _db.diveCenters,
             records
-                .map((r) => DiveCenter.fromJson(r).toCompanion(false))
+                .map(
+                  (r) => DiveCenter.fromJson(
+                    r,
+                    serializer: _syncBlobSerializer,
+                  ).toCompanion(false),
+                )
                 .toList(),
           ),
         );
@@ -10615,7 +10625,8 @@ class SyncDataSerializer {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
-    return rows.map((r) => r.toJson()).toList();
+    // Dive centers carry the logo BLOB (v371); base64-encode it.
+    return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
   }
 
   /// Rental gear notes ride their center: an incremental export re-sends
