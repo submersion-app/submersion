@@ -285,6 +285,26 @@ void main() {
       },
     );
 
+    test('a re-arm after a delete cancels the deleted clearances last, so '
+        'one an earlier re-arm armed stays silent (#4609)', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await save(DocumentType.medicalClearance, inDays(400));
+      await DocumentRepository(
+        cancelReminders: (_) async {},
+        clearancesDeleted: (_) {},
+      ).delete(renewal.id);
+      // An earlier re-arm read the renewal before it went, then armed it.
+      await scheduler.updateForDocument(renewal, const AppSettings());
+      service.cancelled.clear();
+      await scheduler.updateClearancesForDiver(
+        'd1',
+        const AppSettings(),
+        deletedIds: [renewal.id],
+      );
+      expect(service.cancelled.last, renewal.id);
+      expect(service.scheduled.map((s) => s.documentId), contains(old.id));
+    });
+
     group('a renewal deleted on another device (#4609)', () {
       late Document old;
       late Document renewal;

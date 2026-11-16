@@ -80,19 +80,20 @@ typedef DocumentSnapshotEntry = ({
 class DocumentRepository with _DocumentClearanceQueries {
   /// [cancelReminders] cancels a deleted document's expiry reminders; it
   /// defaults to the platform notifications (a no-op on desktop).
-  /// [clearancesDeleted] names the divers a delete took a medical
-  /// clearance from (#4609), so the one it superseded can remind again; it
+  /// [clearancesDeleted] gets the medical clearances a delete took, by
+  /// diver (#4609), so the one each superseded can remind again; it
   /// defaults to [ClearanceDeleteEvents], which the app re-arms from.
   DocumentRepository({
     Future<void> Function(String documentId)? cancelReminders,
-    void Function(Set<String> diverIds)? clearancesDeleted,
+    void Function(Map<String, Set<String>> deletedByDiver)? clearancesDeleted,
   }) : _cancelReminders =
            cancelReminders ??
            NotificationService.instance.cancelDocumentReminders,
        _clearancesDeleted = clearancesDeleted ?? ClearanceDeleteEvents.notify;
 
   final Future<void> Function(String documentId) _cancelReminders;
-  final void Function(Set<String> diverIds) _clearancesDeleted;
+  final void Function(Map<String, Set<String>> deletedByDiver)
+  _clearancesDeleted;
 
   /// Cancels the reminders of documents a caller deleted without going
   /// through this repository (the diver delete's raw steps).
@@ -544,7 +545,7 @@ class DocumentRepository with _DocumentClearanceQueries {
   Future<void> _deleteIds(List<String> ids) async {
     if (ids.isEmpty) return;
     // Read before the rows go: afterwards nothing says whose they were.
-    final clearanceDivers = await _clearanceDiversOf(ids);
+    final clearances = await _clearancesByDiverOf(ids);
     final pageIds = <String>[];
     for (final chunk in ids.slices(_inListChunk)) {
       pageIds.addAll(
@@ -580,12 +581,12 @@ class DocumentRepository with _DocumentClearanceQueries {
         );
       }
     }
-    if (clearanceDivers.isEmpty) return;
+    if (clearances.isEmpty) return;
     try {
-      _clearancesDeleted(clearanceDivers);
+      _clearancesDeleted(clearances);
     } catch (e, stackTrace) {
       _log.warning(
-        'Could not re-arm the clearances of $clearanceDivers',
+        'Could not re-arm the clearances of ${clearances.keys}',
         error: e,
         stackTrace: stackTrace,
       );

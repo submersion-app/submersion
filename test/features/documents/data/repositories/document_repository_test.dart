@@ -313,9 +313,9 @@ void main() {
     },
   );
 
-  test('a delete names the divers who lost a medical clearance, owner '
+  test('a delete names the medical clearances it took, by diver, owner '
       'deletes too (#4609)', () async {
-    final named = <Set<String>>[];
+    final named = <Map<String, Set<String>>>[];
     final withHook = DocumentRepository(
       cancelReminders: (_) async {},
       clearancesDeleted: named.add,
@@ -324,7 +324,7 @@ void main() {
       newDoc(type: DocumentType.permit),
       const [],
     );
-    await withHook.save(
+    final onTrip = await withHook.save(
       newDoc(
         type: DocumentType.medicalClearance,
         owner: const DocumentOwner(DocumentOwnerKind.trip, 't1'),
@@ -340,8 +340,12 @@ void main() {
     await withHook.deleteForOwner(DocumentOwnerKind.trip, 't1');
     await withHook.delete(personal.id);
     expect(named, [
-      {'d1'},
-      {'d1'},
+      {
+        'd1': {onTrip.id},
+      },
+      {
+        'd1': {personal.id},
+      },
     ]);
   });
 

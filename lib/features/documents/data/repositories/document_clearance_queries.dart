@@ -41,18 +41,23 @@ mixin _DocumentClearanceQueries {
     return rows.map(documentFromRow).toList();
   }
 
-  /// The divers whose documents among [ids] include a medical clearance:
-  /// the ones a delete of [ids] has to re-arm (#4609).
-  Future<Set<String>> _clearanceDiversOf(List<String> ids) async {
+  /// The medical clearances among [ids], by diver: the divers a delete of
+  /// [ids] has to re-arm (#4609).
+  Future<Map<String, Set<String>>> _clearancesByDiverOf(
+    List<String> ids,
+  ) async {
+    final id = _db.documents.id;
     final diverId = _db.documents.diverId;
-    final out = <String>{};
+    final out = <String, Set<String>>{};
     for (final chunk in ids.slices(DocumentRepository._inListChunk)) {
-      final q = _db.selectOnly(_db.documents, distinct: true)
-        ..addColumns([diverId])
-        ..where(
-          _db.documents.id.isIn(chunk) & _db.documents.type.equals(_clearance),
-        );
-      out.addAll(await q.map((r) => r.read(diverId)!).get());
+      final q = _db.selectOnly(_db.documents)
+        ..addColumns([id, diverId])
+        ..where(id.isIn(chunk) & _db.documents.type.equals(_clearance));
+      for (final row in await q.get()) {
+        final String diver = row.read(diverId)!;
+        final String document = row.read(id)!;
+        (out[diver] ??= {}).add(document);
+      }
     }
     return out;
   }

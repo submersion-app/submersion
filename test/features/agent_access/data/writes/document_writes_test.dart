@@ -99,7 +99,7 @@ void main() {
   test('deleting a clearance names its diver, so the one it superseded '
       'reminds again (#4541, #4609); deleting another type names no '
       'one', () async {
-    final named = <Set<String>>[];
+    final named = <Map<String, Set<String>>>[];
     final sub = ClearanceDeleteEvents.stream.listen(named.add);
     addTearDown(sub.cancel);
     final permit = await make('documents', {
@@ -122,7 +122,9 @@ void main() {
     await h.run([deleteOp('documents', renewal)]);
     await pumpEventQueue();
     expect(named, [
-      {kDiverA},
+      {
+        kDiverA: {renewal},
+      },
     ]);
     // The delete re-arms through the repository, not afterApply.
     expect(rearmed, isEmpty);

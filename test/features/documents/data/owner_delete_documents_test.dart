@@ -318,7 +318,7 @@ void main() {
             updatedAt: _now,
           ),
         );
-    await DocumentRepository().save(
+    final clearance = await DocumentRepository().save(
       Document(
         id: '',
         diverId: 'd1',
@@ -330,13 +330,15 @@ void main() {
       ),
       const [],
     );
-    final named = <Set<String>>[];
+    final named = <Map<String, Set<String>>>[];
     final sub = ClearanceDeleteEvents.stream.listen(named.add);
     addTearDown(sub.cancel);
     await DiveCenterRepository().deleteDiveCenter('x1');
     await pumpEventQueue();
     expect(named, [
-      {'d1'},
+      {
+        'd1': {clearance.id},
+      },
     ]);
   });
 

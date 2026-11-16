@@ -9,6 +9,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/data/services/clearance_delete_events.dart';
 import 'package:submersion/features/documents/domain/document_expiry.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -30,8 +31,14 @@ class _RecordingScheduler extends NotificationScheduler {
   final updated = <String>[];
   final clearanceDivers = <String>[];
 
+  /// The deleted clearance ids each re-arm was handed, in call order.
+  final deletedIds = <Set<String>>[];
+
   /// A diver whose clearance re-arm throws.
   final String? failFor;
+
+  /// When set, a re-arm for this diver waits for it to complete.
+  Completer<void>? hold;
 
   @override
   Future<void> updateForDocument(
@@ -42,10 +49,17 @@ class _RecordingScheduler extends NotificationScheduler {
   @override
   Future<void> updateClearancesForDiver(
     String diverId,
-    AppSettings settings,
-  ) async {
+    AppSettings settings, {
+    Iterable<String> deletedIds = const [],
+  }) async {
     if (diverId == failFor) throw StateError('re-arm failed');
     clearanceDivers.add(diverId);
+    final held = hold;
+    if (held != null) {
+      hold = null;
+      await held.future;
+    }
+    this.deletedIds.add(deletedIds.toSet());
   }
 }
 
@@ -57,6 +71,25 @@ class _LoadingSettingsNotifier extends MockSettingsNotifier {
 
   @override
   Future<void> get settingsLoaded => _load.future;
+}
+
+/// Records the clearances each re-arm reads from the database.
+class _ReadingScheduler extends NotificationScheduler {
+  _ReadingScheduler(this._read);
+
+  final List<Set<String>> _read;
+
+  @override
+  Future<void> updateClearancesForDiver(
+    String diverId,
+    AppSettings settings, {
+    Iterable<String> deletedIds = const [],
+  }) async {
+    final clearances = await DocumentRepository(
+      cancelReminders: (_) async {},
+    ).getMedicalClearancesForDiver(diverId);
+    _read.add({for (final d in clearances) d.id});
+  }
 }
 
 DocumentPage _scan(List<int> bytes) => DocumentPage(
@@ -329,7 +362,9 @@ void main() {
     );
     addTearDown(c.dispose);
     c.read(clearanceDeleteRearmProvider);
-    ClearanceDeleteEvents.notify({'d1'});
+    ClearanceDeleteEvents.notify({
+      'd1': {'c1'},
+    });
     await pumpEventQueue();
     expect(scheduler.clearanceDivers, isEmpty);
     load.complete();
@@ -347,9 +382,79 @@ void main() {
     );
     addTearDown(c.dispose);
     c.read(clearanceDeleteRearmProvider);
-    ClearanceDeleteEvents.notify({'d0', 'd1'});
+    ClearanceDeleteEvents.notify({
+      'd0': {'c0'},
+      'd1': {'c1'},
+    });
     await pumpEventQueue();
     expect(scheduler.clearanceDivers, ['d1']);
+  });
+
+  test('delete events re-arm one at a time, each handing on the clearances '
+      'it took (#4609)', () async {
+    final scheduler = _RecordingScheduler()..hold = Completer<void>();
+    final first = scheduler.hold!;
+    final c = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        notificationSchedulerProvider.overrideWithValue(scheduler),
+      ],
+    );
+    addTearDown(c.dispose);
+    c.read(clearanceDeleteRearmProvider);
+    ClearanceDeleteEvents.notify({
+      'd1': {'renewal'},
+    });
+    ClearanceDeleteEvents.notify({
+      'd1': {'old'},
+    });
+    await pumpEventQueue();
+    // The second waits for the first, which is still arming what it read.
+    expect(scheduler.clearanceDivers, ['d1']);
+    first.complete();
+    await pumpEventQueue();
+    expect(scheduler.deletedIds, [
+      {'renewal'},
+      {'old'},
+    ]);
+  });
+
+  test('a re-arm reads the clearances only once the delete\'s transaction '
+      'is over, so a rolled-back delete leaves its clearance current '
+      '(#4609)', () async {
+    final db = DatabaseService.instance.database;
+    final read = <Set<String>>[];
+    final scheduler = _ReadingScheduler(read);
+    final c = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        notificationSchedulerProvider.overrideWithValue(scheduler),
+      ],
+    );
+    addTearDown(c.dispose);
+    c.read(clearanceDeleteRearmProvider);
+    final repo = c.read(documentRepositoryProvider);
+    final old = await repo.save(
+      doc(DocumentType.medicalClearance, DateTime(2030), 'old'),
+      const [],
+    );
+    final renewal = await repo.save(
+      doc(DocumentType.medicalClearance, DateTime(2032), 'renewal'),
+      const [],
+    );
+    await expectLater(
+      db.transaction(() async {
+        await repo.delete(renewal.id);
+        // Give the listener every chance to run inside the transaction.
+        await pumpEventQueue();
+        throw StateError('a later owner-delete step fails');
+      }),
+      throwsStateError,
+    );
+    await pumpEventQueue();
+    expect(read, [
+      {old.id, renewal.id},
+    ]);
   });
 
   ProviderContainer recording(_RecordingScheduler scheduler) {
