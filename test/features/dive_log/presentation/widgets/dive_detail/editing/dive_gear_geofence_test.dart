@@ -5,10 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gear_geofence.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_site_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_weights_fields.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -165,6 +167,35 @@ void main() {
       expect(geofenceSuggestion(s)?.id, 'cold');
     },
   );
+
+  test('gear and weights changed after A\'s set and changed back are the '
+      'diver\'s: B leaves them, and its weights change nothing', () async {
+    final s = EditSession(bare);
+    await pick(s, reef);
+    final setGear = s.valueOf(diveGearField);
+    final setWeights = s.valueOf(diveWeightsField);
+    s
+      ..set(diveGearField, [...setGear, const GearLink(item: fins)])
+      ..set(diveGearField, setGear)
+      ..set(diveWeightsField, const <DiveWeight>[])
+      ..set(diveWeightsField, setWeights);
+
+    await pick(s, lake);
+
+    expect([for (final g in s.working.gear) g.item.id], ['wing']);
+    expect(s.working.weights.single.amountKg, 2);
+  });
+
+  test('weighting feedback given after A\'s set does not keep its weights '
+      'when B is picked', () async {
+    final s = EditSession(bare);
+    await pick(s, reef);
+    s.set(diveWeightingFeedbackField, WeightingFeedback.correct);
+
+    await pick(s, lake);
+
+    expect(s.working.weights, isEmpty);
+  });
 
   test('a dive with gear gets a suggestion, not a set', () async {
     final s = EditSession(bare.copyWith(gear: const [GearLink(item: fins)]));

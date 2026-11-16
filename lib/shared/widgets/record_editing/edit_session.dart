@@ -91,8 +91,17 @@ class EditSession<T> extends ChangeNotifier {
     _changed(field);
   }
 
-  void _changed(EditField<T, Object?> field) =>
-      _moved({field.cardId, ...field.alsoShownOn});
+  /// How many times [fieldId] has been changed in this sitting, changes
+  /// back included: a rule that put a value there can tell it was touched
+  /// since, even when it was put back as the rule left it.
+  int fieldRevisionOf(String fieldId) => _fieldRevisions[fieldId] ?? 0;
+
+  final Map<String, int> _fieldRevisions = {};
+
+  void _changed(EditField<T, Object?> field) {
+    _fieldRevisions[field.id] = fieldRevisionOf(field.id) + 1;
+    _moved({field.cardId, ...field.alsoShownOn});
+  }
 
   void _moved(Set<String> cardIds) {
     for (final cardId in cardIds) {

@@ -156,7 +156,10 @@ Future<void> _lookUp(
     // part way: the next lookup takes back whatever it put on.
     session.remember(
       _appliedKey,
-      SetUseResult(before: before, after: setUseCardsOf(session)),
+      _Applied(
+        SetUseResult(before: before, after: setUseCardsOf(session)),
+        revisions: _revisionsOf(session),
+      ),
     );
     return;
   }
@@ -173,25 +176,43 @@ Future<void> _lookUp(
   if (bringsNew) _suggestion(session).value = match;
 }
 
-/// What the last location set applied goes back, card by card, where it is
-/// still as the set left it: a value the diver changed since is theirs.
+/// What a location set left, with how often its three values had been
+/// changed by then ([EditSession.fieldRevisionOf]).
+@immutable
+class _Applied {
+  const _Applied(this.result, {required this.revisions});
+
+  final SetUseResult result;
+  final ({int gear, int weights, int tanks}) revisions;
+}
+
+({int gear, int weights, int tanks}) _revisionsOf(EditSession<Dive> session) =>
+    (
+      gear: session.fieldRevisionOf(diveGearField.id),
+      weights: session.fieldRevisionOf(diveWeightsField.id),
+      tanks: session.fieldRevisionOf(diveTanksField.id),
+    );
+
+/// What the last location set applied goes back, value by value, where it
+/// is still as the set left it and nothing has changed it since: a value
+/// the diver changed is theirs, even one changed back to the set's.
 void _takeBack(EditSession<Dive> session) {
-  final applied = session.recall<SetUseResult>(_appliedKey);
+  final applied = session.recall<_Applied>(_appliedKey);
   if (applied == null) return;
   session.remember(_appliedKey, null);
-  if (diveGearField.same(session.valueOf(diveGearField), applied.after.gear)) {
-    session.set(diveGearField, applied.before.gear);
+  final before = applied.result.before;
+  final after = applied.result.after;
+  final now = _revisionsOf(session);
+  if (now.gear == applied.revisions.gear &&
+      diveGearField.same(session.valueOf(diveGearField), after.gear)) {
+    session.set(diveGearField, before.gear);
   }
-  if (diveWeightsField.same(
-    session.valueOf(diveWeightsField),
-    applied.after.weights,
-  )) {
-    session.set(diveWeightsField, applied.before.weights);
+  if (now.weights == applied.revisions.weights &&
+      diveWeightsField.same(session.valueOf(diveWeightsField), after.weights)) {
+    session.set(diveWeightsField, before.weights);
   }
-  if (diveTanksField.same(
-    session.valueOf(diveTanksField),
-    applied.after.tanks,
-  )) {
-    setTanks(session, applied.before.tanks, replaced: true);
+  if (now.tanks == applied.revisions.tanks &&
+      diveTanksField.same(session.valueOf(diveTanksField), after.tanks)) {
+    setTanks(session, before.tanks, replaced: true);
   }
 }
