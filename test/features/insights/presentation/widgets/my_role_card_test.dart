@@ -128,4 +128,45 @@ void main() {
     await pump(tester, load: () async => throw StateError('boom'));
     expect(find.text('Failed to load role data'), findsOneWidget);
   });
+
+  // A dive_roles write reloads the role map (its dependency moves); the bars
+  // keep their names until the new map lands, not the raw ids.
+  testWidgets('a role map reload keeps the role names', (tester) async {
+    final trigger = NotifierProvider<_Trigger, int>(_Trigger.new);
+    var next = Completer<Map<String, DiveRole>>()..complete(roles);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          diverRoleDistributionProvider.overrideWith((ref) async => segments),
+          diveRoleMapProvider.overrideWith((ref) {
+            ref.watch(trigger);
+            return next.future;
+          }),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: SingleChildScrollView(child: MyRoleCard())),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Cave Guide'), findsOneWidget);
+
+    next = Completer<Map<String, DiveRole>>();
+    ProviderScope.containerOf(
+      tester.element(find.byType(MyRoleCard)),
+    ).read(trigger.notifier).bump();
+    await tester.pump();
+    expect(find.text('Cave Guide'), findsOneWidget);
+    expect(find.text('r1'), findsNothing);
+    next.complete(roles);
+  });
+}
+
+class _Trigger extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void bump() => state = state + 1;
 }

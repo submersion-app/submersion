@@ -260,7 +260,7 @@ List<Widget> activeDiveFilterChips(
       label = context.l10n.diveLog_filterChip_noRole;
     } else {
       final id = filter.diverRoleIds.single;
-      final role = ref.watch(diveRoleMapProvider).valueOrNull?[id];
+      final role = ref.watch(diveRoleMapProvider).value?[id];
       label = (role ?? DiveRole.synthetic(id)).localizedName(context.l10n);
     }
     chips.add(

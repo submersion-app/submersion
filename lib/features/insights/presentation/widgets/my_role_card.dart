@@ -26,9 +26,10 @@ class MyRoleCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    // `value`, not `valueOrNull`: a dive_roles write reloads the map, and
+    // the bars keep their names until the new one lands.
     final rolesById =
-        ref.watch(diveRoleMapProvider).valueOrNull ??
-        const <String, DiveRole>{};
+        ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
     String labelFor(String key) => key == kNotRecordedDistributionKey
         ? l10n.insights_social_myRole_notSet
         : (rolesById[key] ?? DiveRole.synthetic(key)).localizedName(l10n);

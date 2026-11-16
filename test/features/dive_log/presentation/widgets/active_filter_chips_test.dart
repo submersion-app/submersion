@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -366,6 +368,58 @@ void main() {
       );
       expect(find.text('2 roles'), findsOneWidget);
     });
+
+    // A dive_roles write reloads the role map (its dependency moves); the
+    // chip keeps the role's name until the new map lands, not the raw id.
+    testWidgets('a role map reload keeps the name', (tester) async {
+      final trigger = NotifierProvider<_Trigger, int>(_Trigger.new);
+      final instructor = DiveRole(
+        id: 'instructor',
+        name: 'Instructor',
+        isBuiltIn: true,
+        createdAt: DateTime(2020),
+        updatedAt: DateTime(2020),
+      );
+      var next = Completer<Map<String, DiveRole>>()
+        ..complete({'instructor': instructor});
+      final provider = StateProvider<DiveFilterState>(
+        (ref) => const DiveFilterState(diverRoleIds: ['instructor']),
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            diveRoleMapProvider.overrideWith((ref) {
+              ref.watch(trigger);
+              return next.future;
+            }),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) => Wrap(
+                  children: activeDiveFilterChips(context, ref, provider),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Instructor'), findsOneWidget);
+
+      next = Completer<Map<String, DiveRole>>();
+      ProviderScope.containerOf(
+        tester.element(find.byType(Scaffold)),
+      ).read(trigger.notifier).bump();
+      await tester.pump();
+      expect(find.text('Instructor'), findsOneWidget);
+      expect(find.text('instructor'), findsNothing);
+      next.complete({'instructor': instructor});
+    });
   });
 
   testWidgets('an advanced query shows one chip per part, each removable', (
@@ -611,4 +665,11 @@ void main() {
     tester.widget<Chip>(find.widgetWithText(Chip, '2 dives')).onDeleted!();
     expect(container.read(handoff).hasActiveFilters, isFalse);
   });
+}
+
+class _Trigger extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void bump() => state = state + 1;
 }
