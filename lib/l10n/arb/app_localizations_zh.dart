@@ -13104,10 +13104,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveTypes_deleteTooltip => '删除潜水类型';
 
   @override
-  String get diveTypes_favourite_add => '添加到收藏';
+  String diveTypes_favourite_add(String name) {
+    return '将$name添加到收藏';
+  }
 
   @override
-  String get diveTypes_favourite_remove => '从收藏中移除';
+  String diveTypes_favourite_remove(String name) {
+    return '从收藏中移除$name';
+  }
 
   @override
   String get diveTypes_favourites_header => '收藏';

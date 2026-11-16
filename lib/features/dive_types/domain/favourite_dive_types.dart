@@ -4,11 +4,12 @@
 /// A stable partition: starred entries keep their relative order, and so do
 /// the rest. An id in [favourites] that matches no entry (a deleted custom
 /// type, or one synced from a newer version) is ignored. [all] itself is
-/// returned when nothing moves, so a caller can compare by identity.
+/// returned when nothing moves, so a caller can compare by identity. An entry
+/// whose [idOf] is null (one that cannot be starred) is never lifted.
 List<T> favouritesFirst<T>(
   List<T> all,
   Set<String> favourites, {
-  required String Function(T) idOf,
+  required String? Function(T) idOf,
 }) {
   if (favourites.isEmpty) return all;
   final starred = <T>[];

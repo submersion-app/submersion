@@ -13486,10 +13486,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveTypes_deleteTooltip => 'מחק סוג צלילה';
 
   @override
-  String get diveTypes_favourite_add => 'הוספה למועדפים';
+  String diveTypes_favourite_add(String name) {
+    return 'הוספת $name למועדפים';
+  }
 
   @override
-  String get diveTypes_favourite_remove => 'הסרה מהמועדפים';
+  String diveTypes_favourite_remove(String name) {
+    return 'הסרת $name מהמועדפים';
+  }
 
   @override
   String get diveTypes_favourites_header => 'מועדפים';

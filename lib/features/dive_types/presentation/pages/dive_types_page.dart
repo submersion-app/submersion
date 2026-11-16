@@ -141,7 +141,10 @@ class DiveTypesPage extends ConsumerWidget {
         children: [
           // Starred types lead the dive type pickers (issue #4413); this
           // page keeps its own order.
-          DiveTypeFavouriteButton(diveTypeId: diveType.id),
+          DiveTypeFavouriteButton(
+            diveTypeId: diveType.id,
+            diveTypeName: fullName,
+          ),
           if (shortName != null) ...[
             DiveTypeBadge(label: shortName),
             if (canDelete) const SizedBox(width: 8),

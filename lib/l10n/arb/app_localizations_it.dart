@@ -13788,10 +13788,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveTypes_deleteTooltip => 'Elimina tipo immersione';
 
   @override
-  String get diveTypes_favourite_add => 'Aggiungi ai preferiti';
+  String diveTypes_favourite_add(String name) {
+    return 'Aggiungi $name ai preferiti';
+  }
 
   @override
-  String get diveTypes_favourite_remove => 'Rimuovi dai preferiti';
+  String diveTypes_favourite_remove(String name) {
+    return 'Rimuovi $name dai preferiti';
+  }
 
   @override
   String get diveTypes_favourites_header => 'Preferiti';

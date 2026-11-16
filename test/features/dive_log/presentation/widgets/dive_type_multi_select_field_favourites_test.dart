@@ -77,6 +77,37 @@ void main() {
     expect(find.byType(Divider), findsOneWidget);
   });
 
+  testWidgets('the star is its own accessible button, apart from the row', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      harness(
+        selected: ['shore'],
+        settings: MockSettingsNotifier(
+          const AppSettings(favouriteDiveTypeIds: {'night'}),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await openSheet(tester);
+
+    // Not merged into the checkbox row: no checked state, its own label.
+    expect(
+      tester.getSemantics(find.byKey(diveTypeFavouriteButtonKey('wreck'))),
+      isSemantics(
+        isButton: true,
+        hasCheckedState: false,
+        tooltip: 'Add Wreck to favorites',
+      ),
+    );
+    expect(
+      tester.getSemantics(find.text('Favorites')),
+      isSemantics(isHeader: true),
+    );
+    semantics.dispose();
+  });
+
   testWidgets('with no favourites the checklist keeps its order', (
     tester,
   ) async {

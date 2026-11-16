@@ -1,9 +1,9 @@
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
-import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain
     show TurnPressureRule;
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
+import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';

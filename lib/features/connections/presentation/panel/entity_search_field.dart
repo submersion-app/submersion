@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart'
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -79,7 +81,14 @@ class _EntitySearchFieldState extends ConsumerState<EntitySearchField> {
           else if (_merge(
                 hits.value,
                 extra?.value,
-                ref.watch(favouriteDiveTypeIdsProvider),
+                // Hiding wins: a hidden built-in is not lifted (#4413).
+                ref
+                    .watch(favouriteDiveTypeIdsProvider)
+                    .difference(
+                      ref.watch(
+                        hiddenBuiltInIdsProvider(BuiltInCatalog.diveTypes),
+                      ),
+                    ),
               )
               case final nodes)
             nodes.isEmpty
@@ -157,11 +166,11 @@ class _EntitySearchFieldState extends ConsumerState<EntitySearchField> {
         return byDives != 0 ? byDives : a.label.compareTo(b.label);
       });
     // Only dive type nodes can be starred: a site or species sharing a
-    // starred id keeps its place.
+    // starred id (or a blank one from corrupt data) keeps its place.
     return favouritesFirst(
       busiestFirst,
       favouriteDiveTypeIds,
-      idOf: (n) => n.ref.kind == ConnectionKind.diveType ? n.ref.id : '',
+      idOf: (n) => n.ref.kind == ConnectionKind.diveType ? n.ref.id : null,
     );
   }
 }

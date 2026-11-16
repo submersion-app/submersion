@@ -13696,10 +13696,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveTypes_deleteTooltip => 'Duiktype verwijderen';
 
   @override
-  String get diveTypes_favourite_add => 'Aan favorieten toevoegen';
+  String diveTypes_favourite_add(String name) {
+    return '$name aan favorieten toevoegen';
+  }
 
   @override
-  String get diveTypes_favourite_remove => 'Uit favorieten verwijderen';
+  String diveTypes_favourite_remove(String name) {
+    return '$name uit favorieten verwijderen';
+  }
 
   @override
   String get diveTypes_favourites_header => 'Favorieten';

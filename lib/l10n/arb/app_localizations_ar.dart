@@ -13962,10 +13962,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveTypes_deleteTooltip => 'حذف نوع الغوص';
 
   @override
-  String get diveTypes_favourite_add => 'إضافة إلى المفضلة';
+  String diveTypes_favourite_add(String name) {
+    return 'إضافة $name إلى المفضلة';
+  }
 
   @override
-  String get diveTypes_favourite_remove => 'إزالة من المفضلة';
+  String diveTypes_favourite_remove(String name) {
+    return 'إزالة $name من المفضلة';
+  }
 
   @override
   String get diveTypes_favourites_header => 'المفضلة';

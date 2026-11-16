@@ -73,6 +73,43 @@ void main() {
     ]);
   });
 
+  testWidgets('a hidden favourite keeps its busiest-first place', (
+    tester,
+  ) async {
+    expect(
+      await hitOrder(
+        tester,
+        const AppSettings(
+          favouriteDiveTypeIds: {'night'},
+          hiddenBuiltInIds: {
+            'diveTypes': {'night'},
+          },
+        ),
+      ),
+      [
+        'search-hit-${reef.wire}',
+        'search-hit-${shore.wire}',
+        'search-hit-${nightSite.wire}',
+        'search-hit-${night.wire}',
+      ],
+    );
+  });
+
+  testWidgets('a blank starred id lifts no other kind of hit', (tester) async {
+    expect(
+      await hitOrder(
+        tester,
+        const AppSettings(favouriteDiveTypeIds: {'', 'night'}),
+      ),
+      [
+        'search-hit-${night.wire}',
+        'search-hit-${reef.wire}',
+        'search-hit-${shore.wire}',
+        'search-hit-${nightSite.wire}',
+      ],
+    );
+  });
+
   testWidgets('a starred dive type leads; a site sharing its id does not', (
     tester,
   ) async {

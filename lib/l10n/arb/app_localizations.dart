@@ -21869,17 +21869,17 @@ abstract class AppLocalizations {
   /// **'Delete dive type'**
   String get diveTypes_deleteTooltip;
 
-  /// Tooltip on the star button that makes a dive type a favorite, listed first in the dive type pickers
+  /// Tooltip and screen-reader label on the star button that makes a dive type a favorite, listed first in the dive type pickers
   ///
   /// In en, this message translates to:
-  /// **'Add to favorites'**
-  String get diveTypes_favourite_add;
+  /// **'Add {name} to favorites'**
+  String diveTypes_favourite_add(String name);
 
-  /// Tooltip on the filled star button that removes a dive type from the favorites
+  /// Tooltip and screen-reader label on the filled star button that removes a dive type from the favorites
   ///
   /// In en, this message translates to:
-  /// **'Remove from favorites'**
-  String get diveTypes_favourite_remove;
+  /// **'Remove {name} from favorites'**
+  String diveTypes_favourite_remove(String name);
 
   /// Heading above the starred dive types at the top of the dive type checklist
   ///

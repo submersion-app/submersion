@@ -238,22 +238,40 @@ class _DiveTypePickerSheetState extends State<_DiveTypePickerSheet> {
                   if (widget.favouriteIds.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-                      child: Text(
-                        context.l10n.diveTypes_favourites_header,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.primary,
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          context.l10n.diveTypes_favourites_header,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
                         ),
                       ),
                     ),
                   for (final t in widget.types) ...[
                     if (widget.favouriteIds.isNotEmpty && t == _firstUnstarred)
                       const Divider(),
-                    CheckboxListTile(
-                      value: _working.contains(t.id),
-                      onChanged: (v) => _toggle(t.id, v ?? false),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      title: Text(t.localizedName(context.l10n)),
-                      secondary: DiveTypeFavouriteButton(diveTypeId: t.id),
+                    // The star sits beside the tile, not in its `secondary`:
+                    // CheckboxListTile merges its semantics, which would fold
+                    // the star into the row for a screen reader.
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CheckboxListTile(
+                            value: _working.contains(t.id),
+                            onChanged: (v) => _toggle(t.id, v ?? false),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            title: Text(t.localizedName(context.l10n)),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsetsDirectional.only(end: 8),
+                          child: DiveTypeFavouriteButton(
+                            diveTypeId: t.id,
+                            diveTypeName: t.localizedName(context.l10n),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ],

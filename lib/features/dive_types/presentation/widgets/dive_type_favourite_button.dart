@@ -11,10 +11,21 @@ Key diveTypeFavouriteButtonKey(String id) => ValueKey('diveTypeFavourite:$id');
 
 /// A star that makes a dive type a favourite, listed first in the dive type
 /// pickers (issue #4413). Saves at once; filled while starred.
+///
+/// Keep it out of a `CheckboxListTile` or any other `MergeSemantics`: merged,
+/// a screen reader could not reach it apart from the row.
 class DiveTypeFavouriteButton extends ConsumerWidget {
-  const DiveTypeFavouriteButton({super.key, required this.diveTypeId});
+  const DiveTypeFavouriteButton({
+    super.key,
+    required this.diveTypeId,
+    required this.diveTypeName,
+  });
 
   final String diveTypeId;
+
+  /// The type's name as shown, so the tooltip and screen-reader label say
+  /// which type the star belongs to.
+  final String diveTypeName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,8 +40,8 @@ class DiveTypeFavouriteButton extends ConsumerWidget {
         color: starred ? Theme.of(context).colorScheme.primary : null,
       ),
       tooltip: starred
-          ? l10n.diveTypes_favourite_remove
-          : l10n.diveTypes_favourite_add,
+          ? l10n.diveTypes_favourite_remove(diveTypeName)
+          : l10n.diveTypes_favourite_add(diveTypeName),
       onPressed: () => ref
           .read(settingsProvider.notifier)
           .setDiveTypeFavourite(diveTypeId, !starred),

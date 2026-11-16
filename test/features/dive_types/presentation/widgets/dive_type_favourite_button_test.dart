@@ -15,14 +15,19 @@ void main() {
     child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: DiveTypeFavouriteButton(diveTypeId: 'wreck')),
+      home: Scaffold(
+        body: DiveTypeFavouriteButton(
+          diveTypeId: 'wreck',
+          diveTypeName: 'Wreck',
+        ),
+      ),
     ),
   );
 
   testWidgets('an unstarred type offers to add it', (tester) async {
     await tester.pumpWidget(harness(MockSettingsNotifier()));
     expect(find.byIcon(Icons.star_border), findsOneWidget);
-    expect(find.byTooltip('Add to favorites'), findsOneWidget);
+    expect(find.byTooltip('Add Wreck to favorites'), findsOneWidget);
     expect(find.byKey(diveTypeFavouriteButtonKey('wreck')), findsOneWidget);
   });
 
@@ -36,7 +41,7 @@ void main() {
     await tester.pump();
     expect(settings.state.favouriteDiveTypeIds, {'wreck'});
     expect(find.byIcon(Icons.star), findsOneWidget);
-    expect(find.byTooltip('Remove from favorites'), findsOneWidget);
+    expect(find.byTooltip('Remove Wreck from favorites'), findsOneWidget);
 
     await tester.tap(find.byKey(diveTypeFavouriteButtonKey('wreck')));
     await tester.pump();

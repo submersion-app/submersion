@@ -382,4 +382,29 @@ void main() {
       ['Night', 'Wreck', 'Shore'],
     );
   });
+
+  testWidgets('a hidden favourite keeps its place in the type options', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      settings: const AppSettings(
+        favouriteDiveTypeIds: {'night'},
+        hiddenBuiltInIds: {
+          'diveTypes': {'night'},
+        },
+      ),
+    );
+    final dropdown = tester.widget<SearchableFilterDropdown<String>>(
+      find.byWidgetPredicate(
+        (w) =>
+            w is SearchableFilterDropdown<String> &&
+            w.allOptionLabel == 'All types',
+      ),
+    );
+    expect(
+      [for (final o in dropdown.options) o.label],
+      ['Wreck', 'Shore', 'Night'],
+    );
+  });
 }
