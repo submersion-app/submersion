@@ -132,6 +132,10 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   @override
   bool get unlockEditingRequested => widget.unlockEditing;
 
+  /// Tag mode holds its changes in the photo's sitting.
+  @override
+  EditSession<PhotoRecord>? get peopleSitting => photoSitting;
+
   /// Locking, by any route, closes what changes the photo.
   @override
   void onPhotoLocked() {

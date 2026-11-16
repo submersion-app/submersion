@@ -159,6 +159,7 @@ class _PhotoItem extends ConsumerWidget {
         ),
         if (people.active && imageSize != null)
           PeopleTagEditor(
+            sitting: people.sitting,
             mediaId: item.id,
             imageSize: imageSize,
             selectedTagId: people.selectedTagId,
@@ -170,6 +171,7 @@ class _PhotoItem extends ConsumerWidget {
           )
         else if (!people.active)
           FaceBoxLayer(
+            sitting: people.sitting,
             mediaId: item.id,
             imageSize: imageSize,
             visible: showBoxes,

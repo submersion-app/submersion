@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/person_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -14,12 +15,14 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// and dive buddies stay independent facts.
 ///
 /// Nothing is offered for Me, for media with no dive, or for a buddy
-/// already on the dive.
+/// already on the dive. [onAdd], when given, takes the Add instead of
+/// writing it.
 Future<void> offerAddToDive(
   BuildContext context,
   WidgetRef ref, {
   required String? diveId,
   required PersonChoice choice,
+  void Function(Buddy buddy)? onAdd,
 }) async {
   if (diveId == null || choice is! BuddyChoice) return;
   final repository = ref.read(buddyRepositoryProvider);
@@ -55,7 +58,10 @@ Future<void> offerAddToDive(
         persist: false,
         action: SnackBarAction(
           label: l10n.media_people_addToDiveAction,
-          onPressed: () => unawaited(add()),
+          // In a photo's sitting the Add is held until Save (issue #4527).
+          onPressed: onAdd == null
+              ? () => unawaited(add())
+              : () => onAdd(choice.buddy),
         ),
       ),
     );

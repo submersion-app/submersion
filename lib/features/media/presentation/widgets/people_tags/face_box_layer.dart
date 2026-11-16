@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
 import 'package:submersion/features/media/presentation/helpers/face_box_geometry.dart';
-import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Whether [tag] belongs on the frame at [showAt]: a photo tag (no moment)
@@ -34,6 +36,9 @@ class FaceBoxLayer extends ConsumerWidget {
   /// The tag being edited, drawn by the editor instead.
   final String? hiddenTagId;
 
+  /// The photo's sitting, whose held tags are drawn (issue #4527).
+  final EditSession<PhotoRecord>? sitting;
+
   const FaceBoxLayer({
     super.key,
     required this.mediaId,
@@ -41,6 +46,7 @@ class FaceBoxLayer extends ConsumerWidget {
     required this.visible,
     this.showAt,
     this.hiddenTagId,
+    this.sitting,
   });
 
   @override
@@ -49,8 +55,7 @@ class FaceBoxLayer extends ConsumerWidget {
     if (!visible || image == null || image.isEmpty) {
       return const SizedBox.shrink();
     }
-    final chips =
-        ref.watch(mediaPeopleChipsProvider(mediaId)).value ?? const [];
+    final chips = peopleChipsShown(ref, mediaId, sitting);
     final shown = [
       for (final chip in chips)
         if (chip.tag.box != null &&

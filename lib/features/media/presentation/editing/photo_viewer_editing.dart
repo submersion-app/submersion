@@ -37,6 +37,11 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   RecordEditController<PhotoRecord>? _photoController;
   bool _wasUnlocked = false;
 
+  /// The sitting the viewer listens to. Its controller tells the page only
+  /// when the set of changes moves; the viewer redraws the photo, its chips
+  /// and boxes on every change (taps and picks, never keystrokes).
+  EditSession<PhotoRecord>? _listened;
+
   /// Whether this viewer offers the lock: built with editing on, on a device
   /// that can change media at all.
   bool get editingOffered =>
@@ -59,10 +64,19 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
 
   void _onPhotoEditChanged() {
     if (!mounted) return;
+    final session = photoSitting;
+    if (!identical(session, _listened)) {
+      _listened?.removeListener(_onSittingChanged);
+      _listened = session?..addListener(_onSittingChanged);
+    }
     final unlocked = photoUnlocked;
     if (_wasUnlocked && !unlocked) onPhotoLocked();
     _wasUnlocked = unlocked;
     setState(() {});
+  }
+
+  void _onSittingChanged() {
+    if (mounted) setState(() {});
   }
 
   /// The photo on screen as stored, for unlocking; null while it is being
@@ -219,6 +233,7 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   }
 
   void disposePhotoEditing() {
+    _listened?.removeListener(_onSittingChanged);
     _photoController
       ?..removeListener(_onPhotoEditChanged)
       ..dispose();

@@ -87,7 +87,11 @@ class _BottomMetadataOverlay extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                 ],
-                MediaPeopleChipsRow(mediaId: item.id, onMomentTap: onMomentTap),
+                MediaPeopleChipsRow(
+                  mediaId: item.id,
+                  onMomentTap: onMomentTap,
+                  sitting: sitting,
+                ),
                 MediaSpeciesChipsRow(mediaId: item.id, sitting: sitting),
                 // Metadata row
                 Row(
