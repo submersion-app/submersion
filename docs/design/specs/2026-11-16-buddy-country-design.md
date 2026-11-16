@@ -69,8 +69,10 @@ Approach 2 was chosen.
   site field's `suggestedCountries` shape).
 - **Detail page:** the country row with its flag, when set. Flags follow the
   existing "show country flags" setting.
-- **List and table:** `BuddyField.country`, shown as flag plus text,
-  sortable, available in every row layout's slots and as a table column.
+- **List and table:** `BuddyField.country`, sortable, available in every
+  row layout's slots and as a table column. As on sites, a standard or
+  compact row whose subtitle slot shows the country draws the flag beside
+  it; stat slots and table cells show the text.
 - **Merge:** the buddy merge page offers each buddy's country as a choice,
   and the chosen country brings its code.
 - **Search and query:** the buddy text search matches country, and the query
