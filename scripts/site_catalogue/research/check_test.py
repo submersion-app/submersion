@@ -253,37 +253,102 @@ class DomainTest(unittest.TestCase):
         self.assertIn("never_source", _rules(_one(entry)))
 
 
-class PositionTest(unittest.TestCase):
-    def test_one_counting_source(self):
-        entry = _entry()
-        entry["position"]["sources"] = [dict(_A)]
-        entry["position"]["lat"], entry["position"]["lon"] = _A["lat"], _A["lon"]
-        self.assertIn("position_sources", _rules(_one(entry)))
+def _map_source(lat, lon, url="https://opa.com/sites"):
+    return {"url": url, "read": "2026-11-16", "method": "map",
+            "map": "https://opa.com/m.jpg", "lat": lat, "lon": lon}
 
-    def test_two_sources_one_domain(self):
+
+def _placed(sources, lat, lon, **overrides):
+    """The passing entry, named by two counting domains, placed by
+    [sources], shipping [lat], [lon]."""
+    entry = _entry(named=_named("https://opa.com/sites", "https://pressb.org/y"))
+    entry["position"] = {"lat": lat, "lon": lon, "sources": sources}
+    entry.update(overrides)
+    return entry
+
+
+class PositionTest(unittest.TestCase):
+    def test_one_counting_source_is_route_stated(self):
+        checked = _one(_placed([dict(_A)], _A["lat"], _A["lon"]))
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "stated")
+        self.assertFalse(checked.map_read)
+
+    def test_two_sources_one_domain_are_map_grade(self):
         entry = _with(("position", "sources", 1, "url"), "https://shop.opa.com/y")
+        self.assertEqual(_one(entry).route, "map")
+
+    def test_whole_minute_figure_alone_is_map_grade(self):
+        source = {"url": "https://opa.com/w", "read": "2026-11-16",
+                  "lat": "8 16 S", "lon": "115 36 E"}
+        checked = _one(_placed([source], -(8 + 16 / 60), 115.6))
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "map")
+
+    def test_two_decimal_figure_alone_is_map_grade(self):
+        source = {"url": "https://opa.com/w", "read": "2026-11-16",
+                  "lat": -8.27, "lon": 115.59}
+        checked = _one(_placed([source], -8.27, 115.59))
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "map")
+
+    def test_a_fine_figure_beside_a_whole_minute_one_is_route_stated(self):
+        coarse = {"url": "https://pressb.org/w", "read": "2026-11-16",
+                  "lat": "8 16 S", "lon": "115 36 E"}
+        checked = _one(_placed([dict(_A), coarse], _A["lat"], _A["lon"]))
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "stated")
+
+    def test_counting_figures_600m_apart_are_map_read_at_their_mean(self):
+        far = dict(_B, lat=-8.27912, lon=115.5929)
+        lat = (-8.27372 + -8.27912) / 2
+        checked = _one(_placed([dict(_A), far], lat, 115.5929))
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "map")
+        self.assertAlmostEqual(checked.position[0], lat, places=6)
+
+    def test_map_figure_alone_is_route_map(self):
+        checked = _one(_placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937))
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "map")
+        self.assertTrue(checked.map_read)
+
+    def test_map_figure_on_cite_only_domain_fails(self):
+        source = _map_source(-8.2759, 115.5937, url="https://dir.com/x")
+        entry = _placed([dict(_A), source], _A["lat"], _A["lon"])
         self.assertIn("position_domains", _rules(_one(entry)))
 
-    def test_whole_minute_figure_fails(self):
-        entry = _entry()
-        entry["position"]["sources"][1].update(lat="8 16 S", lon="115 36 E")
-        self.assertIn("position_precision", _rules(_one(entry)))
+    def test_map_figure_without_map_address_fails(self):
+        source = _map_source(-8.2759, 115.5937)
+        del source["map"]
+        entry = _placed([source], -8.2759, 115.5937)
+        self.assertIn("position_domains", _rules(_one(entry)))
 
-    def test_two_decimal_figure_fails(self):
+    def test_stated_and_map_3km_apart_fail_spread(self):
+        source = _map_source(-8.30072, 115.5929)
+        entry = _placed([dict(_A), source], _A["lat"], _A["lon"])
+        self.assertIn("position_spread", _rules(_one(entry)))
+
+    def test_confirmed_with_a_map_figure_1km_off_stays_confirmed(self):
         entry = _entry()
-        entry["position"]["sources"][1].update(lat=-8.27, lon=115.59)
-        self.assertIn("position_precision", _rules(_one(entry)))
+        entry["position"]["sources"].append(_map_source(-8.28272, 115.5929))
+        checked = _one(entry)
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "confirmed")
+
+    def test_map_mean_across_the_antimeridian(self):
+        sources = [
+            _map_source(-16.80012, 179.999),
+            _map_source(-16.80012, -179.999, url="https://pressb.org/t"),
+        ]
+        entry = _placed(sources, -16.80012, 180.0, country_code="FJ")
+        checked = _one(entry)
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertAlmostEqual(abs(checked.position[1]), 180.0, places=3)
 
     def test_a_figure_that_does_not_parse_fails(self):
         entry = _with(("position", "sources", 1, "lat"), "-8 16 27 S")
         self.assertIn("shape", _rules(_one(entry)))
-
-    def test_counting_figures_200m_apart_fail(self):
-        entry = _entry()
-        entry["position"]["sources"][1].update(lat=-8.27552, lon=115.5929)
-        lat = (-8.27372 + -8.27552) / 2
-        entry["position"].update(lat=lat, lon=115.5929)
-        self.assertIn("position_spread", _rules(_one(entry)))
 
     def test_cite_only_2km_off_passes(self):
         entry = _entry()

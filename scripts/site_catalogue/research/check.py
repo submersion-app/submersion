@@ -6,10 +6,13 @@
 
 A researched site ships only when its evidence meets the rules of the
 slice 3 design (docs/design/specs/2026-11-15-site-catalogue-researched-
-sites-design.md, section 4): two counting pages on different domains
-agree on its position within 150 m, each written finely enough to say so;
-its depths agree well enough or are left out; every fact has a counting
-page; and nothing holds any page's text. This script runs those rules on
+sites-design.md, section 4) as widened by the wider sources design
+(docs/design/specs/2026-11-16-site-catalogue-wider-sources-design.md,
+section 2): two counting pages on different domains name it, or confirm
+its position; a counting page places it, by a stated figure or a point
+read off its own map, every counting figure within 2 km; its depths agree
+well enough or are left out; every fact has a counting page; and nothing
+holds any page's text. This script runs those rules on
 `sites.json` with no network, prints what it found, and exits 1 when any
 entry breaks one, whatever that entry's review state. CI runs it on the
 committed file.
@@ -46,6 +49,9 @@ DOMAINS_FILE = Path(_HERE) / "domains.json"
 
 # Two counting positions agree when they lie this close.
 AGREE_M = 150.0
+# Every counting figure lies this close to the shipped point: a
+# researched position is good enough to name the dive.
+AGREE_COARSE_M = 2000.0
 # The shipped point is the mean of the counting positions, to within this.
 MEAN_M = 10.0
 # The coarsest figure that can confirm a position: a tenth of a minute.
@@ -106,6 +112,10 @@ class CheckedEntry:
     @property
     def ok(self) -> bool:
         return not any(finding.fatal for finding in self.findings)
+
+    @property
+    def map_read(self) -> bool:
+        return self.route == "map"
 
     @property
     def id(self) -> str:
@@ -238,10 +248,34 @@ def _mean_longitude(values: list[float]) -> float:
     return (mean + 180.0) % 360.0 - 180.0 if not -180.0 <= mean <= 180.0 else mean
 
 
+def _mean_point(figures) -> tuple:
+    return (
+        sum(f[1] for f in figures) / len(figures),
+        _mean_longitude([f[2] for f in figures]),
+    )
+
+
 def _check_position(checked: CheckedEntry, domains) -> None:
+    """Places the site by one of three routes (wider sources design,
+    section 2): two fine stated figures that agree ("confirmed"), one fine
+    stated figure ("stated"), or map-grade figures ("map"): points read off
+    a counting page's map, figures coarser than a tenth of a minute, or
+    stated figures that disagree."""
     position = checked.entry.get("position")
     sources = _sources(position)
     counted = _counting(sources, domains)
+    for source in sources:
+        if source.get("method", "stated") not in ("stated", "map"):
+            checked.fail("shape", f"{source.get('url')}: method is stated or map")
+            return
+        if source.get("method") == "map" and (
+            source not in counted or not isinstance(source.get("map"), str)
+        ):
+            checked.fail(
+                "position_domains",
+                f"{source.get('url')}: a map reading comes from a counting "
+                "page and names its map",
+            )
     figures = []
     for source in sources:
         try:
@@ -256,39 +290,39 @@ def _check_position(checked: CheckedEntry, domains) -> None:
             continue
         figures.append((source, lat, lon, max(lat_p, lon_p)))
     counting = [f for f in figures if f[0] in counted]
-    if len(counting) < 2:
-        checked.fail("position_sources", "two counting pages state a position")
+    if not counting:
+        checked.fail("position_sources", "a counting page places the site")
         return
-    hosts = {evidence.registrable_domain(f[0]["url"]) for f in counting}
-    if len(hosts) < 2:
-        checked.fail("position_domains", "the counting positions share a domain")
-    for source, _, _, precision in counting:
-        if precision > COARSEST_DEG:
-            checked.fail(
-                "position_precision",
-                f"{source['url']}: written coarser than a tenth of a minute",
-            )
-    for i, a in enumerate(counting):
-        for b in counting[i + 1:]:
-            apart = evidence.metres_between(a[1], a[2], b[1], b[2])
-            if apart > AGREE_M:
-                checked.fail(
-                    "position_spread",
-                    f"{a[0]['url']} and {b[0]['url']} are {apart:.0f} m apart",
-                )
-    mean = (
-        sum(f[1] for f in counting) / len(counting),
-        _mean_longitude([f[2] for f in counting]),
+    fine = [
+        f for f in counting
+        if f[0].get("method", "stated") == "stated" and f[3] <= COARSEST_DEG
+    ]
+    hosts = {evidence.registrable_domain(f[0]["url"]) for f in fine}
+    agree = all(
+        evidence.metres_between(a[1], a[2], b[1], b[2]) <= AGREE_M
+        for i, a in enumerate(fine) for b in fine[i + 1:]
     )
-    checked.position = mean
-    checked.route = "confirmed"
+    if len(fine) >= 2 and len(hosts) >= 2 and agree:
+        checked.route, shipped = "confirmed", _mean_point(fine)
+    elif len(fine) == 1:
+        checked.route, shipped = "stated", (fine[0][1], fine[0][2])
+    else:
+        checked.route, shipped = "map", _mean_point(counting)
+    checked.position = shipped
+    for source, lat, lon, _ in counting:
+        apart = evidence.metres_between(*shipped, lat, lon)
+        if apart > AGREE_COARSE_M:
+            checked.fail(
+                "position_spread",
+                f"{source['url']} is {apart:.0f} m from the shipped point",
+            )
     try:
         stated = (float(position["lat"]), float(position["lon"]))
     except (KeyError, TypeError, ValueError):
         checked.fail("shape", "position.lat and position.lon are numbers")
         return
-    if evidence.metres_between(*stated, *mean) > MEAN_M:
-        checked.fail("position_mean", "lat and lon are not the counting mean")
+    if evidence.metres_between(*stated, *shipped) > MEAN_M:
+        checked.fail("position_mean", "lat and lon are not the computed point")
 
 
 def _check_named(checked: CheckedEntry, domains) -> None:
