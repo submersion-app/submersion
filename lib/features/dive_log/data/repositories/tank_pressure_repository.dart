@@ -321,10 +321,16 @@ class TankPressureRepository {
   /// ([effectiveSourceTankIndex]) so that re-parse keeps honoring the result:
   /// a legacy row that had a series takes its order, one that had none takes
   /// [kNoSourceTankIndex]. The exchange is its own inverse.
+  ///
+  /// [includePressures] false leaves the start and end pressures with their
+  /// rows: an editing sitting writes those with the cylinders it already
+  /// swapped them on, and exchanges only what the cylinder write leaves
+  /// alone (issue #4527).
   Future<void> exchangeTankSources({
     required String diveId,
     required String tankIdA,
     required String tankIdB,
+    bool includePressures = true,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     // Both rows must belong to [diveId]: a mismatched id fails here rather
@@ -357,8 +363,12 @@ class TankPressureRepository {
         sourceTankIndex: Value(bIndex),
         transmitterSerial: Value(b.transmitterSerial),
         roleSource: const Value(null),
-        startPressure: Value(b.startPressure),
-        endPressure: Value(b.endPressure),
+        startPressure: includePressures
+            ? Value(b.startPressure)
+            : const Value.absent(),
+        endPressure: includePressures
+            ? Value(b.endPressure)
+            : const Value.absent(),
       ),
     );
     await (_db.update(
@@ -368,8 +378,12 @@ class TankPressureRepository {
         sourceTankIndex: Value(aIndex),
         transmitterSerial: Value(a.transmitterSerial),
         roleSource: const Value(null),
-        startPressure: Value(a.startPressure),
-        endPressure: Value(a.endPressure),
+        startPressure: includePressures
+            ? Value(a.startPressure)
+            : const Value.absent(),
+        endPressure: includePressures
+            ? Value(a.endPressure)
+            : const Value.absent(),
       ),
     );
     await _tankSeries.swapTanks(diveId, tankIdA, tankIdB, now: now);

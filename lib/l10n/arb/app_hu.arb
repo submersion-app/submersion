@@ -17147,6 +17147,7 @@
   "diveComputer_detail_transmittersSummary": "{known} ismert, {unassigned} nincs hozzárendelve",
   "diveLog_tank_assignTransmitter": "Jeladó hozzárendelése",
   "diveLog_tank_reassignSeries": "Nyomásgörbe áthelyezése",
+  "diveLog_tank_reassignPending": "A mért értékek mentéskor kerülnek át az új palackjaikhoz.",
   "diveLog_tank_roleFromTransmitterName": "{role}, a jeladó nevéből kiolvasva",
   "diveLog_reassignSheet_title": "Nyomásgörbék",
   "diveLog_reassignSheet_swap": "Csere",

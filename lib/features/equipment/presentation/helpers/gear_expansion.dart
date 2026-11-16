@@ -1,3 +1,5 @@
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -57,10 +59,30 @@ Future<GearExpansion> expandGearOnPage(
   required List<GearProvenance> existing,
   required List<EquipmentItem> existingItems,
   required String? diverId,
+}) => expandGear(
+  ref.read,
+  additions: additions,
+  existing: existing,
+  existingItems: existingItems,
+  diverId: diverId,
+);
+
+/// Reads a provider: `WidgetRef.read`, or `ProviderContainer.read` for work
+/// that can outlive the widget that started it.
+typedef ProviderRead = T Function<T>(ProviderListenable<T> provider);
+
+/// [expandGearOnPage] through [read], for an editing sitting whose gear can
+/// be added after the widget that asked has gone (issue #4527).
+Future<GearExpansion> expandGear(
+  ProviderRead read, {
+  required List<GearAddition> additions,
+  required List<GearProvenance> existing,
+  required List<EquipmentItem> existingItems,
+  required String? diverId,
 }) async {
   ComponentsIndex index;
   try {
-    index = await ref.read(equipmentComponentsIndexProvider.future);
+    index = await read(equipmentComponentsIndexProvider.future);
   } catch (_) {
     index = ComponentsIndex.empty;
   }
@@ -70,7 +92,7 @@ Future<GearExpansion> expandGearOnPage(
   var fetched = const <EquipmentItem>[];
   if (candidateIds.isNotEmpty) {
     try {
-      final repository = ref.read(equipmentRepositoryProvider);
+      final repository = read(equipmentRepositoryProvider);
       final parts = await repository.getEquipmentByIds(candidateIds.toList());
       if (diverId == null) {
         fetched = parts;

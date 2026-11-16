@@ -17147,6 +17147,7 @@
   "diveComputer_detail_transmittersSummary": "{known} 个已知，{unassigned} 个未分配",
   "diveLog_tank_assignTransmitter": "分配发射器",
   "diveLog_tank_reassignSeries": "重新分配压力曲线",
+  "diveLog_tank_reassignPending": "保存时，读数会移到新的气瓶。",
   "diveLog_tank_roleFromTransmitterName": "{role}（根据发射器名称识别）",
   "diveLog_reassignSheet_title": "压力曲线",
   "diveLog_reassignSheet_swap": "交换",

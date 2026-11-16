@@ -3,13 +3,17 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/visibility_input_mode_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_date_stretch_message.dart';
@@ -17,6 +21,27 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 const _log = LoggerService('DiveSittingFollowUp');
+
+/// Has what a dive's cylinders, gear and weights feed worked out again in
+/// the background: its derived metrics (gas use, SAC), the sensor summary
+/// of its gear, and its data-quality findings (a reassign repairs one, and
+/// gear feeds the shared-gear finding), as the dive form does after every
+/// save (`dive_edit_page.dart`, after `_saveDive`). A provider, so a test
+/// can stand in for the schedulers.
+final diveGearRefreshProvider = Provider<void Function(String diveId)>(
+  (ref) => (diveId) {
+    scheduleQualityScan([diveId]);
+    scheduleDerivedMetricsRefresh([diveId]);
+    scheduleSensorSummaryRefresh([diveId]);
+  },
+);
+
+/// The cards whose values feed the refresh above.
+final _gearCardIds = {
+  DiveDetailSectionId.tanks.name,
+  DiveDetailSectionId.equipment.name,
+  DiveDetailSectionId.weights.name,
+};
 
 /// What a saved editing sitting on a dive still owes once its write has
 /// gone through: a word about a trip whose dates it moved, a fresh read of
@@ -36,6 +61,7 @@ class DiveSittingFollowUp {
       _l10n = context.l10n,
       _units = ref.read(unitFormatterProvider),
       _mode = _modeOrNull(ref),
+      _gearRefresh = ref.read(diveGearRefreshProvider),
       _container = ProviderScope.containerOf(context, listen: false);
 
   final ScaffoldMessengerState _messenger;
@@ -60,13 +86,16 @@ class DiveSittingFollowUp {
   }
 
   final ProviderContainer _container;
+  final void Function(String diveId) _gearRefresh;
 
   /// [before] and [after] are the dive as the save found it and as it left
-  /// it; [tripDateStretches] the trips whose dates it moved.
+  /// it; [tripDateStretches] the trips whose dates it moved;
+  /// [changedCardIds] the cards the sitting changed.
   Future<void> run({
     required Dive before,
     required Dive after,
     required List<TripDateStretch> tripDateStretches,
+    required Set<String> changedCardIds,
   }) async {
     await _guarded(
       'name the stretched trip',
@@ -88,6 +117,15 @@ class DiveSittingFollowUp {
       after,
       () => _refreshSiteSpecies(before, after),
     );
+    // Gas switches and the readings moved by a reassign change no dive
+    // value, so this is asked of the cards, not of before and after.
+    if (changedCardIds.any(_gearCardIds.contains)) {
+      await _guarded(
+        'refresh what its cylinders, gear and weights feed',
+        after,
+        () => _gearRefresh(after.id),
+      );
+    }
   }
 
   /// Runs one step. A step that fails is logged, with the dive it was for,

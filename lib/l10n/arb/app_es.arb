@@ -17147,6 +17147,7 @@
   "diveComputer_detail_transmittersSummary": "{known} conocidos, {unassigned} sin asignar",
   "diveLog_tank_assignTransmitter": "Asignar transmisor",
   "diveLog_tank_reassignSeries": "Reasignar serie de presión",
+  "diveLog_tank_reassignPending": "Las lecturas pasan a sus nuevas botellas al guardar.",
   "diveLog_tank_roleFromTransmitterName": "{role}, leído del nombre del transmisor",
   "diveLog_reassignSheet_title": "Series de presión",
   "diveLog_reassignSheet_swap": "Intercambiar",

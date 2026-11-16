@@ -17147,6 +17147,7 @@
   "diveComputer_detail_transmittersSummary": "{known} معروف، {unassigned} غير معيّن",
   "diveLog_tank_assignTransmitter": "تعيين جهاز إرسال",
   "diveLog_tank_reassignSeries": "إعادة تعيين سلسلة الضغط",
+  "diveLog_tank_reassignPending": "تنتقل القراءات إلى أسطواناتها الجديدة عند الحفظ.",
   "diveLog_tank_roleFromTransmitterName": "{role}، مأخوذ من اسم جهاز الإرسال",
   "diveLog_reassignSheet_title": "سلاسل الضغط",
   "diveLog_reassignSheet_swap": "تبديل",

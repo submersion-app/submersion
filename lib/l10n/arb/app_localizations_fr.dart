@@ -58372,6 +58372,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Réattribuer la courbe de pression';
 
   @override
+  String get diveLog_tank_reassignPending =>
+      'Les relevés passent à leurs nouveaux blocs à l\'enregistrement.';
+
+  @override
   String diveLog_tank_roleFromTransmitterName(String role) {
     return '$role, lu dans le nom de l\'émetteur';
   }

@@ -27,9 +27,22 @@ class RecordEditController<T> extends ChangeNotifier {
   RecordEditController({
     required this.onSave,
     this.trackedWorkTimeout = const Duration(seconds: 10),
+    this.invalidCards,
+    this.onStart,
   });
 
   final RecordSave<T> onSave;
+
+  /// Told of each sitting as [unlock] starts it, before any card opens:
+  /// what the record's cards need before they are checked (the dive's gas
+  /// switches) is asked for here, whichever way the page was unlocked.
+  final void Function(EditSession<T> session)? onStart;
+
+  /// The cards whose own check fails for the sitting, in page order. Asked
+  /// of every card at [save], open or not: a value one card changes can
+  /// leave another, closed, card unable to save. Such a card is opened and
+  /// shown instead, and stays open until it passes ([closeCard]).
+  final List<String> Function(EditSession<T> session)? invalidCards;
 
   /// How long [save] waits for work the sitting tracks
   /// ([EditSession.track]) before it writes without it. The page takes no
@@ -151,8 +164,11 @@ class RecordEditController<T> extends ChangeNotifier {
     if (isUnlocked) return;
     _toldChangedCardIds = const {};
     _toldRevisions = {};
-    _session = EditSession<T>(stored)..addListener(_onSessionChanged);
+    final session = _session = EditSession<T>(stored)
+      ..addListener(_onSessionChanged);
+    // Told first, so the page shows the sitting whatever [onStart] does.
     notifyListeners();
+    onStart?.call(session);
   }
 
   /// Ends the sitting and discards whatever it held. Refused while a save
@@ -209,6 +225,11 @@ class RecordEditController<T> extends ChangeNotifier {
       notifyListeners();
       return;
     }
+    if (invalidCards?.call(session).contains(cardId) ?? false) {
+      _requestReveal(cardId);
+      notifyListeners();
+      return;
+    }
     final wasOpen = _openCardIds.remove(cardId);
     final wasAdded =
         !session.changedCardIds.contains(cardId) &&
@@ -219,6 +240,19 @@ class RecordEditController<T> extends ChangeNotifier {
     // What was typed while it was open is drawn by this notification.
     _toldRevisions[cardId] = session.revisionOf(cardId);
     notifyListeners();
+  }
+
+  /// Opens [cardId], bringing it in as [addCard] does when the page was
+  /// leaving it out, and asks for it to be shown: a card that cannot be
+  /// saved as it stands.
+  void _openToShow(EditSession<T> session, String cardId) {
+    if (!_openCardIds.contains(cardId)) {
+      _holdLayoutFor(session);
+      _addedCardIds.add(cardId);
+      _openCardIds.add(cardId);
+      _toldRevisions[cardId] = session.revisionOf(cardId);
+    }
+    _requestReveal(cardId);
   }
 
   /// Brings in a card the page was leaving out, already open, and asks for
@@ -300,9 +334,18 @@ class RecordEditController<T> extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    // A sitting with nothing to write ends: a value stored failing a card's
+    // check is not the diver's to fix before they can close the page.
     if (!session.isDirty) {
       lock();
       return true;
+    }
+    final failing = invalidCards?.call(session) ?? const [];
+    if (failing.isNotEmpty) {
+      _refusedForInvalidInput = true;
+      _openToShow(session, failing.first);
+      notifyListeners();
+      return false;
     }
     _isSaving = true;
     _saveError = null;
@@ -318,6 +361,18 @@ class RecordEditController<T> extends ChangeNotifier {
       await session.settled().timeout(trackedWorkTimeout, onTimeout: () {});
       // The page went away, or the sitting was discarded, while it waited.
       if (!identical(_session, session)) return false;
+      // What landed meanwhile (switches read from the database, a set's
+      // cylinders) is checked as the rest was.
+      final failing = invalidCards?.call(session) ?? const [];
+      if (failing.isNotEmpty) {
+        _isSaving = false;
+        _refusedForInvalidInput = true;
+        // A record stored while it waited was kept for after the save.
+        _followStoredDuringSave(session);
+        _openToShow(session, failing.first);
+        notifyListeners();
+        return false;
+      }
     }
     // What is written is what the diver saw when they asked for it.
     session.freeze();
@@ -333,15 +388,21 @@ class RecordEditController<T> extends ChangeNotifier {
       session.thaw();
       _saveError = error;
       _isSaving = false;
-      final missed = _storedDuringSave;
-      _storedDuringSave = null;
-      if (missed != null) session.rebase(missed.stored);
-      _rememberTold(session);
+      _followStoredDuringSave(session);
       notifyListeners();
       return false;
     }
     _endSitting();
     return true;
+  }
+
+  /// A save that did not go through gives the sitting the record stored
+  /// while it ran ([storedChanged]), which it could not follow then.
+  void _followStoredDuringSave(EditSession<T> session) {
+    final missed = _storedDuringSave;
+    _storedDuringSave = null;
+    if (missed != null) session.rebase(missed.stored);
+    _rememberTold(session);
   }
 
   void _dropSession(EditSession<T> session) {

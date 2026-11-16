@@ -57329,6 +57329,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Reassign pressure series';
 
   @override
+  String get diveLog_tank_reassignPending =>
+      'The readings move to their new cylinders when you save.';
+
+  @override
   String diveLog_tank_roleFromTransmitterName(String role) {
     return '$role, read from the transmitter\'s name';
   }

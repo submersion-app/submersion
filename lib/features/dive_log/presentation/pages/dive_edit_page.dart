@@ -70,6 +70,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_s
 import 'package:submersion/features/equipment/domain/services/equipment_set_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/geofence_suggestion_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/remove_set_dialog.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/save_gear_as_set_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_input.dart';
@@ -77,6 +78,7 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/domain/services/rental_memory_resolver.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/apply_last_dive_confirm_dialog.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_picker.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_memory_card.dart';
@@ -272,15 +274,6 @@ double? _savedNumber(
   NumberBlank() => null,
   NumberInvalid() => null, // unreachable: validate() blocked the save
 };
-
-/// Whether "Apply last dive" must ask before replacing the form's weights
-/// and tanks (issue #2075): whenever the form holds any. A weight row with
-/// no amount yet still carries its type and notes, so it counts.
-@visibleForTesting
-bool applyLastDiveNeedsConfirm({
-  required List<DiveWeight> weights,
-  required List<DiveTank> tanks,
-}) => weights.isNotEmpty || tanks.isNotEmpty;
 
 class DiveEditPage extends ConsumerStatefulWidget {
   final String? diveId;
@@ -5337,119 +5330,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     if (_selectedEquipment.isEmpty) return;
     // A set holds top-level rows only: an assembly re-expands into its
     // parts when the set is applied (issue #1487).
-    final topLevelIds = [
-      for (final g in gearLinksFor(_selectedEquipment, _gearRows))
-        if (g.isTopLevel) g.item.id,
-    ];
-
-    final nameController = TextEditingController();
-    final descriptionController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.diveLog_edit_saveAsSetDialog_title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.diveLog_edit_saveAsSetDialog_content(
-                topLevelIds.length,
-              ),
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: context.l10n.diveLog_edit_saveAsSetDialog_setName,
-                hintText: context.l10n.diveLog_edit_saveAsSetDialog_setNameHint,
-                border: const OutlineInputBorder(),
-              ),
-              autofocus: true,
-              textCapitalization: TextCapitalization.words,
-            ),
-            const SizedBox(height: 12),
-            MarkdownNotesField(
-              controller: descriptionController,
-              decoration: InputDecoration(
-                labelText:
-                    context.l10n.diveLog_edit_saveAsSetDialog_description,
-                hintText:
-                    context.l10n.diveLog_edit_saveAsSetDialog_descriptionHint,
-                border: const OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.l10n.diveLog_edit_cancel),
-          ),
-          FilledButton(
-            onPressed: () async {
-              final name = nameController.text.trim();
-              if (name.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      context.l10n.diveLog_edit_saveAsSetDialog_validation,
-                    ),
-                  ),
-                );
-                return;
-              }
-
-              try {
-                final set = EquipmentSet(
-                  id: '',
-                  name: name,
-                  description: descriptionController.text.trim(),
-                  equipmentIds: topLevelIds,
-                  createdAt: DateTime.now(),
-                  updatedAt: DateTime.now(),
-                );
-
-                // Route through the notifier so the set is stamped with the
-                // active diver id. Calling the repository directly leaves
-                // diverId null, orphaning the set from the diver-scoped list
-                // (it silently "doesn't save"). addSet also refreshes the
-                // list providers.
-                await ref
-                    .read(equipmentSetListNotifierProvider.notifier)
-                    .addSet(set);
-
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        context.l10n.diveLog_edit_saveAsSetDialog_success(name),
-                      ),
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        context.l10n.diveLog_edit_saveAsSetDialog_error(
-                          e.toString(),
-                        ),
-                      ),
-                    ),
-                  );
-                }
-              }
-            },
-            child: Text(context.l10n.diveLog_edit_save),
-          ),
-        ],
-      ),
+    showSaveGearAsSetDialog(
+      context,
+      topLevelIds: [
+        for (final g in gearLinksFor(_selectedEquipment, _gearRows))
+          if (g.isTopLevel) g.item.id,
+      ],
     );
   }
 
@@ -6090,24 +5976,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Future<void> _applyLastDiveAtCenter(LastDiveAtCenter last) async {
     final l10n = context.l10n;
     if (applyLastDiveNeedsConfirm(weights: _weights, tanks: _tanks)) {
-      final replace = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(l10n.diveCenters_rental_applyConfirmTitle),
-          content: Text(l10n.diveCenters_rental_applyConfirmBody),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(l10n.common_action_cancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text(l10n.diveCenters_rental_applyConfirmReplace),
-            ),
-          ],
-        ),
-      );
-      if (replace != true || !mounted) return;
+      final replace = await confirmApplyLastDive(context);
+      if (!replace || !mounted) return;
     }
     final settings = ref.read(settingsProvider);
     setState(() {

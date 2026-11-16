@@ -17147,6 +17147,7 @@
   "diveComputer_detail_transmittersSummary": "{known} מוכרים, {unassigned} לא משויכים",
   "diveLog_tank_assignTransmitter": "שיוך משדר",
   "diveLog_tank_reassignSeries": "שיוך מחדש של סדרת הלחץ",
+  "diveLog_tank_reassignPending": "הקריאות יעברו למכלים החדשים שלהן בעת השמירה.",
   "diveLog_tank_roleFromTransmitterName": "{role}, נקרא משם המשדר",
   "diveLog_reassignSheet_title": "סדרות לחץ",
   "diveLog_reassignSheet_swap": "החלפה",

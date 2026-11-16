@@ -965,6 +965,23 @@ class Dive extends Equatable {
     bool clearRuntime = false,
     bool clearSetpoints = false,
     bool clearDiluentGas = false,
+    bool clearSetpointLow = false,
+    bool clearSetpointHigh = false,
+    bool clearSetpointDeco = false,
+    bool clearScrType = false,
+    bool clearScrInjectionRate = false,
+    bool clearScrAdditionRatio = false,
+    bool clearScrOrificeSize = false,
+    bool clearAssumedVo2 = false,
+    bool clearLoopO2Min = false,
+    bool clearLoopO2Max = false,
+    bool clearLoopO2Avg = false,
+    bool clearLoopVolume = false,
+    bool clearScrubber = false,
+    bool clearWeightingFeedback = false,
+    bool clearWeightingFeedbackKg = false,
+    bool clearWeightAmount = false,
+    bool clearWeightType = false,
     // Training courses
     List<String>? courseIds,
     // Import source tracking
@@ -1070,11 +1087,17 @@ class Dive extends Equatable {
       diveComputerSerial: diveComputerSerial ?? this.diveComputerSerial,
       diveComputerFirmware: diveComputerFirmware ?? this.diveComputerFirmware,
       computerId: computerId ?? this.computerId,
-      weightAmount: weightAmount ?? this.weightAmount,
-      weightType: weightType ?? this.weightType,
+      weightAmount: clearWeightAmount
+          ? null
+          : (weightAmount ?? this.weightAmount),
+      weightType: clearWeightType ? null : (weightType ?? this.weightType),
       weights: weights ?? this.weights,
-      weightingFeedback: weightingFeedback ?? this.weightingFeedback,
-      weightingFeedbackKg: weightingFeedbackKg ?? this.weightingFeedbackKg,
+      weightingFeedback: clearWeightingFeedback
+          ? null
+          : (weightingFeedback ?? this.weightingFeedback),
+      weightingFeedbackKg: clearWeightingFeedbackKg
+          ? null
+          : (weightingFeedbackKg ?? this.weightingFeedbackKg),
       isFavorite: isFavorite ?? this.isFavorite,
       excludedFromStats: excludedFromStats ?? this.excludedFromStats,
       excludedFromGasStats: excludedFromGasStats ?? this.excludedFromGasStats,
@@ -1084,20 +1107,32 @@ class Dive extends Equatable {
       tags: tags ?? this.tags,
       // CCR/SCR fields
       diveMode: diveMode ?? this.diveMode,
-      setpointLow: clearSetpoints ? null : (setpointLow ?? this.setpointLow),
-      setpointHigh: clearSetpoints ? null : (setpointHigh ?? this.setpointHigh),
-      setpointDeco: setpointDeco ?? this.setpointDeco,
-      scrType: scrType ?? this.scrType,
-      scrInjectionRate: scrInjectionRate ?? this.scrInjectionRate,
-      scrAdditionRatio: scrAdditionRatio ?? this.scrAdditionRatio,
-      scrOrificeSize: scrOrificeSize ?? this.scrOrificeSize,
-      assumedVo2: assumedVo2 ?? this.assumedVo2,
+      setpointLow: clearSetpoints || clearSetpointLow
+          ? null
+          : (setpointLow ?? this.setpointLow),
+      setpointHigh: clearSetpoints || clearSetpointHigh
+          ? null
+          : (setpointHigh ?? this.setpointHigh),
+      setpointDeco: clearSetpointDeco
+          ? null
+          : (setpointDeco ?? this.setpointDeco),
+      scrType: clearScrType ? null : (scrType ?? this.scrType),
+      scrInjectionRate: clearScrInjectionRate
+          ? null
+          : (scrInjectionRate ?? this.scrInjectionRate),
+      scrAdditionRatio: clearScrAdditionRatio
+          ? null
+          : (scrAdditionRatio ?? this.scrAdditionRatio),
+      scrOrificeSize: clearScrOrificeSize
+          ? null
+          : (scrOrificeSize ?? this.scrOrificeSize),
+      assumedVo2: clearAssumedVo2 ? null : (assumedVo2 ?? this.assumedVo2),
       diluentGas: clearDiluentGas ? null : (diluentGas ?? this.diluentGas),
-      loopO2Min: loopO2Min ?? this.loopO2Min,
-      loopO2Max: loopO2Max ?? this.loopO2Max,
-      loopO2Avg: loopO2Avg ?? this.loopO2Avg,
-      loopVolume: loopVolume ?? this.loopVolume,
-      scrubber: scrubber ?? this.scrubber,
+      loopO2Min: clearLoopO2Min ? null : (loopO2Min ?? this.loopO2Min),
+      loopO2Max: clearLoopO2Max ? null : (loopO2Max ?? this.loopO2Max),
+      loopO2Avg: clearLoopO2Avg ? null : (loopO2Avg ?? this.loopO2Avg),
+      loopVolume: clearLoopVolume ? null : (loopVolume ?? this.loopVolume),
+      scrubber: clearScrubber ? null : (scrubber ?? this.scrubber),
       // Dive planner
       isPlanned: isPlanned ?? this.isPlanned,
       isDraft: isDraft ?? this.isDraft,

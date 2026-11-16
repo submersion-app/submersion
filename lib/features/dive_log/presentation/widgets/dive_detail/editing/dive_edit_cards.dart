@@ -6,12 +6,19 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
+import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tags_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_series_exchange.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_weights_card_editor.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// The dive's notes, edited on the Notes card.
 final diveNotesField = EditField<Dive, String>(
@@ -36,6 +43,22 @@ bool _sameTagIds(List<Tag> a, List<Tag> b) {
   final others = {for (final tag in b) tag.id};
   return ids.length == others.length && ids.containsAll(others);
 }
+
+/// What a sitting on a dive needs as it starts, before any card is open.
+///
+/// The gas switches are read now, not when the Cylinders card first opens:
+/// a runtime shortened on the header can put a switch past the end of the
+/// dive, and Save checks every card whether it was opened or not
+/// (issue #4527, plan 5).
+void startDiveSitting(EditSession<Dive> session, ProviderRead read) =>
+    loadDiveGasSwitches(session, read);
+
+/// The held writes that are the dive's own rows (its gas switches, the
+/// readings a reassign moves): every other held write reaches the site.
+const Set<String> diveOwnHeldWriteKeys = {
+  gasSwitchesKey,
+  tankSeriesExchangeKey,
+};
 
 /// The cards of the dive page that can be edited in place, by section. A
 /// card's id is its section's `name`, so the section list, the Add strip
@@ -86,5 +109,35 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         DiveDetailsCardEditor(session: session),
+  ),
+  DiveDetailSectionId.tanks: EditCard<Dive>(
+    id: DiveDetailSectionId.tanks.name,
+    title: (context) => context.l10n.diveLog_detail_section_cylinders,
+    // A gauge dive logs no gas: its card is reached from the Add strip,
+    // and its editor shows the mode alone.
+    isEmpty: (dive) => dive.isGauge || dive.tanks.isEmpty,
+    // A runtime shortened on the header can leave a switch past the end of
+    // the dive while this card is closed.
+    isValid: gasSwitchesValid,
+    editorBuilder: (context, session) => DiveTanksCardEditor(session: session),
+  ),
+  DiveDetailSectionId.weights: EditCard<Dive>(
+    id: DiveDetailSectionId.weights.name,
+    title: (context) => context.l10n.diveLog_detail_section_weight,
+    isEmpty: (dive) => !diveHasWeights(dive),
+    editorBuilder: (context, session) =>
+        DiveWeightsCardEditor(session: session),
+  ),
+  DiveDetailSectionId.equipment: EditCard<Dive>(
+    id: DiveDetailSectionId.equipment.name,
+    title: (context) => context.l10n.diveLog_detail_section_equipment,
+    leading: (context) => Icon(
+      Icons.backpack,
+      size: 20,
+      color: Theme.of(context).colorScheme.primary,
+    ),
+    isEmpty: (dive) => dive.gear.isEmpty,
+    editorBuilder: (context, session) =>
+        DiveEquipmentCardEditor(session: session),
   ),
 };

@@ -21,20 +21,11 @@ extension _GasSwitchEditing on _DiveEditPageState {
         .read(diveRepositoryProvider)
         .getGasSwitchesForDive(dive.id);
     final computer = dive.computerId;
-    return _inTimeOrder([
+    return gasSwitchesInTimeOrder([
       for (final g in withTank)
         if (g.gasSwitch.shownInEditor(computer)) g.gasSwitch,
     ]);
   }
-
-  /// Time order, ties broken by id so two rows at one second (a time being
-  /// typed over another) never swap between builds.
-  static List<GasSwitch> _inTimeOrder(List<GasSwitch> switches) =>
-      [...switches]..sort(
-        (a, b) => a.timestamp != b.timestamp
-            ? a.timestamp.compareTo(b.timestamp)
-            : a.id.compareTo(b.id),
-      );
 
   /// The latest second a switch may fall on: the profile's last sample,
   /// else the runtime field, else the bottom time, else exit minus entry;
@@ -137,7 +128,7 @@ extension _GasSwitchEditing on _DiveEditPageState {
       _markDirty();
       _gasSwitchesDirty = true;
       _removedSwitchNotice = 0;
-      _gasSwitches = _inTimeOrder([
+      _gasSwitches = gasSwitchesInTimeOrder([
         for (final s in _gasSwitches)
           if (edits.retanked[s.id] case final tankId?)
             s.copyWith(tankId: tankId)
@@ -206,7 +197,7 @@ extension _GasSwitchEditing on _DiveEditPageState {
   /// A time field was left: now the row takes its place in time order,
   /// which it must not do while the time is still being typed.
   void _onGasSwitchTimeSettled(String id) {
-    final ordered = _inTimeOrder(_gasSwitches);
+    final ordered = gasSwitchesInTimeOrder(_gasSwitches);
     if (listEquals(ordered, _gasSwitches)) return;
     _updateGasSwitches(() => _gasSwitches = ordered);
   }
@@ -267,7 +258,7 @@ extension _GasSwitchEditing on _DiveEditPageState {
       _markDirty();
       _gasSwitchesDirty = true;
       _removedSwitchNotice = 0;
-      _gasSwitches = _inTimeOrder([..._gasSwitches, added]);
+      _gasSwitches = gasSwitchesInTimeOrder([..._gasSwitches, added]);
     });
   }
 

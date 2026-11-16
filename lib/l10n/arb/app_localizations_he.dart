@@ -57008,6 +57008,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'שיוך מחדש של סדרת הלחץ';
 
   @override
+  String get diveLog_tank_reassignPending =>
+      'הקריאות יעברו למכלים החדשים שלהן בעת השמירה.';
+
+  @override
   String diveLog_tank_roleFromTransmitterName(String role) {
     return '$role, נקרא משם המשדר';
   }

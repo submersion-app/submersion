@@ -17301,6 +17301,7 @@
   "diveComputer_detail_transmittersSummary": "{known} bekannt, {unassigned} nicht zugewiesen",
   "diveLog_tank_assignTransmitter": "Sender zuweisen",
   "diveLog_tank_reassignSeries": "Druckverlauf neu zuordnen",
+  "diveLog_tank_reassignPending": "Die Messwerte wechseln beim Speichern zu ihren neuen Flaschen.",
   "diveLog_tank_roleFromTransmitterName": "{role}, aus dem Namen des Senders gelesen",
   "diveLog_reassignSheet_title": "Druckverläufe",
   "diveLog_reassignSheet_swap": "Tauschen",

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -16,11 +17,14 @@ Future<String?> showReassignTankPicker(
   WidgetRef ref, {
   required String diveId,
   required String excludeTankId,
+  List<DiveTank>? tanks,
 }) async {
-  final dive = await ref.read(diveProvider(diveId).future);
-  if (dive == null || !context.mounted) return null;
-  final source = dive.tanks.where((t) => t.id == excludeTankId).firstOrNull;
-  final candidates = dive.tanks
+  // [tanks] are the cylinders an editing sitting holds; otherwise the
+  // dive's as stored.
+  final offered = tanks ?? (await ref.read(diveProvider(diveId).future))?.tanks;
+  if (offered == null || !context.mounted) return null;
+  final source = offered.where((t) => t.id == excludeTankId).firstOrNull;
+  final candidates = offered
       .where((t) => t.id != excludeTankId)
       .where((t) => source == null || t.computerId == source.computerId)
       .toList();

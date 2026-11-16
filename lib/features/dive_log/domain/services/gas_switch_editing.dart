@@ -15,6 +15,15 @@ bool gasSwitchesEditable({
   required bool isPlanned,
 }) => breathingTankCount >= 2 && mode != DiveMode.gauge && !isPlanned;
 
+/// [switches] in time order, ties broken by id, so two rows on one second
+/// (a time being typed over another) never swap between builds. A new list.
+List<GasSwitch> gasSwitchesInTimeOrder(Iterable<GasSwitch> switches) =>
+    [...switches]..sort(
+      (a, b) => a.timestamp != b.timestamp
+          ? a.timestamp.compareTo(b.timestamp)
+          : a.id.compareTo(b.id),
+    );
+
 /// The cylinder a new switch at [timestamp] goes to: the first breathing
 /// cylinder not breathed then, else the first breathing cylinder; null when
 /// [tanks] holds none.

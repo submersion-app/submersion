@@ -23,8 +23,16 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
 
   /// Created on first use, so a page that never offers editing has none.
   RecordEditController<Dive> get editController =>
-      _editController ??= RecordEditController<Dive>(onSave: _saveSitting)
-        ..addListener(_onEditChanged);
+      _editController ??= RecordEditController<Dive>(
+        onSave: _saveSitting,
+        // Each card's own check, asked at Save of open and closed cards.
+        invalidCards: (session) => [
+          for (final card in diveEditCards.values)
+            if (card.isValid?.call(session) == false) card.id,
+        ],
+        // Whatever unlocked the page.
+        onStart: (session) => startDiveSitting(session, ref.read),
+      )..addListener(_onEditChanged);
 
   /// Whether a sitting is in progress.
   bool get isSittingOpen => _editController?.isUnlocked ?? false;
@@ -81,17 +89,29 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     // Read now: the write may finish after the page has gone.
     final service = ref.read(diveEditSaveServiceProvider);
     final list = ref.read(paginatedDiveListProvider.notifier);
-    // The sitting's writes to other records are, so far, all to the site.
-    final sites = session.hasHeldWrites
+    // The sitting's writes to other records all reach the site (an
+    // altitude, a location); its gas switches and a reassign's readings are
+    // the dive's own rows, and leave the site list as it is.
+    final writesSites = session.heldKeys
+        .difference(diveOwnHeldWriteKeys)
+        .isNotEmpty;
+    final sites = writesSites
         ? ref.read(siteListNotifierProvider.notifier)
         : null;
     final followUp = DiveSittingFollowUp.read(context, ref);
+    // Read now: the sitting is disposed once the write has gone through.
+    final changedCardIds = session.changedCardIds;
     // The dive the sitting was opened on, whatever the page shows by the
     // time the write is asked for.
     final result = await service.save(
       diveId: session.stored.id,
-      apply: session.applyTo,
+      // The changes, and the rebreather values a changed mode no longer
+      // uses dropped.
+      apply: (stored) => diveSittingApply(session, stored),
       changedCardIds: session.changedCardIds,
+      writeFirst: session.hasHeldWritesBeforeRecord
+          ? () => session.runHeldWrites(beforeRecord: true)
+          : null,
       alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
       alsoWriteIsAChange: session.hasHeldChanges,
     );
@@ -128,6 +148,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       before: result.before,
       after: result.after,
       tripDateStretches: result.tripDateStretches,
+      changedCardIds: changedCardIds,
     );
   }
 
@@ -184,8 +205,10 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     return [
       for (final section in sections)
         if (diveEditCards[section.id] case final card?)
+          // A gauge dive's Cylinders card is offered here too: its own
+          // emptiness counts a gauge dive, and its editor is where the mode
+          // is changed back (issue #4527, plan 5).
           if (!open.contains(card.id) &&
-              !(working.isGauge && section.id.hiddenInGaugeMode) &&
               (!diveCardIsOnPage(
                     ref,
                     section.id,

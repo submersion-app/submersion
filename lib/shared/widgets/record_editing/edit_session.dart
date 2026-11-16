@@ -91,8 +91,17 @@ class EditSession<T> extends ChangeNotifier {
     _changed(field);
   }
 
-  void _changed(EditField<T, Object?> field) =>
-      _moved({field.cardId, ...field.alsoShownOn});
+  /// How many times [fieldId] has been changed in this sitting, changes
+  /// back included: a rule that put a value there can tell it was touched
+  /// since, even when it was put back as the rule left it.
+  int fieldRevisionOf(String fieldId) => _fieldRevisions[fieldId] ?? 0;
+
+  final Map<String, int> _fieldRevisions = {};
+
+  void _changed(EditField<T, Object?> field) {
+    _fieldRevisions[field.id] = fieldRevisionOf(field.id) + 1;
+    _moved({field.cardId, ...field.alsoShownOn});
+  }
 
   void _moved(Set<String> cardIds) {
     for (final cardId in cardIds) {
@@ -128,6 +137,13 @@ class EditSession<T> extends ChangeNotifier {
   /// Whether the sitting holds a write to another record, or a change.
   bool get hasHeldWrites => _held.isNotEmpty;
 
+  /// The keys of the held writes and changes.
+  Set<String> get heldKeys => {..._held.keys};
+
+  /// Whether any held entry must run before the record is written.
+  bool get hasHeldWritesBeforeRecord =>
+      _held.values.any((held) => held.beforeRecord);
+
   /// Whether any held entry is a change in its own right ([holdChange]).
   bool get hasHeldChanges => _held.values.any((held) => held.cardId != null);
 
@@ -155,13 +171,22 @@ class EditSession<T> extends ChangeNotifier {
   /// [changedCardIds] and notifies. A second call with the same [key]
   /// replaces the first. It does nothing while the session [isFrozen] or
   /// once it has been disposed.
+  ///
+  /// [beforeRecord] holds a change that must be written before the record
+  /// is: one that needs rows the record's own write may delete, such as
+  /// readings moved between two cylinders, one of which the sitting removes.
   void holdChange(
     String key, {
     required String cardId,
     required Future<void> Function() write,
+    bool beforeRecord = false,
   }) {
     if (_isFrozen || _isDisposed) return;
-    _held[key] = _Held(write: write, cardId: cardId);
+    _held[key] = _Held(
+      write: write,
+      cardId: cardId,
+      beforeRecord: beforeRecord,
+    );
     _moved({cardId});
   }
 
@@ -175,12 +200,13 @@ class EditSession<T> extends ChangeNotifier {
     if (held?.cardId case final cardId?) _moved({cardId});
   }
 
-  /// Runs every held write and change, one after another, in the order
-  /// first held. They are kept, so a save that failed can run them again.
-  /// The first one to throw stops the rest.
-  Future<void> runHeldWrites() async {
+  /// Runs the held writes and changes of one phase, one after another, in
+  /// the order first held: those that go before the record when
+  /// [beforeRecord], the rest otherwise. They are kept, so a save that
+  /// failed can run them again. The first one to throw stops the rest.
+  Future<void> runHeldWrites({bool beforeRecord = false}) async {
     for (final held in _held.values.toList()) {
-      await held.write();
+      if (held.beforeRecord == beforeRecord) await held.write();
     }
   }
 
@@ -260,8 +286,9 @@ class _Pending<T> {
 /// A write held for the save, and the card it is a change of when it is
 /// one in its own right.
 class _Held {
-  const _Held({required this.write, this.cardId});
+  const _Held({required this.write, this.cardId, this.beforeRecord = false});
 
   final Future<void> Function() write;
   final String? cardId;
+  final bool beforeRecord;
 }

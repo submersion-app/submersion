@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
+import 'package:submersion/features/dive_centers/domain/services/rental_memory_resolver.dart';
 
 /// Issue #2075: "Apply last dive" replaces the form's weights and tanks, so
 /// it asks first whenever the form holds any, however empty they look.

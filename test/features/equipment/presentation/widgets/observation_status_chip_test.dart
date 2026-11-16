@@ -31,8 +31,9 @@ void main() {
 
   Future<void> pump(
     WidgetTester tester,
-    List<EquipmentObservation> observations,
-  ) async {
+    List<EquipmentObservation> observations, {
+    bool readOnly = false,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -45,7 +46,11 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: ObservationStatusChip(equipment: reg, dive: dive),
+            body: ObservationStatusChip(
+              equipment: reg,
+              dive: dive,
+              readOnly: readOnly,
+            ),
           ),
         ),
       ),
@@ -70,6 +75,30 @@ void main() {
       obs(ObservationStatus.issue),
     ]);
     expect(find.byIcon(Icons.warning_amber), findsOneWidget);
+  });
+
+  testWidgets('read-only, a state is announced as text, not as a button', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await pump(tester, [obs(ObservationStatus.ok)], readOnly: true);
+    expect(
+      tester.getSemantics(find.byType(ObservationStatusChip)),
+      isSemantics(label: 'Checked OK', isButton: false),
+    );
+    expect(find.bySemanticsLabel('Checked OK'), findsOneWidget);
+    handle.dispose();
+  });
+
+  testWidgets('read-only with nothing checked offers no check-in to a screen '
+      'reader', (tester) async {
+    final handle = tester.ensureSemantics();
+    await pump(tester, const [], readOnly: true);
+    expect(find.byIcon(Icons.add_task), findsOneWidget);
+    final node = tester.getSemantics(find.byIcon(Icons.add_task));
+    expect(node, isNot(isSemantics(tooltip: 'Check in')));
+    expect(node, isNot(isSemantics(isButton: true)));
+    handle.dispose();
   });
 
   testWidgets('another item\'s issue does not count', (tester) async {

@@ -57935,6 +57935,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_reassignSeries => 'Nyomásgörbe áthelyezése';
 
   @override
+  String get diveLog_tank_reassignPending =>
+      'A mért értékek mentéskor kerülnek át az új palackjaikhoz.';
+
+  @override
   String diveLog_tank_roleFromTransmitterName(String role) {
     return '$role, a jeladó nevéből kiolvasva';
   }

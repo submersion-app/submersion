@@ -91468,6 +91468,12 @@ abstract class AppLocalizations {
   /// **'Reassign pressure series'**
   String get diveLog_tank_reassignSeries;
 
+  /// Under the Reassign pressure series button on the open Cylinders card, while an exchange of recorded pressure readings is held until the diver saves the editing sitting.
+  ///
+  /// In en, this message translates to:
+  /// **'The readings move to their new cylinders when you save.'**
+  String get diveLog_tank_reassignPending;
+
   /// Under a cylinder whose role the dive computer took from the name the diver gave its transmitter (a name starting with O reads as oxygen, D as diluent), so the role is unconfirmed. role is the localized tank role, e.g. O₂ Supply.
   ///
   /// In en, this message translates to:

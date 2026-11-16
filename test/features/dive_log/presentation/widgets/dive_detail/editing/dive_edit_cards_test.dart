@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -35,14 +36,43 @@ void main() {
   group('the dive cards', () {
     // A card registered here gains a pencil on the dive page. Naming them
     // makes adding one a deliberate change to this test.
-    test('are Notes, Tags, Altitude, Environment and Details', () {
+    test('are Notes, Tags, Altitude, Environment, Details, Cylinders, '
+        'Weight and Equipment', () {
       expect(diveEditCards.keys, {
         DiveDetailSectionId.notes,
         DiveDetailSectionId.tags,
         DiveDetailSectionId.altitude,
         DiveDetailSectionId.environment,
         DiveDetailSectionId.details,
+        DiveDetailSectionId.tanks,
+        DiveDetailSectionId.weights,
+        DiveDetailSectionId.equipment,
       });
+    });
+
+    test('Equipment is left out of a dive with no gear', () {
+      final equipment = diveEditCards[DiveDetailSectionId.equipment]!;
+      expect(equipment.isEmpty(dive.copyWith(gear: const [])), isTrue);
+    });
+
+    test('Weight is left out of a dive with no weight', () {
+      final weights = diveEditCards[DiveDetailSectionId.weights]!;
+      expect(weights.isEmpty(dive.copyWith(weights: const [])), isTrue);
+      expect(weights.isEmpty(dive.copyWith(weightAmount: 4)), isFalse);
+    });
+
+    test('Cylinders is left out of a gauge dive and of one with none', () {
+      final tanks = diveEditCards[DiveDetailSectionId.tanks]!;
+      const tank = DiveTank(id: 't');
+      expect(tanks.isEmpty(dive.copyWith(tanks: const [])), isTrue);
+      expect(tanks.isEmpty(dive.copyWith(tanks: const [tank])), isFalse);
+      expect(
+        tanks.isEmpty(
+          dive.copyWith(tanks: const [tank], diveMode: DiveMode.gauge),
+        ),
+        isTrue,
+      );
+      expect(tanks.isValid, isNotNull);
     });
 
     test('Details is never left out: the page always shows it', () {
