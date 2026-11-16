@@ -117,6 +117,21 @@ void main() {
       );
     });
 
+    test('an impossible date or a day number below 1 reads as none', () {
+      expect(
+        tripNoteDayFromQuery(const {'noteDate': '2026-02-31', 'noteDay': '3'}),
+        isNull,
+      );
+      expect(
+        tripNoteDayFromQuery(const {'noteDate': '2026-13-01', 'noteDay': '3'}),
+        isNull,
+      );
+      expect(
+        tripNoteDayFromQuery(const {'noteDate': '2026-11-05', 'noteDay': '0'}),
+        isNull,
+      );
+    });
+
     test('reads the notes section by name', () {
       expect(TripEditSection.fromQuery('notes'), TripEditSection.notes);
     });

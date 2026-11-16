@@ -36,19 +36,22 @@ Map<String, String> tripNoteDayQuery(TripNoteDay day) {
 }
 
 /// The day a note is opened at, from [query]; null when either half is
-/// missing or malformed.
+/// missing or malformed, including a date that does not exist (DateTime
+/// would roll 2026-02-31 over to 3 March) and a day number below 1.
 TripNoteDay? tripNoteDayFromQuery(Map<String, String> query) {
-  final date = _isoDate.firstMatch(query[_noteDateKey] ?? '');
+  final match = _isoDate.firstMatch(query[_noteDateKey] ?? '');
   final number = _dayNumber.firstMatch(query[_noteDayKey] ?? '');
-  if (date == null || number == null) return null;
-  return TripNoteDay(
-    date: DateTime(
-      int.parse(date[1]!),
-      int.parse(date[2]!),
-      int.parse(date[3]!),
-    ),
-    dayNumber: int.parse(number[0]!),
-  );
+  if (match == null || number == null) return null;
+  final year = int.parse(match[1]!);
+  final month = int.parse(match[2]!);
+  final day = int.parse(match[3]!);
+  final date = DateTime(year, month, day);
+  if (date.year != year || date.month != month || date.day != day) {
+    return null;
+  }
+  final dayNumber = int.parse(number[0]!);
+  if (dayNumber < 1) return null;
+  return TripNoteDay(date: date, dayNumber: dayNumber);
 }
 
 /// Opens trip [tripId]'s edit form, at [section] when one is given, or at
