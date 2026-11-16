@@ -159,6 +159,50 @@ void main() {
       ]);
     });
 
+    test('siteLocations leaves out an area a finer location already names', () {
+      const town = DiveSite(
+        id: 'site-1',
+        name: 'Elphinstone',
+        city: 'Marsa Alam',
+        region: 'Red Sea',
+        country: 'Egypt',
+      );
+      const region = DiveSite(
+        id: 'site-2',
+        name: 'Daedalus',
+        region: 'Red Sea',
+        country: 'Egypt',
+      );
+      const country = DiveSite(
+        id: 'site-3',
+        name: 'Brothers',
+        country: 'Egypt',
+      );
+      const elsewhere = DiveSite(
+        id: 'site-4',
+        name: 'Ras Mohammed',
+        country: 'South Sinai Egypt',
+      );
+      final day = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        dives: [
+          _dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 7), site: region),
+          _dive(id: 'd2', dateTime: DateTime(2026, 3, 8, 9), site: country),
+          _dive(id: 'd3', dateTime: DateTime(2026, 3, 8, 11), site: town),
+          _dive(id: 'd4', dateTime: DateTime(2026, 3, 8, 13), site: elsewhere),
+        ],
+      );
+
+      // "Egypt" is a whole part of the others; "South Sinai Egypt" only
+      // ends with the same letters, so it stays.
+      expect(day.siteLocations, [
+        'Marsa Alam · Red Sea, Egypt',
+        'South Sinai Egypt',
+      ]);
+    });
+
     test('empty day has no content and null maxDepth', () {
       final day = TripStoryDay(
         date: date,

@@ -103,8 +103,10 @@ class TripStoryDay extends Equatable {
 
   /// Where the day's sites are, each distinct location once in dive order, as
   /// [DiveSite.locationString] gives it ("Marsa Alam · Red Sea, Egypt").
-  /// Several sites in one area read as that area once; a site with no town,
-  /// region or country set adds nothing.
+  /// Several sites in one area read as that area once, and an area a finer
+  /// location already names is left out: "Red Sea, Egypt" beside
+  /// "Marsa Alam · Red Sea, Egypt" would say the same place twice. A site
+  /// with no town, region or country set adds nothing.
   List<String> get siteLocations {
     final seen = <String>{};
     final locations = <String>[];
@@ -112,7 +114,13 @@ class TripStoryDay extends Equatable {
       final location = dive.site?.locationString ?? '';
       if (location.isNotEmpty && seen.add(location)) locations.add(location);
     }
-    return locations;
+    bool namedWithin(String coarse, String fine) =>
+        fine != coarse &&
+        (fine.endsWith(' · $coarse') || fine.endsWith(', $coarse'));
+    return [
+      for (final location in locations)
+        if (!locations.any((other) => namedWithin(location, other))) location,
+    ];
   }
 
   /// Distinct dive sites deduped by stable id (not display name), so two

@@ -5,7 +5,10 @@ import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/core/utils/stream_debounce.dart';
 
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart'
+    show DiveRepository;
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -366,7 +369,14 @@ final divesForTripProvider = FutureProvider.family<List<domain.Dive>, String>((
   ref.invalidateSelfWhen(tripRepository.watchTripsChanges());
   // Each dive carries its site, whose name and location the day lines show.
   // A site edited writes only the site row, never the dives at it (#4624).
-  ref.invalidateSelfWhen(ref.read(siteRepositoryProvider).watchSitesChanges());
+  // Debounced like the dive ticks: a catalogue fill or a sync pull writes
+  // many sites at once, and one reload covers them all.
+  ref.invalidateSelfWhen(
+    ref
+        .read(siteRepositoryProvider)
+        .watchSitesChanges()
+        .debounce(DiveRepository.changeTickDebounce),
+  );
 
   final diveIds = await tripRepository.getDiveIdsForTrip(
     tripId,

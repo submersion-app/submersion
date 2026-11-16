@@ -366,7 +366,7 @@ void main() {
           label:
               'Wed, Oct 28, Elphinstone Reef North Plateau, '
               'Abu Dabab Seagrass Bay, Marsa Shona Turtle Garden, '
-              'Marsa Alam · Red Sea, Egypt, 3 dives, deepest 30.2m',
+              'Marsa Alam, Red Sea, Egypt, 3 dives, deepest 30.2m',
           isButton: true,
         ),
       );

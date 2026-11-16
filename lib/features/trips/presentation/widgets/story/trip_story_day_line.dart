@@ -39,6 +39,10 @@ class TripStoryDayLine extends ConsumerWidget {
     // A location already holds a "·" ("Marsa Alam · Red Sea, Egypt"), so two
     // of them are kept apart with a semicolon instead.
     final locations = day.siteLocations.join('; ');
+    // Said with commas: a screen reader reads the "·" out as a word.
+    final spokenLocations = day.siteLocations
+        .map((location) => location.replaceAll(' · ', ', '))
+        .join('; ');
     final quiet = day.isSurface || day.isPlannedRest;
     final maxDepth = day.maxDepth;
     final hasDives = day.dives.isNotEmpty;
@@ -61,7 +65,7 @@ class TripStoryDayLine extends ConsumerWidget {
     final spoken = [
       date,
       ...parts,
-      if (locations.isNotEmpty) locations,
+      if (spokenLocations.isNotEmpty) spokenLocations,
       ?diveCount,
       if (depth != null) l10n.trips_story_dayTile_deepest(depth),
       if (day.kind == TripStoryDayKind.today) l10n.trips_story_today,
@@ -105,7 +109,8 @@ class TripStoryDayLine extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final scale = MediaQuery.textScalerOf(context).scale(1);
+              final scaler = MediaQuery.textScalerOf(context);
+              final scale = scaler.scale(1);
               final roomy = constraints.maxWidth / scale >= _roomyWidth;
               return Row(
                 crossAxisAlignment: roomy
@@ -149,14 +154,16 @@ class TripStoryDayLine extends ConsumerWidget {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Sized with the text beside it, so the pin
+                              // keeps to its first line at any text size.
                               Padding(
-                                padding: const EdgeInsets.only(
-                                  top: 1,
+                                padding: EdgeInsets.only(
+                                  top: scaler.scale(1),
                                   right: 4,
                                 ),
                                 child: Icon(
                                   Icons.place_outlined,
-                                  size: 14,
+                                  size: scaler.scale(14),
                                   color: scheme.onSurfaceVariant,
                                 ),
                               ),
