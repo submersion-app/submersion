@@ -89,4 +89,60 @@ void main() {
     await tester.tap(find.text('Read'));
     expect(taps, 1);
   });
+
+  // A card's header keeps its actions (an info button) at the top right,
+  // and its values below; the label covers neither.
+  testWidgets('the label sits on the card\'s top edge, over no header '
+      'action', (tester) async {
+    final header = Card(
+      key: const ValueKey('headed'),
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            const Expanded(child: Text('Deco status')),
+            IconButton(
+              key: const ValueKey('info'),
+              onPressed: () {},
+              icon: const Icon(Icons.info_outline),
+            ),
+          ],
+        ),
+      ),
+    );
+    controller.unlock('dive');
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(24),
+            child: SizedBox(
+              width: 320,
+              child: RecordEditScope<String>(
+                controller: controller,
+                child: RecordCardFade<String>(
+                  reason: RecordCardFadeReason.calculated,
+                  child: header,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final label = tester.getRect(find.text('Calculated'));
+    final info = tester.getRect(find.byKey(const ValueKey('info')));
+    final title = tester.getRect(find.text('Deco status'));
+    final card = tester.getRect(find.byKey(const ValueKey('headed')));
+    expect(label.overlaps(info), isFalse);
+    expect(label.overlaps(title), isFalse);
+    // On the edge: it straddles the card's top.
+    expect(label.top, lessThan(card.top));
+    expect(label.bottom, greaterThan(card.top));
+  });
 }

@@ -19,9 +19,11 @@ const double _fadedOpacity = 0.55;
 ///
 /// With no [RecordEditScope] it is [child] and nothing else. Locked, [child]
 /// is shown as it is. Unlocked,
-/// [child] is drawn faded with [reason]'s word laid over its top right
-/// corner, so its size does not change and the page does not move. Reading
-/// interactions inside it keep working: the word takes no taps.
+/// [child] is drawn faded with [reason]'s word set on its top edge near the
+/// right, half in the gap above the card and half in its top padding: over
+/// no header action and no value, and its size does not change, so the
+/// page does not move. Reading interactions inside it keep working: the
+/// word takes no taps.
 class RecordCardFade<T> extends StatelessWidget {
   const RecordCardFade({super.key, required this.reason, required this.child});
 
@@ -38,13 +40,20 @@ class RecordCardFade<T> extends StatelessWidget {
     // and the card is laid out under the constraints it was given.
     return Stack(
       fit: StackFit.passthrough,
+      // The word straddles the card's top edge.
+      clipBehavior: Clip.none,
       children: [
         Opacity(opacity: unlocked ? _fadedOpacity : 1, child: child),
         if (unlocked)
           Positioned(
-            top: 12,
+            top: 0,
             right: 16,
-            child: IgnorePointer(child: _ReasonLabel(reason: reason)),
+            child: IgnorePointer(
+              child: FractionalTranslation(
+                translation: const Offset(0, -0.5),
+                child: _ReasonLabel(reason: reason),
+              ),
+            ),
           ),
       ],
     );
