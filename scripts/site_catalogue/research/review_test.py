@@ -21,7 +21,7 @@ sys.path[:0] = [_HERE, os.path.dirname(_HERE), os.path.dirname(os.path.dirname(_
 
 import check  # noqa: E402
 import review  # noqa: E402
-from check_test import DOMAINS, TODAY, _entry  # noqa: E402
+from check_test import DOMAINS, TODAY, _entry, _map_source, _placed  # noqa: E402
 
 
 def _page(*entries):
@@ -117,6 +117,31 @@ class ReviewPageTest(unittest.TestCase):
         self.assertIn("<details", page)
         self.assertLess(page.index("USAT Liberty"), page.index("<details"))
         self.assertGreater(page.index("Coral Garden"), page.index("<details"))
+
+    def test_a_map_read_entry_shows_its_map_link(self):
+        page = _page(_placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937))
+        self.assertIn('href="https://opa.com/m.jpg"', page)
+        self.assertIn("map image", page)
+
+    def test_the_route_is_shown(self):
+        page = _page(_placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937))
+        self.assertIn("Placed by", page)
+        self.assertIn("a counting page&#x27;s map", page)
+        self.assertIn("two stated figures that agree", _page(_entry()))
+
+    def test_a_flag_is_shown_and_does_not_block_approval(self):
+        a = _placed([_map_source(-8.2700, 115.5929)], -8.2700, 115.5929,
+                    id="research_id_a", name="A")
+        b = _placed([_map_source(-8.2727, 115.5929)], -8.2727, 115.5929,
+                    id="research_id_b", name="B")
+        page = _page(a, b)
+        self.assertIn("neighbour_near", page)
+        self.assertNotIn("Not offered for approval", page)
+        self.assertIn("Approve or reject", page)
+
+    def test_the_openstreetmap_link_is_at_the_shipped_point(self):
+        page = _page(_placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937))
+        self.assertIn("mlat=-8.275900", page)
 
     def test_a_source_without_a_usable_address_still_renders(self):
         entry = _entry()

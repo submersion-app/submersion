@@ -38,6 +38,7 @@ h1 { font-size: 22px; } h2 { font-size: 18px; margin-top: 32px; border-bottom: 1
 table { border-collapse: collapse; width: 100%; } td { padding: 2px 8px 2px 0; vertical-align: top; }
 td:first-child { color: var(--muted); width: 110px; } .fail { color: var(--bad); }
 .decision { margin-top: 8px; font-weight: 600; } .left { color: var(--muted); }
+.flag { font-style: italic; }
 """
 
 
@@ -70,6 +71,14 @@ def _map_link(lat: float, lon: float) -> str:
     return f'<a href="{_e(url)}">map</a>'
 
 
+# How each route placed the site, as the reviewer reads it.
+_ROUTES = {
+    "confirmed": "two stated figures that agree",
+    "stated": "one stated figure",
+    "map": "a counting page's map",
+}
+
+
 def _position_rows(checked, domains) -> list[str]:
     position = checked.entry.get("position") or {}
     rows = []
@@ -77,6 +86,8 @@ def _position_rows(checked, domains) -> list[str]:
         lat, lon = checked.position
         rows.append(f"<tr><td>Position</td><td>{lat:.6f}, {lon:.6f} "
                     f"[{_map_link(lat, lon)}]</td></tr>")
+    if checked.route in _ROUTES:
+        rows.append(f"<tr><td>Placed by</td><td>{_e(_ROUTES[checked.route])}</td></tr>")
     for source in position.get("sources") or []:
         if not isinstance(source, dict):
             continue
@@ -94,6 +105,9 @@ def _position_rows(checked, domains) -> list[str]:
         domain = _domain(url)
         where = domain or url or "(no address)"
         link = f'<a href="{_e(url)}">page</a>' if domain else ""
+        image = source.get("map")
+        if source.get("method") == "map" and isinstance(image, str) and _domain(image):
+            link += f' <a href="{_e(image)}">map image</a>'
         rows.append(
             f"<tr><td></td><td>{_e(where)} "
             f"&nbsp; {_e(_figure(source))} &nbsp; {_e(distance)} &nbsp; "
@@ -124,6 +138,9 @@ def _entry_html(checked, domains) -> str:
         rows.append(f'<tr><td></td><td class="left">{_e(left)}</td></tr>')
     if entry.get("note"):
         rows.append(f"<tr><td>Note</td><td>{_e(entry['note'])}</td></tr>")
+    for flag in checked.flags:
+        rows.append(f'<tr><td>Check</td><td class="flag">{_e(flag.rule)}: '
+                    f"{_e(flag.message)}</td></tr>")
     failures = [f for f in checked.findings if f.fatal]
     for finding in failures:
         rows.append(f'<tr><td class="fail">{_e(finding.rule)}</td>'
