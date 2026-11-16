@@ -19086,6 +19086,7 @@
   "insights_profile_timeAtDepth_subtitle": "Approximate time spent at each depth",
   "insights_profile_timeAtDepth_title": "Time at Depth Ranges",
   "insights_profile_timeAtDepth_valueFormat": "{value} min",
+  "insights_profile_timeAtDepth_hoursFormat": "{hours} h",
   "insights_progression_appBar_title": "Dive Progression",
   "insights_progression_bottomTime_error": "Failed to load bottom time trend",
   "insights_progression_bottomTime_subtitle": "Every dive in range",
@@ -19473,6 +19474,15 @@
     "placeholders": {
       "value": {
         "type": "Object"
+      }
+    }
+  },
+  "@insights_profile_timeAtDepth_hoursFormat": {
+    "description": "Time at depth value in whole hours, shown once a band holds 100 hours or more",
+    "placeholders": {
+      "hours": {
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -21513,6 +21523,7 @@
   "units_profileMetric_bpm": "bpm",
   "units_profileMetric_gPerL": "g/L",
   "units_profileMetric_min": "min",
+  "units_profileMetric_h": "h",
   "units_profileMetric_percent": "%",
   "units_profileMetric_millivolts": "mV",
   "@units_pressure_bar": {
@@ -21526,6 +21537,9 @@
   },
   "@units_profileMetric_min": {
     "description": "Unit for time in minutes"
+  },
+  "@units_profileMetric_h": {
+    "description": "Unit for time in hours"
   },
   "@units_profileMetric_percent": {
     "description": "Percent unit symbol"

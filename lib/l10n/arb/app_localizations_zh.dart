@@ -31194,6 +31194,15 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String insights_profile_timeAtDepth_hoursFormat(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString小时';
+  }
+
+  @override
   String get insights_progression_appBar_title => '潜水进展';
 
   @override
@@ -34675,6 +34684,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get units_profileMetric_min => '分';
+
+  @override
+  String get units_profileMetric_h => '小时';
 
   @override
   String get units_profileMetric_percent => '%';
