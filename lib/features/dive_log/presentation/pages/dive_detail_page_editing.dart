@@ -144,6 +144,15 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     final followUp = DiveSittingFollowUp.read(context, ref);
     // Read now: the sitting is disposed once the write has gone through.
     final changedCardIds = session.changedCardIds;
+    // The buddies the dive had and has, whose counts and lists the save
+    // changes; the list reads nothing once the sitting has ended.
+    final buddyIds = {
+      for (final b in [
+        ...?diveBuddiesList.loaded(session),
+        ...?diveBuddiesList.current(session),
+      ])
+        b.buddy.id,
+    };
     // The dive the sitting was opened on, whatever the page shows by the
     // time the write is asked for.
     final result = await service.save(
@@ -192,6 +201,13 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       after: result.after,
       tripDateStretches: result.tripDateStretches,
       changedCardIds: changedCardIds,
+      // What the sitting's own writes left for after the commit.
+      mediaAfterCommit: mediaAfterCommit(session),
+      buddyIds: buddyIds,
+      skippedRouteIds:
+          session.recall<List<String>>(routeLinksSkippedKey) ?? const [],
+      planLinksAdopted:
+          session.recall<List<(String, String?)>>(planLinkAdoptKey) ?? const [],
     );
   }
 
