@@ -9533,7 +9533,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_noEntryMethodOnly => 'لم تُسجَّل طريقة دخول';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'بدون دور';
+  String get diveLog_filter_sectionMyRole => 'دوري';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'غير محدد';
 
   @override
   String get diveLog_filter_noTagsYet => 'لم يتم إنشاء وسوم بعد';
@@ -9601,10 +9604,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'عرض الغوصات التي لا تُعرف طريقة دخولها فقط';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'عرض الغوصات التي لم يُحدَّد فيها دورك فقط';
 
   @override
   String get diveLog_filter_startDate => 'تاريخ البدء';
@@ -53408,6 +53407,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count أنواع مياه';
+  }
+
+  @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count أدوار';
   }
 
   @override

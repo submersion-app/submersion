@@ -9401,7 +9401,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun metodo di ingresso registrato';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Nessun ruolo assegnato';
+  String get diveLog_filter_sectionMyRole => 'Il mio ruolo';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Non impostato';
 
   @override
   String get diveLog_filter_noTagsYet => 'Nessun tag creato';
@@ -9474,10 +9477,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Mostra solo le immersioni senza metodo di ingresso noto';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Mostra solo le immersioni senza il tuo ruolo';
 
   @override
   String get diveLog_filter_startDate => 'Data di inizio';
@@ -52701,6 +52700,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count tipi di acqua';
+  }
+
+  @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count ruoli';
   }
 
   @override

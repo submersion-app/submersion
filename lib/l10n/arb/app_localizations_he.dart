@@ -9196,7 +9196,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_noEntryMethodOnly => 'לא נרשמה שיטת כניסה';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'ללא תפקיד';
+  String get diveLog_filter_sectionMyRole => 'התפקיד שלי';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'לא הוגדר';
 
   @override
   String get diveLog_filter_noTagsYet => 'לא נוצרו תגיות עדיין';
@@ -9264,9 +9267,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'הצגת צלילות ללא שיטת כניסה ידועה בלבד';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole => 'הצגת צלילות ללא התפקיד שלך בלבד';
 
   @override
   String get diveLog_filter_startDate => 'תאריך התחלה';
@@ -51566,6 +51566,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count סוגי מים';
+  }
+
+  @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count תפקידים';
   }
 
   @override

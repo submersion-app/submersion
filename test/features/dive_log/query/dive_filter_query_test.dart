@@ -401,6 +401,43 @@ void main() {
     });
   });
 
+  group('my role (#4409)', () {
+    final instructor = ConditionNode(
+      FieldPath(['myRole']),
+      QueryOp.inList,
+      ListValue(const [RefValue('instructor', 'instructor')]),
+    );
+    final noRole = ConditionNode(FieldPath(['role']), QueryOp.isEmpty, null);
+
+    test('listed roles lower to myRole in the list', () {
+      expect(
+        const DiveFilterState(diverRoleIds: ['instructor']).toQuery(),
+        instructor,
+      );
+    });
+
+    test('Not set alone lowers as before', () {
+      expect(const DiveFilterState(noRoleOnly: true).toQuery(), noRole);
+    });
+
+    test('Not set ORs with the listed roles', () {
+      expect(
+        const DiveFilterState(
+          diverRoleIds: ['instructor'],
+          noRoleOnly: true,
+        ).toQuery(),
+        OrNode([instructor, noRole]),
+      );
+    });
+
+    test('the role axis counts once', () {
+      const f = DiveFilterState(diverRoleIds: ['instructor'], noRoleOnly: true);
+      expect(f.activeAxisCount, 1);
+      expect(f.copyWith(clearDiverRoleIds: true).diverRoleIds, isEmpty);
+      expect(f.copyWith(diverRoleIds: const ['student']), isNot(f));
+    });
+  });
+
   test('suspended axes lower to the query alone (#2773)', () {
     final q = TextNode(['manta']);
     expect(

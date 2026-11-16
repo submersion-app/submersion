@@ -14757,11 +14757,17 @@ abstract class AppLocalizations {
   /// **'No entry method recorded'**
   String get diveLog_filter_noEntryMethodOnly;
 
-  /// No description provided for @diveLog_filter_noRoleOnly.
+  /// Heading of the dive filter's chips for the diver's own role on the dive
   ///
   /// In en, this message translates to:
-  /// **'No Role Assigned'**
-  String get diveLog_filter_noRoleOnly;
+  /// **'My role'**
+  String get diveLog_filter_sectionMyRole;
+
+  /// Filter chip: keep dives where the diver's own role is not set
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get diveLog_filter_myRoleNotSet;
 
   /// No description provided for @diveLog_filter_noTagsYet.
   ///
@@ -14894,12 +14900,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show only dives with no known entry method'**
   String get diveLog_filter_showOnlyNoEntryMethod;
-
-  /// No description provided for @diveLog_filter_showOnlyNoRole.
-  ///
-  /// In en, this message translates to:
-  /// **'Show only dives where your role is not set'**
-  String get diveLog_filter_showOnlyNoRole;
 
   /// No description provided for @diveLog_filter_startDate.
   ///
@@ -83159,6 +83159,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} water types'**
   String diveLog_filterChip_waterTypeCount(Object count);
+
+  /// Active filter chip for the diver's own role axis when several choices are picked (roles, or a role and Not set)
+  ///
+  /// In en, this message translates to:
+  /// **'{count} roles'**
+  String diveLog_filterChip_roleCount(int count);
 
   /// No description provided for @diveLog_filterChip_tankConfigCount.
   ///

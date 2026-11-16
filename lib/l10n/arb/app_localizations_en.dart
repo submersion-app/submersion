@@ -9257,7 +9257,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_noEntryMethodOnly => 'No entry method recorded';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'No Role Assigned';
+  String get diveLog_filter_sectionMyRole => 'My role';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Not set';
 
   @override
   String get diveLog_filter_noTagsYet => 'No tags created yet';
@@ -9326,10 +9329,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Show only dives with no known entry method';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Show only dives where your role is not set';
 
   @override
   String get diveLog_filter_startDate => 'Start Date';
@@ -51908,6 +51907,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count water types';
+  }
+
+  @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count roles';
   }
 
   @override

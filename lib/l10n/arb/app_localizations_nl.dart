@@ -9344,7 +9344,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen instapmethode vastgelegd';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Geen rol toegewezen';
+  String get diveLog_filter_sectionMyRole => 'Mijn rol';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Niet ingesteld';
 
   @override
   String get diveLog_filter_noTagsYet => 'Nog geen tags aangemaakt';
@@ -9413,10 +9416,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Toon alleen duiken zonder bekende instapmethode';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Toon alleen duiken zonder je eigen rol';
 
   @override
   String get diveLog_filter_startDate => 'Startdatum';
@@ -52360,6 +52359,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count watertypen';
+  }
+
+  @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count rollen';
   }
 
   @override

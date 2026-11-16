@@ -20,11 +20,14 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_field.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../../helpers/test_database.dart';
 import 'group_test_host.dart';
@@ -122,6 +125,24 @@ void main() {
   });
 
   group('People and life', () {
+    final roles = allDiveRolesProvider.overrideWith(
+      (ref) async => [
+        DiveRole(
+          id: 'instructor',
+          name: 'Instructor',
+          isBuiltIn: true,
+          createdAt: DateTime(2020),
+          updatedAt: DateTime(2020),
+        ),
+        DiveRole(
+          id: 'r1',
+          diverId: 'me',
+          name: 'Cave Guide',
+          createdAt: DateTime(2020),
+          updatedAt: DateTime(2020),
+        ),
+      ],
+    );
     Future<GroupHarness> pump(
       WidgetTester tester, [
       DiveFilterState initial = const DiveFilterState(),
@@ -130,6 +151,7 @@ void main() {
       (d, on) => RefinePeopleGroup(draft: d, onChanged: on),
       initial: initial,
       overrides: [
+        roles,
         allBuddiesProvider.overrideWith(
           (ref) async => [
             Buddy(id: 'b1', name: 'Ana', createdAt: now, updatedAt: now),
@@ -165,16 +187,40 @@ void main() {
       expect(h.draft.buddyNameFilter, isNull);
     });
 
-    testWidgets('the no-role switch turns the axis on and off', (tester) async {
+    // The diver's own role (#4409): a chip per role and Not set, which ORs
+    // with the roles listed (it was the No Role Assigned switch, #3622).
+    testWidgets('my role chips pick roles and Not set', (tester) async {
       final h = await pump(tester);
-      expect(find.text('No Role Assigned'), findsOneWidget);
-      await tester.tap(find.byKey(kRefineNoRoleSwitchKey));
+      expect(find.text('Instructor'), findsOneWidget);
+      expect(find.text('Cave Guide'), findsOneWidget);
+      await tester.tap(find.byKey(refineRoleChipKey('instructor')));
+      await tester.pump();
+      expect(h.draft.diverRoleIds, ['instructor']);
+      await tester.tap(find.byKey(kRefineRoleNotSetChipKey));
       await tester.pump();
       expect(h.draft.noRoleOnly, isTrue);
+      expect(h.draft.diverRoleIds, ['instructor']);
       expect(h.draft.noBuddyOnly, isNull, reason: 'the buddy axis is apart');
-      await tester.tap(find.byKey(kRefineNoRoleSwitchKey));
+      await tester.tap(find.byKey(refineRoleChipKey('instructor')));
+      await tester.pump();
+      expect(h.draft.diverRoleIds, isEmpty);
+      await tester.tap(find.byKey(kRefineRoleNotSetChipKey));
       await tester.pump();
       expect(h.draft.noRoleOnly, isNull);
+    });
+
+    testWidgets('built-in role chips are in the diver\'s language', (
+      tester,
+    ) async {
+      final de = lookupAppLocalizations(const Locale('de'));
+      await pumpGroup(
+        tester,
+        (d, on) => RefinePeopleGroup(draft: d, onChanged: on),
+        locale: const Locale('de'),
+        overrides: [roles],
+      );
+      expect(find.text(de.diveRole_builtin_instructor), findsOneWidget);
+      expect(find.text('Cave Guide'), findsOneWidget);
     });
 
     testWidgets('a buddy suggestion completes the name', (tester) async {
@@ -364,6 +410,7 @@ void main() {
       'buddyNameFilter',
       'noBuddyOnly',
       'noRoleOnly',
+      'diverRoleIds',
       'speciesIds',
     });
     expect(RefineOrganizationGroup.fields, {

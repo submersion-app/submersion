@@ -9402,7 +9402,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sem método de entrada registado';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Sem Função Atribuída';
+  String get diveLog_filter_sectionMyRole => 'Minha função';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Não definida';
 
   @override
   String get diveLog_filter_noTagsYet => 'Nenhuma tag criada ainda';
@@ -9475,10 +9478,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Mostrar apenas mergulhos sem método de entrada conhecido';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Mostrar apenas mergulhos sem a sua função';
 
   @override
   String get diveLog_filter_startDate => 'Data Inicial';
@@ -52675,6 +52674,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count tipos de água';
+  }
+
+  @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count funções';
   }
 
   @override

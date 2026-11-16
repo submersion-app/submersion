@@ -9378,7 +9378,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs rögzített beszállási mód';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Nincs szerep hozzárendelve';
+  String get diveLog_filter_sectionMyRole => 'Saját szerep';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Nincs megadva';
 
   @override
   String get diveLog_filter_noTagsYet => 'Még nincsenek létrehozott címkék';
@@ -9451,10 +9454,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Csak ismert beszállási mód nélküli merülések mutatása';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Csak saját szerep nélküli merülések mutatása';
 
   @override
   String get diveLog_filter_startDate => 'Kezdés dátuma';
@@ -52412,6 +52411,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count víztípus';
+  }
+
+  @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count szerep';
   }
 
   @override

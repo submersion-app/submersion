@@ -8914,7 +8914,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_noEntryMethodOnly => '未记录入水方式';
 
   @override
-  String get diveLog_filter_noRoleOnly => '无角色';
+  String get diveLog_filter_sectionMyRole => '我的角色';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => '未设置';
 
   @override
   String get diveLog_filter_noTagsYet => '尚未创建标签';
@@ -8981,9 +8984,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_filter_showOnlyNoEntryMethod => '仅显示入水方式未知的潜水';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole => '仅显示未设置我的角色的潜水';
 
   @override
   String get diveLog_filter_startDate => '开始日期';
@@ -49502,6 +49502,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count 种水体类型';
+  }
+
+  @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count 个角色';
   }
 
   @override
