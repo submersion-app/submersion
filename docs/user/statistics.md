@@ -63,9 +63,12 @@ a snapshot: if you edit a dive so that it no longer belongs, it stays in the
 list until you go back, and the chart then shows the new number. Back returns
 you to Insights, and removing the chip shows all your dives.
 
-Time at depth does not open dives, because it shows minutes rather than
-counts. Rankings of buddies, sites, gear and species
-open that item's own page.
+Time at depth does not open dives, because it shows time rather than
+counts. Its bands are 10 m or 30 ft wide, following your depth unit, and run
+down to the deepest band you have logged time in, with a final open band such
+as 70+ m when there are more than eight. Once the largest bar passes ten hours
+the chart reads in hours instead of minutes. Rankings of buddies, sites, gear
+and species open that item's own page.
 
 ## Overview
 

@@ -20,6 +20,12 @@ class CategoryBarChart extends StatefulWidget {
   /// Optional unit label rendered once below the x-axis (e.g. "m").
   final String? xAxisLabel;
 
+  /// How many counts make one unit of the y axis. The bars stay in counts;
+  /// only the ticks change: at 60 a chart of minutes steps and labels its
+  /// axis in whole hours (issue #4600). 1 labels the counts themselves.
+  /// Must be at least 1.
+  final int yAxisScale;
+
   /// Optional callback to shorten x-axis labels when bars are crowded
   /// (per-bar width below [_compactXThreshold]). Typical use: render a year
   /// like "2024" as "'24" when there isn't room for all four digits.
@@ -29,6 +35,18 @@ class CategoryBarChart extends StatefulWidget {
   /// is applied. 50 px comfortably fits 4-digit labels in bodySmall text
   /// with normal inter-bar spacing.
   static const double _compactXThreshold = 50;
+
+  /// Decides when [compactXLabelFormatter] applies by measuring instead of
+  /// by the fixed bar width: the labels shorten, all together, as soon as the
+  /// widest of them would not fit the space under its own bar. For labels of
+  /// uneven length, such as depth bands running from "0-10" to "180-210",
+  /// where no single bar width is the right cut-off, and it follows the
+  /// reader's text size (issue #4600).
+  final bool compactXLabelsToFit;
+
+  /// Clear space kept between one label and the next when
+  /// [compactXLabelsToFit] measures them.
+  static const double _labelGap = 4;
 
   /// Set to let a tap mark a bar and open the dives behind it (issue #3805).
   /// A touch is the only way to read a bar's number on a phone, so the first
@@ -43,9 +61,11 @@ class CategoryBarChart extends StatefulWidget {
     this.valueFormatter,
     this.yAxisLabel,
     this.xAxisLabel,
+    this.yAxisScale = 1,
     this.compactXLabelFormatter,
+    this.compactXLabelsToFit = false,
     this.onOpenBar,
-  });
+  }) : assert(yAxisScale > 0, 'yAxisScale must be at least 1');
 
   @override
   State<CategoryBarChart> createState() => _CategoryBarChartState();
@@ -71,6 +91,28 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
   void didUpdateWidget(CategoryBarChart oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!listEquals(oldWidget.data, widget.data)) _marked = null;
+  }
+
+  /// Whether the widest x label is too wide for the slot under one bar of a
+  /// chart [chartWidth] wide, at the reader's text size.
+  bool _labelsOverflow(BuildContext context, double chartWidth) {
+    final slot =
+        (chartWidth - _leftInset - _borderWidth * 2) / widget.data.length;
+    final style = Theme.of(context).textTheme.bodySmall;
+    final textScaler = MediaQuery.textScalerOf(context);
+    final textDirection = Directionality.of(context);
+    for (final item in widget.data) {
+      final painter = TextPainter(
+        text: TextSpan(text: item.label, style: style),
+        textDirection: textDirection,
+        textScaler: textScaler,
+        maxLines: 1,
+      )..layout();
+      final width = painter.width;
+      painter.dispose();
+      if (width + CategoryBarChart._labelGap > slot) return true;
+    }
+    return false;
   }
 
   /// Taps go by column rather than by rod, so a very short bar can be hit.
@@ -152,7 +194,9 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
                 : chartBodyWidth / data.length;
             final useCompactXLabels =
                 widget.compactXLabelFormatter != null &&
-                perBarWidth < CategoryBarChart._compactXThreshold;
+                (widget.compactXLabelsToFit
+                    ? _labelsOverflow(context, constraints.maxWidth)
+                    : perBarWidth < CategoryBarChart._compactXThreshold);
             return _buildBarChart(
               context,
               color: color,
@@ -205,7 +249,15 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
     // Whole-number steps shared by the grid and the labels: the left titles
     // render nothing for a fractional value, so a 2.5 step would otherwise
     // leave unlabelled lines (issue #219).
-    final axis = ChartAxis.forCounts(maxCount);
+    // The steps are chosen in axis units and scaled back to counts, so an
+    // hour-scaled axis over minute bars still ticks in whole hours.
+    final scale = widget.yAxisScale;
+    final unitAxis = ChartAxis.forCounts(maxCount / scale);
+    final axis = ChartAxis(
+      min: unitAxis.min * scale,
+      max: unitAxis.max * scale,
+      interval: unitAxis.interval * scale,
+    );
 
     return BarChart(
       BarChartData(
@@ -274,13 +326,14 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
               reservedSize: _leftAxisWidth,
               interval: axis.interval,
               getTitlesWidget: (value, meta) {
-                if (value != value.roundToDouble()) {
+                final units = value / scale;
+                if (units != units.roundToDouble()) {
                   return const Text('');
                 }
                 return Padding(
                   padding: const EdgeInsets.only(right: 6),
                   child: Text(
-                    value.toInt().toString(),
+                    units.toInt().toString(),
                     textAlign: TextAlign.right,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),

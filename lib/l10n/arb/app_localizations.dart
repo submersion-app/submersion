@@ -52704,6 +52704,12 @@ abstract class AppLocalizations {
   /// **'{value} min'**
   String insights_profile_timeAtDepth_valueFormat(Object value);
 
+  /// Time at depth value in whole hours, shown once a band holds 100 hours or more
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h'**
+  String insights_profile_timeAtDepth_hoursFormat(int hours);
+
   /// No description provided for @insights_progression_appBar_title.
   ///
   /// In en, this message translates to:
@@ -57967,6 +57973,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'min'**
   String get units_profileMetric_min;
+
+  /// Unit for time in hours
+  ///
+  /// In en, this message translates to:
+  /// **'h'**
+  String get units_profileMetric_h;
 
   /// Percent unit symbol
   ///

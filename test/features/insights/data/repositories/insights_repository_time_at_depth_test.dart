@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
@@ -151,17 +152,45 @@ void main() {
     expect(minutesAt(ranges, 0), 5);
     expect(minutesAt(ranges, 10), 10);
     expect(minutesAt(ranges, 40), 5);
-    expect(minutesAt(ranges, 20), isNull);
+    // Bands between the shallowest and deepest show as zero (issue #4600).
+    expect(minutesAt(ranges, 20), 0);
+    expect(minutesAt(ranges, 30), 0);
   });
 
-  test('leaves the deepest bucket open-ended', () async {
+  test('bands run down to the deepest band with time', () async {
     await dive('a');
     await profile('a', level(60.0, from: 0, to: 600, every: 10));
 
     final ranges = await repo.getTimeAtDepthRanges();
 
-    expect(ranges.single.lowerDepth, 40);
-    expect(ranges.single.upperDepth, isNull);
+    expect(ranges, hasLength(7));
+    expect(ranges.last, (lowerDepth: 60, upperDepth: 70, minutes: 10));
+  });
+
+  test('opens the last band once there are more than eight', () async {
+    await dive('a');
+    await profile('a', level(90.0, from: 0, to: 600, every: 10));
+
+    final ranges = await repo.getTimeAtDepthRanges();
+
+    expect(ranges, hasLength(8));
+    expect(ranges.last, (lowerDepth: 70, upperDepth: null, minutes: 10));
+  });
+
+  test('feet bands come back in round feet', () async {
+    await dive('a');
+    await profile('a', [
+      ...level(15.0, from: 0, to: 600, every: 10),
+      ...level(50.0, from: 610, to: 1200, every: 10),
+    ]);
+
+    final ranges = await repo.getTimeAtDepthRanges(depthUnit: DepthUnit.feet);
+
+    // 15 m is 49 ft and 50 m is 164 ft.
+    expect(ranges.map((r) => r.lowerDepth), [0, 30, 60, 90, 120, 150]);
+    expect(minutesAt(ranges, 30), 10);
+    expect(minutesAt(ranges, 150), 10);
+    expect(ranges.last.upperDepth, 180);
   });
 
   test('counts only the primary profile of a multi-computer dive', () async {
