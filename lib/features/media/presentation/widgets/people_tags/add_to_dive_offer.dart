@@ -17,18 +17,22 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Nothing is offered for Me, for media with no dive, or for a buddy
 /// already on the dive. [onAdd], when given, takes the Add instead of
 /// writing it.
-Future<void> offerAddToDive(
+///
+/// Returns the offer while it is shown, so its caller can close it when an
+/// Add would no longer land anywhere; null when nothing was offered.
+Future<ScaffoldFeatureController<SnackBar, SnackBarClosedReason>?>
+offerAddToDive(
   BuildContext context,
   WidgetRef ref, {
   required String? diveId,
   required PersonChoice choice,
   void Function(Buddy buddy)? onAdd,
 }) async {
-  if (diveId == null || choice is! BuddyChoice) return;
+  if (diveId == null || choice is! BuddyChoice) return null;
   final repository = ref.read(buddyRepositoryProvider);
   final onDive = await repository.getBuddiesForDive(diveId);
-  if (onDive.any((b) => b.buddy.id == choice.buddy.id)) return;
-  if (!context.mounted) return;
+  if (onDive.any((b) => b.buddy.id == choice.buddy.id)) return null;
+  if (!context.mounted) return null;
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final failed = l10n.media_people_addToDiveFailed;
@@ -50,21 +54,20 @@ Future<void> offerAddToDive(
     }
   }
 
-  messenger
-    ..hideCurrentSnackBar()
-    ..showSnackBar(
-      SnackBar(
-        content: Text(l10n.media_people_addToDiveOffer(choice.buddy.name)),
-        persist: false,
-        action: SnackBarAction(
-          label: l10n.media_people_addToDiveAction,
-          // In a photo's sitting the Add is held until Save (issue #4527).
-          onPressed: onAdd == null
-              ? () => unawaited(add())
-              : () => onAdd(choice.buddy),
-        ),
+  messenger.hideCurrentSnackBar();
+  return messenger.showSnackBar(
+    SnackBar(
+      content: Text(l10n.media_people_addToDiveOffer(choice.buddy.name)),
+      persist: false,
+      action: SnackBarAction(
+        label: l10n.media_people_addToDiveAction,
+        // In a photo's sitting the Add is held until Save (issue #4527).
+        onPressed: onAdd == null
+            ? () => unawaited(add())
+            : () => onAdd(choice.buddy),
       ),
-    );
+    ),
+  );
 }
 
 const _log = LoggerService('AddToDiveOffer');

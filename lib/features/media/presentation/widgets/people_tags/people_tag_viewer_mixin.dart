@@ -400,6 +400,16 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
     );
   }
 
+  /// The add-to-dive offer made in a sitting, while it is shown.
+  ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? _heldOffer;
+
+  /// Closes the add-to-dive offer made in a sitting: once the sitting has
+  /// ended its Add would land nowhere, and would be lost unsaid.
+  void dismissHeldOffer() {
+    _heldOffer?.close();
+    _heldOffer = null;
+  }
+
   /// Offers to add a tagged buddy to the dive, held in [session] when taken.
   Future<void> _offerHeldAdd(
     EditSession<PhotoRecord> session,
@@ -410,7 +420,7 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
     final diveId = item.diveId;
     if (diveId == null || choice is! BuddyChoice) return;
     if (isBuddyToDiveHeld(session, choice.buddy.id)) return;
-    await offerAddToDive(
+    final offer = await offerAddToDive(
       context,
       ref,
       diveId: diveId,
@@ -424,6 +434,13 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
           repository: buddies,
         );
       },
+    );
+    _heldOffer = offer;
+    // Gone by itself (its Add, its timeout): nothing is left to close.
+    unawaited(
+      offer?.closed.then((_) {
+        if (identical(_heldOffer, offer)) _heldOffer = null;
+      }),
     );
   }
 

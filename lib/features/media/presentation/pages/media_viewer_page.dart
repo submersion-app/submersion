@@ -149,6 +149,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   @override
   void onPhotoLocked() {
     closeColorEditing();
+    dismissHeldOffer();
     if (taggingPeople) togglePeopleTagging();
   }
 

@@ -170,6 +170,22 @@ void main() {
     expect((await rows(tester)).single.buddyId, 'alex');
   });
 
+  testWidgets('the offer goes with the sitting: Save closes it, so a late '
+      'Add cannot be lost', (tester) async {
+    await openTagging(tester);
+    await tester.tapAt(const Offset(600, 450));
+    await settle(tester);
+    await tester.tap(find.text('Alex'));
+    await settle(tester);
+    expect(find.text("Add Alex to this dive's buddies?"), findsOneWidget);
+
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+
+    expect(controller(tester).isUnlocked, isFalse);
+    expect(find.text("Add Alex to this dive's buddies?"), findsNothing);
+  });
+
   testWidgets('Cancel after a held Add adds nothing', (tester) async {
     await openTagging(tester);
     await tester.tapAt(const Offset(600, 450));
