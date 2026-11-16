@@ -31,6 +31,8 @@ import 'package:submersion/features/media/presentation/providers/photo_editing_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/features/tags/data/repositories/tag_link_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -191,6 +193,7 @@ void main() {
       media: media,
       species: MediaSpeciesRepository(),
       people: MediaPeopleRepository(),
+      tags: TagLinkRepository(TagScope.media),
     );
     final colors = MediaColorAdjustmentRepository();
     final service = PhotoEditSaveService(
@@ -205,6 +208,7 @@ void main() {
       colors: colors,
       attachments: SiteAttachmentRepository(),
       dives: DiveRepository(),
+      tags: TagLinkRepository(TagScope.media),
     );
     await insertTestSpecies(id: 'sp_ray', name: 'Ray');
     final before = (await reader.read('p2', diverId: 'me'))!;
