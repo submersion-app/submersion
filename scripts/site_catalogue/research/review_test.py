@@ -154,6 +154,24 @@ class ReviewPageTest(unittest.TestCase):
         self.assertIn("Between figures", page)
         self.assertIn("600 m", page)
 
+    def test_a_stray_naming_source_is_left_out(self):
+        entry = _placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937)
+        entry["named"]["sources"].append("not a source")
+        page = _page(entry)
+        self.assertIn('href="https://opa.com/sites"', page)
+        self.assertNotIn("not a source", page)
+
+    def test_an_unreadable_counting_figure_shows_no_distance(self):
+        # Skipping the unreadable one would leave two readable figures and a
+        # distance that hides it.
+        a = _map_source(-8.2700, 115.5929)
+        b = dict(_map_source(-8.2754, 115.5929, url="https://pressb.org/m"),
+                 lat="north of the jetty")
+        c = _map_source(-8.2754, 115.5929, url="https://pressb.org/n")
+        page = _page(_placed([a, b, c], -8.2727, 115.5929))
+        self.assertIn("north of the jetty", page)
+        self.assertNotIn("Between figures", page)
+
     def test_the_openstreetmap_link_is_at_the_shipped_point(self):
         page = _page(_placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937))
         self.assertIn("mlat=-8.275900", page)

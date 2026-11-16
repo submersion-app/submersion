@@ -324,6 +324,17 @@ class PositionTest(unittest.TestCase):
         entry = _placed([source], -8.2759, 115.5937)
         self.assertIn("position_domains", _rules(_one(entry)))
 
+    def test_map_address_without_a_host_fails(self):
+        source = dict(_map_source(-8.2759, 115.5937), map="https://localhost/m.jpg")
+        entry = _placed([source], -8.2759, 115.5937)
+        self.assertIn("position_domains", _rules(_one(entry)))
+
+    def test_a_method_other_than_stated_or_map_fails_shape(self):
+        source = dict(_map_source(-8.2759, 115.5937), method="guessed")
+        checked = _one(_placed([source], -8.2759, 115.5937))
+        self.assertIn("shape", _rules(checked))
+        self.assertIsNone(checked.route)
+
     def test_stated_and_map_3km_apart_fail_spread(self):
         source = _map_source(-8.30072, 115.5929)
         entry = _placed([dict(_A), source], _A["lat"], _A["lon"])
