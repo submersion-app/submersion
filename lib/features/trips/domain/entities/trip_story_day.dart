@@ -101,6 +101,20 @@ class TripStoryDay extends Equatable {
     return names;
   }
 
+  /// Where the day's sites are, each distinct location once in dive order, as
+  /// [DiveSite.locationString] gives it ("Marsa Alam · Red Sea, Egypt").
+  /// Several sites in one area read as that area once; a site with no town,
+  /// region or country set adds nothing.
+  List<String> get siteLocations {
+    final seen = <String>{};
+    final locations = <String>[];
+    for (final dive in dives) {
+      final location = dive.site?.locationString ?? '';
+      if (location.isNotEmpty && seen.add(location)) locations.add(location);
+    }
+    return locations;
+  }
+
   /// Distinct dive sites deduped by stable id (not display name), so two
   /// different sites that share a name still count as two -- matching the map
   /// geometry and the trip-level stat strip, which key on site id.

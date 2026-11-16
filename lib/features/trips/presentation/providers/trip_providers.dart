@@ -364,6 +364,9 @@ final divesForTripProvider = FutureProvider.family<List<domain.Dive>, String>((
   ref.invalidateSelfWhen(diveRepository.watchTables(measuredRuntimeTables));
   // And a side trip linked or unlinked (issue #3658).
   ref.invalidateSelfWhen(tripRepository.watchTripsChanges());
+  // Each dive carries its site, whose name and location the day lines show.
+  // A site edited writes only the site row, never the dives at it (#4624).
+  ref.invalidateSelfWhen(ref.read(siteRepositoryProvider).watchSitesChanges());
 
   final diveIds = await tripRepository.getDiveIdsForTrip(
     tripId,

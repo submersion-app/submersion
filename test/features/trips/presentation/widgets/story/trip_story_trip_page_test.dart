@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -39,6 +40,7 @@ import '../../../../../helpers/mock_providers.dart';
   TripType type = TripType.resort,
   String notes = '',
   bool withSites = true,
+  DiveSite Function(int day, int dive)? siteFor,
 }) {
   const depths = [30.2, 28.4, 24.0];
   final dives = <Dive>[
@@ -49,9 +51,10 @@ import '../../../../../helpers/mock_providers.dart';
           dateTime: DateTime(start.year, start.month, start.day + d, 8 + 3 * i),
           maxDepth: depths[i % depths.length],
           runtime: const Duration(minutes: 50),
-          site: withSites
-              ? DiveSite(id: 'site-$d', name: 'Site ${d + 1}')
-              : null,
+          site: !withSites
+              ? null
+              : siteFor?.call(d, i) ??
+                    DiveSite(id: 'site-$d', name: 'Site ${d + 1}'),
         ),
   ];
   final trip = Trip(
@@ -304,6 +307,115 @@ void main() {
         isButton: true,
       ),
     );
+  });
+
+  group('where a day was', () {
+    // Day 1 dives two sites in one area; day 2 dives two areas.
+    const elphinstone = DiveSite(
+      id: 'elphinstone',
+      name: 'Elphinstone Reef North Plateau',
+      city: 'Marsa Alam',
+      region: 'Red Sea',
+      country: 'Egypt',
+    );
+    const abuDabab = DiveSite(
+      id: 'abu-dabab',
+      name: 'Abu Dabab Seagrass Bay',
+      city: 'Marsa Alam',
+      region: 'Red Sea',
+      country: 'Egypt',
+    );
+    const marsaShona = DiveSite(
+      id: 'marsa-shona',
+      name: 'Marsa Shona Turtle Garden',
+      city: 'Marsa Alam',
+      region: 'Red Sea',
+      country: 'Egypt',
+    );
+    const brothers = DiveSite(
+      id: 'brothers',
+      name: 'Brothers Islands',
+      city: 'El Quseir',
+      country: 'Egypt',
+    );
+    final located = _trip(
+      DateTime(2026, 10, 28),
+      [3, 2],
+      today: DateTime(2026, 12, 1),
+      siteFor: (day, dive) => day == 0
+          ? const [elphinstone, abuDabab, marsaShona][dive]
+          : const [elphinstone, brothers][dive],
+    );
+
+    testWidgets('a day line shows its area once, after the sites', (
+      tester,
+    ) async {
+      await pumpTripPage(tester, story: located.story, stats: located.stats);
+
+      final line = find.byKey(TripStoryDayLine.keyFor(1));
+      expect(
+        find.descendant(
+          of: line,
+          matching: find.text('Marsa Alam · Red Sea, Egypt'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        tester.getSemantics(line),
+        isSemantics(
+          label:
+              'Wed, Oct 28, Elphinstone Reef North Plateau, '
+              'Abu Dabab Seagrass Bay, Marsa Shona Turtle Garden, '
+              'Marsa Alam · Red Sea, Egypt, 3 dives, deepest 30.2m',
+          isButton: true,
+        ),
+      );
+    });
+
+    testWidgets('a day dived in two areas names both, kept apart', (
+      tester,
+    ) async {
+      await pumpTripPage(tester, story: located.story, stats: located.stats);
+
+      expect(
+        find.descendant(
+          of: find.byKey(TripStoryDayLine.keyFor(2)),
+          matching: find.text('Marsa Alam · Red Sea, Egypt; El Quseir · Egypt'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a day line whose sites do not fit on one line wraps them '
+        'instead of cutting them off', (tester) async {
+      await pumpTripPage(
+        tester,
+        story: located.story,
+        stats: located.stats,
+        width: 360,
+      );
+
+      final line = find.byKey(TripStoryDayLine.keyFor(1));
+      final sites = find.descendant(
+        of: line,
+        matching: find.text(
+          'Elphinstone Reef North Plateau · Abu Dabab Seagrass Bay · '
+          'Marsa Shona Turtle Garden',
+        ),
+      );
+      expect(sites, findsOneWidget);
+      final paragraph = tester.renderObject<RenderParagraph>(
+        find.descendant(of: sites, matching: find.byType(RichText)),
+      );
+      expect(paragraph.didExceedMaxLines, isFalse);
+      // It took more than one line to say.
+      expect(
+        tester.getSize(sites).height,
+        greaterThan(
+          paragraph.getFullHeightForCaret(const TextPosition(offset: 0)) * 1.5,
+        ),
+      );
+    });
   });
 
   testWidgets("a surface day's line shows no dive count", (tester) async {

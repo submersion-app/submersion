@@ -8,8 +8,8 @@ import 'package:submersion/features/trips/presentation/widgets/day/today_chip.da
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One day of a trip as a line on the Trip page: its number, its date, what
-/// kind of day it was and where, and what was dived. Tapping it opens that
-/// day.
+/// kind of day it was, the sites dived and the area they are in, and what was
+/// dived. Tapping it opens that day.
 ///
 /// A surface day is drawn muted and shows no dive figures, so the dived days
 /// stand out when the list is scanned. Today carries its chip, and a day
@@ -36,6 +36,9 @@ class TripStoryDayLine extends ConsumerWidget {
     final units = ref.watch(unitFormatterProvider);
     final date = units.formatWeekdayMonthDay(day.date);
     final parts = tripDaySubtitleParts(context, day);
+    // A location already holds a "·" ("Marsa Alam · Red Sea, Egypt"), so two
+    // of them are kept apart with a semicolon instead.
+    final locations = day.siteLocations.join('; ');
     final quiet = day.isSurface || day.isPlannedRest;
     final maxDepth = day.maxDepth;
     final hasDives = day.dives.isNotEmpty;
@@ -58,6 +61,7 @@ class TripStoryDayLine extends ConsumerWidget {
     final spoken = [
       date,
       ...parts,
+      if (locations.isNotEmpty) locations,
       ?diveCount,
       if (depth != null) l10n.trips_story_dayTile_deepest(depth),
       if (day.kind == TripStoryDayKind.today) l10n.trips_story_today,
@@ -137,12 +141,29 @@ class TripStoryDayLine extends ConsumerWidget {
                               ?chip,
                             ],
                           ),
+                        // Every site is read in full, wrapping as it must:
+                        // a day of three dives would otherwise lose two.
                         if (parts.isNotEmpty)
-                          Text(
-                            parts.join(' · '),
-                            style: subtitleStyle,
-                            maxLines: roomy ? 1 : 2,
-                            overflow: TextOverflow.ellipsis,
+                          Text(parts.join(' · '), style: subtitleStyle),
+                        if (locations.isNotEmpty)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  top: 1,
+                                  right: 4,
+                                ),
+                                child: Icon(
+                                  Icons.place_outlined,
+                                  size: 14,
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(locations, style: subtitleStyle),
+                              ),
+                            ],
                           ),
                         if (!roomy && diveCount != null)
                           Text(

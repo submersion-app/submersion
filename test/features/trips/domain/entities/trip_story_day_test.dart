@@ -115,6 +115,50 @@ void main() {
       },
     );
 
+    test('siteLocations lists each distinct site location once, in dive '
+        'order, and skips sites with none', () {
+      const marsaAlam = DiveSite(
+        id: 'site-1',
+        name: 'Elphinstone',
+        city: 'Marsa Alam',
+        region: 'Red Sea',
+        country: 'Egypt',
+      );
+      const abuDabab = DiveSite(
+        id: 'site-2',
+        name: 'Abu Dabab',
+        city: 'Marsa Alam',
+        region: 'Red Sea',
+        country: 'Egypt',
+      );
+      const unplaced = DiveSite(id: 'site-3', name: 'House Reef');
+      const blank = DiveSite(id: 'site-4', name: 'Jetty', country: '  ');
+      const quseir = DiveSite(
+        id: 'site-5',
+        name: 'Brothers',
+        city: 'El Quseir',
+        country: 'Egypt',
+      );
+      final day = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        dives: [
+          _dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 7), site: marsaAlam),
+          _dive(id: 'd2', dateTime: DateTime(2026, 3, 8, 9), site: unplaced),
+          _dive(id: 'd3', dateTime: DateTime(2026, 3, 8, 11), site: abuDabab),
+          _dive(id: 'd4', dateTime: DateTime(2026, 3, 8, 13), site: blank),
+          _dive(id: 'd5', dateTime: DateTime(2026, 3, 8, 15), site: quseir),
+          _dive(id: 'd6', dateTime: DateTime(2026, 3, 8, 17)),
+        ],
+      );
+
+      expect(day.siteLocations, [
+        'Marsa Alam · Red Sea, Egypt',
+        'El Quseir · Egypt',
+      ]);
+    });
+
     test('empty day has no content and null maxDepth', () {
       final day = TripStoryDay(
         date: date,
@@ -125,6 +169,7 @@ void main() {
       expect(day.totalRuntime, Duration.zero);
       expect(day.maxDepth, isNull);
       expect(day.siteNames, isEmpty);
+      expect(day.siteLocations, isEmpty);
       expect(day.hasContent, isFalse);
     });
 
