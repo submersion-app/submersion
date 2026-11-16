@@ -52,6 +52,8 @@ AGREE_M = 150.0
 # Every counting figure lies this close to the shipped point: a
 # researched position is good enough to name the dive.
 AGREE_COARSE_M = 2000.0
+# A map-read site this close to another is flagged for the reviewer.
+FLAG_M = 500.0
 # The shipped point is the mean of the counting positions, to within this.
 MEAN_M = 10.0
 # The coarsest figure that can confirm a position: a tenth of a minute.
@@ -420,20 +422,37 @@ def check_entries(entries, domains, *, today: date) -> list[CheckedEntry]:
     return results
 
 
+def _distinct(a: CheckedEntry, b: CheckedEntry) -> bool:
+    """Whether each entry names the other as a separate site."""
+
+    def names(entry: CheckedEntry, other: CheckedEntry) -> bool:
+        listed = entry.entry.get("distinct_from")
+        return isinstance(listed, list) and other.id in listed
+
+    return names(a, b) and names(b, a)
+
+
 def _check_neighbours(results: list[CheckedEntry]) -> None:
     """Two standing entries within 150 m are one site written twice,
-    unless one of them says why both stand."""
+    unless each names the other in `distinct_from`. A map-read entry
+    within 500 m of another is flagged for the reviewer."""
     standing = [
         r for r in results
         if r.position and not r.withdrawn and r.state != "rejected"
     ]
     for i, a in enumerate(standing):
         for b in standing[i + 1:]:
-            if a.entry.get("note") or b.entry.get("note"):
-                continue
             apart = evidence.metres_between(*a.position, *b.position)
-            if apart <= AGREE_M:
-                b.fail("neighbour", f"{apart:.0f} m from {a.id}; a note says why both stand")
+            if apart <= AGREE_M and not _distinct(a, b):
+                b.fail(
+                    "neighbour",
+                    f"{apart:.0f} m from {a.id}; if both are separate sites, "
+                    "each names the other in distinct_from",
+                )
+            if apart <= FLAG_M:
+                for one, other in ((a, b), (b, a)):
+                    if one.map_read:
+                        one.flag("neighbour_near", f"{apart:.0f} m from {other.id}")
 
 
 def withdrawn_curated_problems(items) -> list[str]:

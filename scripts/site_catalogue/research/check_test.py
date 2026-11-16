@@ -500,9 +500,51 @@ class NeighbourTest(unittest.TestCase):
         checked = _check(_entry(), self._near())
         self.assertIn("neighbour", _rules(checked[1]))
 
-    def test_a_note_lets_both_stand(self):
+    def test_a_note_no_longer_lets_both_stand(self):
+        # Map readings almost always carry a note: it would switch the
+        # rule off (wider sources design, section 2).
         checked = _check(_entry(), _entry(**{**self._near(), "note": "separate site"}))
+        self.assertIn("neighbour", _rules(checked[1]))
+
+    def test_distinct_from_on_both_lets_both_stand(self):
+        liberty = _entry(distinct_from=["research_id_coral_garden"])
+        near = {**self._near(), "distinct_from": ["research_id_usat_liberty"]}
+        checked = _check(liberty, near)
         self.assertTrue(all(c.ok for c in checked), [c.findings for c in checked])
+
+    def test_distinct_from_one_sided_still_fails(self):
+        liberty = _entry(distinct_from=["research_id_coral_garden"])
+        checked = _check(liberty, self._near())
+        self.assertIn("neighbour", _rules(checked[1]))
+
+    def test_distinct_from_naming_no_entry_still_fails(self):
+        liberty = _entry(distinct_from=["research_id_elsewhere"])
+        near = {**self._near(), "distinct_from": ["research_id_elsewhere"]}
+        checked = _check(liberty, near)
+        self.assertIn("neighbour", _rules(checked[1]))
+
+    def _map_read(self, site_id, lat):
+        return _placed(
+            [_map_source(lat, 115.5929)], lat, 115.5929,
+            id=site_id, name=site_id.rsplit("_", 1)[-1].title(),
+        )
+
+    def test_map_read_entry_300m_from_another_is_flagged_not_failed(self):
+        checked = _check(
+            self._map_read("research_id_a", -8.2700),
+            self._map_read("research_id_b", -8.27270),
+        )
+        self.assertTrue(all(c.ok for c in checked), [c.findings for c in checked])
+        flagged = [c for c in checked if "neighbour_near" in _rules(c, fatal=False)]
+        self.assertTrue(flagged)
+
+    def test_a_flag_is_not_left_out(self):
+        checked = _check(
+            self._map_read("research_id_a", -8.2700),
+            self._map_read("research_id_b", -8.27270),
+        )
+        for c in checked:
+            self.assertEqual(c.left_out, [])
 
     def test_a_withdrawn_entry_is_not_a_neighbour(self):
         withdrawn = _entry(withdrawn={"reason": "position", "date": "2026-12-01"})
