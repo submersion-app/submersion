@@ -19,7 +19,7 @@ class RecordingNotificationService implements NotificationService {
   }
 
   @override
-  Future<Set<String>> pendingDocumentReminderIds() async => const {};
+  Future<Map<String, String?>> pendingDocumentReminders() async => const {};
 
   @override
   Future<Set<String>> pendingDraftReminderIds() async => const {};

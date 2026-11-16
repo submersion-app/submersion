@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/services/database_service.dart';
@@ -13,14 +15,33 @@ import '../../helpers/test_database.dart';
 /// Records document reminder calls; every other member no-ops.
 class _FakeNotificationService implements NotificationService {
   final scheduled =
-      <({String documentId, String title, DocumentReminderStage stage})>[];
+      <
+        ({
+          String documentId,
+          String diverId,
+          String title,
+          DocumentReminderStage stage,
+        })
+      >[];
   final cancelled = <String>[];
 
-  /// Document ids with a reminder pending in the OS, as payloads report.
-  Set<String> pending = {};
+  /// Every schedule and cancel, in order, as `schedule:<id>` or
+  /// `cancel:<id>`.
+  final log = <String>[];
+
+  /// Runs while a full schedule reads the pending reminders: after it has
+  /// read the documents that remind.
+  Future<void> Function()? onPending;
+
+  /// Documents with a reminder pending in the OS and the diver each
+  /// payload names, null for a payload from before it named one.
+  Map<String, String?> pending = {};
 
   @override
-  Future<Set<String>> pendingDocumentReminderIds() async => pending;
+  Future<Map<String, String?>> pendingDocumentReminders() async {
+    await onPending?.call();
+    return pending;
+  }
 
   @override
   Future<Set<String>> pendingDraftReminderIds() async => const {};
@@ -28,17 +49,25 @@ class _FakeNotificationService implements NotificationService {
   @override
   Future<int> scheduleDocumentReminder({
     required String documentId,
+    required String diverId,
     required String title,
     required String body,
     required DocumentReminderStage stage,
     required DateTime scheduledDate,
   }) async {
-    scheduled.add((documentId: documentId, title: title, stage: stage));
+    log.add('schedule:$documentId');
+    scheduled.add((
+      documentId: documentId,
+      diverId: diverId,
+      title: title,
+      stage: stage,
+    ));
     return 1;
   }
 
   @override
   Future<void> cancelDocumentReminders(String documentId) async {
+    log.add('cancel:$documentId');
     cancelled.add(documentId);
   }
 
@@ -139,7 +168,11 @@ void main() {
       DateTime(now.year, now.month, now.day + 60),
     );
     final undated = await save(DocumentType.permit, null);
-    service.pending = {permit.id, undated.id, 'deleted-elsewhere'};
+    service.pending = {
+      permit.id: 'd1',
+      undated.id: 'd1',
+      'deleted-elsewhere': 'd1',
+    };
     await scheduler.scheduleAll(settings: const AppSettings(), diverId: 'd1');
     expect(service.cancelled, containsAll([undated.id, 'deleted-elsewhere']));
     expect(service.scheduled.map((s) => s.documentId).toSet(), {permit.id});
@@ -166,7 +199,7 @@ void main() {
       ),
       const [],
     );
-    service.pending = {renewed.id};
+    service.pending = {renewed.id: 'd2'};
     await scheduler.scheduleAll(settings: const AppSettings(), diverId: 'd1');
     expect(service.cancelled, contains(renewed.id));
     expect(
@@ -199,7 +232,7 @@ void main() {
         'reminders', () async {
       final old = await save(DocumentType.medicalClearance, inDays(10));
       final renewal = await save(DocumentType.medicalClearance, inDays(400));
-      service.pending = {old.id};
+      service.pending = {old.id: 'd1'};
       await scheduler.scheduleAll(settings: const AppSettings(), diverId: 'd1');
       expect(service.cancelled, contains(old.id));
       expect(service.scheduled.map((s) => s.documentId).toSet(), {renewal.id});
@@ -255,7 +288,7 @@ void main() {
             );
         final old = await clearance(inDays(10));
         final renewal = await clearance(inDays(400));
-        service.pending = {old.id, renewal.id};
+        service.pending = {old.id: 'd2', renewal.id: 'd2'};
         await scheduler.scheduleAll(
           settings: const AppSettings(),
           diverId: 'd1',
@@ -266,6 +299,130 @@ void main() {
         });
       },
     );
+
+    test('a re-arm after a delete cancels the deleted clearances last, so '
+        'one an earlier re-arm armed stays silent (#4609)', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await save(DocumentType.medicalClearance, inDays(400));
+      await DocumentRepository(
+        cancelReminders: (_) async {},
+        clearancesDeleted: (_) {},
+      ).delete(renewal.id);
+      // An earlier re-arm read the renewal before it went, then armed it.
+      await scheduler.updateForDocument(renewal, const AppSettings());
+      service.cancelled.clear();
+      await scheduler.updateClearancesForDiver(
+        'd1',
+        const AppSettings(),
+        deletedIds: [renewal.id],
+      );
+      expect(service.cancelled.last, renewal.id);
+      expect(service.scheduled.map((s) => s.documentId), contains(old.id));
+    });
+
+    test('a renewal deleted while a full schedule runs stays silent, and the '
+        'clearance it superseded reminds again (#4609)', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await save(DocumentType.medicalClearance, inDays(400));
+      final deletes = StreamController<Map<String, Set<String>>>.broadcast();
+      addTearDown(deletes.close);
+      scheduler = NotificationScheduler(
+        notificationService: service,
+        clearanceDeletes: deletes.stream,
+      );
+      // The run has read the renewal as the one that reminds; the delete
+      // lands now, and its own re-arm finishes before the run arms.
+      service.onPending = () async {
+        service.onPending = null;
+        await DocumentRepository(
+          cancelReminders: (_) async {},
+          clearancesDeleted: (_) {},
+        ).delete(renewal.id);
+        deletes.add({
+          'd1': {renewal.id},
+        });
+        await Future<void>.delayed(Duration.zero);
+      };
+      await scheduler.scheduleAll(settings: const AppSettings(), diverId: 'd1');
+      expect(
+        service.log.lastIndexOf('cancel:${renewal.id}'),
+        greaterThan(service.log.lastIndexOf('schedule:${renewal.id}')),
+      );
+      expect(
+        service.log.lastIndexOf('schedule:${old.id}'),
+        greaterThan(service.log.lastIndexOf('cancel:${old.id}')),
+      );
+    });
+
+    test('a re-arm after a rolled-back delete keeps the restored clearance '
+        'reminding (#4609)', () async {
+      await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await save(DocumentType.medicalClearance, inDays(400));
+      // The delete named the renewal, then its transaction rolled back.
+      await scheduler.updateClearancesForDiver(
+        'd1',
+        const AppSettings(),
+        deletedIds: [renewal.id],
+      );
+      expect(service.scheduled.map((s) => s.documentId).toSet(), {renewal.id});
+      // Only the arm's own cancel, before it schedules.
+      expect(service.cancelled.where((id) => id == renewal.id), hasLength(1));
+    });
+
+    group('a renewal deleted on another device (#4609)', () {
+      late Document old;
+      late Document renewal;
+
+      setUp(() async {
+        final db = DatabaseService.instance.database;
+        await db.customStatement(
+          'INSERT INTO divers (id, name, is_default, created_at, updated_at) '
+          "VALUES ('d2', 'Ben', 0, 0, 0)",
+        );
+        Future<Document> clearance(DateTime expiry) =>
+            DocumentRepository().save(
+              Document(
+                id: '',
+                diverId: 'd2',
+                owner: const DocumentOwner.personal(),
+                type: DocumentType.medicalClearance,
+                expiryDate: expiry,
+                createdAt: now,
+                updatedAt: now,
+              ),
+              const [],
+            );
+        old = await clearance(inDays(10));
+        renewal = await clearance(inDays(400));
+        // A sync applies the delete as a raw row delete, re-arming nothing.
+        await db.customStatement('DELETE FROM documents WHERE id = ?', [
+          renewal.id,
+        ]);
+      });
+
+      test('brings back the clearance it superseded, for a profile not '
+          'active here', () async {
+        // The old clearance was superseded, so only the renewal reminds.
+        service.pending = {renewal.id: 'd2'};
+        await scheduler.scheduleAll(
+          settings: const AppSettings(),
+          diverId: 'd1',
+        );
+        expect(service.cancelled, contains(renewal.id));
+        expect(service.scheduled.map((s) => s.documentId).toSet(), {old.id});
+        expect(service.scheduled.map((s) => s.diverId).toSet(), {'d2'});
+      });
+
+      test('is only cancelled when its reminder names no diver', () async {
+        service.pending = {renewal.id: null};
+        await scheduler.scheduleAll(
+          settings: const AppSettings(),
+          diverId: 'd1',
+        );
+        expect(service.cancelled, contains(renewal.id));
+        expect(service.scheduled, isEmpty);
+      });
+    });
 
     test('retyping the renewal as another type makes the old clearance '
         'remind again', () async {
@@ -292,7 +449,7 @@ void main() {
       DocumentType.permit,
       DateTime(now.year, now.month, now.day + 60),
     );
-    service.pending = {permit.id};
+    service.pending = {permit.id: 'd1'};
     await scheduler.scheduleAll(settings: const AppSettings());
     expect(service.scheduled.map((s) => s.documentId).toSet(), {permit.id});
   });
