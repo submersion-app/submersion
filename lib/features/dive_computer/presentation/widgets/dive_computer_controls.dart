@@ -19,7 +19,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Every control the app has for one registered dive computer: favourite,
-/// merge, device info, connections, statistics, download and re-parse, and
+/// merge, download and re-parse, device info, connections, statistics, and
 /// clock sync. Shown on the computer's Equipment page (issue #3676), which
 /// carries its name, notes, service and delete.
 class DiveComputerControls extends ConsumerWidget {
@@ -63,6 +63,9 @@ class _Controls extends ConsumerWidget {
         _Header(computer: computer),
         const SizedBox(height: 8),
         DiveComputerDuplicateBanner(computer: computer),
+        // Download first (issue #4622): it is what the page is opened for.
+        DiveComputerActionsCard(computer: computer),
+        const SizedBox(height: 16),
         DiveComputerInfoCard(
           computer: computer,
           icon: computerConnectionIcon(computer, connections),
@@ -71,8 +74,6 @@ class _Controls extends ConsumerWidget {
         DiveComputerConnectionsCard(computer: computer),
         const SizedBox(height: 16),
         DiveComputerStatsCard(computer: computer),
-        const SizedBox(height: 16),
-        DiveComputerActionsCard(computer: computer),
         const SizedBox(height: 16),
         DiveComputerClockSyncCard(computer: computer),
         // Only where the passive scan could find it, judged as the download
