@@ -36,10 +36,11 @@ void main() {
   group('the dive cards', () {
     // A card registered here gains a pencil on the dive page. Naming them
     // makes adding one a deliberate change to this test.
-    test('are Notes, Tags, Altitude, Environment, Details, Cylinders, '
+    test('are Profile, Notes, Tags, Altitude, Environment, Details, Cylinders, '
         'Weight, Equipment, Buddies, Signatures, Sightings and Custom '
         'fields', () {
       expect(diveEditCards.keys, {
+        DiveDetailSectionId.profile,
         DiveDetailSectionId.notes,
         DiveDetailSectionId.tags,
         DiveDetailSectionId.altitude,

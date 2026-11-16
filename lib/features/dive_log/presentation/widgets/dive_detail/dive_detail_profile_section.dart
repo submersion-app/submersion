@@ -25,6 +25,12 @@ import 'package:submersion/features/dive_log/presentation/widgets/range_stats_pa
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/annotation_edits.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_annotations_sitting.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// The parts of a dive the chart subtree draws from.
 ///
@@ -77,9 +83,31 @@ class DiveDetailProfileSection extends ConsumerWidget {
     this.onPlotFrame,
     this.viewport,
     this.onViewportChanged,
+    this.editing,
   });
 
+  /// This section with the same inputs, drawn as the open Profile card's
+  /// editor over [session]. With no key: the page's key stays with the
+  /// read card it marks.
+  DiveDetailProfileSection editingIn(EditSession<Dive> session) =>
+      DiveDetailProfileSection(
+        diveId: diveId,
+        exportKey: GlobalKey(),
+        onSafetyFindingDetails: onSafetyFindingDetails,
+        onSetPrimarySource: onSetPrimarySource,
+        onOpenInNotes: onOpenInNotes,
+        fillHeight: fillHeight,
+        editing: session,
+      );
+
   final String diveId;
+
+  /// The open Profile card's sitting (issue #4527): annotations placed,
+  /// moved and removed go there, held until Save, and the card draws bare,
+  /// inside the open card's frame. Null everywhere else: on a page that
+  /// offers editing the chart then writes nothing, locked or in a sitting,
+  /// and draws the sitting's annotations and gas switches during one.
+  final EditSession<Dive>? editing;
 
   /// Fill the height the card is given, the chart taking up the slack: the
   /// pinned copy is laid out shorter and shorter as the card scrolls away,
@@ -121,114 +149,148 @@ class DiveDetailProfileSection extends ConsumerWidget {
         )
         ?.dive;
     if (dive == null) return const SizedBox.shrink();
+    final editing = this.editing;
+    if (editing == null) return _build(context, ref, dive, editing: null);
+    // The open card follows its sitting as annotations are placed.
+    return ListenableBuilder(
+      listenable: editing,
+      builder: (context, _) => _build(context, ref, dive, editing: editing),
+    );
+  }
+
+  Widget _build(
+    BuildContext context,
+    WidgetRef ref,
+    Dive dive, {
+    required EditSession<Dive>? editing,
+  }) {
+    final scope = RecordEditScope.maybeOf<Dive>(context);
+    // A page that offers editing changes the profile in the open card only.
+    final readOnly = scope != null && editing == null;
+    final session = editing ?? scope?.session;
     final annotationActions = DiveDetailAnnotationActions(
       ref: ref,
       context: context,
       dive: dive,
       onOpenInNotes: onOpenInNotes,
+      edits: editing == null ? null : SittingAnnotationEdits(editing),
+      readOnly: readOnly,
     );
     final placement = ref.watch(annotationPlacementProvider(dive.id));
+    final annotationsInSitting =
+        session != null && sittingAnnotations(session) != null
+        ? sittingAnnotationEvents(session)
+        : null;
+    final gasSwitchesInSitting = session == null
+        ? null
+        : sittingGasSwitchesWithTanks(session);
+    final toolbar = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _RangeToggle(diveId: dive.id),
+        if (!readOnly)
+          AnnotationPinButton(
+            active: placement != null,
+            onPressed: annotationActions.onPinPressed,
+          ),
+        IconButton(
+          icon: const Icon(Icons.view_in_ar),
+          tooltip: context.l10n.dive3d_previewTitle,
+          visualDensity: VisualDensity.compact,
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => Dive3dPage(diveId: dive.id),
+            ),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.terrain),
+          tooltip: context.l10n.dive3d_spatial_title,
+          visualDensity: VisualDensity.compact,
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => SpatialSitePage(diveId: dive.id),
+            ),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.fullscreen),
+          tooltip: context.l10n.diveLog_detail_tooltip_viewFullscreen,
+          visualDensity: VisualDensity.compact,
+          onPressed: () => _showFullscreenProfile(context),
+        ),
+        HeaderInfoButton(
+          title: context.l10n.diveLog_detail_section_diveProfile,
+          height: 40,
+          width: 40,
+          content: diveProfileInfoFor,
+        ),
+      ],
+    );
 
     // What follows a provider around the chart watches it in a widget of its
     // own. A watch here would hand the chart a new host each time it fired,
     // whatever the host's own narrowed reads decided.
+    Widget card(Widget child) => editing != null
+        ? child
+        : Card(
+            child: Padding(padding: const EdgeInsets.all(12), child: child),
+          );
     return ProfileLegendSnapshotScope(
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: fillHeight ? MainAxisSize.max : MainAxisSize.min,
-            children: [
-              // Header row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    context.l10n.diveLog_detail_section_diveProfile,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  Row(
-                    children: [
-                      _RangeToggle(diveId: dive.id),
-                      AnnotationPinButton(
-                        active: placement != null,
-                        onPressed: annotationActions.onPinPressed,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.view_in_ar),
-                        tooltip: context.l10n.dive3d_previewTitle,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => Dive3dPage(diveId: dive.id),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.terrain),
-                        tooltip: context.l10n.dive3d_spatial_title,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => SpatialSitePage(diveId: dive.id),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.fullscreen),
-                        tooltip:
-                            context.l10n.diveLog_detail_tooltip_viewFullscreen,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => _showFullscreenProfile(context),
-                      ),
-                      HeaderInfoButton(
-                        title: context.l10n.diveLog_detail_section_diveProfile,
-                        height: 40,
-                        width: 40,
-                        content: diveProfileInfoFor,
-                      ),
-                    ],
-                  ),
-                ],
+      child: card(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: fillHeight ? MainAxisSize.max : MainAxisSize.min,
+          children: [
+            // Header row: the open card's frame draws the title above an
+            // editor, so the toolbar alone; otherwise the title, which
+            // gains its pencil while the dive is unlocked.
+            if (editing != null)
+              Align(alignment: AlignmentDirectional.centerEnd, child: toolbar)
+            else
+              RecordCardHeader(
+                title: context.l10n.diveLog_detail_section_diveProfile,
+                trailing: toolbar,
+              ),
+            const SizedBox(height: 8),
+            if (placement != null) ...[
+              AnnotationPlacementBanner(
+                moving: placement.isMove,
+                onCancel: ref
+                    .read(annotationPlacementProvider(dive.id).notifier)
+                    .cancel,
               ),
               const SizedBox(height: 8),
-              if (placement != null) ...[
-                AnnotationPlacementBanner(
-                  moving: placement.isMove,
-                  onCancel: ref
-                      .read(annotationPlacementProvider(dive.id).notifier)
-                      .cancel,
-                ),
-                const SizedBox(height: 8),
-              ],
-              // Chart with optional range selection overlay
-              _fill(
-                DiveProfileChartHost(
-                  dive: dive,
-                  exportKey: exportKey,
-                  onPlotFrame: onPlotFrame,
-                  viewport: viewport,
-                  onViewportChanged: onViewportChanged,
-                  annotationActions: annotationActions,
-                  onSafetyFindingDetails: (_) => onSafetyFindingDetails(),
-                  // fl_chart's own tooltip bubble (issue #2228 follow-up): this
-                  // is the exact pre-#2228 presentation for the embedded chart,
-                  // positioned above the chart box by fl_chart itself rather
-                  // than by the custom ProfileCursorTooltip used elsewhere.
-                  // Restored after the custom in-chart tooltip's own upward-
-                  // growth approximation still did not land in the same place.
-                  tooltipPresentation: TooltipPresentation.nativeBubble,
-                ),
-              ),
-              _ProfilePointCount(dive: dive),
-              _ProfileSourceBar(
-                diveId: dive.id,
-                onSetPrimarySource: onSetPrimarySource,
-              ),
-              _ProfileRangeStats(dive: dive),
             ],
-          ),
+            // Chart with optional range selection overlay
+            _fill(
+              DiveProfileChartHost(
+                dive: dive,
+                exportKey: exportKey,
+                onPlotFrame: onPlotFrame,
+                viewport: viewport,
+                onViewportChanged: onViewportChanged,
+                annotationActions: annotationActions,
+                findingsDismissable: scope == null,
+                annotationsInSitting: annotationsInSitting,
+                gasSwitchesInSitting: gasSwitchesInSitting,
+                onSafetyFindingDetails: (_) => onSafetyFindingDetails(),
+                // fl_chart's own tooltip bubble (issue #2228 follow-up): this
+                // is the exact pre-#2228 presentation for the embedded chart,
+                // positioned above the chart box by fl_chart itself rather
+                // than by the custom ProfileCursorTooltip used elsewhere.
+                // Restored after the custom in-chart tooltip's own upward-
+                // growth approximation still did not land in the same place.
+                tooltipPresentation: TooltipPresentation.nativeBubble,
+              ),
+            ),
+            _ProfilePointCount(dive: dive),
+            _ProfileSourceBar(
+              diveId: dive.id,
+              onSetPrimarySource: onSetPrimarySource,
+            ),
+            _ProfileRangeStats(dive: dive),
+          ],
         ),
       ),
     );

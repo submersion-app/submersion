@@ -32,7 +32,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_tide_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_health_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_card_presence.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_profile_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_weight_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_summary_section.dart';
@@ -346,7 +348,18 @@ class DiveDetailSectionList extends ConsumerWidget {
     final body =
         content ?? (open.contains(id.name) ? const SizedBox.shrink() : null);
     if (body == null) return null;
-    return RecordCardFrame<Dive>(card: card, topGap: topGap, child: body);
+    final frame = RecordCardFrame<Dive>(
+      card: card,
+      topGap: topGap,
+      child: body,
+    );
+    if (id != DiveDetailSectionId.profile) return frame;
+    // The open Profile card draws the page's own section over the sitting.
+    final section = profileSection;
+    return DiveProfileEditorSource(
+      section: section is DiveDetailProfileSection ? section : null,
+      child: frame,
+    );
   }
 
   /// One folded row for [id] in the list layout, with [content] behind it.

@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_profile_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_signatures_card_editor.dart';
@@ -102,6 +103,15 @@ RecordCardFadeReason? diveCardFadeReason(DiveDetailSectionId id) =>
 ///
 /// Sections not listed here have no in-place editor yet (issue #4527).
 final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
+  DiveDetailSectionId.profile: EditCard<Dive>(
+    id: DiveDetailSectionId.profile.name,
+    title: (context) => context.l10n.diveLog_detail_section_diveProfile,
+    // The profile, or its estimated outline, is always on the page.
+    isEmpty: (_) => false,
+    offeredWhenEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        DiveProfileCardEditor(session: session),
+  ),
   DiveDetailSectionId.notes: EditCard<Dive>(
     id: DiveDetailSectionId.notes.name,
     title: (context) => context.l10n.diveLog_detail_section_notes,

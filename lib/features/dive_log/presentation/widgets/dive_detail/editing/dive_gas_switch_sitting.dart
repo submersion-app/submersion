@@ -102,6 +102,28 @@ class SittingGasSwitches {
 SittingGasSwitches? sittingGasSwitches(EditSession<Dive> session) =>
     session.recall<SittingGasSwitches>(gasSwitchesKey);
 
+/// The sitting's switches as the profile chart draws them, each with its
+/// cylinder as the sitting has it, or null before they load. A switch
+/// whose cylinder is gone is left out (issue #4527, plan 6).
+List<GasSwitchWithTank>? sittingGasSwitchesWithTanks(
+  EditSession<Dive> session,
+) {
+  final held = sittingGasSwitches(session);
+  if (held == null) return null;
+  final tanks = {for (final t in session.working.tanks) t.id: t};
+  return [
+    for (final g in held.current)
+      if (tanks[g.tankId] case final tank?)
+        GasSwitchWithTank(
+          gasSwitch: g,
+          tankName: tank.name ?? 'Tank ${tank.order + 1}',
+          gasMix: tank.gasMix.name,
+          o2Fraction: tank.gasMix.o2 / 100.0,
+          heFraction: tank.gasMix.he / 100.0,
+        ),
+  ];
+}
+
 /// Reads the switches that apply to the dive's primary computer
 /// (`GasSwitch.shownInEditor`), once per sitting, and keeps the write the
 /// edits below hold: through the writer [writer] makes when the write runs
