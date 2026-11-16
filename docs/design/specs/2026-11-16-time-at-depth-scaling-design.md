@@ -51,14 +51,21 @@ hides the spread that matters most to deep and technical divers.
   "70+" in metres, "210+" in feet.
 - Labels are whole numbers in the diver's unit ("0-10", "60-70", "70+";
   "0-30", "180-210", "210+"), with the unit shown once on the x axis as now.
+- Crowded labels (decided during the build, when seven feet bands overlapped
+  at phone width): when the widest label would not fit under its own bar, at
+  the reader's text size, every label shortens to the depth its band starts
+  at ("0", "30" ... "180"), and the open-ended band keeps its plus ("210+").
+  A marked or hovered bar still names its whole range.
 
 **Time values**
 
 - When the biggest bar is under 10 hours, the chart is unchanged: the y axis
   reads "min" and values read "N min".
 - At 10 hours or more, the y axis reads "h" with whole-hour ticks, and bar
-  values (tooltips, semantics) read as hours and minutes, e.g. "18 h 20 min",
-  or whole hours with grouping ("1,104 h") once the value is 100 h or more.
+  values (tooltips, semantics) read as hours and minutes in the app's existing
+  elapsed-time wording ("18h 20m" in English), or whole hours with grouping
+  ("1,104 h") once the value is 100 h or more. A bar under an hour in such a
+  chart still reads in minutes ("5 min").
 
 ## Left to the builder
 
