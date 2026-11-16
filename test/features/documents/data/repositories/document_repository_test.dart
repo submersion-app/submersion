@@ -232,6 +232,37 @@ void main() {
     expect((await repo.latestClearanceExpiryByDiver())['d1'], DateTime(2028));
   });
 
+  test('latest clearance expiry reads the diver\'s own current clearance: '
+      'not a buddy\'s, none when an undated renewal is current', () async {
+    await db.customStatement(
+      'INSERT INTO buddies (id, name, created_at, updated_at) '
+      "VALUES ('b1', 'Student', 0, 0)",
+    );
+    await repo.save(
+      newDoc(type: DocumentType.medicalClearance, expiry: DateTime(2026, 6)),
+      const [],
+    );
+    await repo.save(
+      newDoc(
+        type: DocumentType.medicalClearance,
+        owner: const DocumentOwner(DocumentOwnerKind.buddy, 'b1'),
+        expiry: DateTime(2029),
+      ),
+      const [],
+    );
+    expect(
+      (await repo.latestClearanceExpiryByDiver())['d1'],
+      DateTime(2026, 6),
+    );
+    await repo.save(
+      newDoc(
+        type: DocumentType.medicalClearance,
+      ).copyWith(issueDate: DateTime(2026, 9)),
+      const [],
+    );
+    expect(await repo.latestClearanceExpiryByDiver(), isEmpty);
+  });
+
   test('getForOwner separates personal and owned documents', () async {
     await repo.save(newDoc(), const []);
     await repo.save(
@@ -616,6 +647,35 @@ void main() {
     });
   });
 
+  test('an undated renewal issued later drops the dated clearance from the '
+      'reminding documents, a buddy\'s keeps its own', () async {
+    await db.customStatement(
+      'INSERT INTO buddies (id, name, created_at, updated_at) '
+      "VALUES ('b1', 'Student', 0, 0)",
+    );
+    await repo.save(
+      newDoc(type: DocumentType.medicalClearance, expiry: DateTime(2025, 6)),
+      const [],
+    );
+    await repo.save(
+      newDoc(
+        type: DocumentType.medicalClearance,
+      ).copyWith(issueDate: DateTime(2026)),
+      const [],
+    );
+    final buddys = await repo.save(
+      newDoc(
+        type: DocumentType.medicalClearance,
+        owner: const DocumentOwner(DocumentOwnerKind.buddy, 'b1'),
+        expiry: DateTime(2024),
+      ),
+      const [],
+    );
+    expect((await repo.getRemindingForDiver('d1')).map((d) => d.id), [
+      buddys.id,
+    ]);
+  });
+
   test('getMedicalClearancesForDiver returns every clearance, undated '
       'ones too', () async {
     final dated = await repo.save(
@@ -664,6 +724,30 @@ void main() {
       final expected = await saveClearances();
       final docs = await repo.getForOwner(const DocumentOwner.personal());
       expect([for (final d in docs) d.id], expected);
+    });
+
+    test('a tie on expiry lists the clearance that reminds first: the '
+        'later issued, then the later uploaded', () async {
+      // An explicit id keeps the given creation time.
+      Future<String> clearance(
+        String title,
+        DateTime? issued,
+        DateTime created,
+      ) async => (await repo.save(
+        newDoc(
+          id: 'clearance-$title',
+          type: DocumentType.medicalClearance,
+          expiry: DateTime(2027),
+        ).copyWith(title: title, issueDate: issued, createdAt: created),
+        const [],
+      )).id;
+      final older = await clearance('A', null, DateTime(2026, 1));
+      final newer = await clearance('B', null, DateTime(2026, 2));
+      final issued = await clearance('C', DateTime(2025), DateTime(2025, 1));
+      final entries = await repo.getAllForDiver('d1');
+      expect([for (final e in entries) e.document.id], [issued, newer, older]);
+      final docs = await repo.getForOwner(const DocumentOwner.personal());
+      expect([for (final d in docs) d.id], [issued, newer, older]);
     });
 
     test('other types keep their title order', () async {

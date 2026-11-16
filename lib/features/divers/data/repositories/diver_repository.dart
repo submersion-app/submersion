@@ -1187,7 +1187,8 @@ class DiverRepository {
   }
 
   /// Overlays each diver's insurance (their primary insurance document) and
-  /// medical clearance (their latest clearance document's expiry).
+  /// medical clearance (the expiry of their current clearance document, the
+  /// one that reminds).
   Future<List<domain.Diver>> _withDocuments(
     List<domain.Diver> divers, {
     String? diverId,

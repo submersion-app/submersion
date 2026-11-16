@@ -10,10 +10,11 @@ Document doc(
   DateTime? expiry,
   DateTime? issued,
   DateTime? created,
+  DocumentOwner owner = const DocumentOwner.personal(),
 }) => Document(
   id: id,
   diverId: diverId,
-  owner: const DocumentOwner.personal(),
+  owner: owner,
   type: type,
   expiryDate: expiry,
   issueDate: issued,
@@ -52,13 +53,46 @@ void main() {
       );
     });
 
-    test('undated clearances neither supersede nor are superseded', () {
+    test('a clearance with neither date neither supersedes nor is '
+        'superseded', () {
       expect(
         supersededClearanceIds([
           doc('dated', expiry: DateTime(2024)),
           doc('undated'),
         ]),
         isEmpty,
+      );
+    });
+
+    test('an undated renewal issued after the last expiry supersedes it, '
+        'one issued before is superseded', () {
+      expect(
+        supersededClearanceIds([
+          doc('expired', expiry: DateTime(2025, 6)),
+          doc('renewal', issued: DateTime(2026, 1)),
+        ]),
+        {'expired'},
+      );
+      expect(
+        supersededClearanceIds([
+          doc('current', expiry: DateTime(2027, 6)),
+          doc('older', issued: DateTime(2025, 1)),
+        ]),
+        {'older'},
+      );
+    });
+
+    test('a buddy\'s clearances supersede only one another', () {
+      const b1 = DocumentOwner(DocumentOwnerKind.buddy, 'b1');
+      const b2 = DocumentOwner(DocumentOwnerKind.buddy, 'b2');
+      expect(
+        supersededClearanceIds([
+          doc('own', expiry: DateTime(2026, 2)),
+          doc('b1-old', expiry: DateTime(2027), owner: b1),
+          doc('b1-new', expiry: DateTime(2028), owner: b1),
+          doc('b2-only', expiry: DateTime(2025), owner: b2),
+        ]),
+        {'b1-old'},
       );
     });
 
@@ -108,6 +142,23 @@ void main() {
         {'a'},
       );
     });
+  });
+
+  test('currentClearances names each holder\'s current one', () {
+    const buddy = DocumentOwner(DocumentOwnerKind.buddy, 'b1');
+    final current = currentClearances([
+      doc('own-old', expiry: DateTime(2024)),
+      doc('own-new', expiry: DateTime(2027)),
+      doc('buddy', expiry: DateTime(2023), owner: buddy),
+      doc('permit', type: DocumentType.permit, expiry: DateTime(2030)),
+    ]);
+    expect(
+      {for (final e in current.entries) e.key: e.value.id},
+      {
+        (diverId: 'd1', buddyId: null): 'own-new',
+        (diverId: 'd1', buddyId: 'b1'): 'buddy',
+      },
+    );
   });
 
   test('withoutSupersededClearances drops them and keeps the order', () {

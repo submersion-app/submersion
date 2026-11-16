@@ -22,6 +22,8 @@ import 'package:submersion/features/tags/data/repositories/tag_link_repository.d
 import 'package:submersion/features/tags/domain/entities/tag.dart'
     show TagScope;
 
+part 'document_clearance_queries.dart';
+
 /// A document as the global list shows it.
 class DocumentListEntry {
   final Document document;
@@ -74,7 +76,7 @@ typedef DocumentSnapshotEntry = ({
 /// The documents store (issue #2613): documents, their pages, and the two
 /// read models other features build on (a diver's primary insurance and
 /// latest clearance, a certification's card images).
-class DocumentRepository {
+class DocumentRepository with _DocumentClearanceQueries {
   /// [cancelReminders] cancels a deleted document's expiry reminders; it
   /// defaults to the platform notifications (a no-op on desktop).
   DocumentRepository({
@@ -101,6 +103,7 @@ class DocumentRepository {
     }
   }
 
+  @override
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
@@ -188,12 +191,7 @@ class DocumentRepository {
             t.buddyId.isNull() &
             t.diveCenterId.isNull(),
       )
-      ..orderBy([
-        (t) => OrderingTerm(expression: t.type),
-        (t) => OrderingTerm.desc(_clearanceRecency(t)),
-        (t) => OrderingTerm(expression: t.title),
-        (t) => OrderingTerm(expression: t.createdAt),
-      ]);
+      ..orderBy(_documentOrderTerms);
     if (diverId != null) q.where((t) => t.diverId.equals(diverId));
     return (await q.get()).map(documentFromRow).toList();
   }
@@ -735,28 +733,6 @@ class DocumentRepository {
     return row != null;
   }
 
-  /// The latest medical clearance expiry per diver.
-  Future<Map<String, DateTime>> latestClearanceExpiryByDiver({
-    String? diverId,
-  }) async {
-    final rows = await _db
-        .customSelect(
-          'SELECT diver_id, MAX(expiry_date) AS e FROM documents '
-          "WHERE type = 'medicalClearance' AND expiry_date IS NOT NULL "
-          '${diverId == null ? '' : 'AND diver_id = ? '}'
-          'GROUP BY diver_id',
-          variables: [if (diverId != null) Variable.withString(diverId)],
-          readsFrom: {_db.documents},
-        )
-        .get();
-    return {
-      for (final r in rows)
-        r.read<String>('diver_id'): DateTime.fromMillisecondsSinceEpoch(
-          r.read<int>('e'),
-        ),
-    };
-  }
-
   /// The front and back images of each certification's card document.
   Future<Map<String, CardImages>> cardImagesFor(
     List<String> certificationIds,
@@ -857,50 +833,4 @@ class DocumentRepository {
       ...extras,
     ], notify: notify);
   }
-
-  /// [diverId]'s documents that can remind: an expiry date, not a card,
-  /// and not a medical clearance a later one supersedes (#4541).
-  Future<List<Document>> getRemindingForDiver(String diverId) async {
-    final rows =
-        await (_db.select(_db.documents)..where(
-              (t) =>
-                  t.diverId.equals(diverId) &
-                  t.expiryDate.isNotNull() &
-                  t.type.equals(DocumentType.certificationCard.storage).not(),
-            ))
-            .get();
-    return withoutSupersededClearances(rows.map(documentFromRow).toList());
-  }
-
-  /// Every medical clearance of [diverId], dated or not: the set a renewal
-  /// re-arms together, since one clearance's save can supersede another.
-  Future<List<Document>> getMedicalClearancesForDiver(String diverId) async {
-    final rows =
-        await (_db.select(_db.documents)..where(
-              (t) =>
-                  t.diverId.equals(diverId) &
-                  t.type.equals(DocumentType.medicalClearance.storage),
-            ))
-            .get();
-    return rows.map(documentFromRow).toList();
-  }
 }
-
-/// List order: by type, medical clearances newest first (#4508: by expiry,
-/// else issue date, undated last), then by title and age. [prefix] is the
-/// table alias with its dot.
-String _documentOrder([String prefix = '']) =>
-    '${prefix}type, '
-    "CASE WHEN ${prefix}type = 'medicalClearance' "
-    'THEN COALESCE(${prefix}expiry_date, ${prefix}issue_date) END DESC, '
-    '${prefix}title, ${prefix}created_at';
-
-/// [_documentOrder]'s clearance key, for the typed personal-documents query.
-Expression<int> _clearanceRecency($DocumentsTable t) => CaseWhenExpression(
-  cases: [
-    CaseWhen(
-      t.type.equals(DocumentType.medicalClearance.storage),
-      then: coalesce([t.expiryDate, t.issueDate]),
-    ),
-  ],
-);

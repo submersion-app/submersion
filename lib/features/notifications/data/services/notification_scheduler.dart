@@ -443,12 +443,14 @@ class NotificationScheduler {
     // is gone (deleted on another device, or with its owner) or no longer
     // reminds is cancelled. One of another profile, which the loop below
     // never reaches, is rebuilt from the document as it is now: a renewal
-    // synced in must not leave the old expiry announcing itself. One of
-    // [diverId]'s that a later clearance supersedes (#4541) is cancelled.
+    // synced in must not leave the old expiry announcing itself. A medical
+    // clearance rebuilds its diver's whole set (#4541), so once per diver.
+    // One of [diverId]'s that a later clearance supersedes is cancelled.
     final reminding = diverId == null
         ? const <Document>[]
         : await _documentRepository.getRemindingForDiver(diverId);
     final remindingIds = {for (final d in reminding) d.id};
+    final clearanceDiversRebuilt = <String>{};
     for (final id in await _notificationService.pendingDocumentReminderIds()) {
       final document = await _documentRepository.getById(id);
       if (document == null || !document.remindsOnExpiry) {
@@ -456,10 +458,10 @@ class NotificationScheduler {
       } else if (document.diverId != diverId) {
         // Only a clearance settles its diver's others: a type change is an
         // edit's concern, not a full schedule's.
-        if (document.type == DocumentType.medicalClearance) {
-          await updateForDocument(document, settings);
-        } else {
+        if (document.type != DocumentType.medicalClearance) {
           await _armDocument(document, settings);
+        } else if (clearanceDiversRebuilt.add(document.diverId)) {
+          await updateForDocument(document, settings);
         }
       } else if (!remindingIds.contains(id)) {
         await _notificationService.cancelDocumentReminders(id);

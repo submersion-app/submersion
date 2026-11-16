@@ -286,6 +286,43 @@ void main() {
     expect(scheduler.updated, [clearance.id]);
   });
 
+  ProviderContainer recording(_RecordingScheduler scheduler) {
+    final c = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        notificationSchedulerProvider.overrideWithValue(scheduler),
+      ],
+    );
+    addTearDown(c.dispose);
+    return c;
+  }
+
+  test('rearmReminders re-arms one clearance per diver, since the scheduler '
+      'rebuilds its whole set', () async {
+    final scheduler = _RecordingScheduler();
+    final c = recording(scheduler);
+    final repo = c.read(documentRepositoryProvider);
+    final old = await repo.save(
+      doc(DocumentType.medicalClearance, DateTime(2027), 'old'),
+      const [],
+    );
+    final renewal = await repo.save(
+      doc(DocumentType.medicalClearance, DateTime(2030), 'new'),
+      const [],
+    );
+    final permit = await repo.save(
+      doc(DocumentType.permit, DateTime(2030), 'Park'),
+      const [],
+    );
+    await c.read(documentMutationsProvider).rearmReminders([
+      old,
+      renewal,
+      permit,
+    ]);
+    expect(scheduler.updated, [old.id, permit.id]);
+  });
+
   test('owner, all and by-id providers see a saved document', () async {
     final c = container();
     final saved = await c

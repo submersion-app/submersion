@@ -213,6 +213,60 @@ void main() {
       expect(service.scheduled.map((s) => s.documentId).toSet(), {old.id});
     });
 
+    test('an undated renewal issued later silences the dated clearance and '
+        'reminds of nothing itself', () async {
+      final old = await save(DocumentType.medicalClearance, inDays(10));
+      final renewal = await DocumentRepository().save(
+        Document(
+          id: '',
+          diverId: 'd1',
+          owner: const DocumentOwner.personal(),
+          type: DocumentType.medicalClearance,
+          issueDate: inDays(30),
+          createdAt: now,
+          updatedAt: now,
+        ),
+        const [],
+      );
+      await scheduler.updateForDocument(renewal, const AppSettings());
+      expect(service.cancelled, contains(old.id));
+      expect(service.scheduled, isEmpty);
+    });
+
+    test(
+      'another profile\'s pending clearances rebuild its set once',
+      () async {
+        await DatabaseService.instance.database.customStatement(
+          'INSERT INTO divers (id, name, is_default, created_at, updated_at) '
+          "VALUES ('d2', 'Ben', 0, 0, 0)",
+        );
+        Future<Document> clearance(DateTime expiry) =>
+            DocumentRepository().save(
+              Document(
+                id: '',
+                diverId: 'd2',
+                owner: const DocumentOwner.personal(),
+                type: DocumentType.medicalClearance,
+                expiryDate: expiry,
+                createdAt: now,
+                updatedAt: now,
+              ),
+              const [],
+            );
+        final old = await clearance(inDays(10));
+        final renewal = await clearance(inDays(400));
+        service.pending = {old.id, renewal.id};
+        await scheduler.scheduleAll(
+          settings: const AppSettings(),
+          diverId: 'd1',
+        );
+        expect(service.cancelled.where((id) => id == old.id), hasLength(1));
+        expect(service.scheduled.map((s) => s.documentId).toSet(), {
+          renewal.id,
+        });
+      },
+    );
+
     test('retyping the renewal as another type makes the old clearance '
         'remind again', () async {
       final old = await save(DocumentType.medicalClearance, inDays(10));
