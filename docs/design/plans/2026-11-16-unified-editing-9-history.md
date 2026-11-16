@@ -594,7 +594,19 @@ Tasks 1 to 6 were built as written in one session (Eric chose "Native"), then re
 
 ### Left open
 
-- A pinned entry's feed row previews its first two fields whatever record they belong to: a sitting that copied an altitude to the site previews "Altitude" under the dive's title. The entry page names the site.
-- `encode` accepts an empty card list, which `decode` rejects, so such a label is unpinned and shown raw. The save service never passes one.
-- No guard test pins `changeLogShownMachineColumns` to real, recordable columns.
-- `_listedEvent`'s EXISTS repeats an always-false branch; the value formatter repeats the catalogue's coverage check.
+- `encode` accepts an empty card list, which `decode` rejects, so such a label is unpinned and shown raw. The save service never passes one: a sitting is dirty only through a pending value or a held change, and each names its card.
+
+### Second review (2026-11-16)
+
+A second whole-branch review found these; each fix has a test that failed first.
+
+- **Moved readings have no per-field Revert.** Readings move between cylinders in pairs, so reverting one series alone left both on one cylinder. `changeLogRevertsWithEntryOnly` (`tank_pressure_series`) in the policy; the entry page offers no Revert on such a row, and the whole entry still reverts it. A dismissal keeps its own Revert.
+- **A feed row previews only its own record's fields.** `getPreviewFields` drops fields whose event's root is not the entry's, so a site's altitude no longer reads as the dive's under its title, and a sitting that only filed a document previews nothing. The entry page lists them all.
+- **Only a manual operation is pinned by its label.** An agent labels its change set with free text, which could read like a sitting's label and pin it to any record.
+- **A revert's ancestors are read for their pin, not loaded.** `_pinOf` keeps them out of `_operations`, which `_writeOperations` rewrote on every pass.
+- **Guards and cleanups:** a policy test pins `changeLogShownMachineColumns` to recordable columns of opt-in machine tables; `changeLogOptInKeepsDeletes` names the rule the settler had read off `changeLogOptInUpdateColumns`; `_listedEvent` no longer repeats an always-false branch; `conflictFieldNamed` is the catalogue's lookup, shared by `conflictFieldFor`, `isConflictFieldCovered` and the value formatter; one `_scopeOwnerOf` replaces two copies of the pinned owner rule.
+
+Two findings are left for Eric, since each is a choice about who sees or reverts another diver's record:
+
+- **A write to another diver's shared site is not in the dive's entry, and is not reverted with it.** `_forOwner` files it as `<operation>:<owner>` (call 3). Reverting the dive's entry leaves that site changed.
+- **A site-only sitting is now hidden from a diver the site is shared with.** Its root is the dive, so `_visibleTo` matches no share clause. Before this plan its root was the site and that diver saw it in the site's History. Showing it would also show them the dive's entry.

@@ -183,6 +183,51 @@ void main() {
     expectAboutTheDive(await operation(redo));
   });
 
+  test('settling a revert writes nothing to the sitting it reverts', () async {
+    final id = await inSitting(fileDocument);
+    await repository.settleAll();
+    final service = ChangeLogRevertService(afterDiveWrites: (_) {});
+    final revert = (await service.execute(
+      await service.planOperation(id),
+    )).operationId!;
+    await db.customStatement('CREATE TEMP TABLE written (id TEXT)');
+    await db.customStatement(
+      'CREATE TEMP TRIGGER count_written AFTER UPDATE ON '
+      'change_log_operations BEGIN INSERT INTO written VALUES (NEW.id); END',
+    );
+
+    await repository.settleAll();
+
+    final written = await db.customSelect('SELECT id FROM written').get();
+    final ids = written.map((row) => row.read<String>('id')).toSet();
+    expect(ids, contains(revert));
+    expect(ids, isNot(contains(id)));
+  });
+
+  // An agent labels its change set with free text, which may happen to read
+  // like a sitting's label; only a diver's own sitting is pinned.
+  test('an agent change set labelled like a sitting is not pinned', () async {
+    late String id;
+    await ChangeLogScope.run(
+      db,
+      source: ChangeLogSource.agent,
+      label: RecordEditLabel.encode(
+        table: 'dives',
+        id: 'dive',
+        cardIds: ['notes'],
+      ),
+      body: () async {
+        id = ChangeLogScope.currentOperationId!;
+        await copyAltitude('site');
+      },
+    );
+    await repository.settleAll();
+
+    final row = await operation(id);
+    expect(row['root_table'], 'dive_sites');
+    expect(row['root_id'], 'site');
+  });
+
   test('a sitting labelled the earlier way is filed as before', () async {
     final id = await inSitting(() async {
       await editNotes();

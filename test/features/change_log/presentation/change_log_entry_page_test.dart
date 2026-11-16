@@ -161,6 +161,65 @@ void main() {
     }
   });
 
+  // Readings move between cylinders in pairs, so reverting one row on its
+  // own would leave both series on one cylinder and none on the other.
+  testWidgets('moved readings are listed with no Revert of their own', (
+    tester,
+  ) async {
+    final id = await tester.runAsync(() async {
+      for (final tank in ['a', 'b']) {
+        await db.customStatement(
+          "INSERT INTO dive_tanks (id, dive_id) VALUES (?, 'dive')",
+          [tank],
+        );
+      }
+      for (final (series, tank) in [('s1', 'a'), ('s2', 'b')]) {
+        await db.customStatement(
+          'INSERT INTO tank_pressure_series (id, dive_id, tank_id, '
+          'sample_count, start_timestamp, end_timestamp, codec_version, '
+          "samples, created_at, updated_at) VALUES (?, 'dive', ?, 2, 0, 60, "
+          "1, X'010203', 0, 0)",
+          [series, tank],
+        );
+      }
+      await ChangeLogRepository().settleAll();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+      await ChangeLogScope.run(
+        db,
+        source: ChangeLogSource.manual,
+        label: RecordEditLabel.encode(
+          table: 'dives',
+          id: 'dive',
+          cardIds: ['notes', 'tanks'],
+        ),
+        body: () async {
+          await db.customStatement(
+            "UPDATE dives SET notes = 'Current' WHERE id = 'dive'",
+          );
+          await db.customStatement(
+            'UPDATE tank_pressure_series SET tank_id = '
+            "CASE tank_id WHEN 'a' THEN 'b' ELSE 'a' END",
+          );
+        },
+      );
+      return onlyOperation();
+    });
+
+    await pump(tester, id!);
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Pressure readings · Edited'), findsNWidgets(2));
+    expect(
+      find.byKey(const ValueKey('change_log_revert_notes')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('change_log_revert_tank_id')),
+      findsNothing,
+    );
+  });
+
   testWidgets('two saves to one field show as one change', (tester) async {
     final id = await tester.runAsync(() async {
       await db.customStatement(

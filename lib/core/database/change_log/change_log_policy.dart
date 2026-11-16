@@ -547,6 +547,15 @@ const Map<String, Set<String>> changeLogOptInUpdateColumns = {
   'dive_safety_findings': {'dismissed_at'},
 };
 
+/// Whether an opted-in operation keeps the delete copies of [table]'s rows
+/// while their record lives, as well as its updates. A table whose opt-in
+/// is limited to some columns ([changeLogOptInUpdateColumns]) keeps its
+/// updates only: a review deleting a finding that stopped firing is a
+/// sweep, not the diver's change.
+bool changeLogOptInKeepsDeletes(String table) =>
+    changeLogOptInUpdateTables.contains(table) &&
+    !changeLogOptInUpdateColumns.containsKey(table);
+
 /// Machine columns an entry lists, for any operation: what a diver changes
 /// on a machine row (issue #4527). Every other machine row and column stays
 /// out of the entry and is kept only for a revert or a restore.
@@ -554,6 +563,12 @@ const Map<String, Set<String>> changeLogShownMachineColumns = {
   'dive_safety_findings': {'dismissed_at'},
   'tank_pressure_series': {'tank_id'},
 };
+
+/// Tables of [changeLogShownMachineColumns] whose rows go back only with
+/// the whole entry, never one field at a time: readings move between
+/// cylinders in pairs, so reverting one series alone would leave both on
+/// one cylinder and none on the other.
+const Set<String> changeLogRevertsWithEntryOnly = {'tank_pressure_series'};
 
 /// The start of an editing sitting's label, `RecordEditLabel.prefix` and its
 /// separator.

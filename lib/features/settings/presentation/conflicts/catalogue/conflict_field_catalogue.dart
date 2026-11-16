@@ -70,14 +70,18 @@ Map<String, ConflictField> _merge(List<Map<String, ConflictField>> maps) {
 /// the catalogue does not know (a newer peer's schema) gets a humanized label
 /// and is formatted by its runtime type.
 ConflictField conflictFieldFor(String entityType, String column) =>
-    conflictFieldOverrides['$entityType.$column'] ??
-    conflictFieldCatalogue[column] ??
+    conflictFieldNamed(entityType, column) ??
     ConflictField((_) => humanizeEntityType(column), FieldKind.unknown);
+
+/// The catalogue's own entry for [column] of [entityType], or null when it
+/// has none and [conflictFieldFor] would spell the column's name.
+ConflictField? conflictFieldNamed(String entityType, String column) =>
+    conflictFieldOverrides['$entityType.$column'] ??
+    conflictFieldCatalogue[column];
 
 /// Whether the dialog can describe [column] without falling back: it is
 /// bookkeeping, a foreign key the reference resolver names, or catalogued.
 bool isConflictFieldCovered(String entityType, String column) =>
     conflictBookkeepingColumns.contains(column) ||
     ConflictReferenceResolver.targetTypeFor(entityType, column) != null ||
-    conflictFieldOverrides.containsKey('$entityType.$column') ||
-    conflictFieldCatalogue.containsKey(column);
+    conflictFieldNamed(entityType, column) != null;

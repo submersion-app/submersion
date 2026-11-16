@@ -250,38 +250,52 @@ class ChangeLogRepository {
 
   static String _marks(int count) => List.filled(count, '?').join(', ');
 
+  /// Whether a field [fields].column_name of an event [events] is one of
+  /// [changeLogShownMachineColumns].
+  static ({String sql, List<Variable<Object>> variables}) _shownField(
+    String events,
+    String fields,
+  ) => (
+    sql:
+        "($events.table_name || '.' || $fields.column_name) "
+        'IN (${_marks(_shownMachineColumns.length)})',
+    variables: [..._shownMachineColumns.map(Variable<Object>.new)],
+  );
+
   /// Whether a field [fields].column_name of an event [events] is listed:
   /// any field of a logged table, and only the shown columns of a machine
   /// table.
   static ({String sql, List<Variable<Object>> variables}) _listedField(
     String events,
     String fields,
-  ) => (
-    sql:
-        '($events.table_name NOT IN (${_marks(_machineTables.length)}) '
-        "OR ($events.table_name || '.' || $fields.column_name) "
-        'IN (${_marks(_shownMachineColumns.length)}))',
-    variables: [
-      ..._machineTables.map(Variable<Object>.new),
-      ..._shownMachineColumns.map(Variable<Object>.new),
-    ],
-  );
+  ) {
+    final shown = _shownField(events, fields);
+    return (
+      sql:
+          '($events.table_name NOT IN (${_marks(_machineTables.length)}) '
+          'OR ${shown.sql})',
+      variables: [
+        ..._machineTables.map(Variable<Object>.new),
+        ...shown.variables,
+      ],
+    );
+  }
 
   /// Whether an event [events] is listed: every event of a logged table, and
   /// a machine table's update that changed one of its shown columns.
   static ({String sql, List<Variable<Object>> variables}) _listedEvent(
     String events,
   ) {
-    final field = _listedField(events, 'lf');
+    final shown = _shownField(events, 'lf');
     return (
       sql:
           '($events.table_name NOT IN (${_marks(_machineTables.length)}) '
           "OR ($events.action = 'U' AND EXISTS (SELECT 1 FROM "
           'change_log_fields lf WHERE lf.event_id = $events.id '
-          'AND ${field.sql})))',
+          'AND ${shown.sql})))',
       variables: [
         ..._machineTables.map(Variable<Object>.new),
-        ...field.variables,
+        ...shown.variables,
       ],
     );
   }
@@ -316,16 +330,42 @@ class ChangeLogRepository {
   /// The first [perOperation] changed fields of each of [operationIds], and
   /// how many each has, net of repeat saves to one field. For entries about
   /// one record, which hold few events.
+  ///
+  /// Only fields of the entry's own record count. An editing sitting is
+  /// about its record whatever else it wrote (issue #4527), and its row is
+  /// titled with that record, so another record's field there (a site's
+  /// altitude under a dive) would read as the record's own. The entry's
+  /// page lists them all.
   Future<Map<String, ChangeLogPreview>> getPreviewFields(
     List<String> operationIds, {
     int perOperation = 2,
   }) async {
     if (operationIds.isEmpty) return const {};
     final marks = List.filled(operationIds.length, '?').join(', ');
+    final roots = {
+      for (final row
+          in await _db
+              .customSelect(
+                'SELECT id, root_table, root_id FROM change_log_operations '
+                'WHERE id IN ($marks)',
+                variables: [...operationIds.map(Variable<String>.new)],
+              )
+              .get())
+        row.read<String>('id'): (
+          table: row.readNullable<String>('root_table'),
+          id: row.readNullable<String>('root_id'),
+        ),
+    };
     final fields = <String, List<ChangeLogFieldChange>>{};
     final totals = <String, int>{};
     for (final id in operationIds) {
-      final net = netFieldChanges(await getEvents(id, limit: _previewEvents));
+      final root = roots[id];
+      final net = [
+        for (final change in netFieldChanges(
+          await getEvents(id, limit: _previewEvents),
+        ))
+          if (_isUnder(change.event, root)) change,
+      ];
       if (net.isEmpty) continue;
       fields[id] = [for (final change in net.take(perOperation)) change.field];
       totals[id] = net.length;
@@ -358,6 +398,17 @@ class ChangeLogRepository {
         ),
     };
   }
+
+  /// Whether [event] changed the entry's own record [root] or one of its
+  /// children. An entry with no root, or an event settled without one,
+  /// keeps every field.
+  static bool _isUnder(
+    ChangeLogEvent event,
+    ({String? table, String? id})? root,
+  ) =>
+      root?.table == null ||
+      event.rootTable == null ||
+      (event.rootTable == root!.table && event.rootId == root.id);
 
   /// How many records each of [operationIds] touched, counting a dive and
   /// its tanks as one.

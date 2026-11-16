@@ -157,6 +157,12 @@ class _SettlePass {
 
   final _operations = <String, _Operation>{};
 
+  /// The pinned record of each operation read for its pin alone (the one a
+  /// revert undoes, up the chain), by id. Kept apart from [_operations],
+  /// which are written back when the pass ends, though nothing about these
+  /// changed.
+  final _pins = <String, ChangeLogRoot?>{};
+
   /// The newest plain save of each root, by operation id.
   final _latestManual = <ChangeLogRoot, String>{};
   final _columns = <String, Object?>{};
@@ -253,9 +259,7 @@ class _SettlePass {
     final label = first ? await _labelOf(about) : null;
     final later = event.changedAt > operation.endedAt || operation.isPlainSave;
     _operations[operationId] = operation.copyWith(
-      diverId:
-          operation.diverId ??
-          (pinned == null ? owner : await _ownerOf(pinned) ?? owner),
+      diverId: await _scopeOwnerOf(operation) ?? owner,
       root: first
           ? (
               table: about.table,
@@ -321,9 +325,7 @@ class _SettlePass {
   /// sitting whose first write is to another diver's shared site files that
   /// write under the site's owner too.
   Future<_Operation> _forOwner(_Operation scope, String? owner) async {
-    final pinned = scope.pinned;
-    final scopeOwner =
-        scope.diverId ?? (pinned == null ? null : await _ownerOf(pinned));
+    final scopeOwner = await _scopeOwnerOf(scope);
     if (owner == null || scopeOwner == null || scopeOwner == owner) {
       return scope;
     }
@@ -341,6 +343,14 @@ class _SettlePass {
     return (await _loadOperation(id))!;
   }
 
+  /// Who [operation] belongs to: its owner so far, or before its first event
+  /// the owner of the record it is pinned to, if any.
+  Future<String?> _scopeOwnerOf(_Operation operation) async {
+    final pinned = operation.pinned;
+    return operation.diverId ??
+        (pinned == null ? null : await _ownerOf(pinned));
+  }
+
   Future<_Operation?> _loadOperation(String id) async {
     final cached = _operations[id];
     if (cached != null) return cached;
@@ -356,21 +366,39 @@ class _SettlePass {
   }
 
   /// The record an operation row is about whatever else it touches: the
-  /// record an editing sitting's label names, or for a revert the pinned
-  /// record of the operation it reverts, up the chain. Null for a part split
-  /// off for another owner ([_forOwner]), which is about that owner's
-  /// record, and for every other operation.
+  /// record a diver's editing sitting names in its label, or for a revert
+  /// the pinned record of the operation it reverts, up the chain. Null for a
+  /// part split off for another owner ([_forOwner]), which is about that
+  /// owner's record, and for every other operation. An agent's label is its
+  /// own free text, so one that happens to read like a sitting's pins
+  /// nothing.
   Future<ChangeLogRoot?> _pinnedRootOf(Map<String, Object?> row) async {
     if ((row['id']! as String).contains(':')) return null;
-    final label = row['label'] as String?;
-    final edit = label == null ? null : RecordEditLabel.decode(label);
-    if (edit != null) {
-      final id = edit.id;
-      return id == null ? null : (table: edit.table, id: id);
-    }
     final revertOf = row['revert_of_id'] as String?;
-    if (revertOf == null) return null;
-    return (await _loadOperation(revertOf))?.pinned;
+    if (revertOf != null) return _pinOf(revertOf);
+    final label = row['label'] as String?;
+    if (label == null || row['source'] != ChangeLogSource.manual.name) {
+      return null;
+    }
+    final edit = RecordEditLabel.decode(label);
+    final id = edit?.id;
+    return edit == null || id == null ? null : (table: edit.table, id: id);
+  }
+
+  /// The pinned record of the operation [id], read without loading it into
+  /// [_operations].
+  Future<ChangeLogRoot?> _pinOf(String id) async {
+    final loaded = _operations[id];
+    if (loaded != null) return loaded.pinned;
+    if (_pins.containsKey(id)) return _pins[id];
+    final row = await _db
+        .customSelect(
+          'SELECT id, source, label, revert_of_id FROM change_log_operations '
+          'WHERE id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .getSingleOrNull();
+    return _pins[id] = row == null ? null : await _pinnedRootOf(row.data);
   }
 
   Future<_Operation?> _loadLatestManual(ChangeLogRoot root) async {
@@ -578,16 +606,11 @@ class _SettlePass {
   }
 
   /// Whether [event] was recorded inside an operation that keeps its machine
-  /// rows: a table of [changeLogOptInUpdateTables] in an operation
+  /// rows: a table [changeLogOptInKeepsDeletes] names, in an operation
   /// [changeLogOptsInMachineRows] accepts.
   Future<bool> _optedInMachineRows(_Event event) async {
     final operationId = event.operationId;
-    // A table whose opt-in is limited to some columns opts in its updates
-    // only: a review deleting a finding that stopped firing is a sweep, not
-    // the diver's change, so its delete copy goes while the dive lives.
-    if (operationId == null ||
-        !changeLogOptInUpdateTables.contains(event.table) ||
-        changeLogOptInUpdateColumns.containsKey(event.table)) {
+    if (operationId == null || !changeLogOptInKeepsDeletes(event.table)) {
       return false;
     }
     final operation = await _loadOperation(operationId);

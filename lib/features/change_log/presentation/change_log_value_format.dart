@@ -39,11 +39,10 @@ class ChangeLogValueFormatter {
   String label(String table, String column) {
     final entity = changeLogEntityType(table);
     final key = columnJsonKey(column);
-    final catalogued =
-        conflictFieldOverrides.containsKey('$entity.$key') ||
-        conflictFieldCatalogue.containsKey(key);
+    final named = conflictFieldNamed(entity, key);
+    if (named != null) return named.label(l10n);
     final target = ConflictReferenceResolver.targetTypeFor(entity, key);
-    if (!catalogued && target != null) {
+    if (target != null) {
       return conflictReferenceLabel(
         l10n,
         ConflictReference(field: key, targetType: target, recordId: ''),

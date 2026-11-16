@@ -348,6 +348,51 @@ void main() {
         ['mine'],
       );
     });
+
+    // Its row is titled with the dive, so a field of the document there
+    // would read as the dive's own.
+    test('its feed row previews no field of the document', () async {
+      await repository.settleAll();
+      final id = (await repository.getFeed(
+        diverId: 'me',
+        filter: _noFilter,
+      )).single.id;
+
+      expect((await repository.getPreviewFields([id]))[id], isNull);
+    });
+  });
+
+  test('a sitting previews its own record\'s fields, not another\'s', () async {
+    await _insertSite(db, 'reef', 'me');
+    await repository.settleAll();
+    await db.customStatement('DELETE FROM change_log_operations');
+    await clearLog(db);
+    late String id;
+    await ChangeLogScope.run(
+      db,
+      source: ChangeLogSource.manual,
+      label: RecordEditLabel.encode(
+        table: 'dives',
+        id: 'mine',
+        cardIds: ['altitude'],
+      ),
+      body: () async {
+        id = ChangeLogScope.currentOperationId!;
+        await db.customStatement(
+          "UPDATE dives SET altitude = 512 WHERE id = 'mine'",
+        );
+        await db.customStatement(
+          "UPDATE dive_sites SET altitude = 512 WHERE id = 'reef'",
+        );
+      },
+    );
+    await repository.settleAll();
+
+    final preview = (await repository.getPreviewFields([id]))[id]!;
+    expect(preview.fields.map((f) => (f.table, f.column)), [
+      ('dives', 'altitude'),
+    ]);
+    expect(preview.total, 1);
   });
 
   group('machine rows an entry lists', () {
