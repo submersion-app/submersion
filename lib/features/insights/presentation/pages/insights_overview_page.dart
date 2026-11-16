@@ -576,8 +576,6 @@ class _TopSitesSection extends StatelessWidget {
   }
 }
 
-const _typeColors = kDistributionBarColors;
-
 class _DistributionsSection extends ConsumerWidget {
   final DiveStatistics stats;
   final UnitFormatter fmt;
@@ -734,7 +732,9 @@ class _DistributionsSection extends ConsumerWidget {
                         diveTypeDivesFilter(scope, segment.label),
                   ),
                   totalDurationSeconds: segment.totalDurationSeconds,
-                  color: _typeColors[index % _typeColors.length],
+                  color:
+                      kDistributionBarColors[index %
+                          kDistributionBarColors.length],
                   fraction: typeMaxCount == 0
                       ? 0
                       : segment.count / typeMaxCount,

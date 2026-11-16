@@ -14,6 +14,12 @@ String _rankSql(String id) {
   return '(CASE $id$cases ELSE ${DiveRole.builtInIds.length} END)';
 }
 
+/// Whether the dive's [scalar] `diver_role` expression holds no role: null
+/// or blank, as `DiveRoleSet.resolve` reads it. The one spelling of the
+/// rule, so the My role card's Not set bar, its drill-in (`role:none`) and
+/// [diverRoleIdsOfDiveSql] can never disagree (#4409).
+String diverRoleUnsetSql(String scalar) => "($scalar IS NULL OR $scalar = '')";
+
 /// A `SELECT` of the diver's own role ids on one dive (issue #4409), read by
 /// the same rule as `DiveRoleSet.resolve`: a null or blank [scalar] is no
 /// role; the `dive_diver_roles` rows count only when their normalized
@@ -28,7 +34,7 @@ String diverRoleIdsOfDiveSql({required String diveId, required String scalar}) {
   final rows = 'FROM dive_diver_roles j WHERE j.dive_id = $diveId';
   // A row normalize keeps beside another role: Solo is dropped there.
   const kept = "j.role_id NOT IN ('', '$solo')";
-  final hasRole = "COALESCE($scalar, '') <> ''";
+  final hasRole = 'NOT ${diverRoleUnsetSql(scalar)}';
   final ranksBefore =
       '(${_rankSql('j.role_id')} < ${_rankSql(scalar)} OR '
       '(${_rankSql('j.role_id')} = ${_rankSql(scalar)} AND '

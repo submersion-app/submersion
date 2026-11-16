@@ -296,20 +296,6 @@ final diveTypeDistributionProvider = FutureProvider<List<DistributionSegment>>((
   );
 });
 
-/// Dives per role the diver held, plus Not set (issue #4409).
-final diverRoleDistributionProvider = FutureProvider<List<DistributionSegment>>(
-  (ref) async {
-    await _keepAliveWithExpiry(ref);
-    final repository = ref.watch(insightsRepositoryProvider);
-    final currentDiverId = ref.watch(currentDiverIdProvider);
-    final filter = ref.watch(insightsFilterProvider);
-    return repository.getDiverRoleDistribution(
-      diverId: currentDiverId,
-      filter: filter,
-    );
-  },
-);
-
 // ============================================================================
 // Dive Progression Providers
 // ============================================================================

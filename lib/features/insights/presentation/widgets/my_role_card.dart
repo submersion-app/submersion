@@ -7,7 +7,7 @@ import 'package:submersion/features/dive_roles/presentation/providers/dive_role_
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
-import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/my_role_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/distribution_bar_row.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -28,8 +28,15 @@ class MyRoleCard extends ConsumerWidget {
     final l10n = context.l10n;
     // `value`, not `valueOrNull`: a dive_roles write reloads the map, and
     // the bars keep their names until the new one lands.
-    final rolesById =
-        ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
+    final roles = ref.watch(diveRoleMapProvider);
+    final rolesById = roles.value ?? const <String, DiveRole>{};
+    // Until the map's first load the bars wait, so none shows a raw id; a
+    // failed load still draws them, under synthetic names.
+    final namesPending = roles.isLoading && !roles.hasValue;
+    const loading = SizedBox(
+      height: 120,
+      child: Center(child: CircularProgressIndicator()),
+    );
     String labelFor(String key) => key == kNotRecordedDistributionKey
         ? l10n.insights_social_myRole_notSet
         : (rolesById[key] ?? DiveRole.synthetic(key)).localizedName(l10n);
@@ -59,6 +66,7 @@ class MyRoleCard extends ConsumerWidget {
                   message: l10n.insights_social_myRole_empty,
                 );
               }
+              if (namesPending) return loading;
               final maxCount = segments
                   .map((s) => s.count)
                   .reduce((a, b) => a > b ? a : b);
@@ -81,10 +89,7 @@ class MyRoleCard extends ConsumerWidget {
                 ],
               );
             },
-            loading: () => const SizedBox(
-              height: 120,
-              child: Center(child: CircularProgressIndicator()),
-            ),
+            loading: () => loading,
             error: (_, _) => StatEmptyState(
               icon: Icons.error_outline,
               message: l10n.insights_social_myRole_error,

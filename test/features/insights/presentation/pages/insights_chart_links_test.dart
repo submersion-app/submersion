@@ -22,6 +22,7 @@ import 'package:submersion/features/insights/presentation/pages/insights_social_
 import 'package:submersion/features/insights/presentation/pages/insights_time_patterns_page.dart';
 import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/my_role_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_card_parts.dart';
 import 'package:submersion/features/insights/presentation/widgets/distribution_bar_row.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';

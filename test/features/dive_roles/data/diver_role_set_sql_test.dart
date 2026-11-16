@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_roles/data/diver_role_set_sql.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 
@@ -132,5 +133,92 @@ void main() {
         expect(await sqlRoles(diveId), expected);
       },
     );
+  }
+
+  // The one "no role" rule (#4409): the Not set bar counts by it, its
+  // drill-in (`role isEmpty`) matches by it, and the role set guards by it,
+  // so a bar always equals the dives it opens.
+  for (final scalar in [null, '', ' ', 'solo', uuidA]) {
+    test('diverRoleUnsetSql matches DiveRoleSet.resolve: "$scalar"', () async {
+      final row = await db
+          .customSelect(
+            'SELECT ${diverRoleUnsetSql('x.r')} AS unset FROM (SELECT ? AS r) x',
+            variables: [Variable<String>(scalar)],
+          )
+          .getSingle();
+      final expected = DiveRoleSet.resolve(
+        scalar: scalar,
+        junction: const [],
+      ).isEmpty;
+      expect(row.read<int>('unset') == 1, expected);
+    });
+  }
+
+  // diveRoleVisibleSql must agree with resolveDiveRole (#1806): a dive keeps
+  // a built-in role, an ownerless one and its owner's own; another diver's
+  // custom role is shown as synthetic, so neither the card nor the relation
+  // counts it.
+  final epoch = DateTime(2020);
+  final visibility =
+      <({String name, bool builtIn, String? roleOwner, String? diveOwner})>[
+        (
+          name: 'built-in role',
+          builtIn: true,
+          roleOwner: null,
+          diveOwner: 'me',
+        ),
+        (
+          name: 'ownerless custom role',
+          builtIn: false,
+          roleOwner: null,
+          diveOwner: 'me',
+        ),
+        (
+          name: 'own custom role',
+          builtIn: false,
+          roleOwner: 'me',
+          diveOwner: 'me',
+        ),
+        (
+          name: 'another diver\'s custom role',
+          builtIn: false,
+          roleOwner: 'other',
+          diveOwner: 'me',
+        ),
+        (
+          name: 'custom role on an ownerless dive',
+          builtIn: false,
+          roleOwner: 'other',
+          diveOwner: null,
+        ),
+      ];
+  for (final v in visibility) {
+    test('diveRoleVisibleSql matches resolveDiveRole: ${v.name}', () async {
+      final role = DiveRole(
+        id: 'r',
+        diverId: v.roleOwner,
+        name: 'R',
+        isBuiltIn: v.builtIn,
+        createdAt: epoch,
+        updatedAt: epoch,
+      );
+      final kept = identical(
+        resolveDiveRole({'r': role}, 'r', diveDiverId: v.diveOwner),
+        role,
+      );
+      final row = await db
+          .customSelect(
+            'SELECT ${diveRoleVisibleSql(role: 'r', diveDiverId: 'x.owner')} '
+            'AS visible FROM (SELECT ? AS is_built_in, ? AS diver_id) r, '
+            '(SELECT ? AS owner) x',
+            variables: [
+              Variable<int>(v.builtIn ? 1 : 0),
+              Variable<String>(v.roleOwner),
+              Variable<String>(v.diveOwner),
+            ],
+          )
+          .getSingle();
+      expect(row.read<int>('visible') == 1, kept);
+    });
   }
 }

@@ -34,7 +34,7 @@ String _label(String key) => 'query_dives_$key';
 /// A dive with no role of the diver's own (#3622): the `role` field's
 /// empty form and, written against `{from}`, the `myRole` relation's
 /// (#4409), so `myRole:none` keeps meaning `role:none`.
-const _noRoleSql = "({r}.diver_role IS NULL OR {r}.diver_role = '')";
+final _noRoleSql = diverRoleUnsetSql('{r}.diver_role');
 
 const _weekday =
     "CAST(strftime('%w', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";

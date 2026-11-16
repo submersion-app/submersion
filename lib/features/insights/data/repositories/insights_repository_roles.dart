@@ -44,7 +44,7 @@ extension InsightsRepositoryRoles on InsightsRepository {
       final notSetQuery = _db.customSelect('''
         SELECT COUNT(*) AS count, SUM($runtime) AS total_time
         FROM dives d
-        WHERE (d.diver_role IS NULL OR d.diver_role = '')
+        WHERE ${diverRoleUnsetSql('d.diver_role')}
           $diverFilter ${df.clause}
         ''', variables: variables).getSingle();
 

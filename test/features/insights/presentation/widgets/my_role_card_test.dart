@@ -6,7 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
-import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/my_role_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/my_role_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -127,6 +127,34 @@ void main() {
   testWidgets('a failed load shows the error message', (tester) async {
     await pump(tester, load: () async => throw StateError('boom'));
     expect(find.text('Failed to load role data'), findsOneWidget);
+  });
+
+  // The labels wait for the role map's first load (#4409): a bar never
+  // shows a raw role id while the names are still on their way.
+  testWidgets('bars wait for the role names on a first load', (tester) async {
+    final names = Completer<Map<String, DiveRole>>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          diverRoleDistributionProvider.overrideWith((ref) async => segments),
+          diveRoleMapProvider.overrideWith((ref) => names.future),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: SingleChildScrollView(child: MyRoleCard())),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('r1'), findsNothing);
+    expect(find.text('instructor'), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    names.complete(roles);
+    await tester.pumpAndSettle();
+    expect(find.text('Cave Guide'), findsOneWidget);
   });
 
   // A dive_roles write reloads the role map (its dependency moves); the bars
