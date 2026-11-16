@@ -11,6 +11,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/info/dive_profile_info.dart';
+import 'package:submersion/features/dive_log/presentation/utils/chart_drag_crossing.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
 import 'package:submersion/features/dive_log/presentation/utils/profile_time_domain.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gtr_format.dart';
@@ -3691,7 +3692,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 }
               },
               child: MouseRegion(
-                onExit: (_) {
+                onExit: (event) {
+                  // Mid-drag, not a hover leaving: onPointerUp clears the
+                  // hover state once the button is released (issue #4611).
+                  if (isDragCrossing(event)) return;
                   if (_lastHoverIndex != null) {
                     _lastHoverIndex = null;
                     _lastHoverOnLeadIn = false;
@@ -4846,6 +4850,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 // the pinch owns the interaction, so ignore its events. The
                 // same applies while a one-finger pan drag is claimed.
                 if (_activePointerCount >= 2 || _touchDragClaimed) return;
+                // A mouse drag that strays off the chart is still a scrub: its
+                // pan updates and end carry the selection (issue #4611).
+                if (crossesChartEdgeMidDrag(event)) return;
                 final isTouchEnd =
                     event is FlPointerExitEvent ||
                     event is FlLongPressEnd ||

@@ -140,4 +140,36 @@ void main() {
       expect(points.last, _profile.length - 1, reason: 'hover at x=$x');
     }
   });
+
+  // Issue #4611: the mouse tracker reports an exit when a drag with the
+  // button held strays off the chart. That is not the end of the scrub, so
+  // the selection holds until the button is released.
+  testWidgets('a mouse drag that leaves the chart keeps its selection', (
+    tester,
+  ) async {
+    final points = <int?>[];
+    final times = <int?>[];
+    await _pumpChart(tester, points: points, times: times);
+    final rect = tester.getRect(find.byType(LineChart).first);
+    final mouse = await _mouse(tester);
+
+    await mouse.moveTo(rect.center);
+    await tester.pump();
+    await mouse.down(rect.center);
+    await tester.pump();
+    await mouse.moveTo(rect.center + const Offset(60, 0));
+    await tester.pump();
+    final scrubbed = times.last;
+    expect(scrubbed, isNotNull);
+
+    // Below the chart (it is 800 px tall in a 900 px view), still pressed.
+    times.clear();
+    await mouse.moveTo(Offset(rect.center.dx + 60, 860));
+    await tester.pump();
+    expect(times.where((t) => t == null), isEmpty);
+
+    await mouse.up();
+    await tester.pump();
+    expect(times.last, isNull, reason: 'releasing ends the scrub');
+  });
 }
