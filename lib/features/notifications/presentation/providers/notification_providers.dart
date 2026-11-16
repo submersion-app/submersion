@@ -37,8 +37,17 @@ final notificationSchedulerProvider = Provider<NotificationScheduler>((ref) {
 /// documents filed under it. The app keeps it alive from its root.
 final clearanceDeleteRearmProvider = Provider<void>((ref) {
   final log = LoggerService.forClass(NotificationScheduler);
+  var disposed = false;
   final sub = ClearanceDeleteEvents.stream.listen((diverIds) async {
     final scheduler = ref.read(notificationSchedulerProvider);
+    // Until the current diver's settings land, [settingsProvider] holds the
+    // defaults or the previous diver's: notifications on, or the wrong time.
+    try {
+      await ref.read(settingsProvider.notifier).settingsLoaded;
+    } catch (_) {
+      // A failed load leaves the defaults in place, as every caller does.
+    }
+    if (disposed) return;
     final settings = ref.read(settingsProvider);
     for (final diverId in diverIds) {
       // A reminder failure never fails the delete: the next full
@@ -54,7 +63,10 @@ final clearanceDeleteRearmProvider = Provider<void>((ref) {
       }
     }
   });
-  ref.onDispose(sub.cancel);
+  ref.onDispose(() {
+    disposed = true;
+    sub.cancel();
+  });
 });
 
 /// Provider to check if notification permission is granted

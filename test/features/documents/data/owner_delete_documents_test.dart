@@ -330,9 +330,14 @@ void main() {
       ),
       const [],
     );
-    final named = ClearanceDeleteEvents.stream.first;
+    final named = <Set<String>>[];
+    final sub = ClearanceDeleteEvents.stream.listen(named.add);
+    addTearDown(sub.cancel);
     await DiveCenterRepository().deleteDiveCenter('x1');
-    expect(await named.timeout(const Duration(seconds: 5)), {'d1'});
+    await pumpEventQueue();
+    expect(named, [
+      {'d1'},
+    ]);
   });
 
   test('deleting a diver deletes every document they filed', () async {

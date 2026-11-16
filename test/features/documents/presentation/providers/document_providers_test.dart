@@ -9,6 +9,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/documents/data/services/clearance_delete_events.dart';
 import 'package:submersion/features/documents/domain/document_expiry.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
@@ -24,8 +25,13 @@ import '../../document_repository_doubles.dart';
 /// Records which documents, and which divers' clearances, had their
 /// reminders rescheduled.
 class _RecordingScheduler extends NotificationScheduler {
+  _RecordingScheduler({this.failFor});
+
   final updated = <String>[];
   final clearanceDivers = <String>[];
+
+  /// A diver whose clearance re-arm throws.
+  final String? failFor;
 
   @override
   Future<void> updateForDocument(
@@ -37,7 +43,10 @@ class _RecordingScheduler extends NotificationScheduler {
   Future<void> updateClearancesForDiver(
     String diverId,
     AppSettings settings,
-  ) async => clearanceDivers.add(diverId);
+  ) async {
+    if (diverId == failFor) throw StateError('re-arm failed');
+    clearanceDivers.add(diverId);
+  }
 }
 
 DocumentPage _scan(List<int> bytes) => DocumentPage(
@@ -297,6 +306,21 @@ void main() {
     await pumpEventQueue();
     expect(scheduler.clearanceDivers, ['d1']);
     expect(scheduler.updated, isEmpty);
+  });
+
+  test('a diver whose re-arm fails does not stop the others (#4609)', () async {
+    final scheduler = _RecordingScheduler(failFor: 'd0');
+    final c = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        notificationSchedulerProvider.overrideWithValue(scheduler),
+      ],
+    );
+    addTearDown(c.dispose);
+    c.read(clearanceDeleteRearmProvider);
+    ClearanceDeleteEvents.notify({'d0', 'd1'});
+    await pumpEventQueue();
+    expect(scheduler.clearanceDivers, ['d1']);
   });
 
   ProviderContainer recording(_RecordingScheduler scheduler) {

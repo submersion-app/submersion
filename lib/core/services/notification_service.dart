@@ -56,9 +56,12 @@ String documentReminderPayload(String documentId, String diverId) =>
   final documentId = at < 0 ? rest : rest.substring(0, at);
   if (documentId.isEmpty) return null;
   final diverId = at < 0
-      ? ''
+      ? null
       : rest.substring(at + _documentPayloadDiver.length);
-  return (documentId: documentId, diverId: diverId.isEmpty ? null : diverId);
+  return (
+    documentId: documentId,
+    diverId: (diverId?.isEmpty ?? true) ? null : diverId,
+  );
 }
 
 /// The route a tapped reminder opens: a document reminder (payload
