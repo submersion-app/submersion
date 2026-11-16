@@ -236,11 +236,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
           const SizedBox(height: 24),
           // The device's controls (issue #3676): this item is its one entry.
           // Downloading is what the page is opened for, so they lead, above
-          // the Details card (issue #4622).
-          if (equipment.type == EquipmentType.computer) ...[
+          // the Details card (issue #4622). Brings its own bottom gap: it
+          // takes no room while it loads or when it fails.
+          if (equipment.type == EquipmentType.computer)
             DiveComputerSection(equipmentId: equipmentId),
-            const SizedBox(height: 24),
-          ],
           _buildDetailsSection(context, ref, equipment, units),
           const SizedBox(height: 24),
           if (equipment.type == EquipmentType.transmitter) ...[

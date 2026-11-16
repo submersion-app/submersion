@@ -32,7 +32,11 @@ void main() {
   });
   tearDown(() => Intl.defaultLocale = savedIntlLocale);
 
-  Future<void> pumpPage(WidgetTester tester, EquipmentItem item) async {
+  Future<void> pumpPage(
+    WidgetTester tester,
+    EquipmentItem item, {
+    bool computersFail = false,
+  }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(1400, 1600);
     addTearDown(() {
@@ -78,9 +82,11 @@ void main() {
             item.id,
           ).overrideWith((ref) => _MockServiceRecordNotifier()),
           // Added by hand: the section offers to connect and download.
-          computersForEquipmentProvider(
-            item.id,
-          ).overrideWith((ref) async => const <DiveComputer>[]),
+          computersForEquipmentProvider(item.id).overrideWith(
+            (ref) async => computersFail
+                ? throw StateError('no computers')
+                : const <DiveComputer>[],
+          ),
         ].cast(),
         child: MaterialApp(
           locale: const Locale('en'),
@@ -113,9 +119,7 @@ void main() {
     );
   });
 
-  testWidgets('other gear keeps Details directly under the header', (
-    tester,
-  ) async {
+  testWidgets('other gear shows no dive computer section', (tester) async {
     await pumpPage(
       tester,
       const EquipmentItem(id: 'bcd', name: 'BCD', type: EquipmentType.bcd),
@@ -123,6 +127,30 @@ void main() {
 
     expect(find.text('Details'), findsOneWidget);
     expect(find.text('Connect and download'), findsNothing);
+  });
+
+  testWidgets('a section that fails to load leaves no gap above Details', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      const EquipmentItem(
+        id: 'perdix',
+        name: 'Perdix',
+        type: EquipmentType.computer,
+      ),
+      computersFail: true,
+    );
+
+    expect(find.text('Connect and download'), findsNothing);
+    Finder cardOf(Finder text) =>
+        find.ancestor(of: text, matching: find.byType(Card)).first;
+    final headerBottom = tester
+        .getBottomLeft(cardOf(find.text('Perdix').first))
+        .dy;
+    final detailsTop = tester.getTopLeft(cardOf(find.text('Details'))).dy;
+    // The one gap every card on the page has, not two.
+    expect(detailsTop - headerBottom, 24);
   });
 }
 
