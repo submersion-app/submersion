@@ -56,6 +56,13 @@ issue #4460.
   serializer (base64), in every arm where buddies already use it, and the
   base-export table entry is marked as carrying a BLOB.
 - **No logo.** The store icon stays exactly as today, not initials.
+- **Shape** (decided during the build). A logo takes the shape the store
+  icon has in each place today: a rounded square on the standard list tile
+  and the detail header, a circle on map markers, the map card and the
+  picker. A center with no logo looks exactly as now.
+- **Compact and dense list rows** (decided during the build) have no icon
+  today. They gain a small logo before the name only when the center has
+  one; without a logo the row is unchanged.
 - **Surfaces** (logo replaces the store icon):
   - dive center list, all three tile styles
   - dive center detail header and the master-detail summary pane
