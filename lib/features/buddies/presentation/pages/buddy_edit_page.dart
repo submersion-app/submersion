@@ -18,7 +18,11 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_merge.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_profile_link_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_country_field.dart';
 import 'package:submersion/features/buddies/presentation/widgets/linked_profile_field.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_suggestions.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/linked_profile_suggestion.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_profile_link_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -79,6 +83,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _socialController = TextEditingController();
+  final _countryController = TextEditingController();
   final _notesController = TextEditingController();
 
   List<Certification> _certifications = [];
@@ -154,6 +159,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     _phoneController.addListener(_onFieldChanged);
     _notesController.addListener(_onFieldChanged);
     _socialController.addListener(_onFieldChanged);
+    _countryController.addListener(_onFieldChanged);
   }
 
   Future<void> _pickPhoto() async {
@@ -195,6 +201,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         _emailController.text = buddy.email ?? '';
         _phoneController.text = buddy.phone ?? '';
         _socialController.text = buddy.socialHandle ?? '';
+        _countryController.text = buddy.country ?? '';
         _notesController.text = buddy.notes;
         setState(() {
           _certifications = certs;
@@ -279,6 +286,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     _emailController.dispose();
     _phoneController.dispose();
     _socialController.dispose();
+    _countryController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -350,6 +358,17 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         body: body,
       ),
     );
+  }
+
+  /// Countries already written on buddies and sites first, then the ISO
+  /// list (issue #4457), as the site country field offers them.
+  List<String> _countrySuggestions() {
+    final buddies = ref.watch(allBuddiesProvider).value ?? const [];
+    final sites = ref.watch(sitesProvider).value ?? const [];
+    return suggestedCountryNames([
+      for (final buddy in buddies) buddy.country,
+      for (final site in sites) site.country,
+    ]);
   }
 
   Widget _buildFormBody(BuildContext context) {
@@ -472,6 +491,19 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
               decoration: InputDecoration(
                 labelText: context.l10n.buddyShare_social,
                 prefixIcon: const Icon(Icons.alternate_email),
+              ),
+            ),
+            const SizedBox(height: 16),
+            BuddyCountryField(
+              controller: _countryController,
+              suggestions: _countrySuggestions(),
+              decoration: _withMergeTextDecoration(
+                key: 'country',
+                decoration: InputDecoration(
+                  labelText: context.l10n.buddies_field_country,
+                  prefixIcon: const Icon(Icons.public),
+                  hintText: context.l10n.buddies_field_countryHint,
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -854,6 +886,16 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         socialHandle: _socialController.text.trim().isEmpty
             ? null
             : _socialController.text.trim(),
+        country: _countryController.text.trim().isEmpty
+            ? null
+            : _countryController.text.trim(),
+        countryCode: countryCodeOnSave(
+          country: _countryController.text,
+          known: (
+            country: _originalBuddy?.country,
+            code: _originalBuddy?.countryCode,
+          ),
+        ),
         cardDiveCount: _cardBuddy?.cardDiveCount,
         cardDivingSince: _cardBuddy?.cardDivingSince,
         cardLastDive: _cardBuddy?.cardLastDive,

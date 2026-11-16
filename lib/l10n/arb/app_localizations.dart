@@ -5380,6 +5380,18 @@ abstract class AppLocalizations {
   /// **'+1 (555) 123-4567'**
   String get buddies_field_phoneHint;
 
+  /// No description provided for @buddies_field_country.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get buddies_field_country;
+
+  /// No description provided for @buddies_field_countryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Italy'**
+  String get buddies_field_countryHint;
+
   /// No description provided for @buddies_label_diveCount.
   ///
   /// In en, this message translates to:
@@ -73036,6 +73048,12 @@ abstract class AppLocalizations {
   /// **'Phone'**
   String get enum_buddyField_phone;
 
+  /// No description provided for @enum_buddyField_country.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get enum_buddyField_country;
+
   /// No description provided for @enum_buddyField_certificationLevel.
   ///
   /// In en, this message translates to:
@@ -73077,6 +73095,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Phone'**
   String get enum_buddyField_phone_short;
+
+  /// No description provided for @enum_buddyField_country_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get enum_buddyField_country_short;
 
   /// No description provided for @enum_buddyField_certificationLevel_short.
   ///
@@ -93126,6 +93150,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Phone'**
   String get query_buddies_phone;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get query_buddies_country;
 
   /// Query builder: a dive center's agency affiliations
   ///

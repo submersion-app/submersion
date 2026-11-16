@@ -3410,6 +3410,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_field_phoneHint => '+972-50-123-4567';
 
   @override
+  String get buddies_field_country => 'מדינה';
+
+  @override
+  String get buddies_field_countryHint => 'למשל איטליה';
+
+  @override
   String buddies_label_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -45514,6 +45520,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_buddyField_phone => 'טלפון';
 
   @override
+  String get enum_buddyField_country => 'מדינה';
+
+  @override
   String get enum_buddyField_certificationLevel => 'רמת הסמכה';
 
   @override
@@ -45533,6 +45542,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => 'טלפון';
+
+  @override
+  String get enum_buddyField_country_short => 'מדינה';
 
   @override
   String get enum_buddyField_certificationLevel_short => 'רמת הסמכה';
@@ -58066,6 +58078,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_buddies_phone => 'טלפון';
+
+  @override
+  String get query_buddies_country => 'מדינה';
 
   @override
   String get query_centers_affiliations => 'השתייכויות';

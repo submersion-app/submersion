@@ -3462,6 +3462,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_field_phoneHint => '+36 30 123 4567';
 
   @override
+  String get buddies_field_country => 'Ország';
+
+  @override
+  String get buddies_field_countryHint => 'pl. Olaszország';
+
+  @override
   String buddies_label_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -46376,6 +46382,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_buddyField_phone => 'Telefon';
 
   @override
+  String get enum_buddyField_country => 'Ország';
+
+  @override
   String get enum_buddyField_certificationLevel => 'Képesítési szint';
 
   @override
@@ -46395,6 +46404,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => 'Tel.';
+
+  @override
+  String get enum_buddyField_country_short => 'Ország';
 
   @override
   String get enum_buddyField_certificationLevel_short => 'Kép. szint';
@@ -59012,6 +59024,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_buddies_phone => 'Telefon';
+
+  @override
+  String get query_buddies_country => 'Ország';
 
   @override
   String get query_centers_affiliations => 'Tagságok';

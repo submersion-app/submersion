@@ -108,6 +108,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(_suggestion), findsOneWidget);
+      // The country field (issue #4457) pushed this below the fold.
+      await tester.ensureVisible(find.text('Link'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Link'));
       await tester.pumpAndSettle();
       expect(find.text(_suggestion), findsNothing);
@@ -129,6 +132,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // The country field (issue #4457) pushed this below the fold.
+    await tester.ensureVisible(find.text('Not now'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Not now'));
     await tester.pumpAndSettle();
     expect(find.text(_suggestion), findsNothing);
@@ -155,6 +161,11 @@ void main() {
     await tester.pumpWidget(harness(buddyId: buddy.id));
     await tester.pumpAndSettle();
 
+    // The country field (issue #4457) pushed this below the fold.
+    await tester.ensureVisible(
+      find.byKey(const Key('buddy_edit_linked_profile')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('buddy_edit_linked_profile')));
     await tester.pumpAndSettle();
     // The sheet lists the other profile; the page title also says Chris,
@@ -185,6 +196,9 @@ void main() {
     expect(find.text(_suggestion), findsNothing);
     expect(find.text('Not linked'), findsNothing);
 
+    // The country field (issue #4457) pushed this below the fold.
+    await tester.ensureVisible(find.byIcon(Icons.clear));
+    await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.clear));
     await tester.pumpAndSettle();
     expect(find.text('Not linked'), findsOneWidget);
