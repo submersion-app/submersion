@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_annotations_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_compare_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_custom_fields_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_nav_track_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_route_links_sitting.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_plan_link_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_profile_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
@@ -74,6 +76,7 @@ void startDiveSitting(EditSession<Dive> session, ProviderRead read) {
   loadDiveAnnotations(session, read);
   holdSafetyDismissals(session, read);
   loadDiveRouteLinks(session, read);
+  loadDivePlanLink(session, read);
 }
 
 /// The held writes that are the dive's own rows (its gas switches, the
@@ -88,6 +91,7 @@ final Set<String> diveOwnHeldWriteKeys = {
   annotationsWriteKey,
   safetyDismissalsKey,
   routeLinksKey,
+  planLinkKey,
 };
 
 /// Why a card of the dive page has nothing to edit, for those that have
@@ -245,6 +249,16 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
         diveSightingsList.current(session)?.isEmpty ?? false,
     editorBuilder: (context, session) =>
         DiveSightingsCardEditor(session: session),
+  ),
+  DiveDetailSectionId.diveLab: EditCard<Dive>(
+    id: DiveDetailSectionId.diveLab.name,
+    title: (context) =>
+        DiveDetailSectionId.diveLab.localizedDisplayName(context.l10n),
+    // The card decides for itself: an eligible dive, or one with a plan.
+    isEmpty: (_) => false,
+    offeredWhenEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        DiveCompareCardEditor(session: session),
   ),
   DiveDetailSectionId.customFields: EditCard<Dive>(
     id: DiveDetailSectionId.customFields.name,

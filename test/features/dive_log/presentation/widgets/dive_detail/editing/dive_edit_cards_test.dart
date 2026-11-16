@@ -52,6 +52,7 @@ void main() {
         DiveDetailSectionId.buddies,
         DiveDetailSectionId.signatures,
         DiveDetailSectionId.sightings,
+        DiveDetailSectionId.diveLab,
         DiveDetailSectionId.customFields,
       });
     });

@@ -40,6 +40,7 @@ import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 import '../../domain/support/synthetic_dives.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 const _diveId = 'd';
 const _air = GasMix(o2: 21);
@@ -141,6 +142,7 @@ void main() {
     CompareColumn dived = _dived,
     Future<LinkedPlanComparison?>? linkedLater,
     void Function()? onLabInputs,
+    RecordEditController<Dive>? lockable,
   }) async {
     tester.view.physicalSize = Size(width, 900);
     tester.view.devicePixelRatio = 1.0;
@@ -190,8 +192,13 @@ void main() {
           labDefaultBranchProvider.overrideWith((ref, id) async => 0),
         ],
         locale: const Locale('en'),
-        child: const SingleChildScrollView(
-          child: CompareSection(diveId: _diveId),
+        child: SingleChildScrollView(
+          child: lockable == null
+              ? const CompareSection(diveId: _diveId)
+              : RecordEditScope<Dive>(
+                  controller: lockable,
+                  child: const CompareSection(diveId: _diveId),
+                ),
         ),
       ),
     );
@@ -596,5 +603,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('Surface GF'), findsWidgets);
     expect(find.textContaining('NDL (no-decompression limit)'), findsOneWidget);
+  });
+
+  testWidgets('on a page that offers editing, no Link; Ask a what-if stays', (
+    tester,
+  ) async {
+    final controller = RecordEditController<Dive>(onSave: (_) async {});
+    addTearDown(controller.dispose);
+    await pump(tester, lockable: controller);
+
+    expect(find.text('Link a plan'), findsNothing);
+    expect(find.text('Ask a what-if'), findsOneWidget);
   });
 }

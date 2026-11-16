@@ -39,6 +39,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_overlay_
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 
 /// Width at or above which the delta panel sits beside the chart.
 const double kLabWideBreakpoint = 1160;
@@ -71,9 +72,19 @@ Future<void> showDiveLab(
 /// Branch a logged dive at any moment and compare what happened with what
 /// would have happened.
 class DiveLabPage extends ConsumerStatefulWidget {
-  const DiveLabPage({super.key, required this.diveId, this.scenarioId});
+  const DiveLabPage({
+    super.key,
+    required this.diveId,
+    this.scenarioId,
+    this.linkOffered = !kUnlockEditing,
+  });
 
   final String diveId;
+
+  /// Whether the menu offers linking and unlinking a plan. With in-place
+  /// editing on, the dive's plan link is changed on its Compare card,
+  /// where a sitting holds it until Save (issue #4527).
+  final bool linkOffered;
 
   /// A saved scenario to load into the draft on open.
   final String? scenarioId;
@@ -343,15 +354,17 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
     // value, not valueOrNull: a reload must not take them off the screen.
     final canBranch = inputsAsync.value != null && !isPlanned;
     final linkEntries = <PopupMenuEntry<String>>[
-      PopupMenuItem(
-        value: 'linkPlan',
-        child: Text(l10n.diveLab_compare_linkPlan),
-      ),
-      if (comparison != null)
+      if (widget.linkOffered) ...[
         PopupMenuItem(
-          value: 'unlinkPlan',
-          child: Text(l10n.diveLab_compare_unlinkPlan),
+          value: 'linkPlan',
+          child: Text(l10n.diveLab_compare_linkPlan),
         ),
+        if (comparison != null)
+          PopupMenuItem(
+            value: 'unlinkPlan',
+            child: Text(l10n.diveLab_compare_unlinkPlan),
+          ),
+      ],
     ];
     return Scaffold(
       appBar: AppBar(
