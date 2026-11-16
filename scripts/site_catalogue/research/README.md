@@ -10,7 +10,8 @@ fact with the pages behind it.
 A researched record ships marked "Not verified", GPS matching never picks
 one for the diver, and nothing ships until the maintainer has seen and
 approved it. The rules come from
-`docs/design/specs/2026-11-15-site-catalogue-researched-sites-design.md`.
+`docs/design/specs/2026-11-15-site-catalogue-researched-sites-design.md`,
+widened by `docs/design/specs/2026-11-16-site-catalogue-wider-sources-design.md`.
 
 | File | What it holds |
 |---|---|
@@ -25,19 +26,33 @@ approved it. The rules come from
 - **Pages that count:** official pages (marine park authorities,
   government notices, harbour or heritage bodies) and first-hand pages
   (the local operators who run the dive, dive press and club write-ups by
-  people who dived it).
+  people who dived it). Before a domain joins the counting list, read its
+  terms: a domain whose terms forbid copying or reuse goes on the `never`
+  list instead. A bare copyright line, or no terms, is fine.
 - **Pages that may be cited but never confirm anything:** directories and
-  aggregators: agency site pages (PADI, SSI), diveplannerpro, zentacle,
-  divebuddy, yachtway, travel apps and their mirrors. They copy each
-  other, so agreeing with each other proves nothing.
+  aggregators: agency site pages (PADI, SSI), Scuba Spot Advisor,
+  waypoints.ph, diveplannerpro, zentacle, divebuddy, yachtway, travel apps
+  and their mirrors. They copy each other, so agreeing with each other
+  proves nothing, and their terms forbid reuse or grant nothing, so no
+  figure of theirs ever ships.
 - **Pages never used:** guidebooks, paid apps, wrecksite.eu, WannaDive,
   Wikivoyage, Diveboard. A set of positions from one guidebook or chart is
   protected as a database in the UK and EU even where each fact is free.
-- **Position:** two counting pages on different domains, each written to
-  a tenth of a minute, three decimals of a degree or a whole second or
-  finer, no two counting figures more than 150 m apart. The shipped point
-  is their mean. Otherwise the site does not ship. No point is placed from
-  a description.
+- **Existence:** two counting pages on different domains name the site
+  and place it in the same bay, island or reef system (`named`). Words are
+  enough. Two counting positions that confirm each other (below) prove it
+  too.
+- **Position:** one of three routes. *Confirmed:* two stated counting
+  figures on different domains, each to a tenth of a minute (three
+  decimals of a degree, a whole second) or finer, within 150 m of each
+  other; the shipped point is their mean. *Stated:* exactly one such
+  figure; the shipped point is that figure. *Map:* anything else from
+  counting pages: a point read off a counting page's own map, a figure
+  coarser than a tenth of a minute, or stated figures that disagree; the
+  shipped point is the mean of every counting figure, and the record is
+  offered from up to 2 km but never blocks an automatic match. Every
+  counting figure lies within 2 km of the shipped point. No point is
+  placed from words alone.
 - **Depth:** the deepest counting figure, and the shallowest counting
   minimum. Both are left out when the counting maxima spread by more than
   5 m and by more than a quarter of the deepest.
@@ -55,8 +70,17 @@ One area at a time.
    area. Leave out any site a built-in record already covers (search the
    catalogue by name, and look at the Sites map); the merge leaves a
    researched record out beside any dive site record within 150 m anyway.
-2. **Read pages.** For each candidate find counting pages and note only
-   the facts each one states: position, depth, entry, site type, hazards.
+2. **Read pages.** For each candidate find two counting pages that name
+   it (`named`), then note only the facts each page states: position,
+   depth, entry, site type, hazards. A pin on the publisher's own
+   interactive map (Google My Maps, Leaflet, a KML layer the page loads)
+   is a stated figure, read exactly. When a page shows its sites only on
+   a map image, read the point off the image: match its coastline, reef
+   edges or named landmarks against OpenStreetMap, place the site's
+   marker on the matching spot and take that point. A map with a printed
+   grid is read from the grid. A map you cannot match to two or more
+   landmarks is not used. Say in the entry's `note` which landmarks
+   placed the point.
    Note the address and the date it was read. Any request a script makes
    sends `dive-site-harvester/1.0` and nothing that names a person or the
    project.
@@ -81,8 +105,8 @@ One area at a time.
 8. **Run the merge** (`python3 scripts/site_catalogue/merge.py`). Only
    approved, sound, unwithdrawn entries reach the catalogue.
 
-If an area yields fewer than 5 entries that pass, research the next thin
-area of the same kind instead, and say so in the batch's PR.
+If an area yields fewer than 5 entries that pass, say which and why in
+the batch's PR. The first wider sources batch adds no replacement areas.
 
 ## An entry
 
@@ -92,6 +116,13 @@ area of the same kind instead, and say so in the batch's PR.
   "name": "USAT Liberty",
   "area": "Tulamben",
   "country_code": "ID",
+  "named": {
+    "place": "Tulamben Bay",
+    "sources": [
+      {"url": "https://...", "read": "2026-11-16"},
+      {"url": "https://...", "read": "2026-11-16"}
+    ]
+  },
   "position": {
     "lat": -8.27394,
     "lon": 115.59287,
@@ -112,10 +143,17 @@ area of the same kind instead, and say so in the batch's PR.
 
 - **id:** `research_<country code, lower case>_<name slug>`, formed once
   and never changed, never reused.
+- **named:** `place` is your words for the bay, island or reef system;
+  `sources` are the pages that name the site there.
 - **position:** every page that states one, each figure as the page wrote
   it (decimal degrees, or degrees and minutes, or degrees, minutes and
-  seconds, with N, S, E or W). `lat` and `lon` are the mean of the
-  counting figures; the checker says when they are not.
+  seconds, with N, S, E or W). A point read off a map image carries
+  `"method": "map"`, `"map"` (the image's address) and the point in
+  decimal degrees; an interactive map's pin is stated and its `map` is
+  the layer's address. `lat` and `lon` are the shipped point of the route
+  the checker finds; it says when they are not.
+- **distinct_from:** for two separate sites closer than 150 m, each
+  entry lists the other's id. A `note` no longer lets both stand.
 - **Depths:** each page's figure; add `"unit": "ft"` for feet. The shipped
   depth is worked out by the checker, never written by hand.
 - **entry, types:** the app's names (`shore`, `boat`, `giantStride`;
