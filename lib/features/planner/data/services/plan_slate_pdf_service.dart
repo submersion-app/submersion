@@ -395,7 +395,10 @@ class PlanSlatePdfService {
             cell(labels.gas, header: true),
             cell(units.volumeSymbol, header: true),
             cell('%', header: true),
-            cell(labels.problemSolving, header: true),
+            cell(
+              '${labels.problemSolving} (${units.volumeSymbol})',
+              header: true,
+            ),
             cell(labels.turnAt, header: true),
             cell(labels.minGas, header: true),
           ],
