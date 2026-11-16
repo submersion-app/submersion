@@ -2315,7 +2315,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // rather than sending a no-op op through the engine.
       if (_bulkTankSpecFields.isNotEmpty) {
         ops.add(
-          TankSpecsOp(specs: _bulkTankSpecs, fields: _bulkTankSpecFields),
+          TankSpecsOp(
+            specs: _bulkTankSpecs,
+            fields: _bulkTankSpecFields,
+            // Only while Role is ticked: positions picked and then unticked
+            // must not reach the dives (#4412).
+            slotRoles: _bulkTankSpecFields.contains(TankSpecField.role)
+                ? _bulkTankSlotRoles
+                : null,
+          ),
         );
       }
     } else if (tanksMode != null) {
@@ -2723,6 +2731,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final skipped = ops.any((o) => o is TankSpecsOp)
         ? await ref.read(diveRepositoryProvider).divesWithoutTanksCount(ids)
         : 0;
+    // Roles by position leave dives whose tanks do not line up alone (#4412).
+    final slotRoles = ops.whereType<TankSpecsOp>().firstOrNull?.slotRoles;
+    final roleSkipped = slotRoles == null
+        ? 0
+        : await ref
+              .read(diveRepositoryProvider)
+              .divesWithSlotRoleMismatchCount(ids, slotRoles);
     if (!mounted) return;
 
     // Name every membership change up front: a stray removal otherwise lands
@@ -2774,7 +2789,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.diveLog_bulkEdit_confirmTitle),
-        content: skipped > 0 || changes.isNotEmpty
+        content: skipped > 0 || roleSkipped > 0 || changes.isNotEmpty
             ? SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -2792,6 +2807,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       ),
                     if (skipped > 0)
                       Text(l10n.diveLog_bulkEdit_tankSpecsSkipped(skipped)),
+                    if (roleSkipped > 0)
+                      Text(l10n.diveLog_bulkEdit_tankRolesSkipped(roleSkipped)),
                   ],
                 ),
               )
