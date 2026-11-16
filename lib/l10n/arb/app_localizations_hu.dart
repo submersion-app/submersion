@@ -10766,7 +10766,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'Oldd fel a merülés zárolását, hogy fotókat adhass hozzá.';
+      'Oldd fel a merülés zárolását a saját oldalán, hogy fotókat adhass hozzá.';
 
   @override
   String get diveLog_numbering_actions => 'Műveletek';

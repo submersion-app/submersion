@@ -6343,9 +6343,9 @@
   "diveLog_map_emptyTitle": "No dive activity to display",
   "diveLog_map_errorLoading": "Error loading dive data: {error}",
   "diveLog_map_tooltip_fitAllSites": "Fit All Sites",
-  "diveLog_media_dropUnlockHint": "Unlock this dive to add photos to it.",
+  "diveLog_media_dropUnlockHint": "Unlock this dive on its own page to add photos.",
   "@diveLog_media_dropUnlockHint": {
-    "description": "Shown when photos or videos are dropped on a dive that is locked: dives are edited only while unlocked."
+    "description": "Shown when photos or videos are dropped on a dive that is locked, on its page or in the list's detail pane (which cannot unlock): dives are edited only while unlocked, on their own page."
   },
   "diveLog_numbering_actions": "Actions",
   "diveLog_numbering_allCorrect": "All dives numbered correctly",

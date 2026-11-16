@@ -10235,7 +10235,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_map_tooltip_fitAllSites => '适应所有潜水点';
 
   @override
-  String get diveLog_media_dropUnlockHint => '解锁此潜水后才能添加照片。';
+  String get diveLog_media_dropUnlockHint => '请在此潜水的页面上解锁后再添加照片。';
 
   @override
   String get diveLog_numbering_actions => '操作';

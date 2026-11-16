@@ -10624,7 +10624,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'Unlock this dive to add photos to it.';
+      'Unlock this dive on its own page to add photos.';
 
   @override
   String get diveLog_numbering_actions => 'Actions';

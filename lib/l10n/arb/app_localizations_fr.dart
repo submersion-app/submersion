@@ -10826,7 +10826,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'Déverrouillez cette plongée pour y ajouter des photos.';
+      'Déverrouillez cette plongée sur sa propre page pour y ajouter des photos.';
 
   @override
   String get diveLog_numbering_actions => 'Actions';
