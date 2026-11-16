@@ -250,17 +250,12 @@ class DiveDetailSectionList extends ConsumerWidget {
       // first, so an empty one is skipped and the card after it is the next
       // card instead (issue #4583).
       if (selfSpacing) flushPair();
+      final gap = selfSpacing && children.isNotEmpty ? layout.sectionGap : 0.0;
       final content = _framed(
         id,
-        _sectionContent(
-          ref,
-          id,
-          selfSpacing && children.isNotEmpty ? layout.sectionGap : 0,
-          presence,
-          stored,
-          edit,
-        ),
+        _sectionContent(ref, id, gap, presence, stored, edit),
         open,
+        topGap: gap,
       );
       if (content == null) continue;
       // Keyed so sections coming and going on both sides of this one in the
@@ -331,7 +326,12 @@ class DiveDetailSectionList extends ConsumerWidget {
   /// ([content] is null) is given an empty body while its card is [open]:
   /// the frame then shows the editor in its place. Closed, it draws nothing
   /// and leaves no gap; the Add strip is how it is reached again.
-  Widget? _framed(DiveDetailSectionId id, Widget? content, Set<String> open) {
+  Widget? _framed(
+    DiveDetailSectionId id,
+    Widget? content,
+    Set<String> open, {
+    double topGap = 0,
+  }) {
     final card = diveEditCards[id];
     if (card == null) {
       // A card with nothing to edit fades while unlocked. The Tide card
@@ -346,7 +346,7 @@ class DiveDetailSectionList extends ConsumerWidget {
     final body =
         content ?? (open.contains(id.name) ? const SizedBox.shrink() : null);
     if (body == null) return null;
-    return RecordCardFrame<Dive>(card: card, child: body);
+    return RecordCardFrame<Dive>(card: card, topGap: topGap, child: body);
   }
 
   /// One folded row for [id] in the list layout, with [content] behind it.

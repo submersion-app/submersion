@@ -13,6 +13,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tags_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_series_exchange.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_card_editor.dart';
@@ -59,6 +61,7 @@ void startDiveSitting(EditSession<Dive> session, ProviderRead read) {
   // A dive's own rows that are not columns of the dive: read now, so each
   // card's read layout can show the sitting's list once it changes.
   diveBuddiesList.load(session);
+  diveSightingsList.load(session);
 }
 
 /// The held writes that are the dive's own rows (its gas switches, the
@@ -67,6 +70,7 @@ final Set<String> diveOwnHeldWriteKeys = {
   gasSwitchesKey,
   tankSeriesExchangeKey,
   diveBuddiesList.key,
+  diveSightingsList.key,
 };
 
 /// Why a card of the dive page has nothing to edit, for those that have
@@ -159,6 +163,17 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         DiveBuddiesCardEditor(session: session),
+  ),
+  DiveDetailSectionId.sightings: EditCard<Dive>(
+    id: DiveDetailSectionId.sightings.name,
+    title: (context) => context.l10n.diveLog_detail_section_marineLife,
+    // Locked, the card decides for itself once its sightings load.
+    isEmpty: (_) => false,
+    // Until the sitting has read them, the card stays as the page has it.
+    isEmptyInSitting: (session) =>
+        diveSightingsList.current(session)?.isEmpty ?? false,
+    editorBuilder: (context, session) =>
+        DiveSightingsCardEditor(session: session),
   ),
   DiveDetailSectionId.customFields: EditCard<Dive>(
     id: DiveDetailSectionId.customFields.name,
