@@ -116,8 +116,9 @@ class PlannedDivesEffect {
       '$field writes the plan\'s dives into the log as planned dives, as the '
       'planner\'s Create / Update planned dives does: a dive with no entry '
       'gets one, a planned entry is rewritten in place, a dived one is left '
-      'alone. The preview lists each in $entriesKey. A series needs the '
-      'first dive\'s start_date_time.';
+      'alone. An update\'s preview lists each in $entriesKey; a create '
+      'gives every dive an entry and counts them in also_creates. A series '
+      'needs the first dive\'s start_date_time.';
 
   PlannedDivesWriter get _writer => PlannedDivesWriter(
     dives: _r.dives,

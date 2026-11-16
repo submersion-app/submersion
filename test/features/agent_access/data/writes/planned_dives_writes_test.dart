@@ -275,8 +275,11 @@ void main() {
           PlannedDivesEffect.field: const <String, Object?>{},
         }),
       ]);
-      expect(preview.items.single.block, isNull);
-      expect(preview.items.single.alsoCreates, {'dive_plans': 2, 'dives': 2});
+      final item = preview.items.single;
+      expect(item.block, isNull);
+      expect(item.alsoCreates, {'dive_plans': 2, 'dives': 2});
+      // A new series has no entries yet, so it only counts the ones it gets.
+      expect(item.fields, isNot(contains(PlannedDivesEffect.entriesKey)));
       final id = (await h.apply(preview)).created.single.id;
 
       final stored = (await DivePlanSeriesRepository().getSeries(id))!;
@@ -369,33 +372,50 @@ void main() {
       expect(entry.diverId, kDiverA);
     });
 
+    Map<String, Object?> createPlan() => createOp('dive_plans', {
+      'name': 'Wreck',
+      'start_date_time': '2026-10-27T09:00:00Z',
+      'tanks': [
+        {
+          'volume_l': 12,
+          'start_pressure_bar': 200,
+          'o2_fraction': 0.32,
+          'he_fraction': 0,
+          'role': 'backGas',
+        },
+      ],
+      'segments': [
+        {'target_depth_m': 20, 'duration_s': 120, 'tank': 0},
+        {'target_depth_m': 20, 'duration_s': 1800, 'tank': 0},
+      ],
+      PlannedDivesEffect.field: const <String, Object?>{},
+    });
+
     test('is created and logged in one change', () async {
-      final preview = await h.preview([
-        createOp('dive_plans', {
-          'name': 'Wreck',
-          'start_date_time': '2026-10-27T09:00:00Z',
-          'tanks': [
-            {
-              'volume_l': 12,
-              'start_pressure_bar': 200,
-              'o2_fraction': 0.32,
-              'he_fraction': 0,
-              'role': 'backGas',
-            },
-          ],
-          'segments': [
-            {'target_depth_m': 20, 'duration_s': 120, 'tank': 0},
-            {'target_depth_m': 20, 'duration_s': 1800, 'tank': 0},
-          ],
-          PlannedDivesEffect.field: const <String, Object?>{},
-        }),
-      ]);
-      expect(preview.items.single.block, isNull);
-      expect(preview.items.single.alsoCreates, {'dives': 1});
+      final preview = await h.preview([createPlan()]);
+      final item = preview.items.single;
+      expect(item.block, isNull);
+      expect(item.alsoCreates, {'dives': 1});
+      // A new plan has no entry yet, so it only counts the one it gets.
+      expect(item.fields, isNot(contains(PlannedDivesEffect.entriesKey)));
       final id = (await h.apply(preview)).created.single.id;
 
       expect((await diveOf(await linkOf(id)))!.isPlanned, isTrue);
     });
+
+    test(
+      'created, cannot follow an earlier change to the log in the same set',
+      () async {
+        final preview = await h.preview([
+          updateOp('dives', 'd1', {'notes': 'Bring a torch'}),
+          createPlan(),
+        ]);
+
+        final block = preview.items.last.block!;
+        expect(block.reason, BlockReason.notPermitted);
+        expect(block.detail, contains('the log'));
+      },
+    );
 
     test('linked to a dived dive needs move_dived_link', () async {
       await savePlan(linkedDiveId: 'd1');

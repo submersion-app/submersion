@@ -154,11 +154,19 @@ rewritten in place, a dived one is left alone.
 - **Preview.** The saved plan is computed as the planner opens it
   (`computeStoredSeries` / `computeStoredPlan`) with the owner's settings and
   decided by the writer, without writing. The item lists new entries in
-  `also_creates`, rewritten ones in `also_changes`, removed entries it deletes
-  in `also_reaches`, and each dive's outcome in the indirect field
-  `planned_dive_entries` (`create`, `update`, `skip_dived`, `delete_removed`,
-  `keep_removed`, with the entry's id). That list is part of the footprint, so
-  an entry dived between preview and apply makes the plan stale.
+  `also_creates`, rewritten ones in `also_changes`, and removed entries it
+  deletes in `also_reaches`. An update also lists each dive's outcome in the
+  indirect field `planned_dive_entries` (`create`, `update`, `skip_dived`,
+  `delete_removed`, `keep_removed`, with the entry's id). That list is part of
+  the footprint, so an entry dived between preview and apply makes the plan
+  stale. A create has no such list: a new plan or series has no entries yet,
+  so every dive gets one, and `also_creates` counts them. (A create's item
+  carries only the record's own fields, as `createDefaults` fills them.)
+- **What stays current.** The footprint holds what the preview shows: the
+  plan's own record and each entry's outcome. The profile each entry gets is
+  computed again at apply with the owner's settings as they are then, as the
+  planner's own "Update planned dives" does, so a settings change in between
+  does not make the plan stale.
 - **Refusals.** A series whose first dive has no `start_date_time`; a dive
   with no segments or a critical warning; a single plan linked to a dived dive
   without `move_dived_link`; a plan in a series (the series writes them all);

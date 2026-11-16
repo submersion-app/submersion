@@ -178,7 +178,8 @@ class DivePlanWrites extends WritableEntry {
         'planned dive links it.',
       );
     }
-    if (check.id case final id?) {
+    final id = check.id;
+    if (id != null) {
       if (await _seriesOf(id) case final series?) {
         return PlanBlock(
           BlockReason.notPermitted,
@@ -186,20 +187,22 @@ class DivePlanWrites extends WritableEntry {
           'series\' planned dives.',
         );
       }
-      final soFar = check.soFar;
-      final earlier =
-          soFar.values.keys.any(
-            (k) => k.$1 == 'dives' || (k.$1 == name && k.$2 == id),
-          ) ||
-          (soFar.deleted['dives']?.isNotEmpty ?? false) ||
-          (soFar.created['dives']?.isNotEmpty ?? false);
-      if (earlier) {
-        return const PlanBlock(
-          BlockReason.notPermitted,
-          '$_plannedField: write a planned dive in a change set after the one '
-          'that changes this plan or the log.',
-        );
-      }
+    }
+    // An earlier change to the log refuses a new plan as well as a stored
+    // one, as it refuses a new series, so the rule has no exception.
+    final soFar = check.soFar;
+    final earlier =
+        soFar.values.keys.any(
+          (k) => k.$1 == 'dives' || (id != null && k.$1 == name && k.$2 == id),
+        ) ||
+        (soFar.deleted['dives']?.isNotEmpty ?? false) ||
+        (soFar.created['dives']?.isNotEmpty ?? false);
+    if (earlier) {
+      return const PlanBlock(
+        BlockReason.notPermitted,
+        '$_plannedField: write a planned dive in a change set after the one '
+        'that changes this plan or the log.',
+      );
     }
     return PlannedDivesEffect.blockOf(
       await _outlook(await _plannedPlan(check.id, v), check.ownerId, ask),
