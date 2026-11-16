@@ -189,24 +189,37 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         );
       });
     }
-    _nameController.addListener(_onFieldChanged);
-    _locationController.addListener(_onFieldChanged);
-    _resortController.addListener(_onFieldChanged);
-    _liveaboardController.addListener(_onFieldChanged);
-    _notesController.addListener(_onFieldChanged);
-    _expectedDivesController.addListener(_onFieldChanged);
-    _expectedRuntimeController.addListener(_onFieldChanged);
-    _diversSharingController.addListener(_onFieldChanged);
-    _divesPerDayController.addListener(_onFieldChanged);
-    _vesselNameController.addListener(_onFieldChanged);
-    _operatorController.addListener(_onFieldChanged);
-    _cabinTypeController.addListener(_onFieldChanged);
-    _capacityController.addListener(_onFieldChanged);
-    _embarkPortController.addListener(_onFieldChanged);
-    _disembarkPortController.addListener(_onFieldChanged);
+    for (final controller in [
+      _nameController,
+      _locationController,
+      _resortController,
+      _liveaboardController,
+      _notesController,
+      _expectedDivesController,
+      _expectedRuntimeController,
+      _diversSharingController,
+      _divesPerDayController,
+      _vesselNameController,
+      _operatorController,
+      _cabinTypeController,
+      _capacityController,
+      _embarkPortController,
+      _disembarkPortController,
+    ]) {
+      _seenText[controller] = controller.text;
+      controller.addListener(() => _onFieldChanged(controller));
+    }
   }
 
-  void _onFieldChanged() {
+  /// Each field's text as its listener last saw it. A controller notifies
+  /// when only its caret or selection moves too (a tap, or the caret a day
+  /// note opens at), and that is not an edit.
+  final _seenText = <TextEditingController, String>{};
+
+  void _onFieldChanged(TextEditingController controller) {
+    final text = controller.text;
+    if (_seenText[controller] == text) return;
+    _seenText[controller] = text;
     if (!_hasChanges && !_isLoading) {
       setState(() => _hasChanges = true);
     }
@@ -317,13 +330,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     final dayNote = _dayNote;
     if (dayNote == null) return;
     _notesFocusNode.requestFocus();
-    // The controller notifies on a caret move too, and the form would count
-    // that as an edit.
-    _notesController.removeListener(_onFieldChanged);
     _notesController.selection = TextSelection.collapsed(
       offset: dayNote.cursor,
     );
-    _notesController.addListener(_onFieldChanged);
   }
 
   @override

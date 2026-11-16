@@ -535,6 +535,20 @@ void main() {
 
       expect(notifier.lastUpdated?.notes, 'Intro\n\n## Day 3\nTurtle');
     });
+
+    testWidgets('a tap that only moves the caret is not a change', (
+      tester,
+    ) async {
+      await pump(tester);
+
+      await tester.tap(find.widgetWithText(TextFormField, 'Trip Name *'));
+      await tester.pump();
+
+      final popScope = tester.widget<PopScope<Object?>>(
+        find.byWidgetPredicate((widget) => widget is PopScope),
+      );
+      expect(popScope.canPop, isTrue);
+    });
   });
 
   group('TripEditPage - opening at a section (#2880)', () {
