@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_gates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_annotations_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_custom_fields_card_editor.dart';
@@ -65,6 +66,7 @@ void startDiveSitting(EditSession<Dive> session, ProviderRead read) {
   diveBuddiesList.load(session);
   diveSightingsList.load(session);
   diveSignaturesList.load(session);
+  loadDiveAnnotations(session, read);
 }
 
 /// The held writes that are the dive's own rows (its gas switches, the
@@ -75,6 +77,8 @@ final Set<String> diveOwnHeldWriteKeys = {
   diveBuddiesList.key,
   diveSightingsList.key,
   diveSignaturesList.key,
+  annotationsKey,
+  annotationsWriteKey,
 };
 
 /// Why a card of the dive page has nothing to edit, for those that have
