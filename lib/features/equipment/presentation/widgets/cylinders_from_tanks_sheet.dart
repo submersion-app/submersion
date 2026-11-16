@@ -68,6 +68,9 @@ class _RowEdit {
             ) {
     volume = TextEditingController(text: volumeText);
     pressure = TextEditingController(text: pressureText);
+    _volumeInCuft =
+        units.settings.volumeUnit == VolumeUnit.cubicFeet &&
+        proposal.workingPressureBar != null;
   }
 
   final CylinderProposal proposal;
@@ -92,20 +95,39 @@ class _RowEdit {
     return read is NumberValue ? units.pressureToBar(read.value) : null;
   }
 
+  /// Whether the volume field is in cubic feet. Fixed when the row opens,
+  /// as [tankVolumeInputText] chose it: cubic feet only when a working
+  /// pressure made the conversion possible. A field that opened in liters
+  /// stays in liters when a pressure is typed later, so its figure is never
+  /// reread in another unit.
+  bool get volumeInCuft => _volumeInCuft;
+  late final bool _volumeInCuft;
+
   /// In cubic feet the figure depends on the working pressure, so once the
-  /// pressure changes the shown figure is read again at the new one rather
-  /// than kept as the logged liters.
-  double? volumeL(UnitFormatter units) => tankVolumeFromInput(
-    volume.text,
-    initialText:
-        units.settings.volumeUnit == VolumeUnit.cubicFeet &&
-            pressure.text.trim() != pressureText.trim()
-        ? ''
-        : volumeText,
-    initialLiters: proposal.volumeL,
-    workingPressureBar: pressureBar(units),
-    unit: units.settings.volumeUnit,
-  );
+  /// pressure changes the shown figure is read again at the new one; with
+  /// the pressure cleared it cannot be read at all.
+  double? volumeL(UnitFormatter units) {
+    if (!volumeInCuft) {
+      return tankVolumeFromInput(
+        volume.text,
+        initialText: volumeText,
+        initialLiters: proposal.volumeL,
+        workingPressureBar: null,
+        unit: VolumeUnit.liters,
+      );
+    }
+    final bar = pressureBar(units);
+    if (bar == null) return null;
+    return tankVolumeFromInput(
+      volume.text,
+      initialText: pressure.text.trim() == pressureText.trim()
+          ? volumeText
+          : '',
+      initialLiters: proposal.volumeL,
+      workingPressureBar: bar,
+      unit: VolumeUnit.cubicFeet,
+    );
+  }
 
   void dispose() {
     name.dispose();
@@ -272,9 +294,7 @@ class _CylindersFromTanksSheetState
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final p = row.proposal;
-    final cuft =
-        _units.settings.volumeUnit == VolumeUnit.cubicFeet &&
-        row.pressureBar(_units) != null;
+    final cuft = row.volumeInCuft;
     final details = [
       if (p.cylinderCount > 1) l10n.cylindersFromTanks_makes(p.cylinderCount),
       l10n.cylindersFromTanks_onDives(p.diveCount),

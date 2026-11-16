@@ -72,11 +72,14 @@ class TankGearMenu extends ConsumerWidget {
         );
         if (item == null) return;
         try {
-          await service.linkTank(
+          // False when the tank was linked elsewhere while the picker was
+          // open: that link stands, and the diver is told this one did not.
+          final linked = await service.linkTank(
             diveId: dive.id,
             tankId: tank.id,
             equipmentId: item.id,
           );
+          if (!linked) messenger?.showSnackBar(SnackBar(content: Text(failed)));
         } catch (_) {
           messenger?.showSnackBar(SnackBar(content: Text(failed)));
         }

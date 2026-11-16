@@ -107,18 +107,21 @@ class CylinderFromTankService {
 
   /// Links the tank [tankId] of dive [diveId] to the diver's own cylinder
   /// [equipmentId] and adds it to the dive's gear. The tank keeps the spec
-  /// it was logged with.
-  Future<void> linkTank({
+  /// it was logged with. Like [create], a tank linked elsewhere while the
+  /// picker was open keeps that link; returns whether this one was written.
+  Future<bool> linkTank({
     required String diveId,
     required String tankId,
     required String equipmentId,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _db.transaction(() async {
-      await _writeLink(tankId, equipmentId, now, replace: true);
-      await _dives.bulkAddEquipment([diveId], [equipmentId]);
+    final linked = await _db.transaction(() async {
+      final written = await _writeLink(tankId, equipmentId, now);
+      if (written) await _dives.bulkAddEquipment([diveId], [equipmentId]);
+      return written;
     });
-    SyncEventBus.notifyLocalChange();
+    if (linked) SyncEventBus.notifyLocalChange();
+    return linked;
   }
 
   /// Clears the tank's cylinder link. The cylinder stays in the dive's gear,
@@ -138,17 +141,16 @@ class CylinderFromTankService {
   }
 
   /// Writes the link (and [spec], when the diver corrected it) onto the
-  /// tank. Unless [replace], only a tank with no link yet is written.
-  /// Returns whether the tank was written.
+  /// tank, only where the tank has no link yet. Returns whether it was
+  /// written.
   Future<bool> _writeLink(
     String tankId,
     String equipmentId,
     int now, {
     CylinderDraft? spec,
-    bool replace = false,
   }) async {
-    final query = _db.update(_db.diveTanks)..where((t) => t.id.equals(tankId));
-    if (!replace) query.where((t) => t.equipmentId.isNull());
+    final query = _db.update(_db.diveTanks)
+      ..where((t) => t.id.equals(tankId) & t.equipmentId.isNull());
     final written = await query.write(
       DiveTanksCompanion(
         equipmentId: Value(equipmentId),

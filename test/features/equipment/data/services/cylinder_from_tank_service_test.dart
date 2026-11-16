@@ -283,4 +283,35 @@ void main() {
     expect((await tankRow('t-a')).equipmentId, isNull);
     expect(await gearOf('a'), contains('mine'));
   });
+
+  test('linkTank keeps a link made while the picker was open', () async {
+    await dive('a');
+    await tank('a', 't-a');
+    for (final id in ['mine', 'other']) {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: id,
+              name: id,
+              type: 'tank',
+              createdAt: 0,
+              updatedAt: 0,
+            ),
+          );
+    }
+    await (db.update(db.diveTanks)..where((t) => t.id.equals('t-a'))).write(
+      const DiveTanksCompanion(equipmentId: Value('other')),
+    );
+
+    final linked = await CylinderFromTankService().linkTank(
+      diveId: 'a',
+      tankId: 't-a',
+      equipmentId: 'mine',
+    );
+
+    expect(linked, isFalse);
+    expect((await tankRow('t-a')).equipmentId, 'other');
+    expect(await gearOf('a'), isNot(contains('mine')));
+  });
 }

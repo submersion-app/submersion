@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/cylinder_from_tank_service.dart';
@@ -57,7 +58,11 @@ void main() {
     ownedPairs: const [],
   );
 
-  Future<void> pumpSheet(WidgetTester tester) async {
+  Future<void> pumpSheet(
+    WidgetTester tester, {
+    AppSettings settings = const AppSettings(),
+    List<CylinderProposal>? only,
+  }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     service = _FakeService();
@@ -65,13 +70,16 @@ void main() {
       testApp(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
-          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          settingsProvider.overrideWith(
+            (ref) => MockSettingsNotifier(settings),
+          ),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
           cylinderFromTankServiceProvider.overrideWithValue(service),
         ],
         child: Builder(
           builder: (context) => TextButton(
-            onPressed: () => showCylindersFromTanksSheet(context, proposals),
+            onPressed: () =>
+                showCylindersFromTanksSheet(context, only ?? proposals),
             child: const Text('open'),
           ),
         ),
@@ -155,5 +163,35 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Add cylinders to your gear'), findsOneWidget);
+  });
+
+  testWidgets('imperial: a liters field stays liters when a pressure is '
+      'typed', (tester) async {
+    await pumpSheet(
+      tester,
+      settings: const AppSettings(
+        volumeUnit: VolumeUnit.cubicFeet,
+        pressureUnit: PressureUnit.psi,
+      ),
+      only: [
+        proposalForTank(
+          const TankRef(
+            diveId: 'd',
+            tank: DiveTank(id: 't', volume: 11.1),
+          ),
+        ),
+      ],
+    );
+    final fields = find.descendant(
+      of: find.byKey(const Key('cylinders-from-tanks-row-0')),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(fields.at(2), '3000');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('cylinders-from-tanks-add')));
+    await tester.pumpAndSettle();
+
+    expect(service.drafts.single.volumeL, 11.1);
+    expect(service.drafts.single.workingPressureBar, closeTo(206.84, 0.01));
   });
 }
