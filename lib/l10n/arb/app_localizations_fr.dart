@@ -22627,6 +22627,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'résolution du problème : $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'Densité du gaz $value g/L au-dessus de la limite stricte';
   }
@@ -22642,8 +22647,13 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'Le bloc finit sous le minimum rock bottom de $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return 'Quitte le fond avec $remaining, sous le minimum rock bottom de $minimum : aucun gaz réservé au temps de résolution du problème';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return 'Quitte le fond avec $remaining, sous les $minimum nécessaires à une remontée d\'urgence';
   }
 
   @override
@@ -22809,6 +22819,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'Gaz minimum';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'Résolution du problème';
 
   @override
   String get plannerCanvas_slate_saved => 'Plaquette enregistrée';

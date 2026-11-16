@@ -21443,6 +21443,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return '问题处理: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return '气体密度 $value g/L 超过硬性上限';
   }
@@ -21458,8 +21463,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return '气瓶终压低于最低保底气量 $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return '离开水底时剩余 $remaining，低于最低保底气量 $minimum：没有为问题处理时间预留气体';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return '离开水底时剩余 $remaining，低于紧急上升所需的 $minimum';
   }
 
   @override
@@ -21620,6 +21630,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => '最低气量';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => '问题处理';
 
   @override
   String get plannerCanvas_slate_saved => '潜水板已保存';

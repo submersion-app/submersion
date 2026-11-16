@@ -22925,6 +22925,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'حل المشكلة: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'كثافة الغاز $value g/L تتجاوز الحد الأقصى';
   }
@@ -22940,8 +22945,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'تنتهي الأسطوانة تحت الحد الأدنى الآمن $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return 'تغادر القاع بضغط $remaining، تحت الحد الأدنى الآمن $minimum: لا يبقى غاز محجوز لزمن حل المشكلة';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return 'تغادر القاع بضغط $remaining، تحت $minimum اللازمة للصعود الطارئ';
   }
 
   @override
@@ -23107,6 +23117,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'الحد الأدنى من الغاز';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'حل المشكلة';
 
   @override
   String get plannerCanvas_slate_saved => 'تم حفظ اللوح';

@@ -106,20 +106,20 @@ void main() {
     );
   });
 
-  test('problem-solving gas the plan spends on the cylinder is gone too', () {
+  // #4475: the plan holds problem-solving gas apart from what the cylinder
+  // uses, so it is not gone before the loop dies either.
+  test('problem-solving gas the plan holds back is not spent', () {
     final plan = _plan([_descent, _ocHold()]);
     final withoutTime = solver.solve(plan)!;
     final withTime = solver.solve(plan.copyWith(problemSolvingMinutes: 2))!;
-    final resolved = solver.config.resolvedFor(plan);
-    final pressure = PlanEngine.environmentFor(plan).pressureAtDepth(30);
 
     expect(
-      withoutTime.availableLiters - withTime.availableLiters,
-      closeTo(resolved.sacBottom * resolved.buddyFactor * 2 * pressure, 1e-6),
+      withTime.availableLiters,
+      closeTo(withoutTime.availableLiters, 1e-6),
     );
   });
 
-  test('problem-solving gas adds to what the cylinder already spent', () {
+  test('the cylinder has spent what the plan says it used', () {
     final plan = _plan([
       PlanSegment.travel(
         id: 'descent',

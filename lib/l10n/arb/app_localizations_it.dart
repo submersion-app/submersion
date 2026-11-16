@@ -22568,6 +22568,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'risoluzione del problema: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'Densità del gas $value g/L oltre il limite massimo';
   }
@@ -22583,8 +22588,13 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'La bombola termina sotto il minimo rock bottom di $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return 'Lascia il fondo con $remaining, sotto il minimo rock bottom di $minimum: nessun gas riservato al tempo di risoluzione del problema';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return 'Lascia il fondo con $remaining, sotto i $minimum necessari per una risalita d\'emergenza';
   }
 
   @override
@@ -22751,6 +22761,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'Gas minimo';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'Risoluzione del problema';
 
   @override
   String get plannerCanvas_slate_saved => 'Lavagnetta salvata';

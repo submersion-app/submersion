@@ -14289,6 +14289,12 @@
       "reading": { "type": "String" }
     }
   },
+  "plannerCanvas_gas_problemSolvingReading": "problem solving: {reading}",
+  "@plannerCanvas_gas_problemSolvingReading": {
+    "placeholders": {
+      "reading": { "type": "String" }
+    }
+  },
   "plannerCanvas_issue_gasDensityCritical": "Gas density {value} g/L over hard limit",
   "@plannerCanvas_issue_gasDensityCritical": {
     "placeholders": {
@@ -14316,10 +14322,24 @@
       }
     }
   },
-  "plannerCanvas_issue_minGas": "Tank ends below the rock-bottom minimum of {pressure}",
+  "plannerCanvas_issue_minGas": "Leaves the bottom with {remaining}, under the rock-bottom minimum of {minimum}: no gas held back for problem-solving time",
   "@plannerCanvas_issue_minGas": {
     "placeholders": {
-      "pressure": {
+      "remaining": {
+        "type": "String"
+      },
+      "minimum": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_issue_minGasAscent": "Leaves the bottom with {remaining}, under the {minimum} an emergency ascent needs",
+  "@plannerCanvas_issue_minGasAscent": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "minimum": {
         "type": "String"
       }
     }
@@ -14467,6 +14487,7 @@
   "plannerCanvas_share_saved": "Plan file saved",
   "plannerCanvas_slate_menu": "Export slate (PDF)",
   "plannerCanvas_slate_minGas": "Min gas",
+  "plannerCanvas_slate_problemSolving": "Problem solving",
   "plannerCanvas_slate_saved": "Slate saved",
   "plannerCanvas_slate_turn": "Turn",
   "plannerCanvas_slate_noTurnRule": "No rule",
