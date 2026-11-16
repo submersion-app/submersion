@@ -46026,6 +46026,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear =>
+      'Felszerelésként viselt ólmot is tartalmaz, a merülésben szerkeszthető';
+
+  @override
   String get tableEditor_summary_siteSnap =>
       'A merülőhely beállítása a víztípust, a be- és kiszállást és a merüléstípusokat is beállítja a merülésen';
 

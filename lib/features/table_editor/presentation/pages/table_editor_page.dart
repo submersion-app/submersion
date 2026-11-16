@@ -191,7 +191,6 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
       refresh: () {
         if (!mounted) return;
         ref.read(diveListNotifierProvider.notifier).reloadQuietly();
-        ref.invalidate(tableEditorWeightsProvider);
       },
       hiddenKeys: () {
         final all = ref.read(diveListNotifierProvider).value ?? const [];

@@ -46276,6 +46276,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear =>
+      'Include zavorra portata come attrezzatura, modificala nell\'immersione';
+
+  @override
   String get tableEditor_summary_siteSnap =>
       'Impostare un sito imposta anche tipo d\'acqua, ingresso, uscita e tipi di immersione sull\'immersione';
 

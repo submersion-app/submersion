@@ -46300,6 +46300,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear =>
+      'Incluye lastre llevado como equipo, edítalo en la inmersión';
+
+  @override
   String get tableEditor_summary_siteSnap =>
       'Asignar un punto también fija en la inmersión su tipo de agua, entrada, salida y tipos de inmersión';
 

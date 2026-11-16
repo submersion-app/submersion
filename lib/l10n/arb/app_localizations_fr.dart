@@ -46394,6 +46394,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear =>
+      'Inclut du lest porté comme équipement, à modifier dans la plongée';
+
+  @override
   String get tableEditor_summary_siteSnap =>
       'Choisir un site reporte aussi son type d\'eau, son entrée, sa sortie et ses types de plongée sur la plongée';
 

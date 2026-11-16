@@ -72334,6 +72334,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{{count} weight row, edit it in the dive} other{{count} weight rows, edit them in the dive}}'**
   String tableEditor_weightRows(int count);
 
+  /// Why the table editor's Total weight cell is read-only for a dive that carries lead as weights gear: that lead is in the total and is edited on the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes lead carried as equipment, edit it in the dive'**
+  String get tableEditor_weightGear;
+
   /// No description provided for @tableEditor_summary_siteSnap.
   ///
   /// In en, this message translates to:

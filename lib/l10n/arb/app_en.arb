@@ -28489,6 +28489,8 @@
   "tableEditor_summary_pairClear": "Clearing one coordinate clears both",
   "tableEditor_weightRows": "{count, plural, =1{{count} weight row, edit it in the dive} other{{count} weight rows, edit them in the dive}}",
   "@tableEditor_weightRows": {"placeholders": {"count": {"type": "int"}}},
+  "tableEditor_weightGear": "Includes lead carried as equipment, edit it in the dive",
+  "@tableEditor_weightGear": {"description": "Why the table editor's Total weight cell is read-only for a dive that carries lead as weights gear: that lead is in the total and is edited on the dive."},
   "tableEditor_summary_siteSnap": "Setting a site also sets its water type, entry, exit and dive types on the dive",
   "enum_diveField_excludedFromStats": "Excluded from Stats",
   "enum_diveField_excludedFromStats_short": "No Stats",

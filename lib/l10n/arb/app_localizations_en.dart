@@ -45519,6 +45519,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear =>
+      'Includes lead carried as equipment, edit it in the dive';
+
+  @override
   String get tableEditor_summary_siteSnap =>
       'Setting a site also sets its water type, entry, exit and dive types on the dive';
 

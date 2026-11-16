@@ -46936,6 +46936,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear =>
+      'يشمل رصاصًا محمولًا كمعدات، عدّله في الغطسة';
+
+  @override
   String get tableEditor_summary_siteSnap =>
       'تعيين الموقع يضبط أيضًا نوع الماء والدخول والخروج وأنواع الغطس على الغطسة';
 

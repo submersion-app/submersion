@@ -43582,6 +43582,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear => '包含作为装备携带的配重，请在潜水中编辑';
+
+  @override
   String get tableEditor_summary_siteSnap => '设置潜点也会在潜水上设置其水体类型、入水、出水和潜水类型';
 
   @override

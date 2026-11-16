@@ -45164,6 +45164,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear =>
+      'כולל משקולת שנישאת כציוד, ערוך אותה בצלילה';
+
+  @override
   String get tableEditor_summary_siteSnap =>
       'הגדרת אתר מגדירה גם את סוג המים, הכניסה, היציאה וסוגי הצלילה בצלילה';
 

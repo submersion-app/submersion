@@ -45975,6 +45975,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear =>
+      'Bevat lood dat als uitrusting wordt gedragen, bewerk het in de duik';
+
+  @override
   String get tableEditor_summary_siteSnap =>
       'Een stek instellen zet ook het watertype, de in- en uitstap en de duiktypes op de duik';
 

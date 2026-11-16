@@ -46245,6 +46245,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear =>
+      'Inclui lastro levado como equipamento, edite-o no mergulho';
+
+  @override
   String get tableEditor_summary_siteSnap =>
       'Definir um local também define o tipo de água, entrada, saída e tipos de mergulho no mergulho';
 

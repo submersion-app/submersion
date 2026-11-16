@@ -145,8 +145,8 @@ void main() {
 }
 
 /// The real row and descriptor providers over a test database (#3422):
-/// dives arrive with their weight rows merged, and every tab's descriptor
-/// resolves once its lists are in.
+/// dives arrive with the weight rows the list loads, and every tab's
+/// descriptor resolves once its lists are in.
 void providerIntegration() {
   group('the sheet\'s weights', () {
     Future<void> settleOn(bool Function() done) async {
@@ -163,74 +163,26 @@ void providerIntegration() {
       notes: '',
     );
 
-    test('a list reload leaves every dive its weights', () async {
-      final db = await setUpTestDatabase();
-      addTearDown(tearDownTestDatabase);
-      await insertDiver(db, 'me');
-      final repo = DiveRepository();
-      await repo.createDive(dive);
-      await repo.bulkAddWeights(
-        ['d1'],
-        const [
-          domain.DiveWeight(
-            id: '',
-            diveId: '',
-            weightType: WeightType.belt,
-            amountKg: 5,
-          ),
-        ],
-      );
-      final listed = StateProvider<AsyncValue<List<domain.Dive>>>(
-        (ref) => AsyncValue.data([dive]),
-      );
-      final diver = MockCurrentDiverIdNotifier();
-      await diver.setCurrentDiver('me');
-      final container = ProviderContainer(
-        overrides: [
-          currentDiverIdProvider.overrideWith((ref) => diver),
-          tableEditorListedDivesProvider.overrideWith(
-            (ref) => ref.watch(listed),
-          ),
-        ],
-      );
-      addTearDown(container.dispose);
-      final rows = <int>[];
-      final sub = container.listen(tableEditorDivesProvider, (_, next) {
-        if (next.value case final dives?) rows.add(dives.single.weights.length);
-      });
-      addTearDown(sub.close);
-      await settleOn(() => rows.contains(1));
-      rows.clear();
-
-      container.read(listed.notifier).state = const AsyncValue.loading();
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-      container.read(listed.notifier).state = AsyncValue.data([dive]);
-      await settleOn(() => rows.isNotEmpty);
-      await Future<void>.delayed(const Duration(milliseconds: 40));
-
-      expect(rows, everyElement(1));
-    });
-
+    // The sheet reads the list's dives, which carry their weight rows, so
+    // the list's reload on a weight row alone is what keeps the sheet
+    // current (#4442).
     test('a weight row that changes on its own reaches the sheet', () async {
       final db = await setUpTestDatabase();
       addTearDown(tearDownTestDatabase);
       await insertDiver(db, 'me');
-      final repo = DiveRepository();
-      await repo.createDive(dive);
+      await DiveRepository().createDive(dive);
       final diver = MockCurrentDiverIdNotifier();
       await diver.setCurrentDiver('me');
       final container = ProviderContainer(
-        overrides: [
-          currentDiverIdProvider.overrideWith((ref) => diver),
-          tableEditorListedDivesProvider.overrideWithValue(
-            AsyncValue.data([dive]),
-          ),
-        ],
+        overrides: [currentDiverIdProvider.overrideWith((ref) => diver)],
       );
       addTearDown(container.dispose);
-      final sub = container.listen(tableEditorWeightsProvider, (_, _) {});
+      List<domain.Dive>? sheet() =>
+          container.read(tableEditorDivesProvider).value;
+      final sub = container.listen(tableEditorDivesProvider, (_, _) {});
       addTearDown(sub.close);
-      await settleOn(() => container.read(tableEditorWeightsProvider).hasValue);
+      await settleOn(() => sheet()?.length == 1);
+      expect(sheet()!.single.weights, isEmpty);
 
       // As a sync pull lands one: the row alone, the dive untouched.
       await db
@@ -245,12 +197,7 @@ void providerIntegration() {
             ),
           );
 
-      await settleOn(
-        () => container
-            .read(tableEditorWeightsProvider)
-            .requireValue
-            .containsKey('d1'),
-      );
+      await settleOn(() => sheet()?.single.weights.length == 1);
     });
   });
 
@@ -267,22 +214,6 @@ void providerIntegration() {
       addTearDown(container.dispose);
       return container;
     }
-
-    test('the weights behind the rows', () async {
-      final container = containerWith([
-        tableEditorListedDivesProvider.overrideWithValue(
-          const AsyncValue.data(<domain.Dive>[]),
-        ),
-        tableEditorWeightsProvider.overrideWith(
-          (ref) async => throw StateError('no weights'),
-        ),
-      ]);
-      final sub = container.listen(tableEditorDivesProvider, (_, _) {});
-      addTearDown(sub.close);
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-
-      expect(container.read(tableEditorDivesProvider).hasError, isTrue);
-    });
 
     test('a pick list behind the dive descriptor', () async {
       final container = containerWith([
@@ -371,7 +302,7 @@ void providerIntegration() {
     }
 
     final dives = await settle(() {
-      // The weights arrive one load after the dives; wait for the merge.
+      // The list lands its dives with their weight rows.
       final v = container.read(tableEditorDivesProvider).value;
       return v == null || v.isEmpty || v.single.weights.isEmpty ? null : v;
     });

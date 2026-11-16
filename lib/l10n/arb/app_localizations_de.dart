@@ -46179,6 +46179,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear =>
+      'Enthält als Ausrüstung getragenes Blei, im Tauchgang bearbeiten';
+
+  @override
   String get tableEditor_summary_siteSnap =>
       'Beim Setzen eines Platzes werden auch Wasserart, Ein- und Ausstieg und Tauchgangsarten übernommen';
 
