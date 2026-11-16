@@ -141,6 +141,26 @@ void main() {
     expect(await ids('myRole = "Cave Guide"'), {'cave'});
   });
 
+  test('Explore\'s name form matches a secondary role, any case', () async {
+    // Explore lowers `myRole: "safety diver"` to myRole.name in [...].
+    final node = ConditionNode(
+      FieldPath(['myRole', 'name']),
+      QueryOp.inList,
+      ListValue(const [StringValue('safety diver')]),
+    );
+    final q = compileQuery(node, dives, appQueryRegistry, rootAlias: 'd');
+    final rows = await db
+        .customSelect(
+          'SELECT d.id FROM dives d WHERE d.diver_id = ? AND ${q.where}',
+          variables: [
+            const Variable<String>('me'),
+            ...q.params.map((p) => Variable(p)),
+          ],
+        )
+        .get();
+    expect(rows.map((r) => r.read<String>('id')).toSet(), {'guide'});
+  });
+
   test(
     'myRole:none and myRole:any keep what role:none and role:any kept',
     () async {

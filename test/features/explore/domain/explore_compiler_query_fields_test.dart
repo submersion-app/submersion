@@ -152,6 +152,22 @@ void main() {
     );
   });
 
+  test('my role is an exact name match through the myRole relation', () {
+    // #4409: every role a dive holds, by the rule DiveRoleSet.resolve reads.
+    final q = compile([
+      clause('myRole', 'in', ['Instructor', 'Dive Guide']),
+    ]);
+    expect(q.unplaced, isEmpty);
+    expect(
+      q.query,
+      ConditionNode(
+        FieldPath(['myRole', 'name']),
+        QueryOp.inList,
+        ListValue(const [StringValue('Instructor'), StringValue('Dive Guide')]),
+      ),
+    );
+  });
+
   test('a second water-type clause ANDs instead of widening the axis', () {
     final q = compile([
       clause('waterType', 'eq', 'salt'),
