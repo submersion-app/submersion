@@ -9936,6 +9936,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'Calculated';
+
+  @override
+  String get recordEdit_imported => 'Imported';
+
+  @override
   String get recordEdit_saveFailed =>
       'Couldn\'t save your changes. Nothing was changed.';
 

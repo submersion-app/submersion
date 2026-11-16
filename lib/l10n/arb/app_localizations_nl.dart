@@ -10030,6 +10030,12 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'Berekend';
+
+  @override
+  String get recordEdit_imported => 'Geïmporteerd';
+
+  @override
   String get recordEdit_saveFailed =>
       'Kon de wijzigingen niet opslaan. Er is niets gewijzigd.';
 

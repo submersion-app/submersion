@@ -3306,6 +3306,8 @@
   "recordEdit_editCardTooltip": "تعديل {card}",
   "recordEdit_unsavedChanges": "تغييرات غير محفوظة",
   "recordEdit_hiddenCard": "{card}، مخفي",
+  "recordEdit_calculated": "محسوب",
+  "recordEdit_imported": "مستورد",
   "recordEdit_saveFailed": "تعذّر حفظ التغييرات. لم يتغيّر شيء.",
   "recordEdit_fixInvalid": "تعذّرت قراءة بعض القيم. صحّحها قبل الحفظ.",
   "siteMatchReview_title": "مطابقة المواقع",

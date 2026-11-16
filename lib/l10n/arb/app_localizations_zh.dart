@@ -9570,6 +9570,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => '计算得出';
+
+  @override
+  String get recordEdit_imported => '已导入';
+
+  @override
   String get recordEdit_saveFailed => '无法保存更改。未做任何更改。';
 
   @override

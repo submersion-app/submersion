@@ -3180,6 +3180,8 @@
   "recordEdit_editCardTooltip": "{card} szerkesztése",
   "recordEdit_unsavedChanges": "Nem mentett módosítások",
   "recordEdit_hiddenCard": "{card}, rejtett",
+  "recordEdit_calculated": "Számított",
+  "recordEdit_imported": "Importált",
   "recordEdit_saveFailed": "Nem sikerült menteni a módosításokat. Semmi sem változott.",
   "recordEdit_fixInvalid": "Néhány érték nem olvasható. Javítsa ki őket mentés előtt.",
   "siteMatchReview_title": "Helyek hozzárendelése",

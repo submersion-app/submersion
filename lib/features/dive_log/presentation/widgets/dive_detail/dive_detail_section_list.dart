@@ -45,6 +45,7 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_sec
 import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
@@ -332,7 +333,16 @@ class DiveDetailSectionList extends ConsumerWidget {
   /// and leaves no gap; the Add strip is how it is reached again.
   Widget? _framed(DiveDetailSectionId id, Widget? content, Set<String> open) {
     final card = diveEditCards[id];
-    if (card == null) return content;
+    if (card == null) {
+      // A card with nothing to edit fades while unlocked. The Tide card
+      // decides for itself whether it has anything to show, so it fades its
+      // own card rather than the empty box it can be.
+      final reason = diveCardFadeReason(id);
+      if (content == null || reason == null || id == DiveDetailSectionId.tide) {
+        return content;
+      }
+      return RecordCardFade<Dive>(reason: reason, child: content);
+    }
     final body =
         content ?? (open.contains(id.name) ? const SizedBox.shrink() : null);
     if (body == null) return null;

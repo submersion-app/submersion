@@ -10096,6 +10096,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'Calculado';
+
+  @override
+  String get recordEdit_imported => 'Importado';
+
+  @override
   String get recordEdit_saveFailed =>
       'No se pudieron guardar los cambios. No se realizó ningún cambio.';
 

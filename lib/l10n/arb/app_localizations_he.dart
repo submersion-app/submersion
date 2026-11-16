@@ -9871,6 +9871,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'מחושב';
+
+  @override
+  String get recordEdit_imported => 'מיובא';
+
+  @override
   String get recordEdit_saveFailed =>
       'לא ניתן היה לשמור את השינויים. שום דבר לא השתנה.';
 

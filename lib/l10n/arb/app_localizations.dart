@@ -15853,6 +15853,18 @@ abstract class AppLocalizations {
   /// **'{card}, hidden'**
   String recordEdit_hiddenCard(String card);
 
+  /// Label on a card with nothing to edit, shown while its record is unlocked: its content is calculated from other data.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated'**
+  String get recordEdit_calculated;
+
+  /// Label on a card with nothing to edit, shown while its record is unlocked: its content was imported from a device or service.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported'**
+  String get recordEdit_imported;
+
   /// Message shown when saving an unlocked record fails.
   ///
   /// In en, this message translates to:

@@ -10128,6 +10128,12 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'Calculé';
+
+  @override
+  String get recordEdit_imported => 'Importé';
+
+  @override
   String get recordEdit_saveFailed =>
       'Impossible d\'enregistrer vos modifications. Rien n\'a été modifié.';
 

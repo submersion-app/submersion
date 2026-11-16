@@ -18,6 +18,7 @@ import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.
 import 'package:submersion/features/tides/presentation/widgets/tide_extremes_list.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_stat_tiles.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 
 /// The tide conditions section for a dive.
 ///
@@ -41,8 +42,13 @@ class DiveTideSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final card = _tideCard(context, ref);
-    if (card == null) return const SizedBox.shrink();
+    final tide = _tideCard(context, ref);
+    if (tide == null) return const SizedBox.shrink();
+    // Faded while the dive is unlocked: it is worked out, not logged.
+    final card = RecordCardFade<Dive>(
+      reason: RecordCardFadeReason.calculated,
+      child: tide,
+    );
     final gap = topGap;
     if (gap == null) return card;
     return Column(

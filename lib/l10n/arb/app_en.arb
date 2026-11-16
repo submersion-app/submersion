@@ -5997,6 +5997,14 @@
       }
     }
   },
+  "recordEdit_calculated": "Calculated",
+  "@recordEdit_calculated": {
+    "description": "Label on a card with nothing to edit, shown while its record is unlocked: its content is calculated from other data."
+  },
+  "recordEdit_imported": "Imported",
+  "@recordEdit_imported": {
+    "description": "Label on a card with nothing to edit, shown while its record is unlocked: its content was imported from a device or service."
+  },
   "recordEdit_saveFailed": "Couldn't save your changes. Nothing was changed.",
   "@recordEdit_saveFailed": {
     "description": "Message shown when saving an unlocked record fails."

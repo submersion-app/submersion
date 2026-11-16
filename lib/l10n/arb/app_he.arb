@@ -3180,6 +3180,8 @@
   "recordEdit_editCardTooltip": "עריכת {card}",
   "recordEdit_unsavedChanges": "שינויים שלא נשמרו",
   "recordEdit_hiddenCard": "{card}, מוסתר",
+  "recordEdit_calculated": "מחושב",
+  "recordEdit_imported": "מיובא",
   "recordEdit_saveFailed": "לא ניתן היה לשמור את השינויים. שום דבר לא השתנה.",
   "recordEdit_fixInvalid": "לא ניתן לקרוא חלק מהערכים. תקן אותם לפני השמירה.",
   "siteMatchReview_title": "התאמת אתרים",

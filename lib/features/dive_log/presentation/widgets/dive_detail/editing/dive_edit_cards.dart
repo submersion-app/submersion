@@ -19,6 +19,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 
 /// The dive's notes, edited on the Notes card.
 final diveNotesField = EditField<Dive, String>(
@@ -59,6 +60,21 @@ const Set<String> diveOwnHeldWriteKeys = {
   gasSwitchesKey,
   tankSeriesExchangeKey,
 };
+
+/// Why a card of the dive page has nothing to edit, for those that have
+/// nothing: they fade while the dive is unlocked and say so. Null for every
+/// other section.
+RecordCardFadeReason? diveCardFadeReason(DiveDetailSectionId id) =>
+    switch (id) {
+      DiveDetailSectionId.decoStatus ||
+      DiveDetailSectionId.tissueLoading ||
+      DiveDetailSectionId.sacSegments ||
+      DiveDetailSectionId.tide ||
+      DiveDetailSectionId.buoyancy => RecordCardFadeReason.calculated,
+      DiveDetailSectionId.health ||
+      DiveDetailSectionId.surfaceGps => RecordCardFadeReason.imported,
+      _ => null,
+    };
 
 /// The cards of the dive page that can be edited in place, by section. A
 /// card's id is its section's `name`, so the section list, the Add strip

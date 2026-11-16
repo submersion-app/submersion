@@ -10070,6 +10070,12 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'Számított';
+
+  @override
+  String get recordEdit_imported => 'Importált';
+
+  @override
   String get recordEdit_saveFailed =>
       'Nem sikerült menteni a módosításokat. Semmi sem változott.';
 

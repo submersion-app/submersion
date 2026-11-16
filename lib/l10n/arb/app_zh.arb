@@ -3421,6 +3421,8 @@
   "recordEdit_editCardTooltip": "编辑{card}",
   "recordEdit_unsavedChanges": "未保存的更改",
   "recordEdit_hiddenCard": "{card}，已隐藏",
+  "recordEdit_calculated": "计算得出",
+  "recordEdit_imported": "已导入",
   "recordEdit_saveFailed": "无法保存更改。未做任何更改。",
   "recordEdit_fixInvalid": "部分数值无法识别。请更正后再保存。",
   "siteMatchReview_title": "匹配潜水点",

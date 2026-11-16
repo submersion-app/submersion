@@ -26,26 +26,23 @@ void main() {
     expect(plain.isOfferedWhenEmpty(EditSession<String>('')), isTrue);
   });
 
-  test(
-    'a card with isEmptyInSitting is asked it during a sitting, and isEmpty '
-    'when locked',
-    () {
-      var rows = 0;
-      final rowsCard = card(isEmptyInSitting: (_) => rows == 0);
-      final session = EditSession<String>('a record');
-      addTearDown(session.dispose);
+  test('a card with isEmptyInSitting is asked it during a sitting, and isEmpty '
+      'when locked', () {
+    var rows = 0;
+    final rowsCard = card(isEmptyInSitting: (_) => rows == 0);
+    final session = EditSession<String>('a record');
+    addTearDown(session.dispose);
 
-      // Locked: the record decides.
-      expect(rowsCard.isEmptyDuring('', null), isTrue);
-      expect(rowsCard.isEmptyDuring('a record', null), isFalse);
-      // In a sitting: the rows decide, whatever the record holds.
-      expect(rowsCard.isEmptyDuring('a record', session), isTrue);
-      rows = 1;
-      expect(rowsCard.isEmptyDuring('', session), isFalse);
-      // A card with no rows of its own asks the record either way.
-      expect(card().isEmptyDuring('', session), isTrue);
-    },
-  );
+    // Locked: the record decides.
+    expect(rowsCard.isEmptyDuring('', null), isTrue);
+    expect(rowsCard.isEmptyDuring('a record', null), isFalse);
+    // In a sitting: the rows decide, whatever the record holds.
+    expect(rowsCard.isEmptyDuring('a record', session), isTrue);
+    rows = 1;
+    expect(rowsCard.isEmptyDuring('', session), isFalse);
+    // A card with no rows of its own asks the record either way.
+    expect(card().isEmptyDuring('', session), isTrue);
+  });
 
   test('offeredWhenEmpty is asked of the sitting', () {
     var offered = false;
@@ -73,28 +70,25 @@ void main() {
       expect(controller.layoutAnswer('rows', () => answer), isFalse);
     });
 
-    test(
-      'while an editor is open, a list card that gained a row keeps the '
-      'answer it had',
-      () {
-        controller
-          ..unlock('')
-          ..openCard('notes');
-        var empty = true;
-        expect(controller.layoutAnswer('rows', () => empty), isTrue);
-        empty = false;
-        expect(controller.layoutAnswer('rows', () => empty), isTrue);
+    test('while an editor is open, a list card that gained a row keeps the '
+        'answer it had', () {
+      controller
+        ..unlock('')
+        ..openCard('notes');
+      var empty = true;
+      expect(controller.layoutAnswer('rows', () => empty), isTrue);
+      empty = false;
+      expect(controller.layoutAnswer('rows', () => empty), isTrue);
 
-        // The last editor closed: the page follows the sitting again.
-        controller.closeCard('notes');
-        expect(controller.layoutAnswer('rows', () => empty), isFalse);
+      // The last editor closed: the page follows the sitting again.
+      controller.closeCard('notes');
+      expect(controller.layoutAnswer('rows', () => empty), isFalse);
 
-        // A later editor holds what is true when it opens.
-        controller.openCard('notes');
-        empty = true;
-        expect(controller.layoutAnswer('rows', () => empty), isTrue);
-      },
-    );
+      // A later editor holds what is true when it opens.
+      controller.openCard('notes');
+      empty = true;
+      expect(controller.layoutAnswer('rows', () => empty), isTrue);
+    });
 
     test('a new sitting starts with nothing held', () {
       controller
