@@ -15,6 +15,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
@@ -1500,7 +1501,7 @@ class SiteRepository {
   }) async {
     try {
       return await PerfTimer.measure('searchSites', () async {
-        final needle = query.toLowerCase();
+        final needle = foldForSearch(query);
         final countryCodes = countryCodesMatching(query);
         final uncodedCountries = countryCodes.isEmpty
             ? const <String>[]
@@ -1508,12 +1509,12 @@ class SiteRepository {
         final searchQuery = _db.select(_db.diveSites)
           ..where(
             (t) => [
-              t.name.unicodeLower().contains(needle),
-              t.country.unicodeLower().contains(needle),
-              t.region.unicodeLower().contains(needle),
-              t.city.unicodeLower().contains(needle),
-              t.island.unicodeLower().contains(needle),
-              t.bodyOfWater.unicodeLower().contains(needle),
+              t.name.searchFold().contains(needle),
+              t.country.searchFold().contains(needle),
+              t.region.searchFold().contains(needle),
+              t.city.searchFold().contains(needle),
+              t.island.searchFold().contains(needle),
+              t.bodyOfWater.searchFold().contains(needle),
               if (countryCodes.isNotEmpty) t.countryCode.isIn(countryCodes),
               if (uncodedCountries.isNotEmpty) t.country.isIn(uncodedCountries),
             ].reduce((a, b) => a | b),

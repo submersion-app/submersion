@@ -7,6 +7,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
@@ -418,9 +419,7 @@ class MediaPeopleRepository {
 
   static int _compareChips(MediaPersonChip a, MediaPersonChip b) {
     if (a.tag.isMe != b.tag.isMe) return a.tag.isMe ? -1 : 1;
-    final byName = (a.buddyName ?? '').toLowerCase().compareTo(
-      (b.buddyName ?? '').toLowerCase(),
-    );
+    final byName = compareTextForSort(a.buddyName ?? '', b.buddyName ?? '');
     if (byName != 0) return byName;
     final byPerson = (a.tag.buddyId ?? a.tag.diverId ?? '').compareTo(
       b.tag.buddyId ?? b.tag.diverId ?? '',

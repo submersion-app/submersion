@@ -1,9 +1,10 @@
 import 'package:submersion/core/query/registry/query_entity.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/marine_life/presentation/species_ids.dart';
 import 'package:submersion/features/marine_life/presentation/species_name_lookup.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// Every built-in species' translated common names, lower-cased, across all
+/// Every built-in species' translated common names, folded, across all
 /// of the app's languages, keyed on the seed id.
 ///
 /// Built-in species are stored with English names, so a LIKE over
@@ -20,14 +21,16 @@ Map<String, List<String>> _namesByLanguage(List<AppLocalizations> languages) =>
       for (final id in kBuiltInSpeciesIds)
         id: List<String>.unmodifiable({
           for (final l10n in languages)
-            ?builtInSpeciesName(l10n, id)?.toLowerCase(),
+            if (builtInSpeciesName(l10n, id) case final name?)
+              foldForSearch(name),
         }),
     });
 
 /// The built-in species ids whose translated name, in any app language,
-/// contains [term], ignoring case and surrounding whitespace.
+/// contains [term], ignoring case, accents (#4498) and surrounding
+/// whitespace.
 Set<String> builtInSpeciesIdsMatching(String term) {
-  final needle = term.trim().toLowerCase();
+  final needle = foldForSearch(term.trim());
   if (needle.isEmpty) return const {};
   return {
     for (final MapEntry(key: id, value: names) in _builtInNames.entries)

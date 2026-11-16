@@ -417,6 +417,33 @@ void main() {
       expect(find.text('No tags match your search.'), findsNothing);
     });
 
+    testWidgets('search ignores accents (#4498)', (tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(stats: [_stat('tag9', 'Épave', 3), ...testStats]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'epave');
+      await tester.pumpAndSettle();
+
+      expect(renderedTagNames(tester), ['Épave']);
+    });
+
+    testWidgets('typing an existing accented tag offers no create (#4498)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestWidget(stats: [_stat('tag9', 'Épave', 3), ...testStats]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'épave');
+      await tester.pumpAndSettle();
+
+      expect(renderedTagNames(tester), ['Épave']);
+      expect(find.textContaining('Create "'), findsNothing);
+    });
+
     testWidgets('shows a no-matches state when the search finds only an '
         'attached tag', (tester) async {
       await tester.pumpWidget(buildTestWidget(selectedTagIds: {'tag2'}));

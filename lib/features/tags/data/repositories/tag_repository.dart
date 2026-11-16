@@ -9,6 +9,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/media/data/repositories/smart_album_tag_repoint.dart';
 import 'package:submersion/features/tags/data/mappers/tag_row_mapper.dart';
@@ -877,7 +878,7 @@ class TagRepository {
       if (query.isEmpty) return await getAllTags(diverId: diverId);
 
       final searchQuery = _db.select(_db.tags)
-        ..where((t) => t.name.unicodeLower().contains(query.toLowerCase()))
+        ..where((t) => t.name.searchFold().contains(foldForSearch(query)))
         ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
       if (diverId != null) {

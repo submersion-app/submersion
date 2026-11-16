@@ -31,10 +31,10 @@ final tripQueryEntity = QueryEntity(
   table: 'trips',
   diverScopeColumn: 'diver_id',
   textSearchSql: const [
-    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.location) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.resort_name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.liveaboard_name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.location) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.resort_name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.liveaboard_name) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     _text('name', 'name'),

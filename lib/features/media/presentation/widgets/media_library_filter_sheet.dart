@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -336,7 +337,7 @@ class _MediaLibraryFilterSheetState
     final speciesOptions = [
       for (final s in ref.watch(allSpeciesProvider).value ?? const <Species>[])
         (s.id, s.localizedCommonName(l10n)),
-    ]..sort((a, b) => a.$2.toLowerCase().compareTo(b.$2.toLowerCase()));
+    ]..sort((a, b) => compareTextForSort(a.$2, b.$2));
     final albums = ref.watch(mediaSmartAlbumsProvider).value ?? const [];
     final missingCount = ref.watch(missingCountProvider).value ?? 0;
     final units = ref.watch(unitFormatterProvider);

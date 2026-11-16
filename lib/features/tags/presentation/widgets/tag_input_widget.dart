@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -146,18 +147,21 @@ class _TagInputWidgetState extends ConsumerState<TagInputWidget> {
                 final allTags = everyTag
                     .where((tag) => tag.appliesTo(widget.scope))
                     .toList();
-                final query = _textController.text.toLowerCase();
+                final query = foldForSearch(_textController.text);
                 final filteredTags = allTags
                     .where(
                       (tag) =>
-                          tag.name.toLowerCase().contains(query) &&
+                          foldForSearch(tag.name).contains(query) &&
                           !widget.selectedTags.any((t) => t.id == tag.id),
                     )
                     .take(5)
                     .toList();
 
                 final exactMatch = allTags.any(
-                  (tag) => tag.name.toLowerCase() == query.toLowerCase(),
+                  // Case only: [query] is accent-folded for the search.
+                  (tag) =>
+                      tag.name.toLowerCase() ==
+                      _textController.text.toLowerCase(),
                 );
 
                 if (filteredTags.isEmpty && exactMatch) {

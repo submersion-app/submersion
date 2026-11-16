@@ -24,9 +24,10 @@ class QueryEntity {
   final List<QueryRelation> relations;
 
   /// What a bare text word searches, as SQL templates over `{r}` with one
-  /// or more `?` each; every `?` binds the LIKE term, already lower-cased.
-  /// A template folds its column with `unicode_lower(...)` to match: LIKE
-  /// folds ASCII only (#3032).
+  /// or more `?` each; every `?` binds the LIKE term, already folded by
+  /// `foldForSearch`. A template folds its column with `search_fold(...)` to
+  /// match: LIKE folds ASCII case only, so neither "Écueil" (#3032) nor
+  /// "Jérémie" (#4498) was found without it.
   final List<String> textSearchSql;
 
   /// Tables [textSearchSql] and [textSearchExpansions] read besides the
