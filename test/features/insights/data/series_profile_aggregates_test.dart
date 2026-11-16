@@ -94,9 +94,11 @@ void main() {
         const ProfileSample(timestamp: 3640, depth: 45.0),
       ];
       final r = timeAtDepthRanges({('d1', null): samples});
-      expect(r.single.lowerDepth, 40);
-      expect(r.single.upperDepth, isNull);
-      expect(r.single.minutes, ((40 + 2912) / 60).round());
+      // Every band down to the 45 m one shows, the shallower ones as zero.
+      expect(r.map((b) => b.minutes).take(4), [0, 0, 0, 0]);
+      expect(r.last.lowerDepth, 40);
+      expect(r.last.upperDepth, 50);
+      expect(r.last.minutes, ((40 + 2912) / 60).round());
     });
 
     test('a stream with a single sample contributes nothing', () {
@@ -116,7 +118,7 @@ void main() {
           const ProfileSample(timestamp: 120, depth: 5.0),
         ],
       });
-      expect(r.map((b) => b.lowerDepth), [0, 30]);
+      expect(r.map((b) => b.lowerDepth), [0, 10, 20, 30]);
     });
   });
 
