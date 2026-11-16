@@ -90,13 +90,50 @@ const String _noteKey = 'annotations.held';
 SittingAnnotations? sittingAnnotations(EditSession<Dive> session) =>
     session.isDisposed ? null : session.recall<SittingAnnotations>(_noteKey);
 
+const String _repoKey = 'annotations.repo';
+const String _failedKey = 'annotations.failed';
+const String _readingKey = 'annotations.reading';
+
+/// Whether the sitting's read of the annotations failed, so the Profile
+/// card can say so and offer [retryDiveAnnotations] rather than take pins
+/// it cannot hold.
+bool annotationsLoadFailed(EditSession<Dive> session) =>
+    !session.isDisposed && session.recall<bool>(_failedKey) == true;
+
+/// The sitting's latest read of the annotations, for an editor opened
+/// before it answered: keeping them does not notify the sitting's
+/// listeners, so the editor redraws when this completes.
+Future<void> annotationsRead(EditSession<Dive> session) =>
+    (session.isDisposed ? null : session.recall<Future<void>>(_readingKey)) ??
+    Future<void>.value();
+
 /// Reads the dive's annotations once per sitting, and holds the write that
 /// settles them with the notes at Save. Tracked.
+///
+/// The write is held before the read answers: notes changed in a sitting
+/// whose read failed are still settled with the rows at Save.
 void loadDiveAnnotations(EditSession<Dive> session, ProviderRead read) {
   if (!session.firstTime(_noteKey)) return;
   final repository = read(annotationRepositoryProvider);
+  session
+    ..remember(_repoKey, repository)
+    ..holdWrite(annotationsWriteKey, () => _write(session, repository));
+  _readAnnotations(session);
+}
+
+/// Reads the annotations again after a read that failed. Tracked.
+Future<void> retryDiveAnnotations(EditSession<Dive> session) {
+  if (!annotationsLoadFailed(session) || !_canChange(session)) {
+    return Future<void>.value();
+  }
+  return _readAnnotations(session);
+}
+
+Future<void> _readAnnotations(EditSession<Dive> session) {
+  final repository = session.recall<AnnotationRepository>(_repoKey)!;
+  session.remember(_failedKey, null);
   final diveId = session.stored.id;
-  session.track(() async {
+  final work = () async {
     final List<ProfileEvent> loaded;
     try {
       loaded = await repository.annotationsForDive(diveId);
@@ -106,15 +143,19 @@ void loadDiveAnnotations(EditSession<Dive> session, ProviderRead read) {
         error: error,
         stackTrace: stackTrace,
       );
+      if (!session.isDisposed) session.remember(_failedKey, true);
       return;
     }
-    if (session.isDisposed || session.isFrozen) return;
+    if (!_canChange(session)) return;
     session
       ..remember(_noteKey, SittingAnnotations(loaded: loaded))
-      ..holdWrite(annotationsWriteKey, () => _write(session, repository))
       // A line cut from the notes takes its pin's change with it.
       ..addListener(() => _followNotes(session));
-  }());
+  }();
+  session
+    ..remember(_readingKey, work)
+    ..track(work);
+  return work;
 }
 
 Future<void> _write(
@@ -122,19 +163,22 @@ Future<void> _write(
   AnnotationRepository repository,
 ) async {
   final held = sittingAnnotations(session);
-  if (held == null) return;
   final notes = session.working.notes;
-  if (!held.isTouched && notes == session.stored.notes) return;
+  final touched = held != null && held.isTouched;
+  if (!touched && notes == session.stored.notes) return;
   final linked = annotationIdsInNotes(notes);
   final diveId = session.stored.id;
+  // With no annotations held (their read failed), the notes alone settle
+  // the rows: the ones whose links were cut go, the rest take their words.
   await repository.reconcile(
     diveId: diveId,
     notes: notes,
     create: [
-      for (final pin in held.placed)
+      for (final pin in held?.placed ?? const <PendingAnnotation>[])
         if (linked.contains(pin.id)) pin,
     ],
   );
+  if (held == null) return;
   for (final MapEntry(key: id, value: at) in held.moved.entries) {
     if (!linked.contains(id)) continue;
     await repository.moveAnnotation(

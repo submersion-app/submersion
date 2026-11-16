@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_annotations_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 /// Hands the open Profile card the page's own profile section, whose
 /// inputs (the export key, the page's scrolls, its source actions) only the
@@ -44,9 +46,44 @@ class _DiveProfileCardEditorState extends State<DiveProfileCardEditor> {
   final _exportKey = GlobalKey();
 
   @override
+  void initState() {
+    super.initState();
+    _redrawAfter(annotationsRead(widget.session));
+  }
+
+  @override
+  void didUpdateWidget(DiveProfileCardEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session != widget.session) {
+      _redrawAfter(annotationsRead(widget.session));
+    }
+  }
+
+  /// Draws what [read] answered (the pin once the annotations are held, or
+  /// the failure): keeping them does not notify the sitting's listeners.
+  void _redrawAfter(Future<void> read) => read.then((_) {
+    if (mounted) setState(() {});
+  });
+
+  /// Reads the annotations again, waiting with the chart as it reads.
+  void _retry() {
+    _redrawAfter(retryDiveAnnotations(widget.session));
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final section = DiveProfileEditorSource.maybeOf(context);
     if (section == null) return const SizedBox.shrink();
-    return section.editingIn(widget.session, exportKey: _exportKey);
+    final chart = section.editingIn(widget.session, exportKey: _exportKey);
+    // The chart stays for its gas switches; the pin waits for the read.
+    if (!annotationsLoadFailed(widget.session)) return chart;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SittingLoadFailed(onRetry: _retry),
+        chart,
+      ],
+    );
   }
 }

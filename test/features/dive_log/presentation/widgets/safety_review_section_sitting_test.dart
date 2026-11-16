@@ -109,4 +109,17 @@ void main() {
     expect(find.text('Dismiss all'), findsNothing);
     expect(find.text('Restore all'), findsNothing);
   });
+
+  testWidgets('closed in a sitting: a dismissed finding shown offers no '
+      'restore', (tester) async {
+    final c = await pump(tester, unlocked: true);
+    setFindingDismissed(c.session!, rapid, dismissed: true);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Show 1 dismissed'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Ascent exceeded'), findsOneWidget);
+    expect(find.byTooltip('Restore'), findsNothing);
+  });
 }

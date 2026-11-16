@@ -35,6 +35,7 @@ class _DiveNotesCardEditorState extends ConsumerState<DiveNotesCardEditor> {
   void initState() {
     super.initState();
     widget.session.addListener(_followSession);
+    _redrawAfter(annotationsRead(widget.session));
   }
 
   @override
@@ -44,7 +45,14 @@ class _DiveNotesCardEditorState extends ConsumerState<DiveNotesCardEditor> {
     oldWidget.session.removeListener(_followSession);
     widget.session.addListener(_followSession);
     _followSession();
+    _redrawAfter(annotationsRead(widget.session));
   }
+
+  /// Offers annotating once the sitting holds the annotations: keeping
+  /// them does not notify the sitting's listeners.
+  void _redrawAfter(Future<void> read) => read.then((_) {
+    if (mounted) setState(() {});
+  });
 
   /// Keeps the field showing the sitting's value. While the diver types the
   /// two already agree; they differ only when the stored dive changed
@@ -69,7 +77,9 @@ class _DiveNotesCardEditorState extends ConsumerState<DiveNotesCardEditor> {
       controller: _controller,
       autofocus: true,
       onChanged: (notes) => widget.session.set(diveNotesField, notes),
-      onAnnotate: _annotate,
+      // Only while the sitting holds the annotations: a pin asked for
+      // before they are read, or after the read failed, would go nowhere.
+      onAnnotate: sittingAnnotations(widget.session) == null ? null : _annotate,
     );
   }
 

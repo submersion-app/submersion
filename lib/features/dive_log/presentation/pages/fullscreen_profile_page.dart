@@ -578,7 +578,11 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                   // No trailing gap: the info icon's slot
                                   // after it spaces the pair, and the group
                                   // must fit a 320 pt phone.
-                                  if (!writesNothing)
+                                  // With a sitting, only once it holds the
+                                  // annotations: a pin would go nowhere.
+                                  if (!writesNothing &&
+                                      (sitting == null ||
+                                          sittingAnnotations(sitting) != null))
                                     AnnotationPinButton(
                                       active: annotationPlacement != null,
                                       onPressed: chartActions.onPinPressed,

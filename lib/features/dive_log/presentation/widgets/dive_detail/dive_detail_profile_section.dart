@@ -194,7 +194,10 @@ class DiveDetailProfileSection extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _RangeToggle(diveId: dive.id),
-        if (!readOnly)
+        // In the open card, only once the sitting holds the annotations: a
+        // pin placed before (or after a failed read) would go nowhere.
+        if (!readOnly &&
+            (editing == null || sittingAnnotations(editing) != null))
           AnnotationPinButton(
             active: placement != null,
             onPressed: annotationActions.onPinPressed,

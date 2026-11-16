@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/route_row.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The Underwater track card's editor: the dive form's route row and sheet
@@ -13,10 +14,41 @@ import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 /// primary. A route imported from a file in the sheet is created at once,
 /// unlinked, as today; linking it is held until Save. A planned dive has no
 /// route (plan 4), so the editor offers none.
-class DiveNavTrackCardEditor extends StatelessWidget {
+class DiveNavTrackCardEditor extends StatefulWidget {
   const DiveNavTrackCardEditor({super.key, required this.session});
 
   final EditSession<Dive> session;
+
+  @override
+  State<DiveNavTrackCardEditor> createState() => _DiveNavTrackCardEditorState();
+}
+
+class _DiveNavTrackCardEditorState extends State<DiveNavTrackCardEditor> {
+  EditSession<Dive> get session => widget.session;
+
+  @override
+  void initState() {
+    super.initState();
+    _redrawAfter(routeLinksRead(session));
+  }
+
+  @override
+  void didUpdateWidget(DiveNavTrackCardEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session != session) _redrawAfter(routeLinksRead(session));
+  }
+
+  /// Draws what [read] answered: keeping the draft, or marking the read
+  /// failed, does not notify the sitting's listeners.
+  void _redrawAfter(Future<void> read) => read.then((_) {
+    if (mounted) setState(() {});
+  });
+
+  /// Reads the routes again, waiting with the row as it reads.
+  void _retry() {
+    _redrawAfter(retryDiveRouteLinks(session));
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +57,9 @@ class DiveNavTrackCardEditor extends StatelessWidget {
       builder: (context, _) {
         final working = session.working;
         if (working.isPlanned) return const SizedBox.shrink();
+        if (routeLinksLoadFailed(session)) {
+          return SittingLoadFailed(onRetry: _retry);
+        }
         final draft = sittingRouteDraft(session);
         final routes = draft?.current ?? const [];
         final primary =

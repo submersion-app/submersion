@@ -267,6 +267,9 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
       unlinkMediaInSitting(editing, selectedIds.toSet());
       return BulkActionOutcome.completed;
     }
+    // The card closed while the dialog was up: read only now, so nothing
+    // may reach the stored rows before Save.
+    if (_readOnly) return BulkActionOutcome.cancelled;
     if (confirmed == true && context.mounted) {
       try {
         // Unlink IS the removal: the rows leave the library along with
@@ -402,10 +405,17 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     // unlink can never reach an item that is not on screen.
     final visibleIds =
         mediaAsync.value?.map((m) => m.id).toList() ?? const <String>[];
+    // Judged here, in build: _canWrite watches a provider.
+    final canWrite = _canWrite;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _selection.pruneToSettled(mediaAsync, (rows) => rows.map((m) => m.id));
+      if (!mounted) return;
+      // A card that can no longer write keeps no selection, so its Unlink
+      // cannot outlive the open card (or reach the stored rows directly).
+      if (!canWrite) {
+        if (_isSelectionMode) _selection.exit();
+        return;
       }
+      _selection.pruneToSettled(mediaAsync, (rows) => rows.map((m) => m.id));
     });
 
     return SelectableListScope(
@@ -458,7 +468,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
             // Built from the value rather than the data branch, so a reload
             // that holds its rows keeps the bar (and its exit) on screen; the
             // controller disables the row actions while the rows are loading.
-            if (_isSelectionMode)
+            if (_isSelectionMode && _canWrite)
               SelectionAppBar(
                 controller: _selection,
                 selectableIds: selectionMedia.map((m) => m.id).toList(),

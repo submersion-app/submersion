@@ -3,6 +3,8 @@ import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/annotation_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
 import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_annotations_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
@@ -10,6 +12,17 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../../../helpers/test_database.dart';
+
+/// Fails its first read, then reads the database.
+class _FailingOnceRepo extends AnnotationRepository {
+  var reads = 0;
+
+  @override
+  Future<List<ProfileEvent>> annotationsForDive(String diveId) {
+    if (reads++ == 0) throw StateError('database closed');
+    return super.annotationsForDive(diveId);
+  }
+}
 
 /// Annotations placed, moved and removed in a sitting, settled with the
 /// notes at Save (issue #4527, plan 6).
@@ -194,6 +207,55 @@ void main() {
       session.dispose();
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(sittingAnnotations(session), isNull);
+    },
+  );
+
+  test(
+    'a read that failed is marked, and a retry reads the annotations',
+    () async {
+      final failing = _FailingOnceRepo();
+      final local = ProviderContainer(
+        overrides: [annotationRepositoryProvider.overrideWithValue(failing)],
+      );
+      addTearDown(local.dispose);
+      final session = EditSession<Dive>(dive);
+      addTearDown(session.dispose);
+      loadDiveAnnotations(session, local.read);
+      await session.settled();
+
+      expect(sittingAnnotations(session), isNull);
+      expect(annotationsLoadFailed(session), isTrue);
+
+      await retryDiveAnnotations(session);
+
+      expect(failing.reads, 2);
+      expect(annotationsLoadFailed(session), isFalse);
+      expect(sittingAnnotations(session)?.loaded.map((e) => e.id), [storedId]);
+      // The held write is in place once read, so a pin placed now is saved.
+      expect(placeAnnotation(session, seconds: 600, words: 'manta'), isNotNull);
+    },
+  );
+
+  test(
+    'a read that failed still settles the rows with the notes at Save',
+    () async {
+      final local = ProviderContainer(
+        overrides: [
+          annotationRepositoryProvider.overrideWithValue(_FailingOnceRepo()),
+        ],
+      );
+      addTearDown(local.dispose);
+      final session = EditSession<Dive>(dive);
+      addTearDown(session.dispose);
+      loadDiveAnnotations(session, local.read);
+      await session.settled();
+      expect(annotationsLoadFailed(session), isTrue);
+
+      // The stored annotation's line is cut from the notes.
+      session.set(diveNotesField, unlinkAnnotation(dive.notes, storedId));
+      await save(session);
+
+      expect(await storedIds(), isEmpty);
     },
   );
 }

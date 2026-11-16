@@ -25,13 +25,42 @@ const String _repoKey = 'routeLinks.repo';
 DiveRouteLinkDraft? sittingRouteDraft(EditSession<Dive> session) =>
     session.isDisposed ? null : session.recall<DiveRouteLinkDraft>(_draftKey);
 
+const String _failedKey = 'routeLinks.failed';
+const String _readingKey = 'routeLinks.reading';
+
+/// The sitting's latest read of the routes, for an editor opened before it
+/// answered: keeping the draft does not notify the sitting's listeners, so
+/// the editor redraws when this completes.
+Future<void> routeLinksRead(EditSession<Dive> session) =>
+    (session.isDisposed ? null : session.recall<Future<void>>(_readingKey)) ??
+    Future<void>.value();
+
+/// Whether the sitting's read of the routes failed, so the card can say so
+/// and offer [retryDiveRouteLinks] rather than wait for a draft that is
+/// not coming.
+bool routeLinksLoadFailed(EditSession<Dive> session) =>
+    !session.isDisposed && session.recall<bool>(_failedKey) == true;
+
 /// Reads the routes linked to the dive, once per sitting. Tracked.
 void loadDiveRouteLinks(EditSession<Dive> session, ProviderRead read) {
   if (!session.firstTime(_draftKey)) return;
-  final repository = read(navTrackRepositoryProvider);
-  session.remember(_repoKey, repository);
+  session.remember(_repoKey, read(navTrackRepositoryProvider));
+  _readRouteLinks(session);
+}
+
+/// Reads the routes again after a read that failed. Tracked.
+Future<void> retryDiveRouteLinks(EditSession<Dive> session) {
+  if (!routeLinksLoadFailed(session) || session.isFrozen) {
+    return Future<void>.value();
+  }
+  return _readRouteLinks(session);
+}
+
+Future<void> _readRouteLinks(EditSession<Dive> session) {
+  final repository = session.recall<NavTrackRepository>(_repoKey)!;
+  session.remember(_failedKey, null);
   final diveId = session.stored.id;
-  session.track(() async {
+  final work = () async {
     try {
       final linked = await repository.getForDive(diveId);
       if (session.isDisposed || session.isFrozen) return;
@@ -42,8 +71,13 @@ void loadDiveRouteLinks(EditSession<Dive> session, ProviderRead read) {
         error: error,
         stackTrace: stackTrace,
       );
+      if (!session.isDisposed) session.remember(_failedKey, true);
     }
-  }());
+  }();
+  session
+    ..remember(_readingKey, work)
+    ..track(work);
+  return work;
 }
 
 /// Replaces the sitting's draft. One with no changes releases the held

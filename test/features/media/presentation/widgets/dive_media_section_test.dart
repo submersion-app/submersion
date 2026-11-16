@@ -317,5 +317,32 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(PhotoViewerPage), findsNothing);
     });
+
+    testWidgets('a selection made in the open card ends when the card '
+        'closes, so no Unlink is left on the read-only card', (tester) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(Dive(id: 'dive-1', dateTime: DateTime.utc(2026)));
+      addTearDown(controller.dispose);
+      Future<Widget> card({required bool open}) => host(
+        onAdd: () {},
+        media: [photo('s1', 5), photo('s2', 20)],
+        lockable: controller,
+        open: open,
+      );
+
+      await tester.pumpWidget(await card(open: true));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(MediaThumbnailTile).first);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
+
+      await tester.pumpWidget(await card(open: false));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('selection_exit')), findsNothing);
+      expect(find.byIcon(Icons.link_off), findsNothing);
+    });
   });
 }

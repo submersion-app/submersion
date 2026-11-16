@@ -174,8 +174,9 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
                   units: units,
                   selected: selectedFinding?.id == finding.id,
                   onTap: _tapHandlerFor(finding),
-                  onDismissChanged: (dismissed) =>
-                      _setDismissed(finding, dismissed),
+                  onDismissChanged: readOnly
+                      ? null
+                      : (dismissed) => _setDismissed(finding, dismissed),
                 ),
               ),
           const SizedBox(height: 8),

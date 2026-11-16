@@ -3,9 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/annotation_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_layer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_annotations_sitting.dart';
@@ -15,6 +18,13 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+
+/// Every annotation read fails.
+class _FailingAnnotations extends AnnotationRepository {
+  @override
+  Future<List<ProfileEvent>> annotationsForDive(String diveId) async =>
+      throw StateError('database closed');
+}
 
 /// The fullscreen profile obeys the dive's lock: it edits a sitting only
 /// when opened from the open Profile card (issue #4527, plan 6).
@@ -146,5 +156,24 @@ void main() {
           .annotations,
       hasLength(2),
     );
+  });
+
+  testWidgets('with a sitting whose annotations could not be read: no pin, '
+      'as a pin would go nowhere', (tester) async {
+    final dive = (await tester.runAsync(() => repository.getDiveById(diveId)))!;
+    final session = EditSession<Dive>(dive);
+    addTearDown(session.dispose);
+    final container = ProviderContainer(
+      overrides: [
+        annotationRepositoryProvider.overrideWithValue(_FailingAnnotations()),
+      ],
+    );
+    addTearDown(container.dispose);
+    loadDiveAnnotations(session, container.read);
+    await tester.runAsync(session.settled);
+    expect(annotationsLoadFailed(session), isTrue);
+
+    await pumpPage(tester, session: session);
+    expect(pin(), findsNothing);
   });
 }
