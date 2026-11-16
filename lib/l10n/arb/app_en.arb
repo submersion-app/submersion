@@ -18314,6 +18314,10 @@
   "signatures_buddySignature": "Buddy Signature",
   "signatures_instructorSignature": "Instructor Signature",
   "signatures_noSignatureImage": "No signature image",
+  "signatures_notSigned": "Not signed",
+  "@signatures_notSigned": {
+    "description": "Shown on a training dive's instructor signature card when no one has signed and the card is read only (the dive is locked)."
+  },
   "signatures_signHere": "{name} - Sign Here",
   "signatures_signed": "Signed",
   "signatures_signedCountSemantics": "{signed} of {total} buddies have signed",

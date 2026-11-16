@@ -8890,6 +8890,7 @@
   "signatures_buddySignature": "Búvártárs aláírása",
   "signatures_instructorSignature": "Oktató aláírása",
   "signatures_noSignatureImage": "Nincs aláírás kép",
+  "signatures_notSigned": "Nincs aláírva",
   "signatures_signHere": "{name} - Írj alá itt",
   "signatures_signed": "Aláírva",
   "signatures_signedCountSemantics": "{signed} búvártárs írt alá a(z) {total}-ból",

@@ -9190,6 +9190,7 @@
   "signatures_buddySignature": "潜伴签名",
   "signatures_instructorSignature": "教练签名",
   "signatures_noSignatureImage": "无签名图片",
+  "signatures_notSigned": "未签名",
   "signatures_signHere": "{name} - 签名此处",
   "signatures_signed": "已签名",
   "signatures_signedCountSemantics": "{signed}/{total} 位潜伴已签名",

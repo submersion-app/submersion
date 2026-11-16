@@ -31292,6 +31292,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get signatures_noSignatureImage => 'Nincs aláírás kép';
 
   @override
+  String get signatures_notSigned => 'Nincs aláírva';
+
+  @override
   String signatures_signHere(Object name) {
     return '$name - Írj alá itt';
   }

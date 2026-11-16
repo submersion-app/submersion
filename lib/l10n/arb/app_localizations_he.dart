@@ -30653,6 +30653,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get signatures_noSignatureImage => 'אין תמונת חתימה';
 
   @override
+  String get signatures_notSigned => 'לא נחתם';
+
+  @override
   String signatures_signHere(Object name) {
     return '$name - חתום כאן';
   }

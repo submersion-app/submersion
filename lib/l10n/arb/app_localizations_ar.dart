@@ -31713,6 +31713,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signatures_noSignatureImage => 'لا توجد صورة توقيع';
 
   @override
+  String get signatures_notSigned => 'غير موقّع';
+
+  @override
   String signatures_signHere(Object name) {
     return '$name - وقع هنا';
   }

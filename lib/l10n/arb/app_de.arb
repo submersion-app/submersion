@@ -9150,6 +9150,7 @@
   "signatures_buddySignature": "Tauchpartner-Signatur",
   "signatures_instructorSignature": "Tauchlehrer-Signatur",
   "signatures_noSignatureImage": "Kein Signaturbild",
+  "signatures_notSigned": "Nicht unterschrieben",
   "signatures_signHere": "{name} - Hier signieren",
   "signatures_signed": "Signiert",
   "signatures_signedCountSemantics": "{signed} von {total} Tauchpartnern haben signiert",

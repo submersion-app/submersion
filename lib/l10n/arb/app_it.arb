@@ -8886,6 +8886,7 @@
   "signatures_buddySignature": "Firma compagno",
   "signatures_instructorSignature": "Firma Istruttore",
   "signatures_noSignatureImage": "Nessuna immagine firma",
+  "signatures_notSigned": "Non firmato",
   "signatures_signHere": "{name} - Firma Qui",
   "signatures_signed": "Firmato",
   "signatures_signedCountSemantics": "{signed} di {total} compagni hanno firmato",

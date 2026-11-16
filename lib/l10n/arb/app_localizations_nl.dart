@@ -31234,6 +31234,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get signatures_noSignatureImage => 'Geen handtekeningafbeelding';
 
   @override
+  String get signatures_notSigned => 'Niet ondertekend';
+
+  @override
   String signatures_signHere(Object name) {
     return '$name - Onderteken hier';
   }

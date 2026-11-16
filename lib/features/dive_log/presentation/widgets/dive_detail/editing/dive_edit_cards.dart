@@ -13,6 +13,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_signatures_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_signatures_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tags_card_editor.dart';
@@ -62,6 +64,7 @@ void startDiveSitting(EditSession<Dive> session, ProviderRead read) {
   // card's read layout can show the sitting's list once it changes.
   diveBuddiesList.load(session);
   diveSightingsList.load(session);
+  diveSignaturesList.load(session);
 }
 
 /// The held writes that are the dive's own rows (its gas switches, the
@@ -71,6 +74,7 @@ final Set<String> diveOwnHeldWriteKeys = {
   tankSeriesExchangeKey,
   diveBuddiesList.key,
   diveSightingsList.key,
+  diveSignaturesList.key,
 };
 
 /// Why a card of the dive page has nothing to edit, for those that have
@@ -163,6 +167,28 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         DiveBuddiesCardEditor(session: session),
+  ),
+  DiveDetailSectionId.signatures: EditCard<Dive>(
+    id: DiveDetailSectionId.signatures.name,
+    title: (context) =>
+        DiveDetailSectionId.signatures.localizedDisplayName(context.l10n),
+    // Locked, the card decides for itself: it shows for a dive with
+    // buddies or a course.
+    isEmpty: (_) => false,
+    // Nothing to sign until the dive has a buddy or a course. Until the
+    // sitting has read them, the card stays as the page has it.
+    isEmptyInSitting: (session) {
+      final buddies = diveBuddiesList.current(session);
+      final signatures = diveSignaturesList.current(session);
+      if (buddies == null || signatures == null) return false;
+      return buddies.isEmpty &&
+          signatures.isEmpty &&
+          session.working.courseIds.isEmpty;
+    },
+    // Nothing to edit until something else exists, so not offered.
+    offeredWhenEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        DiveSignaturesCardEditor(session: session),
   ),
   DiveDetailSectionId.sightings: EditCard<Dive>(
     id: DiveDetailSectionId.sightings.name,

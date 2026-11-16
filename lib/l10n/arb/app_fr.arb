@@ -8890,6 +8890,7 @@
   "signatures_buddySignature": "Signature du binôme",
   "signatures_instructorSignature": "Signature de l'instructeur",
   "signatures_noSignatureImage": "Aucune image de signature",
+  "signatures_notSigned": "Non signé",
   "signatures_signHere": "{name} - Signez ici",
   "signatures_signed": "Signé",
   "signatures_signedCountSemantics": "{signed} sur {total} binômes ont signé",

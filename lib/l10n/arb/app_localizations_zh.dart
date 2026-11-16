@@ -29627,6 +29627,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get signatures_noSignatureImage => '无签名图片';
 
   @override
+  String get signatures_notSigned => '未签名';
+
+  @override
   String signatures_signHere(Object name) {
     return '$name - 签名此处';
   }

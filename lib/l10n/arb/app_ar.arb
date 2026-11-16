@@ -9016,6 +9016,7 @@
   "signatures_buddySignature": "توقيع زميل الغوص",
   "signatures_instructorSignature": "توقيع المدرب",
   "signatures_noSignatureImage": "لا توجد صورة توقيع",
+  "signatures_notSigned": "غير موقّع",
   "signatures_signHere": "{name} - وقع هنا",
   "signatures_signed": "موقع",
   "signatures_signedCountSemantics": "{signed} من {total} رفاق وقعوا",

@@ -50098,6 +50098,12 @@ abstract class AppLocalizations {
   /// **'No signature image'**
   String get signatures_noSignatureImage;
 
+  /// Shown on a training dive's instructor signature card when no one has signed and the card is read only (the dive is locked).
+  ///
+  /// In en, this message translates to:
+  /// **'Not signed'**
+  String get signatures_notSigned;
+
   /// Title shown on the signature capture screen with buddy name
   ///
   /// In en, this message translates to:

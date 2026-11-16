@@ -31370,6 +31370,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get signatures_noSignatureImage => 'Kein Signaturbild';
 
   @override
+  String get signatures_notSigned => 'Nicht unterschrieben';
+
+  @override
   String signatures_signHere(Object name) {
     return '$name - Hier signieren';
   }

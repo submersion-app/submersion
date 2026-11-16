@@ -8,6 +8,7 @@ import 'package:submersion/features/buddies/presentation/widgets/legacy_buddy_re
 import 'package:submersion/features/buddies/presentation/widgets/legacy_buddy_text_section.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_signatures_sitting.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -97,7 +98,12 @@ class _DiveBuddiesCardEditorState extends ConsumerState<DiveBuddiesCardEditor> {
             BuddyPicker(
               diveId: session.stored.id,
               selectedBuddies: current,
-              onChanged: (buddies) => diveBuddiesList.set(session, buddies),
+              onChanged: (buddies) {
+                diveBuddiesList.set(session, buddies);
+                // A buddy taken off the dive takes the signature they gave
+                // in this sitting with them.
+                dropSignaturesOfRemovedBuddies(session);
+              },
               diverRoleIds: session.valueOf(diveDiverRoleIdsField),
               onDiverRoleChanged: (ids) =>
                   session.set(diveDiverRoleIdsField, ids),

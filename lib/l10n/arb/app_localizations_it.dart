@@ -31445,6 +31445,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get signatures_noSignatureImage => 'Nessuna immagine firma';
 
   @override
+  String get signatures_notSigned => 'Non firmato';
+
+  @override
   String signatures_signHere(Object name) {
     return '$name - Firma Qui';
   }

@@ -9016,6 +9016,7 @@
   "signatures_buddySignature": "Firma del compañero",
   "signatures_instructorSignature": "Firma del Instructor",
   "signatures_noSignatureImage": "Sin imagen de firma",
+  "signatures_notSigned": "Sin firmar",
   "signatures_signHere": "{name} - Firma Aquí",
   "signatures_signed": "Firmado",
   "signatures_signedCountSemantics": "{signed} de {total} compañeros han firmado",
