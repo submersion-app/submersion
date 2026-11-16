@@ -247,10 +247,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   /// toggle back on if it was off, scrolls to the profile and asks the chart
   /// to light the marker and open its popup. A dive with no profile, or a
   /// page with the profile section switched off, has no marker to open, so
-  /// the link changes the time instead.
+  /// the link changes the time instead; on a page that locks it does
+  /// nothing, as the open Profile or Notes card is where an annotation
+  /// changes (issue #4527).
   Future<void> _scrollToProfileAndFocus(String annotationId) async {
     final dive = ref.read(diveProvider(widget.diveId)).value;
     if (dive != null && !_hasMarkerToOpen(dive)) {
+      if (editingOffered) return;
       final annotations = await ref
           .read(annotationRepositoryProvider)
           .annotationsForDive(widget.diveId);
