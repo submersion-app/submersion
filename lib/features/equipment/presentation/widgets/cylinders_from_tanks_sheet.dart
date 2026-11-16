@@ -79,6 +79,11 @@ class _RowEdit {
   TankMaterial? material;
   bool include = true;
 
+  /// Whether the pressure field holds a number or nothing: a mistyped one
+  /// must not save as "no working pressure" onto the cylinder and its tanks.
+  bool get pressureReadable =>
+      readNumber(pressure.text, allowNegative: false) is! NumberInvalid;
+
   double? pressureBar(UnitFormatter units) {
     if (pressure.text.trim() == pressureText.trim()) {
       return proposal.workingPressureBar;
@@ -114,6 +119,9 @@ class _CylindersFromTanksSheetState
   late final UnitFormatter _units;
   List<_RowEdit> _rows = const [];
   bool _saving = false;
+
+  /// Shown in the sheet itself: a SnackBar would land on the page beneath.
+  bool _failed = false;
 
   @override
   void initState() {
@@ -160,10 +168,16 @@ class _CylindersFromTanksSheetState
   bool get _canSave =>
       !_saving &&
       _cylinderCount > 0 &&
-      _rows.every((r) => !r.include || (r.volumeL(_units) ?? 0) > 0);
+      _rows.every(
+        (r) =>
+            !r.include || ((r.volumeL(_units) ?? 0) > 0 && r.pressureReadable),
+      );
 
   Future<void> _save() async {
-    setState(() => _saving = true);
+    setState(() {
+      _saving = true;
+      _failed = false;
+    });
     final drafts = [
       for (final row in _rows)
         if (row.include)
@@ -185,10 +199,10 @@ class _CylindersFromTanksSheetState
       if (mounted) Navigator.of(context).pop(created.length);
     } catch (_) {
       if (!mounted) return;
-      setState(() => _saving = false);
-      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        SnackBar(content: Text(context.l10n.cylindersFromTanks_failed)),
-      );
+      setState(() {
+        _saving = false;
+        _failed = true;
+      });
     }
   }
 
@@ -218,6 +232,17 @@ class _CylindersFromTanksSheetState
               itemBuilder: (context, i) => _rowView(context, _rows[i], i),
             ),
           ),
+          if (_failed)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+              child: Text(
+                l10n.cylindersFromTanks_failed,
+                key: const Key('cylinders-from-tanks-failed'),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: Row(

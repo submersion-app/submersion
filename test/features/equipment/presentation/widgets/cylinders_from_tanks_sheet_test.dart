@@ -16,12 +16,14 @@ import '../../../../helpers/test_app.dart';
 
 class _FakeService extends CylinderFromTankService {
   final drafts = <CylinderDraft>[];
+  bool fail = false;
 
   @override
   Future<List<EquipmentItem>> create(
     List<CylinderDraft> drafts, {
     required String? diverId,
   }) async {
+    if (fail) throw StateError('database locked');
     this.drafts.addAll(drafts);
     return [
       for (final d in drafts)
@@ -126,5 +128,32 @@ void main() {
       find.byKey(const Key('cylinders-from-tanks-add')),
     );
     expect(add.onPressed, isNull);
+  });
+
+  testWidgets('an unreadable pressure blocks adding', (tester) async {
+    await pumpSheet(tester);
+    final fields = find.descendant(
+      of: find.byKey(const Key('cylinders-from-tanks-row-0')),
+      matching: find.byType(TextField),
+    );
+    // Name, volume, working pressure: the pressure is the third field.
+    await tester.enterText(fields.at(2), '2.0.7');
+    await tester.pump();
+    final add = tester.widget<FilledButton>(
+      find.byKey(const Key('cylinders-from-tanks-add')),
+    );
+    expect(add.onPressed, isNull);
+  });
+
+  testWidgets('a failed save says so inside the sheet', (tester) async {
+    await pumpSheet(tester);
+    service.fail = true;
+    await tester.tap(find.byKey(const Key('cylinders-from-tanks-add')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('cylinders-from-tanks-failed')),
+      findsOneWidget,
+    );
+    expect(find.text('Add cylinders to your gear'), findsOneWidget);
   });
 }
