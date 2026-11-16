@@ -4,7 +4,8 @@
 /// A stable partition: starred entries keep their relative order, and so do
 /// the rest. An id in [favourites] that matches no entry (a deleted custom
 /// type, or one synced from a newer version) is ignored. [all] itself is
-/// returned when nothing moves, so a caller can compare by identity. An entry
+/// returned when no entry is starred; otherwise the result is a new list,
+/// even when the starred entries already lead. An entry
 /// whose [idOf] is null (one that cannot be starred) is never lifted.
 List<T> favouritesFirst<T>(
   List<T> all,

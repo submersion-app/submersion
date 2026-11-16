@@ -77,6 +77,13 @@ void main() {
     expect(c.read(favouriteDiveTypeIdsProvider), {'cave'});
 
     await settings.setDefaultShowBuoyancy(true);
+    expect(c.read(favouriteDiveTypeIdsProvider), {'cave'});
+    expect(notified, 0);
+
+    // A settings load decodes a fresh Set holding the same ids: equal, not
+    // identical, so selecting the Set itself would rebuild every picker.
+    settings.state = settings.state.copyWith(favouriteDiveTypeIds: {'cave'});
+    expect(c.read(favouriteDiveTypeIdsProvider), {'cave'});
     expect(notified, 0);
 
     await settings.setDiveTypeFavourite('wreck', true);
