@@ -76,7 +76,10 @@ MarineCadastre Artificial Reefs, NOAA Office for Coastal Management and
 Bureau of Ocean Energy Management, compiled from the reef programs of the
 states. United States Government data, published with no licence and no
 restriction on reuse stated; its metadata gives its use as coastal and
-ocean planning.
+ocean planning. Its Maryland records are derived from data of the State of
+Maryland, Department of Natural Resources. Maryland's metadata for that
+data ships with the app, unmodified
+(assets/data/site_catalogue_md_dnr_metadata.xml).
 https://www.fisheries.noaa.gov/inport/item/54191
 
 Florida Keys National Marine Sanctuary buoys, NOAA Florida Keys National

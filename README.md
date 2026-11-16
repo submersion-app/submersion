@@ -607,7 +607,7 @@ See [LICENSE](LICENSE) for the full text.
 
 The GPL covers the software, not the built-in dive site catalogue (`assets/data/site_catalogue.json`). Most of the catalogue is a database under the [Open Database License 1.0](https://opendatacommons.org/licenses/odbl/1-0/), compiled from OpenStreetMap and open wreck and reef registers. The records from New Jersey, Hawaii, Texas and North Carolina are not part of that database: they stay under their publishers' own terms, and the Hawaii, Texas and North Carolina records may not be used commercially.
 
-Every source and its terms are listed in the file's own notice and on the app's licenses page (**Dive site data**). Anyone redistributing the app commercially can build the catalogue without those four sources. Download each source's snapshot first (the steps are at the top of `scripts/site_catalogue/merge.py`), then run `python3 scripts/site_catalogue/merge.py --open-only --out assets/data`, which replaces the shipped file and removes New Jersey's metadata beside it.
+Every source and its terms are listed in the file's own notice and on the app's licenses page (**Dive site data**). Anyone redistributing the app commercially can build the catalogue without those four sources. Download each source's snapshot first (the steps are at the top of `scripts/site_catalogue/merge.py`), then run `python3 scripts/site_catalogue/merge.py --open-only --out assets/data`, which replaces the shipped file and removes New Jersey's metadata beside it. Maryland's metadata (`assets/data/site_catalogue_md_dnr_metadata.xml`) stays: Maryland's reef records are part of the ODbL database, and its terms let them be redistributed freely as long as that metadata travels with them unmodified.
 
 ## Acknowledgments
 
