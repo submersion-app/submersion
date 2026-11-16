@@ -59097,6 +59097,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changeLog_table_diverSettings => '潜水员设置';
 
   @override
+  String get changeLog_table_safetyFinding => '安全发现';
+
+  @override
+  String get changeLog_table_pressureSeries => '压力读数';
+
+  @override
+  String get changeLog_table_navTrack => '水下轨迹';
+
+  @override
   String get changeLog_history => '历史记录';
 
   @override

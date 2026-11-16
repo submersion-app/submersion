@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_filter.dart';
 import 'package:submersion/features/change_log/presentation/pages/change_log_entry_page.dart';
@@ -110,6 +111,54 @@ void main() {
     }
     expect(find.text('Current'), findsOneWidget);
     expect(find.text('Calm'), findsOneWidget);
+  });
+
+  testWidgets('a sitting entry shows the dive, a site child row and a '
+      'dismissal row, each with Revert', (tester) async {
+    final id = await tester.runAsync(() async {
+      await db.customStatement(
+        'INSERT INTO dive_safety_findings (id, dive_id, rule_id, severity, '
+        "engine_version, created_at) VALUES ('finding', 'dive', "
+        "'fast_ascent', 'warning', 1, 0)",
+      );
+      await ChangeLogRepository().settleAll();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+      await ChangeLogScope.run(
+        db,
+        source: ChangeLogSource.manual,
+        label: RecordEditLabel.encode(
+          table: 'dives',
+          id: 'dive',
+          cardIds: ['notes', 'safetyReview'],
+        ),
+        body: () async {
+          await db.customStatement(
+            "UPDATE dives SET notes = 'Current' WHERE id = 'dive'",
+          );
+          await db.customStatement(
+            "UPDATE dive_sites SET altitude = 512 WHERE id = 'site'",
+          );
+          await db.customStatement(
+            'UPDATE dive_safety_findings SET dismissed_at = 7000',
+          );
+        },
+      );
+      return onlyOperation();
+    });
+
+    await pump(tester, id!);
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Dive 412, Blue Hole'), findsOneWidget);
+    expect(find.text('Safety finding · Edited'), findsOneWidget);
+    for (final column in ['notes', 'altitude', 'dismissed_at']) {
+      expect(
+        find.byKey(ValueKey('change_log_revert_$column')),
+        findsOneWidget,
+        reason: column,
+      );
+    }
   });
 
   testWidgets('two saves to one field show as one change', (tester) async {

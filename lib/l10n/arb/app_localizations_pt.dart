@@ -62943,6 +62943,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get changeLog_table_diverSettings => 'Definições do mergulhador';
 
   @override
+  String get changeLog_table_safetyFinding => 'Constatação de segurança';
+
+  @override
+  String get changeLog_table_pressureSeries => 'Leituras de pressão';
+
+  @override
+  String get changeLog_table_navTrack => 'Trilha subaquática';
+
+  @override
   String get changeLog_history => 'Histórico';
 
   @override

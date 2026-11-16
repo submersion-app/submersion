@@ -62576,6 +62576,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get changeLog_table_diverSettings => 'Duikerinstellingen';
 
   @override
+  String get changeLog_table_safetyFinding => 'Veiligheidsbevinding';
+
+  @override
+  String get changeLog_table_pressureSeries => 'Drukmetingen';
+
+  @override
+  String get changeLog_table_navTrack => 'Onderwatertrack';
+
+  @override
   String get changeLog_history => 'Geschiedenis';
 
   @override

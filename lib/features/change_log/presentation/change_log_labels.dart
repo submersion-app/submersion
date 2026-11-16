@@ -99,6 +99,11 @@ String changeLogTableLabel(AppLocalizations l, String table) => switch (table) {
   'dives' => l.changeLog_dive,
   'settings' => l.changeLog_table_settings,
   'diver_settings' => l.changeLog_table_diverSettings,
+  // Listed under a dive by its editing sitting (issue #4527), and with no
+  // name of their own among the sync references.
+  'dive_safety_findings' => l.changeLog_table_safetyFinding,
+  'tank_pressure_series' => l.changeLog_table_pressureSeries,
+  'nav_tracks' => l.changeLog_table_navTrack,
   _ => conflictReferenceLabel(
     l,
     ConflictReference(

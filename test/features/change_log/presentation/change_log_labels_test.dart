@@ -12,6 +12,12 @@ import 'package:submersion/l10n/arb/app_localizations_en.dart';
 void main() {
   final l = AppLocalizationsEn();
 
+  test('the tables a sitting lists under its dive have names of their own', () {
+    expect(changeLogTableLabel(l, 'dive_safety_findings'), 'Safety finding');
+    expect(changeLogTableLabel(l, 'tank_pressure_series'), 'Pressure readings');
+    expect(changeLogTableLabel(l, 'nav_tracks'), 'Underwater track');
+  });
+
   test('the agent source has a label and an icon', () {
     expect(changeLogSourceLabel(l, ChangeLogSource.agent), 'Agent');
     expect(

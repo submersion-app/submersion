@@ -63860,6 +63860,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get changeLog_table_diverSettings => 'إعدادات الغواص';
 
   @override
+  String get changeLog_table_safetyFinding => 'نتيجة سلامة';
+
+  @override
+  String get changeLog_table_pressureSeries => 'قراءات الضغط';
+
+  @override
+  String get changeLog_table_navTrack => 'مسار تحت الماء';
+
+  @override
   String get changeLog_history => 'السجل';
 
   @override

@@ -179,15 +179,12 @@ class ChangeLogRepository {
 
   /// How many of [operationId]'s records the entry's page can list.
   Future<int> countEvents(String operationId) async {
-    final marks = List.filled(_machineTables.length, '?').join(', ');
+    final listed = _listedEvent('change_log_events');
     final row = await _db
         .customSelect(
           'SELECT COUNT(*) AS c FROM change_log_events WHERE operation_id = ? '
-          'AND table_name NOT IN ($marks)',
-          variables: [
-            Variable<String>(operationId),
-            ..._machineTables.map(Variable<String>.new),
-          ],
+          'AND ${listed.sql}',
+          variables: [Variable<String>(operationId), ...listed.variables],
         )
         .getSingle();
     return row.read<int>('c');
@@ -205,22 +202,24 @@ class ChangeLogRepository {
   }
 
   /// [operationId]'s records, oldest first. Machine rows are kept only to
-  /// restore a deleted record, so they are left out unless asked for.
+  /// restore a deleted record, so they are left out unless asked for, all
+  /// but the columns of [changeLogShownMachineColumns] a diver changes.
   Future<List<ChangeLogEvent>> getEvents(
     String operationId, {
     bool includeMachineRows = false,
     int? limit,
   }) async {
-    final hidden = includeMachineRows ? const <String>[] : _machineTables;
-    final marks = List.filled(hidden.length, '?').join(', ');
+    final listed = includeMachineRows
+        ? null
+        : _listedEvent('change_log_events');
     final rows = await _db
         .customSelect(
           'SELECT * FROM change_log_events WHERE operation_id = ? '
-          '${hidden.isEmpty ? '' : 'AND table_name NOT IN ($marks) '}'
+          '${listed == null ? '' : 'AND ${listed.sql} '}'
           'ORDER BY id ${limit == null ? '' : 'LIMIT ?'}',
           variables: [
             Variable<String>(operationId),
-            ...hidden.map(Variable<String>.new),
+            ...?listed?.variables,
             if (limit != null) Variable<int>(limit),
           ],
         )
@@ -230,7 +229,7 @@ class ChangeLogRepository {
     final fields = await _fieldsByEvent(
       operationId,
       lastEventId: rows.last.read<int>('id'),
-      hidden: hidden,
+      includeMachineRows: includeMachineRows,
     );
     return [
       for (final row in rows)
@@ -243,23 +242,67 @@ class ChangeLogRepository {
       if (entry.value == ChangeLogClass.deleteCopyOnly) entry.key,
   ];
 
+  /// `table.column` for each of [changeLogShownMachineColumns].
+  static final List<String> _shownMachineColumns = [
+    for (final entry in changeLogShownMachineColumns.entries)
+      for (final column in entry.value) '${entry.key}.$column',
+  ];
+
+  static String _marks(int count) => List.filled(count, '?').join(', ');
+
+  /// Whether a field [fields].column_name of an event [events] is listed:
+  /// any field of a logged table, and only the shown columns of a machine
+  /// table.
+  static ({String sql, List<Variable<Object>> variables}) _listedField(
+    String events,
+    String fields,
+  ) => (
+    sql:
+        '($events.table_name NOT IN (${_marks(_machineTables.length)}) '
+        "OR ($events.table_name || '.' || $fields.column_name) "
+        'IN (${_marks(_shownMachineColumns.length)}))',
+    variables: [
+      ..._machineTables.map(Variable<Object>.new),
+      ..._shownMachineColumns.map(Variable<Object>.new),
+    ],
+  );
+
+  /// Whether an event [events] is listed: every event of a logged table, and
+  /// a machine table's update that changed one of its shown columns.
+  static ({String sql, List<Variable<Object>> variables}) _listedEvent(
+    String events,
+  ) {
+    final field = _listedField(events, 'lf');
+    return (
+      sql:
+          '($events.table_name NOT IN (${_marks(_machineTables.length)}) '
+          "OR ($events.action = 'U' AND EXISTS (SELECT 1 FROM "
+          'change_log_fields lf WHERE lf.event_id = $events.id '
+          'AND ${field.sql})))',
+      variables: [
+        ..._machineTables.map(Variable<Object>.new),
+        ...field.variables,
+      ],
+    );
+  }
+
   Future<Map<int, List<ChangeLogFieldChange>>> _fieldsByEvent(
     String operationId, {
     required int lastEventId,
-    required List<String> hidden,
+    required bool includeMachineRows,
   }) async {
-    final marks = List.filled(hidden.length, '?').join(', ');
+    final listed = includeMachineRows ? null : _listedField('e', 'f');
     final rows = await _db
         .customSelect(
           'SELECT f.*, e.table_name FROM change_log_fields f '
           'JOIN change_log_events e ON e.id = f.event_id '
           'WHERE e.operation_id = ? AND e.id <= ? '
-          '${hidden.isEmpty ? '' : 'AND e.table_name NOT IN ($marks) '}'
+          '${listed == null ? '' : 'AND ${listed.sql} '}'
           'ORDER BY f.event_id, f.column_name',
           variables: [
             Variable<String>(operationId),
             Variable<int>(lastEventId),
-            ...hidden.map(Variable<String>.new),
+            ...?listed?.variables,
           ],
         )
         .get();

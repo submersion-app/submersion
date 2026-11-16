@@ -547,6 +547,14 @@ const Map<String, Set<String>> changeLogOptInUpdateColumns = {
   'dive_safety_findings': {'dismissed_at'},
 };
 
+/// Machine columns an entry lists, for any operation: what a diver changes
+/// on a machine row (issue #4527). Every other machine row and column stays
+/// out of the entry and is kept only for a revert or a restore.
+const Map<String, Set<String>> changeLogShownMachineColumns = {
+  'dive_safety_findings': {'dismissed_at'},
+  'tank_pressure_series': {'tank_id'},
+};
+
 /// The start of an editing sitting's label, `RecordEditLabel.prefix` and its
 /// separator.
 const String changeLogRecordEditLabelStart = '${RecordEditLabel.prefix}:';

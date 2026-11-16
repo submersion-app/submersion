@@ -98772,6 +98772,24 @@ abstract class AppLocalizations {
   /// **'Diver settings'**
   String get changeLog_table_diverSettings;
 
+  /// No description provided for @changeLog_table_safetyFinding.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety finding'**
+  String get changeLog_table_safetyFinding;
+
+  /// No description provided for @changeLog_table_pressureSeries.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure readings'**
+  String get changeLog_table_pressureSeries;
+
+  /// No description provided for @changeLog_table_navTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater track'**
+  String get changeLog_table_navTrack;
+
   /// No description provided for @changeLog_history.
   ///
   /// In en, this message translates to:

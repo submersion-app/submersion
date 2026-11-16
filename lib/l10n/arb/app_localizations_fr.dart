@@ -63101,6 +63101,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get changeLog_table_diverSettings => 'Réglages du plongeur';
 
   @override
+  String get changeLog_table_safetyFinding => 'Constat de sécurité';
+
+  @override
+  String get changeLog_table_pressureSeries => 'Relevés de pression';
+
+  @override
+  String get changeLog_table_navTrack => 'Trace sous-marine';
+
+  @override
   String get changeLog_history => 'Historique';
 
   @override

@@ -61977,6 +61977,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changeLog_table_diverSettings => 'Diver settings';
 
   @override
+  String get changeLog_table_safetyFinding => 'Safety finding';
+
+  @override
+  String get changeLog_table_pressureSeries => 'Pressure readings';
+
+  @override
+  String get changeLog_table_navTrack => 'Underwater track';
+
+  @override
   String get changeLog_history => 'History';
 
   @override

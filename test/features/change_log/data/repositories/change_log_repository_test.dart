@@ -350,6 +350,118 @@ void main() {
     });
   });
 
+  group('machine rows an entry lists', () {
+    setUp(() async {
+      for (final tank in ['a', 'b']) {
+        await db.customStatement(
+          "INSERT INTO dive_tanks (id, dive_id) VALUES (?, 'mine')",
+          [tank],
+        );
+      }
+      await db.customStatement(
+        'INSERT INTO tank_pressure_series (id, dive_id, tank_id, '
+        'sample_count, start_timestamp, end_timestamp, codec_version, '
+        'samples, created_at, updated_at) VALUES '
+        "('series', 'mine', 'a', 2, 0, 60, 1, X'010203', 0, 0)",
+      );
+      await db.customStatement(
+        'INSERT INTO dive_safety_findings (id, dive_id, rule_id, severity, '
+        "engine_version, created_at) VALUES ('finding', 'mine', "
+        "'fast_ascent', 'warning', 1, 0)",
+      );
+      await repository.settleAll();
+      await db.customStatement('DELETE FROM change_log_operations');
+      await clearLog(db);
+    });
+
+    Future<String> inScope(String label, Future<void> Function() body) async {
+      late String id;
+      await ChangeLogScope.run(
+        db,
+        source: ChangeLogSource.manual,
+        label: label,
+        body: () async {
+          id = ChangeLogScope.currentOperationId!;
+          await body();
+        },
+      );
+      await repository.settleAll();
+      return id;
+    }
+
+    final sitting = RecordEditLabel.encode(
+      table: 'dives',
+      id: 'mine',
+      cardIds: ['safetyReview', 'tanks'],
+    );
+
+    test('an entry lists a dismissed finding with its dismissed_at', () async {
+      final id = await inScope(
+        sitting,
+        () => db.customStatement(
+          'UPDATE dive_safety_findings SET dismissed_at = 7000',
+        ),
+      );
+
+      final event = (await repository.getEvents(id)).single;
+      expect(event.table, 'dive_safety_findings');
+      expect(event.fields.map((f) => (f.column, f.oldValue, f.newValue)), [
+        ('dismissed_at', null, 7000),
+      ]);
+    });
+
+    test('an entry lists moved readings with their tank_id only', () async {
+      final id = await inScope(
+        ChangeLogLabels.removeDuplicateCylinders,
+        () => db.customStatement(
+          "UPDATE tank_pressure_series SET tank_id = 'b', samples = X'09'",
+        ),
+      );
+
+      final event = (await repository.getEvents(id)).single;
+      expect(event.table, 'tank_pressure_series');
+      expect(event.fields.map((f) => (f.column, f.oldValue, f.newValue)), [
+        ('tank_id', 'a', 'b'),
+      ]);
+      expect(
+        (await repository.getEvents(
+          id,
+          includeMachineRows: true,
+        )).single.fields.map((f) => f.column),
+        containsAll(['tank_id', 'samples']),
+      );
+    });
+
+    test(
+      'a series update that changed only its samples stays hidden',
+      () async {
+        final id = await inScope(
+          ChangeLogLabels.removeSource,
+          () => db.customStatement(
+            "UPDATE tank_pressure_series SET samples = X'09'",
+          ),
+        );
+
+        expect(await repository.getEvents(id), isEmpty);
+        expect(await repository.countEvents(id), 0);
+      },
+    );
+
+    test('countEvents counts what getEvents lists', () async {
+      final id = await inScope(sitting, () async {
+        await db.customStatement(
+          'UPDATE dive_safety_findings SET dismissed_at = 7000',
+        );
+        await db.customStatement(
+          "UPDATE tank_pressure_series SET samples = X'09'",
+        );
+      });
+
+      expect(await repository.getEvents(id), hasLength(1));
+      expect(await repository.countEvents(id), 1);
+    });
+  });
+
   test('entry detail hides machine rows by default', () async {
     await db.customStatement(
       'INSERT INTO tide_records (id, dive_id, height_meters, tide_state, '
