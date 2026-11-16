@@ -144,6 +144,33 @@ void main() {
     expect(text, contains('without alteration'));
   });
 
+  test('Texas is credited with the line TPWD asks for', () async {
+    final text = await licenceText();
+
+    expect(
+      text,
+      contains(
+        'Information courtesy Texas Parks and Wildlife Department © 2022',
+      ),
+    );
+  });
+
+  test('the federal reef file says on what basis it joins the ODbL '
+      'database', () async {
+    final text = await licenceText();
+
+    expect(
+      text,
+      contains(
+        'compiled from the reef programs of the states. United States '
+        'Government data, published with no licence and no restriction on '
+        'reuse stated; its metadata gives its use as coastal and ocean '
+        'planning.',
+      ),
+    );
+    expect(text, isNot(contains('of the states. Public domain.')));
+  });
+
   test('the credit is filed under one heading', () {
     expect(SiteCatalogueAttribution.packageName, 'Dive site data');
   });

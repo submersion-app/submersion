@@ -513,6 +513,29 @@ class SourcesTest(unittest.TestCase):
         self.assertEqual(fmt.SOURCES["nms_ie"]["licence"], "CC-BY-4.0")
         self.assertEqual(fmt.SOURCES["wikidata"]["licence"], "CC0-1.0")
 
+    def test_texas_is_credited_with_the_line_tpwd_asks_for(self):
+        # TPWD's copyright policy asks that information reproduced
+        # verbatim carry "Information courtesy Texas Parks and Wildlife
+        # Department (c) <year>"; its reef data reached NOAA's file in 2022.
+        line = "Information courtesy Texas Parks and Wildlife Department © 2022"
+        self.assertEqual(fmt.SOURCES["tpwd"]["credit"], line)
+        self.assertIn(line, fmt.SOURCES["tpwd"]["own_terms"])
+        self.assertIn(line, fmt.NOTICE)
+
+    def test_the_federal_reef_file_is_us_government_data_with_no_restriction(
+        self,
+    ):
+        # NOAA's record for the file (InPort 54191) states no licence and
+        # no restriction, only the use "For coastal and ocean planning".
+        # The spec merges unrestricted government sources into the ODbL
+        # database, so it rides there, and its label says on what basis.
+        source = fmt.SOURCES["noaa_reefs"]
+        label = "US Government data, no restriction stated"
+        self.assertEqual(source["licence"], label)
+        self.assertNotIn("own_terms", source)
+        self.assertNotIn("noaa_reefs", fmt.OWN_TERMS_SOURCES)
+        self.assertIn(f"MarineCadastre Artificial Reefs ({label},", fmt.NOTICE)
+
     def test_the_notice_names_every_source_and_the_non_commercial_ones(self):
         for key, source in fmt.SOURCES.items():
             self.assertIn(source["name"], fmt.NOTICE, key)

@@ -74,7 +74,9 @@ https://www.arcgis.com/home/item.html?id=eb2bfd225149405bba23604f20159f56
 
 MarineCadastre Artificial Reefs, NOAA Office for Coastal Management and
 Bureau of Ocean Energy Management, compiled from the reef programs of the
-states. Public domain.
+states. United States Government data, published with no licence and no
+restriction on reuse stated; its metadata gives its use as coastal and
+ocean planning.
 https://www.fisheries.noaa.gov/inport/item/54191
 
 Florida Keys National Marine Sanctuary buoys, NOAA Florida Keys National
@@ -107,9 +109,8 @@ Division of Aquatic Resources. Copyright State of Hawaii. These records
 may not be used commercially.
 https://portal.ehawaii.gov/page/terms-of-use/
 
-Texas artificial reefs, Texas Parks and Wildlife Department. Copyright
-Texas Parks and Wildlife Department. These records may not be used
-commercially or sold.
+Texas artificial reefs. Information courtesy Texas Parks and Wildlife
+Department © 2022. These records may not be used commercially or sold.
 https://tpwd.texas.gov/site/policies/copyright-policy
 
 North Carolina Artificial Reef Guide, N.C. Division of Marine Fisheries.

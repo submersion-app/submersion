@@ -89,7 +89,11 @@ SOURCES = {
     },
     "noaa_reefs": {
         "name": "MarineCadastre Artificial Reefs",
-        "licence": "Public domain",
+        # NOAA's record for the file states no licence and no restriction,
+        # only the use "For coastal and ocean planning". It joins the ODbL
+        # database as an unrestricted government source, and the label
+        # says so rather than claiming a public domain grant NOAA never made.
+        "licence": "US Government data, no restriction stated",
         "licence_url": "https://www.fisheries.noaa.gov/inport/item/54191",
         "credit": "NOAA Office for Coastal Management and BOEM",
     },
@@ -138,10 +142,14 @@ SOURCES = {
         "name": "Texas artificial reefs",
         "licence": "Non-commercial use, with credit",
         "licence_url": "https://tpwd.texas.gov/site/policies/copyright-policy",
-        "credit": "Texas Parks and Wildlife Department",
+        # The credit line TPWD's copyright policy asks for on information
+        # reproduced verbatim; its reef data reached NOAA's file in 2022.
+        "credit": (
+            "Information courtesy Texas Parks and Wildlife Department © 2022"
+        ),
         "own_terms": (
-            "Copyright Texas Parks and Wildlife Department. Non-commercial "
-            "use with credit; not to be sold."
+            "Information courtesy Texas Parks and Wildlife Department © "
+            "2022. Non-commercial use with credit; not to be sold."
         ),
     },
     "nc_dmf": {

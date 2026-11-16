@@ -708,13 +708,13 @@ shown on a linked site's page and on the details card.
 | `ukho` | UK Hydrographic Office Wrecks and Obstructions | OGL-UK-3.0 | UK Hydrographic Office |
 | `awois` | NOAA Automated Wreck and Obstruction Information System | CC0-1.0 | NOAA Office of Coast Survey |
 | `fwc` | Artificial Reefs in Florida | Public domain | Florida Fish and Wildlife Conservation Commission, FWRI |
-| `noaa_reefs` | MarineCadastre Artificial Reefs | Public domain | NOAA Office for Coastal Management and BOEM |
+| `noaa_reefs` | MarineCadastre Artificial Reefs | US Government data, no restriction stated | NOAA Office for Coastal Management and BOEM |
 | `fknms` | Florida Keys National Marine Sanctuary buoys | US Government work | NOAA Florida Keys National Marine Sanctuary |
 | `nms_ie` | Wreck Inventory of Ireland Database | CC-BY-4.0 | National Monuments Service, Government of Ireland |
 | `wikidata` | Wikidata | CC0-1.0 | Wikidata |
 | `njdep` | Artificial Reef Deployments in New Jersey | NJDEP Data Distribution Agreement | New Jersey Department of Environmental Protection |
 | `hi_dar` | Hawaii artificial reefs | Non-commercial use | Hawaii DLNR Division of Aquatic Resources |
-| `tpwd` | Texas artificial reefs | Non-commercial use, with credit | Texas Parks and Wildlife Department |
+| `tpwd` | Texas artificial reefs | Non-commercial use, with credit | Information courtesy Texas Parks and Wildlife Department © 2022 |
 | `nc_dmf` | North Carolina Artificial Reef Guide | Non-commercial use, unaltered, with citation | N.C. Division of Marine Fisheries |
 
 - `metadata.notice` and the licence page entry "Dive site data" name every
@@ -796,8 +796,8 @@ datasets kept independent as a collective database, where share-alike
 that a list de-duplicated against OpenStreetMap "may be subject to the ODbL
 share-alike terms". Section 6 follows from that.
 
-**States with no stated terms** ship through the federal file, which NOAA
-publishes as public domain: Alabama, South Carolina, Georgia, Louisiana and
+**States with no stated terms** ship through the federal file, for which
+NOAA states no licence (corrected 2026-11-15, see below): Alabama, South Carolina, Georgia, Louisiana and
 Mississippi state no licence and no restriction, only liability and
 navigation disclaimers. South Carolina asks that acknowledgment "would be
 appreciated". Delaware's portal calls its data "public data". Maryland's
@@ -805,6 +805,24 @@ appreciated". Delaware's portal calls its data "public data". Maryland's
 deleted". California's state material is "considered in the public domain".
 Alabama has no source citation in the federal metadata at all; the state's
 own page publishes the same list with no terms.
+
+**Corrections, 2026-11-15.** Two labels were rechecked against their
+publishers' pages after slices 2 to 5 shipped:
+
+- The federal file's NOAA record (InPort item 54191) states no licence. It
+  gives "For coastal and ocean planning" as its use constraint and links a
+  disclaimer. The `noaa_reefs` licence now reads "US Government data, no
+  restriction stated" rather than "Public domain", so the label claims no
+  more than NOAA does. Its records stay in the ODbL database as an
+  unrestricted government source under the Constraints rule above: NOAA
+  states a purpose, not a limit on reuse, and the states that ship through
+  the file state no restriction (below). Carrying them as own-terms
+  records instead was weighed and not chosen.
+- TPWD's copyright policy asks that information reproduced verbatim carry
+  "Information courtesy Texas Parks and Wildlife Department © <year>". The
+  `tpwd` credit now uses that line, with 2022, the year NOAA's record gives
+  for TPWD's contribution. The reef layer's own Terms of Use on TPWD's
+  current viewer are a disclaimer only and add no restriction.
 
 **Stays out.** New York: "Any other use, including the reproduction,
 modification, distribution, transmission, republication, display, or

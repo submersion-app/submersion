@@ -3,7 +3,9 @@
 
 - `fwc`: Florida's reef deployments (public domain).
 - `noaa_reefs`: MarineCadastre's compilation of the other states' reefs
-  (published as public domain). It is a compilation: each state's own
+  (US Government data: NOAA states no licence or restriction for it, only
+  its use for coastal and ocean planning). It is a compilation: each
+  state's own
   terms decide what ships. New York's forbid distribution, so its rows
   are dropped. Florida, New Jersey and North Carolina are read from their
   own files instead. Hawaii and Texas allow non-commercial use only, so
