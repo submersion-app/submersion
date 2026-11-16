@@ -195,6 +195,32 @@ void main() {
       expect(proposal.candidates.single.isResearched, isFalse);
     });
 
+    test('a dive auto-matched to a verified site lists a map-placed record '
+        '1.5 km away among its candidates', () async {
+      catalogue.sites = [
+        record('site', 100, CatalogueKind.site),
+        CatalogueSite(
+          id: 'research_id_coral_garden',
+          name: 'Coral Garden',
+          location: _eastMeters(1500),
+          source: 'research',
+          trust: CatalogueTrust.researched,
+          positionFromMap: true,
+        ),
+      ];
+
+      final proposal = (await service().computeProposals([
+        _diveAt('d1', const GeoPoint(0, 0)),
+      ])).single;
+
+      expect(proposal.status, ProposalStatus.clear);
+      expect(proposal.recommendedCandidateId, 'site');
+      expect(proposal.candidates.map((c) => c.id), [
+        'site',
+        'research_id_coral_garden',
+      ]);
+    });
+
     test('a lone charted wreck near the dive is recommended', () async {
       catalogue.sites = [record('wreck', 60, CatalogueKind.register)];
 

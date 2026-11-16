@@ -17,11 +17,17 @@ class MatchCandidate {
   /// picked on the diver's behalf.
   final bool isResearched;
 
+  /// Whether this researched record's position was read off a counting
+  /// page's map. It is offered from up to [kMapPlacedReachMeters] away and
+  /// never stands in the way of an automatic match.
+  final bool isMapPlaced;
+
   const MatchCandidate({
     required this.id,
     required this.location,
     required this.isExisting,
     this.isRegister = false,
     this.isResearched = false,
+    this.isMapPlaced = false,
   });
 }

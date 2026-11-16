@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -225,9 +226,15 @@ class SiteMatchingService {
       final point = resolved.point;
       _pointByDive[dive.id] = point;
 
+      // Map-placed records are offered from further out than the rest;
+      // the matcher and the views below keep every other record to the
+      // outer radius.
       final bundled = await _catalogue.near(
         point,
-        radiusMeters: thresholds.outerRadiusMeters,
+        radiusMeters: math.max(
+          thresholds.outerRadiusMeters,
+          kMapPlacedReachMeters,
+        ),
       );
 
       final refs = <String, _CandidateRef>{};
@@ -266,6 +273,7 @@ class SiteMatchingService {
             isExisting: false,
             isRegister: b.kind == CatalogueKind.register,
             isResearched: b.isResearched,
+            isMapPlaced: b.isResearched && b.positionFromMap,
           ),
         );
       }
@@ -275,7 +283,9 @@ class SiteMatchingService {
       // decision so distances are computed a single time per dive/site pair.
       final ranked = rankCandidates(point, candidates);
       final views = ranked
-          .where((r) => r.distanceMeters <= thresholds.outerRadiusMeters)
+          .where(
+            (r) => r.distanceMeters <= reachMeters(r.candidate, thresholds),
+          )
           .map(
             (r) =>
                 _viewFor(r.candidate, refs[r.candidate.id]!, r.distanceMeters),
