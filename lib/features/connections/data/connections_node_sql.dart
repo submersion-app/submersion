@@ -147,7 +147,7 @@ class NeighboursOf {
   final extra = t.extraColumns.map((c) => ', t.$c AS $c').join();
   final outerWhere = labelLike == null
       ? ''
-      : "\nWHERE unicode_lower(t.${t.labelColumn}) LIKE ? ESCAPE '\\'";
+      : "\nWHERE search_fold(t.${t.labelColumn}) LIKE ? ESCAPE '\\'";
   final innerCut = cutFirst
       ? '\n  ORDER BY dive_count DESC, m.entity_id ASC\n  LIMIT ?'
       : '';

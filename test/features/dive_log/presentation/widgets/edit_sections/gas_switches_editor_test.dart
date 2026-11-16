@@ -53,6 +53,7 @@ Future<_Harness> _pump(
   ValueChanged<GasSwitch>? onPickTime,
   double width = 900,
   List<DiveTank> tanks = const [_back, _deco],
+  Set<String> invalidAsStoredIds = const {},
 }) async {
   tester.view.physicalSize = Size(width, 1600);
   tester.view.devicePixelRatio = 1.0;
@@ -82,6 +83,7 @@ Future<_Harness> _pump(
               removedWithTankCount: removedWithTankCount,
               breathStarts: breathStarts,
               onPickTime: onPickTime,
+              invalidAsStoredIds: invalidAsStoredIds,
               onChanged: (updated, field) =>
                   h.changes.add((updated: updated, field: field)),
               onRemove: h.removed.add,
@@ -241,6 +243,43 @@ void main() {
     await tester.pump();
 
     expect(find.text('Another switch is at this time'), findsOneWidget);
+  });
+
+  // A switch saved already outside the dive (issue #4527): the page names
+  // it, and the row says so without blocking Done.
+  testWidgets('a row invalid as stored shows a note and passes validation', (
+    tester,
+  ) async {
+    final h = await _pump(
+      tester,
+      switches: [_sw('gs-1', 600, 'deco'), _sw('gs-late', 2400, 'back')],
+      invalidAsStoredIds: {'gs-late'},
+    );
+
+    expect(h.formKey.currentState!.validate(), isTrue);
+    await tester.pump();
+    expect(find.text('Must be within the dive'), findsOneWidget);
+    final field = tester.widget<TextField>(
+      find.descendant(
+        of: find.byKey(const ValueKey('gas-switch-time-gs-late')),
+        matching: find.byType(TextField),
+      ),
+    );
+    expect(field.decoration?.errorText, isNull);
+    expect(field.decoration?.helperText, 'Must be within the dive');
+  });
+
+  testWidgets('other rows are still checked beside one invalid as stored', (
+    tester,
+  ) async {
+    final h = await _pump(
+      tester,
+      switches: [_sw('gs-1', 600, 'deco'), _sw('gs-late', 2400, 'back')],
+      invalidAsStoredIds: {'gs-late'},
+    );
+
+    await tester.enterText(_timeField('gs-1'), '30:01');
+    expect(h.formKey.currentState!.validate(), isFalse);
   });
 
   testWidgets('a typed depth in feet reaches onChanged in metres', (

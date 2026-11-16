@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/text/fuzzy_match.dart' show normalize;
+import 'package:submersion/core/text/fuzzy_match.dart'
+    show foldForSearch, normalize;
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_group_tile.dart';
@@ -88,9 +89,9 @@ class _RefinePeopleGroupState extends ConsumerState<RefinePeopleGroup> {
       for (final n in names)
         if (!chosen.contains(n.toLowerCase())) n,
     ];
-    final last = parts.last.toLowerCase();
+    final last = foldForSearch(parts.last);
     if (last.isEmpty) return open;
-    return open.where((n) => n.toLowerCase().contains(last));
+    return open.where((n) => foldForSearch(n).contains(last));
   }
 
   void _pickBuddy(String selection) {

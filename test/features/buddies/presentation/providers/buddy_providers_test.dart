@@ -441,6 +441,47 @@ void main() {
       expect(sorted.map((b) => b.buddy.name), ['Alice', 'Bob', 'Charlie']);
     });
 
+    test('an accented name sorts beside its plain letter (#4498)', () {
+      final buddies = [
+        _withCount('Joachim'),
+        _withCount('Zoé'),
+        _withCount('Jérémie'),
+        _withCount('Éric'),
+        _withCount('Łukasz'),
+        _withCount('Mia'),
+      ];
+      const byName = SortState(
+        field: BuddySortField.name,
+        direction: SortDirection.descending,
+      );
+
+      expect(
+        applyBuddyWithDiveCountSorting(
+          buddies,
+          byName,
+        ).map((b) => b.buddy.name),
+        ['Éric', 'Jérémie', 'Joachim', 'Łukasz', 'Mia', 'Zoé'],
+      );
+      expect(
+        applyBuddySorting([
+          for (final b in buddies) b.buddy,
+        ], byName).map((b) => b.name),
+        ['Éric', 'Jérémie', 'Joachim', 'Łukasz', 'Mia', 'Zoé'],
+      );
+    });
+
+    test('dive count ties break by name, accents folded (#4498)', () {
+      final sorted = applyBuddyWithDiveCountSorting(
+        [_withCount('Joachim'), _withCount('Jérémie')],
+        const SortState(
+          field: BuddySortField.diveCount,
+          direction: SortDirection.descending,
+        ),
+      );
+
+      expect(sorted.map((b) => b.buddy.name), ['Jérémie', 'Joachim']);
+    });
+
     test('does not mutate the input list', () {
       final buddies = [
         _withCount('Low', diveCount: 1),

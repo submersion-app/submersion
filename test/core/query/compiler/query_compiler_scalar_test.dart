@@ -94,7 +94,7 @@ void main() {
         const StringValue('100%_x'),
       ),
     );
-    expect(k.where, "(unicode_lower(r0.notes) LIKE ? ESCAPE '\\')");
+    expect(k.where, "(search_fold(r0.notes) LIKE ? ESCAPE '\\')");
     expect(k.params, ['%100\\%\\_x%']);
   });
 
@@ -233,8 +233,8 @@ void main() {
     final word = c(TextNode(['night']));
     expect(
       word.where,
-      "((unicode_lower(r0.notes) LIKE ? ESCAPE '\\' OR EXISTS (SELECT 1 FROM dive_sites ts "
-      "WHERE ts.id = r0.site_id AND unicode_lower(ts.name) LIKE ? ESCAPE '\\')))",
+      "((search_fold(r0.notes) LIKE ? ESCAPE '\\' OR EXISTS (SELECT 1 FROM dive_sites ts "
+      "WHERE ts.id = r0.site_id AND search_fold(ts.name) LIKE ? ESCAPE '\\')))",
     );
     expect(word.params, ['%night%', '%night%']);
 
@@ -343,7 +343,7 @@ void main() {
     );
     expect(
       q.where,
-      "(NOT COALESCE((unicode_lower(r0.notes) LIKE ? ESCAPE '\\'), 0))",
+      "(NOT COALESCE((search_fold(r0.notes) LIKE ? ESCAPE '\\'), 0))",
     );
   });
 

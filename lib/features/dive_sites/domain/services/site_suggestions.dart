@@ -1,3 +1,4 @@
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_sites/domain/constants/iso_countries.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -12,7 +13,7 @@ List<String> suggestedSiteNames(List<DiveSite> sites, {String? excludeId}) {
     if (name.isEmpty) continue;
     if (seen.add(name.toLowerCase())) names.add(name);
   }
-  names.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  names.sort((a, b) => compareTextForSort(a, b));
   return names;
 }
 
@@ -32,7 +33,7 @@ List<String> suggestedCountryNames(Iterable<String?> used) {
     if (country.isEmpty) continue;
     if (seen.add(country.toLowerCase())) userCountries.add(country);
   }
-  userCountries.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  userCountries.sort((a, b) => compareTextForSort(a, b));
   final extras = isoCountryNames
       .where((c) => !seen.contains(c.toLowerCase()))
       .toList();
@@ -55,7 +56,7 @@ List<String> suggestedRegions(List<DiveSite> sites, String country) {
     }
     if (seen.add(region.toLowerCase())) regions.add(region);
   }
-  regions.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  regions.sort((a, b) => compareTextForSort(a, b));
   return regions;
 }
 
@@ -83,7 +84,7 @@ List<String> suggestedCities(
     }
     if (seen.add(city.toLowerCase())) cities.add(city);
   }
-  cities.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  cities.sort((a, b) => compareTextForSort(a, b));
   return cities;
 }
 
@@ -101,7 +102,7 @@ List<String> suggestedIslands(List<DiveSite> sites, String country) {
     }
     if (seen.add(island.toLowerCase())) islands.add(island);
   }
-  islands.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  islands.sort((a, b) => compareTextForSort(a, b));
   return islands;
 }
 
@@ -119,6 +120,6 @@ List<String> suggestedBodiesOfWater(List<DiveSite> sites, String country) {
     }
     if (seen.add(body.toLowerCase())) bodies.add(body);
   }
-  bodies.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  bodies.sort((a, b) => compareTextForSort(a, b));
   return bodies;
 }

@@ -64,6 +64,11 @@ class TankEditor extends ConsumerStatefulWidget {
   /// (#797), which never writes pressures.
   final bool showPressures;
 
+  /// Hide the role picker, letting the preset take the whole row. Used by the
+  /// bulk spec update when roles are set per tank position (issue #4412),
+  /// where a single template role would read as if it still applied.
+  final bool showRole;
+
   /// Replaces the numbered "Tank N" header with this title and a stacked
   /// icon. Used where the editor is a template written to many tanks, such
   /// as the bulk spec update, where "Tank 1" read as only the first tank
@@ -120,6 +125,7 @@ class TankEditor extends ConsumerStatefulWidget {
     this.onRemove,
     this.canRemove = true,
     this.showPressures = true,
+    this.showRole = true,
     this.headerTitle,
     this.onOwnCylinderUsed,
     this.diveDate,
@@ -704,47 +710,52 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             onCylinderChosen: _chooseOwnCylinder,
           ),
         ),
-        const SizedBox(width: 16),
-        // Role dropdown
-        Expanded(
-          child: DropdownButtonFormField<TankRole>(
-            // Keyed by the role, so a role set by a twin set pick (issue
-            // #4242) shows; initialValue is read once per field.
-            key: ValueKey('tank-role-${_role.name}'),
-            initialValue: _role,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveLog_tank_label_role,
-              isDense: true,
-            ),
-            items: TankRole.values
-                .map(
-                  (role) => DropdownMenuItem(
-                    value: role,
-                    child: TankRoleOption(role: role),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _role = value;
-                  // A CCR oxygen supply cylinder feeds pure O2 into the loop
-                  // by definition, so there's nothing to analyze -- default
-                  // it instead of making the diver enter 100% by hand (#726).
-                  if (value == TankRole.oxygenSupply) {
-                    _lastValidO2 = 100.0;
-                    _lastValidHe = 0.0;
-                    _o2Controller.text = formatDecimalForInput(_lastValidO2);
-                    _heController.text = formatDecimalForInput(_lastValidHe);
-                  }
-                });
-                _notifyChange();
-              }
-            },
-          ),
-        ),
+        if (widget.showRole) ...[
+          const SizedBox(width: 16),
+          _buildRoleDropdown(),
+        ],
       ],
+    );
+  }
+
+  Widget _buildRoleDropdown() {
+    return Expanded(
+      child: DropdownButtonFormField<TankRole>(
+        // Keyed by the role, so a role set by a twin set pick (issue
+        // #4242) shows; initialValue is read once per field.
+        key: ValueKey('tank-role-${_role.name}'),
+        initialValue: _role,
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: context.l10n.diveLog_tank_label_role,
+          isDense: true,
+        ),
+        items: TankRole.values
+            .map(
+              (role) => DropdownMenuItem(
+                value: role,
+                child: TankRoleOption(role: role),
+              ),
+            )
+            .toList(),
+        onChanged: (value) {
+          if (value != null) {
+            setState(() {
+              _role = value;
+              // A CCR oxygen supply cylinder feeds pure O2 into the loop
+              // by definition, so there's nothing to analyze -- default
+              // it instead of making the diver enter 100% by hand (#726).
+              if (value == TankRole.oxygenSupply) {
+                _lastValidO2 = 100.0;
+                _lastValidHe = 0.0;
+                _o2Controller.text = formatDecimalForInput(_lastValidO2);
+                _heController.text = formatDecimalForInput(_lastValidHe);
+              }
+            });
+            _notifyChange();
+          }
+        },
+      ),
     );
   }
 

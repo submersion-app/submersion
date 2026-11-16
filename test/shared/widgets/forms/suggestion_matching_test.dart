@@ -10,6 +10,13 @@ void main() {
     expect(suggestionsContaining(suggestions, 'a'), suggestions);
   });
 
+  test('ignores accents on either side (#4498)', () {
+    const accented = ['Curaçao', 'Réunion', 'Malta'];
+    expect(suggestionsContaining(accented, 'curacao'), ['Curaçao']);
+    expect(suggestionsContaining(accented, 'RÉU'), ['Réunion']);
+    expect(suggestionsContaining(['Reunion'], 'réu'), ['Reunion']);
+  });
+
   test('blank text offers nothing', () {
     expect(suggestionsContaining(suggestions, '  '), isEmpty);
   });

@@ -10,6 +10,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
@@ -177,7 +178,7 @@ class BuddyRepository {
     String query, {
     String? diverId,
   }) async {
-    final searchTerm = '%${query.toLowerCase()}%';
+    final searchTerm = '%${foldForSearch(query)}%';
     final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
     final variables = [
       Variable.withString(searchTerm),
@@ -189,10 +190,10 @@ class BuddyRepository {
 
     final results = await _db.customSelect('''
       SELECT * FROM buddies
-      WHERE (unicode_lower(name) LIKE ?
-         OR unicode_lower(email) LIKE ?
+      WHERE (search_fold(name) LIKE ?
+         OR search_fold(email) LIKE ?
          OR phone LIKE ?
-         OR unicode_lower(country) LIKE ?)
+         OR search_fold(country) LIKE ?)
       $diverFilter
       ORDER BY name COLLATE NOCASE ASC
     ''', variables: variables).get();
@@ -1031,14 +1032,14 @@ class BuddyRepository {
         if (diverId != null) 'b.diver_id = ?',
         if (idList != null) 'b.id IN $idList',
         if (query != null && query.isNotEmpty)
-          '(unicode_lower(b.name) LIKE ? OR unicode_lower(b.email) LIKE ? '
-              'OR b.phone LIKE ? OR unicode_lower(b.country) LIKE ?)',
+          '(search_fold(b.name) LIKE ? OR search_fold(b.email) LIKE ? '
+              'OR b.phone LIKE ? OR search_fold(b.country) LIKE ?)',
       ];
       final where = conditions.isEmpty
           ? ''
           : 'WHERE ${conditions.join(' AND ')}';
       final searchTerm = query != null && query.isNotEmpty
-          ? '%${query.toLowerCase()}%'
+          ? '%${foldForSearch(query)}%'
           : null;
       final idVariables = [...?ids?.map(Variable.withString)];
       final variables = [

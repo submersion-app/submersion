@@ -22,6 +22,11 @@ void main() {
       expect(builtInDiveTypeIdsMatching('épave'), {'wreck'});
     });
 
+    test('ignores accents, so "epave" finds Épave (#4498)', () {
+      expect(builtInDiveTypeIdsMatching('epave'), {'wreck'});
+      expect(builtInDiveTypeIdsMatching('EPAVE'), {'wreck'});
+    });
+
     test('trims surrounding whitespace', () {
       expect(builtInDiveTypeIdsMatching('  nacht  '), {'night'});
     });

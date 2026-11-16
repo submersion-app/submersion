@@ -2147,6 +2147,46 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll =>
+      'Stesso ruolo per ogni bombola';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition =>
+      'Ruolo per posizione della bombola';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'Aggiungi posizione';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'Rimuovi posizione';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Solo le immersioni con esattamente $count bombole ricevono questi ruoli, nell\'ordine delle bombole.',
+      one:
+          'Solo le immersioni con esattamente $count bombola ricevono questo ruolo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count immersioni non corrispondono alle posizioni delle bombole, quindi i loro ruoli restano invariati.',
+      one:
+          '$count immersione non corrisponde alle posizioni delle bombole, quindi i suoi ruoli restano invariati.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => 'Applicare le modifiche?';
 
   @override

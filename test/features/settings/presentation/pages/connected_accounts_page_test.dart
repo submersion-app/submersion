@@ -18,6 +18,7 @@ import 'package:submersion/core/services/accounts/account_provider_registry.dart
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
+import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -107,6 +108,11 @@ void main() {
           ),
           accountProviderRegistryProvider.overrideWithValue(
             AccountProviderRegistry([dropbox, s3]),
+          ),
+          // The real iCloud check answers on the real event loop, never on the
+          // test's fake clock, and the add list waits for it (issue #4612).
+          iCloudAvailabilityProvider.overrideWith(
+            (ref) async => ICloudAvailability.unsupported,
           ),
           ...overrides,
         ],

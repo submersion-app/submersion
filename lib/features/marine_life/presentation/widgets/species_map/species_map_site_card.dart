@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/domain/entities/species_map_pins.dart';
@@ -54,7 +55,7 @@ class SpeciesMapSiteCard extends ConsumerWidget {
               ),
         ]..sort((a, b) {
           final byCount = b.count.compareTo(a.count);
-          return byCount != 0 ? byCount : a.name.compareTo(b.name);
+          return byCount != 0 ? byCount : compareTextForSort(a.name, b.name);
         });
     final expectedAsync = ref.watch(siteExpectedSpeciesProvider(pin.siteId));
     final expected = [

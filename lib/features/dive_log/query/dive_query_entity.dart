@@ -58,9 +58,9 @@ final kDiveGearJoinSql =
     'UNION ${tankRegulatorIdsOfDiveSql('{from}.id')})';
 
 const _gearWordMatchSql =
-    "SELECT teq.id FROM equipment teq WHERE unicode_lower(teq.name) LIKE ? "
-    "ESCAPE '\\' OR unicode_lower(teq.brand) LIKE ? ESCAPE '\\' "
-    "OR unicode_lower(teq.model) LIKE ? ESCAPE '\\'";
+    "SELECT teq.id FROM equipment teq WHERE search_fold(teq.name) LIKE ? "
+    "ESCAPE '\\' OR search_fold(teq.brand) LIKE ? ESCAPE '\\' "
+    "OR search_fold(teq.model) LIKE ? ESCAPE '\\'";
 
 /// A word that names gear a dive used: the same set as [kDiveGearJoinSql],
 /// walked from the matching gear to its dives, because that join is correlated
@@ -245,55 +245,55 @@ final QueryEntity diveQueryEntity = QueryEntity(
   diverScopeColumn: 'diver_id',
   scopesHopsToDiver: true,
   textSearchSql: [
-    "unicode_lower({r}.notes) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.buddy) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.dive_master) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.notes) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.buddy) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.dive_master) LIKE ? ESCAPE '\\'",
     // Shown on the dive since #3229, so a search finds them too.
-    "unicode_lower({r}.dive_operator) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.boat_name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.boat_captain) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.surface_conditions) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.dive_operator) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.boat_name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.boat_captain) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.surface_conditions) LIKE ? ESCAPE '\\'",
     'EXISTS (SELECT 1 FROM dive_sites ts WHERE ts.id = {r}.site_id '
-        "AND (unicode_lower(ts.name) LIKE ? ESCAPE '\\' OR unicode_lower(ts.country) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(ts.region) LIKE ? ESCAPE '\\'))",
+        "AND (search_fold(ts.name) LIKE ? ESCAPE '\\' OR search_fold(ts.country) LIKE ? ESCAPE '\\' "
+        "OR search_fold(ts.region) LIKE ? ESCAPE '\\'))",
     'EXISTS (SELECT 1 FROM dive_centers tc WHERE tc.id = {r}.dive_center_id '
-        "AND unicode_lower(tc.name) LIKE ? ESCAPE '\\')",
+        "AND search_fold(tc.name) LIKE ? ESCAPE '\\')",
     'EXISTS (SELECT 1 FROM dive_buddies tdb JOIN buddies tb '
         'ON tb.id = tdb.buddy_id WHERE tdb.dive_id = {r}.id '
-        "AND unicode_lower(tb.name) LIKE ? ESCAPE '\\')",
+        "AND search_fold(tb.name) LIKE ? ESCAPE '\\')",
     'EXISTS (SELECT 1 FROM dive_tags tdt JOIN tags tt ON tt.id = tdt.tag_id '
-        "WHERE tdt.dive_id = {r}.id AND unicode_lower(tt.name) LIKE ? ESCAPE '\\')",
+        "WHERE tdt.dive_id = {r}.id AND search_fold(tt.name) LIKE ? ESCAPE '\\')",
     'EXISTS (SELECT 1 FROM dive_custom_fields tcf WHERE tcf.dive_id = {r}.id '
-        "AND (unicode_lower(tcf.field_key) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(tcf.field_value) LIKE ? ESCAPE '\\'))",
+        "AND (search_fold(tcf.field_key) LIKE ? ESCAPE '\\' "
+        "OR search_fold(tcf.field_value) LIKE ? ESCAPE '\\'))",
     // The stored name: a custom type's own, a built-in's English one. The
     // translations are kDiveTypeTranslatedTextSearch (issue #2884).
     'EXISTS (SELECT 1 FROM dive_dive_types tddt JOIN dive_types tdty '
         'ON tdty.id = tddt.dive_type_id WHERE tddt.dive_id = {r}.id '
-        "AND unicode_lower(tdty.name) LIKE ? ESCAPE '\\')",
+        "AND search_fold(tdty.name) LIKE ? ESCAPE '\\')",
     // What a dive carries, so a brand or a trip finds it (#3457). Each of
     // these reads its matches once rather than once per dive, which keeps a
     // word that matches nothing cheap on a long log.
     _gearTextSearchSql,
     "{r}.trip_id IN (SELECT ttrp.id FROM trips ttrp WHERE "
-        "unicode_lower(ttrp.name) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(ttrp.location) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(ttrp.resort_name) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(ttrp.liveaboard_name) LIKE ? ESCAPE '\\')",
+        "search_fold(ttrp.name) LIKE ? ESCAPE '\\' "
+        "OR search_fold(ttrp.location) LIKE ? ESCAPE '\\' "
+        "OR search_fold(ttrp.resort_name) LIKE ? ESCAPE '\\' "
+        "OR search_fold(ttrp.liveaboard_name) LIKE ? ESCAPE '\\')",
     '{r}.id IN (SELECT tsgt.dive_id FROM sightings tsgt WHERE tsgt.species_id '
         'IN (SELECT tspc.id FROM species tspc WHERE '
-        "unicode_lower(tspc.common_name) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(tspc.scientific_name) LIKE ? ESCAPE '\\'))",
+        "search_fold(tspc.common_name) LIKE ? ESCAPE '\\' "
+        "OR search_fold(tspc.scientific_name) LIKE ? ESCAPE '\\'))",
     '{r}.id IN (SELECT tdcr.dive_id FROM dive_courses tdcr WHERE tdcr.course_id '
         'IN (SELECT tcrs.id FROM courses tcrs WHERE '
-        "unicode_lower(tcrs.name) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(tcrs.location) LIKE ? ESCAPE '\\'))",
-    "unicode_lower({r}.dive_computer_model) LIKE ? ESCAPE '\\'",
+        "search_fold(tcrs.name) LIKE ? ESCAPE '\\' "
+        "OR search_fold(tcrs.location) LIKE ? ESCAPE '\\'))",
+    "search_fold({r}.dive_computer_model) LIKE ? ESCAPE '\\'",
     "{r}.computer_id IN (SELECT tcmp.id FROM dive_computers tcmp "
-        "WHERE unicode_lower(tcmp.name) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(tcmp.manufacturer) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(tcmp.model) LIKE ? ESCAPE '\\')",
+        "WHERE search_fold(tcmp.name) LIKE ? ESCAPE '\\' "
+        "OR search_fold(tcmp.manufacturer) LIKE ? ESCAPE '\\' "
+        "OR search_fold(tcmp.model) LIKE ? ESCAPE '\\')",
   ],
   textSearchTables: const [
     'dive_sites',

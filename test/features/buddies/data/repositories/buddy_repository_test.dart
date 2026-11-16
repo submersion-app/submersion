@@ -245,6 +245,27 @@ void main() {
         expect(results.length, equals(1));
         expect(results[0].name, equals('Jane Doe'));
       });
+
+      test('ignores accents either way round (#4498)', () async {
+        await repository.createBuddy(createTestBuddy(name: 'Jérémie Dupont'));
+        await repository.createBuddy(createTestBuddy(name: 'Joachim'));
+
+        for (final typed in ['jeremie', 'JÉRÉMIE']) {
+          expect((await repository.searchBuddies(typed)).map((b) => b.name), [
+            'Jérémie Dupont',
+          ], reason: typed);
+          expect(
+            (await repository.getAllBuddiesWithDiveCount(
+              query: typed,
+            )).map((b) => b.buddy.name),
+            ['Jérémie Dupont'],
+            reason: typed,
+          );
+        }
+        expect((await repository.searchBuddies('dupônt')).map((b) => b.name), [
+          'Jérémie Dupont',
+        ]);
+      });
     });
 
     group('getDiveCountForBuddy', () {

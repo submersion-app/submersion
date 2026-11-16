@@ -3280,6 +3280,42 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 selected dive has no tanks and will be skipped.} other{{count} selected dives have no tanks and will be skipped.}}'**
   String diveLog_bulkEdit_tankSpecsSkipped(int count);
 
+  /// No description provided for @diveLog_bulkEdit_tankRoleSameForAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Same role on every tank'**
+  String get diveLog_bulkEdit_tankRoleSameForAll;
+
+  /// No description provided for @diveLog_bulkEdit_tankRoleByPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Role by tank position'**
+  String get diveLog_bulkEdit_tankRoleByPosition;
+
+  /// No description provided for @diveLog_bulkEdit_tankRoleAddPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Add position'**
+  String get diveLog_bulkEdit_tankRoleAddPosition;
+
+  /// No description provided for @diveLog_bulkEdit_tankRoleRemovePosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove position'**
+  String get diveLog_bulkEdit_tankRoleRemovePosition;
+
+  /// No description provided for @diveLog_bulkEdit_tankRolesByPositionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Only dives with exactly {count} tank get this role.} other{Only dives with exactly {count} tanks get these roles, in tank order.}}'**
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count);
+
+  /// No description provided for @diveLog_bulkEdit_tankRolesSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive doesn\'t match the tank positions, so its tank roles stay as they are.} other{{count} dives don\'t match the tank positions, so their tank roles stay as they are.}}'**
+  String diveLog_bulkEdit_tankRolesSkipped(int count);
+
   /// No description provided for @diveLog_bulkEdit_confirmTitle.
   ///
   /// In en, this message translates to:

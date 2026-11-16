@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 
@@ -101,7 +102,7 @@ class RawDiveDataService {
       if (a.name == null || b.name == null) {
         return (a.name == null ? 1 : 0) - (b.name == null ? 1 : 0);
       }
-      return a.name!.toLowerCase().compareTo(b.name!.toLowerCase());
+      return compareTextForSort(a.name!, b.name!);
     });
   }
 

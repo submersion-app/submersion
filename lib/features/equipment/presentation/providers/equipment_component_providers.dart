@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -70,7 +71,7 @@ final equipmentPartOfProvider =
             rootNames: [
               for (final id in rootsByParent[p.parentEquipmentId]!)
                 names[id] ?? id,
-            ]..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())),
+            ]..sort((a, b) => compareTextForSort(a, b)),
           ),
       ];
     });

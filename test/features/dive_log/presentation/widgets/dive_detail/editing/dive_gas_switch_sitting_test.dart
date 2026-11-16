@@ -226,6 +226,75 @@ void main() {
     });
   });
 
+  // A switch saved already outside the dive blocks nothing until the
+  // diver touches it: a Notes edit is not held hostage by an old import.
+  group('invalid as stored', () {
+    final late = sw('late', 3600, 'b');
+
+    test('a switch stored past the end blocks nothing', () async {
+      final s = await loaded(dive, [stored[0], late]);
+      expect(gasSwitchesInvalidAsStored(s), {'late'});
+      expect(gasSwitchesValid(s), isTrue);
+    });
+
+    test('touching it makes it count, and a time inside clears it', () async {
+      final s = await loaded(dive, [stored[0], late]);
+      changeGasSwitch(s, late.copyWith(timestamp: 3500), GasSwitchField.time);
+      expect(gasSwitchesInvalidAsStored(s), isEmpty);
+      expect(gasSwitchesValid(s), isFalse);
+      changeGasSwitch(s, late.copyWith(timestamp: 2900), GasSwitchField.time);
+      expect(gasSwitchesValid(s), isTrue);
+    });
+
+    test('a new cylinder for it is touching it too', () async {
+      final s = await loaded(dive, [stored[0], late]);
+      changeGasSwitch(s, late.copyWith(tankId: 'a'), GasSwitchField.tank);
+      expect(gasSwitchesValid(s), isFalse);
+    });
+
+    test('still out after the runtime changes, it blocks nothing', () async {
+      final bare = dive.copyWith(
+        profile: const [],
+        runtime: const Duration(minutes: 30),
+      );
+      final s = await loaded(bare, [stored[0], sw('past', 2400, 'b')]);
+      expect(gasSwitchesValid(s), isTrue);
+      s.set(diveRuntimeField, 2100.0);
+      expect(gasSwitchesInvalidAsStored(s), {'past'});
+      expect(gasSwitchesValid(s), isTrue);
+    });
+
+    test('a valid switch the sitting puts out of range still blocks', () async {
+      final bare = dive.copyWith(
+        profile: const [],
+        runtime: const Duration(minutes: 50),
+      );
+      final s = await loaded(bare);
+      s.set(diveRuntimeField, 1800.0);
+      expect(gasSwitchesInvalidAsStored(s), isEmpty);
+      expect(gasSwitchesValid(s), isFalse);
+    });
+
+    test('two stored at one second block nothing until one moves', () async {
+      final s = await loaded(dive, [stored[0], sw('twin', 0, 'b')]);
+      expect(gasSwitchesInvalidAsStored(s), {'s1', 'twin'});
+      expect(gasSwitchesValid(s), isTrue);
+      changeGasSwitch(
+        s,
+        sw('twin', 0, 'b').copyWith(timestamp: 600),
+        GasSwitchField.time,
+      );
+      expect(gasSwitchesValid(s), isTrue);
+    });
+
+    test('a valid switch moved onto the twins\' second blocks', () async {
+      final s = await loaded(dive, [stored[0], sw('twin', 0, 'b'), stored[1]]);
+      expect(gasSwitchesValid(s), isTrue);
+      changeGasSwitch(s, stored[1].copyWith(timestamp: 0), GasSwitchField.time);
+      expect(gasSwitchesValid(s), isFalse);
+    });
+  });
+
   test('shown only with two breathing cylinders, not gauge, not planned', () {
     expect(gasSwitchesShown(EditSession(dive)), isTrue);
     expect(

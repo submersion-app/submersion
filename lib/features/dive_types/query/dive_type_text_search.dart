@@ -1,10 +1,11 @@
 import 'package:submersion/core/query/registry/query_entity.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/dive_type_mapper.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// Every built-in dive type's translated full and short names, lower-cased,
-/// across all of the app's languages, keyed on the slug id.
+/// Every built-in dive type's translated full and short names, folded by
+/// [foldForSearch], across all of the app's languages, keyed on the slug id.
 ///
 /// Built-in types are stored with English names (`kSeedBuiltInDiveTypesSql`),
 /// so a LIKE over `dive_types.name` cannot find "Eis" or "Épave". Matching
@@ -17,14 +18,15 @@ final Map<String, List<String>> _builtInNames = Map.unmodifiable({
         ...[
           ?builtInDiveTypeName(lookupAppLocalizations(locale), id),
           ?builtInDiveTypeShortName(lookupAppLocalizations(locale), id),
-        ].map((n) => n.toLowerCase()),
+        ].map(foldForSearch),
     }),
 });
 
 /// The built-in dive type ids whose translated name or short name, in any app
-/// language, contains [term], ignoring case and surrounding whitespace.
+/// language, contains [term], ignoring case, accents (#4498) and surrounding
+/// whitespace.
 Set<String> builtInDiveTypeIdsMatching(String term) {
-  final needle = term.trim().toLowerCase();
+  final needle = foldForSearch(term.trim());
   if (needle.isEmpty) return const {};
   return {
     for (final MapEntry(key: id, value: names) in _builtInNames.entries)

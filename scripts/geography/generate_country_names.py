@@ -54,29 +54,26 @@ OUTPUT_PATH = os.path.join(
     _REPO, "lib", "core", "geography", "country_names.generated.dart"
 )
 
-# Mirrors _diacriticMap in lib/core/text/fuzzy_match.dart.
+# Mirrors _diacriticMap in lib/core/text/fuzzy_match.dart (#4498 widened it
+# to Latin Extended-A and spelled out ß, æ, œ, þ and ð).
 _DIACRITICS = {
-    0xE0: "a", 0xE1: "a", 0xE2: "a", 0xE3: "a", 0xE4: "a", 0xE5: "a",
-    0xE7: "c",
-    0xE8: "e", 0xE9: "e", 0xEA: "e", 0xEB: "e",
-    0xEC: "i", 0xED: "i", 0xEE: "i", 0xEF: "i",
-    0xF1: "n",
-    0xF2: "o", 0xF3: "o", 0xF4: "o", 0xF5: "o", 0xF6: "o", 0xF8: "o",
-    0xF9: "u", 0xFA: "u", 0xFB: "u", 0xFC: "u",
-    0xFD: "y", 0xFF: "y",
-    0x151: "o", 0x171: "u",
-}
-
-
-# Latin letters past the shared table, mirrored by _widerLatin in
-# lib/core/geography/country_code.dart: names in Central European and
-# Turkish spellings ("Česko", "Łódź") fold like their plain forms.
-_WIDER_LATIN = {
-    "ă": "a", "ą": "a", "ā": "a", "ć": "c", "č": "c", "ď": "d", "đ": "d",
-    "ę": "e", "ě": "e", "ē": "e", "ğ": "g", "ı": "i", "ī": "i", "ł": "l",
-    "ń": "n", "ň": "n", "ō": "o", "ř": "r", "ś": "s", "š": "s", "ş": "s",
-    "ș": "s", "ť": "t", "ţ": "t", "ț": "t", "ū": "u", "ů": "u", "ź": "z",
-    "ż": "z", "ž": "z",
+    0xDF: "ss", 0xE0: "a", 0xE1: "a", 0xE2: "a", 0xE3: "a", 0xE4: "a",
+    0xE5: "a", 0xE6: "ae", 0xE7: "c", 0xE8: "e", 0xE9: "e", 0xEA: "e",
+    0xEB: "e", 0xEC: "i", 0xED: "i", 0xEE: "i", 0xEF: "i", 0xF0: "d",
+    0xF1: "n", 0xF2: "o", 0xF3: "o", 0xF4: "o", 0xF5: "o", 0xF6: "o",
+    0xF8: "o", 0xF9: "u", 0xFA: "u", 0xFB: "u", 0xFC: "u", 0xFD: "y",
+    0xFE: "th", 0xFF: "y", 0x101: "a", 0x103: "a", 0x105: "a", 0x107: "c",
+    0x109: "c", 0x10B: "c", 0x10D: "c", 0x10F: "d", 0x111: "d", 0x113: "e",
+    0x115: "e", 0x117: "e", 0x119: "e", 0x11B: "e", 0x11D: "g", 0x11F: "g",
+    0x121: "g", 0x123: "g", 0x125: "h", 0x127: "h", 0x129: "i", 0x12B: "i",
+    0x12D: "i", 0x12F: "i", 0x131: "i", 0x133: "ij", 0x135: "j", 0x137: "k",
+    0x138: "k", 0x13A: "l", 0x13C: "l", 0x13E: "l", 0x140: "l", 0x142: "l",
+    0x144: "n", 0x146: "n", 0x148: "n", 0x149: "n", 0x14B: "n", 0x14D: "o",
+    0x14F: "o", 0x151: "o", 0x153: "oe", 0x155: "r", 0x157: "r", 0x159: "r",
+    0x15B: "s", 0x15D: "s", 0x15F: "s", 0x161: "s", 0x163: "t", 0x165: "t",
+    0x167: "t", 0x169: "u", 0x16B: "u", 0x16D: "u", 0x16F: "u", 0x171: "u",
+    0x173: "u", 0x175: "w", 0x177: "y", 0x17A: "z", 0x17C: "z", 0x17E: "z",
+    0x17F: "s", 0x219: "s", 0x21B: "t",
 }
 
 
@@ -104,10 +101,10 @@ def fold(text: str) -> str:
     "Trinidad and Tobago" all find their country.
     """
     folded = "".join(_DIACRITICS.get(ord(ch), ch) for ch in text.strip().lower())
-    # Decomposed accents ("e" + U+0301) drop their mark; wider Latin letters
-    # fold to plain ones, and apostrophes and dashes to one form each.
+    # Decomposed accents ("e" + U+0301) drop their mark, as normalize drops
+    # them, and apostrophes and dashes fold to one form each.
     folded = "".join(
-        _WIDER_LATIN.get(ch, _PUNCTUATION.get(ch, ch))
+        _PUNCTUATION.get(ch, ch)
         for ch in folded
         if not _is_combining_mark(ch)
     )
