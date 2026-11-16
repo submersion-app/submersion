@@ -8,6 +8,12 @@ import 'package:submersion/features/documents/presentation/widgets/document_tile
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_document_links_sitting.dart';
+import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// The Documents card on an owner's detail page (dive, site, trip, gear,
 /// course, certification, buddy, dive center): its documents and an "Add
@@ -18,17 +24,55 @@ class DocumentsSection extends ConsumerWidget {
   /// The certification page shows its card images itself.
   final bool excludeCards;
 
+  /// The open Documents card's sitting on the dive (issue #4527): Add
+  /// creates a Personal document at once and holds joining it to the dive;
+  /// Remove holds detaching. On a page that offers editing and with no
+  /// sitting given, the card reads only.
+  final EditSession<Dive>? editing;
+
   const DocumentsSection({
     super.key,
     required this.owner,
     this.excludeCards = false,
+    this.editing,
   });
+
+  /// A new document, filed as Personal until the sitting is saved.
+  Future<void> _addInSitting(
+    BuildContext context,
+    EditSession<Dive> session,
+  ) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (pageContext) => Consumer(
+          builder: (pageContext, ref, _) => DocumentEditPage(
+            ownerFixed: true,
+            onSaved: (id) async {
+              final navigator = Navigator.of(pageContext);
+              final saved = await ref
+                  .read(documentRepositoryProvider)
+                  .getById(id);
+              if (saved != null) attachDocument(session, saved);
+              navigator.pop();
+            },
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final docs = ref.watch(documentsForOwnerProvider(owner));
+    final stored = ref.watch(documentsForOwnerProvider(owner));
+    final scope = RecordEditScope.maybeOf<Dive>(context);
+    final editing = this.editing;
+    final session = editing ?? scope?.session;
+    final readOnly = scope != null && editing == null;
+    final docs = session == null
+        ? stored
+        : stored.whenData((list) => documentsInSitting(session, list));
     final tagsByDocument =
         ref.watch(tagsByItemProvider(TagScope.documents)).value ??
         const <String, List<Tag>>{};
@@ -67,19 +111,41 @@ class DocumentsSection extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  TextButton.icon(
-                    key: const ValueKey('documents-section-add'),
-                    icon: const Icon(Icons.add),
-                    label: Text(l10n.documents_add),
-                    onPressed: () => context.push(
-                      Uri(
-                        path: '/documents/new',
-                        queryParameters: {
-                          'ownerKind': owner.kind.storage,
-                          'ownerId': ?owner.id,
-                        },
-                      ).toString(),
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Read only, it keeps its room, so the card does not
+                      // change size when the dive is unlocked. Flexible, so
+                      // a long label on a narrow phone still fits.
+                      Flexible(
+                        child: Visibility(
+                          visible: !readOnly,
+                          maintainSize: true,
+                          maintainAnimation: true,
+                          maintainState: true,
+                          child: TextButton.icon(
+                            key: const ValueKey('documents-section-add'),
+                            icon: const Icon(Icons.add),
+                            label: Text(l10n.documents_add),
+                            onPressed: readOnly
+                                ? null
+                                : editing != null
+                                ? () => _addInSitting(context, editing)
+                                : () => context.push(
+                                    Uri(
+                                      path: '/documents/new',
+                                      queryParameters: {
+                                        'ownerKind': owner.kind.storage,
+                                        'ownerId': ?owner.id,
+                                      },
+                                    ).toString(),
+                                  ),
+                          ),
+                        ),
+                      ),
+                      // Its pencil, while the dive is unlocked.
+                      RecordCardPencil(cardTitle: l10n.documents_section_title),
+                    ],
                   ),
                 ],
               ),
@@ -104,11 +170,24 @@ class DocumentsSection extends ConsumerWidget {
                 return Column(
                   children: [
                     for (final d in shown)
-                      DocumentTile(
-                        key: ValueKey('document-${d.id}'),
-                        document: d,
-                        tags: tagsByDocument[d.id] ?? const [],
-                        onTap: () => context.push('/documents/${d.id}'),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DocumentTile(
+                              key: ValueKey('document-${d.id}'),
+                              document: d,
+                              tags: tagsByDocument[d.id] ?? const [],
+                              onTap: () => context.push('/documents/${d.id}'),
+                            ),
+                          ),
+                          if (editing != null)
+                            IconButton(
+                              key: ValueKey('document-remove-${d.id}'),
+                              icon: const Icon(Icons.link_off),
+                              tooltip: l10n.common_action_remove,
+                              onPressed: () => detachDocument(editing, d.id),
+                            ),
+                        ],
                       ),
                   ],
                 );

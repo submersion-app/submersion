@@ -9,6 +9,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_compare_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_custom_fields_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_document_links_sitting.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_card_editor.dart';
@@ -77,6 +80,7 @@ void startDiveSitting(EditSession<Dive> session, ProviderRead read) {
   holdSafetyDismissals(session, read);
   loadDiveRouteLinks(session, read);
   loadDivePlanLink(session, read);
+  holdDocumentLinks(session, read);
 }
 
 /// The held writes that are the dive's own rows (its gas switches, the
@@ -92,6 +96,7 @@ final Set<String> diveOwnHeldWriteKeys = {
   safetyDismissalsKey,
   routeLinksKey,
   planLinkKey,
+  documentLinksKey,
 };
 
 /// Why a card of the dive page has nothing to edit, for those that have
@@ -259,6 +264,16 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     offeredWhenEmpty: (_) => false,
     editorBuilder: (context, session) =>
         DiveCompareCardEditor(session: session),
+  ),
+  DiveDetailSectionId.documents: EditCard<Dive>(
+    id: DiveDetailSectionId.documents.name,
+    title: (context) => context.l10n.documents_section_title,
+    // Always on the page: with none, it says so.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) => DocumentsSection(
+      owner: DocumentOwner(DocumentOwnerKind.dive, session.stored.id),
+      editing: session,
+    ),
   ),
   DiveDetailSectionId.customFields: EditCard<Dive>(
     id: DiveDetailSectionId.customFields.name,
