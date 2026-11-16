@@ -91,9 +91,11 @@ class LegacyBuddyConversionService {
     ),
   );
 
-  /// Creates or claims the buddies [plan] names, at once, and links none:
-  /// a sitting on the dive holds the links until it is saved (issue #4527).
-  Future<List<({String buddyId, String roleId})>> resolveForSitting(
+  /// Creates the new buddies [plan] names at once, and links none: a
+  /// sitting on the dive holds the links, and the claims of unowned buddies
+  /// it names in `toClaim`, until it is saved (issue #4527).
+  Future<({List<({String buddyId, String roleId})> links, Set<String> toClaim})>
+  resolveForSitting(
     ConversionPlan plan, {
     required String diverId,
     required String newBuddyNote,

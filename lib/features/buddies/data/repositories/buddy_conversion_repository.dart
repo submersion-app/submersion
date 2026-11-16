@@ -159,11 +159,14 @@ class BuddyConversionRepository {
     }
   }
 
-  /// The buddy each link of [plan] names, created or claimed at once as
-  /// [apply] does, with no link written: for a sitting on the dive, which
-  /// holds the links until it is saved (issue #4527). Each buddy once, in
-  /// the plan's order, with the role its link carries.
-  Future<List<({String buddyId, String roleId})>> resolveForSitting(
+  /// The buddies [plan] names for a dive's sitting (issue #4527): a new
+  /// one is created at once, a record of its own as one made from the
+  /// picker is; an existing one the diver does not own yet is not claimed
+  /// here but named in `toClaim`, for the sitting to claim at Save
+  /// ([claimUnowned]), since that changes a record others can see. Links
+  /// none.
+  Future<({List<({String buddyId, String roleId})> links, Set<String> toClaim})>
+  resolveForSitting(
     ConversionPlan plan, {
     required String diverId,
     required String newBuddyNote,
@@ -177,6 +180,7 @@ class BuddyConversionRepository {
         diverId: diverId,
         newBuddyNote: newBuddyNote,
         now: DateTime.now().millisecondsSinceEpoch,
+        deferClaims: true,
       );
       final seen = <String>{};
       final links = <({String buddyId, String roleId})>[];
@@ -186,10 +190,34 @@ class BuddyConversionRepository {
           links.add((buddyId: buddyId, roleId: link.roleId));
         }
       }
-      return links;
+      return (links: links, toClaim: {...run.claimedIds});
     });
     SyncEventBus.notifyLocalChange();
     return resolved;
+  }
+
+  /// Makes each of [ids] the diver's, where it is still unowned: one
+  /// another diver claimed meanwhile stays theirs. Runs inside the caller's
+  /// write (a dive's sitting saved).
+  Future<void> claimUnowned(
+    Iterable<String> ids, {
+    required String diverId,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final id in ids) {
+      final claimed =
+          await (_db.update(
+            _db.buddies,
+          )..where((t) => t.id.equals(id) & t.diverId.isNull())).write(
+            BuddiesCompanion(diverId: Value(diverId), updatedAt: Value(now)),
+          );
+      if (claimed == 0) continue;
+      await _sync.markRecordPending(
+        entityType: 'buddies',
+        recordId: id,
+        localUpdatedAt: now,
+      );
+    }
   }
 
   /// Reverses [receipt]: its links, the buddies it created that nothing else
@@ -389,6 +417,10 @@ class BuddyConversionRepository {
     _ApplyRun run,
   ) async {
     if (ownerId != null || run.claimedIds.contains(id)) return;
+    if (run.deferClaims) {
+      run.claimedIds.add(id);
+      return;
+    }
     await (_db.update(_db.buddies)..where((t) => t.id.equals(id))).write(
       BuddiesCompanion(diverId: Value(run.diverId), updatedAt: Value(run.now)),
     );
@@ -408,9 +440,13 @@ class _ApplyRun {
     required this.diverId,
     required this.newBuddyNote,
     required this.now,
+    this.deferClaims = false,
   });
 
   final BuddyNameMatcher matcher;
+
+  /// Names the buddies to claim in [claimedIds] without claiming them.
+  final bool deferClaims;
   final String diverId;
   final String newBuddyNote;
   final int now;

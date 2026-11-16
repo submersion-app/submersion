@@ -1298,7 +1298,8 @@ class BuddyRepository {
     newBuddyNote: newBuddyNote,
   );
 
-  Future<List<({String buddyId, String roleId})>> resolveLegacyForSitting(
+  Future<({List<({String buddyId, String roleId})> links, Set<String> toClaim})>
+  resolveLegacyForSitting(
     ConversionPlan plan, {
     required String diverId,
     required String newBuddyNote,
@@ -1307,6 +1308,13 @@ class BuddyRepository {
     diverId: diverId,
     newBuddyNote: newBuddyNote,
   );
+
+  /// Claims each of [ids] for [diverId] where still unowned (a dive's
+  /// sitting saved, issue #4527).
+  Future<void> claimUnownedBuddies(
+    Iterable<String> ids, {
+    required String diverId,
+  }) => BuddyConversionRepository().claimUnowned(ids, diverId: diverId);
 
   Future<void> undoLegacyConversion(ConversionReceipt receipt) =>
       BuddyConversionRepository().undo(receipt);

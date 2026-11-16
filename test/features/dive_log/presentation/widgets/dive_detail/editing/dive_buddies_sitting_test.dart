@@ -165,4 +165,47 @@ void main() {
       hasLength(1),
     );
   });
+
+  test('legacy link to an unowned buddy: claimed at Save, not before, and '
+      'Cancel leaves it unowned', () async {
+    await repo.setBuddiesForDive('d1', const []);
+    await db.customStatement(
+      'INSERT INTO buddies (id, diver_id, name, created_at, updated_at) '
+      "VALUES ('b4', NULL, 'Eve', 0, 0)",
+    );
+    Future<String?> ownerOfEve() async =>
+        (await db
+                .customSelect("SELECT diver_id FROM buddies WHERE id = 'b4'")
+                .getSingle())
+            .read<String?>('diver_id');
+    Future<EditSession<Dive>> linked() async {
+      final session = await started();
+      await linkLegacyBuddiesInSitting(
+        session,
+        read: container.read,
+        newBuddyNote: 'From the old buddy text',
+        plan: (_) async => const ConversionPlan(
+          diveId: 'd1',
+          buddyText: 'Eve',
+          links: [
+            PlannedLink(
+              target: ExistingBuddyTarget(buddyId: 'b4', name: 'Eve'),
+              roleId: 'buddy',
+            ),
+          ],
+        ),
+      );
+      return session;
+    }
+
+    final cancelled = await linked();
+    expect(await ownerOfEve(), isNull);
+    cancelled.dispose();
+    expect(await ownerOfEve(), isNull);
+
+    final saved = await linked();
+    await saved.runHeldWrites();
+    expect(await ownerOfEve(), 'me');
+    expect((await repo.getBuddiesForDive('d1')).map((b) => b.buddy.id), ['b4']);
+  });
 }

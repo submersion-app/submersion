@@ -55,6 +55,28 @@ final diveBuddiesList = SittingList<Dive, BuddyWithRole>(
   same: (a, b) => setEquals(_identities(a), _identities(b)),
 );
 
+const String _claimsKey = 'buddies.claims';
+
+/// Holds the claim of [ids], unowned buddies the legacy link named, for
+/// Save: there each one the dive still links becomes the diver's, so
+/// Cancel leaves it as it was, visible to every profile.
+void _holdClaims(EditSession<Dive> session, Set<String> ids, String diverId) {
+  if (ids.isEmpty || session.isDisposed || session.isFrozen) return;
+  final held = {...?session.recall<Set<String>>(_claimsKey), ...ids};
+  session
+    ..remember(_claimsKey, held)
+    ..holdWrite(_claimsKey, () async {
+      final linked = {
+        for (final b in diveBuddiesList.current(session) ?? const [])
+          b.buddy.id,
+      };
+      await BuddyRepository().claimUnownedBuddies(
+        held.where(linked.contains),
+        diverId: diverId,
+      );
+    });
+}
+
 /// The diver's own roles on the dive, edited on the Buddies card.
 final diveDiverRoleIdsField = EditField<Dive, List<String>>(
   id: 'diverRoleIds',
@@ -67,11 +89,11 @@ final diveDiverRoleIdsField = EditField<Dive, List<String>>(
 /// Links the dive's legacy free-text buddies in the sitting.
 ///
 /// [plan] asks the diver which names become which buddies (the review
-/// sheet), for the dive's diver. The buddies it names are created or
-/// claimed at once, as records of their own, as a buddy made from the
-/// picker is; joining them to the dive is held in [diveBuddiesList] until
-/// Save, so Cancel leaves them in the diver's list with no link to this
-/// dive. The dive's legacy text is left as the immediate path leaves it.
+/// sheet), for the dive's diver. New buddies it names are created at
+/// once, as records of their own, as a buddy made from the picker is;
+/// claiming an unowned one, and joining them all to the dive, are held
+/// until Save, so Cancel leaves the new ones in the diver's list with no
+/// link to this dive and an unowned one unowned. The dive's legacy text is left as the immediate path leaves it.
 /// Tracked.
 Future<void> linkLegacyBuddiesInSitting(
   EditSession<Dive> session, {
@@ -104,7 +126,7 @@ Future<void> _linkLegacy(
   final reviewed = await plan(diverId);
   if (reviewed == null || reviewed.isEmpty || gone()) return;
   try {
-    final links = await service.resolveForSitting(
+    final (:links, :toClaim) = await service.resolveForSitting(
       reviewed,
       diverId: diverId,
       newBuddyNote: newBuddyNote,
@@ -123,6 +145,7 @@ Future<void> _linkLegacy(
       );
     }
     if (gone()) return;
+    _holdClaims(session, toClaim, diverId);
     final current = diveBuddiesList.current(session) ?? const [];
     final have = {for (final b in current) b.buddy.id};
     diveBuddiesList.set(session, [
