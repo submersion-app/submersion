@@ -172,4 +172,38 @@ void main() {
     await tester.pump();
     expect(times.last, isNull, reason: 'releasing ends the scrub');
   });
+
+  // The hover fallback reports a moment only when it differs from the last
+  // one it reported. A drag that left the chart skips the exit that resets
+  // that memory, so hovering the same place again after the release must
+  // still select it.
+  testWidgets('hovering back after a drag off the chart selects again', (
+    tester,
+  ) async {
+    final points = <int?>[];
+    final times = <int?>[];
+    await _pumpChart(tester, points: points, times: times);
+    final rect = tester.getRect(find.byType(LineChart).first);
+    final mouse = await _mouse(tester);
+    // The depth axis gutter, which only the hover fallback resolves.
+    final gutter = Offset(rect.left + 2, rect.center.dy);
+
+    await mouse.moveTo(rect.center);
+    await tester.pump();
+    await mouse.moveTo(gutter);
+    await tester.pump();
+    expect(times.last, 0);
+
+    await mouse.down(gutter);
+    await tester.pump();
+    await mouse.moveTo(Offset(gutter.dx, 860));
+    await tester.pump();
+    await mouse.up();
+    await tester.pump();
+    expect(times.last, isNull);
+
+    await mouse.moveTo(gutter);
+    await tester.pump();
+    expect(times.last, 0);
+  });
 }

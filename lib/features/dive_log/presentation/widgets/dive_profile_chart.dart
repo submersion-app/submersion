@@ -1503,6 +1503,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// skip the call entirely when nothing would actually change, so a plain
   /// pointer-up on a chart that was never hovered does not force an
   /// unnecessary rebuild.
+  /// The mouse has left the chart: drop the hover fallback's selection and
+  /// every hover-driven overlay.
+  void _onMouseLeft() {
+    if (_lastHoverIndex != null) {
+      _lastHoverIndex = null;
+      _lastHoverOnLeadIn = false;
+      _reportSelection(null);
+    }
+    // The mouse leaving the chart entirely (not just panning off the touched
+    // sample) must also drop the in-chart tooltip and the hover-driven
+    // highlight/axis-override; otherwise they freeze at their last position
+    // instead of disappearing (issue #2228 follow-up).
+    _clearCursorHoverState();
+  }
+
   void _clearCursorHoverState() {
     if (_lastPointerLocal == null &&
         _liveCursorTooltipRows.isEmpty &&
@@ -3570,7 +3585,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               },
               onPointerUp: (event) {
                 if (_activePointerCount > 0) _activePointerCount--;
-                _clearCursorHoverState();
+                // A mouse drag released off the chart skipped its exit (see
+                // the MouseRegion below), so the mouse leaves now. Not every
+                // drag is fl_chart's scrub, whose end clears the selection:
+                // one begun in an axis gutter would leave the hover's stuck.
+                if (event.kind != PointerDeviceKind.touch &&
+                    !constraints.biggest.contains(event.localPosition)) {
+                  _onMouseLeft();
+                } else {
+                  _clearCursorHoverState();
+                }
                 if (event.kind == PointerDeviceKind.touch) {
                   _touchPositions.remove(event.pointer);
                   if (_pinchPointers.contains(event.pointer)) {
@@ -3693,20 +3717,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               },
               child: MouseRegion(
                 onExit: (event) {
-                  // Mid-drag, not a hover leaving: onPointerUp clears the
-                  // hover state once the button is released (issue #4611).
+                  // Mid-drag, not a hover leaving: onPointerUp lets the mouse
+                  // leave once the button is released (issue #4611).
                   if (isDragCrossing(event)) return;
-                  if (_lastHoverIndex != null) {
-                    _lastHoverIndex = null;
-                    _lastHoverOnLeadIn = false;
-                    _reportSelection(null);
-                  }
-                  // The mouse leaving the chart entirely (not just panning
-                  // off the touched sample) must also drop the in-chart
-                  // tooltip and the hover-driven highlight/axis-override --
-                  // otherwise they freeze at their last position instead of
-                  // disappearing (issue #2228 follow-up).
-                  _clearCursorHoverState();
+                  _onMouseLeft();
                 },
                 // The only part a pan, zoom or hover frame rebuilds. Everything
                 // above it, the gesture handling included, stays mounted.
