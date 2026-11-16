@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
@@ -26,14 +27,13 @@ final RegExp _isoDate = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
 final RegExp _dayNumber = RegExp(r'^\d{1,4}$');
 
 /// [day] as edit-route query parameters.
-Map<String, String> tripNoteDayQuery(TripNoteDay day) {
-  final date = day.date;
-  String two(int n) => n.toString().padLeft(2, '0');
-  return {
-    _noteDateKey: '${date.year}-${two(date.month)}-${two(date.day)}',
-    _noteDayKey: '${day.dayNumber}',
-  };
-}
+Map<String, String> tripNoteDayQuery(TripNoteDay day) => {
+  _noteDateKey: _queryDate.format(day.date),
+  _noteDayKey: '${day.dayNumber}',
+};
+
+/// The query's date, in the shape [_isoDate] reads back.
+final DateFormat _queryDate = DateFormat('yyyy-MM-dd');
 
 /// The day a note is opened at, from [query]; null when either half is
 /// missing or malformed, including a date that does not exist (DateTime

@@ -160,6 +160,24 @@ void main() {
       );
     });
 
+    test('an edit elsewhere drops the added fence with the heading', () {
+      final placed = place('Gear\n```\nfins');
+
+      expect(
+        placed.toSave(placed.text.replaceFirst('Gear', 'Gear list')),
+        'Gear list\n```\nfins',
+      );
+    });
+
+    test('words under the added heading keep the added fence', () {
+      final placed = place('Gear\n```\nfins');
+
+      expect(
+        placed.toSave('${placed.text}Turtle'),
+        'Gear\n```\nfins\n```\n\n## Day 3\nTurtle',
+      );
+    });
+
     test('an edit elsewhere drops the empty added heading', () {
       final placed = place('Intro');
 

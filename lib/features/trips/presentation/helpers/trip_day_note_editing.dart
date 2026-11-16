@@ -10,6 +10,7 @@ class DayNotePlacement {
     required this.text,
     required this.cursor,
     this.insertedHeading,
+    this.insertedFence,
   });
 
   /// The Notes as they were loaded, before anything was added for the day.
@@ -22,14 +23,26 @@ class DayNotePlacement {
   /// one for the day.
   final String? insertedHeading;
 
+  /// The fence Add note closed an open code block with, above
+  /// [insertedHeading], or null when it closed none.
+  final String? insertedFence;
+
   /// [notes], the Notes field's text, as it should be saved. Notes left as
   /// they opened are saved as they were loaded, so a line or a code fence
   /// added for the caret never lands on its own; otherwise an added heading
-  /// that still has nothing under it is left out.
+  /// that still has nothing under it is left out, with the fence added
+  /// above it.
   String toSave(String notes) {
     if (notes == text) return original;
     final inserted = insertedHeading;
-    return inserted == null ? notes : dropUntouchedDayHeading(notes, inserted);
+    if (inserted == null) return notes;
+    final saved = dropUntouchedDayHeading(notes, inserted);
+    // The fence was there only to keep the heading out of the code block.
+    final fence = insertedFence;
+    if (saved == notes || fence == null || !saved.endsWith('\n$fence')) {
+      return saved;
+    }
+    return saved.substring(0, saved.length - fence.length - 1);
   }
 }
 
@@ -86,6 +99,7 @@ DayNotePlacement placeDayNote(
     text: text,
     cursor: text.length,
     insertedHeading: heading,
+    insertedFence: fence,
   );
 }
 
