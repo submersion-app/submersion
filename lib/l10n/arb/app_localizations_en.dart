@@ -9944,6 +9944,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Some values can\'t be read. Fix them before saving.';
 
   @override
+  String get recordEdit_unlockToUseThis => 'Unlock to use this';
+
+  @override
+  String get recordEdit_saveOrCancelFirst =>
+      'Save or cancel your changes first';
+
+  @override
   String get settings_manage_setupAssistant => 'Setup assistant';
 
   @override
@@ -21643,6 +21650,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_viewer_enterFullscreen => 'Full screen';
+
+  @override
+  String get media_viewer_editingPhoto => 'Editing photo';
+
+  @override
+  String get media_viewer_editingVideo => 'Editing video';
+
+  @override
+  String get media_viewer_photoGoneWhileEditing =>
+      'This photo was removed. Your changes were not saved.';
 
   @override
   String get media_viewer_exitFullscreen => 'Exit full screen';
@@ -54980,6 +54997,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_species_actionTooltip => 'Species';
 
   @override
+  String get media_editCard_people => 'People';
+
+  @override
+  String get media_editCard_timeInDive => 'Time in dive';
+
+  @override
+  String get media_editCard_color => 'Color';
+
+  @override
+  String get media_editCard_details => 'Details';
+
+  @override
   String get media_species_sheetTitle => 'Species in this photo';
 
   @override
@@ -61930,6 +61959,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get changeLog_label_recordEditSeparator => ', ';
+
+  @override
+  String changeLog_label_photoEdit(String cards) {
+    return 'Edited photo: $cards';
+  }
 
   @override
   String get changeLog_undoIncomplete =>

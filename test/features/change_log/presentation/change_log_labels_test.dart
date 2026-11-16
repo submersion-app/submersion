@@ -66,6 +66,29 @@ void main() {
       );
     });
 
+    // A photo's sitting reads apart from the dive's own cards, as its entry
+    // sits in the dive's History (issue #4527, plan 10).
+    test('a photo sitting reads "Edited photo: Color, Species"', () {
+      expect(
+        changeLogStoredLabel(l, 'record_edit:media:color,species'),
+        'Edited photo: Color, Species',
+      );
+    });
+
+    test('a photo sitting names people, time in dive and details', () {
+      expect(
+        changeLogStoredLabel(l, 'record_edit:media:details,people,time'),
+        'Edited photo: Details, People, Time in dive',
+      );
+    });
+
+    test('an unknown photo card id is shown as written', () {
+      expect(
+        changeLogStoredLabel(l, 'record_edit:media:species,zzz'),
+        'Edited photo: Species, zzz',
+      );
+    });
+
     test('a label the app stores by key still translates', () {
       expect(
         changeLogStoredLabel(l, ChangeLogLabels.bulkEdit),

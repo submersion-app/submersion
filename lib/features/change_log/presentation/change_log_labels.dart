@@ -6,6 +6,7 @@ import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
+import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/change_log/domain/change_log_entities.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_operation.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_reference_labels.dart';
@@ -78,6 +79,15 @@ final _diveSectionsByName = DiveDetailSectionId.values.asNameMap();
 String? _recordEditLabel(AppLocalizations l, String label) {
   final edit = RecordEditLabel.decode(label);
   if (edit == null) return null;
+  // A photo's sitting reads apart from the dive's own cards: its entry sits
+  // in the dive's History, where "Species" alone would read as the dive's.
+  if (edit.table == 'media') {
+    return l.changeLog_label_photoEdit(
+      [
+        for (final id in edit.cardIds) _photoChangeName(l, id),
+      ].join(l.changeLog_label_recordEditSeparator),
+    );
+  }
   final diveSections = edit.table == 'dives'
       ? _diveSectionsByName
       : const <String, DiveDetailSectionId>{};
@@ -93,6 +103,17 @@ String? _recordEditLabel(AppLocalizations l, String label) {
     cards.join(l.changeLog_label_recordEditSeparator),
   );
 }
+
+/// What a photo's sitting changed, by the id it is stored under; an id
+/// this version of the app has no name for is shown as written.
+String _photoChangeName(AppLocalizations l, String id) => switch (id) {
+  photoSpeciesCardId => l.media_species_actionTooltip,
+  photoPeopleCardId => l.media_editCard_people,
+  photoTimeCardId => l.media_editCard_timeInDive,
+  photoColorCardId => l.media_editCard_color,
+  photoDetailsCardId => l.media_editCard_details,
+  _ => id,
+};
 
 /// What to call a kind of record when it has no name of its own.
 String changeLogTableLabel(AppLocalizations l, String table) => switch (table) {

@@ -10078,6 +10078,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Néhány érték nem olvasható. Javítsa ki őket mentés előtt.';
 
   @override
+  String get recordEdit_unlockToUseThis => 'Oldd fel a használatához';
+
+  @override
+  String get recordEdit_saveOrCancelFirst =>
+      'Előbb mentsd el vagy vesd el a módosításokat';
+
+  @override
   String get settings_manage_setupAssistant => 'Beállítási varázsló';
 
   @override
@@ -21897,6 +21904,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_viewer_enterFullscreen => 'Teljes képernyő';
+
+  @override
+  String get media_viewer_editingPhoto => 'Fotó szerkesztése';
+
+  @override
+  String get media_viewer_editingVideo => 'Videó szerkesztése';
+
+  @override
+  String get media_viewer_photoGoneWhileEditing =>
+      'Ezt a fotót eltávolították. A módosításaid nem lettek mentve.';
 
   @override
   String get media_viewer_exitFullscreen => 'Kilépés a teljes képernyőből';
@@ -55548,6 +55565,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_species_actionTooltip => 'Fajok';
 
   @override
+  String get media_editCard_people => 'Személyek';
+
+  @override
+  String get media_editCard_timeInDive => 'Időpont a merülésben';
+
+  @override
+  String get media_editCard_color => 'Szín';
+
+  @override
+  String get media_editCard_details => 'Részletek';
+
+  @override
   String get media_species_sheetTitle => 'Fajok ezen a fotón';
 
   @override
@@ -62573,6 +62602,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get changeLog_label_recordEditSeparator => ', ';
+
+  @override
+  String changeLog_label_photoEdit(String cards) {
+    return 'Fotó szerkesztve: $cards';
+  }
 
   @override
   String get changeLog_undoIncomplete =>

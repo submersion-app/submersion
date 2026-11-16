@@ -10248,6 +10248,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّرت قراءة بعض القيم. صحّحها قبل الحفظ.';
 
   @override
+  String get recordEdit_unlockToUseThis => 'افتح القفل لاستخدام هذا';
+
+  @override
+  String get recordEdit_saveOrCancelFirst => 'احفظ تغييراتك أو ألغها أولًا';
+
+  @override
   String get settings_manage_setupAssistant => 'مساعد الإعداد';
 
   @override
@@ -22305,6 +22311,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_viewer_enterFullscreen => 'ملء الشاشة';
+
+  @override
+  String get media_viewer_editingPhoto => 'تعديل الصورة';
+
+  @override
+  String get media_viewer_editingVideo => 'تعديل الفيديو';
+
+  @override
+  String get media_viewer_photoGoneWhileEditing =>
+      'تمت إزالة هذه الصورة. لم يتم حفظ تغييراتك.';
 
   @override
   String get media_viewer_exitFullscreen => 'الخروج من ملء الشاشة';
@@ -56637,6 +56653,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_species_actionTooltip => 'الأنواع';
 
   @override
+  String get media_editCard_people => 'الأشخاص';
+
+  @override
+  String get media_editCard_timeInDive => 'الوقت في الغوصة';
+
+  @override
+  String get media_editCard_color => 'اللون';
+
+  @override
+  String get media_editCard_details => 'التفاصيل';
+
+  @override
   String get media_species_sheetTitle => 'الأنواع في هذه الصورة';
 
   @override
@@ -63810,6 +63838,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get changeLog_label_recordEditSeparator => '، ';
+
+  @override
+  String changeLog_label_photoEdit(String cards) {
+    return 'تم تعديل الصورة: $cards';
+  }
 
   @override
   String get changeLog_undoIncomplete =>

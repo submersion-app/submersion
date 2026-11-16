@@ -9576,6 +9576,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recordEdit_fixInvalid => '部分数值无法识别。请更正后再保存。';
 
   @override
+  String get recordEdit_unlockToUseThis => '解锁后才能使用';
+
+  @override
+  String get recordEdit_saveOrCancelFirst => '请先保存或取消更改';
+
+  @override
   String get settings_manage_setupAssistant => '设置向导';
 
   @override
@@ -20881,6 +20887,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_viewer_enterFullscreen => '全屏';
+
+  @override
+  String get media_viewer_editingPhoto => '正在编辑照片';
+
+  @override
+  String get media_viewer_editingVideo => '正在编辑视频';
+
+  @override
+  String get media_viewer_photoGoneWhileEditing => '此照片已被移除。你的更改未保存。';
 
   @override
   String get media_viewer_exitFullscreen => '退出全屏';
@@ -52364,6 +52379,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_species_actionTooltip => '物种';
 
   @override
+  String get media_editCard_people => '人物';
+
+  @override
+  String get media_editCard_timeInDive => '潜水中的时间';
+
+  @override
+  String get media_editCard_color => '颜色';
+
+  @override
+  String get media_editCard_details => '详情';
+
+  @override
   String get media_species_sheetTitle => '这张照片中的物种';
 
   @override
@@ -59053,6 +59080,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get changeLog_label_recordEditSeparator => '、';
+
+  @override
+  String changeLog_label_photoEdit(String cards) {
+    return '已编辑照片：$cards';
+  }
 
   @override
   String get changeLog_undoIncomplete => '撤销未能恢复全部内容。其余内容见 设置 > 数据 > 更改日志。';

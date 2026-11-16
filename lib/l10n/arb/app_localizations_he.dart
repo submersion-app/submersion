@@ -9879,6 +9879,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לקרוא חלק מהערכים. תקן אותם לפני השמירה.';
 
   @override
+  String get recordEdit_unlockToUseThis => 'יש לבטל את הנעילה כדי להשתמש בזה';
+
+  @override
+  String get recordEdit_saveOrCancelFirst =>
+      'יש לשמור או לבטל את השינויים קודם';
+
+  @override
   String get settings_manage_setupAssistant => 'אשף ההגדרה';
 
   @override
@@ -21487,6 +21494,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_viewer_enterFullscreen => 'מסך מלא';
+
+  @override
+  String get media_viewer_editingPhoto => 'עריכת תמונה';
+
+  @override
+  String get media_viewer_editingVideo => 'עריכת סרטון';
+
+  @override
+  String get media_viewer_photoGoneWhileEditing =>
+      'התמונה הוסרה. השינויים שלך לא נשמרו.';
 
   @override
   String get media_viewer_exitFullscreen => 'יציאה ממסך מלא';
@@ -54678,6 +54695,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_species_actionTooltip => 'מינים';
 
   @override
+  String get media_editCard_people => 'אנשים';
+
+  @override
+  String get media_editCard_timeInDive => 'זמן בצלילה';
+
+  @override
+  String get media_editCard_color => 'צבע';
+
+  @override
+  String get media_editCard_details => 'פרטים';
+
+  @override
   String get media_species_sheetTitle => 'מינים בתמונה זו';
 
   @override
@@ -61604,6 +61633,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get changeLog_label_recordEditSeparator => ', ';
+
+  @override
+  String changeLog_label_photoEdit(String cards) {
+    return 'התמונה נערכה: $cards';
+  }
 
   @override
   String get changeLog_undoIncomplete =>
