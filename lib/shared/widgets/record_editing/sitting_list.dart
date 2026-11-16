@@ -49,6 +49,7 @@ class SittingList<T, E> {
   String get _loadedKey => '$key.loaded';
   String get _currentKey => '$key.current';
   String get _readKey => '$key.read';
+  String get _failedKey => '$key.failed';
 
   /// Reads the rows unless the diver has changed them in this sitting.
   /// Tracked. A read that answers after the list was changed, after a
@@ -61,7 +62,9 @@ class SittingList<T, E> {
       return Future<void>.value();
     }
     final asked = Object();
-    session.remember(_readKey, asked);
+    session
+      ..remember(_readKey, asked)
+      ..remember(_failedKey, null);
     final record = session.stored;
     final work = () async {
       final List<E> rows;
@@ -73,6 +76,10 @@ class SittingList<T, E> {
           error: error,
           stackTrace: stackTrace,
         );
+        if (!session.isDisposed &&
+            identical(session.recall<Object>(_readKey), asked)) {
+          session.remember(_failedKey, true);
+        }
         return;
       }
       if (session.isDisposed || session.isFrozen) return;
@@ -83,6 +90,11 @@ class SittingList<T, E> {
     session.track(work);
     return work;
   }
+
+  /// Whether the last read failed, so an editor can say so and ask again
+  /// ([load]) rather than wait for rows that are not coming.
+  bool failed(EditSession<T> session) =>
+      !session.isDisposed && session.recall<bool>(_failedKey) == true;
 
   /// The rows as last loaded, or null before the first load.
   List<E>? loaded(EditSession<T> session) =>

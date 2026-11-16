@@ -15859,6 +15859,18 @@ abstract class AppLocalizations {
   /// **'Calculated'**
   String get recordEdit_calculated;
 
+  /// An open card whose rows (buddies, sightings, signatures, the linked plan) could not be read while the record is being edited.
+  ///
+  /// In en, this message translates to:
+  /// **'This card could not be loaded.'**
+  String get recordEdit_loadFailed;
+
+  /// Button under a card that could not be loaded: reads it again.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get recordEdit_tryAgain;
+
   /// Label on a card with nothing to edit, shown while its record is unlocked: its content was imported from a device or service.
   ///
   /// In en, this message translates to:

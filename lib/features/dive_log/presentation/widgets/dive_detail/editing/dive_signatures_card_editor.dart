@@ -4,6 +4,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_signature_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_signatures_sitting.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// The Signatures card's editor: the read card's own signatures, with
@@ -45,14 +46,25 @@ class _DiveSignaturesCardEditorState extends State<DiveSignaturesCardEditor> {
     });
   }
 
+  /// Reads again after a read that failed, waiting with a spinner.
+  void _retry() {
+    _load();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final session = widget.session;
     return ListenableBuilder(
       listenable: session,
       builder: (context, _) {
-        if (diveBuddiesList.current(session) == null ||
-            diveSignaturesList.current(session) == null) {
+        final buddies = diveBuddiesList.current(session);
+        final signatures = diveSignaturesList.current(session);
+        if ((buddies == null && diveBuddiesList.failed(session)) ||
+            (signatures == null && diveSignaturesList.failed(session))) {
+          return SittingLoadFailed(onRetry: _retry);
+        }
+        if (buddies == null || signatures == null) {
           return const Padding(
             padding: EdgeInsets.all(16),
             child: Center(child: CircularProgressIndicator()),

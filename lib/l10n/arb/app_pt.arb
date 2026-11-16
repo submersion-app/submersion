@@ -3307,6 +3307,8 @@
   "recordEdit_unsavedChanges": "Alterações não guardadas",
   "recordEdit_hiddenCard": "{card}, oculto",
   "recordEdit_calculated": "Calculado",
+  "recordEdit_loadFailed": "Não foi possível carregar este cartão.",
+  "recordEdit_tryAgain": "Tentar novamente",
   "recordEdit_imported": "Importado",
   "recordEdit_saveFailed": "Não foi possível guardar as alterações. Nada foi alterado.",
   "recordEdit_fixInvalid": "Alguns valores não podem ser lidos. Corrija-os antes de guardar.",

@@ -10244,6 +10244,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordEdit_calculated => 'محسوب';
 
   @override
+  String get recordEdit_loadFailed => 'تعذّر تحميل هذه البطاقة.';
+
+  @override
+  String get recordEdit_tryAgain => 'إعادة المحاولة';
+
+  @override
   String get recordEdit_imported => 'مستورد';
 
   @override

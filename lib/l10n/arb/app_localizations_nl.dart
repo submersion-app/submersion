@@ -10033,6 +10033,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get recordEdit_calculated => 'Berekend';
 
   @override
+  String get recordEdit_loadFailed => 'Deze kaart kon niet worden geladen.';
+
+  @override
+  String get recordEdit_tryAgain => 'Opnieuw proberen';
+
+  @override
   String get recordEdit_imported => 'Geïmporteerd';
 
   @override

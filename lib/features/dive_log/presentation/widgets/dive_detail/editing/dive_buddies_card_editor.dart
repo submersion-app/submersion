@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_signatures_sitting.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// The Buddies card's editor: the dive form's buddy picker, with the
@@ -49,6 +50,12 @@ class _DiveBuddiesCardEditorState extends ConsumerState<DiveBuddiesCardEditor> {
     });
   }
 
+  /// Reads again after a read that failed, waiting with a spinner.
+  void _retry() {
+    _load();
+    setState(() {});
+  }
+
   /// Plans the dive's legacy text and asks the diver to review it, as the
   /// read card's immediate path does, then holds the links in the sitting.
   Future<void> _linkLegacy(BuildContext context) {
@@ -81,6 +88,9 @@ class _DiveBuddiesCardEditorState extends ConsumerState<DiveBuddiesCardEditor> {
       listenable: session,
       builder: (context, _) {
         final current = diveBuddiesList.current(session);
+        if (current == null && diveBuddiesList.failed(session)) {
+          return SittingLoadFailed(onRetry: _retry);
+        }
         if (current == null) {
           return const Padding(
             padding: EdgeInsets.all(16),

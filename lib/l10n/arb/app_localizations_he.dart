@@ -9874,6 +9874,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get recordEdit_calculated => 'מחושב';
 
   @override
+  String get recordEdit_loadFailed => 'לא ניתן היה לטעון כרטיס זה.';
+
+  @override
+  String get recordEdit_tryAgain => 'נסה שוב';
+
+  @override
   String get recordEdit_imported => 'מיובא';
 
   @override

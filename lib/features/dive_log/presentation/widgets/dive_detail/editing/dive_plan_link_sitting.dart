@@ -25,6 +25,7 @@ const String planLinkAdoptKey = 'planLink.adopt';
 const String _storedKey = 'planLink.stored';
 const String _currentKey = 'planLink.current';
 const String _repoKey = 'planLink.repo';
+const String _failedKey = 'planLink.failed';
 
 /// The plan the sitting has linked to the dive (null for none), or null
 /// before the link loads.
@@ -38,10 +39,27 @@ const String _repoKey = 'planLink.repo';
 /// Reads the plan linked to the dive, once per sitting. Tracked.
 void loadDivePlanLink(EditSession<Dive> session, ProviderRead read) {
   if (!session.firstTime(_storedKey)) return;
-  final repository = read(divePlanRepositoryProvider);
-  session.remember(_repoKey, repository);
+  session.remember(_repoKey, read(divePlanRepositoryProvider));
+  _read(session);
+}
+
+/// Reads the linked plan again after a read that failed. Tracked.
+Future<void> reloadDivePlanLink(EditSession<Dive> session) =>
+    _read(session) ?? Future<void>.value();
+
+/// Whether the last read of the linked plan failed, so the editor can say
+/// so and offer to read again.
+bool planLinkLoadFailed(EditSession<Dive> session) =>
+    !session.isDisposed && session.recall<bool>(_failedKey) == true;
+
+Future<void>? _read(EditSession<Dive> session) {
+  final repository = session.recall<DivePlanRepository>(_repoKey);
+  if (repository == null || session.isDisposed || session.isFrozen) {
+    return null;
+  }
+  session.remember(_failedKey, null);
   final diveId = session.stored.id;
-  session.track(() async {
+  final work = () async {
     try {
       final plan = await repository.getPlanByLinkedDiveId(diveId);
       if (session.isDisposed || session.isFrozen) return;
@@ -52,8 +70,11 @@ void loadDivePlanLink(EditSession<Dive> session, ProviderRead read) {
         error: error,
         stackTrace: stackTrace,
       );
+      if (!session.isDisposed) session.remember(_failedKey, true);
     }
-  }());
+  }();
+  session.track(work);
+  return work;
 }
 
 /// Links [planId] to the dive in the sitting, or none. The stored link

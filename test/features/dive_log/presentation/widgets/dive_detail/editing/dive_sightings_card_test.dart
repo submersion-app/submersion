@@ -139,4 +139,25 @@ void main() {
     expect(card.isEmpty(dive), isFalse);
     expect(card.isEmptyInSitting!(c.session!), isTrue);
   });
+
+  testWidgets('a read that fails says so, and Try again reads them', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => db.customStatement('ALTER TABLE sightings RENAME TO away'),
+    );
+    await pump(tester, dive);
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pump();
+    expect(find.text('This card could not be loaded.'), findsOneWidget);
+
+    await tester.runAsync(
+      () => db.customStatement('ALTER TABLE away RENAME TO sightings'),
+    );
+    await tester.tap(find.text('Try again'));
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pump();
+    expect(find.text('This card could not be loaded.'), findsNothing);
+    expect(find.text('Green turtle'), findsOneWidget);
+  });
 }

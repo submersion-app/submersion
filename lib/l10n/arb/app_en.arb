@@ -6001,6 +6001,14 @@
   "@recordEdit_calculated": {
     "description": "Label on a card with nothing to edit, shown while its record is unlocked: its content is calculated from other data."
   },
+  "recordEdit_loadFailed": "This card could not be loaded.",
+  "@recordEdit_loadFailed": {
+    "description": "An open card whose rows (buddies, sightings, signatures, the linked plan) could not be read while the record is being edited."
+  },
+  "recordEdit_tryAgain": "Try again",
+  "@recordEdit_tryAgain": {
+    "description": "Button under a card that could not be loaded: reads it again."
+  },
   "recordEdit_imported": "Imported",
   "@recordEdit_imported": {
     "description": "Label on a card with nothing to edit, shown while its record is unlocked: its content was imported from a device or service."

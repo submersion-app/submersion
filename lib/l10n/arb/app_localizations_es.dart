@@ -10099,6 +10099,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordEdit_calculated => 'Calculado';
 
   @override
+  String get recordEdit_loadFailed => 'No se ha podido cargar esta tarjeta.';
+
+  @override
+  String get recordEdit_tryAgain => 'Reintentar';
+
+  @override
   String get recordEdit_imported => 'Importado';
 
   @override

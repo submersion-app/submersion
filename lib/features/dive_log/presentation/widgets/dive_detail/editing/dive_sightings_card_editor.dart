@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/sightings_editor.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// The Sightings card's editor: the dive form's sightings editor over the
@@ -41,6 +42,12 @@ class _DiveSightingsCardEditorState extends State<DiveSightingsCardEditor> {
     });
   }
 
+  /// Reads again after a read that failed, waiting with a spinner.
+  void _retry() {
+    _load();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final session = widget.session;
@@ -48,6 +55,9 @@ class _DiveSightingsCardEditorState extends State<DiveSightingsCardEditor> {
       listenable: session,
       builder: (context, _) {
         final current = diveSightingsList.current(session);
+        if (current == null && diveSightingsList.failed(session)) {
+          return SittingLoadFailed(onRetry: _retry);
+        }
         if (current == null) {
           return const Padding(
             padding: EdgeInsets.all(16),

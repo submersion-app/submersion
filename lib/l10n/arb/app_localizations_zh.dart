@@ -9573,6 +9573,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recordEdit_calculated => '计算得出';
 
   @override
+  String get recordEdit_loadFailed => '无法加载此卡片。';
+
+  @override
+  String get recordEdit_tryAgain => '重试';
+
+  @override
   String get recordEdit_imported => '已导入';
 
   @override

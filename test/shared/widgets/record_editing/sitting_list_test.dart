@@ -92,6 +92,23 @@ void main() {
     },
   );
 
+  // An editor shows the failure, not a spinner that never ends, and can
+  // ask again.
+  test('a read that fails is told, and a read asked again clears it', () async {
+    final list = rows();
+    gate = Completer<List<String>>()..completeError(StateError('locked db'));
+    list.load(session);
+    await session.settled();
+    expect(list.loaded(session), isNull);
+    expect(list.failed(session), isTrue);
+
+    gate = null;
+    list.load(session);
+    await session.settled();
+    expect(list.failed(session), isFalse);
+    expect(list.current(session), ['a', 'b']);
+  });
+
   test("a changed list is not read again: the diver's list stays", () async {
     final list = rows();
     list.load(session);

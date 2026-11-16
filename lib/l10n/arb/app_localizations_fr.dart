@@ -10131,6 +10131,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get recordEdit_calculated => 'Calculé';
 
   @override
+  String get recordEdit_loadFailed => 'Impossible de charger cette carte.';
+
+  @override
+  String get recordEdit_tryAgain => 'Réessayer';
+
+  @override
   String get recordEdit_imported => 'Importé';
 
   @override

@@ -3307,6 +3307,8 @@
   "recordEdit_unsavedChanges": "تغييرات غير محفوظة",
   "recordEdit_hiddenCard": "{card}، مخفي",
   "recordEdit_calculated": "محسوب",
+  "recordEdit_loadFailed": "تعذّر تحميل هذه البطاقة.",
+  "recordEdit_tryAgain": "إعادة المحاولة",
   "recordEdit_imported": "مستورد",
   "recordEdit_saveFailed": "تعذّر حفظ التغييرات. لم يتغيّر شيء.",
   "recordEdit_fixInvalid": "تعذّرت قراءة بعض القيم. صحّحها قبل الحفظ.",

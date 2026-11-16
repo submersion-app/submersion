@@ -3333,6 +3333,8 @@
   "recordEdit_unsavedChanges": "Nicht gespeicherte Änderungen",
   "recordEdit_hiddenCard": "{card}, ausgeblendet",
   "recordEdit_calculated": "Berechnet",
+  "recordEdit_loadFailed": "Diese Karte konnte nicht geladen werden.",
+  "recordEdit_tryAgain": "Erneut versuchen",
   "recordEdit_imported": "Importiert",
   "recordEdit_saveFailed": "Die Änderungen konnten nicht gespeichert werden. Es wurde nichts geändert.",
   "recordEdit_fixInvalid": "Einige Werte können nicht gelesen werden. Korrigiere sie vor dem Speichern.",

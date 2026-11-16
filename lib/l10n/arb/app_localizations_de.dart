@@ -10089,6 +10089,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get recordEdit_calculated => 'Berechnet';
 
   @override
+  String get recordEdit_loadFailed =>
+      'Diese Karte konnte nicht geladen werden.';
+
+  @override
+  String get recordEdit_tryAgain => 'Erneut versuchen';
+
+  @override
   String get recordEdit_imported => 'Importiert';
 
   @override

@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -69,6 +70,29 @@ void main() {
     expect(sittingPlanLink(session), (planId: 'plan-old'));
   });
 
+  test('a read that fails is told, and reading again recovers', () async {
+    var fail = true;
+    final flaky = ProviderContainer(
+      overrides: [
+        divePlanRepositoryProvider.overrideWithValue(
+          _Flaky(() => fail, repository),
+        ),
+      ],
+    );
+    addTearDown(flaky.dispose);
+    final session = EditSession<Dive>(dive);
+    addTearDown(session.dispose);
+    loadDivePlanLink(session, flaky.read);
+    await session.settled();
+    expect(sittingPlanLink(session), isNull);
+    expect(planLinkLoadFailed(session), isTrue);
+
+    fail = false;
+    await reloadDivePlanLink(session);
+    expect(planLinkLoadFailed(session), isFalse);
+    expect(sittingPlanLink(session), (planId: 'plan-old'));
+  });
+
   test('a plan linked in the sitting is written at Save; Cancel leaves the '
       'old link', () async {
     final session = await started();
@@ -100,4 +124,17 @@ void main() {
       expect(await linkedTo('plan-old'), isNull);
     },
   );
+}
+
+class _Flaky extends DivePlanRepository {
+  _Flaky(this.failing, this.real);
+
+  final bool Function() failing;
+  final DivePlanRepository real;
+
+  @override
+  Future<domain.DivePlan?> getPlanByLinkedDiveId(String diveId) async {
+    if (failing()) throw StateError('database locked');
+    return real.getPlanByLinkedDiveId(diveId);
+  }
 }

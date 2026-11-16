@@ -3181,6 +3181,8 @@
   "recordEdit_unsavedChanges": "שינויים שלא נשמרו",
   "recordEdit_hiddenCard": "{card}, מוסתר",
   "recordEdit_calculated": "מחושב",
+  "recordEdit_loadFailed": "לא ניתן היה לטעון כרטיס זה.",
+  "recordEdit_tryAgain": "נסה שוב",
   "recordEdit_imported": "מיובא",
   "recordEdit_saveFailed": "לא ניתן היה לשמור את השינויים. שום דבר לא השתנה.",
   "recordEdit_fixInvalid": "לא ניתן לקרוא חלק מהערכים. תקן אותם לפני השמירה.",

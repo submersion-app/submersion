@@ -9939,6 +9939,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordEdit_calculated => 'Calculated';
 
   @override
+  String get recordEdit_loadFailed => 'This card could not be loaded.';
+
+  @override
+  String get recordEdit_tryAgain => 'Try again';
+
+  @override
   String get recordEdit_imported => 'Imported';
 
   @override

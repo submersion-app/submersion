@@ -10073,6 +10073,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get recordEdit_calculated => 'Számított';
 
   @override
+  String get recordEdit_loadFailed => 'Ezt a kártyát nem sikerült betölteni.';
+
+  @override
+  String get recordEdit_tryAgain => 'Újra';
+
+  @override
   String get recordEdit_imported => 'Importált';
 
   @override
