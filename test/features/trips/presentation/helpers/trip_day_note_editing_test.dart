@@ -33,6 +33,17 @@ void main() {
       expect(placed.insertedHeading, '# Day 3');
     });
 
+    test('a code block left open is closed before the heading', () {
+      final placed = place('Gear\n```\nfins\nmask');
+      expect(placed.text, 'Gear\n```\nfins\nmask\n```\n\n## Day 3\n');
+      expect(placed.cursor, placed.text.length);
+      expect(placed.insertedHeading, '## Day 3');
+    });
+
+    test('a longer tilde fence is closed with its own run', () {
+      expect(place('~~~~\nfins').text, '~~~~\nfins\n~~~~\n\n## Day 3\n');
+    });
+
     test('trailing blank lines are not doubled', () {
       expect(place('Trip intro\n\n').text, 'Trip intro\n\n## Day 3\n');
     });

@@ -60,7 +60,11 @@ DayNotePlacement placeDayNote(
   }
   final level = scanned.dayHeadingLevel ?? 2;
   final heading = '${'#' * level} $headingLabel';
-  final before = notes.trimRight();
+  // A code block left open would swallow the heading; close it first.
+  final fence = scanned.unclosedFence;
+  final before = fence == null
+      ? notes.trimRight()
+      : '${notes.trimRight()}\n$fence';
   final text = before.isEmpty ? '$heading\n' : '$before\n\n$heading\n';
   return DayNotePlacement(
     text: text,

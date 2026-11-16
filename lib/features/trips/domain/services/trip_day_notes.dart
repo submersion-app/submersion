@@ -44,6 +44,7 @@ class TripDayNotes {
     required this.passageEnds,
     required this.headingLineEnds,
     this.dayHeadingLevel,
+    this.unclosedFence,
   });
 
   static const empty = TripDayNotes(
@@ -68,6 +69,11 @@ class TripDayNotes {
   /// any day, or null when it has none: a heading added for another day
   /// takes this level, so it does not nest inside an earlier day.
   final int? dayHeadingLevel;
+
+  /// The run that would close a fenced code block the note leaves open at
+  /// its end (```` ``` ```` or `~~~~`), or null when every fence is closed.
+  /// Anything appended after it would be code, not a heading.
+  final String? unclosedFence;
 }
 
 /// Cuts [notes] into one passage per day of [days] (#4625).
@@ -149,6 +155,7 @@ TripDayNotes tripDayNotes(
     passageEnds: ends,
     headingLineEnds: headingEnds,
     dayHeadingLevel: dayHeadingLevel,
+    unclosedFence: fence == null ? null : fence.char * fence.length,
   );
 }
 
