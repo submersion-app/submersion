@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_reposit
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
@@ -58,6 +59,21 @@ Future<Map<String, DiveTypeEntity>> diveTypesByIdOrEmpty(
     return const {};
   }
 }
+
+/// The active diver's starred dive type ids (issue #4413), which the dive type
+/// pickers list first.
+///
+/// Selects a sorted, newline-joined key rather than the set itself, since
+/// every settings load decodes a fresh Set: this way a picker rebuilds only
+/// when the favourites change, not on every settings write.
+final favouriteDiveTypeIdsProvider = Provider<Set<String>>((ref) {
+  final key = ref.watch(
+    settingsProvider.select(
+      (settings) => (settings.favouriteDiveTypeIds.toList()..sort()).join('\n'),
+    ),
+  );
+  return key.isEmpty ? const {} : key.split('\n').toSet();
+});
 
 /// Built-in dive types only
 final builtInDiveTypesProvider = FutureProvider<List<DiveTypeEntity>>((
