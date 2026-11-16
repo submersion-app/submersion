@@ -112,6 +112,9 @@ void main() {
       final session = await started();
       final id = placeAnnotation(session, seconds: 600, words: 'manta')!;
       session.set(diveNotesField, dive.notes);
+      // Nothing is left to save: no Profile dot, no History entry.
+      expect(session.changedCardIds, isEmpty);
+      expect(session.isDirty, isFalse);
 
       await save(session);
       expect(await storedIds(), [storedId]);

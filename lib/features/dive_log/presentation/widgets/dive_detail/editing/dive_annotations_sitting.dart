@@ -62,6 +62,15 @@ class SittingAnnotations {
   bool get isTouched =>
       placed.isNotEmpty || moved.isNotEmpty || removed.isNotEmpty;
 
+  /// Whether the Profile card holds a change while the notes read [notes]:
+  /// a pin placed counts only while the notes still link it, as one whose
+  /// line was cut will not be written.
+  bool isChangeIn(String notes) {
+    if (moved.isNotEmpty || removed.isNotEmpty) return true;
+    final linked = annotationIdsInNotes(notes);
+    return placed.any((pin) => linked.contains(pin.id));
+  }
+
   SittingAnnotations copyWith({
     List<PendingAnnotation>? placed,
     Map<String, ({int timestamp, double? depth})>? moved,
@@ -102,7 +111,9 @@ void loadDiveAnnotations(EditSession<Dive> session, ProviderRead read) {
     if (session.isDisposed || session.isFrozen) return;
     session
       ..remember(_noteKey, SittingAnnotations(loaded: loaded))
-      ..holdWrite(annotationsWriteKey, () => _write(session, repository));
+      ..holdWrite(annotationsWriteKey, () => _write(session, repository))
+      // A line cut from the notes takes its pin's change with it.
+      ..addListener(() => _followNotes(session));
   }());
 }
 
@@ -134,10 +145,20 @@ Future<void> _write(
   }
 }
 
+/// Holds or releases the Profile card's change when the notes no longer
+/// agree with it. Only on a difference, as holding notifies again.
+void _followNotes(EditSession<Dive> session) {
+  if (!_canChange(session)) return;
+  final held = sittingAnnotations(session);
+  if (held == null) return;
+  final changed = held.isChangeIn(session.working.notes);
+  if (changed != session.isHeld(annotationsKey)) _hold(session, held);
+}
+
 /// Replaces what is held, and holds or releases the Profile card's change.
 void _hold(EditSession<Dive> session, SittingAnnotations next) {
   session.remember(_noteKey, next);
-  if (next.isTouched) {
+  if (next.isChangeIn(session.working.notes)) {
     session.holdChange(
       annotationsKey,
       cardId: _profileCardId,
