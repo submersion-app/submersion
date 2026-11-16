@@ -570,3 +570,31 @@ One, `Refs #4527`. It touches `lib/features/change_log/presentation/`, and Histo
 - **Plan 10 (photo viewer).** A sitting on a media record labels itself `RecordEditLabel.encode(table: 'media', id: mediaId, cardIds: ...)` and is then pinned to that photo by Task 3, with no change to the log. A photo's History filter is `ChangeLogFilter(rootTable: 'media', rootId: id)`.
 - **Plan 11 (switch-over).** Nothing further: once the old form is gone every single-dive edit is a sitting, and so is logged as above. Today's immediate dismiss path goes with the form.
 - **Any later plan that writes another record in a sitting** needs nothing here: it is inside the scope, filed under its own root, and listed in the dive's entry. A machine row a diver changes needs its column in `changeLogOptInUpdateColumns` or a tracked table, and in `changeLogShownMachineColumns`.
+
+---
+
+## After the review
+
+Tasks 1 to 6 were built as written in one session (Eric chose "Native"), then reviewed as a whole branch by a fresh reviewer. Task 7 waits for plan 6. This is what differs from the task text above, for whoever builds Task 7 and writes plan 10.
+
+### Changed from the calls above
+
+- **Call 10 is reversed (Eric, 2026-11-16): a revert records the machine rows it puts back.** `changeLogSeriesUpdateSources` is `{'agent', 'revert'}`. A revert writes back only what was logged, so what it records is exactly the machine rows the reverted entry recorded. Without it, reverting a sitting that only dismissed a finding left a revert with no events, which the settler deletes, and the sitting read "Reverted" pointing at nothing. Reverting that revert now dismisses the finding again.
+- **`RecordEditLabel.encode` never throws.** An empty id, or one holding `:`, writes the earlier unpinned label (`record_edit:dives:<cards>`), since logging must never stop a save.
+
+### Fixed from the review
+
+- **A sitting whose only write is to another diver's shared site files it under that diver.** `_forOwner` takes a pinned scope's owner from its record before its first event; it compared against a null owner and kept the write.
+- **A finding deleted by a review inside a sitting is not kept.** A table in `changeLogOptInUpdateColumns` opts in its updates only; its deletes follow the ordinary machine-row rule.
+
+### Tests the plan listed that were written differently
+
+- Task 4's route test first failed on its fixture (`source` must be a wire value, `suunto_route`), not on the feature. The document and plan tests share the path and were red for the feature.
+- Task 6's mutation check: dropping the sitting's opt-in clause failed 5 tests, removing the pin 6, removing the root filter all 12.
+
+### Left open
+
+- A pinned entry's feed row previews its first two fields whatever record they belong to: a sitting that copied an altitude to the site previews "Altitude" under the dive's title. The entry page names the site.
+- `encode` accepts an empty card list, which `decode` rejects, so such a label is unpinned and shown raw. The save service never passes one.
+- No guard test pins `changeLogShownMachineColumns` to real, recordable columns.
+- `_listedEvent`'s EXISTS repeats an always-false branch; the value formatter repeats the catalogue's coverage check.
