@@ -531,34 +531,24 @@ class Dive extends Equatable {
     return span > Duration.zero ? span : null;
   }
 
-  /// Total weight from all weight entries
-  double get totalWeight => weights.fold(0.0, (sum, w) => sum + w.amountKg);
-
-  /// The lead typed in the Weights section, or null when none is recorded:
-  /// the weight entries when there are any, else a positive legacy
-  /// [weightAmount].
-  double? get typedWeightKg {
-    if (weights.isNotEmpty) return totalWeight;
-    final legacy = weightAmount;
-    return legacy != null && legacy > 0 ? legacy : null;
-  }
-
   /// The weights gear on this dive that carries lead, with no part of its
   /// own attached (an assembly counts through its parts), in link order.
   List<EquipmentItem> get leadGear => EquipmentLead.carriers(gear);
 
-  /// Lead carried as weights gear (issue #1103), 0 when none declares any.
-  double get gearWeightKg => EquipmentLead.totalKg(leadGear);
-
   /// Every kilogram of lead the diver carried, or null when none is
-  /// recorded: [typedWeightKg] plus [gearWeightKg]. The two are different
-  /// lead (a belt beside a weighted backplate), so they add rather than one
-  /// standing in for the other (issue #4442). This is what the detail page,
-  /// the buoyancy model, Insights and the query language all read; the Dart
-  /// spelling of `recordedWeightKgSql` (issue #3914).
+  /// recorded: the lead typed in the Weights section (the weight entries
+  /// when there are any, else a positive legacy [weightAmount]) plus the lead
+  /// carried as [leadGear]. The two are different lead (a belt beside a
+  /// weighted backplate), so they add rather than one standing in for the
+  /// other (issue #4442). This is what the detail page, the buoyancy model,
+  /// Insights and the query language all read; the Dart spelling of
+  /// `recordedWeightKgSql` (issue #3914).
   double? get recordedWeightKg {
-    final typed = typedWeightKg;
-    final gearKg = gearWeightKg;
+    final legacy = weightAmount;
+    final typed = weights.isNotEmpty
+        ? weights.fold(0.0, (sum, w) => sum + w.amountKg)
+        : (legacy != null && legacy > 0 ? legacy : null);
+    final gearKg = EquipmentLead.totalKg(leadGear);
     if (typed == null && gearKg <= 0) return null;
     return (typed ?? 0) + gearKg;
   }

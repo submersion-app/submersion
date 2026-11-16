@@ -5829,15 +5829,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final leadGear = EquipmentLead.carriers(
       gearLinksFor(_selectedEquipment, _gearRows),
     );
-    final totalWeight =
-        _weights.fold(0.0, (sum, w) => sum + w.amountKg) +
-        EquipmentLead.totalKg(leadGear);
+    final totalWeight = editorWeightTotalKg(_weights, leadGear);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FormOverline(
           label: context.l10n.diveLog_edit_section_weight,
-          trailingText: _weights.isEmpty && leadGear.isEmpty
+          trailingText: totalWeight == null
               ? null
               : context.l10n.diveLog_edit_weightTotal(
                   units.formatWeight(totalWeight),

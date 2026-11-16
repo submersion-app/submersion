@@ -1,9 +1,22 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+/// The Total a weights editor shows: its [rows] plus the lead [leadGear]
+/// carries, as `Dive.recordedWeightKg` adds them (issue #4442), or null when
+/// there is neither and the editor shows no total. [leadGear] is what
+/// [EquipmentLead.carriers] picks from the dive's gear.
+double? editorWeightTotalKg(
+  List<DiveWeight> rows,
+  List<EquipmentItem> leadGear,
+) => rows.isEmpty && leadGear.isEmpty
+    ? null
+    : rows.fold(0.0, (sum, w) => sum + w.amountKg) +
+          EquipmentLead.totalKg(leadGear);
 
 /// A line under a weights editor naming the lead the dive already carries
 /// as weights gear, and how much (issue #4442).

@@ -6,6 +6,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_weights_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_weight_entry_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gear_lead_note.dart';
@@ -144,14 +145,12 @@ class _DiveWeightsCardEditorState extends ConsumerState<DiveWeightsCardEditor> {
     // The gear is the dive's as the sitting has it, so a change made on the
     // Equipment card in the same sitting shows here too. Its lead is in the
     // total, as on the read card (issue #4442).
-    final leadGear = _session.working.leadGear;
-    final total =
-        rows.fold(0.0, (sum, w) => sum + w.amountKg) +
-        EquipmentLead.totalKg(leadGear);
+    final leadGear = EquipmentLead.carriers(_session.valueOf(diveGearField));
+    final total = editorWeightTotalKg(rows, leadGear);
     return [
       FormOverline(
         label: l10n.diveLog_edit_section_weight,
-        trailingText: rows.isEmpty && leadGear.isEmpty
+        trailingText: total == null
             ? null
             : l10n.diveLog_edit_weightTotal(units.formatWeight(total)),
         actions: [
