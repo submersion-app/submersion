@@ -146,18 +146,26 @@ class MediaRepairService {
     ];
   }
 
+  /// With [afterCommit], the apply runs inside a write that can still be
+  /// rolled back (a dive's sitting saved, issue #4527): what lives outside
+  /// the database is left for the caller to run once that write commits,
+  /// by adding it to [afterCommit] (the upload queue and the asset cache),
+  /// and a file's bookmark goes under a new ref rather than over the
+  /// row's, so a rolled-back row still resolves its old file.
   Future<RepairApplyReport> apply(
     List<RepairProposal> accepted, {
     RepairLogSource source = RepairLogSource.manual,
+    List<Future<void> Function()>? afterCommit,
   }) => ChangeLogScope.bulk(
     DatabaseService.instance.databaseOrNull,
     label: ChangeLogLabels.mediaRepair,
-    body: () => _applyInner(accepted, source: source),
+    body: () => _applyInner(accepted, source: source, afterCommit: afterCommit),
   );
 
   Future<RepairApplyReport> _applyInner(
     List<RepairProposal> accepted, {
     RepairLogSource source = RepairLogSource.manual,
+    List<Future<void> Function()>? afterCommit,
   }) async {
     var failed = 0;
     var skipped = 0;
@@ -238,7 +246,9 @@ class MediaRepairService {
         final write = writeBookmark;
         if (create != null && write != null) {
           final blob = await create(candidate.path!);
-          newRef = proposal.item.bookmarkRef ?? _uuid.v4();
+          newRef = afterCommit == null
+              ? proposal.item.bookmarkRef ?? _uuid.v4()
+              : _uuid.v4();
           await write(newRef, blob);
         }
 
@@ -279,12 +289,20 @@ class MediaRepairService {
 
     // Stage B: one transaction for every surviving write.
     await repository.applyRepairWrites(await _withCloudIds(writes));
-    try {
-      await assetCache?.clearEntries([for (final w in writes) w.mediaId]);
-    } on Object catch (e) {
-      // The relink has committed; a stale entry costs one failed fetch,
-      // after which the resolver re-resolves the row.
-      _log.warning('Could not drop cached mappings for relinked rows: $e');
+    Future<void> clearCache() async {
+      try {
+        await assetCache?.clearEntries([for (final w in writes) w.mediaId]);
+      } on Object catch (e) {
+        // The relink has committed; a stale entry costs one failed fetch,
+        // after which the resolver re-resolves the row.
+        _log.warning('Could not drop cached mappings for relinked rows: $e');
+      }
+    }
+
+    if (afterCommit == null) {
+      await clearCache();
+    } else {
+      afterCommit.add(clearCache);
     }
 
     // Stage C: store side effects.
@@ -297,7 +315,12 @@ class MediaRepairService {
       await repository.clearRemoteUploaded(stamp.mediaId);
       await repository.clearRemoteThumbUploaded(stamp.mediaId);
       await repository.clearRemoteCompressed(stamp.mediaId);
-      await queue.enqueueUpload(mediaId: stamp.mediaId);
+      Future<void> enqueue() => queue.enqueueUpload(mediaId: stamp.mediaId);
+      if (afterCommit == null) {
+        await enqueue();
+      } else {
+        afterCommit.add(enqueue);
+      }
       reuploadsQueued++;
     }
     if (storeIds.isNotEmpty) {

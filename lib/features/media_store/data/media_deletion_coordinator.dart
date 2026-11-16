@@ -46,8 +46,17 @@ class MediaDeletionCoordinator {
   Future<void> deleteMedia(String id) => deleteMultipleMedia([id]);
 
   /// Deletes by id, reading each row back to build its blob-delete intent.
-  Future<void> deleteMultipleMedia(List<String> ids) =>
-      _delete(ids, const <String, MediaItem>{});
+  /// [holdRemoteDelete] leaves the worker alone and purges the copies as
+  /// undoable, as for [deleteMediaItems]: for a delete inside a write that
+  /// can still be rolled back, whose caller runs [drainHeldDeletes] once it
+  /// has committed (a dive's sitting saved, issue #4527).
+  Future<void> deleteMultipleMedia(
+    List<String> ids, {
+    bool holdRemoteDelete = false,
+  }) => _delete(ids, const <String, MediaItem>{}, kick: !holdRemoteDelete);
+
+  /// Lets the worker take the intents a held delete queued.
+  Future<void> drainHeldDeletes() => _kick('held media delete');
 
   /// [deleteMultipleMedia] for callers that already hold the rows. The
   /// dive-deletion cascade partitions its doomed set out of a single

@@ -178,6 +178,48 @@ void main() {
     expect(queued.map((r) => r.read<String>('media_id')), contains('a'));
   });
 
+  // A relink held in a dive's sitting is applied inside the save's
+  // transaction, which a later write can still roll back (issue #4527).
+  test('applied for a sitting: the row\'s bookmark is never overwritten, and '
+      'the upload waits for the after-commit steps', () async {
+    final (file, _) = await tempFile('a.jpg', 'NEW BYTES');
+    await seed('a', contentHash: 'OLD-HASH', stampRemote: true);
+    final item = (await repo.getMediaById(
+      'a',
+    ))!.copyWith(bookmarkRef: 'old-ref');
+    final written = <String>[];
+    final afterCommit = <Future<void> Function()>[];
+
+    await service(
+      createBookmark: (path) async => Uint8List(1),
+      writeBookmark: (ref, blob) async => written.add(ref),
+    ).apply([
+      RepairProposal(
+        item: item,
+        confidence: RepairConfidence.edited,
+        candidate: RepairCandidate.file(path: file.path, sizeBytes: 9),
+      ),
+    ], afterCommit: afterCommit);
+
+    expect(written, hasLength(1));
+    expect(written.single, isNot('old-ref'));
+    expect((await repo.getMediaById('a'))!.bookmarkRef, written.single);
+    Future<int> uploads() async =>
+        (await cacheDb
+                .customSelect(
+                  "SELECT media_id FROM media_transfer_queue "
+                  "WHERE direction = 'upload'",
+                )
+                .get())
+            .length;
+    expect(await uploads(), 0);
+
+    for (final step in afterCommit) {
+      await step();
+    }
+    expect(await uploads(), 1);
+  });
+
   test('store proposal converts to cloud-backed', () async {
     await seed('a', contentHash: 'H1', stampRemote: true);
     final item = (await repo.getMediaById('a'))!;

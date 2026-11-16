@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/media/data/services/media_import_service.dart';
+import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/media/presentation/providers/media_repair_pr
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// The held change of the Media card.
@@ -21,6 +23,7 @@ const String mediaKey = 'media';
 const String _noteKey = 'media.held';
 const String _writersKey = 'media.writers';
 const String _createdKey = 'media.created';
+const String _afterKey = 'media.after';
 
 /// How a sitting's media are written at Save.
 @immutable
@@ -30,12 +33,15 @@ class SittingMediaWriters {
     required this.insertNetwork,
     required this.unlink,
     required this.replace,
+    required this.drainDeletes,
     required this.enqueueUpload,
   });
 
   /// The app's own: the import service, the fetch pipeline, the unlink
-  /// service (which deletes a row that belongs to nothing else), the repair
-  /// service, and the media store's upload queue. Each is read only when
+  /// service (which deletes a row that belongs to nothing else, its remote
+  /// delete held for the commit), the repair service (what it does outside
+  /// the database left for the commit), and the media store's upload
+  /// queue. Each is read only when
   /// it is used: a sitting starts on every unlock, and most never write
   /// media. [read] must outlive the page (the provider container's), since
   /// a save can finish after the page has gone.
@@ -48,9 +54,17 @@ class SittingMediaWriters {
     ],
     insertNetwork: (requests) =>
         read(networkFetchPipelineProvider).insertResolved(requests),
-    unlink: (ids) async => read(mediaUnlinkServiceProvider).unlinkFromDive(ids),
-    replace: (proposals) async =>
-        read(mediaRepairServiceProvider).apply(proposals),
+    unlink: (ids) async => MediaUnlinkService(
+      repository: read(mediaRepositoryProvider),
+      deleteMedia: (ids) => read(
+        mediaDeletionCoordinatorProvider,
+      ).deleteMultipleMedia(ids, holdRemoteDelete: true),
+    ).unlinkFromDive(ids),
+    replace: (proposals, afterCommit) async => read(
+      mediaRepairServiceProvider,
+    ).apply(proposals, afterCommit: afterCommit),
+    drainDeletes: () =>
+        read(mediaDeletionCoordinatorProvider).drainHeldDeletes(),
     enqueueUpload: (mediaId) => read(mediaStoreEnqueueProvider)(mediaId),
   );
 
@@ -58,7 +72,17 @@ class SittingMediaWriters {
   final Future<List<String>> Function(List<NetworkInsertRequest> requests)
   insertNetwork;
   final Future<void> Function(List<String> ids) unlink;
-  final Future<void> Function(List<RepairProposal> proposals) replace;
+
+  /// Relinks [proposals], adding to the list it is given what must wait
+  /// for the commit.
+  final Future<void> Function(
+    List<RepairProposal> proposals,
+    List<Future<void> Function()> afterCommit,
+  )
+  replace;
+
+  /// Lets the media store take the remote deletes an unlink held.
+  final Future<void> Function() drainDeletes;
   final void Function(String mediaId) enqueueUpload;
 }
 
@@ -185,7 +209,10 @@ void _set(EditSession<Dive> session, SittingMedia next) {
 /// failed save keeps does nothing, by the media store's own rule), then the
 /// replaced links. Uploads wait for the commit ([mediaAfterCommit]).
 Future<void> _write(EditSession<Dive> session, SittingMediaWriters w) async {
-  session.remember(_createdKey, null);
+  session
+    ..remember(_createdKey, null)
+    ..remember(_afterKey, null);
+  final after = <Future<void> Function()>[];
   final held = sittingMedia(session);
   final created = <String>[];
   final rows = [
@@ -198,20 +225,30 @@ Future<void> _write(EditSession<Dive> session, SittingMediaWriters w) async {
       if (a is HeldNetworkMedia) a.request,
   ];
   if (network.isNotEmpty) created.addAll(await w.insertNetwork(network));
-  if (held.unlinked.isNotEmpty) await w.unlink(held.unlinked.toList());
-  if (held.replaced.isNotEmpty) {
-    await w.replace(held.replaced.values.toList());
+  if (held.unlinked.isNotEmpty) {
+    await w.unlink(held.unlinked.toList());
+    after.add(w.drainDeletes);
   }
-  session.remember(_createdKey, created);
+  if (held.replaced.isNotEmpty) {
+    await w.replace(held.replaced.values.toList(), after);
+  }
+  session
+    ..remember(_createdKey, created)
+    ..remember(_afterKey, after);
 }
 
 /// What must happen once the sitting's write has committed: an upload
-/// queued for each row it wrote. Empty before a write went through.
+/// queued for each row it wrote, the remote deletes its unlinks held, and
+/// the uploads and cache drops of its relinks. Empty before a write went
+/// through.
 List<Future<void> Function()> mediaAfterCommit(EditSession<Dive> session) {
   final created = session.recall<List<String>>(_createdKey);
   final writers = session.recall<SittingMediaWriters>(_writersKey);
   if (created == null || writers == null) return const [];
-  return [for (final id in created) () async => writers.enqueueUpload(id)];
+  return [
+    for (final id in created) () async => writers.enqueueUpload(id),
+    ...?session.recall<List<Future<void> Function()>>(_afterKey),
+  ];
 }
 
 /// [stored] as the sitting has it: unlinked ones gone, added ones in, in

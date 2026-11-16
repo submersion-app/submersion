@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -45,7 +46,11 @@ void main() {
         },
         insertNetwork: (requests) async => const [],
         unlink: (ids) async => calls.add('unlink $ids'),
-        replace: (proposals) async => calls.add('replace ${proposals.length}'),
+        replace: (proposals, afterCommit) async {
+          calls.add('replace ${proposals.length}');
+          afterCommit.add(() async => calls.add('relink settled'));
+        },
+        drainDeletes: () async => calls.add('drain deletes'),
         enqueueUpload: queued.add,
       ),
     );
@@ -70,6 +75,8 @@ void main() {
       await step();
     }
     expect(queued, ['n1']);
+    // The unlink's remote deletes wait for the commit too.
+    expect(calls.last, 'drain deletes');
 
     final cancelled = started();
     addMediaToSitting(cancelled, [added('n2', 12)]);
@@ -102,6 +109,29 @@ void main() {
 
     await session.runHeldWrites();
     expect(calls, ['rows [n1, n2, n5]']);
+  });
+
+  test("a relink's work outside the database waits for the commit", () async {
+    final session = started();
+    replaceLinkInSitting(
+      session,
+      's1',
+      RepairProposal(
+        item: stored.first,
+        confidence: RepairConfidence.exact,
+        candidate: const RepairCandidate.file(
+          path: '/new/s1.jpg',
+          sizeBytes: 4,
+        ),
+      ),
+    );
+
+    await session.runHeldWrites();
+    expect(calls, ['replace 1']);
+    for (final step in mediaAfterCommit(session)) {
+      await step();
+    }
+    expect(calls, ['replace 1', 'relink settled']);
   });
 
   test('a photo added then unlinked in the sitting: nothing held', () {

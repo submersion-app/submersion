@@ -66,6 +66,22 @@ void main() {
     expect(kicks, 1);
   });
 
+  // A dive's sitting unlinks inside its save, which a later write can still
+  // roll back (issue #4527): the worker waits for the commit.
+  test('held by id: the row goes and its intent is queued, but the worker '
+      'waits for drainHeldDeletes', () async {
+    await repo.createMedia(
+      photo('m1', hash: 'aa', uploadedAt: DateTime(2026, 2)),
+    );
+    await coordinator.deleteMultipleMedia(['m1'], holdRemoteDelete: true);
+    expect(await repo.getMediaById('m1'), isNull);
+    expect((await queue.allForTesting()).single.direction, 'delete');
+    expect(kicks, 0);
+
+    await coordinator.drainHeldDeletes();
+    expect(kicks, 1);
+  });
+
   test('videos record an mp4 rendition extension', () async {
     await repo.createMedia(
       photo(
