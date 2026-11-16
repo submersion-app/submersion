@@ -207,23 +207,55 @@ enum AccountKindOffer { icloud, googleDrive, dropbox, ownServer, git }
 
 /// The kinds this platform and build can sign in to, gated exactly as the
 /// sync page gates its providers today.
+///
+/// Null while a check that could add a kind is still running. A list shown
+/// before then grew a row once the check answered, which moved every row
+/// below it: a tap aimed at My own server opened Dropbox (issue #4612). A
+/// check that fails settles as "not offered". A chooser that cannot show the
+/// pending kinds anyway reads [accountKindOfferChecksProvider] instead.
 final offerableAccountKindsProvider =
-    Provider.autoDispose<List<AccountKindOffer>>((ref) {
+    Provider.autoDispose<List<AccountKindOffer>?>((ref) {
+      final checks = ref.watch(accountKindOfferChecksProvider);
+      return checks.pending.isEmpty ? checks.offers : null;
+    });
+
+/// The kinds offered so far, and the kinds whose check is still running
+/// (left out of [offers] until it answers).
+typedef AccountKindOfferChecks = ({
+  List<AccountKindOffer> offers,
+  Set<AccountKindOffer> pending,
+});
+
+/// What [offerableAccountKindsProvider] is built from, for a chooser that
+/// allows only some kinds: it waits only while a kind it shows is pending.
+final accountKindOfferChecksProvider =
+    Provider.autoDispose<AccountKindOfferChecks>((ref) {
       final caps = ref.watch(deviceCapabilitiesProvider);
-      final icloud = ref.watch(iCloudAvailabilityProvider).value;
-      return [
-        if (caps.cloudICloud &&
-            ref.watch(isApplePlatformProvider) &&
-            icloud != null &&
-            icloud != ICloudAvailability.unsupported)
-          AccountKindOffer.icloud,
-        if (caps.cloudGoogleDrive &&
-            (ref.watch(googleDriveAvailableProvider).value ?? false))
-          AccountKindOffer.googleDrive,
-        if (ref.watch(dropboxConfiguredProvider)) AccountKindOffer.dropbox,
-        AccountKindOffer.ownServer,
-        if (caps.cloudGit) AccountKindOffer.git,
-      ];
+      // Asked only where the kind could be offered, so a check that never
+      // answers on another platform cannot hold the list back.
+      final icloudCheck = caps.cloudICloud && ref.watch(isApplePlatformProvider)
+          ? ref.watch(iCloudAvailabilityProvider)
+          : null;
+      final driveCheck = caps.cloudGoogleDrive
+          ? ref.watch(googleDriveAvailableProvider)
+          : null;
+      bool pending(AsyncValue<Object?>? check) =>
+          check != null && !check.hasValue && !check.hasError;
+      final icloud = icloudCheck?.value;
+      return (
+        offers: [
+          if (icloud != null && icloud != ICloudAvailability.unsupported)
+            AccountKindOffer.icloud,
+          if (driveCheck?.value ?? false) AccountKindOffer.googleDrive,
+          if (ref.watch(dropboxConfiguredProvider)) AccountKindOffer.dropbox,
+          AccountKindOffer.ownServer,
+          if (caps.cloudGit) AccountKindOffer.git,
+        ],
+        pending: {
+          if (pending(icloudCheck)) AccountKindOffer.icloud,
+          if (pending(driveCheck)) AccountKindOffer.googleDrive,
+        },
+      );
     });
 
 /// The kind an offer adds; own servers pick S3 or WebDAV in their form.

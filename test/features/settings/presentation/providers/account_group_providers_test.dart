@@ -51,6 +51,8 @@ List<Override> _gates({
   ICloudAvailability icloud = ICloudAvailability.available,
   bool drive = true,
   bool dropbox = true,
+  Future<bool> Function()? driveCheck,
+  Future<ICloudAvailability> Function()? icloudCheck,
 }) => [
   deviceCapabilitiesProvider.overrideWithValue(
     DeviceCapabilities.web.copyWith(
@@ -60,8 +62,12 @@ List<Override> _gates({
     ),
   ),
   isApplePlatformProvider.overrideWithValue(apple),
-  iCloudAvailabilityProvider.overrideWith((ref) async => icloud),
-  googleDriveAvailableProvider.overrideWith((ref) async => drive),
+  iCloudAvailabilityProvider.overrideWith(
+    (ref) => icloudCheck?.call() ?? Future.value(icloud),
+  ),
+  googleDriveAvailableProvider.overrideWith(
+    (ref) => driveCheck?.call() ?? Future.value(drive),
+  ),
   dropboxConfiguredProvider.overrideWithValue(dropbox),
 ];
 
@@ -70,7 +76,11 @@ Future<List<AccountKindOffer>> _offers(List<Override> gates) async {
   c.listen(offerableAccountKindsProvider, (_, _) {});
   await c.read(iCloudAvailabilityProvider.future);
   await c.read(googleDriveAvailableProvider.future);
-  return c.read(offerableAccountKindsProvider);
+  // Read into a local first: returned straight from this async function,
+  // read's type argument would be inferred from the FutureOr return type
+  // instead of from the provider.
+  final offers = c.read(offerableAccountKindsProvider);
+  return offers!;
 }
 
 void main() {
@@ -99,6 +109,91 @@ void main() {
         await _offers(_gates(icloud: ICloudAvailability.signedOut)),
         contains(AccountKindOffer.icloud),
       );
+    });
+
+    // Issue #4612: a row that arrives after the list is shown moves every
+    // row below it, so a tap meant for My own server opened Dropbox.
+    test('no list until the Google Drive check settles', () async {
+      final drive = Completer<bool>();
+      final c = _container(_gates(driveCheck: () => drive.future));
+      c.listen(offerableAccountKindsProvider, (_, _) {});
+      await c.read(iCloudAvailabilityProvider.future);
+      expect(c.read(offerableAccountKindsProvider), isNull);
+      drive.complete(true);
+      await c.read(googleDriveAvailableProvider.future);
+      expect(c.read(offerableAccountKindsProvider), [
+        AccountKindOffer.icloud,
+        AccountKindOffer.googleDrive,
+        AccountKindOffer.dropbox,
+        AccountKindOffer.ownServer,
+        AccountKindOffer.git,
+      ]);
+    });
+
+    test('the checks name the kind still pending and offer the rest', () async {
+      final drive = Completer<bool>();
+      final c = _container(_gates(driveCheck: () => drive.future));
+      c.listen(accountKindOfferChecksProvider, (_, _) {});
+      await c.read(iCloudAvailabilityProvider.future);
+      final checks = c.read(accountKindOfferChecksProvider);
+      expect(checks.pending, {AccountKindOffer.googleDrive});
+      expect(checks.offers, [
+        AccountKindOffer.icloud,
+        AccountKindOffer.dropbox,
+        AccountKindOffer.ownServer,
+        AccountKindOffer.git,
+      ]);
+      drive.complete(true);
+      await c.read(googleDriveAvailableProvider.future);
+      expect(c.read(accountKindOfferChecksProvider).pending, isEmpty);
+    });
+
+    test('no list until the iCloud check settles', () async {
+      final icloud = Completer<ICloudAvailability>();
+      final c = _container(_gates(icloudCheck: () => icloud.future));
+      c.listen(offerableAccountKindsProvider, (_, _) {});
+      await c.read(googleDriveAvailableProvider.future);
+      expect(c.read(offerableAccountKindsProvider), isNull);
+      icloud.complete(ICloudAvailability.available);
+      await c.read(iCloudAvailabilityProvider.future);
+      expect(
+        c.read(offerableAccountKindsProvider),
+        contains(AccountKindOffer.icloud),
+      );
+    });
+
+    test('a check that is never made holds nothing back', () async {
+      // Off Apple platforms iCloud is not asked about at all, so a check
+      // that would never answer there cannot keep the list from showing.
+      final c = _container(
+        _gates(
+          apple: false,
+          icloudCheck: () => Completer<ICloudAvailability>().future,
+        ),
+      );
+      c.listen(offerableAccountKindsProvider, (_, _) {});
+      await c.read(googleDriveAvailableProvider.future);
+      expect(c.read(offerableAccountKindsProvider), [
+        AccountKindOffer.googleDrive,
+        AccountKindOffer.dropbox,
+        AccountKindOffer.ownServer,
+        AccountKindOffer.git,
+      ]);
+    });
+
+    test('a failed check settles as not offered', () async {
+      final c = _container(
+        _gates(driveCheck: () => Future.error(StateError('no client'))),
+      );
+      c.listen(offerableAccountKindsProvider, (_, _) {});
+      await c.read(iCloudAvailabilityProvider.future);
+      await expectLater(
+        c.read(googleDriveAvailableProvider.future),
+        throwsStateError,
+      );
+      final offers = c.read(offerableAccountKindsProvider);
+      expect(offers, isNotNull);
+      expect(offers, isNot(contains(AccountKindOffer.googleDrive)));
     });
 
     test('Google Drive and Dropbox follow their build gates', () async {
