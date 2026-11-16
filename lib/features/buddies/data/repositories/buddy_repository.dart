@@ -17,6 +17,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart'
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_card_columns.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_country_columns.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_conversion_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -209,11 +210,17 @@ class BuddyRepository {
       final id = buddy.id.isEmpty ? _uuid.v4() : buddy.id;
       final now = DateTime.now();
 
+      final country = BuddyCountryColumns.of(
+        country: buddy.country,
+        code: buddy.countryCode,
+      );
       await _db
           .into(_db.buddies)
           .insert(
             BuddyCardColumns.of(buddy).copyWith(
               id: Value(id),
+              country: country.country,
+              countryCode: country.countryCode,
               diverId: Value(buddy.diverId),
               linkedDiverId: Value(buddy.linkedDiverId),
               name: Value(buddy.name),
@@ -237,7 +244,14 @@ class BuddyRepository {
       SyncEventBus.notifyLocalChange();
 
       _log.info('Created buddy with id: $id');
-      return buddy.copyWith(id: id, createdAt: now, updatedAt: now);
+      return buddy.copyWith(
+        id: id,
+        country: country.country.value,
+        countryCode: country.countryCode.value,
+        clearCountry: country.country.value == null,
+        createdAt: now,
+        updatedAt: now,
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to create buddy: ${buddy.name}',
@@ -329,11 +343,23 @@ class BuddyRepository {
     try {
       _log.info('Updating buddy: ${buddy.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
+      final stored = await (_db.select(
+        _db.buddies,
+      )..where((t) => t.id.equals(buddy.id))).getSingleOrNull();
+      final country = BuddyCountryColumns.of(
+        country: buddy.country,
+        code: buddy.countryCode,
+        before: stored == null
+            ? null
+            : (country: stored.country, code: stored.countryCode),
+      );
 
       await (_db.update(
         _db.buddies,
       )..where((t) => t.id.equals(buddy.id))).write(
         BuddyCardColumns.of(buddy).copyWith(
+          country: country.country,
+          countryCode: country.countryCode,
           diverId: Value(buddy.diverId),
           linkedDiverId: Value(buddy.linkedDiverId),
           name: Value(buddy.name),
@@ -372,7 +398,9 @@ class BuddyRepository {
     if (partial.toColumns(false).isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(_db.buddies)..where((t) => t.id.equals(id))).write(
-      partial.copyWith(updatedAt: Value(now)),
+      BuddyCountryColumns.withDerivedCode(
+        partial,
+      ).copyWith(updatedAt: Value(now)),
     );
     await _syncRepository.markRecordPending(
       entityType: 'buddies',
@@ -1344,6 +1372,8 @@ class BuddyRepository {
       name: row.name,
       email: row.email,
       phone: row.phone,
+      country: row.country,
+      countryCode: row.countryCode,
       // Derived at hydration from the certifications table (issue #553);
       // _withPrimaryCerts overwrites these on the read paths.
       certificationLevel: null,

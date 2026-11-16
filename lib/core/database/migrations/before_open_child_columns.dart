@@ -99,5 +99,9 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v369: dive_sites.catalogue_answers and the catalogue columns of
     // library_site_notes. Every read of either table selects the whole row.
     await _assertSiteCatalogueAnswersColumns();
+
+    // v371: buddies.country and buddies.country_code (issue #4457). Every
+    // buddy read selects the whole row.
+    await _assertBuddyCountryColumns();
   }
 }

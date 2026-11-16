@@ -431,6 +431,8 @@ class DiveMirrorService {
         name: sourceBuddy.name,
         email: sourceBuddy.email,
         phone: sourceBuddy.phone,
+        country: sourceBuddy.country,
+        countryCode: sourceBuddy.countryCode,
         photo: sourceBuddy.photo,
         createdAt: now,
         updatedAt: now,

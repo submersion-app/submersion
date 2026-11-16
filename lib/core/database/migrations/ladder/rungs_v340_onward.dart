@@ -241,5 +241,11 @@ extension RungsFromV340 on AppDatabase {
     // defaulted off; re-asserted in beforeOpen.
     if (from < 370) await _assertDefaultShowBuoyancyColumn();
     if (from < 370) await reportProgress();
+
+    // v371: buddies.country and buddies.country_code, where a buddy is from
+    // and the ISO code read from it (issue #4457). Nullable, nothing to
+    // backfill, so the floor does not move. Re-asserted in beforeOpen.
+    if (from < 371) await _assertBuddyCountryColumns();
+    if (from < 371) await reportProgress();
   }
 }

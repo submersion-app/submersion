@@ -130,6 +130,8 @@ class BuddyMergeRepository {
       name: row.name,
       email: row.email,
       phone: row.phone,
+      country: row.country,
+      countryCode: row.countryCode,
       // Cert level/agency are derived from the certifications table at
       // hydration (issue #553); merge snapshots don't need the derived value.
       certificationLevel: null,
@@ -579,6 +581,8 @@ class BuddyMergeRepository {
                   name: Value(buddy.name),
                   email: Value(buddy.email),
                   phone: Value(buddy.phone),
+                  country: Value(buddy.country),
+                  countryCode: Value(buddy.countryCode),
                   photoPath: Value(buddy.photoPath),
                   photo: Value(buddy.photo),
                   notes: Value(buddy.notes),
@@ -786,6 +790,8 @@ class BuddyMergeRepository {
         name: Value(buddy.name),
         email: Value(buddy.email),
         phone: Value(buddy.phone),
+        country: Value(buddy.country),
+        countryCode: Value(buddy.countryCode),
         photoPath: Value(buddy.photoPath),
         photo: Value(buddy.photo),
         notes: Value(buddy.notes),
