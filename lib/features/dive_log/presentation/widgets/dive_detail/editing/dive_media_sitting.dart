@@ -22,8 +22,7 @@ const String _noteKey = 'media.held';
 const String _writersKey = 'media.writers';
 const String _createdKey = 'media.created';
 
-/// How a sitting's media are written at Save, read as the sitting starts
-/// so the write needs no provider when it runs.
+/// How a sitting's media are written at Save.
 @immutable
 class SittingMediaWriters {
   const SittingMediaWriters({
@@ -36,23 +35,24 @@ class SittingMediaWriters {
 
   /// The app's own: the import service, the fetch pipeline, the unlink
   /// service (which deletes a row that belongs to nothing else), the repair
-  /// service, and the media store's upload queue.
-  factory SittingMediaWriters.read(ProviderRead read) {
-    final import = read(mediaImportServiceProvider);
-    final pipeline = read(networkFetchPipelineProvider);
-    final unlink = read(mediaUnlinkServiceProvider);
-    final repair = read(mediaRepairServiceProvider);
-    final enqueue = read(mediaStoreEnqueueProvider);
-    return SittingMediaWriters(
-      writeRows: (prepared) async => [
-        for (final row in await import.writePrepared(prepared)) row.id,
-      ],
-      insertNetwork: pipeline.insertResolved,
-      unlink: (ids) async => unlink.unlinkFromDive(ids),
-      replace: (proposals) async => repair.apply(proposals),
-      enqueueUpload: enqueue,
-    );
-  }
+  /// service, and the media store's upload queue. Each is read only when
+  /// it is used: a sitting starts on every unlock, and most never write
+  /// media. [read] must outlive the page (the provider container's), since
+  /// a save can finish after the page has gone.
+  factory SittingMediaWriters.read(ProviderRead read) => SittingMediaWriters(
+    writeRows: (prepared) async => [
+      for (final row in await read(
+        mediaImportServiceProvider,
+      ).writePrepared(prepared))
+        row.id,
+    ],
+    insertNetwork: (requests) =>
+        read(networkFetchPipelineProvider).insertResolved(requests),
+    unlink: (ids) async => read(mediaUnlinkServiceProvider).unlinkFromDive(ids),
+    replace: (proposals) async =>
+        read(mediaRepairServiceProvider).apply(proposals),
+    enqueueUpload: (mediaId) => read(mediaStoreEnqueueProvider)(mediaId),
+  );
 
   final Future<List<String>> Function(List<PreparedMedia> prepared) writeRows;
   final Future<List<String>> Function(List<NetworkInsertRequest> requests)

@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/route_row.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The Underwater track card's editor: the dive form's route row and sheet
 /// over the sitting's draft, and, with more than one route, which is the
@@ -52,9 +53,12 @@ class DiveNavTrackCardEditor extends StatelessWidget {
                   key: ValueKey('nav-track-primary-${route.id}'),
                   contentPadding: EdgeInsets.zero,
                   title: Text(route.displayName),
-                  trailing: route.id == primary
+                  // Under the title, so a longer translation leaves the
+                  // route's name its width.
+                  subtitle: route.id == primary
                       ? Text(context.l10n.navTrack_section_primaryTag)
-                      : TextButton(
+                      : TileSubtitleAction(
+                          label: context.l10n.navTrack_section_menuMakePrimary,
                           onPressed: () {
                             final current = sittingRouteDraft(session);
                             if (current == null) return;
@@ -63,9 +67,6 @@ class DiveNavTrackCardEditor extends StatelessWidget {
                               current.withPrimary(route.id),
                             );
                           },
-                          child: Text(
-                            context.l10n.navTrack_section_menuMakePrimary,
-                          ),
                         ),
                 ),
           ],

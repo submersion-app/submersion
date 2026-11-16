@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -104,5 +105,19 @@ void main() {
     addMediaToSitting(session, [added('n1', 10)]);
     await expectLater(session.runHeldWrites(), throwsStateError);
     expect(mediaAfterCommit(session), isEmpty);
+  });
+
+  // A sitting starts on every unlock, with or without media to write: its
+  // writers must not need the media services (or the database behind
+  // them) until Save writes something.
+  test('the app\'s writers read nothing until a write runs', () {
+    final read = <Object>[];
+    T reading<T>(ProviderListenable<T> provider) {
+      read.add(provider);
+      throw StateError('read at unlock');
+    }
+
+    SittingMediaWriters.read(reading);
+    expect(read, isEmpty);
   });
 }
