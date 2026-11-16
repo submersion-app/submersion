@@ -46,7 +46,8 @@ widened by `docs/design/specs/2026-11-16-site-catalogue-wider-sources-design.md`
   figures on different domains, each to a tenth of a minute (three
   decimals of a degree, a whole second) or finer, within 150 m of each
   other; the shipped point is their mean. *Stated:* exactly one such
-  figure; the shipped point is that figure. *Map:* anything else from
+  figure and no map reading beside it; the shipped point is that figure.
+  *Map:* anything else from
   counting pages: a point read off a counting page's own map, a figure
   coarser than a tenth of a minute, or stated figures that disagree; the
   shipped point is the mean of every counting figure, and the record is

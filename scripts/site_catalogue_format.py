@@ -530,6 +530,10 @@ def validate_catalogue(doc: dict) -> list[str]:
                 problems.append(
                     f"{site_id}: position_from on a record that is not researched"
                 )
+            elif "lat" not in record or "lon" not in record:
+                problems.append(
+                    f"{site_id}: position_from on a record with no position"
+                )
         if ("lat" in record) != ("lon" in record):
             problems.append(f"{site_id}: lat and lon must come together")
         kind = record.get("kind", "site")

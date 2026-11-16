@@ -679,9 +679,16 @@ class ResearchedTrustTest(unittest.TestCase):
 
     def test_position_from_map_on_a_researched_record_validates(self):
         problems = fmt.validate_catalogue(
-            _doc([self._researched(position_from="map")])
+            _doc([self._researched(position_from="map", lat=-8.27, lon=115.59)])
         )
         self.assertEqual(problems, [])
+
+    def test_position_from_map_without_a_position_fails(self):
+        # It says where the position came from, so it needs one.
+        problems = fmt.validate_catalogue(
+            _doc([self._researched(position_from="map")])
+        )
+        self.assertTrue(any("position_from" in p for p in problems), problems)
 
     def test_position_from_on_a_verified_record_fails(self):
         problems = fmt.validate_catalogue(_doc([_record(position_from="map")]))

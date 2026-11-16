@@ -299,6 +299,15 @@ class PositionTest(unittest.TestCase):
         self.assertTrue(checked.ok, checked.findings)
         self.assertEqual(checked.route, "stated")
 
+    def test_a_fine_figure_beside_a_map_reading_is_map_read_at_their_mean(self):
+        # A mix is map-grade (spec section 2): the reading is not dropped.
+        reading = _map_source(-8.27912, 115.5929, url="https://pressb.org/m")
+        lat = (-8.27372 + -8.27912) / 2
+        checked = _one(_placed([dict(_A), reading], lat, 115.5929))
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "map")
+        self.assertAlmostEqual(checked.position[0], lat, places=6)
+
     def test_counting_figures_600m_apart_are_map_read_at_their_mean(self):
         far = dict(_B, lat=-8.27912, lon=115.5929)
         lat = (-8.27372 + -8.27912) / 2
@@ -335,10 +344,12 @@ class PositionTest(unittest.TestCase):
         self.assertIn("shape", _rules(checked))
         self.assertIsNone(checked.route)
 
-    def test_stated_and_map_3km_apart_fail_spread(self):
-        source = _map_source(-8.30072, 115.5929)
-        entry = _placed([dict(_A), source], _A["lat"], _A["lon"])
-        self.assertIn("position_spread", _rules(_one(entry)))
+    def test_stated_and_map_5km_apart_fail_spread(self):
+        # Their mean is shipped, 2.5 km from each.
+        source = _map_source(-8.31872, 115.5929)
+        lat = (_A["lat"] + -8.31872) / 2
+        entry = _placed([dict(_A), source], lat, _A["lon"])
+        self.assertEqual(_rules(_one(entry)), {"position_spread"})
 
     def test_confirmed_with_a_map_figure_1km_off_stays_confirmed(self):
         entry = _entry()

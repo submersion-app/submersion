@@ -315,9 +315,13 @@ def _check_position(checked: CheckedEntry, domains) -> None:
         evidence.metres_between(a[1], a[2], b[1], b[2]) <= AGREE_M
         for i, a in enumerate(fine) for b in fine[i + 1:]
     )
+    # A map reading beside a fine figure makes a mix, which is map-grade; a
+    # coarse stated figure does not, since it makes a record map-read only
+    # when nothing finer exists.
+    read_off_a_map = any(f[0].get("method") == "map" for f in counting)
     if len(fine) >= 2 and len(hosts) >= 2 and agree:
         checked.route, shipped = "confirmed", _mean_point(fine)
-    elif len(fine) == 1:
+    elif len(fine) == 1 and not read_off_a_map:
         checked.route, shipped = "stated", (fine[0][1], fine[0][2])
     else:
         checked.route, shipped = "map", _mean_point(counting)

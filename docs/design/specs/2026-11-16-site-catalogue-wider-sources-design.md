@@ -202,8 +202,9 @@ unchanged. Position and existence change:
      within 150 m, each to a tenth of a minute or finer (slice 3's rule).
      The shipped point is their mean, as now. The record is not map-read.
   2. **Stated once:** exactly one counting `stated` figure to a tenth of a
-     minute or finer. The shipped point is that figure. The record is not
-     map-read.
+     minute or finer, and no counting `map` figure beside it (a coarser
+     stated figure beside it is fine; see Agreement). The shipped point is
+     that figure. The record is not map-read.
   3. **Map-grade:** anything else that passes agreement (below): counting
      `map` figures only; or two or more counting `stated` figures more
      than 150 m apart (they disagree, so the position is only
