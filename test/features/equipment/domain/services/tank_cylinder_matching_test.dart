@@ -73,6 +73,18 @@ void main() {
   );
 
   group('cylinderMatchesTank', () {
+    test('a logged 0 working pressure is an unknown rating', () {
+      final tank = _tank(
+        't',
+        volume: 11.1,
+        pressure: 0,
+        material: TankMaterial.aluminum,
+      );
+      expect(cylinderMatchesTank(al80, tank), isTrue);
+      final proposal = proposalForTank(TankRef(diveId: 'd', tank: tank));
+      expect(proposal.workingPressureBar, isNull);
+    });
+
     test('matches within 0.2 L and 2 bar', () {
       expect(
         cylinderMatchesTank(
@@ -320,5 +332,18 @@ void main() {
     expect(p.cylinderCount, 1);
     expect(p.allTanks.single.tank.id, 't');
     expect(p.volumeL, 11.1);
+  });
+
+  test('specs within the matching tolerance share one row', () {
+    final proposals = proposeCylinders(
+      [
+        TankRef(diveId: 'a', tank: _tank('ta', volume: 11.14, pressure: 206.4)),
+        TankRef(diveId: 'b', tank: _tank('tb', volume: 11.16, pressure: 206.6)),
+      ],
+      owned: const [],
+      ownedPairs: const [],
+    );
+    expect(proposals, hasLength(1));
+    expect(proposals.single.diveCount, 2);
   });
 }

@@ -56,15 +56,11 @@ double? tankVolumeFromInput(
     // A preset's rated figure is read back as that preset's water volume,
     // as the field showed it: the ideal-gas factor would turn a typed
     // "77.4" (an AL80) into 10.6 L instead of 11.1 L.
-    for (final preset in TankPresets.all) {
-      final rated = preset.ratedCapacityCuft;
-      if (rated != null &&
-          (rated - value).abs() < 0.05 &&
-          (preset.workingPressureBar - workingPressureBar).abs() < 2.0) {
-        return preset.volumeLiters;
-      }
-    }
-    return value * _litersPerCuft / workingPressureBar;
+    return TankPresets.matchByCapacity(
+          value,
+          workingPressureBar,
+        )?.volumeLiters ??
+        value * _litersPerCuft / workingPressureBar;
   }
   return value;
 }

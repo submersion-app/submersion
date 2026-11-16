@@ -204,6 +204,9 @@ class _CylindersFromTanksSheetState
       );
 
   Future<void> _save() async {
+    // A repeated activation can reach this before the disabled button is
+    // rebuilt; one save only.
+    if (_saving) return;
     setState(() {
       _saving = true;
       _failed = false;

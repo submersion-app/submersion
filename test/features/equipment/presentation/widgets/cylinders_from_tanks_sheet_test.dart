@@ -18,12 +18,14 @@ import '../../../../helpers/test_app.dart';
 class _FakeService extends CylinderFromTankService {
   final drafts = <CylinderDraft>[];
   bool fail = false;
+  int calls = 0;
 
   @override
   Future<List<EquipmentItem>> create(
     List<CylinderDraft> drafts, {
     required String? diverId,
   }) async {
+    calls++;
     if (fail) throw StateError('database locked');
     this.drafts.addAll(drafts);
     return [
@@ -240,5 +242,18 @@ void main() {
       find.byKey(const Key('cylinders-from-tanks-add')),
     );
     expect(add.onPressed, isNull);
+  });
+
+  testWidgets('a second tap before the next frame saves once', (tester) async {
+    await pumpSheet(tester);
+    // Both activations reach the handler the button was built with, as a
+    // repeated Enter does before the disabled button is rebuilt.
+    final onPressed = tester
+        .widget<FilledButton>(find.byKey(const Key('cylinders-from-tanks-add')))
+        .onPressed!;
+    onPressed();
+    onPressed();
+    await tester.pumpAndSettle();
+    expect(service.calls, 1);
   });
 }

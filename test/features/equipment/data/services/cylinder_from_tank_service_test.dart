@@ -156,6 +156,40 @@ void main() {
     expect(await gearOf('a'), containsAll([created[0].id, created[1].id]));
   });
 
+  test('a skipped cylinder leaves the one made unnumbered', () async {
+    await dive('a');
+    final refs = [
+      await tank('a', 'a-left'),
+      await tank('a', 'a-right', order: 1),
+    ];
+    final proposal = proposeCylinders(
+      refs,
+      owned: const [],
+      ownedPairs: const [],
+    ).single;
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'other',
+            name: 'Other',
+            type: 'tank',
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    await (db.update(db.diveTanks)..where((t) => t.id.equals('a-left'))).write(
+      const DiveTanksCompanion(equipmentId: Value('other')),
+    );
+
+    final created = await CylinderFromTankService().create([
+      unchanged(proposal, 'AL80'),
+    ], diverId: 'me');
+
+    expect(created.map((i) => i.name), ['AL80']);
+    expect((await tankRow('a-right')).equipmentId, created.single.id);
+  });
+
   test('a corrected spec is written back to the tanks', () async {
     await dive('a');
     final ref = await tank('a', 't-a');

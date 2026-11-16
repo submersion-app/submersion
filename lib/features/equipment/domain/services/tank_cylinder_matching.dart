@@ -53,6 +53,10 @@ class CylinderProposal {
 
 bool _isSuitTank(DiveTank tank) => tank.role == TankRole.suitInflation;
 
+/// A working pressure as a rating: a logged 0 (some imports record it for
+/// "unknown") or less is no rating at all.
+double? _rating(double? bar) => bar != null && bar > 0 ? bar : null;
+
 bool _specMatches({
   required double? volumeL,
   required double? workingPressureBar,
@@ -62,10 +66,11 @@ bool _specMatches({
   final tankVolume = tank.volume;
   if (volumeL == null || tankVolume == null) return false;
   if ((volumeL - tankVolume).abs() >= _volumeToleranceL) return false;
-  final tankPressure = tank.workingPressure;
-  if (workingPressureBar != null &&
+  final tankPressure = _rating(tank.workingPressure);
+  final rating = _rating(workingPressureBar);
+  if (rating != null &&
       tankPressure != null &&
-      (workingPressureBar - tankPressure).abs() >= _pressureToleranceBar) {
+      (rating - tankPressure).abs() >= _pressureToleranceBar) {
     return false;
   }
   final tankMaterial = tank.material;
@@ -113,16 +118,21 @@ List<CylinderProposal> proposeCylinders(
   required List<EquipmentItem> owned,
   required List<(EquipmentItem, EquipmentItem)> ownedPairs,
 }) {
-  final groups = <_GroupKey, List<TankRef>>{};
+  final groups = <List<TankRef>>[];
   for (final ref in tanks) {
     final tank = ref.tank;
     final volume = tank.volume;
     if (tank.equipmentId != null || volume == null || volume <= 0) continue;
     if (owned.any((item) => cylinderMatchesTank(item, tank))) continue;
     if (ownedPairs.any((p) => pairMatchesTank(p.$1, p.$2, tank))) continue;
-    groups.putIfAbsent(_groupKeyOf(tank), () => []).add(ref);
+    final group = groups.where((g) => _sameRow(g.first.tank, tank));
+    if (group.isEmpty) {
+      groups.add([ref]);
+    } else {
+      group.first.add(ref);
+    }
   }
-  final proposals = [for (final refs in groups.values) _proposalOf(refs)];
+  final proposals = [for (final refs in groups) _proposalOf(refs)];
   // A stable sort, so equal rows keep the order the tanks came in.
   final indexed = proposals.indexed.toList()
     ..sort((a, b) {
@@ -154,7 +164,7 @@ CylinderProposal _proposalOf(List<TankRef> refs) {
   final first = refs.first.tank;
   return CylinderProposal(
     volumeL: first.volume ?? 0,
-    workingPressureBar: first.workingPressure,
+    workingPressureBar: _rating(first.workingPressure),
     material: first.material,
     suitInflation: _isSuitTank(first),
     suggestedName: _suggestedName(refs, first),
@@ -168,7 +178,7 @@ String? _suggestedName(List<TankRef> refs, DiveTank first) {
     if (name != null && name.isNotEmpty) return name;
   }
   final volume = first.volume;
-  final pressure = first.workingPressure;
+  final pressure = _rating(first.workingPressure);
   if (volume == null || pressure == null) return null;
   return TankPresets.matchAnyBySpecs(
     volume,
@@ -177,20 +187,18 @@ String? _suggestedName(List<TankRef> refs, DiveTank first) {
   )?.displayName;
 }
 
-/// What makes two tanks one row: the size to a tenth of a liter, the rating
-/// to the bar, the material, and whether it is a suit inflation bottle. An
-/// absent rating or material is its own value, not a wildcard, so a tank
-/// with only a volume never merges into a row that states more.
-typedef _GroupKey = (
-  int decilitres,
-  int? bar,
-  TankMaterial? material,
-  bool suit,
-);
-
-_GroupKey _groupKeyOf(DiveTank tank) => (
-  (tank.volume! * 10).round(),
-  tank.workingPressure?.round(),
-  tank.material,
-  _isSuitTank(tank),
-);
+/// Whether two tanks are one row: the same cylinder by the tolerances
+/// matching uses (so 206.4 and 206.6 bar never split one size in two), the
+/// same material and suit use, and a rating on both or on neither. An absent
+/// rating or material is its own value, not a wildcard, so a tank with only
+/// a volume never merges into a row that states more.
+bool _sameRow(DiveTank a, DiveTank b) {
+  if (_isSuitTank(a) != _isSuitTank(b) || a.material != b.material) {
+    return false;
+  }
+  if ((a.volume! - b.volume!).abs() >= _volumeToleranceL) return false;
+  final pa = _rating(a.workingPressure);
+  final pb = _rating(b.workingPressure);
+  if (pa == null || pb == null) return pa == pb;
+  return (pa - pb).abs() < _pressureToleranceBar;
+}

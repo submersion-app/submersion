@@ -70,17 +70,21 @@ class CylinderFromTankService {
       final items = <EquipmentItem>[];
       for (final draft in drafts) {
         final proposal = draft.proposal;
-        final count = proposal.cylinderCount;
-        for (var i = 0; i < count; i++) {
+        // Only the cylinders with a tank still unlinked are made, and only
+        // they are numbered, so a skipped one leaves no gap.
+        final kept = <(List<TankRef>, Set<String>)>[];
+        for (final refs in proposal.tanksByCylinder) {
           final free = await _unlinkedTankIds([
-            for (final ref in proposal.tanksByCylinder[i]) ref.tank.id,
+            for (final ref in refs) ref.tank.id,
           ]);
-          if (free.isEmpty) continue;
+          if (free.isNotEmpty) kept.add((refs, free));
+        }
+        for (final (i, (refs, free)) in kept.indexed) {
           final item = await _equipment.createEquipment(
             EquipmentItem(
               id: '',
               diverId: diverId,
-              name: count == 1 ? draft.name : '${draft.name} ${i + 1}',
+              name: kept.length == 1 ? draft.name : '${draft.name} ${i + 1}',
               type: EquipmentType.tank,
               attributes: cylinderSpecAttributes(
                 volumeL: draft.volumeL,
@@ -93,7 +97,7 @@ class CylinderFromTankService {
           );
           items.add(item);
           final linkedDives = <String>{};
-          for (final ref in proposal.tanksByCylinder[i]) {
+          for (final ref in refs) {
             if (!free.contains(ref.tank.id)) continue;
             final linked = await _writeLink(
               ref.tank.id,
@@ -108,7 +112,7 @@ class CylinderFromTankService {
       }
       return items;
     });
-    SyncEventBus.notifyLocalChange();
+    if (created.isNotEmpty) SyncEventBus.notifyLocalChange();
     return created;
   }
 
