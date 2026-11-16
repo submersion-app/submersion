@@ -242,7 +242,7 @@ class ExitPathEvaluator {
       (i) =>
           i.severity == PlanIssueSeverity.critical &&
           i.type != PlanIssueType.gasOut &&
-          i.type != PlanIssueType.minGasAscentViolation,
+          !i.type.isMarginShortfall,
     );
   }
 

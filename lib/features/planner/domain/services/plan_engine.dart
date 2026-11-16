@@ -1489,7 +1489,7 @@ class PlanEngine {
       required int atRuntime,
       required int seconds,
     }) {
-      final id = liters.containsKey(tankId) ? tankId : plan.tanks.first.id;
+      final id = _planTankId(plan, tankId);
       liters[id] = (liters[id] ?? 0) + amount;
       draws[id]!.add(
         RuntimeIncrement(
@@ -1517,13 +1517,11 @@ class PlanEngine {
     // the loop draws nothing the plan charges by the minute. Shown as its own
     // figure, not charged to gas used: the dive does not always spend it
     // (#4475).
-    final bottomLeg = lastLegAtMaxDepth(plan, offLoopLegs);
+    final bottomLeg = _lastLegAtMaxDepth(plan, offLoopLegs);
     final problemSolving = bottomLeg == null
         ? null
         : (
-            tankId: liters.containsKey(bottomLeg.tankId)
-                ? bottomLeg.tankId
-                : plan.tanks.first.id,
+            tankId: _planTankId(plan, bottomLeg.tankId),
             liters: config.problemSolvingLiters(
               plan,
               environment,
@@ -1537,7 +1535,7 @@ class PlanEngine {
           final used = liters[tank.id] ?? 0.0;
           final start = tank.startPressure;
           final total = _fillLiters(tank);
-          final remaining = _pressureLeft(tank, used);
+          final remaining = _pressureLeft(tank, used, total);
           return PlanTankUsage(
             tankId: tank.id,
             litersUsed: used,
@@ -1569,15 +1567,15 @@ class PlanEngine {
       : fillCapacityLiters(tank, config.gasModel);
 
   /// [tank]'s pressure once [used] surface liters are drawn from its start
-  /// pressure; null without one. Negative once [used] exceeds the fill: the
-  /// shortfall, priced as a pressure the same way the surplus on an ordinary
-  /// line is, not floored to 0 as if the cylinder had exactly covered it
-  /// (#3190).
-  double? _pressureLeft(DiveTank tank, double used) {
+  /// pressure; null without one. [fill] is [_fillLiters] for [tank], passed
+  /// in so a caller reading several pressures works it out once. Negative
+  /// once [used] exceeds the fill: the shortfall, priced as a pressure the
+  /// same way the surplus on an ordinary line is, not floored to 0 as if the
+  /// cylinder had exactly covered it (#3190).
+  double? _pressureLeft(DiveTank tank, double used, double? fill) {
     final start = tank.startPressure;
-    if (start == null) return null;
-    final total = _fillLiters(tank)!;
-    if (used > total) return -_pressureHolding(tank, used - total)!;
+    if (start == null || fill == null) return null;
+    if (used > fill) return -_pressureHolding(tank, used - fill)!;
     return pressureAfterConsuming(
       tankSizeLiters: tank.volume ?? 11.0,
       startPressureBar: start,
@@ -1614,10 +1612,19 @@ class PlanEngine {
     ambientBar: environment.pressureAtDepth(leg.avgDepth),
   );
 
+  /// [tankId] when it names one of [plan]'s cylinders, else the first: a leg
+  /// naming a cylinder no longer on the plan falls back to it, since
+  /// dropping its draw would report that gas as free. [plan] has at least one
+  /// cylinder.
+  static String _planTankId(domain.DivePlan plan, String? tankId) =>
+      tankId != null && plan.tanks.any((t) => t.id == tankId)
+      ? tankId
+      : plan.tanks.first.id;
+
   /// The last of [legs] at [plan]'s max depth, or null when none of them
   /// reaches it: the cylinder problem-solving time is held against, and
   /// where the bottom ends for the minimum gas check (#4475).
-  static ResolvedLeg? lastLegAtMaxDepth(
+  static ResolvedLeg? _lastLegAtMaxDepth(
     domain.DivePlan plan,
     Iterable<ResolvedLeg> legs,
   ) {
@@ -1670,7 +1677,6 @@ class PlanEngine {
     final draws = <String, List<RuntimeIncrement>>{
       for (final t in plan.tanks) t.id: [],
     };
-    final fallbackTankId = plan.tanks.first.id;
 
     // [atRuntime] and [seconds] place the draw in the dive, so a cylinder's
     // reserve can be marked where it is first reached (#3738).
@@ -1680,9 +1686,7 @@ class PlanEngine {
       required int atRuntime,
       required int seconds,
     }) {
-      final id = tankId != null && liters.containsKey(tankId)
-          ? tankId
-          : fallbackTankId;
+      final id = _planTankId(plan, tankId);
       liters[id] = (liters[id] ?? 0) + amount;
       draws[id]!.add(
         RuntimeIncrement(
@@ -1774,11 +1778,8 @@ class PlanEngine {
     // bottom SAC x SAC factor. Shown as its own figure, not charged to gas
     // used: the dive does not always spend it, and rock bottom already holds
     // it back (#4475).
-    final bottomLeg = lastLegAtMaxDepth(plan, legs);
-    final problemSolvingTankId =
-        bottomLeg != null && liters.containsKey(bottomLeg.tankId)
-        ? bottomLeg.tankId
-        : fallbackTankId;
+    final bottomLeg = _lastLegAtMaxDepth(plan, legs);
+    final problemSolvingTankId = _planTankId(plan, bottomLeg?.tankId);
     final problemSolvingLiters = config.problemSolvingLiters(
       plan,
       environment,
@@ -1877,7 +1878,7 @@ class PlanEngine {
           final used = liters[tank.id] ?? 0.0;
           final start = tank.startPressure;
           final total = _fillLiters(tank);
-          final remaining = _pressureLeft(tank, used);
+          final remaining = _pressureLeft(tank, used, total);
           final minGas = _minGasFor(plan, tank, environment);
           final turn = _turnPressureFor(plan, tank, minGasBar: minGas.bar);
           final problemSolving = tank.id == problemSolvingTankId
@@ -1902,6 +1903,7 @@ class PlanEngine {
             bottomEndPressure: _pressureLeft(
               tank,
               amountAccruedBy(draws[tank.id]!, bottomEndRuntime),
+              total,
             ),
             problemSolvingLiters: problemSolving,
             problemSolvingPressure: _pressureHolding(tank, problemSolving),

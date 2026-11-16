@@ -475,6 +475,21 @@ void main() {
       expect(_types(outcome), isNot(contains(PlanIssueType.minGasViolation)));
     });
 
+    test('no usable gas alert stays quiet while gas is left above it', () {
+      final outcome = engine.compute(deepPlan(domain.TurnPressureRule.thirds));
+      expect(_types(outcome), isNot(contains(PlanIssueType.noUsableGas)));
+    });
+
+    test('no usable gas alert fires without a turn rule too', () {
+      final outcome = engine.compute(
+        deepPlan(
+          domain.TurnPressureRule.thirds,
+          startPressure: 80,
+        ).copyWith(clearTurnPressureRule: true),
+      );
+      expect(_types(outcome), contains(PlanIssueType.noUsableGas));
+    });
+
     // #4475: under the ascent-only minimum is critical even when the fill
     // is already under full rock bottom.
     test('a fill under the ascent alone is critical as well', () {

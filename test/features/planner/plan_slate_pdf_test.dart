@@ -274,4 +274,27 @@ void main() {
       expect(planSlateGasLimitCell(null, null, units, _labels), '--');
     });
   });
+
+  group('problem-solving cell (#4475)', () {
+    test('the gas held back prints in the diver\'s volume unit', () {
+      expect(
+        planSlateProblemSolvingCell(240.4, const UnitFormatter(AppSettings())),
+        '240',
+      );
+      expect(
+        planSlateProblemSolvingCell(
+          283.17,
+          const UnitFormatter(AppSettings(volumeUnit: VolumeUnit.cubicFeet)),
+        ),
+        '10',
+      );
+    });
+
+    test('a cylinder holding none keeps the dash', () {
+      expect(
+        planSlateProblemSolvingCell(0, const UnitFormatter(AppSettings())),
+        '--',
+      );
+    });
+  });
 }

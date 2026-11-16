@@ -97,6 +97,12 @@ String planSlateGasLimitCell(
   };
 }
 
+/// One Problem solving cell of the slate's gas table: the gas held back for
+/// problem-solving time, in the diver's volume unit, and a dash on a
+/// cylinder that holds none (#4475).
+String planSlateProblemSolvingCell(double liters, UnitFormatter units) =>
+    liters > 0 ? units.convertVolume(liters).toStringAsFixed(0) : '--';
+
 /// The slate's bailout section: the worst case's time and gas, or, when no
 /// carried gas reaches the plan, that instead of an ascent nothing can make
 /// (#3961). The depth rounds up and the MOD down, as the app's own words do.
@@ -410,11 +416,7 @@ class PlanSlatePdfService {
               cell(units.convertVolume(usage.litersUsed).toStringAsFixed(0)),
               cell('${usage.percentUsed.toStringAsFixed(0)}%'),
               cell(
-                usage.problemSolvingLiters > 0
-                    ? units
-                          .convertVolume(usage.problemSolvingLiters)
-                          .toStringAsFixed(0)
-                    : '--',
+                planSlateProblemSolvingCell(usage.problemSolvingLiters, units),
               ),
               cell(
                 planSlateGasLimitCell(

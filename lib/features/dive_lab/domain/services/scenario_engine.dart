@@ -687,10 +687,8 @@ class ScenarioEngine {
 }
 
 /// Whether a branch replan can be flown to the surface as computed: no
-/// critical issue but leaving the bottom under the minimum gas, which is
-/// critical yet still surfaces (#4475). That issue is listed on its own.
+/// critical issue but a short emergency margin, which is critical yet still
+/// surfaces (#4475). That issue is listed on its own.
 bool isReplanCompletable(PlanOutcome outcome) => !outcome.issues.any(
-  (i) =>
-      i.severity == PlanIssueSeverity.critical &&
-      i.type != PlanIssueType.minGasAscentViolation,
+  (i) => i.severity == PlanIssueSeverity.critical && !i.type.isMarginShortfall,
 );

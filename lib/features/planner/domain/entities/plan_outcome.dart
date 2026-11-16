@@ -71,7 +71,25 @@ enum PlanIssueType {
 
   /// A dive of a series deeper than the one before it. [PlanIssue.value] is
   /// its depth and [PlanIssue.threshold] the previous dive's, in meters.
-  reverseProfile,
+  reverseProfile;
+
+  /// Whether a lower [PlanIssue.value] is the worse one: a pressure left in
+  /// a cylinder, a hypoxic ppO2 or a short surface interval. Every other
+  /// value is a limit passed, worse the higher it is.
+  bool get lowerValueIsWorse => switch (this) {
+    hypoxicGas ||
+    bailoutGasHypoxic ||
+    gasReserveViolation ||
+    gasOut ||
+    minGasViolation ||
+    minGasAscentViolation ||
+    shortSurfaceInterval => true,
+    _ => false,
+  };
+
+  /// Critical, yet the plan as computed still reaches the surface: a margin
+  /// held back for an emergency is short, not the dive itself (#4475).
+  bool get isMarginShortfall => this == minGasAscentViolation;
 }
 
 /// One issue found while computing a plan.
@@ -258,7 +276,8 @@ class PlanTankUsage extends Equatable {
 
   /// Pressure in the cylinder as the diver last leaves the plan's deepest
   /// point, which is what minimum gas is checked against (#4475); null
-  /// without a start pressure or on a loop plan.
+  /// without a start pressure or on a closed-circuit plan. A semi-closed
+  /// plan breathes its cylinders directly, so it has one.
   final double? bottomEndPressure;
 
   /// Surface liters the problem-solving time at the deepest point would
