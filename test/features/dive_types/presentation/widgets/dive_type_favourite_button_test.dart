@@ -13,6 +13,7 @@ void main() {
   Widget harness(MockSettingsNotifier settings) => ProviderScope(
     overrides: [settingsProvider.overrideWith((ref) => settings)],
     child: const MaterialApp(
+      locale: Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
