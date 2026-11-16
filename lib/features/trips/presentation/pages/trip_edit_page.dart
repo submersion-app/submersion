@@ -12,6 +12,7 @@ import 'package:submersion/features/trips/data/repositories/itinerary_day_reposi
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -48,6 +49,10 @@ class TripEditPage extends ConsumerStatefulWidget {
   /// (issue #3658). Only for a new trip.
   final TripDraft? draft;
 
+  /// The day whose note the Notes field opens at (#4625): its heading is
+  /// added when the Notes have none, and the caret goes under it.
+  final TripNoteDay? noteDay;
+
   const TripEditPage({
     super.key,
     this.tripId,
@@ -56,6 +61,7 @@ class TripEditPage extends ConsumerStatefulWidget {
     this.onCancel,
     this.initialSection,
     this.draft,
+    this.noteDay,
   });
 
   @override

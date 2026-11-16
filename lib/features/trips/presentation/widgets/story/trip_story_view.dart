@@ -11,12 +11,16 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/domain/services/trip_picker_model.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_day_notes_vocabulary.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_picker_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_day_picker.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_page.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_trip_page.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Which page of the trip story shows: the whole trip, or one day.
 class TripStorySelection extends Equatable {
@@ -49,6 +53,7 @@ class TripStoryView extends ConsumerStatefulWidget {
     required this.stats,
     this.selection,
     this.onScanForDives,
+    this.onEditDayNote,
   });
 
   final TripStory story;
@@ -62,6 +67,9 @@ class TripStoryView extends ConsumerStatefulWidget {
 
   final VoidCallback? onScanForDives;
 
+  /// Opens the trip editor at a day's note (#4625); null hides the action.
+  final ValueChanged<TripNoteDay>? onEditDayNote;
+
   @override
   ConsumerState<TripStoryView> createState() => _TripStoryViewState();
 }
@@ -73,6 +81,11 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
       widget.selection ?? (_ownSelection ??= ValueNotifier(null));
 
   TripStory get _story => widget.story;
+
+  /// On the Trip page's Notes card, so a day's caption can scroll to it.
+  final _notesKey = GlobalKey();
+
+  final _dayNotes = _TripDayNotesMemo();
 
   /// How many dives one profile request covers: the dive list's page size,
   /// so a long trip costs the batcher what scrolling the list would.
@@ -151,6 +164,20 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
       ? const TripStorySelection.trip()
       : TripStorySelection.day(date);
 
+  /// The Trip page, scrolled to its Notes card once it is built.
+  void _openTripNotes() {
+    _select(null);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notes = _notesKey.currentContext;
+      if (notes == null || !notes.mounted) return;
+      Scrollable.ensureVisible(
+        notes,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final tripId = _story.trip.id;
@@ -166,6 +193,8 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
     // Fire and forget: the backfill's writes come back through the provider
     // above via the table tick, so a row landing re-renders its day's head.
     ref.watch(tripDayWeatherBackfillProvider(tripId));
+    final dayNotes = _dayNotes.resolve(_story, context.l10n);
+    final onEditDayNote = widget.onEditDayNote;
 
     return ValueListenableBuilder<TripStorySelection?>(
       valueListenable: _selection,
@@ -200,6 +229,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
                           stats: widget.stats,
                           onSelectDay: _select,
                           onScanForDives: widget.onScanForDives,
+                          notesKey: _notesKey,
                         )
                       : TripStoryDayPage(
                           // Keyed by date: a new day starts at its top.
@@ -212,6 +242,16 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
                           // the write.
                           storedWeather: storedWeather[tripDayMillis(day.date)]
                               ?.toStoryWeather(),
+                          tripNotes: dayNotes.passages[day.date],
+                          onOpenTripNotes: _openTripNotes,
+                          onEditNote: onEditDayNote == null
+                              ? null
+                              : () => onEditDayNote(
+                                  TripNoteDay(
+                                    date: day.date,
+                                    dayNumber: day.dayNumber,
+                                  ),
+                                ),
                         ),
                 ),
               ],
@@ -220,6 +260,35 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
         );
       },
     );
+  }
+}
+
+/// The trip's Notes cut into its days, kept while the Notes, the days and
+/// the language stay the same: the story is composed again for much else.
+class _TripDayNotesMemo {
+  String? _notes;
+  List<TripNoteDay>? _days;
+  String? _localeName;
+  TripDayNotesVocabulary? _vocabulary;
+  TripDayNotes _result = TripDayNotes.empty;
+
+  TripDayNotes resolve(TripStory story, AppLocalizations l10n) {
+    final days = [
+      for (final day in story.days)
+        TripNoteDay(date: day.date, dayNumber: day.dayNumber),
+    ];
+    if (_localeName != l10n.localeName || _vocabulary == null) {
+      _localeName = l10n.localeName;
+      _vocabulary = tripDayNotesVocabularyFor(l10n);
+      _notes = null;
+    }
+    if (_notes == story.trip.notes &&
+        const ListEquality<TripNoteDay>().equals(_days, days)) {
+      return _result;
+    }
+    _notes = story.trip.notes;
+    _days = days;
+    return _result = tripDayNotes(story.trip.notes, days, _vocabulary!);
   }
 }
 

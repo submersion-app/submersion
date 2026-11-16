@@ -137,6 +137,12 @@ class _TripDetailContent extends ConsumerWidget {
               embedded: embedded,
               section: TripEditSection.planning,
             ),
+            onEditDayNote: (day) => openTripEdit(
+              context,
+              trip.id,
+              embedded: embedded,
+              noteDay: day,
+            ),
           ),
         ),
       ],
