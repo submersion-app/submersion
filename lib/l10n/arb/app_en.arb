@@ -4376,6 +4376,10 @@
   "diveCenters_label_source": "Source: {source}",
   "diveCenters_label_website": "Website",
   "diveCenters_label_permanentlyClosed": "Permanently closed",
+  "diveCenters_field_logo": "Logo",
+  "@diveCenters_field_logo": {
+    "description": "Label for a dive center's logo: the edit page avatar's accessible name and the logo picker sheet title"
+  },
   "diveCenters_map_addCoordinatesHint": "Add coordinates to your dive centers to see them on the map",
   "diveCenters_map_noCoordinates": "No dive centers with coordinates",
   "diveCenters_picker_allCenters": "All dive centers",
@@ -16256,6 +16260,7 @@
   "settings_conflict_field_passportId": "Cylinder passport",
   "settings_conflict_field_phone": "Phone",
   "settings_conflict_field_photo": "Photo",
+  "settings_conflict_field_logo": "Logo",
   "settings_conflict_field_photoBack": "Card back",
   "settings_conflict_field_photoBackPath": "Card back",
   "settings_conflict_field_photoFront": "Card front",

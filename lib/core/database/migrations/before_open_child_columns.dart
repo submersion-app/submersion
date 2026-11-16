@@ -99,5 +99,9 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v369: dive_sites.catalogue_answers and the catalogue columns of
     // library_site_notes. Every read of either table selects the whole row.
     await _assertSiteCatalogueAnswersColumns();
+
+    // v371: dive_centers.logo (issue #4460). Every center read selects the
+    // whole row.
+    await _assertDiveCenterLogoColumn();
   }
 }

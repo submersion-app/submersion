@@ -92,6 +92,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'affiliations': 'PADI, SSI, etc. comma-separated',
     'fill_opens_at': 'fill hours for the trip fill forecast, minutes after local midnight',
     'is_permanently_closed': 'the center is out of business',
+    'logo': 'logo, a 512x512 square JPEG produced by `lib/core/services/images/profile_photo_codec.dart`',
     'state_province': 'State, province, or region',
     'street': 'Street address',
   },

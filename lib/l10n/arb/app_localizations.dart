@@ -11303,6 +11303,12 @@ abstract class AppLocalizations {
   /// **'Permanently closed'**
   String get diveCenters_label_permanentlyClosed;
 
+  /// Label for a dive center's logo: the edit page avatar's accessible name and the logo picker sheet title
+  ///
+  /// In en, this message translates to:
+  /// **'Logo'**
+  String get diveCenters_field_logo;
+
   /// No description provided for @diveCenters_map_addCoordinatesHint.
   ///
   /// In en, this message translates to:
@@ -42507,6 +42513,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Photo'**
   String get settings_conflict_field_photo;
+
+  /// No description provided for @settings_conflict_field_logo.
+  ///
+  /// In en, this message translates to:
+  /// **'Logo'**
+  String get settings_conflict_field_logo;
 
   /// No description provided for @settings_conflict_field_photoBack.
   ///

@@ -7158,6 +7158,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_label_permanentlyClosed => 'Permanent gesloten';
 
   @override
+  String get diveCenters_field_logo => 'Logo';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Voeg coördinaten toe aan je duikcentra om ze op de kaart te zien';
 
@@ -26708,6 +26711,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_photo => 'Foto';
+
+  @override
+  String get settings_conflict_field_logo => 'Logo';
 
   @override
   String get settings_conflict_field_photoBack => 'Achterkant van de kaart';

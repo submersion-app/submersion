@@ -7206,6 +7206,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveCenters_label_permanentlyClosed => 'Chiuso definitivamente';
 
   @override
+  String get diveCenters_field_logo => 'Logo';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Aggiungi coordinate ai tuoi centri immersioni per vederli sulla mappa';
 
@@ -26882,6 +26885,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_photo => 'Foto';
+
+  @override
+  String get settings_conflict_field_logo => 'Logo';
 
   @override
   String get settings_conflict_field_photoBack => 'Retro della tessera';

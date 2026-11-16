@@ -7049,6 +7049,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_label_permanentlyClosed => 'סגור לצמיתות';
 
   @override
+  String get diveCenters_field_logo => 'לוגו';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'הוסף קואורדינטות למרכזי הצלילה שלך כדי לראות אותם במפה';
 
@@ -26220,6 +26223,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_photo => 'תמונה';
+
+  @override
+  String get settings_conflict_field_logo => 'לוגו';
 
   @override
   String get settings_conflict_field_photoBack => 'גב הכרטיס';

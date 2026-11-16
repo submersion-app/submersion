@@ -7186,6 +7186,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveCenters_label_permanentlyClosed => 'Véglegesen bezárt';
 
   @override
+  String get diveCenters_field_logo => 'Logó';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Add hozzá a koordinátákat a búvárközpontjaidhoz, hogy lásd őket a térképen';
 
@@ -26762,6 +26765,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_photo => 'Fotó';
+
+  @override
+  String get settings_conflict_field_logo => 'Logó';
 
   @override
   String get settings_conflict_field_photoBack => 'Kártya hátoldala';
