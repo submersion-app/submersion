@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_gear_menu.dart';
 import 'package:submersion/features/equipment/data/services/cylinder_from_tank_service.dart';
 import 'package:submersion/features/equipment/presentation/providers/cylinder_proposal_providers.dart';

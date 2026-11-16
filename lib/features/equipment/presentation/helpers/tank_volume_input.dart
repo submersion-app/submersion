@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Liters of water volume per cubic foot of gas at one bar, the ideal-gas
 /// factor the tank editor converts with.
@@ -46,8 +47,9 @@ double? tankVolumeFromInput(
   required VolumeUnit unit,
 }) {
   if (text.trim() == initialText.trim()) return initialLiters;
-  final value = parseUserDecimal(text);
-  if (value == null) return null;
+  final read = readNumber(text, allowNegative: false);
+  if (read is! NumberValue) return null;
+  final value = read.value;
   if (unit == VolumeUnit.cubicFeet &&
       workingPressureBar != null &&
       workingPressureBar > 0) {

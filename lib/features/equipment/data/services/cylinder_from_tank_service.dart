@@ -128,7 +128,11 @@ class CylinderFromTankService {
     await _db.transaction(() async {
       await (_db.update(_db.diveTanks)..where((t) => t.id.equals(tankId)))
           .write(const DiveTanksCompanion(equipmentId: Value(null)));
-      await _markPending(tankId, now);
+      await _sync.markRecordPending(
+        entityType: 'diveTanks',
+        recordId: tankId,
+        localUpdatedAt: now,
+      );
     });
     SyncEventBus.notifyLocalChange();
   }
@@ -161,7 +165,11 @@ class CylinderFromTankService {
       ),
     );
     if (written == 0) return false;
-    await _markPending(tankId, now);
+    await _sync.markRecordPending(
+      entityType: 'diveTanks',
+      recordId: tankId,
+      localUpdatedAt: now,
+    );
     return true;
   }
 
@@ -176,10 +184,4 @@ class CylinderFromTankService {
       material: spec.material,
     )?.name;
   }
-
-  Future<void> _markPending(String tankId, int now) => _sync.markRecordPending(
-    entityType: 'diveTanks',
-    recordId: tankId,
-    localUpdatedAt: now,
-  );
 }

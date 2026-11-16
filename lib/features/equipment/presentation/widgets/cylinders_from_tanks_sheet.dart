@@ -9,11 +9,12 @@ import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_disp
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/cylinder_from_tank_service.dart';
 import 'package:submersion/features/equipment/domain/services/tank_cylinder_matching.dart';
-import 'package:submersion/features/equipment/domain/services/tank_volume_input.dart';
+import 'package:submersion/features/equipment/presentation/helpers/tank_volume_input.dart';
 import 'package:submersion/features/equipment/presentation/providers/cylinder_proposal_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Lets the diver review cylinders made from dive tanks and add them to
 /// their gear (issue #4494). Resolves to how many items were created, or null
@@ -82,8 +83,8 @@ class _RowEdit {
     if (pressure.text.trim() == pressureText.trim()) {
       return proposal.workingPressureBar;
     }
-    final value = parseUserDecimal(pressure.text);
-    return value == null ? null : units.pressureToBar(value);
+    final read = readNumber(pressure.text, allowNegative: false);
+    return read is NumberValue ? units.pressureToBar(read.value) : null;
   }
 
   double? volumeL(UnitFormatter units) => tankVolumeFromInput(

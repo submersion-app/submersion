@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/features/equipment/domain/services/tank_volume_input.dart';
+import 'package:submersion/features/equipment/presentation/helpers/tank_volume_input.dart';
 
 void main() {
   group('tankVolumeInputText', () {
