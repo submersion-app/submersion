@@ -65,18 +65,23 @@ extension _References on _Pass {
           row.read<String>('name'),
       };
 
-  /// The names of what a change links, so a diver reads names, not ids.
+  /// The names of what a change links, so a diver reads names, not ids. A
+  /// record with no name, as most dives are, takes the title its writer
+  /// gives it, read as [ownerId] sees it.
   Future<Map<String, String>> _names(
     WritableEntry entry,
     Map<String, RelationDelta> deltas,
     Map<String, Set<String>> indirect,
+    String? ownerId,
   ) async {
     final names = <String, String>{};
     for (final relation in {...deltas.keys, ...indirect.keys}) {
       final delta = deltas[relation];
       final ids = {...?delta?.add, ...?delta?.remove, ...?indirect[relation]};
       if (ids.isEmpty) continue;
-      final table = records.named(entry.relations[relation]!.refEntity).table;
+      final refEntity = entry.relations[relation]!.refEntity;
+      final ref = records.named(refEntity);
+      final table = ref.table;
       final columns = await _columnsOf(table);
       // What the table calls a record: a species by its common name, a
       // preset by its display name.
@@ -96,7 +101,20 @@ extension _References on _Pass {
             )
             .get();
         for (final row in rows) {
-          names[row.read<String>('id')] = row.read<String>('title');
+          final id = row.read<String>('id');
+          final title = row.readNullable<String>('title');
+          if (title != null && title.trim().isNotEmpty) {
+            names[id] = title;
+            continue;
+          }
+          final document = await _readDocument(
+            ref,
+            id,
+            ownerId ?? await resolveDiver(null),
+          );
+          if (writes.named(refEntity)?.titleOf(document) case final named?) {
+            names[id] = named;
+          }
         }
       }
     }

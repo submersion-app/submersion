@@ -414,7 +414,7 @@ class _Pass {
           ...effects.relations,
           for (final MapEntry(:key, :value) in effects.lost.entries)
             key: {...?effects.relations[key], ...value},
-        }),
+        }, row.ownerId),
         ...await _referenceNames(entry, fields, row.ownerId),
       },
       block: block,
