@@ -1,13 +1,13 @@
 import 'package:drift/drift.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/geography/country_code_save.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_card_columns.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_country_columns.dart';
-import 'package:submersion/core/geography/country_code_save.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';

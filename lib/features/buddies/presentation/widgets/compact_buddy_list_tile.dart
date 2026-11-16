@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
@@ -10,6 +9,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/buddies/presentation/widgets/buddy_favorite_button.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
+import 'package:submersion/shared/widgets/forms/suggestion_matching.dart';
 
 /// The buddy edit page's Country field (issue #4457): free text, like a
 /// site's country, offering [suggestions] that contain what was typed.
@@ -34,18 +35,13 @@ class _BuddyCountryFieldState extends State<BuddyCountryField> {
     super.dispose();
   }
 
-  Iterable<String> _optionsFor(String text) {
-    final query = text.trim().toLowerCase();
-    if (query.isEmpty) return const Iterable<String>.empty();
-    return widget.suggestions.where((s) => s.toLowerCase().contains(query));
-  }
-
   @override
   Widget build(BuildContext context) {
     return RawAutocomplete<String>(
       textEditingController: widget.controller,
       focusNode: _focusNode,
-      optionsBuilder: (value) => _optionsFor(value.text),
+      optionsBuilder: (value) =>
+          suggestionsContaining(widget.suggestions, value.text),
       fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) =>
           TextFormField(
             controller: controller,

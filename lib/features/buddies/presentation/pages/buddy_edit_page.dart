@@ -24,6 +24,7 @@ import 'package:submersion/features/buddies/presentation/widgets/linked_profile_
 import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 import 'package:submersion/features/buddies/presentation/widgets/linked_profile_suggestion.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_profile_link_repository.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_country_columns.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_form_controller.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
@@ -877,9 +878,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         socialHandle: _socialController.text.trim().isEmpty
             ? null
             : _socialController.text.trim(),
-        country: _countryController.text.trim().isEmpty
-            ? null
-            : _countryController.text.trim(),
+        country: BuddyCountryColumns.text(_countryController.text),
         countryCode: countryCodeOnSave(
           country: _countryController.text,
           known: (

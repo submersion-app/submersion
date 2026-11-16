@@ -4,11 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/core/geography/country_code.dart';
-import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/shared/widgets/icon_detail_row.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
