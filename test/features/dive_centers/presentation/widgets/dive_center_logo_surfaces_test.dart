@@ -169,6 +169,24 @@ void main() {
       expect(find.byIcon(Icons.store), findsNothing);
     });
 
+    testWidgets('a marker logo leaves a band of the rating colour', (
+      tester,
+    ) async {
+      // Selected: a 50 px marker with a 2 px white border, 46 px of fill.
+      await pumpMap(tester, _center(logo: _logo));
+      final marker = find.descendant(
+        of: find.byWidgetPredicate(
+          (w) =>
+              w is Semantics &&
+              w.properties.label == 'Dive center: Toucan Diving',
+        ),
+        matching: find.byType(DiveCenterMarkerGlyph),
+      );
+      final glyph = tester.getSize(marker.first);
+      // At least 3 px of the fill shows on every side of the logo.
+      expect(glyph.width, lessThanOrEqualTo(46 - 6));
+    });
+
     testWidgets('a closed center with a logo is still drawn faded', (
       tester,
     ) async {

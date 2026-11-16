@@ -106,6 +106,43 @@ void main() {
     });
   });
 
+  group('rounded square image', () {
+    testWidgets('is left out of semantics, so a tile reads only its name', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          child: DiveCenterAvatar(
+            logo: _jpeg(),
+            shape: DiveCenterAvatarShape.roundedSquare,
+          ),
+        ),
+      );
+
+      expect(
+        tester.widget<Image>(find.byType(Image)).excludeFromSemantics,
+        isTrue,
+      );
+    });
+
+    testWidgets('unreadable bytes fall back to the store icon', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          child: DiveCenterAvatar(
+            logo: Uint8List.fromList([1, 2, 3, 4]),
+            shape: DiveCenterAvatarShape.roundedSquare,
+          ),
+        ),
+      );
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 200)),
+      );
+      await tester.pump();
+
+      expect(find.byIcon(Icons.store), findsOneWidget);
+    });
+  });
+
   group('DiveCenterMarkerGlyph', () {
     testWidgets('no logo is the bare store icon, as markers drew it', (
       tester,

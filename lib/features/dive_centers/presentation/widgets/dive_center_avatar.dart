@@ -72,17 +72,13 @@ class DiveCenterAvatar extends StatelessWidget {
 
     final side = radius * 2;
     final borderRadius = BorderRadius.circular(cornerRadius);
-    if (bytes == null) {
-      return Container(
-        width: side,
-        height: side,
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: borderRadius,
-        ),
-        child: icon,
-      );
-    }
+    final iconBox = Container(
+      width: side,
+      height: side,
+      decoration: BoxDecoration(color: background, borderRadius: borderRadius),
+      child: icon,
+    );
+    if (bytes == null) return iconBox;
     // Decode at the drawn size, as ProfileAvatar does: a bare MemoryImage
     // holds the full 512 px bitmap for every logo in a long list.
     final devicePixelRatio = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1.0;
@@ -95,6 +91,11 @@ class DiveCenterAvatar extends StatelessWidget {
         height: side,
         fit: BoxFit.cover,
         gaplessPlayback: true,
+        // The name beside it already says which center this is.
+        excludeFromSemantics: true,
+        // Bytes that will not decode show the store icon, not a blank or a
+        // debug error box.
+        errorBuilder: (_, _, _) => iconBox,
       ),
     );
   }

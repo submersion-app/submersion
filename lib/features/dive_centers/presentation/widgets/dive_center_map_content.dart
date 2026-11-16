@@ -349,13 +349,13 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
           ),
         ],
       ),
-      // The logo fills the ring; with none, the store icon sits on the
-      // rating colour as before (#4460). Markers are 50 or 40 wide with a
-      // 2 px border.
+      // The logo sits inside the rating colour, leaving a 4 px band of it
+      // showing; with none, the store icon sits on it as before (#4460).
+      // Markers are 50 or 40 wide with a 2 px border.
       child: Center(
         child: DiveCenterMarkerGlyph(
           logo: center.logo,
-          radius: isSelected ? 23 : 18,
+          radius: isSelected ? 19 : 14,
           iconColor: isSelected ? colorScheme.onPrimary : Colors.white,
           iconSize: isSelected ? 24 : 20,
         ),
