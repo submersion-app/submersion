@@ -120,10 +120,14 @@ class DiveCenterMarkerGlyph extends StatelessWidget {
     if (bytes == null) {
       return Icon(Icons.store, size: iconSize, color: iconColor);
     }
+    // The marker's colour and size reach the avatar too, so a logo that will
+    // not decode falls back to the same icon a center without one shows.
     return DiveCenterAvatar(
       logo: bytes,
       radius: radius,
       backgroundColor: Colors.transparent,
+      iconColor: iconColor,
+      iconSize: iconSize,
     );
   }
 }

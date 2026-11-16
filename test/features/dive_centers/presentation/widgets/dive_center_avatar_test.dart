@@ -202,5 +202,28 @@ void main() {
       expect(find.byType(ClipOval), findsOneWidget);
       expect(tester.getSize(find.byType(Image)), const Size(36, 36));
     });
+
+    testWidgets('unreadable bytes fall back to the marker\'s own icon style', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          child: DiveCenterMarkerGlyph(
+            logo: Uint8List.fromList([1, 2, 3, 4]),
+            radius: 18,
+            iconColor: Colors.white,
+            iconSize: 20,
+          ),
+        ),
+      );
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 200)),
+      );
+      await tester.pump();
+
+      final icon = tester.widget<Icon>(find.byIcon(Icons.store));
+      expect(icon.color, Colors.white);
+      expect(icon.size, 20);
+    });
   });
 }
