@@ -29378,6 +29378,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_speciesId_remove => 'Eliminar modelo';
 
   @override
+  String get settings_speciesId_removeConfirmTitle => '¿Eliminar el modelo?';
+
+  @override
+  String settings_speciesId_removeConfirmBody(String size) {
+    return 'Esto libera $size en este dispositivo. Las sugerencias ya encontradas se conservan y puedes volver a descargar el modelo.';
+  }
+
+  @override
+  String get settings_speciesId_installing => 'Instalando el modelo...';
+
+  @override
   String settings_speciesId_downloading(int percent) {
     return 'Descargando $percent %';
   }

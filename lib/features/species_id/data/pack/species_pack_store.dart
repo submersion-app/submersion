@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
@@ -72,12 +73,15 @@ class SpeciesPackStore {
   Future<Directory> root() async =>
       Directory(p.join(await _supportPath(), 'species_id', 'pack'));
 
-  /// Where a version's files are downloaded before it is installed.
+  /// Where a version's files are downloaded before it is installed. The
+  /// pack folder is kept out of device backups from the first file on.
   Future<Directory> staging(String packVersion) async {
-    final dir = Directory(
-      p.join((await root()).path, '$packVersion$_stagingSuffix'),
-    );
-    await dir.create(recursive: true);
+    final base = await root();
+    final dir = Directory(p.join(base.path, '$packVersion$_stagingSuffix'));
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+      await _excludeFromBackup?.call(base.path);
+    }
     return dir;
   }
 
@@ -101,14 +105,21 @@ class SpeciesPackStore {
 
   /// Installs the version in staging, whose files the caller has verified:
   /// unpacks the two models, writes the manifest, swaps the version into
-  /// place and removes any other.
+  /// place and removes any other. A model that does not unpack in full
+  /// (the disk filled) throws, and nothing is swapped in.
   Future<InstalledPack> install(SpeciesPackManifest manifest) async {
     final stage = await staging(manifest.packVersion);
     for (final kind in ['detector', 'classifier']) {
       final zip = File(p.join(stage.path, '$kind.$engine.zip'));
       final out = Directory(p.join(stage.path, kind));
       if (await out.exists()) await out.delete(recursive: true);
-      await extractFileToDisk(zip.path, out.path);
+      try {
+        // Hundreds of megabytes: off the UI isolate.
+        await Isolate.run(() => unpackModelZip(zip.path, out.path));
+      } on Object {
+        if (await out.exists()) await out.delete(recursive: true);
+        rethrow;
+      }
       await zip.delete();
     }
     await File(
@@ -124,7 +135,6 @@ class SpeciesPackStore {
         await entity.delete(recursive: true);
       }
     }
-    await _excludeFromBackup?.call(base.path);
     final pack = await _read(target);
     if (pack == null) {
       throw const PackManifestException(
@@ -227,5 +237,48 @@ class SpeciesPackStore {
       if (path.endsWith('.mlmodelc')) return path;
     }
     return names.first;
+  }
+}
+
+/// Unpacks the model zip at [zipPath] into [outPath], checking each file
+/// against the size the zip records. Synchronous: run it on another
+/// isolate.
+///
+/// Throws [PackManifestException] for an entry that would land outside
+/// [outPath] or a file that did not unpack in full, and lets a
+/// [FileSystemException] (a full disk) through rather than swallowing it.
+void unpackModelZip(String zipPath, String outPath) {
+  final input = InputFileStream(zipPath);
+  try {
+    final archive = ZipDecoder().decodeStream(input);
+    final root = p.normalize(p.absolute(outPath));
+    for (final entry in archive) {
+      final target = p.normalize(p.join(root, entry.name));
+      if (!p.isWithin(root, target)) {
+        throw const PackManifestException(
+          PackManifestFailure.malformed,
+          'a model file would land outside its folder',
+        );
+      }
+      if (!entry.isFile) {
+        Directory(target).createSync(recursive: true);
+        continue;
+      }
+      File(target).parent.createSync(recursive: true);
+      final output = OutputFileStream(target);
+      try {
+        entry.writeContent(output);
+      } finally {
+        output.closeSync();
+      }
+      if (File(target).lengthSync() != entry.size) {
+        throw PackManifestException(
+          PackManifestFailure.malformed,
+          '${entry.name} did not unpack in full',
+        );
+      }
+    }
+  } finally {
+    input.closeSync();
   }
 }

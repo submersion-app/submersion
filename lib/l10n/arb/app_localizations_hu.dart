@@ -29233,6 +29233,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_speciesId_remove => 'Modell eltávolítása';
 
   @override
+  String get settings_speciesId_removeConfirmTitle => 'Eltávolítod a modellt?';
+
+  @override
+  String settings_speciesId_removeConfirmBody(String size) {
+    return 'Ezzel $size szabadul fel ezen az eszközön. A már megtalált javaslatok megmaradnak, és a modellt újra letöltheted.';
+  }
+
+  @override
+  String get settings_speciesId_installing => 'A modell telepítése...';
+
+  @override
   String settings_speciesId_downloading(int percent) {
     return 'Letöltés: $percent%';
   }

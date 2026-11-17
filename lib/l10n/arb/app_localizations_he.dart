@@ -28638,6 +28638,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_speciesId_remove => 'הסרת המודל';
 
   @override
+  String get settings_speciesId_removeConfirmTitle => 'להסיר את המודל?';
+
+  @override
+  String settings_speciesId_removeConfirmBody(String size) {
+    return 'פעולה זו תפנה $size במכשיר הזה. ההצעות שכבר נמצאו נשמרות, ואפשר להוריד את המודל שוב.';
+  }
+
+  @override
+  String get settings_speciesId_installing => 'התקנת המודל...';
+
+  @override
   String settings_speciesId_downloading(int percent) {
     return 'מוריד $percent%';
   }

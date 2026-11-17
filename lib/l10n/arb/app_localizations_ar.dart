@@ -29670,6 +29670,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_speciesId_remove => 'إزالة النموذج';
 
   @override
+  String get settings_speciesId_removeConfirmTitle => 'إزالة النموذج؟';
+
+  @override
+  String settings_speciesId_removeConfirmBody(String size) {
+    return 'سيؤدي هذا إلى تحرير $size على هذا الجهاز. يتم الاحتفاظ بالاقتراحات التي تم العثور عليها، ويمكنك تنزيل النموذج مرة أخرى.';
+  }
+
+  @override
+  String get settings_speciesId_installing => 'جارٍ تثبيت النموذج...';
+
+  @override
   String settings_speciesId_downloading(int percent) {
     return 'جارٍ التنزيل $percent٪';
   }

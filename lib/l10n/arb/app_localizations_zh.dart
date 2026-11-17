@@ -27707,6 +27707,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_speciesId_remove => '移除模型';
 
   @override
+  String get settings_speciesId_removeConfirmTitle => '移除模型？';
+
+  @override
+  String settings_speciesId_removeConfirmBody(String size) {
+    return '这将在此设备上释放 $size。已找到的建议会保留，你可以重新下载模型。';
+  }
+
+  @override
+  String get settings_speciesId_installing => '正在安装模型...';
+
+  @override
   String settings_speciesId_downloading(int percent) {
     return '正在下载 $percent%';
   }

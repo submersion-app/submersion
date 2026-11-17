@@ -13,12 +13,31 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/data/engines/channel_vision_engine.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
+import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
 import '../../../helpers/temp_dir.dart';
 import '../data/identification_fixtures.dart';
+
+class _CountingCleanup extends IdentificationCleanup {
+  _CountingCleanup()
+    : super(
+        identifications: MediaIdentificationRepository(),
+        embeddings: IdentificationEmbeddingRepository(),
+        crops: IdentificationCropStore(supportPath: () async => '/none'),
+      );
+
+  var sweeps = 0;
+
+  @override
+  Future<int> sweepOrphans() async {
+    sweeps++;
+    return 0;
+  }
+}
 
 void main() {
   late AppDatabase db;
@@ -167,6 +186,17 @@ void main() {
       await pumpEventQueue();
       expect(await withCrops.read(identificationCropBytesProvider.future), 0);
     });
+  });
+
+  test('at launch, orphaned identifications are swept only while the '
+      'feature is on', () async {
+    final cleanup = _CountingCleanup();
+    marineLifeIdEnabled = false;
+    await sweepIdentificationOrphansAtLaunch(cleanup);
+    expect(cleanup.sweeps, 0);
+    marineLifeIdEnabled = true;
+    await sweepIdentificationOrphansAtLaunch(cleanup);
+    expect(cleanup.sweeps, 1);
   });
 
   test('the engine is the channel engine, unsupported off Apple', () async {

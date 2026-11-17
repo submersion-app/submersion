@@ -30,6 +30,26 @@ Uint8List _zipOf(String folder) {
   return Uint8List.fromList(ZipEncoder().encodeBytes(archive));
 }
 
+/// A zip of one stored (uncompressed) file whose headers claim [claimed]
+/// bytes while it holds [actual]: what a model looks like when it did not
+/// unpack in full.
+Uint8List _zipClaiming(
+  String name, {
+  required int actual,
+  required int claimed,
+}) {
+  final archive = Archive()
+    ..addFile(ArchiveFile.noCompress(name, actual, Uint8List(actual)));
+  final bytes = Uint8List.fromList(ZipEncoder().encodeBytes(archive));
+  final data = ByteData.sublistView(bytes);
+  for (var i = 0; i + 4 <= bytes.length; i++) {
+    final signature = data.getUint32(i, Endian.little);
+    if (signature == 0x04034b50) data.setUint32(i + 22, claimed, Endian.little);
+    if (signature == 0x02014b50) data.setUint32(i + 24, claimed, Endian.little);
+  }
+  return bytes;
+}
+
 void main() {
   late Directory support;
   late List<String> excluded;
@@ -174,6 +194,51 @@ void main() {
         store.load(pack),
         throwsA(isA<PackManifestException>()),
       );
+    },
+  );
+
+  test('a model that does not unpack to the size its zip records is not '
+      'installed', () async {
+    final manifest = _manifest('2026.11.1');
+    await stage(manifest);
+    final dir = await store.staging(manifest.packVersion);
+    File(p.join(dir.path, 'detector.coreml.zip')).writeAsBytesSync(
+      _zipClaiming(
+        'detector.mlpackage/Data/weights.bin',
+        actual: 16,
+        claimed: 32,
+      ),
+    );
+    await expectLater(
+      store.install(manifest),
+      throwsA(isA<PackManifestException>()),
+    );
+    expect(await store.installed(), isNull);
+  });
+
+  test('a zip entry that would land outside the model folder is '
+      'refused', () async {
+    final manifest = _manifest('2026.11.1');
+    await stage(manifest);
+    final dir = await store.staging(manifest.packVersion);
+    final archive = Archive()
+      ..addFile(ArchiveFile.bytes('../escaped.bin', Uint8List(4)));
+    File(
+      p.join(dir.path, 'detector.coreml.zip'),
+    ).writeAsBytesSync(ZipEncoder().encodeBytes(archive));
+    await expectLater(
+      store.install(manifest),
+      throwsA(isA<PackManifestException>()),
+    );
+    expect(await File(p.join(dir.path, 'escaped.bin')).exists(), isFalse);
+    expect(await store.installed(), isNull);
+  });
+
+  test(
+    'a download is kept out of device backups from its first file',
+    () async {
+      await store.staging('2026.11.1');
+      expect(excluded, [(await store.root()).path]);
     },
   );
 

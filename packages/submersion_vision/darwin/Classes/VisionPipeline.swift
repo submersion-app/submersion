@@ -105,11 +105,12 @@ final class VisionPipeline {
         width: min(Double(width), bx + bw + padX) - max(0, bx - padX),
         height: min(Double(height), by + bh + padY) - max(0, by - padY)
       ).integral
-      guard cropRect.width >= 2, cropRect.height >= 2, let crop = image.cropping(to: cropRect) else {
+      guard cropRect.width >= 2, cropRect.height >= 2, let crop = image.cropping(to: cropRect),
+            let jpeg = Self.jpeg(Self.fitted(crop, within: settings.cropThumbnailSize)) else {
+        // No crop to show for it, so no suggestion either.
         continue
       }
       let embedding = try embed(crop, settings: settings, model: classifier)
-      let jpeg = Self.jpeg(Self.fitted(crop, within: settings.cropThumbnailSize)) ?? Data()
       detections.append([
         "x": box.x, "y": box.y, "width": box.w, "height": box.h,
         "score": Double(box.score),
@@ -153,6 +154,11 @@ final class VisionPipeline {
     let classes = scoresOut.shape[2].intValue
     let boxValues = Self.floats(boxesOut)
     let scoreValues = Self.floats(scoresOut)
+    // A model whose two outputs disagree would read past the end below.
+    guard classes > 0, scoresOut.shape[1].intValue == queries,
+          boxValues.count >= queries * 4, scoreValues.count >= queries * classes else {
+      throw VisionError.inferenceFailed("detector outputs do not match")
+    }
 
     var found: [Box] = []
     for q in 0..<queries {
@@ -199,6 +205,8 @@ final class VisionPipeline {
   // MARK: Helpers
 
   /// A compiled model directory, compiling a model package once beside it.
+  /// The package is deleted once compiled: keeping both would double the
+  /// space the model takes on the device.
   private static func compiledModel(at path: String) throws -> URL {
     let url = URL(fileURLWithPath: path)
     if url.pathExtension == "mlmodelc" { return url }
@@ -208,6 +216,7 @@ final class VisionPipeline {
     let compiled = try MLModel.compileModel(at: url)
     try? fm.removeItem(at: target)
     try fm.moveItem(at: compiled, to: target)
+    try? fm.removeItem(at: url)
     return target
   }
 
@@ -277,19 +286,45 @@ final class VisionPipeline {
     return try MLDictionaryFeatureProvider(dictionary: [name: MLFeatureValue(multiArray: input)])
   }
 
-  /// Every value of [array] as Float, whatever its storage type.
+  /// Every value of [array] as Float in row-major order, whatever its
+  /// storage type and layout. Core ML may hand back padded (strided)
+  /// outputs, which are read element by element.
   private static func floats(_ array: MLMultiArray) -> [Float] {
     let count = array.count
-    switch array.dataType {
-    case .float32:
-      let p = array.dataPointer.bindMemory(to: Float.self, capacity: count)
-      return Array(UnsafeBufferPointer(start: p, count: count))
-    case .double:
-      let p = array.dataPointer.bindMemory(to: Double.self, capacity: count)
-      return (0..<count).map { Float(p[$0]) }
-    default:
-      return (0..<count).map { array[$0].floatValue }
+    let shape = array.shape.map { $0.intValue }
+    let strides = array.strides.map { $0.intValue }
+    var contiguous = true
+    var expected = 1
+    for d in stride(from: shape.count - 1, through: 0, by: -1) {
+      if shape[d] > 1 && strides[d] != expected { contiguous = false }
+      expected *= shape[d]
     }
+    if contiguous {
+      switch array.dataType {
+      case .float32:
+        let p = array.dataPointer.bindMemory(to: Float.self, capacity: count)
+        return Array(UnsafeBufferPointer(start: p, count: count))
+      case .double:
+        let p = array.dataPointer.bindMemory(to: Double.self, capacity: count)
+        return (0..<count).map { Float(p[$0]) }
+      default:
+        break
+      }
+    }
+    var values = [Float]()
+    values.reserveCapacity(count)
+    var index = [Int](repeating: 0, count: shape.count)
+    for _ in 0..<count {
+      values.append(array[index.map { NSNumber(value: $0) }].floatValue)
+      var d = shape.count - 1
+      while d >= 0 {
+        index[d] += 1
+        if index[d] < shape[d] { break }
+        index[d] = 0
+        d -= 1
+      }
+    }
+    return values
   }
 
   private static func fitted(_ image: CGImage, within side: Int) -> CGImage {

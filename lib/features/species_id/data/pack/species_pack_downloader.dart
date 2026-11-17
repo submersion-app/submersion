@@ -156,10 +156,12 @@ class SpeciesPackDownloader {
       }
     }
 
-    final IOSink out;
+    // Each chunk is written before the next is read: a full disk ends the
+    // download at the failing chunk, and nothing piles up in memory.
+    final RandomAccessFile out;
     try {
       await part.parent.create(recursive: true);
-      out = part.openWrite(mode: resuming ? FileMode.append : FileMode.write);
+      out = await part.open(mode: resuming ? FileMode.append : FileMode.write);
     } on FileSystemException catch (e) {
       throw PackDownloadException(PackDownloadFailure.storage, e.message);
     }
@@ -177,7 +179,7 @@ class SpeciesPackDownloader {
             oversize = true;
             break;
           }
-          out.add(chunk);
+          await out.writeFrom(chunk);
           hasher.add(chunk);
           onProgress?.call(received);
         }

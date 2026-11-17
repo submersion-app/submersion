@@ -29179,6 +29179,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_speciesId_remove => 'Model verwijderen';
 
   @override
+  String get settings_speciesId_removeConfirmTitle => 'Model verwijderen?';
+
+  @override
+  String settings_speciesId_removeConfirmBody(String size) {
+    return 'Hiermee komt $size vrij op dit apparaat. Gevonden suggesties blijven bewaard en je kunt het model opnieuw downloaden.';
+  }
+
+  @override
+  String get settings_speciesId_installing => 'Model installeren...';
+
+  @override
   String settings_speciesId_downloading(int percent) {
     return 'Downloaden: $percent%';
   }

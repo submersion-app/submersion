@@ -93,6 +93,16 @@ final identificationCleanupProvider = Provider<IdentificationCleanup>(
   ),
 );
 
+/// Identifications whose photo is gone, with their crops and embeddings,
+/// swept once at app start (issue #4668): the one time no delete can be
+/// held for undo, whose undo would want them back. Never throws.
+Future<void> sweepIdentificationOrphansAtLaunch(
+  IdentificationCleanup cleanup,
+) async {
+  if (!marineLifeIdEnabled) return;
+  await cleanup.sweepOrphans();
+}
+
 final mediaIdentificationServiceProvider = Provider<MediaIdentificationService>(
   (ref) {
     final store = ref.watch(speciesPackStoreProvider);

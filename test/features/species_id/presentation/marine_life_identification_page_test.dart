@@ -52,9 +52,13 @@ class _Cleanup extends IdentificationCleanup {
       );
 
   var cleared = 0;
+  Object? failure;
 
   @override
-  Future<void> clearAll() async => cleared++;
+  Future<void> clearAll() async {
+    if (failure != null) throw failure!;
+    cleared++;
+  }
 }
 
 void main() {
@@ -72,6 +76,7 @@ void main() {
     WidgetTester tester,
     SpeciesPackState state, {
     List<dynamic> extra = const [],
+    bool settle = true,
   }) async {
     final controller = _Controller(state);
     final overrides = await getBaseOverrides();
@@ -89,7 +94,13 @@ void main() {
         child: const MarineLifeIdentificationPage(),
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      // An indeterminate progress bar never settles.
+      await tester.pump();
+      await tester.pump();
+    }
     return controller;
   }
 
@@ -160,7 +171,32 @@ void main() {
     expect(find.byKey(const ValueKey('species_id_update')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('species_id_remove')));
     await tester.pumpAndSettle();
+    expect(find.text('Remove the model?'), findsOneWidget);
+    expect(controller.removals, 0);
+    await tester.tap(find.byKey(const ValueKey('species_id_remove_confirm')));
+    await tester.pumpAndSettle();
     expect(controller.removals, 1);
+  });
+
+  testWidgets('installing says so and offers nothing to tap', (tester) async {
+    await pump(tester, const PackInstalling(), settle: false);
+    expect(find.text('Installing the model...'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    expect(find.byKey(const ValueKey('species_id_cancel')), findsNothing);
+    expect(find.byKey(const ValueKey('species_id_remove')), findsNothing);
+  });
+
+  testWidgets('a clear that fails says so', (tester) async {
+    cleanup.failure = Exception('locked');
+    await pump(tester, const PackNotPublished());
+    await tester.tap(find.byKey(const ValueKey('species_id_clear')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('species_id_clear_confirm')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a device that cannot run it offers no download', (tester) async {

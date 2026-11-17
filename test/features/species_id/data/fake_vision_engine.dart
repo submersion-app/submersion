@@ -27,9 +27,13 @@ class FakeEngine implements VisionEngine {
   @override
   Future<VisionAvailability> availability() async => available;
 
+  /// Thrown by [load]: models that are broken or do not fit in memory.
+  Object? loadFailure;
+
   @override
   Future<void> load(VisionModels models) async {
     loads.add(models);
+    if (loadFailure != null) throw loadFailure!;
     loaded = true;
   }
 

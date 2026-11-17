@@ -46660,6 +46660,24 @@ abstract class AppLocalizations {
   /// **'Remove model'**
   String get settings_speciesId_remove;
 
+  /// No description provided for @settings_speciesId_removeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the model?'**
+  String get settings_speciesId_removeConfirmTitle;
+
+  /// No description provided for @settings_speciesId_removeConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This frees {size} on this device. Suggestions already found are kept, and the model can be downloaded again.'**
+  String settings_speciesId_removeConfirmBody(String size);
+
+  /// No description provided for @settings_speciesId_installing.
+  ///
+  /// In en, this message translates to:
+  /// **'Installing the model...'**
+  String get settings_speciesId_installing;
+
   /// No description provided for @settings_speciesId_downloading.
   ///
   /// In en, this message translates to:

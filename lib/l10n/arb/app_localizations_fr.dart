@@ -29440,6 +29440,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_speciesId_remove => 'Supprimer le modèle';
 
   @override
+  String get settings_speciesId_removeConfirmTitle => 'Supprimer le modèle ?';
+
+  @override
+  String settings_speciesId_removeConfirmBody(String size) {
+    return 'Cela libère $size sur cet appareil. Les suggestions déjà trouvées sont conservées, et vous pouvez retélécharger le modèle.';
+  }
+
+  @override
+  String get settings_speciesId_installing => 'Installation du modèle...';
+
+  @override
   String settings_speciesId_downloading(int percent) {
     return 'Téléchargement : $percent %';
   }

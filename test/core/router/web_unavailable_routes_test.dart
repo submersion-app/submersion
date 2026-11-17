@@ -84,6 +84,18 @@ void main() {
         WebUnavailableFeature.nearby,
       );
     });
+
+    test('marine life identification is sealed: its models are files on '
+        'the device (#4668)', () {
+      expect(
+        webUnavailableFeatureFor('/settings/marine-life-identification'),
+        WebUnavailableFeature.marineLifeId,
+      );
+      expect(
+        WebUnavailableFeature.marineLifeId.reason,
+        WebUnavailableReason.files,
+      );
+    });
   });
 
   group('webUnavailableFeatureFor', () {

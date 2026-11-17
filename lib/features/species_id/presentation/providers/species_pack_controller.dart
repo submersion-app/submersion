@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_downloader.dart';
+import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
@@ -51,6 +53,11 @@ class PackDownloading extends SpeciesPackState {
   final int total;
 }
 
+/// Downloaded: unpacking the models and preparing them for this device.
+class PackInstalling extends SpeciesPackState {
+  const PackInstalling();
+}
+
 class PackInstalled extends SpeciesPackState {
   const PackInstalled({
     required this.version,
@@ -87,6 +94,11 @@ final speciesPackDownloaderProvider = Provider<SpeciesPackDownloader>(
 class SpeciesPackController extends Notifier<SpeciesPackState> {
   SpeciesPackManifest? _published;
   var _cancelled = false;
+  final _log = LoggerService.forClass(SpeciesPackController);
+
+  /// A download or install is under way: the page coming back must not
+  /// replace its state, nor start a second one beside it.
+  bool get _busy => state is PackDownloading || state is PackInstalling;
 
   @override
   SpeciesPackState build() => const PackChecking();
@@ -98,6 +110,7 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
   };
 
   Future<void> refresh() async {
+    if (_busy) return;
     final engine = ref.read(visionEngineProvider);
     final availability = await engine.availability();
     if (availability != VisionAvailability.available) {
@@ -152,7 +165,7 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
   Future<void> download() async {
     final manifest = _published;
     final engineName = ref.read(visionEngineProvider).engineName;
-    if (manifest == null || engineName == null) return;
+    if (_busy || manifest == null || engineName == null) return;
     _cancelled = false;
     final files = manifest.filesFor(engineName);
     final total = manifest.downloadBytesFor(engineName);
@@ -179,21 +192,60 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
         );
         done += file.size;
       }
+      state = const PackInstalling();
+      final service = ref.read(mediaIdentificationServiceProvider);
       final installed = await store.install(manifest);
-      await ref.read(mediaIdentificationServiceProvider).packChanged();
+      await service.packChanged();
+      await _prepare(installed);
       ref.invalidate(installedSpeciesPackProvider);
+      final ready = await store.installed() ?? installed;
       state = PackInstalled(
-        version: installed.manifest.packVersion,
+        version: ready.manifest.packVersion,
         bytes: await store.sizeBytes(),
-        credits: installed.manifest.credits,
+        credits: ready.manifest.credits,
       );
     } on PackDownloadException catch (e) {
+      if (e.reason == PackDownloadFailure.cancelled) {
+        // Not a failure: back to what the page showed before, with what
+        // was downloaded kept for a resume.
+        state = const PackChecking();
+        await refresh();
+        return;
+      }
       state = PackFailed(reason: e.reason, bytes: total);
     } on PackManifestException {
       state = PackFailed(reason: PackDownloadFailure.malformed, bytes: total);
     } on FileSystemException {
       state = PackFailed(reason: PackDownloadFailure.storage, bytes: total);
+    } on Object catch (e) {
+      _log.warning('Could not install the marine life model', error: e);
+      state = PackFailed(reason: PackDownloadFailure.malformed, bytes: total);
     }
+  }
+
+  /// Loads the installed models once, so the engine prepares them for this
+  /// device now (Core ML compiles them) rather than at the first photo.
+  /// Models that do not load are removed: an installed pack must work.
+  Future<void> _prepare(InstalledPack pack) async {
+    final engine = ref.read(visionEngineProvider);
+    try {
+      await engine.load(
+        VisionModels.fromManifest(
+          pack.manifest,
+          detectorPath: pack.detectorPath,
+          classifierPath: pack.classifierPath,
+        ),
+      );
+    } on Object catch (e) {
+      _log.warning('The installed marine life model does not load', error: e);
+      await ref.read(speciesPackStoreProvider).remove();
+      ref.invalidate(installedSpeciesPackProvider);
+      throw const PackManifestException(
+        PackManifestFailure.malformed,
+        'the models do not load',
+      );
+    }
+    await engine.unload();
   }
 
   void cancel() => _cancelled = true;

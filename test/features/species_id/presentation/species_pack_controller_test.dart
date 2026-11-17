@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -30,7 +31,9 @@ class _Client extends SpeciesPackManifestClient {
 }
 
 class _Downloader extends SpeciesPackDownloader {
-  PackDownloadException? failure;
+  Object? failure;
+  Completer<void>? gate;
+  var calls = 0;
   final downloaded = <String>[];
 
   @override
@@ -41,9 +44,11 @@ class _Downloader extends SpeciesPackDownloader {
     void Function(int receivedForThisFile)? onProgress,
     bool Function()? isCancelled,
   }) async {
+    calls++;
     if (isCancelled?.call() ?? false) {
       throw const PackDownloadException(PackDownloadFailure.cancelled);
     }
+    await gate?.future;
     onProgress?.call(file.size ~/ 2);
     if (failure != null) throw failure!;
     await dest.writeAsString('x');
@@ -240,8 +245,57 @@ void main() {
     final pending = controller().download();
     controller().cancel();
     await pending;
+    // Cancelling is not a failure: the page offers the download again.
+    expect(state(), isA<PackNotInstalled>());
+  });
+
+  test('installing prepares the models once, as part of it', () async {
+    await controller().refresh();
+    final seen = <SpeciesPackState>[];
+    final sub = container.listen(
+      speciesPackControllerProvider,
+      (_, next) => seen.add(next),
+    );
+    addTearDown(sub.close);
+    await controller().download();
+    expect(seen.whereType<PackInstalling>(), isNotEmpty);
+    expect(engine.loads.single.detectorPath, '/pack/d');
+    expect(engine.unloads, 1);
+    expect(state(), isA<PackInstalled>());
+  });
+
+  test('a pack whose models do not load is not left installed', () async {
+    await controller().refresh();
+    engine.loadFailure = Exception('not a model');
+    await controller().download();
     expect(state(), isA<PackFailed>());
-    expect((state() as PackFailed).reason, PackDownloadFailure.cancelled);
+    expect(store.removals, 1);
+    expect(store.current, isNull);
+  });
+
+  test(
+    'coming back to the page during a download does not disturb it',
+    () async {
+      await controller().refresh();
+      downloader.gate = Completer<void>();
+      final pending = controller().download();
+      await pumpEventQueue();
+      await controller().refresh();
+      expect(state(), isA<PackDownloading>());
+      final again = controller().download();
+      downloader.gate!.complete();
+      await Future.wait([pending, again]);
+      expect(downloader.calls, 5);
+      expect(store.installs, 1);
+      expect(state(), isA<PackInstalled>());
+    },
+  );
+
+  test('an unexpected failure ends the download as failed', () async {
+    await controller().refresh();
+    downloader.failure = StateError('broken');
+    await controller().download();
+    expect(state(), isA<PackFailed>());
   });
 
   test(

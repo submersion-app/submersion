@@ -53,6 +53,7 @@ import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.da
 import 'package:submersion/features/import_wizard/presentation/suunto_file_import_navigation.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/agent_access/presentation/providers/agent_access_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/nearby_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -220,6 +221,11 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       _republishOwnedMedia();
       _convertGearFiles();
       _importSiteCatalogue();
+      unawaited(
+        sweepIdentificationOrphansAtLaunch(
+          ref.read(identificationCleanupProvider),
+        ),
+      );
       _fileShareHandler.initialize();
       _passportLinks.start();
       _buddyCardLinks.start();

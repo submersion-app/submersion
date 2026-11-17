@@ -61,6 +61,11 @@ class _MarineLifeIdentificationPageState
                 value: total == 0 ? null : received / total,
               ),
             ),
+          if (state is PackInstalling)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: LinearProgressIndicator(),
+            ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: Wrap(
@@ -127,6 +132,7 @@ class _MarineLifeIdentificationPageState
           l10n.settings_speciesId_downloading(
             total == 0 ? 0 : (received * 100 / total).floor(),
           ),
+        PackInstalling() => l10n.settings_speciesId_installing,
         PackInstalled(:final version) => l10n.settings_speciesId_modelInstalled(
           version,
         ),
@@ -170,7 +176,7 @@ class _MarineLifeIdentificationPageState
         child: Text(l10n.common_action_cancel),
       ),
     ],
-    PackInstalled(:final updateBytes) => [
+    PackInstalled(:final updateBytes, :final bytes) => [
       if (updateBytes != null)
         FilledButton(
           key: const ValueKey('species_id_update'),
@@ -179,7 +185,7 @@ class _MarineLifeIdentificationPageState
         ),
       OutlinedButton(
         key: const ValueKey('species_id_remove'),
-        onPressed: controller.remove,
+        onPressed: () => _confirmRemove(context, bytes),
         child: Text(l10n.settings_speciesId_remove),
       ),
     ],
@@ -212,6 +218,33 @@ class _MarineLifeIdentificationPageState
     }
   }
 
+  Future<void> _confirmRemove(BuildContext context, int bytes) async {
+    final l10n = context.l10n;
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.settings_speciesId_removeConfirmTitle),
+        content: Text(
+          l10n.settings_speciesId_removeConfirmBody(formatBytes(bytes)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          FilledButton(
+            key: const ValueKey('species_id_remove_confirm'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.settings_speciesId_remove),
+          ),
+        ],
+      ),
+    );
+    if (go ?? false) {
+      await ref.read(speciesPackControllerProvider.notifier).remove();
+    }
+  }
+
   Future<void> _confirmClear(BuildContext context) async {
     final l10n = context.l10n;
     final go = await showDialog<bool>(
@@ -232,8 +265,13 @@ class _MarineLifeIdentificationPageState
         ],
       ),
     );
-    if (go ?? false) {
+    if (!(go ?? false) || !context.mounted) return;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final failed = l10n.common_error_tryAgain;
+    try {
       await ref.read(identificationCleanupProvider).clearAll();
+    } catch (_) {
+      messenger?.showSnackBar(SnackBar(content: Text(failed)));
     }
   }
 
