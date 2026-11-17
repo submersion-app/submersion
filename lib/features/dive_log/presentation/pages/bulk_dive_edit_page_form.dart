@@ -529,7 +529,7 @@ extension _BulkDiveEditForm on _BulkDiveEditPageState {
       children: [
         for (var i = 0; i < _tanks.length; i++)
           TankRow(
-            key: ValueKey((_tanks[i].id, _tankRowGeneration)),
+            key: ValueKey(_tanks[i].id),
             tank: _tanks[i],
             tankNumber: i + 1,
             units: units,

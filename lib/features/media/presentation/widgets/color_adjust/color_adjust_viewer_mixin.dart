@@ -32,11 +32,6 @@ mixin ColorAdjustViewerMixin<T extends ConsumerStatefulWidget>
   /// (issue #4527). Null saves each change at once, as before.
   EditSession<PhotoRecord>? get colorSitting => null;
 
-  /// Whether the viewer is built with the photo's lock: then, with no
-  /// sitting, a colour is not changed at all, on a device that cannot unlock
-  /// too.
-  bool get colorLockOffered => false;
-
   /// Closes the panel and leaves Pick white: the photo was locked.
   void closeColorEditing() => setState(() {
     colorPanelOpen = false;
@@ -64,7 +59,9 @@ mixin ColorAdjustViewerMixin<T extends ConsumerStatefulWidget>
     final held = colorSitting;
     final white = await sample();
     if (!mounted) return;
-    if (held == null && colorLockOffered) return;
+    // The viewers have the photo's lock: with no sitting (one that ended
+    // meanwhile, or a device that cannot unlock) the colour stays as it is.
+    if (held == null) return;
     await applyPickedWhite(context, ref, item, white, sitting: held);
   }
 

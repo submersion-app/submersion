@@ -34,9 +34,6 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_catal
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
-import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
-import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
-import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_equipment_sets.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
@@ -181,9 +178,6 @@ class _BulkDiveEditPageState extends ConsumerState<BulkDiveEditPage> {
 
   final _notesController = TextEditingController();
 
-  /// The dive's visibility as loaded (issue #3226), saved back untouched
-  /// until the diver types a number or taps a chip.
-  final StoredVisibility _originalVisibility = StoredVisibility.none;
   late VisibilityInputMode _visibilityMode = ref.read(
     visibilityInputModeProvider,
   );
@@ -205,11 +199,6 @@ class _BulkDiveEditPageState extends ConsumerState<BulkDiveEditPage> {
   Trip? _selectedTrip;
   DiveCenter? _selectedDiveCenter;
   List<Sighting> _sightings = [];
-  final List<EquipmentItem> _selectedEquipment = [];
-
-  /// Where each selected item came from: the assembly it was attached
-  /// through and the set applied (issue #1487). Read through [_gearRows].
-  final List<GearProvenance> _gearProvenance = [];
 
   /// The active diver's own roles on the dive (#547, several since #1221).
   List<String> _diverRoleIds = const [];
@@ -254,12 +243,6 @@ class _BulkDiveEditPageState extends ConsumerState<BulkDiveEditPage> {
   final _uuid = const Uuid();
   TankPresetEntity? _defaultPreset;
   bool _tanksDirty = false;
-
-  /// Part of every tank row's key, bumped when a configuration rewrites
-  /// cylinders in place. A tank editor reads its text fields once, so an
-  /// editor left open would keep the old size and write it back on the next
-  /// keystroke; a new key gives it fresh fields (issue #2563).
-  final int _tankRowGeneration = 0;
 
   // Dive mode and rebreather settings
   DiveMode _diveMode = DiveMode.oc;

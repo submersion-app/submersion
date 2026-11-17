@@ -156,16 +156,6 @@ extension _BulkDiveEditRows on _BulkDiveEditPageState {
     });
   }
 
-  /// One provenance row per selected item: an item that arrived without a
-  /// row (an older code path) is a loose top-level row.
-  List<GearProvenance> get _gearRows {
-    final byId = {for (final p in _gearProvenance) p.equipmentId: p};
-    return [
-      for (final e in _selectedEquipment)
-        byId[e.id] ?? GearProvenance(equipmentId: e.id),
-    ];
-  }
-
   /// The visibility field's value converted to meters, or null when the field
   /// is empty or does not parse. See [parseVisibilityInput].
   double? _visibilityMetersInput(UnitFormatter units) =>
@@ -202,7 +192,7 @@ extension _BulkDiveEditRows on _BulkDiveEditPageState {
     final band = effectiveVisibilityBand(
       band: _visibilityBand,
       rangeTouched: _rangeTouched,
-      original: _originalVisibility,
+      original: StoredVisibility.none,
       scale: scale,
     );
     return VisibilityInput(
@@ -229,7 +219,7 @@ extension _BulkDiveEditRows on _BulkDiveEditPageState {
         band: band,
         preciseTouched: _preciseTouched,
         rangeTouched: _rangeTouched,
-        original: _originalVisibility,
+        original: StoredVisibility.none,
         scale: scale,
         l10n: context.l10n,
         units: units,
@@ -238,12 +228,9 @@ extension _BulkDiveEditRows on _BulkDiveEditPageState {
   }
 
   Widget _weightChild(UnitFormatter units) {
-    // Lead the attached weights gear already carries is in the total, as on
-    // the dive page's Weight card (issue #4442).
-    final leadGear = EquipmentLead.carriers(
-      gearLinksFor(_selectedEquipment, _gearRows),
-    );
-    final totalWeight = editorWeightTotalKg(_weights, leadGear);
+    // The selected dives' gear differs from dive to dive, so the total is
+    // the weight rows alone.
+    final totalWeight = editorWeightTotalKg(_weights, const []);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -291,7 +278,6 @@ extension _BulkDiveEditRows on _BulkDiveEditPageState {
               ],
             ),
           ),
-        GearLeadNote(items: leadGear, units: units),
         FormAppendRow(
           label: context.l10n.diveLog_edit_addWeightEntry,
           onTap: () {
