@@ -84,4 +84,26 @@ void main() {
     expect(consumption(out(TankRole.backGas)), isTrue);
     expect(consumption(out(TankRole.hydrotank)), isFalse);
   });
+
+  test('a purge and pump-in back on the Hydrotank is no dropout', () {
+    // 15 bar out and back within a minute: a dip by the glitch rules.
+    const adjusted = [
+      QualityPressureSample(t: 0, bar: 200),
+      QualityPressureSample(t: 600, bar: 199),
+      QualityPressureSample(t: 630, bar: 184),
+      QualityPressureSample(t: 660, bar: 198),
+      QualityPressureSample(t: 2400, bar: 185),
+    ];
+    bool dropout(TankRole role) => det
+        .detect(
+          makeContext(
+            dive: makeTestDive(tanks: [tank(role)]),
+            pressures: {'t1': adjusted},
+          ),
+        )
+        .any((f) => f.params.containsKey('dropoutCount'));
+
+    expect(dropout(TankRole.backGas), isTrue);
+    expect(dropout(TankRole.hydrotank), isFalse);
+  });
 }

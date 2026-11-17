@@ -91,4 +91,38 @@ void main() {
     );
     expect(tanks.single.endPressure, closeTo(80.0, 1e-9));
   });
+
+  // An Avelo Hydrotank (issue #4657) pumped up early in the descent rises
+  // from its purged start: the rules read that as a lead-in, but on a
+  // Hydrotank it is real, so its reported start stands.
+  group('Avelo Hydrotank', () {
+    List<pigeon.ProfileSample> pumpedEarly() => [
+      sample(0, 0.0, 200),
+      sample(10, 3.0, 200),
+      for (var t = 20; t <= 2400; t += 10)
+        sample(t, t < 2380 ? 20.0 : 0.0, 216 - t * 0.002),
+    ];
+
+    double? startFor(int? usage) => resolveParsedTanks(
+      makeParsedDive(
+        samples: pumpedEarly(),
+        tank: pigeon.TankInfo(
+          index: 0,
+          gasMixIndex: 0,
+          startPressureBar: 200.0,
+          endPressureBar: 211.2,
+          usage: usage,
+        ),
+      ),
+      trimAtSurfacing: false,
+    ).single.startPressure;
+
+    test('back gas reads the early rise as a lead-in', () {
+      expect(startFor(null), isNot(200.0));
+    });
+
+    test('a Hydrotank keeps its purged start', () {
+      expect(startFor(4), 200.0);
+    });
+  });
 }
