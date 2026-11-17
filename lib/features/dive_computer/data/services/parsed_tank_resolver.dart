@@ -223,9 +223,9 @@ _ResolvedCylinders _resolveCylinders(
     final readings = ofTank?.readings ?? const <PressureReading>[];
     final scanned = ofTank?.scan ?? PressureGlitchScan.none;
     // An Avelo Hydrotank's early pump-in or a purge is no lead-in or misread
-    // (issue #4657): only a lost signal is a glitch on it.
+    // (issue #4657): only a reading no cylinder holds is a glitch on it.
     final glitches = TankRole.fromName(role).isUnmeasuredBreathingGas
-        ? nearZeroGlitchesOnly(readings, scanned)
+        ? impossibleReadingGlitchesOnly(readings, scanned)
         : scanned;
     result.add(
       DownloadedTank(

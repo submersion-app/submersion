@@ -53,9 +53,9 @@ Map<String, dynamic> deglitchDiveTankPressures(Map<String, dynamic> dive) {
     final end = (tank['endPressure'] as num?)?.toDouble();
     final scanned = scanPressureGlitches(readings);
     // An Avelo Hydrotank's early pump-in or a purge is no lead-in or misread
-    // (issue #4657): only a lost signal is a glitch on it.
+    // (issue #4657): only a reading no cylinder holds is a glitch on it.
     final glitches = _roleOf(tank['role']).isUnmeasuredBreathingGas
-        ? nearZeroGlitchesOnly(readings, scanned)
+        ? impossibleReadingGlitchesOnly(readings, scanned)
         : scanned;
     final deglitchedStart = replaceGlitchedEndpoint(
       reportedBar: start,

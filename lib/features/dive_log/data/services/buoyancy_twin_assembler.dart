@@ -7,6 +7,7 @@ import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
 import 'package:submersion/features/equipment/domain/services/gear_feature_mapper.dart';
@@ -46,8 +47,14 @@ class BuoyancyTwinAssembler {
   /// Whether [dive] has anything to model: a tank or an exposure suit.
   /// [assemble] returns null exactly when this is false. Cheap, so a surface
   /// can offer the buoyancy line without running the simulation (#4593).
+  ///
+  /// Never on a dive that breathes an Avelo Hydrotank (issue #4657): its
+  /// pressure is the water pumped in, not gas mass, and that water ballast,
+  /// which sets the diver's buoyancy, is not modelled, so there is no line
+  /// rather than a wrong one, as for the dive's SAC.
   static bool isModelable(Dive dive) =>
-      dive.tanks.isNotEmpty || _exposureSuit(dive.equipment) != null;
+      !breathesUnmeasuredTank(dive.tanks) &&
+      (dive.tanks.isNotEmpty || _exposureSuit(dive.equipment) != null);
 
   /// Returns null when there is nothing to model (no tanks and no exposure
   /// suit -- e.g. an apnea dive).

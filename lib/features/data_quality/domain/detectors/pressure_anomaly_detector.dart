@@ -73,11 +73,12 @@ class PressureAnomalyDetector extends QualityDetector {
       // every other check reads the series without them: each recovery from
       // a dropout would otherwise read as a mid-dive rise, and a dropout at
       // either end as an endpoint mismatch (#2441). On an Avelo Hydrotank
-      // only a near-zero reading is one: its pump-ins and purges are real
+      // only a reading no cylinder holds is one: its pump-ins and purges are
+      // real
       // (#4657).
       final scanned = scanPressureGlitches(readings);
       final glitches = waterDriven
-          ? nearZeroGlitchesOnly(readings, scanned)
+          ? impossibleReadingGlitchesOnly(readings, scanned)
           : scanned;
       final series = glitches.glitchIndices.isEmpty
           ? raw

@@ -132,18 +132,22 @@ PressureGlitchScan scanPressureGlitches(List<PressureReading> readings) {
   return PressureGlitchScan(glitchIndices: glitches, episodeCount: episodes);
 }
 
-/// [scan] of [readings] narrowed to its near-zero readings, what a
-/// transmitter that lost its signal logs: the only glitch an Avelo Hydrotank
-/// can show (issue #4657). Its pressure rises when the diver pumps water in
-/// and falls when it is pushed out, so a lead-in, dip or spike on it is a
-/// real reading. A run of consecutive kept readings counts as one episode.
-PressureGlitchScan nearZeroGlitchesOnly(
+/// [scan] of [readings] narrowed to the readings no cylinder can hold: near
+/// zero, what a transmitter that lost its signal logs, and at or above any
+/// fill, a source's no-reading value such as Shearwater Cloud's 564.7 bar
+/// (issue #4335). Those are the only glitches an Avelo Hydrotank can show
+/// (issue #4657): its pressure rises when the diver pumps water in and falls
+/// when it is pushed out, so any other lead-in, dip or spike on it is a real
+/// reading. A run of consecutive kept readings counts as one episode.
+PressureGlitchScan impossibleReadingGlitchesOnly(
   List<PressureReading> readings,
   PressureGlitchScan scan,
 ) {
   final kept = {
     for (final i in scan.glitchIndices)
-      if (readings[i].bar < kPressureGlitchNearZeroBar) i,
+      if (readings[i].bar < kPressureGlitchNearZeroBar ||
+          readings[i].bar >= kPressureGlitchAboveAnyFillBar)
+        i,
   };
   if (kept.isEmpty) return PressureGlitchScan.none;
   return PressureGlitchScan(
