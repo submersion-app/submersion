@@ -87,7 +87,7 @@ public class SubmersionVisionPlugin: NSObject, FlutterPlugin {
     case "embedMoments":
       run(result) {
         try self.checkVideoAllowed()
-        return try self.scanner.embed(args)
+        return try self.scanner.embed(args) { self.isActive }
       }
     case "unload":
       run(result) { self.pipeline.unload(); return nil }

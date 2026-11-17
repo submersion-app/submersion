@@ -43,7 +43,12 @@ final class VideoScanner {
     guard let track = asset.tracks(withMediaType: .video).first else {
       throw VisionError.decodeFailed("no video track")
     }
-    let durationMs = Int((CMTimeGetSeconds(asset.duration) * 1000).rounded())
+    // An indefinite or invalid length would trap the conversion below.
+    let seconds = CMTimeGetSeconds(asset.duration)
+    guard asset.duration.isNumeric, seconds.isFinite, seconds >= 0 else {
+      throw VisionError.decodeFailed("no readable length")
+    }
+    let durationMs = Int((seconds * 1000).rounded())
     let natural = track.naturalSize
     let shown = natural.applying(track.preferredTransform)
     let orientation = Self.orientation(of: track.preferredTransform)
@@ -101,15 +106,20 @@ final class VideoScanner {
       }
     }
     // A chunk cut short is not a chunk scanned: the caller must not mark
-    // its time as done.
+    // its time as done. The reader also stops early when decoding fails
+    // (or iOS suspends the decoder before the app is marked inactive).
     if next < end, !stillWanted() { throw VisionError.notForeground }
+    if reader.status == .failed {
+      throw VisionError.decodeFailed(reader.error?.localizedDescription ?? "reader failed")
+    }
     reply["frames"] = frames
     return reply
   }
 
   /// One entry per moment: NSNull, or `{pixelWidth, pixelHeight, crop,
-  /// embedding}`.
-  func embed(_ args: [String: Any]) throws -> [Any] {
+  /// embedding}`. Stops when [stillWanted] turns false, and throws when no
+  /// frame at all could be read, so the caller does not count the chunk.
+  func embed(_ args: [String: Any], stillWanted: () -> Bool) throws -> [Any] {
     guard let path = args["path"] as? String, let moments = args["moments"] as? [[String: Any]] else {
       throw VisionError.badArguments("path or moments")
     }
@@ -120,20 +130,30 @@ final class VideoScanner {
     generator.requestedTimeToleranceBefore = .zero
     generator.requestedTimeToleranceAfter = .zero
     generator.maximumSize = CGSize(width: Self.embedSide, height: Self.embedSide)
-    return try moments.map { moment -> Any in
-      try autoreleasepool {
+    var unread = 0
+    let crops = try moments.map { moment -> Any in
+      if !stillWanted() { throw VisionError.notForeground }
+      return try autoreleasepool {
         guard let ms = (moment["ms"] as? NSNumber)?.intValue,
               let x = (moment["x"] as? NSNumber)?.doubleValue,
               let y = (moment["y"] as? NSNumber)?.doubleValue,
               let w = (moment["width"] as? NSNumber)?.doubleValue,
-              let h = (moment["height"] as? NSNumber)?.doubleValue,
-              let image = try? generator.copyCGImage(
-                at: CMTime(value: CMTimeValue(ms), timescale: 1000), actualTime: nil) else {
+              let h = (moment["height"] as? NSNumber)?.doubleValue else {
           return NSNull()
         }
+        guard let image = try? generator.copyCGImage(
+          at: CMTime(value: CMTimeValue(ms), timescale: 1000), actualTime: nil) else {
+          unread += 1
+          return NSNull()
+        }
+        // Nil for a crop too small to read: that fish is simply not named.
         return try pipeline.cropAndEmbed(image, x: x, y: y, w: w, h: h) ?? NSNull()
       }
     }
+    if !moments.isEmpty, unread == moments.count {
+      throw VisionError.decodeFailed("no frame could be read")
+    }
+    return crops
   }
 
   private enum Step {
