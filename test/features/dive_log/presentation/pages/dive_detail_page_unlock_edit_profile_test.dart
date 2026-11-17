@@ -132,19 +132,4 @@ void main() {
 
     expect(find.text('PROFILE EDITOR draw'), findsOneWidget);
   });
-
-  testWidgets('with the switch off the card has no Edit profile', (
-    tester,
-  ) async {
-    await pumpPage(
-      tester,
-      unlockEditing: false,
-      stored: profiled,
-      visible: sections,
-      size: size,
-    );
-    await settleLong(tester);
-
-    expect(editProfile(), findsNothing);
-  });
 }

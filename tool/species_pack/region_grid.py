@@ -73,6 +73,17 @@ def pack_bits(rows_of_cells, cell_degrees):
     return bytes(out)
 
 
+def allowed_mask(bits, candidate_count, cells, cell_degrees):
+    """One entry per candidate: whether it was recorded in any of `cells`.
+    Reads what `pack_bits` writes, as RegionTable.allowedMask does."""
+    width = row_bytes(cell_degrees)
+    positions = [(c // 8, 1 << (c % 8)) for c in cells]
+    return [
+        any(bits[i * width + offset] & mask for offset, mask in positions)
+        for i in range(candidate_count)
+    ]
+
+
 def vectors():
     cd = 5
     points = [

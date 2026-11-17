@@ -7,8 +7,7 @@ part of 'dive_detail_page.dart';
 /// the page leaves out are offered in a strip under the bar. Save writes
 /// the whole sitting at once and locks again.
 ///
-/// Offered only when [DiveDetailPage.unlockEditing] is on, on the full page
-/// and in the list pane alike. With it off, the page builds none of this.
+/// Offered on the full page and in the list pane alike.
 mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   RecordEditController<Dive>? _editController;
 
@@ -29,12 +28,14 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   /// lock returning and the reload landing.
   Dive? _justSaved;
 
-  /// Whether this page offers unlock-to-edit.
-  bool get editingOffered => widget.unlockEditing;
-
-  /// Created on first use, so a page that never offers editing has none.
+  /// Created on first use.
   RecordEditController<Dive> get editController => _editController ??=
       _newEditController(ProviderScope.containerOf(context, listen: false));
+
+  /// Set while a leave the app asked about (another row, a tab, a quit)
+  /// discards the sitting: that end is the leave's, and the page is going
+  /// ([_DiveDetailPageUnlockOpen] does not report it).
+  bool _endedByLeave = false;
 
   /// Makes the sitting's unsaved changes work the app asks about before a
   /// tab, a pane row or a quit leaves them (issue #4527).
@@ -45,7 +46,15 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     _exitBlocker = RecordSittingExitBlocker<Dive>(
       controller: controller,
       guard: container.read(appExitGuardProvider),
-      confirm: () async => mounted && await cancelSitting(context, controller),
+      confirm: () async {
+        if (!mounted) return false;
+        // Set first: a discard locks, and tells the page, before
+        // cancelSitting returns.
+        _endedByLeave = true;
+        final left = await cancelSitting(context, controller);
+        if (!left) _endedByLeave = false;
+        return left;
+      },
       // The route the page is on, so leaving another page asks nothing.
       page: () => mounted ? recordSittingPageOf(context) : null,
     );
@@ -88,8 +97,13 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   /// Whether a sitting is in progress.
   bool get isSittingOpen => _editController?.isUnlocked ?? false;
 
+  /// Tells the page's owner when a sitting opened unlocked has ended
+  /// ([_DiveDetailPageUnlockOpen]).
+  void _noteSittingEnded();
+
   void _onEditChanged() {
     _tellOpenSitting(_editController?.session);
+    _noteSittingEnded();
     if (mounted) setState(() {});
   }
 
@@ -127,7 +141,6 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   @override
   void initState() {
     super.initState();
-    if (!editingOffered) return;
     final controller = editController;
     final target = _shortcutTarget = RecordEditShortcutTarget(
       controller: controller,
@@ -192,7 +205,6 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   /// has not touched follows a change that arrives underneath. Call from
   /// `build`.
   void followStoredDive() {
-    if (!editingOffered) return;
     ref.listen(diveProvider(diveId), (_, next) {
       // A reload in flight still carries the dive it started from.
       if (next.isLoading) return;
@@ -378,18 +390,40 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
             header,
             Expanded(
               child: AddStripLayout(
-                strip: AddStrip(
-                  entries: controller.isUnlocked
-                      ? _addStripEntries(shown)
-                      : const [],
-                  onAdd: controller.addCard,
-                ),
+                strip: _editStrip(controller, shown),
                 body: content,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  /// What lies under the edit bar while the dive is unlocked: the cards it
+  /// can add and, when the dive ends after the latest safe surfacing time
+  /// for its trip's flight, that warning, pinned as the old edit form
+  /// pinned it. Nothing while locked.
+  Widget _editStrip(RecordEditController<Dive> controller, Dive shown) {
+    final strip = AddStrip(
+      entries: controller.isUnlocked ? _addStripEntries(shown) : const [],
+      onAdd: controller.addCard,
+    );
+    if (!controller.isUnlocked) return strip;
+    final runtime = shown.runtime;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        strip,
+        FlightWindowWarningBanner(
+          tripId: shown.tripId,
+          // As the form read it: the exit, else entry plus runtime.
+          diveEndTime:
+              shown.exitTime ??
+              (runtime == null ? null : shown.effectiveEntryTime.add(runtime)),
+        ),
+      ],
     );
   }
 
@@ -472,10 +506,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
         // The strip comes and goes as the page unlocks and locks, and as
         // cards are added and closed; the page under it stays where it is.
         body: AddStripLayout(
-          strip: AddStrip(
-            entries: controller.isUnlocked ? _addStripEntries(shown) : const [],
-            onAdd: controller.addCard,
-          ),
+          strip: _editStrip(controller, shown),
           body: RecordEditScope<Dive>(controller: controller, child: content),
         ),
       ),

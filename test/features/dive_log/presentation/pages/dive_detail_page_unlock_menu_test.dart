@@ -246,14 +246,4 @@ void main() {
     expect(controller.isUnlocked, isTrue);
     expect(controller.isBusy, isFalse);
   });
-
-  testWidgets('with the switch off the bar has no History icon', (
-    tester,
-  ) async {
-    await pumpPage(tester, unlockEditing: false);
-    expect(find.byTooltip('History'), findsNothing);
-    await _openMenu(tester);
-    expect(find.byKey(const ValueKey('recordOperationCaption')), findsNothing);
-    expect(_enabled(tester, 'Delete'), isTrue);
-  });
 }

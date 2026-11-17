@@ -20,11 +20,11 @@ import 'package:submersion/features/dive_log/presentation/widgets/annotation_pla
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart';
 import 'package:submersion/shared/widgets/forms/minutes_seconds_field.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_database.dart';
+import '../../../../../helpers/unlock_for_operation.dart';
 
 /// Annotations from the dive detail page (#4109): the pin button enters
 /// placement mode, a tap on the profile opens the sheet, Add writes the row
@@ -138,6 +138,20 @@ void main() {
 
   Finder pin() => find.byTooltip('Add annotation');
 
+  /// Annotations change only in the open Profile card, held until Save
+  /// (issue #4527): unlocks the page and opens the card.
+  Future<void> openProfileCard(WidgetTester tester) async {
+    await unlockForOperation(tester);
+    await tester.tap(find.byTooltip('Edit Dive Profile'));
+    await settle(tester, frames: 6);
+  }
+
+  /// Saves the sitting from the pane's bar.
+  Future<void> save(WidgetTester tester) async {
+    await tester.tap(find.text('Save').last);
+    await settle(tester);
+  }
+
   Future<void> tapChartAt(WidgetTester tester, double fraction) async {
     final plot = tester.getRect(find.byType(LineChart).first);
     await tester.tapAt(
@@ -163,49 +177,12 @@ void main() {
     return tester.getTopLeft(layerFinder) + centers[index]!;
   }
 
-  testWidgets('pin, tap the chart, type words, Add: a marker appears and '
-      'Notes gains the paragraph', (tester) async {
-    await seedDive();
-    await pumpDetail(tester);
-    expect(find.byType(AnnotationMarkerLayer), findsNothing);
-
-    await tester.tap(pin());
-    await settle(tester, frames: 3);
-    expect(find.byType(AnnotationPlacementBanner), findsOneWidget);
-    expect(
-      find.text(
-        'Tap the profile where it happened. Press and hold to '
-        'fine-tune.',
-      ),
-      findsOneWidget,
-    );
-
-    await tapChartAt(tester, 0.5);
-    expect(find.text('New annotation'), findsOneWidget);
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'What happened'),
-      'Octo free-flowed',
-    );
-    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
-    await settle(tester);
-
-    final row = (await rows()).single;
-    expect(
-      (row.eventType, row.source, row.description),
-      ('annotation', 'user', 'Octo free-flowed'),
-    );
-    expect(row.timestamp, inInclusiveRange(400, 800));
-    expect(row.depth, 30.0);
-    expect(await notes(), 'First.\n\n[Octo free-flowed](annotation:${row.id})');
-    expect(find.byType(AnnotationPlacementBanner), findsNothing);
-    expect(find.byType(AnnotationMarkerLayer), findsOneWidget);
-  });
-
   testWidgets('cancelling the sheet leaves placement mode with nothing added', (
     tester,
   ) async {
     await seedDive();
     await pumpDetail(tester);
+    await openProfileCard(tester);
     await tester.tap(pin());
     await settle(tester, frames: 3);
     await tapChartAt(tester, 0.5);
@@ -227,6 +204,7 @@ void main() {
     await seedDive();
     await seedAnnotation();
     await pumpDetail(tester);
+    await openProfileCard(tester);
     expect(find.byType(AnnotationMarkerLayer), findsOneWidget);
 
     await tester.tapAt(await dotCenter(tester, 'a1'));
@@ -234,10 +212,10 @@ void main() {
     expect(find.text('felt sick'), findsWidgets);
     await tester.tap(find.text('Remove'));
     await settle(tester);
+    await save(tester);
 
     expect(await rows(), isEmpty);
     expect(await notes(), 'First.\n\nfelt sick');
-    expect(find.text('Annotation removed'), findsOneWidget);
   });
 
   testWidgets('Move re-enters placement and the next tap updates the time', (
@@ -246,6 +224,7 @@ void main() {
     await seedDive();
     await seedAnnotation(timestamp: 300);
     await pumpDetail(tester);
+    await openProfileCard(tester);
 
     await tester.tapAt(await dotCenter(tester, 'a1'));
     await settle(tester, frames: 4);
@@ -255,12 +234,13 @@ void main() {
 
     await tapChartAt(tester, 0.8);
     await settle(tester);
+    expect(find.byType(AnnotationPlacementBanner), findsNothing);
+    await save(tester);
 
     final row = (await rows()).single;
     expect(row.id, 'a1');
     expect(row.timestamp, inInclusiveRange(800, 1200));
     expect(await notes(), 'First.\n\n[felt sick](annotation:a1)');
-    expect(find.byType(AnnotationPlacementBanner), findsNothing);
   });
 
   testWidgets('the popup\'s time opens the time sheet and Save moves the '
@@ -268,6 +248,7 @@ void main() {
     await seedDive();
     await seedAnnotation(timestamp: 300);
     await pumpDetail(tester);
+    await openProfileCard(tester);
 
     await tester.tapAt(await dotCenter(tester, 'a1'));
     await settle(tester, frames: 4);
@@ -284,6 +265,7 @@ void main() {
     );
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
     await settle(tester);
+    await save(tester);
 
     expect((await rows()).single.timestamp, 450);
     expect(await notes(), 'First.\n\n[felt sick](annotation:a1)');
@@ -313,7 +295,9 @@ void main() {
     // popup, then the focus request is spent.
     await tester.tapOnText(find.textRange.ofSubstring('felt sick').first);
     await settle(tester, frames: 6);
-    expect(find.text('Remove'), findsOneWidget);
+    // The locked page's popup reads only: no Remove (issue #4527).
+    expect(find.text('Open in Notes'), findsOneWidget);
+    expect(find.text('Remove'), findsNothing);
     expect(container.read(annotationFocusProvider(diveId)), isNull);
   });
 
@@ -375,81 +359,14 @@ void main() {
     await settle(tester, frames: 6);
 
     expect(container.read(profileLegendProvider).showAnnotations, isTrue);
-    expect(find.text('Remove'), findsOneWidget);
+    expect(find.text('Open in Notes'), findsOneWidget);
   });
-
-  testWidgets('a Notes link placement mode held back opens on the next tap', (
-    tester,
-  ) async {
-    await seedDive();
-    await seedAnnotation();
-    await pumpDetail(tester);
-
-    Future<void> tapLink() async {
-      await tester.ensureVisible(find.byType(DiveNotesSection));
-      await settle(tester, frames: 4);
-      await tester.tapOnText(find.textRange.ofSubstring('felt sick').first);
-      await settle(tester, frames: 8);
-    }
-
-    await tester.tap(pin());
-    await settle(tester, frames: 4);
-    await tapLink();
-    expect(find.text('Remove'), findsNothing);
-
-    await tester.ensureVisible(find.text('Cancel').first);
-    await settle(tester, frames: 4);
-    // With the card partly scrolled away, its banner shows on the pinned,
-    // squashed copy too (#4423): the reader taps the one they can see.
-    await tester.tap(find.text('Cancel').hitTestable());
-    await settle(tester, frames: 4);
-    await tapLink();
-    expect(find.text('Remove'), findsOneWidget);
-  });
-
-  testWidgets('a Notes link on a dive with no profile changes its time', (
-    tester,
-  ) async {
-    await seedDive(withProfile: false);
-    await seedAnnotation(timestamp: 300);
-    await pumpDetail(tester);
-
-    await tester.tapOnText(find.textRange.ofSubstring('felt sick').first);
-    await settle(tester, frames: 6);
-    expect(find.text('Change the time'), findsOneWidget);
-
-    await tester.enterText(
-      find.descendant(
-        of: find.byType(MinutesSecondsField),
-        matching: find.byType(TextFormField),
-      ),
-      '7:30',
-    );
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
-    await settle(tester);
-    expect((await rows()).single.timestamp, 450);
-  });
-
   AppSettings hiding(DiveDetailSectionId section) => AppSettings(
     diveDetailSections: [
       for (final s in DiveDetailSectionConfig.defaultSections)
         s.id == section ? s.copyWith(visible: false) : s,
     ],
   );
-
-  testWidgets('a Notes link with the profile section hidden changes its time', (
-    tester,
-  ) async {
-    await seedDive();
-    await seedAnnotation();
-    await pumpDetail(tester, settings: hiding(DiveDetailSectionId.profile));
-
-    await tester.tapOnText(find.textRange.ofSubstring('felt sick').first);
-    await settle(tester, frames: 6);
-
-    expect(find.text('Change the time'), findsOneWidget);
-  });
-
   testWidgets(
     'the popup offers no Open in Notes with the Notes section hidden',
     (tester) async {
@@ -460,7 +377,8 @@ void main() {
       await tester.tapAt(await dotCenter(tester, 'a1'));
       await settle(tester, frames: 4);
 
-      expect(find.text('Remove'), findsOneWidget);
+      // The popup is open: its words show, with no Notes card to show them.
+      expect(find.text('felt sick'), findsOneWidget);
       expect(find.text('Open in Notes'), findsNothing);
     },
   );

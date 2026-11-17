@@ -69,11 +69,11 @@ The rest of this guide fills in one dive. Your dive will look something like thi
 
 ![Dive Details for a freshly downloaded dive with the hero header and Dive Profile, and no site](images/how-to/log-a-dive/05-dive-details-before.png)
 
-Tap **Edit dive** (the pencil) to open **Edit Dive**. Only **The Dive** is open at first; tap any other section to open it.
+Tap the lock (**Unlock to edit**) in the dive's bar. The bar now holds **Cancel** and **Save**, every card you can change gains a pencil, and cards with nothing in them yet wait as chips in the **Add** strip under the bar. Tap a card's title row (or its pencil) to open it, and **Done** to close it again. You can open as many cards as you like and save them all at the end.
 
 ## 6. Add the site
 
-In **The Dive**, tap **Add site**. **Select Dive Site** lists your sites. **Nearby** shows the ones closest to the dive's GPS position or, if the dive has none, to where you are now. Tap one, or tap **New Dive Site** to create it.
+Tap the pencil on the **Dive** card at the top, then tap **Add site**. **Select Dive Site** lists your sites. **Nearby** shows the ones closest to the dive's GPS position or, if the dive has none, to where you are now. Tap one, or tap **New Dive Site** to create it.
 
 ![Select Dive Site with the search field, the Nearby section and New Dive Site](images/how-to/log-a-dive/06-select-site.png)
 
@@ -81,36 +81,36 @@ Picking a site can also fill in the water type and entry method you used there b
 
 ## 7. Add your buddies
 
-Open **Buddies** and tap **Add**. In **Select Buddies**, tap someone you dived with, choose their role, such as **Buddy**, **Dive Guide** or **Instructor**, and tap **Done**. Do the same for each person, or tap **Add New Buddy** for someone new. Then tap **Done** on **Select Buddies**.
+Open the **Buddies** card and tap **Add**. In **Select Buddies**, tap someone you dived with, choose their role, such as **Buddy**, **Dive Guide** or **Instructor**, and tap **Done**. Do the same for each person, or tap **Add New Buddy** for someone new. Then tap **Done** on **Select Buddies**.
 
 ![Select Buddies with a buddy ticked, Add New Buddy and Done](images/how-to/log-a-dive/07-buddies.png)
 
 ## 8. Add gas and gear
 
-Open **Gas & Gear**:
-
-- Under **Tanks**, check the tank your computer reported, or tap **Add Tank** for each one you breathed from. Gas use and statistics come from these tanks.
-- Under **Equipment**, tap **Use Set** to add a saved set of your usual gear in one go, or **Add** to pick items one by one. Each item then counts this dive towards its service history.
-- Fill in **Weight** if you track it.
+- Open the **Cylinders** card. Check the tank your computer reported, or tap **Add Tank** for each one you breathed from. Gas use and statistics come from these tanks.
+- Open the **Equipment** card (tap **Equipment** in the **Add** strip if it is not on the page yet). Tap **Use Set** to add a saved set of your usual gear in one go, or **Add** to pick items one by one. Each item then counts this dive towards its service history.
+- If you track weight, tap **Weights** in the **Add** strip and fill in the **Weight** card.
 
 ![The Gas & Gear section open, with a tank and the Equipment list using a set](images/how-to/log-a-dive/08-gas-gear.png)
 
 ## 9. Add the conditions
 
-Open **Conditions**. If the dive has a site with a location, **Fetch Weather** fills in the weather for that place and time. Then add what you noticed: **Visibility**, **Current Strength**, **Surface Conditions**, **Entry Method** and the rest.
+Open the **Environment** card (tap **Environment** in the **Add** strip if it is not on the page yet). If the dive has a site with a location, **Fetch Weather** fills in the weather for that place and time. Then add what you noticed under **Dive Conditions**: **Current Strength**, **Surface Conditions**, **Entry Method** and the rest. **Visibility** is on the **Details** card.
 
 ![The Conditions section with Fetch Weather and visibility and current filled in](images/how-to/log-a-dive/09-conditions.png)
 
-## 10. Rate it and save
+## 10. Rate it
 
-Open **Experience** to add a rating, the marine life you saw, notes and tags. Then tap **Save**.
+Set the **Rating** on the **Dive** card. Record the marine life you saw on the **Species** card (**Species Sightings** in the **Add** strip), and add your notes on **Notes** and labels on **Tags**.
 
-## 11. Add your photos
+## 11. Add your photos and save
 
-Photos are added on **Dive Details**, not on the edit page. In **Photos & Video**:
+Open the **Photos & Video** card:
 
 - The search icon (**Scan gallery for photos**) looks for photos taken around the time of the dive and offers to link them. Tap **Link Photos**.
 - Or tap the add-photo icon (**Add photo or video**), then **Add photos or videos**, and pick them yourself.
+
+Then tap **Save**. Everything you changed on every card is written at once, and the dive is locked again.
 
 Submersion links to your photos where they are; it never copies or moves them. To see them on your other devices too, see [Set Up Sync, Backups and Photos](how-to-sync-backups-photos.md).
 
@@ -118,7 +118,7 @@ Submersion links to your photos where they are; it never copies or moves them. T
 
 ## Check it worked
 
-Open the dive again. **Dive Details** now shows the site in its header, then the **Dive Profile**, the cylinders, your buddies, equipment, conditions and photos.
+Look over the dive's page. It now shows the site in its header, then the **Dive Profile**, the cylinders, your buddies, equipment, conditions and photos.
 
 ![Dive Details for the finished dive with the site in its header and the Dive Profile](images/how-to/log-a-dive/11-dive-details-after.png)
 
@@ -138,7 +138,7 @@ For more, see [Dive Computers](dive-computer.md#troubleshooting).
 
 ## Next steps
 
-- [Logging Dives](dive-logging.md): every field on the dive form.
+- [Logging Dives](dive-logging.md): every card and field on a dive's page.
 - [Dive Profiles & Deco](dive-profiles.md): reading the profile chart.
 - [Dive Computers](dive-computer.md): using more than one computer, clock sync, and re-downloading.
 - [Equipment](equipment.md): equipment sets and service reminders.

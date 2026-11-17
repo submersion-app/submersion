@@ -40,6 +40,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(sourceId: 'src-a', label: 'Kiyans Teric', isActive: true),
           ],
@@ -59,6 +60,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(
               sourceId: 'src-a',
@@ -87,6 +89,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(
               sourceId: 'src-a',
@@ -114,6 +117,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(
               sourceId: 'src-a',
@@ -140,6 +144,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(
               sourceId: 'src-a',
@@ -166,6 +171,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(
               sourceId: 'src-a',
@@ -198,6 +204,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(
               sourceId: 'src-a',
@@ -222,6 +229,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(
               sourceId: 'src-a',

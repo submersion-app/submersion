@@ -53,6 +53,7 @@ import 'package:submersion/features/trips/presentation/navigation/open_trip_list
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/core/router/shortcut_locations.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/universal_import_wizard_route.dart';
@@ -2272,6 +2273,61 @@ void main() {
 
       expect(pageAt('/dives/bulk-edit?return=pop').popOnSave, isTrue);
       expect(pageAt('/dives/bulk-edit').popOnSave, isFalse);
+    });
+  });
+
+  group('the old dive edit address (issue #4527, plan 11)', () {
+    late BuildContext capturedContext;
+
+    GoRouterState stateAt(String location, String fullPath) => GoRouterState(
+      router.configuration,
+      uri: Uri.parse(location),
+      matchedLocation: Uri.parse(location).path,
+      fullPath: fullPath,
+      pathParameters: const {'diveId': 'd1'},
+      pageKey: ValueKey(location),
+    );
+
+    Future<void> capture(WidgetTester tester) => tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) {
+            capturedContext = context;
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+
+    testWidgets('/dives/<id>/edit redirects to /dives/<id>?mode=edit', (
+      tester,
+    ) async {
+      await capture(tester);
+      final edit = _findRouteByName(router.configuration.routes, 'editDive')!;
+
+      expect(
+        await edit.redirect!(
+          capturedContext,
+          stateAt('/dives/d1/edit', '/dives/:diveId/edit'),
+        ),
+        '/dives/d1?mode=edit',
+      );
+    });
+
+    testWidgets('/dives/<id>?mode=edit builds the dive page unlocked', (
+      tester,
+    ) async {
+      await capture(tester);
+      final detail = _findRouteByName(
+        router.configuration.routes,
+        'diveDetail',
+      )!;
+      DiveDetailPage pageAt(String location) =>
+          detail.builder!(capturedContext, stateAt(location, '/dives/:diveId'))
+              as DiveDetailPage;
+
+      expect(pageAt('/dives/d1?mode=edit').openUnlocked, isTrue);
+      expect(pageAt('/dives/d1').openUnlocked, isFalse);
     });
   });
 

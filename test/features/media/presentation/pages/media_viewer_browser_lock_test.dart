@@ -43,7 +43,6 @@ void main() {
         siteId: 's1',
         initialMediaId: 'a1',
         scope: SiteViewerScope.attachments,
-        unlockEditing: true,
       ),
       browser: true,
     );

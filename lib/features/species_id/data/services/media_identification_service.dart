@@ -378,7 +378,7 @@ class MediaIdentificationService {
           ? const <String, Float32List>{}
           : await _embeddings.get([
               for (final i in undecided) i.id,
-            ], classifierId: manifest.classifier.id);
+            ], classifierId: manifest.classifier.embeddingId);
       final embeddingsPresent =
           namesCurrent || storedEmbeddings.length == undecided.length;
       var putBack = false;
@@ -400,7 +400,7 @@ class MediaIdentificationService {
           run: run,
           packVersion: manifest.packVersion,
           detectorId: manifest.detector.id,
-          classifierId: manifest.classifier.id,
+          classifierId: manifest.classifier.embeddingId,
           cell: cell,
           cropsPresent: cropsPresent,
           embeddingsPresent: embeddingsPresent,
@@ -521,7 +521,7 @@ class MediaIdentificationService {
         mediaId: item.id,
         packVersion: manifest.packVersion,
         detectorId: manifest.detector.id,
-        classifierId: manifest.classifier.id,
+        classifierId: manifest.classifier.embeddingId,
         locationCell: cell,
         analysedAt: now,
         imageWidth: analysis.imageWidth,
@@ -537,7 +537,7 @@ class MediaIdentificationService {
     await _crops.delete(item.id, carried.deleteIds);
     await _embeddings.put({
       for (final i in carried.insert) i.id: byId[i.id]!.embedding,
-    }, classifierId: manifest.classifier.id);
+    }, classifierId: manifest.classifier.embeddingId);
     for (final i in carried.insert) {
       await _crops.write(item.id, i.id, byId[i.id]!.cropJpeg);
     }

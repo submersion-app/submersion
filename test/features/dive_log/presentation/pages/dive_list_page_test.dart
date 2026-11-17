@@ -10,7 +10,6 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_list_count_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -1068,14 +1067,109 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      expect(find.byType(DiveEditPage), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is DiveDetailPage && w.newDiveRequest != null,
+        ),
+        findsOneWidget,
+      );
     });
 
-    // Note: The edit builder test for dives is not included because
-    // DiveEditPage.initState synchronously accesses the database, which
-    // throws a StateError that cannot be caught by takeException().
-    // The detail and create builder tests above are sufficient to cover the
-    // editBuilder closure line (it follows the same pattern).
+    // The old address of the pane's edit form opens the dive page in the
+    // pane, unlocked; the sitting's end returns the pane to the dive
+    // (issue #4527, plan 11).
+    for (final mode in [ListViewMode.detailed, ListViewMode.table]) {
+      testWidgets('${mode.name}: ?selected=<id>&mode=edit shows the dive page '
+          'unlocked, and its sitting ending returns to ?selected=<id>', (
+        tester,
+      ) async {
+        tester.view.devicePixelRatio = 1.0;
+        tester.view.physicalSize = const Size(1200, 800);
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final overrides = await buildBranchOverrides(viewMode: mode);
+        await tester.pumpWidget(
+          buildBranchTestWidget(
+            child: const DiveListPage(),
+            overrides: [
+              ...overrides,
+              tableDetailsPaneProvider('dives').overrideWith((ref) => true),
+            ],
+            initialLocation: '/dives?selected=test-dive-id&mode=edit',
+          ),
+        );
+        await tester.pump();
+        tester.takeException();
+        await tester.pump();
+        tester.takeException();
+
+        final opened = find.byWidgetPredicate(
+          (w) => w is DiveDetailPage && w.openUnlocked,
+        );
+        expect(opened, findsOneWidget);
+        expect(tester.widget<DiveDetailPage>(opened).diveId, 'test-dive-id');
+
+        tester.widget<DiveDetailPage>(opened).onSittingEnded!();
+        for (var i = 0; i < 4; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+          tester.takeException();
+        }
+
+        expect(opened, findsNothing);
+        expect(
+          find.byWidgetPredicate(
+            (w) => w is DiveDetailPage && w.diveId == 'test-dive-id',
+          ),
+          findsOneWidget,
+        );
+      });
+
+      // A dive deleted from the pane's edit mode is gone: the pane leaves
+      // it for the bare list, not back to `?selected=<id>`.
+      testWidgets('${mode.name}: a dive deleted in ?mode=edit leaves the pane '
+          'at /dives', (tester) async {
+        tester.view.devicePixelRatio = 1.0;
+        tester.view.physicalSize = const Size(1200, 800);
+        addTearDown(tester.view.reset);
+
+        final overrides = await buildBranchOverrides(viewMode: mode);
+        await tester.pumpWidget(
+          buildBranchTestWidget(
+            child: const DiveListPage(),
+            overrides: [
+              ...overrides,
+              tableDetailsPaneProvider('dives').overrideWith((ref) => true),
+            ],
+            initialLocation: '/dives?selected=test-dive-id&mode=edit',
+          ),
+        );
+        await tester.pump();
+        tester.takeException();
+        await tester.pump();
+        tester.takeException();
+
+        final opened = find.byWidgetPredicate(
+          (w) => w is DiveDetailPage && w.openUnlocked,
+        );
+        expect(opened, findsOneWidget);
+
+        tester.widget<DiveDetailPage>(opened).onDeleted!();
+        for (var i = 0; i < 4; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+          tester.takeException();
+        }
+
+        final router = GoRouter.of(tester.element(find.byType(DiveListPage)));
+        expect(
+          router.routerDelegate.currentConfiguration.uri.toString(),
+          '/dives',
+        );
+        expect(find.byType(DiveDetailPage), findsNothing);
+      });
+    }
   });
 }
 

@@ -12,7 +12,6 @@ import 'package:submersion/features/media/presentation/helpers/site_media_import
 import 'package:submersion/features/media/presentation/pages/media_import_view.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 
 /// Imports photos and videos dropped onto the app window.
 typedef MediaDropHandler =
@@ -31,28 +30,21 @@ typedef MediaDropHandler =
 /// A dive deleted between the drop and this lookup falls back to the Media
 /// section's importer, which matches the files to dives by capture time.
 ///
-/// Where dives lock ([lockable]), a dive takes files only in its open
-/// sitting, held there until Save; a drop on a locked dive, one being
-/// saved, or one the list pane shows is refused with a hint (issue #4527).
+/// A dive takes files only in its open sitting, held there until Save; a
+/// drop on a locked dive, one being saved, or one the list pane shows is
+/// refused with a hint (issue #4527).
 Future<void> importDroppedMedia(
   BuildContext context,
   WidgetRef ref,
   MediaDropDestination destination,
-  List<String> paths, {
-  bool lockable = kUnlockEditing,
-}) async {
+  List<String> paths,
+) async {
   final target = destination.target;
   if (target is! DiveAttachTarget) {
     return _importDropped(context, ref, destination, paths);
   }
   final open = ref.read(openDiveSittingProvider);
-  switch (diveDropAnswer(
-    lockable: lockable,
-    open: open,
-    diveId: target.diveId,
-  )) {
-    case DiveDropAnswer.asToday:
-      return _importDropped(context, ref, destination, paths);
+  switch (diveDropAnswer(open: open, diveId: target.diveId)) {
     case DiveDropAnswer.refuse:
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.diveLog_media_dropUnlockHint)),

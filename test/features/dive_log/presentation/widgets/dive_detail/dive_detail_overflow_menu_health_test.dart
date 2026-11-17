@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
@@ -57,6 +58,7 @@ void main() {
           menuKey: GlobalKey(),
           displayOptions: MenuController(),
           onSelected: (_, _) {},
+          operations: RecordOperationBlock.none,
         ),
       ),
     );

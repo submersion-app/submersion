@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/unlock_for_operation.dart';
 
 /// Exercises the "Re-parse raw data" overflow action. The outcome message is
 /// not uniform: a combined dive's profile is deliberately left alone (#1164),
@@ -153,6 +154,7 @@ void main() {
     WidgetTester tester, {
     String label = 'Re-parse raw data',
   }) async {
+    await unlockForOperation(tester);
     // The header overflow menu is the last more_vert on the page (a source bar,
     // when present, renders earlier).
     await tester.tap(find.byIcon(Icons.more_vert).last);

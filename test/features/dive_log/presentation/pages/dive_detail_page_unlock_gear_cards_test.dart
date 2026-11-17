@@ -77,7 +77,6 @@ void main() {
   Future<FakeSave> open(
     WidgetTester tester, {
     Dive? stored,
-    bool unlockEditing = true,
     Object? Function()? reloadError,
   }) async {
     final page = await pumpPage(
@@ -85,7 +84,6 @@ void main() {
       stored: stored ?? geared,
       reloadError: reloadError,
       visible: shown,
-      unlockEditing: unlockEditing,
       size: const Size(700, 2400),
       extra: [
         tankPressuresProvider(dive.id).overrideWith((ref) async => pressures),
@@ -97,18 +95,6 @@ void main() {
 
   double heightOf(WidgetTester tester, Type card) =>
       tester.getSize(find.byType(card).first).height;
-
-  testWidgets('editing off: the cards as before, with Reassign', (
-    tester,
-  ) async {
-    await open(tester, unlockEditing: false);
-
-    expect(find.byType(CylindersCard), findsOneWidget);
-    expect(find.byType(DiveWeightSection), findsOneWidget);
-    expect(find.byType(DiveEquipmentSection), findsOneWidget);
-    expect(find.text(l.diveLog_tank_reassignSeries), findsOneWidget);
-  });
-
   TextButton assign(WidgetTester tester) => tester.widget<TextButton>(
     find.widgetWithText(TextButton, l.diveLog_tank_assignTransmitter),
   );

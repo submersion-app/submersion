@@ -13,7 +13,6 @@ import 'package:submersion/features/media/presentation/widgets/media_info_sheet.
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 
 /// One glyph per grid tile: what is wrong with this item, or failing that,
 /// where its bytes came from.
@@ -66,7 +65,7 @@ class MediaStatusBadge extends ConsumerWidget {
           context,
           item,
           // A photo is changed only in the viewer, unlocked (issue #4527).
-          readOnly: kUnlockEditing,
+          readOnly: true,
         ),
         child: CircleAvatar(
           key: const Key('media-status-badge'),
@@ -175,7 +174,7 @@ class _ProvenanceBadgeState extends ConsumerState<_ProvenanceBadge> {
           context,
           widget.item,
           // A photo is changed only in the viewer, unlocked (issue #4527).
-          readOnly: kUnlockEditing,
+          readOnly: true,
         ),
         child: Container(
           key: const Key('media-provenance-badge'),

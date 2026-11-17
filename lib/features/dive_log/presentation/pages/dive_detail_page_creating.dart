@@ -46,7 +46,7 @@ mixin _DiveDetailPageCreating
   @override
   void initState() {
     super.initState();
-    if (widget.newDiveRequest != null && editingOffered) _openNewDive();
+    if (widget.newDiveRequest != null) _openNewDive();
   }
 
   @override
@@ -132,7 +132,7 @@ mixin _DiveDetailPageCreating
     }
     final session = _editController?.session;
     if (session != null) return _buildContent(context, session.stored);
-    if (_seed != null && editingOffered && !_leaving) _askReopen();
+    if (_seed != null && !_leaving) _askReopen();
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: !widget.embedded,

@@ -98,6 +98,9 @@ class DiveDetailHeroSection extends ConsumerWidget {
                   state.uri.queryParameters,
                 );
                 params['site'] = site.id;
+                // Shown, not edited: from the pane's edit mode the list
+                // would build the site's edit form (issue #4527).
+                params.remove('mode');
                 // The site replaces the dive in the pane: a sitting there
                 // is asked about first (issue #4527).
                 context.goInPlaceGuarded(

@@ -18,6 +18,8 @@ import 'package:submersion/features/media/presentation/widgets/mini_dive_profile
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -106,6 +108,11 @@ void main() {
             ),
             diveProvider('d1').overrideWith((ref) async => _dive),
             mediaByIdProvider('m1').overrideWith((ref) async => item),
+            // The photo as stored, for its lock (issue #4527).
+            photoRecordProvider('m1').overrideWith(
+              (ref) async =>
+                  PhotoRecord(item: item, species: const [], people: const []),
+            ),
           ],
           child: MaterialApp(
             locale: const Locale('en'),
@@ -120,6 +127,12 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 100));
       await tester.pump();
     });
+    // The time chips set the photo's time: only in a sitting (issue #4527).
+    await tester.tap(find.byKey(const ValueKey('viewer_unlock')));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump();
   }
 
   testWidgets('an automatic position inside the dive shows the elapsed chip, '

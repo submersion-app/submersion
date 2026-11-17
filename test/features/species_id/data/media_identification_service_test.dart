@@ -238,6 +238,19 @@ void main() {
     expect((await identifications.runFor('m1'))!.classifierId, 'clf-b');
   });
 
+  test('a new crop fitting analyses again: old embeddings were fitted the '
+      'other way', () async {
+    await service.request(photo('m1'));
+    installed = pack(version: '2026.12.1', cropFit: 'centreCrop');
+    await service.packChanged();
+    await service.request(photo('m1'));
+    expect(engine.analysed, hasLength(2));
+    expect(
+      (await identifications.runFor('m1'))!.classifierId,
+      'clf-a/centreCrop',
+    );
+  });
+
   test('a missing crop analyses again', () async {
     await service.request(photo('m1'));
     await crops.deleteMedia(['m1']);

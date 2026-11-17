@@ -15,10 +15,10 @@ const _uuid = Uuid();
 /// The Weight card's id: its section's name.
 final String diveWeightsCardId = DiveDetailSectionId.weights.name;
 
-/// The dive's weights as rows. A dive stored with the old single weight and
-/// no rows reads as one row with an empty id, as the dive form shows it
-/// (`dive_edit_page.dart:1192`), so opening the card changes nothing; the
-/// writer gives that row an id if the diver changes it.
+/// The dive's weights as rows. A dive stored with the old single weight and no
+/// rows reads as one row with an empty id, as the old dive form showed it, so
+/// opening the card changes nothing; the writer gives that row an id if the
+/// diver changes it.
 List<DiveWeight> _weightRows(Dive dive) {
   if (dive.weights.isNotEmpty) return dive.weights;
   final legacy = dive.weightAmount;

@@ -37,6 +37,7 @@ Widget _section(
 }) => testApp(
   child: SingleChildScrollView(
     child: DataSourcesSection(
+      operationReason: null,
       dataSources: sources,
       diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
       diveId: 'dive-1',

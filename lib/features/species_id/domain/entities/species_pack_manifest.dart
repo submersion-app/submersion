@@ -76,6 +76,23 @@ class DetectorConfig extends Equatable {
   ];
 }
 
+/// How a crop is fitted to the classifier's square input. The names are
+/// the manifest's and the native pipeline's.
+enum CropFit {
+  /// Fitted whole inside the square, the rest filled with the mean colour.
+  padSquare,
+
+  /// Shorter side fitted to the square and the centre kept.
+  centreCrop;
+
+  /// The fitting a manifest names. Absent, or one this app does not know,
+  /// is [padSquare], which every app so far has used.
+  static CropFit fromManifest(Object? value) => CropFit.values.firstWhere(
+    (fit) => fit.name == value,
+    orElse: () => CropFit.padSquare,
+  );
+}
+
 /// How the embedding model is fed and how its output is scored.
 class ClassifierConfig extends Equatable {
   const ClassifierConfig({
@@ -85,6 +102,7 @@ class ClassifierConfig extends Equatable {
     required this.std,
     required this.embeddingSize,
     required this.logitScale,
+    this.cropFit = CropFit.padSquare,
   });
 
   /// Changes only when the model itself changes.
@@ -95,6 +113,15 @@ class ClassifierConfig extends Equatable {
   final int embeddingSize;
   final double logitScale;
 
+  /// The fitting the pack's bars were measured with.
+  final CropFit cropFit;
+
+  /// What a stored embedding was made by: the model and how its input was
+  /// fitted, since one fitted the other way is not comparable. Pad-to-square
+  /// is the plain model id, as every result stored before fittings existed.
+  String get embeddingId =>
+      cropFit == CropFit.padSquare ? id : '$id/${cropFit.name}';
+
   ClassifierConfig copyWith({
     String? id,
     int? inputSize,
@@ -102,6 +129,7 @@ class ClassifierConfig extends Equatable {
     List<double>? std,
     int? embeddingSize,
     double? logitScale,
+    CropFit? cropFit,
   }) => ClassifierConfig(
     id: id ?? this.id,
     inputSize: inputSize ?? this.inputSize,
@@ -109,6 +137,7 @@ class ClassifierConfig extends Equatable {
     std: std ?? this.std,
     embeddingSize: embeddingSize ?? this.embeddingSize,
     logitScale: logitScale ?? this.logitScale,
+    cropFit: cropFit ?? this.cropFit,
   );
 
   @override
@@ -119,6 +148,7 @@ class ClassifierConfig extends Equatable {
     std,
     embeddingSize,
     logitScale,
+    cropFit,
   ];
 }
 
@@ -132,9 +162,10 @@ class NamingConfig extends Equatable {
     required this.suggestScore,
     required this.confidentScore,
     required this.suggestScoreNoLocation,
+    double? confidentScoreNoLocation,
     required this.minAllowedCandidates,
     required this.topK,
-  });
+  }) : _confidentScoreNoLocation = confidentScoreNoLocation;
 
   /// True until the bars have been set from measured accuracy.
   final bool provisional;
@@ -143,6 +174,13 @@ class NamingConfig extends Equatable {
   final double suggestScore;
   final double confidentScore;
   final double suggestScoreNoLocation;
+
+  /// The confident bar for a crop with no usable location. A pack that
+  /// does not set it uses [confidentScore] for both, and keeps following
+  /// it through [copyWith]. Above 1 means never.
+  double get confidentScoreNoLocation =>
+      _confidentScoreNoLocation ?? confidentScore;
+  final double? _confidentScoreNoLocation;
   final int minAllowedCandidates;
   final int topK;
 
@@ -153,6 +191,7 @@ class NamingConfig extends Equatable {
     double? suggestScore,
     double? confidentScore,
     double? suggestScoreNoLocation,
+    double? confidentScoreNoLocation,
     int? minAllowedCandidates,
     int? topK,
   }) => NamingConfig(
@@ -163,6 +202,8 @@ class NamingConfig extends Equatable {
     confidentScore: confidentScore ?? this.confidentScore,
     suggestScoreNoLocation:
         suggestScoreNoLocation ?? this.suggestScoreNoLocation,
+    confidentScoreNoLocation:
+        confidentScoreNoLocation ?? _confidentScoreNoLocation,
     minAllowedCandidates: minAllowedCandidates ?? this.minAllowedCandidates,
     topK: topK ?? this.topK,
   );
@@ -175,6 +216,7 @@ class NamingConfig extends Equatable {
     suggestScore,
     confidentScore,
     suggestScoreNoLocation,
+    confidentScoreNoLocation,
     minAllowedCandidates,
     topK,
   ];
@@ -331,6 +373,7 @@ class SpeciesPackManifest extends Equatable {
         std: _triple(classifier, 'std'),
         embeddingSize: _positiveInt(classifier, 'embeddingSize'),
         logitScale: _double(classifier, 'logitScale'),
+        cropFit: CropFit.fromManifest(classifier['cropFit']),
       ),
       naming: NamingConfig(
         provisional: naming['provisional'] == true,
@@ -339,6 +382,9 @@ class SpeciesPackManifest extends Equatable {
         suggestScore: _double(naming, 'suggestScore'),
         confidentScore: _double(naming, 'confidentScore'),
         suggestScoreNoLocation: _double(naming, 'suggestScoreNoLocation'),
+        confidentScoreNoLocation: naming.containsKey('confidentScoreNoLocation')
+            ? _double(naming, 'confidentScoreNoLocation')
+            : null,
         minAllowedCandidates: _int(naming, 'minAllowedCandidates'),
         topK: _positiveInt(naming, 'topK'),
       ),

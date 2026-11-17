@@ -14,7 +14,7 @@ void main() {
         l10n.ocrImport_scanPage_takePhoto,
         l10n.ocrImport_scanPage_nothingRead,
         l10n.ocrImport_scanPage_engineMissing,
-        l10n.ocrImport_editPage_photoAttachFailed,
+        l10n.ocrImport_newDive_photoHoldFailed,
       ];
       for (final value in strings) {
         expect(value, isNotEmpty, reason: 'locale $locale');

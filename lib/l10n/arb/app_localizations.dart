@@ -13104,18 +13104,6 @@ abstract class AppLocalizations {
   /// **'Add to favorites'**
   String get diveLog_detail_tooltip_addToFavorites;
 
-  /// No description provided for @diveLog_detail_tooltip_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit'**
-  String get diveLog_detail_tooltip_edit;
-
-  /// No description provided for @diveLog_detail_tooltip_editDive.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit dive'**
-  String get diveLog_detail_tooltip_editDive;
-
   /// No description provided for @diveLog_detail_tooltip_previousDive.
   ///
   /// In en, this message translates to:
@@ -13241,12 +13229,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Added GPS to {name}'**
   String diveLog_edit_addedGps(Object name);
-
-  /// No description provided for @diveLog_edit_appBarEdit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Dive'**
-  String get diveLog_edit_appBarEdit;
 
   /// No description provided for @diveLog_edit_appBarNew.
   ///
@@ -13416,66 +13398,6 @@ abstract class AppLocalizations {
   /// **'Buddies'**
   String get diveLog_edit_group_buddies;
 
-  /// Form group: water, environment and weather
-  ///
-  /// In en, this message translates to:
-  /// **'Conditions'**
-  String get diveLog_edit_group_conditions;
-
-  /// Form group: rating, marine life, notes, tags
-  ///
-  /// In en, this message translates to:
-  /// **'Experience'**
-  String get diveLog_edit_group_experience;
-
-  /// Form group: mode, tanks, equipment, weight
-  ///
-  /// In en, this message translates to:
-  /// **'Gas & Gear'**
-  String get diveLog_edit_group_gasGear;
-
-  /// Form group: core dive facts
-  ///
-  /// In en, this message translates to:
-  /// **'The Dive'**
-  String get diveLog_edit_group_theDive;
-
-  /// Form group: trip and dive center
-  ///
-  /// In en, this message translates to:
-  /// **'Trip'**
-  String get diveLog_edit_group_trip;
-
-  /// Empty-state invitation for the Buddies group
-  ///
-  /// In en, this message translates to:
-  /// **'Add buddies'**
-  String get diveLog_edit_invite_buddies;
-
-  /// Empty-state invitation for the Conditions group
-  ///
-  /// In en, this message translates to:
-  /// **'Add conditions - water, visibility, weather'**
-  String get diveLog_edit_invite_conditions;
-
-  /// Empty-state invitation for the Experience group
-  ///
-  /// In en, this message translates to:
-  /// **'Add rating, sightings, notes or tags'**
-  String get diveLog_edit_invite_experience;
-
-  /// Empty-state invitation for the Gas & Gear group
-  ///
-  /// In en, this message translates to:
-  /// **'Add gas & gear - mode, tanks, equipment, weight'**
-  String get diveLog_edit_invite_gasGear;
-
-  /// Empty-state invitation for the Trip group
-  ///
-  /// In en, this message translates to:
-  /// **'Add trip or dive center'**
-  String get diveLog_edit_invite_trip;
-
   /// No description provided for @diveLog_edit_label_airTemp.
   ///
   /// In en, this message translates to:
@@ -13632,12 +13554,6 @@ abstract class AppLocalizations {
   /// **'Tap \"Add\" to record sightings'**
   String get diveLog_edit_marineLifeHint;
 
-  /// No description provided for @diveLog_edit_nearbySitesFirst.
-  ///
-  /// In en, this message translates to:
-  /// **'Nearby sites first'**
-  String get diveLog_edit_nearbySitesFirst;
-
   /// No description provided for @diveLog_edit_noEquipmentSelected.
   ///
   /// In en, this message translates to:
@@ -13692,12 +13608,6 @@ abstract class AppLocalizations {
   /// **'Not specified'**
   String get diveLog_edit_notSpecified;
 
-  /// No description provided for @diveLog_edit_notesHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Add notes about this dive...'**
-  String get diveLog_edit_notesHint;
-
   /// No description provided for @diveLog_edit_overline_gasSwitches.
   ///
   /// In en, this message translates to:
@@ -13728,32 +13638,11 @@ abstract class AppLocalizations {
   /// **'Draw a profile'**
   String get diveLog_edit_profile_draw;
 
-  /// Dive profile row value on a new dive with no profile data
-  ///
-  /// In en, this message translates to:
-  /// **'Not recorded'**
-  String get diveLog_edit_profile_none;
-
   /// Chip under the dive profile row offering outlier cleanup
   ///
   /// In en, this message translates to:
   /// **'{count, plural, one{1 potential outlier detected} other{{count} potential outliers detected}}'**
   String diveLog_edit_profile_outliers(num count);
-
-  /// Dive profile row value: number of recorded profile samples
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, one{1 point} other{{count} points}}'**
-  String diveLog_edit_profile_points(num count);
-
-  /// Dive profile row value: recorded profile samples and number of available profile revisions
-  ///
-  /// In en, this message translates to:
-  /// **'{pointCount, plural, one{1 point} other{{pointCount} points}} · {profileCount, plural, one{1 revision} other{{profileCount} revisions}}'**
-  String diveLog_edit_profile_pointsAndProfiles(
-    num pointCount,
-    num profileCount,
-  );
 
   /// Placeholder when no site selected
   ///
@@ -13785,12 +13674,6 @@ abstract class AppLocalizations {
   /// **'Captain'**
   String get diveLog_edit_row_boatCaptain;
 
-  /// Row label: dive profile (points count / draw affordance)
-  ///
-  /// In en, this message translates to:
-  /// **'Dive profile'**
-  String get diveLog_edit_row_diveProfile;
-
   /// Row label: entry date and time
   ///
   /// In en, this message translates to:
@@ -13814,12 +13697,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Site'**
   String get diveLog_edit_row_site;
-
-  /// Row label: surface interval since previous dive
-  ///
-  /// In en, this message translates to:
-  /// **'Surface interval'**
-  String get diveLog_edit_row_surfaceInterval;
 
   /// Row label: trip picker
   ///
@@ -13904,12 +13781,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Conditions'**
   String get diveLog_edit_section_conditions;
-
-  /// No description provided for @diveLog_edit_section_customFields.
-  ///
-  /// In en, this message translates to:
-  /// **'Custom Fields'**
-  String get diveLog_edit_section_customFields;
 
   /// No description provided for @diveLog_edit_section_diveCenter.
   ///
@@ -14097,71 +13968,11 @@ abstract class AppLocalizations {
   /// **'Weight'**
   String get diveLog_edit_section_weight;
 
-  /// No description provided for @diveLog_edit_snackbar_avgDepthCalculated.
-  ///
-  /// In en, this message translates to:
-  /// **'Avg depth calculated: {depth}'**
-  String diveLog_edit_snackbar_avgDepthCalculated(Object depth);
-
-  /// No description provided for @diveLog_edit_snackbar_bottomTimeCalculated.
-  ///
-  /// In en, this message translates to:
-  /// **'Bottom time calculated: {minutes} min'**
-  String diveLog_edit_snackbar_bottomTimeCalculated(Object minutes);
-
   /// No description provided for @diveLog_edit_snackbar_errorSaving.
   ///
   /// In en, this message translates to:
   /// **'Error saving dive: {error}'**
   String diveLog_edit_snackbar_errorSaving(Object error);
-
-  /// No description provided for @diveLog_edit_snackbar_maxDepthCalculated.
-  ///
-  /// In en, this message translates to:
-  /// **'Max depth calculated: {depth}'**
-  String diveLog_edit_snackbar_maxDepthCalculated(Object depth);
-
-  /// No description provided for @diveLog_edit_snackbar_noProfileData.
-  ///
-  /// In en, this message translates to:
-  /// **'No dive profile data available'**
-  String get diveLog_edit_snackbar_noProfileData;
-
-  /// No description provided for @diveLog_edit_snackbar_runtimeCalculated.
-  ///
-  /// In en, this message translates to:
-  /// **'Runtime calculated: {minutes} min'**
-  String diveLog_edit_snackbar_runtimeCalculated(Object minutes);
-
-  /// No description provided for @diveLog_edit_snackbar_unableToCalculateAvgDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'Unable to calculate average depth from profile'**
-  String get diveLog_edit_snackbar_unableToCalculateAvgDepth;
-
-  /// No description provided for @diveLog_edit_snackbar_unableToCalculate.
-  ///
-  /// In en, this message translates to:
-  /// **'Unable to calculate bottom time from profile'**
-  String get diveLog_edit_snackbar_unableToCalculate;
-
-  /// No description provided for @diveLog_edit_snackbar_unableToCalculateMaxDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'Unable to calculate max depth from profile'**
-  String get diveLog_edit_snackbar_unableToCalculateMaxDepth;
-
-  /// No description provided for @diveLog_edit_snackbar_unableToCalculateRuntime.
-  ///
-  /// In en, this message translates to:
-  /// **'Unable to calculate runtime from profile'**
-  String get diveLog_edit_snackbar_unableToCalculateRuntime;
-
-  /// Collapsed summary fragment: equipment count
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, one{1 item} other{{count} items}}'**
-  String diveLog_edit_summary_items(int count);
 
   /// Collapsed summary fragment indicating notes exist
   ///
@@ -14174,18 +13985,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{1 species} other{{count} species}}'**
   String diveLog_edit_summary_species(int count);
-
-  /// Collapsed summary fragment: tank count
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, one{1 tank} other{{count} tanks}}'**
-  String diveLog_edit_summary_tanks(int count);
-
-  /// No description provided for @diveLog_edit_surfacePressureDefault.
-  ///
-  /// In en, this message translates to:
-  /// **'1013'**
-  String get diveLog_edit_surfacePressureDefault;
 
   /// Collapse the tank editor back to the card
   ///
@@ -14228,12 +14027,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove'**
   String get diveLog_edit_tooltip_removeWeight;
-
-  /// Hint above the course chips in the dive editor
-  ///
-  /// In en, this message translates to:
-  /// **'Link this dive to one or more training courses'**
-  String get diveLog_edit_trainingCoursesHint;
 
   /// No description provided for @diveLog_edit_tripSuggested.
   ///
@@ -15445,12 +15238,6 @@ abstract class AppLocalizations {
   /// **'Text recognition is not available. Install Tesseract to scan paper logs (for example: sudo apt install tesseract-ocr).'**
   String get ocrImport_scanPage_engineMissing;
 
-  /// No description provided for @ocrImport_editPage_photoAttachFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'The dive was saved, but attaching the scanned page failed'**
-  String get ocrImport_editPage_photoAttachFailed;
-
   /// Shown when a new dive opened from a logbook scan cannot hold the scanned page photo; the dive has not been saved yet
   ///
   /// In en, this message translates to:
@@ -15888,12 +15675,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'shared'**
   String get diveSites_edit_summary_shared;
-
-  /// Prefix of the trailing row listing unused optional form sections, e.g. '+ Add: Course / Custom fields'
-  ///
-  /// In en, this message translates to:
-  /// **'Add:'**
-  String get forms_addSection_prefix;
 
   /// Cancel action on shared edit form scaffold
   ///
@@ -57183,12 +56964,6 @@ abstract class AppLocalizations {
   /// **'View All'**
   String get trips_photos_viewAll;
 
-  /// No description provided for @trips_dateStretch_failed.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive saved, but the trip\'s dates couldn\'t be updated'**
-  String get trips_dateStretch_failed;
-
   /// No description provided for @trips_dateStretch_message.
   ///
   /// In en, this message translates to:
@@ -62595,18 +62370,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Powered by Apple HealthKit'**
   String get settings_dataSources_appleHealth_poweredBy;
-
-  /// No description provided for @diveLog_edit_subsection_autofill.
-  ///
-  /// In en, this message translates to:
-  /// **'Auto-fill'**
-  String get diveLog_edit_subsection_autofill;
-
-  /// No description provided for @diveLog_edit_subsection_weather.
-  ///
-  /// In en, this message translates to:
-  /// **'Weather'**
-  String get diveLog_edit_subsection_weather;
 
   /// No description provided for @diveLog_edit_label_windSpeed.
   ///
@@ -90986,12 +90749,6 @@ abstract class AppLocalizations {
   /// **'Gas excluded'**
   String get diveLog_edit_summary_gasExcluded;
 
-  /// Collapsed Statistics group hint when the dive is not excluded
-  ///
-  /// In en, this message translates to:
-  /// **'Counted in every statistic'**
-  String get diveLog_edit_statisticsIncludedHint;
-
   /// No description provided for @suuntoCloud_signIn_title.
   ///
   /// In en, this message translates to:
@@ -93495,12 +93252,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This track belongs to another dive. Update it from that dive, or import the file as a new track.'**
   String get navTrack_editSheet_trackOnAnotherDive;
-
-  /// No description provided for @navTrack_editRow_tracksSaveFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not update this dive\'s underwater tracks: {error}'**
-  String navTrack_editRow_tracksSaveFailed(String error);
 
   /// No description provided for @navTrack_importError_unsupportedFormat.
   ///

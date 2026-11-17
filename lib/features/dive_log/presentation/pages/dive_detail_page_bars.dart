@@ -26,13 +26,10 @@ mixin _DiveDetailPageBars
   /// display, which a sitting starts from.
   PreferredSizeWidget _standaloneBar(Dive dive, Dive shown) {
     // Standalone mode: Full Scaffold with AppBar. On a phone-width window
-    // the title has no room beside five action icons, so the favorite toggle,
-    // the one action that reads as well from a menu, moves into the overflow.
+    // the title has no room beside every action icon, so History moves into
+    // the overflow menu.
     final compactActions =
         MediaQuery.sizeOf(context).width < _kCompactAppBarWidth;
-    final favoriteLabel = dive.isFavorite
-        ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
-        : context.l10n.diveLog_detail_tooltip_addToFavorites;
     return AppBar(
       // Titled like the desktop pane's header, not "Dive Details" (#4445).
       title: Text(
@@ -42,43 +39,19 @@ mixin _DiveDetailPageBars
       ),
       actions: [
         DiveNavButtons(diveId: diveId, onNavigate: _navigateToDive),
-        // With editing offered favourite is a field of the header card, so
-        // a locked page shows it as a state only, at every width: the menu
-        // has no favourite item then (issue #4527).
-        if (editingOffered && dive.isFavorite)
+        // Favourite is a field of the header card, so a locked page shows
+        // it as a state only, at every width (issue #4527).
+        if (dive.isFavorite)
           Icon(
             Icons.favorite,
             color: Colors.red,
             semanticLabel: context.l10n.enum_diveField_isFavorite,
-          )
-        else if (!editingOffered && !compactActions)
-          IconButton(
-            icon: Icon(
-              dive.isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: dive.isFavorite ? Colors.red : null,
-            ),
-            tooltip: favoriteLabel,
-            onPressed: () {
-              ref
-                  .read(paginatedDiveListProvider.notifier)
-                  .toggleFavorite(diveId);
-            },
           ),
         // History beside the lock where the bar has room (issue #4527),
         // else the menu's first item.
-        if (editingOffered && !compactActions) historyButton(dive),
-        if (editingOffered) lockButton(shown),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: context.l10n.diveLog_detail_tooltip_editDive,
-          onPressed: () => context.push('/dives/$diveId/edit'),
-        ),
-        _overflowMenu(
-          dive,
-          _appBarMenuKey,
-          showFavorite: compactActions && !editingOffered,
-          historyInBar: editingOffered && !compactActions,
-        ),
+        if (!compactActions) historyButton(dive),
+        lockButton(shown),
+        _overflowMenu(dive, _appBarMenuKey, historyInBar: !compactActions),
       ],
     );
   }
@@ -86,7 +59,6 @@ mixin _DiveDetailPageBars
   Widget _overflowMenu(
     Dive dive,
     GlobalKey menuKey, {
-    bool showFavorite = false,
     bool historyInBar = false,
   }) {
     return DiveDetailOverflowMenu(
@@ -94,7 +66,6 @@ mixin _DiveDetailPageBars
       embedded: widget.embedded,
       menuKey: menuKey,
       displayOptions: _displayOptionsMenu,
-      showFavorite: showFavorite,
       operations: operationBlock,
       historyInBar: historyInBar,
       onSelected: (value, linkedPreDive) =>
@@ -109,8 +80,6 @@ mixin _DiveDetailPageBars
     GlobalKey menuKey,
   ) {
     switch (value) {
-      case 'toggleFavorite':
-        ref.read(paginatedDiveListProvider.notifier).toggleFavorite(diveId);
       case 'displayOptions':
         _displayOptionsMenu.open();
       case 'export':

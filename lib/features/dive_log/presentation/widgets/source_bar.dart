@@ -66,7 +66,7 @@ class SourceBar extends StatelessWidget {
     required this.onActivate,
     required this.onToggleOverlay,
     this.onSetPrimary,
-    this.operationReason,
+    required this.operationReason,
   });
 
   final List<SourceBarItem> sources;
@@ -134,7 +134,7 @@ class _SourceChip extends StatelessWidget {
     required this.onActivate,
     required this.onToggleOverlay,
     required this.onSetPrimary,
-    this.operationReason,
+    required this.operationReason,
   });
 
   final SourceBarItem item;

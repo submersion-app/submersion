@@ -83,6 +83,29 @@ void main() {
     expect(page.save.calls, isEmpty);
   });
 
+  // The pane's edit mode (`mode=edit`, the old form's address) opens the
+  // dive unlocked; its site link shows the site, not the site's edit form
+  // the list builds for `mode=edit&site=` (issue #4527, plan 11).
+  testWidgets('from the pane\'s edit mode the link drops mode=edit', (
+    tester,
+  ) async {
+    final page = await pumpPage(
+      tester,
+      embedded: true,
+      size: pane,
+      siteInPane: true,
+      openUnlocked: true,
+      initialLocation: '/home/dive?mode=edit',
+      stored: dive.copyWith(site: reef),
+      extra: [siteProvider(reef.id).overrideWith((ref) async => reef)],
+    );
+    expect(saveAction(), findsOneWidget);
+
+    await tapSiteLink(tester);
+
+    expect(location(page.router), '/home/dive?site=reef');
+  });
+
   testWidgets('with no changes the link shows the site at once, and the '
       'sitting is locked', (tester) async {
     final page = await pumpPane(tester);

@@ -26,7 +26,6 @@ import 'package:submersion/features/media/presentation/widgets/media_viewer_tool
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 
 /// Which list of site-related media backs the viewer's pager.
 enum SiteViewerScope {
@@ -48,15 +47,11 @@ class SiteMediaViewerPage extends ConsumerStatefulWidget {
   final String initialMediaId;
   final SiteViewerScope scope;
 
-  /// Whether the viewer offers the photo's own lock (issue #4527).
-  final bool unlockEditing;
-
   const SiteMediaViewerPage({
     super.key,
     required this.siteId,
     required this.initialMediaId,
     required this.scope,
-    this.unlockEditing = kUnlockEditing,
   });
 
   @override
@@ -69,9 +64,6 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
         MediaFullscreenMixin<SiteMediaViewerPage>,
         ColorAdjustViewerMixin<SiteMediaViewerPage>,
         PhotoViewerEditing<SiteMediaViewerPage> {
-  @override
-  bool get unlockEditingRequested => widget.unlockEditing;
-
   /// Locking, by any route, closes what changes the photo.
   @override
   void onPhotoLocked() => closeColorEditing();
@@ -79,9 +71,6 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
   /// Adjust color holds its changes in the photo's sitting.
   @override
   EditSession<PhotoRecord>? get colorSitting => photoSitting;
-
-  @override
-  bool get colorLockOffered => unlockEditingRequested;
 
   /// Steps through the check while unlocked, so the next photo opens locked.
   void _step(int delta, int totalCount) =>
@@ -217,6 +206,7 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
         ? ref.watch(mediaForSiteProvider(widget.siteId))
         : ref.watch(flatMediaFromDivesAtSiteProvider(widget.siteId));
     return photoEditScope(
+      backsOutFirst: () => isFullscreen,
       child: fullscreenPopScope(
         child: Scaffold(
           backgroundColor: Colors.black,

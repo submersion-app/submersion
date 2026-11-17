@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/presentation/info/dive_profile_info
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show TooltipPresentation;
@@ -87,6 +88,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
     this.onViewportChanged,
     this.editing,
     this.onEditProfile,
+    this.onEditOutliers,
   });
 
   /// This section with the same inputs, the page's zoom among them, drawn
@@ -107,6 +109,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
     onViewportChanged: onViewportChanged,
     editing: session,
     onEditProfile: onEditProfile,
+    onEditOutliers: onEditOutliers,
   );
 
   final String diveId;
@@ -151,6 +154,11 @@ class DiveDetailProfileSection extends ConsumerWidget {
   /// operation on a page that offers editing (issue #4527). Null leaves the
   /// toolbar without it (no editing offered, or the pinned copy).
   final VoidCallback? onEditProfile;
+
+  /// Opens the profile editor in Outlier mode: the same operation as
+  /// [onEditProfile], offered beside it when the profile has outliers
+  /// (issue #4527, plan 11). Null leaves the toolbar without it.
+  final VoidCallback? onEditOutliers;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -203,7 +211,18 @@ class DiveDetailProfileSection extends ConsumerWidget {
     final gasSwitchesInSitting = session == null
         ? null
         : sittingGasSwitchesWithTanks(session);
-    final toolbar = Row(
+    void openScene(_ProfileScene scene) => Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => switch (scene) {
+          _ProfileScene.dive => Dive3dPage(diveId: dive.id),
+          _ProfileScene.site => SpatialSitePage(diveId: dive.id),
+        },
+      ),
+    );
+    // On a card too narrow for every button (a 360 or 375 px phone), the
+    // two 3D scenes share one More menu, so the title and the pencil keep
+    // their place.
+    Widget toolbar({required bool narrow}) => Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         _RangeToggle(diveId: dive.id),
@@ -212,28 +231,30 @@ class DiveDetailProfileSection extends ConsumerWidget {
             active: placement != null,
             onPressed: annotationActions.onPinPressed,
           ),
-        IconButton(
-          icon: const Icon(Icons.view_in_ar),
-          tooltip: context.l10n.dive3d_previewTitle,
-          visualDensity: VisualDensity.compact,
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => Dive3dPage(diveId: dive.id),
-            ),
+        if (narrow)
+          _ProfileScenesMenu(onSelected: openScene)
+        else ...[
+          IconButton(
+            icon: const Icon(Icons.view_in_ar),
+            tooltip: context.l10n.dive3d_previewTitle,
+            visualDensity: VisualDensity.compact,
+            onPressed: () => openScene(_ProfileScene.dive),
           ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.terrain),
-          tooltip: context.l10n.dive3d_spatial_title,
-          visualDensity: VisualDensity.compact,
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => SpatialSitePage(diveId: dive.id),
-            ),
+          IconButton(
+            icon: const Icon(Icons.terrain),
+            tooltip: context.l10n.dive3d_spatial_title,
+            visualDensity: VisualDensity.compact,
+            onPressed: () => openScene(_ProfileScene.site),
           ),
-        ),
+        ],
         if (onEditProfile case final onEditProfile?)
           _EditProfileButton(scope: scope, onPressed: onEditProfile),
+        if (onEditOutliers case final onEditOutliers?)
+          _OutliersButton(
+            diveId: diveId,
+            scope: scope,
+            onPressed: onEditOutliers,
+          ),
         IconButton(
           icon: const Icon(Icons.fullscreen),
           tooltip: context.l10n.diveLog_detail_tooltip_viewFullscreen,
@@ -266,13 +287,22 @@ class DiveDetailProfileSection extends ConsumerWidget {
             // Header row: the open card's frame draws the title above an
             // editor, so the toolbar alone; otherwise the title, which
             // gains its pencil while the dive is unlocked.
-            if (editing != null)
-              Align(alignment: AlignmentDirectional.centerEnd, child: toolbar)
-            else
-              RecordCardHeader(
-                title: context.l10n.diveLog_detail_section_diveProfile,
-                trailing: toolbar,
-              ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final bar = toolbar(
+                  narrow: constraints.maxWidth < _fullToolbarMinWidth,
+                );
+                return editing != null
+                    ? Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: bar,
+                      )
+                    : RecordCardHeader(
+                        title: context.l10n.diveLog_detail_section_diveProfile,
+                        trailing: bar,
+                      );
+              },
+            ),
             const SizedBox(height: 8),
             if (placement != null) ...[
               AnnotationPlacementBanner(
@@ -552,6 +582,86 @@ class _EditProfileButton extends StatelessWidget {
       tooltip: reason ?? context.l10n.diveLog_profile_editProfile,
       visualDensity: VisualDensity.compact,
       onPressed: reason == null ? onPressed : null,
+    );
+  }
+}
+
+/// The profile's outliers, when it has any: a warning with their count,
+/// opening the profile editor in Outlier mode. A whole-record operation,
+/// so it follows the page's lock as Edit profile does. Watches the
+/// detection on its own, so the card does not rebuild with it.
+class _OutliersButton extends ConsumerWidget {
+  const _OutliersButton({
+    required this.diveId,
+    required this.scope,
+    required this.onPressed,
+  });
+
+  final String diveId;
+  final RecordEditController<Dive>? scope;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final outliers =
+        ref.watch(outlierSuggestionProvider(diveId)).value ?? const [];
+    if (outliers.isEmpty) return const SizedBox.shrink();
+    final reason = recordOperationReason(
+      context.l10n,
+      recordOperationBlockOf(scope),
+    );
+    return IconButton(
+      icon: Badge(
+        label: Text('${outliers.length}'),
+        child: const Icon(Icons.warning_amber),
+      ),
+      tooltip:
+          reason ?? context.l10n.diveLog_edit_profile_outliers(outliers.length),
+      visualDensity: VisualDensity.compact,
+      onPressed: reason == null ? onPressed : null,
+    );
+  }
+}
+
+/// The narrowest header row that holds the Profile card's full toolbar
+/// beside its title and, while unlocked, the pencil. Measured: a 375 px
+/// phone's 311 px row overflowed with the outliers button showing, a 393 px
+/// phone's 329 px row did not.
+const double _fullToolbarMinWidth = 328;
+
+/// The Profile card's two 3D scenes.
+enum _ProfileScene { dive, site }
+
+/// The 3D scenes as one More menu, for a card too narrow for their buttons.
+class _ProfileScenesMenu extends StatelessWidget {
+  const _ProfileScenesMenu({required this.onSelected});
+
+  final ValueChanged<_ProfileScene> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    PopupMenuItem<_ProfileScene> item(
+      _ProfileScene scene,
+      IconData icon,
+      String label,
+    ) => PopupMenuItem(
+      value: scene,
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(label),
+        contentPadding: EdgeInsets.zero,
+      ),
+    );
+    return PopupMenuButton<_ProfileScene>(
+      icon: const Icon(Icons.more_vert),
+      tooltip: l10n.common_action_more,
+      style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
+      onSelected: onSelected,
+      itemBuilder: (context) => [
+        item(_ProfileScene.dive, Icons.view_in_ar, l10n.dive3d_previewTitle),
+        item(_ProfileScene.site, Icons.terrain, l10n.dive3d_spatial_title),
+      ],
     );
   }
 }

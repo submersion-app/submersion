@@ -42,6 +42,7 @@ LoadedPack pack({
   String version = '2026.11.1',
   String detector = 'det-a',
   String classifier = 'clf-a',
+  String? cropFit,
 }) {
   final manifest = SpeciesPackManifest.parse(
     manifestJson((m) {
@@ -50,6 +51,7 @@ LoadedPack pack({
       final c = m['classifier']! as Map;
       c['id'] = classifier;
       c['embeddingSize'] = 3;
+      if (cropFit != null) c['cropFit'] = cropFit;
       (m['naming']! as Map)['minAllowedCandidates'] = 1;
     }),
   );

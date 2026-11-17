@@ -73,11 +73,7 @@ void main() {
     final diver = (await tester.runAsync(asDiver))!;
     await pumpViewerApp(
       tester,
-      MediaViewerPage(
-        mediaList: items!,
-        initialMediaId: 'p2',
-        unlockEditing: true,
-      ),
+      MediaViewerPage(mediaList: items!, initialMediaId: 'p2'),
       overrides: [...diver, ...extra],
     );
   }

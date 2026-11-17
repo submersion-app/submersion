@@ -147,8 +147,6 @@ void main() {
   });
 
   group('Apply to this dive', () {
-    const source = ColorAdjustment(warmth: 0.4);
-
     Future<void> run(WidgetTester tester, EditSession<PhotoRecord> s) async {
       final container = colorContainer(repo);
       addTearDown(container.dispose);
@@ -158,7 +156,7 @@ void main() {
           Consumer(
             builder: (context, ref, _) => TextButton(
               onPressed: () =>
-                  runApplyToDive(context, ref, colorItem(), source, sitting: s),
+                  runApplyToDive(context, ref, colorItem(), sitting: s),
               child: const Text('go'),
             ),
           ),

@@ -247,6 +247,7 @@ void main() {
         std: [0.4, 0.4, 0.4],
         embeddingSize: 512,
         logitScale: 50,
+        cropFit: CropFit.centreCrop,
       );
       expect(
         manifest.classifier.copyWith(
@@ -256,6 +257,7 @@ void main() {
           std: [0.4, 0.4, 0.4],
           embeddingSize: 512,
           logitScale: 50,
+          cropFit: CropFit.centreCrop,
         ),
         classifier,
       );
@@ -266,6 +268,7 @@ void main() {
         suggestScore: 0.6,
         confidentScore: 0.8,
         suggestScoreNoLocation: 0.75,
+        confidentScoreNoLocation: 0.85,
         minAllowedCandidates: 100,
         topK: 3,
       );
@@ -277,6 +280,7 @@ void main() {
           suggestScore: 0.6,
           confidentScore: 0.8,
           suggestScoreNoLocation: 0.75,
+          confidentScoreNoLocation: 0.85,
           minAllowedCandidates: 100,
           topK: 3,
         ),
@@ -349,6 +353,7 @@ void main() {
         classifierStd: [4, 4, 4],
         embeddingSize: 3,
         cropThumbnailSize: 64,
+        cropFit: CropFit.centreCrop,
       );
       expect(
         models.copyWith(
@@ -365,6 +370,7 @@ void main() {
           classifierStd: [4, 4, 4],
           embeddingSize: 3,
           cropThumbnailSize: 64,
+          cropFit: CropFit.centreCrop,
         ),
         changedModels,
       );

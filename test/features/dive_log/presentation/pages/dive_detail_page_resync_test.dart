@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/unlock_for_operation.dart';
 
 /// Exercises the "Resync from original file" overflow action (issue #478).
 /// [DiveResyncOrchestrator] is faked rather than driven for real, so no
@@ -160,6 +161,7 @@ void main() {
   }
 
   Future<void> tapResync(WidgetTester tester) async {
+    await unlockForOperation(tester);
     // The header overflow menu is the last more_vert on the page (a source
     // bar, when present, renders earlier).
     await tester.tap(find.byIcon(Icons.more_vert).last);

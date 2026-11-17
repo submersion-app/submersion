@@ -125,11 +125,7 @@ void main() {
     final items = await tester.runAsync(() => storedMedia(['p1', 'v1']));
     await pumpViewerApp(
       tester,
-      MediaViewerPage(
-        mediaList: items!,
-        initialMediaId: 'v1',
-        unlockEditing: true,
-      ),
+      MediaViewerPage(mediaList: items!, initialMediaId: 'v1'),
       overrides: [
         resolvedFilePathProvider.overrideWith(
           (ref, MediaItem arg) async => tempVideoPath('v1'),

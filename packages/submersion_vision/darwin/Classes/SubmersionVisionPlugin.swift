@@ -141,34 +141,3 @@ public class SubmersionVisionPlugin: NSObject, FlutterPlugin {
     }
   }
 }
-
-enum VisionError: Error {
-  case notLoaded
-  case decodeFailed(String)
-  case inferenceFailed(String)
-  case badArguments(String)
-  case notForeground
-  case tooHot
-
-  var code: String {
-    switch self {
-    case .notLoaded: return "not_loaded"
-    case .decodeFailed: return "decode_failed"
-    case .inferenceFailed: return "inference_failed"
-    case .badArguments: return "bad_arguments"
-    case .notForeground: return "not_foreground"
-    case .tooHot: return "too_hot"
-    }
-  }
-
-  var message: String {
-    switch self {
-    case .notLoaded: return "The models are not loaded"
-    case .decodeFailed(let detail): return "Could not read the image: \(detail)"
-    case .inferenceFailed(let detail): return detail
-    case .badArguments(let name): return "Missing or invalid argument: \(name)"
-    case .notForeground: return "The app is not in the foreground"
-    case .tooHot: return "The device is too hot"
-    }
-  }
-}

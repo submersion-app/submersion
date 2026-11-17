@@ -8386,12 +8386,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_detail_tooltip_addToFavorites => 'Ajouter aux favoris';
 
   @override
-  String get diveLog_detail_tooltip_edit => 'Modifier';
-
-  @override
-  String get diveLog_detail_tooltip_editDive => 'Modifier la plongée';
-
-  @override
   String get diveLog_detail_tooltip_previousDive => 'Plongée précédente';
 
   @override
@@ -8463,9 +8457,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String diveLog_edit_addedGps(Object name) {
     return 'GPS ajouté à $name';
   }
-
-  @override
-  String get diveLog_edit_appBarEdit => 'Modifier la plongée';
 
   @override
   String get diveLog_edit_appBarNew => 'Enregistrer une plongée';
@@ -8585,40 +8576,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_group_buddies => 'Binômes';
 
   @override
-  String get diveLog_edit_group_conditions => 'Conditions';
-
-  @override
-  String get diveLog_edit_group_experience => 'Expérience';
-
-  @override
-  String get diveLog_edit_group_gasGear => 'Gaz et matériel';
-
-  @override
-  String get diveLog_edit_group_theDive => 'La plongée';
-
-  @override
-  String get diveLog_edit_group_trip => 'Voyage';
-
-  @override
-  String get diveLog_edit_invite_buddies => 'Ajouter des binômes';
-
-  @override
-  String get diveLog_edit_invite_conditions =>
-      'Ajouter les conditions : eau, visibilité, météo';
-
-  @override
-  String get diveLog_edit_invite_experience =>
-      'Ajouter note, observations, commentaires ou tags';
-
-  @override
-  String get diveLog_edit_invite_gasGear =>
-      'Ajouter gaz et matériel : mode, blocs, équipement, lestage';
-
-  @override
-  String get diveLog_edit_invite_trip =>
-      'Ajouter un voyage ou un centre de plongée';
-
-  @override
   String get diveLog_edit_label_airTemp => 'Temp air';
 
   @override
@@ -8699,9 +8656,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Appuie sur \"Ajouter\" pour enregistrer des observations';
 
   @override
-  String get diveLog_edit_nearbySitesFirst => 'Sites à proximité en premier';
-
-  @override
   String get diveLog_edit_noEquipmentSelected => 'Aucun équipement sélectionné';
 
   @override
@@ -8744,9 +8698,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_notSpecified => 'Non spécifié';
 
   @override
-  String get diveLog_edit_notesHint => 'Ajoute des notes sur cette plongée...';
-
-  @override
   String get diveLog_edit_overline_gasSwitches => 'Changements de gaz';
 
   @override
@@ -8763,9 +8714,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_profile_draw => 'Dessiner un profil';
 
   @override
-  String get diveLog_edit_profile_none => 'Non enregistré';
-
-  @override
   String diveLog_edit_profile_outliers(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -8774,37 +8722,6 @@ class AppLocalizationsFr extends AppLocalizations {
       one: '$count valeur aberrante potentielle détectée',
     );
     return '$_temp0';
-  }
-
-  @override
-  String diveLog_edit_profile_points(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count points',
-      one: '$count point',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String diveLog_edit_profile_pointsAndProfiles(
-    num pointCount,
-    num profileCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      pointCount,
-      locale: localeName,
-      other: '$pointCount points',
-      one: '$pointCount point',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      profileCount,
-      locale: localeName,
-      other: '$profileCount révisions',
-      one: '$profileCount révision',
-    );
-    return '$_temp0 · $_temp1';
   }
 
   @override
@@ -8823,9 +8740,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_row_boatCaptain => 'Capitaine';
 
   @override
-  String get diveLog_edit_row_diveProfile => 'Profil de plongée';
-
-  @override
   String get diveLog_edit_row_entry => 'Mise à l\'eau';
 
   @override
@@ -8836,9 +8750,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_edit_row_site => 'Site';
-
-  @override
-  String get diveLog_edit_row_surfaceInterval => 'Intervalle de surface';
 
   @override
   String get diveLog_edit_row_trip => 'Voyage';
@@ -8898,9 +8809,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_edit_section_conditions => 'Conditions';
-
-  @override
-  String get diveLog_edit_section_customFields => 'Champs personnalisés';
 
   @override
   String get diveLog_edit_section_diveCenter => 'Centre de plongée';
@@ -9006,59 +8914,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_section_weight => 'Lestage';
 
   @override
-  String diveLog_edit_snackbar_avgDepthCalculated(Object depth) {
-    return 'Profondeur moyenne calculée : $depth';
-  }
-
-  @override
-  String diveLog_edit_snackbar_bottomTimeCalculated(Object minutes) {
-    return 'Temps au fond calculé : $minutes min';
-  }
-
-  @override
   String diveLog_edit_snackbar_errorSaving(Object error) {
     return 'Erreur lors de l\'enregistrement de la plongée : $error';
-  }
-
-  @override
-  String diveLog_edit_snackbar_maxDepthCalculated(Object depth) {
-    return 'Profondeur max calculée : $depth';
-  }
-
-  @override
-  String get diveLog_edit_snackbar_noProfileData =>
-      'Aucune donnée de profil de plongée disponible';
-
-  @override
-  String diveLog_edit_snackbar_runtimeCalculated(Object minutes) {
-    return 'Durée calculée : $minutes min';
-  }
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateAvgDepth =>
-      'Impossible de calculer la profondeur moyenne à partir du profil';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculate =>
-      'Impossible de calculer le temps au fond à partir du profil';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateMaxDepth =>
-      'Impossible de calculer la profondeur max à partir du profil';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateRuntime =>
-      'Impossible de calculer la durée à partir du profil';
-
-  @override
-  String diveLog_edit_summary_items(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count éléments',
-      one: '$count élément',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -9074,20 +8931,6 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String diveLog_edit_summary_tanks(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count blocs',
-      one: '$count bloc',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get diveLog_edit_surfacePressureDefault => '1013';
 
   @override
   String get diveLog_edit_tankCard_done => 'Terminé';
@@ -9113,10 +8956,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_edit_tooltip_removeWeight => 'Retirer';
-
-  @override
-  String get diveLog_edit_trainingCoursesHint =>
-      'Associer cette plongée à un ou plusieurs cours de formation';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {
@@ -9841,10 +9680,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'La reconnaissance de texte n\'est pas disponible. Installez Tesseract pour scanner les carnets papier (par exemple : sudo apt install tesseract-ocr).';
 
   @override
-  String get ocrImport_editPage_photoAttachFailed =>
-      'La plongée a été enregistrée, mais l\'ajout de la page scannée a échoué';
-
-  @override
   String get ocrImport_newDive_photoHoldFailed =>
       'La page scannée n\'a pas pu être jointe à cette plongée';
 
@@ -10154,9 +9989,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveSites_edit_summary_shared => 'partagé';
-
-  @override
-  String get forms_addSection_prefix => 'Ajouter :';
 
   @override
   String get forms_cancel => 'Annuler';
@@ -36415,10 +36247,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_photos_viewAll => 'Voir tout';
 
   @override
-  String get trips_dateStretch_failed =>
-      'Plongée enregistrée, mais les dates du voyage n\'ont pas pu être mises à jour';
-
-  @override
   String trips_dateStretch_message(String trip, String dates) {
     return '$trip s\'étend désormais sur $dates';
   }
@@ -40105,12 +39933,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
       'Fourni par Apple HealthKit';
-
-  @override
-  String get diveLog_edit_subsection_autofill => 'Remplissage automatique';
-
-  @override
-  String get diveLog_edit_subsection_weather => 'Météo';
 
   @override
   String get diveLog_edit_label_windSpeed => 'Vitesse du vent';
@@ -58049,10 +57871,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_summary_gasExcluded => 'Gaz exclu';
 
   @override
-  String get diveLog_edit_statisticsIncludedHint =>
-      'Comptée dans toutes les statistiques';
-
-  @override
   String get suuntoCloud_signIn_title => 'Se connecter à Suunto';
 
   @override
@@ -59747,11 +59565,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get navTrack_editSheet_trackOnAnotherDive =>
       'Cette trace appartient à une autre plongée. Mettez-la à jour depuis cette plongée, ou importez le fichier comme nouvelle trace.';
-
-  @override
-  String navTrack_editRow_tracksSaveFailed(String error) {
-    return 'Impossible de mettre à jour les traces sous-marines de cette plongée : $error';
-  }
 
   @override
   String get navTrack_importError_unsupportedFormat =>

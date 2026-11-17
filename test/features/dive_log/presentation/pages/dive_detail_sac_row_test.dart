@@ -246,7 +246,9 @@ void main() {
       expect(find.byType(SacVolumeHint), findsNothing);
     });
 
-    testWidgets('tapping the hint opens the dive editor', (tester) async {
+    testWidgets('on a locked page the hint reads only (issue #4527)', (
+      tester,
+    ) async {
       final dive = reportedDive(volume: null);
       final base = await getBaseOverrides(
         settingsNotifier: MockSettingsNotifier(
@@ -294,7 +296,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.text('EDIT_STUB ${dive.id}'), findsOneWidget);
+      expect(find.text('EDIT_STUB ${dive.id}'), findsNothing);
     });
 
     testWidgets('hides the row when there is no pressure data either', (

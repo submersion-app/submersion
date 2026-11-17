@@ -322,7 +322,6 @@ void main() {
       );
       expect(viewer.initialMediaId, 'n1');
       expect(viewer.diveEditing, same(controller));
-      expect(viewer.unlockEditing, isTrue);
     });
 
     testWidgets('open: a read that failed offers Try again, which reads the '

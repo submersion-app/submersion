@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 
 import 'manifest_fixture.dart';
 
@@ -98,6 +99,96 @@ void main() {
             SpeciesPackManifest.parse(manifestJson((m) => m.remove('naming'))),
         throwsA(isA<PackManifestException>()),
       );
+    });
+
+    test('without a no-location confident bar, the confident bar serves '
+        'both', () {
+      final m = SpeciesPackManifest.parse(manifestJson());
+
+      expect(m.naming.confidentScoreNoLocation, m.naming.confidentScore);
+    });
+
+    test('an unset no-location confident bar follows the confident bar '
+        'through copyWith', () {
+      final naming = SpeciesPackManifest.parse(manifestJson()).naming;
+
+      final changed = naming.copyWith(confidentScore: 0.9);
+
+      expect(changed.confidentScoreNoLocation, 0.9);
+      expect(
+        changed
+            .copyWith(confidentScoreNoLocation: 1.01)
+            .confidentScoreNoLocation,
+        1.01,
+      );
+    });
+
+    test('a no-location confident bar is read, including never', () {
+      final m = SpeciesPackManifest.parse(
+        manifestJson((m) {
+          (m['naming']! as Map<String, Object?>)['confidentScoreNoLocation'] =
+              1.01;
+        }),
+      );
+
+      expect(m.naming.confidentScoreNoLocation, 1.01);
+      expect(m.naming.confidentScore, 0.70);
+    });
+
+    test('a no-location confident bar that is not a number is malformed', () {
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestJson((m) {
+            (m['naming']! as Map<String, Object?>)['confidentScoreNoLocation'] =
+                'x';
+          }),
+        ),
+        throwsA(isA<PackManifestException>()),
+      );
+    });
+
+    test('a pack that names no crop fitting is padded to square', () {
+      final m = SpeciesPackManifest.parse(manifestJson());
+
+      expect(m.classifier.cropFit, CropFit.padSquare);
+    });
+
+    test('a pack can ask for centre crop', () {
+      final m = SpeciesPackManifest.parse(
+        manifestJson((m) {
+          (m['classifier']! as Map<String, Object?>)['cropFit'] = 'centreCrop';
+        }),
+      );
+
+      expect(m.classifier.cropFit, CropFit.centreCrop);
+      expect(
+        VisionModels.fromManifest(
+          m,
+          detectorPath: '/d',
+          classifierPath: '/c',
+        ).cropFit,
+        CropFit.centreCrop,
+      );
+    });
+
+    test('embeddings are identified by the classifier and its fitting', () {
+      final m = SpeciesPackManifest.parse(manifestJson());
+
+      expect(m.classifier.embeddingId, 'bioclip-2-vitl14-2957b32');
+      expect(
+        m.classifier.copyWith(cropFit: CropFit.centreCrop).embeddingId,
+        'bioclip-2-vitl14-2957b32/centreCrop',
+      );
+    });
+
+    test('a crop fitting this app does not know is padded to square', () {
+      final m = SpeciesPackManifest.parse(
+        manifestJson((m) {
+          (m['classifier']! as Map<String, Object?>)['cropFit'] = 'stretch';
+        }),
+      );
+
+      expect(m.classifier.cropFit, CropFit.padSquare);
     });
 
     test('a file name with a path separator is malformed', () {

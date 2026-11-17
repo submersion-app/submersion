@@ -82,6 +82,7 @@ Future<void> _pump(WidgetTester tester, List<DiveDataSource> sources) async {
       locale: const Locale('en'),
       child: SingleChildScrollView(
         child: DataSourcesSection(
+          operationReason: null,
           dataSources: sources,
           diveCreatedAt: _entry,
           diveId: 'dive-1',

@@ -326,7 +326,7 @@ class VideoIdentificationScan {
       mediaId: _item.id,
       packVersion: manifest.packVersion,
       detectorId: manifest.detector.id,
-      classifierId: manifest.classifier.id,
+      classifierId: manifest.classifier.embeddingId,
       locationCell: _cell,
       analysedAt: _now().toUtc(),
       imageWidth: width,
@@ -353,7 +353,7 @@ class VideoIdentificationScan {
     await _crops.delete(_item.id, carried.deleteIds);
     await _embeddings.put({
       for (final i in carried.insert) i.id: ?byId[i.id]!.embedding,
-    }, classifierId: manifest.classifier.id);
+    }, classifierId: manifest.classifier.embeddingId);
     for (final i in carried.insert) {
       if (byId[i.id]!.cropJpeg case final jpeg?) {
         await _crops.write(_item.id, i.id, jpeg);

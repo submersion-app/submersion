@@ -103,7 +103,18 @@ void main() {
       'classifierStd': [0.26, 0.26, 0.27],
       'embeddingSize': 3,
       'cropThumbnailSize': 320,
+      'cropFit': 'padSquare',
     });
+  });
+
+  test('load sends the crop fitting the pack asks for', () async {
+    Map<Object?, Object?>? sent;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      sent = call.arguments as Map<Object?, Object?>;
+      return null;
+    });
+    await engine().load(_models.copyWith(cropFit: CropFit.centreCrop));
+    expect(sent!['cropFit'], 'centreCrop');
   });
 
   test('analyze decodes the native reply into typed detections', () async {

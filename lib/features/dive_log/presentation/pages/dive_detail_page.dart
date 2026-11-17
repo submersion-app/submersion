@@ -43,6 +43,7 @@ import 'package:submersion/features/change_log/presentation/widgets/change_log_h
 import 'package:submersion/features/dive_log/presentation/helpers/open_profile_editor.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/download_target_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/flight_window_warning_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_header_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_health_section.dart';
 import 'package:submersion/features/dive_lab/presentation/what_if_entry.dart';
@@ -68,8 +69,6 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/remove_source_flow.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
-import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
@@ -130,7 +129,6 @@ import 'package:submersion/shared/widgets/record_editing/record_operation_gate.d
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:uuid/uuid.dart';
@@ -141,6 +139,7 @@ part 'dive_detail_page_creating.dart';
 part 'dive_detail_page_editing.dart';
 part 'dive_detail_page_exports.dart';
 part 'dive_detail_page_operations.dart';
+part 'dive_detail_page_unlock_open.dart';
 
 final _log = LoggerService.forClass(DiveDetailPage);
 
@@ -160,9 +159,14 @@ class DiveDetailPage extends ConsumerStatefulWidget {
   /// Callback when the dive is deleted (used in embedded mode).
   final VoidCallback? onDeleted;
 
-  /// Whether the page can be unlocked to edit in place (issue #4527). Off
-  /// in released builds until every card can be edited this way.
-  final bool unlockEditing;
+  /// Open the page unlocked once the dive has loaded, as the old edit
+  /// addresses do: `/dives/<id>/edit` and the list pane's `&mode=edit`
+  /// (issue #4527, plan 11). Read once per page, and again if it turns on.
+  final bool openUnlocked;
+
+  /// Told when a sitting this page opened unlocked ends (Save, Cancel, a
+  /// lock): the list pane returns from its edit mode to the dive.
+  final VoidCallback? onSittingEnded;
 
   /// A new dive, still to be created (issue #4527, plan 8): the page opens
   /// unlocked on it and Save creates it. Null on a stored dive's page.
@@ -180,16 +184,15 @@ class DiveDetailPage extends ConsumerStatefulWidget {
     this.embeddedSiteId,
     this.onCloseEmbeddedSite,
     this.onDeleted,
-    this.unlockEditing = kUnlockEditing,
+    this.openUnlocked = false,
+    this.onSittingEnded,
   }) : newDiveRequest = null,
        onCreated = null,
        onCreateCancelled = null;
 
   /// The page of a new dive (issue #4527, plan 8), opened by `/dives/new`
   /// and the list pane's `?mode=new`: unlocked, with the Dive card and the
-  /// starter cards laid out. It is a sitting from the start, so
-  /// [unlockEditing] is always on; the routes choose the old form instead
-  /// while the build switch is off.
+  /// starter cards laid out. It is a sitting from the start.
   const DiveDetailPage.newDive({
     super.key,
     NewDiveRequest request = const NewDiveRequest(),
@@ -197,7 +200,8 @@ class DiveDetailPage extends ConsumerStatefulWidget {
     this.onCreated,
     this.onCreateCancelled,
   }) : diveId = '',
-       unlockEditing = true,
+       openUnlocked = false,
+       onSittingEnded = null,
        newDiveRequest = request,
        embeddedSiteId = null,
        onCloseEmbeddedSite = null,
@@ -212,12 +216,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         _DiveDetailPageActions,
         _DiveDetailPageExports,
         _DiveDetailPageEditing,
+        _DiveDetailPageUnlockOpen,
         _DiveDetailPageCreating,
         _DiveDetailPageOperations,
         _DiveDetailPageBars {
-  /// Track if we've already initiated a redirect to prevent multiple calls
-  bool _hasRedirected = false;
-
   final GlobalKey _safetyReviewSectionKey = GlobalKey();
   final GlobalKey _notesSectionKey = GlobalKey();
   final GlobalKey _profileSectionKey = GlobalKey();
@@ -299,27 +301,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   /// toggle back on if it was off, scrolls to the profile and asks the chart
   /// to light the marker and open its popup. A dive with no profile, or a
   /// page with the profile section switched off, has no marker to open, so
-  /// the link changes the time instead; on a page that locks it does
-  /// nothing, as the open Profile or Notes card is where an annotation
-  /// changes (issue #4527).
+  /// the link does nothing: the open Profile or Notes card is where an
+  /// annotation changes (issue #4527).
   Future<void> _scrollToProfileAndFocus(String annotationId) async {
     final dive = ref.read(diveProvider(diveId)).value;
-    if (dive != null && !_hasMarkerToOpen(dive)) {
-      if (editingOffered) return;
-      final annotations = await ref
-          .read(annotationRepositoryProvider)
-          .annotationsForDive(diveId);
-      final annotation = annotations
-          .where((a) => a.id == annotationId)
-          .firstOrNull;
-      if (annotation == null || !mounted) return;
-      await DiveDetailAnnotationActions(
-        ref: ref,
-        context: context,
-        dive: dive,
-      ).editTime(annotation);
-      return;
-    }
+    if (dive != null && !_hasMarkerToOpen(dive)) return;
     final layout = ref.read(settingsProvider.select((s) => s.diveDetailLayout));
     if (layout.foldsSections) {
       await ref
@@ -393,12 +379,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     splitSource: (dive, sourceId) =>
         _runOperation(() => _confirmAndSplit(dive, sourceId)),
     removeSource: (dive, sourceId, sourceName) => _runOperation(
-      () => _confirmAndRemoveSource(
-        dive,
-        sourceId,
-        sourceName,
-        offerUndo: !editingOffered,
-      ),
+      () => _confirmAndRemoveSource(dive, sourceId, sourceName),
     ),
     separateSegments: (dive, segmentCount) =>
         _runOperation(() => _confirmAndSeparate(dive, segmentCount)),
@@ -439,7 +420,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       onSetPrimarySource: _setPrimarySourceOperation,
       onOpenInNotes: _scrollToNotes,
       onViewportChanged: _noteProfileViewport,
-      onEditProfile: editingOffered ? () => _runOperation(_editProfile) : null,
+      onEditProfile: () => _runOperation(_editProfile),
+      onEditOutliers: () => _runOperation(_editOutliers),
     );
   }
 
@@ -480,17 +462,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     // master-detail split. A pushed page, opened from a dive's details
     // say, stays put: the redirect's go() would erase the page under it
     // and its back arrow (#764, #3292).
-    if (!_hasRedirected &&
+    if (!_redirectingToPane &&
         !isSittingOpen &&
         shouldRedirectToMasterDetail(
           context,
           embedded: widget.embedded,
           viewMode: ref.read(diveListViewModeProvider),
         )) {
-      _hasRedirected = true;
+      // An edit address this page has not opened yet keeps asking for edit
+      // mode in the pane, which opens the dive unlocked there (issue #4527,
+      // plan 11). Once its sitting has been and gone, the dive moves as it
+      // is.
+      final mode = widget.openUnlocked && !_openedUnlocked ? '&mode=edit' : '';
+      _redirectingToPane = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.go('/dives?selected=$diveId');
+          context.go('/dives?selected=$diveId$mode');
         }
       });
     }
@@ -539,6 +526,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             body: Center(child: Text(context.l10n.diveLog_detail_notFound)),
           );
         }
+        _openUnlockedOnce(dive);
         return _DiveShortcuts(
           diveId: dive.id,
           enabled: !isSittingOpen,
@@ -669,15 +657,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       final header = DiveDetailEmbeddedHeader(
         dive: dive,
         creating: isCreating,
-        menu: _overflowMenu(dive, _headerMenuKey, historyInBar: editingOffered),
+        menu: _overflowMenu(dive, _headerMenuKey, historyInBar: true),
         onNavigate: _navigateToDive,
         onMarkLogged: () => _runOperation(() => _markAsLogged(dive)),
         onDownloadDraft: _downloadForDraft,
         onSurfaceDraft: () => _runOperation(() => _surfaceDraft(dive)),
         // The pane unlocks as the page does (issue #4527, plan 7).
-        editing: editingOffered ? editController : null,
-        history: editingOffered ? historyButton(dive, compact: true) : null,
-        lock: editingOffered ? lockButton(shown, compact: true) : null,
+        editing: editController,
+        history: historyButton(dive, compact: true),
+        lock: lockButton(shown, compact: true),
         unlockedRow: isSittingOpen
             ? editingPaneRow(
                 dive,
@@ -687,19 +675,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
               )
             : null,
       );
-      if (!editingOffered) {
-        return Column(
-          children: [
-            header,
-            Expanded(child: content),
-          ],
-        );
-      }
       return editPane(header: header, shown: shown, content: content);
     }
 
     final appBar = _standaloneBar(dive, shown);
-    if (!editingOffered) return Scaffold(appBar: appBar, body: content);
     return editScaffold(
       dive: dive,
       shown: shown,

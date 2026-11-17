@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:intl/intl.dart';
@@ -632,7 +631,7 @@ void main() {
       final controller = unlocked(dive);
       await pumpCard(
         tester,
-        DiveAltitudeMismatchNote(dive: dive),
+        const DiveAltitudeMismatchNote(),
         controller: controller,
       );
 
@@ -644,48 +643,28 @@ void main() {
       expect(find.byType(DiveAltitudeCardEditor), findsOneWidget);
     });
 
-    testWidgets('locked, the mismatch note goes to the edit page as before', (
+    // A locked page reads only (issue #4527, plan 11).
+    testWidgets('locked, the mismatch note has no tap and no edit icon', (
       tester,
     ) async {
-      final dive = bare.copyWith(site: lakeAt900);
       final locked = RecordEditController<Dive>(onSave: (_) async {});
       addTearDown(locked.dispose);
-      final router = GoRouter(
-        routes: [
-          GoRoute(
-            path: '/',
-            builder: (context, state) => Scaffold(
-              body: RecordEditScope<Dive>(
-                controller: locked,
-                child: RecordCardFrame<Dive>(
-                  card: diveEditCards[DiveDetailSectionId.altitude]!,
-                  child: DiveAltitudeMismatchNote(dive: dive),
-                ),
-              ),
-            ),
-          ),
-          GoRoute(
-            path: '/dives/:id/edit',
-            builder: (context, state) =>
-                Scaffold(body: Text('EDIT ${state.pathParameters['id']}')),
-          ),
-        ],
-      );
-      addTearDown(router.dispose);
       await tester.pumpWidget(
-        MaterialApp.router(
-          routerConfig: router,
+        MaterialApp(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: RecordEditScope<Dive>(
+              controller: locked,
+              child: const DiveAltitudeMismatchNote(),
+            ),
+          ),
         ),
       );
 
-      await tester.tap(find.byType(ListTile));
-      await tester.pumpAndSettle();
-
-      expect(find.text('EDIT dive'), findsOneWidget);
-      expect(locked.openCardIds, isEmpty);
+      expect(tester.widget<ListTile>(find.byType(ListTile)).onTap, isNull);
+      expect(find.byIcon(Icons.edit_outlined), findsNothing);
     });
   });
 }

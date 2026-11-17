@@ -133,8 +133,9 @@ from your log that could count toward it.
 
 ### Training dives
 
-In the dive form, pick the course in the **Course** field to make the dive one
-of its training dives. The course's **Training Dives** section lists them all.
+On the dive's page, unlock it (**Unlock to edit**) and pick the course under
+**Training Courses** on the **Details** card to make the dive one of its
+training dives. The course's **Training Dives** section lists them all.
 
 ### Instructor signatures
 

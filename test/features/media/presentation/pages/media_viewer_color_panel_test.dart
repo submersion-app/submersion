@@ -25,6 +25,8 @@ import 'package:submersion/features/media/presentation/providers/site_media_prov
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_panel.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -81,6 +83,7 @@ void main() {
     Widget page, {
     Size size = const Size(400, 800),
     List<Override> overrides = const [],
+    MediaItem Function(String id) stored = photo,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -94,6 +97,14 @@ void main() {
               MediaSourceResolverRegistry({
                 MediaSourceType.platformGallery: _BytesResolver(),
               }),
+            ),
+            // The photo as stored, for its lock (issue #4527).
+            photoRecordProvider.overrideWith(
+              (ref, id) async => PhotoRecord(
+                item: stored(id),
+                species: const [],
+                people: const [],
+              ),
             ),
             ...overrides,
           ],
@@ -112,7 +123,14 @@ void main() {
     });
   }
 
+  /// Adjusting colour changes the photo: only unlocked (issue #4527).
+  Future<void> unlock(WidgetTester tester) async {
+    await tester.tap(find.byKey(const ValueKey('viewer_unlock')));
+    await tester.pump();
+  }
+
   Future<void> openPanel(WidgetTester tester) async {
+    await unlock(tester);
     // On a narrow phone the action sits in the overflow menu.
     final inBar = find.byKey(const ValueKey('viewer_adjust_color'));
     if (inBar.evaluate().isEmpty) {
@@ -161,7 +179,11 @@ void main() {
     expect(find.byType(ColorAdjustPanel), findsNothing);
   });
 
-  testWidgets('paging moves the panel to the next item', (tester) async {
+  // Every photo opens locked (issue #4527): paging with nothing changed
+  // ends the sitting, and the panel with it.
+  testWidgets('paging locks the next item and closes the panel', (
+    tester,
+  ) async {
     await pump(
       tester,
       MediaViewerPage(mediaList: [photo('a'), photo('b')], initialMediaId: 'a'),
@@ -172,10 +194,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump();
-    expect(
-      tester.widget<ColorAdjustPanel>(find.byType(ColorAdjustPanel)).item.id,
-      'b',
-    );
+    expect(find.byType(ColorAdjustPanel), findsNothing);
+    expect(find.byKey(const ValueKey('viewer_unlock')), findsOneWidget);
   });
 
   testWidgets('holding the photo does not take the gesture from pan and '
@@ -301,7 +321,9 @@ void main() {
           'site-1',
         ).overrideWith((ref) async => const <MediaItem>[]),
       ],
+      stored: (id) => photo(id, siteId: 'site-1'),
     );
+    await unlock(tester);
     await tester.tap(find.byTooltip('Adjust color'));
     await tester.pump();
     expect(find.byType(ColorAdjustPanel), findsOneWidget);

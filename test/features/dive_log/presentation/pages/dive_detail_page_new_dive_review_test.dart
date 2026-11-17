@@ -115,12 +115,6 @@ void main() {
     await settle(tester);
   }
 
-  testWidgets('a new dive page takes the unlock it needs by default', (
-    tester,
-  ) async {
-    expect(const DiveDetailPage.newDive().unlockEditing, isTrue);
-  });
-
   testWidgets('between the create and moving on, the page takes no input', (
     tester,
   ) async {

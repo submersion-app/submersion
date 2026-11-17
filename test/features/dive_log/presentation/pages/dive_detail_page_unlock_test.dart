@@ -43,14 +43,6 @@ class _FailingSites extends SiteListNotifier {
 void main() {
   setUp(setUpTestDatabase);
   tearDown(tearDownTestDatabase);
-
-  testWidgets('switch off: the page has no lock', (tester) async {
-    await pumpPage(tester, unlockEditing: false);
-
-    expect(find.text('Calm'), findsOneWidget);
-    expect(find.byTooltip('Unlock to edit'), findsNothing);
-  });
-
   testWidgets('in the list pane the page has the lock too', (tester) async {
     await pumpPage(tester, embedded: true, size: const Size(1200, 900));
 

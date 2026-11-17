@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/media/domain/color/color_adjustment.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/apply_to_dive_action.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import 'color_adjust_test_support.dart';
 
-/// Issue #3520: "Apply to this dive" asks first and can be undone.
+/// Issue #3520: "Apply to this dive" asks first, then holds the change in
+/// the photo's sitting until Save (issue #4527).
 void main() {
   late FakeColorRepository repo;
-  const source = ColorAdjustment(warmth: 0.4, autoOverride: true);
 
   setUp(() => repo = FakeColorRepository());
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(WidgetTester tester, {bool withSitting = true}) async {
+    final sitting = withSitting
+        ? EditSession<PhotoRecord>(
+            PhotoRecord(item: colorItem(), species: const [], people: const []),
+          )
+        : null;
+    if (sitting != null) addTearDown(sitting.dispose);
     final container = colorContainer(repo);
     addTearDown(container.dispose);
     await tester.pumpWidget(
@@ -21,7 +28,8 @@ void main() {
         container,
         Consumer(
           builder: (context, ref, _) => TextButton(
-            onPressed: () => runApplyToDive(context, ref, colorItem(), source),
+            onPressed: () =>
+                runApplyToDive(context, ref, colorItem(), sitting: sitting),
             child: const Text('go'),
           ),
         ),
@@ -47,18 +55,22 @@ void main() {
     expect(repo.applies, isEmpty);
   });
 
-  testWidgets('apply writes, and Undo restores the prior values', (
-    tester,
-  ) async {
+  testWidgets('Apply holds the change and writes nothing', (tester) async {
     await pump(tester);
     await tester.tap(find.text('Apply'));
     await tester.pumpAndSettle();
-    expect(repo.applies.single, ('d1', 'm1', source));
-    expect(find.text('Updated 3 photos and videos'), findsOneWidget);
+    expect(repo.applies, isEmpty);
+    expect(find.text('Undo'), findsNothing);
+  });
 
-    await tester.tap(find.text('Undo'));
-    await tester.pumpAndSettle();
-    expect(repo.restores.single, repo.prior);
+  // Held in the photo's sitting only: with none, nothing is asked or
+  // written (issue #4527).
+  testWidgets('with no sitting it asks nothing and writes nothing', (
+    tester,
+  ) async {
+    await pump(tester, withSitting: false);
+    expect(find.text('Apply to this dive?'), findsNothing);
+    expect(repo.applies, isEmpty);
   });
 
   testWidgets('no other media on the dive asks nothing', (tester) async {
