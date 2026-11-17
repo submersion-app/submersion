@@ -28794,6 +28794,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_tripCylinderEventKind_adjustment => 'Módosítás';
 
   @override
+  String get enum_navTrackLinkMode_auto => 'Automatikusan';
+
+  @override
+  String get enum_navTrackLinkMode_manual => 'Kézzel';
+
+  @override
   String get enum_tripCylinderEventKind_fill => 'Töltés';
 
   @override

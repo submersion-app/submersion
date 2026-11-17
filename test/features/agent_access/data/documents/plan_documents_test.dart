@@ -21,6 +21,7 @@ void main() {
         updatedAt: at,
         startDateTime: DateTime(2026, 5, 1, 9),
       ),
+      logged: const {},
     );
     expect(doc['start_date_time'], '2026-05-01T09:00:00.000Z');
   });
@@ -43,6 +44,7 @@ void main() {
         stopMinimums: const {6: 180},
         plannedWeightKg: 8,
       ),
+      logged: const {},
     );
     expect(doc['start_date_time'], '2026-05-01T09:00:00.000Z');
     expect(doc['descent_rate_m_min'], 18.0);
@@ -77,6 +79,7 @@ void main() {
           ),
         ],
       ),
+      logged: const {},
     );
     final segment = (doc['segments'] as List).cast<Map>().single;
     expect(segment['target_depth_m'], 30.0);
@@ -122,6 +125,7 @@ void main() {
           ],
         ),
       ),
+      logged: const {},
     );
     final mission = doc['mission'] as Map;
     expect(mission['environment'], 'overhead');
@@ -133,5 +137,56 @@ void main() {
     final member = (mission['team'] as List).cast<Map>().single;
     expect(member['display_name'], 'Ann');
     expect(member['sac_bottom_l_min'], 15.0);
+  });
+
+  group('planLogFields', () {
+    DivePlan linked(String? diveId) => DivePlan(
+      id: 'p',
+      name: 'Deep',
+      createdAt: at,
+      updatedAt: at,
+      linkedDiveId: diveId,
+    );
+    // Whether each entry in the log is still only planned, by dive id.
+    const planned = {'d': true};
+
+    test('an unlinked plan is only planned', () {
+      expect(planLogFields(linked(null), planned), {
+        'linked_dive_id': null,
+        'log_state': 'planned',
+      });
+    });
+
+    test('a linked plan names its entry and its state', () {
+      expect(planLogFields(linked('d'), planned), {
+        'linked_dive_id': 'd',
+        'log_state': 'logged_as_planned',
+      });
+      expect(planLogFields(linked('d'), const {'d': false}), {
+        'linked_dive_id': 'd',
+        'log_state': 'dived',
+      });
+    });
+
+    test('a link to a dive no longer in the log names nothing', () {
+      expect(planLogFields(linked('gone'), planned), {
+        'linked_dive_id': null,
+        'log_state': 'planned',
+      });
+    });
+  });
+
+  test('linkedDiveIds lists each link once, skipping unlinked plans', () {
+    DivePlan p(String id, String? diveId) => DivePlan(
+      id: id,
+      name: id,
+      createdAt: at,
+      updatedAt: at,
+      linkedDiveId: diveId,
+    );
+    expect(linkedDiveIds([p('a', 'd1'), p('b', null), p('c', 'd2')]), {
+      'd1',
+      'd2',
+    });
   });
 }

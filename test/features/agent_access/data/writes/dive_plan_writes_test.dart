@@ -3,6 +3,7 @@ import 'package:submersion/core/database/database.dart' hide Dive, DivePlan;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/tools/compute_plan_tool.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -93,6 +94,31 @@ void main() {
     },
   );
 
+  test(
+    'a link to a dive no longer in the log reads as none and still clears',
+    () async {
+      final id = await plan();
+      // Deleted on another device: the link outlives its dive.
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+      await db.customStatement(
+        'UPDATE dive_plans SET linked_dive_id = ? WHERE id = ?',
+        ['gone', id],
+      );
+      await db.customStatement('PRAGMA foreign_keys = ON');
+      expect((await h.one('dive_plans', id))!['linked_dive_id'], isNull);
+
+      final clear = await h.preview([
+        updateOp('dive_plans', id, {'linked_dive_id': null}),
+      ]);
+      expect(clear.unchanged, isEmpty);
+      await h.apply(clear);
+      final row = await (db.select(
+        db.divePlans,
+      )..where((p) => p.id.equals(id))).getSingle();
+      expect(row.linkedDiveId, isNull);
+    },
+  );
+
   test('a series removing a dive lists that plan\'s delete', () async {
     final now = DateTime.now();
     DivePlan blank(String id) =>
@@ -141,6 +167,7 @@ void main() {
           ),
           settings: settings,
           followOf: (_) async => null,
+          records: RecordRepositories(),
           caveat: () => '',
         ).call({
           'dives': [

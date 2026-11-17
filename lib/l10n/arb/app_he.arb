@@ -8292,6 +8292,8 @@
   "enum_fillSource_nfc": "תג NFC",
   "enum_fillSource_qr": "קוד QR",
   "enum_tripCylinderEventKind_adjustment": "תיקון",
+  "enum_navTrackLinkMode_auto": "אוטומטית",
+  "enum_navTrackLinkMode_manual": "ידנית",
   "enum_tripCylinderEventKind_fill": "מילוי",
   "enum_weatherSource_manual": "ידני",
   "enum_weatherSource_openMeteo": "Open-Meteo",

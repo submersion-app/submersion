@@ -152,6 +152,10 @@ class _EntryBody extends ConsumerWidget {
         else if (event.table != rootTable &&
             net.any((change) => change.event.id == event.id))
           _ChildHeader(event: event),
+        // An added or deleted link row says which record it linked. It goes
+        // back only with its whole row, so it has no Revert of its own.
+        if (detail.namingFields[event.id] case final field?)
+          _FieldRow(field: field, formatter: formatter),
         for (final change in net)
           if (change.event.id == event.id)
             _FieldRow(

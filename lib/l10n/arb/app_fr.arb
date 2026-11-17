@@ -8162,6 +8162,8 @@
   "enum_fillSource_nfc": "Puce NFC",
   "enum_fillSource_qr": "Code QR",
   "enum_tripCylinderEventKind_adjustment": "Ajustement",
+  "enum_navTrackLinkMode_auto": "Automatiquement",
+  "enum_navTrackLinkMode_manual": "Manuellement",
   "enum_tripCylinderEventKind_fill": "Gonflage",
   "enum_weatherSource_manual": "Manuel",
   "enum_weatherSource_openMeteo": "Open-Meteo",
