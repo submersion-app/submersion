@@ -70,6 +70,9 @@ do {
 while let line = readLine() {
   let path = line.trimmingCharacters(in: .whitespaces)
   if path.isEmpty { continue }
+  // One pool per image, as each dispatch block in the app is: without it
+  // every decoded image stays alive until the process exits.
+  autoreleasepool {
   do {
     let result = try pipeline.analyze(["path": path])
     let detections = (result["detections"] as? [[String: Any]] ?? []).map { d -> [String: Any] in
@@ -91,5 +94,6 @@ while let line = readLine() {
     emit(["path": path, "error": error.message])
   } catch {
     emit(["path": path, "error": "\(error)"])
+  }
   }
 }
