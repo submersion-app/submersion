@@ -45934,6 +45934,18 @@ abstract class AppLocalizations {
   /// **'Adjustment'**
   String get enum_tripCylinderEventKind_adjustment;
 
+  /// How a route came to be linked to a dive, after the label Linked: the app matched it by time
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically'**
+  String get enum_navTrackLinkMode_auto;
+
+  /// How a route came to be linked to a dive, after the label Linked: the diver chose the dive
+  ///
+  /// In en, this message translates to:
+  /// **'Manually'**
+  String get enum_navTrackLinkMode_manual;
+
   /// No description provided for @enum_tripCylinderEventKind_fill.
   ///
   /// In en, this message translates to:

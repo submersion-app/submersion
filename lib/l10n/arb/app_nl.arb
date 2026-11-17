@@ -8286,6 +8286,8 @@
   "enum_fillSource_nfc": "NFC-tag",
   "enum_fillSource_qr": "QR-code",
   "enum_tripCylinderEventKind_adjustment": "Aanpassing",
+  "enum_navTrackLinkMode_auto": "Automatisch",
+  "enum_navTrackLinkMode_manual": "Handmatig",
   "enum_tripCylinderEventKind_fill": "Vulling",
   "enum_weatherSource_manual": "Handmatig",
   "enum_weatherSource_openMeteo": "Open-Meteo",

@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_enum_labels.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
@@ -12,7 +13,7 @@ import 'package:submersion/features/tides/presentation/tide_state_display.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-// Labelers for the enums of sites, trips, dive centers and species.
+// Labelers for the enums of sites, trips, dive centers, routes and species.
 
 final ConflictEnumLabeler speciesCategoryLabeler = enumLabeler(
   SpeciesCategory.values,
@@ -77,4 +78,14 @@ final ConflictEnumLabeler tripCylinderEventKindLabeler = enumLabeler(
     TripCylinderEventKind.fill => l.enum_tripCylinderEventKind_fill,
     TripCylinderEventKind.adjustment => l.enum_tripCylinderEventKind_adjustment,
   },
+);
+
+/// How a route came to be linked to its dive, stored as its wire value.
+final ConflictEnumLabeler navTrackLinkModeLabeler = enumLabeler(
+  NavTrackLinkMode.values,
+  (l, v) => switch (v) {
+    NavTrackLinkMode.auto => l.enum_navTrackLinkMode_auto,
+    NavTrackLinkMode.manual => l.enum_navTrackLinkMode_manual,
+  },
+  storedAs: (v) => v.wireValue,
 );

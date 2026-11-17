@@ -8420,6 +8420,8 @@
   "enum_fillSource_nfc": "NFC-Tag",
   "enum_fillSource_qr": "QR-Code",
   "enum_tripCylinderEventKind_adjustment": "Anpassung",
+  "enum_navTrackLinkMode_auto": "Automatisch",
+  "enum_navTrackLinkMode_manual": "Manuell",
   "enum_tripCylinderEventKind_fill": "Füllung",
   "enum_weatherSource_manual": "Manuell",
   "enum_weatherSource_openMeteo": "Open-Meteo",
