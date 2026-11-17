@@ -60,6 +60,15 @@ void main() {
     });
   });
 
+  test('back gas listed before the Hydrotank gives no back-gas-only SAC', () {
+    // Back gas is then the reference, and the Hydrotank's unknown gas would
+    // simply go missing from the dive's total.
+    final backGas = _tank('b', TankRole.backGas, volume: 10, end: 150);
+    final dive = _dive([backGas, _hydrotank]);
+    expect(dive.sac, isNull);
+    expect(dive.rmvFor(GasModel.ideal), isNull);
+  });
+
   group('a dive whose only cylinder is the Hydrotank', () {
     final dive = _dive([_hydrotank]);
 

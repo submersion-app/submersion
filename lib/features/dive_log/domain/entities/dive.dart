@@ -770,6 +770,10 @@ class Dive extends Equatable {
   double? get sac {
     final reference = sacReferenceTank;
     if (reference == null) return null;
+    // A breathed Avelo Hydrotank leaves the dive's total gas unknown (issue
+    // #4657), whichever cylinder is the reference: back gas listed before it
+    // would otherwise give a SAC without the Hydrotank's gas, as [rmvFor].
+    if (breathesUnmeasuredTank(tanks)) return null;
     // Entered surface minutes of the cylinders [referencePressureDrop] sums.
     final basis = _consumptionBasis(
       _surfaceSecondsWhere(

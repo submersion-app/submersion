@@ -146,8 +146,11 @@ String diveSacPressureSql(String dive) {
   final measured = cylinders(
     'sac_t.start_pressure IS NOT NULL AND sac_t.end_pressure IS NOT NULL',
   );
+  // A breathed Avelo Hydrotank leaves the dive's total gas unknown (issue
+  // #4657), whichever cylinder is the reference, as in `Dive.sac`.
   return "(CASE WHEN COALESCE($dive.dive_mode, 'oc') "
       'IN ${DiveStatsScope.rebreatherModesSql} '
+      'OR ${diveBreathesUnmeasuredTankSql(dive)} '
       'THEN NULL ELSE '
       '((SELECT NULLIF(SUM(sac_c.pressure_drop * CASE '
       'WHEN sac_c.id = sac_r.id THEN 1.0 '

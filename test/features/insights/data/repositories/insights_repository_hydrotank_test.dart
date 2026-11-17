@@ -138,6 +138,16 @@ void main() {
     ]);
   });
 
+  test('back gas listed before the Hydrotank gives no SAC in bar', () async {
+    // Back gas is the SQL reference then, as in Dive.sac.
+    await insertDive('bh');
+    await insertTank('bh', 0, 'backGas', volume: 10, end: 150);
+    await insertTank('bh', 1, 'hydrotank', volume: 10, end: 185);
+
+    expect(await repository.getSacPressurePerDive(), isEmpty);
+    expect(await queryLanguageSac('bh'), isNull);
+  });
+
   test('the same pressures on back gas still give a SAC', () async {
     await insertDive('b');
     await insertTank('b', 0, 'backGas', volume: 10, end: 185);
