@@ -30,6 +30,11 @@ class TwinSetCard extends ConsumerWidget {
         const <CylinderPairing>[];
     // Wanted gear is not owned yet, so it is in no twin set.
     if (cylinder == null || cylinder.isWanted) return const SizedBox.shrink();
+    // Doubles kept as one item (issue #4641) already are a twin set, so they
+    // are not offered a partner; a pairing they were given still shows.
+    if (cylinder.isWornAsTwinSet && pairings.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final current = currentPairing(pairings, equipmentId);
     final history = [
       for (final p in pairings)

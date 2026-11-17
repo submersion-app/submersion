@@ -421,6 +421,48 @@ void main() {
     expect(find.byType(Card), findsNothing);
   });
 
+  group('doubles kept as one item (issue #4641)', () {
+    EquipmentItem d12() {
+      final base = cylinder('A');
+      return base.copyWith(
+        attributes: [
+          ...base.attributes,
+          const EquipmentAttribute(
+            id: 'A-worn',
+            equipmentId: 'A',
+            key: EquipmentAttrKeys.wornAs,
+            valueText: kWornAsTwinSet,
+          ),
+        ],
+      );
+    }
+
+    testWidgets('an item worn as a twin set with no pairing has no card', (
+      tester,
+    ) async {
+      await pump(tester, gear: [d12(), cylinder('B')]);
+      expect(find.byType(Card), findsNothing);
+    });
+
+    testWidgets('a pairing it already has still shows', (tester) async {
+      final l10n = await pump(
+        tester,
+        gear: [d12(), cylinder('B')],
+        pairings: [
+          pairing(
+            'p',
+            'A',
+            'B',
+            DateTime.utc(2025, 1, 1),
+            DateTime.utc(2026, 1, 1),
+          ),
+        ],
+      );
+      expect(find.text(l10n.twinSet_title), findsOneWidget);
+      expect(find.text(l10n.twinSet_history), findsOneWidget);
+    });
+  });
+
   Future<void> linkTo(
     WidgetTester tester,
     AppLocalizations l10n,
