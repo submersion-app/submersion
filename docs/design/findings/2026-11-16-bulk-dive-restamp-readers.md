@@ -76,7 +76,10 @@ Option 1, chosen 2026-11-16.
 - The child-only bulk writers call `_tickDives()` (a `dives` table
   notification, no write) instead of `_bumpDives`. So do `bulkAddTags` and
   `bulkRemoveTags`, which restamped every selected dive directly rather than
-  through `_bumpDives`, even a dive whose tags did not change.
+  through `_bumpDives`, even a dive whose tags did not change, and the
+  equipment set writers `bulkAddEquipmentSets` and `bulkRemoveEquipmentSets`,
+  whose shared `_rewriteGear` lives in the part file
+  `dive_repository_gear_sets.dart`.
 - Two bulk families also change a column of the dive itself, which only a
   dive restamp carries to peers: the representative `dives.dive_type` and
   `dives.course_id`. Those dives are still restamped, but only when the

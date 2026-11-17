@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' show TableUpdateQuery, Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -89,6 +89,58 @@ void main() {
   });
 
   tearDown(tearDownTestDatabase);
+
+  // Issue #4651: the gear rows travel on their own clocks, so a set edit
+  // leaves the dive row alone; restamping it would let this device's copy
+  // overwrite a newer edit made on another device.
+  group('set edits stage gear rows and leave the dive alone', () {
+    Future<Set<String>> pending(String entityType) async => {
+      for (final r in await db.select(db.syncRecords).get())
+        if (r.entityType == entityType) r.recordId,
+    };
+
+    setUp(() async {
+      await (db.update(db.dives)..where((t) => t.id.equals('a'))).write(
+        const DivesCompanion(updatedAt: Value(1)),
+      );
+      await db.delete(db.syncRecords).go();
+    });
+
+    test('adding a set', () async {
+      await repo.bulkAddEquipmentSets(['a'], ['warm']);
+
+      expect(await updatedAtOf('a'), 1);
+      expect(await pending('dives'), isEmpty);
+      expect(await pending('diveEquipment'), isNotEmpty);
+    });
+
+    test('removing a set', () async {
+      await repo.bulkAddEquipmentSets(['a'], ['warm']);
+      await db.delete(db.syncRecords).go();
+
+      await repo.bulkRemoveEquipmentSets(['a'], ['warm']);
+
+      expect(await updatedAtOf('a'), 1);
+      expect(await pending('dives'), isEmpty);
+      expect([
+        for (final t in await db.select(db.deletionLog).get())
+          if (t.entityType == 'diveEquipment') t.recordId,
+      ], isNotEmpty);
+    });
+
+    test('a set edit still ticks dives', () async {
+      var ticks = 0;
+      final sub = db
+          .tableUpdates(TableUpdateQuery.onTable(db.dives))
+          .listen((_) => ticks++);
+      addTearDown(sub.cancel);
+
+      await repo.bulkAddEquipmentSets(['a'], ['warm']);
+      await pumpEventQueue();
+
+      expect(ticks, greaterThan(0));
+    });
+  });
 
   group('bulkAddEquipmentSets', () {
     test('adds each set item and its parts, tagged with the set', () async {

@@ -39,7 +39,8 @@ void main() {
   );
 
   /// A synced dive 'd1' named 'Original' with tank 't1' and course 'c1',
-  /// beside gear 'e1', tag 'tag1' and a later course 'c2' to add.
+  /// beside gear 'e1' (also the one item of set 's1'), tag 'tag1' and a
+  /// later course 'c2' to add.
   Future<void> seedSyncedDive() async {
     final repository = DiveRepository();
     await repository.createDive(
@@ -56,6 +57,14 @@ void main() {
     await db.customStatement(
       'INSERT INTO equipment (id, name, type, created_at, updated_at) '
       "VALUES ('e1', 'Wing', 'bcd', 1, 1)",
+    );
+    await db.customStatement(
+      'INSERT INTO equipment_sets (id, name, created_at, updated_at) '
+      "VALUES ('s1', 'Warm water', 1, 1)",
+    );
+    await db.customStatement(
+      'INSERT INTO equipment_set_items (set_id, equipment_id) '
+      "VALUES ('s1', 'e1')",
     );
     await db.customStatement(
       'INSERT INTO tags (id, name, created_at, updated_at) '
@@ -174,6 +183,15 @@ void main() {
           (r) => r.bulkReplaceEquipment(['d1'], ['e1']),
           'diveEquipment',
           (row) => row['diveId'] == 'd1' && row['equipmentId'] == 'e1',
+        ),
+        (
+          'equipment set',
+          (r) => r.bulkAddEquipmentSets(['d1'], ['s1']),
+          'diveEquipment',
+          (row) =>
+              row['diveId'] == 'd1' &&
+              row['equipmentId'] == 'e1' &&
+              row['viaSetId'] == 's1',
         ),
       ];
 
