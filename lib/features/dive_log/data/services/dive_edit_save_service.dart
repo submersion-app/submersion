@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Variable;
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
@@ -104,6 +105,70 @@ class DiveEditSaveService {
             : const <TripDateStretch>[];
         await alsoWrite?.call();
         return (before: stored, after: merged, tripDateStretches: stretches);
+      }),
+    );
+  }
+
+  /// Creates [dive], the working copy of a new dive's sitting (issue #4527,
+  /// plan 8), under its own id.
+  ///
+  /// In one transaction and one change log operation, as [save] writes an
+  /// existing dive: the dive, its number when it has none and is neither
+  /// planned nor a draft (as [PaginatedDiveListNotifier.addDive] numbers
+  /// one), its trip's dates stretched to cover it, then [alsoWrite], the
+  /// sitting's held writes, which all point at the dive. A dive with no
+  /// diver goes to [activeDiverId], the diver active at Save, as addDive
+  /// gives it one, so its numbering is that diver's. If any of them
+  /// throws nothing is left. Returns the dive as stored at the end, with
+  /// the trips whose dates moved. Throws [StateError] when [dive] has no id
+  /// or one a stored dive already has.
+  Future<({Dive after, List<TripDateStretch> tripDateStretches})> create({
+    required Dive dive,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+    String? activeDiverId,
+  }) {
+    if (dive.id.isEmpty) {
+      return Future.error(
+        StateError('A new dive needs its id before it is created'),
+      );
+    }
+    return ChangeLogScope.run(
+      DatabaseService.instance.databaseOrNull,
+      source: ChangeLogSource.manual,
+      label: RecordEditLabel.encode(
+        table: 'dives',
+        id: dive.id,
+        cardIds: changedCardIds,
+      ),
+      body: () => _db.transaction(() async {
+        final taken = await _db
+            .customSelect(
+              'SELECT 1 FROM dives WHERE id = ?',
+              variables: [Variable<String>(dive.id)],
+            )
+            .getSingleOrNull();
+        if (taken != null) {
+          throw StateError('Dive ${dive.id} already exists');
+        }
+        final created = await _diveRepo.createDive(
+          dive.diverId == null && activeDiverId != null
+              ? dive.copyWith(diverId: activeDiverId)
+              : dive,
+        );
+        // A planned dive stays unnumbered until it is logged (issue #2002).
+        if (dive.diveNumber == null && !dive.isPlanned && !dive.isDraft) {
+          await _diveRepo.assignMissingDiveNumbers(diverId: created.diverId);
+        }
+        final stretches = (created.tripId ?? created.trip?.id) == null
+            ? const <TripDateStretch>[]
+            : await _tripRepo.stretchToCoverDives([created.id]);
+        await alsoWrite?.call();
+        // Read back rather than trusting the copy createDive returns: the
+        // write drops what it cannot store (a slot of another trip) and the
+        // numbering may have given it a number.
+        final after = await _diveRepo.getDiveById(created.id);
+        return (after: after ?? created, tripDateStretches: stretches);
       }),
     );
   }

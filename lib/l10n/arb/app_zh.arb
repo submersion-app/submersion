@@ -3317,6 +3317,7 @@
   "ocrImport_scanPage_nothingRead": "无法从此页面读取太多内容 - 字段留空",
   "ocrImport_scanPage_engineMissing": "文本识别不可用。请安装 Tesseract 以扫描纸质日志（例如：sudo apt install tesseract-ocr）。",
   "ocrImport_editPage_photoAttachFailed": "潜水已保存，但附加扫描页面失败",
+  "ocrImport_newDive_photoHoldFailed": "无法将扫描页面附加到此潜水",
   "diveLog_listPage_bottomSheet_logManually": "手动记录潜水",
   "diveLog_listPage_bottomSheet_planDive": "计划一次潜水",
   "diveLog_listPage_bottomSheet_planDiveSubtitle": "现在填写详情，稍后添加潜水电脑数据",

@@ -30,7 +30,16 @@ class RecordEditController<T> extends ChangeNotifier {
     this.invalidCards,
     this.onStart,
     this.reread,
+    this.creating = false,
   });
+
+  /// Whether this controller's sittings create their record (issue #4527):
+  /// the stored record is a seed ([EditSession.isNew]). A clean sitting has
+  /// nothing to create, so [save] keeps it rather than ending it.
+  final bool creating;
+
+  /// See [creating].
+  bool get isCreating => creating;
 
   final RecordSave<T> onSave;
 
@@ -189,12 +198,21 @@ class RecordEditController<T> extends ChangeNotifier {
   void _requestRevealOfInvalid(String cardId) =>
       _requestReveal(cardId, fieldId: _invalidFields[cardId]?.first);
 
-  void unlock(T stored) {
+  /// Starts a sitting on [stored]. Each card of [laidOut] is open from the
+  /// first notification, brought in as [addCard] brings a card in but not
+  /// scrolled to: a new record's starter cards (issue #4527).
+  void unlock(T stored, {Iterable<String> laidOut = const []}) {
     if (isUnlocked) return;
     _toldChangedCardIds = const {};
     _toldRevisions = {};
-    final session = _session = EditSession<T>(stored)
+    final session = _session = EditSession<T>(stored, isNew: creating)
       ..addListener(_onSessionChanged);
+    for (final cardId in laidOut) {
+      _holdLayoutFor(session);
+      _addedCardIds.add(cardId);
+      _openCardIds.add(cardId);
+      _toldRevisions[cardId] = session.revisionOf(cardId);
+    }
     // Told first, so the page shows the sitting whatever [onStart] does.
     notifyListeners();
     onStart?.call(session);
@@ -376,6 +394,8 @@ class RecordEditController<T> extends ChangeNotifier {
     // A sitting with nothing to write ends: a value stored failing a card's
     // check is not the diver's to fix before they can close the page.
     if (!session.isDirty) {
+      // A record being created has nothing to create yet: the page stays.
+      if (creating) return false;
       lock();
       return true;
     }
@@ -523,7 +543,7 @@ class RecordEditController<T> extends ChangeNotifier {
     _storedDuringSave = null;
     _toldChangedCardIds = const {};
     _toldRevisions = {};
-    final session = _session = EditSession<T>(stored)
+    final session = _session = EditSession<T>(stored, isNew: creating)
       ..addListener(_onSessionChanged);
     notifyListeners();
     onStart?.call(session);

@@ -577,7 +577,7 @@ void main() {
         GoRoute(
           path: '/dives/new',
           builder: (context, state) {
-            built = newDivePage(state);
+            built = newDivePage(state, unlockEditing: false) as DiveEditPage;
             return const SizedBox.shrink();
           },
         ),

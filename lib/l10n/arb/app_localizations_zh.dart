@@ -9304,6 +9304,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ocrImport_editPage_photoAttachFailed => '潜水已保存，但附加扫描页面失败';
 
   @override
+  String get ocrImport_newDive_photoHoldFailed => '无法将扫描页面附加到此潜水';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually => '手动记录潜水';
 
   @override

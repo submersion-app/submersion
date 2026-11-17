@@ -9814,6 +9814,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'La inmersión se guardó, pero no se pudo adjuntar la página escaneada';
 
   @override
+  String get ocrImport_newDive_photoHoldFailed =>
+      'No se pudo adjuntar la página escaneada a esta inmersión';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Registrar inmersión manualmente';
 

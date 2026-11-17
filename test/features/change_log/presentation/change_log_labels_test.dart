@@ -5,6 +5,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_operation.dart';
+import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 import 'package:submersion/features/change_log/presentation/change_log_labels.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -182,6 +183,53 @@ void main() {
         expect(subtitle, endsWith(l.changeLog_thisDevice));
       },
     );
+
+    // A new dive's sitting creates the dive (issue #4527, plan 8): its
+    // entry already reads Added, so the cards are named without Edited.
+    test('a sitting that created its record names its cards alone', () {
+      final operation = ChangeLogOperation(
+        id: 'op',
+        source: ChangeLogSource.manual,
+        label: label,
+        rootTable: 'dives',
+        rootId: 'dive',
+        startedAt: DateTime(2026, 11, 2, 9, 30),
+        endedAt: DateTime(2026, 11, 2, 9, 30),
+      );
+
+      final subtitle = changeLogSubtitle(
+        l,
+        const UnitFormatter(AppSettings()),
+        operation,
+        const {},
+        rootAction: ChangeLogAction.insert,
+      );
+
+      expect(subtitle, endsWith('${l.changeLog_thisDevice} · $notes, $tags'));
+      expect(subtitle, isNot(contains('Edited')));
+    });
+
+    test('a sitting that edited its record still reads Edited:', () {
+      final operation = ChangeLogOperation(
+        id: 'op',
+        source: ChangeLogSource.manual,
+        label: label,
+        rootTable: 'dives',
+        rootId: 'dive',
+        startedAt: DateTime(2026, 11, 2, 9, 30),
+        endedAt: DateTime(2026, 11, 2, 9, 30),
+      );
+
+      final subtitle = changeLogSubtitle(
+        l,
+        const UnitFormatter(AppSettings()),
+        operation,
+        const {},
+        rootAction: ChangeLogAction.update,
+      );
+
+      expect(subtitle, endsWith('Edited: $notes, $tags'));
+    });
 
     test('a sitting that named no card reads as Edited', () {
       expect(

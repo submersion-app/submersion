@@ -66,6 +66,34 @@ void main() {
     verify(mockMediaRepository.createMedia(any)).called(1);
   });
 
+  // A new dive's scanned page is held in its sitting and written at Save
+  // (issue #4527, plan 8): the copy is made, the row is not.
+  test('prepareLocalFileForDive copies the file and writes no row', () async {
+    final source = File(p.join(sourceDir.path, 'page.jpg'))
+      ..writeAsBytesSync([0xFF, 0xD8, 0xFF, 0xE0]);
+    final takenAt = DateTime.utc(2026, 11, 17, 9, 30);
+
+    final prepared = await service.prepareLocalFileForDive(
+      sourceFile: source,
+      diveId: 'dive-1',
+      takenAt: takenAt,
+    );
+
+    final item = prepared.item;
+    expect(item.id, isNotEmpty);
+    expect(item.diveId, 'dive-1');
+    expect(item.sourceType, MediaSourceType.localFile);
+    expect(item.takenAt, takenAt);
+    expect(item.originalFilename, 'page.jpg');
+    expect(
+      p.dirname(item.filePath!),
+      p.join(docsDir.path, 'Submersion', 'scanned_logs'),
+    );
+    expect(File(item.filePath!).existsSync(), isTrue);
+    expect(prepared.enrichment, isNull);
+    verifyNever(mockMediaRepository.createMedia(any));
+  });
+
   test('extensionless source defaults to .jpg', () async {
     final source = File('${sourceDir.path}/scan')
       ..writeAsBytesSync([0xFF, 0xD8, 0xFF, 0xE0]);

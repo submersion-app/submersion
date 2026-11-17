@@ -9954,6 +9954,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم حفظ الغطسة، لكن فشل إرفاق الصفحة الممسوحة';
 
   @override
+  String get ocrImport_newDive_photoHoldFailed =>
+      'تعذّر إرفاق الصفحة الممسوحة بهذه الغطسة';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually => 'تسجيل غوصة يدويا';
 
   @override

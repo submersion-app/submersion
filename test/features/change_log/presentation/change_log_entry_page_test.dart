@@ -161,6 +161,31 @@ void main() {
     }
   });
 
+  // A new dive's sitting creates the dive (issue #4527, plan 8).
+  testWidgets('a sitting that created its dive names its cards alone', (
+    tester,
+  ) async {
+    final id = await tester.runAsync(() async {
+      await ChangeLogScope.run(
+        db,
+        source: ChangeLogSource.manual,
+        label: RecordEditLabel.encode(
+          table: 'dives',
+          id: 'new-dive',
+          cardIds: ['header', 'notes'],
+        ),
+        body: () => insertDive(db, 'new-dive', diverId: 'me', notes: 'Wall'),
+      );
+      return onlyOperation();
+    });
+
+    await pump(tester, id!);
+
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('Dive, Notes'), findsOneWidget);
+    expect(find.textContaining('Edited: Dive'), findsNothing);
+  });
+
   // Readings move between cylinders in pairs, so reverting one row on its
   // own would leave both series on one cylinder and none on the other.
   testWidgets('moved readings are listed with no Revert of their own', (

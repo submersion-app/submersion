@@ -9,7 +9,11 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
   /// convertPlanToActualDive on a dive that is no longer planned.
   bool _promoting = false;
 
-  String get diveId => widget.diveId;
+  /// The dive this page shows: on a new dive's page, the id the dive is
+  /// given now and created under at Save (issue #4527, plan 8).
+  String get diveId => widget.newDiveRequest == null ? widget.diveId : _newId;
+
+  late final String _newId = const Uuid().v4();
 
   /// Re-reads everything that shows [id]'s samples and sources.
   ///

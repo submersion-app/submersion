@@ -9812,6 +9812,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'L\'immersione è stata salvata, ma non è stato possibile allegare la pagina scansionata';
 
   @override
+  String get ocrImport_newDive_photoHoldFailed =>
+      'Non è stato possibile allegare la pagina scansionata a questa immersione';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Registra immersione manualmente';
 

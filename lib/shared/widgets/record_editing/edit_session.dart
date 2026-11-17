@@ -13,9 +13,14 @@ import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 ///
 /// It has no dependency on any widget.
 class EditSession<T> extends ChangeNotifier {
-  EditSession(T stored) : _stored = stored;
+  EditSession(T stored, {this.isNew = false}) : _stored = stored;
 
   T _stored;
+
+  /// Whether [stored] is a seed that is not in the database: a record being
+  /// created (issue #4527). Its values are defaults, not a stored row, so a
+  /// rule that tells stored rows from new ones treats every one as new.
+  final bool isNew;
 
   /// Pending changes by field id, in the order they were first made.
   final Map<String, _Pending<T>> _pending = {};

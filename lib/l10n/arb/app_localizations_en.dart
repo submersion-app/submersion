@@ -9659,6 +9659,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The dive was saved, but attaching the scanned page failed';
 
   @override
+  String get ocrImport_newDive_photoHoldFailed =>
+      'The scanned page could not be attached to this dive';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually => 'Log Dive Manually';
 
   @override

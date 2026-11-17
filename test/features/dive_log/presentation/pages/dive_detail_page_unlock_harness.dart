@@ -71,6 +71,25 @@ class FakeSave implements DiveEditSaveService {
       tripDateStretches: tripDateStretches,
     );
   }
+
+  /// Each new dive created, with the cards its sitting changed.
+  final creates = <({Dive dive, List<String> cards})>[];
+
+  @override
+  Future<({Dive after, List<TripDateStretch> tripDateStretches})> create({
+    required Dive dive,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+    String? activeDiverId,
+  }) async {
+    await hold?.future;
+    final error = failWith;
+    if (error != null) throw error;
+    creates.add((dive: dive, cards: changedCardIds.toList()));
+    await alsoWrite?.call();
+    stored = dive;
+    return (after: dive, tripDateStretches: tripDateStretches);
+  }
 }
 
 /// Answers every weather fetch with [data].

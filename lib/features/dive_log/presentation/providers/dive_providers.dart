@@ -1366,18 +1366,41 @@ class PaginatedDiveListNotifier
       await _repository.assignMissingDiveNumbers(
         diverId: newDive.diverId ?? diverId,
       );
-      _ref.invalidate(diveNumberingInfoProvider);
     }
 
-    // Optimistic: prepend new summary and bump totalCount. Only onto the list
-    // of the diver this call started for: after a switch the loaded rows are
-    // another diver's (or the same diver's, reloaded, after a switch back), so
-    // reload rather than prepend a dive that does not belong or is already in.
+    // After a switch the loaded rows are another diver's (or the same
+    // diver's, reloaded, after a switch back): reload rather than prepend a
+    // dive that does not belong or is already in.
+    await _showCreated(newDive, reload: _diverSwitches != diverSwitches);
+    return newDive;
+  }
+
+  /// Shows [created] in the list, after it was written by something other
+  /// than [addDive]: a new dive's sitting creates its dive inside its own
+  /// transaction (issue #4527, plan 8) and needs the refresh alone.
+  Future<void> refreshAfterCreate(domain.Dive created) async {
+    // A dive made for another diver than the list's reloads the list, as a
+    // switch during addDive does.
+    await _showCreated(
+      created,
+      reload: created.diverId != null && created.diverId != _currentDiverId,
+    );
+  }
+
+  /// What a create owes the list: the new row, its counts, and every
+  /// provider a new dive changes. [reload] reads the list again instead of
+  /// prepending: the loaded rows belong to another diver than the dive.
+  Future<void> _showCreated(domain.Dive newDive, {required bool reload}) async {
+    // The dive may have been numbered, or have moved the next number.
+    _ref.invalidate(diveNumberingInfoProvider);
+
+    // Optimistic: prepend new summary and bump totalCount, onto the list of
+    // the dive's own diver only.
     //
     // Under a filter the new dive may not match it, so the rows and both
     // counts come from the query instead, without a spinner (#2669).
     final current = state.valueOrNull;
-    if (_diverSwitches != diverSwitches) {
+    if (reload) {
       await loadFirstPage();
     } else if (_loadedUnderFilter) {
       await _silentReloadLoadedPages();
@@ -1396,7 +1419,6 @@ class PaginatedDiveListNotifier
     _invalidateStatistics();
     _invalidateRelatedProviders(newDive);
     _invalidateOldProvider();
-    return newDive;
   }
 
   Future<void> updateDive(domain.Dive dive) async {

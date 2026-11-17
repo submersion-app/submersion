@@ -3202,6 +3202,7 @@
   "ocrImport_scanPage_nothingRead": "Er kon weinig van deze pagina worden gelezen - velden blijven leeg",
   "ocrImport_scanPage_engineMissing": "Tekstherkenning is niet beschikbaar. Installeer Tesseract om papieren logboeken te scannen (bijvoorbeeld: sudo apt install tesseract-ocr).",
   "ocrImport_editPage_photoAttachFailed": "De duik is opgeslagen, maar het bijvoegen van de gescande pagina is mislukt",
+  "ocrImport_newDive_photoHoldFailed": "De gescande pagina kon niet aan deze duik worden toegevoegd",
   "diveLog_listPage_bottomSheet_logManually": "Duik handmatig loggen",
   "diveLog_listPage_bottomSheet_planDive": "Duik plannen",
   "diveLog_listPage_bottomSheet_planDiveSubtitle": "Vul de details nu in, voeg de duikcomputergegevens later toe",

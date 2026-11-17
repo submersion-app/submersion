@@ -9845,6 +9845,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'La plongée a été enregistrée, mais l\'ajout de la page scannée a échoué';
 
   @override
+  String get ocrImport_newDive_photoHoldFailed =>
+      'La page scannée n\'a pas pu être jointe à cette plongée';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Enregistrer manuellement';
 

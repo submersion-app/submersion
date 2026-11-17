@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -47,6 +48,13 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_lab/presentation/what_if_entry.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/new_dive_request.dart';
+import 'package:submersion/features/dive_log/presentation/pages/new_dive_after_create.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_site_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_rules.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/new_dive_prefill.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/new_dive_seed.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/open_dive_sitting_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
@@ -125,9 +133,11 @@ import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blo
 import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
+import 'package:uuid/uuid.dart';
 
 part 'dive_detail_page_actions.dart';
 part 'dive_detail_page_bars.dart';
+part 'dive_detail_page_creating.dart';
 part 'dive_detail_page_editing.dart';
 part 'dive_detail_page_exports.dart';
 part 'dive_detail_page_operations.dart';
@@ -154,6 +164,15 @@ class DiveDetailPage extends ConsumerStatefulWidget {
   /// in released builds until every card can be edited this way.
   final bool unlockEditing;
 
+  /// A new dive, still to be created (issue #4527, plan 8): the page opens
+  /// unlocked on it and Save creates it. Null on a stored dive's page.
+  final NewDiveRequest? newDiveRequest;
+
+  /// A new dive's page in the list pane: told the new dive's id once Save
+  /// has created it, or that Cancel left without creating one.
+  final ValueChanged<String>? onCreated;
+  final VoidCallback? onCreateCancelled;
+
   const DiveDetailPage({
     super.key,
     required this.diveId,
@@ -162,7 +181,27 @@ class DiveDetailPage extends ConsumerStatefulWidget {
     this.onCloseEmbeddedSite,
     this.onDeleted,
     this.unlockEditing = kUnlockEditing,
-  });
+  }) : newDiveRequest = null,
+       onCreated = null,
+       onCreateCancelled = null;
+
+  /// The page of a new dive (issue #4527, plan 8), opened by `/dives/new`
+  /// and the list pane's `?mode=new`: unlocked, with the Dive card and the
+  /// starter cards laid out. It is a sitting from the start, so
+  /// [unlockEditing] is always on; the routes choose the old form instead
+  /// while the build switch is off.
+  const DiveDetailPage.newDive({
+    super.key,
+    NewDiveRequest request = const NewDiveRequest(),
+    this.embedded = false,
+    this.onCreated,
+    this.onCreateCancelled,
+  }) : diveId = '',
+       unlockEditing = true,
+       newDiveRequest = request,
+       embeddedSiteId = null,
+       onCloseEmbeddedSite = null,
+       onDeleted = null;
 
   @override
   ConsumerState<DiveDetailPage> createState() => _DiveDetailPageState();
@@ -173,6 +212,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         _DiveDetailPageActions,
         _DiveDetailPageExports,
         _DiveDetailPageEditing,
+        _DiveDetailPageCreating,
         _DiveDetailPageOperations,
         _DiveDetailPageBars {
   /// Track if we've already initiated a redirect to prevent multiple calls
@@ -238,7 +278,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       );
     }
     if (!mounted) return;
-    final highlight = annotationNotesHighlightProvider(widget.diveId);
+    final highlight = annotationNotesHighlightProvider(diveId);
     ref.read(highlight.notifier).state = annotationId;
     Future<void>.delayed(const Duration(milliseconds: 1500), () {
       if (mounted && ref.read(highlight) == annotationId) {
@@ -263,12 +303,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   /// nothing, as the open Profile or Notes card is where an annotation
   /// changes (issue #4527).
   Future<void> _scrollToProfileAndFocus(String annotationId) async {
-    final dive = ref.read(diveProvider(widget.diveId)).value;
+    final dive = ref.read(diveProvider(diveId)).value;
     if (dive != null && !_hasMarkerToOpen(dive)) {
       if (editingOffered) return;
       final annotations = await ref
           .read(annotationRepositoryProvider)
-          .annotationsForDive(widget.diveId);
+          .annotationsForDive(diveId);
       final annotation = annotations
           .where((a) => a.id == annotationId)
           .firstOrNull;
@@ -306,7 +346,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     // A request nothing could serve (placement mode, no layer yet) leaves its
     // id in place, and setting it again is no change to the layer. Clearing
     // it takes a frame: two writes in one tick reach the layer as neither.
-    final focus = annotationFocusProvider(widget.diveId);
+    final focus = annotationFocusProvider(diveId);
     if (ref.read(focus) != null) {
       ref.read(focus.notifier).state = null;
       await WidgetsBinding.instance.endOfFrame;
@@ -425,6 +465,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
 
   @override
   Widget build(BuildContext context) {
+    // A new dive has no stored row to read, review or redirect for.
+    if (widget.newDiveRequest != null) return buildNewDive(context);
     final embeddedSiteId = widget.embeddedSiteId;
     if (embeddedSiteId != null && embeddedSiteId.isNotEmpty) {
       return SiteDetailPage(
@@ -541,6 +583,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     );
   }
 
+  @override
   Widget _buildContent(BuildContext context, Dive dive) {
     final layout = ref.watch(
       settingsProvider.select((s) => s.diveDetailLayout),
@@ -559,6 +602,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
               stored: dive,
               shown: shown,
               embedded: widget.embedded,
+              creating: isCreating,
               onMarkLogged: () => _runOperation(() => _markAsLogged(dive)),
               onDownloadDraft: _downloadForDraft,
               onSurfaceDraft: () => _runOperation(() => _surfaceDraft(dive)),
@@ -624,6 +668,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     if (widget.embedded) {
       final header = DiveDetailEmbeddedHeader(
         dive: dive,
+        creating: isCreating,
         menu: _overflowMenu(dive, _headerMenuKey, historyInBar: editingOffered),
         onNavigate: _navigateToDive,
         onMarkLogged: () => _runOperation(() => _markAsLogged(dive)),
@@ -634,7 +679,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         history: editingOffered ? historyButton(dive, compact: true) : null,
         lock: editingOffered ? lockButton(shown, compact: true) : null,
         unlockedRow: isSittingOpen
-            ? editingPaneRow(dive, menu: _overflowMenu(dive, _appBarMenuKey))
+            ? editingPaneRow(
+                dive,
+                menu: isCreating
+                    ? const SizedBox.shrink()
+                    : _overflowMenu(dive, _appBarMenuKey),
+              )
             : null,
       );
       if (!editingOffered) {
@@ -655,7 +705,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       shown: shown,
       lockedBar: appBar,
       content: content,
-      unlockedActions: [_overflowMenu(dive, _appBarMenuKey)],
+      // A new dive has nothing for a menu to act on yet (plan 8).
+      unlockedActions: isCreating
+          ? const []
+          : [_overflowMenu(dive, _appBarMenuKey)],
     );
   }
 }

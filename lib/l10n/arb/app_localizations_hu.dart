@@ -9789,6 +9789,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A merülés mentve, de a beolvasott oldal csatolása nem sikerült';
 
   @override
+  String get ocrImport_newDive_photoHoldFailed =>
+      'A beolvasott oldalt nem sikerült ehhez a merüléshez csatolni';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Merülés manuális rögzítése';
 

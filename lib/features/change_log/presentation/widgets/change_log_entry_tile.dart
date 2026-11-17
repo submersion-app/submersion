@@ -66,7 +66,13 @@ class ChangeLogEntryTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    changeLogSubtitle(l, units, operation, peerNames),
+                    changeLogSubtitle(
+                      l,
+                      units,
+                      operation,
+                      peerNames,
+                      rootAction: preview?.rootAction,
+                    ),
                     style: muted,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

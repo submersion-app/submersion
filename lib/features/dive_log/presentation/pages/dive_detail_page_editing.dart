@@ -12,6 +12,17 @@ part of 'dive_detail_page.dart';
 mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   RecordEditController<Dive>? _editController;
 
+  /// The dive the page shows ([_DiveDetailPageActions.diveId]).
+  String get diveId;
+
+  /// Whether the page is of a new dive not yet created, and what it does
+  /// in place of a stored dive's save and cancel
+  /// ([_DiveDetailPageCreating]).
+  bool get isCreating;
+  Future<void> _createSitting(EditSession<Dive> session);
+  Future<void> _saveNewDive();
+  Future<void> _cancelNewDive();
+
   /// The dive as a sitting just saved it, shown until the stored dive has
   /// been read back. Without it the page would show the old values, and
   /// drop a card that was only just filled in, for the moment between the
@@ -44,6 +55,8 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   RecordEditController<Dive> _newController(ProviderContainer container) =>
       RecordEditController<Dive>(
         onSave: _saveSitting,
+        // A new dive's sitting creates it (issue #4527, plan 8).
+        creating: isCreating,
         // After a whole-record operation: the dive as stored now, read
         // through the provider the page shows, so both agree.
         reread: (stored) {
@@ -119,11 +132,14 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     final target = _shortcutTarget = RecordEditShortcutTarget(
       controller: controller,
       unlock: () {
-        final stored = ref.read(diveProvider(widget.diveId)).value;
+        // A new dive's page opens unlocked; there is nothing to unlock.
+        if (isCreating) return;
+        final stored = ref.read(diveProvider(diveId)).value;
         if (stored != null) controller.unlock(shownDive(stored));
       },
       save: _saveAndReport,
-      cancel: () => cancelSitting(context, controller),
+      cancel: () =>
+          isCreating ? _cancelNewDive() : cancelSitting(context, controller),
       // The page in view: not under a page, sheet or menu, and in the list
       // pane not giving its place to a site.
       isCurrent: () =>
@@ -177,7 +193,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   /// `build`.
   void followStoredDive() {
     if (!editingOffered) return;
-    ref.listen(diveProvider(widget.diveId), (_, next) {
+    ref.listen(diveProvider(diveId), (_, next) {
       // A reload in flight still carries the dive it started from.
       if (next.isLoading) return;
       final dive = next.valueOrNull;
@@ -193,6 +209,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   }
 
   Future<void> _saveSitting(EditSession<Dive> session) async {
+    if (session.isNew) return _createSitting(session);
     // Read now: the write may finish after the page has gone.
     final service = ref.read(diveEditSaveServiceProvider);
     final list = ref.read(paginatedDiveListProvider.notifier);
@@ -239,7 +256,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       ),
     );
     if (result == null) return;
-    if (result.after.id == widget.diveId) _justSaved = result.after;
+    if (result.after.id == diveId) _justSaved = result.after;
     // The write is committed. A refresh that fails from here on must not
     // read as a save that failed: the diver would be told nothing was
     // changed and handed the sitting to save a second time.
@@ -284,6 +301,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   }
 
   Future<void> _saveAndReport() async {
+    if (isCreating) return _saveNewDive();
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final controller = editController;
@@ -302,7 +320,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     // the sitting could not be ended (see [didUpdateWidget]). It ends now,
     // or it would stay open over a dive it does not belong to.
     final session = controller.session;
-    if (session != null && session.stored.id != widget.diveId) {
+    if (session != null && session.stored.id != diveId) {
       controller.lock();
     }
     if (error == null) return;
@@ -320,16 +338,23 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     onPressed: () => editController.unlock(dive),
   );
 
+  /// The unlocked bar's title: "Log Dive" for a new dive, as the form it
+  /// replaces is titled (issue #4527, plan 8), else the dive's own.
+  String _editingTitle(Dive dive) => isCreating
+      ? context.l10n.diveLog_edit_appBarNew
+      : context.l10n.recordEdit_editingTitle(diveTitle(context, dive));
+
   /// The list pane's header row while unlocked: Cancel, the title, [menu]
   /// and Save, laid over the locked row.
   Widget editingPaneRow(Dive dive, {required Widget menu}) {
     final controller = editController;
     return DiveDetailEmbeddedEditingHeader(
-      title: context.l10n.recordEdit_editingTitle(diveTitle(context, dive)),
+      title: _editingTitle(dive),
       canSave: controller.isDirty,
       isSaving: controller.isSaving,
       isBusy: controller.isOperating,
-      onCancel: () => cancelSitting(context, controller),
+      onCancel: () =>
+          isCreating ? _cancelNewDive() : cancelSitting(context, controller),
       onSave: _saveAndReport,
       menu: menu,
     );
@@ -433,14 +458,14 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       child: Scaffold(
         appBar: controller.isUnlocked
             ? RecordEditBar(
-                title: context.l10n.recordEdit_editingTitle(
-                  diveTitle(context, dive),
-                ),
+                title: _editingTitle(dive),
                 canSave: controller.isDirty,
                 isSaving: controller.isSaving,
                 isBusy: controller.isOperating,
                 actions: unlockedActions,
-                onCancel: () => cancelSitting(context, controller),
+                onCancel: () => isCreating
+                    ? _cancelNewDive()
+                    : cancelSitting(context, controller),
                 onSave: _saveAndReport,
               )
             : lockedBar,

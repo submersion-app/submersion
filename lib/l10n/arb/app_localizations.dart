@@ -15451,6 +15451,12 @@ abstract class AppLocalizations {
   /// **'The dive was saved, but attaching the scanned page failed'**
   String get ocrImport_editPage_photoAttachFailed;
 
+  /// Shown when a new dive opened from a logbook scan cannot hold the scanned page photo; the dive has not been saved yet
+  ///
+  /// In en, this message translates to:
+  /// **'The scanned page could not be attached to this dive'**
+  String get ocrImport_newDive_photoHoldFailed;
+
   /// No description provided for @diveLog_listPage_bottomSheet_logManually.
   ///
   /// In en, this message translates to:

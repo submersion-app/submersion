@@ -3076,6 +3076,7 @@
   "ocrImport_scanPage_nothingRead": "Nem sikerült sokat kiolvasni az oldalból - a mezők üresen maradtak",
   "ocrImport_scanPage_engineMissing": "A szövegfelismerés nem érhető el. Telepítse a Tesseract-ot a papír naplók beolvasásához (például: sudo apt install tesseract-ocr).",
   "ocrImport_editPage_photoAttachFailed": "A merülés mentve, de a beolvasott oldal csatolása nem sikerült",
+  "ocrImport_newDive_photoHoldFailed": "A beolvasott oldalt nem sikerült ehhez a merüléshez csatolni",
   "diveLog_listPage_bottomSheet_logManually": "Merülés manuális rögzítése",
   "diveLog_listPage_bottomSheet_planDive": "Merülés tervezése",
   "diveLog_listPage_bottomSheet_planDiveSubtitle": "Töltsd ki a részleteket most, a búvárkomputer adatait add hozzá később",

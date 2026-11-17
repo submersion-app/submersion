@@ -3202,6 +3202,7 @@
   "ocrImport_scanPage_nothingRead": "No se pudo leer mucho de esta página - los campos quedaron vacíos",
   "ocrImport_scanPage_engineMissing": "El reconocimiento de texto no está disponible. Instala Tesseract para escanear registros en papel (por ejemplo: sudo apt install tesseract-ocr).",
   "ocrImport_editPage_photoAttachFailed": "La inmersión se guardó, pero no se pudo adjuntar la página escaneada",
+  "ocrImport_newDive_photoHoldFailed": "No se pudo adjuntar la página escaneada a esta inmersión",
   "diveLog_listPage_bottomSheet_logManually": "Registrar inmersión manualmente",
   "diveLog_listPage_bottomSheet_planDive": "Planificar una inmersión",
   "diveLog_listPage_bottomSheet_planDiveSubtitle": "Rellena los detalles ahora y añade los datos del ordenador después",
