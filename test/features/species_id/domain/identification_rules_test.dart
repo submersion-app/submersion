@@ -158,6 +158,71 @@ void main() {
       expect(changed.single.decidedSpeciesId, 'uuid-1');
     });
 
+    test('a tag accepts the fish it names first, not a neighbour that lists '
+        'it lower', () {
+      final changed = reconcileDecisions(
+        [
+          _id('a', candidates: [(_parrotfish, 0.8), (_chromis, 0.1)]),
+          _id('b', candidates: [(_chromis, 0.7), (_parrotfish, 0.2)]),
+        ],
+        [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
+        now: _now,
+      );
+      expect(changed.map((i) => i.id), ['a']);
+    });
+
+    test('every fish named first as the tagged species is accepted', () {
+      final changed = reconcileDecisions(
+        [
+          _id('a', candidates: [(_parrotfish, 0.8)]),
+          _id('b', candidates: [(_parrotfish, 0.6)]),
+        ],
+        [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
+        now: _now,
+      );
+      expect(changed.map((i) => i.id), unorderedEquals(['a', 'b']));
+    });
+
+    test('a tag no fish names first accepts only the fish that ranks it '
+        'highest', () {
+      final changed = reconcileDecisions(
+        [
+          _id(
+            'a',
+            candidates: [(_parrotfish, 0.6), (_tang, 0.1), (_chromis, 0.05)],
+          ),
+          _id('b', candidates: [(_parrotfish, 0.5), (_chromis, 0.3)]),
+        ],
+        [
+          const TaggedSpecies(
+            speciesId: 'uuid-1',
+            scientificName: 'Chromis multilineata',
+          ),
+        ],
+        now: _now,
+      );
+      expect(changed.map((i) => i.id), ['b']);
+      expect(changed.single.decidedSpeciesId, 'uuid-1');
+    });
+
+    test('a fish named first by one tag is not taken by another tag\'s '
+        'lower match', () {
+      final changed = reconcileDecisions(
+        [
+          _id('a', candidates: [(_parrotfish, 0.6), (_chromis, 0.3)]),
+        ],
+        [
+          const TaggedSpecies(
+            speciesId: 'uuid-1',
+            scientificName: 'Chromis multilineata',
+          ),
+          const TaggedSpecies(speciesId: 'sp_queen_parrotfish'),
+        ],
+        now: _now,
+      );
+      expect(changed.single.decidedSpeciesId, 'sp_queen_parrotfish');
+    });
+
     test('an accepted identification whose species is untagged becomes '
         'rejected', () {
       final changed = reconcileDecisions(

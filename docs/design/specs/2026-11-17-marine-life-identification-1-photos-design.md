@@ -502,8 +502,12 @@ modes, and also counts a species the diver tagged by hand **(proposed)**.
 
 After any change to a photo's species tags:
 
-- An undecided identification with a candidate whose species is now tagged on
-  the photo becomes `accepted`, with that species.
+- A species now tagged on the photo accepts every undecided identification
+  whose best name is that species. When no identification names it first, it
+  accepts the one undecided identification that ranks it highest among its
+  candidates, so a diver correcting the app's guess is still recorded. A
+  neighbouring fish that only lists the species lower down keeps its own
+  suggestion **(decided)**.
 - An accepted identification whose species is no longer tagged becomes
   `rejected`.
 

@@ -26,7 +26,11 @@ bool candidateMatches(PackCandidate candidate, TaggedSpecies tagged) {
 
 /// The identifications whose decision the photo's current tags change.
 ///
-/// - Undecided, with a candidate whose species is tagged: accepted.
+/// - Undecided: a tag accepts every identification whose best name is its
+///   species. A tag that is no identification's best name accepts the one
+///   identification that ranks it highest (the diver corrected the app's
+///   guess). A neighbouring fish that only lists the species lower down
+///   keeps its own suggestion (decided 2026-11-17, issue #4668).
 /// - Accepted, whose species is no longer tagged: rejected.
 /// - Rejected: never changed here.
 List<MediaIdentification> reconcileDecisions(
@@ -34,12 +38,13 @@ List<MediaIdentification> reconcileDecisions(
   List<TaggedSpecies> tagged, {
   required DateTime now,
 }) {
+  final accepting = _acceptingTags(all, tagged);
   final taggedIds = {for (final t in tagged) t.speciesId};
   final changed = <MediaIdentification>[];
   for (final identification in all) {
     switch (identification.decision) {
       case IdentificationDecision.undecided:
-        final match = _firstTagMatch(identification, tagged);
+        final match = accepting[identification.id];
         if (match != null) {
           changed.add(
             identification.copyWith(
@@ -65,16 +70,51 @@ List<MediaIdentification> reconcileDecisions(
   return changed;
 }
 
-TaggedSpecies? _firstTagMatch(
-  MediaIdentification identification,
+/// The tag each undecided identification is accepted as, by id: best-name
+/// matches first, then each remaining tag's single best lower match.
+Map<String, TaggedSpecies> _acceptingTags(
+  List<MediaIdentification> all,
   List<TaggedSpecies> tagged,
 ) {
-  for (final named in identification.candidates) {
-    for (final t in tagged) {
-      if (candidateMatches(named.candidate, t)) return t;
+  final undecided = [
+    for (final i in all)
+      if (i.decision == IdentificationDecision.undecided) i,
+  ];
+  final accepting = <String, TaggedSpecies>{};
+  final unnamed = <TaggedSpecies>[];
+  for (final t in tagged) {
+    var named = false;
+    for (final i in undecided) {
+      final top = i.top;
+      if (top != null && candidateMatches(top.candidate, t)) {
+        accepting.putIfAbsent(i.id, () => t);
+        named = true;
+      }
     }
+    if (!named) unnamed.add(t);
   }
-  return null;
+  for (final t in unnamed) {
+    MediaIdentification? best;
+    var bestRank = 0;
+    var bestScore = 0.0;
+    for (final i in undecided) {
+      if (accepting.containsKey(i.id)) continue;
+      final rank = i.candidates.indexWhere(
+        (n) => candidateMatches(n.candidate, t),
+      );
+      if (rank < 0) continue;
+      final score = i.candidates[rank].score;
+      if (best == null ||
+          rank < bestRank ||
+          (rank == bestRank && score > bestScore)) {
+        best = i;
+        bestRank = rank;
+        bestScore = score;
+      }
+    }
+    if (best != null) accepting[best.id] = t;
+  }
+  return accepting;
 }
 
 /// What to offer for a photo: suggestable, undecided identifications whose
