@@ -47,6 +47,7 @@ class ScenarioRequest extends Equatable {
     this.scrInjectionRate,
     this.scrSupplyO2Percent,
     this.scrVo2 = ScrCalculator.defaultVo2,
+    this.replanScrVo2,
     this.startCompartments,
     this.startCns = 0.0,
     this.startOtu = 0.0,
@@ -77,6 +78,12 @@ class ScenarioRequest extends Equatable {
   final double? scrSupplyO2Percent;
   final double scrVo2;
 
+  /// The CMF VO2 a re-plan breathes (issue #4660): the dive's own when it
+  /// logged one for a constant mass flow loop, else null, and the re-plan
+  /// takes the diver's SCR VO2 from [ScenarioSettings]. [scrVo2] stays what
+  /// the logged dive is analysed with, exactly as dive detail does.
+  final double? replanScrVo2;
+
   /// Repetitive-dive seeds, mirroring the dive detail page.
   final List<TissueCompartment>? startCompartments;
   final double startCns;
@@ -105,6 +112,7 @@ class ScenarioRequest extends Equatable {
     scrInjectionRate,
     scrSupplyO2Percent,
     scrVo2,
+    replanScrVo2,
     startCompartments,
     startCns,
     startOtu,

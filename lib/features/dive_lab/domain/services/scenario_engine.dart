@@ -369,7 +369,7 @@ class ScenarioEngine {
     final engine = PlanEngine(
       config: settings.engineConfigFor(
         scrInjectionRateLpm: request.scrInjectionRate,
-        scrVo2Lpm: request.scrVo2,
+        scrVo2Lpm: request.replanScrVo2,
       ),
     );
     var planOutcome = engine.compute(plan, startState: branch.tissueState);
@@ -420,7 +420,7 @@ class ScenarioEngine {
               supplyFHe: plan.segments.last.gasMix.he / 100,
               injectionRateLpm:
                   request.scrInjectionRate ?? engine.config.scrInjectionRateLpm,
-              vo2: request.scrVo2,
+              vo2: engine.config.scrVo2Lpm,
             )
           : null,
     );
@@ -453,7 +453,8 @@ class ScenarioEngine {
               spliced.depths,
               injectionRateLpm: scrInjection,
               supplyO2Percent: scrSupply,
-              vo2: request.scrVo2,
+              // The re-plan's VO2, so the tail agrees with the plan breathed.
+              vo2: engine.config.scrVo2Lpm,
             )
           : null;
       cfPpO2 = [

@@ -138,6 +138,53 @@ void main() {
     },
   );
 
+  Future<LabRequestInputs> scrInputs(ScrType? scrType, double? vo2) async {
+    final dive = await DiveRepository().createDive(
+      Dive(
+        id: '',
+        diveNumber: 1,
+        dateTime: DateTime(2026, 1, 1),
+        profile: _square(),
+        diveMode: DiveMode.scr,
+        scrType: scrType,
+        assumedVo2: vo2,
+        tanks: const [
+          DiveTank(
+            id: 'supply',
+            volume: 7,
+            startPressure: 200,
+            endPressure: 100,
+            gasMix: GasMix(o2: 50),
+            role: TankRole.diluent,
+          ),
+        ],
+      ),
+    );
+    final c = container();
+    addTearDown(c.dispose);
+    final inputs = await c.read(labRequestInputsProvider(dive.id).future);
+    return inputs!;
+  }
+
+  test('a CMF dive re-plans at the VO2 it logged (#4660)', () async {
+    final inputs = await scrInputs(ScrType.cmf, 1.5);
+    expect(inputs.scrVo2, 1.5);
+    expect(inputs.replanScrVo2, 1.5);
+  });
+
+  test('a dive with no VO2 re-plans at the diver default (#4660)', () async {
+    final inputs = await scrInputs(ScrType.cmf, null);
+    expect(inputs.replanScrVo2, isNull);
+  });
+
+  test('a passive SCR dive VO2 is not a CMF re-plan VO2 (#4660)', () async {
+    final inputs = await scrInputs(ScrType.pascr, 0.72);
+    // Analysed exactly as dive detail analyses it...
+    expect(inputs.scrVo2, 0.72);
+    // ...but the CMF re-plan falls back to the diver's SCR VO2.
+    expect(inputs.replanScrVo2, isNull);
+  });
+
   test('a gauge dive is ineligible', () async {
     final dive = await DiveRepository().createDive(
       Dive(
