@@ -153,7 +153,11 @@ void suggestTankSlots(
     if (session.isDisposed || session.isFrozen) return;
     final now = session.working;
     if (_tripIdOf(now) != tripId || now.effectiveEntryTime != at) return;
-    final storedIds = {for (final t in session.stored.tanks) t.id};
+    // A new dive's seed is not stored: its starter cylinder is offered a
+    // slot, as the form offers its own (issue #4527, plan 8).
+    final storedIds = session.isNew
+        ? const <String>{}
+        : {for (final t in session.stored.tanks) t.id};
     final declined = _declined(session);
     final tanks = session.valueOf(diveTanksField);
     final result = suggestTripCylindersForTanks(

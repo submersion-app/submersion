@@ -159,6 +159,33 @@ class MediaImportService {
     String subdirectory = kScannedLogsSubdirectory,
   }) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
+    final prepared = await prepareLocalFileForDive(
+      sourceFile: sourceFile,
+      diveId: diveId,
+      takenAt: takenAt,
+      latitude: latitude,
+      longitude: longitude,
+      subdirectory: subdirectory,
+    );
+    final created = await _mediaRepository.createMedia(
+      prepared.item.copyWith(id: ''),
+    );
+    onMediaCreated?.call(created.id);
+    return created;
+  }
+
+  /// What [importLocalFileForDive] writes, without the write: the file is
+  /// copied into the app's folder and its row built under a fresh id, for a
+  /// new dive's sitting to hold and write at Save (issue #4527, plan 8).
+  Future<PreparedMedia> prepareLocalFileForDive({
+    required File sourceFile,
+    required String diveId,
+    DateTime? takenAt,
+    double? latitude,
+    double? longitude,
+    String subdirectory = kScannedLogsSubdirectory,
+  }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
     final docs = await _documentsDirectory();
     final dir = destinationDirectory(docs, subdirectory);
     await dir.create(recursive: true);
@@ -177,7 +204,7 @@ class MediaImportService {
     final dest = await sourceFile.copy(destPath);
     final now = DateTime.now();
     final item = MediaItem(
-      id: '',
+      id: const Uuid().v4(),
       diveId: diveId,
       mediaType: MediaType.photo,
       sourceType: MediaSourceType.localFile,
@@ -189,9 +216,7 @@ class MediaImportService {
       createdAt: now,
       updatedAt: now,
     );
-    final created = await _mediaRepository.createMedia(item);
-    onMediaCreated?.call(created.id);
-    return created;
+    return (item: item, enrichment: null);
   }
 
   /// Import selected assets for a dive.
