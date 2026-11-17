@@ -8636,6 +8636,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_row_trip => 'טיול';
 
   @override
+  String get diveLog_edit_row_tripNotFound => 'הטיול לא נמצא';
+
+  @override
   String get diveLog_edit_save => 'שמירה';
 
   @override
@@ -21721,6 +21724,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get media_viewer_movedWhileEditing =>
       'הועבר לצלילה אחרת מאז ביטול הנעילה. בטל, ואז בטל שוב את הנעילה.';
+
+  @override
+  String get media_viewer_locatedFileChanged =>
+      'הקובץ שאותר השתנה או הועבר מאז. אתר אותו שוב או בטל.';
 
   @override
   String get media_viewer_exitFullscreen => 'יציאה ממסך מלא';

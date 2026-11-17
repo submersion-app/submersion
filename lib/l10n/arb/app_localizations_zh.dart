@@ -8373,6 +8373,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_row_trip => '行程';
 
   @override
+  String get diveLog_edit_row_tripNotFound => '找不到该旅行';
+
+  @override
   String get diveLog_edit_save => '保存';
 
   @override
@@ -21104,6 +21107,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_viewer_movedWhileEditing => '自解锁后已移至另一次潜水。请取消，然后重新解锁。';
+
+  @override
+  String get media_viewer_locatedFileChanged => '找到的文件此后已更改或移动。请重新查找，或取消。';
 
   @override
   String get media_viewer_exitFullscreen => '退出全屏';

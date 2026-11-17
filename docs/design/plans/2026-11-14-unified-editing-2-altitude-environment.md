@@ -1068,3 +1068,11 @@ Changed by the review of this plan's own pull request (#4550):
 - The group banner shows the last readable altitude's group while the altitude text is unreadable.
 - The read-only pressure row on the Environment card does not lead to the Altitude card. A changed card that has gone back to the strip carries no dot.
 - `session.set(field, 10)` with a whole-number literal on a decimal field compiles and fails at run time. Tests spell `10.0`.
+
+### Cleared later (PR #4670)
+
+- A held site altitude is written only while the site still has none (`SiteRepository.fillSiteAltitudeIfEmpty`), so one it gained meanwhile is kept. Releasing a held write (`releaseWrite`) had already landed.
+- The group banner shows no group while the altitude text cannot be read.
+- The Environment card's read-only surface pressure row leads to the Altitude card.
+- A changed card back on the Add strip carries its dot.
+- Still open, each needing a decision: the form rows' inset from the card title, the editor rebuilt (focus lost) across the 700 px pair width, and `session.set(field, 10)` on a decimal field.

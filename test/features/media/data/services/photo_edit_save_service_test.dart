@@ -736,7 +736,7 @@ void main() {
 
       await expectLater(
         undoRelinkOnFailure(session, () => save(session)),
-        throwsStateError,
+        throwsA(isA<LocatedFileChangedError>()),
       );
 
       final after = await stored('p1');
@@ -769,7 +769,7 @@ void main() {
 
       await expectLater(
         undoRelinkOnFailure(session, () => save(session)),
-        throwsStateError,
+        throwsA(isA<LocatedFileChangedError>()),
       );
 
       final after = await stored('p1');

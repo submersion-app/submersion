@@ -10,6 +10,14 @@ import 'package:submersion/features/media/presentation/editing/photo_edit_fields
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/held_write_undo.dart';
 
+/// Thrown at Save when the file Locate found has gone, or no longer holds
+/// the bytes found, since: the relink is refused, and the viewer tells the
+/// diver to locate it again (issue #4527).
+class LocatedFileChangedError extends StateError {
+  LocatedFileChangedError(String mediaId, String why)
+    : super('The file found for media $mediaId $why');
+}
+
 const _relinkAfterKey = 'photo:relink.after';
 const _relinkUndoKey = 'photo:relink.undo';
 
@@ -74,8 +82,8 @@ void holdRelink(
 }
 
 /// [found], the file Locate found, as it is at Save: read again, and
-/// refused (a [StateError], which fails the save) when it is gone or its
-/// bytes are no longer the ones found.
+/// refused (a [LocatedFileChangedError], which fails the save) when it is
+/// gone or its bytes are no longer the ones found.
 Future<RepairCandidate?> _asFoundStill(
   String id,
   RepairCandidate? found,
@@ -87,10 +95,10 @@ Future<RepairCandidate?> _asFoundStill(
   try {
     now = await hashFile(File(path));
   } on FileSystemException catch (error) {
-    throw StateError('The file found for media $id is gone: $error');
+    throw LocatedFileChangedError(id, 'is gone: $error');
   }
   if (found.hash != null && now.hash != found.hash) {
-    throw StateError('The file found for media $id changed since');
+    throw LocatedFileChangedError(id, 'changed since');
   }
   return RepairCandidate.file(
     path: path,

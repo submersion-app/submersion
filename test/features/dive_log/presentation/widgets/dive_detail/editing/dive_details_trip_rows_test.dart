@@ -252,7 +252,7 @@ void main() {
     testWidgets('a trip that did not load can be cleared', (tester) async {
       final controller = await pumpRows(tester, bare.copyWith(tripId: 'gone'));
 
-      expect(find.text(l.trips_gallery_tripNotFound), findsOneWidget);
+      expect(find.text(l.diveLog_edit_row_tripNotFound), findsOneWidget);
       expect(find.byIcon(Icons.clear), findsOneWidget);
 
       await tester.tap(find.byIcon(Icons.clear));
@@ -262,7 +262,7 @@ void main() {
       expect(working(controller).trip, isNull);
       expect(controller.isDirty, isTrue);
       expect(find.byIcon(Icons.clear), findsNothing);
-      expect(find.text(l.trips_gallery_tripNotFound), findsNothing);
+      expect(find.text(l.diveLog_edit_row_tripNotFound), findsNothing);
       expect(find.text(l.diveLog_edit_row_notSet), findsNWidgets(2));
     });
 

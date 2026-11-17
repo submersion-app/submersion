@@ -8797,6 +8797,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_row_trip => 'Utazás';
 
   @override
+  String get diveLog_edit_row_tripNotFound => 'Út nem található';
+
+  @override
   String get diveLog_edit_save => 'Mentés';
 
   @override
@@ -22135,6 +22138,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get media_viewer_movedWhileEditing =>
       'A feloldás óta egy másik merülésre került. Válaszd a Mégse gombot, majd oldd fel újra.';
+
+  @override
+  String get media_viewer_locatedFileChanged =>
+      'A megtalált fájl azóta megváltozott vagy máshová került. Keresd meg újra, vagy válaszd a Mégse gombot.';
 
   @override
   String get media_viewer_exitFullscreen => 'Kilépés a teljes képernyőből';

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -55,12 +56,21 @@ final diveGearRefreshProvider = Provider<void Function(String diveId)>(
 
 /// Records the tide for a saved dive at its site, when the site has
 /// coordinates, as the dive form does after every save
-/// (`dive_edit_page.dart`, after `_saveDive`). A freshwater dive records
-/// none. A provider, so a test can stand in for the tide model.
+/// (`dive_edit_page.dart`, after `_saveDive`). A dive with no sea site (none,
+/// one with no location, or fresh water) has its record cleared instead: a
+/// tide record is worked out from the site, never typed, so one left from a
+/// site the dive is no longer at would show a tide that never was
+/// (issue #4527). A provider, so a test can stand in for the tide model.
 final diveTideRecordProvider = Provider<Future<void> Function(Dive dive)>(
   (ref) => (dive) async {
     final location = dive.site?.location;
-    if (location == null) return;
+    if (location == null || dive.effectiveWaterType == WaterType.fresh) {
+      await ref
+          .read(tideRecordRepositoryProvider)
+          .deleteTideRecordForDive(dive.id);
+      ref.invalidate(tideRecordForDiveProvider(dive.id));
+      return;
+    }
     final resolved = await ref.read(resolvedTideDataProvider(location).future);
     if (resolved == null) return;
     await recordDiveTide(

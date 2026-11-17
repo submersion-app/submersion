@@ -243,7 +243,7 @@ class _DiveTripRowState extends ConsumerState<DiveTripRow> {
               label: l10n.diveLog_edit_row_trip,
               value:
                   trip?.name ??
-                  (unloaded ? l10n.trips_gallery_tripNotFound : null),
+                  (unloaded ? l10n.diveLog_edit_row_tripNotFound : null),
               placeholder: l10n.diveLog_edit_row_notSet,
               onTap: _pick,
               onClear: trip != null

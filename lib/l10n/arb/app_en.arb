@@ -5306,6 +5306,10 @@
   "@diveLog_edit_row_trip": {
     "description": "Row label: trip picker"
   },
+  "diveLog_edit_row_tripNotFound": "Trip not found",
+  "@diveLog_edit_row_tripNotFound": {
+    "description": "Value of the Trip row on the dive's Details card when the dive names a trip that could not be loaded (deleted on another device, say). The row offers a clear."
+  },
   "diveLog_edit_save": "Save",
   "diveLog_edit_saveAsSet": "Save as Set",
   "diveLog_edit_saveAsSetDialog_content": "Save {count} {count, plural, =1{item} other{items}} as a new equipment set.",
@@ -13950,6 +13954,10 @@
   "media_viewer_movedWhileEditing": "Moved to another dive since you unlocked it. Cancel, then unlock it again.",
   "@media_viewer_movedWhileEditing": {
     "description": "Shown when Save is refused because the photo or video being edited was moved to another dive (on another device, or by a sync) after the diver unlocked it. Cancel ends the sitting; unlocking again starts one on the new dive."
+  },
+  "media_viewer_locatedFileChanged": "The file you located has changed or moved since. Locate it again, or cancel.",
+  "@media_viewer_locatedFileChanged": {
+    "description": "Shown when Save is refused because the file found with Locate file was deleted, moved or edited after it was found. Locating it again holds the file as it is now; Cancel drops the relink."
   },
   "media_viewer_exitFullscreen": "Exit full screen",
   "@media_viewer_exitFullscreen": {
