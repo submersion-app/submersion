@@ -135,9 +135,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   @override
   EditSession<PhotoRecord>? get colorSitting => photoSitting;
 
-  @override
-  bool get colorLockOffered => true;
-
   /// Locking, by any route, closes what changes the photo.
   @override
   void onPhotoLocked() {
@@ -393,6 +390,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     );
 
     return photoEditScope(
+      backsOutFirst: () => isFullscreen,
       child: fullscreenPopScope(
         child: Scaffold(
           backgroundColor: Colors.black,

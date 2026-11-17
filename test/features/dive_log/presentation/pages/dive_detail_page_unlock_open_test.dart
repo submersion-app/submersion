@@ -125,6 +125,56 @@ void main() {
     expect(ended, 1);
   });
 
+  // A delete ends the sitting (the dive is gone) and leaves the page: the
+  // pane goes back to the list, and must not be sent back to the deleted
+  // dive by the sitting's end.
+  testWidgets('a dive deleted from a page opened unlocked reports no '
+      'sitting end', (tester) async {
+    var ended = 0;
+    var deleted = 0;
+    await pumpPage(
+      tester,
+      initialLocation: '/pane-edit',
+      // The read after the delete fails, which ends the sitting, as a read
+      // of a dive that is gone does.
+      reloadError: () => StateError('dive gone'),
+      routes: [
+        GoRoute(
+          path: '/pane-edit',
+          builder: (context, state) => Scaffold(
+            body: DiveDetailPage(
+              diveId: dive.id,
+              embedded: true,
+              openUnlocked: true,
+              onSittingEnded: () => ended++,
+              onDeleted: () => deleted++,
+            ),
+          ),
+        ),
+      ],
+      extra: [
+        paginatedDiveListProvider.overrideWith(
+          (ref) => _SpyList(ref.watch(diveRepositoryProvider), ref),
+        ),
+      ],
+    );
+    await settle(tester);
+    expect(saveAction(), findsOneWidget);
+
+    await tester.tap(
+      find.byWidgetPredicate((w) => w is PopupMenuButton<String>).last,
+    );
+    await settle(tester);
+    await tester.tap(find.text('Delete'));
+    await settle(tester);
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await settle(tester);
+    await settle(tester);
+
+    expect(deleted, 1);
+    expect(ended, 0);
+  });
+
   testWidgets('neither bar has an Edit button', (tester) async {
     await pumpPage(tester);
     expect(find.byTooltip('Edit dive'), findsNothing);
@@ -134,4 +184,12 @@ void main() {
     expect(find.byTooltip('Edit'), findsNothing);
     expect(find.byIcon(Icons.edit), findsNothing);
   });
+}
+
+/// Deletes nothing, so the stored dive stays readable for the page.
+class _SpyList extends PaginatedDiveListNotifier {
+  _SpyList(super.repository, super.ref);
+
+  @override
+  Future<void> deleteDive(String id) async {}
 }

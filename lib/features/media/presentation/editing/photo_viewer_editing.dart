@@ -357,11 +357,17 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
 
   /// [child] with the leave check and the scope the viewer's controls read
   /// the sitting from, when the viewer offers editing.
-  Widget photoEditScope({required Widget child}) {
+  /// [backsOutFirst] says when Back closes a step of the viewer's own
+  /// first (fullscreen), leaving the sitting as it is.
+  Widget photoEditScope({
+    required Widget child,
+    bool Function()? backsOutFirst,
+  }) {
     if (!editingOffered) return child;
     final controller = photoEditController;
     return RecordEditLeaveGuard<PhotoRecord>(
       controller: controller,
+      backsOutFirst: backsOutFirst,
       child: RecordEditScope<PhotoRecord>(controller: controller, child: child),
     );
   }

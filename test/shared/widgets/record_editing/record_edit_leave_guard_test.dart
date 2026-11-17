@@ -164,6 +164,59 @@ void main() {
     });
   }
 
+  // With changes held, a page that backs out of a step of its own first
+  // (the photo viewer's fullscreen) takes Back for that step: no discard
+  // question, and the page stays.
+  testWidgets('with changes, a step the page backs out of first takes Back', (
+    tester,
+  ) async {
+    final controller = RecordEditController<_Rec>(onSave: (_) async {});
+    addTearDown(controller.dispose);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'changed');
+    var inStep = true;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => RecordEditLeaveGuard<_Rec>(
+                  controller: controller,
+                  backsOutFirst: () => inStep,
+                  child: PopScope(
+                    canPop: false,
+                    onPopInvokedWithResult: (didPop, _) => inStep = false,
+                    child: const Scaffold(body: Text('Record')),
+                  ),
+                ),
+              ),
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(inStep, isFalse);
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(find.text('Record'), findsOneWidget);
+    expect(controller.isDirty, isTrue);
+
+    // Out of the step, Back asks as it always has.
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Discard changes?'), findsOneWidget);
+  });
+
   testWidgets('unlocked with changes: back asks, and Keep editing stays', (
     tester,
   ) async {

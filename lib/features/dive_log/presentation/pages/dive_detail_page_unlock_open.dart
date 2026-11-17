@@ -6,7 +6,10 @@ part of 'dive_detail_page.dart';
 /// more if [DiveDetailPage.openUnlocked] turns on later; Save, Cancel or a
 /// lock end that sitting as any other, and the page stays locked after.
 mixin _DiveDetailPageUnlockOpen
-    on ConsumerState<DiveDetailPage>, _DiveDetailPageEditing {
+    on
+        ConsumerState<DiveDetailPage>,
+        _DiveDetailPageActions,
+        _DiveDetailPageEditing {
   /// Whether this page has already opened unlocked (or tried to).
   bool _openedUnlocked = false;
 
@@ -46,6 +49,8 @@ mixin _DiveDetailPageUnlockOpen
     final ended = widget.onSittingEnded;
     if (ended == null) return;
     // After the frame: the lock can come while the page is being built.
-    WidgetsBinding.instance.addPostFrameCallback((_) => ended());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_leftDeletedDive) ended();
+    });
   }
 }

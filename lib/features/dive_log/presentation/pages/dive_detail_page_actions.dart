@@ -664,8 +664,14 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
   }
 
   /// The page has gone with its dive: back to whoever opened it.
+  /// Set once the page leaves a deleted dive. The delete ended the sitting
+  /// just before, and a report of that end ([_DiveDetailPageUnlockOpen])
+  /// would send the list pane back to a dive that is gone.
+  bool _leftDeletedDive = false;
+
   void _leaveDeletedDive() {
     if (!mounted) return;
+    _leftDeletedDive = true;
     if (widget.embedded && widget.onDeleted != null) {
       // In embedded mode, call the callback to clear selection
       widget.onDeleted!();

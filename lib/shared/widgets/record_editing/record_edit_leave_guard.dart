@@ -35,10 +35,17 @@ class RecordEditLeaveGuard<T> extends StatelessWidget {
     super.key,
     required this.controller,
     required this.child,
+    this.backsOutFirst,
   });
 
   final RecordEditController<T> controller;
   final Widget child;
+
+  /// Whether the page has a step of its own that Back closes first (the
+  /// photo viewer's fullscreen): while it does, Back leaves the sitting as
+  /// it is and asks nothing. Read as Back arrives, before that step's own
+  /// handler runs.
+  final bool Function()? backsOutFirst;
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +60,8 @@ class RecordEditLeaveGuard<T> extends StatelessWidget {
             return;
           }
           if (controller.isBusy) return;
+          // Back closes the page's own step first; the sitting stays.
+          if (backsOutFirst?.call() ?? false) return;
           // With nothing to save this guard let the pop through: a scope
           // inside the page refused it for a step of its own (the photo
           // viewer leaving fullscreen first), and the page stays.

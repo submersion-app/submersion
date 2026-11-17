@@ -96,6 +96,34 @@ void main() {
     expect(outliersButton(tester).tooltip, 'Save or cancel your changes first');
   });
 
+  // The button joins a row of icons: at phone width the row must still fit
+  // on screen, locked and with the card's pencil on unlock.
+  testWidgets('at phone width the toolbar with the button fits the screen', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      stored: profiled,
+      visible: sections,
+      size: const Size(360, 1600),
+    );
+    await settleLong(tester);
+    // Something else on the page overflows at 360 wide; it is not this row.
+    tester.takeException();
+
+    double right(IconData icon) =>
+        tester.getRect(find.byIcon(icon).first).right;
+    expect(outliers(), findsOneWidget);
+    expect(right(Icons.warning_amber), lessThanOrEqualTo(360));
+    expect(right(Icons.fullscreen), lessThanOrEqualTo(360));
+
+    await unlock(tester);
+    await settleLong(tester);
+    tester.takeException();
+    expect(right(Icons.warning_amber), lessThanOrEqualTo(360));
+    expect(right(Icons.fullscreen), lessThanOrEqualTo(360));
+  });
+
   testWidgets('a profile of nine points shows no outliers button', (
     tester,
   ) async {

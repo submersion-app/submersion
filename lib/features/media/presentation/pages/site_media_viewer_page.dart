@@ -72,9 +72,6 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
   @override
   EditSession<PhotoRecord>? get colorSitting => photoSitting;
 
-  @override
-  bool get colorLockOffered => true;
-
   /// Steps through the check while unlocked, so the next photo opens locked.
   void _step(int delta, int totalCount) =>
       unawaited(stepGuarded(delta, (by) => _stepPage(by, totalCount)));
@@ -209,6 +206,7 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
         ? ref.watch(mediaForSiteProvider(widget.siteId))
         : ref.watch(flatMediaFromDivesAtSiteProvider(widget.siteId));
     return photoEditScope(
+      backsOutFirst: () => isFullscreen,
       child: fullscreenPopScope(
         child: Scaffold(
           backgroundColor: Colors.black,
