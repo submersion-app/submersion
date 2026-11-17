@@ -191,6 +191,17 @@ class VideoIdentificationScan {
   }) async {
     final named = await _nameTracks(closed);
     if (named == null || _databaseGeneration() != _generation) return false;
+    if (named.isNotEmpty && _carry.isNotEmpty) {
+      // As stored now: the diver may have decided or named one since the
+      // scan began.
+      final current = {
+        for (final i in await _identifications.forMedia(_item.id)) i.id: i,
+      };
+      final fresh = [for (final c in _carry) ?current[c.id]];
+      _carry
+        ..clear()
+        ..addAll(fresh);
+    }
     final carried = carryTrackDecisions(
       decided: _carry,
       fresh: [for (final n in named) n.identification],

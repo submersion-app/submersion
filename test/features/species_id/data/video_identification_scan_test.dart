@@ -269,6 +269,23 @@ void main() {
     expect(await identifications.runFor('v1'), isNull);
   });
 
+  test('a claim made on a carried fish during a rescan is carried', () async {
+    engine.videoFrames = _fish(1000, 4000);
+    await runAll(scan());
+    final old = (await identifications.forMedia('v1')).single;
+    final dismissed = old.copyWith(
+      decision: IdentificationDecision.rejected,
+      decidedAt: fixtureT1,
+    );
+    await identifications.updateIdentifications([dismissed]);
+    final rescan = scan(carry: [dismissed]);
+    await identifications.claim(old.id, 'sp_named_meanwhile');
+    await runAll(rescan);
+    final found = (await identifications.forMedia('v1')).single;
+    expect(found.id, isNot(old.id));
+    expect(found.claimedSpeciesId, 'sp_named_meanwhile');
+  });
+
   test('with no file nothing is stored and the scan stops', () async {
     fileReadable = false;
     expect(await scan().runChunk(), isFalse);
