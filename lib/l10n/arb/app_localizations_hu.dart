@@ -10165,6 +10165,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Előbb mentsd el vagy vesd el a módosításokat';
 
   @override
+  String get recordEdit_unlockToUseThese => 'Oldd fel ezek használatához';
+
+  @override
   String get settings_manage_setupAssistant => 'Beállítási varázsló';
 
   @override

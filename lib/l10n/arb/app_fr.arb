@@ -3203,6 +3203,7 @@
   "recordEdit_fixInvalid": "Certaines valeurs sont illisibles. Corrigez-les avant d'enregistrer.",
   "recordEdit_unlockToUseThis": "Déverrouillez pour utiliser ceci",
   "recordEdit_saveOrCancelFirst": "Enregistrez ou annulez d'abord vos modifications",
+  "recordEdit_unlockToUseThese": "Déverrouillez pour utiliser ces actions",
   "siteMatchReview_title": "Associer les sites",
   "siteMatchReview_diveNumber": "Plongée n°{number}",
   "siteMatchReview_empty": "Rien à associer.",

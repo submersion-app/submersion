@@ -10186,6 +10186,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Guarde ou cancele as suas alterações primeiro';
 
   @override
+  String get recordEdit_unlockToUseThese => 'Desbloqueie para usar estas ações';
+
+  @override
   String get settings_manage_setupAssistant => 'Assistente de configuração';
 
   @override

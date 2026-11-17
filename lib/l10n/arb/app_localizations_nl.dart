@@ -10123,6 +10123,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Sla je wijzigingen eerst op of annuleer ze';
 
   @override
+  String get recordEdit_unlockToUseThese => 'Ontgrendel om deze te gebruiken';
+
+  @override
   String get settings_manage_setupAssistant => 'Configuratie-assistent';
 
   @override

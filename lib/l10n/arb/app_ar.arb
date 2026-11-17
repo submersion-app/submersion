@@ -3329,6 +3329,7 @@
   "recordEdit_fixInvalid": "تعذّرت قراءة بعض القيم. صحّحها قبل الحفظ.",
   "recordEdit_unlockToUseThis": "افتح القفل لاستخدام هذا",
   "recordEdit_saveOrCancelFirst": "احفظ تغييراتك أو ألغها أولًا",
+  "recordEdit_unlockToUseThese": "افتح القفل لاستخدام هذه",
   "siteMatchReview_title": "مطابقة المواقع",
   "siteMatchReview_diveNumber": "الغوصة #{number}",
   "siteMatchReview_empty": "لا شيء للمطابقة.",

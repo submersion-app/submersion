@@ -10181,6 +10181,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Speichere oder verwirf zuerst deine Änderungen';
 
   @override
+  String get recordEdit_unlockToUseThese =>
+      'Zum Verwenden dieser Aktionen entsperren';
+
+  @override
   String get settings_manage_setupAssistant => 'Einrichtungsassistent';
 
   @override

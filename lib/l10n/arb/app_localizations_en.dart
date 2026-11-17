@@ -10028,6 +10028,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Save or cancel your changes first';
 
   @override
+  String get recordEdit_unlockToUseThese => 'Unlock to use these';
+
+  @override
   String get settings_manage_setupAssistant => 'Setup assistant';
 
   @override

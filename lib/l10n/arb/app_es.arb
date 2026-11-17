@@ -3329,6 +3329,7 @@
   "recordEdit_fixInvalid": "Algunos valores no se pueden leer. Corrígelos antes de guardar.",
   "recordEdit_unlockToUseThis": "Desbloquea para usar esto",
   "recordEdit_saveOrCancelFirst": "Guarda o cancela tus cambios primero",
+  "recordEdit_unlockToUseThese": "Desbloquea para usar estas opciones",
   "siteMatchReview_title": "Asociar puntos",
   "siteMatchReview_diveNumber": "Inmersión #{number}",
   "siteMatchReview_empty": "Nada que asociar.",

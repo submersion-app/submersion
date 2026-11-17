@@ -10191,6 +10191,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Guarda o cancela tus cambios primero';
 
   @override
+  String get recordEdit_unlockToUseThese =>
+      'Desbloquea para usar estas opciones';
+
+  @override
   String get settings_manage_setupAssistant => 'Asistente de configuración';
 
   @override

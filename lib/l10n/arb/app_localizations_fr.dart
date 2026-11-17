@@ -10222,6 +10222,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Enregistrez ou annulez d\'abord vos modifications';
 
   @override
+  String get recordEdit_unlockToUseThese =>
+      'Déverrouillez pour utiliser ces actions';
+
+  @override
   String get settings_manage_setupAssistant => 'Assistant de configuration';
 
   @override

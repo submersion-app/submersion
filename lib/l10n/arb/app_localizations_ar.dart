@@ -10344,6 +10344,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordEdit_saveOrCancelFirst => 'احفظ تغييراتك أو ألغها أولًا';
 
   @override
+  String get recordEdit_unlockToUseThese => 'افتح القفل لاستخدام هذه';
+
+  @override
   String get settings_manage_setupAssistant => 'مساعد الإعداد';
 
   @override

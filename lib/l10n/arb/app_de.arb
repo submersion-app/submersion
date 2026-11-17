@@ -3355,6 +3355,7 @@
   "recordEdit_fixInvalid": "Einige Werte können nicht gelesen werden. Korrigiere sie vor dem Speichern.",
   "recordEdit_unlockToUseThis": "Zum Verwenden entsperren",
   "recordEdit_saveOrCancelFirst": "Speichere oder verwirf zuerst deine Änderungen",
+  "recordEdit_unlockToUseThese": "Zum Verwenden dieser Aktionen entsperren",
   "siteMatchReview_title": "Tauchplätze zuordnen",
   "siteMatchReview_diveNumber": "Tauchgang #{number}",
   "siteMatchReview_empty": "Nichts zuzuordnen.",

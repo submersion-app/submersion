@@ -3444,6 +3444,7 @@
   "recordEdit_fixInvalid": "部分数值无法识别。请更正后再保存。",
   "recordEdit_unlockToUseThis": "解锁后才能使用",
   "recordEdit_saveOrCancelFirst": "请先保存或取消更改",
+  "recordEdit_unlockToUseThese": "解锁后才能使用这些操作",
   "siteMatchReview_title": "匹配潜水点",
   "siteMatchReview_diveNumber": "潜水 #{number}",
   "siteMatchReview_empty": "没有可匹配的内容。",

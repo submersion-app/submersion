@@ -3329,6 +3329,7 @@
   "recordEdit_fixInvalid": "Sommige waarden kunnen niet worden gelezen. Corrigeer ze voordat je opslaat.",
   "recordEdit_unlockToUseThis": "Ontgrendel om dit te gebruiken",
   "recordEdit_saveOrCancelFirst": "Sla je wijzigingen eerst op of annuleer ze",
+  "recordEdit_unlockToUseThese": "Ontgrendel om deze te gebruiken",
   "siteMatchReview_title": "Stekken koppelen",
   "siteMatchReview_diveNumber": "Duik #{number}",
   "siteMatchReview_empty": "Niets om te koppelen.",

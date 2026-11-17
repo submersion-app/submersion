@@ -29,6 +29,7 @@ class RecordEditController<T> extends ChangeNotifier {
     this.trackedWorkTimeout = const Duration(seconds: 10),
     this.invalidCards,
     this.onStart,
+    this.reread,
   });
 
   final RecordSave<T> onSave;
@@ -37,6 +38,10 @@ class RecordEditController<T> extends ChangeNotifier {
   /// what the record's cards need before they are checked (the dive's gas
   /// switches) is asked for here, whichever way the page was unlocked.
   final void Function(EditSession<T> session)? onStart;
+
+  /// Reads the record as it is stored now, after a whole-record operation
+  /// ([runOperation]) has written it; null when it no longer exists.
+  final Future<T?> Function(T stored)? reread;
 
   /// The cards whose own check fails for the sitting, in page order. Asked
   /// of every card at [save], open or not: a value one card changes can
@@ -51,6 +56,8 @@ class RecordEditController<T> extends ChangeNotifier {
 
   EditSession<T>? _session;
   bool _isSaving = false;
+  bool _isOperating = false;
+  bool _disposed = false;
   Object? _saveError;
   final Set<String> _openCardIds = {};
   final Set<String> _addedCardIds = {};
@@ -91,6 +98,12 @@ class RecordEditController<T> extends ChangeNotifier {
   bool get isDirty => _session?.isDirty ?? false;
 
   bool get isSaving => _isSaving;
+
+  /// A whole-record operation is running ([runOperation]).
+  bool get isOperating => _isOperating;
+
+  /// Saving, or running an operation: the page takes no input meanwhile.
+  bool get isBusy => _isSaving || _isOperating;
 
   /// The last failed save. Cleared by the next save and by [lock].
   Object? get saveError => _saveError;
@@ -223,7 +236,7 @@ class RecordEditController<T> extends ChangeNotifier {
   /// refused while a save is running.
   void openCard(String cardId) {
     final session = _session;
-    if (session == null || _isSaving) return;
+    if (session == null || isBusy) return;
     if (_openCardIds.contains(cardId)) return;
     _holdLayoutFor(session);
     _openCardIds.add(cardId);
@@ -236,7 +249,7 @@ class RecordEditController<T> extends ChangeNotifier {
   /// and is asked to show itself instead ([revealRequest]).
   void closeCard(String cardId) {
     final session = _session;
-    if (session == null || _isSaving) return;
+    if (session == null || isBusy) return;
     if (_invalidFields.containsKey(cardId)) {
       _requestRevealOfInvalid(cardId);
       notifyListeners();
@@ -280,7 +293,7 @@ class RecordEditController<T> extends ChangeNotifier {
   /// the page's order, which may be below what is on screen.
   void addCard(String cardId) {
     final session = _session;
-    if (session == null || _isSaving) return;
+    if (session == null || isBusy) return;
     if (_addedCardIds.contains(cardId) && _openCardIds.contains(cardId)) {
       return;
     }
@@ -346,7 +359,7 @@ class RecordEditController<T> extends ChangeNotifier {
   /// while it ran ([storedChanged]).
   Future<bool> save() async {
     final session = _session;
-    if (session == null || _isSaving) return false;
+    if (session == null || isBusy) return false;
     _refusedForInvalidInput = false;
     if (_invalidFields.isNotEmpty) {
       _refusedForInvalidInput = true;
@@ -420,6 +433,85 @@ class RecordEditController<T> extends ChangeNotifier {
     return true;
   }
 
+  /// Runs a whole-record operation (delete, re-parse and the like), which
+  /// writes the record at once as its own History entry (issue #4527).
+  ///
+  /// Refused, returning false without running it, unless the page is
+  /// unlocked with nothing to save and no save or other operation running.
+  /// While it runs the sitting is frozen and the page takes no input
+  /// ([isBusy]). [operation] answers whether it wrote anything. When it did,
+  /// the record is read again ([reread]) and a fresh sitting starts on it
+  /// ([retake]), or the page locks when the record is gone. When it did not,
+  /// or throws, the sitting carries on as it was; a throw is passed on.
+  /// False also when the controller was disposed meanwhile.
+  Future<bool> runOperation(Future<bool> Function() operation) async {
+    final session = _session;
+    if (session == null || isBusy || session.isDirty || _disposed) {
+      return false;
+    }
+    _isOperating = true;
+    session.freeze();
+    notifyListeners();
+    try {
+      final wrote = await operation();
+      if (_disposed) return false;
+      final reread = this.reread;
+      if (!wrote || reread == null || !identical(_session, session)) {
+        return true;
+      }
+      final fresh = await reread(session.stored);
+      if (_disposed) return false;
+      if (!identical(_session, session)) return true;
+      _isOperating = false;
+      session.thaw();
+      if (fresh == null) {
+        _endSitting();
+      } else {
+        _restart(fresh);
+      }
+      return true;
+    } finally {
+      if (_isOperating) {
+        _isOperating = false;
+        if (!session.isDisposed) session.thaw();
+        if (!_disposed) notifyListeners();
+      }
+    }
+  }
+
+  /// Starts a fresh sitting on [stored] in place of the current one, which
+  /// has nothing to save. The page stays unlocked throughout: it is never
+  /// told it locked. Refused while locked, with unsaved changes, or busy.
+  void retake(T stored) {
+    final session = _session;
+    if (session == null || session.isDirty || isBusy) return;
+    _restart(stored);
+  }
+
+  void _restart(T stored) {
+    final old = _session;
+    if (old != null) {
+      old
+        ..removeListener(_onSessionChanged)
+        ..dispose();
+    }
+    _openCardIds.clear();
+    _addedCardIds.clear();
+    _invalidFields.clear();
+    _refusedForInvalidInput = false;
+    _revealRequest = null;
+    _layoutRecord = null;
+    _layoutAnswers.clear();
+    _saveError = null;
+    _storedDuringSave = null;
+    _toldChangedCardIds = const {};
+    _toldRevisions = {};
+    final session = _session = EditSession<T>(stored)
+      ..addListener(_onSessionChanged);
+    notifyListeners();
+    onStart?.call(session);
+  }
+
   /// The sitting of a controller disposed while [session] was being
   /// written: kept until the write ended, since its held writes read it.
   EditSession<T>? _endsAfterSave;
@@ -450,6 +542,7 @@ class RecordEditController<T> extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     final session = _session;
     if (session != null && _isSaving) {
       // Its write is running and still reads it: it ends when that does.

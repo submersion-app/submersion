@@ -3203,6 +3203,7 @@
   "recordEdit_fixInvalid": "Alcuni valori non sono leggibili. Correggili prima di salvare.",
   "recordEdit_unlockToUseThis": "Sblocca per usarlo",
   "recordEdit_saveOrCancelFirst": "Salva o annulla prima le modifiche",
+  "recordEdit_unlockToUseThese": "Sblocca per usare queste azioni",
   "siteMatchReview_title": "Associa siti",
   "siteMatchReview_diveNumber": "Immersione #{number}",
   "siteMatchReview_empty": "Niente da associare.",

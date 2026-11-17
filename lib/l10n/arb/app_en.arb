@@ -6073,6 +6073,10 @@
   "@recordEdit_saveOrCancelFirst": {
     "description": "Why an action that changes a whole record is disabled: the editing sitting has unsaved changes."
   },
+  "recordEdit_unlockToUseThese": "Unlock to use these",
+  "@recordEdit_unlockToUseThese": {
+    "description": "Caption over a menu's actions that change a whole record (delete, re-parse and the like), shown while the record's page is locked."
+  },
   "settings_manage_setupAssistant": "Setup assistant",
   "settings_manage_setupAssistant_subtitle": "Revisit units, backups, sync and photos",
   "setup_common_back": "Back",

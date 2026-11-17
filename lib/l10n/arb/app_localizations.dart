@@ -15991,6 +15991,12 @@ abstract class AppLocalizations {
   /// **'Save or cancel your changes first'**
   String get recordEdit_saveOrCancelFirst;
 
+  /// Caption over a menu's actions that change a whole record (delete, re-parse and the like), shown while the record's page is locked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to use these'**
+  String get recordEdit_unlockToUseThese;
+
   /// No description provided for @settings_manage_setupAssistant.
   ///
   /// In en, this message translates to:

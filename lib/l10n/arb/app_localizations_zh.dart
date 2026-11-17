@@ -9655,6 +9655,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recordEdit_saveOrCancelFirst => '请先保存或取消更改';
 
   @override
+  String get recordEdit_unlockToUseThese => '解锁后才能使用这些操作';
+
+  @override
   String get settings_manage_setupAssistant => '设置向导';
 
   @override

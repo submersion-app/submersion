@@ -9964,6 +9964,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'יש לשמור או לבטל את השינויים קודם';
 
   @override
+  String get recordEdit_unlockToUseThese => 'יש לבטל את הנעילה כדי להשתמש באלה';
+
+  @override
   String get settings_manage_setupAssistant => 'אשף ההגדרה';
 
   @override
