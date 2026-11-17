@@ -40,6 +40,11 @@ class _VideoItem extends ConsumerStatefulWidget {
   /// The viewer's people tag mode (issue #1745).
   final PeopleTagSession people;
 
+  /// Whether the fish labels take taps, and whether they are hidden (issue
+  /// #4675).
+  final bool identificationsEditable;
+  final bool hideIdentifications;
+
   const _VideoItem({
     required this.item,
     required this.isCurrent,
@@ -49,6 +54,8 @@ class _VideoItem extends ConsumerStatefulWidget {
     required this.onHoldChanged,
     required this.onControllerChanged,
     required this.people,
+    this.identificationsEditable = true,
+    this.hideIdentifications = false,
   });
 
   @override
@@ -350,6 +357,21 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
             people: widget.people,
             showOverlay: widget.showOverlay,
           ),
+
+          // Name pills and dots on the fish (issue #4675). Out of tag mode
+          // and white-point picking, which take the taps.
+          if (marineLifeIdEnabled &&
+              widget.isCurrent &&
+              !widget.people.active &&
+              !widget.hideIdentifications)
+            Positioned.fill(
+              child: VideoIdentificationLayer(
+                playback: controller,
+                item: widget.item,
+                sitting: widget.people.sitting,
+                editable: widget.identificationsEditable,
+              ),
+            ),
 
           // Play/pause button overlay (center) - visual indicator only when
           // paused. It follows the player itself: the player reports its

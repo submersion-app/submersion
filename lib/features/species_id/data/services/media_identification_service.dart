@@ -215,6 +215,25 @@ class MediaIdentificationService {
     }
   }
 
+  /// The diver gave the animal [identificationId] on [mediaId] the species
+  /// [speciesId] from the frame (issue #4675): held until its tag is
+  /// written, when it is accepted as that species whatever the app's
+  /// guess. Written at once, in both editing modes; never throws, and
+  /// writes nothing if another logbook opened meanwhile.
+  Future<void> claim(
+    String mediaId,
+    String identificationId,
+    String speciesId,
+  ) async {
+    final generation = _databaseGeneration();
+    try {
+      if (_databaseGeneration() != generation) return;
+      await _identifications.claim(identificationId, speciesId);
+    } on Object catch (e) {
+      _log.debug('Could not record the fish named on $mediaId', error: e);
+    }
+  }
+
   /// For media deleted for good: drops their queued requests and waits for
   /// the one running, if it is one of them, so that what it found is
   /// written before the caller purges it rather than after.

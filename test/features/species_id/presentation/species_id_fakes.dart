@@ -63,6 +63,15 @@ class RecordingIdentificationService extends MediaIdentificationService {
     return _waiting.remove(mediaId);
   }
 
+  final claimed = <(String, String, String)>[];
+
+  @override
+  Future<void> claim(
+    String mediaId,
+    String identificationId,
+    String speciesId,
+  ) async => claimed.add((mediaId, identificationId, speciesId));
+
   @override
   Future<void> reconcile(String mediaId) async => reconciled.add(mediaId);
 

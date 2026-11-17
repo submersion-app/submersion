@@ -154,7 +154,9 @@ class MediaSpeciesSheet extends ConsumerWidget {
           key: const ValueKey('media_species_other'),
           icon: const Icon(Icons.search),
           label: Text(l10n.media_species_otherSpecies),
-          onPressed: ended ? null : () => _pickOther(context, ref),
+          onPressed: ended
+              ? null
+              : () => pickOtherSpecies(context, ref, item, sitting),
         ),
       ],
     );
@@ -178,45 +180,56 @@ class MediaSpeciesSheet extends ConsumerWidget {
       await service.untagPhoto(mediaId: item.id, speciesId: speciesId);
     }
   }
+}
 
-  Future<void> _pickOther(BuildContext context, WidgetRef ref) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (sheetContext) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (_, controller) => SpeciesPickerSheet(
-          scrollController: controller,
-          // A tag needs only the species; a sighting it creates is Seen.
-          showAbundance: false,
-          onSpeciesSelected: (species, _, _) async {
-            Navigator.of(sheetContext).pop();
-            final session = sitting;
-            if (session != null) {
-              holdPickedSpecies(session, species);
-              return;
-            }
-            try {
-              await ref
-                  .read(speciesTaggingServiceProvider)
-                  .tagPhoto(mediaId: item.id, speciesId: species.id);
-            } catch (_) {
-              // The picker is gone by now; tell the diver the tag did not
-              // stick instead of failing silently.
-              if (!context.mounted) return;
-              ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                SnackBar(content: Text(context.l10n.common_error_tryAgain)),
-              );
-            }
-          },
-        ),
+/// The species picker for [item]: the species picked is tagged at once, or
+/// held in [sitting] when there is one. [onPicked] runs first, with the
+/// species, before it is tagged or held: a fish named from a video's frame
+/// is recorded against that fish there (issue #4675).
+Future<void> pickOtherSpecies(
+  BuildContext context,
+  WidgetRef ref,
+  MediaItem item,
+  EditSession<PhotoRecord>? sitting, {
+  Future<void> Function(Species species)? onPicked,
+}) async {
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (sheetContext) => DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (_, controller) => SpeciesPickerSheet(
+        scrollController: controller,
+        // A tag needs only the species; a sighting it creates is Seen.
+        showAbundance: false,
+        onSpeciesSelected: (species, _, _) async {
+          Navigator.of(sheetContext).pop();
+          await onPicked?.call(species);
+          final session = sitting;
+          if (session != null) {
+            holdPickedSpecies(session, species);
+            return;
+          }
+          try {
+            await ref
+                .read(speciesTaggingServiceProvider)
+                .tagPhoto(mediaId: item.id, speciesId: species.id);
+          } catch (_) {
+            // The picker is gone by now; tell the diver the tag did not
+            // stick instead of failing silently.
+            if (!context.mounted) return;
+            ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+              SnackBar(content: Text(context.l10n.common_error_tryAgain)),
+            );
+          }
+        },
       ),
-    );
-  }
+    ),
+  );
 }
 
 /// Holds [chip] tagged or untagged in [session]. Does nothing once the

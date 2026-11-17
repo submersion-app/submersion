@@ -72,7 +72,9 @@ List<TaggedSpecies> shownTaggedSpecies(
 }
 
 /// Tags the photo with each of [candidates]' species in turn, or holds
-/// them in [sitting].
+/// them in [sitting]. With [claimTrackId], each species is first recorded
+/// against that animal in a video (issue #4675), so its label follows the
+/// fish the diver tapped.
 ///
 /// Everything it needs is read before the first lookup: the sheet or crop
 /// view it was called from may be gone before the lookups finish.
@@ -81,8 +83,9 @@ Future<void> addSuggestedSpecies(
   WidgetRef ref,
   MediaItem item,
   List<PackCandidate> candidates,
-  EditSession<PhotoRecord>? sitting,
-) async {
+  EditSession<PhotoRecord>? sitting, {
+  String? claimTrackId,
+}) async {
   final acceptor = ref.read(suggestionAcceptorProvider);
   final tagging = ref.read(speciesTaggingServiceProvider);
   final identification = ref.read(mediaIdentificationServiceProvider);
@@ -91,6 +94,9 @@ Future<void> addSuggestedSpecies(
   try {
     for (final candidate in candidates) {
       final species = await acceptor.resolve(candidate);
+      if (claimTrackId != null) {
+        await identification.claim(item.id, claimTrackId, species.id);
+      }
       if (sitting != null) {
         holdPickedSpecies(sitting, species);
       } else {
@@ -278,21 +284,32 @@ class _SuggestionRow extends ConsumerWidget {
         context: context,
         useSafeArea: true,
         isScrollControlled: true,
-        builder: (sheetContext) =>
-            _CropView(item: item, suggestion: suggestion, sitting: sitting),
+        builder: (sheetContext) => SuggestionCropView(
+          item: item,
+          suggestion: suggestion,
+          sitting: sitting,
+        ),
       );
 }
 
-class _CropView extends ConsumerWidget {
-  const _CropView({
+/// A suggestion's crop shown large, with up to three names to add.
+///
+/// Opened from a fish's pill over a video, with its [trackId] (issue
+/// #4675): every name added is recorded against that fish, and the view
+/// also offers any other species and dismissing the fish.
+class SuggestionCropView extends ConsumerWidget {
+  const SuggestionCropView({
+    super.key,
     required this.item,
     required this.suggestion,
     required this.sitting,
+    this.trackId,
   });
 
   final MediaItem item;
   final SpeciesSuggestion suggestion;
   final EditSession<PhotoRecord>? sitting;
+  final String? trackId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -343,9 +360,14 @@ class _CropView extends ConsumerWidget {
                             // Started before the pop: it reads what it
                             // needs at once, and outlives this view.
                             unawaited(
-                              addSuggestedSpecies(context, ref, item, [
-                                alternative.candidate,
-                              ], sitting),
+                              addSuggestedSpecies(
+                                context,
+                                ref,
+                                item,
+                                [alternative.candidate],
+                                sitting,
+                                claimTrackId: trackId,
+                              ),
                             );
                             Navigator.of(context).pop();
                           },
@@ -355,6 +377,51 @@ class _CropView extends ConsumerWidget {
               ),
             ),
           ),
+        if (trackId case final track?) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  key: const ValueKey('video_label_other'),
+                  icon: const Icon(Icons.search),
+                  label: Text(l10n.media_species_otherSpecies),
+                  onPressed: ended
+                      ? null
+                      : () => pickOtherSpecies(
+                          context,
+                          ref,
+                          item,
+                          sitting,
+                          onPicked: (species) async {
+                            await ref
+                                .read(mediaIdentificationServiceProvider)
+                                .claim(item.id, track, species.id);
+                            if (context.mounted) Navigator.of(context).pop();
+                          },
+                        ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                key: const ValueKey('video_label_dismiss'),
+                icon: const Icon(Icons.close),
+                label: Text(l10n.media_species_dismiss),
+                onPressed: ended
+                    ? null
+                    : () {
+                        unawaited(
+                          ref.read(mediaIdentificationServiceProvider).reject(
+                            item.id,
+                            [track],
+                          ),
+                        );
+                        Navigator.of(context).pop();
+                      },
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }

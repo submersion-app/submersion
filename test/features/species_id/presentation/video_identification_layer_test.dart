@@ -1,0 +1,284 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:video_player/video_player.dart';
+
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/species_picker_sheet.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
+import 'package:submersion/features/media/data/services/species_tagging_service.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
+import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/video_identification_layer.dart';
+
+import '../../../helpers/mock_providers.dart';
+import '../../../helpers/test_app.dart';
+import '../../media/presentation/support/media_widget_harness.dart';
+import '../data/identification_fixtures.dart';
+import 'species_id_fakes.dart';
+
+/// Name pills and dots over a video (issue #4675).
+class _Tagging extends SpeciesTaggingService {
+  _Tagging()
+    : super(
+        tags: MediaSpeciesRepository(),
+        media: MediaRepository(),
+        species: SpeciesRepository(),
+      );
+
+  final tagged = <String>[];
+
+  @override
+  Future<MediaSpeciesTag> tagPhoto({
+    required String mediaId,
+    required String speciesId,
+  }) async {
+    tagged.add(speciesId);
+    return MediaSpeciesTag(
+      id: 't',
+      mediaId: mediaId,
+      speciesId: speciesId,
+      createdAt: DateTime(2024),
+    );
+  }
+}
+
+/// [t] moved down to [y].
+MediaIdentification at(MediaIdentification t, double y) => t.copyWith(
+  path: [for (final s in t.path) s.copyWith(box: s.box.copyWith(y: y))],
+);
+
+const _rockBeautyTag = SpeciesTagChip(
+  speciesId: 'sp_rock_beauty',
+  storedName: 'Rock Beauty',
+  category: SpeciesCategory.fish,
+  isBuiltIn: false,
+);
+
+const _rockBeauty = Species(
+  id: 'sp_rock_beauty',
+  commonName: 'Rock Beauty',
+  category: SpeciesCategory.fish,
+);
+
+void main() {
+  late bool flagBefore;
+  late RecordingIdentificationService service;
+  late _Tagging tagging;
+  late ValueNotifier<VideoPlayerValue> playback;
+
+  setUp(() {
+    flagBefore = marineLifeIdEnabled;
+    marineLifeIdEnabled = true;
+    service = RecordingIdentificationService();
+    tagging = _Tagging();
+    playback = ValueNotifier(
+      const VideoPlayerValue(
+        duration: Duration(seconds: 25),
+        size: Size(1920, 1080),
+        position: Duration(milliseconds: 1500),
+        isInitialized: true,
+      ),
+    );
+  });
+  tearDown(() {
+    marineLifeIdEnabled = flagBefore;
+    playback.dispose();
+  });
+
+  final confident = track('a', confident: true);
+  final suggestion = at(track('b', confident: false), 0.1);
+  final unnamed = at(track('c', suggestable: false, confident: false), 0.7);
+
+  Future<void> pump(
+    WidgetTester tester, {
+    List<MediaIdentification>? tracks,
+    List<SpeciesTagChip> chips = const [],
+    bool playing = false,
+    bool editable = true,
+  }) async {
+    playback.value = playback.value.copyWith(isPlaying: playing);
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          ...overrides,
+          videoTracksProvider('v1').overrideWith(
+            (ref) async => tracks ?? [confident, suggestion, unnamed],
+          ),
+          mediaTagChipsProvider('v1').overrideWith((ref) async => chips),
+          allSpeciesProvider.overrideWith((ref) async => const [_rockBeauty]),
+          mediaIdentificationServiceProvider.overrideWithValue(service),
+          speciesTaggingServiceProvider.overrideWithValue(tagging),
+          suggestionAcceptorProvider.overrideWithValue(FakeAcceptor()),
+          identificationCropFileProvider.overrideWith((ref, key) async => null),
+        ],
+        child: Center(
+          child: SizedBox.square(
+            dimension: 400,
+            child: VideoIdentificationLayer(
+              playback: playback,
+              item: testMediaItem(id: 'v1', mediaType: MediaType.video),
+              editable: editable,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  Finder pill(String id) => find.byKey(ValueKey('video_label_pill_$id'));
+  Finder dot(String id) => find.byKey(ValueKey('video_label_dot_$id'));
+
+  testWidgets('playing shows only the confident pill', (tester) async {
+    await pump(tester, playing: true);
+    expect(pill('a'), findsOneWidget);
+    expect(find.text('Queen Parrotfish'), findsOneWidget);
+    expect(pill('b'), findsNothing);
+    expect(dot('c'), findsNothing);
+  });
+
+  testWidgets('paused shows suggestion pills and dots', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester);
+    expect(pill('a'), findsOneWidget);
+    expect(pill('b'), findsOneWidget);
+    expect(dot('c'), findsOneWidget);
+    expect(find.bySemanticsLabel('Unnamed fish, tap to name'), findsOneWidget);
+    semantics.dispose();
+  });
+
+  testWidgets('a dot needs a crop that looks like something', (tester) async {
+    await pump(
+      tester,
+      tracks: [
+        at(
+          track('c', suggestable: false, confident: false, specific: false),
+          0.7,
+        ),
+      ],
+    );
+    expect(dot('c'), findsNothing);
+  });
+
+  testWidgets('an accepted track shows a filled pill with the tagged name', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      tracks: [
+        track(
+          'a',
+          decision: IdentificationDecision.accepted,
+          decidedSpeciesId: 'sp_rock_beauty',
+        ),
+      ],
+      chips: const [_rockBeautyTag],
+      playing: true,
+    );
+    expect(find.text('Rock Beauty'), findsOneWidget);
+    expect(find.text('Queen Parrotfish'), findsNothing);
+  });
+
+  testWidgets('a tag shown on the video changes the labels before it is '
+      'stored', (tester) async {
+    await pump(
+      tester,
+      tracks: [
+        at(
+          track(
+            'c',
+            suggestable: false,
+            confident: false,
+            claimedSpeciesId: 'sp_rock_beauty',
+          ),
+          0.7,
+        ),
+      ],
+      chips: const [_rockBeautyTag],
+    );
+    expect(dot('c'), findsNothing);
+    expect(find.text('Rock Beauty'), findsOneWidget);
+  });
+
+  testWidgets('tapping a dot opens the picker and claims the track', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tap(dot('c'));
+    await tester.pumpAndSettle();
+    final picker = tester.widget<SpeciesPickerSheet>(
+      find.byType(SpeciesPickerSheet),
+    );
+    picker.onSpeciesSelected(_rockBeauty, (
+      abundance: SightingAbundance.seen,
+      count: 1,
+    ), '');
+    await tester.pumpAndSettle();
+    expect(service.claimed, [('v1', 'c', 'sp_rock_beauty')]);
+    expect(tagging.tagged, ['sp_rock_beauty']);
+  });
+
+  testWidgets('tapping a pill opens its crop view with Other species and '
+      'Dismiss', (tester) async {
+    await pump(tester);
+    await tester.tap(pill('b'));
+    await tester.pumpAndSettle();
+    expect(find.text('Other species...'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('video_label_dismiss')));
+    await tester.pumpAndSettle();
+    expect(service.rejected.single.$1, 'v1');
+    expect(service.rejected.single.$2, ['b']);
+  });
+
+  testWidgets('Add in a pill\'s crop view claims that fish', (tester) async {
+    await pump(tester);
+    await tester.tap(pill('b'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('media_suggested_candidate_2393681')),
+        matching: find.text('Add'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(service.claimed.single.$2, 'b');
+  });
+
+  testWidgets('a locked video draws labels but ignores taps', (tester) async {
+    await pump(tester, editable: false);
+    expect(pill('b'), findsOneWidget);
+    await tester.tap(pill('b'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.text('Other species...'), findsNothing);
+  });
+
+  testWidgets('nothing is drawn with the flag off', (tester) async {
+    marineLifeIdEnabled = false;
+    await pump(tester);
+    expect(pill('a'), findsNothing);
+    expect(dot('c'), findsNothing);
+  });
+
+  testWidgets('labels sit inside the contain-fitted video rect', (
+    tester,
+  ) async {
+    await pump(tester);
+    // 16:9 in a 400 square: 400 by 225, from y 87.5. The fish at 1.5 s is
+    // at x 0.12, y 0.7, 0.2 by 0.1, so its centre is (88, 87.5 + 0.75 * 225).
+    final origin = tester.getTopLeft(find.byType(VideoIdentificationLayer));
+    final centre = tester.getCenter(dot('c')) - origin;
+    expect(centre.dx, closeTo(88, 0.5));
+    expect(centre.dy, closeTo(87.5 + 0.75 * 225, 0.5));
+  });
+}
