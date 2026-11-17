@@ -514,3 +514,38 @@ One, `Refs #4527`. It touches `lib/**/presentation/` and the History wording, so
 
 - **The switch-over.** `newDivePage`'s and `newDivePaneBuilder`'s `DiveEditPage` branches go with the form. `DivePrefill` stays: it is the scan's and the passport's hand-over, now read by `applyNewDivePrefill`.
 - **The form's create-only tests** (`dive_edit_trip_cylinder_test.dart`, the prefill and planned tests of `dive_edit_page*_test.dart`) have their replacements in Tasks 4 to 8; plan 11 deletes them with the form.
+
+---
+
+## After the review
+
+The plan was built as written in one session (Eric chose "Native"), then reviewed as a whole branch (`/code-review xhigh --fix`). This is what differs from the task text above, for whoever writes plan 11.
+
+### Names that changed, or were added
+
+| Above | Now |
+| --- | --- |
+| `applyNewDivePrefill(..., read:, diveId:)` | Takes its reads as seams: `readTrip`, `readSlots`, `preparePhoto` (`LogbookPhotoPreparer`), and `onPhotoFailed` |
+| `setDiveTrip` extracted from `DiveTripRow` | Not extracted: the prefill sets `diveTripField`, puts the chosen slot on the first cylinder, then calls `suggestTankSlots`. A new dive has no stored trip to relink, and `tanksAfterTripChange`'s suggestion would race the chosen slot |
+| `NewDiveAfterCreate.run(context, {created, changedCardIds})` | `run({required Dive created})`, its steps injected; the mirror question captures the page's context in `.read` |
+| The weather is skipped when the sitting changed Environment | Skipped when the created dive holds any weather a fetch writes (`NewDiveAfterCreate.hasWeather`): a site's entry method is written on the Environment card and is no weather of the diver's |
+| `newDivePage(state, {unlockEditing = kUnlockEditing})` returns the page | `newDivePage(state, {bool? unlockEditing})` forwards to `newDiveRoutePage` in `dive_create_builder.dart`, so `lib/core` does not import the switch |
+| The operation gate untouched | `recordOperationBlockOf` answers `unsaved` for a creating controller, so every card that asks its controller agrees |
+| `isCreating`: until the dive is created | For the page's whole life: once created it only moves on |
+| `DiveDetailPage.newDive(unlockEditing: kUnlockEditing)` | Defaults to `true`; the routes pick the old form while the switch is off |
+
+### Fixed from the review
+
+- **Between the create and moving on, the page takes no input.** It showed the created dive with a live lock, whose Save tried to create the dive a second time; Save and Cancel now do nothing once it is created.
+- **A sitting ended in place opens a fresh new dive.** The pane's + asked again (the same `?mode=new` address) or Back in the pane left the pane empty.
+- **A scan's `importSource` ('ocr') is stored again**, on the seed: where the dive came from is not an entry.
+- **The scanned page copied for a sitting is removed** when it ends without a create (Cancel, leaving, a fresh sitting).
+- **A scanned page that cannot be copied is said**, with a new string `ocrImport_newDive_photoHoldFailed`, "The scanned page could not be attached to this dive" (all 11 locales); the form's own message says the dive was saved, which it is not yet.
+- `create` checks that its id is free with one `SELECT 1`.
+
+### Left open
+
+- The held logbook photo takes its time from the entry when the page opens: a date changed afterwards is not followed (the form used the date at Save).
+- `create` reads the dive back in full after the held writes: `createDive` returns its input, which can differ from what it stored.
+- The end-to-end test drives no site picker and no master-detail scaffold; the blocker the pane asks through is pinned by "another route with a note asks".
+- PR pictures are owed by the macOS window route when Eric says to open the PR ("before" from a main build).

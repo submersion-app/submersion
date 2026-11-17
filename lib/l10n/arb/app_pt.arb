@@ -3201,6 +3201,7 @@
   "ocrImport_scanPage_nothingRead": "Não foi possível ler muito desta página - campos deixados em branco",
   "ocrImport_scanPage_engineMissing": "O reconhecimento de texto não está disponível. Instale o Tesseract para digitalizar registros em papel (por exemplo: sudo apt install tesseract-ocr).",
   "ocrImport_editPage_photoAttachFailed": "O mergulho foi salvo, mas não foi possível anexar a página digitalizada",
+  "ocrImport_newDive_photoHoldFailed": "Não foi possível anexar a página digitalizada a este mergulho",
   "diveLog_listPage_bottomSheet_logManually": "Registrar mergulho manualmente",
   "diveLog_listPage_bottomSheet_planDive": "Planejar um mergulho",
   "diveLog_listPage_bottomSheet_planDiveSubtitle": "Preencha os detalhes agora e adicione os dados do computador depois",

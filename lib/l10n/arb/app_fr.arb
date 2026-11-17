@@ -3075,6 +3075,7 @@
   "ocrImport_scanPage_nothingRead": "Peu de texte lisible sur cette page - champs laissés vides",
   "ocrImport_scanPage_engineMissing": "La reconnaissance de texte n'est pas disponible. Installez Tesseract pour scanner les carnets papier (par exemple : sudo apt install tesseract-ocr).",
   "ocrImport_editPage_photoAttachFailed": "La plongée a été enregistrée, mais l'ajout de la page scannée a échoué",
+  "ocrImport_newDive_photoHoldFailed": "La page scannée n'a pas pu être jointe à cette plongée",
   "diveLog_listPage_bottomSheet_logManually": "Enregistrer manuellement",
   "diveLog_listPage_bottomSheet_planDive": "Planifier une plongée",
   "diveLog_listPage_bottomSheet_planDiveSubtitle": "Renseignez les détails maintenant, ajoutez les données de l'ordinateur plus tard",

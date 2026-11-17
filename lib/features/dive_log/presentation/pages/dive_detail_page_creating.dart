@@ -25,16 +25,37 @@ mixin _DiveDetailPageCreating
   /// The dive the sitting starts from, once it has been made.
   Dive? _seed;
 
-  /// The dive as Save created it, shown locked until the page moves on.
+  /// The dive as Save created it, shown locked, taking no input, until the
+  /// page moves on to it.
   Dive? _created;
 
+  /// The page is leaving without a create (Cancel): nothing opens again.
+  bool _leaving = false;
+
+  /// A fresh sitting is asked for after this frame ([buildNewDive]).
+  bool _reopenAsked = false;
+
+  /// The scanned pages copied for the dive's sitting. Kept while the
+  /// sitting may still write them; removed when it ends without a create.
+  final List<String> _photoCopies = [];
+
+  /// A new dive's page, for its whole life: once created, it only moves on.
   @override
-  bool get isCreating => widget.newDiveRequest != null && _created == null;
+  bool get isCreating => widget.newDiveRequest != null;
 
   @override
   void initState() {
     super.initState();
     if (widget.newDiveRequest != null && editingOffered) _openNewDive();
+  }
+
+  @override
+  void dispose() {
+    // Left without a create. A save still running owns its copies.
+    if (_created == null && !(_editController?.isSaving ?? false)) {
+      _dropPhotoCopies();
+    }
+    super.dispose();
   }
 
   /// Makes the seed and opens the sitting on it, with the starter cards
@@ -49,6 +70,8 @@ mixin _DiveDetailPageCreating
     );
     if (!mounted) return;
     final assignSite = readDiveSiteAssigner(context);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final photoFailed = context.l10n.ocrImport_newDive_photoHoldFailed;
     setState(() => _seed = seed);
     final controller = editController
       ..unlock(seed, laidOut: newDiveLaidOutCards(request));
@@ -60,27 +83,50 @@ mixin _DiveDetailPageCreating
       assignSite: assignSite,
       readTrip: (id) => container.read(tripRepositoryProvider).getTripById(id),
       readSlots: tripSlotReader(container, seed.id),
-      preparePhoto: (file, takenAt) => container
-          .read(mediaImportServiceProvider)
-          .prepareLocalFileForDive(
-            sourceFile: file,
-            diveId: seed.id,
-            takenAt: takenAt,
-          ),
+      preparePhoto: (file, takenAt) async {
+        final prepared = await container
+            .read(mediaImportServiceProvider)
+            .prepareLocalFileForDive(
+              sourceFile: file,
+              diveId: seed.id,
+              takenAt: takenAt,
+            );
+        final copy = prepared.item.filePath;
+        if (copy != null) {
+          _photoCopies.add(copy);
+          // Copied after the page or its sitting went: nothing holds it.
+          if (!mounted || session.isDisposed) _dropPhotoCopies();
+        }
+        return prepared;
+      },
+      onPhotoFailed: () =>
+          messenger?.showSnackBar(SnackBar(content: Text(photoFailed))),
     );
   }
 
+  /// Removes the scanned pages copied for a sitting that ended without a
+  /// create, best effort.
+  void _dropPhotoCopies() {
+    final copies = [..._photoCopies];
+    _photoCopies.clear();
+    for (final path in copies) {
+      File(path).delete().ignore();
+    }
+  }
+
   /// The page of a new dive: loading while the seed is made, the sitting
-  /// on it, the dive locked once created, and nothing while it leaves.
+  /// on it, and the dive once created, locked and taking no input until
+  /// the page moves on to it.
   Widget buildNewDive(BuildContext context) {
     final created = _created;
-    if (created != null) return _buildContent(context, created);
+    if (created != null) {
+      return AbsorbPointer(
+        child: ExcludeFocus(child: _buildContent(context, created)),
+      );
+    }
     final session = _editController?.session;
     if (session != null) return _buildContent(context, session.stored);
-    if (_seed != null || !editingOffered) {
-      // The sitting has ended without a create: the page is leaving.
-      return widget.embedded ? const SizedBox.shrink() : const Scaffold();
-    }
+    if (_seed != null && editingOffered && !_leaving) _askReopen();
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: !widget.embedded,
@@ -90,16 +136,38 @@ mixin _DiveDetailPageCreating
     );
   }
 
+  /// The sitting ended without a create while the page stays in view: the
+  /// pane's new dive asked for again (the same address), or Back in the
+  /// pane, which ends a sitting in place. The page is still a new dive, so
+  /// a fresh one opens. A page that is leaving is no longer current by
+  /// then, and opens nothing.
+  void _askReopen() {
+    if (_reopenAsked) return;
+    _reopenAsked = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _reopenAsked = false;
+      if (!mounted || _leaving || _created != null) return;
+      if (_editController?.isUnlocked ?? false) return;
+      if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+      _dropPhotoCopies();
+      setState(() => _seed = null);
+      _openNewDive();
+    });
+  }
+
   /// Cancel, from the bar or Escape: asks when something was entered, then
   /// leaves without creating anything.
   @override
   Future<void> _cancelNewDive() async {
+    if (_created != null) return;
     if (!await cancelSitting(context, editController)) return;
+    _dropPhotoCopies();
     if (!mounted) return;
     _leaveNewDive();
   }
 
   void _leaveNewDive() {
+    _leaving = true;
     if (widget.embedded) {
       widget.onCreateCancelled?.call();
     } else if (context.canPop()) {
@@ -114,10 +182,10 @@ mixin _DiveDetailPageCreating
   /// and the page stays with everything entered.
   @override
   Future<void> _saveNewDive() async {
+    if (_created != null) return;
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final controller = editController;
-    final changed = controller.session?.changedCardIds ?? const <String>{};
     final afterCreate = NewDiveAfterCreate.read(context, ref);
     final saved = await controller.save();
     if (!saved) {
@@ -135,7 +203,7 @@ mixin _DiveDetailPageCreating
     }
     final created = _created;
     if (created == null) return;
-    await afterCreate.run(created: created, changedCardIds: changed);
+    await afterCreate.run(created: created);
     if (!mounted) return;
     if (widget.embedded) {
       widget.onCreated?.call(created.id);

@@ -101,6 +101,7 @@ void main() {
     Future<Trip?> Function(String)? readTrip,
     List<TripCylinderState> slots = const [],
     Future<PreparedMedia> Function(File, DateTime?)? preparePhoto,
+    void Function()? onPhotoFailed,
   }) async {
     applyNewDivePrefill(
       session,
@@ -111,6 +112,7 @@ void main() {
       },
       readTrip: readTrip ?? (id) async => id == 'trip' ? trip : null,
       readSlots: (tripId, at) async => slots,
+      onPhotoFailed: onPhotoFailed,
       preparePhoto:
           preparePhoto ??
           (file, takenAt) async => (
@@ -334,14 +336,20 @@ void main() {
     expect(session.changedCardIds, contains('media'));
   });
 
-  test('a photo that cannot be prepared leaves the rest', () async {
-    await apply(
-      const NewDiveRequest(
-        prefill: DivePrefill(photoPath: '/gone.jpg', notes: 'Wall'),
-      ),
-      preparePhoto: (_, _) async => throw const FileSystemException('gone'),
-    );
-    expect(session.valueOf(diveNotesField), 'Wall');
-    expect(sittingMedia(session).added, isEmpty);
-  });
+  test(
+    'a photo that cannot be prepared leaves the rest, and says so',
+    () async {
+      var failed = 0;
+      await apply(
+        const NewDiveRequest(
+          prefill: DivePrefill(photoPath: '/gone.jpg', notes: 'Wall'),
+        ),
+        preparePhoto: (_, _) async => throw const FileSystemException('gone'),
+        onPhotoFailed: () => failed++,
+      );
+      expect(failed, 1);
+      expect(session.valueOf(diveNotesField), 'Wall');
+      expect(sittingMedia(session).added, isEmpty);
+    },
+  );
 }

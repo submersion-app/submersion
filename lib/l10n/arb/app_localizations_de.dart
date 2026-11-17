@@ -9799,6 +9799,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Tauchgang wurde gespeichert, aber das Anhängen der gescannten Seite ist fehlgeschlagen';
 
   @override
+  String get ocrImport_newDive_photoHoldFailed =>
+      'Die gescannte Seite konnte diesem Tauchgang nicht angehängt werden';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Tauchgang manuell erfassen';
 

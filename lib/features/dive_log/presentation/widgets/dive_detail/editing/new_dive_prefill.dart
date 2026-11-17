@@ -56,7 +56,8 @@ typedef LogbookPhotoPreparer =
 ///
 /// The trip and the logbook photo are read afterwards and tracked, so a
 /// save waits for them; each drops its answer when the sitting has ended or
-/// is being saved by then. A photo that cannot be copied is left out.
+/// is being saved by then. A photo that cannot be copied is left out and
+/// [onPhotoFailed] is told, so the diver hears of it, as the form says.
 void applyNewDivePrefill(
   EditSession<Dive> session,
   NewDiveRequest request, {
@@ -64,6 +65,7 @@ void applyNewDivePrefill(
   required Future<Trip?> Function(String tripId) readTrip,
   required TripSlotReader readSlots,
   required LogbookPhotoPreparer preparePhoto,
+  void Function()? onPhotoFailed,
 }) {
   if (session.isDisposed || session.isFrozen) return;
   final p = request.prefill;
@@ -76,7 +78,9 @@ void applyNewDivePrefill(
   }
   final photoPath = p?.photoPath;
   if (photoPath != null) {
-    session.track(_holdPhoto(session, File(photoPath), preparePhoto));
+    session.track(
+      _holdPhoto(session, File(photoPath), preparePhoto, onPhotoFailed),
+    );
   }
 }
 
@@ -240,6 +244,7 @@ Future<void> _holdPhoto(
   EditSession<Dive> session,
   File file,
   LogbookPhotoPreparer preparePhoto,
+  void Function()? onFailed,
 ) async {
   final PreparedMedia prepared;
   try {
@@ -250,6 +255,7 @@ Future<void> _holdPhoto(
       error: error,
       stackTrace: stackTrace,
     );
+    if (!session.isDisposed) onFailed?.call();
     return;
   }
   if (!_alive(session)) return;

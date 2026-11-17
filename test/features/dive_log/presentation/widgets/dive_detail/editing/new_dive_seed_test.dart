@@ -112,6 +112,15 @@ void main() {
     expect(a.id, isNot(b.id));
   });
 
+  // Where the dive came from is not an entry: a scan's dive keeps it.
+  test('a scanned dive keeps its import source', () async {
+    final seed = await newDiveSeed(
+      container.read,
+      const NewDiveRequest(prefill: DivePrefill(importSource: 'ocr')),
+    );
+    expect(seed.importSource, 'ocr');
+  });
+
   test('a planned dive has no number', () async {
     final seed = await newDiveSeed(
       container.read,

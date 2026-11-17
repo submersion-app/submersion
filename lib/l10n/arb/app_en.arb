@@ -5767,6 +5767,10 @@
   "ocrImport_scanPage_nothingRead": "Couldn't read much from this page - fields left blank",
   "ocrImport_scanPage_engineMissing": "Text recognition is not available. Install Tesseract to scan paper logs (for example: sudo apt install tesseract-ocr).",
   "ocrImport_editPage_photoAttachFailed": "The dive was saved, but attaching the scanned page failed",
+  "ocrImport_newDive_photoHoldFailed": "The scanned page could not be attached to this dive",
+  "@ocrImport_newDive_photoHoldFailed": {
+    "description": "Shown when a new dive opened from a logbook scan cannot hold the scanned page photo; the dive has not been saved yet"
+  },
   "diveLog_listPage_bottomSheet_logManually": "Log Dive Manually",
   "diveLog_listPage_bottomSheet_planDive": "Plan a dive",
   "diveLog_listPage_bottomSheet_planDiveSubtitle": "Fill in the details now, add the dive computer data later",

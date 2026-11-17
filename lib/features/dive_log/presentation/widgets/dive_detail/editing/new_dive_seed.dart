@@ -81,6 +81,8 @@ Future<Dive> newDiveSeed(
     dateTime: entry,
     entryTime: entry,
     isPlanned: planned,
+    // Where the dive came from (a scan), as the new-dive form stores it.
+    importSource: request.prefill?.importSource,
   );
   final withSet = await _withDefaultSet(read, bare);
   return withSet.copyWith(tanks: _withStarter(withSet.tanks, starter));

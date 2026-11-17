@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
@@ -90,17 +89,15 @@ class NewDiveAfterCreate {
   final Future<void> Function(String diveId) runRules;
   final Future<void> Function(String diveId) offerMirror;
 
-  /// Runs the steps for [created]. The weather is not fetched when the
-  /// sitting changed the Environment card ([changedCardIds]): the fetch
-  /// writes over what the diver entered or fetched there. A planned dive
-  /// runs no rules and is not offered to buddies: it is not logged yet.
-  Future<void> run({
-    required Dive created,
-    required Set<String> changedCardIds,
-  }) async {
+  /// Runs the steps for [created]. The weather is not fetched over weather
+  /// the diver entered or fetched in the sitting: the fetch writes wind,
+  /// sky, rain, humidity and the description over what the dive holds, and
+  /// a new dive holds none of them unless the diver put them there. A
+  /// planned dive runs no rules and is not offered to buddies: it is not
+  /// logged yet.
+  Future<void> run({required Dive created}) async {
     final location = created.site?.location;
-    if (location != null &&
-        !changedCardIds.contains(DiveDetailSectionId.environment.name)) {
+    if (location != null && !hasWeather(created)) {
       await _guarded('weather', () async => fetchWeather(created, location));
     }
     if (location != null) {
@@ -110,6 +107,17 @@ class NewDiveAfterCreate {
     await _guarded('rules', () => runRules(created.id));
     await _guarded('mirror', () => offerMirror(created.id));
   }
+
+  /// Whether [dive] holds any of the weather a fetch writes.
+  static bool hasWeather(Dive dive) =>
+      dive.windSpeed != null ||
+      dive.windDirection != null ||
+      dive.cloudCover != null ||
+      dive.precipitation != null ||
+      dive.humidity != null ||
+      (dive.weatherDescription?.isNotEmpty ?? false) ||
+      dive.weatherCode != null ||
+      dive.weatherFetchedAt != null;
 
   Future<void> _guarded(String step, Future<void> Function() body) async {
     try {

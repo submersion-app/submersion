@@ -9809,6 +9809,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'O mergulho foi salvo, mas não foi possível anexar a página digitalizada';
 
   @override
+  String get ocrImport_newDive_photoHoldFailed =>
+      'Não foi possível anexar a página digitalizada a este mergulho';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Registrar mergulho manualmente';
 

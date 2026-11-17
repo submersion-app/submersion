@@ -3201,6 +3201,7 @@
   "ocrImport_scanPage_nothingRead": "تعذرت قراءة الكثير من هذه الصفحة - تُركت الحقول فارغة",
   "ocrImport_scanPage_engineMissing": "التعرف على النص غير متوفر. ثبّت Tesseract لمسح السجلات الورقية (مثلاً: sudo apt install tesseract-ocr).",
   "ocrImport_editPage_photoAttachFailed": "تم حفظ الغطسة، لكن فشل إرفاق الصفحة الممسوحة",
+  "ocrImport_newDive_photoHoldFailed": "تعذّر إرفاق الصفحة الممسوحة بهذه الغطسة",
   "diveLog_listPage_bottomSheet_logManually": "تسجيل غوصة يدويا",
   "diveLog_listPage_bottomSheet_planDive": "التخطيط لغوصة",
   "diveLog_listPage_bottomSheet_planDiveSubtitle": "أدخل التفاصيل الآن وأضف بيانات كمبيوتر الغوص لاحقا",

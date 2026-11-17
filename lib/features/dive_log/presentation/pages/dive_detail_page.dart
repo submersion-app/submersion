@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -185,14 +186,16 @@ class DiveDetailPage extends ConsumerStatefulWidget {
 
   /// The page of a new dive (issue #4527, plan 8), opened by `/dives/new`
   /// and the list pane's `?mode=new`: unlocked, with the Dive card and the
-  /// starter cards laid out. It needs [unlockEditing].
+  /// starter cards laid out. It is a sitting from the start, so it is
+  /// built with [unlockEditing] on; the routes choose the old form instead
+  /// while the build switch is off.
   const DiveDetailPage.newDive({
     super.key,
     NewDiveRequest request = const NewDiveRequest(),
     this.embedded = false,
     this.onCreated,
     this.onCreateCancelled,
-    this.unlockEditing = kUnlockEditing,
+    this.unlockEditing = true,
   }) : diveId = '',
        newDiveRequest = request,
        embeddedSiteId = null,

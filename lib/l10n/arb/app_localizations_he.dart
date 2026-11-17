@@ -9595,6 +9595,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצלילה נשמרה, אך צירוף העמוד הסרוק נכשל';
 
   @override
+  String get ocrImport_newDive_photoHoldFailed =>
+      'לא ניתן היה לצרף את העמוד הסרוק לצלילה זו';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually => 'רישום צלילה ידנית';
 
   @override

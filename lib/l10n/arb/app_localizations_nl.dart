@@ -9746,6 +9746,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'De duik is opgeslagen, maar het bijvoegen van de gescande pagina is mislukt';
 
   @override
+  String get ocrImport_newDive_photoHoldFailed =>
+      'De gescande pagina kon niet aan deze duik worden toegevoegd';
+
+  @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Duik handmatig loggen';
 

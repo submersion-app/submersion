@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Variable;
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
@@ -138,7 +139,13 @@ class DiveEditSaveService {
         cardIds: changedCardIds,
       ),
       body: () => _db.transaction(() async {
-        if (await _diveRepo.getDiveById(dive.id) != null) {
+        final taken = await _db
+            .customSelect(
+              'SELECT 1 FROM dives WHERE id = ?',
+              variables: [Variable<String>(dive.id)],
+            )
+            .getSingleOrNull();
+        if (taken != null) {
           throw StateError('Dive ${dive.id} already exists');
         }
         final created = await _diveRepo.createDive(dive);
@@ -150,6 +157,9 @@ class DiveEditSaveService {
             ? const <TripDateStretch>[]
             : await _tripRepo.stretchToCoverDives([created.id]);
         await alsoWrite?.call();
+        // Read back rather than trusting the copy createDive returns: the
+        // write drops what it cannot store (a slot of another trip) and the
+        // numbering may have given it a number.
         final after = await _diveRepo.getDiveById(created.id);
         return (after: after ?? created, tripDateStretches: stretches);
       }),
