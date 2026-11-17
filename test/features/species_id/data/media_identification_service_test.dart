@@ -780,6 +780,39 @@ void main() {
       expect(again.decision, IdentificationDecision.rejected);
     });
 
+    test('a rescan stopped part-way still carries a dismissal after it '
+        'resumes', () async {
+      engine.videoFrames = {
+        for (var ms = 15000; ms < 18000; ms += 250)
+          ms: [
+            const DetectedBox(
+              box: IdentificationBox(x: 0.5, y: 0.4, width: 0.2, height: 0.1),
+              score: 0.9,
+            ),
+          ],
+      };
+      await service.request(video());
+      final first = (await identifications.forMedia('v1')).single;
+      await service.reject('v1', [first.id]);
+
+      installed = pack(detector: 'det-b');
+      await service.packChanged();
+      engine.videoGate = Completer<void>();
+      final stopped = service.request(video());
+      await until(() => engine.detectCalls.length == 4);
+      expect(service.cancelPending('v1'), isTrue);
+      engine.videoGate!.complete();
+      engine.videoGate = null;
+      await stopped;
+      expect((await identifications.runFor('v1'))!.scannedMs, 10000);
+
+      await service.request(video());
+      final found = await identifications.forMedia('v1');
+      expect(found, hasLength(1));
+      expect(found.single.id, isNot(first.id));
+      expect(found.single.decision, IdentificationDecision.rejected);
+    });
+
     test('a new pack renames a scanned video without the engine', () async {
       oneFish();
       await service.request(video());

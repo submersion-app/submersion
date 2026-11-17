@@ -452,7 +452,14 @@ class MediaIdentificationService {
           await _rename(pack, from, undecided, embeddings, cell, generation);
           from = await _identifications.runFor(job.item.id) ?? from;
         }
-        return _scanVideo(job, pack, cell, reader, from, const []);
+        // A rescan stopped part-way: what the diver said about a fish not
+        // yet reached is still to be carried to its fresh track. Rows this
+        // scan stored all end at or before where it got to.
+        final scanned = from.scannedMs ?? 0;
+        return _scanVideo(job, pack, cell, reader, from, [
+          for (final i in stored)
+            if (_saidByDiver(i) && (i.endMs ?? 0) > scanned) i,
+        ]);
       case VideoRefreshAction.rescan:
         final reader = await _resolveVideo(job.item);
         if (reader == null) return false;
@@ -461,9 +468,7 @@ class MediaIdentificationService {
         // app's own guesses are found again.
         final carry = [
           for (final i in stored)
-            if (i.decision != IdentificationDecision.undecided ||
-                i.claimedSpeciesId != null)
-              i,
+            if (_saidByDiver(i)) i,
         ];
         final dropped = [
           for (final i in stored)
@@ -492,6 +497,11 @@ class MediaIdentificationService {
         return _scanVideo(job, pack, cell, reader, start, carry);
     }
   }
+
+  /// Whether the diver decided on [i], or named it from the frame.
+  static bool _saidByDiver(MediaIdentification i) =>
+      i.decision != IdentificationDecision.undecided ||
+      i.claimedSpeciesId != null;
 
   /// Scans [job]'s video a chunk at a time from [from]. Between chunks it
   /// stops when the video was left, another logbook opened, a pack change
