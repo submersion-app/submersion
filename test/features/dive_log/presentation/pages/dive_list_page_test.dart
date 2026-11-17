@@ -1126,6 +1126,49 @@ void main() {
           findsOneWidget,
         );
       });
+
+      // A dive deleted from the pane's edit mode is gone: the pane leaves
+      // it for the bare list, not back to `?selected=<id>`.
+      testWidgets('${mode.name}: a dive deleted in ?mode=edit leaves the pane '
+          'at /dives', (tester) async {
+        tester.view.devicePixelRatio = 1.0;
+        tester.view.physicalSize = const Size(1200, 800);
+        addTearDown(tester.view.reset);
+
+        final overrides = await buildBranchOverrides(viewMode: mode);
+        await tester.pumpWidget(
+          buildBranchTestWidget(
+            child: const DiveListPage(),
+            overrides: [
+              ...overrides,
+              tableDetailsPaneProvider('dives').overrideWith((ref) => true),
+            ],
+            initialLocation: '/dives?selected=test-dive-id&mode=edit',
+          ),
+        );
+        await tester.pump();
+        tester.takeException();
+        await tester.pump();
+        tester.takeException();
+
+        final opened = find.byWidgetPredicate(
+          (w) => w is DiveDetailPage && w.openUnlocked,
+        );
+        expect(opened, findsOneWidget);
+
+        tester.widget<DiveDetailPage>(opened).onDeleted!();
+        for (var i = 0; i < 4; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+          tester.takeException();
+        }
+
+        final router = GoRouter.of(tester.element(find.byType(DiveListPage)));
+        expect(
+          router.routerDelegate.currentConfiguration.uri.toString(),
+          '/dives',
+        );
+        expect(find.byType(DiveDetailPage), findsNothing);
+      });
     }
   });
 }

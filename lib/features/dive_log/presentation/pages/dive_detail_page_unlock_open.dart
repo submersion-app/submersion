@@ -38,6 +38,18 @@ mixin _DiveDetailPageUnlockOpen
     if (widget.openUnlocked && !oldWidget.openUnlocked) {
       _openedUnlocked = false;
     }
+    // Turned off (the address left `mode=edit`, as Android's Back does on
+    // the same page): a sitting it opened with nothing to lose locks.
+    final controller = _editController;
+    if (!widget.openUnlocked &&
+        oldWidget.openUnlocked &&
+        _sittingOpenedUnlocked &&
+        controller != null &&
+        controller.isUnlocked &&
+        !controller.isDirty &&
+        !controller.isBusy) {
+      controller.lock();
+    }
   }
 
   /// Called on every change of the sitting: tells the page's owner once
@@ -46,11 +58,19 @@ mixin _DiveDetailPageUnlockOpen
   void _noteSittingEnded() {
     if (!_sittingOpenedUnlocked || isSittingOpen) return;
     _sittingOpenedUnlocked = false;
+    // Discarded by a leave the app asked about: the pane is moving on, and
+    // the router may not have applied that yet.
+    if (_endedByLeave) {
+      _endedByLeave = false;
+      return;
+    }
     final ended = widget.onSittingEnded;
     if (ended == null) return;
     // After the frame: the lock can come while the page is being built.
+    // A lock on the way out (a leave that asked first, a deleted dive) is
+    // not reported: the page has gone, and the pane has moved on.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_leftDeletedDive) ended();
+      if (mounted && !_leftDeletedDive) ended();
     });
   }
 }

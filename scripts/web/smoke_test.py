@@ -345,9 +345,12 @@ def open_dive_list(page):
 
 def edit_first_dive(page, rows):
     """A saved edit, through a switch: a text row collapses again when it is
-    tapped through the semantics layer, as the page's only pointer here."""
+    tapped through the semantics layer, as the page's only pointer here.
+    The dive page opens locked: unlock it, open the header card (the dive's
+    own fields), flip Planned dive there and Save (issue #4527)."""
     rows.first.click()
-    button(page, re.compile(r"^Edit\b", re.I)).click(timeout=STEP_TIMEOUT_MS)
+    button(page, exact("Unlock to edit")).click(timeout=STEP_TIMEOUT_MS)
+    button(page, exact("Edit Dive")).click(timeout=STEP_TIMEOUT_MS)
     page.get_by_role("switch", name=re.compile(r"^Planned dive")).first.click(
         timeout=STEP_TIMEOUT_MS
     )

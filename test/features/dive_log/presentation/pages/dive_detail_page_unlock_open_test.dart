@@ -5,6 +5,8 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/app/app_exit_guard.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'dive_detail_page_unlock_harness.dart';
@@ -174,6 +176,88 @@ void main() {
     expect(deleted, 1);
     expect(ended, 0);
   });
+
+  // A leave that asks first (another row, a tab) ends the sitting and then
+  // navigates. The pane is moving on, and must not be sent back to the
+  // dive: no report, however late the router applies the leave.
+  testWidgets('a sitting discarded by a leave that asked reports nothing', (
+    tester,
+  ) async {
+    var ended = 0;
+    final page = await pumpPage(
+      tester,
+      openUnlocked: true,
+      onSittingEnded: () => ended++,
+    );
+    await settle(tester);
+    await openNotes(tester);
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(MarkdownNotesField),
+        matching: find.byType(TextField),
+      ),
+      'Changed',
+    );
+    await settle(tester);
+
+    final guard = ProviderScope.containerOf(
+      tester.element(find.byType(DiveDetailPage)),
+    ).read(appExitGuardProvider);
+    final leaving = guard.mayLeave();
+    await settle(tester);
+    await tester.tap(find.text('Discard'));
+    await settle(tester);
+    expect(await leaving, isTrue);
+    page.router.go('/home');
+    await settle(tester);
+
+    expect(ended, 0);
+  });
+  // The address dropping mode=edit on the same page (Android Back's shell
+  // fallback strips it) locks a sitting with nothing to lose.
+  for (final changed in [false, true]) {
+    testWidgets(
+      'openUnlocked turning off ${changed ? 'keeps a sitting with '
+                'changes' : 'locks a clean sitting'}',
+      (tester) async {
+        final open = ValueNotifier(true);
+        addTearDown(open.dispose);
+        await pumpPage(
+          tester,
+          initialLocation: '/live',
+          routes: [
+            GoRoute(
+              path: '/live',
+              builder: (context, state) => ValueListenableBuilder<bool>(
+                valueListenable: open,
+                builder: (context, value, _) =>
+                    DiveDetailPage(diveId: dive.id, openUnlocked: value),
+              ),
+            ),
+          ],
+        );
+        await settle(tester);
+        expect(saveAction(), findsOneWidget);
+        if (changed) {
+          await openNotes(tester);
+          await tester.enterText(
+            find.descendant(
+              of: find.byType(MarkdownNotesField),
+              matching: find.byType(TextField),
+            ),
+            'Changed',
+          );
+          await settle(tester);
+        }
+
+        open.value = false;
+        await settle(tester);
+
+        expect(saveAction(), changed ? findsOneWidget : findsNothing);
+        expect(lock(), changed ? findsNothing : findsOneWidget);
+      },
+    );
+  }
 
   testWidgets('neither bar has an Edit button', (tester) async {
     await pumpPage(tester);

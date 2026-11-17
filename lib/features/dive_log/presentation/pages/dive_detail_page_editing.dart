@@ -32,6 +32,11 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   RecordEditController<Dive> get editController => _editController ??=
       _newEditController(ProviderScope.containerOf(context, listen: false));
 
+  /// Set while a leave the app asked about (another row, a tab, a quit)
+  /// discards the sitting: that end is the leave's, and the page is going
+  /// ([_DiveDetailPageUnlockOpen] does not report it).
+  bool _endedByLeave = false;
+
   /// Makes the sitting's unsaved changes work the app asks about before a
   /// tab, a pane row or a quit leaves them (issue #4527).
   RecordSittingExitBlocker<Dive>? _exitBlocker;
@@ -41,7 +46,15 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     _exitBlocker = RecordSittingExitBlocker<Dive>(
       controller: controller,
       guard: container.read(appExitGuardProvider),
-      confirm: () async => mounted && await cancelSitting(context, controller),
+      confirm: () async {
+        if (!mounted) return false;
+        // Set first: a discard locks, and tells the page, before
+        // cancelSitting returns.
+        _endedByLeave = true;
+        final left = await cancelSitting(context, controller);
+        if (!left) _endedByLeave = false;
+        return left;
+      },
       // The route the page is on, so leaving another page asks nothing.
       page: () => mounted ? recordSittingPageOf(context) : null,
     );
