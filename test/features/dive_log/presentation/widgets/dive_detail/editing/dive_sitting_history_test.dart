@@ -47,11 +47,14 @@ void main() {
     addTearDown(container.dispose);
     await insertDiver(db, 'me');
     await insertDive(db, 'dive', diverId: 'me', notes: 'Calm');
+    // Each cylinder carries the index its computer gave it, as a downloaded
+    // one does: without one, the exchange would first resolve a legacy
+    // index for it and write that as well.
     for (final (id, order) in [('a', 0), ('b', 1)]) {
       await db.customStatement(
-        'INSERT INTO dive_tanks (id, dive_id, tank_order) '
-        "VALUES (?, 'dive', ?)",
-        [id, order],
+        'INSERT INTO dive_tanks (id, dive_id, tank_order, source_tank_index) '
+        "VALUES (?, 'dive', ?, ?)",
+        [id, order, order],
       );
     }
     await db.customStatement(
@@ -175,6 +178,11 @@ void main() {
         'nav_tracks',
       ]),
     );
+    // The exchange swapped what each cylinder recorded, its index included.
+    expect(
+      await cell("SELECT source_tank_index FROM dive_tanks WHERE id = 'a'"),
+      1,
+    );
     // Nothing of the sitting was filed apart from it.
     expect(
       await cell(
@@ -219,6 +227,14 @@ void main() {
     expect(
       await cell("SELECT dive_id FROM nav_tracks WHERE id = 'route'"),
       isNull,
+    );
+    expect(
+      await cell("SELECT source_tank_index FROM dive_tanks WHERE id = 'a'"),
+      0,
+    );
+    expect(
+      await cell("SELECT source_tank_index FROM dive_tanks WHERE id = 'b'"),
+      1,
     );
     expect((await changeLog.getOperation(entry.id))!.isReverted, isTrue);
   });
