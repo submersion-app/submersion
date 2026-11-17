@@ -257,7 +257,11 @@ def _crop_record(row, detection, namer, junk_cell=None):
         cell, overrides = junk_cell, {}
     else:
         cell = region_grid.cell_of(float(row["lat"]), float(row["lon"]), namer.cell_degrees)
-        overrides = {label: row["recorded_before_cutoff"] == "yes"} if label is not None else {}
+        # A test photo must not vouch for its own species' place: with no
+        # record before the cutoff, the label species is not allowed there.
+        # It can only switch the pack's bit off, never on, as the app reads
+        # the pack's table alone.
+        overrides = {label: False} if label is not None and row["recorded_before_cutoff"] != "yes" else {}
     with_loc, no_loc = namer.name(detection["embedding"], cell, overrides)
     if with_loc is None:
         return None

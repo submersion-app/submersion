@@ -165,7 +165,7 @@ class NamingConfig extends Equatable {
     double? confidentScoreNoLocation,
     required this.minAllowedCandidates,
     required this.topK,
-  }) : confidentScoreNoLocation = confidentScoreNoLocation ?? confidentScore;
+  }) : _confidentScoreNoLocation = confidentScoreNoLocation;
 
   /// True until the bars have been set from measured accuracy.
   final bool provisional;
@@ -176,8 +176,11 @@ class NamingConfig extends Equatable {
   final double suggestScoreNoLocation;
 
   /// The confident bar for a crop with no usable location. A pack that
-  /// does not set it uses [confidentScore] for both. Above 1 means never.
-  final double confidentScoreNoLocation;
+  /// does not set it uses [confidentScore] for both, and keeps following
+  /// it through [copyWith]. Above 1 means never.
+  double get confidentScoreNoLocation =>
+      _confidentScoreNoLocation ?? confidentScore;
+  final double? _confidentScoreNoLocation;
   final int minAllowedCandidates;
   final int topK;
 
@@ -200,7 +203,7 @@ class NamingConfig extends Equatable {
     suggestScoreNoLocation:
         suggestScoreNoLocation ?? this.suggestScoreNoLocation,
     confidentScoreNoLocation:
-        confidentScoreNoLocation ?? this.confidentScoreNoLocation,
+        confidentScoreNoLocation ?? _confidentScoreNoLocation,
     minAllowedCandidates: minAllowedCandidates ?? this.minAllowedCandidates,
     topK: topK ?? this.topK,
   );

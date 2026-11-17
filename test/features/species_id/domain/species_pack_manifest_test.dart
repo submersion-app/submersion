@@ -108,6 +108,21 @@ void main() {
       expect(m.naming.confidentScoreNoLocation, m.naming.confidentScore);
     });
 
+    test('an unset no-location confident bar follows the confident bar '
+        'through copyWith', () {
+      final naming = SpeciesPackManifest.parse(manifestJson()).naming;
+
+      final changed = naming.copyWith(confidentScore: 0.9);
+
+      expect(changed.confidentScoreNoLocation, 0.9);
+      expect(
+        changed
+            .copyWith(confidentScoreNoLocation: 1.01)
+            .confidentScoreNoLocation,
+        1.01,
+      );
+    });
+
     test('a no-location confident bar is read, including never', () {
       final m = SpeciesPackManifest.parse(
         manifestJson((m) {

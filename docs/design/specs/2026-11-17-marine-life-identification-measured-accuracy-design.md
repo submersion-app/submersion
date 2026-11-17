@@ -224,8 +224,10 @@ research-grade records, so each test observation can switch its own species
 on in its own cell. For each test observation, one GBIF occurrence count asks
 whether its species has any record dated before 2024-07-01 in the
 observation's cell or the cells around it (the same neighbourhood the app
-uses). That answer, not the pack's bit, decides whether the label species is
-allowed for that crop. Every other species' bits are used as the pack has
+uses). When it has none, the label species is not allowed for that crop,
+whatever the pack's bit says; when it has some, the pack's bit stands, so
+the answer can only switch a species off, never on **(changed after
+review)**. Every other species' bits are used as the pack has
 them. About 3,000 count queries, cached in the work folder.
 
 ### Junk crops: divers, hands, gear and bare scenery

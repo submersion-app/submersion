@@ -305,6 +305,8 @@ def _sheet(paths, captions, out, *, columns=10, size=160):
     caption cannot be read as the next row's."""
     from PIL import Image, ImageDraw
 
+    if not paths:
+        return
     band = 18
     rows = (len(paths) + columns - 1) // columns
     sheet = Image.new("RGB", (columns * (size + 6), rows * (size + band + 6)), "white")
