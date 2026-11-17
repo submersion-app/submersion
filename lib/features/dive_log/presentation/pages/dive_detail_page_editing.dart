@@ -360,7 +360,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   /// and Save, laid over the locked row.
   Widget editingPaneRow(Dive dive, {required Widget menu}) {
     final controller = editController;
-    return DiveDetailEmbeddedEditingHeader(
+    return RecordEditPaneHeader(
       title: _editingTitle(dive),
       canSave: controller.isDirty,
       isSaving: controller.isSaving,

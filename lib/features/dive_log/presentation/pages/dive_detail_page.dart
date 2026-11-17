@@ -75,7 +75,7 @@ import 'package:submersion/features/dive_log/presentation/providers/safety_revie
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_title.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_embedded_editing_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_pane_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_embedded_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_overflow_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';

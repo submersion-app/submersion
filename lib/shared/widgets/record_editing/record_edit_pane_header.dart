@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
-/// The list pane's header row while its dive is unlocked (issue #4527):
-/// Cancel, what is being edited, the dive's menu and Save, as the full
+/// The list pane's header row while its record is unlocked (issue #4527):
+/// Cancel, what is being edited, the record's menu and Save, as the full
 /// page's editing bar has them.
 ///
 /// It is laid over the locked row, which keeps its place beneath it, so the
 /// header is the same height locked and unlocked and nothing below moves.
-class DiveDetailEmbeddedEditingHeader extends StatelessWidget {
-  const DiveDetailEmbeddedEditingHeader({
+class RecordEditPaneHeader extends StatelessWidget {
+  const RecordEditPaneHeader({
     super.key,
     required this.title,
     required this.canSave,
@@ -32,7 +32,7 @@ class DiveDetailEmbeddedEditingHeader extends StatelessWidget {
   final VoidCallback onCancel;
   final VoidCallback onSave;
 
-  /// The dive's menu, between the title and Save.
+  /// The record's menu, between the title and Save.
   final Widget menu;
 
   @override

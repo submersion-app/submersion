@@ -50,8 +50,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
-import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart';
 import 'package:submersion/shared/widgets/section_fold.dart';
 
 part 'dive_detail_section_list_content.dart';
@@ -394,17 +394,10 @@ class DiveDetailSectionList extends ConsumerWidget {
       icon: id.icon,
       isExpanded: isExpanded,
       trailing: canOpen
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isChanged) const RecordChangedDot(),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                  color: Theme.of(context).colorScheme.primary,
-                  tooltip: context.l10n.recordEdit_editCardTooltip(title),
-                  onPressed: () => edit.openCard(id.name),
-                ),
-              ],
+          ? RecordFoldPencil(
+              title: title,
+              isChanged: isChanged,
+              onOpen: () => edit.openCard(id.name),
             )
           : null,
       // A card being edited stays unfolded whatever is saved, so a tap here
