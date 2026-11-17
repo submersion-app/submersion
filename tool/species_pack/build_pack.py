@@ -56,15 +56,25 @@ def default_version(now=None):
     return now.strftime("%Y.%m.%d.%H%M")
 
 
-def main(argv=None):
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out", required=True)
     parser.add_argument("--work", default=os.path.join(REPO, "build", "species_pack_work"))
-    parser.add_argument("--max-candidates", type=int, default=8000)
-    parser.add_argument("--min-images", type=int, default=50)
+    parser.add_argument("--max-candidates", type=int, default=10000)
+    parser.add_argument("--min-images", type=int, default=50, help="photographed human observations")
+    parser.add_argument(
+        "--min-survey-records",
+        type=int,
+        default=50,
+        help="present human observations at 0 to 40 m, for species divers record but rarely photograph",
+    )
     parser.add_argument("--version", default=default_version())
     parser.add_argument("--skip-models", action="store_true", help="reuse converted models in --work")
-    args = parser.parse_args(argv)
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
+    args = parse_args(argv)
     os.makedirs(args.out, exist_ok=True)
     os.makedirs(args.work, exist_ok=True)
 
@@ -95,7 +105,10 @@ def main(argv=None):
     )
     print(f"widening within {len(orders)} orders", flush=True)
     photographed = cand.fetch_photographed_species(sorted(orders), args.work, min_images=args.min_images)
-    wanted = [k for k, _ in photographed if k not in have][: max(0, args.max_candidates - len(rows))]
+    surveyed = cand.fetch_surveyed_species(sorted(orders), args.work, min_records=args.min_survey_records)
+    print(f"photographed species: {len(photographed)}, surveyed species: {len(surveyed)}", flush=True)
+    wanted = cand.wanted_keys(photographed, surveyed, have, args.max_candidates - len(rows))
+    photographed_keys = {k for k, _ in photographed}
     print(f"fetching {len(wanted)} GBIF species", flush=True)
     with ThreadPoolExecutor(8) as pool:
         records = list(pool.map(lambda k: cand.fetch_species(k, args.work), wanted))
@@ -104,7 +117,8 @@ def main(argv=None):
         if row and row["gbifKey"] not in have:
             have.add(row["gbifKey"])
             rows.append(row)
-    print(f"candidates: {len(rows)}", flush=True)
+    survey_only = sum(1 for r in rows if "catalogId" not in r and r["gbifKey"] not in photographed_keys)
+    print(f"candidates: {len(rows)}, of them from surveys only: {survey_only}", flush=True)
     candidates_path = os.path.join(args.out, "candidates.json")
     with open(candidates_path, "w", encoding="utf-8") as fh:
         json.dump(rows, fh, ensure_ascii=False)

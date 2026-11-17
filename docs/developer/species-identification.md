@@ -77,16 +77,25 @@ python3.14 -m venv .venv-species-pack
 
 It downloads the two models from pinned sources and checks their hashes,
 converts them to Core ML, builds the candidate list from the catalogue and
-GBIF, embeds every candidate's name, and maps where each species has been
-recorded from GBIF's density maps. GBIF responses and converted models are
-kept in `build/species_pack_work`, so a second run is quick.
+GBIF (the species most photographed there, then the species divers record
+most in shallow surveys, which BioCLIP 2 names from their names alone, so
+they need no photos), embeds every candidate's name, and maps where each
+species has been recorded from GBIF's density maps. GBIF responses and
+converted models are kept in `build/species_pack_work`, so a second run is
+quick.
 
 Useful options:
 
-- `--max-candidates N` (default 8000) caps the candidate list. A small
-  number makes a quick pack for development.
+- `--max-candidates N` (default 10000) caps the candidate list. A small
+  number makes a quick pack for development. Photographed species fill it
+  first, so a small pack leaves out the species that come only from
+  surveys.
 - `--min-images N` (default 50) is how many photographed observations a
   species needs on GBIF to be a candidate.
+- `--min-survey-records N` (default 50) is the other way in: how many
+  human observations at 0 to 40 m a species needs, photographed or not.
+  Only sightings count (monitoring programmes also publish a row for every
+  species not seen), and records without a depth do not.
 - `--skip-models` reuses the converted models in the work folder.
 - `--version` names the pack; it defaults to the UTC date and time, so two
   builds on one day are two versions.

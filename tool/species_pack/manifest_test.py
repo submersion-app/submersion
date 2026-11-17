@@ -328,5 +328,18 @@ class PackVersionTests(unittest.TestCase):
         self.assertNotEqual(build_pack.default_version(morning), build_pack.default_version(evening))
 
 
+class BuildOptionsTests(unittest.TestCase):
+    def test_defaults(self):
+        args = build_pack.parse_args(["--out", "x"])
+        self.assertEqual(args.max_candidates, 10000)
+        self.assertEqual(args.min_images, 50)
+        self.assertEqual(args.min_survey_records, 50)
+
+    def test_survey_floor_is_its_own_option(self):
+        args = build_pack.parse_args(["--out", "x", "--min-survey-records", "25"])
+        self.assertEqual(args.min_survey_records, 25)
+        self.assertEqual(args.min_images, 50)
+
+
 if __name__ == "__main__":
     unittest.main()
