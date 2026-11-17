@@ -96,11 +96,13 @@ void main() {
   ];
 
   var reloads = 0;
+  bool Function() keepGoing = () => true;
 
   VideoIdentificationScan scan({
     MediaIdentificationRun? resumeFrom,
     List<MediaIdentification> carry = const [],
   }) => VideoIdentificationScan(
+    keepGoing: () => keepGoing(),
     reload: () async {
       reloads++;
       engine.loaded = true;
@@ -284,6 +286,55 @@ void main() {
     final found = (await identifications.forMedia('v1')).single;
     expect(found.id, isNot(old.id));
     expect(found.claimedSpeciesId, 'sp_named_meanwhile');
+  });
+
+  /// [count] fish in a row across the frame from [fromMs] to [toMs].
+  Map<int, List<DetectedBox>> school(int count, int fromMs, int toMs) => {
+    for (var ms = fromMs; ms < toMs; ms += 250)
+      ms: [
+        for (var k = 0; k < count; k++)
+          DetectedBox(
+            box: IdentificationBox(
+              x: k * (1 / count),
+              y: 0.4,
+              width: 0.5 / count,
+              height: 0.1,
+            ),
+            score: 0.9,
+          ),
+      ],
+  };
+
+  test('pass 2 works in batches and stops between them when told', () async {
+    keepGoing = () => true;
+    engine.videoFrames = school(5, 1000, 4000);
+    final s = scan();
+    keepGoing = () => engine.embedCalls.isEmpty;
+    await expectLater(s.runChunk(), throwsA(isA<VideoScanStopped>()));
+    expect(engine.embedCalls, hasLength(1));
+    expect(engine.embedCalls.single, hasLength(12));
+    expect(await identifications.runFor('v1'), isNull);
+    await s.finish();
+    expect(await identifications.forMedia('v1'), isEmpty);
+    keepGoing = () => true;
+  });
+
+  test('pass 2 batches cover every moment when nothing stops it', () async {
+    keepGoing = () => true;
+    engine.videoFrames = school(5, 1000, 4000);
+    await runAll(scan());
+    expect(engine.embedCalls.map((c) => c.length), [12, 3]);
+    expect(await identifications.forMedia('v1'), hasLength(5));
+  });
+
+  test('stopping names at most one batch of the tracks still open', () async {
+    keepGoing = () => true;
+    engine.videoFrames = school(6, 1000, 15000);
+    final s = scan();
+    expect(await s.runChunk(), isTrue);
+    await s.finish();
+    expect(engine.embedCalls.last.length, lessThanOrEqualTo(12));
+    expect(await identifications.forMedia('v1'), hasLength(4));
   });
 
   test('with no file nothing is stored and the scan stops', () async {

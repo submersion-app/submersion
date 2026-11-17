@@ -26,6 +26,12 @@ typedef CropNamer =
       List<({Float32List embedding, int shorterSide})> crops,
     );
 
+/// Thrown by [VideoIdentificationScan.runChunk] when told to stop between
+/// two batches of pass 2. Nothing of that chunk is stored.
+class VideoScanStopped implements Exception {
+  const VideoScanStopped();
+}
+
 /// One video's scan, a chunk at a time (issue #4675).
 ///
 /// Each chunk runs the detector over [chunkMs] of video (pass 1), links
@@ -51,6 +57,7 @@ class VideoIdentificationScan {
     MediaIdentificationRun? resumeFrom,
     List<MediaIdentification> carry = const [],
     Future<void> Function()? reload,
+    bool Function()? keepGoing,
     this.chunkMs = 10000,
     this.sampleIntervalMs = 250,
   }) : _engine = engine,
@@ -66,6 +73,7 @@ class VideoIdentificationScan {
        _newId = newId,
        _databaseGeneration = databaseGeneration,
        _reload = reload,
+       _keepGoing = keepGoing ?? _always,
        _generation = generation ?? databaseGeneration(),
        _scannedMs = resumeFrom?.scannedMs ?? 0,
        _durationMs = resumeFrom?.videoDurationMs,
@@ -76,6 +84,12 @@ class VideoIdentificationScan {
 
   final int chunkMs;
   final int sampleIntervalMs;
+
+  /// Moments cropped and embedded per engine call. A stop waits for at
+  /// most one batch: about a second on a Mac, longer on a phone.
+  static const int embedBatch = 12;
+
+  static bool _always() => true;
 
   final VisionEngine _engine;
   final LoadedPack _pack;
@@ -93,6 +107,9 @@ class VideoIdentificationScan {
   /// Loads the models again after the system freed them (an iOS memory
   /// warning); the call that found them gone is then made once more.
   final Future<void> Function()? _reload;
+
+  /// Asked between batches of pass 2: false stops the chunk there.
+  final bool Function() _keepGoing;
 
   /// A chunk failed part-way: what the tracker holds may include frames
   /// that were never stored, so nothing more is stored from it.
@@ -165,7 +182,8 @@ class VideoIdentificationScan {
   }
 
   /// Closes the tracks still open (the scan is stopping) and stores them,
-  /// without moving the progress on.
+  /// without moving the progress on. Only the longest are named, as many
+  /// as one batch of moments takes, so stopping is never slow.
   Future<void> finish() async {
     if (_broken) return;
     final closed = _tracker.closeAll();
@@ -177,6 +195,7 @@ class VideoIdentificationScan {
       duration: duration,
       width: _width,
       height: _height,
+      stopping: true,
     );
   }
 
@@ -188,8 +207,9 @@ class VideoIdentificationScan {
     required int duration,
     required int width,
     required int height,
+    bool stopping = false,
   }) async {
-    final named = await _nameTracks(closed);
+    final named = await _nameTracks(closed, stopping: stopping);
     if (named == null || _databaseGeneration() != _generation) return false;
     if (named.isNotEmpty && _carry.isNotEmpty) {
       // As stored now: the diver may have decided or named one since the
@@ -260,20 +280,42 @@ class VideoIdentificationScan {
       })
     >?
   >
-  _nameTracks(List<TrackedAnimal> closed) async {
-    if (closed.isEmpty) return const [];
+  _nameTracks(List<TrackedAnimal> all, {required bool stopping}) async {
+    if (all.isEmpty) return const [];
+    var closed = all;
+    if (stopping) {
+      // The longest first, as many as one batch of moments takes.
+      final longest = [...all]
+        ..sort((a, b) => (b.endMs - b.startMs).compareTo(a.endMs - a.startMs));
+      closed = [];
+      var moments = 0;
+      for (final track in longest) {
+        final count = bestMoments(track).length;
+        if (moments + count > embedBatch) break;
+        moments += count;
+        closed.add(track);
+      }
+    }
     final picks = [for (final track in closed) bestMoments(track)];
-    final crops = await _call(
-      (path) => _engine.embedMoments(
-        path: path,
-        moments: [
-          for (final moments in picks)
-            for (final p in moments)
-              VisionMoment(ms: p.ms, box: p.detection.box),
-        ],
-      ),
-    );
-    if (crops == null) return null;
+    final moments = [
+      for (final chosen in picks)
+        for (final p in chosen) VisionMoment(ms: p.ms, box: p.detection.box),
+    ];
+    final crops = <VisionMomentCrop?>[];
+    for (var at = 0; at < moments.length; at += embedBatch) {
+      if (!stopping && !_keepGoing()) throw const VideoScanStopped();
+      final batch = await _call(
+        (path) => _engine.embedMoments(
+          path: path,
+          moments: moments.sublist(
+            at,
+            math.min(at + embedBatch, moments.length),
+          ),
+        ),
+      );
+      if (batch == null) return null;
+      crops.addAll(batch);
+    }
 
     final kept =
         <

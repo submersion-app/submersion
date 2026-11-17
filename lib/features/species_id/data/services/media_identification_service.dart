@@ -534,6 +534,12 @@ class MediaIdentificationService {
         _loadedModels = null;
         await _ensureLoaded(pack);
       },
+      keepGoing: () =>
+          !job.cancelled &&
+          !_disposed &&
+          _paused == 0 &&
+          _waiting.isEmpty &&
+          _databaseGeneration() == generation,
     );
     _videoProgress = scan.progress;
     _changed();
@@ -550,7 +556,17 @@ class MediaIdentificationService {
         await _ensureLoaded(pack);
         // Models the system freed mid-chunk are loaded again inside the
         // scan, which retries only the call that found them gone.
-        final more = await scan.runChunk();
+        final bool more;
+        try {
+          more = await scan.runChunk();
+        } on VideoScanStopped {
+          // Stopped between batches: that chunk is scanned again next
+          // time. Put back only for a pack change or a newer request.
+          return !job.cancelled &&
+              !_disposed &&
+              _databaseGeneration() == generation &&
+              (_paused > 0 || _waiting.isNotEmpty);
+        }
         _videoProgress = scan.progress;
         _changed();
         if (!more) return false;
