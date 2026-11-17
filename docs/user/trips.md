@@ -114,7 +114,7 @@ Check or uncheck dives, then tap **Add**. **Find matching dives** runs the same 
 
 ### From the dive
 
-You can also put a dive on a trip from the dive's own form, in its **Trip** section. When a trip's dates cover the dive, Submersion suggests it. To move many dives at once, select them in the dive list and use **Edit Selected**. See [Dive Logging](dive-logging.md).
+You can also put a dive on a trip from the dive's own page: unlock it (**Unlock to edit**) and set **Trip** on its **Details** card. When a trip's dates cover the dive, Submersion suggests it; tap **Use** to accept. To move many dives at once, select them in the dive list and use **Edit Selected**. See [Dive Logging](dive-logging.md).
 
 Imported dives that have no trip of their own join the trip whose dates cover them (see [Import & Export](import-export.md)).
 
