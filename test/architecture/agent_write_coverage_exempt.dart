@@ -46,6 +46,10 @@ final exempt = <String, String>{
       'a cache',
   'lib/features/insights/data/repositories/dive_deco_status_repository.dart:*':
       'verdicts derived from dive analysis, recomputed from the dives',
+  'lib/features/species_id/data/repositories/media_identification_repository.dart:*':
+      'what the on-device model found; derived by the app, never the diver',
+  'lib/features/species_id/data/repositories/identification_embedding_repository.dart:*':
+      'a cache',
   'lib/features/insights/data/repositories/observation_dismissals_repository.dart:*':
       'the state of derived findings, recomputed from records',
   'lib/features/data_quality/data/repositories/quality_findings_repository.dart:*':

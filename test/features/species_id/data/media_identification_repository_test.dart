@@ -1,0 +1,144 @@
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/core/database/app_sql_functions.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+
+import 'identification_fixtures.dart';
+
+void main() {
+  late AppDatabase db;
+  late MediaIdentificationRepository repo;
+
+  setUp(() {
+    db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
+    repo = MediaIdentificationRepository(database: db);
+  });
+  tearDown(() => db.close());
+
+  Future<void> addMedia(String id) => db
+      .into(db.media)
+      .insert(
+        MediaCompanion.insert(id: id, filePath: '', createdAt: 0, updatedAt: 0),
+      );
+
+  test('a stored run and its identifications read back unchanged', () async {
+    await repo.storeRun(run(), insert: [identification('a')], deleteIds: []);
+
+    expect(await repo.runFor('m1'), run());
+    expect(await repo.forMedia('m1'), [identification('a')]);
+    expect(await repo.runFor('other'), isNull);
+    expect(await repo.forMedia('other'), isEmpty);
+  });
+
+  test('a run with nothing found is stored', () async {
+    await repo.storeRun(run(count: 0), insert: const [], deleteIds: const []);
+    expect((await repo.runFor('m1'))!.detectionCount, 0);
+  });
+
+  test(
+    'storing again replaces the run and removes what it is told to',
+    () async {
+      await repo.storeRun(
+        run(),
+        insert: [identification('a'), identification('b')],
+        deleteIds: [],
+      );
+      final newer = run(count: 2).copyWith(packVersion: '2026.12.1');
+      await repo.storeRun(
+        newer,
+        insert: [identification('c')],
+        deleteIds: ['a'],
+      );
+
+      expect((await repo.runFor('m1'))!.packVersion, '2026.12.1');
+      expect(
+        (await repo.forMedia('m1')).map((i) => i.id),
+        unorderedEquals(['b', 'c']),
+      );
+    },
+  );
+
+  test('decisions are updated in place', () async {
+    await repo.storeRun(run(), insert: [identification('a')], deleteIds: []);
+    final accepted = identification(
+      'a',
+      decision: IdentificationDecision.accepted,
+      decidedSpeciesId: 'sp_queen_parrotfish',
+      decidedAt: fixtureT1,
+    );
+    await repo.updateIdentifications([accepted]);
+    expect(await repo.forMedia('m1'), [accepted]);
+  });
+
+  test('updating can also move the run on', () async {
+    await repo.storeRun(run(), insert: [identification('a')], deleteIds: []);
+    final renamed = run().copyWith(
+      packVersion: '2026.12.1',
+      locationCell: () => null,
+    );
+    await repo.updateIdentifications([identification('a')], run: renamed);
+    expect(await repo.runFor('m1'), renamed);
+  });
+
+  test('deleting for media removes runs and identifications and returns '
+      'the ids', () async {
+    await repo.storeRun(run(), insert: [identification('a')], deleteIds: []);
+    await repo.storeRun(
+      run(mediaId: 'm2'),
+      insert: [identification('b', mediaId: 'm2')],
+      deleteIds: [],
+    );
+
+    expect(await repo.deleteForMedia(['m1']), ['a']);
+    expect(await repo.runFor('m1'), isNull);
+    expect(await repo.forMedia('m2'), hasLength(1));
+  });
+
+  test('orphans are media ids with rows here but no media row', () async {
+    await addMedia('m-live');
+    await repo.storeRun(
+      run(mediaId: 'm-live'),
+      insert: [identification('a', mediaId: 'm-live')],
+      deleteIds: [],
+    );
+    await repo.storeRun(
+      run(mediaId: 'm-gone'),
+      insert: const [],
+      deleteIds: const [],
+    );
+    await repo.storeRun(
+      run(mediaId: 'm-gone-2'),
+      insert: [identification('b', mediaId: 'm-gone-2')],
+      deleteIds: [],
+    );
+
+    expect(
+      await repo.orphanMediaIds(),
+      unorderedEquals(['m-gone', 'm-gone-2']),
+    );
+  });
+
+  test('count and deleteAll cover every identification', () async {
+    await repo.storeRun(
+      run(),
+      insert: [identification('a'), identification('b')],
+      deleteIds: [],
+    );
+    expect(await repo.count(), 2);
+    expect(await repo.deleteAll(), unorderedEquals(['a', 'b']));
+    expect(await repo.count(), 0);
+    expect(await repo.runFor('m1'), isNull);
+  });
+
+  test('a write ticks the change stream', () async {
+    final ticks = <void>[];
+    final sub = repo.watchChanges().listen(ticks.add);
+    addTearDown(sub.cancel);
+    await repo.storeRun(run(), insert: [identification('a')], deleteIds: []);
+    await pumpEventQueue();
+    expect(ticks, isNotEmpty);
+  });
+}
