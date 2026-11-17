@@ -254,7 +254,6 @@ class _DiveEnvironmentCardEditorState
   List<Widget> _weatherRows(AppLocalizations l10n, UnitFormatter units) {
     final session = widget.session;
     final pressure = session.valueOf(diveSurfacePressureField);
-    final edit = RecordEditScope.maybeOf<Dive>(context);
     return [
       RecordNumberRow<Dive>(
         session: session,
@@ -271,16 +270,14 @@ class _DiveEnvironmentCardEditorState
       // a tap leads there: the card opens, brought in from the Add strip if
       // the page was leaving it out, and scrolls into view (issue #4527).
       if (pressure != null)
-        edit == null
-            ? FormRow.display(
-                label: l10n.diveLog_edit_label_surfacePressure,
-                value: units.formatSurfacePressure(pressure),
-              )
-            : FormRow.picker(
-                label: l10n.diveLog_edit_label_surfacePressure,
-                value: units.formatSurfacePressure(pressure),
-                onTap: () => edit.addCard(diveSurfacePressureField.cardId),
-              ),
+        FormRow.picker(
+          label: l10n.diveLog_edit_label_surfacePressure,
+          value: units.formatSurfacePressure(pressure),
+          // The editor is only ever open in a sitting, under its scope.
+          onTap: () => RecordEditScope.maybeOf<Dive>(
+            context,
+          )?.addCard(diveSurfacePressureField.cardId),
+        ),
       RecordNumberRow<Dive>(
         session: session,
         field: diveWindSpeedField,
