@@ -267,6 +267,25 @@ void main() {
       expect(config.slots.length, equals(4));
     });
 
+    // Every card layout shows the dive time by default, not the derived
+    // bottom time (issue #4640).
+    test('every default card config shows the runtime, not bottom time', () {
+      final configs = [
+        CardViewConfig.defaultCompact(),
+        CardViewConfig.defaultDense(),
+        CardViewConfig.defaultDetailed(),
+      ];
+      for (final config in configs) {
+        final fields = config.slots.map((s) => s.field).toList();
+        expect(fields, contains(DiveField.runtime), reason: '${config.mode}');
+        expect(
+          fields,
+          isNot(contains(DiveField.bottomTime)),
+          reason: '${config.mode}',
+        );
+      }
+    });
+
     test('defaultDetailedConfig has empty extraFields', () {
       final config = CardViewConfig.defaultDetailed();
       expect(config.extraFields, isEmpty);

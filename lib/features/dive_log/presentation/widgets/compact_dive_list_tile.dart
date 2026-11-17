@@ -106,7 +106,7 @@ class CompactDiveListTile extends ConsumerWidget {
     this.titleField = DiveField.siteName,
     this.dateField = DiveField.dateTime,
     this.stat1Field = DiveField.maxDepth,
-    this.stat2Field = DiveField.bottomTime,
+    this.stat2Field = DiveField.runtime,
     this.diveTypeLabelResolver,
     this.diveTypeShortLabelResolver,
     this.diveTypeListVisibilityPredicate,
@@ -114,6 +114,11 @@ class CompactDiveListTile extends ConsumerWidget {
 
   /// Whether the configurable slots have a source to read from.
   bool get _hasSlotData => fullDive != null || summary != null;
+
+  /// Whether [field] is one the [duration] parameter stands in for when
+  /// there is no source to read: the runtime (the default) or bottom time.
+  static bool _isDurationField(DiveField field) =>
+      field == DiveField.runtime || field == DiveField.bottomTime;
 
   /// The raw value of [field] from [fullDive] when there is one, else from
   /// [summary]; null when neither is set. RMV follows the diver's gas model.
@@ -181,7 +186,7 @@ class CompactDiveListTile extends ConsumerWidget {
     }
     // [duration] is either of runtime and bottom time, so with a source to
     // read, the slot reads its own field (issue #3304).
-    if (field == DiveField.bottomTime && !_hasSlotData) {
+    if (_isDurationField(field) && !_hasSlotData) {
       return duration != null ? '${duration!.inMinutes} min' : '--';
     }
     // Fallback for any other field value
@@ -273,7 +278,7 @@ class CompactDiveListTile extends ConsumerWidget {
     final titleText = _buildTitleText(units, context);
     final dateText = _buildDateText(units);
     final stat1Text = _buildStatText(stat1Field, DiveField.maxDepth, units);
-    final stat2Text = _buildStatText(stat2Field, DiveField.bottomTime, units);
+    final stat2Text = _buildStatText(stat2Field, DiveField.runtime, units);
 
     final statStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
       fontWeight: FontWeight.w600,
@@ -292,9 +297,7 @@ class CompactDiveListTile extends ConsumerWidget {
               : duration != null);
     final stat2HasValue = _hasSlotData
         ? _extract(stat2Field, units) != null
-        : (stat2Field == DiveField.bottomTime
-              ? duration != null
-              : maxDepth != null);
+        : (_isDurationField(stat2Field) ? duration != null : maxDepth != null);
 
     final diveTypeLabels = [
       for (final id in summary?.diveTypeIds ?? const <String>[])

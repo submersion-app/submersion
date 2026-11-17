@@ -137,7 +137,7 @@ class DiveListItem extends ConsumerWidget {
           titleField: _slotField(slots, 'title', DiveField.siteName),
           dateField: _slotField(slots, 'date', DiveField.dateTime),
           stat1Field: _slotField(slots, 'stat1', DiveField.maxDepth),
-          stat2Field: _slotField(slots, 'stat2', DiveField.bottomTime),
+          stat2Field: _slotField(slots, 'stat2', DiveField.runtime),
           diveTypeLabelResolver: diveTypeLabelResolver,
           diveTypeShortLabelResolver: diveTypeShortLabelResolver,
           diveTypeListVisibilityPredicate: diveTypeListVisibilityPredicate,
