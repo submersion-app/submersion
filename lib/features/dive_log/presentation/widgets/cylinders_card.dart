@@ -150,7 +150,7 @@ class CylindersCard extends ConsumerWidget {
       l10n,
       recordOperationBlockOf(edit),
     );
-    final RecordOperationRunner? runAsOperation = edit?.runOperation;
+    final runAsOperation = recordOperationRunnerOf(edit);
     // A check-in is for a cylinder the dive is stored with: one only in the
     // sitting may never be saved.
     final storedGearIds = {

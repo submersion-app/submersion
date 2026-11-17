@@ -128,6 +128,7 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
     DiveDetailSectionId.notes,
   },
   Completer<void>? reloadGate,
+  Object? Function()? reloadError,
   String initialLocation = '/home/dive',
   List<Override> extra = const [],
   bool imperial = false,
@@ -234,6 +235,10 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
           // Every load after the first waits on [reloadGate], so a test
           // can look at the page before the saved dive is read back.
           if (++loads > 1 && reloadGate != null) await reloadGate.future;
+          // A load after the first fails with what [reloadError] answers
+          // then, as a database read can after an operation has written.
+          final error = loads > 1 ? reloadError?.call() : null;
+          if (error != null) throw error;
           return save.stored;
         }),
         diveDataSourcesProvider(dive.id).overrideWith((ref) async => sources),

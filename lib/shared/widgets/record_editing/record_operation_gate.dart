@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
@@ -38,6 +39,32 @@ RecordOperationBlock? recordOperationBlockOf(
     return RecordOperationBlock.unsaved;
   }
   return RecordOperationBlock.none;
+}
+
+final _log = LoggerService.forClass(RecordEditController);
+
+/// The runner a card hands the controls on it that act on the whole record
+/// (Assign, the cylinder menu, a check-in), or null when the page offers no
+/// editing. It runs through [controller] and logs a failure rather than
+/// throwing: every such control drops the Future, so a failed write, or a
+/// failed read of the record after one, would otherwise escape as an
+/// uncaught error. The operation's own message has told the diver, and the
+/// page carries on as the controller left it (locked, after a failed read).
+RecordOperationRunner? recordOperationRunnerOf(
+  RecordEditController<Object?>? controller,
+) {
+  if (controller == null) return null;
+  return (operation) async {
+    try {
+      await controller.runOperation(operation);
+    } catch (error, stackTrace) {
+      _log.error(
+        'A whole-record operation from a card failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  };
 }
 
 /// Why an operation is unavailable, or null when it is available. [plural]
