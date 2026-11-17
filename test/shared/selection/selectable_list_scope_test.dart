@@ -12,13 +12,24 @@ void main() {
   setUp(() => controller = SelectionController());
   tearDown(() => controller.dispose());
 
-  Widget host() {
+  Widget host({VoidCallback? onEscapeAbove}) {
     return MaterialApp(
       home: Scaffold(
-        body: SelectableListScope(
-          controller: controller,
-          selectableIds: const ['a', 'b', 'c'],
-          child: const SizedBox.expand(),
+        // Whatever listens for Escape around the list, as the shell's
+        // editing keys do (issue #4527).
+        body: Focus(
+          onKeyEvent: (_, event) {
+            if (event is KeyDownEvent &&
+                event.logicalKey == LogicalKeyboardKey.escape) {
+              onEscapeAbove?.call();
+            }
+            return KeyEventResult.ignored;
+          },
+          child: SelectableListScope(
+            controller: controller,
+            selectableIds: const ['a', 'b', 'c'],
+            child: const SizedBox.expand(),
+          ),
         ),
       ),
     );
@@ -34,14 +45,28 @@ void main() {
       expect(controller.value.isActive, isFalse);
     });
 
-    testWidgets('Escape does nothing when not in selection mode', (
-      tester,
-    ) async {
-      await tester.pumpWidget(host());
+    testWidgets('Escape when not in selection mode is left to what is '
+        'around the list', (tester) async {
+      var above = 0;
+      await tester.pumpWidget(host(onEscapeAbove: () => above++));
       await tester.pumpAndSettle();
       await tester.sendKeyEvent(LogicalKeyboardKey.escape);
       await tester.pumpAndSettle();
       expect(controller.value.isActive, isFalse);
+      expect(above, 1);
+    });
+
+    testWidgets('Escape that leaves selection mode goes no further', (
+      tester,
+    ) async {
+      var above = 0;
+      controller.enterImplicit('a');
+      await tester.pumpWidget(host(onEscapeAbove: () => above++));
+      await tester.pumpAndSettle();
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+      expect(controller.value.isActive, isFalse);
+      expect(above, 0);
     });
 
     testWidgets('Ctrl-A selects all and enters the mode', (tester) async {

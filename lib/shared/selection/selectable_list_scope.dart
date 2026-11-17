@@ -7,10 +7,11 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 
 /// Wraps a selectable list with its keyboard and back-navigation handling.
 ///
-/// Escape leaves selection mode, Ctrl/Cmd-A checks everything, and Android
-/// back leaves the mode rather than popping the route. Without this the only
-/// way out is the bar's close button, which is what made selection mode feel
-/// like a trap.
+/// Escape leaves selection mode (and only then is it taken: with nothing
+/// selected it goes on to what is around the list), Ctrl/Cmd-A checks
+/// everything, and Android back leaves the mode rather than popping the
+/// route. Without this the only way out is the bar's close button, which is
+/// what made selection mode feel like a trap.
 class SelectableListScope extends StatelessWidget {
   final SelectionController controller;
 
@@ -59,9 +60,6 @@ class SelectableListScope extends StatelessWidget {
           },
           child: CallbackShortcuts(
             bindings: {
-              const SingleActivator(LogicalKeyboardKey.escape): () {
-                if (controller.value.isActive) controller.exit();
-              },
               const SingleActivator(
                 LogicalKeyboardKey.keyA,
                 control: true,
@@ -70,7 +68,23 @@ class SelectableListScope extends StatelessWidget {
               const SingleActivator(LogicalKeyboardKey.keyA, meta: true): () =>
                   controller.selectAll(selectableIds),
             },
-            child: Focus(autofocus: true, child: child),
+            // Escape answers only while there is a selection to leave. A
+            // binding above would claim every Escape, and with nothing
+            // selected it must go on to what is around the list: the list
+            // pane's editing sitting, which it cancels (issue #4527).
+            child: Focus(
+              autofocus: true,
+              onKeyEvent: (_, event) {
+                if (event is! KeyDownEvent ||
+                    event.logicalKey != LogicalKeyboardKey.escape ||
+                    !controller.value.isActive) {
+                  return KeyEventResult.ignored;
+                }
+                controller.exit();
+                return KeyEventResult.handled;
+              },
+              child: child,
+            ),
           ),
         );
       },
