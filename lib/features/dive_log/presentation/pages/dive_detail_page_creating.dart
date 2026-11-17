@@ -93,9 +93,11 @@ mixin _DiveDetailPageCreating
             );
         final copy = prepared.item.filePath;
         if (copy != null) {
-          if (!mounted || session.isDisposed) {
-            // Copied after the page or its sitting went: nothing holds it.
-            // Only this copy: a fresh sitting may hold one of its own.
+          if (!mounted || session.isDisposed || session.isFrozen) {
+            // Copied after the page or its sitting went, or once Save had
+            // stopped waiting for it: the sitting does not take it, so
+            // nothing holds it. Only this copy: a fresh sitting may hold
+            // one of its own.
             File(copy).delete().ignore();
           } else {
             _photoCopies.add(copy);

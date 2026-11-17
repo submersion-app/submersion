@@ -292,4 +292,38 @@ void main() {
     );
     expect(newDiveController(tester).isUnlocked, isTrue);
   });
+
+  // A copy still being made when Save stops waiting for it (ten seconds)
+  // is not part of the dive: it lands on a frozen sitting, which does not
+  // take it, so it is removed (review of #4672).
+  testWidgets('a copy that lands while the sitting is saved is removed', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    final import = _FakeImport(dir, firstGate: gate);
+    final page = await pumpNewDivePage(
+      tester,
+      request: NewDiveRequest(
+        prefill: DivePrefill(photoPath: scan.path, notes: 'Scanned'),
+      ),
+      extra: [mediaImportServiceProvider.overrideWithValue(import)],
+    );
+    final hold = page.save.hold = Completer<void>();
+    await tester.tap(find.text('Save'));
+    // Save waits at most ten seconds for tracked work, then writes.
+    await tester.pump(const Duration(seconds: 11));
+    expect(newDiveController(tester).session!.isFrozen, isTrue);
+
+    gate.complete();
+    for (var i = 0; i < 5; i++) {
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pump();
+    }
+    hold.complete();
+    await settle(tester);
+
+    expect(page.save.creates, hasLength(1));
+    expect(import.copies, hasLength(1));
+    expect(File(import.copies.single).existsSync(), isFalse);
+  });
 }
