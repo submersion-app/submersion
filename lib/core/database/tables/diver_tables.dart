@@ -680,6 +680,13 @@ class DiverSettings extends Table {
       real().withDefault(const Constant(1.0 / 3.0))();
   RealColumn get plannerWalkSpeedMps =>
       real().withDefault(const Constant(0.8))();
+  // v374: the planner's semi-closed loop defaults, surface L/min (issue
+  // #4660): CMF injection rate and VO2, and the passive loop's VO2. The
+  // defaults are the figures every plan used before.
+  RealColumn get plannerScrInjectionRate =>
+      real().withDefault(const Constant(12.0))();
+  RealColumn get plannerScrVo2 => real().withDefault(const Constant(1.3))();
+  RealColumn get plannerPscrVo2 => real().withDefault(const Constant(0.72))();
   // v307: planner air-break and turn-pressure global defaults (issue
   // #3552). Nullable, unlike the v304 columns above: null means "no
   // policy"/"no rule", matching today's behaviour for every diver who has

@@ -95,6 +95,7 @@ part 'helpers/country_flags_migrations.dart';
 part 'helpers/counterdiffusion_migrations.dart';
 part 'helpers/buoyancy_line_migrations.dart';
 part 'helpers/dive_center_logo_migrations.dart';
+part 'helpers/scr_flow_migrations.dart';
 part 'helpers/dive_type_favourites_migrations.dart';
 part 'helpers/site_country_code_migrations.dart';
 part 'helpers/site_catalogue_id_migrations.dart';

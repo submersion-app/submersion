@@ -261,5 +261,13 @@ extension RungsFromV340 on AppDatabase {
     // and 372 for #4457.
     if (from < 373) await _assertDiveCenterLogoColumn();
     if (from < 373) await reportProgress();
+
+    // v374: a plan's own SCR injection rate, SCR VO2 and pSCR VO2
+    // (dive_plans, nullable: null follows the diver) and the diver's
+    // defaults for them (diver_settings, defaulted to the figures every plan
+    // used before) (issue #4660). Columns only, no backfill, so the floor
+    // does not move. Re-asserted in beforeOpen.
+    if (from < 374) await _assertScrFlowColumns();
+    if (from < 374) await reportProgress();
   }
 }
