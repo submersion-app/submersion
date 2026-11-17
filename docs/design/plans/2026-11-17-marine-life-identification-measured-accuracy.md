@@ -4,13 +4,15 @@
 > to implement this plan task-by-task, inline in one session. Steps use
 > checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Measure how often a model pack names fish correctly, and set the
-pack's naming bars and crop fitting from that measurement.
+**Goal:** Measure how often a model pack names marine animals correctly with
+each candidate detector, set the pack's naming bars and crop fitting from
+that measurement, and recommend a detector.
 
 **Architecture:** A test set of openly licensed iNaturalist and Wikimedia
 Commons photos is described by a committed CSV and downloaded into a
 gitignored work folder. A small macOS command-line tool, compiled from the
-app's own `VisionPipeline.swift`, detects and embeds every photo. Python then
+app's own `VisionPipeline.swift`, detects and embeds every photo with each
+detector (the Community Fish Detector, Megalodon 2024 and 2023). Python then
 names each crop with a mirror of `species_namer.dart`, chooses bars on a tune
 half, gates them on a held-out half, and writes a report.
 
@@ -31,12 +33,19 @@ the manifest field and the naming parity test.
 - Grids: `minOpenScore` 0.00 to 0.50 by 0.01; score bars 0.20 to 0.99 by 0.01.
 - iNaturalist observations created on or after **2024-07-01**; photo licence
   `cc0`, `cc-by` or `cc-by-sa`; research grade; not captive; open geoprivacy.
-- Taxa: Actinopterygii (iNaturalist 47178) and Elasmobranchii (47273). No
-  habitat filter on sampling.
-- About **450** observations per region, seven regions.
+- Groups (iNaturalist taxa): fish 47178, sharks and rays 47273, octopus
+  47458, crabs 121639, sea snails and nudibranchs 47114, sea stars 47668,
+  coral 47532. No habitat filter on sampling.
+- About **450** observations per region, seven regions, natural mix; each
+  group other than fish topped up to **150** photos. Top-ups never set or
+  gate a bar.
+- Megalodon in the scorer: letterbox (grey 114), input 640, mean 0, std 1,
+  score threshold **0.25**, suppression IoU **0.7**, at most 8 boxes.
+  Detector merge: IoU **0.5**.
 - Pre-cutoff region check: GBIF records dated before 2024-07-01.
-- Measured bars apply only with the same classifier id and a candidate count
-  within **10%** of the measured one.
+- Measured bars apply only with the same detector id, the same classifier id
+  and a candidate count within **10%** of the measured one. The bars written
+  to `manifest.py` are the Community Fish Detector's.
 - Modules run by CI use the standard library only.
 - No photos, embeddings or work files in git; the work folder defaults to
   `build/species_accuracy_work`.
@@ -57,7 +66,11 @@ the manifest field and the naming parity test.
    take the accepted key, or an in-pack fish is graded out-of-pack. Pinned in
    Task 4.
 5. **A dev pack labelled measured.** Building the 1,495-candidate pack must
-   still write provisional bars. Pinned in Task 5.
+   still write provisional bars. Pinned in Task 5; a pack with another
+   detector, in Task 7.
+6. **A YOLO box off by the letterbox.** A Megalodon box mapped back without
+   removing the padding lands beside the animal and its crop names the
+   background. Checked against `ultralytics` in Task 8.
 
 ---
 
@@ -80,6 +93,8 @@ the manifest field and the naming parity test.
 | `lib/features/species_id/domain/entities/species_pack_manifest.dart` (modify) | `confidentScoreNoLocation`. |
 | `test/features/species_id/domain/species_namer_vectors_test.dart` (create) | Dart side of the naming parity. |
 | `.github/workflows/ci.yaml` (modify) | New Python tests and coverage list. |
+| `tool/species_pack/boxes.py` (create) | Intersection over union and merging two detectors' boxes. |
+| `tool/species_pack/megalodon.py` (create) | Fetches the pinned Megalodon checkpoints and converts them to Core ML. Not run in CI. |
 
 Each `<module>_test.py` sits beside its module and follows `manifest_test.py`
 (`unittest`, modules loaded by path).
@@ -351,10 +366,88 @@ create `tool/species_pack/vision_cli/main.swift`, `FlutterShim.swift`,
   in the background. Expected: success.
 - [ ] **Step 5: Commit** `feat(species-id): run the vision pipeline from the command line`.
 
-### Task 7: Fetch the test set
+### Task 7: Pure parts for the detector comparison
+
+**Files:** Modify `tool/species_pack/testset.py`, `testset_test.py`,
+`manifest.py`, `manifest_test.py`; create `tool/species_pack/boxes.py`,
+`boxes_test.py`; modify `ci.yaml`.
+
+**Interfaces:**
+- `testset.GROUPS: dict[str, int]` (group name to iNaturalist taxon id, in
+  the Global Constraints' order); `testset.TOP_UP = 150`.
+- `testset.group_of(taxon_id: int, ancestor_ids: Sequence[int]) -> str | None`:
+  the first group whose id is the taxon or one of its ancestors.
+- `testset.top_ups(pool: Sequence[dict], natural: Sequence[dict], seed: str) -> list[dict]`:
+  per group other than fish, observations from `pool` not in `natural`,
+  ordered as `sample` orders them, enough to bring the group to `TOP_UP`.
+- `testset.FIELDS` gains `group`, `sample` (`natural` or `top-up`) and
+  `detector` (blank for animals; the detector id whose box a junk row labels).
+- `UNDERWATER_PROMPTS` and `DRY_PROMPTS` speak of animals, and the dry ones
+  add a beach, land, and an empty shell.
+- `boxes.iou(a: Sequence[float], b: Sequence[float]) -> float` on
+  `(x, y, w, h)` normalised boxes.
+- `boxes.merge(runs: Sequence[Sequence[dict]], *, iou_threshold: float = 0.5, max_boxes: int = 8) -> list[dict]`:
+  each dict has `x, y, w, h, score` (and whatever else rides along); pooled,
+  best score first, a box dropped when it overlaps a kept one at or above the
+  threshold.
+- `manifest.naming_for(detector_id, classifier_id, candidate_count, measured)`:
+  the detector id is checked too. `build_manifest` passes `detector_id`.
+
+- [ ] **Step 1: Write failing tests**: `group_of` for a nudibranch (its
+  ancestors include 47114) and for a land mammal (None); `top_ups` brings a
+  short group to 150 without repeating natural ones and leaves fish and full
+  groups alone; the new fields round trip; `iou` for identical, disjoint and
+  half-overlapping boxes; `merge` keeps the higher of two overlapping boxes
+  from different runs, keeps both when they do not overlap, and stops at
+  `max_boxes`; `naming_for` returns provisional bars for another detector.
+- [ ] **Step 2: Run** `python3 tool/species_pack/testset_test.py`,
+  `boxes_test.py` and `manifest_test.py`. Expected: fail.
+- [ ] **Step 3: Implement.**
+- [ ] **Step 4: Run all three. Expected: OK.**
+- [ ] **Step 5: Add `boxes` to CI and commit** `feat(species-id): pure parts for comparing detectors`.
+
+### Task 8: Megalodon through the app's pipeline
+
+**Files:** Create `tool/species_pack/megalodon.py`; modify
+`VisionPipeline.swift`, `vision_cli/main.swift`.
+
+**Interfaces:**
+- `megalodon.CHECKPOINTS: dict[str, dict]`: `megalodon-2024` and
+  `megalodon-2023`, each with Hugging Face repo, revision, file name and
+  SHA-256 (pinned at fetch time).
+- `megalodon.convert(name: str, work: str) -> str`: fetches, checks the
+  hash, traces the PyTorch model with a `[1, 3, 640, 640]` tensor input,
+  converts at 16-bit precision for iOS 15, saves `<name>.mlpackage`, and
+  checks it against the PyTorch output on the test scene.
+- `megalodon.check(name: str, tool: str, photos: Sequence[str]) -> float`:
+  the share of `ultralytics` boxes (score 0.25 and over) that the tool's
+  boxes overlap at IoU 0.9 or more.
+- Swift: `enum DetectorFormat: String { case rfdetr, yolo }`; optional
+  `"detectorFormat"` in `VisionModelSettings` (absent means `rfdetr`, any
+  other value throws `badArguments`); the YOLO path letterboxes, suppresses
+  at IoU 0.7 and maps boxes back. The tool takes `--detector-format`,
+  `--detector-input`, `--detector-mean`, `--detector-std`,
+  `--score-threshold` overrides, and reports `detectMs` per image and
+  `embedMs` per detection.
+
+- [ ] **Step 1:** Make a venv in the scratchpad that reads the spike venv's
+  packages through a `.pth` file and add `ultralytics` to it, leaving the
+  spike venv untouched.
+- [ ] **Step 2:** Write `megalodon.py`; convert both checkpoints. Expected:
+  each converted model's scores and boxes match the PyTorch output on the
+  test scene (best box IoU 0.9 or more).
+- [ ] **Step 3:** Add the Swift YOLO path and the tool options; rebuild the
+  tool.
+- [ ] **Step 4:** `megalodon.check` on 20 test photos for each checkpoint.
+  Expected: 0.9 or more.
+- [ ] **Step 5:** `flutter build macos --debug`. Expected: success.
+- [ ] **Step 6: Commit** `feat(species-id): run Megalodon through the vision pipeline for measuring`.
+
+### Task 9: Fetch the test set
 
 **Files:** Create `tool/species_pack/fetch_testset.py`. Produces
-`tool/species_pack/testdata/accuracy_set.csv`.
+`tool/species_pack/testdata/accuracy_set.csv`. Eric approved the downloads
+(about 4,000 iNaturalist photos, 150 Commons photos, the API queries).
 
 **Interfaces:** consumes everything in `testset.py`; `models._classifier()` for
 the underwater filter; `region_grid.cell_of`.
@@ -363,10 +456,12 @@ Steps, each cached in `--work` so a rerun resumes:
 
 - [ ] **Step 1: Pool.** For each region, page through
   `api.inaturalist.org/v2/observations` with the Global Constraints' filters
-  and `created_d1=2024-07-01`, ordered by id, `fields` limited to what the
-  CSV needs. At most one request a second. Save as JSONL.
+  and `created_d1=2024-07-01`, over all seven groups, ordered by id, `fields`
+  limited to what the CSV needs plus `taxon.id` and `taxon.ancestor_ids`. At
+  most one request a second.
 - [ ] **Step 2: Sample** `PER_REGION` per region with `testset.sample`, seed
-  `"accuracy-2026-11"`, after dropping taxa `species_name` rejects.
+  `"accuracy-2026-11"`, after dropping taxa `species_name` rejects; then
+  `testset.top_ups` across all regions.
 - [ ] **Step 3: Labels and habitat.** GBIF `species/match` per distinct name
   (`accepted_key`); GBIF species profiles for habitat (`marine`, `brackish`
   or `freshwater` only, blank when unknown). Drop and count unmatched.
@@ -379,15 +474,16 @@ Steps, each cached in `--work` so a rerun resumes:
   `UNDERWATER_PROMPTS + DRY_PROMPTS`; record `underwater`. Write contact
   sheets of kept and dropped photos to `--work/sheets/`; look at a sample of
   100 of each, and record the error counts for the findings.
-- [ ] **Step 7: Junk.** Fetch about 150 Commons files from the scuba diver
-  categories with `commons_licence`; run the Swift tool (pad-square) on them;
-  write a contact sheet of every box; label each box by eye in
-  `--work/junk_labels.json`; add one CSV row per person or gear box with
+- [ ] **Step 7: Junk.** Fetch about 150 Commons files from the underwater
+  diver categories with `commons_licence`; run the Swift tool (pad-square)
+  with each detector; write contact sheets of every box; label each box by
+  eye in `--work/junk_labels.json` as person, scenery, animal or unclear;
+  add one CSV row per person or scenery box, naming its detector, with
   `label_source` `by eye (builder)`.
 - [ ] **Step 8: Write the CSV**, run `testset_test.py`, and commit
   `feat(species-id): the accuracy test set` (the CSV and the script).
 
-### Task 8: Score
+### Task 10: Score
 
 **Files:** Create `tool/species_pack/score.py`.
 
@@ -396,24 +492,28 @@ Steps, each cached in `--work` so a rerun resumes:
 
 - [ ] **Step 1:** Unzip the pack's models into `--work/models/<packVersion>/`
   (the pipeline deletes a package once compiled, so never point it at the
-  pack itself), build the Swift tool, and run it per fitting over every
-  photo, caching JSONL per fitting and pack version.
+  pack itself), build the Swift tool, and run it per detector and fitting
+  over every photo, caching JSONL per detector, fitting and pack version,
+  under `/usr/bin/time -l` for peak memory.
 - [ ] **Step 2:** Name each fish row's largest box with location (overriding
   the label species' bit with `recorded_before_cutoff` when it is in the
   pack) and without; name each junk box with no location and with the cell
   of the fish row picked by `sha256(junk id) % len(fish rows)`. Logits come
   from numpy; check the first 20 against `naming.logits` to 1e-6.
-- [ ] **Step 3:** Choose bars per fitting on the tune half; gate on the
-  held-out half; compare fittings with `mcnemar_p` on correct suggestions
-  at each fitting's own bars.
-- [ ] **Step 4:** Write the report: every item in the spec's "The report",
-  plus the precision and coverage curve.
+- [ ] **Step 3:** For each detector (and the merged pair, from
+  `boxes.merge` over the two runs), choose bars per fitting on the natural
+  tune half; gate on the natural held-out half; compare fittings, and then
+  detectors, with `mcnemar_p` on correct suggestions at each one's own
+  bars. Apply the spec's recommendation rule.
+- [ ] **Step 4:** Write the report: every item in the spec's "The report"
+  and "What is measured per detector", plus the precision and coverage
+  curve.
 - [ ] **Step 5:** Run against the development pack first (expect weak
   numbers; this checks the plumbing), then against the full pack (7,646
   candidates).
 - [ ] **Step 6: Commit** `feat(species-id): score a pack against the accuracy test set`.
 
-### Task 9: Apply the result
+### Task 11: Apply the result
 
 **Files:** Modify `manifest.py`; create
 `docs/design/findings/2026-11-17-marine-life-measured-accuracy.md`; modify
@@ -421,13 +521,14 @@ Steps, each cached in `--work` so a rerun resumes:
 the Dart manifest's `cropFit`, `VisionModels`, the channel arguments and
 their tests.
 
-- [ ] **Step 1:** Fill `NAMING_MEASURED` from the full pack's chosen and
-  gated bars; set `CLASSIFIER_SETTINGS["cropFit"]`. Update the
+- [ ] **Step 1:** Fill `NAMING_MEASURED` from the Community Fish Detector's
+  chosen and gated bars on the full pack; set `CLASSIFIER_SETTINGS["cropFit"]`. Update the
   `manifest_test.py` expectations; run it.
 - [ ] **Step 2:** Write the findings: method, test set make-up (by region,
-  in-pack share, habitat, filter error counts, detector misses), every
-  report table, the bars, what was switched off, the fitting decision with
-  its p-value, and the limits the spec lists.
+  group, in-pack share, habitat, filter error counts, detector misses), every
+  report table, the bars per detector, what was switched off, the fitting
+  decision with its p-value, the detector comparison and recommendation, the
+  licence notes, and the limits the spec lists.
 - [ ] **Step 3:** Add "Measuring accuracy" to the developer page.
 - [ ] **Step 4:** If centre crop won, wire `cropFit` through Dart with TDD.
 - [ ] **Step 5:** `dart format .`, `flutter analyze`, the changed test files

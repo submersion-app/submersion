@@ -22,11 +22,25 @@ until accuracy is measured and the bars come from the measurement
 (program design, "The pieces"). This piece does that, and settles one open
 question from piece 1: how a crop is fitted to the classifier's square input.
 
+**The detector is in question too (added 2026-11-17).** The Community Fish
+Detector's authors closed filippovarini/community-fish-detector#8 saying the
+lack of an explicit licence on the weights is intentional, and that use is
+the user's own call. MBARI's FathomNet **Megalodon** detector carries an
+explicit CC BY 4.0 licence on its weights and finds any marine organism
+(one class, "object"), not just fish, which the maintainer also wants:
+sharks, octopus, snails, crabs and eventually coral. The maintainer chose to
+measure Megalodon against the Community Fish Detector on divers' photos
+before deciding **(decided)**. This piece measures both and recommends one;
+the choice is the maintainer's.
+
 ## Goals
 
-- A labelled test set of openly licensed underwater fish photos, rebuildable
-  by anyone from a committed list, with every photo's licence and attribution
-  recorded.
+- A labelled test set of openly licensed underwater photos of fish and other
+  marine animals, rebuildable by anyone from a committed list, with every
+  photo's licence and attribution recorded.
+- A detector comparison: the Community Fish Detector, Megalodon, and both
+  together, by recall per animal group, false boxes, naming accuracy, speed
+  and memory, with a recommendation.
 - A scoring tool that runs a pack's two models exactly as the app does and
   names each crop with the app's own rules.
 - A report of top-1 and top-3 accuracy, with and without the region limit.
@@ -38,8 +52,16 @@ question from piece 1: how a crop is fitted to the classifier's square input.
 
 ## Non-goals
 
-- Publishing a pack. The detector's licence is unresolved
-  (filippovarini/community-fish-detector#8) **(decided: deferred)**.
+- Publishing a pack **(decided: deferred)**.
+- Switching the app's detector. The scorer runs Megalodon through the app's
+  Swift pipeline, but the app keeps the Community Fish Detector until the
+  maintainer chooses.
+- Settling the licence questions. The findings state them plainly (below).
+- Fixing the pack's candidate list. It misses species that are recorded
+  often but photographed rarely (Creole Wrasse: about 33,000 records, 42 with
+  photos). This piece measures today's 7,646-candidate pack, reports the
+  out-of-pack share by region, and the scorer is rerun once the list is
+  fixed in a piece of its own **(decided)**.
 - Turning the flag on.
 - Changing the shape of the naming rules (two scores, region limit, size
   floor). This piece sets their numbers; if the numbers show a rule is wrong,
@@ -114,7 +136,7 @@ Three ways of running the models were weighed.
 
 ## The test set
 
-### Fish photos (decided: a natural sample)
+### Animal photos (decided: a natural sample, with top-ups)
 
 Observations are taken as they come from where divers dive, not balanced per
 species. Species missing from the pack then turn up about as often as divers
@@ -124,9 +146,29 @@ nearest wrong name unless the bars stay quiet.
 Source: iNaturalist, through its public API **(proposed details)**:
 
 - Research grade, not captive, with coordinates that are not obscured.
-- Taxon: ray-finned fish (Actinopterygii) and sharks and rays
-  (Elasmobranchii), identified to species or below. A subspecies counts as
-  its species.
+- Taxon: seven animal groups, identified to species or below. A subspecies
+  counts as its species. Each observation's group is its first matching
+  ancestor:
+
+  | Group | iNaturalist taxon |
+  | --- | --- |
+  | fish | Actinopterygii (47178) |
+  | sharks and rays | Elasmobranchii (47273) |
+  | octopus | Octopoda (47458) |
+  | crabs | Brachyura (121639) |
+  | sea snails and nudibranchs | Gastropoda (47114) |
+  | sea stars | Asteroidea (47668) |
+  | coral | Scleractinia (47532) |
+
+  Gastropoda includes land snails and empty shells on beaches; the underwater
+  filter drops those, and the report counts how many.
+- **The natural sample sets the bars (decided).** It draws from all seven
+  groups as they come, so each group carries the weight divers give it.
+- **Top-ups (decided).** Any group other than fish with fewer than 150
+  photos in the natural sample is topped up from its own pool to 150, across
+  the regions. Top-up photos give that group's own recall and accuracy
+  numbers. They never take part in choosing or gating a bar, so the natural
+  mix alone decides the bars.
 - **Created on or after 2024-07-01.** BioCLIP 2 was trained on
   TreeOfLife-200M, built from a GBIF occurrence download created 2024-05-01
   (`10.15468/dl.bfv433`), and GBIF carries iNaturalist research-grade photos.
@@ -159,9 +201,9 @@ flag is used for reporting only, never for sampling.
 
 **Underwater only.** iNaturalist has no underwater flag. Each photo is scored
 by BioCLIP 2 (the PyTorch model, used only for this filter, never for
-scoring) against "underwater" and "out of water" prompts (a fish in a hand, on
-a deck, on ice, at a market, in an aquarium, a drawing). Photos judged out of
-water are dropped. The builder looks over a contact sheet of kept and dropped
+scoring) against "underwater" and "out of water" prompts (an animal in a hand,
+on a deck, on ice, at a market, in an aquarium, on a beach, on land, a
+drawing). Photos judged out of water are dropped. The builder looks over a contact sheet of kept and dropped
 photos and records in the findings how many of a sample of each were wrong
 **(proposed)**.
 
@@ -172,8 +214,8 @@ key are dropped and counted. A label is **in-pack** when its key is a pack
 candidate and **out-of-pack** otherwise.
 
 **Which box carries the label.** An observation names one species but the
-detector may box several fish. The largest box carries the label; other boxes
-are not scored. Observations with no box are counted as missed by the
+detector may box several animals. The largest box carries the label; other
+boxes are not scored. Observations with no box are counted as missed by the
 detector, and are not scored for naming **(proposed)**.
 
 **A test photo must not vouch for its own location (proposed).** The pack's
@@ -186,15 +228,19 @@ uses). That answer, not the pack's bit, decides whether the label species is
 allowed for that crop. Every other species' bits are used as the pack has
 them. About 3,000 count queries, cached in the work folder.
 
-### Junk crops: divers, hands and gear
+### Junk crops: divers, hands, gear and bare scenery
 
-The detector boxes divers and hands as fish at up to 0.95. The spike's
+The Community Fish Detector boxes divers and hands as fish at up to 0.95,
+and a detector of every organism may also box rock and sand. The spike's
 8-crop sample is too small to test against. A second set **(proposed)**:
 
 - About 150 openly licensed photos of scuba divers from Wikimedia Commons
-  (CC0, public domain, CC BY, CC BY-SA), from its scuba diver categories.
-- The detector runs on them; the builder labels each box by eye as person or
-  gear, fish, or unclear. Only person or gear boxes are used, as **junk**.
+  (CC0, public domain, CC BY, CC BY-SA), from its underwater diver
+  categories.
+- Every detector runs on them; the builder labels each box by eye as person
+  or gear, bare scenery (rock, sand, wreck), animal, or unclear. Person, gear
+  and bare scenery boxes are used, as **junk**. A box on coral or another
+  animal is not junk.
   Labels are recorded with the source "by eye (builder)", and contact sheets
   of every labelled box are kept in the work folder and linked from the
   findings, so the maintainer can check them **(proposed)**.
@@ -217,9 +263,11 @@ The detector boxes divers and hands as fish at up to 0.95. The spike's
 
 - Committed: `tool/species_pack/testdata/accuracy_set.csv`, one row per
   photo: source, observation or file id, photo URL, licence, attribution
-  (observer or author name and the page URL), region, coordinates, label
-  name, GBIF key, how the label was made (observation or by eye), and the
-  underwater filter's verdict. Anyone can rebuild the set from it.
+  (observer or author name and the page URL), region, coordinates, animal
+  group, whether it is in the natural sample or a top-up, label name, GBIF
+  key, how the label was made (observation or by eye), and the underwater
+  filter's verdict. A junk row also names the detector whose box it labels.
+  Anyone can rebuild the set from it.
 - Not committed: the photos, embeddings and intermediate JSON. They live in
   a work folder, `build/species_accuracy_work` by default, which `build/`
   already keeps out of git.
@@ -267,6 +315,97 @@ If centre crop is adopted: the Dart manifest entity reads `classifier.cropFit`
 (an unknown value is treated as `padSquare`), `VisionModels` carries it to the
 native side, the channel passes it, and `manifest.py` writes `centreCrop`.
 
+Each detector (below) is measured with both fittings, so the fitting decision
+holds whichever detector the maintainer picks.
+
+## Detectors (added 2026-11-17)
+
+### What is compared
+
+| Detector | Model | Licence of the weights |
+| --- | --- | --- |
+| Community Fish Detector (today) | RF-DETR nano, 640 px, fish only | none stated, intentionally |
+| Megalodon 2024 | `FathomNet/megalodon-2024-yolov11`, YOLO11x, 114 MB checkpoint | CC BY 4.0 |
+| Megalodon 2023 | `FathomNet/megalodon-2023-yolov8` (what `FathomNet/megalodon` now points to), YOLOv8x, 137 MB checkpoint | CC BY 4.0 |
+| Both together | the Community Fish Detector and Megalodon 2024, boxes merged | |
+
+Both Megalodon checkpoints are pinned by Hugging Face revision and SHA-256,
+as `models.py` pins the others. Megalodon was trained on FathomNet, mostly
+research and deep-sea ROV imagery; its model card expects shifts in camera,
+lighting and environment to hurt it, so a gap on reef photos is likely and is
+what this measures.
+
+**Merging (proposed).** Both detectors run; their boxes are pooled, and a box
+overlapping a higher-scoring one by an intersection over union of 0.5 or more
+is dropped, keeping at most the manifest's `maxBoxes`. Each kept box keeps the
+embedding its own run produced.
+
+### Running Megalodon through the app's pipeline
+
+Megalodon is converted to Core ML at 16-bit precision by the pack tools,
+traced from its PyTorch model with a tensor input like the other two models,
+so the Swift pipeline feeds it the same way. Its output is the YOLO head's
+raw predictions: for each of about 8,400 anchors a centre, a size and one
+already-squashed score, in input pixels. The conversion is checked against
+the `ultralytics` package's own predictions on the test scene, as the
+Community Fish Detector's is against `rfdetr`.
+
+`VisionModelSettings` gains an optional `detectorFormat` **(proposed)**:
+
+- `rfdetr` (the default when absent, and all the app sends): today's path,
+  the image resized straight to the square, 300 boxes with a sigmoid, no
+  overlap suppression.
+- `yolo`: the image letterboxed into the square (scaled to fit, padded with
+  grey 114 as the model was trained), scores used as they come, boxes above
+  the score threshold suppressed where they overlap a higher one by an
+  intersection over union of 0.7 (the `ultralytics` default), then mapped
+  back out of the letterbox.
+
+Megalodon's settings for the scorer: input 640, mean 0 and standard deviation
+1 (pixels scaled 0 to 1), score threshold 0.25 (the `ultralytics` default),
+at most 8 boxes, crop padding 0.10. They live in the scorer's detector table,
+not a pack; adopting Megalodon later means a pack carrying them and the Dart
+side passing `detectorFormat`.
+
+### What is measured per detector
+
+Each detector gets its own bars, chosen and gated exactly as above, because a
+different detector produces different crops. Then, on the held-out half:
+
+- **Recall per group:** the share of photos in which the detector returned at
+  least one box, and the share whose largest box was named correctly (top-1,
+  no bars). Without hand-drawn boxes, the second is the evidence that the box
+  is on the animal. Top-up photos count here.
+- **False boxes:** boxes per diver photo labelled person or gear, and bare
+  scenery, and the share of those named at the chosen bars.
+- **Naming:** coverage and precision at its own bars, overall and per group.
+- **Speed and memory on this Mac:** median and 90th percentile milliseconds
+  for detection and for one crop's embedding, and peak memory of a scoring
+  run, from the tool's own timings and `/usr/bin/time -l`.
+
+**The recommendation (proposed, fixed before the run):** the detector, or
+the pair, naming the most animals correctly at the 85% target on the held-out
+natural sample, provided its junk naming rate is within the 2% target. Close
+results (a paired test at the 5% level cannot separate them) go to the
+simpler choice: one detector over two, and the explicitly licensed one over
+the other. The findings give the numbers either way; the maintainer chooses.
+
+### Licence notes for the findings
+
+Stated plainly, not settled here:
+
+- The Community Fish Detector's authors leave the weights' terms to the
+  user.
+- Megalodon's weights are CC BY 4.0 from MBARI, so a pack would carry its
+  credit.
+- Megalodon was trained with Ultralytics' code, which is AGPL-3.0, and the
+  pack tools would use the `ultralytics` package to load the checkpoint.
+  Ultralytics' position on models trained with its code differs from
+  MBARI's licence on the weights. The program design ruled out Ultralytics
+  YOLO models for store builds over exactly this kind of copyleft; MBARI's
+  licence reopens that question for the maintainer. The app itself would run
+  only a Core ML file, never Ultralytics code.
+
 ## Scoring
 
 ### Naming
@@ -284,14 +423,15 @@ open score, ranking and limited scores), and a Dart test checks
 `SpeciesNamer` against the same file, the way `region_vectors.json` keeps the
 grid in step **(proposed)**.
 
-Each fish crop is named twice: with the observation's coordinates (its grid
-cell) and with no location.
+Each animal crop is named twice: with the observation's coordinates (its
+grid cell) and with no location.
 
 ### Tune and test halves
 
 Observations are split 50:50 by a hash of the observation id, within each
 region, so the split is repeatable and every region is in both halves. Bars are
-chosen on the tune half only. Every number in the findings comes from the
+chosen on the tune half of the natural sample only; top-ups are split the same
+way and used only for per-group numbers. Every number in the findings comes from the
 held-out half, with a 95% Wilson interval.
 
 ### Choosing the bars
@@ -330,7 +470,7 @@ is always wrong.
 ### The report
 
 `tool/species_pack/score.py` writes a Markdown report and a JSON file of every
-number. For each fitting, on the held-out half:
+number. For each detector and each fitting, on the held-out half:
 
 - Detection: share of photos with any box; share whose largest box is at
   least 64 px.
@@ -339,9 +479,11 @@ number. For each fitting, on the held-out half:
 - At the chosen bars: coverage (share of fish crops suggested), precision of
   suggestions, coverage and precision of confident names, each with and
   without location.
-- The same, broken down by region, by in-pack or out-of-pack, by habitat
-  (marine or brackish, against freshwater only), and by box size (64 to 127,
-  128 to 255, 256 px and over).
+- The same, broken down by animal group, by region, by in-pack or
+  out-of-pack, by habitat (marine or brackish, against freshwater only), and
+  by box size (64 to 127, 128 to 255, 256 px and over).
+- The detector comparison above: recall per group, false boxes, speed and
+  memory, and the recommendation.
 - Which bars, if any, were set to never, and what they would have named.
 - How often the region limit fell back to no location.
 - The junk naming rate.
@@ -352,14 +494,18 @@ number. For each fitting, on the held-out half:
 
 - `manifest.py`: `NAMING_PROVISIONAL` stays as the values for a pack the bars
   were not measured on. A new `NAMING_MEASURED` holds the chosen bars with
-  `provisional: false`, the classifier id, the candidate count and the
-  findings file they came from. `build_manifest` uses the measured bars only
-  when the pack's classifier id matches and its candidate count is within 10%
-  of the measured one; otherwise it writes the provisional bars, so a small
-  development pack is never labelled measured **(proposed)**.
-- The pack the bars are measured on is a full build at the builder's defaults
-  (8,000 candidates, at least 50 images). The 1,495-candidate development pack
-  is used while building the tool, never for the numbers.
+  `provisional: false`, the detector id, the classifier id, the candidate
+  count and the findings file they came from. `build_manifest` uses the
+  measured bars only when the pack's detector and classifier ids match and its
+  candidate count is within 10% of the measured one; otherwise it writes the
+  provisional bars, so a small development pack, or a pack with another
+  detector, is never labelled measured **(proposed)**.
+- The bars written are the Community Fish Detector's, since that is the
+  detector packs carry today. Megalodon's measured bars are recorded in the
+  findings, ready for the pack that adopts it.
+- The pack the bars are measured on is the full 7,646-candidate build. The
+  1,495-candidate development pack is used while building the tool, never for
+  the numbers.
 - `CLASSIFIER_SETTINGS["cropFit"]` and, if centre crop wins, the Swift and
   Dart changes above.
 - The app: `NamingConfig` gains `confidentScoreNoLocation`, read when present
@@ -367,7 +513,8 @@ number. For each fitting, on the held-out half:
   confident bar yet, so this changes no behaviour today.
 - `docs/design/findings/2026-11-<day>-marine-life-measured-accuracy.md`: the
   method, the test set's make-up, the numbers, the chosen bars, the fitting
-  decision, and the limits below.
+  decision, the detector comparison and recommendation, the licence notes,
+  and the limits below.
 - `docs/developer/species-identification.md` gains a "Measuring accuracy"
   section: building the test set, building the tool, running the scorer.
 
@@ -382,8 +529,14 @@ number. For each fitting, on the held-out half:
 - The underwater filter and the junk labels are judgements, not ground truth.
 - iNaturalist research grade is a community identification and is sometimes
   wrong.
-- The bars hold for this classifier and a candidate list of this size.
-  Changing either means running the scorer again.
+- The bars hold for this detector, this classifier and a candidate list of
+  this size. Changing any of them means running the scorer again, as will the
+  planned fix to the candidate list.
+- Recall is "the detector returned a box", backed by "its largest box was
+  named correctly"; there are no hand-drawn boxes. A detector that boxes the
+  whole scene can look better on the first than it is.
+- Megalodon is measured as converted here, with a letterbox and suppression
+  written for this piece; a different conversion could score differently.
 
 ## Testing
 
@@ -397,7 +550,15 @@ with the new modules added to its coverage list:
 - Wilson bounds and the bar search on small hand-built score lists, including
   ties, no setting meeting the target, and the junk raise.
 - label handling: subspecies to species, unmatched names dropped, in-pack and
-  out-of-pack.
+  out-of-pack; an observation's animal group from its ancestors; top-ups only
+  where a group is short.
+- merging two detectors' boxes.
+
+The Swift YOLO path (letterbox, suppression, mapping back) has no automated
+test, like the rest of the Swift code. It is checked by running the tool and
+the `ultralytics` package on the same 20 test photos and requiring each
+`ultralytics` box above the threshold to have a tool box overlapping it by an
+intersection over union of at least 0.9.
 - licence filtering and the test set CSV round trip.
 - `build_manifest` choosing measured or provisional bars.
 - Dart: `SpeciesNamer` against `naming_vectors.json`; the manifest reading
@@ -438,3 +599,9 @@ them; no automated test runs the models.
     leaves contact sheets for the maintainer to check.
 12. A test photo's own sighting does not count toward its species being
     allowed in its cell.
+13. Megalodon runs letterboxed with suppression at 0.7 and a 0.25 score
+    threshold, the `ultralytics` defaults.
+14. Two detectors' boxes merge at an intersection over union of 0.5.
+15. Ties between detectors go to the simpler and explicitly licensed choice.
+16. The manifest's measured bars are written for the Community Fish
+    Detector; Megalodon's wait in the findings.
