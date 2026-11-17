@@ -1,6 +1,10 @@
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+
+/// libdivecomputer's `DC_USAGE_HYDROTANK`, a fork extension.
+const int _hydrotankUsage = 4;
 
 /// [metaTanks] with the transmitter serial of the parsed tank each one pairs
 /// with (issue #4388): Shearwater Cloud's metadata names a dive's tanks but
@@ -14,6 +18,10 @@ import 'package:submersion/features/dive_log/domain/services/transmitter_serial.
 /// only when no other tank claims it. Anything less certain leaves the
 /// serial unset: a wrong serial would give the tank another cylinder's
 /// role and size.
+///
+/// A tank paired with the Avelo Hydrotank (issue #4657), which the raw log
+/// tags and the metadata does not, also takes the Hydrotank role; an
+/// unpaired tank keeps the role the metadata gives it.
 List<Map<String, dynamic>> withTransmitterSerials(
   List<Map<String, dynamic>> metaTanks,
   List<pigeon.TankInfo> parsedTanks,
@@ -75,6 +83,9 @@ List<Map<String, dynamic>> withTransmitterSerials(
         ...metaTanks[i],
         if (pairing[i] case final c?)
           'transmitterSerial': '${candidates[c].transmitterSerial}',
+        if (pairing[i] case final c?
+            when candidates[c].usage == _hydrotankUsage)
+          'role': TankRole.hydrotank.name,
       },
   ];
 }
