@@ -6600,6 +6600,7 @@
   "diveLog_cylinders_loopUse": "Loop use {rate}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
+  "diveLog_cylinders_hydrotankNote": "Hydrotank pressure does not measure gas used",
   "diveLog_cylinders_modNote": "MOD at ppO₂ {ppO2}",
   "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
   "diveLog_cylinders_modLimitSeparator": ", ",
@@ -7423,6 +7424,9 @@
         "type": "String"
       }
     }
+  },
+  "@diveLog_cylinders_hydrotankNote": {
+    "description": "Cylinders card line under an Avelo Hydrotank (issue #4657): water pumped into the Hydrotank for buoyancy raises its pressure, so the card shows no gas used or SAC for it. Hydrotank is the product name of the Avelo Dive System cylinder and stays untranslated."
   },
   "@diveLog_cylinders_loopUse": {
     "description": "Cylinders card detail item on a CCR dive: the rate gas left this cylinder while the diver was on the loop, with no depth correction, e.g. \"Loop use 1.8 L/min\"",
@@ -9189,6 +9193,7 @@
   "enum_tankRole_stage": "Stage",
   "enum_tankRole_suitInflation": "Suit Inflation",
   "enum_tankRole_twinSet": "Twin Set",
+  "enum_tankRole_hydrotank": "Hydrotank",
   "enum_tideState_rising": "Rising",
   "enum_tideState_falling": "Falling",
   "enum_tideState_slackHigh": "High Tide (Slack)",

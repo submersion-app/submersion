@@ -23,8 +23,10 @@ class PressureAnomalyDetector extends QualityDetector {
   // two sources reported as such (#2440).
   // v6: a lead-in above any cylinder fill (Shearwater Cloud's 564.7 bar "no
   // reading" value) is a glitch too (#4335).
+  // v7: an Avelo Hydrotank's pump-ins and purges are no rise, swap or
+  // implausible consumption (#4657).
   @override
-  int get version => 6;
+  int get version => 7;
   @override
   QualityCategory get category => QualityCategory.pressure;
 
@@ -39,6 +41,11 @@ class PressureAnomalyDetector extends QualityDetector {
       final sp = tank.startPressure;
       final ep = tank.endPressure;
       final readings = [for (final p in raw) (t: p.t, bar: p.bar)];
+      // An Avelo Hydrotank's pressure rises as the diver pumps water in and
+      // falls as it is pushed out (#4657): that is its use, not a fault, so
+      // the rise, swap and consumption checks leave it alone. The source,
+      // glitch and endpoint checks still read it.
+      final waterDriven = tank.role.isUnmeasuredBreathingGas;
 
       // Two recordings interleaved into one series (#2440) are reported as
       // that and nothing else: every alternation would read as a rise, the
@@ -65,8 +72,14 @@ class PressureAnomalyDetector extends QualityDetector {
       // Dropouts and transient misreads are reported once per tank, and
       // every other check reads the series without them: each recovery from
       // a dropout would otherwise read as a mid-dive rise, and a dropout at
-      // either end as an endpoint mismatch (#2441).
-      final glitches = scanPressureGlitches(readings);
+      // either end as an endpoint mismatch (#2441). On an Avelo Hydrotank
+      // only a reading no cylinder holds is one: its pump-ins and purges are
+      // real
+      // (#4657).
+      final scanned = scanPressureGlitches(readings);
+      final glitches = waterDriven
+          ? impossibleReadingGlitchesOnly(readings, scanned)
+          : scanned;
       final series = glitches.glitchIndices.isEmpty
           ? raw
           : [
@@ -124,7 +137,8 @@ class PressureAnomalyDetector extends QualityDetector {
           ? _endReferenceBar(series, surfacingTime)
           : null;
 
-      if (sp != null &&
+      if (!waterDriven &&
+          sp != null &&
           ep != null &&
           ep - sp > QualityThresholds.pressureSwapMinDiffBar &&
           _seriesAllowsSwap(startReferenceBar, endReferenceBar, sp, ep)) {
@@ -197,6 +211,7 @@ class PressureAnomalyDetector extends QualityDetector {
       void closeRise(int endT) {
         final start = riseStart;
         if (start != null &&
+            !waterDriven &&
             _isAnomalousRise(
               rise,
               endT - start,
@@ -242,6 +257,7 @@ class PressureAnomalyDetector extends QualityDetector {
       closeRise(series.last.t);
 
       // Implausible surface-equivalent consumption.
+      if (waterDriven) continue;
       final window = _consumptionWindow(series, surfacingTime);
       if (window == null) continue;
       final drop = window.first.bar - window.last.bar;

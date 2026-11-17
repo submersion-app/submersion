@@ -177,7 +177,8 @@ class TankInfo {
   final double? endPressureBar;
 
   /// Tank usage from libdivecomputer's `dc_usage_t` (1=oxygen, 2=diluent,
-  /// 3=sidemount); null when the computer reported no usage (DC_USAGE_NONE).
+  /// 3=sidemount, 4=the Avelo Hydrotank, a fork extension); null when the
+  /// computer reported no usage (DC_USAGE_NONE).
   final int? usage;
 
   /// Serial number of the air-integration transmitter that reported this

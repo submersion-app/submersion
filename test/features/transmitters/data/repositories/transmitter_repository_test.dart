@@ -527,6 +527,49 @@ void main() {
     },
   );
 
+  test('lastRoleForEquipment suggests back gas, not the Hydrotank a dive '
+      'logged in Avelo mode (#4657)', () async {
+    // The Hydrotank is a fact about that dive: the same cylinder is ordinary
+    // back gas on a dive outside Avelo mode, so it is no default to suggest.
+    final db = DatabaseService.instance.database;
+    await seedDiverAndDive(dateTime: DateTime.utc(2026, 9, 1, 10));
+    await db.customStatement(
+      "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+      "updated_at) VALUES ('tank1', 'diver-1', 'Avelo 10 L', 'tank', 1, 1)",
+    );
+    await seedTank(
+      id: 'k1',
+      diveId: 'd1',
+      equipmentId: 'tank1',
+      role: 'hydrotank',
+    );
+
+    expect(await repo.lastRoleForEquipment('tank1'), TankRole.backGas);
+  });
+
+  test('lastRoleForEquipment looks past a later Hydrotank to the role the '
+      'cylinder had before (#4657)', () async {
+    final db = DatabaseService.instance.database;
+    await seedDiverAndDive(dateTime: DateTime.utc(2026, 9, 1, 10));
+    await seedDiverAndDive(
+      diveId: 'd2',
+      dateTime: DateTime.utc(2026, 9, 10, 10),
+    );
+    await db.customStatement(
+      "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+      "updated_at) VALUES ('tank1', 'diver-1', 'AL40', 'tank', 1, 1)",
+    );
+    await seedTank(id: 'k1', diveId: 'd1', equipmentId: 'tank1', role: 'stage');
+    await seedTank(
+      id: 'k2',
+      diveId: 'd2',
+      equipmentId: 'tank1',
+      role: 'hydrotank',
+    );
+
+    expect(await repo.lastRoleForEquipment('tank1'), TankRole.stage);
+  });
+
   test(
     'lastRoleForEquipment falls back to backGas with no dive history (#3367)',
     () async {

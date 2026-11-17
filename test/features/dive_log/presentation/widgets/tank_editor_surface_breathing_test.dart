@@ -104,6 +104,27 @@ void main() {
     expect(field(), findsNothing);
   });
 
+  testWidgets('an Avelo Hydrotank has no such field (#4657)', (tester) async {
+    // Its pressure is no measure of the gas breathed, so minutes breathed at
+    // the surface would feed no figure.
+    final changes = await pump(
+      tester,
+      const DiveTank(
+        id: 't',
+        startPressure: 200,
+        endPressure: 185,
+        role: TankRole.hydrotank,
+        surfaceBreathingDuration: Duration(minutes: 10),
+      ),
+    );
+    expect(field(), findsNothing);
+    await tester.enterText(
+      find.widgetWithText(TextField, 'End Pressure'),
+      '180',
+    );
+    expect(changes.last.surfaceBreathingDuration, isNull);
+  });
+
   testWidgets('a cylinder a transmitter logged has no such field', (
     tester,
   ) async {

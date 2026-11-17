@@ -21,7 +21,8 @@ void main() {
 
   test('the gas detector versions moved with their rules', () {
     expect(const GasModDetector().version, 4);
-    expect(const PressureAnomalyDetector().version, 6);
+    // v7: the Avelo Hydrotank's pump-ins are no anomaly (#4657).
+    expect(const PressureAnomalyDetector().version, 7);
   });
 
   group('GasModDetector', () {

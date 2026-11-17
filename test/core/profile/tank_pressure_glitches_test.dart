@@ -678,4 +678,61 @@ void main() {
       }
     });
   });
+
+  // An Avelo Hydrotank's pressure rises and falls with the water pumped in
+  // (issue #4657): only a near-zero reading is a glitch on it.
+  group('impossibleReadingGlitchesOnly', () {
+    test('keeps a near-zero dropout and drops a dip', () {
+      final readings = <PressureReading>[
+        (t: 0, bar: 200),
+        (t: 30, bar: 216),
+        (t: 300, bar: 215),
+        (t: 330, bar: 200), // a purge and pump-in back: a dip by the rules
+        (t: 360, bar: 214),
+        (t: 900, bar: 0.8), // a lost signal
+        (t: 910, bar: 213),
+        (t: 1200, bar: 212),
+      ];
+      final full = scanPressureGlitches(readings);
+      expect(full.glitchIndices, {3, 5});
+
+      final narrowed = impossibleReadingGlitchesOnly(readings, full);
+      expect(narrowed.glitchIndices, {5});
+      expect(narrowed.episodeCount, 1);
+    });
+
+    test('keeps a no-reading lead-in above any fill', () {
+      // Shearwater Cloud logs 564.7 bar, its 12-bit maximum, for no reading
+      // (issue #4335): no cylinder, Hydrotank included, holds that.
+      final readings = <PressureReading>[
+        (t: 0, bar: 564.7),
+        (t: 10, bar: 564.7),
+        (t: 20, bar: 200),
+        (t: 30, bar: 199.8),
+        (t: 40, bar: 199.6),
+        (t: 50, bar: 199.4),
+        (t: 600, bar: 214),
+      ];
+      final narrowed = impossibleReadingGlitchesOnly(
+        readings,
+        scanPressureGlitches(readings),
+      );
+      expect(narrowed.glitchIndices, {0, 1});
+      expect(narrowed.episodeCount, 1);
+    });
+
+    test('is none when no reading is near zero', () {
+      final readings = <PressureReading>[
+        (t: 0, bar: 200),
+        (t: 30, bar: 216),
+        (t: 600, bar: 214),
+      ];
+      final narrowed = impossibleReadingGlitchesOnly(
+        readings,
+        scanPressureGlitches(readings),
+      );
+      expect(narrowed.glitchIndices, isEmpty);
+      expect(narrowed.episodeCount, 0);
+    });
+  });
 }

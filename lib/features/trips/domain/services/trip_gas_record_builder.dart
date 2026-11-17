@@ -103,8 +103,9 @@ TripGasRecordRow _row(
     fillPressure: fill == null
         ? null
         : fill.pressure ?? cylinder.workingPressure,
-    // A suit inflation bottle is not breathed (issue #4243).
-    litres: t.breathing ? _litres(t, gasModel) : null,
+    // A suit inflation bottle is not breathed (issue #4243), and an Avelo
+    // Hydrotank's pressure is not the gas breathed (issue #4657).
+    litres: t.breathing && t.measuresGasUse ? _litres(t, gasModel) : null,
   );
 }
 

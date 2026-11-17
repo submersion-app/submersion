@@ -1083,11 +1083,26 @@ class ReparseService {
     // decides it. A row from before v254 whose role is the one this parse
     // read off the name is that same guess, whether or not the transmitter
     // has been registered since.
+    //
+    // An Avelo Hydrotank (issue #4657) the computer tagged replaces a stored
+    // back gas: before the Hydrotank role every Avelo import stored its
+    // Hydrotank as back gas, and nothing tells that default from a diver's
+    // choice. Any other stored role is the diver's and stays. A diver who
+    // sets the Hydrotank back to back gas sees it turned again by the next
+    // re-parse, a limit the design accepts: in Avelo mode the T1 cylinder is
+    // the Hydrotank.
+    final hydrotanks = {
+      for (final t in resolvedTanks)
+        if (t.role == TankRole.hydrotank.name) t.index,
+    };
     bool roleIsComputers(DiveTank existing, int index) =>
         TankRoleSource.fromName(existing.roleSource) ==
             TankRoleSource.transmitterName ||
         (existing.roleSource == null &&
-            existing.tankRole == nameDerivedRoles[index]);
+            existing.tankRole == nameDerivedRoles[index]) ||
+        (existing.roleSource == null &&
+            existing.tankRole == TankRole.backGas.name &&
+            hydrotanks.contains(index));
 
     // With the diver's switch on, sort the stored rows of unused open-circuit
     // gases before the claim (issue #3668), judged against this parse rather

@@ -13,8 +13,11 @@ typedef SwitchTime = ({String tankId, int timestamp});
 /// both stretch the gas-use window alike.
 ///
 /// Only breathing cylinders count: a suit inflation bottle loses gas on the
-/// surface without being breathed (issue #4243). [tankPressures] may be keyed
-/// by a stale tank id; it is resolved as the dive page resolves it.
+/// surface without being breathed (issue #4243). Of their pressures, only a
+/// fall that is gas used counts: an Avelo Hydrotank's falls when water is
+/// pushed out (issue #4657), while its switches still count. [tankPressures]
+/// may be keyed by a stale tank id; it is resolved as the dive page resolves
+/// it.
 SurfaceBreathing? diveSurfaceBreathing({
   required List<DiveProfilePoint> profile,
   required List<DiveTank> tanks,
@@ -29,6 +32,10 @@ SurfaceBreathing? diveSurfaceBreathing({
   if (underwater == null) return null;
 
   final breathingIds = {for (final t in breathingTanks(tanks)) t.id};
+  final measuredIds = {
+    for (final t in tanks)
+      if (t.role.pressureMeasuresGasUse) t.id,
+  };
   final resolved = resolveTankPressureSeries(tanks, tankPressures);
   var recordingStart = profile.first.timestamp;
   var recordingEnd = profile.first.timestamp;
@@ -47,7 +54,7 @@ SurfaceBreathing? diveSurfaceBreathing({
     ],
     pressures: [
       for (final MapEntry(key: id, value: series) in resolved.entries)
-        if (breathingIds.contains(id))
+        if (measuredIds.contains(id))
           [for (final p in series) (timestamp: p.timestamp, bar: p.pressure)],
     ],
   );

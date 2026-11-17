@@ -235,12 +235,15 @@ extension DiveFieldExtractor on DiveField {
 }
 
 /// Compute the total gas consumed in liters across the breathing cylinders
-/// of a [Dive]; a suit inflation bottle is not breathed (issue #4243).
+/// of a [Dive]; a suit inflation bottle is not breathed (issue #4243), and an
+/// Avelo Hydrotank's pressure drop is no gas consumed (issue #4657), so only
+/// the cylinders that measure it count, as in the gas used statistics.
 double? _computeGasConsumed(Dive dive, GasModel gasModel) {
   final tanks = dive.breathingTanks;
   if (tanks.isEmpty) return null;
   double total = 0;
   for (final tank in tanks) {
+    if (!tank.role.pressureMeasuresGasUse) continue;
     final start = tank.startPressure;
     final end = tank.endPressure;
     final volume = consumptionVolume(tank, tanks);
