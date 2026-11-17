@@ -396,7 +396,7 @@ is the one with the highest score.
 database, with the logbook they belong to. They are never synced. Embeddings
 live in the device-local cache. Crops are files.
 
-#### Main database, schema version 374
+#### Main database, schema version 375
 
 Two tables in a new `lib/core/database/tables/identification_tables.dart`.
 Neither has an `hlc` column, so neither syncs. Follow
@@ -715,7 +715,7 @@ Tests are written first. Run only the test files written or changed, by path.
   selection by engine; verification failures.
 - **Downloader:** success, checksum mismatch, size mismatch, cancel, resume
   with and without `Range` support, against a fake HTTP client.
-- **Storage:** the main migration to version 374, following
+- **Storage:** the main migration to version 375, following
   `test/core/database/migration_v362_dive_deco_status_test.dart`; the local
   cache migration to version 25; repository reads and writes; the reconcile
   rules; each branch of "analysed or named again"; both cleanup paths,

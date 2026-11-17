@@ -17,7 +17,8 @@ enum ConsumptionRoleGroup { bottomGas, stage, deco, pony, bailout }
 /// primary gas is one group however it is worn: a sidemount pair is breathed
 /// in turns on one gas, so a per-side rate would be about half the diver's.
 /// Null for the loop roles, which the Rebreather gas use card covers, and for
-/// a suit inflation bottle, which is not breathed (issue #4243).
+/// a suit inflation bottle, which is not breathed (issue #4243), and for an
+/// Avelo Hydrotank, whose pressure does not measure the gas used (#4657).
 ConsumptionRoleGroup? consumptionRoleGroupOf(TankRole role) => switch (role) {
   TankRole.backGas ||
   TankRole.twinSet ||
@@ -27,7 +28,10 @@ ConsumptionRoleGroup? consumptionRoleGroupOf(TankRole role) => switch (role) {
   TankRole.deco => ConsumptionRoleGroup.deco,
   TankRole.pony => ConsumptionRoleGroup.pony,
   TankRole.bailout => ConsumptionRoleGroup.bailout,
-  TankRole.diluent || TankRole.oxygenSupply || TankRole.suitInflation => null,
+  TankRole.diluent ||
+  TankRole.oxygenSupply ||
+  TankRole.suitInflation ||
+  TankRole.hydrotank => null,
 };
 
 /// One dive's consumption per role group: [rmv] in L/min and [sac] in bar/min

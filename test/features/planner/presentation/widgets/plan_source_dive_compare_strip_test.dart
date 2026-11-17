@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -112,6 +113,50 @@ void main() {
     expect(find.text('4′'), findsOneWidget); // planned: the 240 s stop
     expect(find.text('22′'), findsOneWidget); // actual, from the profile
   });
+
+  testWidgets(
+    'an Avelo Hydrotank shows the planned gas but no actual (#4657)',
+    (tester) async {
+      // Its pressure rises with the water pumped in, so its drop is no gas
+      // used to compare the plan with.
+      final dive = Dive(
+        id: 'd1',
+        dateTime: DateTime(2026, 1, 1),
+        maxDepth: 28,
+        entryTime: DateTime(2026, 1, 1, 9),
+        exitTime: DateTime(2026, 1, 1, 9, 32),
+        tanks: [
+          const DiveTank(
+            id: 'back',
+            name: 'Avelo',
+            volume: 10,
+            startPressure: 200,
+            endPressure: 185,
+            role: TankRole.hydrotank,
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            sourceDiveForPlanProvider.overrideWith((ref) async => dive),
+            sourceDiveTtsSecondsProvider.overrideWith((ref) async => 28 * 60),
+            sourceDiveDecoSecondsProvider.overrideWith((ref) async => 22 * 60),
+            activePlanOutcomeProvider.overrideWithValue(_outcome()),
+          ],
+          child: const PlanSourceDiveCompareStrip(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Avelo'), findsOneWidget);
+      expect(find.textContaining('150'), findsNothing);
+      expect(find.text('--'), findsOneWidget);
+    },
+  );
 
   // Issue #2545: computers such as the OSTC log CNS only every few samples,
   // so the last sample of the dive usually carries none. The actual CNS is

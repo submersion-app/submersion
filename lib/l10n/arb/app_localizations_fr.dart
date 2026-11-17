@@ -11556,6 +11556,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_cylinders_hydrotankNote =>
+      'La pression du Hydrotank ne mesure pas le gaz consommé';
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'PMU à ppO₂ $ppO2';
   }
@@ -15323,6 +15327,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_tankRole_twinSet => 'Bi-bouteille';
+
+  @override
+  String get enum_tankRole_hydrotank => 'Hydrotank';
 
   @override
   String get enum_tideState_rising => 'Montante';
@@ -22386,6 +22393,33 @@ class AppLocalizationsFr extends AppLocalizations {
       'Plus grand = plus de gaz frais, chute d\'O₂ plus faible';
 
   @override
+  String get plannerCanvas_scr_injectionRate => 'Débit d\'injection';
+
+  @override
+  String get plannerCanvas_scr_vo2 => 'VO₂ (SCR)';
+
+  @override
+  String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
+
+  @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'O₂ de la boucle avec $gas : $atVo2 à ce VO₂, $resting au repos, $hardWork en effort intense';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'débit trop faible';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'Chute de ppO₂ dans la boucle : $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -22880,6 +22914,15 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
     return 'Le gaz de bailout est hypoxique à $depth (ppO₂ $value bar). Emportez un gaz respirable jusqu\'à la surface.';
+  }
+
+  @override
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  ) {
+    return 'Un débit d\'injection de $rate ne peut pas entretenir la boucle à ce VO₂ : $gas demande plus de $needed.';
   }
 
   @override
@@ -53659,6 +53702,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'La réserve de batterie du scooter et la vitesse de marche avec lesquelles une nouvelle mission DPV démarre. Les modifier dans une mission ne les écrase que là, sans changer cette valeur par défaut.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'Recycleur du planificateur';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'Le débit de boucle semi-fermée avec lequel démarre un nouveau plan SCR ou pSCR. Le modifier dans un plan le remplace uniquement là, sans changer cette valeur par défaut.';
+
+  @override
   String get settings_decompression_rates_finalAscent =>
       'Vitesse de remontée finale';
 
@@ -65029,6 +65080,21 @@ class AppLocalizationsFr extends AppLocalizations {
       'La part de chaque expiration qu\'un recycleur semi-fermé passif rejette. Elle fixe l\'écart entre l\'oxygène de la boucle et le gaz d\'alimentation.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'Débit d\'injection';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'Le débit en surface que la buse d\'un recycleur à débit massique constant injecte dans la boucle, fixé par la buse et le gaz d\'alimentation. Reprenez-le de la documentation de l\'appareil ou d\'un contrôle de débit mesuré.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'L\'oxygène consommé par le corps du plongeur, mesuré en gaz de surface : environ $rest au repos, $swim en nageant et $hard en effort intense. Plus d\'effort laisse moins d\'oxygène dans une boucle semi-fermée.';
+  }
+
+  @override
   String get info_term_turnFraction_label => 'Fraction de demi-tour';
 
   @override
@@ -65449,6 +65515,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'Saisissez le ratio de rejet indiqué par le fabricant du recycleur.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'Comment le recycleur semi-fermé à débit massique constant est modélisé dans le plan.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'Saisissez le débit d\'injection de votre buse pour ce gaz d\'alimentation et le VO₂ attendu ; un champ vide suit les Réglages. Comparez l\'oxygène de boucle affiché à la documentation de votre appareil.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

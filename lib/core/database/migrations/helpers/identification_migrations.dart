@@ -2,7 +2,7 @@ part of '../app_database_migrations.dart';
 
 /// What the on-device model found on each photo (issue #4668).
 extension IdentificationMigrations on AppDatabase {
-  /// v374: the two marine life identification tables and their media index.
+  /// v375: the two marine life identification tables and their media index.
   /// Idempotent. Neither table references media, so nothing is needed first.
   Future<void> _assertMediaIdentificationTables() async {
     final migrator = Migrator(this);

@@ -14,8 +14,21 @@ const Set<TankRole> sidemountRoles = {
 };
 
 /// The roles that mean the primary gas worn on the back: a single cylinder
-/// or a manifolded twin set logged as one (issue #3374).
-const Set<TankRole> backmountRoles = {TankRole.backGas, TankRole.twinSet};
+/// or a manifolded twin set logged as one (issue #3374), or an Avelo
+/// Hydrotank (issue #4657), which stays the dive's main cylinder even though
+/// its pressure does not measure the gas used.
+const Set<TankRole> backmountRoles = {
+  TankRole.backGas,
+  TankRole.twinSet,
+  TankRole.hydrotank,
+};
+
+/// Whether [tanks] include a breathed cylinder whose pressure is not the gas
+/// used: an Avelo Hydrotank (issue #4657). The dive's total gas, and every
+/// rate over the whole dive or a part of it, is then unknown, since leaving
+/// the Hydrotank out would let the other cylinders stand in for it.
+bool breathesUnmeasuredTank(List<DiveTank> tanks) =>
+    tanks.any((t) => t.role.isUnmeasuredBreathingGas);
 
 /// The cylinders of [tanks] that hold breathing gas, in order: every one but
 /// a suit inflation bottle (issue #4243, see [TankRole.isBreathingGas]).
@@ -65,7 +78,8 @@ DiveTank? sacReferenceTankOf(List<DiveTank> tanks) {
 /// matched pair with the reference (see [isMatchedPair]) counts one to one.
 /// A cylinder whose size cannot be related to the reference, or that was
 /// carried but not breathed, adds nothing, and so does a suit inflation
-/// bottle (issue #4243), which is no reference either.
+/// bottle (issue #4243) or an Avelo Hydrotank (issue #4657), which give no
+/// reference drop either.
 ///
 /// [reference] is the unit of account, so one that was measured and did not
 /// fall adds zero and the others still count (#3974). Null when [reference]
@@ -81,13 +95,18 @@ double? referencePressureDrop({
   required List<DiveTank> tanks,
   double? Function(DiveTank tank) dropOf = _drop,
 }) {
-  if (!reference.role.isBreathingGas) return null;
+  // An Avelo Hydrotank's pressure rises with the water pumped in, so its drop
+  // is no gas used (issue #4657): as the reference, nothing says how much it
+  // gave; as another cylinder, it adds nothing, like a suit bottle.
+  if (!reference.role.pressureMeasuresGasUse) return null;
   final referenceDrop = dropOf(reference);
   if (referenceDrop == null) return null;
 
   var total = referenceDrop;
   for (final tank in tanks) {
-    if (identical(tank, reference) || !tank.role.isBreathingGas) continue;
+    if (identical(tank, reference) || !tank.role.pressureMeasuresGasUse) {
+      continue;
+    }
     final drop = dropOf(tank);
     if (drop == null) continue;
     final ratio = referenceBarsPerBar(tank, reference, tanks);

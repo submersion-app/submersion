@@ -11510,6 +11510,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_cylinders_hydrotankNote =>
+      'A pressão do Hydrotank não mede o gás consumido';
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD a ppO₂ $ppO2';
   }
@@ -15276,6 +15280,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_tankRole_twinSet => 'Bi-cilindro';
+
+  @override
+  String get enum_tankRole_hydrotank => 'Hydrotank';
 
   @override
   String get enum_tideState_rising => 'Enchente';
@@ -22329,6 +22336,33 @@ class AppLocalizationsPt extends AppLocalizations {
       'Maior = mais gás fresco, menor queda de O₂';
 
   @override
+  String get plannerCanvas_scr_injectionRate => 'Taxa de injeção';
+
+  @override
+  String get plannerCanvas_scr_vo2 => 'VO₂ (SCR)';
+
+  @override
+  String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
+
+  @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'O₂ do circuito com $gas: $atVo2 com este VO₂, $resting em repouso, $hardWork em esforço intenso';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'fluxo insuficiente';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'Queda de ppO₂ no circuito: $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -22820,6 +22854,15 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
     return 'O gás de bailout é hipóxico a $depth (ppO₂ $value bar). Leve um gás respirável até à superfície.';
+  }
+
+  @override
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  ) {
+    return 'Uma taxa de injeção de $rate não sustenta o circuito com este VO₂: $gas precisa de mais de $needed.';
   }
 
   @override
@@ -53529,6 +53572,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'A reserva de bateria do scooter e a velocidade de caminhada com que uma nova missão DPV começa. Alterá-las dentro de uma missão só as substitui lá, sem alterar este padrão.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'Rebreather do planeador';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'O fluxo do circuito semifechado com que começa um novo plano SCR ou pSCR. Alterá-lo dentro de um plano substitui-o só aí, sem mudar este valor predefinido.';
+
+  @override
   String get settings_decompression_rates_finalAscent =>
       'Velocidade de subida final';
 
@@ -64864,6 +64915,21 @@ class AppLocalizationsPt extends AppLocalizations {
       'A parte de cada expiração que um rebreather semifechado passivo descarta. Define quanto o oxigénio do circuito fica abaixo do gás de alimentação.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'Taxa de injeção';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'O fluxo à superfície que o bico de um rebreather de fluxo mássico constante injeta no circuito, definido pelo bico e pelo gás de alimentação. Retire-o da documentação do equipamento ou de um teste de fluxo medido.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'O oxigénio que o corpo do mergulhador consome, medido como gás à superfície: cerca de $rest em repouso, $swim a nadar e $hard em esforço intenso. Mais esforço deixa menos oxigénio num circuito semifechado.';
+  }
+
+  @override
   String get info_term_turnFraction_label => 'Fração de retorno';
 
   @override
@@ -65284,6 +65350,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'Introduza o rácio de descarte indicado pelo fabricante do rebreather.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'Como o rebreather semifechado de fluxo mássico constante é modelado no plano.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'Introduza a taxa de injeção do seu bico para este gás de alimentação e o VO₂ que espera; um campo vazio segue as Definições. Compare o oxigénio do circuito mostrado com a documentação do seu equipamento.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

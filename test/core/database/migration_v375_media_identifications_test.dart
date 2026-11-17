@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// v374 adds media_identification_runs and media_identifications: what the
+/// v375 adds media_identification_runs and media_identifications: what the
 /// on-device model found on a photo and what the diver made of it (#4668).
 Future<Set<String>> _tables(AppDatabase db) async => {
   for (final r
@@ -27,10 +27,10 @@ Future<List<String>> _columns(AppDatabase db, String table) async => [
 ];
 
 void main() {
-  test('v374 is at or below the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(374));
-    expect(AppDatabase.migrationVersions, contains(374));
-    expect(AppDatabase.migrationStepCount(373), greaterThanOrEqualTo(1));
+  test('v375 is at or below the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(375));
+    expect(AppDatabase.migrationVersions, contains(375));
+    expect(AppDatabase.migrationStepCount(374), greaterThanOrEqualTo(1));
   });
 
   test(

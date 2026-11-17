@@ -1059,6 +1059,29 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
+  /// Update the plan's own semi-closed loop flow (issue #4660), surface
+  /// L/min; only supplied values change, and a clear flag returns that field
+  /// to following the diver's Settings default.
+  void updateLoopFlow({
+    double? scrInjectionRate,
+    bool clearScrInjectionRate = false,
+    double? scrVo2,
+    bool clearScrVo2 = false,
+    double? pscrVo2,
+    bool clearPscrVo2 = false,
+  }) {
+    state = state.copyWith(
+      scrInjectionRate: scrInjectionRate,
+      clearScrInjectionRate: clearScrInjectionRate,
+      scrVo2: scrVo2,
+      clearScrVo2: clearScrVo2,
+      pscrVo2: pscrVo2,
+      clearPscrVo2: clearPscrVo2,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
   /// Update contingency configuration; only supplied values change.
   void updateContingencies({
     double? depthDelta,

@@ -262,10 +262,19 @@ extension RungsFromV340 on AppDatabase {
     if (from < 373) await _assertDiveCenterLogoColumn();
     if (from < 373) await reportProgress();
 
-    // v374: media_identification_runs and media_identifications (issue
+    // v374: a plan's own SCR injection rate, SCR VO2 and pSCR VO2
+    // (dive_plans, nullable: null follows the diver) and the diver's
+    // defaults for them (diver_settings, defaulted to the figures every plan
+    // used before) (issue #4660). Columns only, no backfill, so the floor
+    // does not move. Re-asserted in beforeOpen.
+    if (from < 374) await _assertScrFlowColumns();
+    if (from < 374) await reportProgress();
+
+    // v375: media_identification_runs and media_identifications (issue
     // #4668). Table-only rung, nothing to backfill: the app fills them as
     // photos are analysed. Never synced. Re-asserted in beforeOpen.
-    if (from < 374) await _assertMediaIdentificationTables();
-    if (from < 374) await reportProgress();
+    // Renumbered from 374, which main took for #4660.
+    if (from < 375) await _assertMediaIdentificationTables();
+    if (from < 375) await reportProgress();
   }
 }

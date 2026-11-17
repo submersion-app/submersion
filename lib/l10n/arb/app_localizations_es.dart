@@ -11516,6 +11516,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get diveLog_cylinders_hydrotankNote =>
+      'La presión del Hydrotank no mide el gas consumido';
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD a ppO₂ $ppO2';
   }
@@ -15278,6 +15282,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get enum_tankRole_twinSet => 'Bibotella';
+
+  @override
+  String get enum_tankRole_hydrotank => 'Hydrotank';
 
   @override
   String get enum_tideState_rising => 'Subiendo';
@@ -22315,6 +22322,33 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mayor = más gas fresco, menor caída de O₂';
 
   @override
+  String get plannerCanvas_scr_injectionRate => 'Caudal de inyección';
+
+  @override
+  String get plannerCanvas_scr_vo2 => 'VO₂ (SCR)';
+
+  @override
+  String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
+
+  @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'O₂ del circuito con $gas: $atVo2 con este VO₂, $resting en reposo, $hardWork con esfuerzo intenso';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'caudal insuficiente';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'Caída de ppO₂ en el circuito: $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -22808,6 +22842,15 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
     return 'El gas de bailout es hipóxico a $depth (ppO₂ $value bar). Lleva un gas respirable hasta la superficie.';
+  }
+
+  @override
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  ) {
+    return 'Un caudal de inyección de $rate no puede sostener el circuito con este VO₂: $gas necesita más de $needed.';
   }
 
   @override
@@ -53570,6 +53613,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'La reserva de batería del scooter y la velocidad de caminata con las que comienza una nueva misión DPV. Cambiarlas dentro de una misión solo las sobrescribe ahí, sin cambiar este valor predeterminado.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'Recirculador del planificador';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'El flujo del circuito semicerrado con el que empieza un nuevo plan SCR o pSCR. Cambiarlo dentro de un plan lo anula solo allí, sin cambiar este valor predeterminado.';
+
+  @override
   String get settings_decompression_rates_finalAscent =>
       'Velocidad de ascenso final';
 
@@ -64925,6 +64976,21 @@ class AppLocalizationsEs extends AppLocalizations {
       'La parte de cada exhalación que descarta un reciclador semicerrado pasivo. Fija cuánto baja el oxígeno del circuito respecto al gas de suministro.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'Caudal de inyección';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'El caudal en superficie que la boquilla de un recirculador de flujo másico constante aporta al circuito, fijado por la boquilla y el gas de suministro. Tómalo de la documentación del equipo o de una prueba de caudal medida.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'El oxígeno que consume el cuerpo del buceador, medido como gas en superficie: unos $rest en reposo, $swim nadando y $hard con esfuerzo intenso. Más esfuerzo deja menos oxígeno en un circuito semicerrado.';
+  }
+
+  @override
   String get info_term_turnFraction_label => 'Fracción de retorno';
 
   @override
@@ -65345,6 +65411,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'Introduce la relación de descarte que indica el fabricante del reciclador.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'Cómo se modela en el plan el recirculador semicerrado de flujo másico constante.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'Introduce el caudal de inyección de tu boquilla para este gas de suministro y el VO₂ que esperas; un campo vacío sigue los Ajustes. Comprueba el oxígeno del circuito mostrado con la documentación de tu equipo.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

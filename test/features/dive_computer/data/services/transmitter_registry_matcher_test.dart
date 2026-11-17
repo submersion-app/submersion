@@ -55,6 +55,26 @@ void main() {
     expect(matcher.match(serial: '180777', computerId: 'c1', index: 0), isNull);
   });
 
+  test('the computer\'s Avelo Hydrotank keeps its role over the registry\'s, '
+      'and still takes the entry\'s name, gear and size (#4657)', () {
+    final matcher = TransmitterMatcher.fromEntries([
+      _entry(role: TankRole.backGas, label: 'Avelo', volumeL: 10.0),
+    ]);
+    const tank = TankData(
+      index: 0,
+      o2Percent: 21,
+      transmitterSerial: '180777',
+      role: 'hydrotank',
+    );
+
+    final out = applyTransmitterRegistry([tank], matcher, computerId: 'c1');
+
+    expect(out.single.role, TankRole.hydrotank.name);
+    expect(out.single.tankName, 'Avelo');
+    expect(out.single.equipmentId, 'g1');
+    expect(out.single.volumeLiters, 10.0);
+  });
+
   test('a serial match applies role, gear, name and fills empty specs', () {
     final matcher = TransmitterMatcher.fromEntries([_entry()]);
     const tank = TankData(

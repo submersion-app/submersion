@@ -5,6 +5,7 @@ import 'package:submersion/features/settings/presentation/widgets/planner_contin
 import 'package:submersion/features/settings/presentation/widgets/planner_dpv_team_defaults_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/planner_gas_defaults_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/planner_rates_defaults_section.dart';
+import 'package:submersion/features/settings/presentation/widgets/planner_rebreather_defaults_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
@@ -68,6 +69,22 @@ class PlannerDefaultsSettingsContent extends StatelessWidget {
           subtitle(l10n.settings_decompression_header_plannerGas_subtitle),
           const SizedBox(height: 8),
           const PlannerGasDefaultsSection(),
+          const SizedBox(height: 24),
+          buildSettingsSectionHeader(
+            context,
+            l10n.settings_decompression_header_plannerRebreather,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.plannerRebreather,
+            ),
+          ),
+          const SizedBox(height: 4),
+          subtitle(
+            l10n.settings_decompression_header_plannerRebreather_subtitle,
+          ),
+          const SizedBox(height: 8),
+          const PlannerRebreatherDefaultsSection(),
           const SizedBox(height: 24),
           buildSettingsSectionHeader(
             context,

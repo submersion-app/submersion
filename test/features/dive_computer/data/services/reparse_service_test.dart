@@ -2209,6 +2209,83 @@ void main() {
       expect(tank.transmitterSerial, '109623');
     });
 
+    group('DiveTanks carry-over: the Avelo Hydrotank (#4657)', () {
+      /// A Shearwater Avelo-mode parse: its one tank, on transmitter T1, is
+      /// tagged as the Hydrotank (DC_USAGE_HYDROTANK, 4).
+      pigeon.ParsedDive aveloParse() => makeParsedDive(
+        diveMode: 'open_circuit',
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: 4294967295,
+            startPressureBar: 200.0,
+            endPressureBar: 185.0,
+            usage: 4,
+            transmitterSerial: 123086,
+          ),
+        ],
+        gasMixes: [pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0)],
+      );
+
+      Future<void> seed({required String role}) async {
+        await insertDive('dive-1');
+        await insertComputer('comp-1');
+        await insertSource(
+          id: 'src-1',
+          diveId: 'dive-1',
+          computerId: 'comp-1',
+          isPrimary: true,
+        );
+        await db
+            .into(db.diveTanks)
+            .insert(
+              DiveTanksCompanion(
+                id: const Value('tank-0'),
+                diveId: const Value('dive-1'),
+                o2Percent: const Value(21.0),
+                hePercent: const Value(0.0),
+                tankOrder: const Value(0),
+                tankRole: Value(role),
+              ),
+            );
+      }
+
+      Future<DiveTank> reparse() async {
+        await service.applyParsedUpdate(
+          diveId: 'dive-1',
+          sourceRowId: 'src-1',
+          parsed: aveloParse(),
+          descriptorVendor: 'Shearwater',
+          descriptorProduct: 'Teric',
+          descriptorModel: 0,
+          libdivecomputerVersion: null,
+        );
+        return (db.select(
+          db.diveTanks,
+        )..where((t) => t.id.equals('tank-0'))).getSingle();
+      }
+
+      test('an Avelo dive imported before the Hydrotank role, stored as '
+          'back gas, becomes a Hydrotank', () async {
+        await seed(role: 'backGas');
+        final tank = await reparse();
+        expect(tank.tankRole, 'hydrotank');
+        expect(tank.roleSource, isNull);
+      });
+
+      test('a role the diver chose other than back gas is kept', () async {
+        await seed(role: 'pony');
+        final tank = await reparse();
+        expect(tank.tankRole, 'pony');
+      });
+
+      test('a stored Hydrotank stays one', () async {
+        await seed(role: 'hydrotank');
+        final tank = await reparse();
+        expect(tank.tankRole, 'hydrotank');
+      });
+    });
+
     group('DiveTanks carry-over: a role read off the transmitter name '
         '(#2595)', () {
       /// A Shearwater CCR parse whose one transmitter is tagged oxygen, as a

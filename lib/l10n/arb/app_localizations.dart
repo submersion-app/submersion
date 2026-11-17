@@ -18193,6 +18193,12 @@ abstract class AppLocalizations {
   /// **'MND {depth}'**
   String diveLog_cylinders_mnd(String depth);
 
+  /// Cylinders card line under an Avelo Hydrotank (issue #4657): water pumped into the Hydrotank for buoyancy raises its pressure, so the card shows no gas used or SAC for it. Hydrotank is the product name of the Avelo Dive System cylinder and stays untranslated.
+  ///
+  /// In en, this message translates to:
+  /// **'Hydrotank pressure does not measure gas used'**
+  String get diveLog_cylinders_hydrotankNote;
+
   /// Note under the Cylinders card table: the ppO2 every MOD on the card was computed at. {ppO2} is one value ("MOD at ppO₂ 1.4") or, when the cylinders use different limits, a list of diveLog_cylinders_modLimit items ("MOD at ppO₂ 1.4 (bottom limit), 1.6 (deco limit)")
   ///
   /// In en, this message translates to:
@@ -24442,6 +24448,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Twin Set'**
   String get enum_tankRole_twinSet;
+
+  /// No description provided for @enum_tankRole_hydrotank.
+  ///
+  /// In en, this message translates to:
+  /// **'Hydrotank'**
+  String get enum_tankRole_hydrotank;
 
   /// No description provided for @enum_tideState_rising.
   ///
@@ -35224,6 +35236,47 @@ abstract class AppLocalizations {
   /// **'Larger adds more fresh gas and lowers the O₂ drop'**
   String get plannerCanvas_pscr_ratio_hint;
 
+  /// No description provided for @plannerCanvas_scr_injectionRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Injection rate'**
+  String get plannerCanvas_scr_injectionRate;
+
+  /// No description provided for @plannerCanvas_scr_vo2.
+  ///
+  /// In en, this message translates to:
+  /// **'VO₂ (SCR)'**
+  String get plannerCanvas_scr_vo2;
+
+  /// No description provided for @plannerCanvas_pscr_vo2.
+  ///
+  /// In en, this message translates to:
+  /// **'VO₂ (pSCR)'**
+  String get plannerCanvas_pscr_vo2;
+
+  /// No description provided for @plannerCanvas_scr_loopSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop O₂ on {gas}: {atVo2} at this VO₂, {resting} at rest, {hardWork} at hard work'**
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  );
+
+  /// No description provided for @plannerCanvas_scr_flowTooLow.
+  ///
+  /// In en, this message translates to:
+  /// **'flow too low'**
+  String get plannerCanvas_scr_flowTooLow;
+
+  /// No description provided for @plannerCanvas_pscr_dropSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop ppO₂ drop: {drop} bar'**
+  String plannerCanvas_pscr_dropSummary(String drop);
+
   /// No description provided for @plannerCanvas_chip_cns.
   ///
   /// In en, this message translates to:
@@ -35937,6 +35990,16 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Bailout gas is hypoxic at {depth} (ppO₂ {value} bar). Carry a gas breathable to the surface.'**
   String plannerCanvas_issue_bailoutHypoxic(String depth, String value);
+
+  /// No description provided for @plannerCanvas_issue_scrFlowTooLow.
+  ///
+  /// In en, this message translates to:
+  /// **'An injection rate of {rate} cannot sustain the loop at this VO₂: {gas} needs more than {needed}.'**
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  );
 
   /// No description provided for @plannerCanvas_issue_noEligibleBailoutGas.
   ///
@@ -84432,6 +84495,18 @@ abstract class AppLocalizations {
   /// **'The scooter battery reserve and walking speed a new DPV mission starts with. Changing one inside a mission overrides it there only, without changing this default.'**
   String get settings_decompression_header_plannerDpvTeam_subtitle;
 
+  /// No description provided for @settings_decompression_header_plannerRebreather.
+  ///
+  /// In en, this message translates to:
+  /// **'Planner Rebreather'**
+  String get settings_decompression_header_plannerRebreather;
+
+  /// No description provided for @settings_decompression_header_plannerRebreather_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The semi-closed loop flow a new SCR or pSCR plan starts with. Changing one inside a plan overrides it there only, without changing this default.'**
+  String get settings_decompression_header_plannerRebreather_subtitle;
+
   /// No description provided for @settings_decompression_rates_finalAscent.
   ///
   /// In en, this message translates to:
@@ -101768,6 +101843,30 @@ abstract class AppLocalizations {
   /// **'The share of each exhaled breath a passive semi-closed rebreather discards. It sets how far the loop oxygen falls below the supply gas.'**
   String get info_term_pscrRatio_body;
 
+  /// No description provided for @info_term_scrInjectionRate_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Injection rate'**
+  String get info_term_scrInjectionRate_label;
+
+  /// No description provided for @info_term_scrInjectionRate_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The surface flow a constant mass flow rebreather\'s nozzle feeds into the loop, set by the nozzle and the supply gas. Take it from the unit\'s documentation or a measured flow check.'**
+  String get info_term_scrInjectionRate_body;
+
+  /// No description provided for @info_term_vo2_label.
+  ///
+  /// In en, this message translates to:
+  /// **'VO₂'**
+  String get info_term_vo2_label;
+
+  /// No description provided for @info_term_vo2_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The oxygen a diver\'s body uses, measured as surface gas: about {rest} at rest, {swim} swimming and {hard} at hard work. More work leaves less oxygen in a semi-closed loop.'**
+  String info_term_vo2_body(String rest, String swim, String hard);
+
   /// No description provided for @info_term_turnFraction_label.
   ///
   /// In en, this message translates to:
@@ -102415,6 +102514,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter the discard ratio given by the rebreather\'s maker.'**
   String get info_plannerSetup_pscr_howToUse;
+
+  /// No description provided for @info_plannerSetup_scr_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How the constant mass flow semi-closed rebreather is modelled in the plan.'**
+  String get info_plannerSetup_scr_summary;
+
+  /// No description provided for @info_plannerSetup_scr_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your nozzle\'s injection rate for this supply gas and the VO₂ you expect; an empty box follows Settings. Check the loop oxygen shown against your unit\'s documentation.'**
+  String get info_plannerSetup_scr_howToUse;
 
   /// No description provided for @info_plannerSetup_contingencies_summary.
   ///

@@ -11505,6 +11505,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_cylinders_hydrotankNote =>
+      'Der Druck im Hydrotank misst nicht das verbrauchte Gas';
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD bei ppO₂ $ppO2';
   }
@@ -15266,6 +15270,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_tankRole_twinSet => 'Doppelgerät';
+
+  @override
+  String get enum_tankRole_hydrotank => 'Hydrotank';
 
   @override
   String get enum_tideState_rising => 'Auflaufend';
@@ -22302,6 +22309,33 @@ class AppLocalizationsDe extends AppLocalizations {
       'Größer = mehr Frischgas, geringerer O₂-Abfall';
 
   @override
+  String get plannerCanvas_scr_injectionRate => 'Dosierrate';
+
+  @override
+  String get plannerCanvas_scr_vo2 => 'VO₂ (SCR)';
+
+  @override
+  String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
+
+  @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'Kreislauf-O₂ mit $gas: $atVo2 bei diesem VO₂, $resting in Ruhe, $hardWork bei schwerer Arbeit';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'Durchfluss zu gering';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'ppO₂-Abfall im Kreislauf: $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -22793,6 +22827,15 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
     return 'Bailout-Gas ist hypoxisch bei $depth (ppO₂ $value bar). Führe ein Gas mit, das bis zur Oberfläche atembar ist.';
+  }
+
+  @override
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  ) {
+    return 'Eine Dosierrate von $rate kann den Kreislauf bei diesem VO₂ nicht versorgen: $gas braucht mehr als $needed.';
   }
 
   @override
@@ -53420,6 +53463,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Scooter-Akku-Reserve und Gehgeschwindigkeit, mit denen eine neue DPV-Mission startet. Eine Änderung innerhalb einer Mission überschreibt sie nur dort, ohne diesen Standardwert zu ändern.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'Planer-Rebreather';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'Der Durchfluss im halbgeschlossenen Kreislauf, mit dem ein neuer SCR- oder pSCR-Plan startet. Eine Änderung innerhalb eines Plans überschreibt ihn nur dort, ohne diesen Standardwert zu ändern.';
+
+  @override
   String get settings_decompression_rates_finalAscent => 'Finale Aufstiegsrate';
 
   @override
@@ -64748,6 +64799,21 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Anteil jedes Ausatemzugs, den ein passiver halbgeschlossener Rebreather verwirft. Er bestimmt, wie weit der Sauerstoff im Kreislauf unter dem Versorgungsgas liegt.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'Dosierrate';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'Der Oberflächenfluss, den die Düse eines Rebreathers mit konstantem Massenfluss in den Kreislauf einspeist, bestimmt durch Düse und Versorgungsgas. Entnimm ihn der Dokumentation des Geräts oder einer gemessenen Durchflussprüfung.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'Der Sauerstoff, den der Körper eines Tauchers verbraucht, gemessen als Oberflächengas: etwa $rest in Ruhe, $swim beim Schwimmen und $hard bei schwerer Arbeit. Mehr Arbeit lässt weniger Sauerstoff in einem halbgeschlossenen Kreislauf.';
+  }
+
+  @override
   String get info_term_turnFraction_label => 'Umkehranteil';
 
   @override
@@ -65168,6 +65234,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'Das vom Hersteller des Rebreathers angegebene Abgabeverhältnis eingeben.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'Wie der halbgeschlossene Rebreather mit konstantem Massenfluss im Plan modelliert wird.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'Gib die Dosierrate deiner Düse für dieses Versorgungsgas und den erwarteten VO₂ ein; ein leeres Feld folgt den Einstellungen. Prüfe den angezeigten Kreislaufsauerstoff anhand der Dokumentation deines Geräts.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

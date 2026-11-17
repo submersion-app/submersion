@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Sorts tank IDs by their tank's order; IDs without a matching tank go last.
@@ -42,7 +44,17 @@ String ceilingLegendLabel(BuildContext context, {required bool calculated}) =>
     ? context.l10n.diveLog_legend_label_ceilingCalculated
     : context.l10n.diveLog_legend_label_ceiling;
 
-/// Display label for a tank: its name (or "Tank N") plus the gas mix name.
+/// What an unnamed [tank], cylinder [number] (from 1), is called on the
+/// profile: an Avelo Hydrotank by its role, so its pressure line, which
+/// rises with the water pumped in, reads as the Hydrotank's (issue #4657);
+/// any other cylinder by its number, "Tank 2".
+String tankFallbackTitle(AppLocalizations l10n, DiveTank? tank, int number) =>
+    tank?.role == TankRole.hydrotank
+    ? l10n.enum_tankRole_hydrotank
+    : l10n.diveLog_tank_title(number);
+
+/// Display label for a tank: its name (or [tankFallbackTitle]) plus the gas
+/// mix name.
 String tankLegendLabel(
   BuildContext context,
   DiveTank tank, {
@@ -50,6 +62,6 @@ String tankLegendLabel(
 }) {
   final tankTitle = tank.name?.trim().isNotEmpty == true
       ? tank.name!.trim()
-      : context.l10n.diveLog_tank_title(fallbackIndex);
+      : tankFallbackTitle(context.l10n, tank, fallbackIndex);
   return '$tankTitle (${tank.gasMix.name})';
 }

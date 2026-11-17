@@ -330,12 +330,12 @@ RefreshAction decideRefresh({required MediaIdentificationRun? run, required Stri
 - [ ] **Step 4: Run and see them pass.**
 - [ ] **Step 5: Commit.** `feat(species-id): identification decisions, grouping and refresh rules`
 
-### Task 5: Main database tables, schema version 374
+### Task 5: Main database tables, schema version 374 (shipped as 375: main took 374 for #4660)
 
 **Files:**
 - Create: `lib/core/database/tables/identification_tables.dart`, `lib/core/database/migrations/helpers/identification_migrations.dart`
 - Modify: `lib/core/database/database.dart` (import, export, `@DriftDatabase` list, `currentSchemaVersion` 373 to 374, a `migrationVersions` entry), `lib/core/database/migrations/app_database_migrations.dart` (the `part` line), `lib/core/database/migrations/ladder/rungs_v340_onward.dart` (the rung), `lib/core/database/migrations/before_open_table_backstops.dart` (the backstop), `lib/core/database/performance_indexes.dart`, `lib/core/database/change_log/change_log_policy.dart`, `lib/features/agent_access/data/sql/sql_denied_set.dart`, `lib/features/agent_access/data/resources/sql_column_notes.generated.dart` (regenerated), `tool/demo_data/src/checks/coverage_check.dart`, `docs/developer/database.md` (table count)
-- Test: `test/core/database/migration_v374_media_identifications_test.dart`
+- Test: `test/core/database/migration_v375_media_identifications_test.dart`
 
 **Interfaces:**
 - Produces: drift tables `MediaIdentificationRuns` (`@DataClassName('MediaIdentificationRunRow')`) and `MediaIdentifications` (`@DataClassName('MediaIdentificationRow')`), with the columns in the spec's section 5. Timestamps are integer epoch milliseconds. `decision` is text. `candidatesJson` is text. Neither table has `hlc`. `mediaId` carries no `references`.
@@ -345,7 +345,7 @@ RefreshAction decideRefresh({required MediaIdentificationRun? run, required Stri
 Template: version 362, `dive_deco_status`. Copy the shape of `tables/dive_deco_status_tables.dart`, `helpers/deco_status_migrations.dart`, its rung, its backstop line, and `test/core/database/migration_v362_dive_deco_status_test.dart`.
 
 - [ ] **Step 1: Write the failing migration test**, following the v362 test: 374 is in `migrationVersions`; a fresh database has both tables, neither with an `hlc` column; a database already at the current `user_version` that lacks them gains them through the backstop; the index exists on a fresh database.
-- [ ] **Step 2: Run and see it fail.** `flutter test test/core/database/migration_v374_media_identifications_test.dart`
+- [ ] **Step 2: Run and see it fail.** `flutter test test/core/database/migration_v375_media_identifications_test.dart`
 - [ ] **Step 3: Add the tables, the helper, the rung, the backstop and the index.** The rung and `migrationVersions` comments say the tables never sync, so the floor does not move.
 - [ ] **Step 4: Register the tables.** `changeLogTables`: both as `ChangeLogClass.excluded`. `kSqlReadableExcludedTables`: both. `demoCoverageExclusions`: both, with a reason.
 - [ ] **Step 5: Regenerate.** `dart run build_runner build --delete-conflicting-outputs` (unfiltered, in the background; never `--build-filter`), then `dart run tool/generate_sql_column_notes.dart`.

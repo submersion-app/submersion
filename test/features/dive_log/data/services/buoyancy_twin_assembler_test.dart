@@ -198,6 +198,26 @@ void main() {
       );
     });
 
+    test('false when an Avelo Hydrotank is breathed (#4657)', () {
+      // Its pressure is the water pumped in, not gas, and the water ballast
+      // that sets the diver's buoyancy is not modelled: no line rather than
+      // a wrong one, as for the dive's SAC.
+      final hydrotank = tank(
+        'h',
+      ).copyWith(role: TankRole.hydrotank, presetName: null);
+      final dive = diveWith(tanks: [hydrotank], equipment: [wetsuit]);
+      expect(BuoyancyTwinAssembler.isModelable(dive), isFalse);
+      expect(
+        BuoyancyTwinAssembler.assemble(
+          dive: dive,
+          tankPressures: const {},
+          model: emptyModel(),
+          bodyWeightKg: null,
+        ),
+        isNull,
+      );
+    });
+
     test('true with an exposure suit and no tank', () {
       expect(
         BuoyancyTwinAssembler.isModelable(diveWith(equipment: [wetsuit])),

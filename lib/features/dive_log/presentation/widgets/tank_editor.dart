@@ -172,9 +172,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   Duration? _surfaceBreathing;
 
   /// Whether the minutes field shows: only on a breathing cylinder with no
-  /// transmitter log, whose end pressure was read off the gauge (#2930).
+  /// transmitter log, whose end pressure was read off the gauge (#2930), and
+  /// whose pressure measures the gas breathed, which an Avelo Hydrotank's
+  /// does not (#4657).
   bool get _showsSurfaceBreathing =>
-      _role.isBreathingGas && !widget.tank.hasPressureSeries;
+      _role.pressureMeasuresGasUse && !widget.tank.hasPressureSeries;
 
   /// The partner's passport id when this tank is a twin set (issue #4242).
   String? _twinPassportId;

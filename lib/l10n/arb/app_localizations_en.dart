@@ -11332,6 +11332,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_cylinders_hydrotankNote =>
+      'Hydrotank pressure does not measure gas used';
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD at ppO₂ $ppO2';
   }
@@ -15046,6 +15050,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_tankRole_twinSet => 'Twin Set';
+
+  @override
+  String get enum_tankRole_hydrotank => 'Hydrotank';
 
   @override
   String get enum_tideState_rising => 'Rising';
@@ -21992,6 +21999,33 @@ class AppLocalizationsEn extends AppLocalizations {
       'Larger adds more fresh gas and lowers the O₂ drop';
 
   @override
+  String get plannerCanvas_scr_injectionRate => 'Injection rate';
+
+  @override
+  String get plannerCanvas_scr_vo2 => 'VO₂ (SCR)';
+
+  @override
+  String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
+
+  @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'Loop O₂ on $gas: $atVo2 at this VO₂, $resting at rest, $hardWork at hard work';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'flow too low';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'Loop ppO₂ drop: $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -22479,6 +22513,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
     return 'Bailout gas is hypoxic at $depth (ppO₂ $value bar). Carry a gas breathable to the surface.';
+  }
+
+  @override
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  ) {
+    return 'An injection rate of $rate cannot sustain the loop at this VO₂: $gas needs more than $needed.';
   }
 
   @override
@@ -52728,6 +52771,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'The scooter battery reserve and walking speed a new DPV mission starts with. Changing one inside a mission overrides it there only, without changing this default.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'Planner Rebreather';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'The semi-closed loop flow a new SCR or pSCR plan starts with. Changing one inside a plan overrides it there only, without changing this default.';
+
+  @override
   String get settings_decompression_rates_finalAscent => 'Final ascent rate';
 
   @override
@@ -63873,6 +63924,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'The share of each exhaled breath a passive semi-closed rebreather discards. It sets how far the loop oxygen falls below the supply gas.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'Injection rate';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'The surface flow a constant mass flow rebreather\'s nozzle feeds into the loop, set by the nozzle and the supply gas. Take it from the unit\'s documentation or a measured flow check.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'The oxygen a diver\'s body uses, measured as surface gas: about $rest at rest, $swim swimming and $hard at hard work. More work leaves less oxygen in a semi-closed loop.';
+  }
+
+  @override
   String get info_term_turnFraction_label => 'Turn fraction';
 
   @override
@@ -64293,6 +64359,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'Enter the discard ratio given by the rebreather\'s maker.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'How the constant mass flow semi-closed rebreather is modelled in the plan.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'Enter your nozzle\'s injection rate for this supply gas and the VO₂ you expect; an empty box follows Settings. Check the loop oxygen shown against your unit\'s documentation.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

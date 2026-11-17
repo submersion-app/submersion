@@ -11488,6 +11488,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_cylinders_hydrotankNote =>
+      'A Hydrotank nyomása nem méri az elhasznált gázt';
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD $ppO2 ppO₂-nél';
   }
@@ -15238,6 +15242,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_tankRole_twinSet => 'Ikerpalack';
+
+  @override
+  String get enum_tankRole_hydrotank => 'Hydrotank';
 
   @override
   String get enum_tideState_rising => 'Emelkedő';
@@ -22252,6 +22259,33 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nagyobb = több friss gáz, kisebb O₂-esés';
 
   @override
+  String get plannerCanvas_scr_injectionRate => 'Adagolási sebesség';
+
+  @override
+  String get plannerCanvas_scr_vo2 => 'VO₂ (SCR)';
+
+  @override
+  String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
+
+  @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'Hurok O₂ $gas gázzal: $atVo2 ennél a VO₂-nél, $resting nyugalomban, $hardWork nagy terhelésnél';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'túl kicsi áramlás';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'ppO₂-esés a hurokban: $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -22743,6 +22777,15 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
     return 'A bailout gáz hipoxiás $depth mélységben (ppO₂ $value bar). Vigyél a felszínig belélegezhető gázt.';
+  }
+
+  @override
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  ) {
+    return '$rate adagolási sebesség ennél a VO₂-nél nem tartja fenn a hurkot: a(z) $gas $needed fölötti értéket igényel.';
   }
 
   @override
@@ -53249,6 +53292,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'A robogó akkumulátor-rezerv és gyaloglási sebesség, amellyel egy új DPV-küldetés kezdődik. Egy küldetésen belüli módosítás csak ott írja felül, anélkül, hogy ezt az alapértelmezett értéket megváltoztatná.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'Tervező rebreather';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'A félig zárt hurok áramlása, amellyel egy új SCR- vagy pSCR-terv indul. Ha egy terven belül módosítod, csak ott írja felül, ezt az alapértéket nem változtatja meg.';
+
+  @override
   String get settings_decompression_rates_finalAscent =>
       'Végső felszállási sebesség';
 
@@ -64524,6 +64575,21 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az egyes kilégzések azon része, amelyet a passzív félig zárt rebreather kienged. Ez szabja meg, mennyivel marad a hurok oxigénje a táplálógáz alatt.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'Adagolási sebesség';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'Az a felszíni áramlás, amelyet egy állandó tömegáramú rebreather fúvókája a hurokba juttat, a fúvóka és a tápgáz határozza meg. Vedd a készülék dokumentációjából vagy egy mért áramláspróbából.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'A búvár szervezete által felhasznált oxigén, felszíni gázként mérve: nyugalomban nagyjából $rest, úszás közben $swim, nagy terhelésnél $hard. Több munka kevesebb oxigént hagy a félig zárt hurokban.';
+  }
+
+  @override
   String get info_term_turnFraction_label => 'Visszafordulási hányad';
 
   @override
@@ -64944,6 +65010,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'Adja meg a rebreather gyártója által megadott kibocsátási arányt.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'Hogyan modellezi a terv az állandó tömegáramú, félig zárt rebreathert.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'Add meg a fúvókád adagolási sebességét ehhez a tápgázhoz és a várt VO₂-t; az üres mező a Beállításokat követi. Vesd össze a kijelzett hurokoxigént a készülék dokumentációjával.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

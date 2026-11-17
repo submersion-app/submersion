@@ -126,13 +126,17 @@ class TransmitterAutoRegistrar {
   }
 
   /// The role the computer most recently reported for the tank carrying
-  /// [serial], else back gas.
+  /// [serial], else back gas. An Avelo Hydrotank is passed over: it is a fact
+  /// about the dive logged in Avelo mode (issue #4657), while the registry
+  /// role applies to every dive with the transmitter, so the role before it
+  /// stands.
   Future<String> _latestRole(String serial, String? diverId) async {
     final row = await _db
         .customSelect(
           'SELECT dt.tank_role AS role FROM dive_tanks dt '
           'JOIN dives d ON d.id = dt.dive_id '
           'WHERE TRIM(dt.transmitter_serial) = ? '
+          "AND dt.tank_role IS NOT '${TankRole.hydrotank.name}' "
           'AND (? IS NULL OR d.diver_id = ?) '
           'ORDER BY d.dive_date_time DESC, d.id LIMIT 1',
           variables: [

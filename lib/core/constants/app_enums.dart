@@ -298,6 +298,12 @@ enum TankRole {
   /// A manifolded pair logged as one cylinder with the combined volume
   /// (issue #3374).
   twinSet('Twin Set'),
+
+  /// The Avelo Dive System's cylinder, logged by a Shearwater in Avelo mode
+  /// (issue #4657). The diver breathes from it, but pumps water into it for
+  /// buoyancy, which squeezes the gas and raises its pressure: see
+  /// [pressureMeasuresGasUse].
+  hydrotank('Hydrotank'),
   stage('Stage'),
   deco('Deco'),
   bailout('Bailout'),
@@ -319,6 +325,22 @@ enum TankRole {
   /// (consumption, deco, oxygen exposure, plans, statistics) leaves it out
   /// while the dive still lists it (issue #4243).
   bool get isBreathingGas => this != TankRole.suitInflation;
+
+  /// Whether a fall in this cylinder's pressure is gas the diver used, so
+  /// SAC, gas used, gas time remaining and the totals built on them may read
+  /// it. False for a suit inflation bottle, which is not breathed, and for an
+  /// Avelo Hydrotank, whose pressure rises and falls with the water pumped
+  /// in (issue #4657). A Hydrotank still holds breathing gas: deco, oxygen
+  /// exposure and gas switches keep it through [isBreathingGas]; only the
+  /// pressure-based consumption leaves its pressures out, as unmeasured.
+  bool get pressureMeasuresGasUse =>
+      this != TankRole.suitInflation && this != TankRole.hydrotank;
+
+  /// Breathed, but its pressure is not the gas used: an Avelo Hydrotank
+  /// (issue #4657). A dive that breathes one has no whole-dive or range rate,
+  /// and its pressure's rises and falls are its use, not a fault.
+  bool get isUnmeasuredBreathingGas =>
+      isBreathingGas && !pressureMeasuresGasUse;
 
   /// The role stored as [name], or back gas for null or a name this build
   /// does not know (a newer peer's role), the fallback every tolerant reader

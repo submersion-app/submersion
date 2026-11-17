@@ -15,7 +15,7 @@ import '../../../../helpers/mock_providers.dart';
 void main() {
   final pages = <String, (Widget, int)>{
     'Decompression': (const DecompressionSettingsPage(), 7),
-    'Planner defaults': (const PlannerDefaultsSettingsPage(), 4),
+    'Planner defaults': (const PlannerDefaultsSettingsPage(), 5),
     'Equipment condition': (const EquipmentConditionSettingsPage(), 3),
     'Safety review': (const SafetyReviewSettingsPage(), 2),
   };

@@ -40,6 +40,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/chart_series_c
 import 'package:submersion/features/dive_log/presentation/widgets/chart_touch_recognizer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/legend_candidates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
@@ -69,6 +70,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_o
 import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_tooltip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_line_hover.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_findings_overlay.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_event_labels.dart';
@@ -658,6 +660,14 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     if (tank == null) return base;
     return '$base (${tank.gasMix.name})';
   }
+
+  /// The [tankTooltipLabel] fallback for [tank], the [index]th cylinder
+  /// (from 0), as the legend names it: see [tankFallbackTitle].
+  static String tankDefaultLabel(
+    AppLocalizations l10n,
+    DiveTank? tank,
+    int index,
+  ) => tankFallbackTitle(l10n, tank, index + 1);
 
   /// Column widths for [tooltipRowText], used by this widget's own native
   /// bubble ([TooltipPresentation.nativeBubble]) to align its monospace
@@ -2820,7 +2830,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         final tankLabel =
             DiveProfileChart.tankTooltipLabel(
               tank,
-              l10n.diveLog_tank_title(i + 1),
+              DiveProfileChart.tankDefaultLabel(l10n, tank, i),
             ) +
             _tankSourceSuffix(
               tankId,

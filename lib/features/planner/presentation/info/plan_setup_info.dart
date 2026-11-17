@@ -10,6 +10,7 @@ const planSetupSectionKeys = [
   'gas',
   'environment',
   'ccr',
+  'scr',
   'pscr',
   'contingencies',
   'dpvTeam',
@@ -54,10 +55,15 @@ InfoContent planSetupSectionInfo(
       l10n.info_plannerSetup_ccr_howToUse,
       const [DiveTerm.setpoint, DiveTerm.setpointSwitchDepth, DiveTerm.diluent],
     ),
+    'scr' => (
+      l10n.info_plannerSetup_scr_summary,
+      l10n.info_plannerSetup_scr_howToUse,
+      const [DiveTerm.scrInjectionRate, DiveTerm.vo2],
+    ),
     'pscr' => (
       l10n.info_plannerSetup_pscr_summary,
       l10n.info_plannerSetup_pscr_howToUse,
-      const [DiveTerm.pscrRatio],
+      const [DiveTerm.pscrRatio, DiveTerm.vo2],
     ),
     'contingencies' => (
       l10n.info_plannerSetup_contingencies_summary,

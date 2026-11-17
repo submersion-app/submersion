@@ -426,6 +426,27 @@ if(WIN32)
     target_link_libraries(test_tank_transmitter_serial PRIVATE SetupAPI.lib ws2_32.lib)
 endif()
 
+# Issue #4657: in Shearwater's Avelo mode the T1 transmitter's tank is the
+# Avelo Hydrotank, tagged DC_USAGE_HYDROTANK so the app keeps its pressure out
+# of gas consumption.
+add_executable(test_shearwater_avelo_hydrotank
+    test_shearwater_avelo_hydrotank.c
+    ${WRAPPER_DIR}/libdc_wrapper.c
+    ${WRAPPER_DIR}/libdc_download.c
+    ${LIBDC_ALL_SOURCES}
+)
+target_include_directories(test_shearwater_avelo_hydrotank PRIVATE
+    ${WRAPPER_DIR}
+    ${LIBDC_DIR}/include
+    ${LIBDC_DIR}/src
+    ${PLATFORM_CONFIG_DIR}
+)
+target_compile_definitions(test_shearwater_avelo_hydrotank PRIVATE HAVE_CONFIG_H)
+if(WIN32)
+    target_compile_definitions(test_shearwater_avelo_hydrotank PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_link_libraries(test_shearwater_avelo_hydrotank PRIVATE SetupAPI.lib ws2_32.lib)
+endif()
+
 # Regression test for issue #1481: since APOS5 firmware 5.2.11 the Ratio iX3M 2
 # packs tank data into the high bits of the sample record type, and the parser
 # skipped every record whose type was not literally 0, so dives imported as
@@ -539,6 +560,9 @@ add_test(NAME test_shearwater_o2_millivolt COMMAND test_shearwater_o2_millivolt
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 add_test(NAME test_tank_transmitter_serial COMMAND test_tank_transmitter_serial
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+add_test(NAME test_shearwater_avelo_hydrotank COMMAND test_shearwater_avelo_hydrotank
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 add_test(NAME test_ratio_ix3m2_record_type COMMAND test_ratio_ix3m2_record_type)

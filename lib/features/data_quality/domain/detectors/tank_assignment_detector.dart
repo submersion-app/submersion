@@ -15,8 +15,9 @@ class TankAssignmentDetector extends QualityDetector {
 
   @override
   String get id => 'tank_assignment';
+  // v4: an Avelo Hydrotank's purge is no drop on an inactive tank (#4657).
   @override
-  int get version => 3;
+  int get version => 4;
   @override
   QualityCategory get category => QualityCategory.tank;
 
@@ -91,8 +92,10 @@ class TankAssignmentDetector extends QualityDetector {
       for (final tank in ctx.tanks) {
         // A loop cylinder is not on the open-circuit timeline; see below. A
         // suit inflation bottle is never breathed, so its falling pressure
-        // says nothing about the gas in use (issue #4243).
-        if (isLoopTankRole(tank.role.name) || !tank.role.isBreathingGas) {
+        // says nothing about the gas in use (issue #4243), and an Avelo
+        // Hydrotank's falls when water is pushed out too (issue #4657).
+        if (isLoopTankRole(tank.role.name) ||
+            !tank.role.pressureMeasuresGasUse) {
           continue;
         }
         final series = ctx.pressuresByTankId[tank.id] ?? const [];
