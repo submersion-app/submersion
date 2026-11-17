@@ -418,14 +418,103 @@ void main() {
     expect(await identifications.forMedia('v1'), hasLength(5));
   });
 
-  test('stopping names at most one batch of the tracks still open', () async {
+  test('stopping names at most one batch of the tracks still open, and '
+      'keeps the rest to name later', () async {
     keepGoing = () => true;
     engine.videoFrames = school(6, 1000, 15000);
     final s = scan();
     expect(await s.runChunk(), isTrue);
     await s.finish();
     expect(engine.embedCalls.last.length, lessThanOrEqualTo(12));
-    expect(await identifications.forMedia('v1'), hasLength(4));
+    final found = await identifications.forMedia('v1');
+    expect(found, hasLength(6));
+    expect(found.where((i) => i.isPending), hasLength(2));
+    for (final pending in found.where((i) => i.isPending)) {
+      expect(pending.path, isNotEmpty);
+      expect(await (await crops.fileFor('v1', pending.id)).exists(), isFalse);
+    }
+  });
+
+  test('fish kept to name later are named, not found again, when the scan '
+      'resumes', () async {
+    keepGoing = () => true;
+    engine.videoFrames = school(6, 1000, 15000);
+    final first = scan();
+    expect(await first.runChunk(), isTrue);
+    await first.finish();
+    final ids = {for (final i in await identifications.forMedia('v1')) i.id};
+    await runAll(
+      scan(
+        resumeFrom: await identifications.runFor('v1'),
+        stored: await identifications.forMedia('v1'),
+      ),
+    );
+    final found = await identifications.forMedia('v1');
+    expect(found.map((i) => i.id).toSet(), ids);
+    expect(found.where((i) => i.isPending), isEmpty);
+    expect(found.every((i) => i.endMs == 14750), isTrue);
+  });
+
+  test(
+    'a fish kept to name later that left at the stop is still named',
+    () async {
+      keepGoing = () => true;
+      engine.videoFrames = school(6, 1000, 10000);
+      final first = scan();
+      expect(await first.runChunk(), isTrue);
+      await first.finish();
+      await runAll(
+        scan(
+          resumeFrom: await identifications.runFor('v1'),
+          stored: await identifications.forMedia('v1'),
+        ),
+      );
+      final found = await identifications.forMedia('v1');
+      expect(found, hasLength(6));
+      expect(found.where((i) => i.isPending), isEmpty);
+    },
+  );
+
+  test('at a second stop the fish still unnamed are named first, and a '
+      'named fish left over keeps its name and grows its path', () async {
+    keepGoing = () => true;
+    // Two fish arrive later, so they are the shorter tracks at both stops.
+    engine.videoFrames = {
+      for (final e in school(6, 1000, 20000).entries)
+        e.key: [
+          for (var k = 0; k < 6; k++)
+            if (k < 4 || e.key >= 5000) e.value[k],
+        ],
+    };
+    final first = scan();
+    expect(await first.runChunk(), isTrue);
+    await first.finish();
+    final before = {
+      for (final i in await identifications.forMedia('v1')) i.id: i,
+    };
+    expect(before.values.where((i) => i.isPending), hasLength(2));
+    final second = scan(
+      resumeFrom: await identifications.runFor('v1'),
+      stored: before.values.toList(),
+    );
+    expect(await second.runChunk(), isTrue);
+    await second.finish();
+    expect(engine.embedCalls.last.length, lessThanOrEqualTo(12));
+    final found = await identifications.forMedia('v1');
+    expect(found.map((i) => i.id).toSet(), before.keys.toSet());
+    expect(found.where((i) => i.isPending), isEmpty);
+    for (final fish in found) {
+      expect(fish.endMs, 19750);
+      expect(fish.path.last.ms, 19750);
+      expect(fish.top, isNotNull);
+    }
+    final keptName = [
+      for (final fish in found)
+        if (fish.bestMs == before[fish.id]!.bestMs &&
+            !before[fish.id]!.isPending)
+          fish,
+    ];
+    expect(keptName, isNotEmpty);
   });
 
   test('with no file nothing is stored and the scan stops', () async {

@@ -7,8 +7,10 @@ import 'package:submersion/features/species_id/domain/entities/video_detections.
 
 /// One animal followed through consecutive sampled frames.
 class TrackedAnimal {
-  TrackedAnimal(this.points, {this.storedId})
-    : storedLength = storedId == null ? 0 : points.length;
+  /// [pending]: the stored row was kept without a name when a scan
+  /// stopped, so all of [points] still count as new and it is named.
+  TrackedAnimal(this.points, {this.storedId, bool pending = false})
+    : storedLength = storedId == null || pending ? 0 : points.length;
 
   /// Where it was seen, oldest first.
   final List<({int ms, DetectedBox detection})> points;
@@ -17,10 +19,10 @@ class TrackedAnimal {
   /// was still in view; null for a track found in this scan.
   final String? storedId;
 
-  /// How many of [points] were already stored.
+  /// How many of [points] were already stored and named.
   final int storedLength;
 
-  /// Whether it has been seen since it was stored, or is new.
+  /// Whether it has been seen since it was named, or is not named yet.
   bool get hasNewPoints => points.length > storedLength;
 
   int get startMs => points.first.ms;

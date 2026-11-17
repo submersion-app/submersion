@@ -139,6 +139,10 @@ while it plays. The scan works in 10 second chunks:
 Each chunk is stored with how far the scan got (`scanned_ms` on the run), so
 leaving the video, a newer request, a pack change or the app going to the
 background stops the scan between chunks and the next opening resumes it.
+The tracks still open at a stop are stored too. As many as one batch of
+moments (12) are named, the fish with no name yet first, so stopping stays
+quick. The rest keep their path with no best moment, crop or name (a pending
+row: `best_ms` is null), show no label, and are named when the scan resumes.
 Each track is one `media_identifications` row with its time range, the box at
 each sample packed into `track_path`, and any species the diver gave it from
 the frame (`claimed_species_id`).

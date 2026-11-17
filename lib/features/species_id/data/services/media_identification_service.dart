@@ -349,8 +349,14 @@ class MediaIdentificationService {
 
       final run = await _identifications.runFor(item.id);
       final stored = await _identifications.forMedia(item.id);
-      final undecided = [
+      // A video's fish kept unnamed at a stop have no crop or embedding
+      // yet: the resumed scan names them.
+      final named = [
         for (final i in stored)
+          if (!i.isPending) i,
+      ];
+      final undecided = [
+        for (final i in named)
           if (i.decision == IdentificationDecision.undecided) i,
       ];
       // A suggestion's crop must be here. A decided identification's crop
@@ -359,7 +365,7 @@ class MediaIdentificationService {
       // without one rather than the photo being analysed at every opening.
       final cropsPresent =
           await _crops.allPresent(item.id, [for (final i in undecided) i.id]) &&
-          (undecided.length == stored.length ||
+          (undecided.length == named.length ||
               await _crops.wasAnalysedHere(item.id));
       // A video's tracks are named again only when their pack or place
       // changed: its embeddings are not read otherwise.

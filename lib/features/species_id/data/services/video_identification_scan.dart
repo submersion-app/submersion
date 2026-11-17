@@ -26,6 +26,14 @@ typedef CropNamer =
       List<({Float32List embedding, int shorterSide})> crops,
     );
 
+/// A track as it is stored: named, with the embedding and crop it was
+/// named from, or kept without them as the scan stopped.
+typedef _Stored = ({
+  MediaIdentification identification,
+  Float32List? embedding,
+  Uint8List? cropJpeg,
+});
+
 /// Thrown by [VideoIdentificationScan.runChunk] when told to stop between
 /// two batches of pass 2. Nothing of that chunk is stored.
 class VideoScanStopped implements Exception {
@@ -85,22 +93,27 @@ class VideoIdentificationScan {
     // The animals in view when an earlier scan stopped were stored with
     // the progress at that point: they carry on as the same tracks, and
     // their rows (with what the diver said) are updated, not duplicated.
+    // One kept without a name is always taken up, so that it is named.
     for (final row in stored) {
       final end = row.endMs;
       if (!row.isTrack || row.path.isEmpty || end == null) continue;
       if (end > _scannedMs) continue;
       final missed = ((_scannedMs - end) / sampleIntervalMs).round() - 1;
-      if (missed > _tracker.maxGapSamples) continue;
+      if (missed > _tracker.maxGapSamples && !row.isPending) continue;
       _continuing[row.id] = row;
       _tracker.resume(
-        TrackedAnimal([
-          for (final s in row.path)
-            (
-              ms: s.ms,
-              detection: DetectedBox(box: s.box, score: row.detectorScore),
-            ),
-        ], storedId: row.id),
-        missed: math.max(0, missed),
+        TrackedAnimal(
+          [
+            for (final s in row.path)
+              (
+                ms: s.ms,
+                detection: DetectedBox(box: s.box, score: row.detectorScore),
+              ),
+          ],
+          storedId: row.id,
+          pending: row.isPending,
+        ),
+        missed: math.max(0, math.min(missed, _tracker.maxGapSamples)),
       );
     }
   }
@@ -210,8 +223,9 @@ class VideoIdentificationScan {
   }
 
   /// Closes the tracks still open (the scan is stopping) and stores them,
-  /// without moving the progress on. Only the longest are named, as many
-  /// as one batch of moments takes, so stopping is never slow.
+  /// without moving the progress on. Only as many are named as one batch
+  /// of moments takes, so stopping is never slow; the rest are stored
+  /// unnamed, and named when the scan resumes.
   Future<void> finish() async {
     if (_broken) return;
     final closed = [
@@ -313,49 +327,60 @@ class VideoIdentificationScan {
     await _embeddings.delete(carried.deleteIds);
     await _crops.delete(_item.id, carried.deleteIds);
     await _embeddings.put({
-      for (final i in carried.insert) i.id: byId[i.id]!.embedding,
+      for (final i in carried.insert) i.id: ?byId[i.id]!.embedding,
     }, classifierId: manifest.classifier.id);
     for (final i in carried.insert) {
-      await _crops.write(_item.id, i.id, byId[i.id]!.cropJpeg);
+      if (byId[i.id]!.cropJpeg case final jpeg?) {
+        await _crops.write(_item.id, i.id, jpeg);
+      }
     }
     await _crops.markAnalysed(_item.id);
     return true;
   }
 
-  /// Crops and embeds each track's best moments in one engine call, and
-  /// names each track from the average of its moments' embeddings. A track
-  /// none of whose moments could be cropped is left out. Null when the
-  /// file cannot be opened.
-  Future<
-    List<
-      ({
-        MediaIdentification identification,
-        Float32List embedding,
-        Uint8List cropJpeg,
-      })
-    >?
-  >
-  _nameTracks(List<TrackedAnimal> all, {required bool stopping}) async {
+  /// Crops and embeds each track's best moments in batches, and names each
+  /// track from the average of its moments' embeddings. A track none of
+  /// whose moments could be cropped is left out. When [stopping], only one
+  /// batch is named, the tracks with no name yet and then the longest
+  /// first; the others are kept without naming them. Null when the file
+  /// cannot be opened.
+  Future<List<_Stored>?> _nameTracks(
+    List<TrackedAnimal> all, {
+    required bool stopping,
+  }) async {
     if (all.isEmpty) return const [];
     var closed = all;
     var picks = [for (final track in all) bestMoments(track)];
+    final left = <_Stored>[];
     if (stopping) {
-      // The longest first, as many as one batch of moments takes.
+      bool named(TrackedAnimal t) =>
+          !(_continuing[t.storedId]?.isPending ?? true);
+      int length(TrackedAnimal t) => t.endMs - t.startMs;
       final order = [for (var k = 0; k < all.length; k++) k]
-        ..sort(
-          (a, b) => (all[b].endMs - all[b].startMs).compareTo(
-            all[a].endMs - all[a].startMs,
-          ),
-        );
-      final kept = <int>[];
+        ..sort((a, b) {
+          if (named(all[a]) != named(all[b])) return named(all[a]) ? 1 : -1;
+          return length(all[b]).compareTo(length(all[a]));
+        });
+      final kept = <int>{};
       var moments = 0;
       for (final k in order) {
         if (moments + picks[k].length > embedBatch) break;
         moments += picks[k].length;
         kept.add(k);
       }
-      closed = [for (final k in kept) all[k]];
-      picks = [for (final k in kept) picks[k]];
+      final now = _now().toUtc();
+      left.addAll([
+        for (var k = 0; k < all.length; k++)
+          if (!kept.contains(k)) _unnamed(all[k], now),
+      ]);
+      closed = [
+        for (final k in order)
+          if (kept.contains(k)) all[k],
+      ];
+      picks = [
+        for (final k in order)
+          if (kept.contains(k)) picks[k],
+      ];
     }
     final moments = [
       for (final chosen in picks)
@@ -430,15 +455,53 @@ class VideoIdentificationScan {
           naming,
           now,
         ),
+      ...left,
     ];
   }
 
-  ({
-    MediaIdentification identification,
-    Float32List embedding,
-    Uint8List cropJpeg,
-  })
-  _identification(
+  /// [track], stored without naming it as the scan stops. A fish already
+  /// named keeps its name and gains the path it swam since; any other is
+  /// kept to be named when the scan resumes ([MediaIdentification.isPending]).
+  _Stored _unnamed(TrackedAnimal track, DateTime now) {
+    final row = _continuing[track.storedId];
+    if (row != null && !row.isPending) {
+      return (
+        identification: row.copyWith(
+          endMs: () => track.endMs,
+          path: track.samples,
+        ),
+        embedding: null,
+        cropJpeg: null,
+      );
+    }
+    final first = track.points.first.detection;
+    return (
+      identification: MediaIdentification(
+        id: track.storedId ?? _newId(),
+        mediaId: _item.id,
+        box: first.box,
+        boxPixelWidth: 0,
+        boxPixelHeight: 0,
+        detectorScore: first.score,
+        openScore: 0,
+        candidates: const [],
+        locationLimited: false,
+        suggestable: false,
+        decision: row?.decision ?? IdentificationDecision.undecided,
+        decidedSpeciesId: row?.decidedSpeciesId,
+        decidedAt: row?.decidedAt,
+        claimedSpeciesId: row?.claimedSpeciesId,
+        createdAt: row?.createdAt ?? now,
+        startMs: track.startMs,
+        endMs: track.endMs,
+        path: track.samples,
+      ),
+      embedding: null,
+      cropJpeg: null,
+    );
+  }
+
+  _Stored _identification(
     TrackedAnimal track,
     ({int ms, DetectedBox detection}) best,
     VisionMomentCrop crop,

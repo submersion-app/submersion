@@ -131,6 +131,11 @@ class MediaIdentification extends Equatable {
   /// One animal followed through a video, not a detection on a photo.
   bool get isTrack => startMs != null;
 
+  /// A track a scan kept without a name when it stopped, so it is not
+  /// lost: it has a path but no crop, embedding or candidates yet, shows
+  /// no label, and is named when the scan resumes.
+  bool get isPending => isTrack && bestMs == null;
+
   int get durationMs => isTrack ? (endMs ?? startMs!) - startMs! : 0;
 
   MediaIdentification copyWith({

@@ -110,8 +110,11 @@ final class VideoScanner {
     // its time as done. The reader also stops early when decoding fails
     // (or iOS suspends the decoder before the app is marked inactive).
     if next < end, !stillWanted() { throw VisionError.notForeground }
-    if reader.status == .failed {
-      throw VisionError.decodeFailed(reader.error?.localizedDescription ?? "reader failed")
+    // Short of the end, only a reader that completed has read all there
+    // is: the last frame starts before the last sampled time, or the video
+    // track ends before the asset's length. Any other stop is a failure.
+    if reader.status == .failed || (next < end && reader.status != .completed) {
+      throw VisionError.decodeFailed(reader.error?.localizedDescription ?? "reader stopped early")
     }
     reply["frames"] = frames
     return reply
