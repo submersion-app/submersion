@@ -10,9 +10,54 @@ import 'package:submersion/features/media/data/repositories/media_repair_log_rep
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/repair/folder_candidate_source.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+
+/// Whether [candidate]'s file holds other bytes than [item]'s row records,
+/// as the repair judges it: a row with no hash takes any bytes as its own,
+/// and so does a file not hashed yet (the repair hashes it before judging).
+bool relinkBringsOtherBytes(MediaItem item, RepairCandidate candidate) {
+  final hash = candidate.hash;
+  final rowHash = item.contentHash;
+  return hash != null && rowHash != null && hash != rowHash;
+}
+
+/// [item] as a relink to [candidate]'s file writes it: Stage B's pointer
+/// and verification columns, and for other bytes Stage C's new identity
+/// with the store's upload stamps cleared, so the file is backed up again.
+///
+/// [originDeviceId] is the device the file resolves on (the one relinking
+/// it) and [verifiedAt] the check the write records. The row's bookmark is
+/// left out: the repair makes a new one, which a drawing of the relink
+/// before it runs cannot name (issue #4527).
+MediaItem relinkedToFile(
+  MediaItem item,
+  RepairCandidate candidate, {
+  required String? originDeviceId,
+  required DateTime? verifiedAt,
+}) {
+  final otherBytes = relinkBringsOtherBytes(item, candidate);
+  return item.copyWith(
+    localPath: candidate.path,
+    bookmarkRef: null,
+    platformAssetId: null,
+    sourceType: MediaSourceType.localFile,
+    originDeviceId: originDeviceId,
+    isOrphaned: false,
+    lastVerifiedAt: verifiedAt,
+    contentHash: otherBytes ? candidate.hash : item.contentHash,
+    contentSizeBytes: otherBytes
+        ? candidate.sizeBytes ?? 0
+        : item.contentSizeBytes,
+    remoteUploadedAt: otherBytes ? null : item.remoteUploadedAt,
+    remoteThumbUploadedAt: otherBytes ? null : item.remoteThumbUploadedAt,
+    remoteCompressedUploadedAt: otherBytes
+        ? null
+        : item.remoteCompressedUploadedAt,
+  );
+}
 
 /// One accepted proposal's DB write, prepared by Stage A.
 class RepairWrite {
@@ -246,8 +291,7 @@ class MediaRepairService {
         final hashed = candidate.hash != null
             ? candidate
             : await FolderCandidateSource.withHash(candidate);
-        final rowHash = proposal.item.contentHash;
-        final matches = rowHash == null || hashed.hash == rowHash;
+        final matches = !relinkBringsOtherBytes(proposal.item, hashed);
 
         if (!matches && proposal.confidence != RepairConfidence.edited) {
           // A probable match whose bytes changed on disk: never silently

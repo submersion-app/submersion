@@ -1,9 +1,9 @@
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/services/dive_media_enricher.dart';
 import 'package:submersion/features/media/data/services/enrichment_service.dart';
+import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
@@ -178,41 +178,23 @@ RepairProposal? heldRelink(EditSession<PhotoRecord> session) =>
     : session.recall<RepairProposal>(photoRelinkProposalKey);
 
 /// [item] pointing at the file [session]'s held relink found, as the relink
-/// will write it; [item] itself with none held.
+/// will write it ([relinkedToFile], the repair's own rule); [item] itself
+/// with none held.
 ///
-/// Drawn as found, not orphaned: the stored row's orphan flag is the old
-/// file's, and drawing the new file must not clear it before Save. Its last
-/// check and its size were the old file's too. As the repair writes it, a
-/// file is linked on this device ([thisDevice], unknown when null), and
-/// other bytes than the stored ones carry their own hash and are not yet in
-/// the store.
+/// Its last check is left unknown until Save makes one. A file is linked
+/// on this device ([thisDevice], unknown when null).
 MediaItem withHeldRelink(
   EditSession<PhotoRecord> session,
   MediaItem item, {
   String? thisDevice,
 }) {
   final candidate = heldRelink(session)?.candidate;
-  final path = candidate?.path;
-  if (candidate == null || path == null) return item;
-  // As the repair judges it: a row with no hash takes any bytes as its own.
-  final hash = candidate.hash;
-  final rowHash = item.contentHash;
-  final otherBytes = hash != null && rowHash != null && hash != rowHash;
-  return item.copyWith(
+  if (candidate == null || candidate.path == null) return item;
+  return relinkedToFile(
+    item,
+    candidate,
     originDeviceId: thisDevice,
-    contentHash: otherBytes ? hash : item.contentHash,
-    remoteUploadedAt: otherBytes ? null : item.remoteUploadedAt,
-    remoteThumbUploadedAt: otherBytes ? null : item.remoteThumbUploadedAt,
-    remoteCompressedUploadedAt: otherBytes
-        ? null
-        : item.remoteCompressedUploadedAt,
-    localPath: path,
-    // The row's bookmark names the old file; a new one is made at Save.
-    bookmarkRef: null,
-    sourceType: MediaSourceType.localFile,
-    isOrphaned: false,
-    lastVerifiedAt: null,
-    contentSizeBytes: candidate.sizeBytes ?? item.contentSizeBytes,
+    verifiedAt: null,
   );
 }
 

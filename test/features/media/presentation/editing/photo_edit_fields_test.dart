@@ -224,8 +224,8 @@ void main() {
     expect(session.working.people.single.tag.id, 't9');
   });
 
-  test('a held relink is drawn as the file it found: its path and size, '
-      'found, and not yet checked', () {
+  test('a held relink is drawn as the file it found: its path, found, and '
+      'not yet checked', () {
     final stored = _item().copyWith(
       sourceType: MediaSourceType.localFile,
       localPath: '/gone/m1.jpg',
@@ -258,9 +258,11 @@ void main() {
     expect(drawn.localPath, '/found/m1.jpg');
     expect(drawn.bookmarkRef, isNull);
     expect(drawn.isOrphaned, isFalse);
-    // The stored check was of the old file, and so was its size.
+    // The stored check was of the old file.
     expect(drawn.lastVerifiedAt, isNull);
-    expect(drawn.contentSizeBytes, 9);
+    // A row with no hash takes the file's bytes as its own, so the repair
+    // keeps its size, and the drawing shows what Save will write.
+    expect(drawn.contentSizeBytes, 100);
   });
 
   test('a held relink to other bytes is drawn with their hash, as not yet '
