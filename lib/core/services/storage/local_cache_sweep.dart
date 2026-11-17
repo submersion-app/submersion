@@ -42,6 +42,7 @@ class LocalCacheSweepReport {
     required this.verticalDistanceRows,
     required this.assetRows,
     required this.reefRows,
+    this.identificationEmbeddingRows = 0,
     required this.vacuumed,
   });
 
@@ -52,6 +53,9 @@ class LocalCacheSweepReport {
   final int assetRows;
   final int reefRows;
 
+  /// Marine life crop embeddings whose identification is gone (issue #4668).
+  final int identificationEmbeddingRows;
+
   /// Whether the pass ran VACUUM to give freed pages back to the filesystem.
   final bool vacuumed;
 
@@ -61,14 +65,17 @@ class LocalCacheSweepReport {
       decoRows +
       verticalDistanceRows +
       assetRows +
-      reefRows;
+      reefRows +
+      identificationEmbeddingRows;
 
   @override
   String toString() =>
       'LocalCacheSweepReport(bathymetry: $bathymetryRows, '
       'trackGeometry: $trackGeometryRows, deco: $decoRows, '
       'verticalDistance: $verticalDistanceRows, '
-      'asset: $assetRows, reef: $reefRows, vacuumed: $vacuumed)';
+      'asset: $assetRows, reef: $reefRows, '
+      'identificationEmbedding: $identificationEmbeddingRows, '
+      'vacuumed: $vacuumed)';
 }
 
 /// Deletes rows in `submersion_local.db` that nothing will read again
@@ -85,6 +92,7 @@ class LocalCacheSweepReport {
 ///   dive or media item is gone from the library. A delete made on this device
 ///   evicts some of them directly; a delete applied by sync, or one from a
 ///   path that never learned about these caches, does not.
+/// - Marine life crop embeddings whose identification is gone.
 /// - Reef rows past their lifetime, which reads ignore but never remove.
 ///
 /// Everything here is derived data that is rebuilt on demand, so the cost of
@@ -139,6 +147,12 @@ class LocalCacheSweep {
       libraryTable: _library.media,
       libraryId: _library.media.id,
     );
+    final identificationEmbeddingRows = await _sweepOrphans(
+      localTable: _local.identificationEmbeddings,
+      localId: _local.identificationEmbeddings.identificationId,
+      libraryTable: _library.mediaIdentifications,
+      libraryId: _library.mediaIdentifications.id,
+    );
     final reefRows = await ReefCacheDao(_local, now: () => at).deleteExpired();
     final vacuumed = await _vacuumIfWorthIt();
 
@@ -149,6 +163,7 @@ class LocalCacheSweep {
       verticalDistanceRows: verticalDistanceRows,
       assetRows: assetRows,
       reefRows: reefRows,
+      identificationEmbeddingRows: identificationEmbeddingRows,
       vacuumed: vacuumed,
     );
     if (report.rowsDeleted > 0 || vacuumed) {

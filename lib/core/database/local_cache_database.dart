@@ -1,8 +1,11 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/database/local_cache_identification_table.dart';
 import 'package:submersion/core/database/local_cache_site_catalogue_tables.dart';
 import 'package:submersion/core/database/local_cache_vertical_distance_table.dart';
 
+export 'package:submersion/core/database/local_cache_identification_table.dart'
+    show IdentificationEmbeddings;
 export 'package:submersion/core/database/local_cache_site_catalogue_tables.dart'
     show SiteCatalogueEntries, SiteCatalogueMeta;
 export 'package:submersion/core/database/local_cache_vertical_distance_table.dart'
@@ -349,13 +352,14 @@ class RecentQueries extends Table {
     SiteCatalogueEntries,
     SiteCatalogueMeta,
     DiveVerticalDistanceCache,
+    IdentificationEmbeddings,
   ],
 )
 class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 24;
+  int get schemaVersion => 25;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -557,6 +561,8 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       if (from < 23) await m.createTable(diveVerticalDistanceCache);
       // v24: where a researched catalogue record's position came from.
       if (from < 24) await addSiteCataloguePositionFrom(this);
+      // v25: marine life crop embeddings (issue #4668).
+      if (from < 25) await m.createTable(identificationEmbeddings);
     },
     beforeOpen: (details) async {
       // Ladder-collision self-heal: a parallel branch that also claimed v7
@@ -723,6 +729,7 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       await addSiteCatalogueKind(this);
       // v23 mirror, for a database a colliding branch stamped at v23 first.
       await customStatement(kCreateDiveVerticalDistanceCacheSql);
+      await customStatement(kCreateIdentificationEmbeddingsSql);
       // v24 mirror, for a database a colliding branch stamped at v24 first.
       await addSiteCataloguePositionFrom(this);
     },
