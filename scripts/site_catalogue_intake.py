@@ -89,7 +89,8 @@ def pr_body(tag: str, notes: str) -> str:
     ])
 
 
-def main(argv=None) -> int:
+def main(argv=None, *, repo: Path = REPO) -> int:
+    """The command line; [repo] stands in for this repository in tests."""
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("release_dir", type=Path)
     parser.add_argument("--tag", default="")
@@ -99,7 +100,7 @@ def main(argv=None) -> int:
                         help="take a release built before the shipped catalogue (a rollback)")
     arguments = parser.parse_args(argv)
     try:
-        for path in take(arguments.release_dir, allow_older=arguments.allow_older):
+        for path in take(arguments.release_dir, repo, allow_older=arguments.allow_older):
             print(path)
     except ValueError as error:
         print(error)
