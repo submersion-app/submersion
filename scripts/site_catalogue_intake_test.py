@@ -133,10 +133,13 @@ class MainTest(_ReleaseFixture):
         self.assertEqual(code, 0)
 
 
-class NewerTest(unittest.TestCase):
-    def test_a_release_is_newer_when_its_version_differs(self):
-        self.assertTrue(intake.is_newer("abc\n", "def"))
-        self.assertFalse(intake.is_newer("abc\n", "abc"))
+class MalformedTest(_ReleaseFixture):
+    def test_a_malformed_release_catalogue_is_refused_with_a_reason(self):
+        (self.release / "site_catalogue.json").write_text('{"metadata":', encoding="utf-8")
+        with self.assertRaises(ValueError) as caught:
+            intake.take(self.release, self.repo)
+        self.assertIn("site_catalogue.json", str(caught.exception))
+        self.assertFalse((self.repo / "assets/data/site_catalogue.json").exists())
 
 
 if __name__ == "__main__":

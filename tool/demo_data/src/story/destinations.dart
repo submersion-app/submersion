@@ -96,7 +96,7 @@ const tripDestinations = <Destination>[
     resortNames: ['Kas Flamingo', 'Bon Kunuku Dive Lodge'],
   ),
   // Grand Cayman, Roatán, Belize and Turks and Caicos dive mostly at the
-  // catalogue's curated sites (the `curated_nj_` records).
+  // catalogue's curated sites (its `curated_` records).
   Destination(
     key: 'cayman',
     label: 'Grand Cayman',

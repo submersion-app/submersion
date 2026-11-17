@@ -10,6 +10,14 @@
 
 **Spec:** `docs/design/specs/2026-11-17-site-catalogue-own-repository-design.md`
 
+**Built 2026-11-17, with changes.** Where the build departed from this plan,
+the code is right and the design's "Changes made while building" says why:
+the catalogue is committed in the catalogue repository (`catalogue/`, not an
+ignored `build/catalogue`), the app keeps its contract copy in
+`test/features/dive_sites/data/catalogue/contract/` (not `assets/data/`),
+releases are not dispatched to the app (its intake polls weekly), and the
+intake refuses a release built before the shipped catalogue.
+
 ## Global Constraints
 
 - Nothing written to either repository mentions the AI tool, its maker, or carries an attribution trailer or session link (both repositories' rules). The agent instructions file is `AGENTS.md`.

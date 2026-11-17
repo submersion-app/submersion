@@ -56,7 +56,7 @@ void main() {
   test('the metadata names the format, the notice and the sources', () {
     final metadata = doc['metadata'] as Map<String, dynamic>;
 
-    expect(metadata['format'], 2);
+    expect(metadata['format'], kSupportedCatalogueFormat);
     expect(metadata['notice'], contains('Open Database License'));
     expect(
       metadata['notice'],

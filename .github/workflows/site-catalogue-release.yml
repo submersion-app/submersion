@@ -51,8 +51,11 @@ jobs:
         run: |
           tag="$INPUT_TAG"
           if [ -z "$tag" ]; then
+            # Filtered in gh's own query: a grep or head pipeline fails the
+            # step under pipefail when no catalogue release is listed yet.
             tag="$(gh release list --repo "$CATALOGUE_REPO" --exclude-drafts --limit 100 \
-              --json tagName -q '.[].tagName' | grep -v '^snapshots-' | head -n 1)"
+              --json tagName \
+              -q '[.[].tagName | select(startswith("snapshots-") | not)] | first // empty')"
           fi
           if [ -z "$tag" ]; then
             echo "No catalogue release yet."

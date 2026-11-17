@@ -39,7 +39,11 @@ def _generated_at(path: Path) -> str | None:
     """A catalogue file's build stamp (ISO UTC, so it orders as text)."""
     if not path.is_file():
         return None
-    return (json.loads(path.read_text("utf-8")).get("metadata") or {}).get("generated_at")
+    try:
+        doc = json.loads(path.read_text("utf-8"))
+    except json.JSONDecodeError as error:
+        raise ValueError(f"{path} is not a catalogue: {error}") from error
+    return (doc.get("metadata") or {}).get("generated_at")
 
 
 def take(release_dir: Path, repo: Path = REPO, *, allow_older: bool = False) -> list[str]:
@@ -63,11 +67,6 @@ def take(release_dir: Path, repo: Path = REPO, *, allow_older: bool = False) -> 
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(release_dir / name, target)
     return list(INTAKE_FILES.values())
-
-
-def is_newer(shipped_version: str, release_version: str) -> bool:
-    """Whether a release's version differs from the one the app ships."""
-    return shipped_version.strip() != release_version.strip()
 
 
 def pr_body(tag: str, notes: str) -> str:
