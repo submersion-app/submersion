@@ -47,6 +47,7 @@ class VideoIdentificationScan {
     required DateTime Function() now,
     required String Function() newId,
     required int Function() databaseGeneration,
+    int? generation,
     MediaIdentificationRun? resumeFrom,
     List<MediaIdentification> carry = const [],
     Future<void> Function()? reload,
@@ -65,7 +66,7 @@ class VideoIdentificationScan {
        _newId = newId,
        _databaseGeneration = databaseGeneration,
        _reload = reload,
-       _generation = databaseGeneration(),
+       _generation = generation ?? databaseGeneration(),
        _scannedMs = resumeFrom?.scannedMs ?? 0,
        _durationMs = resumeFrom?.videoDurationMs,
        _width = resumeFrom?.imageWidth ?? 0,
@@ -97,8 +98,8 @@ class VideoIdentificationScan {
   /// that were never stored, so nothing more is stored from it.
   var _broken = false;
 
-  /// The logbook the scan started in: nothing is stored once another
-  /// one has opened.
+  /// The logbook the scan belongs to (by default the one open when it was
+  /// made): nothing is stored once another one has opened.
   final int _generation;
   final _tracker = VideoTracker();
 

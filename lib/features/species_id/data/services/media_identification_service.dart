@@ -456,7 +456,7 @@ class MediaIdentificationService {
         // yet reached is still to be carried to its fresh track. Rows this
         // scan stored all end at or before where it got to.
         final scanned = from.scannedMs ?? 0;
-        return _scanVideo(job, pack, cell, reader, from, [
+        return _scanVideo(job, pack, cell, reader, from, generation, [
           for (final i in stored)
             if (_saidByDiver(i) && (i.endMs ?? 0) > scanned) i,
         ]);
@@ -494,7 +494,7 @@ class MediaIdentificationService {
         );
         await _embeddings.delete(dropped);
         await _crops.delete(job.item.id, dropped);
-        return _scanVideo(job, pack, cell, reader, start, carry);
+        return _scanVideo(job, pack, cell, reader, start, generation, carry);
     }
   }
 
@@ -513,6 +513,7 @@ class MediaIdentificationService {
     int? cell,
     VideoFileReader reader,
     MediaIdentificationRun from,
+    int generation,
     List<MediaIdentification> carry,
   ) async {
     final scan = VideoIdentificationScan(
@@ -528,6 +529,7 @@ class MediaIdentificationService {
       now: _now,
       newId: _newId,
       databaseGeneration: _databaseGeneration,
+      generation: generation,
       resumeFrom: from,
       carry: carry,
       reload: () async {
@@ -535,7 +537,6 @@ class MediaIdentificationService {
         await _ensureLoaded(pack);
       },
     );
-    final generation = _databaseGeneration();
     _videoProgress = scan.progress;
     _changed();
     try {

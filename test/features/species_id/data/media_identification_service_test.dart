@@ -100,6 +100,29 @@ class _ReadHookRepository extends MediaIdentificationRepository {
   }
 }
 
+/// Calls [onStore] after the first run it stores: where a logbook switch
+/// would land between a rescan's first write and its scan.
+class _StoreHookRepository extends MediaIdentificationRepository {
+  _StoreHookRepository(AppDatabase database, this.onStore)
+    : super(database: database);
+
+  final void Function() onStore;
+  var _stored = false;
+
+  @override
+  Future<void> storeRun(
+    MediaIdentificationRun run, {
+    required List<MediaIdentification> insert,
+    required List<String> deleteIds,
+  }) async {
+    await super.storeRun(run, insert: insert, deleteIds: deleteIds);
+    if (!_stored) {
+      _stored = true;
+      onStore();
+    }
+  }
+}
+
 MediaItem photo(String id, {MediaType type = MediaType.photo}) => MediaItem(
   id: id,
   mediaType: type,
@@ -739,6 +762,28 @@ void main() {
       await service.request(video());
       expect(await identifications.forMedia('v1'), hasLength(1));
       expect(engine.events.where((e) => e == 'load'), hasLength(2));
+    });
+
+    test('another logbook opening before the scan starts stores nothing in '
+        'it', () async {
+      oneFish();
+      final switching = MediaIdentificationService(
+        engine: engine,
+        loadPack: () async => installed,
+        identifications: _StoreHookRepository(library, () => generation++),
+        embeddings: embeddings,
+        crops: crops,
+        resolveImage: (item) async => imageFor(item),
+        resolveVideo: (item) async =>
+            <T>(Future<T> Function(String path) read) => read('/v.mp4'),
+        taggedSpecies: (_) async => tagged,
+        enabled: () => enabled,
+        databaseGeneration: () => generation,
+      );
+      addTearDown(switching.dispose);
+      await switching.request(video());
+      expect(engine.detectCalls, isEmpty);
+      expect(await identifications.forMedia('v1'), isEmpty);
     });
 
     test('another logbook opening mid-scan drops the chunk', () async {
