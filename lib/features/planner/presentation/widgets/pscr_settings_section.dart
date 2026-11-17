@@ -8,6 +8,9 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/loop_flow_summary.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -150,24 +153,27 @@ class _PscrVo2Row extends ConsumerWidget {
     final state = ref.watch(divePlanNotifierProvider);
     final notifier = ref.read(divePlanNotifierProvider.notifier);
     final units = ref.watch(unitFormatterProvider);
-    final defaultVo2 = ref.watch(plannerPscrVo2Provider);
-    final vo2 = state.pscrVo2 ?? defaultVo2;
-    final double sac = state.sacRate ?? ref.watch(plannerSacBottomProvider);
-    final supply = loopSupplyGas(state);
-    final drop = PassiveScr(
-      supplyFO2: supply.o2 / 100.0,
-      supplyFHe: supply.he / 100.0,
-      o2ConsumptionMlMin: vo2 * 1000.0,
-      sacMlMin: sac * 1000.0,
-      pscrRatio: ref.watch(pscrRatioProvider),
-    ).o2DropBar;
+    // The diver's default for the hint; the drop is what the engine breathes
+    // on the plan's resolved VO2, bottom SAC and ratio.
+    final diver = ref.watch(planEngineConfigProvider);
+    final defaultVo2 = diver.pscrVo2Lpm;
+    final plan = planForEngine(state);
+    final loop = breathingFor(
+      plan,
+      loopSupplyGas(plan),
+      0,
+      config: diver.resolvedFor(plan),
+    );
+    final drop = loop is PassiveScr ? loop.o2DropBar : 0.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         PlanNumberField(
           label: context.l10n.plannerCanvas_pscr_vo2,
-          value: state.pscrVo2 == null ? null : units.convertRmv(vo2),
+          value: state.pscrVo2 == null
+              ? null
+              : units.convertRmv(state.pscrVo2!),
           hintValue: units.convertRmv(defaultVo2),
           suffixText: units.rmvSymbol,
           // As the SCR VO2: one place finer than an RMV, so a cuft/min hint

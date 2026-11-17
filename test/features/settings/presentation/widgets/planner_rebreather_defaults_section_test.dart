@@ -82,6 +82,25 @@ void main() {
     expect(notifier.state.plannerPscrVo2, 0.72);
   });
 
+  testWidgets('a flow below 0.1 L/min is refused, as the plan fields do', (
+    tester,
+  ) async {
+    final notifier = MockSettingsNotifier(
+      const AppSettings(volumeUnit: VolumeUnit.cubicFeet),
+    );
+    await tester.pumpWidget(_app(notifier));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Injection rate'));
+    await tester.pumpAndSettle();
+    // 0.001 cuft/min is about 0.03 L/min.
+    await tester.enterText(find.byType(TextFormField), '0.001');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(notifier.state.plannerScrInjectionRate, 12.0);
+  });
+
   testWidgets('editing the pSCR VO2 writes through the notifier', (
     tester,
   ) async {

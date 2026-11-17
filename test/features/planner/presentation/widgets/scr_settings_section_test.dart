@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/presentation/widgets/loop_flow_summary.dart';
 import 'package:submersion/features/planner/presentation/widgets/scr_settings_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -129,17 +130,19 @@ void main() {
     const ean50 = GasMix(o2: 50);
     const ean32 = GasMix(o2: 32);
 
-    DivePlanState state({
+    domain.DivePlan state({
       List<DiveTank> tanks = const [],
       List<PlanSegment> segments = const [],
-    }) => DivePlanState(
-      id: 'p1',
-      name: 'Plan',
-      mode: domain.PlanMode.scr,
-      tanks: tanks,
-      segments: segments,
-      createdAt: DateTime(2026, 11, 17),
-      updatedAt: DateTime(2026, 11, 17),
+    }) => divePlanFromState(
+      DivePlanState(
+        id: 'p1',
+        name: 'Plan',
+        mode: domain.PlanMode.scr,
+        tanks: tanks,
+        segments: segments,
+        createdAt: DateTime(2026, 11, 17),
+        updatedAt: DateTime(2026, 11, 17),
+      ),
     );
 
     test('reads the first loop segment gas', () {

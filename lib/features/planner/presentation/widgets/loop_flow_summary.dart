@@ -3,24 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The gas a semi-closed plan's loop is fed from (issue #4660): the first
 /// segment breathed on the loop, else the diluent cylinder, else the first
 /// cylinder, else air. The engine treats each loop segment's gas as its
 /// supply, so a plan with segments shows what its first loop leg breathes.
-GasMix loopSupplyGas(DivePlanState state) {
-  for (final segment in state.segments) {
-    final mode = segment.diveModeOverride ?? state.mode;
-    if (mode != domain.PlanMode.oc) return segment.gasMix;
+GasMix loopSupplyGas(domain.DivePlan plan) {
+  for (final segment in plan.segments) {
+    if (modeFor(plan, segment) != domain.PlanMode.oc) return segment.gasMix;
   }
-  for (final tank in state.tanks) {
+  for (final tank in plan.tanks) {
     if (tank.role == TankRole.diluent) return tank.gasMix;
   }
-  if (state.tanks.isNotEmpty) return state.tanks.first.gasMix;
+  if (plan.tanks.isNotEmpty) return plan.tanks.first.gasMix;
   return const GasMix(o2: 21);
 }
 

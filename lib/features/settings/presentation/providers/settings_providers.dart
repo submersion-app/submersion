@@ -3726,18 +3726,6 @@ final plannerWalkSpeedMpsProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.plannerWalkSpeedMps));
 });
 
-final plannerScrInjectionRateProvider = Provider<double>((ref) {
-  return ref.watch(settingsProvider.select((s) => s.plannerScrInjectionRate));
-});
-
-final plannerScrVo2Provider = Provider<double>((ref) {
-  return ref.watch(settingsProvider.select((s) => s.plannerScrVo2));
-});
-
-final plannerPscrVo2Provider = Provider<double>((ref) {
-  return ref.watch(settingsProvider.select((s) => s.plannerPscrVo2));
-});
-
 /// The diver's default turn-pressure rule; null = no rule (issue #3552).
 final plannerTurnPressureRuleProvider = Provider<domain.TurnPressureRule?>((
   ref,

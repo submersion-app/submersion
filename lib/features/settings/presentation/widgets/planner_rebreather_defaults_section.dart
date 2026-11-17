@@ -47,6 +47,8 @@ class PlannerRebreatherDefaultsSection extends ConsumerWidget {
             '${formatFixedForDisplay(shown, decimals)} ${units.rmvSymbol}',
         initialValue: seeded,
         unitSymbol: units.rmvSymbol,
+        // The floor the plan's own fields and agent writes hold to.
+        accept: (entered) => units.volumeToLiters(entered) >= 0.1,
         onSaved: (entered) {
           if (entered == seeded) return;
           onChanged(units.volumeToLiters(entered));

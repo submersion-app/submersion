@@ -4,8 +4,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/loop_flow_summary.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The plan's own constant mass flow loop (issue #4660): the supply injection
@@ -29,8 +30,13 @@ class ScrSettingsSection extends ConsumerWidget {
     final state = ref.watch(divePlanNotifierProvider);
     final notifier = ref.read(divePlanNotifierProvider.notifier);
     final units = ref.watch(unitFormatterProvider);
-    final defaultRate = ref.watch(plannerScrInjectionRateProvider);
-    final defaultVo2 = ref.watch(plannerScrVo2Provider);
+    // The diver's defaults for the hints, and what the plan resolves to (its
+    // own value, else the default) for the loop line, as the engine reads it.
+    final diver = ref.watch(planEngineConfigProvider);
+    final plan = planForEngine(state);
+    final resolved = diver.resolvedFor(plan);
+    final defaultRate = diver.scrInjectionRateLpm;
+    final defaultVo2 = diver.scrVo2Lpm;
 
     double? shown(double? liters) =>
         liters == null ? null : units.convertRmv(liters);
@@ -96,9 +102,9 @@ class ScrSettingsSection extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           LoopFlowSummary(
-            injectionRateLpm: state.scrInjectionRate ?? defaultRate,
-            vo2Lpm: state.scrVo2 ?? defaultVo2,
-            supply: loopSupplyGas(state),
+            injectionRateLpm: resolved.scrInjectionRateLpm,
+            vo2Lpm: resolved.scrVo2Lpm,
+            supply: loopSupplyGas(plan),
           ),
         ],
       ),
