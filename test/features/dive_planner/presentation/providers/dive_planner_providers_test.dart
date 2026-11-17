@@ -566,6 +566,36 @@ void main() {
       });
     });
 
+    test(
+      'updateLoopFlow sets and clears the plan loop flow fields (#4660)',
+      () {
+        final container = ProviderContainer(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        notifier.updateLoopFlow(
+          scrInjectionRate: 7.5,
+          scrVo2: 2.0,
+          pscrVo2: 0.9,
+        );
+        var state = container.read(divePlanNotifierProvider);
+        expect(state.scrInjectionRate, 7.5);
+        expect(state.scrVo2, 2.0);
+        expect(state.pscrVo2, 0.9);
+        expect(state.isDirty, isTrue);
+
+        notifier.updateLoopFlow(clearScrVo2: true);
+        state = container.read(divePlanNotifierProvider);
+        expect(state.scrInjectionRate, 7.5);
+        expect(state.scrVo2, isNull);
+        expect(state.pscrVo2, 0.9);
+      },
+    );
+
     test('switching to CCR keeps setpoints the diver already set', () {
       final container = ProviderContainer(
         overrides: [

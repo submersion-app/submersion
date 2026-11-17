@@ -22201,6 +22201,33 @@ class AppLocalizationsNl extends AppLocalizations {
       'Groter = meer vers gas, kleinere O₂-daling';
 
   @override
+  String get plannerCanvas_scr_injectionRate => 'Injectiedebiet';
+
+  @override
+  String get plannerCanvas_scr_vo2 => 'VO₂ (SCR)';
+
+  @override
+  String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
+
+  @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'Lus-O₂ met $gas: $atVo2 bij deze VO₂, $resting in rust, $hardWork bij zware inspanning';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'debiet te laag';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'ppO₂-daling in de lus: $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -22690,6 +22717,15 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
     return 'Bailoutgas is hypoxisch op $depth (ppO₂ $value bar). Neem een gas mee dat tot aan de oppervlakte te ademen is.';
+  }
+
+  @override
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  ) {
+    return 'Een injectiedebiet van $rate kan de lus bij deze VO₂ niet in stand houden: $gas vraagt meer dan $needed.';
   }
 
   @override
@@ -53091,6 +53127,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'De scooterbatterijreserve en looptempo waarmee een nieuwe DPV-missie begint. Een wijziging binnen een missie overschrijft dit alleen daar, zonder deze standaardwaarde te wijzigen.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'Planner-rebreather';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'Het debiet in de halfgesloten lus waarmee een nieuw SCR- of pSCR-plan begint. Een wijziging binnen een plan overschrijft het alleen daar, zonder deze standaard te wijzigen.';
+
+  @override
   String get settings_decompression_rates_finalAscent =>
       'Laatste stijgsnelheid';
 
@@ -64334,6 +64378,21 @@ class AppLocalizationsNl extends AppLocalizations {
       'Het deel van elke uitademing dat een passieve halfgesloten rebreather afvoert. Dat bepaalt hoe ver de zuurstof in de lus onder het voedingsgas zakt.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'Injectiedebiet';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'Het oppervlaktedebiet dat de nozzle van een rebreather met constante massastroom in de lus voert, bepaald door de nozzle en het toevoergas. Neem het over uit de documentatie van het toestel of een gemeten debietcontrole.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'De zuurstof die het lichaam van een duiker verbruikt, gemeten als oppervlaktegas: ongeveer $rest in rust, $swim al zwemmend en $hard bij zware inspanning. Meer inspanning laat minder zuurstof in een halfgesloten lus.';
+  }
+
+  @override
   String get info_term_turnFraction_label => 'Keerfractie';
 
   @override
@@ -64754,6 +64813,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'Vul de afvoerverhouding in die de fabrikant van de rebreather opgeeft.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'Hoe de halfgesloten rebreather met constante massastroom in het plan wordt gemodelleerd.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'Vul het injectiedebiet van je nozzle voor dit toevoergas in en de VO₂ die je verwacht; een leeg veld volgt de Instellingen. Vergelijk de getoonde luszuurstof met de documentatie van je toestel.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

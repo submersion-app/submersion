@@ -18,6 +18,19 @@ class ScrCalculator {
   /// Hard working: 2.0 L/min
   static const double defaultVo2 = 1.3;
 
+  /// The planner's default CMF supply injection rate (surface L/min), the
+  /// figure every SCR plan used before a diver could set one (issue #4660).
+  static const double defaultInjectionRateLpm = 12.0;
+
+  /// The planner's default VO2 on a passive (pSCR) loop (surface L/min),
+  /// Subsurface's `o2consumption` of 720 mL/min (issue #4660).
+  static const double defaultPscrVo2 = 0.72;
+
+  /// The least loop flow (surface L/min) any way of entering an injection
+  /// rate or a VO2 accepts: the plan's own fields, the diver's Settings
+  /// defaults and agent writes (issue #4660).
+  static const double minLoopFlowLpm = 0.1;
+
   /// Minimum VO₂ at rest
   static const double restingVo2 = 0.25;
 

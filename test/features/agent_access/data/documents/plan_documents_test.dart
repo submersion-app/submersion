@@ -43,9 +43,15 @@ void main() {
         surfaceInterval: const Duration(hours: 2),
         stopMinimums: const {6: 180},
         plannedWeightKg: 8,
+        scrInjectionRate: 7.5,
+        scrVo2: 2.0,
+        pscrVo2: 0.9,
       ),
       logged: const {},
     );
+    expect(doc['scr_injection_rate_l_min'], 7.5);
+    expect(doc['scr_vo2_l_min'], 2.0);
+    expect(doc['pscr_vo2_l_min'], 0.9);
     expect(doc['start_date_time'], '2026-05-01T09:00:00.000Z');
     expect(doc['descent_rate_m_min'], 18.0);
     expect(doc['last_stop_depth_m'], 6.0);

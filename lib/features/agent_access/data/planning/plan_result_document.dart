@@ -273,8 +273,18 @@ Map<String, Object?> effectiveSettings(DivePlan plan, PlanEngineConfig config) {
       'setpoint_low_bar': fromSettings(resolved.setpointLowFor(plan)),
       'setpoint_high_bar': fromSettings(resolved.setpointHighFor(plan)),
     },
-    if (plan.mode == PlanMode.pscr)
+    // A constant mass flow loop's injection rate and VO2 (issue #4660).
+    if (plan.mode == PlanMode.scr) ...{
+      'scr_injection_rate_l_min': own(
+        plan.scrInjectionRate,
+        config.scrInjectionRateLpm,
+      ),
+      'scr_vo2_l_min': own(plan.scrVo2, config.scrVo2Lpm),
+    },
+    if (plan.mode == PlanMode.pscr) ...{
       'pscr_ratio': fromSettings(config.pscrRatio),
+      'pscr_vo2_l_min': own(plan.pscrVo2, config.pscrVo2Lpm),
+    },
     'end_limit_m': fromSettings(config.endLimitMeters),
     'cns_warning_percent': fromSettings(config.cnsWarningThreshold),
     'gas_model': fromSettings(config.gasModel.name),

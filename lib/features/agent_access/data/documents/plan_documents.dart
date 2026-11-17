@@ -92,6 +92,10 @@ Map<String, Object?> divePlanDocument(
   'setpoint_low_bar': p.setpointLow,
   'setpoint_high_bar': p.setpointHigh,
   'setpoint_switch_depth_m': p.setpointSwitchDepth,
+  // Null follows the diver's Settings default (issue #4660).
+  'scr_injection_rate_l_min': p.scrInjectionRate,
+  'scr_vo2_l_min': p.scrVo2,
+  'pscr_vo2_l_min': p.pscrVo2,
   'deviation_depth_delta_m': p.deviationDepthDelta,
   'deviation_time_minutes': p.deviationTimeMinutes,
   'turn_pressure_rule': p.turnPressureRule?.name,

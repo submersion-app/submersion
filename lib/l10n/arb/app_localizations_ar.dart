@@ -22696,6 +22696,33 @@ class AppLocalizationsAr extends AppLocalizations {
       'أكبر = غاز طازج أكثر وانخفاض أقل في الأكسجين';
 
   @override
+  String get plannerCanvas_scr_injectionRate => 'معدل الحقن';
+
+  @override
+  String get plannerCanvas_scr_vo2 => 'VO₂ (SCR)';
+
+  @override
+  String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
+
+  @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'أكسجين الدائرة مع $gas: $atVo2 عند هذا الـ VO₂، $resting في الراحة، $hardWork عند الجهد الشديد';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'التدفق منخفض جدًا';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'انخفاض ppO₂ في الدائرة: $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -23201,6 +23228,15 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
     return 'غاز الإنقاذ (bailout) ناقص الأكسجين عند $depth (ppO₂ $value bar). احمل غازًا صالحًا للتنفس حتى السطح.';
+  }
+
+  @override
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  ) {
+    return 'معدل حقن قدره $rate لا يكفي للحفاظ على الدائرة عند هذا الـ VO₂: يحتاج $gas إلى أكثر من $needed.';
   }
 
   @override
@@ -54151,6 +54187,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'احتياطي بطارية السكوتر وسرعة المشي التي تبدأ بها مهمة DPV جديدة. تغييرها داخل مهمة يستبدلها هناك فقط، دون تغيير هذا الإعداد الافتراضي.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'جهاز إعادة التنفس في المخطط';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'تدفق الدائرة شبه المغلقة الذي تبدأ به خطة SCR أو pSCR جديدة. تغييره داخل خطة يتجاوزه هناك فقط، دون تغيير هذه القيمة الافتراضية.';
+
+  @override
   String get settings_decompression_rates_finalAscent => 'معدل الصعود النهائي';
 
   @override
@@ -65662,6 +65706,21 @@ class AppLocalizationsAr extends AppLocalizations {
       'حصة كل زفير يتخلص منها جهاز إعادة التنفس شبه المغلق السلبي. وهي تحدد مقدار انخفاض أكسجين الدائرة عن غاز الإمداد.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'معدل الحقن';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'التدفق السطحي الذي تغذي به فوهة جهاز إعادة التنفس ذي التدفق الكتلي الثابت الدائرة، ويحدده كل من الفوهة وغاز الإمداد. خذه من وثائق الجهاز أو من اختبار تدفق مقيس.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'الأكسجين الذي يستهلكه جسم الغواص، مقيسًا كغاز سطحي: نحو $rest في الراحة و$swim أثناء السباحة و$hard عند الجهد الشديد. يترك الجهد الأكبر أكسجينًا أقل في الدائرة شبه المغلقة.';
+  }
+
+  @override
   String get info_term_turnFraction_label => 'نسبة الالتفاف';
 
   @override
@@ -66080,6 +66139,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'أدخل نسبة التصريف التي يحددها صانع جهاز إعادة التنفس.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'كيف يُنمذج جهاز إعادة التنفس شبه المغلق ذو التدفق الكتلي الثابت في الخطة.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'أدخل معدل حقن فوهتك لغاز الإمداد هذا وقيمة VO₂ المتوقعة؛ يتبع الحقل الفارغ الإعدادات. قارن أكسجين الدائرة المعروض بوثائق جهازك.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

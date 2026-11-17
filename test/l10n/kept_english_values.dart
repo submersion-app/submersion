@@ -46,6 +46,10 @@ const Map<String, String> keptEnglishValues = {
   'insights_landmark_olympusMons': _placeName,
   'info_term_degreeHeatingWeeks_label@de': _brand,
   'info_term_nitrox_label': _abbreviation,
+  // VO2 and the loop type in brackets are measurement and mode
+  // abbreviations (issue #4660).
+  'plannerCanvas_scr_vo2': _abbreviation,
+  'plannerCanvas_pscr_vo2': _abbreviation,
   'info_term_rockBottom_label': _method,
   'settings_agentAccess_claudeCode': _brand,
   'settings_agentAccess_claudeDesktop': _brand,

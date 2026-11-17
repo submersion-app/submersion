@@ -89,6 +89,19 @@ void main() {
     expect(find.text('CCR'), findsOneWidget);
   });
 
+  testWidgets('SCR section appears for SCR plans (#4660)', (tester) async {
+    await tester.pumpWidget(_harness());
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanSetupAccordion)),
+    );
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .updateMode(domain.PlanMode.scr);
+    await tester.pumpAndSettle();
+    expect(find.byType(ExpansionTile), findsNWidgets(7));
+    expect(find.text('SCR'), findsOneWidget);
+  });
+
   testWidgets('setup focus expands the requested section and clears', (
     tester,
   ) async {

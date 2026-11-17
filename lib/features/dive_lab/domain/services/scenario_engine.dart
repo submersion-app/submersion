@@ -369,7 +369,7 @@ class ScenarioEngine {
     final engine = PlanEngine(
       config: settings.engineConfigFor(
         scrInjectionRateLpm: request.scrInjectionRate,
-        scrVo2Lpm: request.scrVo2,
+        scrVo2Lpm: request.replanScrVo2,
       ),
     );
     var planOutcome = engine.compute(plan, startState: branch.tissueState);
@@ -418,9 +418,9 @@ class ScenarioEngine {
           ? Scr(
               supplyFO2: plan.segments.last.gasMix.o2 / 100,
               supplyFHe: plan.segments.last.gasMix.he / 100,
-              injectionRateLpm:
-                  request.scrInjectionRate ?? engine.config.scrInjectionRateLpm,
-              vo2: request.scrVo2,
+              // Already the dive's rate, else the diver's (engineConfigFor).
+              injectionRateLpm: engine.config.scrInjectionRateLpm,
+              vo2: engine.config.scrVo2Lpm,
             )
           : null,
     );
@@ -439,21 +439,22 @@ class ScenarioEngine {
     List<double>? cfPpO2;
     if (!isOc) {
       // An SCR loop's ppO2 comes from its injection model, never from the
-      // CCR setpoints; unknown (zero, as the analysis reports it) when the
-      // dive logged no model.
-      final scrInjection = request.scrInjectionRate;
-      final scrSupply = request.scrSupplyO2Percent;
-      final scrTail =
-          plan.mode == domain.PlanMode.scr &&
-              scrInjection != null &&
-              scrSupply != null
+      // CCR setpoints: the model the re-plan breathes, at the dive's rate or
+      // else the diver's (engineConfigFor), on the dive's supply or else the
+      // plan's, as the remainder above is built (#4660).
+      final scrInjection = engine.config.scrInjectionRateLpm;
+      final scrSupply =
+          request.scrSupplyO2Percent ??
+          (plan.segments.isEmpty ? null : plan.segments.last.gasMix.o2);
+      final scrTail = plan.mode == domain.PlanMode.scr && scrSupply != null
           ? O2ToxicityCalculator(
               environment: settings.environment,
             ).calculatePpO2CurveSCR(
               spliced.depths,
               injectionRateLpm: scrInjection,
               supplyO2Percent: scrSupply,
-              vo2: request.scrVo2,
+              // The re-plan's VO2, so the tail agrees with the plan breathed.
+              vo2: engine.config.scrVo2Lpm,
             )
           : null;
       cfPpO2 = [

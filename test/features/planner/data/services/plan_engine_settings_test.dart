@@ -67,6 +67,9 @@ const _changed = AppSettings(
   plannerReservePressure: 70,
   plannerBatteryReserveFraction: 0.25,
   plannerWalkSpeedMps: 1.1,
+  plannerScrInjectionRate: 7.5,
+  plannerScrVo2: 2.0,
+  plannerPscrVo2: 0.9,
 );
 
 void main() {
@@ -119,6 +122,9 @@ void main() {
       expect(c.reservePressure, 70);
       expect(c.batteryReserveFraction, 0.25);
       expect(c.walkSpeedMps, 1.1);
+      expect(c.scrInjectionRateLpm, 7.5);
+      expect(c.scrVo2Lpm, 2.0);
+      expect(c.pscrVo2Lpm, 0.9);
     });
 
     test('default settings give the default config', () {

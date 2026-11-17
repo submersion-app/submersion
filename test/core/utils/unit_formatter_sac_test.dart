@@ -51,6 +51,21 @@ void main() {
       expect(metric.formatRmv(16.77), '16.8 L/min');
       expect(imperial.formatRmv(16.77), '0.59 cuft/min');
     });
+
+    test('formatRmv takes a finer precision when asked (#4660)', () {
+      expect(metric.formatRmv(4.0625, decimals: 2), '4.06 L/min');
+      expect(imperial.formatRmv(4.0625, decimals: 3), '0.143 cuft/min');
+    });
+  });
+
+  group('loop flow', () {
+    // An SCR injection rate or a VO2 shows one place finer than an RMV: a
+    // cuft/min step at RMV precision is 0.28 L/min, about 4% of a low-flow
+    // nozzle (#4660).
+    test('loopFlowDecimals is one place finer than rmvDecimals', () {
+      expect(metric.loopFlowDecimals, 2);
+      expect(imperial.loopFlowDecimals, 3);
+    });
   });
 
   group('lane decimals', () {

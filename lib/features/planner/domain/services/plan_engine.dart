@@ -35,6 +35,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart'
     show kDefaultBatteryReserveFraction, kDefaultWalkSpeedMps;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/features/planner/domain/services/scr_flow_check.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
 
 /// Thresholds and policy limits the engine evaluates plans against.
@@ -116,13 +117,12 @@ class PlanEngineConfig extends Equatable {
   /// sets the CMF loop's steady-state O2 fraction.
   final double scrVo2Lpm;
 
-  /// pSCR metabolic O2 consumption in surface mL/min (Subsurface
-  /// `o2consumption`, default 720).
-  final double pscrO2ConsumptionMlMin;
-
-  /// pSCR bottom surface air consumption in mL/min (Subsurface `bottomsac`,
-  /// default 20000).
-  final double pscrSacMlMin;
+  /// pSCR metabolic O2 consumption (surface liters per minute; Subsurface's
+  /// `o2consumption`, 720 mL/min). The diver's Settings default, or the
+  /// plan's own after [resolvedFor] (issue #4660). The pSCR loop's SAC is
+  /// the plan's resolved [sacBottom], as Subsurface's `pscr_o2` reads
+  /// `bottomsac`.
+  final double pscrVo2Lpm;
 
   /// pSCR ratio (Subsurface `pscr_ratio`, default 100). Larger dumps/adds more
   /// fresh gas and shrinks the inspired-O2 drop.
@@ -214,10 +214,9 @@ class PlanEngineConfig extends Equatable {
     this.o2MetabolicRateLpm = 1.0,
     this.loopVolumeLiters = 6.0,
     this.buddyFactor = 2.0,
-    this.scrInjectionRateLpm = 12.0,
+    this.scrInjectionRateLpm = ScrCalculator.defaultInjectionRateLpm,
     this.scrVo2Lpm = ScrCalculator.defaultVo2,
-    this.pscrO2ConsumptionMlMin = 720.0,
-    this.pscrSacMlMin = 20000.0,
+    this.pscrVo2Lpm = ScrCalculator.defaultPscrVo2,
     this.pscrRatio = 100.0,
     this.cnsMethod = CnsCalculationMethod.shearwater,
     this.gasModel = GasModel.real,
@@ -270,8 +269,7 @@ class PlanEngineConfig extends Equatable {
     buddyFactor,
     scrInjectionRateLpm,
     scrVo2Lpm,
-    pscrO2ConsumptionMlMin,
-    pscrSacMlMin,
+    pscrVo2Lpm,
     pscrRatio,
     cnsMethod,
     gasModel,
@@ -323,8 +321,7 @@ class PlanEngineConfig extends Equatable {
     double? buddyFactor,
     double? scrInjectionRateLpm,
     double? scrVo2Lpm,
-    double? pscrO2ConsumptionMlMin,
-    double? pscrSacMlMin,
+    double? pscrVo2Lpm,
     double? pscrRatio,
     CnsCalculationMethod? cnsMethod,
     GasModel? gasModel,
@@ -378,9 +375,7 @@ class PlanEngineConfig extends Equatable {
       buddyFactor: buddyFactor ?? this.buddyFactor,
       scrInjectionRateLpm: scrInjectionRateLpm ?? this.scrInjectionRateLpm,
       scrVo2Lpm: scrVo2Lpm ?? this.scrVo2Lpm,
-      pscrO2ConsumptionMlMin:
-          pscrO2ConsumptionMlMin ?? this.pscrO2ConsumptionMlMin,
-      pscrSacMlMin: pscrSacMlMin ?? this.pscrSacMlMin,
+      pscrVo2Lpm: pscrVo2Lpm ?? this.pscrVo2Lpm,
       pscrRatio: pscrRatio ?? this.pscrRatio,
       cnsMethod: cnsMethod ?? this.cnsMethod,
       gasModel: gasModel ?? this.gasModel,
@@ -467,6 +462,9 @@ class PlanEngineConfig extends Equatable {
       gfLow: plan.gfLow,
       gfHigh: plan.gfHigh,
       reservePressure: plan.reservePressure,
+      scrInjectionRateLpm: plan.scrInjectionRate,
+      scrVo2Lpm: plan.scrVo2,
+      pscrVo2Lpm: plan.pscrVo2,
     );
   }
 
@@ -688,8 +686,10 @@ BreathingConfig breathingFor(
     return PassiveScr(
       supplyFO2: gas.o2 / 100.0,
       supplyFHe: gas.he / 100.0,
-      o2ConsumptionMlMin: config.pscrO2ConsumptionMlMin,
-      sacMlMin: config.pscrSacMlMin,
+      o2ConsumptionMlMin: config.pscrVo2Lpm * 1000.0,
+      // The plan's own bottom SAC (already resolved against the diver's
+      // Settings), the one its gas budget charges (issue #4660).
+      sacMlMin: config.sacBottom * 1000.0,
       pscrRatio: config.pscrRatio,
     );
   }
@@ -2456,6 +2456,7 @@ class PlanEngine {
     }
 
     issues.addAll(_modOverrideIssues(plan.tanks, environment, onsets.schedule));
+    issues.addAll(scrFlowIssues(plan, config));
     issues.sort((a, b) => b.severity.index.compareTo(a.severity.index));
     return issues;
   }
