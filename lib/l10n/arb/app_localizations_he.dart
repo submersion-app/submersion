@@ -28592,6 +28592,109 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_photosVideos_title => 'תמונות וסרטונים';
 
   @override
+  String get settings_speciesId_title => 'זיהוי חיים ימיים';
+
+  @override
+  String get settings_speciesId_entrySubtitle =>
+      'מציאת דגים בתמונות שלך והצעת המין';
+
+  @override
+  String get settings_speciesId_intro =>
+      'מוצא דגים בתמונות שלך ומציע לאיזה מין הם שייכים. פועל במכשיר הזה. התמונות שלך לא יוצאות ממנו לעולם.';
+
+  @override
+  String get settings_speciesId_model => 'מודל';
+
+  @override
+  String get settings_speciesId_modelNotDownloaded => 'לא הורד';
+
+  @override
+  String get settings_speciesId_modelNotAvailable => 'עדיין לא זמין';
+
+  @override
+  String get settings_speciesId_modelNotForDevice => 'לא זמין למכשיר הזה';
+
+  @override
+  String settings_speciesId_modelInstalled(String version) {
+    return 'מותקן ($version)';
+  }
+
+  @override
+  String settings_speciesId_download(String size) {
+    return 'הורדה ($size)';
+  }
+
+  @override
+  String settings_speciesId_resume(String size) {
+    return 'המשך ההורדה ($size)';
+  }
+
+  @override
+  String settings_speciesId_update(String size) {
+    return 'עדכון ($size)';
+  }
+
+  @override
+  String get settings_speciesId_remove => 'הסרת המודל';
+
+  @override
+  String settings_speciesId_downloading(int percent) {
+    return 'מוריד $percent%';
+  }
+
+  @override
+  String get settings_speciesId_downloadConfirmTitle => 'להוריד את המודל?';
+
+  @override
+  String settings_speciesId_downloadConfirmBody(String size) {
+    return 'פעולה זו תוריד $size ותשמור אותם במכשיר הזה. אפשר להסיר את המודל בכל עת.';
+  }
+
+  @override
+  String get settings_speciesId_downloadFailed =>
+      'ההורדה לא הסתיימה. נסו שוב כדי להמשיך מהמקום שבו נעצרה.';
+
+  @override
+  String get settings_speciesId_downloadNoSpace =>
+      'אין מספיק מקום פנוי במכשיר הזה.';
+
+  @override
+  String get settings_speciesId_needsAppUpdate =>
+      'המודל הזה דורש גרסה חדשה יותר של Submersion.';
+
+  @override
+  String get settings_speciesId_toggle => 'זיהוי דגים כשאני פותח תמונה';
+
+  @override
+  String get settings_speciesId_kept => 'הצעות שנשמרו במכשיר הזה';
+
+  @override
+  String settings_speciesId_keptValue(int count, String size) {
+    return '$count ($size)';
+  }
+
+  @override
+  String get settings_speciesId_clear => 'ניקוי ההצעות';
+
+  @override
+  String get settings_speciesId_clearConfirmTitle => 'לנקות את כל ההצעות?';
+
+  @override
+  String get settings_speciesId_clearConfirmBody =>
+      'פעולה זו תסיר את כל ההצעות ואת התמונות החתוכות שלהן. מינים שתייגת לא יושפעו.';
+
+  @override
+  String get settings_speciesId_credits => 'קרדיטים ורישיונות';
+
+  @override
+  String get settings_speciesId_unsupported =>
+      'זיהוי חיים ימיים עדיין לא זמין במכשיר הזה.';
+
+  @override
+  String get settings_speciesId_notEligible =>
+      'אין במכשיר הזה מספיק זיכרון להפעלת המודל.';
+
+  @override
   String get settings_section_data_tagline => 'גיבויים, סנכרון ותמונות';
 
   @override
@@ -56812,6 +56915,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_storageUsage_category_importedFiles =>
       'קובצי הייבוא המקוריים';
+
+  @override
+  String get settings_storageUsage_category_identificationModel => 'מודל זיהוי';
+
+  @override
+  String get settings_storageUsage_category_identificationCrops =>
+      'תמונות זיהוי חתוכות';
 
   @override
   String settings_storageUsage_totalSplit(String device, String cloud) {

@@ -29132,6 +29132,111 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_photosVideos_title => 'Foto\'s en video\'s';
 
   @override
+  String get settings_speciesId_title => 'Herkenning van zeeleven';
+
+  @override
+  String get settings_speciesId_entrySubtitle =>
+      'Vind vissen in je foto\'s en stel de soort voor';
+
+  @override
+  String get settings_speciesId_intro =>
+      'Vindt vissen in je foto\'s en stelt voor welke soort het is. Draait op dit apparaat. Je foto\'s verlaten het nooit.';
+
+  @override
+  String get settings_speciesId_model => 'Model';
+
+  @override
+  String get settings_speciesId_modelNotDownloaded => 'Niet gedownload';
+
+  @override
+  String get settings_speciesId_modelNotAvailable => 'Nog niet beschikbaar';
+
+  @override
+  String get settings_speciesId_modelNotForDevice =>
+      'Niet beschikbaar voor dit apparaat';
+
+  @override
+  String settings_speciesId_modelInstalled(String version) {
+    return 'Geïnstalleerd ($version)';
+  }
+
+  @override
+  String settings_speciesId_download(String size) {
+    return 'Downloaden ($size)';
+  }
+
+  @override
+  String settings_speciesId_resume(String size) {
+    return 'Download hervatten ($size)';
+  }
+
+  @override
+  String settings_speciesId_update(String size) {
+    return 'Bijwerken ($size)';
+  }
+
+  @override
+  String get settings_speciesId_remove => 'Model verwijderen';
+
+  @override
+  String settings_speciesId_downloading(int percent) {
+    return 'Downloaden: $percent%';
+  }
+
+  @override
+  String get settings_speciesId_downloadConfirmTitle => 'Het model downloaden?';
+
+  @override
+  String settings_speciesId_downloadConfirmBody(String size) {
+    return 'Hiermee wordt $size gedownload en op dit apparaat bewaard. Je kunt het op elk moment verwijderen.';
+  }
+
+  @override
+  String get settings_speciesId_downloadFailed =>
+      'De download is niet voltooid. Probeer het opnieuw om verder te gaan waar hij stopte.';
+
+  @override
+  String get settings_speciesId_downloadNoSpace =>
+      'Er is niet genoeg vrije ruimte op dit apparaat.';
+
+  @override
+  String get settings_speciesId_needsAppUpdate =>
+      'Dit model vereist een nieuwere versie van Submersion.';
+
+  @override
+  String get settings_speciesId_toggle =>
+      'Vissen herkennen als ik een foto open';
+
+  @override
+  String get settings_speciesId_kept => 'Suggesties op dit apparaat';
+
+  @override
+  String settings_speciesId_keptValue(int count, String size) {
+    return '$count ($size)';
+  }
+
+  @override
+  String get settings_speciesId_clear => 'Suggesties wissen';
+
+  @override
+  String get settings_speciesId_clearConfirmTitle => 'Alle suggesties wissen?';
+
+  @override
+  String get settings_speciesId_clearConfirmBody =>
+      'Hiermee worden alle suggesties en hun uitsneden verwijderd. Soorten die je hebt getagd blijven behouden.';
+
+  @override
+  String get settings_speciesId_credits => 'Vermeldingen en licenties';
+
+  @override
+  String get settings_speciesId_unsupported =>
+      'Herkenning van zeeleven is nog niet beschikbaar op dit apparaat.';
+
+  @override
+  String get settings_speciesId_notEligible =>
+      'Dit apparaat heeft niet genoeg geheugen voor het model.';
+
+  @override
   String get settings_section_data_tagline =>
       'Back-ups, synchronisatie en foto\'s';
 
@@ -57674,6 +57779,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_storageUsage_category_importedFiles =>
       'Originele importbestanden';
+
+  @override
+  String get settings_storageUsage_category_identificationModel =>
+      'Herkenningsmodel';
+
+  @override
+  String get settings_storageUsage_category_identificationCrops =>
+      'Uitsneden van herkenning';
 
   @override
   String settings_storageUsage_totalSplit(String device, String cloud) {

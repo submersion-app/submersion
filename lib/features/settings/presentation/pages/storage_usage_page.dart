@@ -258,6 +258,10 @@ class StorageUsageRow extends ConsumerWidget {
       StorageCategoryId.exports => l10n.settings_storageUsage_category_exports,
       StorageCategoryId.importedFiles =>
         l10n.settings_storageUsage_category_importedFiles,
+      StorageCategoryId.identificationModel =>
+        l10n.settings_storageUsage_category_identificationModel,
+      StorageCategoryId.identificationCrops =>
+        l10n.settings_storageUsage_category_identificationCrops,
       _ => id,
     };
   }

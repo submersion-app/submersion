@@ -28828,6 +28828,110 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_photosVideos_title => 'Photos & videos';
 
   @override
+  String get settings_speciesId_title => 'Marine life identification';
+
+  @override
+  String get settings_speciesId_entrySubtitle =>
+      'Find fish in your photos and suggest what they are';
+
+  @override
+  String get settings_speciesId_intro =>
+      'Finds fish in your photos and suggests what they are. Runs on this device. Your photos never leave it.';
+
+  @override
+  String get settings_speciesId_model => 'Model';
+
+  @override
+  String get settings_speciesId_modelNotDownloaded => 'Not downloaded';
+
+  @override
+  String get settings_speciesId_modelNotAvailable => 'Not available yet';
+
+  @override
+  String get settings_speciesId_modelNotForDevice =>
+      'Not available for this device';
+
+  @override
+  String settings_speciesId_modelInstalled(String version) {
+    return 'Installed ($version)';
+  }
+
+  @override
+  String settings_speciesId_download(String size) {
+    return 'Download ($size)';
+  }
+
+  @override
+  String settings_speciesId_resume(String size) {
+    return 'Continue download ($size)';
+  }
+
+  @override
+  String settings_speciesId_update(String size) {
+    return 'Update ($size)';
+  }
+
+  @override
+  String get settings_speciesId_remove => 'Remove model';
+
+  @override
+  String settings_speciesId_downloading(int percent) {
+    return 'Downloading $percent%';
+  }
+
+  @override
+  String get settings_speciesId_downloadConfirmTitle => 'Download the model?';
+
+  @override
+  String settings_speciesId_downloadConfirmBody(String size) {
+    return 'This downloads $size and keeps it on this device. You can remove it at any time.';
+  }
+
+  @override
+  String get settings_speciesId_downloadFailed =>
+      'The download did not finish. Try again to continue where it stopped.';
+
+  @override
+  String get settings_speciesId_downloadNoSpace =>
+      'There is not enough free space on this device.';
+
+  @override
+  String get settings_speciesId_needsAppUpdate =>
+      'This model needs a newer version of Submersion.';
+
+  @override
+  String get settings_speciesId_toggle => 'Identify fish when I open a photo';
+
+  @override
+  String get settings_speciesId_kept => 'Suggestions kept on this device';
+
+  @override
+  String settings_speciesId_keptValue(int count, String size) {
+    return '$count ($size)';
+  }
+
+  @override
+  String get settings_speciesId_clear => 'Clear suggestions';
+
+  @override
+  String get settings_speciesId_clearConfirmTitle => 'Clear all suggestions?';
+
+  @override
+  String get settings_speciesId_clearConfirmBody =>
+      'This removes every suggestion and its cropped image. Species you have tagged are not affected.';
+
+  @override
+  String get settings_speciesId_credits => 'Credits and licences';
+
+  @override
+  String get settings_speciesId_unsupported =>
+      'Marine life identification is not available on this device yet.';
+
+  @override
+  String get settings_speciesId_notEligible =>
+      'This device does not have enough memory to run the model.';
+
+  @override
   String get settings_section_data_tagline => 'Backups, sync and photos';
 
   @override
@@ -57127,6 +57231,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_storageUsage_category_importedFiles =>
       'Imported logbook files';
+
+  @override
+  String get settings_storageUsage_category_identificationModel =>
+      'Identification model';
+
+  @override
+  String get settings_storageUsage_category_identificationCrops =>
+      'Identification crops';
 
   @override
   String settings_storageUsage_totalSplit(String device, String cloud) {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:path_provider/path_provider.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
@@ -25,6 +26,7 @@ import 'package:submersion/features/media_store/presentation/providers/media_swe
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
 /// Device-local cleanup state.
 final storageGcStoreProvider = Provider<StorageGcStore>(
@@ -213,6 +215,11 @@ Future<void> _localCacheSweepIfDue(
     localCache: LocalCacheDatabaseService.instance.database,
     library: DatabaseService.instance.database,
   ).run(now: now);
+  // Identifications whose photo is gone, with their crops (issue #4668).
+  // Never throws.
+  if (marineLifeIdEnabled) {
+    await ref.read(identificationCleanupProvider).sweepOrphans();
+  }
   // Stamped after the pass, so a sweep that throws part way retries.
   await prefs.setInt(kLocalCacheSweepStampKey, now.millisecondsSinceEpoch);
 }

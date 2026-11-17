@@ -168,3 +168,17 @@ final identificationCropFileProvider = FutureProvider.autoDispose
           .fileFor(key.$1, key.$2);
       return await file.exists() ? file : null;
     });
+
+/// How many identifications the open logbook keeps.
+final identificationCountProvider = FutureProvider.autoDispose<int>((ref) {
+  final repository = ref.watch(mediaIdentificationRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchChanges());
+  return repository.count();
+});
+
+/// What the crops take on this device.
+final identificationCropBytesProvider = FutureProvider.autoDispose<int>((ref) {
+  final repository = ref.watch(mediaIdentificationRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchChanges());
+  return ref.watch(identificationCropStoreProvider).sizeBytes();
+});

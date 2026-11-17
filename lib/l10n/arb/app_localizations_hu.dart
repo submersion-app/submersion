@@ -29186,6 +29186,112 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_photosVideos_title => 'Fotók és videók';
 
   @override
+  String get settings_speciesId_title => 'Tengeri élőlények felismerése';
+
+  @override
+  String get settings_speciesId_entrySubtitle =>
+      'Halak keresése a fotóidon és fajjavaslatok';
+
+  @override
+  String get settings_speciesId_intro =>
+      'Megkeresi a halakat a fotóidon, és javaslatot tesz a fajukra. Ezen az eszközön fut. A fotóid soha nem hagyják el.';
+
+  @override
+  String get settings_speciesId_model => 'Modell';
+
+  @override
+  String get settings_speciesId_modelNotDownloaded => 'Nincs letöltve';
+
+  @override
+  String get settings_speciesId_modelNotAvailable => 'Még nem érhető el';
+
+  @override
+  String get settings_speciesId_modelNotForDevice =>
+      'Ezen az eszközön nem érhető el';
+
+  @override
+  String settings_speciesId_modelInstalled(String version) {
+    return 'Telepítve ($version)';
+  }
+
+  @override
+  String settings_speciesId_download(String size) {
+    return 'Letöltés ($size)';
+  }
+
+  @override
+  String settings_speciesId_resume(String size) {
+    return 'Letöltés folytatása ($size)';
+  }
+
+  @override
+  String settings_speciesId_update(String size) {
+    return 'Frissítés ($size)';
+  }
+
+  @override
+  String get settings_speciesId_remove => 'Modell eltávolítása';
+
+  @override
+  String settings_speciesId_downloading(int percent) {
+    return 'Letöltés: $percent%';
+  }
+
+  @override
+  String get settings_speciesId_downloadConfirmTitle => 'Letöltöd a modellt?';
+
+  @override
+  String settings_speciesId_downloadConfirmBody(String size) {
+    return 'Ez $size adatot tölt le, és ezen az eszközön tárolja. Bármikor eltávolíthatod.';
+  }
+
+  @override
+  String get settings_speciesId_downloadFailed =>
+      'A letöltés nem fejeződött be. Próbáld újra, hogy ott folytasd, ahol abbamaradt.';
+
+  @override
+  String get settings_speciesId_downloadNoSpace =>
+      'Nincs elég szabad hely ezen az eszközön.';
+
+  @override
+  String get settings_speciesId_needsAppUpdate =>
+      'Ehhez a modellhez a Submersion újabb verziója szükséges.';
+
+  @override
+  String get settings_speciesId_toggle =>
+      'Halak felismerése fotó megnyitásakor';
+
+  @override
+  String get settings_speciesId_kept => 'Ezen az eszközön tárolt javaslatok';
+
+  @override
+  String settings_speciesId_keptValue(int count, String size) {
+    return '$count ($size)';
+  }
+
+  @override
+  String get settings_speciesId_clear => 'Javaslatok törlése';
+
+  @override
+  String get settings_speciesId_clearConfirmTitle =>
+      'Minden javaslatot törölsz?';
+
+  @override
+  String get settings_speciesId_clearConfirmBody =>
+      'Ez eltávolít minden javaslatot és a hozzájuk tartozó kivágott képeket. Az általad címkézett fajok megmaradnak.';
+
+  @override
+  String get settings_speciesId_credits => 'Köszönetnyilvánítás és licencek';
+
+  @override
+  String get settings_speciesId_unsupported =>
+      'A tengeri élőlények felismerése ezen az eszközön még nem érhető el.';
+
+  @override
+  String get settings_speciesId_notEligible =>
+      'Ezen az eszközön nincs elég memória a modell futtatásához.';
+
+  @override
   String get settings_section_data_tagline =>
       'Biztonsági mentések, szinkronizálás és fotók';
 
@@ -57733,6 +57839,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_storageUsage_category_importedFiles =>
       'Eredeti importált fájlok';
+
+  @override
+  String get settings_storageUsage_category_identificationModel =>
+      'Felismerési modell';
+
+  @override
+  String get settings_storageUsage_category_identificationCrops =>
+      'Felismerési kivágások';
 
   @override
   String settings_storageUsage_totalSplit(String device, String cloud) {

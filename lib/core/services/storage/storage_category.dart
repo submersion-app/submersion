@@ -31,6 +31,12 @@ abstract final class StorageCategoryId {
   static const temporary = 'temporary';
   static const exports = 'exports';
   static const importedFiles = 'importedFiles';
+
+  /// The marine life model pack (issue #4668).
+  static const identificationModel = 'identificationModel';
+
+  /// The crops of identified animals (issue #4668).
+  static const identificationCrops = 'identificationCrops';
 }
 
 /// One place on disk where the app accumulates bytes.
