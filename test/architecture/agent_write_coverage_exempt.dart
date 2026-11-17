@@ -138,6 +138,7 @@ final exempt = <String, String>{
     'lib/features/dive_log/data/repositories/stored_tank_serial_fill.dart:writeStoredTankSerial',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:applyImportedMetadata',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:applyLocationDetails',
+    'lib/features/dive_sites/data/repositories/site_repository_impl.dart:fillSiteAltitudeIfEmpty',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:updateSiteAltitude',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:updateSiteCoordinates',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:updateSiteWithImportedMetadata',

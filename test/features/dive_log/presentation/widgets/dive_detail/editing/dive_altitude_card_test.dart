@@ -58,8 +58,12 @@ class _FakeSites extends SiteRepository {
   final wrote = <(String, double)>[];
 
   @override
-  Future<void> updateSiteAltitude(String siteId, double altitudeMeters) async {
+  Future<bool> fillSiteAltitudeIfEmpty(
+    String siteId,
+    double altitudeMeters,
+  ) async {
     wrote.add((siteId, altitudeMeters));
+    return true;
   }
 }
 
@@ -293,6 +297,29 @@ void main() {
       expect(find.text('Altitude Group 3'), findsOneWidget);
     });
 
+    // Unreadable text never reaches the sitting, which keeps the last
+    // altitude that could be read. The banner follows the row the diver
+    // reads, not that value, so it names no group while the row has none.
+    testWidgets('an unreadable altitude shows no group banner', (tester) async {
+      await pumpEditor(tester, bare.copyWith(altitude: 2500));
+      AltitudeGroupBanner banner() =>
+          tester.widget(find.byType(AltitudeGroupBanner));
+      expect(banner().group, AltitudeGroup.group3);
+
+      await tester.tap(find.text('2500 m'));
+      await tester.pump();
+      await tester.enterText(find.byType(TextFormField), '1.2.3');
+      await tester.pump();
+
+      expect(banner().group, AltitudeGroup.seaLevel);
+      expect(find.text('Altitude Group 3'), findsNothing);
+
+      await tester.enterText(find.byType(TextFormField), '1500');
+      await tester.pump();
+
+      expect(banner().group, AltitudeGroup.fromAltitude(1500));
+    });
+
     // An imperial diver saw "300-900m (984-2953ft)": metres first, and a
     // unit they did not choose.
     testWidgets('the banner gives its range in the diver\'s unit', (
@@ -344,6 +371,45 @@ void main() {
       await controller.session!.runHeldWrites();
 
       expect(sites.wrote, [('site-1', 512.0)]);
+    });
+
+    // The lookup was made because the site had no altitude. One it gained
+    // before the sitting was saved (typed on the site page, or brought in
+    // by a sync) is newer than the lookup and is kept.
+    testWidgets('a held site altitude does not overwrite one the site gained '
+        'meanwhile', (tester) async {
+      final sites = SiteRepository();
+      await tester.runAsync(() => sites.createSite(lakeNoAltitude));
+      final controller = await pumpEditor(
+        tester,
+        bare.copyWith(site: lakeNoAltitude),
+        elevation: _FakeElevation(result: 512),
+        sites: sites,
+      );
+      expect(controller.session!.hasHeldWrites, isTrue);
+
+      await tester.runAsync(() => sites.updateSiteAltitude('site-1', 300));
+      await tester.runAsync(() => controller.session!.runHeldWrites());
+
+      final stored = await tester.runAsync(() => sites.getSiteById('site-1'));
+      expect(stored!.altitude, 300);
+    });
+
+    testWidgets('a held site altitude is written while the site still has '
+        'none', (tester) async {
+      final sites = SiteRepository();
+      await tester.runAsync(() => sites.createSite(lakeNoAltitude));
+      final controller = await pumpEditor(
+        tester,
+        bare.copyWith(site: lakeNoAltitude),
+        elevation: _FakeElevation(result: 512),
+        sites: sites,
+      );
+
+      await tester.runAsync(() => controller.session!.runHeldWrites());
+
+      final stored = await tester.runAsync(() => sites.getSiteById('site-1'));
+      expect(stored!.altitude, 512);
     });
 
     testWidgets('an altitude that is set is not looked up', (tester) async {

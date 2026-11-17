@@ -349,6 +349,26 @@ void main() {
       expect(controller.isDirty, isFalse);
     });
 
+    // The pressure is edited on the Altitude card, so its row here leads
+    // there: the card is opened, brought in from the Add strip if the page
+    // was leaving it out, and asked to scroll into view.
+    testWidgets('the surface pressure row opens the Altitude card', (
+      tester,
+    ) async {
+      final controller = await pumpEditor(
+        tester,
+        full.copyWith(surfacePressure: 0.87),
+      );
+
+      await tester.tap(find.text('870 mbar'));
+      await tester.pump();
+
+      final altitude = diveSurfacePressureField.cardId;
+      expect(controller.openCardIds, containsAll([_cardId, altitude]));
+      expect(controller.revealRequest?.cardId, altitude);
+      expect(controller.isDirty, isFalse);
+    });
+
     testWidgets('with no surface pressure there is no such row', (
       tester,
     ) async {

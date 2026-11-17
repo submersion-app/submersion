@@ -467,6 +467,24 @@ class SiteRepository {
         DiveSitesCompanion(altitude: Value(altitudeMeters)),
       );
 
+  /// Stores a looked-up altitude for [siteId] only while the site still has
+  /// none. A sitting holds the copy of a lookup it made because the site had
+  /// no altitude, and writes it when it is saved; an altitude the site
+  /// gained meanwhile (typed on the site page, or brought in by a sync) is
+  /// newer than that lookup and is kept (issue #4527). Returns true when the
+  /// altitude was written.
+  Future<bool> fillSiteAltitudeIfEmpty(
+    String siteId,
+    double altitudeMeters,
+  ) async {
+    final row = await (_db.select(
+      _db.diveSites,
+    )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+    if (row == null || row.altitude != null) return false;
+    await updateSiteAltitude(siteId, altitudeMeters);
+    return true;
+  }
+
   /// Stores coordinates (and optionally an altitude) for [siteId] without
   /// touching any other column.
   Future<void> updateSiteCoordinates(

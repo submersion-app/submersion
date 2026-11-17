@@ -61,6 +61,7 @@ class RecordNumberRow<T> extends StatefulWidget {
     this.trimZeros = false,
     this.apply,
     this.suggestion,
+    this.onUnreadableChanged,
   });
 
   final EditSession<T> session;
@@ -98,6 +99,12 @@ class RecordNumberRow<T> extends StatefulWidget {
   /// already formatted in the diver's unit.
   final ProfileSuggestion? suggestion;
 
+  /// Told when the row's text becomes, or stops being, unreadable. Such text
+  /// never reaches the sitting, which keeps the last value that could be
+  /// read; what the editor draws from the row's value can follow the text
+  /// instead (issue #4527).
+  final ValueChanged<bool>? onUnreadableChanged;
+
   @override
   State<RecordNumberRow<T>> createState() => _RecordNumberRowState<T>();
 }
@@ -130,7 +137,10 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>>
         return _format(stored);
       },
       parse: _parse,
-      onUnreadableChanged: reportUnreadable,
+      onUnreadableChanged: (unreadable) {
+        reportUnreadable(unreadable);
+        widget.onUnreadableChanged?.call(unreadable);
+      },
       // Read through the widget each time, so a new rule is followed.
       apply: (value) {
         final apply = widget.apply;

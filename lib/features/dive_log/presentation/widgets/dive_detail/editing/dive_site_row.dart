@@ -84,7 +84,7 @@ DiveSiteAssigner readDiveSiteAssigner(BuildContext context) {
       site,
       siteDiveTypeIds: siteDiveTypeIds,
       resolver: resolver,
-      writeSiteAltitude: sites.updateSiteAltitude,
+      writeSiteAltitude: sites.fillSiteAltitudeIfEmpty,
     );
     // A new site also brings, or offers, its location's equipment set: a
     // rule of the gear's, kept out of the site rules (issue #4527, plan 5).

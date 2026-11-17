@@ -25,6 +25,7 @@ import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_number_row.dart';
 
 const _log = LoggerService('DiveEnvironmentCardEditor');
@@ -184,7 +185,7 @@ class _DiveEnvironmentCardEditorState
         fillAltitudeIfEmpty(
           session,
           resolver: resolver,
-          writeSiteAltitude: sites.updateSiteAltitude,
+          writeSiteAltitude: sites.fillSiteAltitudeIfEmpty,
           stillWanted: () => mounted,
         ),
       );
@@ -253,6 +254,7 @@ class _DiveEnvironmentCardEditorState
   List<Widget> _weatherRows(AppLocalizations l10n, UnitFormatter units) {
     final session = widget.session;
     final pressure = session.valueOf(diveSurfacePressureField);
+    final edit = RecordEditScope.maybeOf<Dive>(context);
     return [
       RecordNumberRow<Dive>(
         session: session,
@@ -265,12 +267,20 @@ class _DiveEnvironmentCardEditorState
         fractionDigits: 1,
         trimZeros: true,
       ),
-      // Shown here as on the read card, and edited on the Altitude card.
+      // Shown here as on the read card, and edited on the Altitude card, so
+      // a tap leads there: the card opens, brought in from the Add strip if
+      // the page was leaving it out, and scrolls into view (issue #4527).
       if (pressure != null)
-        FormRow.display(
-          label: l10n.diveLog_edit_label_surfacePressure,
-          value: units.formatSurfacePressure(pressure),
-        ),
+        edit == null
+            ? FormRow.display(
+                label: l10n.diveLog_edit_label_surfacePressure,
+                value: units.formatSurfacePressure(pressure),
+              )
+            : FormRow.picker(
+                label: l10n.diveLog_edit_label_surfacePressure,
+                value: units.formatSurfacePressure(pressure),
+                onTap: () => edit.addCard(diveSurfacePressureField.cardId),
+              ),
       RecordNumberRow<Dive>(
         session: session,
         field: diveWindSpeedField,
