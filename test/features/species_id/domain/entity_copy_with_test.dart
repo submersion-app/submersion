@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 
 import 'manifest_fixture.dart';
@@ -93,6 +94,77 @@ void main() {
           alternatives: [other],
         ),
       );
+    });
+
+    test('tracks on a video', () {
+      const box = IdentificationBox(x: 0.1, y: 0.2, width: 0.3, height: 0.4);
+      const other = IdentificationBox(x: 0.5, y: 0.5, width: 0.1, height: 0.1);
+      const sample = TrackSample(ms: 250, box: box);
+      expect(sample.copyWith(), sample);
+      expect(
+        sample.copyWith(ms: 500, box: other),
+        const TrackSample(ms: 500, box: other),
+      );
+
+      final track = MediaIdentification(
+        id: 'i1',
+        mediaId: 'v1',
+        box: box,
+        boxPixelWidth: 80,
+        boxPixelHeight: 60,
+        detectorScore: 0.9,
+        openScore: 0.5,
+        candidates: const [],
+        locationLimited: false,
+        suggestable: true,
+        decision: IdentificationDecision.undecided,
+        createdAt: DateTime.utc(2026),
+        startMs: 0,
+        endMs: 1500,
+        bestMs: 750,
+        path: const [sample],
+        claimedSpeciesId: 'sp_a',
+        confident: true,
+        specific: true,
+      );
+      expect(track.copyWith(), track);
+      expect(track.isTrack, isTrue);
+      expect(track.durationMs, 1500);
+      final changed = track.copyWith(
+        startMs: () => 100,
+        endMs: () => 200,
+        bestMs: () => 150,
+        path: const [],
+        claimedSpeciesId: () => null,
+        confident: false,
+        specific: false,
+      );
+      expect(changed.startMs, 100);
+      expect(changed.endMs, 200);
+      expect(changed.bestMs, 150);
+      expect(changed.path, isEmpty);
+      expect(changed.claimedSpeciesId, isNull);
+      expect(changed.confident, isFalse);
+      expect(changed.specific, isFalse);
+      expect(track.copyWith(startMs: () => null).isTrack, isFalse);
+
+      final run = MediaIdentificationRun(
+        mediaId: 'v1',
+        packVersion: 'p',
+        detectorId: 'd',
+        classifierId: 'c',
+        analysedAt: DateTime.utc(2026),
+        imageWidth: 1920,
+        imageHeight: 1080,
+        detectionCount: 0,
+        scannedMs: 10000,
+        videoDurationMs: 25000,
+      );
+      expect(run.copyWith(), run);
+      expect(run.scanComplete, isFalse);
+      final done = run.copyWith(scannedMs: () => 25000);
+      expect(done.scanComplete, isTrue);
+      expect(run.copyWith(videoDurationMs: () => null).scanComplete, isFalse);
     });
 
     test('the manifest and its parts', () {
