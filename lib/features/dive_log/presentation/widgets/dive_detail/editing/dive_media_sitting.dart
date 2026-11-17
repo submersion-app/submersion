@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/media/data/services/media_import_service.dart';
@@ -17,6 +18,8 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
+const _log = LoggerService('DiveMediaSitting');
+
 /// The held change of the Media card.
 const String mediaKey = 'media';
 
@@ -24,6 +27,7 @@ const String _noteKey = 'media.held';
 const String _writersKey = 'media.writers';
 const String _createdKey = 'media.created';
 const String _afterKey = 'media.after';
+const String _undoKey = 'media.undo';
 
 /// How a sitting's media are written at Save.
 @immutable
@@ -60,9 +64,9 @@ class SittingMediaWriters {
         mediaDeletionCoordinatorProvider,
       ).deleteMultipleMedia(ids, holdRemoteDelete: true),
     ).unlinkFromDive(ids),
-    replace: (proposals, afterCommit) async => read(
+    replace: (proposals, afterCommit, onRollback) async => read(
       mediaRepairServiceProvider,
-    ).apply(proposals, afterCommit: afterCommit),
+    ).apply(proposals, afterCommit: afterCommit, onRollback: onRollback),
     drainDeletes: () =>
         read(mediaDeletionCoordinatorProvider).drainHeldDeletes(),
     enqueueUpload: (mediaId) => read(mediaStoreEnqueueProvider)(mediaId),
@@ -73,11 +77,13 @@ class SittingMediaWriters {
   insertNetwork;
   final Future<void> Function(List<String> ids) unlink;
 
-  /// Relinks [proposals], adding to the list it is given what must wait
-  /// for the commit.
+  /// Relinks [proposals], adding to the lists it is given what must wait
+  /// for the commit, and what takes back its work outside the database (a
+  /// new bookmark) if the write does not commit.
   final Future<void> Function(
     List<RepairProposal> proposals,
     List<Future<void> Function()> afterCommit,
+    List<Future<void> Function()> onRollback,
   )
   replace;
 
@@ -209,9 +215,13 @@ void _set(EditSession<Dive> session, SittingMedia next) {
 /// failed save keeps does nothing, by the media store's own rule), then the
 /// replaced links. Uploads wait for the commit ([mediaAfterCommit]).
 Future<void> _write(EditSession<Dive> session, SittingMediaWriters w) async {
+  final undo = <Future<void> Function()>[];
   session
     ..remember(_createdKey, null)
-    ..remember(_afterKey, null);
+    ..remember(_afterKey, null)
+    // Kept from the start, so a write that fails partway can still be
+    // taken back ([undoMediaOnFailure]).
+    ..remember(_undoKey, undo);
   final after = <Future<void> Function()>[];
   final held = sittingMedia(session);
   final created = <String>[];
@@ -230,7 +240,7 @@ Future<void> _write(EditSession<Dive> session, SittingMediaWriters w) async {
     after.add(w.drainDeletes);
   }
   if (held.replaced.isNotEmpty) {
-    await w.replace(held.replaced.values.toList(), after);
+    await w.replace(held.replaced.values.toList(), after, undo);
   }
   session
     ..remember(_createdKey, created)
@@ -249,6 +259,36 @@ List<Future<void> Function()> mediaAfterCommit(EditSession<Dive> session) {
     for (final id in created) () async => writers.enqueueUpload(id),
     ...?session.recall<List<Future<void> Function()>>(_afterKey),
   ];
+}
+
+/// Runs [write], the save of [session]; if it fails, takes back what the
+/// sitting's media write did outside the database (a relink's new
+/// bookmark), then lets the failure through. Each undo is on its own: one
+/// that fails is logged and the rest still run.
+Future<T> undoMediaOnFailure<T>(
+  EditSession<Dive> session,
+  Future<T> Function() write,
+) async {
+  try {
+    return await write();
+  } catch (_) {
+    final undo = session.isDisposed
+        ? null
+        : session.recall<List<Future<void> Function()>>(_undoKey);
+    if (!session.isDisposed) session.remember(_undoKey, null);
+    for (final step in undo ?? const <Future<void> Function()>[]) {
+      try {
+        await step();
+      } catch (error, stackTrace) {
+        _log.warning(
+          'Taking back a media write that did not commit failed',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+    rethrow;
+  }
 }
 
 /// [stored] as the sitting has it: unlinked ones gone, added ones in, in

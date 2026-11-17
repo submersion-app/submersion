@@ -46,9 +46,10 @@ void main() {
         },
         insertNetwork: (requests) async => const [],
         unlink: (ids) async => calls.add('unlink $ids'),
-        replace: (proposals, afterCommit) async {
+        replace: (proposals, afterCommit, onRollback) async {
           calls.add('replace ${proposals.length}');
           afterCommit.add(() async => calls.add('relink settled'));
+          onRollback.add(() async => calls.add('relink undone'));
         },
         drainDeletes: () async => calls.add('drain deletes'),
         enqueueUpload: queued.add,
@@ -132,6 +133,80 @@ void main() {
       await step();
     }
     expect(calls, ['replace 1', 'relink settled']);
+  });
+
+  // Code review (#4527): what a relink wrote outside the database is
+  // taken away when the save's write fails.
+  group('undoMediaOnFailure', () {
+    void relink(EditSession<Dive> session) => replaceLinkInSitting(
+      session,
+      's1',
+      RepairProposal(
+        item: stored.first,
+        confidence: RepairConfidence.exact,
+        candidate: const RepairCandidate.file(
+          path: '/new/s1.jpg',
+          sizeBytes: 4,
+        ),
+      ),
+    );
+
+    test('a write that fails after the relink: its undo runs, and the '
+        'failure is the caller\'s', () async {
+      final session = started();
+      relink(session);
+
+      await expectLater(
+        undoMediaOnFailure(session, () async {
+          await session.runHeldWrites();
+          throw StateError('a later card failed');
+        }),
+        throwsStateError,
+      );
+      expect(calls, ['replace 1', 'relink undone']);
+    });
+
+    test('a write that goes through: nothing undone, its answer '
+        'returned', () async {
+      final session = started();
+      relink(session);
+
+      final answer = await undoMediaOnFailure(session, () async {
+        await session.runHeldWrites();
+        return 7;
+      });
+      expect(answer, 7);
+      expect(calls, ['replace 1']);
+    });
+
+    test('an undo that fails is logged; the rest still run', () async {
+      final session = EditSession<Dive>(dive);
+      addTearDown(session.dispose);
+      final ran = <String>[];
+      holdSittingMedia(
+        session,
+        SittingMediaWriters(
+          writeRows: (_) async => const [],
+          insertNetwork: (_) async => const [],
+          unlink: (_) async {},
+          replace: (proposals, afterCommit, onRollback) async => onRollback
+            ..add(() async => throw StateError('keychain locked'))
+            ..add(() async => ran.add('second')),
+          drainDeletes: () async {},
+          enqueueUpload: (_) {},
+        ),
+      );
+      relink(session);
+
+      await expectLater(
+        undoMediaOnFailure(session, () async {
+          await session.runHeldWrites();
+          throw StateError('a later card failed');
+        }),
+        throwsStateError,
+      );
+      expect(ran, ['second']);
+    });
   });
 
   test('a photo added then unlinked in the sitting: nothing held', () {

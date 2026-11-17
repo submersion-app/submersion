@@ -287,7 +287,7 @@ void main() {
           writeRows: (_) async => const [],
           insertNetwork: (_) async => const [],
           unlink: (_) async {},
-          replace: (_, _) async {},
+          replace: (_, _, _) async {},
           drainDeletes: () async {},
           enqueueUpload: (_) {},
         ),

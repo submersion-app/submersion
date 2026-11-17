@@ -155,17 +155,22 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     };
     // The dive the sitting was opened on, whatever the page shows by the
     // time the write is asked for.
-    final result = await service.save(
-      diveId: session.stored.id,
-      // The changes, and the rebreather values a changed mode no longer
-      // uses dropped.
-      apply: (stored) => diveSittingApply(session, stored),
-      changedCardIds: session.changedCardIds,
-      writeFirst: session.hasHeldWritesBeforeRecord
-          ? () => session.runHeldWrites(beforeRecord: true)
-          : null,
-      alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
-      alsoWriteIsAChange: session.hasHeldChanges,
+    // A write that does not commit takes back what the sitting's media
+    // write did outside the database (a relink's new bookmark).
+    final result = await undoMediaOnFailure(
+      session,
+      () => service.save(
+        diveId: session.stored.id,
+        // The changes, and the rebreather values a changed mode no longer
+        // uses dropped.
+        apply: (stored) => diveSittingApply(session, stored),
+        changedCardIds: session.changedCardIds,
+        writeFirst: session.hasHeldWritesBeforeRecord
+            ? () => session.runHeldWrites(beforeRecord: true)
+            : null,
+        alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
+        alsoWriteIsAChange: session.hasHeldChanges,
+      ),
     );
     if (result == null) return;
     if (result.after.id == widget.diveId) _justSaved = result.after;
