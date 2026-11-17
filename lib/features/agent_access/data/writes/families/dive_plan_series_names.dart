@@ -1,13 +1,15 @@
 import 'dart:collection';
 import 'dart:convert';
 
+import 'package:characters/characters.dart';
+
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 
 /// A series dive's own name as an agent sends it, as the planner's name
-/// field keeps it: trimmed, at most [StoredSeriesDive.maxNameLength]
-/// characters, and a blank or null as none, so the dive goes by its letter
-/// (issue #4626).
+/// field keeps it ([StoredSeriesDive.nameOf]): trimmed, at most
+/// [StoredSeriesDive.maxNameLength] characters, and a blank or null as
+/// none, so the dive goes by its letter (issue #4626).
 ///
 /// Throws a [FieldRefusal] for anything but text or null.
 String? seriesDiveName(Object? raw) {
@@ -15,14 +17,15 @@ String? seriesDiveName(Object? raw) {
   if (raw is! String) {
     throw const FieldRefusal('A dive\'s name is text, or null for its letter.');
   }
-  final trimmed = raw.trim();
-  if (trimmed.length > StoredSeriesDive.maxNameLength) {
+  final name = StoredSeriesDive.nameOf(raw);
+  // Counted as the planner's field counts them, so an emoji is one.
+  if (name != null && name.characters.length > StoredSeriesDive.maxNameLength) {
     throw const FieldRefusal(
       'A dive\'s name holds at most ${StoredSeriesDive.maxNameLength} '
       'characters.',
     );
   }
-  return trimmed.isEmpty ? null : trimmed;
+  return name;
 }
 
 /// The names of a saved series' dives an update gives: an object of plan

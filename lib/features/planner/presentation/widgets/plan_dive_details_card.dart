@@ -22,9 +22,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class PlanDiveDetailsCard extends ConsumerStatefulWidget {
   const PlanDiveDetailsCard({super.key});
 
-  /// Longest dive name, so a chip in the navigator stays a chip.
-  static const maxNameLength = StoredSeriesDive.maxNameLength;
-
   @override
   ConsumerState<PlanDiveDetailsCard> createState() =>
       _PlanDiveDetailsCardState();
@@ -124,8 +121,9 @@ class _PlanDiveDetailsCardState extends ConsumerState<PlanDiveDetailsCard> {
               readOnly: locked,
               textCapitalization: TextCapitalization.sentences,
               inputFormatters: [
+                // Longest dive name, so a chip in the navigator stays a chip.
                 LengthLimitingTextInputFormatter(
-                  PlanDiveDetailsCard.maxNameLength,
+                  StoredSeriesDive.maxNameLength,
                 ),
               ],
               decoration: InputDecoration(

@@ -38,8 +38,7 @@ class PlanSeriesDivesCodec extends FieldCodec {
     return jsonEncode([
       for (final (i, dive) in raw.indexed)
         {
-          for (final MapEntry(:key, :value) in (dive as Map).entries)
-            if (key != _name) key: value,
+          ..._withoutName(dive as Map),
           if (_nameAt(dive, i) case final String name) _name: name,
         },
     ]);
@@ -55,18 +54,23 @@ class PlanSeriesDivesCodec extends FieldCodec {
     }
   }
 
+  /// [dive] as `compute_plan` takes it, which has no name.
+  static Map<Object?, Object?> _withoutName(Map<Object?, Object?> dive) => {
+    for (final MapEntry(:key, :value) in dive.entries)
+      if (key != _name) key: value,
+  };
+
   @override
   Object? wire(Object? value) => value is String ? jsonDecode(value) : value;
 
   /// [value], parsed by this codec, as `compute_plan`'s `dives` argument:
   /// each dive without its name.
   static List<Object?> dives(Object? value) => [
-    for (final dive in _decoded(value))
-      {
-        for (final MapEntry(:key, :value) in (dive! as Map).entries)
-          if (key != _name) key: value,
-      },
+    for (final dive in _decoded(value)) _withoutName(dive! as Map),
   ];
+
+  /// How many dives [value], parsed by this codec, holds.
+  static int count(Object? value) => _decoded(value).length;
 
   /// The name of each of [value]'s dives, in order; null for none.
   static List<String?> names(Object? value) => [
@@ -80,7 +84,7 @@ class PlanSeriesDivesCodec extends FieldCodec {
 /// Why [dives] cannot be a series, or null when they can: a series has two
 /// dives at least, one dive being a plan of its own.
 String? seriesDiveCountProblem(Object? dives) {
-  final n = PlanSeriesDivesCodec.dives(dives).length;
+  final n = PlanSeriesDivesCodec.count(dives);
   if (n >= 2 && n <= maxPlanRequestDives) return null;
   return n < 2
       ? 'A series has at least two dives; save one dive as a dive_plans '
@@ -91,9 +95,9 @@ String? seriesDiveCountProblem(Object? dives) {
 
 /// The series [dives] describe, as the planner would save it: each dive's
 /// plan named [name], the dive its own name if it has one, where its tanks
-/// carry from, how it is timed, and the
-/// summary [config] computes for it (issue #4203). [followedDiveId] is the
-/// logged dive it follows, read through [followOf].
+/// carry from, how it is timed, and the summary [config] computes for it
+/// (issue #4203). [followedDiveId] is the logged dive it follows, read
+/// through [followOf].
 ///
 /// Throws an [AgentToolException] naming the field at fault, as
 /// `compute_plan` refuses the same dives.
