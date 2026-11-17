@@ -16,6 +16,7 @@ libraries under `lib/core/database/tables/`, one per domain.
 | `diver_tables.dart` | 2 | Diver profiles and their settings |
 | `equipment_condition_tables.dart` | 3 | Equipment condition engine: observations, findings and reviews |
 | `equipment_tables.dart` | 10 | Equipment, equipment sets, sharing and the dive gear junction |
+| `identification_tables.dart` | 2 | What the on-device marine life model found on each photo, and the diver's decisions; never synced |
 | `marine_life_tables.dart` | 2 | Species and sightings |
 | `media_tables.dart` | 12 | Media, enrichment, albums, subscriptions and media stores |
 | `pre_dive_tables.dart` | 4 | Pre-dive checklist templates and sessions, with their built-in seeds |

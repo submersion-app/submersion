@@ -171,6 +171,8 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'gps_track_points_local': ChangeLogClass.excluded,
   'local_publish_states': ChangeLogClass.excluded,
   'media_fetch_diagnostics': ChangeLogClass.excluded,
+  'media_identification_runs': ChangeLogClass.excluded,
+  'media_identifications': ChangeLogClass.excluded,
   'media_repair_log': ChangeLogClass.excluded,
   'media_subscription_state': ChangeLogClass.excluded,
   'nearby_peers': ChangeLogClass.excluded,

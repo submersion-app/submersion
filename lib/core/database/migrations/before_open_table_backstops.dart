@@ -155,5 +155,9 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v352 backstop: media.observation_id and equipment.cover_media_id
     // (issue #3355; idempotent).
     await _assertEquipmentPhotoColumns();
+
+    // v374 backstop: the marine life identification tables (issue #4668;
+    // local, idempotent).
+    await _assertMediaIdentificationTables();
   }
 }
