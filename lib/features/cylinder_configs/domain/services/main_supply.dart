@@ -3,14 +3,15 @@ import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_co
 
 /// The roles that are a diver's main gas supply: what a new dive's starter
 /// tank, or a new plan's default tank, stands in for until the diver says
-/// what they are carrying. Back gas, a twin set, a sidemount pair, and a
-/// rebreather's diluent and oxygen.
+/// what they are carrying. Back gas, a twin set, an Avelo Hydrotank (issue
+/// #4657), a sidemount pair, and a rebreather's diluent and oxygen.
 ///
 /// Stages, deco, bailout, pony and suit inflation cylinders are carried in
 /// addition to a main supply, never instead of one.
 const Set<TankRole> mainSupplyRoles = {
   TankRole.backGas,
   TankRole.twinSet,
+  TankRole.hydrotank,
   TankRole.sidemountLeft,
   TankRole.sidemountRight,
   TankRole.diluent,

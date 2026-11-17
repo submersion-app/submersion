@@ -4540,6 +4540,7 @@
   "enum_tankRole_stage": "Stage",
   "enum_tankRole_suitInflation": "Gonflage combinaison",
   "enum_tankRole_twinSet": "Bi-bouteille",
+  "enum_tankRole_hydrotank": "Hydrotank",
   "enum_tideState_rising": "Montante",
   "enum_tideState_falling": "Descendante",
   "enum_tideState_slackHigh": "Étale de pleine mer",

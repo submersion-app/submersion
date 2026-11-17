@@ -20,6 +20,7 @@ extension TankRoleDisplay on TankRole {
   String localizedName(AppLocalizations l10n) => switch (this) {
     TankRole.backGas => l10n.enum_tankRole_backGas,
     TankRole.twinSet => l10n.enum_tankRole_twinSet,
+    TankRole.hydrotank => l10n.enum_tankRole_hydrotank,
     TankRole.stage => l10n.enum_tankRole_stage,
     TankRole.deco => l10n.enum_tankRole_deco,
     TankRole.bailout => l10n.enum_tankRole_bailout,
@@ -37,7 +38,8 @@ extension TankRoleDisplay on TankRole {
   /// the label beside the icon tells those apart. A suit inflation bottle
   /// rides beside the main cylinder the way a pony does (issue #4243).
   IconData get icon => switch (this) {
-    TankRole.backGas => SubmersionIcons.tankBackGas,
+    // An Avelo Hydrotank is worn on the back like back gas (issue #4657).
+    TankRole.backGas || TankRole.hydrotank => SubmersionIcons.tankBackGas,
     TankRole.twinSet => SubmersionIcons.tankTwinSet,
     TankRole.sidemountLeft => SubmersionIcons.tankSidemountLeft,
     TankRole.sidemountRight => SubmersionIcons.tankSidemountRight,

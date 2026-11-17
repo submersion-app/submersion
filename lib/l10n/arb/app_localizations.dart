@@ -24419,6 +24419,12 @@ abstract class AppLocalizations {
   /// **'Twin Set'**
   String get enum_tankRole_twinSet;
 
+  /// No description provided for @enum_tankRole_hydrotank.
+  ///
+  /// In en, this message translates to:
+  /// **'Hydrotank'**
+  String get enum_tankRole_hydrotank;
+
   /// No description provided for @enum_tideState_rising.
   ///
   /// In en, this message translates to:

@@ -14,8 +14,14 @@ const Set<TankRole> sidemountRoles = {
 };
 
 /// The roles that mean the primary gas worn on the back: a single cylinder
-/// or a manifolded twin set logged as one (issue #3374).
-const Set<TankRole> backmountRoles = {TankRole.backGas, TankRole.twinSet};
+/// or a manifolded twin set logged as one (issue #3374), or an Avelo
+/// Hydrotank (issue #4657), which stays the dive's main cylinder even though
+/// its pressure does not measure the gas used.
+const Set<TankRole> backmountRoles = {
+  TankRole.backGas,
+  TankRole.twinSet,
+  TankRole.hydrotank,
+};
 
 /// The cylinders of [tanks] that hold breathing gas, in order: every one but
 /// a suit inflation bottle (issue #4243, see [TankRole.isBreathingGas]).

@@ -4666,6 +4666,7 @@
   "enum_tankRole_stage": "أسطوانة مرحلية",
   "enum_tankRole_suitInflation": "نفخ البدلة",
   "enum_tankRole_twinSet": "طقم مزدوج",
+  "enum_tankRole_hydrotank": "Hydrotank",
   "enum_tideState_rising": "مد",
   "enum_tideState_falling": "جزر",
   "enum_tideState_slackHigh": "المد الأعلى (ركود)",

@@ -14940,6 +14940,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_tankRole_twinSet => 'צמד בלונים';
 
   @override
+  String get enum_tankRole_hydrotank => 'Hydrotank';
+
+  @override
   String get enum_tideState_rising => 'עולה';
 
   @override

@@ -439,6 +439,12 @@ void main() {
     testWidgets('the role field and every role option carry the role glyph', (
       tester,
     ) async {
+      // Tall enough for the open menu to build every role at once: in the
+      // default 800x600 view twelve roles scroll, and an off-screen row is
+      // never built.
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       await tester.pumpWidget(host(item: seed(role: TankRole.sidemountLeft)));
       await tester.pumpAndSettle();
 

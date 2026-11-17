@@ -4666,6 +4666,7 @@
   "enum_tankRole_stage": "Stage",
   "enum_tankRole_suitInflation": "Inflado del traje",
   "enum_tankRole_twinSet": "Bibotella",
+  "enum_tankRole_hydrotank": "Hydrotank",
   "enum_tideState_rising": "Subiendo",
   "enum_tideState_falling": "Bajando",
   "enum_tideState_slackHigh": "Marea alta (repunte)",

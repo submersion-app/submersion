@@ -195,6 +195,7 @@ List<FigureZone> _zonesForTankRole(TankRole role) => switch (role) {
   TankRole.suitInflation => const [FigureZone.stageLeft, FigureZone.stageRight],
   TankRole.backGas ||
   TankRole.twinSet ||
+  TankRole.hydrotank ||
   TankRole.diluent ||
   TankRole.oxygenSupply => const [FigureZone.backTank],
 };

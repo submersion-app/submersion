@@ -4700,6 +4700,7 @@
   "enum_tankRole_stage": "Stageflasche",
   "enum_tankRole_suitInflation": "Anzugflasche",
   "enum_tankRole_twinSet": "Doppelgerät",
+  "enum_tankRole_hydrotank": "Hydrotank",
   "enum_tideState_rising": "Auflaufend",
   "enum_tideState_falling": "Ablaufend",
   "enum_tideState_slackHigh": "Hochwasser (Stillwasser)",

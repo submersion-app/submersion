@@ -4540,6 +4540,7 @@
   "enum_tankRole_stage": "סטייג'",
   "enum_tankRole_suitInflation": "ניפוח חליפה",
   "enum_tankRole_twinSet": "צמד בלונים",
+  "enum_tankRole_hydrotank": "Hydrotank",
   "enum_tideState_rising": "עולה",
   "enum_tideState_falling": "יורד",
   "enum_tideState_slackHigh": "גאות מלאה (רגיעה)",

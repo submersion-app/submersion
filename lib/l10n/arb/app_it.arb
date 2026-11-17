@@ -4540,6 +4540,7 @@
   "enum_tankRole_stage": "Stage",
   "enum_tankRole_suitInflation": "Gonfiaggio muta",
   "enum_tankRole_twinSet": "Bibombola",
+  "enum_tankRole_hydrotank": "Hydrotank",
   "enum_tideState_rising": "Montante",
   "enum_tideState_falling": "Discendente",
   "enum_tideState_slackHigh": "Alta marea (stanca)",
