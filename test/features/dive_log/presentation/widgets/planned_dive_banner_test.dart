@@ -9,7 +9,12 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// The planned dive banner keeps its text readable at phone width with both
 /// of its actions (issue #3565, phase 2b).
 void main() {
-  Future<void> pump(WidgetTester tester, {required double width}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    required double width,
+    String? operationReason,
+    VoidCallback? onMarkLogged,
+  }) async {
     tester.view.physicalSize = Size(width, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -23,7 +28,11 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           locale: const Locale('en'),
           home: Scaffold(
-            body: PlannedDiveBanner(diveId: 'd1', onMarkLogged: () {}),
+            body: PlannedDiveBanner(
+              diveId: 'd1',
+              onMarkLogged: onMarkLogged ?? () {},
+              operationReason: operationReason,
+            ),
           ),
         ),
       ),
@@ -45,4 +54,40 @@ void main() {
       expect(body.width, greaterThan(width * 0.6));
     });
   }
+
+  testWidgets('a banner operation with a reason is disabled and says why', (
+    tester,
+  ) async {
+    var marked = 0;
+    await pump(
+      tester,
+      width: 1200,
+      operationReason: 'Unlock to use this',
+      onMarkLogged: () => marked++,
+    );
+
+    final mark = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, 'Mark as logged'),
+    );
+    expect(mark.onPressed, isNull);
+    expect(find.byTooltip('Unlock to use this'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextButton>(
+            find.widgetWithText(TextButton, 'Open in planner'),
+          )
+          .onPressed,
+      isNotNull,
+    );
+    expect(marked, 0);
+  });
+
+  testWidgets('the banner is the same height with and without a reason', (
+    tester,
+  ) async {
+    await pump(tester, width: 400);
+    final free = tester.getSize(find.byType(PlannedDiveBanner)).height;
+    await pump(tester, width: 400, operationReason: 'Unlock to use this');
+    expect(tester.getSize(find.byType(PlannedDiveBanner)).height, free);
+  });
 }
