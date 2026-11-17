@@ -237,6 +237,21 @@ void main() {
       expect((await repo.forMedia('v1')).single.claimedSpeciesId, 'sp_y');
     });
 
+    test(
+      'a decision written from an older read keeps a claim made since',
+      () async {
+        final read = track('t1');
+        await repo.storeRun(videoRun(), insert: [read], deleteIds: []);
+        await repo.claim('t1', 'sp_y');
+        await repo.updateIdentifications([
+          read.copyWith(decision: IdentificationDecision.rejected),
+        ]);
+        final stored = (await repo.forMedia('v1')).single;
+        expect(stored.decision, IdentificationDecision.rejected);
+        expect(stored.claimedSpeciesId, 'sp_y');
+      },
+    );
+
     test('a claim on a missing row writes nothing', () async {
       await repo.claim('gone', 'sp_y');
       expect(await repo.count(), 0);

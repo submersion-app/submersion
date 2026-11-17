@@ -106,7 +106,9 @@ class MediaIdentificationRepository {
   /// Writes [changed] over the stored rows with the same ids, and [run]
   /// when given, in one transaction. Only rows still stored are written: a
   /// decision that lands after the photo's rows were cleared or replaced
-  /// must not bring them back.
+  /// must not bring them back. A claim is left as stored: [changed] comes
+  /// from an earlier read, and the diver may have named the fish since
+  /// (issue #4675); only [claim] and a fresh scan write one.
   Future<void> updateIdentifications(
     List<MediaIdentification> changed, {
     MediaIdentificationRun? run,
@@ -114,9 +116,13 @@ class MediaIdentificationRepository {
     final db = _db;
     return db.transaction(() async {
       for (final identification in changed) {
-        await db
-            .update(db.mediaIdentifications)
-            .replace(_toCompanion(identification));
+        await (db.update(
+          db.mediaIdentifications,
+        )..where((r) => r.id.equals(identification.id))).write(
+          _toCompanion(
+            identification,
+          ).copyWith(claimedSpeciesId: const Value.absent()),
+        );
       }
       if (run != null) {
         await db
