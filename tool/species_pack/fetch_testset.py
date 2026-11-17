@@ -543,6 +543,9 @@ def stage_write(work, csv_path):
     underwater = _load(os.path.join(work, "underwater.json"), {})
     # The by-eye review overrides the filter where it was wrong.
     underwater.update(_load(os.path.join(work, "underwater_overrides.json"), {}))
+    unchecked = [o["id"] for o in sample if keys.get(_name(o)) is not None and o["id"] not in precut]
+    if unchecked:
+        raise SystemExit(f"{len(unchecked)} observations have no pre-cutoff check yet; finish the labels stage")
     rows = []
     for o in sample:
         key = keys.get(_name(o))
