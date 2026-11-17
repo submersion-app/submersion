@@ -155,11 +155,12 @@ void main() {
     }
   });
 
-  // The date cap must give way on a crowded narrow line rather than push the
-  // row past the card: selection checkbox, a Planned chip and the mode badge
-  // all sit on line 1 beside it.
+  // A narrow card in selection mode is crowded on both lines once the chevron
+  // has its own column: line 1 holds the checkbox, a Planned chip and the
+  // mode badge beside the capped date, and line 2 the stats beside the type
+  // badges. Neither line may push past the card.
   for (final width in [300.0, 340.0]) {
-    testWidgets('a crowded compact line 1 fits at $width', (tester) async {
+    testWidgets('a crowded compact card fits at $width', (tester) async {
       final planned = DiveSummary(
         id: 'd1',
         diveNumber: null,
