@@ -97,6 +97,47 @@ void main() {
     expect(inputs.durationSeconds, 1800);
   });
 
+  test(
+    'carries the diver SCR defaults for a dive without its own (#4660)',
+    () async {
+      final dive = await DiveRepository().createDive(
+        Dive(
+          id: '',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 1, 1),
+          profile: _square(),
+          tanks: const [
+            DiveTank(
+              id: 'back',
+              volume: 12,
+              startPressure: 200,
+              endPressure: 100,
+              gasMix: GasMix(o2: 21),
+              role: TankRole.backGas,
+            ),
+          ],
+        ),
+      );
+      final c = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => MockSettingsNotifier(
+              const AppSettings(
+                plannerScrInjectionRate: 7.5,
+                plannerScrVo2: 2.0,
+              ),
+            ),
+          ),
+          loggedAverageSacProvider.overrideWith((ref) async => 17.0),
+        ],
+      );
+      addTearDown(c.dispose);
+      final inputs = await c.read(labRequestInputsProvider(dive.id).future);
+      expect(inputs!.settings.defaultScrInjectionRateLpm, 7.5);
+      expect(inputs.settings.defaultScrVo2Lpm, 2.0);
+    },
+  );
+
   test('a gauge dive is ineligible', () async {
     final dive = await DiveRepository().createDive(
       Dive(

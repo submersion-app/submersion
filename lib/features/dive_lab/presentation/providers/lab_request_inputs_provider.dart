@@ -137,6 +137,8 @@ final labRequestInputsProvider = FutureProvider.autoDispose
         gasModel: ref.watch(gasModelProvider),
         o2Narcotic: ref.watch(settingsProvider.select((s) => s.o2Narcotic)),
         buddyFactor: engineConfig.buddyFactor,
+        defaultScrInjectionRateLpm: engineConfig.scrInjectionRateLpm,
+        defaultScrVo2Lpm: engineConfig.scrVo2Lpm,
       );
 
       final timestamps = [for (final p in profile) p.timestamp];
