@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
@@ -27,12 +28,16 @@ class TripOverviewTab extends ConsumerWidget {
   /// visit to another tab; null lets the story keep its own.
   final ValueNotifier<TripStorySelection?>? selection;
 
+  /// Opens the trip editor at a day's note (#4625); null hides the action.
+  final ValueChanged<TripNoteDay>? onEditDayNote;
+
   const TripOverviewTab({
     super.key,
     required this.tripWithStats,
     this.onOpenTab,
     this.onEditPlan,
     this.selection,
+    this.onEditDayNote,
   });
 
   @override
@@ -71,6 +76,7 @@ class TripOverviewTab extends ConsumerWidget {
       stats: tripWithStats,
       selection: selection,
       onScanForDives: () => scanForTripDives(context, ref, trip),
+      onEditDayNote: onEditDayNote,
     );
   }
 }

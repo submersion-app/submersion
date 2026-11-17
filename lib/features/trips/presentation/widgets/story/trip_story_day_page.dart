@@ -38,6 +38,9 @@ class TripStoryDayPage extends ConsumerStatefulWidget {
     required this.day,
     required this.mapPoints,
     this.storedWeather,
+    this.tripNotes,
+    this.onOpenTripNotes,
+    this.onEditNote,
   });
 
   final TripStory story;
@@ -50,11 +53,21 @@ class TripStoryDayPage extends ConsumerStatefulWidget {
   /// Weather stored for this day; null when nothing is stored yet.
   final TripStoryDayWeather? storedWeather;
 
+  /// The day's passages from the trip's Notes (#4625), or null.
+  final String? tripNotes;
+
+  /// Opens the whole trip's Notes, from the caption over [tripNotes].
+  final VoidCallback? onOpenTripNotes;
+
+  /// Opens the trip editor at this day's note; null hides the action.
+  final VoidCallback? onEditNote;
+
   /// The width from which the map sits beside the dives.
   static const double twoColumnMinWidth = 600;
 
   static const noDivesKey = Key('trip-day-no-dives');
   static const twoColumnsKey = Key('trip-day-two-columns');
+  static const editNoteKey = Key('trip-day-edit-note');
 
   @override
   ConsumerState<TripStoryDayPage> createState() => _TripStoryDayPageState();
@@ -122,7 +135,13 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
                     ?.diveCount ??
                 0) >
             0;
-    final hasPlan = TripStoryDayPlan.hasContent(day, hasHistory: hasHistory);
+    final tripNotes = widget.tripNotes;
+    final hasTripNotes = tripNotes?.trim().isNotEmpty ?? false;
+    final hasPlan = TripStoryDayPlan.hasContent(
+      day,
+      hasHistory: hasHistory,
+      tripNotes: tripNotes,
+    );
     final conditions = DayConditions.fromDives(day.dives);
 
     Widget? mapOf(double height) => widget.mapPoints.isEmpty
@@ -152,8 +171,31 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
     // The plan reads first: what the day was meant to be, then what it
     // became.
     final plan = hasPlan
-        ? TripStoryDayPlan(day: day, units: units, hasHistory: hasHistory)
+        ? TripStoryDayPlan(
+            day: day,
+            units: units,
+            hasHistory: hasHistory,
+            tripNotes: tripNotes,
+            onOpenTripNotes: widget.onOpenTripNotes,
+          )
         : null;
+    final onEditNote = widget.onEditNote;
+    // Under the plan, or where it would be: the note it adds lands there.
+    final editNote = onEditNote == null
+        ? null
+        : Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              key: TripStoryDayPage.editNoteKey,
+              onPressed: onEditNote,
+              icon: const Icon(Icons.edit_note, size: 18),
+              label: Text(
+                hasTripNotes
+                    ? l10n.trips_story_editDayNote
+                    : l10n.trips_story_addDayNote,
+              ),
+            ),
+          );
     final timeline = day.dives.isEmpty
         ? null
         : Column(
@@ -221,6 +263,7 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
                     child: _stacked([
                       mapOf(230),
                       plan,
+                      editNote,
                       timeline,
                       photos,
                       species,
@@ -234,6 +277,7 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
             : _stacked([
                 mapOf(180),
                 plan,
+                editNote,
                 timeline,
                 dives,
                 // Where the dives would be, not under what the day did have.

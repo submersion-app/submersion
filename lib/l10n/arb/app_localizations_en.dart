@@ -1785,6 +1785,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'From trip notes';
+
+  @override
+  String get trips_story_addDayNote => 'Add note';
+
+  @override
+  String get trips_story_editDayNote => 'Edit note';
+
+  @override
   String get trips_story_surfaceDay => 'Surface day';
 
   @override

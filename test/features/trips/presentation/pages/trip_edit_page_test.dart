@@ -11,6 +11,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -430,6 +431,145 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('My Test Trip'), findsOneWidget);
+    });
+  });
+
+  group('TripEditPage - opening at a day note (#4625)', () {
+    final day3 = TripNoteDay(date: DateTime(2024, 1, 17), dayNumber: 3);
+
+    Future<_MockTripListNotifier> pump(
+      WidgetTester tester, {
+      String notes = 'Intro',
+    }) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final notifier = _MockTripListNotifier([]);
+      final router = GoRouter(
+        initialLocation: '/trips/edit',
+        routes: [
+          GoRoute(
+            path: '/trips',
+            builder: (context, state) =>
+                const Scaffold(body: Text('LIST_PAGE')),
+          ),
+          GoRoute(
+            path: '/trips/edit',
+            builder: (context, state) =>
+                TripEditPage(tripId: 'test-id', noteDay: day3),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithNotedTrip(notes),
+            ),
+            tripListNotifierProvider.overrideWith((ref) => notifier),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (ref) async => 'diver-id',
+            ),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return notifier;
+    }
+
+    EditableText notesField(WidgetTester tester) => tester.widget<EditableText>(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is EditableText &&
+            widget.controller.text.startsWith('Intro'),
+      ),
+    );
+
+    testWidgets('adds the day heading with the caret under it', (tester) async {
+      await pump(tester);
+
+      final field = notesField(tester);
+      expect(field.controller.text, 'Intro\n\n## Day 3\n');
+      expect(field.focusNode.hasFocus, isTrue);
+      expect(
+        field.controller.selection,
+        TextSelection.collapsed(offset: field.controller.text.length),
+      );
+    });
+
+    testWidgets('the added heading alone is not a change', (tester) async {
+      await pump(tester);
+
+      final popScope = tester.widget<PopScope<Object?>>(
+        find.byWidgetPredicate((widget) => widget is PopScope),
+      );
+      expect(popScope.canPop, isTrue);
+    });
+
+    testWidgets('a save for another reason leaves the empty heading out', (
+      tester,
+    ) async {
+      final notifier = await pump(tester);
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Trip Name *'),
+        'Renamed',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.lastUpdated?.name, 'Renamed');
+      expect(notifier.lastUpdated?.notes, 'Intro');
+    });
+
+    testWidgets('words under the heading are saved with it', (tester) async {
+      final notifier = await pump(tester);
+
+      notesField(tester).controller.text = 'Intro\n\n## Day 3\nTurtle';
+      await tester.pump();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.lastUpdated?.notes, 'Intro\n\n## Day 3\nTurtle');
+    });
+
+    testWidgets('a tap that only moves the caret is not a change', (
+      tester,
+    ) async {
+      await pump(tester);
+
+      await tester.tap(find.widgetWithText(TextFormField, 'Trip Name *'));
+      await tester.pump();
+
+      final popScope = tester.widget<PopScope<Object?>>(
+        find.byWidgetPredicate((widget) => widget is PopScope),
+      );
+      expect(popScope.canPop, isTrue);
+    });
+
+    testWidgets('untouched Notes are saved as they were loaded', (
+      tester,
+    ) async {
+      // The Day 3 heading has nothing under it and Day 4 follows at once,
+      // so opening there adds a line for the caret.
+      const notes = 'Intro\n\n## Day 3\n## Day 4\nShark';
+      final notifier = await pump(tester, notes: notes);
+      expect(notesField(tester).controller.text, isNot(notes));
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Trip Name *'),
+        'Renamed',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.lastUpdated?.notes, notes);
     });
   });
 
@@ -2744,6 +2884,17 @@ class _RecordingScanRepo extends _MockTripRepositoryWithTrip {
     scannedDiverId = diverId;
     return [];
   }
+}
+
+/// [_MockTripRepositoryWithTrip]'s trip, with Notes (#4625).
+class _MockTripRepositoryWithNotedTrip extends _MockTripRepositoryWithTrip {
+  _MockTripRepositoryWithNotedTrip([this.notes = 'Intro']);
+
+  final String notes;
+
+  @override
+  Future<Trip?> getTripById(String id) async =>
+      (await super.getTripById(id))?.copyWith(notes: notes);
 }
 
 /// Mock repository that returns a test trip

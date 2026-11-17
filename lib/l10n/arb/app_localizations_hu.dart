@@ -1799,6 +1799,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'Az út jegyzeteiből';
+
+  @override
+  String get trips_story_addDayNote => 'Jegyzet hozzáadása';
+
+  @override
+  String get trips_story_editDayNote => 'Jegyzet szerkesztése';
+
+  @override
   String get trips_story_surfaceDay => 'Felszíni nap';
 
   @override

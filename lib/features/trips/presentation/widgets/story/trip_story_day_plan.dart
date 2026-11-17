@@ -7,12 +7,14 @@ import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/domain/services/day_plan_progress.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/day_plan_line.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_day_sections.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 /// The plan part of a story day card, on every day: the itinerary notes, the
-/// planned dives (as progress once the day has come), and, for a day ahead,
-/// the diver's history at its port or site.
+/// day's part of the trip's Notes (#4625), the planned dives (as progress
+/// once the day has come), and, for a day ahead, the diver's history at its
+/// port or site.
 class TripStoryDayPlan extends StatelessWidget {
   final TripStoryDay day;
   final UnitFormatter units;
@@ -22,11 +24,22 @@ class TripStoryDayPlan extends StatelessWidget {
   /// entirely, so the column adds no gap for a widget that draws nothing.
   final bool hasHistory;
 
+  /// The day's passages from the trip's Notes, or null when it has none.
+  final String? tripNotes;
+
+  /// Opens the whole trip's Notes, from the caption over [tripNotes].
+  final VoidCallback? onOpenTripNotes;
+
+  static const tripNotesKey = Key('trip-day-trip-notes');
+  static const fromTripNotesKey = Key('trip-day-from-trip-notes');
+
   const TripStoryDayPlan({
     super.key,
     required this.day,
     required this.units,
     required this.hasHistory,
+    this.tripNotes,
+    this.onOpenTripNotes,
   });
 
   /// Whether the section would draw anything. Blank is not content: sync and
@@ -34,8 +47,13 @@ class TripStoryDayPlan extends StatelessWidget {
   /// sheet would have normalized away. A planned port counts only when
   /// [hasHistory] says its pills will draw: a port the diver has never dived
   /// would otherwise leave an empty card under the header.
-  static bool hasContent(TripStoryDay day, {required bool hasHistory}) =>
+  static bool hasContent(
+    TripStoryDay day, {
+    required bool hasHistory,
+    String? tripNotes,
+  }) =>
       (day.itineraryDay?.notes.trim().isNotEmpty ?? false) ||
+      (tripNotes?.trim().isNotEmpty ?? false) ||
       _progress(day) != null ||
       (historySite(day) != null && hasHistory);
 
@@ -55,6 +73,10 @@ class TripStoryDayPlan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final notes = day.itineraryDay?.notes.trim() ?? '';
+    // Only the end is trimmed: four spaces leading the first line make an
+    // indented code block, and the scanner already drops blank lines.
+    final fromTrip = tripNotes?.trimRight() ?? '';
+    final bodySmall = Theme.of(context).textTheme.bodySmall;
     final progress = _progress(day);
     final site = historySite(day);
     // It can lead the card, so no part carries a gap above itself.
@@ -62,15 +84,48 @@ class TripStoryDayPlan extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 6,
       children: [
-        if (notes.isNotEmpty)
-          MarkdownNotesView(
-            notes,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+        if (notes.isNotEmpty) MarkdownNotesView(notes, style: bodySmall),
+        if (fromTrip.isNotEmpty) ...[
+          _FromTripNotesCaption(onTap: onOpenTripNotes),
+          MarkdownNotesView(fromTrip, key: tripNotesKey, style: bodySmall),
+        ],
         if (progress != null) DayPlanLine(progress: progress),
         if (site != null && hasHistory)
           _HistoryPills(siteName: site, units: units),
       ],
+    );
+  }
+}
+
+/// The caption over the day's part of the trip's Notes; a tap opens the
+/// whole of them on the Trip page.
+class _FromTripNotesCaption extends StatelessWidget {
+  final VoidCallback? onTap;
+
+  const _FromTripNotesCaption({this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      key: TripStoryDayPlan.fromTripNotesKey,
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TripDaySectionCaption(text: context.l10n.trips_story_fromTripNotes),
+            // Only a caption that opens something says so.
+            if (onTap != null)
+              Icon(
+                Icons.chevron_right,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

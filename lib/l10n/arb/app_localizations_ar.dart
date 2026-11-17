@@ -1843,6 +1843,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'من ملاحظات الرحلة';
+
+  @override
+  String get trips_story_addDayNote => 'إضافة ملاحظة';
+
+  @override
+  String get trips_story_editDayNote => 'تعديل الملاحظة';
+
+  @override
   String get trips_story_surfaceDay => 'يوم سطح';
 
   @override

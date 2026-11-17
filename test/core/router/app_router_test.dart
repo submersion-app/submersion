@@ -43,6 +43,7 @@ import 'package:submersion/features/shared_library/presentation/pages/shared_lib
 import 'package:submersion/features/settings/presentation/pages/profile_metric_colors_page.dart';
 import 'package:submersion/features/settings/presentation/pages/raw_dive_data_page.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -229,6 +230,17 @@ void main() {
       expect(planning.tripId, 't1');
       expect(planning.initialSection, TripEditSection.planning);
       expect(build('/trips/t1/edit').initialSection, isNull);
+
+      // Add note on a day opens the form at that day's note (#4625).
+      final dayNote = build(
+        '/trips/t1/edit?section=notes&noteDate=2026-11-05&noteDay=3',
+      );
+      expect(dayNote.initialSection, TripEditSection.notes);
+      expect(
+        dayNote.noteDay,
+        TripNoteDay(date: DateTime(2026, 11, 5), dayNumber: 3),
+      );
+      expect(build('/trips/t1/edit').noteDay, isNull);
     });
   });
 
