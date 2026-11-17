@@ -14,12 +14,14 @@ import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// Two-line compact card tile for the buddy list, driven by
 /// [buddyCompactCardConfigProvider]. No avatar, no chips.
 ///
-/// Line 1: title slot | stat1 | chevron
+/// Line 1: title slot | stat1
 /// Line 2: subtitle slot | stat2
+/// A chevron centred on both lines follows them at the card's end.
 class CompactBuddyListTile extends ConsumerWidget {
   final BuddyWithDiveCount entry;
   final VoidCallback? onTap;
@@ -102,84 +104,83 @@ class CompactBuddyListTile extends ConsumerWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Row(
-              children: [
-                SelectionCheckboxSlot(
-                  isSelectionMode: isSelectionMode,
-                  isChecked: isSelected,
-                  onChanged: (_) => onTap?.call(),
-                  gap: 8,
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              title,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          stat(
-                            resolveCardSlot(
-                              slots,
-                              'stat1',
-                              BuddyField.diveCount,
-                            ),
-                          ),
-                          // Favoriting (issue #1336), independent of bulk
-                          // selection.
-                          BuddyFavoriteButton(
-                            buddyId: buddy.id,
-                            isFavorite: buddy.isFavorite,
-                            iconSize: 18,
-                            unselectedColor: secondaryTextColor,
-                          ),
-                          ExcludeSemantics(
-                            child: Icon(
-                              Icons.chevron_right,
-                              color: secondaryTextColor,
-                              size: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (showSecondLine) ...[
-                        const SizedBox(height: 2),
+            padding: const EdgeInsets.all(kRecordCardCompactPadding),
+            child: RecordListChevronRow(
+              chevronSize: RecordListChevron.compactSize,
+              chevronColor: secondaryTextColor,
+              child: Row(
+                children: [
+                  SelectionCheckboxSlot(
+                    isSelectionMode: isSelectionMode,
+                    isChecked: isSelected,
+                    onChanged: (_) => onTap?.call(),
+                    gap: 8,
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Row(
                           children: [
                             Expanded(
-                              child: Align(
-                                alignment: AlignmentDirectional.centerStart,
-                                child: LocationWithFlag(
-                                  country: flagBuddy?.country,
-                                  countryCode: flagBuddy?.countryCode,
-                                  text: Text(
-                                    subtitle ?? '',
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(color: secondaryTextColor),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
+                              child: Text(
+                                title,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 8),
-                            stat(stat2Field),
+                            stat(
+                              resolveCardSlot(
+                                slots,
+                                'stat1',
+                                BuddyField.diveCount,
+                              ),
+                            ),
+                            // Favoriting (issue #1336), independent of bulk
+                            // selection.
+                            BuddyFavoriteButton(
+                              buddyId: buddy.id,
+                              isFavorite: buddy.isFavorite,
+                              iconSize: 18,
+                              unselectedColor: secondaryTextColor,
+                            ),
                           ],
                         ),
+                        if (showSecondLine) ...[
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: LocationWithFlag(
+                                    country: flagBuddy?.country,
+                                    countryCode: flagBuddy?.countryCode,
+                                    text: Text(
+                                      subtitle ?? '',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(color: secondaryTextColor),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              stat(stat2Field),
+                            ],
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

@@ -30,6 +30,7 @@ import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
 import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_site_badge.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// Detailed list card for one dive site.
 ///
@@ -199,135 +200,136 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
 
     Widget buildContent() {
       return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                SelectionLeading(
-                  isSelectionMode: widget.isSelectionMode,
-                  isChecked: widget.isChecked,
-                  onChanged: (_) => widget.onTap?.call(),
-                  child: SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: CircleAvatar(
-                      backgroundColor:
-                          accent?.withValues(alpha: 0.15) ??
-                          colorScheme.secondaryContainer,
-                      child: Icon(
-                        Icons.location_on,
-                        color: accent ?? colorScheme.onSecondaryContainer,
+        padding: const EdgeInsets.all(kRecordCardDetailedPadding),
+        child: RecordListChevronRow(
+          showChevron: !widget.isSelectionMode,
+          chevronColor: secondaryTextColor,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  SelectionLeading(
+                    isSelectionMode: widget.isSelectionMode,
+                    isChecked: widget.isChecked,
+                    onChanged: (_) => widget.onTap?.call(),
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircleAvatar(
+                        backgroundColor:
+                            accent?.withValues(alpha: 0.15) ??
+                            colorScheme.secondaryContainer,
+                        child: Icon(
+                          Icons.location_on,
+                          color: accent ?? colorScheme.onSecondaryContainer,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          // No ellipsis: a long title wraps, like the trip
-                          // and equipment cards, so the full name is always
-                          // visible.
-                          Expanded(
-                            child: Text(
-                              title,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: primaryTextColor,
-                                  ),
-                            ),
-                          ),
-                          if (site.rating != null) ...[
-                            const SizedBox(width: 6),
-                            const Icon(
-                              Icons.star,
-                              color: Colors.amber,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              formatRatingForDisplay(site.rating!),
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: primaryTextColor),
-                            ),
-                          ],
-                          if (widget.showSharedBadge) ...[
-                            const SizedBox(width: 6),
-                            Tooltip(
-                              message:
-                                  l10n.accessibility_label_sharedWithProfiles,
-                              child: Icon(
-                                Icons.people_outline,
-                                size: 16,
-                                color: primaryTextColor ?? colorScheme.primary,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            // No ellipsis: a long title wraps, like the trip
+                            // and equipment cards, so the full name is always
+                            // visible.
+                            Expanded(
+                              child: Text(
+                                title,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: primaryTextColor,
+                                    ),
                               ),
                             ),
+                            if (site.rating != null) ...[
+                              const SizedBox(width: 6),
+                              const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                formatRatingForDisplay(site.rating!),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: primaryTextColor),
+                              ),
+                            ],
+                            if (widget.showSharedBadge) ...[
+                              const SizedBox(width: 6),
+                              Tooltip(
+                                message:
+                                    l10n.accessibility_label_sharedWithProfiles,
+                                child: Icon(
+                                  Icons.people_outline,
+                                  size: 16,
+                                  color:
+                                      primaryTextColor ?? colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                            LibrarySiteBadge(site: widget.entry.site),
                           ],
-                          LibrarySiteBadge(site: widget.entry.site),
-                        ],
-                      ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: 2),
-                        LocationWithFlag(
-                          country: flagSite?.country,
-                          countryCode: flagSite?.countryCode,
-                          text: Text(
-                            subtitle,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: secondaryTextColor),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
                         ),
+                        if (subtitle != null) ...[
+                          const SizedBox(height: 2),
+                          LocationWithFlag(
+                            country: flagSite?.country,
+                            countryCode: flagSite?.countryCode,
+                            text: Text(
+                              subtitle,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: secondaryTextColor),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                if (!widget.isSelectionMode)
-                  ExcludeSemantics(
-                    child: Icon(Icons.chevron_right, color: secondaryTextColor),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            SelectionInset(
-              isSelectionMode: widget.isSelectionMode,
-              start: _contentInset,
-              child: _SiteStatRow(
-                stats: statItems,
-                siteTypeLabels: siteTypeLabels,
+                ],
               ),
-            ),
-            if (chips.isNotEmpty) ...[
               const SizedBox(height: 6),
               SelectionInset(
                 isSelectionMode: widget.isSelectionMode,
                 start: _contentInset,
-                child: Wrap(spacing: 6, runSpacing: 4, children: chips),
-              ),
-            ],
-            if (config.extraFields.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              SelectionInset(
-                isSelectionMode: widget.isSelectionMode,
-                start: _contentInset,
-                child: EntityCardExtraFields<SiteWithDiveCount, SiteField>(
-                  adapter: adapter,
-                  entity: entry,
-                  fields: config.extraFields,
-                  units: units,
-                  labelColor: secondaryTextColor,
-                  valueColor: primaryTextColor ?? colorScheme.onSurface,
+                child: _SiteStatRow(
+                  stats: statItems,
+                  siteTypeLabels: siteTypeLabels,
                 ),
               ),
+              if (chips.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                SelectionInset(
+                  isSelectionMode: widget.isSelectionMode,
+                  start: _contentInset,
+                  child: Wrap(spacing: 6, runSpacing: 4, children: chips),
+                ),
+              ],
+              if (config.extraFields.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                SelectionInset(
+                  isSelectionMode: widget.isSelectionMode,
+                  start: _contentInset,
+                  child: EntityCardExtraFields<SiteWithDiveCount, SiteField>(
+                    adapter: adapter,
+                    entity: entry,
+                    fields: config.extraFields,
+                    units: units,
+                    labelColor: secondaryTextColor,
+                    valueColor: primaryTextColor ?? colorScheme.onSurface,
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       );
     }

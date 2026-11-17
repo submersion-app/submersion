@@ -13,10 +13,12 @@ import 'package:submersion/features/dive_roles/presentation/providers/dive_role_
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../helpers/fake_buddy_list_notifier.dart';
+import '../../../../helpers/record_chevron_expectations.dart';
 
 const _config = EntityCardViewConfig<BuddyField>(
   slots: [
@@ -436,5 +438,27 @@ void main() {
             'navigation chevron it replaces',
       );
     });
+  });
+
+  testWidgets('chevron ends one card padding from the edge (#4639)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: await _overrides(),
+        locale: const Locale('en'),
+        child: BuddyListTile(
+          entry: BuddyWithDiveCount(buddy: _buddy(), diveCount: 3),
+          onTap: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expectChevronAtEndPadding(
+      tester,
+      bounds: recordCardBounds(tester),
+      padding: kRecordCardDetailedPadding,
+    );
   });
 }

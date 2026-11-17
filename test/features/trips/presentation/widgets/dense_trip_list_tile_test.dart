@@ -6,8 +6,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/widgets/dense_trip_list_tile.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/record_chevron_expectations.dart';
 
 /// The tile watches [settingsProvider] for the date format; the real notifier
 /// would pull in a database, so stand in with a fixed [AppSettings].
@@ -155,5 +157,22 @@ void main() {
 
       expect(find.text('0'), findsOneWidget);
     });
+  });
+
+  testWidgets('chevron ends one row padding from the edge (#4639)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: _settingsOverrides(),
+        child: DenseTripListTile(tripWithStats: _makeTrip(), onTap: () {}),
+      ),
+    );
+
+    expectChevronAtEndPadding(
+      tester,
+      bounds: tester.getRect(find.byType(DenseTripListTile)),
+      padding: kRecordRowDenseHorizontalPadding,
+    );
   });
 }

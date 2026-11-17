@@ -4,9 +4,11 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/dense_buddy_list_tile.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 import '../../../../helpers/test_app.dart';
 import '../../helpers/fake_buddy_list_notifier.dart';
+import '../../../../helpers/record_chevron_expectations.dart';
 
 Buddy _makeBuddy({
   String id = 'test-id',
@@ -173,5 +175,21 @@ void main() {
         },
       );
     });
+  });
+
+  testWidgets('chevron ends one row padding from the edge (#4639)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        child: DenseBuddyListTile(buddy: _makeBuddy(name: 'Bob Jones')),
+      ),
+    );
+
+    expectChevronAtEndPadding(
+      tester,
+      bounds: tester.getRect(find.byType(DenseBuddyListTile)),
+      padding: kRecordRowDenseHorizontalPadding,
+    );
   });
 }

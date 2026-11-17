@@ -89,6 +89,7 @@ import 'package:submersion/features/equipment/domain/services/equipment_location
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_group_header.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_tile_location.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 part 'equipment_list_folds.dart';
 
@@ -1670,58 +1671,61 @@ class EquipmentListTile extends ConsumerWidget {
       color: isSelected
           ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
           : null,
-      child: ListTile(
-        onTap: onTap,
-        leading: SelectionLeading(
-          isSelectionMode: isSelectionMode,
-          isChecked: isChecked,
-          onChanged: onCheckChanged,
-          // The chosen cover photo, else the type icon (issue #3355).
-          child: EquipmentAvatar(
-            item: item,
-            radius: 20,
-            // An overdue service is a status signal, so it keeps the error
-            // colors even with accents on -- a cosmetic preference must not
-            // hide a service warning.
-            backgroundColor: isOverdue
-                ? StatusColors.of(context).alert.container
-                : accent?.withValues(alpha: 0.15) ??
-                      theme.colorScheme.tertiaryContainer,
-            iconColor: isOverdue
-                ? StatusColors.of(context).alert.onContainer
-                : accent ?? theme.colorScheme.onTertiaryContainer,
+      child: RecordListChevronOverlay(
+        child: ListTile(
+          onTap: onTap,
+          contentPadding: kRecordListTileContentPadding,
+          leading: SelectionLeading(
+            isSelectionMode: isSelectionMode,
+            isChecked: isChecked,
+            onChanged: onCheckChanged,
+            // The chosen cover photo, else the type icon (issue #3355).
+            child: EquipmentAvatar(
+              item: item,
+              radius: 20,
+              // An overdue service is a status signal, so it keeps the error
+              // colors even with accents on -- a cosmetic preference must not
+              // hide a service warning.
+              backgroundColor: isOverdue
+                  ? StatusColors.of(context).alert.container
+                  : accent?.withValues(alpha: 0.15) ??
+                        theme.colorScheme.tertiaryContainer,
+              iconColor: isOverdue
+                  ? StatusColors.of(context).alert.onContainer
+                  : accent ?? theme.colorScheme.onTertiaryContainer,
+            ),
           ),
-        ),
-        title: Text(item.name),
-        subtitle: detail != null || hasChips || hasTags || hasOwner
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (detail != null) Text(detail),
-                  if (hasChips) AssemblyChips(itemId: item.id),
-                  if (hasTags)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: TagChips(tags: tags, maxTags: 3),
-                    ),
-                  if (hasOwner)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: EquipmentOwnerChip(ownerId: item.diverId),
-                    ),
-                ],
-              )
-            : null,
-        // The tile offers trailing the whole row, so a rollup label naming
-        // a long part took it all and left the title one letter per line
-        // (issue #1981).
-        trailing: MaxWidthFraction(
-          fraction: kListTileTrailingMaxWidthFraction,
-          child: _buildTrailing(
-            context,
-            source == BadgeSource.finding ? null : worstClock,
-            source == BadgeSource.finding ? finding : null,
+          title: Text(item.name),
+          subtitle: detail != null || hasChips || hasTags || hasOwner
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (detail != null) Text(detail),
+                    if (hasChips) AssemblyChips(itemId: item.id),
+                    if (hasTags)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: TagChips(tags: tags, maxTags: 3),
+                      ),
+                    if (hasOwner)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: EquipmentOwnerChip(ownerId: item.diverId),
+                      ),
+                  ],
+                )
+              : null,
+          // The tile offers trailing the whole row, so a rollup label naming
+          // a long part took it all and left the title one letter per line
+          // (issue #1981).
+          trailing: MaxWidthFraction(
+            fraction: kListTileTrailingMaxWidthFraction,
+            child: _buildTrailing(
+              context,
+              source == BadgeSource.finding ? null : worstClock,
+              source == BadgeSource.finding ? finding : null,
+            ),
           ),
         ),
       ),

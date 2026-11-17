@@ -48,6 +48,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// Content widget for the dive center list, used in master-detail layout.
 class DiveCenterListContent extends ConsumerStatefulWidget {
@@ -896,7 +897,7 @@ class DiveCenterListTile extends ConsumerWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(kRecordCardDetailedPadding),
           child: Row(
             children: [
               // Logo or store icon, which becomes the checkbox in selection
@@ -995,13 +996,7 @@ class DiveCenterListTile extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(width: 8),
-              ExcludeSemantics(
-                child: Icon(
-                  Icons.chevron_right,
-                  color: theme.colorScheme.outline,
-                ),
-              ),
+              RecordListChevron(color: theme.colorScheme.outline),
             ],
           ),
         ),
