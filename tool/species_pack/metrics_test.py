@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+"""Unit tests for metrics.py, the numbers in the accuracy report."""
+
+import importlib.util
+import os
+import sys
+import unittest
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _HERE)
+_spec = importlib.util.spec_from_file_location("metrics", os.path.join(_HERE, "metrics.py"))
+metrics = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(metrics)
+
+
+class SizeBucketTests(unittest.TestCase):
+    def test_bucket_edges(self):
+        self.assertEqual(
+            [metrics.size_bucket(s) for s in (63, 64, 127, 128, 255, 256)],
+            ["under 64", "64-127", "64-127", "128-255", "128-255", "256+"],
+        )
+
+
+class TopKTests(unittest.TestCase):
+    def test_top_k_counts_ranks_below_k(self):
+        ranks = [0, 1, 2, None]
+        self.assertEqual(metrics.top_k(ranks, 1), 0.25)
+        self.assertEqual(metrics.top_k(ranks, 3), 0.75)
+
+    def test_top_k_of_nothing_is_zero(self):
+        self.assertEqual(metrics.top_k([], 1), 0.0)
+
+
+class RateTests(unittest.TestCase):
+    def test_rate_carries_its_interval(self):
+        r = metrics.rate(5, 10)
+        self.assertEqual((r.n, r.hits, r.value), (10, 5, 0.5))
+        self.assertLess(r.low, 0.5)
+        self.assertGreater(r.high, 0.5)
+
+    def test_rate_of_nothing(self):
+        r = metrics.rate(0, 0)
+        self.assertEqual((r.n, r.value, r.low, r.high), (0, 0.0, 0.0, 1.0))
+
+    def test_coverage_and_precision(self):
+        coverage, precision = metrics.coverage_precision([True, True, False, False], [True, False, True, False])
+        self.assertEqual((coverage.hits, coverage.n), (2, 4))
+        self.assertEqual((precision.hits, precision.n), (1, 2))
+
+    def test_nothing_named_has_no_precision(self):
+        coverage, precision = metrics.coverage_precision([False, False], [True, True])
+        self.assertEqual(coverage.value, 0.0)
+        self.assertEqual(precision.n, 0)
+
+
+class BreakdownTests(unittest.TestCase):
+    def test_breakdown_groups_and_sorts(self):
+        items = [("b", 1), ("a", 2), ("b", 3)]
+        out = metrics.breakdown(items, key=lambda i: i[0], measure=lambda group: {"total": sum(v for _, v in group)})
+        self.assertEqual(list(out), ["a", "b"])
+        self.assertEqual(out["b"], {"total": 4})
+
+
+if __name__ == "__main__":
+    unittest.main()
