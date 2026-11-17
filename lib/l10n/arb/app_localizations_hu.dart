@@ -29262,11 +29262,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Halak keresése a fotóidon és fajjavaslatok';
+      'Halak keresése a fotóidon és videóidon, és fajjavaslatok';
 
   @override
   String get settings_speciesId_intro =>
-      'Megkeresi a halakat a fotóidon, és javaslatot tesz a fajukra. Ezen az eszközön fut. A fotóid soha nem hagyják el.';
+      'Megkeresi a halakat a fotóidon és videóidon, és javaslatot tesz a fajukra. Ezen az eszközön fut. A fotóid és videóid soha nem hagyják el.';
 
   @override
   String get settings_speciesId_model => 'Modell';
@@ -29342,7 +29342,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Halak felismerése fotó megnyitásakor';
+      'Halak felismerése fotó vagy videó megnyitásakor';
 
   @override
   String get settings_speciesId_kept => 'Ezen az eszközön tárolt javaslatok';
@@ -56088,6 +56088,18 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_species_identifying => 'Halak keresése...';
+
+  @override
+  String get media_species_sheetTitleVideo => 'Fajok ebben a videóban';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return 'Halak keresése, $percent';
+  }
+
+  @override
+  String get media_species_unnamedFish =>
+      'Névtelen hal, koppints az elnevezéshez';
 
   @override
   String get media_species_possibleMatches => 'Lehetséges egyezések';

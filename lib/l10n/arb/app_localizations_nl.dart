@@ -29209,11 +29209,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Vind vissen in je foto\'s en stel de soort voor';
+      'Vind vissen in je foto\'s en video\'s en stel de soort voor';
 
   @override
   String get settings_speciesId_intro =>
-      'Vindt vissen in je foto\'s en stelt voor welke soort het is. Draait op dit apparaat. Je foto\'s verlaten het nooit.';
+      'Vindt vissen in je foto\'s en video\'s en stelt voor welke soort het is. Draait op dit apparaat. Je foto\'s en video\'s verlaten het nooit.';
 
   @override
   String get settings_speciesId_model => 'Model';
@@ -29289,7 +29289,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Vissen herkennen als ik een foto open';
+      'Vissen herkennen als ik een foto of video open';
 
   @override
   String get settings_speciesId_kept => 'Suggesties op dit apparaat';
@@ -56037,6 +56037,18 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_species_identifying => 'Zoeken naar vissen...';
+
+  @override
+  String get media_species_sheetTitleVideo => 'Soorten in deze video';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return 'Zoeken naar vissen, $percent';
+  }
+
+  @override
+  String get media_species_unnamedFish =>
+      'Naamloze vis, tik om een naam te geven';
 
   @override
   String get media_species_possibleMatches => 'Mogelijke overeenkomsten';

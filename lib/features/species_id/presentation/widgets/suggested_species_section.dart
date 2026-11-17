@@ -40,22 +40,34 @@ List<SpeciesSuggestion> suggestionsShown(
 ) {
   final suggestions = ref.watch(mediaSuggestionsProvider(mediaId)).value;
   if (suggestions == null || suggestions.isEmpty) return const [];
+  final shown = shownTaggedSpecies(ref, mediaId, sitting);
+  if (shown.isEmpty) return suggestions;
+  return [
+    for (final s in suggestions)
+      if (!shown.any((t) => candidateMatches(s.top.candidate, t))) s,
+  ];
+}
+
+/// The species tagged on [mediaId] as the viewer shows them: held in
+/// [sitting] when there is one, else stored, each with its scientific
+/// name, as the rules compare them with candidates.
+List<TaggedSpecies> shownTaggedSpecies(
+  WidgetRef ref,
+  String mediaId,
+  EditSession<PhotoRecord>? sitting,
+) {
   final chips = speciesChipsShown(ref, mediaId, sitting);
-  if (chips.isEmpty) return suggestions;
+  if (chips.isEmpty) return const [];
   final scientificNames = {
     for (final species in ref.watch(allSpeciesProvider).value ?? const [])
       species.id: species.scientificName,
   };
-  final shown = [
+  return [
     for (final chip in chips)
       TaggedSpecies(
         speciesId: chip.speciesId,
         scientificName: scientificNames[chip.speciesId],
       ),
-  ];
-  return [
-    for (final s in suggestions)
-      if (!shown.any((t) => candidateMatches(s.top.candidate, t))) s,
   ];
 }
 
@@ -106,7 +118,12 @@ class SuggestedSpeciesSection extends ConsumerWidget {
     final suggestions = suggestionsShown(ref, item.id, sitting);
     final busy =
         ref.watch(mediaIdentificationBusyProvider(item.id)).value ?? false;
-    if (suggestions.isEmpty && !busy) return const SizedBox.shrink();
+    final progress = ref
+        .watch(mediaIdentificationProgressProvider(item.id))
+        .value;
+    if (suggestions.isEmpty && !busy && progress == null) {
+      return const SizedBox.shrink();
+    }
     final ended = sitting?.isDisposed ?? false;
     final percent = NumberFormat.percentPattern(
       Localizations.localeOf(context).toString(),
@@ -122,7 +139,23 @@ class SuggestedSpeciesSection extends ConsumerWidget {
             style: Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: 8),
-          if (busy && suggestions.isEmpty)
+          // A video's scan takes a while, and finds as it goes: its
+          // progress stays above what it has found so far (issue #4675).
+          if (progress != null)
+            Row(
+              children: [
+                SizedBox.square(
+                  dimension: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    value: progress,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(l10n.media_species_scanProgress(percent.format(progress))),
+              ],
+            )
+          else if (busy && suggestions.isEmpty)
             Row(
               children: [
                 const SizedBox.square(
@@ -205,7 +238,9 @@ class _SuggestionRow extends ConsumerWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              suggestion.count > 1
+              // One fish swimming out of a video and back is two tracks,
+              // so a video shows no count (issue #4675).
+              suggestion.count > 1 && !item.isVideo
                   ? l10n.media_species_suggestedCount(name, suggestion.count)
                   : name,
               maxLines: 2,

@@ -177,6 +177,30 @@ final mediaSuggestionsProvider = FutureProvider.autoDispose
       );
     });
 
+/// How far the scan of a video has got, 0 to 1, while it is being
+/// scanned; null otherwise (issue #4675).
+final mediaIdentificationProgressProvider = StreamProvider.autoDispose
+    .family<double?, String>((ref, mediaId) async* {
+      final service = ref.watch(mediaIdentificationServiceProvider);
+      yield service.progressOf(mediaId);
+      await for (final _ in service.watchActivity()) {
+        yield service.progressOf(mediaId);
+      }
+    });
+
+/// The animals followed through a video, for the labels over it (issue
+/// #4675). Empty when the feature is off.
+final videoTracksProvider = FutureProvider.autoDispose
+    .family<List<MediaIdentification>, String>((ref, mediaId) async {
+      if (!marineLifeIdEnabled) return const [];
+      final repository = ref.watch(mediaIdentificationRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchChanges());
+      return [
+        for (final i in await repository.forMedia(mediaId))
+          if (i.isTrack) i,
+      ];
+    });
+
 /// Whether the photo is being analysed, or waiting to be.
 final mediaIdentificationBusyProvider = StreamProvider.autoDispose
     .family<bool, String>((ref, mediaId) async* {

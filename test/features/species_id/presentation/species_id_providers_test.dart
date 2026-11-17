@@ -25,6 +25,7 @@ import 'package:submersion/features/species_id/presentation/providers/species_id
 
 import '../../../helpers/temp_dir.dart';
 import '../data/identification_fixtures.dart';
+import 'species_id_fakes.dart';
 
 class _CountingCleanup extends IdentificationCleanup {
   _CountingCleanup()
@@ -201,6 +202,55 @@ void main() {
     marineLifeIdEnabled = true;
     await sweepIdentificationOrphansAtLaunch(cleanup);
     expect(cleanup.sweeps, 1);
+  });
+
+  test('progress follows the service (issue #4675)', () async {
+    marineLifeIdEnabled = true;
+    final service = RecordingIdentificationService();
+    final c = ProviderContainer(
+      overrides: [
+        mediaIdentificationServiceProvider.overrideWithValue(service),
+      ],
+    );
+    addTearDown(c.dispose);
+    final seen = <double?>[];
+    final sub = c.listen(
+      mediaIdentificationProgressProvider('v1'),
+      (_, next) => seen.add(next.value),
+      fireImmediately: true,
+    );
+    addTearDown(sub.close);
+    await pumpEventQueue();
+    service.progress = 0.4;
+    service.activity.add(null);
+    await pumpEventQueue();
+    service.progress = null;
+    service.activity.add(null);
+    await pumpEventQueue();
+    expect(seen.whereType<double>(), [0.4]);
+    expect(seen.last, isNull);
+  });
+
+  test('a video\'s tracks are its stored tracks only (issue #4675)', () async {
+    marineLifeIdEnabled = true;
+    final repository = container.read(mediaIdentificationRepositoryProvider);
+    await repository.storeRun(
+      videoRun(),
+      insert: [
+        track('t1'),
+        identification('p', mediaId: 'v1'),
+      ],
+      deleteIds: const [],
+    );
+    final tracks = await container.read(videoTracksProvider('v1').future);
+    expect(tracks.map((t) => t.id), ['t1']);
+  });
+
+  test('a video\'s tracks are none while switched off', () async {
+    marineLifeIdEnabled = false;
+    final repository = container.read(mediaIdentificationRepositoryProvider);
+    await repository.storeRun(videoRun(), insert: [track('t1')], deleteIds: []);
+    expect(await container.read(videoTracksProvider('v1').future), isEmpty);
   });
 
   group('the video file a scan reads (issue #4675)', () {

@@ -27735,10 +27735,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_speciesId_title => '海洋生物识别';
 
   @override
-  String get settings_speciesId_entrySubtitle => '在照片中查找鱼类并建议物种';
+  String get settings_speciesId_entrySubtitle => '在照片和视频中查找鱼类并建议物种';
 
   @override
-  String get settings_speciesId_intro => '在照片中查找鱼类并建议物种。在此设备上运行，照片绝不会离开设备。';
+  String get settings_speciesId_intro =>
+      '在照片和视频中查找鱼类并建议物种。在此设备上运行，照片和视频绝不会离开设备。';
 
   @override
   String get settings_speciesId_model => '模型';
@@ -27809,7 +27810,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_speciesId_needsAppUpdate => '此模型需要更新版本的 Submersion。';
 
   @override
-  String get settings_speciesId_toggle => '打开照片时识别鱼类';
+  String get settings_speciesId_toggle => '打开照片或视频时识别鱼类';
 
   @override
   String get settings_speciesId_kept => '此设备上保留的建议';
@@ -52872,6 +52873,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_species_identifying => '正在识别鱼类...';
+
+  @override
+  String get media_species_sheetTitleVideo => '这段视频中的物种';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return '正在识别鱼类，$percent';
+  }
+
+  @override
+  String get media_species_unnamedFish => '未命名的鱼，点按以命名';
 
   @override
   String get media_species_possibleMatches => '可能的匹配';

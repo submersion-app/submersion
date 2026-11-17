@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
@@ -28,6 +30,16 @@ class RecordingIdentificationService extends MediaIdentificationService {
       );
 
   final requested = <String>[];
+
+  /// What [progressOf] answers, and a stream a test ticks.
+  double? progress;
+  final activity = StreamController<void>.broadcast();
+
+  @override
+  double? progressOf(String mediaId) => progress;
+
+  @override
+  Stream<void> watchActivity() => activity.stream;
   final locations = <GeoPoint?>[];
   final cancelled = <String>[];
   final reconciled = <String>[];

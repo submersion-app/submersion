@@ -90,7 +90,9 @@ class MediaSpeciesSheet extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       children: [
         Text(
-          l10n.media_species_sheetTitle,
+          item.isVideo
+              ? l10n.media_species_sheetTitleVideo
+              : l10n.media_species_sheetTitle,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 16),

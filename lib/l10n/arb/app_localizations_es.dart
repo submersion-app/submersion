@@ -29408,11 +29408,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Encuentra peces en tus fotos y sugiere qué especie son';
+      'Encuentra peces en tus fotos y vídeos y sugiere qué especie son';
 
   @override
   String get settings_speciesId_intro =>
-      'Encuentra peces en tus fotos y sugiere qué especie son. Funciona en este dispositivo. Tus fotos nunca salen de él.';
+      'Encuentra peces en tus fotos y vídeos y sugiere qué especie son. Funciona en este dispositivo. Tus fotos y vídeos nunca salen de él.';
 
   @override
   String get settings_speciesId_model => 'Modelo';
@@ -29487,7 +29487,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este modelo requiere una versión más reciente de Submersion.';
 
   @override
-  String get settings_speciesId_toggle => 'Identificar peces al abrir una foto';
+  String get settings_speciesId_toggle =>
+      'Identificar peces al abrir una foto o un vídeo';
 
   @override
   String get settings_speciesId_kept =>
@@ -56439,6 +56440,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_species_identifying => 'Buscando peces...';
+
+  @override
+  String get media_species_sheetTitleVideo => 'Especies en este vídeo';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return 'Buscando peces, $percent';
+  }
+
+  @override
+  String get media_species_unnamedFish => 'Pez sin nombre, toca para nombrarlo';
 
   @override
   String get media_species_possibleMatches => 'Posibles coincidencias';

@@ -10,8 +10,10 @@ import 'package:submersion/features/media/presentation/providers/species_media_p
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
-/// Asks for the photo on screen to be analysed for marine life (issue
-/// #4668), once it has been shown a moment. Draws nothing.
+/// Asks for the photo or video on screen to be analysed for marine life
+/// (issues #4668, #4675), once it has been shown a moment. Draws nothing.
+/// A video is scanned a chunk at a time; leaving it stops the scan, and
+/// coming back resumes it.
 ///
 /// The viewer mounts one for the current item only, never for the
 /// neighbouring pages the gallery builds ahead of a swipe. A photo swiped
@@ -48,7 +50,9 @@ class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger> {
   MediaIdentificationService? _service;
 
   bool get _applies =>
-      marineLifeIdEnabled && widget.item.mediaType == MediaType.photo;
+      marineLifeIdEnabled &&
+      (widget.item.mediaType == MediaType.photo ||
+          widget.item.mediaType == MediaType.video);
 
   @override
   void initState() {

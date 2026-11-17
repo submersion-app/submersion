@@ -109,9 +109,21 @@ void main() {
     expect(service.cancelled, ['p1']);
   });
 
-  testWidgets('a video is not asked for', (tester) async {
+  testWidgets('a video is asked for after the dwell (issue #4675)', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       host(testMediaItem(id: 'v1', mediaType: MediaType.video)),
+    );
+    await tester.pump(const Duration(milliseconds: 399));
+    expect(service.requested, isEmpty);
+    await tester.pump(const Duration(milliseconds: 2));
+    expect(service.requested, ['v1']);
+  });
+
+  testWidgets('a document is not asked for', (tester) async {
+    await tester.pumpWidget(
+      host(testMediaItem(id: 'd1', mediaType: MediaType.document)),
     );
     await tester.pump(const Duration(milliseconds: 401));
     expect(service.requested, isEmpty);
