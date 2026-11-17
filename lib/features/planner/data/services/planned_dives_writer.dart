@@ -203,7 +203,7 @@ class PlannedDivesWriter {
       // A single plan whose dived link moves gets a new entry for [diverId].
       // Read for any dived dive: a dive removed while these lookups run can
       // leave a series a single plan by the time it is decided on.
-      if (entry != null && !entry.isPlanned) await add(id, diverId);
+      if (PlanLogState.of(entry) == PlanLogState.dived) await add(id, diverId);
     }
     return PlannedDivesLookups(
       entries: entries,

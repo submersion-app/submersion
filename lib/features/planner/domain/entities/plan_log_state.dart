@@ -1,8 +1,7 @@
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Where a planned dive stands in the log (issue #4203): the rule the
-/// saved plans list, the planned dives writer and an agent's plan documents
-/// share.
+/// planned dives writer and an agent's plan documents share.
 enum PlanLogState {
   /// No entry in the log: never written there, or its entry was deleted
   /// since, which leaves a link to nothing.
@@ -21,9 +20,14 @@ enum PlanLogState {
 
   /// The state of a dive whose entry in the log is [entry], or null for
   /// none.
-  static PlanLogState of(Dive? entry) => switch (entry) {
+  static PlanLogState of(Dive? entry) => ofPlannedFlag(entry?.isPlanned);
+
+  /// The same rule read from the entry's `is_planned` flag alone, for a
+  /// reader that needs nothing else of the entry: null when there is no
+  /// entry.
+  static PlanLogState ofPlannedFlag(bool? isPlanned) => switch (isPlanned) {
     null => PlanLogState.planned,
-    Dive(isPlanned: true) => PlanLogState.loggedAsPlanned,
-    _ => PlanLogState.dived,
+    true => PlanLogState.loggedAsPlanned,
+    false => PlanLogState.dived,
   };
 }

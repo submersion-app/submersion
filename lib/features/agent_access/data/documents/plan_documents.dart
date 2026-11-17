@@ -1,7 +1,6 @@
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/agent_access/data/documents/dive_document.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/entities/plan_log_state.dart';
@@ -13,11 +12,12 @@ import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 /// and which tank of the dive before each of its tanks carries from. What a
 /// dive carries in is worked out by the planner, never stored.
 ///
-/// [logged] holds the dives' entries in the log, by dive id, which say where
-/// each dive stands there (see [planLogFields]).
+/// [logged] holds whether each of the dives' entries in the log is still
+/// only planned, by dive id, which says where each dive stands there (see
+/// [planLogFields]).
 Map<String, Object?> divePlanSeriesDocument(
   StoredSeries s, {
-  required Map<String, Dive> logged,
+  required Map<String, bool> logged,
 }) => {
   'id': s.id,
   'name': s.name,
@@ -42,7 +42,7 @@ Map<String, Object?> divePlanSeriesDocument(
 /// [logged] is as for [divePlanSeriesDocument].
 Map<String, Object?> divePlanDocument(
   DivePlan p, {
-  required Map<String, Dive> logged,
+  required Map<String, bool> logged,
 }) => {
   'id': p.id,
   'name': p.name,
@@ -104,15 +104,18 @@ Map<String, Object?> divePlanDocument(
   'mission': p.mission == null ? null : _missionDocument(p.mission!),
 };
 
-/// Where [plan]'s dive stands in the log (issue #4203), from [logged], its
-/// entries by dive id: `log_state`, and `linked_dive_id`, the entry it
-/// names. A link to a dive no longer in the log, deleted on another device
-/// since, names nothing: the dive reads as only planned, with no link.
-Map<String, Object?> planLogFields(DivePlan plan, Map<String, Dive> logged) {
-  final entry = plan.linkedDiveId == null ? null : logged[plan.linkedDiveId];
+/// Where [plan]'s dive stands in the log (issue #4203), from [logged],
+/// whether each entry there is still only planned, by dive id: `log_state`,
+/// and `linked_dive_id`, the entry it names. A link to a dive no longer in
+/// the log, deleted on another device since, names nothing: the dive reads
+/// as only planned, with no link. A write compares against the stored link
+/// instead (see `DivePlanWrites.stored`), so such a link can be cleared.
+Map<String, Object?> planLogFields(DivePlan plan, Map<String, bool> logged) {
+  final linked = plan.linkedDiveId;
+  final isPlanned = linked == null ? null : logged[linked];
   return {
-    'linked_dive_id': entry?.id,
-    'log_state': PlanLogState.of(entry).wireName,
+    'linked_dive_id': isPlanned == null ? null : linked,
+    'log_state': PlanLogState.ofPlannedFlag(isPlanned).wireName,
   };
 }
 

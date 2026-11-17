@@ -1,13 +1,13 @@
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/documents/plan_documents.dart';
+import 'package:submersion/features/agent_access/data/planning/plan_request.dart';
 import 'package:submersion/features/agent_access/data/planning/plan_result_document.dart';
 import 'package:submersion/features/agent_access/data/planning/stored_plan_inputs.dart';
-import 'package:submersion/features/agent_access/data/records/record_entity.dart';
+import 'package:submersion/features/agent_access/data/records/families/plan_record_loads.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_plan_fields.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/data/services/plan_engine_settings.dart';
 import 'package:submersion/features/planner/data/services/stored_series_results.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
@@ -51,9 +51,23 @@ class PlanRecall {
   final RecordRepositories _r;
   final SeriesFollowReader _followOf;
 
-  /// Whether [args] ask for a recall rather than describe dives.
+  /// Whether [args] ask for a recall rather than describe dives: an id is
+  /// given. A key sent as null asks for nothing, as a client that writes
+  /// out every optional argument sends it.
   static bool asks(Map<String, Object?> args) =>
-      recallKeys.any(args.containsKey);
+      recallKeys.any((key) => args[key] != null);
+
+  /// A refusal of `overrides` given without an id to recall, which would
+  /// otherwise be computed without them and say nothing; null when there is
+  /// nothing to refuse.
+  static AgentToolException? strayOverrides(Map<String, Object?> args) =>
+      args['overrides'] == null
+      ? null
+      : _refuse(
+          'overrides',
+          'overrides apply to a recalled plan, with plan_id or series_id; '
+              'give the dives\' own settings in dives instead.',
+        );
 
   /// The recall [args] ask for, with [caveat] the planner's own.
   Future<Map<String, Object?>> call(
@@ -61,7 +75,7 @@ class PlanRecall {
     required String caveat,
   }) async {
     for (final key in const ['dives', 'follow_dive_id']) {
-      if (args.containsKey(key)) {
+      if (args[key] != null) {
         throw _refuse(
           key,
           'A recall computes the saved plan as it was saved; give $key to '
@@ -69,8 +83,8 @@ class PlanRecall {
         );
       }
     }
-    final planId = _id(args, 'plan_id');
-    final seriesId = _id(args, 'series_id');
+    final planId = optionalIdArg(args, 'plan_id');
+    final seriesId = optionalIdArg(args, 'series_id');
     if (planId != null && seriesId != null) {
       throw _refuse('plan_id', 'Give plan_id or series_id, not both.');
     }
@@ -80,7 +94,7 @@ class PlanRecall {
         ? await _series(seriesId)
         : await _plan(planId!);
     final diverId = await _diverFor(
-      args['diver_id'] as String?,
+      optionalIdArg(args, 'diver_id'),
       owner: seriesId == null ? null : stored.diverId,
     );
     final config = planEngineConfigFromSettings(
@@ -116,10 +130,7 @@ class PlanRecall {
       inputs = [planInputsOf(plan, withStart: true)];
     }
     final plans = [for (final dive in recalled.dives) dive.plan];
-    final logged = byId(
-      await _r.dives.getDivesByIdsWithoutSamples(linkedDiveIds(plans).toList()),
-      (Dive d) => d.id,
-    );
+    final logged = await loggedEntryFlags(_r, linkedDiveIds(plans));
 
     final followedId = recalled.followedDiveId;
     return {
@@ -243,17 +254,4 @@ Object? _override(String key, Object? value) {
   }
 }
 
-String? _id(Map<String, Object?> args, String key) {
-  final value = args[key];
-  if (value == null) return null;
-  if (value is! String || value.isEmpty) {
-    throw _refuse(key, '$key takes an id.');
-  }
-  return value;
-}
-
-AgentToolException _refuse(String field, String message) => AgentToolException(
-  AgentToolErrorCode.invalidArgument,
-  message,
-  details: {'field': field},
-);
+const _refuse = planArgumentRefusal;

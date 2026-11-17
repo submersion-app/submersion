@@ -22,6 +22,12 @@ void main() {
     });
   });
 
+  test('the planned flag alone reads by the same rule', () {
+    expect(PlanLogState.ofPlannedFlag(null), PlanLogState.planned);
+    expect(PlanLogState.ofPlannedFlag(true), PlanLogState.loggedAsPlanned);
+    expect(PlanLogState.ofPlannedFlag(false), PlanLogState.dived);
+  });
+
   test('wire names are the snake_case the agent documents use', () {
     expect(PlanLogState.planned.wireName, 'planned');
     expect(PlanLogState.loggedAsPlanned.wireName, 'logged_as_planned');

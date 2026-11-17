@@ -173,6 +173,12 @@ void main() {
       expect(recalled['followed_dive_id'], 'd1');
       expect(recalled['followed_dive_in_log'], isTrue);
       expect(scheduleOf(recalled), scheduleOf(before));
+      // Given back with the dive it follows, it computes the same again.
+      final again = await compute({
+        'dives': [for (final d in divesOf(recalled)) d['resolved_inputs']],
+        'follow_dive_id': recalled['followed_dive_id'],
+      });
+      expect(scheduleOf(again), scheduleOf(recalled));
 
       // The followed dive is gone from the log: computed without it.
       followed.clear();
@@ -183,6 +189,27 @@ void main() {
         isNot(divesOf(before).first['carried_in']),
       );
     });
+
+    test(
+      'a dive saved with no interval computes again at the default',
+      () async {
+        final (id, _) = await savedSeries([deep, shallow]);
+        final stored = (await DivePlanSeriesRepository().getSeries(id))!;
+        // As the planner can save a later dive: no interval of its own.
+        await db.customStatement(
+          'UPDATE dive_plans SET surface_interval_seconds = NULL WHERE id = ?',
+          [stored.dives.last.plan.id],
+        );
+
+        final recalled = await compute({'series_id': id});
+        final second = divesOf(recalled).last['resolved_inputs']! as Map;
+        expect(second['surface_interval_s'], 3600);
+        final again = await compute({
+          'dives': [for (final d in divesOf(recalled)) d['resolved_inputs']],
+        });
+        expect(scheduleOf(again), scheduleOf(recalled));
+      },
+    );
 
     test('says where each dive stands once it is in the log', () async {
       final (id, _) = await savedSeries([deep, shallow]);
@@ -289,6 +316,25 @@ void main() {
     });
   });
 
+  test('ids sent as null ask for no recall', () async {
+    final out = await compute({
+      'plan_id': null,
+      'series_id': null,
+      'dives': [deep],
+    });
+    expect(out.containsKey('recalled'), isFalse);
+    expect(divesOf(out), hasLength(1));
+    // With nothing else, it is the missing dives that is refused.
+    await expectLater(
+      compute({'plan_id': null}),
+      throwsA(
+        isA<AgentToolException>()
+            .having((e) => e.code, 'code', AgentToolErrorCode.invalidArgument)
+            .having((e) => e.details?['field'], 'field', 'dives'),
+      ),
+    );
+  });
+
   group('refused', () {
     test('both ids', () async {
       await expectLater(
@@ -333,6 +379,33 @@ void main() {
               .having((e) => e.message, 'message', contains(id)),
         ),
       );
+    });
+
+    test('overrides without an id to recall', () async {
+      await expectLater(
+        compute({
+          'dives': [deep],
+          'overrides': {'gf_low': 50},
+        }),
+        refusal(AgentToolErrorCode.invalidArgument),
+      );
+    });
+
+    test('a diver_id that is not an id, recalled or not', () async {
+      final (id, _) = await savedSeries([deep, shallow]);
+      for (final args in [
+        {'series_id': id, 'diver_id': 7},
+        {
+          'dives': [deep],
+          'diver_id': 7,
+        },
+      ]) {
+        await expectLater(
+          compute(args),
+          refusal(AgentToolErrorCode.invalidArgument),
+          reason: '$args',
+        );
+      }
     });
 
     test('an override that is not a setting, or out of range', () async {

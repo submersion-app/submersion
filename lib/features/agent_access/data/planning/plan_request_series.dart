@@ -26,8 +26,7 @@ const _uuid = Uuid();
   String Function()? newId,
 }) {
   final id = newId ?? _uuid.v4;
-  final logged = [...?follow?.endTanks]
-    ..sort((a, b) => a.order.compareTo(b.order));
+  final logged = followedTanksInOrder(follow);
   final dives = <StoredSeriesDive>[];
   final inputs = <Map<String, Object?>>[];
   for (final (index, dive) in request.dives.indexed) {
@@ -86,6 +85,12 @@ const _uuid = Uuid();
     inputs: inputs,
   );
 }
+
+/// The tanks [follow] ended with, in the order a first dive's
+/// `carries_from_tank` names them by place: the one order every reader of
+/// those places must share. Empty for no followed dive.
+List<DiveTank> followedTanksInOrder(SeriesFollow? follow) =>
+    [...?follow?.endTanks]..sort((a, b) => a.order.compareTo(b.order));
 
 /// Which of [before] each of [tanks] carries from: the tank at the same
 /// place when the dive took the tanks before [byPlace], as a dive the

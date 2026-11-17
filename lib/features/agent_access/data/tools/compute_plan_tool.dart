@@ -87,7 +87,11 @@ class ComputePlanTool implements AgentTool {
       'differ from the one saved (see recall_note). Each recalled dive '
       'also gives its log_state (planned, logged_as_planned or dived) and '
       'linked_dive_id; a dived dive keeps its planned schedule, and the '
-      'dives after it carry in what the log says it left. Always pass on every '
+      'dives after it carry in what the log says it left. A recalled '
+      'dive\'s resolved_inputs compute it again as dives, with '
+      'follow_dive_id set to followed_dive_id when followed_dive_in_log; '
+      'once a dive is dived, the dives after it compute again only as '
+      'planned. Always pass on every '
       'issue and the caveat, state the parameters the schedule depends on, '
       'and never present a schedule as safe, verified or guaranteed: it is '
       'a plan for a trained diver to check, not a dive computer.';
@@ -224,7 +228,10 @@ class ComputePlanTool implements AgentTool {
     AgentToolContext context,
   ) async {
     if (PlanRecall.asks(args)) return _recall(args, caveat: _caveat());
-    final diverId = await _loader.resolveDiverId(args['diver_id'] as String?);
+    if (PlanRecall.strayOverrides(args) case final refusal?) throw refusal;
+    final diverId = await _loader.resolveDiverId(
+      optionalIdArg(args, 'diver_id'),
+    );
     final config = planEngineConfigFromSettings(
       await _settings.getSettingsForDiver(diverId) ?? const AppSettings(),
     );

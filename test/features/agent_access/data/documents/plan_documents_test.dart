@@ -147,28 +147,29 @@ void main() {
       updatedAt: at,
       linkedDiveId: diveId,
     );
-    final entry = Dive(id: 'd', dateTime: at, isPlanned: true);
+    // Whether each entry in the log is still only planned, by dive id.
+    const planned = {'d': true};
 
     test('an unlinked plan is only planned', () {
-      expect(planLogFields(linked(null), {'d': entry}), {
+      expect(planLogFields(linked(null), planned), {
         'linked_dive_id': null,
         'log_state': 'planned',
       });
     });
 
     test('a linked plan names its entry and its state', () {
-      expect(planLogFields(linked('d'), {'d': entry}), {
+      expect(planLogFields(linked('d'), planned), {
         'linked_dive_id': 'd',
         'log_state': 'logged_as_planned',
       });
-      expect(
-        planLogFields(linked('d'), {'d': entry.copyWith(isPlanned: false)}),
-        {'linked_dive_id': 'd', 'log_state': 'dived'},
-      );
+      expect(planLogFields(linked('d'), const {'d': false}), {
+        'linked_dive_id': 'd',
+        'log_state': 'dived',
+      });
     });
 
     test('a link to a dive no longer in the log names nothing', () {
-      expect(planLogFields(linked('gone'), {'d': entry}), {
+      expect(planLogFields(linked('gone'), planned), {
         'linked_dive_id': null,
         'log_state': 'planned',
       });
