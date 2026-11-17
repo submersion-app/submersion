@@ -7,6 +7,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
@@ -235,10 +236,15 @@ final mediaDeletionCoordinatorProvider = Provider<MediaDeletionCoordinator>((
             await ref.read(mediaRepositoryProvider).countRowsWithHash(hash) > 0,
       );
       // What the marine life model found goes with the media, unless the
-      // delete can still be undone (issue #4668).
-      await ref.read(identificationCleanupProvider).onMediaDeleted([
-        for (final item in items) item.id,
-      ], undoable: undoable);
+      // delete can still be undone (issue #4668). An analysis of one of
+      // them finishes first, so it cannot write after the purge.
+      final ids = [for (final item in items) item.id];
+      if (!undoable && marineLifeIdEnabled) {
+        await ref.read(mediaIdentificationServiceProvider).settle(ids);
+      }
+      await ref
+          .read(identificationCleanupProvider)
+          .onMediaDeleted(ids, undoable: undoable);
     },
   );
 });

@@ -80,21 +80,25 @@ class MediaIdentificationRepository {
     MediaIdentificationRun run, {
     required List<MediaIdentification> insert,
     required List<String> deleteIds,
-  }) => _db.transaction(() async {
-    await _db
-        .into(_db.mediaIdentificationRuns)
-        .insertOnConflictUpdate(_runToCompanion(run));
-    if (deleteIds.isNotEmpty) {
-      await (_db.delete(
-        _db.mediaIdentifications,
-      )..where((r) => r.id.isIn(deleteIds))).go();
-    }
-    for (final identification in insert) {
-      await _db
-          .into(_db.mediaIdentifications)
-          .insertOnConflictUpdate(_toCompanion(identification));
-    }
-  });
+  }) {
+    // One database for the whole write: the one open when it starts.
+    final db = _db;
+    return db.transaction(() async {
+      await db
+          .into(db.mediaIdentificationRuns)
+          .insertOnConflictUpdate(_runToCompanion(run));
+      if (deleteIds.isNotEmpty) {
+        await (db.delete(
+          db.mediaIdentifications,
+        )..where((r) => r.id.isIn(deleteIds))).go();
+      }
+      for (final identification in insert) {
+        await db
+            .into(db.mediaIdentifications)
+            .insertOnConflictUpdate(_toCompanion(identification));
+      }
+    });
+  }
 
   /// Writes [changed] over the stored rows with the same ids, and [run]
   /// when given, in one transaction. Only rows still stored are written: a
@@ -103,34 +107,38 @@ class MediaIdentificationRepository {
   Future<void> updateIdentifications(
     List<MediaIdentification> changed, {
     MediaIdentificationRun? run,
-  }) => _db.transaction(() async {
-    for (final identification in changed) {
-      await _db
-          .update(_db.mediaIdentifications)
-          .replace(_toCompanion(identification));
-    }
-    if (run != null) {
-      await _db
-          .update(_db.mediaIdentificationRuns)
-          .replace(_runToCompanion(run));
-    }
-  });
+  }) {
+    final db = _db;
+    return db.transaction(() async {
+      for (final identification in changed) {
+        await db
+            .update(db.mediaIdentifications)
+            .replace(_toCompanion(identification));
+      }
+      if (run != null) {
+        await db
+            .update(db.mediaIdentificationRuns)
+            .replace(_runToCompanion(run));
+      }
+    });
+  }
 
   /// Removes the runs and identifications of [mediaIds]; returns the ids of
   /// the identifications removed, for their crops and embeddings.
   Future<List<String>> deleteForMedia(List<String> mediaIds) async {
     if (mediaIds.isEmpty) return const [];
-    return _db.transaction(() async {
+    final db = _db;
+    return db.transaction(() async {
       final ids = <String>[];
       // In slices: a sweep after a large sync deletion can name more media
       // than SQLite takes in one statement.
       for (final slice in mediaIds.slices(_slice)) {
-        ids.addAll(await _idsWhere((r) => r.mediaId.isIn(slice)));
-        await (_db.delete(
-          _db.mediaIdentifications,
+        ids.addAll(await _idsWhere(db, (r) => r.mediaId.isIn(slice)));
+        await (db.delete(
+          db.mediaIdentifications,
         )..where((r) => r.mediaId.isIn(slice))).go();
-        await (_db.delete(
-          _db.mediaIdentificationRuns,
+        await (db.delete(
+          db.mediaIdentificationRuns,
         )..where((r) => r.mediaId.isIn(slice))).go();
       }
       return ids;
@@ -169,17 +177,18 @@ class MediaIdentificationRepository {
 
   /// Removes every run and identification; returns the identification ids.
   Future<List<String>> deleteAll() => _db.transaction(() async {
-    final ids = await _idsWhere(null);
+    final ids = await _idsWhere(_db, null);
     await _db.delete(_db.mediaIdentifications).go();
     await _db.delete(_db.mediaIdentificationRuns).go();
     return ids;
   });
 
   Future<List<String>> _idsWhere(
+    AppDatabase db,
     Expression<bool> Function($MediaIdentificationsTable r)? filter,
   ) async {
-    final table = _db.mediaIdentifications;
-    final query = _db.selectOnly(table)..addColumns([table.id]);
+    final table = db.mediaIdentifications;
+    final query = db.selectOnly(table)..addColumns([table.id]);
     if (filter != null) query.where(filter(table));
     return query.map((r) => r.read(table.id)!).get();
   }

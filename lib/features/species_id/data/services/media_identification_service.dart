@@ -160,10 +160,11 @@ class MediaIdentificationService {
   }
 
   /// The diver dismissed these suggestions; they do not come back. Never
-  /// throws.
+  /// throws, and writes nothing if another logbook opened while it read.
   Future<void> reject(String mediaId, List<String> identificationIds) async {
     final ids = identificationIds.toSet();
     final now = _now().toUtc();
+    final generation = _databaseGeneration();
     try {
       final changed = [
         for (final i in await _identifications.forMedia(mediaId))
@@ -174,11 +175,24 @@ class MediaIdentificationService {
               decidedAt: now,
             ),
       ];
-      if (changed.isNotEmpty) {
+      if (changed.isNotEmpty && _databaseGeneration() == generation) {
         await _identifications.updateIdentifications(changed);
       }
     } on Object catch (e) {
       _log.debug('Could not dismiss suggestions of $mediaId', error: e);
+    }
+  }
+
+  /// For media deleted for good: drops their queued requests and waits for
+  /// the one running, if it is one of them, so that what it found is
+  /// written before the caller purges it rather than after.
+  Future<void> settle(Iterable<String> mediaIds) async {
+    final ids = mediaIds.toSet();
+    for (final id in ids) {
+      cancelPending(id);
+    }
+    while (_running != null && ids.contains(_running!.item.id)) {
+      await _running!.done.future;
     }
   }
 

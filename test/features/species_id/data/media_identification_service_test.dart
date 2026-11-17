@@ -82,6 +82,22 @@ LoadedPack pack({
   );
 }
 
+/// Calls [onRead] after each read of a photo's identifications: where a
+/// logbook switch would land between a read and the write after it.
+class _ReadHookRepository extends MediaIdentificationRepository {
+  _ReadHookRepository(AppDatabase database, this.onRead)
+    : super(database: database);
+
+  final void Function() onRead;
+
+  @override
+  Future<List<MediaIdentification>> forMedia(String mediaId) async {
+    final found = await super.forMedia(mediaId);
+    onRead();
+    return found;
+  }
+}
+
 MediaItem photo(String id, {MediaType type = MediaType.photo}) => MediaItem(
   id: id,
   mediaType: type,
@@ -495,6 +511,47 @@ void main() {
     tagged = [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')];
     tagsGate!.complete();
     await a;
+    expect(
+      (await identifications.forMedia('m1')).single.decision,
+      IdentificationDecision.undecided,
+    );
+  });
+
+  test('settling deleted photos drops their queued requests and waits for '
+      'the running one', () async {
+    engine.gate = Completer<void>();
+    final a = service.request(photo('a'));
+    await pumpEventQueue();
+    final b = service.request(photo('b'));
+    var settled = false;
+    final settling = service.settle(['a', 'b']).then((_) => settled = true);
+    await pumpEventQueue();
+    expect(settled, isFalse);
+    expect(service.isBusy('b'), isFalse);
+    engine.gate!.complete();
+    await Future.wait([a, b, settling]);
+    // a finished before settle returned, so a purge after it removes all.
+    expect(await identifications.runFor('a'), isNotNull);
+    expect(await identifications.runFor('b'), isNull);
+  });
+
+  test('a dismissal records nothing if another logbook opened while it '
+      'read', () async {
+    await service.request(photo('m1'));
+    final first = (await identifications.forMedia('m1')).single;
+    final switching = MediaIdentificationService(
+      engine: engine,
+      loadPack: () async => installed,
+      identifications: _ReadHookRepository(library, () => generation++),
+      embeddings: embeddings,
+      crops: crops,
+      resolveImage: (item) async => imageFor(item),
+      taggedSpecies: (_) async => tagged,
+      enabled: () => enabled,
+      databaseGeneration: () => generation,
+    );
+    addTearDown(switching.dispose);
+    await switching.reject('m1', [first.id]);
     expect(
       (await identifications.forMedia('m1')).single.decision,
       IdentificationDecision.undecided,
