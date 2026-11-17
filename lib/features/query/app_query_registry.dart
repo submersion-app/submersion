@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_centers/query/dive_center_query_entity.
 import 'package:submersion/features/dive_computer/query/dive_computer_query_entity.dart';
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
+import 'package:submersion/features/dive_roles/query/dive_role_query_entity.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
 import 'package:submersion/features/dive_sites/query/site_type_query_entity.dart';
 import 'package:submersion/features/dive_types/query/dive_type_query_entity.dart';
@@ -37,6 +38,7 @@ final QueryRegistry appQueryRegistry = QueryRegistry([
   certificationQueryEntity,
   tagQueryEntity,
   diveTypeQueryEntity,
+  diveRoleQueryEntity,
   tripQueryEntity,
   diveCenterQueryEntity,
   diveComputerQueryEntity,

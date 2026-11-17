@@ -1800,6 +1800,15 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'De las notas del viaje';
+
+  @override
+  String get trips_story_addDayNote => 'Agregar nota';
+
+  @override
+  String get trips_story_editDayNote => 'Editar nota';
+
+  @override
   String get trips_story_surfaceDay => 'Día de superficie';
 
   @override
@@ -2139,6 +2148,46 @@ class AppLocalizationsEs extends AppLocalizations {
       other:
           '$count inmersiones seleccionadas no tienen botellas y se omitirán.',
       one: '1 inmersión seleccionada no tiene botellas y se omitirá.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_bulkEdit_tankRoleSameForAll =>
+      'Misma función para cada botella';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition =>
+      'Función según la posición de la botella';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'Añadir posición';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'Quitar posición';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Solo las inmersiones con exactamente $count botellas reciben estas funciones, en el orden de las botellas.',
+      one:
+          'Solo las inmersiones con exactamente $count botella reciben esta función.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count inmersiones no coinciden con las posiciones de las botellas, así que sus funciones se mantienen.',
+      one:
+          '$count inmersión no coincide con las posiciones de las botellas, así que sus funciones se mantienen.',
     );
     return '$_temp0';
   }
@@ -3474,6 +3523,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get buddies_field_phoneHint => '+1 (555) 123-4567';
+
+  @override
+  String get buddies_field_country => 'País';
+
+  @override
+  String get buddies_field_countryHint => 'p. ej., Italia';
 
   @override
   String buddies_label_diveCount(int count) {
@@ -9413,7 +9468,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Sin método de entrada registrado';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Sin rol asignado';
+  String get diveLog_filter_sectionMyRole => 'Mi rol';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Sin definir';
 
   @override
   String get diveLog_filter_noTagsYet => 'Aún no se han creado etiquetas';
@@ -9486,10 +9544,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Mostrar solo inmersiones sin método de entrada conocido';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Mostrar solo inmersiones sin tu rol';
 
   @override
   String get diveLog_filter_startDate => 'Fecha de inicio';
@@ -11493,6 +11547,98 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_tank_ownCylinderTitle => 'Mis botellas';
+
+  @override
+  String get cylindersFromTanks_title => 'Añadir botellas a tu equipo';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'en $count inmersiones',
+      one: 'en $count inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count botellas',
+      one: '$count botella',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Añadir $count botellas',
+      one: 'Añadir $count botella',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count botellas añadidas a tu equipo',
+      one: '$count botella añadida a tu equipo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count botellas no están en tu equipo',
+      one: '$count botella no está en tu equipo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => 'Revisar';
+
+  @override
+  String get cylindersFromTanks_name => 'Nombre';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size $material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed => 'No se pudieron añadir las botellas';
+
+  @override
+  String get diveLog_tank_gearMenu => 'Opciones de la botella';
+
+  @override
+  String get diveLog_tank_addToGear => 'Añadir a mi equipo';
+
+  @override
+  String get diveLog_tank_linkCylinder => 'Vincular a una botella mía';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      'Vincula esta botella con la del equipo y la añade al equipo de esta inmersión. La botella conserva el tamaño registrado.';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => 'Desvincular botella';
+
+  @override
+  String get diveLog_tank_linkFailed =>
+      'No se pudo cambiar el vínculo de la botella';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Regulador';
@@ -13794,6 +13940,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveTypes_deleteTooltip => 'Eliminar tipo de inmersión';
+
+  @override
+  String diveTypes_favourite_add(String name) {
+    return 'Agregar $name a favoritos';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return 'Quitar $name de favoritos';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'Favoritos';
 
   @override
   String get diveTypes_editDialog_builtInNameHelper =>
@@ -22530,6 +22689,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'resolución del problema: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'Densidad del gas $value g/L sobre el límite máximo';
   }
@@ -22545,8 +22709,13 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'La botella termina por debajo del mínimo rock bottom de $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return 'Sale del fondo con $remaining, por debajo del mínimo rock bottom de $minimum: no queda gas reservado para el tiempo de resolución del problema';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return 'Sale del fondo con $remaining, por debajo de los $minimum que necesita un ascenso de emergencia';
   }
 
   @override
@@ -22712,6 +22881,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'Gas mínimo';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'Resolución del problema';
 
   @override
   String get plannerCanvas_slate_saved => 'Pizarra guardada';
@@ -33145,6 +33317,15 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String insights_profile_timeAtDepth_hoursFormat(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString h';
+  }
+
+  @override
   String get insights_progression_appBar_title => 'Progresión de buceo';
 
   @override
@@ -33658,6 +33839,24 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get insights_social_soloVsBuddy_withBuddy => 'Con compañero';
+
+  @override
+  String get insights_social_myRole_title => 'Mi rol';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Inmersiones según tu rol; una inmersión con varios roles cuenta en cada uno';
+
+  @override
+  String get insights_social_myRole_empty =>
+      'No hay datos de inmersiones disponibles';
+
+  @override
+  String get insights_social_myRole_error =>
+      'No se pudieron cargar los datos de roles';
+
+  @override
+  String get insights_social_myRole_notSet => 'Sin definir';
 
   @override
   String get insights_social_topBuddies_error =>
@@ -36868,6 +37067,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get units_profileMetric_min => 'min';
+
+  @override
+  String get units_profileMetric_h => 'h';
 
   @override
   String get units_profileMetric_percent => '%';
@@ -46666,6 +46868,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_buddyField_phone => 'Teléfono';
 
   @override
+  String get enum_buddyField_country => 'País';
+
+  @override
   String get enum_buddyField_certificationLevel => 'Nivel de certificación';
 
   @override
@@ -46685,6 +46890,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => 'Tel.';
+
+  @override
+  String get enum_buddyField_country_short => 'País';
 
   @override
   String get enum_buddyField_certificationLevel_short => 'Nivel';
@@ -52736,6 +52944,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count tipos de agua';
+  }
+
+  @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count roles';
   }
 
   @override
@@ -59387,6 +59600,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_buddies_phone => 'Teléfono';
 
   @override
+  String get query_buddies_country => 'País';
+
+  @override
   String get query_centers_affiliations => 'Afiliaciones';
 
   @override
@@ -59528,6 +59744,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_divePlans_site => 'Punto de buceo';
 
   @override
+  String get query_diveRoles_builtIn => 'Predefinido';
+
+  @override
+  String get query_diveRoles_name => 'Nombre';
+
+  @override
   String get query_diveTypes_builtIn => 'Predefinido';
 
   @override
@@ -59634,6 +59856,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Mi rol';
+
+  @override
+  String get query_dives_myRole => 'Mis roles';
 
   @override
   String get query_dives_media => 'Multimedia';
@@ -59769,6 +59994,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Tipos de inmersión';
+
+  @override
+  String get query_entity_diveRoles => 'Roles de inmersión';
 
   @override
   String get query_entity_dives => 'Inmersiones';
@@ -61434,6 +61662,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'Entradas integradas ocultas';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'Tipos de inmersión favoritos';
 
   @override
   String get backup_restore_copyInOtherAccount =>

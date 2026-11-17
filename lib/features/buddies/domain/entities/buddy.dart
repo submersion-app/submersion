@@ -19,6 +19,13 @@ class Buddy extends Equatable {
   final String? email;
   final String? phone;
 
+  /// Where the buddy is from, as the diver wrote it (issue #4457).
+  final String? country;
+
+  /// The ISO 3166-1 alpha-2 code read from [country], or null when the text
+  /// names no country. The repository keeps it in step with [country].
+  final String? countryCode;
+
   /// The primary certification's level and agency ids (built-in enum names
   /// or custom ids, issue #690).
   final String? certificationLevel;
@@ -61,6 +68,8 @@ class Buddy extends Equatable {
     required this.name,
     this.email,
     this.phone,
+    this.country,
+    this.countryCode,
     this.certificationLevel,
     this.certificationAgency,
     this.certificationTitle,
@@ -162,6 +171,9 @@ class Buddy extends Equatable {
     String? name,
     String? email,
     String? phone,
+    String? country,
+    String? countryCode,
+    bool clearCountry = false,
     String? certificationLevel,
     String? certificationAgency,
     String? certificationTitle,
@@ -186,6 +198,10 @@ class Buddy extends Equatable {
       name: name ?? this.name,
       email: email ?? this.email,
       phone: phone ?? this.phone,
+      // [clearCountry] removes both: copyWith keeps a field on a null
+      // argument, so clearing needs its own flag.
+      country: clearCountry ? null : country ?? this.country,
+      countryCode: clearCountry ? null : countryCode ?? this.countryCode,
       certificationLevel: certificationLevel ?? this.certificationLevel,
       certificationAgency: certificationAgency ?? this.certificationAgency,
       certificationTitle: certificationTitle ?? this.certificationTitle,
@@ -219,6 +235,8 @@ class Buddy extends Equatable {
       name: name,
       email: email,
       phone: phone,
+      country: country,
+      countryCode: countryCode,
       certificationLevel: certificationLevel,
       certificationAgency: certificationAgency,
       certificationTitle: certificationTitle,
@@ -249,6 +267,8 @@ class Buddy extends Equatable {
       name: name,
       email: email,
       phone: phone,
+      country: country,
+      countryCode: countryCode,
       certificationLevel: certificationLevel,
       certificationAgency: certificationAgency,
       certificationTitle: certificationTitle,
@@ -276,6 +296,8 @@ class Buddy extends Equatable {
     name,
     email,
     phone,
+    country,
+    countryCode,
     certificationLevel,
     certificationAgency,
     certificationTitle,

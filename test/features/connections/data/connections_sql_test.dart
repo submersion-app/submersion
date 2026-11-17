@@ -252,10 +252,7 @@ void main() {
         labelLike: '%tur%',
         limit: 5,
       );
-      expect(
-        r.sql,
-        contains("unicode_lower(t.common_name) LIKE ? ESCAPE '\\'"),
-      );
+      expect(r.sql, contains("search_fold(t.common_name) LIKE ? ESCAPE '\\'"));
       expect(r.sql, contains('LIMIT ?'));
       expect(r.params, ['me', 'sp1', '%tur%', 5]);
     });

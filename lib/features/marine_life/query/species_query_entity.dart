@@ -28,9 +28,9 @@ final speciesQueryEntity = QueryEntity(
   subject: QuerySubject.species,
   table: 'species',
   textSearchSql: const [
-    "unicode_lower({r}.common_name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.scientific_name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.taxonomy_class) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.common_name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.scientific_name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.taxonomy_class) LIKE ? ESCAPE '\\'",
   ],
   textSearchExpansions: const [kSpeciesTranslatedTextSearch],
   fields: [

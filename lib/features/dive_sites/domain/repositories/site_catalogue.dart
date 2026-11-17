@@ -13,11 +13,17 @@ abstract interface class SiteCatalogue {
   ///
   /// With [kind], only records of that kind, and [limit] counts those
   /// alone: the picker lists dive sites and register records apart.
+  ///
+  /// With [mapPlacedOnly], only records whose position was read off a map
+  /// ([CatalogueSite.positionFromMap]), and [limit] counts those alone:
+  /// matching reads them further out than the rest, where nearer records
+  /// would otherwise fill the limit first.
   Future<List<CatalogueSite>> near(
     GeoPoint point, {
     required double radiusMeters,
     int limit = 500,
     CatalogueKind? kind,
+    bool mapPlacedOnly = false,
   });
 
   /// How many records of [kind] lie within [radiusMeters] of [point],

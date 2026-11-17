@@ -238,5 +238,8 @@ Widget _buildEditPane(
     initialSection: TripEditSection.fromQuery(
       GoRouterState.of(context).uri.queryParameters['section'],
     ),
+    noteDay: tripNoteDayFromQuery(
+      GoRouterState.of(context).uri.queryParameters,
+    ),
   );
 }

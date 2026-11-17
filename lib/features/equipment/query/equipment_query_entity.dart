@@ -29,13 +29,13 @@ final equipmentQueryEntity = QueryEntity(
   diverScopeColumn: 'diver_id',
   // The equipment search route's columns, tags included.
   textSearchSql: const [
-    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.brand) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.model) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.serial_number) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.brand) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.model) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.serial_number) LIKE ? ESCAPE '\\'",
     'EXISTS (SELECT 1 FROM equipment_tags tet JOIN tags tt '
         'ON tt.id = tet.tag_id WHERE tet.equipment_id = {r}.id '
-        "AND unicode_lower(tt.name) LIKE ? ESCAPE '\\')",
+        "AND search_fold(tt.name) LIKE ? ESCAPE '\\')",
   ],
   textSearchTables: const ['equipment_tags', 'tags'],
   fields: [

@@ -2797,6 +2797,24 @@ abstract class AppLocalizations {
   /// **'Day {number}'**
   String trips_story_dayLabel(int number);
 
+  /// Caption over the part of a trip's Notes that belongs to the day shown; tapping it opens the trip's Notes.
+  ///
+  /// In en, this message translates to:
+  /// **'From trip notes'**
+  String get trips_story_fromTripNotes;
+
+  /// Button on a trip day's page that opens the trip editor at a new heading for that day in the trip's Notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add note'**
+  String get trips_story_addDayNote;
+
+  /// Button on a trip day's page that opens the trip editor at the end of that day's part of the trip's Notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit note'**
+  String get trips_story_editDayNote;
+
   /// No description provided for @trips_story_surfaceDay.
   ///
   /// In en, this message translates to:
@@ -3279,6 +3297,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 selected dive has no tanks and will be skipped.} other{{count} selected dives have no tanks and will be skipped.}}'**
   String diveLog_bulkEdit_tankSpecsSkipped(int count);
+
+  /// No description provided for @diveLog_bulkEdit_tankRoleSameForAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Same role on every tank'**
+  String get diveLog_bulkEdit_tankRoleSameForAll;
+
+  /// No description provided for @diveLog_bulkEdit_tankRoleByPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Role by tank position'**
+  String get diveLog_bulkEdit_tankRoleByPosition;
+
+  /// No description provided for @diveLog_bulkEdit_tankRoleAddPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Add position'**
+  String get diveLog_bulkEdit_tankRoleAddPosition;
+
+  /// No description provided for @diveLog_bulkEdit_tankRoleRemovePosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove position'**
+  String get diveLog_bulkEdit_tankRoleRemovePosition;
+
+  /// No description provided for @diveLog_bulkEdit_tankRolesByPositionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Only dives with exactly {count} tank get this role.} other{Only dives with exactly {count} tanks get these roles, in tank order.}}'**
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count);
+
+  /// No description provided for @diveLog_bulkEdit_tankRolesSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive doesn\'t match the tank positions, so its tank roles stay as they are.} other{{count} dives don\'t match the tank positions, so their tank roles stay as they are.}}'**
+  String diveLog_bulkEdit_tankRolesSkipped(int count);
 
   /// No description provided for @diveLog_bulkEdit_confirmTitle.
   ///
@@ -5379,6 +5433,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'+1 (555) 123-4567'**
   String get buddies_field_phoneHint;
+
+  /// No description provided for @buddies_field_country.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get buddies_field_country;
+
+  /// No description provided for @buddies_field_countryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Italy'**
+  String get buddies_field_countryHint;
 
   /// No description provided for @buddies_label_diveCount.
   ///
@@ -14775,11 +14841,17 @@ abstract class AppLocalizations {
   /// **'No entry method recorded'**
   String get diveLog_filter_noEntryMethodOnly;
 
-  /// No description provided for @diveLog_filter_noRoleOnly.
+  /// Heading of the dive filter's chips for the diver's own role on the dive
   ///
   /// In en, this message translates to:
-  /// **'No Role Assigned'**
-  String get diveLog_filter_noRoleOnly;
+  /// **'My role'**
+  String get diveLog_filter_sectionMyRole;
+
+  /// Filter chip: keep dives where the diver's own role is not set
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get diveLog_filter_myRoleNotSet;
 
   /// No description provided for @diveLog_filter_noTagsYet.
   ///
@@ -14912,12 +14984,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show only dives with no known entry method'**
   String get diveLog_filter_showOnlyNoEntryMethod;
-
-  /// No description provided for @diveLog_filter_showOnlyNoRole.
-  ///
-  /// In en, this message translates to:
-  /// **'Show only dives where your role is not set'**
-  String get diveLog_filter_showOnlyNoRole;
 
   /// No description provided for @diveLog_filter_startDate.
   ///
@@ -18168,6 +18234,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My cylinders'**
   String get diveLog_tank_ownCylinderTitle;
+
+  /// No description provided for @cylindersFromTanks_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add cylinders to your gear'**
+  String get cylindersFromTanks_title;
+
+  /// No description provided for @cylindersFromTanks_onDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{on {count} dive} other{on {count} dives}}'**
+  String cylindersFromTanks_onDives(int count);
+
+  /// No description provided for @cylindersFromTanks_makes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} cylinder} other{{count} cylinders}}'**
+  String cylindersFromTanks_makes(int count);
+
+  /// No description provided for @cylindersFromTanks_add.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Add {count} cylinder} other{Add {count} cylinders}}'**
+  String cylindersFromTanks_add(int count);
+
+  /// No description provided for @cylindersFromTanks_added.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Added {count} cylinder to your gear} other{Added {count} cylinders to your gear}}'**
+  String cylindersFromTanks_added(int count);
+
+  /// No description provided for @cylindersFromTanks_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} tank isn\'t in your gear} other{{count} tanks aren\'t in your gear}}'**
+  String cylindersFromTanks_summary(int count);
+
+  /// No description provided for @cylindersFromTanks_review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get cylindersFromTanks_review;
+
+  /// No description provided for @cylindersFromTanks_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get cylindersFromTanks_name;
+
+  /// No description provided for @cylindersFromTanks_sizeName.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} {material}'**
+  String cylindersFromTanks_sizeName(String size, String material);
+
+  /// No description provided for @cylindersFromTanks_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add the cylinders'**
+  String get cylindersFromTanks_failed;
+
+  /// No description provided for @diveLog_tank_gearMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder options'**
+  String get diveLog_tank_gearMenu;
+
+  /// No description provided for @diveLog_tank_addToGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to my gear'**
+  String get diveLog_tank_addToGear;
+
+  /// No description provided for @diveLog_tank_linkCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a cylinder I own'**
+  String get diveLog_tank_linkCylinder;
+
+  /// No description provided for @diveLog_tank_linkCylinderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Links this tank to the cylinder and adds the cylinder to this dive\'s equipment. The tank keeps its recorded size.'**
+  String get diveLog_tank_linkCylinderHint;
+
+  /// No description provided for @diveLog_tank_unlinkCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink cylinder'**
+  String get diveLog_tank_unlinkCylinder;
+
+  /// No description provided for @diveLog_tank_linkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t change the cylinder link'**
+  String get diveLog_tank_linkFailed;
 
   /// No description provided for @diveLog_tank_regulatorLabel.
   ///
@@ -21886,6 +22048,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete dive type'**
   String get diveTypes_deleteTooltip;
+
+  /// Tooltip and screen-reader label on the star button that makes a dive type a favorite, listed first in the dive type pickers
+  ///
+  /// In en, this message translates to:
+  /// **'Add {name} to favorites'**
+  String diveTypes_favourite_add(String name);
+
+  /// Tooltip and screen-reader label on the filled star button that removes a dive type from the favorites
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from favorites'**
+  String diveTypes_favourite_remove(String name);
+
+  /// Heading above the starred dive types at the top of the dive type checklist
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get diveTypes_favourites_header;
 
   /// No description provided for @diveTypes_editDialog_builtInNameHelper.
   ///
@@ -35584,6 +35764,12 @@ abstract class AppLocalizations {
   /// **'end: {reading}'**
   String plannerCanvas_gas_endReading(String reading);
 
+  /// No description provided for @plannerCanvas_gas_problemSolvingReading.
+  ///
+  /// In en, this message translates to:
+  /// **'problem solving: {reading}'**
+  String plannerCanvas_gas_problemSolvingReading(String reading);
+
   /// No description provided for @plannerCanvas_issue_gasDensityCritical.
   ///
   /// In en, this message translates to:
@@ -35605,8 +35791,14 @@ abstract class AppLocalizations {
   /// No description provided for @plannerCanvas_issue_minGas.
   ///
   /// In en, this message translates to:
-  /// **'Tank ends below the rock-bottom minimum of {pressure}'**
-  String plannerCanvas_issue_minGas(String pressure);
+  /// **'Leaves the bottom with {remaining}, under the rock-bottom minimum of {minimum}: no gas held back for problem-solving time'**
+  String plannerCanvas_issue_minGas(String remaining, String minimum);
+
+  /// No description provided for @plannerCanvas_issue_minGasAscent.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaves the bottom with {remaining}, under the {minimum} an emergency ascent needs'**
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum);
 
   /// No description provided for @plannerCanvas_issue_noUsableGas.
   ///
@@ -35874,6 +36066,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Min gas'**
   String get plannerCanvas_slate_minGas;
+
+  /// No description provided for @plannerCanvas_slate_problemSolving.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem solving'**
+  String get plannerCanvas_slate_problemSolving;
 
   /// No description provided for @plannerCanvas_slate_saved.
   ///
@@ -52686,6 +52884,12 @@ abstract class AppLocalizations {
   /// **'{value} min'**
   String insights_profile_timeAtDepth_valueFormat(Object value);
 
+  /// Time at depth value in whole hours, shown once a band holds 100 hours or more
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h'**
+  String insights_profile_timeAtDepth_hoursFormat(int hours);
+
   /// No description provided for @insights_progression_appBar_title.
   ///
   /// In en, this message translates to:
@@ -53387,6 +53591,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'With Buddy'**
   String get insights_social_soloVsBuddy_withBuddy;
+
+  /// Title of the Insights card breaking dives down by the diver's own role
+  ///
+  /// In en, this message translates to:
+  /// **'My role'**
+  String get insights_social_myRole_title;
+
+  /// Subtitle of the My role card; explains that a dive holding several roles counts under each
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by the role you held; a dive with several roles counts under each'**
+  String get insights_social_myRole_subtitle;
+
+  /// Shown on the My role card when there are no dives
+  ///
+  /// In en, this message translates to:
+  /// **'No dive data available'**
+  String get insights_social_myRole_empty;
+
+  /// Shown on the My role card when its data fails to load
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load role data'**
+  String get insights_social_myRole_error;
+
+  /// Bar label on the My role card for dives where the diver's own role is not set
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get insights_social_myRole_notSet;
 
   /// No description provided for @insights_social_topBuddies_error.
   ///
@@ -57949,6 +58183,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'min'**
   String get units_profileMetric_min;
+
+  /// Unit for time in hours
+  ///
+  /// In en, this message translates to:
+  /// **'h'**
+  String get units_profileMetric_h;
 
   /// Percent unit symbol
   ///
@@ -73060,6 +73300,12 @@ abstract class AppLocalizations {
   /// **'Phone'**
   String get enum_buddyField_phone;
 
+  /// No description provided for @enum_buddyField_country.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get enum_buddyField_country;
+
   /// No description provided for @enum_buddyField_certificationLevel.
   ///
   /// In en, this message translates to:
@@ -73101,6 +73347,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Phone'**
   String get enum_buddyField_phone_short;
+
+  /// No description provided for @enum_buddyField_country_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get enum_buddyField_country_short;
 
   /// No description provided for @enum_buddyField_certificationLevel_short.
   ///
@@ -83184,6 +83436,12 @@ abstract class AppLocalizations {
   /// **'{count} water types'**
   String diveLog_filterChip_waterTypeCount(Object count);
 
+  /// Active filter chip for the diver's own role axis when several choices are picked (roles, or a role and Not set)
+  ///
+  /// In en, this message translates to:
+  /// **'{count} roles'**
+  String diveLog_filterChip_roleCount(int count);
+
   /// No description provided for @diveLog_filterChip_tankConfigCount.
   ///
   /// In en, this message translates to:
@@ -93151,6 +93409,12 @@ abstract class AppLocalizations {
   /// **'Phone'**
   String get query_buddies_phone;
 
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get query_buddies_country;
+
   /// Query builder: a dive center's agency affiliations
   ///
   /// In en, this message translates to:
@@ -93437,6 +93701,18 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Built-in'**
+  String get query_diveRoles_builtIn;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_diveRoles_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
   String get query_diveTypes_builtIn;
 
   /// Field label in the query builder
@@ -93648,6 +93924,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My role'**
   String get query_dives_role;
+
+  /// Field label in the query builder: the diver's own roles on the dive, by name (a dive can hold several)
+  ///
+  /// In en, this message translates to:
+  /// **'My roles'**
+  String get query_dives_myRole;
 
   /// Field label in the query builder
   ///
@@ -93918,6 +94200,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive types'**
   String get query_entity_diveTypes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive roles'**
+  String get query_entity_diveRoles;
 
   /// Field label in the query builder
   ///
@@ -96650,6 +96938,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hidden built-in entries'**
   String get settings_conflict_field_hiddenBuiltInIds;
+
+  /// Sync conflict dialog label for the dive types a diver starred to list first in the pickers
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite dive types'**
+  String get settings_conflict_field_favouriteDiveTypeIds;
 
   /// Restore failed because the backup's only copy is in a cloud account the backup copy no longer goes to
   ///

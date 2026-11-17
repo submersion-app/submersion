@@ -14,7 +14,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../../../helpers/mock_providers.dart';
 import 'group_test_host.dart';
 
 void main() {
@@ -43,16 +45,22 @@ void main() {
   ];
   final diveTypes = [
     DiveTypeEntity(id: 'wreck', name: 'Wreck', createdAt: now, updatedAt: now),
+    DiveTypeEntity(id: 'shore', name: 'Shore', createdAt: now, updatedAt: now),
+    DiveTypeEntity(id: 'night', name: 'Night', createdAt: now, updatedAt: now),
   ];
 
   Future<GroupHarness> pump(
     WidgetTester tester, {
     DiveFilterState initial = const DiveFilterState(),
     List<EquipmentItem> gear = const [],
-  }) => pumpGroup(
+    AppSettings settings = const AppSettings(),
+  }) async => pumpGroup(
     tester,
     (d, on) => RefineGasEquipmentGroup(draft: d, onChanged: on),
     initial: initial,
+    baseOverrides: await getBaseOverrides(
+      settingsNotifier: MockSettingsNotifier(settings),
+    ),
     overrides: [
       diveTypesProvider.overrideWith((ref) async => diveTypes),
       allDiveComputersProvider.overrideWith((ref) async => computers),
@@ -353,5 +361,50 @@ void main() {
     final h = await pump(tester);
     await pick(tester, 'All types', 'Wreck');
     expect(h.draft.diveTypeId, 'wreck');
+  });
+
+  testWidgets('favourite dive types lead the type options (#4413)', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      settings: const AppSettings(favouriteDiveTypeIds: {'night'}),
+    );
+    final dropdown = tester.widget<SearchableFilterDropdown<String>>(
+      find.byWidgetPredicate(
+        (w) =>
+            w is SearchableFilterDropdown<String> &&
+            w.allOptionLabel == 'All types',
+      ),
+    );
+    expect(
+      [for (final o in dropdown.options) o.label],
+      ['Night', 'Wreck', 'Shore'],
+    );
+  });
+
+  testWidgets('a hidden favourite keeps its place in the type options', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      settings: const AppSettings(
+        favouriteDiveTypeIds: {'night'},
+        hiddenBuiltInIds: {
+          'diveTypes': {'night'},
+        },
+      ),
+    );
+    final dropdown = tester.widget<SearchableFilterDropdown<String>>(
+      find.byWidgetPredicate(
+        (w) =>
+            w is SearchableFilterDropdown<String> &&
+            w.allOptionLabel == 'All types',
+      ),
+    );
+    expect(
+      [for (final o in dropdown.options) o.label],
+      ['Wreck', 'Shore', 'Night'],
+    );
   });
 }

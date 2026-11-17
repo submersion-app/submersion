@@ -29,6 +29,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dar
 import 'package:submersion/features/dive_log/presentation/widgets/tank_cursor_line.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_figure.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_gear_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_fill_levels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_series_reassign_sheet.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -526,7 +527,11 @@ class CylindersCard extends ConsumerWidget {
             ],
           ),
       ],
-      trailing: _checkInButton(tank, readOnly: checkInReadOnly),
+      trailing: _trailing(
+        tank,
+        checkInReadOnly: checkInReadOnly,
+        canAssign: canAssign,
+      ),
     );
   }
 
@@ -550,6 +555,34 @@ class CylindersCard extends ConsumerWidget {
               tank.role.localizedName(context.l10n),
             ),
             style: theme.textTheme.bodySmall?.copyWith(color: color),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// The check-in of a linked cylinder, then the tank's cylinder menu
+  /// (issue #4494). The menu writes at once, so like Assign it shows only
+  /// where [canAssign] allows; its room is kept while hidden, so the row is
+  /// the same width locked and unlocked.
+  Widget _trailing(
+    DiveTank tank, {
+    required bool checkInReadOnly,
+    required bool canAssign,
+  }) {
+    final checkIn = _checkInButton(tank, readOnly: checkInReadOnly);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ?checkIn,
+        ExcludeSemantics(
+          excluding: !canAssign,
+          child: IgnorePointer(
+            ignoring: !canAssign,
+            child: Opacity(
+              opacity: canAssign ? 1 : 0,
+              child: TankGearMenu(dive: dive, tank: tank),
+            ),
           ),
         ),
       ],

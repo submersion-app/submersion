@@ -128,7 +128,11 @@ own code and writes nothing (issue #4203). It never has a planner of its own:
   Every value it marks as one a plan can set is an input, so an agent can
   override any of them. That includes the ascent rate bands and the
   problem-solving allowance (`problem_solving_minutes` at the deepest point on
-  bottom SAC times `sac_factor`), which `litres_used` includes.
+  bottom SAC times `sac_factor`), reported per tank as
+  `problem_solving_litres` and not included in `litres_used` (#4475).
+  Minimum gas is checked against `bottom_end_pressure_bar`, the cylinder as
+  the diver leaves the deepest point: under `min_gas_ascent_bar` is critical,
+  under `min_gas_bar` a warning.
 - **Following a logged dive** reads it through the planner's
   `seriesFollowProvider`, injected as a `SeriesFollowReader` and wrapped in
   `loggedDivesOnly`, so the carry-in is the planner's own and a planned entry

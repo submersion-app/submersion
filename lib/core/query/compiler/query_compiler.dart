@@ -7,6 +7,7 @@ import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_registry.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/util/wall_clock_utc.dart';
 
 /// One compiled query, in the two spellings its consumers need.
@@ -146,9 +147,10 @@ class _Ctx {
     // builder text row) whose words must appear together, in order. Bare
     // words arrive as separate one-word nodes under an AND (#2773).
     final raw = words.join(' ');
-    // Lowered here, the column by unicode_lower in each template: LIKE
-    // folds ASCII only, so "écueil" missed "Écueil" (#3032).
-    final term = '%${escapeLike(raw.toLowerCase())}%';
+    // Folded here, the column by search_fold in each template: LIKE folds
+    // ASCII case only, so "écueil" missed "Écueil" (#3032) and "jeremie"
+    // missed "Jérémie" (#4498).
+    final term = '%${escapeLike(foldForSearch(raw))}%';
     final alts = <String>[];
     for (final t in entity.textSearchSql) {
       alts.add(substituteRow(t, alias));
@@ -380,9 +382,11 @@ class _Ctx {
         return '($c IN (${List.filled(items.length, '?').join(', ')}))';
       case QueryOp.contains:
         final c = col();
-        final needle = (value as StringValue).value.toLowerCase();
+        // Folds accents as a bare word does (#4498); `=` and `in` fold case
+        // alone, since they ask for one spelling.
+        final needle = foldForSearch((value as StringValue).value);
         params.add('%${escapeLike(needle)}%');
-        return "(unicode_lower($c) LIKE ? ESCAPE '\\')";
+        return "(search_fold($c) LIKE ? ESCAPE '\\')";
       case QueryOp.eq:
       case QueryOp.neq:
         return _equality(f, col, op, value!, alias);

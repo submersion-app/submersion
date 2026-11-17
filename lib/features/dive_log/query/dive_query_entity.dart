@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dar
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
 import 'package:submersion/features/dive_log/query/dive_number_query.dart';
 import 'package:submersion/features/dive_log/query/dive_word_meanings.dart';
+import 'package:submersion/features/dive_roles/data/diver_role_set_sql.dart';
 import 'package:submersion/features/dive_types/query/dive_type_text_search.dart';
 import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
@@ -29,6 +30,11 @@ import 'package:submersion/features/marine_life/query/sighting_text_search.dart'
 /// correlated subquery; values are never interpolated.
 
 String _label(String key) => 'query_dives_$key';
+
+/// A dive with no role of the diver's own (#3622): the `role` field's
+/// empty form and, written against `{from}`, the `myRole` relation's
+/// (#4409), so `myRole:none` keeps meaning `role:none`.
+final _noRoleSql = diverRoleUnsetSql('{r}.diver_role');
 
 const _weekday =
     "CAST(strftime('%w', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
@@ -59,9 +65,9 @@ final kDiveGearJoinSql =
     'UNION ${tankRegulatorIdsOfDiveSql('{from}.id')})';
 
 const _gearWordMatchSql =
-    "SELECT teq.id FROM equipment teq WHERE unicode_lower(teq.name) LIKE ? "
-    "ESCAPE '\\' OR unicode_lower(teq.brand) LIKE ? ESCAPE '\\' "
-    "OR unicode_lower(teq.model) LIKE ? ESCAPE '\\'";
+    "SELECT teq.id FROM equipment teq WHERE search_fold(teq.name) LIKE ? "
+    "ESCAPE '\\' OR search_fold(teq.brand) LIKE ? ESCAPE '\\' "
+    "OR search_fold(teq.model) LIKE ? ESCAPE '\\'";
 
 /// A word that names gear a dive used: the same set as [kDiveGearJoinSql],
 /// walked from the matching gear to its dives, because that join is correlated
@@ -246,55 +252,55 @@ final QueryEntity diveQueryEntity = QueryEntity(
   diverScopeColumn: 'diver_id',
   scopesHopsToDiver: true,
   textSearchSql: [
-    "unicode_lower({r}.notes) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.buddy) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.dive_master) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.notes) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.buddy) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.dive_master) LIKE ? ESCAPE '\\'",
     // Shown on the dive since #3229, so a search finds them too.
-    "unicode_lower({r}.dive_operator) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.boat_name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.boat_captain) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.surface_conditions) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.dive_operator) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.boat_name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.boat_captain) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.surface_conditions) LIKE ? ESCAPE '\\'",
     'EXISTS (SELECT 1 FROM dive_sites ts WHERE ts.id = {r}.site_id '
-        "AND (unicode_lower(ts.name) LIKE ? ESCAPE '\\' OR unicode_lower(ts.country) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(ts.region) LIKE ? ESCAPE '\\'))",
+        "AND (search_fold(ts.name) LIKE ? ESCAPE '\\' OR search_fold(ts.country) LIKE ? ESCAPE '\\' "
+        "OR search_fold(ts.region) LIKE ? ESCAPE '\\'))",
     'EXISTS (SELECT 1 FROM dive_centers tc WHERE tc.id = {r}.dive_center_id '
-        "AND unicode_lower(tc.name) LIKE ? ESCAPE '\\')",
+        "AND search_fold(tc.name) LIKE ? ESCAPE '\\')",
     'EXISTS (SELECT 1 FROM dive_buddies tdb JOIN buddies tb '
         'ON tb.id = tdb.buddy_id WHERE tdb.dive_id = {r}.id '
-        "AND unicode_lower(tb.name) LIKE ? ESCAPE '\\')",
+        "AND search_fold(tb.name) LIKE ? ESCAPE '\\')",
     'EXISTS (SELECT 1 FROM dive_tags tdt JOIN tags tt ON tt.id = tdt.tag_id '
-        "WHERE tdt.dive_id = {r}.id AND unicode_lower(tt.name) LIKE ? ESCAPE '\\')",
+        "WHERE tdt.dive_id = {r}.id AND search_fold(tt.name) LIKE ? ESCAPE '\\')",
     'EXISTS (SELECT 1 FROM dive_custom_fields tcf WHERE tcf.dive_id = {r}.id '
-        "AND (unicode_lower(tcf.field_key) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(tcf.field_value) LIKE ? ESCAPE '\\'))",
+        "AND (search_fold(tcf.field_key) LIKE ? ESCAPE '\\' "
+        "OR search_fold(tcf.field_value) LIKE ? ESCAPE '\\'))",
     // The stored name: a custom type's own, a built-in's English one. The
     // translations are kDiveTypeTranslatedTextSearch (issue #2884).
     'EXISTS (SELECT 1 FROM dive_dive_types tddt JOIN dive_types tdty '
         'ON tdty.id = tddt.dive_type_id WHERE tddt.dive_id = {r}.id '
-        "AND unicode_lower(tdty.name) LIKE ? ESCAPE '\\')",
+        "AND search_fold(tdty.name) LIKE ? ESCAPE '\\')",
     // What a dive carries, so a brand or a trip finds it (#3457). Each of
     // these reads its matches once rather than once per dive, which keeps a
     // word that matches nothing cheap on a long log.
     _gearTextSearchSql,
     "{r}.trip_id IN (SELECT ttrp.id FROM trips ttrp WHERE "
-        "unicode_lower(ttrp.name) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(ttrp.location) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(ttrp.resort_name) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(ttrp.liveaboard_name) LIKE ? ESCAPE '\\')",
+        "search_fold(ttrp.name) LIKE ? ESCAPE '\\' "
+        "OR search_fold(ttrp.location) LIKE ? ESCAPE '\\' "
+        "OR search_fold(ttrp.resort_name) LIKE ? ESCAPE '\\' "
+        "OR search_fold(ttrp.liveaboard_name) LIKE ? ESCAPE '\\')",
     '{r}.id IN (SELECT tsgt.dive_id FROM sightings tsgt WHERE tsgt.species_id '
         'IN (SELECT tspc.id FROM species tspc WHERE '
-        "unicode_lower(tspc.common_name) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(tspc.scientific_name) LIKE ? ESCAPE '\\'))",
+        "search_fold(tspc.common_name) LIKE ? ESCAPE '\\' "
+        "OR search_fold(tspc.scientific_name) LIKE ? ESCAPE '\\'))",
     '{r}.id IN (SELECT tdcr.dive_id FROM dive_courses tdcr WHERE tdcr.course_id '
         'IN (SELECT tcrs.id FROM courses tcrs WHERE '
-        "unicode_lower(tcrs.name) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(tcrs.location) LIKE ? ESCAPE '\\'))",
-    "unicode_lower({r}.dive_computer_model) LIKE ? ESCAPE '\\'",
+        "search_fold(tcrs.name) LIKE ? ESCAPE '\\' "
+        "OR search_fold(tcrs.location) LIKE ? ESCAPE '\\'))",
+    "search_fold({r}.dive_computer_model) LIKE ? ESCAPE '\\'",
     "{r}.computer_id IN (SELECT tcmp.id FROM dive_computers tcmp "
-        "WHERE unicode_lower(tcmp.name) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(tcmp.manufacturer) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(tcmp.model) LIKE ? ESCAPE '\\')",
+        "WHERE search_fold(tcmp.name) LIKE ? ESCAPE '\\' "
+        "OR search_fold(tcmp.manufacturer) LIKE ? ESCAPE '\\' "
+        "OR search_fold(tcmp.model) LIKE ? ESCAPE '\\')",
   ],
   textSearchTables: const [
     'dive_sites',
@@ -577,15 +583,14 @@ final QueryEntity diveQueryEntity = QueryEntity(
     _text('legacyBuddy', 'buddy'),
     // The diver's own role (#3622), present or not. A null or blank
     // diver_role is no role whatever dive_diver_roles holds, as
-    // DiveRoleSet.resolve reads it. Matching a named role would need that
-    // resolution in SQL and a name subject for custom roles, so only the
-    // presence operators are offered.
+    // DiveRoleSet.resolve reads it. Named roles go through the `myRole`
+    // relation (#4409), which took this field's old `myRole` alias: fields
+    // resolve before relations, so the alias would have shadowed it.
     QueryField(
       key: 'role',
-      aliases: const ['myRole'],
       type: FieldType.text,
       sql: '{r}.diver_role',
-      emptySql: "({r}.diver_role IS NULL OR {r}.diver_role = '')",
+      emptySql: _noRoleSql,
       labelKey: _label('role'),
       ops: const {QueryOp.isEmpty, QueryOp.isSet},
     ),
@@ -686,6 +691,22 @@ final QueryEntity diveQueryEntity = QueryEntity(
       'dive_dive_types',
       'dive_type_id',
       aliases: ['type', 'diveType'],
+    ),
+    // The diver's own roles by name (#4409): the set DiveRoleSet.resolve
+    // reads, so a secondary role matches and a junction an older version's
+    // scalar outdates does not. `:none` is the `role` field's empty form.
+    QueryRelation(
+      key: 'myRole',
+      aliases: const ['myRoles'],
+      target: QuerySubject.diveRoles,
+      shape: RelationShape.custom,
+      joinSql:
+          '{to}.id IN (${diverRoleIdsOfDiveSql(diveId: '{from}.id', scalar: '{from}.diver_role')}) '
+          "AND ${diveRoleVisibleSql(role: '{to}', diveDiverId: '{from}.diver_id')}",
+      isMany: true,
+      labelKey: _label('myRole'),
+      emptySql: _noRoleSql.replaceAll('{r}', '{from}'),
+      tables: const ['dive_diver_roles'],
     ),
     QueryRelation(
       key: 'gear',

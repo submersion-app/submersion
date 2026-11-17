@@ -17,6 +17,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_buddies_email;
     case 'query_buddies_favorite':
       return l10n.query_buddies_favorite;
+    case 'query_buddies_country':
+      return l10n.query_buddies_country;
     case 'query_buddies_lastDived':
       return l10n.query_buddies_lastDived;
     case 'query_buddies_name':
@@ -119,6 +121,10 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_divePlans_runtime;
     case 'query_divePlans_site':
       return l10n.query_divePlans_site;
+    case 'query_diveRoles_builtIn':
+      return l10n.query_diveRoles_builtIn;
+    case 'query_diveRoles_name':
+      return l10n.query_diveRoles_name;
     case 'query_diveTypes_builtIn':
       return l10n.query_diveTypes_builtIn;
     case 'query_diveTypes_name':
@@ -217,6 +223,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_dives_rating;
     case 'query_dives_role':
       return l10n.query_dives_role;
+    case 'query_dives_myRole':
+      return l10n.query_dives_myRole;
     case 'query_dives_runtime':
       return l10n.query_dives_runtime;
     case 'query_dives_sac':
@@ -353,6 +361,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_entity_customFields;
     case 'query_entity_divePlans':
       return l10n.query_entity_divePlans;
+    case 'query_entity_diveRoles':
+      return l10n.query_entity_diveRoles;
     case 'query_entity_diveTypes':
       return l10n.query_entity_diveTypes;
     case 'query_entity_dives':

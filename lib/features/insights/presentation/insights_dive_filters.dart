@@ -73,6 +73,21 @@ DiveFilterState diveTypeDivesFilter(DiveFilterState scope, String typeId) =>
       ),
     ]);
 
+/// The dives behind one bar of the My role card (#4409). [key] is a role id
+/// or [kNotRecordedDistributionKey]. ANDed rather than set on the scope's
+/// `diverRoleIds`: a dive can hold several roles, so a scope already holding
+/// one must keep it.
+DiveFilterState diverRoleDivesFilter(DiveFilterState scope, String key) =>
+    _withConditions(scope, [
+      key == kNotRecordedDistributionKey
+          ? ConditionNode(FieldPath(const ['role']), QueryOp.isEmpty, null)
+          : ConditionNode(
+              FieldPath(const ['myRole']),
+              QueryOp.eq,
+              RefValue(key, key),
+            ),
+    ]);
+
 /// The dives behind one water type segment (#3805). [key] is the chart's
 /// key: a water type name or [kNotRecordedDistributionKey].
 DiveFilterState waterTypeDivesFilter(DiveFilterState scope, String key) =>

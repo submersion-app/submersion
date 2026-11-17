@@ -6,12 +6,12 @@ import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// Text search over [column] on the row, folded as the query compiler
 /// expects (#3032).
-String _like(String column) => "unicode_lower({r}.$column) LIKE ? ESCAPE '\\'";
+String _like(String column) => "search_fold({r}.$column) LIKE ? ESCAPE '\\'";
 
 /// A document's owner, as a name of [table] linked through [column].
 String _ownerName(String table, String column) =>
     'EXISTS (SELECT 1 FROM $table towner WHERE towner.id = {r}.$column '
-    "AND unicode_lower(towner.name) LIKE ? ESCAPE '\\')";
+    "AND search_fold(towner.name) LIKE ? ESCAPE '\\')";
 
 QueryField _text(String key, String column) => QueryField(
   key: key,
@@ -64,18 +64,18 @@ final documentQueryEntity = QueryEntity(
     // level (#3366), so those find it too.
     'EXISTS (SELECT 1 FROM certifications towner '
         'WHERE towner.id = {r}.certification_id '
-        "AND (unicode_lower(towner.name) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(towner.agency) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(towner.level) LIKE ? ESCAPE '\\'))",
+        "AND (search_fold(towner.name) LIKE ? ESCAPE '\\' "
+        "OR search_fold(towner.agency) LIKE ? ESCAPE '\\' "
+        "OR search_fold(towner.level) LIKE ? ESCAPE '\\'))",
     _ownerName('buddies', 'buddy_id'),
     _ownerName('dive_centers', 'dive_center_id'),
     'EXISTS (SELECT 1 FROM dives tdive LEFT JOIN dive_sites tsite '
         'ON tsite.id = tdive.site_id WHERE tdive.id = {r}.dive_id '
-        "AND (unicode_lower(tdive.name) LIKE ? ESCAPE '\\' "
-        "OR unicode_lower(tsite.name) LIKE ? ESCAPE '\\'))",
+        "AND (search_fold(tdive.name) LIKE ? ESCAPE '\\' "
+        "OR search_fold(tsite.name) LIKE ? ESCAPE '\\'))",
     'EXISTS (SELECT 1 FROM document_tags tdt JOIN tags tt '
         'ON tt.id = tdt.tag_id WHERE tdt.document_id = {r}.id '
-        "AND unicode_lower(tt.name) LIKE ? ESCAPE '\\')",
+        "AND search_fold(tt.name) LIKE ? ESCAPE '\\')",
   ],
   textSearchTables: const [
     'dive_sites',

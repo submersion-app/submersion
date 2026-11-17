@@ -6,6 +6,7 @@ import 'package:submersion/features/insights/data/repositories/insights_reposito
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/expandable_ranking_list.dart';
+import 'package:submersion/features/insights/presentation/widgets/my_role_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
@@ -24,6 +25,8 @@ class InsightsSocialPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSoloVsBuddySection(context, ref),
+          const SizedBox(height: 16),
+          const MyRoleCard(),
           const SizedBox(height: 16),
           _buildTopBuddiesSection(context, ref),
           const SizedBox(height: 16),

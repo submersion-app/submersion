@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 
 /// One bulk-editable collection as the confirmation sees it: its heading,
@@ -34,7 +35,7 @@ List<BulkChangeSection> summarizeBulkMembership(
 ) {
   List<String> names(List<String> ids, Map<String, String> labels) =>
       [for (final id in ids) labels[id] ?? id]
-        ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+        ..sort((a, b) => compareTextForSort(a, b));
 
   return collections.where((c) => !c.delta.isEmpty).map((c) {
     final labels = {for (final m in c.members) m.id: m.label};

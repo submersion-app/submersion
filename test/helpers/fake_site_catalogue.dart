@@ -49,11 +49,13 @@ class FakeSiteCatalogue implements SiteCatalogue {
     required double radiusMeters,
     int limit = 500,
     CatalogueKind? kind,
+    bool mapPlacedOnly = false,
   }) async {
     nearCalls++;
     final inside = [
       for (final site in sites)
-        if (kind == null || site.kind == kind)
+        if ((kind == null || site.kind == kind) &&
+            (!mapPlacedOnly || site.positionFromMap))
           if (site.location case final location?)
             if (distanceMeters(point, location) <= radiusMeters)
               (site: site, distance: distanceMeters(point, location)),

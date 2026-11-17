@@ -35,6 +35,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_use.dart';
 import 'package:submersion/features/dive_log/data/sql/analysis_inputs_stamp_sql.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/features/dive_roles/data/diver_role_set_sql.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
@@ -42,6 +43,7 @@ import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
 import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
 import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
 import 'package:submersion/features/insights/data/repositories/visibility_band_sql.dart';
+import 'package:submersion/features/insights/data/depth_band_scale.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/repositories/vertical_distance_cache.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
@@ -74,6 +76,7 @@ part 'insights_repository_conditions.dart';
 part 'insights_repository_focus.dart';
 part 'insights_repository_focus_series.dart';
 part 'insights_repository_role_consumption.dart';
+part 'insights_repository_roles.dart';
 part 'insights_repository_tank_configuration.dart';
 part 'insights_repository_time_of_day.dart';
 part 'insights_repository_twin_set_candidates.dart';
@@ -171,6 +174,13 @@ class EntryExitPairCount {
   final String? exitMethod;
   final int count;
 }
+
+/// One chunk of [InsightsRepository.getTimeAtDepthRanges] for the worker
+/// isolate: `compute` takes a single argument, so the blobs and the band
+/// scale travel together.
+Map<int, double> _timeAtDepthJob(
+  ({List<SeriesBlob> blobs, DepthBandScale scale}) job,
+) => timeAtDepthSecondsFromBlobs(job.blobs, scale: job.scale);
 
 /// Repository for all advanced statistics queries.
 ///
@@ -309,6 +319,9 @@ class InsightsRepository with InsightsChartDives {
           // Role sets (#1221); solo detection reads the primary, which a
           // junction-only write can still accompany through sync.
           TableUpdateQuery.onTable(_db.diveDiverRoles),
+          // The My role card joins the role rows (#4409); a custom role can
+          // sync in after the dives that hold it.
+          TableUpdateQuery.onTable(_db.diveRoles),
           TableUpdateQuery.onTable(_db.diveBuddyRoles),
           TableUpdateQuery.onTable(_db.sightings),
           TableUpdateQuery.onTable(_db.species),
@@ -2657,10 +2670,12 @@ class InsightsRepository with InsightsChartDives {
 
   /// Get time spent in depth ranges.
   ///
-  /// Returns numeric bucket edges in meters (the canonical depth unit). The
-  /// display layer converts to the user's preferred depth unit so the chart's
-  /// axis label and bucket labels match the setting. The top bucket is
-  /// open-ended ([upperDepth] is null).
+  /// Returns numeric band edges in [depthUnit], the diver's own depth unit,
+  /// so the display layer labels them as they come: 10 m bands for meters and
+  /// 30 ft bands for feet, rather than meter bands relabelled as 0-33, 33-66
+  /// (issue #4600). The bands run from the surface to the deepest one holding
+  /// any time, capped as [bucketsFromSeconds] describes, where the last band
+  /// turns open-ended ([upperDepth] is null).
   ///
   /// The aggregation runs in Dart, on a worker isolate, over decoded primary
   /// series (see [timeAtDepthRanges] and [timeAtDepthRangesFromBlobs]), with
@@ -2696,12 +2711,13 @@ class InsightsRepository with InsightsChartDives {
   /// every bucket. Note that a dive left with no primary rows at all is
   /// skipped entirely -- see issue #1149, which tracks the promotion bug that
   /// can produce that state.
-  Future<List<({int lowerDepth, int? upperDepth, int minutes})>>
-  getTimeAtDepthRanges({
+  Future<List<DepthBucket>> getTimeAtDepthRanges({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
+    DepthUnit depthUnit = DepthUnit.meters,
   }) async {
     try {
+      final scale = DepthBandScale.forUnit(depthUnit);
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
@@ -2726,10 +2742,10 @@ class InsightsRepository with InsightsChartDives {
         if (blobs.isEmpty) continue;
         seconds = combineDepthSeconds(
           seconds,
-          await compute(timeAtDepthSecondsFromBlobs, blobs),
+          await compute(_timeAtDepthJob, (blobs: blobs, scale: scale)),
         );
       }
-      return bucketsFromSeconds(seconds);
+      return bucketsFromSeconds(seconds, scale: scale);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get time at depth ranges',

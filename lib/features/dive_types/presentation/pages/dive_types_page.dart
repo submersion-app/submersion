@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badg
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/dive_types/presentation/widgets/dive_type_favourite_button.dart';
 import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -138,6 +139,12 @@ class DiveTypesPage extends ConsumerWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Starred types lead the dive type pickers (issue #4413); this
+          // page keeps its own order.
+          DiveTypeFavouriteButton(
+            diveTypeId: diveType.id,
+            diveTypeName: fullName,
+          ),
           if (shortName != null) ...[
             DiveTypeBadge(label: shortName),
             if (canDelete) const SizedBox(width: 8),

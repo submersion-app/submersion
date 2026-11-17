@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/compiler/sql_templates.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_picker_row.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -38,11 +39,11 @@ Future<List<DivePickerRow>> divePickerRows(
   if (term.isNotEmpty) {
     // Folded by unicode_lower on the column and by Dart here, which is the
     // same folding: LIKE and LOWER() only fold ASCII.
-    final like = '%${escapeLike(term.toLowerCase())}%';
+    final like = '%${escapeLike(foldForSearch(term))}%';
     where.add(
       "(CAST(d.dive_number AS TEXT) LIKE ? ESCAPE '\\' "
-      "OR unicode_lower(d.name) LIKE ? ESCAPE '\\' "
-      "OR unicode_lower(s.name) LIKE ? ESCAPE '\\')",
+      "OR search_fold(d.name) LIKE ? ESCAPE '\\' "
+      "OR search_fold(s.name) LIKE ? ESCAPE '\\')",
     );
     args.addAll([Variable(like), Variable(like), Variable(like)]);
   }

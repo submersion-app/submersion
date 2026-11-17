@@ -26,6 +26,13 @@ class Buddies extends Table {
   TextColumn get email => text().nullable()();
   TextColumn get phone => text().nullable()();
 
+  /// Where the buddy is from (v372, issue #4457), as the diver wrote it.
+  TextColumn get country => text().nullable()();
+
+  /// The ISO 3166-1 alpha-2 code read from [country] (v372, issue #4457),
+  /// kept in step with it the way a dive site's is.
+  TextColumn get countryCode => text().nullable()();
+
   /// Deprecated, superseded by [photo]. Two readers disagreed about how to
   /// load it and nothing ever wrote it; kept so a database that predates v181
   /// still maps.

@@ -37,6 +37,7 @@ void main() {
     QuerySubject.equipment: {'Reg A': 'e1'},
     QuerySubject.buddies: {'Ana Lee': 'b1'},
     QuerySubject.species: {'Turtle': 'sp1'},
+    QuerySubject.diveRoles: {'Instructor': 'instructor', 'Cave Guide': 'r1'},
   };
   final samples = <String, DiveFilterState>{
     'startDate': DiveFilterState(startDate: DateTime(2025, 1, 1)),
@@ -57,6 +58,11 @@ void main() {
     'noWaterType with listed types': const DiveFilterState(
       waterTypes: [WaterType.salt],
       noWaterType: true,
+    ),
+    'diverRoleIds': const DiveFilterState(diverRoleIds: ['instructor', 'r1']),
+    'diverRoleIds with noRoleOnly': const DiveFilterState(
+      diverRoleIds: ['instructor'],
+      noRoleOnly: true,
     ),
     'tagIds': const DiveFilterState(tagIds: ['g1', 'g2']),
     'weekdays': const DiveFilterState(weekdays: [1, 6]),

@@ -576,17 +576,6 @@ class _TopSitesSection extends StatelessWidget {
   }
 }
 
-const _typeColors = [
-  Color(0xFF42A5F5), // blue.shade400
-  Color(0xFF26A69A), // teal.shade400
-  Color(0xFFFFA726), // orange.shade400
-  Color(0xFFAB47BC), // purple.shade400
-  Color(0xFF66BB6A), // green.shade400
-  Color(0xFFEF5350), // red.shade400
-  Color(0xFF5C6BC0), // indigo.shade400
-  Color(0xFFFFCA28), // amber.shade400
-];
-
 class _DistributionsSection extends ConsumerWidget {
   final DiveStatistics stats;
   final UnitFormatter fmt;
@@ -743,7 +732,9 @@ class _DistributionsSection extends ConsumerWidget {
                         diveTypeDivesFilter(scope, segment.label),
                   ),
                   totalDurationSeconds: segment.totalDurationSeconds,
-                  color: _typeColors[index % _typeColors.length],
+                  color:
+                      kDistributionBarColors[index %
+                          kDistributionBarColors.length],
                   fraction: typeMaxCount == 0
                       ? 0
                       : segment.count / typeMaxCount,

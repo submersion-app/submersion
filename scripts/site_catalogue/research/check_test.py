@@ -4,8 +4,10 @@
 Run: python3 scripts/site_catalogue/research/check_test.py
 
 A researched site ships only when its evidence meets the rules of the
-slice 3 design: two counting pages that agree on its position, depths
-that agree well enough, every fact sourced, and no text from any page.
+slice 3 design as the wider sources design widens them: two counting
+pages that name it or confirm its position, a counting page that places
+it, depths that agree well enough, every fact sourced, and no text from
+any page.
 Each test breaks one rule on an entry that otherwise passes.
 """
 
@@ -132,6 +134,13 @@ class ShapeTest(unittest.TestCase):
         entry = _with(("position", "sources", 0, "quote"), "lovely wreck")
         self.assertIn("text_field", _rules(_one(entry)))
 
+    def test_free_text_inside_a_fact_fails(self):
+        # A fact holds its sources and values, never a page's words.
+        for key in ("named", "position", "max_depth_m", "min_depth_m", "types"):
+            entry = _entry(named=_named("https://opa.com/s", "https://pressb.org/y"))
+            entry[key]["quote"] = "lovely wreck"
+            self.assertIn("text_field", _rules(_one(entry)), key)
+
     def test_name_over_60_fails(self):
         self.assertIn("name_length", _rules(_one(_entry(name="x" * 61))))
 
@@ -199,6 +208,60 @@ class ShapeTest(unittest.TestCase):
             self.assertIn("shape", _rules(_one(entry)), bad)
 
 
+def _named(*urls):
+    return {
+        "place": "Tulamben Bay",
+        "sources": [{"url": u, "read": "2026-11-16"} for u in urls],
+    }
+
+
+class NamedTest(unittest.TestCase):
+    """Two counting pages on different domains name the site (wider
+    sources design, section 2), unless its position is confirmed."""
+
+    def test_named_by_two_counting_domains_passes_existence(self):
+        entry = _entry(named=_named("https://opa.com/sites", "https://pressb.org/y"))
+        self.assertNotIn("named_sources", _rules(_one(entry)))
+
+    def test_named_by_one_counting_domain_fails(self):
+        one = _with(["position", "sources"], [dict(_A)])
+        one["named"] = _named("https://opa.com/sites")
+        self.assertIn("named_sources", _rules(_one(one)))
+
+    def test_named_twice_on_one_domain_fails(self):
+        one = _with(["position", "sources"], [dict(_A)])
+        one["named"] = _named("https://opa.com/a", "https://opa.com/b")
+        self.assertIn("named_sources", _rules(_one(one)))
+
+    def test_confirmed_position_proves_existence(self):
+        # Slice 3's passing entry has no `named` fact and still passes.
+        self.assertTrue(_one(_entry()).ok)
+
+    def test_new_fields_are_not_free_text(self):
+        entry = _entry(
+            named=_named("https://opa.com/s", "https://pressb.org/y"),
+            distinct_from=["research_id_other"],
+        )
+        entry["position"]["sources"][0].update(
+            {"method": "map", "map": "https://opa.com/m.jpg"}
+        )
+        self.assertNotIn("text_field", _rules(_one(entry)))
+
+    def test_named_without_a_place_fails_shape(self):
+        # The place is what the reviewer judges the naming pages against.
+        for place in (None, "", "  ", 7):
+            named = _named("https://opa.com/s", "https://pressb.org/y")
+            named["place"] = place
+            self.assertIn("shape", _rules(_one(_entry(named=named))), place)
+        named = _named("https://opa.com/s", "https://pressb.org/y")
+        del named["place"]
+        self.assertIn("shape", _rules(_one(_entry(named=named))))
+
+    def test_named_sources_need_read_dates(self):
+        entry = _entry(named={"place": "x", "sources": [{"url": "https://opa.com/s"}]})
+        self.assertIn("read_date", _rules(_one(entry)))
+
+
 class DomainTest(unittest.TestCase):
     def test_unknown_domain_fails(self):
         entry = _with(("types", "sources", 0, "url"), "https://elsewhere.net/x")
@@ -209,37 +272,141 @@ class DomainTest(unittest.TestCase):
         self.assertIn("never_source", _rules(_one(entry)))
 
 
-class PositionTest(unittest.TestCase):
-    def test_one_counting_source(self):
-        entry = _entry()
-        entry["position"]["sources"] = [dict(_A)]
-        entry["position"]["lat"], entry["position"]["lon"] = _A["lat"], _A["lon"]
-        self.assertIn("position_sources", _rules(_one(entry)))
+def _map_source(lat, lon, url="https://opa.com/sites"):
+    return {"url": url, "read": "2026-11-16", "method": "map",
+            "map": "https://opa.com/m.jpg", "lat": lat, "lon": lon}
 
-    def test_two_sources_one_domain(self):
+
+def _placed(sources, lat, lon, **overrides):
+    """The passing entry, named by two counting domains, placed by
+    [sources], shipping [lat], [lon]."""
+    entry = _entry(named=_named("https://opa.com/sites", "https://pressb.org/y"))
+    entry["position"] = {"lat": lat, "lon": lon, "sources": sources}
+    entry.update(overrides)
+    return entry
+
+
+class PositionTest(unittest.TestCase):
+    def test_one_counting_source_is_route_stated(self):
+        checked = _one(_placed([dict(_A)], _A["lat"], _A["lon"]))
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "stated")
+        self.assertFalse(checked.map_read)
+
+    def test_two_sources_one_domain_are_map_grade(self):
         entry = _with(("position", "sources", 1, "url"), "https://shop.opa.com/y")
+        self.assertEqual(_one(entry).route, "map")
+
+    def test_whole_minute_figure_alone_is_map_grade(self):
+        source = {"url": "https://opa.com/w", "read": "2026-11-16",
+                  "lat": "8 16 S", "lon": "115 36 E"}
+        checked = _one(_placed([source], -(8 + 16 / 60), 115.6))
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "map")
+
+    def test_two_decimal_figure_alone_is_map_grade(self):
+        source = {"url": "https://opa.com/w", "read": "2026-11-16",
+                  "lat": -8.27, "lon": 115.59}
+        checked = _one(_placed([source], -8.27, 115.59))
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "map")
+
+    def test_a_fine_figure_beside_a_whole_minute_one_is_route_stated(self):
+        coarse = {"url": "https://pressb.org/w", "read": "2026-11-16",
+                  "lat": "8 16 S", "lon": "115 36 E"}
+        checked = _one(_placed([dict(_A), coarse], _A["lat"], _A["lon"]))
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "stated")
+
+    def test_a_fine_figure_beside_a_map_reading_is_map_read_at_their_mean(self):
+        # A mix is map-grade (spec section 2): the reading is not dropped.
+        reading = _map_source(-8.27912, 115.5929, url="https://pressb.org/m")
+        lat = (-8.27372 + -8.27912) / 2
+        checked = _one(_placed([dict(_A), reading], lat, 115.5929))
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "map")
+        self.assertAlmostEqual(checked.position[0], lat, places=6)
+
+    def test_counting_figures_600m_apart_are_map_read_at_their_mean(self):
+        far = dict(_B, lat=-8.27912, lon=115.5929)
+        lat = (-8.27372 + -8.27912) / 2
+        checked = _one(_placed([dict(_A), far], lat, 115.5929))
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "map")
+        self.assertAlmostEqual(checked.position[0], lat, places=6)
+
+    def test_map_figure_alone_is_route_map(self):
+        checked = _one(_placed([_map_source(-8.2759, 115.5937)], -8.2759, 115.5937))
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "map")
+        self.assertTrue(checked.map_read)
+
+    def test_map_figure_on_cite_only_domain_fails(self):
+        source = _map_source(-8.2759, 115.5937, url="https://dir.com/x")
+        entry = _placed([dict(_A), source], _A["lat"], _A["lon"])
         self.assertIn("position_domains", _rules(_one(entry)))
 
-    def test_whole_minute_figure_fails(self):
-        entry = _entry()
-        entry["position"]["sources"][1].update(lat="8 16 S", lon="115 36 E")
-        self.assertIn("position_precision", _rules(_one(entry)))
+    def test_map_figure_without_map_address_fails(self):
+        source = _map_source(-8.2759, 115.5937)
+        del source["map"]
+        entry = _placed([source], -8.2759, 115.5937)
+        self.assertIn("position_domains", _rules(_one(entry)))
 
-    def test_two_decimal_figure_fails(self):
+    def test_map_address_without_a_host_fails(self):
+        source = dict(_map_source(-8.2759, 115.5937), map="https://localhost/m.jpg")
+        entry = _placed([source], -8.2759, 115.5937)
+        self.assertIn("position_domains", _rules(_one(entry)))
+
+    def test_a_method_other_than_stated_or_map_fails_shape(self):
+        source = dict(_map_source(-8.2759, 115.5937), method="guessed")
+        checked = _one(_placed([source], -8.2759, 115.5937))
+        self.assertIn("shape", _rules(checked))
+        self.assertIsNone(checked.route)
+
+    def test_stated_and_map_5km_apart_fail_spread(self):
+        # Their mean is shipped, 2.5 km from each.
+        source = _map_source(-8.31872, 115.5929)
+        lat = (_A["lat"] + -8.31872) / 2
+        entry = _placed([dict(_A), source], lat, _A["lon"])
+        self.assertEqual(_rules(_one(entry)), {"position_spread"})
+
+    def test_confirmed_with_a_map_figure_1km_off_stays_confirmed(self):
         entry = _entry()
-        entry["position"]["sources"][1].update(lat=-8.27, lon=115.59)
-        self.assertIn("position_precision", _rules(_one(entry)))
+        entry["position"]["sources"].append(_map_source(-8.28272, 115.5929))
+        checked = _one(entry)
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertEqual(checked.route, "confirmed")
+
+    def test_a_map_address_that_is_not_a_web_address_fails(self):
+        for value in ("", "see page", "opa.com/m.jpg"):
+            source = _map_source(-8.2759, 115.5937)
+            source["map"] = value
+            entry = _placed([source], -8.2759, 115.5937)
+            self.assertIn("position_domains", _rules(_one(entry)), value)
+
+    def test_an_aborted_position_check_adds_no_named_failure(self):
+        entry = _entry()
+        entry["position"]["sources"].append(
+            {"url": "https://opa.com/z", "read": "2026-11-16",
+             "lat": "nowhere", "lon": 115.59}
+        )
+        rules = _rules(_one(entry))
+        self.assertIn("shape", rules)
+        self.assertNotIn("named_sources", rules)
+
+    def test_map_mean_across_the_antimeridian(self):
+        sources = [
+            _map_source(-16.80012, 179.999),
+            _map_source(-16.80012, -179.999, url="https://pressb.org/t"),
+        ]
+        entry = _placed(sources, -16.80012, 180.0, country_code="FJ")
+        checked = _one(entry)
+        self.assertTrue(checked.ok, checked.findings)
+        self.assertAlmostEqual(abs(checked.position[1]), 180.0, places=3)
 
     def test_a_figure_that_does_not_parse_fails(self):
         entry = _with(("position", "sources", 1, "lat"), "-8 16 27 S")
         self.assertIn("shape", _rules(_one(entry)))
-
-    def test_counting_figures_200m_apart_fail(self):
-        entry = _entry()
-        entry["position"]["sources"][1].update(lat=-8.27552, lon=115.5929)
-        lat = (-8.27372 + -8.27552) / 2
-        entry["position"].update(lat=lat, lon=115.5929)
-        self.assertIn("position_spread", _rules(_one(entry)))
 
     def test_cite_only_2km_off_passes(self):
         entry = _entry()
@@ -391,9 +558,55 @@ class NeighbourTest(unittest.TestCase):
         checked = _check(_entry(), self._near())
         self.assertIn("neighbour", _rules(checked[1]))
 
-    def test_a_note_lets_both_stand(self):
+    def test_a_note_no_longer_lets_both_stand(self):
+        # Map readings almost always carry a note: it would switch the
+        # rule off (wider sources design, section 2).
         checked = _check(_entry(), _entry(**{**self._near(), "note": "separate site"}))
+        self.assertIn("neighbour", _rules(checked[1]))
+
+    def test_distinct_from_on_both_lets_both_stand(self):
+        liberty = _entry(distinct_from=["research_id_coral_garden"])
+        near = {**self._near(), "distinct_from": ["research_id_usat_liberty"]}
+        checked = _check(liberty, near)
         self.assertTrue(all(c.ok for c in checked), [c.findings for c in checked])
+
+    def test_distinct_from_one_sided_still_fails(self):
+        liberty = _entry(distinct_from=["research_id_coral_garden"])
+        checked = _check(liberty, self._near())
+        self.assertIn("neighbour", _rules(checked[1]))
+
+    def test_distinct_from_is_a_list_of_ids(self):
+        for bad in ("research_id_coral_garden", [7], [""], {"id": "x"}):
+            self.assertIn("shape", _rules(_one(_entry(distinct_from=bad))), bad)
+
+    def test_distinct_from_naming_no_entry_still_fails(self):
+        liberty = _entry(distinct_from=["research_id_elsewhere"])
+        near = {**self._near(), "distinct_from": ["research_id_elsewhere"]}
+        checked = _check(liberty, near)
+        self.assertIn("neighbour", _rules(checked[1]))
+
+    def _map_read(self, site_id, lat):
+        return _placed(
+            [_map_source(lat, 115.5929)], lat, 115.5929,
+            id=site_id, name=site_id.rsplit("_", 1)[-1].title(),
+        )
+
+    def test_map_read_entry_300m_from_another_is_flagged_not_failed(self):
+        checked = _check(
+            self._map_read("research_id_a", -8.2700),
+            self._map_read("research_id_b", -8.27270),
+        )
+        self.assertTrue(all(c.ok for c in checked), [c.findings for c in checked])
+        flagged = [c for c in checked if "neighbour_near" in _rules(c, fatal=False)]
+        self.assertTrue(flagged)
+
+    def test_a_flag_is_not_left_out(self):
+        checked = _check(
+            self._map_read("research_id_a", -8.2700),
+            self._map_read("research_id_b", -8.27270),
+        )
+        for c in checked:
+            self.assertEqual(c.left_out, [])
 
     def test_a_withdrawn_entry_is_not_a_neighbour(self):
         withdrawn = _entry(withdrawn={"reason": "position", "date": "2026-12-01"})
@@ -430,6 +643,11 @@ class MainTest(unittest.TestCase):
                     ["--file", str(sites), "--domains", str(domains)], today=TODAY
                 )
             return code, out.getvalue()
+
+    def test_the_report_says_how_each_entry_was_placed(self):
+        code, text = self._run([_entry()])
+        self.assertEqual(code, 0)
+        self.assertIn("research_id_usat_liberty placed by confirmed", text)
 
     def test_a_clean_file_exits_zero_and_reports(self):
         code, text = self._run([_entry()])

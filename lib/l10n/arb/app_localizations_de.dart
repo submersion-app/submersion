@@ -1798,6 +1798,15 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'Aus den Reisenotizen';
+
+  @override
+  String get trips_story_addDayNote => 'Notiz hinzufügen';
+
+  @override
+  String get trips_story_editDayNote => 'Notiz bearbeiten';
+
+  @override
   String get trips_story_surfaceDay => 'Oberflächentag';
 
   @override
@@ -2136,6 +2145,45 @@ class AppLocalizationsDe extends AppLocalizations {
       other:
           '$count ausgewählte Tauchgänge haben keine Flaschen und werden übersprungen.',
       one: '1 ausgewählter Tauchgang hat keine Flaschen und wird übersprungen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_bulkEdit_tankRoleSameForAll =>
+      'Gleiche Rolle für jede Flasche';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition =>
+      'Rolle nach Flaschenposition';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'Position hinzufügen';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'Position entfernen';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nur Tauchgänge mit genau $count Flaschen erhalten diese Rollen, in Flaschenreihenfolge.',
+      one: 'Nur Tauchgänge mit genau $count Flasche erhalten diese Rolle.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Tauchgänge passen nicht zu den Flaschenpositionen, daher bleiben ihre Flaschenrollen unverändert.',
+      one:
+          '$count Tauchgang passt nicht zu den Flaschenpositionen, daher bleiben seine Flaschenrollen unverändert.',
     );
     return '$_temp0';
   }
@@ -3470,6 +3518,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get buddies_field_phoneHint => '+49 (123) 456-7890';
+
+  @override
+  String get buddies_field_country => 'Land';
+
+  @override
+  String get buddies_field_countryHint => 'z. B. Italien';
 
   @override
   String buddies_label_diveCount(int count) {
@@ -9404,7 +9458,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Einstiegsmethode erfasst';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'Keine Rolle zugewiesen';
+  String get diveLog_filter_sectionMyRole => 'Meine Rolle';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Nicht festgelegt';
 
   @override
   String get diveLog_filter_noTagsYet => 'Noch keine Tags erstellt';
@@ -9476,10 +9533,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Nur Tauchgänge ohne bekannte Einstiegsmethode anzeigen';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Nur Tauchgänge ohne eigene Rolle anzeigen';
 
   @override
   String get diveLog_filter_startDate => 'Startdatum';
@@ -11481,6 +11534,99 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_tank_ownCylinderTitle => 'Meine Flaschen';
+
+  @override
+  String get cylindersFromTanks_title => 'Flaschen zur Ausrüstung hinzufügen';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'bei $count Tauchgängen',
+      one: 'bei $count Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Flaschen',
+      one: '$count Flasche',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Flaschen hinzufügen',
+      one: '$count Flasche hinzufügen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Flaschen zur Ausrüstung hinzugefügt',
+      one: '$count Flasche zur Ausrüstung hinzugefügt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Flaschen sind nicht in der Ausrüstung',
+      one: '$count Flasche ist nicht in der Ausrüstung',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => 'Prüfen';
+
+  @override
+  String get cylindersFromTanks_name => 'Name';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size $material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed =>
+      'Die Flaschen konnten nicht hinzugefügt werden';
+
+  @override
+  String get diveLog_tank_gearMenu => 'Flaschenoptionen';
+
+  @override
+  String get diveLog_tank_addToGear => 'Zur Ausrüstung hinzufügen';
+
+  @override
+  String get diveLog_tank_linkCylinder => 'Mit eigener Flasche verknüpfen';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      'Verknüpft diese Flasche mit dem Ausrüstungsteil und fügt es der Ausrüstung dieses Tauchgangs hinzu. Die Flasche behält ihre aufgezeichnete Größe.';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => 'Verknüpfung aufheben';
+
+  @override
+  String get diveLog_tank_linkFailed =>
+      'Die Flaschenverknüpfung konnte nicht geändert werden';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Atemregler';
@@ -13788,6 +13934,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveTypes_deleteTooltip => 'Tauchgangstyp löschen';
+
+  @override
+  String diveTypes_favourite_add(String name) {
+    return '$name zu Favoriten hinzufügen';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return '$name aus Favoriten entfernen';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'Favoriten';
 
   @override
   String get diveTypes_editDialog_builtInNameHelper =>
@@ -22512,6 +22671,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'Problemlösung: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'Gasdichte $value g/L über hartem Limit';
   }
@@ -22527,8 +22691,13 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'Flasche endet unter dem Rock-Bottom-Minimum von $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return 'Verlässt den Grund mit $remaining, unter dem Rock-Bottom-Minimum von $minimum: kein Gas für die Zeit zur Problemlösung zurückgehalten';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return 'Verlässt den Grund mit $remaining, unter den $minimum, die ein Notaufstieg braucht';
   }
 
   @override
@@ -22694,6 +22863,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'Min-Gas';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'Problemlösung';
 
   @override
   String get plannerCanvas_slate_saved => 'Slate gespeichert';
@@ -33055,6 +33227,15 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String insights_profile_timeAtDepth_hoursFormat(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString h';
+  }
+
+  @override
   String get insights_progression_appBar_title => 'Tauchentwicklung';
 
   @override
@@ -33564,6 +33745,23 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_social_soloVsBuddy_withBuddy => 'Mit Buddy';
+
+  @override
+  String get insights_social_myRole_title => 'Meine Rolle';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Tauchgänge nach eigener Rolle; ein Tauchgang mit mehreren Rollen zählt bei jeder';
+
+  @override
+  String get insights_social_myRole_empty => 'Keine Tauchgangdaten verfügbar';
+
+  @override
+  String get insights_social_myRole_error =>
+      'Rollendaten konnten nicht geladen werden';
+
+  @override
+  String get insights_social_myRole_notSet => 'Nicht festgelegt';
 
   @override
   String get insights_social_topBuddies_error =>
@@ -36763,6 +36961,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get units_profileMetric_min => 'min';
+
+  @override
+  String get units_profileMetric_h => 'h';
 
   @override
   String get units_profileMetric_percent => '%';
@@ -46545,6 +46746,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_buddyField_phone => 'Telefon';
 
   @override
+  String get enum_buddyField_country => 'Land';
+
+  @override
   String get enum_buddyField_certificationLevel => 'Zertifizierungsstufe';
 
   @override
@@ -46564,6 +46768,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => 'Telefon';
+
+  @override
+  String get enum_buddyField_country_short => 'Land';
 
   @override
   String get enum_buddyField_certificationLevel_short => 'Stufe';
@@ -52591,6 +52798,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count Wasserarten';
+  }
+
+  @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count Rollen';
   }
 
   @override
@@ -59210,6 +59422,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_buddies_phone => 'Telefon';
 
   @override
+  String get query_buddies_country => 'Land';
+
+  @override
   String get query_centers_affiliations => 'Verbindungen';
 
   @override
@@ -59351,6 +59566,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_divePlans_site => 'Tauchplatz';
 
   @override
+  String get query_diveRoles_builtIn => 'Vordefiniert';
+
+  @override
+  String get query_diveRoles_name => 'Name';
+
+  @override
   String get query_diveTypes_builtIn => 'Vordefiniert';
 
   @override
@@ -59457,6 +59678,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_dives_role => 'Meine Rolle';
+
+  @override
+  String get query_dives_myRole => 'Meine Rollen';
 
   @override
   String get query_dives_media => 'Medien';
@@ -59592,6 +59816,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Tauchgangsarten';
+
+  @override
+  String get query_entity_diveRoles => 'Tauchrollen';
 
   @override
   String get query_entity_dives => 'Tauchgänge';
@@ -61255,6 +61482,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'Ausgeblendete integrierte Einträge';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'Favorisierte Tauchgangstypen';
 
   @override
   String get backup_restore_copyInOtherAccount =>

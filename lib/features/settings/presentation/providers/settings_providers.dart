@@ -25,6 +25,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
@@ -649,6 +650,10 @@ class AppSettings implements UnitFormatterSettings {
   /// (issue #4593)
   final bool defaultShowBuoyancy;
 
+  /// The dive types this diver starred, listed first in the dive type
+  /// pickers (issue #4413). Ids that match no type are ignored.
+  final Set<String> favouriteDiveTypeIds;
+
   /// Whether synthesized ("(est.)") tank pressure lines are drawn on the dive
   /// profile at all. Off means the estimate is never built, so no legend chip,
   /// tooltip row, or chart-options entry appears for it (issue #731).
@@ -944,6 +949,7 @@ class AppSettings implements UnitFormatterSettings {
     this.defaultShowO2CellMv = false,
     this.defaultShowCounterdiffusion = false,
     this.defaultShowBuoyancy = false,
+    this.favouriteDiveTypeIds = const {},
     this.defaultShowEstimatedTankPressure = true,
     this.defaultShowAscentRateLine = false,
     // Notification defaults
@@ -1181,6 +1187,7 @@ class AppSettings implements UnitFormatterSettings {
     bool? defaultShowO2CellMv,
     bool? defaultShowCounterdiffusion,
     bool? defaultShowBuoyancy,
+    Set<String>? favouriteDiveTypeIds,
     bool? defaultShowEstimatedTankPressure,
     bool? defaultShowAscentRateLine,
     bool? notificationsEnabled,
@@ -1424,6 +1431,7 @@ class AppSettings implements UnitFormatterSettings {
       defaultShowCounterdiffusion:
           defaultShowCounterdiffusion ?? this.defaultShowCounterdiffusion,
       defaultShowBuoyancy: defaultShowBuoyancy ?? this.defaultShowBuoyancy,
+      favouriteDiveTypeIds: favouriteDiveTypeIds ?? this.favouriteDiveTypeIds,
       defaultShowEstimatedTankPressure:
           defaultShowEstimatedTankPressure ??
           this.defaultShowEstimatedTankPressure,
@@ -2386,6 +2394,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final next = withBuiltInHidden(s.hiddenBuiltInIds, catalog, id, hidden);
     if (identical(next, s.hiddenBuiltInIds)) return s;
     return s.copyWith(hiddenBuiltInIds: next);
+  });
+
+  /// Stars or unstars a dive type, which lists it first in the dive type
+  /// pickers (issue #4413).
+  Future<void> setDiveTypeFavourite(String id, bool favourite) => _update((s) {
+    final next = withDiveTypeFavourite(s.favouriteDiveTypeIds, id, favourite);
+    if (identical(next, s.favouriteDiveTypeIds)) return s;
+    return s.copyWith(favouriteDiveTypeIds: next);
   });
 
   Future<void> setApplyDefaultTankToImports(bool value) =>

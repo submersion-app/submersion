@@ -328,7 +328,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 370;
+  static const int currentSchemaVersion = 372;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1719,6 +1719,14 @@ class AppDatabase extends _$AppDatabase {
     // the net buoyancy line on the dive profile (issue #4593). Additive and
     // defaulted off; the floor does not move.
     370,
+    // v371: diver_settings.favourite_dive_type_ids, the dive types a diver
+    // starred to list first in the pickers (issue #4413). Nullable, no
+    // backfill; the floor does not move.
+    371,
+    // v372: buddies.country and buddies.country_code (issue #4457).
+    // Nullable, nothing to backfill; the floor does not move. Renumbered
+    // from 371, which main took for #4413.
+    372,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

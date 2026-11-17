@@ -1071,6 +1071,18 @@
       }
     }
   },
+  "trips_story_fromTripNotes": "From trip notes",
+  "@trips_story_fromTripNotes": {
+    "description": "Caption over the part of a trip's Notes that belongs to the day shown; tapping it opens the trip's Notes."
+  },
+  "trips_story_addDayNote": "Add note",
+  "@trips_story_addDayNote": {
+    "description": "Button on a trip day's page that opens the trip editor at a new heading for that day in the trip's Notes."
+  },
+  "trips_story_editDayNote": "Edit note",
+  "@trips_story_editDayNote": {
+    "description": "Button on a trip day's page that opens the trip editor at the end of that day's part of the trip's Notes."
+  },
   "trips_story_surfaceDay": "Surface day",
   "trips_story_today": "Today",
   "trips_story_tripTile": "Trip",
@@ -1286,6 +1298,26 @@
   "diveLog_bulkEdit_tankFieldName": "Name",
   "diveLog_bulkEdit_tankSpecsSkipped": "{count, plural, =1{1 selected dive has no tanks and will be skipped.} other{{count} selected dives have no tanks and will be skipped.}}",
   "@diveLog_bulkEdit_tankSpecsSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_bulkEdit_tankRoleSameForAll": "Same role on every tank",
+  "diveLog_bulkEdit_tankRoleByPosition": "Role by tank position",
+  "diveLog_bulkEdit_tankRoleAddPosition": "Add position",
+  "diveLog_bulkEdit_tankRoleRemovePosition": "Remove position",
+  "diveLog_bulkEdit_tankRolesByPositionHint": "{count, plural, one{Only dives with exactly {count} tank get this role.} other{Only dives with exactly {count} tanks get these roles, in tank order.}}",
+  "@diveLog_bulkEdit_tankRolesByPositionHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_bulkEdit_tankRolesSkipped": "{count, plural, one{{count} dive doesn't match the tank positions, so its tank roles stay as they are.} other{{count} dives don't match the tank positions, so their tank roles stay as they are.}}",
+  "@diveLog_bulkEdit_tankRolesSkipped": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -1964,6 +1996,8 @@
   "buddies_field_notesHint": "Add notes about this buddy...",
   "buddies_field_phone": "Phone",
   "buddies_field_phoneHint": "+1 (555) 123-4567",
+  "buddies_field_country": "Country",
+  "buddies_field_countryHint": "e.g. Italy",
   "buddies_label_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "buddies_linkText_action": "Link to buddy records",
   "buddies_linkText_addName": "Add a name",
@@ -5579,7 +5613,10 @@
   "diveLog_filter_min": "Min",
   "diveLog_filter_noBuddyOnly": "No Buddy Assigned",
   "diveLog_filter_noEntryMethodOnly": "No entry method recorded",
-  "diveLog_filter_noRoleOnly": "No Role Assigned",
+  "diveLog_filter_sectionMyRole": "My role",
+  "@diveLog_filter_sectionMyRole": {"description": "Heading of the dive filter's chips for the diver's own role on the dive"},
+  "diveLog_filter_myRoleNotSet": "Not set",
+  "@diveLog_filter_myRoleNotSet": {"description": "Filter chip: keep dives where the diver's own role is not set"},
   "diveLog_filter_noTagsYet": "No tags created yet",
   "diveLog_filter_presetAllTime": "All time",
   "diveLog_filter_presetLast12Months": "Last 12 months",
@@ -5602,7 +5639,6 @@
   "diveLog_filter_showOnlyFavorites": "Show only favorite dives",
   "diveLog_filter_showOnlyNoBuddy": "Show only dives without a buddy",
   "diveLog_filter_showOnlyNoEntryMethod": "Show only dives with no known entry method",
-  "diveLog_filter_showOnlyNoRole": "Show only dives where your role is not set",
   "diveLog_filter_startDate": "Start Date",
   "diveLog_fullscreenProfile_close": "Close fullscreen",
   "diveLog_fullscreenProfile_title": "Dive #{number} Profile",
@@ -6543,6 +6579,67 @@
   "diveLog_tank_ownCylinderFailed": "Could not fill the tank from that cylinder. Try again.",
   "diveLog_tank_ownCylinderHint": "Copies the cylinder's size and latest fill into this tank and adds the cylinder to this dive's equipment.",
   "diveLog_tank_ownCylinderTitle": "My cylinders",
+  "cylindersFromTanks_title": "Add cylinders to your gear",
+  "cylindersFromTanks_onDives": "{count, plural, =1{on {count} dive} other{on {count} dives}}",
+  "@cylindersFromTanks_onDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_makes": "{count, plural, =1{{count} cylinder} other{{count} cylinders}}",
+  "@cylindersFromTanks_makes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_add": "{count, plural, =1{Add {count} cylinder} other{Add {count} cylinders}}",
+  "@cylindersFromTanks_add": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_added": "{count, plural, =1{Added {count} cylinder to your gear} other{Added {count} cylinders to your gear}}",
+  "@cylindersFromTanks_added": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_summary": "{count, plural, =1{{count} tank isn't in your gear} other{{count} tanks aren't in your gear}}",
+  "@cylindersFromTanks_summary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_review": "Review",
+  "cylindersFromTanks_name": "Name",
+  "cylindersFromTanks_sizeName": "{size} {material}",
+  "@cylindersFromTanks_sizeName": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "material": {
+        "type": "String"
+      }
+    }
+  },
+  "cylindersFromTanks_failed": "Couldn't add the cylinders",
+  "diveLog_tank_gearMenu": "Cylinder options",
+  "diveLog_tank_addToGear": "Add to my gear",
+  "diveLog_tank_linkCylinder": "Link to a cylinder I own",
+  "diveLog_tank_linkCylinderHint": "Links this tank to the cylinder and adds the cylinder to this dive's equipment. The tank keeps its recorded size.",
+  "diveLog_tank_unlinkCylinder": "Unlink cylinder",
+  "diveLog_tank_linkFailed": "Couldn't change the cylinder link",
   "diveLog_tank_regulatorLabel": "Regulator",
   "diveLog_tank_regulatorNone": "None",
   "diveLog_tank_regulatorShowLeftKit": "Show retired and sold regulators",
@@ -8416,6 +8513,12 @@
   "diveTypes_deleteDialog_content": "Are you sure you want to delete \"{name}\"?",
   "diveTypes_deleteDialog_title": "Delete Dive Type?",
   "diveTypes_deleteTooltip": "Delete dive type",
+  "diveTypes_favourite_add": "Add {name} to favorites",
+  "@diveTypes_favourite_add": {"description": "Tooltip and screen-reader label on the star button that makes a dive type a favorite, listed first in the dive type pickers", "placeholders": {"name": {"type": "String", "example": "Wreck"}}},
+  "diveTypes_favourite_remove": "Remove {name} from favorites",
+  "@diveTypes_favourite_remove": {"description": "Tooltip and screen-reader label on the filled star button that removes a dive type from the favorites", "placeholders": {"name": {"type": "String", "example": "Wreck"}}},
+  "diveTypes_favourites_header": "Favorites",
+  "@diveTypes_favourites_header": {"description": "Heading above the starred dive types at the top of the dive type checklist"},
   "diveTypes_editDialog_builtInNameHelper": "Built-in names can't be changed",
   "diveTypes_editDialog_saveButton": "Save",
   "diveTypes_editDialog_title": "Edit Dive Type",
@@ -14271,6 +14374,12 @@
       "reading": { "type": "String" }
     }
   },
+  "plannerCanvas_gas_problemSolvingReading": "problem solving: {reading}",
+  "@plannerCanvas_gas_problemSolvingReading": {
+    "placeholders": {
+      "reading": { "type": "String" }
+    }
+  },
   "plannerCanvas_issue_gasDensityCritical": "Gas density {value} g/L over hard limit",
   "@plannerCanvas_issue_gasDensityCritical": {
     "placeholders": {
@@ -14298,10 +14407,24 @@
       }
     }
   },
-  "plannerCanvas_issue_minGas": "Tank ends below the rock-bottom minimum of {pressure}",
+  "plannerCanvas_issue_minGas": "Leaves the bottom with {remaining}, under the rock-bottom minimum of {minimum}: no gas held back for problem-solving time",
   "@plannerCanvas_issue_minGas": {
     "placeholders": {
-      "pressure": {
+      "remaining": {
+        "type": "String"
+      },
+      "minimum": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerCanvas_issue_minGasAscent": "Leaves the bottom with {remaining}, under the {minimum} an emergency ascent needs",
+  "@plannerCanvas_issue_minGasAscent": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "minimum": {
         "type": "String"
       }
     }
@@ -14449,6 +14572,7 @@
   "plannerCanvas_share_saved": "Plan file saved",
   "plannerCanvas_slate_menu": "Export slate (PDF)",
   "plannerCanvas_slate_minGas": "Min gas",
+  "plannerCanvas_slate_problemSolving": "Problem solving",
   "plannerCanvas_slate_saved": "Slate saved",
   "plannerCanvas_slate_turn": "Turn",
   "plannerCanvas_slate_noTurnRule": "No rule",
@@ -19090,6 +19214,7 @@
   "insights_profile_timeAtDepth_subtitle": "Approximate time spent at each depth",
   "insights_profile_timeAtDepth_title": "Time at Depth Ranges",
   "insights_profile_timeAtDepth_valueFormat": "{value} min",
+  "insights_profile_timeAtDepth_hoursFormat": "{hours} h",
   "insights_progression_appBar_title": "Dive Progression",
   "insights_progression_bottomTime_error": "Failed to load bottom time trend",
   "insights_progression_bottomTime_subtitle": "Every dive in range",
@@ -19251,6 +19376,16 @@
   "insights_social_soloVsBuddy_subtitle": "Diving with or without companions",
   "insights_social_soloVsBuddy_title": "Solo vs Buddy Dives",
   "insights_social_soloVsBuddy_withBuddy": "With Buddy",
+  "insights_social_myRole_title": "My role",
+  "@insights_social_myRole_title": {"description": "Title of the Insights card breaking dives down by the diver's own role"},
+  "insights_social_myRole_subtitle": "Dives by the role you held; a dive with several roles counts under each",
+  "@insights_social_myRole_subtitle": {"description": "Subtitle of the My role card; explains that a dive holding several roles counts under each"},
+  "insights_social_myRole_empty": "No dive data available",
+  "@insights_social_myRole_empty": {"description": "Shown on the My role card when there are no dives"},
+  "insights_social_myRole_error": "Failed to load role data",
+  "@insights_social_myRole_error": {"description": "Shown on the My role card when its data fails to load"},
+  "insights_social_myRole_notSet": "Not set",
+  "@insights_social_myRole_notSet": {"description": "Bar label on the My role card for dives where the diver's own role is not set"},
   "insights_social_topBuddies_error": "Failed to load buddy rankings",
   "insights_social_topBuddies_subtitle": "Most frequent diving companions",
   "insights_social_topBuddies_title": "Top Dive Buddies",
@@ -19477,6 +19612,15 @@
     "placeholders": {
       "value": {
         "type": "Object"
+      }
+    }
+  },
+  "@insights_profile_timeAtDepth_hoursFormat": {
+    "description": "Time at depth value in whole hours, shown once a band holds 100 hours or more",
+    "placeholders": {
+      "hours": {
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -21517,6 +21661,7 @@
   "units_profileMetric_bpm": "bpm",
   "units_profileMetric_gPerL": "g/L",
   "units_profileMetric_min": "min",
+  "units_profileMetric_h": "h",
   "units_profileMetric_percent": "%",
   "units_profileMetric_millivolts": "mV",
   "@units_pressure_bar": {
@@ -21530,6 +21675,9 @@
   },
   "@units_profileMetric_min": {
     "description": "Unit for time in minutes"
+  },
+  "@units_profileMetric_h": {
+    "description": "Unit for time in hours"
   },
   "@units_profileMetric_percent": {
     "description": "Percent unit symbol"
@@ -28617,6 +28765,7 @@
   "enum_buddyField_buddyName": "Name",
   "enum_buddyField_email": "Email",
   "enum_buddyField_phone": "Phone",
+  "enum_buddyField_country": "Country",
   "enum_buddyField_certificationLevel": "Certification Level",
   "enum_buddyField_certificationAgency": "Certification Agency",
   "enum_buddyField_diveCount": "Dive Count",
@@ -28624,6 +28773,7 @@
   "enum_buddyField_buddyName_short": "Name",
   "enum_buddyField_email_short": "Email",
   "enum_buddyField_phone_short": "Phone",
+  "enum_buddyField_country_short": "Country",
   "enum_buddyField_certificationLevel_short": "Cert Level",
   "enum_buddyField_certificationAgency_short": "Agency",
   "enum_buddyField_diveCount_short": "Dives",
@@ -30972,6 +31122,8 @@
   "diveLog_filterChip_waterTempMax": "Water under {value}{unit}",
   "@diveLog_filterChip_waterTempMax": {"placeholders": {"value": {"type": "String"}, "unit": {"type": "String"}}},
   "diveLog_filterChip_waterTypeCount": "{count} water types",
+  "diveLog_filterChip_roleCount": "{count} roles",
+  "@diveLog_filterChip_roleCount": {"description": "Active filter chip for the diver's own role axis when several choices are picked (roles, or a role and Not set)", "placeholders": {"count": {"type": "int"}}},
   "diveLog_filterChip_tankConfigCount": "{count} tank configurations",
   "diveLog_filterChip_tankExtrasCount": "{count} tank extras",
   "diveLog_filter_sectionSpecies": "Marine life",
@@ -35465,6 +35617,8 @@
   "@query_buddies_notes": {"description": "Field label in the query builder"},
   "query_buddies_phone": "Phone",
   "@query_buddies_phone": {"description": "Field label in the query builder"},
+  "query_buddies_country": "Country",
+  "@query_buddies_country": {"description": "Field label in the query builder"},
   "query_centers_affiliations": "Affiliations",
   "@query_centers_affiliations": {"description": "Query builder: a dive center's agency affiliations"},
   "query_centers_city": "City",
@@ -35559,6 +35713,10 @@
   "@query_divePlans_runtime": {"description": "Field label in the query builder"},
   "query_divePlans_site": "Site",
   "@query_divePlans_site": {"description": "Field label in the query builder"},
+  "query_diveRoles_builtIn": "Built-in",
+  "@query_diveRoles_builtIn": {"description": "Field label in the query builder"},
+  "query_diveRoles_name": "Name",
+  "@query_diveRoles_name": {"description": "Field label in the query builder"},
   "query_diveTypes_builtIn": "Built-in",
   "@query_diveTypes_builtIn": {"description": "Field label in the query builder"},
   "query_diveTypes_name": "Name",
@@ -35631,6 +35789,8 @@
   "@query_dives_legacyBuddy": {"description": "Field label in the query builder"},
   "query_dives_role": "My role",
   "@query_dives_role": {"description": "Field label in the query builder: whether the diver's own role on the dive is set"},
+  "query_dives_myRole": "My roles",
+  "@query_dives_myRole": {"description": "Field label in the query builder: the diver's own roles on the dive, by name (a dive can hold several)"},
   "query_dives_media": "Media",
   "@query_dives_media": {"description": "Field label in the query builder"},
   "query_dives_name": "Name",
@@ -35721,6 +35881,8 @@
   "@query_entity_divePlans": {"description": "Name of a kind of record in the query builder"},
   "query_entity_diveTypes": "Dive types",
   "@query_entity_diveTypes": {"description": "Field label in the query builder"},
+  "query_entity_diveRoles": "Dive roles",
+  "@query_entity_diveRoles": {"description": "Field label in the query builder"},
   "query_entity_dives": "Dives",
   "@query_entity_dives": {"description": "Field label in the query builder"},
   "query_entity_documents": "Documents",
@@ -36620,6 +36782,8 @@
   "@preDive_start_allTemplatesHidden": {"description": "Helper under the start sheet's checklist field when the diver hid every checklist template; path is the localized Settings > Manage > Pre-Dive Checklists trail", "placeholders": {"path": {"type": "String"}}},
   "settings_conflict_field_hiddenBuiltInIds": "Hidden built-in entries",
   "@settings_conflict_field_hiddenBuiltInIds": {"description": "Sync conflict dialog label for the built-in dive types, roles, site types, service types and checklists a diver hid from the pickers"},
+  "settings_conflict_field_favouriteDiveTypeIds": "Favorite dive types",
+  "@settings_conflict_field_favouriteDiveTypeIds": {"description": "Sync conflict dialog label for the dive types a diver starred to list first in the pickers"},
   "backup_restore_copyInOtherAccount": "This backup's only copy is in another account. Choose that account for the backup copy, then try again.",
   "@backup_restore_copyInOtherAccount": {"description": "Restore failed because the backup's only copy is in a cloud account the backup copy no longer goes to"},
   "settings_accounts_usage_backups": "Backup copies",

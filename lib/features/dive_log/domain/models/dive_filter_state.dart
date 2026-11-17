@@ -60,8 +60,14 @@ class DiveFilterState {
   final bool? noBuddyOnly;
 
   /// True to restrict the list to dives where the diver's own role is not
-  /// set (#3622). Lowered to the registry's `role` field, empty.
+  /// set (#3622). Lowered to the registry's `role` field, empty. Since
+  /// #4409 a choice within the [diverRoleIds] axis (Not set), so it ORs
+  /// with any roles listed there.
   final bool? noRoleOnly;
+
+  /// The diver's own roles to keep (OR within the axis, #4409), matched on
+  /// every role a dive holds through the `myRole` relation.
+  final List<String> diverRoleIds;
 
   /// True to restrict the list to dives with no known entry method: none on
   /// the dive, and none its site can stand in for (#3806). The dives the
@@ -180,6 +186,7 @@ class DiveFilterState {
     this.decoOnly,
     this.noBuddyOnly,
     this.noRoleOnly,
+    this.diverRoleIds = const [],
     this.noEntryMethodOnly,
     this.tagIds = const [],
     this.weekdays = const [],
@@ -256,7 +263,7 @@ class DiveFilterState {
     excludedFromStatsOnly == true,
     decoOnly != null,
     noBuddyOnly == true,
-    noRoleOnly == true,
+    diverRoleIds.isNotEmpty || noRoleOnly == true,
     noEntryMethodOnly == true,
     tagIds.isNotEmpty,
     weekdays.isNotEmpty,
@@ -308,6 +315,7 @@ class DiveFilterState {
           other.decoOnly == decoOnly &&
           other.noBuddyOnly == noBuddyOnly &&
           other.noRoleOnly == noRoleOnly &&
+          listEquals(other.diverRoleIds, diverRoleIds) &&
           other.noEntryMethodOnly == noEntryMethodOnly &&
           listEquals(other.tagIds, tagIds) &&
           listEquals(other.weekdays, weekdays) &&
@@ -354,6 +362,7 @@ class DiveFilterState {
     decoOnly,
     noBuddyOnly,
     noRoleOnly,
+    Object.hashAll(diverRoleIds),
     noEntryMethodOnly,
     Object.hashAll(tagIds),
     Object.hashAll(weekdays),
@@ -400,6 +409,7 @@ class DiveFilterState {
     bool? decoOnly,
     bool? noBuddyOnly,
     bool? noRoleOnly,
+    List<String>? diverRoleIds,
     bool? noEntryMethodOnly,
     List<String>? tagIds,
     List<int>? weekdays,
@@ -443,6 +453,7 @@ class DiveFilterState {
     bool clearDecoOnly = false,
     bool clearNoBuddyOnly = false,
     bool clearNoRoleOnly = false,
+    bool clearDiverRoleIds = false,
     bool clearNoEntryMethodOnly = false,
     bool clearTagIds = false,
     bool clearWeekdays = false,
@@ -511,6 +522,9 @@ class DiveFilterState {
       decoOnly: clearDecoOnly ? null : (decoOnly ?? this.decoOnly),
       noBuddyOnly: clearNoBuddyOnly ? null : (noBuddyOnly ?? this.noBuddyOnly),
       noRoleOnly: clearNoRoleOnly ? null : (noRoleOnly ?? this.noRoleOnly),
+      diverRoleIds: clearDiverRoleIds
+          ? const []
+          : (diverRoleIds ?? this.diverRoleIds),
       noEntryMethodOnly: clearNoEntryMethodOnly
           ? null
           : (noEntryMethodOnly ?? this.noEntryMethodOnly),

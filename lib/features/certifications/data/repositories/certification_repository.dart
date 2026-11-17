@@ -9,6 +9,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/courses/data/course_certification_links.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_currency_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart'
@@ -132,7 +133,7 @@ class CertificationRepository {
     String query, {
     String? diverId,
   }) async {
-    final searchTerm = '%${query.toLowerCase()}%';
+    final searchTerm = '%${foldForSearch(query)}%';
 
     final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
     final variables = [
@@ -143,9 +144,9 @@ class CertificationRepository {
     ];
 
     return _selectMetadata('''
-      WHERE (unicode_lower(name) LIKE ?
-         OR unicode_lower(agency) LIKE ?
-         OR unicode_lower(card_number) LIKE ?)
+      WHERE (search_fold(name) LIKE ?
+         OR search_fold(agency) LIKE ?
+         OR search_fold(card_number) LIKE ?)
       $diverFilter
       ORDER BY issue_date DESC, name ASC
     ''', variables);

@@ -1185,6 +1185,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       initialSection: TripEditSection.fromQuery(
                         state.uri.queryParameters['section'],
                       ),
+                      noteDay: tripNoteDayFromQuery(state.uri.queryParameters),
                     ),
                   ),
                   GoRoute(

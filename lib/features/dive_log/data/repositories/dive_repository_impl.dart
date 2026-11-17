@@ -47,6 +47,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample_point.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
     show TankPressureSample;
+import 'package:submersion/features/dive_log/domain/bulk_edit/tank_slot_roles.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
@@ -9093,16 +9094,27 @@ class DiveRepository {
   /// Overwrite the [fields] of every tank each dive already has with the values
   /// from [specs]. Dives with no tanks are skipped rather than given one.
   ///
+  /// With [slotRoles] and [domain.TankSpecField.role] in [fields], each tank
+  /// takes the role of its position instead of [specs]' role (issue #4412),
+  /// and a dive whose tanks do not line up with the positions keeps its roles
+  /// while still getting the other fields.
+  ///
   /// Start/end pressure, row id, tank order, and computer attribution are never
   /// written, so pressure profiles and gas switches keep pointing at live rows
   /// (#797). Returns the number of dives actually touched. No notify/txn.
   Future<int> bulkUpdateTankSpecs(
     List<String> diveIds,
     domain.DiveTank specs,
-    Set<domain.TankSpecField> fields,
-  ) async {
+    Set<domain.TankSpecField> fields, {
+    List<TankRole>? slotRoles,
+  }) async {
     if (diveIds.isEmpty || fields.isEmpty) return 0;
-    final companion = _tankSpecsCompanion(specs, fields);
+    final byPosition =
+        slotRoles != null && fields.contains(domain.TankSpecField.role);
+    final shared = byPosition
+        ? fields.difference(const {domain.TankSpecField.role})
+        : fields;
+    final companion = _tankSpecsCompanion(specs, shared);
     final now = DateTime.now().millisecondsSinceEpoch;
     // One SELECT for every dive rather than one per dive: a 248-dive import
     // would otherwise cost 248 round-trips before the first write.
@@ -9110,11 +9122,24 @@ class DiveRepository {
       _db.diveTanks,
     )..where((t) => t.diveId.isIn(diveIds))).get();
     if (existing.isEmpty) return 0;
+    final roleOf = byPosition
+        ? _slotRolesByTankId(existing, slotRoles)
+        : const <String, TankRole>{};
     final changed = <String>{};
     for (final row in existing) {
+      final role = roleOf[row.id];
+      final write = role == null
+          ? companion
+          : companion.copyWith(
+              tankRole: Value(role.name),
+              // A role the diver set is no longer the transmitter name's.
+              roleSource: const Value(null),
+            );
+      // A mismatched dive with only the role ticked has nothing to write.
+      if (write.toColumns(false).isEmpty) continue;
       await (_db.update(
         _db.diveTanks,
-      )..where((t) => t.id.equals(row.id))).write(companion);
+      )..where((t) => t.id.equals(row.id))).write(write);
       await _syncRepository.markRecordPending(
         entityType: 'diveTanks',
         recordId: row.id,
@@ -9213,6 +9238,45 @@ class DiveRepository {
       _db.dives,
     )..where((d) => d.id.equals(diveId))).getSingleOrNull();
     return tripCylinderIdsForTrip(_db, dive?.tripId);
+  }
+
+  /// The role of each tank in [rows] by its position on its dive, for the
+  /// dives that line up with [slotRoles] (see [slotRolesForDive]).
+  Map<String, TankRole> _slotRolesByTankId(
+    List<DiveTank> rows,
+    List<TankRole> slotRoles,
+  ) => {
+    for (final tanks in _tankPositionsByDive(rows).values)
+      ...?slotRolesForDive(tanks, slotRoles),
+  };
+
+  /// Each dive's tanks in [rows] as `slotRolesForDive` reads them.
+  Map<String, List<({String id, int order})>> _tankPositionsByDive(
+    List<DiveTank> rows,
+  ) {
+    final byDive = <String, List<({String id, int order})>>{};
+    for (final row in rows) {
+      (byDive[row.diveId] ??= []).add((id: row.id, order: row.tankOrder));
+    }
+    return byDive;
+  }
+
+  /// How many of [diveIds] have tanks that do not line up with [slotRoles]:
+  /// a different count, or two tanks sharing an order (issue #4412). Used to
+  /// warn before a by-position role update, which leaves their roles alone.
+  /// Dives with no tanks are not counted; [divesWithoutTanksCount] warns of
+  /// those.
+  Future<int> divesWithSlotRoleMismatchCount(
+    List<String> diveIds,
+    List<TankRole> slotRoles,
+  ) async {
+    if (diveIds.isEmpty) return 0;
+    final rows = await (_db.select(
+      _db.diveTanks,
+    )..where((t) => t.diveId.isIn(diveIds))).get();
+    return _tankPositionsByDive(rows).values
+        .where((tanks) => slotRolesForDive(tanks, slotRoles) == null)
+        .length;
   }
 
   /// How many of [diveIds] have no tank rows at all. Used to warn before an

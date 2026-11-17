@@ -13,6 +13,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
@@ -1193,7 +1194,7 @@ class EquipmentRepository {
     String? diverId,
   }) async {
     try {
-      final searchTerm = '%${query.toLowerCase()}%';
+      final searchTerm = '%${foldForSearch(query)}%';
       // Qualified: tags has a diver_id and a name column too. Owned or
       // shared with [diverId] (issue #2046).
       final visibility = VisibilityFilter.equipmentSqlFragment(
@@ -1214,11 +1215,11 @@ class EquipmentRepository {
         SELECT DISTINCT e.* FROM equipment e
         LEFT JOIN equipment_tags et ON et.equipment_id = e.id
         LEFT JOIN tags t ON t.id = et.tag_id
-        WHERE (unicode_lower(e.name) LIKE ?
-           OR unicode_lower(e.brand) LIKE ?
-           OR unicode_lower(e.model) LIKE ?
-           OR unicode_lower(e.serial_number) LIKE ?
-           OR unicode_lower(t.name) LIKE ?)
+        WHERE (search_fold(e.name) LIKE ?
+           OR search_fold(e.brand) LIKE ?
+           OR search_fold(e.model) LIKE ?
+           OR search_fold(e.serial_number) LIKE ?
+           OR search_fold(t.name) LIKE ?)
         ${visibility.whereClause}
         ORDER BY e.is_active DESC, e.type ASC, e.name COLLATE NOCASE ASC
       ''', variables: variables).get();

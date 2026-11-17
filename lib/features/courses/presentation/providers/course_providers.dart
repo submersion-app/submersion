@@ -3,6 +3,7 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
 import 'package:submersion/features/courses/domain/constants/course_field.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
@@ -96,7 +97,7 @@ List<Course> applyCourseSorting(
 
     switch (sort.field) {
       case CourseSortField.name:
-        comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        comparison = compareTextForSort(a.name, b.name);
       case CourseSortField.startDate:
         comparison = a.startDate.compareTo(b.startDate);
       case CourseSortField.agency:

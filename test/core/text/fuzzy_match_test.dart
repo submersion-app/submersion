@@ -8,6 +8,46 @@ void main() {
       expect(normalize('Malapascua'), 'malapascua');
       expect(normalize('ÅÉÎÕÜ'), 'aeiou');
     });
+
+    test('folds Latin Extended-A letters to their base letter (#4498)', () {
+      expect(normalize('Łukasz'), 'lukasz');
+      expect(normalize('Šimon Dvořák'), 'simon dvorak');
+      expect(normalize('Ąćęńóśźż'), 'acenoszz');
+      expect(normalize('Ğüneş İzmir'), 'gunes izmir');
+      expect(normalize('Ţurcanu Ștefan'), 'turcanu stefan');
+    });
+
+    test('spells out ligatures and letters with no single base', () {
+      expect(normalize('Straße'), 'strasse');
+      expect(normalize('Ærø'), 'aero');
+      expect(normalize('Œuvre'), 'oeuvre');
+      expect(normalize('Þórður'), 'thordur');
+    });
+
+    test('drops a combining accent written after its letter', () {
+      // "e" followed by U+0301, as a decomposed (NFD) filename carries it.
+      expect(normalize('Jérémie'), 'jeremie');
+    });
+
+    test('leaves letters of other scripts alone', () {
+      expect(normalize('Ελλάδα'), 'ελλάδα');
+      expect(normalize('ประเทศไทย'), 'ประเทศไทย');
+    });
+  });
+
+  group('foldForSearch', () {
+    test('folds case and accents like normalize', () {
+      expect(foldForSearch('Jérémie'), 'jeremie');
+      expect(foldForSearch('ŁÓDŹ'), 'lodz');
+    });
+
+    test('keeps surrounding spaces, so a LIKE pattern stays as typed', () {
+      expect(foldForSearch(' Cancún '), ' cancun ');
+    });
+
+    test('returns plain ASCII lowercased', () {
+      expect(foldForSearch('Blue Hole 42%_'), 'blue hole 42%_');
+    });
   });
 
   group('diceCoefficient', () {

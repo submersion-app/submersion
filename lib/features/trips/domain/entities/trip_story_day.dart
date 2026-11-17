@@ -101,6 +101,47 @@ class TripStoryDay extends Equatable {
     return names;
   }
 
+  /// Where the day's sites are, each distinct location once in dive order, as
+  /// [DiveSite.locationString] gives it ("Marsa Alam · Red Sea, Egypt").
+  /// Several sites in one area read as that area once, and a location whose
+  /// every part (town or island, region, country) a fuller one repeats is
+  /// left out: "Red Sea, Egypt", "Marsa Alam" or "Red Sea" beside
+  /// "Marsa Alam · Red Sea, Egypt" would say the same place twice. The town is
+  /// [DiveSite.locality], so a site with only an island set reads as that
+  /// island; one with no town, island, region or country adds nothing. The
+  /// parts compare without case, since one area is often typed two ways; the
+  /// first spelling wins.
+  List<String> get siteLocations {
+    final seen = <String>{};
+    final areas = <({String location, List<String> parts})>[];
+    for (final dive in dives) {
+      final site = dive.site;
+      if (site == null || site.locationString.isEmpty) continue;
+      final parts = [
+        site.locality,
+        site.region?.trim() ?? '',
+        site.country?.trim() ?? '',
+      ].map((part) => part.toLowerCase()).toList();
+      if (seen.add(parts.join('\n'))) {
+        areas.add((location: site.locationString, parts: parts));
+      }
+    }
+    // [coarse] says nothing [fine] does not: each part it sets, [fine] sets
+    // the same. Two areas that differ in any set part are both kept.
+    bool repeats(List<String> coarse, List<String> fine) =>
+        !identical(coarse, fine) &&
+        [
+          for (var i = 0; i < coarse.length; i++)
+            coarse[i].isEmpty || coarse[i] == fine[i],
+        ].every((same) => same);
+
+    return [
+      for (final area in areas)
+        if (!areas.any((other) => repeats(area.parts, other.parts)))
+          area.location,
+    ];
+  }
+
   /// Distinct dive sites deduped by stable id (not display name), so two
   /// different sites that share a name still count as two -- matching the map
   /// geometry and the trip-level stat strip, which key on site id.

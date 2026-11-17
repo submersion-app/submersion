@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
@@ -179,7 +180,7 @@ class _ChecklistItemEditSheetState
               textEditingController: _categoryController,
               focusNode: _categoryFocusNode,
               optionsBuilder: (value) => widget.categorySuggestions.where(
-                (c) => c.toLowerCase().contains(value.text.toLowerCase()),
+                (c) => foldForSearch(c).contains(foldForSearch(value.text)),
               ),
               optionsViewBuilder: (context, onSelected, options) =>
                   AutocompleteOptionsList<String>(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -13,6 +15,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chips.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -24,6 +28,18 @@ final _otherFilterProvider = StateProvider<DiveFilterState>(
     endDate: DateTime(2024, 12, 31),
     favoritesOnly: true,
   ),
+);
+
+final rolesOverride = allDiveRolesProvider.overrideWith(
+  (ref) async => [
+    DiveRole(
+      id: 'instructor',
+      name: 'Instructor',
+      isBuiltIn: true,
+      createdAt: DateTime(2020),
+      updatedAt: DateTime(2020),
+    ),
+  ],
 );
 
 void main() {
@@ -263,6 +279,11 @@ void main() {
       'favourites': const DiveFilterState(favoritesOnly: true),
       'no buddy': const DiveFilterState(noBuddyOnly: true),
       'no role': const DiveFilterState(noRoleOnly: true),
+      'my role': const DiveFilterState(diverRoleIds: ['instructor']),
+      'my role or not set': const DiveFilterState(
+        diverRoleIds: ['instructor'],
+        noRoleOnly: true,
+      ),
       'no entry method': const DiveFilterState(noEntryMethodOnly: true),
       'tags': const DiveFilterState(tagIds: ['a', 'b']),
       'buddy name': const DiveFilterState(buddyNameFilter: 'Jane'),
@@ -280,6 +301,7 @@ void main() {
               tripByIdProvider.overrideWith((ref, id) async => null),
               diveCenterByIdProvider.overrideWith((ref, id) async => null),
               equipmentItemProvider.overrideWith((ref, id) async => null),
+              rolesOverride,
             ],
             child: MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -304,6 +326,100 @@ void main() {
         expect(container.read(provider).hasActiveFilters, isFalse);
       });
     }
+  });
+
+  // The diver's own role (#4409): one chip for the axis, naming a single
+  // role in the diver's language and counting several choices.
+  group('my role chip label', () {
+    Future<void> pumpChips(WidgetTester tester, DiveFilterState filter) async {
+      final provider = StateProvider<DiveFilterState>((ref) => filter);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [...overrides, rolesOverride],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) => Wrap(
+                  children: activeDiveFilterChips(context, ref, provider),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a single role is named', (tester) async {
+      await pumpChips(
+        tester,
+        const DiveFilterState(diverRoleIds: ['instructor']),
+      );
+      expect(find.text('Instructor'), findsOneWidget);
+    });
+
+    testWidgets('a role and Not set count as two', (tester) async {
+      await pumpChips(
+        tester,
+        const DiveFilterState(diverRoleIds: ['instructor'], noRoleOnly: true),
+      );
+      expect(find.text('2 roles'), findsOneWidget);
+    });
+
+    // A dive_roles write reloads the role map (its dependency moves); the
+    // chip keeps the role's name until the new map lands, not the raw id.
+    testWidgets('a role map reload keeps the name', (tester) async {
+      final trigger = NotifierProvider<_Trigger, int>(_Trigger.new);
+      final instructor = DiveRole(
+        id: 'instructor',
+        name: 'Instructor',
+        isBuiltIn: true,
+        createdAt: DateTime(2020),
+        updatedAt: DateTime(2020),
+      );
+      var next = Completer<Map<String, DiveRole>>()
+        ..complete({'instructor': instructor});
+      final provider = StateProvider<DiveFilterState>(
+        (ref) => const DiveFilterState(diverRoleIds: ['instructor']),
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            diveRoleMapProvider.overrideWith((ref) {
+              ref.watch(trigger);
+              return next.future;
+            }),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) => Wrap(
+                  children: activeDiveFilterChips(context, ref, provider),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Instructor'), findsOneWidget);
+
+      next = Completer<Map<String, DiveRole>>();
+      ProviderScope.containerOf(
+        tester.element(find.byType(Scaffold)),
+      ).read(trigger.notifier).bump();
+      await tester.pump();
+      expect(find.text('Instructor'), findsOneWidget);
+      expect(find.text('instructor'), findsNothing);
+      next.complete({'instructor': instructor});
+    });
   });
 
   testWidgets('an advanced query shows one chip per part, each removable', (
@@ -549,4 +665,11 @@ void main() {
     tester.widget<Chip>(find.widgetWithText(Chip, '2 dives')).onDeleted!();
     expect(container.read(handoff).hasActiveFilters, isFalse);
   });
+}
+
+class _Trigger extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void bump() => state = state + 1;
 }

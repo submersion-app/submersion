@@ -1,3 +1,4 @@
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
@@ -105,7 +106,7 @@ abstract final class GraphInsights {
           (byDegree == 0 &&
               (n.diveCount > best.diveCount ||
                   (n.diveCount == best.diveCount &&
-                      n.label.compareTo(best.label) < 0)))) {
+                      compareTextForSort(n.label, best.label) < 0)))) {
         best = n;
       }
     }

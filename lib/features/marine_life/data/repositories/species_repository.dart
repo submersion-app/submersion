@@ -8,6 +8,7 @@ import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
@@ -78,15 +79,15 @@ class SpeciesRepository {
 
   /// Search species by name or taxonomy class
   Future<List<domain.Species>> searchSpecies(String query) async {
-    final searchTerm = '%${query.toLowerCase()}%';
+    final searchTerm = '%${foldForSearch(query)}%';
 
     final results = await _db
         .customSelect(
           '''
       SELECT * FROM species
-      WHERE unicode_lower(common_name) LIKE ?
-         OR unicode_lower(scientific_name) LIKE ?
-         OR unicode_lower(taxonomy_class) LIKE ?
+      WHERE search_fold(common_name) LIKE ?
+         OR search_fold(scientific_name) LIKE ?
+         OR search_fold(taxonomy_class) LIKE ?
       ORDER BY category ASC, common_name COLLATE NOCASE ASC
       LIMIT 50
     ''',

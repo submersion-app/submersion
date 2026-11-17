@@ -10,6 +10,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -92,7 +93,7 @@ class TripRepository {
   /// Search trips by name or location
   Future<List<domain.Trip>> searchTrips(String query, {String? diverId}) async {
     try {
-      final searchTerm = '%${query.toLowerCase()}%';
+      final searchTerm = '%${foldForSearch(query)}%';
       final vis = VisibilityFilter.sqlFragment(
         tableAlias: 'trips',
         diverId: diverId,
@@ -109,10 +110,10 @@ class TripRepository {
 
       final results = await _db.customSelect('''
         SELECT * FROM trips
-        WHERE (unicode_lower(name) LIKE ?
-           OR unicode_lower(location) LIKE ?
-           OR unicode_lower(resort_name) LIKE ?
-           OR unicode_lower(liveaboard_name) LIKE ?)
+        WHERE (search_fold(name) LIKE ?
+           OR search_fold(location) LIKE ?
+           OR search_fold(resort_name) LIKE ?
+           OR search_fold(liveaboard_name) LIKE ?)
         ${vis.whereClause}
         ORDER BY start_date DESC
       ''', variables: variables).get();

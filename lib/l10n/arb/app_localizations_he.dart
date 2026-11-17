@@ -1777,6 +1777,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'מתוך הערות הטיול';
+
+  @override
+  String get trips_story_addDayNote => 'הוסף הערה';
+
+  @override
+  String get trips_story_editDayNote => 'ערוך הערה';
+
+  @override
   String get trips_story_surfaceDay => 'יום פני השטח';
 
   @override
@@ -2113,6 +2122,43 @@ class AppLocalizationsHe extends AppLocalizations {
       locale: localeName,
       other: '$count צלילות שנבחרו ללא מיכלים וידולגו.',
       one: 'צלילה אחת שנבחרה ללא מיכלים ותידולג.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_bulkEdit_tankRoleSameForAll => 'אותו תפקיד לכל מכל';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition => 'תפקיד לפי מיקום המכל';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'הוספת מיקום';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'הסרת מיקום';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'רק צלילות עם בדיוק $count מכלים יקבלו את התפקידים האלה, לפי סדר המכלים.',
+      one: 'רק צלילות עם מכל אחד בדיוק יקבלו את התפקיד הזה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count צלילות אינן תואמות את מיקומי המכלים, ולכן תפקידי המכלים שלהן נשארים כפי שהם.',
+      one:
+          'צלילה אחת אינה תואמת את מיקומי המכלים, ולכן תפקידי המכלים שלה נשארים כפי שהם.',
     );
     return '$_temp0';
   }
@@ -3408,6 +3454,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddies_field_phoneHint => '+972-50-123-4567';
+
+  @override
+  String get buddies_field_country => 'מדינה';
+
+  @override
+  String get buddies_field_countryHint => 'למשל איטליה';
 
   @override
   String buddies_label_diveCount(int count) {
@@ -9207,7 +9259,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_noEntryMethodOnly => 'לא נרשמה שיטת כניסה';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'ללא תפקיד';
+  String get diveLog_filter_sectionMyRole => 'התפקיד שלי';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'לא הוגדר';
 
   @override
   String get diveLog_filter_noTagsYet => 'לא נוצרו תגיות עדיין';
@@ -9275,9 +9330,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'הצגת צלילות ללא שיטת כניסה ידועה בלבד';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole => 'הצגת צלילות ללא התפקיד שלך בלבד';
 
   @override
   String get diveLog_filter_startDate => 'תאריך התחלה';
@@ -11236,6 +11288,97 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_ownCylinderTitle => 'המיכלים שלי';
+
+  @override
+  String get cylindersFromTanks_title => 'הוספת מיכלים לציוד';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ב-$count צלילות',
+      one: 'בצלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מיכלים',
+      one: 'מיכל אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הוספת $count מיכלים',
+      one: 'הוספת מיכל אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מיכלים נוספו לציוד',
+      one: 'מיכל אחד נוסף לציוד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מיכלים אינם בציוד',
+      one: 'מיכל אחד אינו בציוד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => 'בדיקה';
+
+  @override
+  String get cylindersFromTanks_name => 'שם';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size $material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed => 'לא ניתן היה להוסיף את המיכלים';
+
+  @override
+  String get diveLog_tank_gearMenu => 'אפשרויות מיכל';
+
+  @override
+  String get diveLog_tank_addToGear => 'הוספה לציוד שלי';
+
+  @override
+  String get diveLog_tank_linkCylinder => 'קישור למיכל שלי';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      'מקשר את המיכל הזה למיכל שבציוד ומוסיף אותו לציוד של הצלילה הזו. המיכל שומר על הגודל שנרשם.';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => 'ביטול קישור המיכל';
+
+  @override
+  String get diveLog_tank_linkFailed => 'לא ניתן היה לשנות את קישור המיכל';
 
   @override
   String get diveLog_tank_regulatorLabel => 'וסת';
@@ -13495,6 +13638,19 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveTypes_deleteTooltip => 'מחק סוג צלילה';
+
+  @override
+  String diveTypes_favourite_add(String name) {
+    return 'הוספת $name למועדפים';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return 'הסרת $name מהמועדפים';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'מועדפים';
 
   @override
   String get diveTypes_editDialog_builtInNameHelper =>
@@ -22047,6 +22203,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'פתרון תקלה: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'צפיפות הגז $value g/L מעל הגבול המרבי';
   }
@@ -22062,8 +22223,13 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'המיכל מסתיים מתחת למינימום rock bottom של $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return 'עוזב את הקרקעית עם $remaining, מתחת למינימום rock bottom של $minimum: לא נשמר גז לזמן לפתרון תקלה';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return 'עוזב את הקרקעית עם $remaining, מתחת ל-$minimum שנדרשים לעלייה בחירום';
   }
 
   @override
@@ -22228,6 +22394,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'גז מינימלי';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'פתרון תקלה';
 
   @override
   String get plannerCanvas_slate_saved => 'הלוח נשמר';
@@ -32301,6 +32470,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String insights_profile_timeAtDepth_hoursFormat(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString שע\'';
+  }
+
+  @override
   String get insights_progression_appBar_title => 'התקדמות צלילה';
 
   @override
@@ -32800,6 +32978,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_social_soloVsBuddy_withBuddy => 'עם שותף';
+
+  @override
+  String get insights_social_myRole_title => 'התפקיד שלי';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'צלילות לפי התפקיד שלך; צלילה עם כמה תפקידים נספרת בכל אחד מהם';
+
+  @override
+  String get insights_social_myRole_empty => 'אין נתוני צלילה זמינים';
+
+  @override
+  String get insights_social_myRole_error => 'טעינת נתוני התפקידים נכשלה';
+
+  @override
+  String get insights_social_myRole_notSet => 'לא הוגדר';
 
   @override
   String get insights_social_topBuddies_error => 'שגיאה בטעינת דירוג שותפים';
@@ -35946,6 +36140,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get units_profileMetric_min => 'min';
+
+  @override
+  String get units_profileMetric_h => 'שע\'';
 
   @override
   String get units_profileMetric_percent => '%';
@@ -45529,6 +45726,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_buddyField_phone => 'טלפון';
 
   @override
+  String get enum_buddyField_country => 'מדינה';
+
+  @override
   String get enum_buddyField_certificationLevel => 'רמת הסמכה';
 
   @override
@@ -45548,6 +45748,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => 'טלפון';
+
+  @override
+  String get enum_buddyField_country_short => 'מדינה';
 
   @override
   String get enum_buddyField_certificationLevel_short => 'רמת הסמכה';
@@ -51581,6 +51784,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count סוגי מים';
+  }
+
+  @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count תפקידים';
   }
 
   @override
@@ -58083,6 +58291,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_buddies_phone => 'טלפון';
 
   @override
+  String get query_buddies_country => 'מדינה';
+
+  @override
   String get query_centers_affiliations => 'השתייכויות';
 
   @override
@@ -58224,6 +58435,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_divePlans_site => 'אתר';
 
   @override
+  String get query_diveRoles_builtIn => 'מובנה';
+
+  @override
+  String get query_diveRoles_name => 'שם';
+
+  @override
   String get query_diveTypes_builtIn => 'מובנה';
 
   @override
@@ -58330,6 +58547,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_dives_role => 'התפקיד שלי';
+
+  @override
+  String get query_dives_myRole => 'התפקידים שלי';
 
   @override
   String get query_dives_media => 'מדיה';
@@ -58465,6 +58685,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'סוגי צלילה';
+
+  @override
+  String get query_entity_diveRoles => 'תפקידי צלילה';
 
   @override
   String get query_entity_dives => 'צלילות';
@@ -60109,6 +60332,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'פריטים מובנים מוסתרים';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'סוגי צלילה מועדפים';
 
   @override
   String get backup_restore_copyInOtherAccount =>
