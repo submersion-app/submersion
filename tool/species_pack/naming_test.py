@@ -8,6 +8,7 @@ import json
 import math
 import os
 import sys
+import tempfile
 import unittest
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -51,6 +52,10 @@ class NameTests(unittest.TestCase):
     def test_empty_or_infinite_logits_are_unusable(self):
         self.assertIsNone(naming.name([], None, top_k=5))
         self.assertIsNone(naming.name([float("nan"), 1.0], None, top_k=5))
+
+    def test_an_infinite_highest_logit_is_unusable(self):
+        self.assertIsNone(naming.name([float("inf"), 1.0], None, top_k=5))
+        self.assertIsNone(naming.name([-math.inf, -math.inf], None, top_k=5))
 
 
 class UnitTests(unittest.TestCase):
@@ -176,6 +181,17 @@ class VectorFileTests(unittest.TestCase):
         self.assertTrue(guarded)
         self.assertFalse(any(c["expected"]["suggestable"] for c in guarded))
         self.assertTrue(any(c["expected"]["suggestable"] for c in v["cases"]))
+
+
+class MainTests(unittest.TestCase):
+    def test_write_vectors_writes_the_vectors(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, "vectors.json")
+            self.assertEqual(naming.main(["--write-vectors", path]), 0)
+            with open(path, encoding="utf-8") as fh:
+                text = fh.read()
+        self.assertTrue(text.endswith("\n"))
+        self.assertEqual(json.loads(text), json.loads(json.dumps(naming.vectors())))
 
 
 if __name__ == "__main__":

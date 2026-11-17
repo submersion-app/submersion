@@ -75,6 +75,17 @@ class RecommendTests(unittest.TestCase):
         junk_ok = {"licensed": True, "unlicensed": True, "pair": False}
         self.assertEqual(self.recommend(named, p, junk_ok), "unlicensed")
 
+    def test_a_preferred_run_outside_the_junk_target_is_passed_over(self):
+        named = {"licensed": 300, "unlicensed": 285, "pair": 290}
+        p = {frozenset(("unlicensed", "pair")): 0.6}
+        junk_ok = {"licensed": False, "unlicensed": True, "pair": True}
+        self.assertEqual(self.recommend(named, p, junk_ok), "unlicensed")
+
+    def test_a_clearly_better_run_the_preference_does_not_name_wins(self):
+        named = {"licensed": 10, "other": 50}
+        p = {frozenset(("licensed", "other")): 0.001}
+        self.assertEqual(self.recommend(named, p), "other")
+
     def test_nothing_within_the_junk_target_is_none(self):
         self.assertIsNone(self.recommend({"pair": 1}, {}, {"pair": False}))
 

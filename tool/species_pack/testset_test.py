@@ -61,6 +61,18 @@ class AcceptedKeyTests(unittest.TestCase):
         match = {"usageKey": 12, "rank": "SUBSPECIES", "status": "ACCEPTED", "matchType": "EXACT", "speciesKey": 10}
         self.assertEqual(testset.accepted_key(match), 10)
 
+    def test_a_species_without_a_species_key_takes_its_usage_key(self):
+        match = {"usageKey": 10, "rank": "SPECIES", "status": "ACCEPTED", "matchType": "EXACT"}
+        self.assertEqual(testset.accepted_key(match), 10)
+
+    def test_a_synonym_without_a_species_key_takes_the_accepted_key(self):
+        match = {"usageKey": 11, "acceptedUsageKey": 10, "rank": "SPECIES", "status": "SYNONYM", "matchType": "EXACT"}
+        self.assertEqual(testset.accepted_key(match), 10)
+
+    def test_below_species_without_a_species_key_is_none(self):
+        match = {"usageKey": 12, "rank": "SUBSPECIES", "status": "ACCEPTED", "matchType": "EXACT"}
+        self.assertIsNone(testset.accepted_key(match))
+
     def test_no_match_or_a_higher_rank_is_none(self):
         self.assertIsNone(testset.accepted_key({"matchType": "NONE"}))
         self.assertIsNone(
@@ -128,6 +140,10 @@ class QueryBoxTests(unittest.TestCase):
     def test_a_polar_cell_stops_at_the_pole(self):
         cell = region_grid.cell_of(88.0, 0.0, 5)
         self.assertEqual(testset.query_boxes(cell, 1, 5), [(80.0, -5.0, 90.0, 10.0)])
+
+    def test_neighbours_spanning_every_column_are_one_world_box(self):
+        cell = region_grid.cell_of(12.1, 22.5, 5)
+        self.assertEqual(testset.query_boxes(cell, 36, 5), [(-90.0, -180.0, 90.0, 180.0)])
 
 
 class UnderwaterTests(unittest.TestCase):
