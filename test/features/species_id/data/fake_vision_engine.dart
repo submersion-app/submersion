@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
@@ -66,6 +67,74 @@ class FakeEngine implements VisionEngine {
           ),
       ],
     );
+  }
+
+  /// The video the fake scans: boxes by sampled time, and its length.
+  Map<int, List<DetectedBox>> videoFrames = {};
+  int videoDurationMs = 25000;
+
+  /// Thrown by the next [detectVideo], then cleared.
+  Object? videoFailure;
+
+  /// Completed by a test to let the next [detectVideo] reply.
+  Completer<void>? videoGate;
+
+  /// Each detectVideo call's range, in order.
+  final detectCalls = <(int, int)>[];
+
+  /// Each embedMoments call's moments, in order.
+  final embedCalls = <List<VisionMoment>>[];
+
+  /// The embedding a moment's crop gets, by its box's left edge; an axis
+  /// along the first candidate when absent.
+  Map<double, Float32List> momentEmbeddings = {};
+
+  @override
+  Future<VideoDetections> detectVideo({
+    required String path,
+    required int startMs,
+    required int endMs,
+    required int sampleIntervalMs,
+  }) async {
+    events.add('detectVideo:$startMs');
+    detectCalls.add((startMs, endMs));
+    await videoGate?.future;
+    final failure = videoFailure;
+    if (failure != null) {
+      videoFailure = null;
+      throw failure;
+    }
+    if (!loaded) throw const VisionEngineException('not_loaded');
+    final end = endMs < videoDurationMs ? endMs : videoDurationMs;
+    return VideoDetections(
+      width: 1920,
+      height: 1080,
+      durationMs: videoDurationMs,
+      frames: [
+        for (var ms = startMs; ms < end; ms += sampleIntervalMs)
+          FrameDetections(ms: ms, boxes: videoFrames[ms] ?? const []),
+      ],
+    );
+  }
+
+  @override
+  Future<List<VisionMomentCrop?>> embedMoments({
+    required String path,
+    required List<VisionMoment> moments,
+  }) async {
+    events.add('embedMoments');
+    embedCalls.add(moments);
+    if (!loaded) throw const VisionEngineException('not_loaded');
+    return [
+      for (final m in moments)
+        VisionMomentCrop(
+          pixelWidth: (m.box.width * 1920).round(),
+          pixelHeight: (m.box.height * 1080).round(),
+          cropJpeg: Uint8List.fromList([0xFF, 0xD8, m.ms % 256]),
+          embedding:
+              momentEmbeddings[m.box.x] ?? Float32List.fromList([1, 0, 0]),
+        ),
+    ];
   }
 
   @override
