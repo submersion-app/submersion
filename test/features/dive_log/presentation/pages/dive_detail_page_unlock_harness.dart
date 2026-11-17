@@ -80,6 +80,7 @@ class FakeSave implements DiveEditSaveService {
     required Dive dive,
     required Iterable<String> changedCardIds,
     Future<void> Function()? alsoWrite,
+    String? activeDiverId,
   }) async {
     await hold?.future;
     final error = failWith;

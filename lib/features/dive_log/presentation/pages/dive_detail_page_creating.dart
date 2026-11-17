@@ -227,16 +227,30 @@ mixin _DiveDetailPageCreating
         ? ref.read(siteListNotifierProvider.notifier)
         : null;
     final followUp = DiveSittingFollowUp.read(context, ref);
+    // The diver active now, for a seed whose diver could not be read when
+    // the page opened: the dive is theirs, and so is its numbering.
+    final activeDiver = ref.read(validatedCurrentDiverIdProvider.future);
     final changedCardIds = session.changedCardIds;
     final buddyIds = {
       for (final b in [...?diveBuddiesList.current(session)]) b.buddy.id,
     };
+    String? activeDiverId;
+    try {
+      activeDiverId = await activeDiver;
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Reading the active diver for a new dive failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
     final result = await undoMediaOnFailure(
       session,
       () => service.create(
         dive: diveSittingApply(session, session.stored),
         changedCardIds: changedCardIds,
         alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
+        activeDiverId: activeDiverId,
       ),
     );
     if (mounted) setState(() => _created = result.after);

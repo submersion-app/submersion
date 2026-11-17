@@ -116,7 +116,9 @@ class DiveEditSaveService {
   /// existing dive: the dive, its number when it has none and is neither
   /// planned nor a draft (as [PaginatedDiveListNotifier.addDive] numbers
   /// one), its trip's dates stretched to cover it, then [alsoWrite], the
-  /// sitting's held writes, which all point at the dive. If any of them
+  /// sitting's held writes, which all point at the dive. A dive with no
+  /// diver goes to [activeDiverId], the diver active at Save, as addDive
+  /// gives it one, so its numbering is that diver's. If any of them
   /// throws nothing is left. Returns the dive as stored at the end, with
   /// the trips whose dates moved. Throws [StateError] when [dive] has no id
   /// or one a stored dive already has.
@@ -124,6 +126,7 @@ class DiveEditSaveService {
     required Dive dive,
     required Iterable<String> changedCardIds,
     Future<void> Function()? alsoWrite,
+    String? activeDiverId,
   }) {
     if (dive.id.isEmpty) {
       return Future.error(
@@ -148,7 +151,11 @@ class DiveEditSaveService {
         if (taken != null) {
           throw StateError('Dive ${dive.id} already exists');
         }
-        final created = await _diveRepo.createDive(dive);
+        final created = await _diveRepo.createDive(
+          dive.diverId == null && activeDiverId != null
+              ? dive.copyWith(diverId: activeDiverId)
+              : dive,
+        );
         // A planned dive stays unnumbered until it is logged (issue #2002).
         if (dive.diveNumber == null && !dive.isPlanned && !dive.isDraft) {
           await _diveRepo.assignMissingDiveNumbers(diverId: created.diverId);

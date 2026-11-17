@@ -171,6 +171,34 @@ void main() {
     expect(await operations(), hasLength(1));
   });
 
+  // A seed whose diver could not be read (review of #4672): the dive goes
+  // to the diver active at Save, as addDive gives it, and only that
+  // diver's log is numbered.
+  test(
+    'a dive with no diver takes the active one, and numbers only theirs',
+    () async {
+      await insertDiver(db, 'other');
+      await insertDive(db, 'theirs', diverId: 'other', notes: 'Theirs');
+      await db.customStatement(
+        "UPDATE dives SET dive_number = 99 WHERE id = 'theirs'",
+      );
+
+      final result = await service.create(
+        dive: Dive(
+          id: 'new-1',
+          dateTime: DateTime.utc(2026, 11, 17, 9, 30),
+          entryTime: DateTime.utc(2026, 11, 17, 9, 30),
+        ),
+        changedCardIds: ['notes'],
+        activeDiverId: 'me',
+      );
+
+      expect(result.after.diverId, 'me');
+      expect(result.after.diveNumber, isNotNull);
+      expect((await dives.getDiveById('theirs'))!.diveNumber, 99);
+    },
+  );
+
   test('an id already stored, or none, is refused', () async {
     await expectLater(
       service.create(dive: seed('old'), changedCardIds: ['notes']),
