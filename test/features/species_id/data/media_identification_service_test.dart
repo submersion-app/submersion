@@ -259,6 +259,24 @@ void main() {
     },
   );
 
+  test('an analysis stores whether each fish is confident and specific '
+      '(issue #4675)', () async {
+    await service.request(photo('m1'), location: const GeoPoint(12.1, -68.3));
+    final found = (await identifications.forMedia('m1')).single;
+    expect(found.confident, isTrue);
+    expect(found.specific, isTrue);
+  });
+
+  test('a rename keeps the flags up to date', () async {
+    await service.request(photo('m1'));
+    installed = pack(version: '2026.12.1');
+    await service.packChanged();
+    await service.request(photo('m1'));
+    final found = (await identifications.forMedia('m1')).single;
+    expect(found.confident, isTrue);
+    expect(found.specific, isTrue);
+  });
+
   test('nothing changed means no second analysis', () async {
     await service.request(photo('m1'));
     await service.request(photo('m1'));

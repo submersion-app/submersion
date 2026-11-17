@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 
 final _now = DateTime.utc(2026, 11, 17, 12);
@@ -467,6 +469,62 @@ void main() {
         IdentificationDecision.rejected,
         IdentificationDecision.undecided,
       ]);
+    });
+  });
+
+  group('namingFlags (issue #4675)', () {
+    const config = NamingConfig(
+      provisional: true,
+      minCropSide: 64,
+      minOpenScore: 0.15,
+      suggestScore: 0.50,
+      confidentScore: 0.70,
+      suggestScoreNoLocation: 0.70,
+      minAllowedCandidates: 200,
+      topK: 5,
+    );
+    const fish = PackCandidate(
+      gbifKey: 1,
+      scientificName: 'Scarus vetula',
+      commonName: 'Queen Parrotfish',
+      category: SpeciesCategory.fish,
+    );
+    NamingResult result({
+      double top = 0.8,
+      double open = 0.5,
+      bool suggestable = true,
+    }) => NamingResult(
+      openScore: open,
+      candidates: [NamedCandidate(candidate: fish, score: top)],
+      locationLimited: true,
+      suggestable: suggestable,
+    );
+
+    test('a suggestable name over the confident bar is confident', () {
+      expect(namingFlags(result(top: 0.71), config).confident, isTrue);
+      expect(namingFlags(result(top: 0.70), config).confident, isTrue);
+    });
+
+    test('a suggestable name under the confident bar is not', () {
+      expect(namingFlags(result(top: 0.69), config).confident, isFalse);
+    });
+
+    test('a name that is not suggestable is never confident', () {
+      expect(
+        namingFlags(result(top: 0.9, suggestable: false), config).confident,
+        isFalse,
+      );
+    });
+
+    test('nothing named is neither', () {
+      final flags = namingFlags(NamingResult.unusable, config);
+      expect(flags.confident, isFalse);
+      expect(flags.specific, isFalse);
+    });
+
+    test('specific follows the open score floor', () {
+      expect(namingFlags(result(open: 0.15), config).specific, isTrue);
+      expect(namingFlags(result(open: 0.149), config).specific, isFalse);
     });
   });
 

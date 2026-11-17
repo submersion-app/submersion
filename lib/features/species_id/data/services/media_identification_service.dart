@@ -337,14 +337,10 @@ class MediaIdentificationService {
       for (final i in undecided)
         (embedding: embeddings[i.id]!, shorterSide: i.boxShorterSide),
     ], cell);
+    final naming = pack.pack.manifest.naming;
     final changed = [
       for (var k = 0; k < undecided.length; k++)
-        undecided[k].copyWith(
-          openScore: results[k].openScore,
-          candidates: results[k].candidates,
-          locationLimited: results[k].locationLimited,
-          suggestable: results[k].suggestable,
-        ),
+        _named(undecided[k], results[k], naming),
     ];
     if (_databaseGeneration() != generation) return;
     await _identifications.updateIdentifications(
@@ -388,24 +384,28 @@ class MediaIdentificationService {
       final id = _newId();
       byId[id] = d;
       fresh.add(
-        MediaIdentification(
-          id: id,
-          mediaId: item.id,
-          box: IdentificationBox(
-            x: d.x,
-            y: d.y,
-            width: d.width,
-            height: d.height,
+        _named(
+          MediaIdentification(
+            id: id,
+            mediaId: item.id,
+            box: IdentificationBox(
+              x: d.x,
+              y: d.y,
+              width: d.width,
+              height: d.height,
+            ),
+            boxPixelWidth: d.pixelWidth,
+            boxPixelHeight: d.pixelHeight,
+            detectorScore: d.score,
+            openScore: 0,
+            candidates: const [],
+            locationLimited: false,
+            suggestable: false,
+            decision: IdentificationDecision.undecided,
+            createdAt: now,
           ),
-          boxPixelWidth: d.pixelWidth,
-          boxPixelHeight: d.pixelHeight,
-          detectorScore: d.score,
-          openScore: results[k].openScore,
-          candidates: results[k].candidates,
-          locationLimited: results[k].locationLimited,
-          suggestable: results[k].suggestable,
-          decision: IdentificationDecision.undecided,
-          createdAt: now,
+          results[k],
+          pack.pack.manifest.naming,
         ),
       );
     }
@@ -438,6 +438,23 @@ class MediaIdentificationService {
       await _crops.write(item.id, i.id, byId[i.id]!.cropJpeg);
     }
     await _crops.markAnalysed(item.id);
+  }
+
+  /// [identification] with what naming found, including the label flags.
+  static MediaIdentification _named(
+    MediaIdentification identification,
+    NamingResult result,
+    NamingConfig naming,
+  ) {
+    final flags = namingFlags(result, naming);
+    return identification.copyWith(
+      openScore: result.openScore,
+      candidates: result.candidates,
+      locationLimited: result.locationLimited,
+      suggestable: result.suggestable,
+      confident: flags.confident,
+      specific: flags.specific,
+    );
   }
 
   /// Runs the models over [image]. Models the system unloaded behind the

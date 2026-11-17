@@ -5,6 +5,8 @@ library;
 
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 
 /// How much two boxes must overlap to be taken for the same animal.
 const double sameAnimalOverlap = 0.5;
@@ -151,6 +153,30 @@ SpeciesSuggestion _suggestionFor(List<MediaIdentification> group) {
     cropIdentificationId: best.id,
     identificationIds: [for (final i in group) i.id],
     alternatives: best.candidates.take(suggestionAlternatives).toList(),
+  );
+}
+
+/// What a name means for the labels over a video (issue #4675), decided
+/// when it is named and stored with it, so the labels keep working after
+/// the model is removed.
+///
+/// - confident: suggestable, and its top score is at or above the
+///   confident bar.
+/// - specific: its open score is at or above the floor, so it looks like
+///   something in particular rather than a hand or open water.
+///
+/// The measured accuracy piece adds a separate confident bar for a crop
+/// with no usable place (`confidentScoreNoLocation`); until it does,
+/// `confidentScore` serves both.
+({bool confident, bool specific}) namingFlags(
+  NamingResult result,
+  NamingConfig config,
+) {
+  final top = result.candidates.isEmpty ? null : result.candidates.first;
+  return (
+    confident:
+        result.suggestable && top != null && top.score >= config.confidentScore,
+    specific: result.openScore >= config.minOpenScore,
   );
 }
 
