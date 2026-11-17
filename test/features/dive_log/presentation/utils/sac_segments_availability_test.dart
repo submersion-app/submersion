@@ -182,4 +182,31 @@ void main() {
       );
     }
   });
+
+  test('false for an Avelo Hydrotank, whose missing segments are not a '
+      'missing pressure log (#4657)', () {
+    const hydrotank = DiveTank(
+      id: 'hydro',
+      startPressure: 200.0,
+      endPressure: 185.0,
+      gasMix: GasMix(),
+      role: TankRole.hydrotank,
+    );
+    const pony = DiveTank(
+      id: 'pony',
+      startPressure: 200.0,
+      endPressure: 170.0,
+      gasMix: GasMix(),
+      role: TankRole.pony,
+    );
+    for (final tanks in const [
+      [hydrotank],
+      [hydrotank, pony],
+    ]) {
+      expect(
+        sacSegmentsLackRecordedPressure(noPressureAnalysis, diveWith(tanks)),
+        isFalse,
+      );
+    }
+  });
 }

@@ -126,7 +126,9 @@ class TransmitterAutoRegistrar {
   }
 
   /// The role the computer most recently reported for the tank carrying
-  /// [serial], else back gas.
+  /// [serial], else back gas. An Avelo Hydrotank reads as back gas: it is a
+  /// fact about the dive logged in Avelo mode (issue #4657), and the registry
+  /// role applies to every dive with the transmitter.
   Future<String> _latestRole(String serial, String? diverId) async {
     final row = await _db
         .customSelect(
@@ -143,7 +145,8 @@ class TransmitterAutoRegistrar {
         )
         .getSingleOrNull();
     final role = row?.read<String?>('role');
-    return TankRole.values.any((r) => r.name == role)
+    return TankRole.values.any((r) => r.name == role) &&
+            role != TankRole.hydrotank.name
         ? role!
         : TankRole.backGas.name;
   }

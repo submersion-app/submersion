@@ -23,6 +23,13 @@ const Set<TankRole> backmountRoles = {
   TankRole.hydrotank,
 };
 
+/// Whether [tanks] include a breathed cylinder whose pressure is not the gas
+/// used: an Avelo Hydrotank (issue #4657). The dive's total gas, and every
+/// rate over the whole dive or a part of it, is then unknown, since leaving
+/// the Hydrotank out would let the other cylinders stand in for it.
+bool breathesUnmeasuredTank(List<DiveTank> tanks) =>
+    tanks.any((t) => t.role.isBreathingGas && !t.role.pressureMeasuresGasUse);
+
 /// The cylinders of [tanks] that hold breathing gas, in order: every one but
 /// a suit inflation bottle (issue #4243, see [TankRole.isBreathingGas]).
 /// Every breathing gas calculation starts from this list, not from all of a

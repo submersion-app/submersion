@@ -34,7 +34,11 @@ void main() {
   TransmitterAutoRegistrar registrar() =>
       TransmitterAutoRegistrar(nameFor: (serial) => 'Transmitter $serial');
 
-  Future<void> diveWithSerial(String diveId, String serial) async {
+  Future<void> diveWithSerial(
+    String diveId,
+    String serial, {
+    String role = 'stage',
+  }) async {
     await db
         .into(db.dives)
         .insert(
@@ -53,7 +57,7 @@ void main() {
             id: 'tank-$diveId',
             diveId: diveId,
             transmitterSerial: Value(serial),
-            tankRole: const Value('stage'),
+            tankRole: Value(role),
           ),
         );
   }
@@ -82,6 +86,18 @@ void main() {
       expect(item.name, 'Transmitter 7C0B19');
       expect(item.serialNumber, '7C0B19');
       expect(item.diverId, 'd1');
+    });
+
+    test('a serial first seen on an Avelo Hydrotank is set up as back gas '
+        '(#4657)', () async {
+      // The Hydrotank role is a fact about that dive; the registry's role is
+      // the transmitter's default for every dive, Avelo or not.
+      await diveWithSerial('dive1', '7C0B19', role: 'hydrotank');
+
+      await registrar().registerNewSerials(['7C0B19'], diverId: 'd1');
+
+      final row = (await TransmitterRepository().getForDiver('d1')).single;
+      expect(row.role.name, 'backGas');
     });
 
     test('treats a serial padded with whitespace as the same serial', () async {
