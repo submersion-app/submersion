@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
@@ -75,6 +76,11 @@ class TransmitterMatcher {
 /// reported none (a Suunto that knows its own size keeps it). Gas mix,
 /// pressures and serial are never touched. Returns a new list; unmatched
 /// tanks are returned as the same instance.
+///
+/// One role beats the entry's: the Avelo Hydrotank (issue #4657), which the
+/// computer logged in Avelo mode for this dive. The entry's role is the
+/// diver's default for the transmitter, and the same Swift may sit on an
+/// ordinary cylinder on other dives.
 List<TankData> applyTransmitterRegistry(
   List<TankData> tanks,
   TransmitterMatcher matcher, {
@@ -90,8 +96,9 @@ List<TankData> applyTransmitterRegistry(
       );
       if (entry == null) return tank;
       final hasVolume = tank.volumeLiters != null && tank.volumeLiters! > 0;
+      final hydrotank = tank.role == TankRole.hydrotank.name;
       return tank.copyWith(
-        role: entry.role.name,
+        role: hydrotank ? tank.role : entry.role.name,
         clearRoleSource: true,
         equipmentId: entry.equipmentId,
         presetName: entry.presetName,
