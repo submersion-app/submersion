@@ -444,6 +444,31 @@ void main() {
       expect(find.byType(Card), findsNothing);
     });
 
+    testWidgets('another cylinder is not offered one as a partner', (
+      tester,
+    ) async {
+      final c = cylinder('C');
+      final doubles = c.copyWith(
+        attributes: [
+          ...c.attributes,
+          const EquipmentAttribute(
+            id: 'C-worn',
+            equipmentId: 'C',
+            key: EquipmentAttrKeys.wornAs,
+            valueText: kWornAsTwinSet,
+          ),
+        ],
+      );
+      final l10n = await pump(
+        tester,
+        gear: [cylinder('A'), cylinder('B'), doubles],
+      );
+      await tester.tap(find.text(l10n.twinSet_link));
+      await tester.pumpAndSettle();
+      expect(find.text('Double 12 B'), findsOneWidget);
+      expect(find.text('Double 12 C'), findsNothing);
+    });
+
     testWidgets('a pairing it already has still shows', (tester) async {
       final l10n = await pump(
         tester,

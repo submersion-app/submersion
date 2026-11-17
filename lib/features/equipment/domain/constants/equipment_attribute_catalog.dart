@@ -80,11 +80,11 @@ enum AttributeDimension {
   durationH,
 }
 
-/// Stable attribute keys referenced from more than one file.
 /// The `worn_as` choice for a pair of manifolded back cylinders kept as one
 /// gear item, such as a "D12" (issue #4641).
 const String kWornAsTwinSet = 'twin_set';
 
+/// Stable attribute keys referenced from more than one file.
 abstract final class EquipmentAttrKeys {
   static const size = 'size';
   static const thicknessMm = 'thickness_mm';
