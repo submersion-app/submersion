@@ -120,6 +120,15 @@ class CompactDiveListTile extends ConsumerWidget {
   static bool _isDurationField(DiveField field) =>
       field == DiveField.runtime || field == DiveField.bottomTime;
 
+  /// Whether a stat slot showing [field] has a value. With no source to
+  /// read, only the depth and duration parameters can fill a slot.
+  bool _statHasValue(DiveField field, UnitFormatter units) {
+    if (_hasSlotData) return _extract(field, units) != null;
+    if (field == DiveField.maxDepth) return maxDepth != null;
+    if (_isDurationField(field)) return duration != null;
+    return false;
+  }
+
   /// The raw value of [field] from [fullDive] when there is one, else from
   /// [summary]; null when neither is set. RMV follows the diver's gas model.
   dynamic _extract(DiveField field, UnitFormatter units) {
@@ -187,7 +196,7 @@ class CompactDiveListTile extends ConsumerWidget {
     // [duration] is either of runtime and bottom time, so with a source to
     // read, the slot reads its own field (issue #3304).
     if (_isDurationField(field) && !_hasSlotData) {
-      return duration != null ? '${duration!.inMinutes} min' : '--';
+      return field.formatValue(duration, units);
     }
     // Fallback for any other field value
     final value = _extract(field, units);
@@ -290,14 +299,8 @@ class CompactDiveListTile extends ConsumerWidget {
     );
 
     // Determine if stat values are present (non-null raw values)
-    final stat1HasValue = _hasSlotData
-        ? _extract(stat1Field, units) != null
-        : (stat1Field == DiveField.maxDepth
-              ? maxDepth != null
-              : duration != null);
-    final stat2HasValue = _hasSlotData
-        ? _extract(stat2Field, units) != null
-        : (_isDurationField(stat2Field) ? duration != null : maxDepth != null);
+    final stat1HasValue = _statHasValue(stat1Field, units);
+    final stat2HasValue = _statHasValue(stat2Field, units);
 
     final diveTypeLabels = [
       for (final id in summary?.diveTypeIds ?? const <String>[])
