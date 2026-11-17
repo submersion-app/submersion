@@ -118,8 +118,9 @@ void main() {
     expect(find.text('Share PDF slate'), findsOneWidget);
     expect(find.text('Open in planner'), findsOneWidget);
     expect(find.text('Rebuild in planner...'), findsOneWidget);
-    // One under the plan link entries, one under the share actions.
-    expect(find.byType(PopupMenuDivider), findsNWidgets(2));
+    // The share actions, a divider, then the planner (the plan link is
+    // changed on the dive's Compare card, issue #4527).
+    expect(find.byType(PopupMenuDivider), findsOneWidget);
   });
 
   testWidgets('the app bar is titled Compare', (tester) async {

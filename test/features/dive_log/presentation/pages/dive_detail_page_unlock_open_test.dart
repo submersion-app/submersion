@@ -48,6 +48,7 @@ void main() {
     expect(lock(), findsOneWidget);
 
     tester.view.physicalSize = const Size(720, 1000);
+    addTearDown(tester.view.reset);
     await settle(tester);
 
     expect(lock(), findsOneWidget);
@@ -119,6 +120,7 @@ void main() {
     expect(ended, 1);
 
     tester.view.physicalSize = const Size(720, 1000);
+    addTearDown(tester.view.reset);
     await settle(tester);
     expect(ended, 1);
   });

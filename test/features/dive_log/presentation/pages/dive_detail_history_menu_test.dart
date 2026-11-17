@@ -70,6 +70,13 @@ void main() {
   }
 
   Future<void> tapHistory(WidgetTester tester) async {
+    // History sits beside the lock where the bar has room (issue #4527).
+    final inBar = find.byTooltip('History');
+    if (inBar.evaluate().isNotEmpty) {
+      await tester.tap(inBar.first);
+      await tester.pumpAndSettle();
+      return;
+    }
     // The header overflow menu is the last more_vert on the page (a source bar,
     // when present, renders earlier).
     await tester.tap(find.byIcon(Icons.more_vert).last);

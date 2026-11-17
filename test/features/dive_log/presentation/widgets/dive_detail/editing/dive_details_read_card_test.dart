@@ -378,19 +378,21 @@ void main() {
     SacVolumeHint hint(WidgetTester tester) =>
         tester.widget<SacVolumeHint>(find.byType(SacVolumeHint));
 
-    testWidgets('on a page with no editing it is a link', (tester) async {
+    // A locked page reads only: the hint no longer leads to the old edit
+    // form (issue #4527, plan 11).
+    testWidgets('on a page with no editing it reads only', (tester) async {
       await pumpRows(tester);
 
-      expect(hint(tester).onTap, isNotNull);
+      expect(hint(tester).onTap, isNull);
     });
 
-    testWidgets('on a locked page it is a link', (tester) async {
+    testWidgets('on a locked page it reads only', (tester) async {
       final controller = RecordEditController<Dive>(onSave: (_) async {});
       addTearDown(controller.dispose);
 
       await pumpRows(tester, controller: controller);
 
-      expect(hint(tester).onTap, isNotNull);
+      expect(hint(tester).onTap, isNull);
     });
 
     // Plan 5 gave the Cylinders card an editor: during a sitting the hint
@@ -406,7 +408,7 @@ void main() {
       expect(controller.openCardIds, contains('tanks'));
     });
 
-    testWidgets('once the sitting ends it is a link again', (tester) async {
+    testWidgets('once the sitting ends it reads only again', (tester) async {
       final controller = RecordEditController<Dive>(onSave: (_) async {})
         ..unlock(noVolume);
       addTearDown(controller.dispose);
@@ -415,7 +417,7 @@ void main() {
       controller.lock();
       await tester.pump();
 
-      expect(hint(tester).onTap, isNotNull);
+      expect(hint(tester).onTap, isNull);
     });
   });
 

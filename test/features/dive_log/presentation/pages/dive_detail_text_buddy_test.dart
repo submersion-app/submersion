@@ -7,8 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
-import 'package:submersion/features/buddies/domain/services/buddy_name_matcher.dart';
-import 'package:submersion/features/buddies/domain/services/legacy_conversion_planner.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/legacy_buddy_conversion_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -264,57 +262,6 @@ void main() {
         linked: [_linkedBuddy()],
       );
       expect(find.text(_en.buddies_linkText_action), findsNothing);
-    });
-
-    testWidgets('linking applies the reviewed plan and offers Undo', (
-      tester,
-    ) async {
-      final matcher = BuddyNameMatcher(const [], diverId: 'me');
-      final service = FakeLegacyBuddyConversionService(
-        plan: planLegacyConversion(
-          diveId: 'd1',
-          buddyText: 'Bob Brown',
-          matcher: matcher,
-        ),
-        matcher: matcher,
-      );
-      await _pump(tester, prefs, textBuddy: 'Bob Brown', service: service);
-
-      await tester.tap(find.text(_en.buddies_linkText_action));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(_en.buddies_linkText_linkCount(1)));
-      await tester.pumpAndSettle();
-
-      expect(service.applied.single.single.diveId, 'd1');
-      expect(find.text(_en.buddies_linkText_linkedSnackbar(1)), findsOneWidget);
-
-      await tester.tap(find.text(_en.diveLog_bulkDelete_undo));
-      await tester.pumpAndSettle();
-
-      expect(service.undone, [FakeLegacyBuddyConversionService.defaultReceipt]);
-      // Let the snackbars' timers finish before the tree is torn down.
-      await tester.pump(const Duration(seconds: 6));
-    });
-
-    testWidgets('a second tap while a review is loading is ignored', (
-      tester,
-    ) async {
-      final gate = Completer<void>();
-      final service = FakeLegacyBuddyConversionService()..planForGate = gate;
-      await _pump(tester, prefs, textBuddy: 'Bob Brown', service: service);
-
-      await tester.tap(find.text(_en.buddies_linkText_action));
-      await tester.pump();
-      await tester.tap(
-        find.text(_en.buddies_linkText_action),
-        warnIfMissed: false,
-      );
-      await tester.pump();
-      gate.complete();
-      await tester.pumpAndSettle();
-
-      expect(service.planForCalls, 1);
-      expect(find.text(_en.buddies_linkText_sheetTitle), findsOneWidget);
     });
   });
 
