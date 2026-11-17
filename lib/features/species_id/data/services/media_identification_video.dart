@@ -41,16 +41,16 @@ extension _VideoScanning on MediaIdentificationService {
         final moved =
             from.packVersion != manifest.packVersion ||
             from.locationCell != cell;
+        var now = stored;
         if (moved && embeddingsPresent) {
           await _rename(pack, from, undecided, embeddings, cell, generation);
           from = await _identifications.runFor(job.item.id) ?? from;
+          now = await _identifications.forMedia(job.item.id);
         }
         // A rescan stopped part-way: what the diver said about a fish not
         // yet reached is still to be carried to its fresh track (rows this
-        // scan stored end at or before where it got to). The rows are read
-        // again: a rename just above may have changed them.
+        // scan stored end at or before where it got to).
         final scanned = from.scannedMs ?? 0;
-        final now = await _identifications.forMedia(job.item.id);
         final ahead = [
           for (final i in now)
             if (_saidByDiver(i) && (i.endMs ?? 0) > scanned) i,

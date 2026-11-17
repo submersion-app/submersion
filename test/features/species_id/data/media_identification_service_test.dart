@@ -100,6 +100,22 @@ class _ReadHookRepository extends MediaIdentificationRepository {
   }
 }
 
+/// Counts the embeddings it is asked for.
+class _CountingEmbeddings extends IdentificationEmbeddingRepository {
+  _CountingEmbeddings(LocalCacheDatabase database) : super(database: database);
+
+  var asked = 0;
+
+  @override
+  Future<Map<String, Float32List>> get(
+    List<String> identificationIds, {
+    required String classifierId,
+  }) {
+    asked += identificationIds.length;
+    return super.get(identificationIds, classifierId: classifierId);
+  }
+}
+
 /// Calls [onStore] after the first run it stores: where a logbook switch
 /// would land between a rescan's first write and its scan.
 class _StoreHookRepository extends MediaIdentificationRepository {
@@ -892,6 +908,60 @@ void main() {
       expect(found, hasLength(1));
       expect(found.single.id, isNot(first.id));
       expect(found.single.decision, IdentificationDecision.rejected);
+    });
+
+    test('opening a scanned video again reads no embeddings and no rows '
+        'twice', () async {
+      oneFish();
+      await service.request(video());
+      final counting = _CountingEmbeddings(local);
+      var reads = 0;
+      final again = MediaIdentificationService(
+        engine: engine,
+        loadPack: () async => installed,
+        identifications: _ReadHookRepository(library, () => reads++),
+        embeddings: counting,
+        crops: crops,
+        resolveImage: (item) async => imageFor(item),
+        resolveVideo: (item) async =>
+            <T>(Future<T> Function(String path) read) => read('/v.mp4'),
+        taggedSpecies: (_) async => tagged,
+        enabled: () => enabled,
+        databaseGeneration: () => generation,
+      );
+      addTearDown(again.dispose);
+      await again.request(video());
+      expect(counting.asked, 0);
+      // One read to decide, one to reconcile.
+      expect(reads, 2);
+    });
+
+    test('a resume with nothing to rename reads the rows once', () async {
+      engine.videoGate = Completer<void>();
+      final stopped = service.request(video());
+      await until(() => engine.detectCalls.length == 1);
+      service.cancelPending('v1');
+      engine.videoGate!.complete();
+      engine.videoGate = null;
+      await stopped;
+      var reads = 0;
+      final again = MediaIdentificationService(
+        engine: engine,
+        loadPack: () async => installed,
+        identifications: _ReadHookRepository(library, () => reads++),
+        embeddings: embeddings,
+        crops: crops,
+        resolveImage: (item) async => imageFor(item),
+        resolveVideo: (item) async =>
+            <T>(Future<T> Function(String path) read) => read('/v.mp4'),
+        taggedSpecies: (_) async => tagged,
+        enabled: () => enabled,
+        databaseGeneration: () => generation,
+      );
+      addTearDown(again.dispose);
+      await again.request(video());
+      expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+      expect(reads, 2);
     });
 
     test('a new pack renames a scanned video without the engine', () async {

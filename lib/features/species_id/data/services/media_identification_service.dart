@@ -361,12 +361,20 @@ class MediaIdentificationService {
           await _crops.allPresent(item.id, [for (final i in undecided) i.id]) &&
           (undecided.length == stored.length ||
               await _crops.wasAnalysedHere(item.id));
-      final storedEmbeddings = run == null
+      // A video's tracks are named again only when their pack or place
+      // changed: its embeddings are not read otherwise.
+      final namesCurrent =
+          video &&
+          run != null &&
+          run.packVersion == manifest.packVersion &&
+          run.locationCell == cell;
+      final storedEmbeddings = run == null || namesCurrent
           ? const <String, Float32List>{}
           : await _embeddings.get([
               for (final i in undecided) i.id,
             ], classifierId: manifest.classifier.id);
-      final embeddingsPresent = storedEmbeddings.length == undecided.length;
+      final embeddingsPresent =
+          namesCurrent || storedEmbeddings.length == undecided.length;
       var putBack = false;
       if (video) {
         putBack = await _refreshVideo(
