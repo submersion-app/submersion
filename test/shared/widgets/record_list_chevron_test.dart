@@ -184,6 +184,22 @@ void main() {
       expect(taps, 1);
     });
 
+    testWidgets('takes the ListTile icon colour by default', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          const RecordListChevronOverlay(
+            child: SizedBox(width: double.infinity, height: 40),
+          ),
+        ),
+      );
+
+      final context = tester.element(find.byType(RecordListChevronOverlay));
+      expect(
+        tester.widget<Icon>(find.byIcon(Icons.chevron_right)).color,
+        Theme.of(context).colorScheme.onSurfaceVariant,
+      );
+    });
+
     testWidgets('shows only the child without a chevron', (tester) async {
       await tester.pumpWidget(
         _host(

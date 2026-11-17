@@ -19,8 +19,9 @@ import 'package:submersion/shared/widgets/record_list_chevron.dart';
 /// Two-line compact card tile for the buddy list, driven by
 /// [buddyCompactCardConfigProvider]. No avatar, no chips.
 ///
-/// Line 1: title slot | stat1 | chevron
+/// Line 1: title slot | stat1
 /// Line 2: subtitle slot | stat2
+/// A chevron centred on both lines follows them at the card's end.
 class CompactBuddyListTile extends ConsumerWidget {
   final BuddyWithDiveCount entry;
   final VoidCallback? onTap;

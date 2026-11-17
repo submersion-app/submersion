@@ -8,8 +8,9 @@ import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// Two-line compact card tile for the dive center list.
 ///
-/// Line 1: Center name (expanded) | Dive count text | Chevron
+/// Line 1: Center name (expanded) | Dive count text
 /// Line 2: Location string (secondary text color)
+/// A chevron centred on both lines follows them at the card's end.
 class CompactDiveCenterListTile extends StatelessWidget {
   final DiveCenter center;
   final int diveCount;
@@ -76,7 +77,7 @@ class CompactDiveCenterListTile extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Line 1: center name, dive count, chevron
+                        // Line 1: center name, dive count
                         Row(
                           children: [
                             Expanded(

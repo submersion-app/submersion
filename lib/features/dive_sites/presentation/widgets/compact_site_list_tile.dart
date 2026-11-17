@@ -17,8 +17,9 @@ import 'package:submersion/shared/widgets/record_list_chevron.dart';
 /// Two-line compact card tile for the site list, driven by
 /// [siteCompactCardConfigProvider].
 ///
-/// Line 1: title slot | rating | stat1 | chevron
+/// Line 1: title slot | rating | stat1
 /// Line 2: subtitle slot | stat2
+/// A chevron centred on both lines follows them at the card's end.
 class CompactSiteListTile extends ConsumerWidget {
   final SiteWithDiveCount entry;
   final VoidCallback? onTap;

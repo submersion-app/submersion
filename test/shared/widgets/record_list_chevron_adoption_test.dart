@@ -10,21 +10,16 @@ import 'package:path/path.dart' as p;
 /// new or edited record row from going back to a bare icon.
 void main() {
   // Record cards whose file name does not end in `_list_tile.dart`.
-  final namedRecordCards = [
-    p.join('lib', 'features', 'dive_log', 'presentation', 'pages'),
-    p.join('lib', 'features', 'trips', 'presentation', 'widgets'),
-    p.join('lib', 'features', 'dive_centers', 'presentation', 'widgets'),
-    p.join('lib', 'features', 'certifications', 'presentation', 'widgets'),
-    p.join('lib', 'features', 'equipment', 'presentation', 'widgets'),
-    p.join('lib', 'features', 'courses', 'presentation', 'widgets'),
-  ];
   final namedFiles = {
-    p.join(namedRecordCards[0], 'dive_list_page.dart'),
-    p.join(namedRecordCards[1], 'trip_list_content.dart'),
-    p.join(namedRecordCards[2], 'dive_center_list_content.dart'),
-    p.join(namedRecordCards[3], 'certification_list_content.dart'),
-    p.join(namedRecordCards[4], 'equipment_list_content.dart'),
-    p.join(namedRecordCards[5], 'course_card.dart'),
+    for (final (feature, folder, file) in [
+      ('dive_log', 'pages', 'dive_list_page.dart'),
+      ('trips', 'widgets', 'trip_list_content.dart'),
+      ('dive_centers', 'widgets', 'dive_center_list_content.dart'),
+      ('certifications', 'widgets', 'certification_list_content.dart'),
+      ('equipment', 'widgets', 'equipment_list_content.dart'),
+      ('courses', 'widgets', 'course_card.dart'),
+    ])
+      p.join('lib', 'features', feature, 'presentation', folder, file),
   };
 
   final bareChevron = RegExp(r'Icons\.chevron_right\b');

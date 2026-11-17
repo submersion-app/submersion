@@ -10,8 +10,9 @@ import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// Two-line compact card tile for the trip list.
 ///
-/// Line 1: Trip name (expanded) | Date range (secondary text) | Chevron
+/// Line 1: Trip name (expanded) | Date range (secondary text)
 /// Line 2: Dive count with scuba icon | Total bottom time with timer icon
+/// A chevron centred on both lines follows them at the card's end.
 class CompactTripListTile extends ConsumerWidget {
   final TripWithStats tripWithStats;
   final bool isSelected;
@@ -78,7 +79,7 @@ class CompactTripListTile extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Line 1: trip name, date range, chevron
+                        // Line 1: trip name, date range
                         Row(
                           children: [
                             Expanded(

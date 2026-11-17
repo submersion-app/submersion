@@ -138,11 +138,15 @@ class RecordListChevronOverlay extends StatelessWidget {
   /// False drops the chevron, as in selection mode.
   final bool showChevron;
 
+  /// Null takes the colour a `ListTile` gives its own icons, as the chevron
+  /// had when it sat in the tile's trailing slot.
   final Color? chevronColor;
 
   @override
   Widget build(BuildContext context) {
     if (!showChevron) return child;
+    final color =
+        chevronColor ?? Theme.of(context).colorScheme.onSurfaceVariant;
     return Stack(
       children: [
         child,
@@ -151,7 +155,7 @@ class RecordListChevronOverlay extends StatelessWidget {
           bottom: 0,
           end: kRecordCardDetailedPadding,
           child: IgnorePointer(
-            child: Center(child: RecordListChevron(color: chevronColor)),
+            child: Center(child: RecordListChevron(color: color)),
           ),
         ),
       ],

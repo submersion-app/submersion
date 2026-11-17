@@ -234,8 +234,8 @@ class BuddyListTile extends ConsumerWidget {
                         ),
                       ),
                       // Favoriting (issue #1336) is independent of bulk
-                      // selection, unlike the chevron after the content, so it stays
-                      // visible and tappable in every mode.
+                      // selection, unlike the chevron after the content, so
+                      // it stays visible and tappable in every mode.
                       BuddyFavoriteButton(
                         buddyId: buddy.id,
                         isFavorite: buddy.isFavorite,
