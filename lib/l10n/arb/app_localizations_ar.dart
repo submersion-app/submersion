@@ -8560,11 +8560,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'إضافة إدخال أثقال';
 
   @override
-  String diveLog_edit_addedGps(Object name) {
-    return 'تمت إضافة GPS إلى $name';
-  }
-
-  @override
   String get diveLog_edit_appBarNew => 'تسجيل غوصة';
 
   @override
@@ -10429,11 +10424,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String siteSuggestion_addLocationButton(Object name) {
     return 'إضافة الموقع إلى $name';
-  }
-
-  @override
-  String siteSuggestion_assignedSnack(Object name) {
-    return 'تم تعيين $name';
   }
 
   @override
@@ -20824,11 +20814,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_diveMediaSection_unlinkButton => 'إلغاء الربط';
 
   @override
-  String media_diveMediaSection_unlinkError(Object error) {
-    return 'فشل في إلغاء الربط: $error';
-  }
-
-  @override
   String media_diveMediaSection_unlinkSelectedButton(int count) {
     return 'إلغاء ربط $count';
   }
@@ -20836,11 +20821,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String media_diveMediaSection_unlinkSelectedContent(int count) {
     return 'يزيل $count من عناصر الوسائط من مكتبتك، مع نسخها السحابية والصور المصغرة. تبقى العناصر التي لا يزال موقع غوص يستخدمها. لن تتأثر ملفاتك الأصلية.';
-  }
-
-  @override
-  String media_diveMediaSection_unlinkSelectedSuccess(int count) {
-    return 'تم إلغاء ربط $count عنصر';
   }
 
   @override
@@ -21081,11 +21061,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_diveScan_cancelButton => 'إلغاء';
-
-  @override
-  String media_diveScan_error(String error) {
-    return 'خطأ في مسح المعرض: $error';
-  }
 
   @override
   String media_gpsBanner_coordinates(Object coordinates) {
@@ -31954,10 +31929,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get signatures_error_enterSignerName => 'الرجاء إدخال اسم الموقع';
-
-  @override
-  String get signatures_error_saveFailed =>
-      'تعذر حفظ التوقيع. يرجى المحاولة مرة أخرى.';
 
   @override
   String get signatures_field_instructorName => 'اسم المدرب';
@@ -57099,13 +57070,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_people_removedBuddy => 'رفيق محذوف';
 
   @override
-  String get media_people_saveFailed => 'تعذر حفظ الوسم. حاول مرة أخرى.';
-
-  @override
-  String get media_people_addToDiveFailed =>
-      'تعذرت إضافة الرفيق إلى هذه الغطسة. حاول مرة أخرى.';
-
-  @override
   String get media_people_createBuddyFailed =>
       'تعذر إنشاء الرفيق. حاول مرة أخرى.';
 
@@ -59438,9 +59402,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_reassignSheet_noSeries => 'لا توجد سلسلة ضغط';
-
-  @override
-  String get diveLog_reassignSheet_applied => 'تمت إعادة تعيين سلسلة الضغط';
 
   @override
   String get universalImport_summary_noticeUnknownTransmitterTitle =>

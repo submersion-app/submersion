@@ -152,7 +152,7 @@ void main() {
         .notifier!;
 
     // As the tank menu's unlink does: it wrote, so the dive is read again.
-    chip.runAsOperation!(() async => true);
+    chip.runAsOperation(() async => true);
     await settle(tester);
 
     expect(tester.takeException(), isNull);

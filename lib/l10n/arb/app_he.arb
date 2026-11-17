@@ -2717,7 +2717,6 @@
   "diveLog_edit_addCustomField": "הוסף שדה",
   "diveLog_edit_addTank": "הוספת בלון",
   "diveLog_edit_addWeightEntry": "הוספת רשומת משקל",
-  "diveLog_edit_addedGps": "GPS נוסף ל-{name}",
   "diveLog_edit_appBarNew": "רישום צלילה",
   "diveLog_edit_cancel": "ביטול",
   "diveLog_edit_clearAllEquipment": "ניקוי הכל",
@@ -3181,7 +3180,6 @@
   "siteSuggestion_assignButton": "שיוך {name}",
   "siteSuggestion_chooseNearbyButton": "בחירת אתר קרוב ({count})",
   "siteSuggestion_addLocationButton": "הוספת מיקום ל-{name}",
-  "siteSuggestion_assignedSnack": "{name} שויך",
   "siteTypes_addTooltip": "הוסף סוג אתר",
   "siteTypes_builtIn": "מובנה",
   "siteTypes_custom": "מותאם",
@@ -5853,10 +5851,8 @@
   "media_diveMediaSection_replaceEditedContent": "תוכן הקובץ שונה מהמקור. קישור מחדש יעלה אותו שוב למאגר המדיה שלך.",
   "media_diveMediaSection_replaceEditedTitle": "תוכן הקובץ שונה",
   "media_diveMediaSection_unlinkButton": "בטל קישור",
-  "media_diveMediaSection_unlinkError": "ביטול הקישור נכשל: {error}",
   "media_diveMediaSection_unlinkSelectedButton": "בטל קישור {count}",
   "media_diveMediaSection_unlinkSelectedContent": "מסיר {count} פריטי מדיה מהספרייה שלך, יחד עם העותקים בענן והתמונות הממוזערות. פריטים שאתר צלילה עדיין משתמש בהם יישמרו. קובצי המקור שלך לא ייפגעו.",
-  "media_diveMediaSection_unlinkSelectedSuccess": "בוטל קישור של {count} פריטים",
   "media_diveMediaSection_unlinkSelectedTitle": "לבטל קישור של {count} פריטים?",
   "media_library_unlinkConfirmTitle": "לבטל קישור של {count} פריטים?",
   "media_siteMediaSection_unlinkError": "ביטול הקישור נכשל: {error}",
@@ -9069,7 +9065,6 @@
   "signatures_drawSignatureSemantics": "שרטט חתימה",
   "signatures_error_drawSignature": "נא לשרטט חתימה",
   "signatures_error_enterSignerName": "נא להזין שם החותם",
-  "signatures_error_saveFailed": "לא ניתן היה לשמור את החתימה. נסו שוב.",
   "signatures_field_instructorName": "שם המדריך",
   "signatures_field_instructorNameHint": "הזן שם מדריך",
   "signatures_handoff_title": "העבר את המכשיר ל",
@@ -10970,14 +10965,6 @@
     }
   },
   "media_diveScan_cancelButton": "ביטול",
-  "media_diveScan_error": "שגיאה בסריקת הגלריה: {error}",
-  "@media_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "settings_appearance_metricsEnabledCount": "{count} מתוך {total} מופעלים",
   "@settings_appearance_metricsEnabledCount": {
     "placeholders": {
@@ -16620,8 +16607,6 @@
   "media_people_buddyThumbnailLabel": "תמונה או סרטון עם חבר הצוללים הזה",
   "media_people_filterSection": "אנשים",
   "media_people_removedBuddy": "חבר צוללים שהוסר",
-  "media_people_saveFailed": "לא ניתן לשמור את התיוג. נסה שוב.",
-  "media_people_addToDiveFailed": "לא ניתן להוסיף את חבר הצוללים לצלילה זו. נסה שוב.",
   "media_people_createBuddyFailed": "לא ניתן ליצור את חבר הצוללים. נסה שוב.",
   "media_info_fileSection": "קובץ",
   "media_info_filename": "שם הקובץ",
@@ -17246,7 +17231,6 @@
   "diveLog_reassignSheet_moveTo": "העברה אל",
   "diveLog_reassignSheet_readings": "{count, plural, =1{קריאה אחת} other{{count} קריאות}}",
   "diveLog_reassignSheet_noSeries": "אין סדרת לחץ",
-  "diveLog_reassignSheet_applied": "סדרת הלחץ שויכה מחדש",
   "universalImport_summary_noticeUnknownTransmitterTitle": "משדרים לא משויכים",
   "universalImport_summary_noticeUnknownTransmitterBody": "משדר אחד או יותר בהורדה זו אינם משויכים למיכל. שייכו אותם כדי שהורדות עתידיות יקבלו את הנפח והתפקיד הנכונים.",
   "universalImport_summary_noticeAssignTransmitters": "שיוך משדרים",

@@ -8302,11 +8302,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'Add Weight Entry';
 
   @override
-  String diveLog_edit_addedGps(Object name) {
-    return 'Added GPS to $name';
-  }
-
-  @override
   String get diveLog_edit_appBarNew => 'Log Dive';
 
   @override
@@ -10129,11 +10124,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String siteSuggestion_addLocationButton(Object name) {
     return 'Add location to $name';
-  }
-
-  @override
-  String siteSuggestion_assignedSnack(Object name) {
-    return 'Assigned $name';
   }
 
   @override
@@ -20226,11 +20216,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_diveMediaSection_unlinkButton => 'Unlink';
 
   @override
-  String media_diveMediaSection_unlinkError(Object error) {
-    return 'Failed to unlink: $error';
-  }
-
-  @override
   String media_diveMediaSection_unlinkSelectedButton(int count) {
     return 'Unlink $count';
   }
@@ -20238,11 +20223,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String media_diveMediaSection_unlinkSelectedContent(int count) {
     return 'Removes $count media items from your library, along with their cloud copies and thumbnails. Media a dive site still uses is kept. Your original files are not affected.';
-  }
-
-  @override
-  String media_diveMediaSection_unlinkSelectedSuccess(int count) {
-    return 'Unlinked $count items';
   }
 
   @override
@@ -20469,11 +20449,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_diveScan_cancelButton => 'Cancel';
-
-  @override
-  String media_diveScan_error(String error) {
-    return 'Error scanning gallery: $error';
-  }
 
   @override
   String media_gpsBanner_coordinates(Object coordinates) {
@@ -31138,10 +31113,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signatures_error_enterSignerName => 'Please enter the signer name';
-
-  @override
-  String get signatures_error_saveFailed =>
-      'Could not save the signature. Please try again.';
 
   @override
   String get signatures_field_instructorName => 'Instructor Name';
@@ -55427,13 +55398,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_people_removedBuddy => 'Removed buddy';
 
   @override
-  String get media_people_saveFailed => 'Couldn\'t save the tag. Try again.';
-
-  @override
-  String get media_people_addToDiveFailed =>
-      'Couldn\'t add the buddy to this dive. Try again.';
-
-  @override
   String get media_people_createBuddyFailed =>
       'Couldn\'t create the buddy. Try again.';
 
@@ -57725,9 +57689,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_reassignSheet_noSeries => 'No pressure series';
-
-  @override
-  String get diveLog_reassignSheet_applied => 'Pressure series reassigned';
 
   @override
   String get universalImport_summary_noticeUnknownTransmitterTitle =>

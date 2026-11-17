@@ -2717,7 +2717,6 @@
   "diveLog_edit_addCustomField": "Aggiungi campo",
   "diveLog_edit_addTank": "Aggiungi bombola",
   "diveLog_edit_addWeightEntry": "Aggiungi voce zavorra",
-  "diveLog_edit_addedGps": "GPS aggiunto a {name}",
   "diveLog_edit_appBarNew": "Registra immersione",
   "diveLog_edit_cancel": "Annulla",
   "diveLog_edit_clearAllEquipment": "Rimuovi tutto",
@@ -3181,7 +3180,6 @@
   "siteSuggestion_assignButton": "Assegna {name}",
   "siteSuggestion_chooseNearbyButton": "Scegli sito vicino ({count})",
   "siteSuggestion_addLocationButton": "Aggiungi posizione a {name}",
-  "siteSuggestion_assignedSnack": "Assegnato {name}",
   "siteTypes_addTooltip": "Aggiungi tipo di sito",
   "siteTypes_builtIn": "Predefiniti",
   "siteTypes_custom": "Personalizzati",
@@ -5853,10 +5851,8 @@
   "media_diveMediaSection_replaceEditedContent": "Il contenuto di questo file differisce dall'originale. Ricollegarlo lo ricaricherà nel tuo archivio multimediale.",
   "media_diveMediaSection_replaceEditedTitle": "Il contenuto del file differisce",
   "media_diveMediaSection_unlinkButton": "Scollega",
-  "media_diveMediaSection_unlinkError": "Scollegamento non riuscito: {error}",
   "media_diveMediaSection_unlinkSelectedButton": "Scollega {count}",
   "media_diveMediaSection_unlinkSelectedContent": "Rimuove {count} elementi multimediali dalla libreria, insieme alle copie nel cloud e alle miniature. Gli elementi ancora usati da un sito di immersione vengono mantenuti. I file originali non vengono toccati.",
-  "media_diveMediaSection_unlinkSelectedSuccess": "{count} elementi scollegati",
   "media_diveMediaSection_unlinkSelectedTitle": "Scollegare {count} elementi?",
   "media_library_unlinkConfirmTitle": "Scollegare {count} elementi?",
   "media_siteMediaSection_unlinkError": "Scollegamento non riuscito: {error}",
@@ -8939,7 +8935,6 @@
   "signatures_drawSignatureSemantics": "Disegna firma",
   "signatures_error_drawSignature": "Disegna una firma",
   "signatures_error_enterSignerName": "Inserisci il nome del firmatario",
-  "signatures_error_saveFailed": "Impossibile salvare la firma. Riprova.",
   "signatures_field_instructorName": "Nome Istruttore",
   "signatures_field_instructorNameHint": "Inserisci nome istruttore",
   "signatures_handoff_title": "Passa il dispositivo a",
@@ -10840,14 +10835,6 @@
     }
   },
   "media_diveScan_cancelButton": "Annulla",
-  "media_diveScan_error": "Errore durante la ricerca nella galleria: {error}",
-  "@media_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "settings_appearance_metricsEnabledCount": "{count} di {total} abilitati",
   "@settings_appearance_metricsEnabledCount": {
     "placeholders": {
@@ -16620,8 +16607,6 @@
   "media_people_buddyThumbnailLabel": "Foto o video con questo compagno",
   "media_people_filterSection": "Persone",
   "media_people_removedBuddy": "Compagno rimosso",
-  "media_people_saveFailed": "Impossibile salvare il tag. Riprova.",
-  "media_people_addToDiveFailed": "Impossibile aggiungere il compagno a questa immersione. Riprova.",
   "media_people_createBuddyFailed": "Impossibile creare il compagno. Riprova.",
   "media_info_fileSection": "File",
   "media_info_filename": "Nome file",
@@ -17246,7 +17231,6 @@
   "diveLog_reassignSheet_moveTo": "Sposta su",
   "diveLog_reassignSheet_readings": "{count, plural, =1{1 lettura} other{{count} letture}}",
   "diveLog_reassignSheet_noSeries": "Nessuna serie di pressione",
-  "diveLog_reassignSheet_applied": "Serie di pressione riassegnata",
   "universalImport_summary_noticeUnknownTransmitterTitle": "Trasmettitori non assegnati",
   "universalImport_summary_noticeUnknownTransmitterBody": "Uno o più trasmettitori di questo download non sono assegnati a una bombola. Assegnali perché i prossimi download abbiano dimensione e ruolo corretti.",
   "universalImport_summary_noticeAssignTransmitters": "Assegna trasmettitori",

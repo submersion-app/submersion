@@ -2717,7 +2717,6 @@
   "diveLog_edit_addCustomField": "Ajouter un champ",
   "diveLog_edit_addTank": "Ajouter un bloc",
   "diveLog_edit_addWeightEntry": "Ajouter un lest",
-  "diveLog_edit_addedGps": "GPS ajouté à {name}",
   "diveLog_edit_appBarNew": "Enregistrer une plongée",
   "diveLog_edit_cancel": "Annuler",
   "diveLog_edit_clearAllEquipment": "Tout effacer",
@@ -3181,7 +3180,6 @@
   "siteSuggestion_assignButton": "Attribuer {name}",
   "siteSuggestion_chooseNearbyButton": "Choisir un site proche ({count})",
   "siteSuggestion_addLocationButton": "Ajouter la position à {name}",
-  "siteSuggestion_assignedSnack": "{name} attribué",
   "siteTypes_addTooltip": "Ajouter un type de site",
   "siteTypes_builtIn": "Intégré",
   "siteTypes_custom": "Personnalisé",
@@ -5853,10 +5851,8 @@
   "media_diveMediaSection_replaceEditedContent": "Le contenu de ce fichier diffère de l'original. Le relier entraînera son renvoi vers votre stockage multimédia.",
   "media_diveMediaSection_replaceEditedTitle": "Le contenu du fichier diffère",
   "media_diveMediaSection_unlinkButton": "Dissocier",
-  "media_diveMediaSection_unlinkError": "Échec de la dissociation : {error}",
   "media_diveMediaSection_unlinkSelectedButton": "Dissocier {count}",
   "media_diveMediaSection_unlinkSelectedContent": "Retire {count} médias de votre bibliothèque, ainsi que leurs copies cloud et miniatures. Les médias encore utilisés par un site de plongée sont conservés. Vos fichiers originaux ne sont pas affectés.",
-  "media_diveMediaSection_unlinkSelectedSuccess": "{count} éléments dissocies",
   "media_diveMediaSection_unlinkSelectedTitle": "Dissocier {count} éléments ?",
   "media_library_unlinkConfirmTitle": "Dissocier {count} éléments ?",
   "media_siteMediaSection_unlinkError": "Échec de la dissociation : {error}",
@@ -8943,7 +8939,6 @@
   "signatures_drawSignatureSemantics": "Dessiner la signature",
   "signatures_error_drawSignature": "Veuillez dessiner une signature",
   "signatures_error_enterSignerName": "Veuillez entrer le nom du signataire",
-  "signatures_error_saveFailed": "Impossible d'enregistrer la signature. Veuillez réessayer.",
   "signatures_field_instructorName": "Nom de l'instructeur",
   "signatures_field_instructorNameHint": "Entrer le nom de l'instructeur",
   "signatures_handoff_title": "Passez votre appareil à",
@@ -10844,14 +10839,6 @@
     }
   },
   "media_diveScan_cancelButton": "Annuler",
-  "media_diveScan_error": "Erreur lors de la recherche dans la galerie : {error}",
-  "@media_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "settings_appearance_metricsEnabledCount": "{count} sur {total} actives",
   "@settings_appearance_metricsEnabledCount": {
     "placeholders": {
@@ -16620,8 +16607,6 @@
   "media_people_buddyThumbnailLabel": "Photo ou vidéo avec ce binôme",
   "media_people_filterSection": "Personnes",
   "media_people_removedBuddy": "Binôme supprimé",
-  "media_people_saveFailed": "Impossible d'enregistrer l'identification. Réessayez.",
-  "media_people_addToDiveFailed": "Impossible d'ajouter le binôme à cette plongée. Réessayez.",
   "media_people_createBuddyFailed": "Impossible de créer le binôme. Réessayez.",
   "media_info_fileSection": "Fichier",
   "media_info_filename": "Nom du fichier",
@@ -17246,7 +17231,6 @@
   "diveLog_reassignSheet_moveTo": "Déplacer vers",
   "diveLog_reassignSheet_readings": "{count, plural, =1{{count} mesure} other{{count} mesures}}",
   "diveLog_reassignSheet_noSeries": "Aucune courbe de pression",
-  "diveLog_reassignSheet_applied": "Courbe de pression réattribuée",
   "universalImport_summary_noticeUnknownTransmitterTitle": "Émetteurs non associés",
   "universalImport_summary_noticeUnknownTransmitterBody": "Un ou plusieurs émetteurs de ce téléchargement ne sont associés à aucune bouteille. Associez-les pour que les prochains téléchargements aient la bonne taille et le bon rôle.",
   "universalImport_summary_noticeAssignTransmitters": "Associer les émetteurs",

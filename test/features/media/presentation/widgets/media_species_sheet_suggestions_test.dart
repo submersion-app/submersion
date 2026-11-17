@@ -33,7 +33,6 @@ class _Tagging extends SpeciesTaggingService {
 
   final tagged = <String>[];
   final untagged = <String>[];
-  Object? untagFailure;
 
   @override
   Future<MediaSpeciesTag> tagPhoto({
@@ -54,7 +53,6 @@ class _Tagging extends SpeciesTaggingService {
     required String mediaId,
     required String speciesId,
   }) async {
-    if (untagFailure != null) throw untagFailure!;
     untagged.add(speciesId);
   }
 }
@@ -99,7 +97,9 @@ void main() {
   });
   tearDown(() => marineLifeIdEnabled = flagBefore);
 
-  Future<void> pump(
+  /// Pumps the sheet over [sitting], or over a sitting opened on [chips]
+  /// as the viewer does, and returns the sitting it holds in.
+  Future<EditSession<PhotoRecord>> pump(
     WidgetTester tester, {
     List<SpeciesSuggestion> suggestions = const [],
     List<SpeciesTagChip> chips = const [_whaleTag, _ownTag],
@@ -108,6 +108,12 @@ void main() {
     bool settle = true,
     List<Species> allSpecies = const [],
   }) async {
+    final shown =
+        sitting ??
+        EditSession<PhotoRecord>(
+          PhotoRecord(item: _photo(), species: chips, people: const []),
+        );
+    if (sitting == null) addTearDown(shown.dispose);
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
@@ -128,7 +134,7 @@ void main() {
           identificationCropFileProvider.overrideWith((ref, key) async => null),
           allSpeciesProvider.overrideWith((ref) async => allSpecies),
         ],
-        child: MediaSpeciesSheet(item: _photo(), sitting: sitting),
+        child: MediaSpeciesSheet(item: _photo(), sitting: shown),
       ),
     );
     if (settle) {
@@ -138,6 +144,7 @@ void main() {
       await tester.pump();
       await tester.pump();
     }
+    return shown;
   }
 
   group('Suggested', () {
@@ -170,15 +177,6 @@ void main() {
       expect(find.text('Looking for fish...'), findsOneWidget);
     });
 
-    testWidgets('Add tags the photo at once with no sitting', (tester) async {
-      await pump(tester, suggestions: [suggestion(parrotfish)]);
-      await tester.tap(find.byKey(const ValueKey('media_suggested_add_1')));
-      await tester.pumpAndSettle();
-      expect(acceptor.resolved, [parrotfish]);
-      expect(tagging.tagged, ['sp_queen_parrotfish']);
-      expect(service.reconciled, ['p1']);
-    });
-
     testWidgets('Add holds the species in a sitting', (tester) async {
       final session = EditSession<PhotoRecord>(
         PhotoRecord(item: _photo(), species: const [], people: const []),
@@ -191,7 +189,10 @@ void main() {
       );
       await tester.tap(find.byKey(const ValueKey('media_suggested_add_1')));
       await tester.pumpAndSettle();
+      expect(acceptor.resolved, [parrotfish]);
       expect(tagging.tagged, isEmpty);
+      // Save's tag write reconciles them, not Add.
+      expect(service.reconciled, isEmpty);
       expect(session.working.species.map((c) => c.speciesId), [
         'sp_queen_parrotfish',
       ]);
@@ -223,11 +224,15 @@ void main() {
       expect(find.byKey(const ValueKey('media_suggested_row_2')), findsNothing);
     });
 
-    testWidgets('Add on a possible match in the crop view tags it', (
+    testWidgets('Add on a possible match in the crop view holds it', (
       tester,
     ) async {
       acceptor.delay = const Duration(seconds: 1);
-      await pump(tester, suggestions: [suggestion(parrotfish)]);
+      final session = await pump(
+        tester,
+        suggestions: [suggestion(parrotfish)],
+        chips: const [],
+      );
       await tester.tap(find.byKey(const ValueKey('media_suggested_crop_1')));
       await tester.pumpAndSettle();
       await tester.tap(
@@ -239,7 +244,8 @@ void main() {
       // Past the sheet closing and the slow lookup.
       await tester.pumpAndSettle();
       await tester.pump(const Duration(seconds: 2));
-      expect(tagging.tagged, ['own-2']);
+      expect(tagging.tagged, isEmpty);
+      expect(session.working.species.map((c) => c.speciesId), ['own-2']);
     });
 
     testWidgets('dismissing rejects every identification of the species', (
@@ -257,17 +263,22 @@ void main() {
       expect(service.rejected.single.$2, ['i2', 'i3']);
     });
 
-    testWidgets('Add all adds each suggestion', (tester) async {
-      await pump(
+    testWidgets('Add all holds each suggestion', (tester) async {
+      final session = await pump(
         tester,
         suggestions: [
           suggestion(parrotfish),
           suggestion(chromis, cropId: 'i2'),
         ],
+        chips: const [],
       );
       await tester.tap(find.byKey(const ValueKey('media_suggested_addAll')));
       await tester.pumpAndSettle();
-      expect(tagging.tagged, ['sp_queen_parrotfish', 'own-2']);
+      expect(tagging.tagged, isEmpty);
+      expect(session.working.species.map((c) => c.speciesId), [
+        'sp_queen_parrotfish',
+        'own-2',
+      ]);
     });
 
     testWidgets('a crop that is not on the device shows a placeholder', (
@@ -298,24 +309,6 @@ void main() {
       expect(
         find.byKey(const ValueKey('media_tagged_remove_sp_whale_shark')),
         findsNothing,
-      );
-    });
-
-    testWidgets('removing untags at once with no sitting', (tester) async {
-      await pump(tester);
-      await tester.tap(find.byKey(const ValueKey('media_tagged_remove_own-3')));
-      await tester.pumpAndSettle();
-      expect(tagging.untagged, ['own-3']);
-    });
-
-    testWidgets('a removal that fails says so', (tester) async {
-      tagging.untagFailure = Exception('locked');
-      await pump(tester);
-      await tester.tap(find.byKey(const ValueKey('media_tagged_remove_own-3')));
-      await tester.pumpAndSettle();
-      expect(
-        find.text('Something went wrong. Please try again.'),
-        findsOneWidget,
       );
     });
 

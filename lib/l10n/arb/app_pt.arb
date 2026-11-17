@@ -2843,7 +2843,6 @@
   "diveLog_edit_addCustomField": "Adicionar campo",
   "diveLog_edit_addTank": "Adicionar Cilindro",
   "diveLog_edit_addWeightEntry": "Adicionar Entrada de Lastro",
-  "diveLog_edit_addedGps": "GPS adicionado a {name}",
   "diveLog_edit_appBarNew": "Registrar Mergulho",
   "diveLog_edit_cancel": "Cancelar",
   "diveLog_edit_clearAllEquipment": "Limpar Tudo",
@@ -3307,7 +3306,6 @@
   "siteSuggestion_assignButton": "Atribuir {name}",
   "siteSuggestion_chooseNearbyButton": "Escolher ponto próximo ({count})",
   "siteSuggestion_addLocationButton": "Adicionar localização a {name}",
-  "siteSuggestion_assignedSnack": "{name} atribuído",
   "siteTypes_addTooltip": "Adicionar tipo de ponto",
   "siteTypes_builtIn": "Integrado",
   "siteTypes_custom": "Personalizado",
@@ -5979,10 +5977,8 @@
   "media_diveMediaSection_replaceEditedContent": "O conteúdo deste arquivo difere do original. Revincular fará um novo envio para seu armazenamento de mídia.",
   "media_diveMediaSection_replaceEditedTitle": "O conteúdo do arquivo difere",
   "media_diveMediaSection_unlinkButton": "Desvincular",
-  "media_diveMediaSection_unlinkError": "Falha ao desvincular: {error}",
   "media_diveMediaSection_unlinkSelectedButton": "Desvincular {count}",
   "media_diveMediaSection_unlinkSelectedContent": "Remove {count} itens de media da sua biblioteca, juntamente com as cópias na nuvem e as miniaturas. Os itens que um ponto de mergulho ainda usa são mantidos. Os seus ficheiros originais não são afetados.",
-  "media_diveMediaSection_unlinkSelectedSuccess": "{count} itens desvinculados",
   "media_diveMediaSection_unlinkSelectedTitle": "Desvincular {count} itens?",
   "media_library_unlinkConfirmTitle": "Desvincular {count} itens?",
   "media_siteMediaSection_unlinkError": "Falha ao desvincular: {error}",
@@ -9069,7 +9065,6 @@
   "signatures_drawSignatureSemantics": "Desenhar assinatura",
   "signatures_error_drawSignature": "Desenhe uma assinatura",
   "signatures_error_enterSignerName": "Digite o nome do signatário",
-  "signatures_error_saveFailed": "Não foi possível salvar a assinatura. Tente novamente.",
   "signatures_field_instructorName": "Nome do Instrutor",
   "signatures_field_instructorNameHint": "Digite o nome do instrutor",
   "signatures_handoff_title": "Entregue seu dispositivo para",
@@ -10970,14 +10965,6 @@
     }
   },
   "media_diveScan_cancelButton": "Cancelar",
-  "media_diveScan_error": "Erro ao pesquisar na galeria: {error}",
-  "@media_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "settings_appearance_metricsEnabledCount": "{count} de {total} ativados",
   "@settings_appearance_metricsEnabledCount": {
     "placeholders": {
@@ -16620,8 +16607,6 @@
   "media_people_buddyThumbnailLabel": "Foto ou vídeo com este companheiro",
   "media_people_filterSection": "Pessoas",
   "media_people_removedBuddy": "Companheiro removido",
-  "media_people_saveFailed": "Não foi possível salvar a marcação. Tente novamente.",
-  "media_people_addToDiveFailed": "Não foi possível adicionar o companheiro a este mergulho. Tente novamente.",
   "media_people_createBuddyFailed": "Não foi possível criar o companheiro. Tente novamente.",
   "media_info_fileSection": "Arquivo",
   "media_info_filename": "Nome do arquivo",
@@ -17246,7 +17231,6 @@
   "diveLog_reassignSheet_moveTo": "Mover para",
   "diveLog_reassignSheet_readings": "{count, plural, =1{{count} leitura} other{{count} leituras}}",
   "diveLog_reassignSheet_noSeries": "Sem série de pressão",
-  "diveLog_reassignSheet_applied": "Série de pressão reatribuída",
   "universalImport_summary_noticeUnknownTransmitterTitle": "Transmissores não atribuídos",
   "universalImport_summary_noticeUnknownTransmitterBody": "Um ou mais transmissores deste download não estão atribuídos a um cilindro. Atribua-os para que os próximos downloads tenham o tamanho e a função corretos.",
   "universalImport_summary_noticeAssignTransmitters": "Atribuir transmissores",

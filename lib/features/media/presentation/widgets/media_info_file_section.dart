@@ -40,11 +40,10 @@ class _FileSection extends ConsumerWidget {
               const <DiveProfilePoint>[];
     final profileLength = MediaDiveWindow.profileLengthSeconds(profile);
     // In a sitting the photo sits where its held time puts it, and Set time
-    // starts from there.
+    // starts from there and holds its choice there until Save.
     final session = sitting;
-    final timed = sittingIsOver(session, item.id)
-        ? photoShownItem(session!, profile)
-        : item;
+    final held = sittingIsOver(session, item.id) ? session : null;
+    final timed = held == null ? item : photoShownItem(held, profile);
     final enrichment = timed.enrichment;
     final positioned = enrichment?.isWithinDiveWindow(profileLength) ?? false;
     final String timeInDive;
@@ -68,10 +67,14 @@ class _FileSection extends ConsumerWidget {
       title: l10n.media_info_fileSection,
       actions: [
         // Pinning needs a profile to pin against.
-        if (diveId != null && profile.isNotEmpty && canEdit && !readOnly)
+        if (diveId != null &&
+            profile.isNotEmpty &&
+            canEdit &&
+            !readOnly &&
+            held != null)
           _SetTimeButton(
             item: timed,
-            sitting: sitting,
+            sitting: held,
             profile: profile,
             initialElapsedSeconds: setTimeSeedFor(
               timed,
@@ -117,7 +120,8 @@ class _FileSection extends ConsumerWidget {
   }
 }
 
-/// Opens the Set-time dialog and applies the diver's choice (issue #1090).
+/// Opens the Set-time dialog and holds the diver's choice in the photo's
+/// sitting until Save (issues #1090, #4527).
 class _SetTimeButton extends ConsumerWidget {
   const _SetTimeButton({
     required this.item,
@@ -129,7 +133,7 @@ class _SetTimeButton extends ConsumerWidget {
   final MediaItem item;
   final List<DiveProfilePoint> profile;
   final int initialElapsedSeconds;
-  final EditSession<PhotoRecord>? sitting;
+  final EditSession<PhotoRecord> sitting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -138,7 +142,6 @@ class _SetTimeButton extends ConsumerWidget {
       label: Text(context.l10n.media_timeInDive_setAction),
       onPressed: () async {
         final pinner = ref.read(mediaTimePinnerProvider);
-        final held = sitting;
         final automatic = pinner.automaticTimeFor(item);
         final choice = await showSetMediaTimeDialog(
           context,
@@ -149,8 +152,7 @@ class _SetTimeButton extends ConsumerWidget {
           automatic: automatic,
         );
         if (choice == null || !context.mounted) return;
-        if (held == null) return pinner.apply(item, choice);
-        await holdTimeChoice(held, item.id, choice, automatic);
+        await holdTimeChoice(sitting, item.id, choice, automatic);
       },
     );
   }

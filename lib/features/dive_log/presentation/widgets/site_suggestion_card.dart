@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
@@ -18,7 +17,6 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_suggestion_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/quick_site_from_gps_dialog.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
@@ -45,11 +43,6 @@ sealed class SiteSuggestionEditing {
   const SiteSuggestionEditing();
 }
 
-/// No unlock on this page: the card writes at once, as it always has.
-final class SiteSuggestionNoEditing extends SiteSuggestionEditing {
-  const SiteSuggestionNoEditing();
-}
-
 /// A locked dive page: the card keeps its place, and every button and its
 /// close are disabled. A locked page shows no control that writes.
 final class SiteSuggestionLocked extends SiteSuggestionEditing {
@@ -70,33 +63,31 @@ final class SiteSuggestionSitting extends SiteSuggestionEditing {
   final Dive? layout;
 }
 
-/// How the page around [context] edits the dive, for its suggestion card:
-/// no unlock offered, locked, or the sitting's.
+/// How the dive page around [context] edits the dive, for its suggestion
+/// card: locked, or the sitting's.
 SiteSuggestionEditing siteSuggestionEditingOf(BuildContext context) {
-  final controller = RecordEditScope.maybeOf<Dive>(context);
-  final session = controller?.session;
-  if (controller == null) return const SiteSuggestionNoEditing();
+  final controller = RecordEditScope.of<Dive>(context);
+  final session = controller.session;
   if (session == null) return const SiteSuggestionLocked();
   return SiteSuggestionSitting(session, layout: controller.layoutRecord);
 }
 
 /// Watches the site suggestion for [diveId] and renders the banner with its
 /// actions wired. Renders nothing when there is no suggestion, so callers
-/// place it unconditionally. Used by the dive edit and detail pages.
+/// place it unconditionally. Used by the dive page, whose sitting holds
+/// what the actions do until Save (issue #4527).
 class SiteSuggestionCard extends ConsumerWidget {
   const SiteSuggestionCard({
     super.key,
     required this.diveId,
     required this.currentSite,
-    this.onSiteChanged,
-    this.refreshLists,
-    this.editing = const SiteSuggestionNoEditing(),
+    required this.editing,
   });
 
   final String diveId;
 
-  /// The site the host page currently shows for the dive: unsaved form state
-  /// on the edit page, the persisted site on the detail pages.
+  /// The site the dive page shows for the dive while it is locked: the
+  /// persisted one.
   ///
   /// Null means the page is showing no site, not "unset, fall back to the
   /// dive's own": the guard in [build] hides the card whenever this
@@ -104,14 +95,6 @@ class SiteSuggestionCard extends ConsumerWidget {
   /// dive actually has gets no suggestion rather than one aimed at a site it
   /// is not displaying.
   final DiveSite? currentSite;
-
-  /// Fires with the site the dive now has after assign / addLocation /
-  /// create, so an edit form can update its unsaved state. Always the site
-  /// the dive actually ended up linked to, re-read from the repository.
-  final void Function(DiveSite site)? onSiteChanged;
-
-  /// Refreshes the dive and site lists after a write. Injectable for tests.
-  final Future<void> Function()? refreshLists;
 
   /// How the page edits the dive. With a sitting, [currentSite] is not
   /// read: the card follows the sitting.
@@ -182,7 +165,6 @@ class SiteSuggestionCard extends ConsumerWidget {
     final actions = SiteSuggestionActions(
       diveId: diveId,
       suggestion: suggestion,
-      diveRepository: ref.read(diveRepositoryProvider),
     );
     SiteSuggestionBanner banner({
       VoidCallback? onAssign,
@@ -220,60 +202,8 @@ class SiteSuggestionCard extends ConsumerWidget {
         live: live,
       );
     }
-    if (!live) return banner();
-
-    return banner(
-      onAssign: recommended == null
-          ? null
-          : () async {
-              // Read now: the card may be gone by the time the site exists.
-              final rulesAfterCreate = captureRulesAfterCreate(context, ref);
-              await _run(context, ref, (l10n) async {
-                final applied = await actions.assign(recommended.id);
-                // A bundled candidate materialises a site the diver chose:
-                // created by hand for the logbook rules (#3513), run before
-                // the site is re-read below, so the form takes it as they
-                // left it.
-                await rulesAfterCreate(
-                  subject: RuleSubject.sites,
-                  ids: applied.createdSiteIds,
-                );
-                // The candidate id is NOT necessarily the id the dive ends up
-                // with: a bundled candidate materialises a new row, and the
-                // coincidence guard can link an existing site nearby instead.
-                // Re-read the dive so the form gets the real, fully hydrated
-                // site rather than a partial entity built from the candidate.
-                final linked = await actions.linkedSite();
-                return (
-                  linked,
-                  l10n.siteSuggestion_assignedSnack(
-                    linked?.name ?? recommended.name,
-                  ),
-                );
-              });
-            },
-      onChooseNearby: () => context.push('/dives/match-sites', extra: [diveId]),
-      onCreate: () => _create(context, ref, actions, suggestion),
-      onAddLocation: !hasSite
-          ? null
-          : () => _run(context, ref, (l10n) async {
-              await actions.addLocation();
-              // Read back what was written, exactly as the assign path does:
-              // the post-commit altitude pass may have filled a field the
-              // local copy cannot know about, and the dive's site can be
-              // partially hydrated (issue #1187). Falls back to the local
-              // copy only when the re-read finds nothing, since the write
-              // itself did land.
-              final site =
-                  await actions.linkedSite() ??
-                  currentSite.copyWith(location: suggestion.point);
-              return (site, l10n.diveLog_edit_addedGps(site.name));
-            }),
-      onDismiss: () => _run(context, ref, (_) async {
-        await actions.dismiss();
-        return null;
-      }),
-    );
+    // Locked: the card keeps its place, and offers nothing.
+    return banner();
   }
 
   /// Whether the suggestion still applies to the dive of [session]: it has
@@ -422,78 +352,5 @@ class SiteSuggestionCard extends ConsumerWidget {
     final work = pick();
     session.track(work);
     return work;
-  }
-
-  Future<void> _create(
-    BuildContext context,
-    WidgetRef ref,
-    SiteSuggestionActions actions,
-    SiteSuggestion suggestion,
-  ) async {
-    final draft = await QuickSiteFromGpsDialog.show(
-      context,
-      latitude: suggestion.point.latitude,
-      longitude: suggestion.point.longitude,
-    );
-    if (draft == null || !context.mounted) return;
-    final rulesAfterCreate = captureRulesAfterCreate(context, ref);
-    await _run(context, ref, (l10n) async {
-      final created = await actions.create(draft);
-      // Logbook rules for the site created by hand (#3513), before the form
-      // takes the site, so it gets it as they left it.
-      await rulesAfterCreate(subject: RuleSubject.sites, ids: [created.id]);
-      final site = await actions.linkedSite() ?? created;
-      return (site, l10n.diveLog_edit_createdSite(created.name));
-    });
-  }
-
-  /// Runs a write, then refreshes what depends on it and reports the result:
-  /// a message to show, and the site the dive now has (null when the write
-  /// changed no site, or when re-reading it failed, in which case the form
-  /// keeps what it had rather than adopting a guess).
-  /// A failure keeps the banner up and shows the shared apply error.
-  Future<void> _run(
-    BuildContext context,
-    WidgetRef ref,
-    Future<(DiveSite?, String)?> Function(AppLocalizations l10n) write,
-  ) async {
-    // Captured up front: the messenger is the app's, so it stays usable even
-    // if this card is disposed while the write is in flight.
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-    try {
-      final result = await write(l10n);
-      // The write is committed either way. If the diver navigated away while
-      // it ran, `ref` and the host's setState are both dead, and the table
-      // ticks the suggestion providers listen to refresh what matters.
-      if (!context.mounted) return;
-      ref.invalidate(siteSuggestionForDiveProvider(diveId));
-      ref.invalidate(diveProvider(diveId));
-      await (refreshLists ?? () => _defaultRefresh(ref))();
-      if (!context.mounted) return;
-      if (result != null) {
-        final site = result.$1;
-        if (site != null) onSiteChanged?.call(site);
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(result.$2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (_) {
-      // Same rule as the success path: a diver who has left the page gets no
-      // snackbar about it.
-      if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.siteMatchReview_applyError)),
-      );
-    }
-  }
-
-  Future<void> _defaultRefresh(WidgetRef ref) async {
-    await ref.read(diveListNotifierProvider.notifier).refresh();
-    await ref.read(paginatedDiveListProvider.notifier).refresh();
-    await ref.read(siteListNotifierProvider.notifier).refresh();
   }
 }

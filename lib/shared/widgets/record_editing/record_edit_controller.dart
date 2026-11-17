@@ -606,4 +606,12 @@ class RecordEditScope<T> extends InheritedNotifier<RecordEditController<T>> {
   static RecordEditController<T>? maybeOf<T>(BuildContext context) => context
       .dependOnInheritedWidgetOfExactType<RecordEditScope<T>>()
       ?.notifier;
+
+  /// The controller of the nearest scope for [T], for a widget built only on
+  /// a page that offers editing. Rebuilds the caller when it changes.
+  static RecordEditController<T> of<T>(BuildContext context) {
+    final controller = maybeOf<T>(context);
+    assert(controller != null, 'No RecordEditScope<$T> above this widget');
+    return controller!;
+  }
 }

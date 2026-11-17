@@ -635,13 +635,18 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                           settings: units.settings,
                           onMomentTap: (tag) => _showMoment(currentItem, tag),
                           sitting: photoSitting,
-                          onSuggestionTap: photoLocked
+                          onSuggestionTap: photoSitting == null
                               ? null
-                              : () => showMediaSpeciesSheet(
-                                  context,
-                                  currentItem,
-                                  sitting: photoSitting,
-                                ),
+                              : () {
+                                  // Read at the tap, as Tag species does.
+                                  final sitting = photoSitting;
+                                  if (sitting == null) return;
+                                  showMediaSpeciesSheet(
+                                    context,
+                                    currentItem,
+                                    sitting: sitting,
+                                  );
+                                },
                           profileLengthSeconds: profileLength,
                           // Pinning needs a profile to pin against; a dive with
                           // none has no moments to choose from.

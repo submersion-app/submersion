@@ -8431,11 +8431,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'Aggiungi voce zavorra';
 
   @override
-  String diveLog_edit_addedGps(Object name) {
-    return 'GPS aggiunto a $name';
-  }
-
-  @override
   String get diveLog_edit_appBarNew => 'Registra immersione';
 
   @override
@@ -10296,11 +10291,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String siteSuggestion_addLocationButton(Object name) {
     return 'Aggiungi posizione a $name';
-  }
-
-  @override
-  String siteSuggestion_assignedSnack(Object name) {
-    return 'Assegnato $name';
   }
 
   @override
@@ -20541,11 +20531,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_diveMediaSection_unlinkButton => 'Scollega';
 
   @override
-  String media_diveMediaSection_unlinkError(Object error) {
-    return 'Scollegamento non riuscito: $error';
-  }
-
-  @override
   String media_diveMediaSection_unlinkSelectedButton(int count) {
     return 'Scollega $count';
   }
@@ -20553,11 +20538,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String media_diveMediaSection_unlinkSelectedContent(int count) {
     return 'Rimuove $count elementi multimediali dalla libreria, insieme alle copie nel cloud e alle miniature. Gli elementi ancora usati da un sito di immersione vengono mantenuti. I file originali non vengono toccati.';
-  }
-
-  @override
-  String media_diveMediaSection_unlinkSelectedSuccess(int count) {
-    return '$count elementi scollegati';
   }
 
   @override
@@ -20778,11 +20758,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_diveScan_cancelButton => 'Annulla';
-
-  @override
-  String media_diveScan_error(String error) {
-    return 'Errore durante la ricerca nella galleria: $error';
-  }
 
   @override
   String media_gpsBanner_coordinates(Object coordinates) {
@@ -31680,10 +31655,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get signatures_error_enterSignerName =>
       'Inserisci il nome del firmatario';
-
-  @override
-  String get signatures_error_saveFailed =>
-      'Impossibile salvare la firma. Riprova.';
 
   @override
   String get signatures_field_instructorName => 'Nome Istruttore';
@@ -56304,13 +56275,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_people_removedBuddy => 'Compagno rimosso';
 
   @override
-  String get media_people_saveFailed => 'Impossibile salvare il tag. Riprova.';
-
-  @override
-  String get media_people_addToDiveFailed =>
-      'Impossibile aggiungere il compagno a questa immersione. Riprova.';
-
-  @override
   String get media_people_createBuddyFailed =>
       'Impossibile creare il compagno. Riprova.';
 
@@ -58650,9 +58614,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_reassignSheet_noSeries => 'Nessuna serie di pressione';
-
-  @override
-  String get diveLog_reassignSheet_applied => 'Serie di pressione riassegnata';
 
   @override
   String get universalImport_summary_noticeUnknownTransmitterTitle =>

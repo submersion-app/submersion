@@ -29,10 +29,9 @@ class NavTrackSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final routesAsync = ref.watch(navTracksForDiveProvider(dive.id));
-    // On a page that offers editing (issue #4527) the card reads only, and
-    // shows a sitting's routes once it changed them.
-    final scope = RecordEditScope.maybeOf<Dive>(context);
-    final session = scope?.session;
+    // The card reads only (issue #4527): routes are linked and unlinked in
+    // the open card. It shows a sitting's routes once it changed them.
+    final session = RecordEditScope.maybeOf<Dive>(context)?.session;
     final draft = session == null ? null : sittingRouteDraft(session);
     final routes = draft != null && draft.hasChanges
         ? _withPrimary(draft)
@@ -57,8 +56,7 @@ class NavTrackSection extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Divider(),
-              for (final route in routes)
-                _RouteRow(route: route, readOnly: scope != null),
+              for (final route in routes) _RouteRow(route: route),
             ],
           ),
         );
@@ -76,13 +74,12 @@ List<NavTrack> _withPrimary(DiveRouteLinkDraft draft) {
   ];
 }
 
+/// A linked route, opened by a tap; its menu offers Open and 3D only, since
+/// linking is changed in the open card.
 class _RouteRow extends ConsumerWidget {
-  const _RouteRow({required this.route, this.readOnly = false});
+  const _RouteRow({required this.route});
 
   final NavTrack route;
-
-  /// Offers only Open and 3D: linking is changed in the open card.
-  final bool readOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -114,12 +111,8 @@ class _RouteRow extends ConsumerWidget {
           ].join(' · '),
         ),
         trailing: PopupMenuButton<String>(
-          onSelected: (value) async {
+          onSelected: (value) {
             switch (value) {
-              case 'unlink':
-                await ref.read(navTrackRepositoryProvider).unlink(route.id);
-              case 'primary':
-                await ref.read(navTrackRepositoryProvider).setPrimary(route.id);
               case 'open':
                 context.push(underwaterTrackLocation(route.id));
               case '3d':
@@ -135,16 +128,6 @@ class _RouteRow extends ConsumerWidget {
               value: '3d',
               child: Text(l10n.navTrack_section_menuOpen3d),
             ),
-            if (!readOnly)
-              PopupMenuItem(
-                value: 'unlink',
-                child: Text(l10n.navTrack_common_unlink),
-              ),
-            if (!readOnly && !route.isPrimary)
-              PopupMenuItem(
-                value: 'primary',
-                child: Text(l10n.navTrack_section_menuMakePrimary),
-              ),
           ],
         ),
         onTap: () => context.push(underwaterTrackLocation(route.id)),

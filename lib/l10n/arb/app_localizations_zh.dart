@@ -8001,11 +8001,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => '添加配重条目';
 
   @override
-  String diveLog_edit_addedGps(Object name) {
-    return '已为 $name 添加 GPS';
-  }
-
-  @override
   String get diveLog_edit_appBarNew => '记录潜水';
 
   @override
@@ -9753,11 +9748,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String siteSuggestion_addLocationButton(Object name) {
     return '为 $name 添加位置';
-  }
-
-  @override
-  String siteSuggestion_assignedSnack(Object name) {
-    return '已指定 $name';
   }
 
   @override
@@ -19515,11 +19505,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_diveMediaSection_unlinkButton => '取消关联';
 
   @override
-  String media_diveMediaSection_unlinkError(Object error) {
-    return '取消关联失败：$error';
-  }
-
-  @override
   String media_diveMediaSection_unlinkSelectedButton(int count) {
     return '取消关联 $count';
   }
@@ -19527,11 +19512,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String media_diveMediaSection_unlinkSelectedContent(int count) {
     return '从您的媒体库中移除 $count 个媒体项目，包括其云端副本和缩略图。潜点仍在使用的项目会被保留。您的原始文件不受影响。';
-  }
-
-  @override
-  String media_diveMediaSection_unlinkSelectedSuccess(int count) {
-    return '已取消关联 $count 个项目';
   }
 
   @override
@@ -19750,11 +19730,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_diveScan_cancelButton => '取消';
-
-  @override
-  String media_diveScan_error(String error) {
-    return '扫描相册出错：$error';
-  }
 
   @override
   String media_gpsBanner_coordinates(Object coordinates) {
@@ -29847,9 +29822,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get signatures_error_enterSignerName => '请输入签名者姓名';
-
-  @override
-  String get signatures_error_saveFailed => '无法保存签名。请重试。';
 
   @override
   String get signatures_field_instructorName => '教练名称';
@@ -52801,12 +52773,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_people_removedBuddy => '已删除的潜伴';
 
   @override
-  String get media_people_saveFailed => '无法保存标记，请重试。';
-
-  @override
-  String get media_people_addToDiveFailed => '无法将潜伴添加到本次潜水，请重试。';
-
-  @override
   String get media_people_createBuddyFailed => '无法创建潜伴，请重试。';
 
   @override
@@ -54995,9 +54961,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_reassignSheet_noSeries => '没有压力曲线';
-
-  @override
-  String get diveLog_reassignSheet_applied => '压力曲线已重新分配';
 
   @override
   String get universalImport_summary_noticeUnknownTransmitterTitle => '未分配的发射器';

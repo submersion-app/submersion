@@ -34,8 +34,6 @@ void main() {
   // serves decodable bytes without touching the filesystem, and the pinned
   // 'en' locale the English assertions below depend on.
   Future<Widget> host({
-    VoidCallback? onAdd,
-    VoidCallback? onAddDocument,
     List<MediaItem> media = const [],
     void Function(MediaItem)? onOpenDocument,
     List<Override> overrides = const [],
@@ -49,18 +47,11 @@ void main() {
     home: Scaffold(
       body: SingleChildScrollView(
         child: lockable == null
-            ? DiveMediaSection(
-                diveId: 'dive-1',
-                onAddPressed: onAdd,
-                onAddDocumentPressed: onAddDocument,
-                onOpenDocument: onOpenDocument,
-              )
+            ? DiveMediaSection(diveId: 'dive-1', onOpenDocument: onOpenDocument)
             : RecordEditScope<Dive>(
                 controller: lockable,
                 child: DiveMediaSection(
                   diveId: 'dive-1',
-                  onAddPressed: onAdd,
-                  onAddDocumentPressed: onAddDocument,
                   onOpenDocument: onOpenDocument,
                   editing: open ? lockable.session : null,
                 ),
@@ -69,34 +60,37 @@ void main() {
     ),
   );
 
-  testWidgets('add menu shows document action when callback provided', (
-    tester,
-  ) async {
-    var photos = 0;
-    var docs = 0;
-    await tester.pumpWidget(
-      await host(onAdd: () => photos++, onAddDocument: () => docs++),
-    );
+  /// A dive page unlocked, its sitting open (issue #4673: only the open
+  /// card adds, scans, selects or unlinks).
+  RecordEditController<Dive> unlocked() {
+    final controller = RecordEditController<Dive>(onSave: (_) async {})
+      ..unlock(Dive(id: 'dive-1', dateTime: DateTime.utc(2026)));
+    addTearDown(controller.dispose);
+    return controller;
+  }
+
+  testWidgets('the open card offers an add menu with photos and a '
+      'document', (tester) async {
+    await tester.pumpWidget(await host(lockable: unlocked(), open: true));
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.add_photo_alternate));
     await tester.pumpAndSettle();
     expect(find.text('Add photos or videos'), findsOneWidget);
-    await tester.tap(find.text('Add document'));
-    await tester.pumpAndSettle();
-    expect(docs, 1);
-    expect(photos, 0);
+    expect(find.text('Add document'), findsOneWidget);
   });
 
-  testWidgets('plain add button preserved when no document callback', (
-    tester,
-  ) async {
-    var photos = 0;
-    await tester.pumpWidget(await host(onAdd: () => photos++));
+  testWidgets('a card without a sitting offers no add, scan or select '
+      'control (#4673)', (tester) async {
+    await tester.pumpWidget(
+      await host(
+        media: [testMediaItem(id: 'm1', originalFilename: 'reef.png')],
+      ),
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.add_photo_alternate));
-    await tester.pumpAndSettle();
-    expect(photos, 1); // fired directly, no menu
-    expect(find.text('Add document'), findsNothing);
+    expect(find.byType(MediaThumbnailTile), findsOneWidget);
+    expect(find.byIcon(Icons.add_photo_alternate), findsNothing);
+    expect(find.byIcon(Icons.image_search), findsNothing);
+    expect(find.byKey(const ValueKey('enter_selection')), findsNothing);
   });
 
   testWidgets('empty state message replaces the grid when the dive has no '
@@ -152,11 +146,12 @@ void main() {
     Future<void> pumpWithTwo(WidgetTester tester) async {
       await tester.pumpWidget(
         await host(
-          onAdd: () {},
           media: [
             testMediaItem(id: 'm1', originalFilename: 'reef.png'),
             testMediaItem(id: 'm2', originalFilename: 'wreck.png'),
           ],
+          lockable: unlocked(),
+          open: true,
         ),
       );
       await tester.pumpAndSettle();
@@ -230,12 +225,12 @@ void main() {
   });
 
   testWidgets('a browser shows the media but offers neither adding nor '
-      'selecting (#4121)', (tester) async {
+      'selecting, even in the open card (#4121)', (tester) async {
     await tester.pumpWidget(
       await host(
-        onAdd: () {},
-        onAddDocument: () {},
         media: [testMediaItem(id: 'm1', originalFilename: 'reef.png')],
+        lockable: unlocked(),
+        open: true,
         overrides: [
           deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
         ],
@@ -261,12 +256,7 @@ void main() {
       final controller = RecordEditController<Dive>(onSave: (_) async {});
       addTearDown(controller.dispose);
       await tester.pumpWidget(
-        await host(
-          onAdd: () {},
-          onAddDocument: () {},
-          media: [photo('s1', 5)],
-          lockable: controller,
-        ),
+        await host(media: [photo('s1', 5)], lockable: controller),
       );
       await tester.pumpAndSettle();
 
@@ -367,7 +357,6 @@ void main() {
         ..unlock(Dive(id: 'dive-1', dateTime: DateTime.utc(2026)));
       addTearDown(controller.dispose);
       Future<Widget> card({required bool open}) => host(
-        onAdd: () {},
         media: [photo('s1', 5), photo('s2', 20)],
         lockable: controller,
         open: open,

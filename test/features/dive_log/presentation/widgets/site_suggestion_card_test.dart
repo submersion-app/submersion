@@ -29,33 +29,6 @@ import '../../../media/presentation/support/media_widget_harness.dart';
 import '../support/fake_matching_service.dart';
 import '../../../../helpers/fake_hosts.dart';
 
-/// Holds the apply open so the test can dispose the card mid-write.
-class _BlockingMatchingService extends FakeMatchingService {
-  final gate = Completer<void>();
-
-  @override
-  Future<ApplyResult> applyConfirmed(List<ConfirmedMatch> confirmed) async {
-    await gate.future;
-    return super.applyConfirmed(confirmed);
-  }
-}
-
-/// Materialises the bundled candidate it is asked to, once let go.
-class _BlockingCreatingService extends FakeMatchingService {
-  final gate = Completer<void>();
-
-  @override
-  Future<ApplyResult> applyConfirmed(List<ConfirmedMatch> confirmed) async {
-    await gate.future;
-    applied.addAll(confirmed);
-    return const ApplyResult(
-      divesLinked: 1,
-      sitesCreated: 1,
-      createdSiteIds: ['new'],
-    );
-  }
-}
-
 /// Notes when the logbook rules run, and changes nothing.
 class _RecordingEngine extends RuleEngine {
   _RecordingEngine(this.order) : super(names: (_) async => NameIndex(const []));
@@ -96,10 +69,6 @@ class _RecordingSites extends SiteRepository {
 }
 
 class _StubDiveRepository implements DiveRepository {
-  _StubDiveRepository({this.linkedSite});
-
-  /// The site the dive is linked to when the card re-reads it after a write.
-  final DiveSite? linkedSite;
   final dismissed = <String>[];
 
   @override
@@ -108,13 +77,8 @@ class _StubDiveRepository implements DiveRepository {
   }
 
   @override
-  Future<Dive?> getDiveById(String id) async => Dive(
-    id: id,
-    diveNumber: 1,
-    dateTime: DateTime(2026, 1, 1),
-    maxDepth: 18,
-    site: linkedSite,
-  );
+  Future<Dive?> getDiveById(String id) async =>
+      Dive(id: id, diveNumber: 1, dateTime: DateTime(2026, 1, 1), maxDepth: 18);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -129,20 +93,17 @@ void main() {
 
   late FakeMatchingService service;
   late _StubDiveRepository dives;
-  var refreshed = 0;
 
   setUp(() {
     service = FakeMatchingService();
     dives = _StubDiveRepository();
-    refreshed = 0;
   });
 
   Future<Widget> host(
     SiteSuggestion? suggestion, {
     DiveSite? currentSite,
-    void Function(DiveSite)? onSiteChanged,
     List<String>? rulesLog,
-    SiteSuggestionEditing editing = const SiteSuggestionNoEditing(),
+    SiteSuggestionEditing editing = const SiteSuggestionLocked(),
     ValueListenable<bool>? cardShown,
     List<Override> extra = const [],
   }) => mediaTestApp(
@@ -166,8 +127,6 @@ void main() {
           final card = SiteSuggestionCard(
             diveId: 'd1',
             currentSite: currentSite,
-            onSiteChanged: onSiteChanged,
-            refreshLists: () async => refreshed++,
             editing: editing,
           );
           // A test can take the card away while its write runs.
@@ -189,86 +148,9 @@ void main() {
     expect(find.textContaining('Location'), findsNothing);
   });
 
-  testWidgets(
-    'assign reports the site the dive was actually linked to, not the candidate',
-    (tester) async {
-      // A bundled candidate's id is its externalId; applyConfirmed
-      // materialises a user site with a different database id (or the
-      // coincidence guard links an existing one). The card must report the
-      // dive's real site, or the edit form would save a site id that does
-      // not exist.
-      const linked = DiveSite(
-        id: 'materialised-uuid',
-        name: 'Blue Hole',
-        location: GeoPoint(0, 0),
-        maxDepth: 40,
-      );
-      dives = _StubDiveRepository(linkedSite: linked);
-      final s = suggestionFor(
-        service,
-        recommended: 'osm_1',
-        candidates: const [
-          MatchCandidateView(
-            id: 'osm_1',
-            name: 'Blue Hole',
-            isExisting: false,
-            distanceMeters: 40,
-            location: GeoPoint(0, 0),
-          ),
-        ],
-      );
-      DiveSite? reported;
-      await tester.pumpWidget(
-        await host(s, onSiteChanged: (site) => reported = site),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.textContaining('Assign Blue Hole'));
-      await tester.pumpAndSettle();
-
-      expect(service.applied.single.candidateId, 'osm_1');
-      expect(
-        reported?.id,
-        'materialised-uuid',
-        reason: 'the bundled externalId must never reach the form',
-      );
-      expect(reported?.maxDepth, 40, reason: 'and it must be fully hydrated');
-      expect(refreshed, 1);
-      expect(find.text('Assigned Blue Hole'), findsOneWidget);
-    },
-  );
-
-  testWidgets('assign leaves the form alone when the dive has no site', (
-    tester,
-  ) async {
-    dives = _StubDiveRepository();
-    final s = suggestionFor(
-      service,
-      recommended: 's1',
-      candidates: const [
-        MatchCandidateView(
-          id: 's1',
-          name: 'Blue Hole',
-          isExisting: true,
-          distanceMeters: 40,
-          location: GeoPoint(0, 0),
-        ),
-      ],
-    );
-    var reportedCount = 0;
-    await tester.pumpWidget(
-      await host(s, onSiteChanged: (_) => reportedCount++),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.textContaining('Assign Blue Hole'));
-    await tester.pumpAndSettle();
-
-    expect(reportedCount, 0);
-    expect(find.text('Assigned Blue Hole'), findsOneWidget);
-  });
-
-  testWidgets('hides when the edit form already holds a located site', (
-    tester,
-  ) async {
+  // Locked, the card follows the dive as stored: it hides whenever the site
+  // the page shows disagrees with the suggestion's.
+  testWidgets('hides when the page shows a located site', (tester) async {
     // The dive is still siteless in the database, so the provider yields a
     // suggestion, but the diver has already picked a site with coordinates
     // and not saved it yet. Offering to place one would be noise.
@@ -287,7 +169,7 @@ void main() {
     expect(find.textContaining('Location'), findsNothing);
   });
 
-  testWidgets('hides when the form holds a site the dive was not saved with', (
+  testWidgets('hides when the page shows a site the dive was not saved with', (
     tester,
   ) async {
     // addLocation writes to the dive's persisted site, so labelling the
@@ -326,178 +208,6 @@ void main() {
     expect(find.textContaining('Location'), findsNothing);
   });
 
-  testWidgets('add location reports the site as the repository has it', (
-    tester,
-  ) async {
-    // The post-commit altitude pass can fill a field the local copy cannot
-    // know about, so this path reads back like the assign path does.
-    const persisted = DiveSite(id: 'bare', name: 'Typed Twice');
-    dives = _StubDiveRepository(
-      linkedSite: const DiveSite(
-        id: 'bare',
-        name: 'Typed Twice',
-        location: GeoPoint(20.5, -87.25),
-        altitude: 12,
-      ),
-    );
-    DiveSite? reported;
-    await tester.pumpWidget(
-      await host(
-        suggestionFor(service, site: persisted),
-        currentSite: persisted,
-        onSiteChanged: (site) => reported = site,
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.textContaining('Add location to Typed Twice'));
-    await tester.pumpAndSettle();
-
-    expect(reported?.location, const GeoPoint(20.5, -87.25));
-    expect(
-      reported?.altitude,
-      12,
-      reason: 'the altitude pass ran; a local copyWith would have missed it',
-    );
-  });
-
-  testWidgets('dismiss writes the flag', (tester) async {
-    await tester.pumpWidget(
-      await host(suggestionFor(service, status: ProposalStatus.none)),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.close));
-    await tester.pumpAndSettle();
-    expect(dives.dismissed, ['d1']);
-  });
-
-  testWidgets('create opens the quick dialog and links the new site', (
-    tester,
-  ) async {
-    DiveSite? reported;
-    await tester.pumpWidget(
-      await host(
-        suggestionFor(service, status: ProposalStatus.none),
-        onSiteChanged: (site) => reported = site,
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Create Site'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextFormField).first, 'Wall');
-    await tester.tap(find.widgetWithText(FilledButton, 'Create Site').last);
-    await tester.pumpAndSettle();
-    expect(service.created.single.name, 'Wall');
-    expect(reported?.id, 'created');
-    expect(find.textContaining('Created site: Wall'), findsOneWidget);
-  });
-
-  testWidgets('a created site\'s rules run before the form takes it', (
-    tester,
-  ) async {
-    // The form copies the site's water type, entry and dive types: it must
-    // copy them as the site's rules (#3513) left them, as a site made in
-    // the site editor is.
-    final order = <String>[];
-    await tester.pumpWidget(
-      await host(
-        suggestionFor(service, status: ProposalStatus.none),
-        onSiteChanged: (_) => order.add('form'),
-        rulesLog: order,
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Create Site'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextFormField).first, 'Wall');
-    await tester.tap(find.widgetWithText(FilledButton, 'Create Site').last);
-    await tester.pumpAndSettle();
-    expect(order, ['rules', 'form']);
-  });
-
-  testWidgets('a site made as the card went away still gets its rules', (
-    tester,
-  ) async {
-    final order = <String>[];
-    final blocking = _BlockingCreatingService();
-    dives = _StubDiveRepository(
-      linkedSite: const DiveSite(id: 'new', name: 'Blue Hole'),
-    );
-    await tester.pumpWidget(
-      await host(
-        suggestionFor(
-          blocking,
-          recommended: 'osm_1',
-          candidates: const [
-            MatchCandidateView(
-              id: 'osm_1',
-              name: 'Blue Hole',
-              isExisting: false,
-              distanceMeters: 40,
-              location: GeoPoint(0, 0),
-            ),
-          ],
-        ),
-        rulesLog: order,
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.textContaining('Assign Blue Hole'));
-    await tester.pump();
-    // The diver leaves while the site is being made.
-    await tester.pumpWidget(
-      const MaterialApp(home: Scaffold(body: SizedBox())),
-    );
-    await tester.pumpAndSettle();
-    blocking.gate.complete();
-    await tester.pumpAndSettle();
-    expect(order, ['rules']);
-  });
-
-  testWidgets('a write that finishes after disposal does not throw', (
-    tester,
-  ) async {
-    // The diver taps Assign and navigates away before the write lands. The
-    // write still commits, but ref and the host's setState are gone by then.
-    final blocking = _BlockingMatchingService();
-    dives = _StubDiveRepository(
-      linkedSite: const DiveSite(id: 's1', name: 'Blue Hole'),
-    );
-    var reportedCount = 0;
-    await tester.pumpWidget(
-      await host(
-        suggestionFor(
-          blocking,
-          recommended: 's1',
-          candidates: const [
-            MatchCandidateView(
-              id: 's1',
-              name: 'Blue Hole',
-              isExisting: true,
-              distanceMeters: 40,
-              location: GeoPoint(0, 0),
-            ),
-          ],
-        ),
-        onSiteChanged: (_) => reportedCount++,
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.textContaining('Assign Blue Hole'));
-    await tester.pump();
-
-    // Tear the card down, then let the write complete.
-    await tester.pumpWidget(
-      const MaterialApp(home: Scaffold(body: SizedBox())),
-    );
-    await tester.pumpAndSettle();
-    blocking.gate.complete();
-    await tester.pumpAndSettle();
-
-    expect(tester.takeException(), isNull);
-    expect(reportedCount, 0, reason: 'no setState into a disposed host');
-    expect(refreshed, 0, reason: 'no ref use after dispose');
-  });
-
   // The dive page offers unlock-to-edit (issue #4527, plan 4).
   group('on a locked page', () {
     final clear = suggestionFor(
@@ -534,8 +244,14 @@ void main() {
       expect(dives.dismissed, isEmpty);
     });
 
-    testWidgets('it is as tall as with editing off', (tester) async {
-      await tester.pumpWidget(await host(clear));
+    testWidgets('it is as tall as in a sitting', (tester) async {
+      final session = EditSession<Dive>(
+        Dive(id: 'd1', diveNumber: 1, dateTime: DateTime(2026, 1, 1)),
+      );
+      addTearDown(session.dispose);
+      await tester.pumpWidget(
+        await host(clear, editing: SiteSuggestionSitting(session)),
+      );
       await tester.pumpAndSettle();
       final open = tester.getSize(find.byType(SiteSuggestionCard)).height;
 
@@ -592,7 +308,6 @@ void main() {
       expect(service.resolved.single.candidateId, 's1');
       expect(service.applied, isEmpty);
       expect(session.valueOf(diveSiteField)?.id, 's1');
-      expect(refreshed, 0);
     });
 
     testWidgets('assigning a catalogue site runs the new site\'s rules', (

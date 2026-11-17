@@ -68,7 +68,9 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
     final editing = widget.editing;
     final session = editing ?? scope?.session;
     // A page that offers editing changes findings in the open card only;
-    // during a sitting every view shows its dismissals.
+    // during a sitting every view shows its dismissals. Off such a page the
+    // card dismisses at once: the planner's logged dive results show it with
+    // no dive lock (issue #4673), so that path stays.
     final readOnly = scope != null && editing == null;
     final review = stored == null || session == null
         ? stored
@@ -216,6 +218,7 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
       setFindingDismissed(editing, finding, dismissed: dismissed);
       return;
     }
+    // At once: the planner's logged dive results, which have no dive lock.
     return setSafetyFindingDismissed(
       ref,
       finding: finding,

@@ -23,7 +23,6 @@ import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_pr
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/compare_section.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/compare_table.dart';
-import 'package:submersion/features/dive_lab/presentation/widgets/link_plan_sheet.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -331,12 +330,14 @@ void main() {
     expect(find.byType(ChartZoomControls), findsNothing);
   });
 
-  testWidgets('the empty state offers both ways in', (tester) async {
+  // A plan is linked in the open card (issue #4527): the read card offers
+  // only a what-if.
+  testWidgets('the empty state offers a what-if and no Link', (tester) async {
     await pump(tester);
 
     expect(find.text('Nothing to compare yet'), findsOneWidget);
     expect(find.text('Ask a what-if'), findsOneWidget);
-    expect(find.text('Link a plan'), findsOneWidget);
+    expect(find.text('Link a plan'), findsNothing);
     expect(find.byType(CompareTable), findsNothing);
   });
 
@@ -366,33 +367,13 @@ void main() {
     expect(assembled, isFalse);
   });
 
-  testWidgets('a dive with what-ifs and no plan can still link one', (
+  testWidgets('a dive with what-ifs and no plan offers no Link', (
     tester,
   ) async {
     await pump(tester, scenarios: [_scenario('s1', 'Slower', DateTime(2026))]);
 
-    expect(find.text('Link a plan'), findsOneWidget);
     expect(find.text('Nothing to compare yet'), findsNothing);
-  });
-
-  testWidgets('Link a plan opens the plan picker', (tester) async {
-    await pump(tester);
-
-    await tester.tap(find.text('Link a plan'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
-    expect(find.byType(LinkPlanSheet), findsOneWidget);
-  });
-
-  testWidgets('the chip row links a plan too', (tester) async {
-    await pump(tester, scenarios: [_scenario('s1', 'Slower', DateTime(2026))]);
-
-    await tester.tap(find.widgetWithText(ActionChip, 'Link a plan'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
-    expect(find.byType(LinkPlanSheet), findsOneWidget);
+    expect(find.text('Link a plan'), findsNothing);
   });
 
   testWidgets('Ask a what-if opens the Compare page', (tester) async {
@@ -438,21 +419,6 @@ void main() {
     expect(find.byType(CompareTable), findsNothing);
     expect(find.text('Ask a what-if'), findsNothing);
     expect(find.text('Link a plan'), findsNothing);
-  });
-
-  testWidgets('a planned dive with no plan can still link one', (tester) async {
-    await pump(
-      tester,
-      dive: Dive(
-        id: _diveId,
-        dateTime: DateTime.utc(2026),
-        isPlanned: true,
-        profile: _profile(),
-      ),
-    );
-
-    expect(find.text('Waiting for the dive'), findsOneWidget);
-    expect(find.text('Link a plan'), findsOneWidget);
   });
 
   testWidgets('tapping the title opens the Compare page', (tester) async {
@@ -610,7 +576,7 @@ void main() {
     expect(find.textContaining('NDL (no-decompression limit)'), findsOneWidget);
   });
 
-  testWidgets('on a page that offers editing, no Link; Ask a what-if stays', (
+  testWidgets('locked under the dive page, no Link; Ask a what-if stays', (
     tester,
   ) async {
     final controller = RecordEditController<Dive>(onSave: (_) async {});

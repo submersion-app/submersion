@@ -39,8 +39,13 @@ extension _ViewerChrome on _MediaViewerPageState {
         : null,
     onShare: (anchor) => _shareCurrentPhoto(currentItem, anchor),
     onWriteMetadata: () => _writeMetadataToPhoto(currentItem),
-    onTagSpecies: () =>
-        showMediaSpeciesSheet(context, currentItem, sitting: photoSitting),
+    onTagSpecies: () {
+      // Read at the tap: a sitting that ended since leaves nothing to hold
+      // the tags in.
+      final sitting = photoSitting;
+      if (sitting == null) return;
+      showMediaSpeciesSheet(context, currentItem, sitting: sitting);
+    },
     onTagPeople: () => togglePeopleTagging(
       pauseVideo: _videoControllers[currentItem.id]?.pause,
     ),

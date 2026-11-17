@@ -61,13 +61,6 @@ String showInOsFileManagerLabel() {
 /// inside it and bulk unlink.
 class DiveMediaSection extends ConsumerStatefulWidget {
   final String diveId;
-  final VoidCallback? onAddPressed;
-  final VoidCallback? onScanPressed;
-
-  /// When provided, the add button becomes a menu offering photos and
-  /// documents; without it the button keeps its historical direct-tap
-  /// behavior for callers not yet migrated.
-  final VoidCallback? onAddDocumentPressed;
 
   /// Invoked when a document tile is tapped (documents never enter the
   /// photo viewer).
@@ -81,17 +74,14 @@ class DiveMediaSection extends ConsumerStatefulWidget {
   final void Function(MediaItem? item)? onHoverMedia;
 
   /// The open Media card's sitting on the dive (issue #4527): photos and
-  /// documents added, unlinked or relinked go there, held until Save. On a
-  /// page that offers editing and with no sitting given, the card reads
-  /// only: a tap still opens a photo or a document.
+  /// documents added, unlinked or relinked go there, held until Save. With
+  /// no sitting given the card reads only: a tap still opens a photo or a
+  /// document.
   final EditSession<Dive>? editing;
 
   const DiveMediaSection({
     super.key,
     required this.diveId,
-    this.onAddPressed,
-    this.onScanPressed,
-    this.onAddDocumentPressed,
     this.onOpenDocument,
     this.onHoverMedia,
     this.editing,
@@ -105,12 +95,9 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   /// A browser shows the media it can and links none (issue #4121).
   bool get _canAttach => ref.watch(deviceCapabilitiesProvider).mediaAttach;
 
-  /// Whether the card changes nothing: a page that offers editing, with
-  /// the card not open.
-  bool _readOnly = false;
-
-  /// Whether this card can link, unlink or relink media here and now.
-  bool get _canWrite => _canAttach && !_readOnly;
+  /// Whether this card can link, unlink or relink media here and now: only
+  /// the open card can, holding what it changes until Save.
+  bool get _canWrite => _canAttach && widget.editing != null;
 
   /// Owns the bulk-selection state machine for this section.
   ///
@@ -263,49 +250,14 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
       ),
     );
 
+    // The card closed while the dialog was up: there is no sitting to hold
+    // the unlink, so nothing happens.
     final editing = widget.editing;
-    if (confirmed == true && editing != null) {
-      unlinkMediaInSitting(editing, selectedIds.toSet());
-      return BulkActionOutcome.completed;
+    if (confirmed != true || editing == null) {
+      return BulkActionOutcome.cancelled;
     }
-    // The card closed while the dialog was up: read only now, so nothing
-    // may reach the stored rows before Save.
-    if (_readOnly) return BulkActionOutcome.cancelled;
-    if (confirmed == true && context.mounted) {
-      try {
-        // Unlink IS the removal: the rows leave the library along with
-        // their cloud proxies and thumbnails, and only a row a dive site
-        // still references survives with its dive link cleared. The
-        // original source files are never touched.
-        await ref
-            .read(mediaListNotifierProvider(widget.diveId).notifier)
-            .unlinkMultipleMedia(selectedIds);
-
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                context.l10n.media_diveMediaSection_unlinkSelectedSuccess(
-                  selectedIds.length,
-                ),
-              ),
-            ),
-          );
-        }
-        return BulkActionOutcome.completed;
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.l10n.media_diveMediaSection_unlinkError(e)),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
-        }
-        return BulkActionOutcome.failed;
-      }
-    }
-    return BulkActionOutcome.cancelled;
+    unlinkMediaInSitting(editing, selectedIds.toSet());
+    return BulkActionOutcome.completed;
   }
 
   // coverage:ignore-start
@@ -325,20 +277,15 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   /// Phase 2 photo-only constraint: picker is restricted to `FileType.image`
   /// (videos aren't supported as local-file media yet, see [FilesTab]).
   Future<void> _replaceLink(MediaItem item) async {
+    // Offered only in the open card, which holds the relink until Save.
     final editing = widget.editing;
-    final applied = await replaceMediaLink(
+    if (editing == null) return;
+    await replaceMediaLink(
       context,
       ref,
       item,
-      onHold: editing == null
-          ? null
-          : (proposal) => replaceLinkInSitting(editing, item.id, proposal),
+      onHold: (proposal) => replaceLinkInSitting(editing, item.id, proposal),
     );
-    if (editing != null) return;
-    // The refresh stays here rather than in the helper: it is dive-scoped,
-    // and the info panel calls the same flow without a dive list to refresh.
-    if (!applied || !mounted) return;
-    await ref.read(mediaListNotifierProvider(widget.diveId).notifier).refresh();
   }
 
   /// Opens the right-click context menu for a local-file media item.
@@ -369,7 +316,8 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
             // TODO(media): l10n
             child: Text(showInOsFileManagerLabel()),
           ),
-        if (ref.read(deviceCapabilitiesProvider).mediaAttach && !_readOnly)
+        if (ref.read(deviceCapabilitiesProvider).mediaAttach &&
+            widget.editing != null)
           const PopupMenuItem<String>(
             value: 'replace',
             // TODO(media): l10n
@@ -390,7 +338,6 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   @override
   Widget build(BuildContext context) {
     final scope = RecordEditScope.maybeOf<Dive>(context);
-    _readOnly = scope != null && widget.editing == null;
     final session = widget.editing ?? scope?.session;
     final stored = ref.watch(mediaForDiveProvider(widget.diveId));
     // During a sitting, the media it holds: added ones in, unlinked out.
@@ -438,27 +385,9 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     TextTheme textTheme,
   ) {
     final selectionMedia = mediaAsync.value ?? const <MediaItem>[];
-    // In the open card the actions go to the sitting.
+    // Only the open card adds, holding what it adds in its sitting.
     final editing = widget.editing;
-    final VoidCallback? onAdd = editing == null
-        ? widget.onAddPressed
-        : () => PhotoImportHelper.importPhotosForDive(
-            context: context,
-            ref: ref,
-            dive: editing.working,
-            onHold: (adds) => addMediaToSitting(editing, adds),
-          );
-    final VoidCallback? onScan = editing == null
-        ? widget.onScanPressed
-        : () => scanGalleryInSitting(context, ref, editing);
-    final VoidCallback? onAddDocument = editing == null
-        ? widget.onAddDocumentPressed
-        : () => DocumentOpenHelper.pickAndAttach(
-            context: context,
-            ref: ref,
-            diveId: widget.diveId,
-            onHold: (adds) => addMediaToSitting(editing, adds),
-          );
+    final adding = _canAttach ? editing : null;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -523,7 +452,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                               ),
                       ) ??
                       const SizedBox.shrink(),
-                  if (_canWrite && onScan != null)
+                  if (adding != null)
                     IconButton(
                       icon: Icon(
                         Icons.image_search,
@@ -531,7 +460,8 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       ),
                       visualDensity: VisualDensity.compact,
                       tooltip: context.l10n.media_diveScan_scanTooltip,
-                      onPressed: onScan,
+                      onPressed: () =>
+                          scanGalleryInSitting(context, ref, adding),
                     ),
                   // Lightroom scan hidden pending Adobe review
                   // (lightroomUiEnabled).
@@ -547,17 +477,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       tooltip: context.l10n.settings_lightroom_scanNow,
                       onPressed: () => _scanLightroom(context),
                     ),
-                  if (_canWrite && onAdd != null && onAddDocument == null)
-                    IconButton(
-                      icon: Icon(
-                        Icons.add_photo_alternate,
-                        color: colorScheme.primary,
-                      ),
-                      visualDensity: VisualDensity.compact,
-                      tooltip: context.l10n.media_diveMediaSection_addTooltip,
-                      onPressed: onAdd,
-                    )
-                  else if (_canWrite && onAdd != null)
+                  if (adding != null)
                     PopupMenuButton<String>(
                       icon: Icon(
                         Icons.add_photo_alternate,
@@ -565,8 +485,22 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       ),
                       tooltip: context.l10n.media_diveMediaSection_addTooltip,
                       onSelected: (value) {
-                        if (value == 'photos') onAdd();
-                        if (value == 'document') onAddDocument?.call();
+                        if (value == 'photos') {
+                          PhotoImportHelper.importPhotosForDive(
+                            context: context,
+                            ref: ref,
+                            dive: adding.working,
+                            onHold: (adds) => addMediaToSitting(adding, adds),
+                          );
+                        }
+                        if (value == 'document') {
+                          DocumentOpenHelper.pickAndAttach(
+                            context: context,
+                            ref: ref,
+                            diveId: widget.diveId,
+                            onHold: (adds) => addMediaToSitting(adding, adds),
+                          );
+                        }
                       },
                       itemBuilder: (context) => [
                         PopupMenuItem(
