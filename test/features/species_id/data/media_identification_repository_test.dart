@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -131,6 +132,37 @@ void main() {
     expect(await repo.deleteAll(), unorderedEquals(['a', 'b']));
     expect(await repo.count(), 0);
     expect(await repo.runFor('m1'), isNull);
+  });
+
+  test('tagged species come with their scientific names', () async {
+    await addMedia('m1');
+    await db
+        .into(db.species)
+        .insert(
+          SpeciesCompanion.insert(
+            id: 'own-1',
+            commonName: 'Brown Chromis',
+            scientificName: const Value('Chromis multilineata'),
+            category: 'fish',
+          ),
+        );
+    await db
+        .into(db.mediaSpecies)
+        .insert(
+          MediaSpeciesCompanion.insert(
+            id: 't1',
+            mediaId: 'm1',
+            speciesId: 'own-1',
+            createdAt: 0,
+          ),
+        );
+    expect(await repo.taggedSpecies('m1'), [
+      const TaggedSpecies(
+        speciesId: 'own-1',
+        scientificName: 'Chromis multilineata',
+      ),
+    ]);
+    expect(await repo.taggedSpecies('m2'), isEmpty);
   });
 
   test('a write ticks the change stream', () async {

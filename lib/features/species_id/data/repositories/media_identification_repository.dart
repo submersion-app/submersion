@@ -27,6 +27,32 @@ class MediaIdentificationRepository {
     ]),
   );
 
+  /// Ticks when a photo's species tags change, or a species is edited.
+  Stream<void> watchTagChanges() => _db.tableUpdates(
+    TableUpdateQuery.onAllTables([_db.mediaSpecies, _db.species]),
+  );
+
+  /// The species tagged on [mediaId], with their scientific names, as the
+  /// rules compare them with candidates.
+  Future<List<TaggedSpecies>> taggedSpecies(String mediaId) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT ms.species_id AS species_id, s.scientific_name AS sci '
+          'FROM media_species ms LEFT JOIN species s ON s.id = ms.species_id '
+          'WHERE ms.media_id = ?',
+          variables: [Variable.withString(mediaId)],
+          readsFrom: {_db.mediaSpecies, _db.species},
+        )
+        .get();
+    return [
+      for (final row in rows)
+        TaggedSpecies(
+          speciesId: row.read<String>('species_id'),
+          scientificName: row.readNullable<String>('sci'),
+        ),
+    ];
+  }
+
   Future<MediaIdentificationRun?> runFor(String mediaId) async {
     final row = await (_db.select(
       _db.mediaIdentificationRuns,

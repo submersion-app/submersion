@@ -16,6 +16,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
 import 'package:submersion/shared/services/incoming_share.dart';
 import 'package:submersion/shared/services/navigation_ready_gate.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
 /// The provider overrides the app's root [ProviderScope] installs.
 ///
@@ -59,6 +60,9 @@ List<dynamic> rootProviderOverrides({
       (ref) => MediaProvenanceBadgesNotifier(prefs),
     ),
     mediaTagBadgesProvider.overrideWith((ref) => MediaTagBadgesNotifier(prefs)),
+    identifyFishOnOpenProvider.overrideWith(
+      (ref) => IdentifyFishOnOpenNotifier(prefs),
+    ),
     // Unstored by default for the same reason; here the media cache sizes
     // gain persistence, and a smaller disk size trims the thumbnail pool at
     // once instead of at the next download (issue #3337).
