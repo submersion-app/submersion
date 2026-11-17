@@ -101,7 +101,9 @@ void main() {
   VideoIdentificationScan scan({
     MediaIdentificationRun? resumeFrom,
     List<MediaIdentification> carry = const [],
+    List<MediaIdentification> stored = const [],
   }) => VideoIdentificationScan(
+    stored: stored,
     keepGoing: () => keepGoing(),
     reload: () async {
       reloads++;
@@ -194,6 +196,50 @@ void main() {
     final fish = (await identifications.forMedia('v1')).single;
     expect(fish.endMs, 9750);
     expect((await identifications.runFor('v1'))!.scannedMs, 10000);
+  });
+
+  test('a fish in view when a scan stopped is one track after it resumes, '
+      'keeping what the diver said', () async {
+    engine.videoFrames = _fish(1000, 15000);
+    final first = scan();
+    expect(await first.runChunk(), isTrue);
+    await first.finish();
+    final cut = (await identifications.forMedia('v1')).single;
+    expect(cut.endMs, 9750);
+    await identifications.updateIdentifications([
+      cut.copyWith(
+        decision: IdentificationDecision.rejected,
+        decidedAt: fixtureT1,
+      ),
+    ]);
+
+    await runAll(
+      scan(
+        resumeFrom: await identifications.runFor('v1'),
+        stored: await identifications.forMedia('v1'),
+      ),
+    );
+    final found = await identifications.forMedia('v1');
+    expect(found, hasLength(1));
+    expect(found.single.id, cut.id);
+    expect(found.single.startMs, 1000);
+    expect(found.single.endMs, 14750);
+    expect(found.single.decision, IdentificationDecision.rejected);
+    expect((await identifications.runFor('v1'))!.detectionCount, 1);
+  });
+
+  test('a track that ended well before the stop is not continued', () async {
+    engine.videoFrames = {..._fish(1000, 4000), ..._fish(12000, 15000)};
+    final first = scan();
+    expect(await first.runChunk(), isTrue);
+    await first.finish();
+    await runAll(
+      scan(
+        resumeFrom: await identifications.runFor('v1'),
+        stored: await identifications.forMedia('v1'),
+      ),
+    );
+    expect(await identifications.forMedia('v1'), hasLength(2));
   });
 
   test('a resumed scan starts where the run stopped', () async {

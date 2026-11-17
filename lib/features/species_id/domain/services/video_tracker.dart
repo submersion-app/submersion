@@ -7,10 +7,21 @@ import 'package:submersion/features/species_id/domain/entities/video_detections.
 
 /// One animal followed through consecutive sampled frames.
 class TrackedAnimal {
-  TrackedAnimal(this.points);
+  TrackedAnimal(this.points, {this.storedId})
+    : storedLength = storedId == null ? 0 : points.length;
 
   /// Where it was seen, oldest first.
   final List<({int ms, DetectedBox detection})> points;
+
+  /// The stored row this continues, when a scan resumed while the animal
+  /// was still in view; null for a track found in this scan.
+  final String? storedId;
+
+  /// How many of [points] were already stored.
+  final int storedLength;
+
+  /// Whether it has been seen since it was stored, or is new.
+  bool get hasNewPoints => points.length > storedLength;
 
   int get startMs => points.first.ms;
   int get endMs => points.last.ms;
@@ -90,6 +101,12 @@ class VideoTracker {
       );
     }
     return closed;
+  }
+
+  /// Continues [animal] as an open track, last matched [missed] frames ago:
+  /// one a stopped scan was following when it stopped.
+  void resume(TrackedAnimal animal, {int missed = 0}) {
+    _open.add(_Open(animal)..missed = missed);
   }
 
   /// Closes every open track: the end of the video, or the scan stopping.

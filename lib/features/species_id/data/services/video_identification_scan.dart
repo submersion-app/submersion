@@ -56,6 +56,7 @@ class VideoIdentificationScan {
     int? generation,
     MediaIdentificationRun? resumeFrom,
     List<MediaIdentification> carry = const [],
+    List<MediaIdentification> stored = const [],
     Future<void> Function()? reload,
     bool Function()? keepGoing,
     this.chunkMs = 10000,
@@ -80,7 +81,29 @@ class VideoIdentificationScan {
        _width = resumeFrom?.imageWidth ?? 0,
        _height = resumeFrom?.imageHeight ?? 0,
        _detectionCount = resumeFrom?.detectionCount ?? 0,
-       _carry = [...carry];
+       _carry = [...carry] {
+    // The animals in view when an earlier scan stopped were stored with
+    // the progress at that point: they carry on as the same tracks, and
+    // their rows (with what the diver said) are updated, not duplicated.
+    for (final row in stored) {
+      final end = row.endMs;
+      if (!row.isTrack || row.path.isEmpty || end == null) continue;
+      if (end > _scannedMs) continue;
+      final missed = ((_scannedMs - end) / sampleIntervalMs).round() - 1;
+      if (missed > _tracker.maxGapSamples) continue;
+      _continuing[row.id] = row;
+      _tracker.resume(
+        TrackedAnimal([
+          for (final s in row.path)
+            (
+              ms: s.ms,
+              detection: DetectedBox(box: s.box, score: row.detectorScore),
+            ),
+        ], storedId: row.id),
+        missed: math.max(0, missed),
+      );
+    }
+  }
 
   final int chunkMs;
   final int sampleIntervalMs;
@@ -119,6 +142,9 @@ class VideoIdentificationScan {
   /// made): nothing is stored once another one has opened.
   final int _generation;
   final _tracker = VideoTracker();
+
+  /// Stored rows the tracker is continuing, by id.
+  final _continuing = <String, MediaIdentification>{};
 
   /// Decided or claimed tracks of a previous scan, waiting to be carried
   /// to the fresh tracks that follow the same animal.
@@ -165,6 +191,8 @@ class VideoIdentificationScan {
     final scanned = math.min(from + chunkMs, duration);
     final more = scanned < duration;
     if (!more) closed.addAll(_tracker.closeAll());
+    // A continued track not seen again is already stored as it is.
+    closed.removeWhere((t) => !t.hasNewPoints);
     final bool stored;
     try {
       stored = await _store(
@@ -186,7 +214,10 @@ class VideoIdentificationScan {
   /// as one batch of moments takes, so stopping is never slow.
   Future<void> finish() async {
     if (_broken) return;
-    final closed = _tracker.closeAll();
+    final closed = [
+      for (final t in _tracker.closeAll())
+        if (t.hasNewPoints) t,
+    ];
     final duration = _durationMs;
     if (closed.isEmpty || duration == null) return;
     await _store(
@@ -219,9 +250,22 @@ class VideoIdentificationScan {
       };
       _carry = [for (final c in _carry) ?current[c.id]];
     }
-    final carried = carryTrackDecisions(
+    // A continued track keeps its own row and decision; only the new ones
+    // can take over a decision from a previous scan.
+    final continued = [
+      for (final n in named)
+        if (_continuing.containsKey(n.identification.id)) n.identification,
+    ];
+    final found = carryTrackDecisions(
       decided: _carry,
-      fresh: [for (final n in named) n.identification],
+      fresh: [
+        for (final n in named)
+          if (!_continuing.containsKey(n.identification.id)) n.identification,
+      ],
+    );
+    final carried = (
+      insert: [...found.insert, ...continued],
+      deleteIds: found.deleteIds,
     );
     _carry = [
       for (final c in _carry)
@@ -238,7 +282,7 @@ class VideoIdentificationScan {
       imageWidth: width,
       imageHeight: height,
       detectionCount:
-          _detectionCount + carried.insert.length - carried.deleteIds.length,
+          _detectionCount + found.insert.length - found.deleteIds.length,
       scannedMs: scanned,
       videoDurationMs: duration,
     );
@@ -393,27 +437,33 @@ class VideoIdentificationScan {
     DateTime now,
   ) {
     final flags = namingFlags(result, naming);
+    final storedId = track.storedId;
+    final row = storedId == null ? null : _continuing[storedId];
+    final identification = MediaIdentification(
+      id: storedId ?? _newId(),
+      mediaId: _item.id,
+      box: best.detection.box,
+      boxPixelWidth: crop.pixelWidth,
+      boxPixelHeight: crop.pixelHeight,
+      detectorScore: best.detection.score,
+      openScore: result.openScore,
+      candidates: result.candidates,
+      locationLimited: result.locationLimited,
+      suggestable: result.suggestable,
+      decision: row?.decision ?? IdentificationDecision.undecided,
+      decidedSpeciesId: row?.decidedSpeciesId,
+      decidedAt: row?.decidedAt,
+      claimedSpeciesId: row?.claimedSpeciesId,
+      createdAt: row?.createdAt ?? now,
+      startMs: track.startMs,
+      endMs: track.endMs,
+      bestMs: best.ms,
+      path: track.samples,
+      confident: flags.confident,
+      specific: flags.specific,
+    );
     return (
-      identification: MediaIdentification(
-        id: _newId(),
-        mediaId: _item.id,
-        box: best.detection.box,
-        boxPixelWidth: crop.pixelWidth,
-        boxPixelHeight: crop.pixelHeight,
-        detectorScore: best.detection.score,
-        openScore: result.openScore,
-        candidates: result.candidates,
-        locationLimited: result.locationLimited,
-        suggestable: result.suggestable,
-        decision: IdentificationDecision.undecided,
-        createdAt: now,
-        startMs: track.startMs,
-        endMs: track.endMs,
-        bestMs: best.ms,
-        path: track.samples,
-        confident: flags.confident,
-        specific: flags.specific,
-      ),
+      identification: identification,
       embedding: embedding,
       cropJpeg: crop.cropJpeg,
     );

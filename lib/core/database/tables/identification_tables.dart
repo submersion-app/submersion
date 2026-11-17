@@ -46,10 +46,13 @@ class MediaIdentificationRuns extends Table {
   /// How many identifications were stored, possibly zero.
   IntColumn get detectionCount => integer()();
 
-  /// Video only (issue #4675): how far the scan has got, in milliseconds,
-  /// and the video's length as the engine read it. Null for a photo. The
-  /// scan is complete when the first reaches the second.
+  /// Video only (issue #4675): how far the scan has got, in milliseconds
+  /// from the start. Null for a photo. The scan is complete when it reaches
+  /// video_duration_ms.
   IntColumn get scannedMs => integer().nullable()();
+
+  /// Video only: the video's length in milliseconds, as the engine read
+  /// it. Null for a photo.
   IntColumn get videoDurationMs => integer().nullable()();
 
   @override
@@ -100,11 +103,17 @@ class MediaIdentifications extends Table {
   IntColumn get decidedAt => integer().nullable()();
   IntColumn get createdAt => integer()();
 
-  /// Video only (issue #4675): one row is one animal followed through the
-  /// video. When it was first and last seen, and the moment whose box,
-  /// crop and size the box columns hold, in milliseconds from the start.
+  /// Video only (issue #4675), where one row is one animal followed
+  /// through the video: when it was first seen, in milliseconds from the
+  /// start. Null for a photo.
   IntColumn get startMs => integer().nullable()();
+
+  /// Video only: when the animal was last seen, in milliseconds from the
+  /// start.
   IntColumn get endMs => integer().nullable()();
+
+  /// Video only: the moment, in milliseconds from the start, whose box,
+  /// crop and pixel size the box columns hold.
   IntColumn get bestMs => integer().nullable()();
 
   /// Video only: the box at each sample, packed (track_path_codec.dart).
@@ -114,10 +123,12 @@ class MediaIdentifications extends Table {
   /// pill), held until the tag is written. It wins over the name rules.
   TextColumn get claimedSpeciesId => text().nullable()();
 
-  /// Whether it passed the confident bar, and whether its open score
-  /// passed the floor, when it was last named. Stored so the labels over
-  /// a video keep working after the model is removed.
+  /// Whether it passed the confident bar when it was last named. Stored so
+  /// the labels over a video keep working after the model is removed.
   BoolColumn get confident => boolean().withDefault(const Constant(false))();
+
+  /// Whether its open score passed the floor when it was last named: it
+  /// looks like something in particular, not a hand or open water.
   BoolColumn get specific => boolean().withDefault(const Constant(false))();
 
   @override
