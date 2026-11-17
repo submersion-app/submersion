@@ -142,6 +142,7 @@ def main(argv=None):
         embedding_size=models.EMBEDDING_SIZE,
         files=files,
         credits=CREDITS,
+        candidate_count=len(rows),
     )
     mf.write_manifest(os.path.join(args.out, "manifest.json"), manifest)
     total = sum(f["size"] for f in files)

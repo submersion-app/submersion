@@ -132,9 +132,10 @@ class NamingConfig extends Equatable {
     required this.suggestScore,
     required this.confidentScore,
     required this.suggestScoreNoLocation,
+    double? confidentScoreNoLocation,
     required this.minAllowedCandidates,
     required this.topK,
-  });
+  }) : confidentScoreNoLocation = confidentScoreNoLocation ?? confidentScore;
 
   /// True until the bars have been set from measured accuracy.
   final bool provisional;
@@ -143,6 +144,10 @@ class NamingConfig extends Equatable {
   final double suggestScore;
   final double confidentScore;
   final double suggestScoreNoLocation;
+
+  /// The confident bar for a crop with no usable location. A pack that
+  /// does not set it uses [confidentScore] for both. Above 1 means never.
+  final double confidentScoreNoLocation;
   final int minAllowedCandidates;
   final int topK;
 
@@ -153,6 +158,7 @@ class NamingConfig extends Equatable {
     double? suggestScore,
     double? confidentScore,
     double? suggestScoreNoLocation,
+    double? confidentScoreNoLocation,
     int? minAllowedCandidates,
     int? topK,
   }) => NamingConfig(
@@ -163,6 +169,8 @@ class NamingConfig extends Equatable {
     confidentScore: confidentScore ?? this.confidentScore,
     suggestScoreNoLocation:
         suggestScoreNoLocation ?? this.suggestScoreNoLocation,
+    confidentScoreNoLocation:
+        confidentScoreNoLocation ?? this.confidentScoreNoLocation,
     minAllowedCandidates: minAllowedCandidates ?? this.minAllowedCandidates,
     topK: topK ?? this.topK,
   );
@@ -175,6 +183,7 @@ class NamingConfig extends Equatable {
     suggestScore,
     confidentScore,
     suggestScoreNoLocation,
+    confidentScoreNoLocation,
     minAllowedCandidates,
     topK,
   ];
@@ -339,6 +348,9 @@ class SpeciesPackManifest extends Equatable {
         suggestScore: _double(naming, 'suggestScore'),
         confidentScore: _double(naming, 'confidentScore'),
         suggestScoreNoLocation: _double(naming, 'suggestScoreNoLocation'),
+        confidentScoreNoLocation: naming.containsKey('confidentScoreNoLocation')
+            ? _double(naming, 'confidentScoreNoLocation')
+            : null,
         minAllowedCandidates: _int(naming, 'minAllowedCandidates'),
         topK: _positiveInt(naming, 'topK'),
       ),

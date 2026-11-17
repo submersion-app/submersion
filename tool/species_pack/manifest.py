@@ -40,9 +40,20 @@ NAMING_PROVISIONAL = {
     "suggestScore": 0.50,
     "confidentScore": 0.70,
     "suggestScoreNoLocation": 0.70,
+    "confidentScoreNoLocation": 0.70,
     "minAllowedCandidates": 200,
     "topK": 5,
 }
+# Measured bars (tool/species_pack/score.py), or None until measured. They
+# hold only for the classifier and candidate list size they were measured
+# on: `naming_for` falls back to the provisional bars for any other pack.
+NAMING_MEASURED = None
+
+# How far a pack's candidate count may stray from the measured one. A
+# share is split across the whole list, so a much longer or shorter list
+# moves every score.
+MEASURED_COUNT_TOLERANCE = 0.10
+
 REGION = {"cellDegrees": 5, "neighbourCells": 1}
 CROP_THUMBNAIL_SIZE = 320
 
@@ -63,6 +74,20 @@ def file_entry(path, engine):
     }
 
 
+def naming_for(classifier_id, candidate_count, measured=NAMING_MEASURED):
+    """The naming bars for a pack: the measured ones when it has the
+    measured classifier and a candidate list within 10% of the measured
+    size, otherwise the provisional ones."""
+    if (
+        measured is not None
+        and classifier_id == measured["classifierId"]
+        and abs(candidate_count - measured["candidates"])
+        <= MEASURED_COUNT_TOLERANCE * measured["candidates"]
+    ):
+        return dict(measured["naming"])
+    return dict(NAMING_PROVISIONAL)
+
+
 def build_manifest(
     *,
     pack_version,
@@ -71,6 +96,7 @@ def build_manifest(
     embedding_size,
     files,
     credits,
+    candidate_count,
     naming=None,
 ):
     return {
@@ -82,7 +108,7 @@ def build_manifest(
             "embeddingSize": embedding_size,
             **CLASSIFIER_SETTINGS,
         },
-        "naming": dict(naming or NAMING_PROVISIONAL),
+        "naming": dict(naming or naming_for(classifier_id, candidate_count)),
         "region": dict(REGION),
         "cropThumbnailSize": CROP_THUMBNAIL_SIZE,
         "files": list(files),

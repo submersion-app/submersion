@@ -100,6 +100,37 @@ void main() {
       );
     });
 
+    test('without a no-location confident bar, the confident bar serves '
+        'both', () {
+      final m = SpeciesPackManifest.parse(manifestJson());
+
+      expect(m.naming.confidentScoreNoLocation, m.naming.confidentScore);
+    });
+
+    test('a no-location confident bar is read, including never', () {
+      final m = SpeciesPackManifest.parse(
+        manifestJson((m) {
+          (m['naming']! as Map<String, Object?>)['confidentScoreNoLocation'] =
+              1.01;
+        }),
+      );
+
+      expect(m.naming.confidentScoreNoLocation, 1.01);
+      expect(m.naming.confidentScore, 0.70);
+    });
+
+    test('a no-location confident bar that is not a number is malformed', () {
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestJson((m) {
+            (m['naming']! as Map<String, Object?>)['confidentScoreNoLocation'] =
+                'x';
+          }),
+        ),
+        throwsA(isA<PackManifestException>()),
+      );
+    });
+
     test('a file name with a path separator is malformed', () {
       expect(
         () => SpeciesPackManifest.parse(

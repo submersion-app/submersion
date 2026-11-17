@@ -146,6 +146,7 @@ void main() {
         suggestScore: 0.6,
         confidentScore: 0.8,
         suggestScoreNoLocation: 0.75,
+        confidentScoreNoLocation: 0.85,
         minAllowedCandidates: 100,
         topK: 3,
       );
@@ -157,6 +158,7 @@ void main() {
           suggestScore: 0.6,
           confidentScore: 0.8,
           suggestScoreNoLocation: 0.75,
+          confidentScoreNoLocation: 0.85,
           minAllowedCandidates: 100,
           topK: 3,
         ),

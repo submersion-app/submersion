@@ -36,6 +36,43 @@ class FileEntryTests(unittest.TestCase):
             self.assertEqual(entry["sha256"], hashlib.sha256(b"[1, 2, 3]").hexdigest())
 
 
+class NamingForTests(unittest.TestCase):
+    MEASURED = {
+        "naming": {"provisional": False, "minOpenScore": 0.3},
+        "classifierId": "bioclip-2-vitl14-2957b32",
+        "candidates": 7646,
+        "findings": "docs/design/findings/x.md",
+    }
+
+    def test_measured_bars_for_the_measured_classifier_and_list_size(self):
+        for count in (7646, 6900, 8400):
+            naming = manifest.naming_for("bioclip-2-vitl14-2957b32", count, self.MEASURED)
+            self.assertEqual(naming, self.MEASURED["naming"])
+
+    def test_provisional_bars_for_a_development_pack(self):
+        naming = manifest.naming_for("bioclip-2-vitl14-2957b32", 1495, self.MEASURED)
+        self.assertEqual(naming, manifest.NAMING_PROVISIONAL)
+        self.assertIs(naming["provisional"], True)
+
+    def test_provisional_bars_beyond_ten_percent(self):
+        for count in (6880, 8411):
+            naming = manifest.naming_for("bioclip-2-vitl14-2957b32", count, self.MEASURED)
+            self.assertIs(naming["provisional"], True)
+
+    def test_provisional_bars_for_another_classifier(self):
+        naming = manifest.naming_for("another-classifier", 7646, self.MEASURED)
+        self.assertIs(naming["provisional"], True)
+
+    def test_provisional_bars_when_nothing_is_measured(self):
+        naming = manifest.naming_for("bioclip-2-vitl14-2957b32", 7646, None)
+        self.assertIs(naming["provisional"], True)
+
+    def test_returned_bars_are_a_copy(self):
+        naming = manifest.naming_for("bioclip-2-vitl14-2957b32", 1495, None)
+        naming["minOpenScore"] = 9
+        self.assertNotEqual(manifest.NAMING_PROVISIONAL["minOpenScore"], 9)
+
+
 class BuildManifestTests(unittest.TestCase):
     def build(self):
         return manifest.build_manifest(
@@ -45,6 +82,7 @@ class BuildManifestTests(unittest.TestCase):
             embedding_size=768,
             files=[{"name": "a", "engine": "all", "size": 1, "sha256": "0" * 64}],
             credits=[{"name": "X", "licence": "MIT", "text": ""}],
+            candidate_count=1495,
         )
 
     def test_format_and_provisional_bars(self):
@@ -58,6 +96,7 @@ class BuildManifestTests(unittest.TestCase):
         self.assertEqual(naming["suggestScore"], 0.50)
         self.assertEqual(naming["confidentScore"], 0.70)
         self.assertEqual(naming["suggestScoreNoLocation"], 0.70)
+        self.assertEqual(naming["confidentScoreNoLocation"], 0.70)
         self.assertEqual(naming["minAllowedCandidates"], 200)
         self.assertEqual(naming["topK"], 5)
         self.assertEqual(m["region"], {"cellDegrees": 5, "neighbourCells": 1})
