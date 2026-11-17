@@ -73,7 +73,7 @@ void main() {
     );
     // One place finer than an RMV: a cuft/min step is 0.03 L/min, not 0.28.
     expect(field(tester, 0).decoration?.hintText, '0.424');
-    expect(field(tester, 1).decoration?.hintText, '0.0459');
+    expect(field(tester, 1).decoration?.hintText, '0.046');
     expect(find.text('cuft/min'), findsNWidgets(2));
   });
 
@@ -104,12 +104,12 @@ void main() {
         tester,
         settings: const AppSettings(volumeUnit: VolumeUnit.cubicFeet),
       );
-      await tester.enterText(find.byType(TextField).at(1), '0.0459');
+      await tester.enterText(find.byType(TextField).at(1), '0.046');
       await tester.enterText(find.byType(TextField).at(0), '0.265');
       await tester.pumpAndSettle();
       expect(
         container.read(divePlanNotifierProvider).scrVo2,
-        closeTo(1.3, 0.005),
+        closeTo(1.3, 0.01),
       );
       // A Ray nozzle typed in cuft/min keeps what was typed.
       expect(

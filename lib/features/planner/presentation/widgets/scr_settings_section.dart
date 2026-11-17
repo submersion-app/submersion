@@ -57,9 +57,10 @@ class ScrSettingsSection extends ConsumerWidget {
         value: shown(state.scrVo2),
         hintValue: units.convertRmv(defaultVo2),
         suffixText: units.rmvSymbol,
-        // Two places finer than an RMV: 1.3 L/min is 0.0459 cuft/min, and two
-        // places would round a retyped hint to about 1.42 L/min.
-        decimals: units.rmvDecimals + 2,
+        // One place finer than an RMV: 1.3 L/min is 0.046 cuft/min (1.303
+        // L/min retyped), where two places would give about 1.42 L/min. A
+        // fourth place would not fit the shared number box.
+        decimals: units.rmvDecimals + 1,
         min: units.convertRmv(_minLpm),
         onChanged: (v) =>
             notifier.updateLoopFlow(scrVo2: stored(v), clearScrVo2: v == null),

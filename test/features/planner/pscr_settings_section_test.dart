@@ -117,7 +117,7 @@ void main() {
       expect(field.decoration?.hintText, '0.72');
     });
 
-    testWidgets('an imperial diver sees the VO2 hint to four places', (
+    testWidgets('an imperial diver sees the VO2 hint to three places', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -135,7 +135,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         tester.widget<TextField>(vo2Field()).decoration?.hintText,
-        '0.0254',
+        '0.025',
       );
     });
 
