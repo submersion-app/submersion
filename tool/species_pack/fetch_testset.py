@@ -475,6 +475,8 @@ def stage_junk_sheets(work, pack):
 
     import megalodon
 
+    # Before any building or unzipping: both detectors run here.
+    mega_dir = megalodon.converted_dir(work, "megalodon-2024")
     chosen = _load(os.path.join(work, "commons.json"), [])
     tool = os.path.join(work, "species_vision")
     subprocess.run([os.path.join(os.path.dirname(__file__), "vision_cli", "build.sh"), tool], check=True)
@@ -486,14 +488,14 @@ def stage_junk_sheets(work, pack):
                 zf.extractall(pack_models)
     with open(os.path.join(pack, "manifest.json"), encoding="utf-8") as fh:
         pack_detector = json.load(fh)["detector"]["id"]
-    mega_manifest = os.path.join(megalodon.converted_dir(work, "megalodon-2024"), "manifest.json")
+    mega_manifest = os.path.join(mega_dir, "manifest.json")
     with open(mega_manifest, "w", encoding="utf-8") as fh:
         json.dump(megalodon.manifest_for("megalodon-2024", os.path.join(pack, "manifest.json")), fh)
     runs = {
         pack_detector: (os.path.join(pack, "manifest.json"), _model_path(pack_models, "detector")),
         megalodon.CHECKPOINTS["megalodon-2024"]["id"]: (
             mega_manifest,
-            _model_path(os.path.join(work, "models", "megalodon-2024"), "detector"),
+            _model_path(mega_dir, "detector"),
         ),
     }
     paths = "\n".join(_photo_path(work, "commons", f["id"]) for f in chosen) + "\n"
@@ -635,6 +637,12 @@ def stage_write(work, csv_path, force=False):
     commons = {f["id"]: f for f in _load(os.path.join(work, "commons.json"), [])}
     labels = _load(os.path.join(work, "junk_labels.json"), {})
     junk_boxes = _junk_boxes(work)
+    stale = [k for k, label in labels.items() if label in ("person", "scenery") and k not in junk_boxes]
+    if stale:
+        raise SystemExit(
+            f"{len(stale)} junk labels name boxes no junk_detections file has, for example {stale[:3]}; "
+            "rerun junk-sheets and label its boxes again"
+        )
     for label_id, label in sorted(labels.items()):
         if label not in ("person", "scenery"):
             continue

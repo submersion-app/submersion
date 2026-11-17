@@ -188,15 +188,14 @@ keep divers from being named.
 
 ### Speed and memory on this Mac
 
-| Detector | Detection, median (90th percentile) | Embedding one crop | Peak memory, 100 photos |
+| Detector | Detection, median (90th percentile) | Embedding one crop, median | Peak memory of a scoring run |
 | --- | --- | --- | --- |
-| Fish detector | 11.7 ms (13.1) | 9.9 ms | 1.30 GB |
-| Megalodon | 16.1 ms (20.0) | 10.5 ms | 1.36 GB |
+| Fish detector | 10.7 ms (12.2) | 8.9 ms | 1.30 GB |
+| Megalodon | 15.2 ms (16.8) | 9.9 ms | 1.36 GB |
 
-Times are from the scoring runs. Peak memory is from a separate run of 100
-photos per detector and includes the 608 MB classifier; the 13 to 16 GB
-"whole run" peaks in `report.md` come from scoring runs made before the
-tool released each photo's memory, and do not reflect the app. Running both adds Megalodon's
+From the scoring runs over all 2,612 photos (centre crop for the fish
+detector, pad-to-square for Megalodon). Peak memory includes the 608 MB
+classifier. Running both adds Megalodon's
 detection time and about 110 MB of model to the fish detector's. Megalodon
 is 56.8 million parameters and 195 GFLOPs per image; the fish detector is an
 RF-DETR nano.
@@ -210,7 +209,7 @@ licensed choice), which `score.py` applies and records in `results.json`:
 - **Run both**, if the fish detector's terms are acceptable. The pair names
   significantly more animals than either alone (317 against 285 and 268),
   finds something in 92 to 98% of photos in every group, and kept junk at 1
-  of 62. It costs a second model in the download and about 16 ms more per
+  of 62. It costs a second model in the download and about 15 ms more per
   photo. It does not escape the fish detector's licence question.
 - **Otherwise, Megalodon alone.** It ties the fish detector on animals named
   right (p = 0.28), is explicitly licensed, and names octopus, crabs,

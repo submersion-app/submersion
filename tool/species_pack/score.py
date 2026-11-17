@@ -18,6 +18,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import statistics
 import subprocess
 import sys
@@ -43,6 +44,13 @@ BOTH = "both"
 # Running the vision tool.
 
 
+def _read_json(path):
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
 def _model_path(models_dir, name):
     compiled = os.path.join(models_dir, f"{name}.mlmodelc")
     return compiled if os.path.exists(compiled) else os.path.join(models_dir, f"{name}.mlpackage")
@@ -57,7 +65,17 @@ class Runner:
         with open(os.path.join(pack, "manifest.json"), encoding="utf-8") as fh:
             self.manifest = json.load(fh)
         self.version = self.manifest["packVersion"]
+        # The models' own hashes, so a pack rebuilt under the same version
+        # with other models is extracted again rather than read stale.
+        self.model_hashes = {
+            f["name"]: f["sha256"]
+            for f in self.manifest["files"]
+            if f["name"] in ("detector.coreml.zip", "classifier.coreml.zip")
+        }
         self.models = os.path.join(work, "models", self.version)
+        source = os.path.join(self.models, "source.json")
+        if os.path.exists(self.models) and _read_json(source) != self.model_hashes:
+            shutil.rmtree(self.models)
         os.makedirs(self.models, exist_ok=True)
         for name in ("detector", "classifier"):
             if not os.path.exists(os.path.join(self.models, f"{name}.mlmodelc")) and not os.path.exists(
@@ -65,6 +83,8 @@ class Runner:
             ):
                 with zipfile.ZipFile(os.path.join(pack, f"{name}.coreml.zip")) as zf:
                     zf.extractall(self.models)
+        with open(source, "w", encoding="utf-8") as fh:
+            json.dump(self.model_hashes, fh)
         self.tool = os.path.join(work, "species_vision")
         subprocess.run([os.path.join(os.path.dirname(__file__), "vision_cli", "build.sh"), self.tool], check=True)
         mega_dir = megalodon.converted_dir(work, MEGALODON)
@@ -77,10 +97,43 @@ class Runner:
         }
         self.memory = {}
 
+    def _fingerprint(self, detector, fit, photos):
+        """What a run's output depends on: the photos, the detector's
+        settings, the fitting, and the tool's source."""
+        digest = hashlib.sha256()
+        manifest, _ = self.detectors[detector]
+        with open(manifest, encoding="utf-8") as fh:
+            settings = json.load(fh)
+        digest.update(
+            json.dumps(
+                [
+                    sorted(photos),
+                    settings["detector"],
+                    settings["classifier"],
+                    fit,
+                    self.model_hashes,
+                    megalodon.CHECKPOINTS[MEGALODON]["sha256"],
+                ]
+            ).encode()
+        )
+        here = os.path.dirname(os.path.abspath(__file__))
+        for source in (
+            os.path.join(here, "megalodon.py"),
+            os.path.join(REPO, "packages", "submersion_vision", "darwin", "Classes", "VisionPipeline.swift"),
+            os.path.join(here, "vision_cli", "main.swift"),
+            os.path.join(here, "vision_cli", "FlutterShim.swift"),
+        ):
+            with open(source, "rb") as fh:
+                digest.update(fh.read())
+        return digest.hexdigest()
+
     def run(self, detector, fit, photos):
         out = os.path.join(self.work, "runs", f"{detector}_{fit}_{self.version}.jsonl")
         mem = out[: -len(".jsonl")] + ".time.txt"
-        if not os.path.exists(out):
+        key_path = out[: -len(".jsonl")] + ".key"
+        key = self._fingerprint(detector, fit, photos)
+        stored = open(key_path, encoding="utf-8").read().strip() if os.path.exists(key_path) else None
+        if not os.path.exists(out) or stored != key:
             os.makedirs(os.path.dirname(out), exist_ok=True)
             manifest, models_dir = self.detectors[detector]
             with open(out + ".partial", "w", encoding="utf-8") as fh, open(mem, "w", encoding="utf-8") as err:
@@ -105,6 +158,8 @@ class Runner:
                     check=True,
                 )
             os.replace(out + ".partial", out)
+            with open(key_path, "w", encoding="utf-8") as fh:
+                fh.write(key + "\n")
         with open(mem, encoding="utf-8") as fh:
             m = re.search(r"(\d+)\s+maximum resident set size", fh.read())
         self.memory[(detector, fit)] = int(m.group(1)) if m else None
@@ -113,6 +168,11 @@ class Runner:
             for line in fh:
                 r = json.loads(line)
                 results[r["path"]] = r
+        # A photo with no result, or one the tool could not read, is not a
+        # photo where the detector found nothing.
+        failed = [p for p in photos if p not in results or "error" in results[p]]
+        if failed:
+            raise SystemExit(f"{detector} {fit}: {len(failed)} photos have no usable result, for example {failed[:2]}")
         return results
 
 
@@ -227,6 +287,10 @@ def _crop_record(row, detection, namer, junk_cell=None):
     }
 
 
+def _key(row):
+    return (row["source"], row["id"])
+
+
 def _largest(detections):
     return max(detections, key=lambda d: d["pixelWidth"] * d["pixelHeight"]) if detections else None
 
@@ -240,27 +304,31 @@ def _photo(work, row):
 
 def _junk_records(name, results_by_photo, junk_rows, namer, work, fish_cells):
     """Each junk row named from the detection it labels, found by its box
-    (an intersection over union of 0.9 or more with a box from the same
-    detector). A single detector's run must find every one of its rows, or
-    the junk check would pass on nothing; in a merged run a junk box may
-    have given way to a better box from the other detector."""
-    records, missing = [], []
-    for row in junk_rows:
+    (an intersection over union of 0.9 or more). A single detector's run
+    must find every one of its rows among its own boxes, or the junk check
+    would pass on nothing. In a merged run a row may match a box from
+    either detector, since the other detector's box can have replaced its
+    own, and each merged box counts once however many rows match it."""
+    records, missing, used = [], [], set()
+    for row in sorted(junk_rows, key=lambda r: (r["id"], r["detector"], int(r["box"]))):
         if name != BOTH and row["detector"] != name:
             continue
         key = f"{row['detector']}:{row['id']}:{row['box']}"
+        path = _photo(work, row)
         detections = [
-            d
-            for d in (results_by_photo.get(_photo(work, row)) or {}).get("detections", [])
-            if d.get("source") == row["detector"]
+            (i, d)
+            for i, d in enumerate((results_by_photo.get(path) or {}).get("detections", []))
+            if ((path, i) not in used if name == BOTH else d.get("source") == row["detector"])
         ]
         target = tuple(float(row[k]) for k in ("box_x", "box_y", "box_w", "box_h"))
-        found = box_math.best_match(target, [(d["x"], d["y"], d["w"], d["h"]) for d in detections])
+        found = box_math.best_match(target, [(d["x"], d["y"], d["w"], d["h"]) for _, d in detections])
         if found is None:
             missing.append(key)
             continue
+        index, detection = detections[found]
+        used.add((path, index))
         cell = fish_cells[int(hashlib.sha256(key.encode()).hexdigest(), 16) % len(fish_cells)]
-        record = _crop_record(row, detections[found], namer, junk_cell=cell)
+        record = _crop_record(row, detection, namer, junk_cell=cell)
         if record:
             records.append(record)
     if missing and name != BOTH:
@@ -291,7 +359,7 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
     junk = _junk_records(name, results_by_photo, junk_rows, namer, work, fish_cells)
 
     def half(records, want_tune):
-        return [c for c in records if (c["row"]["id"] in tune) == want_tune]
+        return [c for c in records if (_key(c["row"]) in tune) == want_tune]
 
     nat = [crops[r["id"]] for r in natural if r["id"] in crops]
     tune_nat, held_nat = half(nat, True), half(nat, False)
@@ -329,7 +397,7 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
             "confident": naming_rates(records, confident=True),
         }
 
-    held_rows = [r for r in animals if r["id"] not in tune]
+    held_rows = [r for r in animals if _key(r) not in tune]
     held_all = [crops[r["id"]] for r in held_rows if r["id"] in crops]
     held_natural_rows = [r for r in held_rows if r["sample"] == "natural"]
 
@@ -537,10 +605,12 @@ def main(argv=None):
             f"{len(missing)} test photos are not in {args.work}/photos, for example {missing[:2]}; "
             "fetch them with fetch_testset.py photos-from-csv"
         )
+    # Keyed by source and id: an iNaturalist id and a Commons page id can
+    # be the same number.
     tune = (
-        testset.tune_ids([r for r in animals if r["sample"] == "natural"])
-        | testset.tune_ids([r for r in animals if r["sample"] == "top-up"])
-        | testset.tune_ids(junk_rows)
+        {("inaturalist", i) for i in testset.tune_ids([r for r in animals if r["sample"] == "natural"])}
+        | {("inaturalist", i) for i in testset.tune_ids([r for r in animals if r["sample"] == "top-up"])}
+        | {("commons", i) for i in testset.tune_ids(junk_rows)}
     )
 
     runner = Runner(args.pack, args.work)

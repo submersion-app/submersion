@@ -101,14 +101,18 @@ def name(logit_row, allowed, top_k):
         open_sum += math.exp(logit - max_logit)
     open_score = 1 / open_sum
 
-    allowed_max = -math.inf
-    for i, logit in enumerate(logit_row):
-        if (allowed is None or allowed[i]) and logit > allowed_max:
-            allowed_max = logit
-    total = 0.0
-    for i, logit in enumerate(logit_row):
-        if allowed is None or allowed[i]:
-            total += math.exp(logit - allowed_max)
+    if allowed is None:
+        # Every candidate is allowed: the same sum as the open score's.
+        allowed_max, total = max_logit, open_sum
+    else:
+        allowed_max = -math.inf
+        for i, logit in enumerate(logit_row):
+            if allowed[i] and logit > allowed_max:
+                allowed_max = logit
+        total = 0.0
+        for i, logit in enumerate(logit_row):
+            if allowed[i]:
+                total += math.exp(logit - allowed_max)
 
     # The Dart insertion loop: a candidate moves ahead only of strictly
     # lower logits, so ties keep the lower index first.

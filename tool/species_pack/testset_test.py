@@ -74,6 +74,10 @@ class SampleTests(unittest.TestCase):
         self.assertEqual(testset.sample(pool, 10, "s"), testset.sample(list(reversed(pool)), 10, "s"))
         self.assertNotEqual(testset.sample(pool, 10, "s"), testset.sample(pool, 10, "t"))
 
+    def test_undated_observations_are_not_one_day(self):
+        pool = [obs(i, day="") for i in range(3)]
+        self.assertEqual(len(testset.sample(pool, 10, "s")), 3)
+
     def test_one_per_observer_per_day(self):
         pool = [obs(i) for i in range(5)] + [obs(9, day="2025-01-02")]
         picked = testset.sample(pool, 10, "s")

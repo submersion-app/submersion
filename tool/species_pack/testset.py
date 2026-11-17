@@ -153,7 +153,8 @@ def sample(pool, n, seed):
     seen = set()
     picked = []
     for o in sorted(pool, key=lambda o: _hash(seed + o["id"])):
-        day = (o["observer"], o["observed_on"])
+        # An undated observation is a day of its own, not one shared "" day.
+        day = (o["observer"], o["observed_on"] or f"id:{o['id']}")
         if day in seen:
             continue
         seen.add(day)

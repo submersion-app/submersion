@@ -172,8 +172,11 @@ def convert(name, work, check_image):
     out_dir = os.path.join(work, "models", name)
     os.makedirs(out_dir, exist_ok=True)
     target = os.path.join(out_dir, "detector.mlpackage")
-    if os.path.exists(target):
-        shutil.rmtree(target)
+    # A model compiled from an earlier conversion would be picked up in
+    # preference to the new package; remove it with the old package.
+    for old in (target, os.path.join(out_dir, "detector.mlmodelc")):
+        if os.path.exists(old):
+            shutil.rmtree(old)
     ml.save(target)
 
     got = np.asarray(next(iter(ml.predict({"image": x}).values())), dtype=np.float32)
