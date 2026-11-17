@@ -255,6 +255,11 @@ Stated, not settled:
   roughly.
 - The underwater filter, the invertebrate review and the junk labels are
   judgements by eye. Fish were sample-checked only.
+- The filter sums its 5 "underwater" prompts against its 15 "out of water"
+  ones, which tilts an undecided photo towards being dropped. In practice it
+  erred the other way: it dropped one fish photo in 1,673 and kept most
+  out-of-water invertebrates, which the review by eye then removed. A new
+  test set drawn with it needs the same review.
 - Research grade is a community identification and is sometimes wrong.
 - Recall is "the detector returned a box", backed by "its largest box was
   named right"; there are no hand-drawn boxes.
