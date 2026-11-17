@@ -85,4 +85,28 @@ void main() {
     expect(reads, greaterThan(settled));
     await pumpEventQueue();
   });
+
+  // A dive made for another diver than the list's is not prepended: the
+  // list is read again, and the dive is not in it (issue #4527, plan 8).
+  test('a dive of another diver is not prepended', () async {
+    final other = await DiverRepository().createDiver(
+      Diver(
+        id: '',
+        name: 'E',
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      ),
+    );
+    final notifier = container.read(paginatedDiveListProvider.notifier);
+    await notifier.loadFirstPage();
+
+    final created = await diveRepo.createDive(
+      Dive(id: 'theirs', diverId: other.id, dateTime: DateTime(2026, 6, 1)),
+    );
+    await notifier.refreshAfterCreate(created);
+
+    final after = container.read(paginatedDiveListProvider).value!;
+    expect(after.dives.map((d) => d.id), isNot(contains('theirs')));
+    await pumpEventQueue();
+  });
 }

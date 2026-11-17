@@ -56,7 +56,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       RecordEditController<Dive>(
         onSave: _saveSitting,
         // A new dive's sitting creates it (issue #4527, plan 8).
-        creating: widget.newDiveRequest != null,
+        creating: isCreating,
         // After a whole-record operation: the dive as stored now, read
         // through the provider the page shows, so both agree.
         reread: (stored) {
@@ -133,7 +133,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       controller: controller,
       unlock: () {
         // A new dive's page opens unlocked; there is nothing to unlock.
-        if (widget.newDiveRequest != null) return;
+        if (isCreating) return;
         final stored = ref.read(diveProvider(diveId)).value;
         if (stored != null) controller.unlock(shownDive(stored));
       },

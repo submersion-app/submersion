@@ -58,40 +58,51 @@ Future<Dive> newDiveSeed(
   }
   final entry = wholeMinute(now());
   final planned = request.isPlanned;
-  int? number;
-  // The diver's next number. With the diver unknown none is guessed from
-  // every diver's log: Save numbers the dive in its own diver's.
-  if (!planned && diverKnown) {
-    try {
-      number = await read(
-        diveRepositoryProvider,
-      ).getNextDiveNumber(diverId: diverId);
-    } catch (error, stackTrace) {
-      _log.warning(
-        'Suggesting a dive number failed',
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-  final starter = newSittingTank(
-    tanks: const [],
-    preset: await _defaultPreset(read, settings.defaultTankPreset, diverId),
-    defaultVolume: settings.defaultTankVolume,
-    defaultStartPressure: settings.defaultStartPressure,
-  );
   final bare = Dive(
     id: newId?.call() ?? _uuid.v4(),
     diverId: diverId,
-    diveNumber: number,
     dateTime: entry,
     entryTime: entry,
     isPlanned: planned,
     // Where the dive came from (a scan), as the new-dive form stores it.
     importSource: request.prefill?.importSource,
   );
-  final withSet = await _withDefaultSet(read, bare);
-  return withSet.copyWith(tanks: _withStarter(withSet.tanks, starter));
+  // None of these needs another's answer: they are read side by side.
+  final numberRead = !planned && diverKnown
+      ? _nextNumber(read, diverId)
+      : Future<int?>.value();
+  final presetRead = _defaultPreset(read, settings.defaultTankPreset, diverId);
+  final setRead = _withDefaultSet(read, bare);
+  final number = await numberRead;
+  final starter = newSittingTank(
+    tanks: const [],
+    preset: await presetRead,
+    defaultVolume: settings.defaultTankVolume,
+    defaultStartPressure: settings.defaultStartPressure,
+  );
+  final withSet = await setRead;
+  return withSet.copyWith(
+    diveNumber: number,
+    tanks: _withStarter(withSet.tanks, starter),
+  );
+}
+
+/// The diver's next number. With the diver unknown none is guessed from
+/// every diver's log: Save numbers the dive in its own diver's. Null when
+/// it cannot be read: the diver can type it.
+Future<int?> _nextNumber(ProviderRead read, String? diverId) async {
+  try {
+    return await read(
+      diveRepositoryProvider,
+    ).getNextDiveNumber(diverId: diverId);
+  } catch (error, stackTrace) {
+    _log.warning(
+      'Suggesting a dive number failed',
+      error: error,
+      stackTrace: stackTrace,
+    );
+    return null;
+  }
 }
 
 /// The diver's default cylinder: one of their own of that name, else the
