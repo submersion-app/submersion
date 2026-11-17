@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/species_id/domain/services/track_labels.dart';
@@ -116,6 +114,6 @@ class TrackPill extends StatelessWidget {
   }
 }
 
-/// A box of at least [min] each way around [centre], for a touch target.
-Rect touchTarget(Offset centre, {double width = 0, double min = 44}) =>
-    Rect.fromCenter(center: centre, width: math.max(width, min), height: min);
+/// A [side]-square box around [centre], for a touch target.
+Rect touchTarget(Offset centre, {double side = 44}) =>
+    Rect.fromCenter(center: centre, width: side, height: side);

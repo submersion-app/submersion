@@ -686,6 +686,26 @@ void main() {
       },
     );
 
+    test('a location arriving for the running video does not throw its '
+        'chunk away', () async {
+      oneFish();
+      engine.videoGate = Completer<void>();
+      final first = service.request(video());
+      await until(() => engine.detectCalls.length == 1);
+      final located = service.request(
+        video(),
+        location: const GeoPoint(20.5, -87.0),
+      );
+      engine.videoGate!.complete();
+      engine.videoGate = null;
+      await first;
+      await located;
+      expect(engine.detectCalls.where((c) => c.$1 == 0), hasLength(1));
+      final run = (await identifications.runFor('v1'))!;
+      expect(run.scanComplete, isTrue);
+      expect(run.locationCell, isNotNull);
+    });
+
     test('a pack change waits for one chunk, not the whole video', () async {
       engine.videoGate = Completer<void>();
       final done = service.request(video());

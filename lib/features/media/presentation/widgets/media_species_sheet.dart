@@ -207,6 +207,11 @@ Future<void> pickOtherSpecies(
         // A tag needs only the species; a sighting it creates is Seen.
         showAbundance: false,
         onSpeciesSelected: (species, _, _) async {
+          // Read before anything is awaited: [onPicked] may close the view
+          // [context] and [ref] belong to.
+          final tagging = ref.read(speciesTaggingServiceProvider);
+          final messenger = ScaffoldMessenger.maybeOf(context);
+          final failed = context.l10n.common_error_tryAgain;
           Navigator.of(sheetContext).pop();
           await onPicked?.call(species);
           final session = sitting;
@@ -215,16 +220,11 @@ Future<void> pickOtherSpecies(
             return;
           }
           try {
-            await ref
-                .read(speciesTaggingServiceProvider)
-                .tagPhoto(mediaId: item.id, speciesId: species.id);
+            await tagging.tagPhoto(mediaId: item.id, speciesId: species.id);
           } catch (_) {
             // The picker is gone by now; tell the diver the tag did not
             // stick instead of failing silently.
-            if (!context.mounted) return;
-            ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-              SnackBar(content: Text(context.l10n.common_error_tryAgain)),
-            );
+            messenger?.showSnackBar(SnackBar(content: Text(failed)));
           }
         },
       ),

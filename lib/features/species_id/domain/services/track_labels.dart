@@ -103,23 +103,30 @@ IdentificationBox? boxAt(
   final path = track.path;
   if (!track.isTrack || path.isEmpty) return null;
   if (ms < path.first.ms || ms > path.last.ms) return null;
-  for (var k = 0; k < path.length; k++) {
-    final here = path[k];
-    if (here.ms == ms) return here.box;
-    if (k + 1 >= path.length) break;
-    final next = path[k + 1];
-    if (ms < here.ms || ms > next.ms) continue;
-    if (next.ms - here.ms > maxGapMs) return null;
-    final t = (ms - here.ms) / (next.ms - here.ms);
-    double mix(double a, double b) => a + (b - a) * t;
-    return IdentificationBox(
-      x: mix(here.box.x, next.box.x),
-      y: mix(here.box.y, next.box.y),
-      width: mix(here.box.width, next.box.width),
-      height: mix(here.box.height, next.box.height),
-    );
+  // The last sample at or before [ms], found by halving: this runs for
+  // every visible fish on every position tick.
+  var low = 0;
+  var high = path.length - 1;
+  while (low < high) {
+    final mid = (low + high + 1) ~/ 2;
+    if (path[mid].ms <= ms) {
+      low = mid;
+    } else {
+      high = mid - 1;
+    }
   }
-  return null;
+  final here = path[low];
+  if (here.ms == ms || low + 1 >= path.length) return here.box;
+  final next = path[low + 1];
+  if (next.ms - here.ms > maxGapMs) return null;
+  final t = (ms - here.ms) / (next.ms - here.ms);
+  double mix(double a, double b) => a + (b - a) * t;
+  return IdentificationBox(
+    x: mix(here.box.x, next.box.x),
+    y: mix(here.box.y, next.box.y),
+    width: mix(here.box.width, next.box.width),
+    height: mix(here.box.height, next.box.height),
+  );
 }
 
 /// The labels to draw at [ms]: one per visible animal, at most

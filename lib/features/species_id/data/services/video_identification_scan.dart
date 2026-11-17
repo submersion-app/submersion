@@ -122,7 +122,7 @@ class VideoIdentificationScan {
 
   /// Decided or claimed tracks of a previous scan, waiting to be carried
   /// to the fresh tracks that follow the same animal.
-  final List<MediaIdentification> _carry;
+  List<MediaIdentification> _carry;
 
   int _scannedMs;
   int? _durationMs;
@@ -217,16 +217,16 @@ class VideoIdentificationScan {
       final current = {
         for (final i in await _identifications.forMedia(_item.id)) i.id: i,
       };
-      final fresh = [for (final c in _carry) ?current[c.id]];
-      _carry
-        ..clear()
-        ..addAll(fresh);
+      _carry = [for (final c in _carry) ?current[c.id]];
     }
     final carried = carryTrackDecisions(
       decided: _carry,
       fresh: [for (final n in named) n.identification],
     );
-    _carry.removeWhere((c) => carried.deleteIds.contains(c.id));
+    _carry = [
+      for (final c in _carry)
+        if (!carried.deleteIds.contains(c.id)) c,
+    ];
     final manifest = _pack.pack.manifest;
     final run = MediaIdentificationRun(
       mediaId: _item.id,
@@ -283,20 +283,25 @@ class VideoIdentificationScan {
   _nameTracks(List<TrackedAnimal> all, {required bool stopping}) async {
     if (all.isEmpty) return const [];
     var closed = all;
+    var picks = [for (final track in all) bestMoments(track)];
     if (stopping) {
       // The longest first, as many as one batch of moments takes.
-      final longest = [...all]
-        ..sort((a, b) => (b.endMs - b.startMs).compareTo(a.endMs - a.startMs));
-      closed = [];
+      final order = [for (var k = 0; k < all.length; k++) k]
+        ..sort(
+          (a, b) => (all[b].endMs - all[b].startMs).compareTo(
+            all[a].endMs - all[a].startMs,
+          ),
+        );
+      final kept = <int>[];
       var moments = 0;
-      for (final track in longest) {
-        final count = bestMoments(track).length;
-        if (moments + count > embedBatch) break;
-        moments += count;
-        closed.add(track);
+      for (final k in order) {
+        if (moments + picks[k].length > embedBatch) break;
+        moments += picks[k].length;
+        kept.add(k);
       }
+      closed = [for (final k in kept) all[k]];
+      picks = [for (final k in kept) picks[k]];
     }
-    final picks = [for (final track in closed) bestMoments(track)];
     final moments = [
       for (final chosen in picks)
         for (final p in chosen) VisionMoment(ms: p.ms, box: p.detection.box),

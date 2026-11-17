@@ -496,6 +496,11 @@ class MediaIdentificationService {
     }
   }
 
+  /// Whether a request for other media is waiting. One for this same video
+  /// (its location arrived late) waits for the scan to end, then names
+  /// what was found for the new place, rather than stopping the scan.
+  bool _otherWaiting(_Job job) => _waiting.keys.any((id) => id != job.item.id);
+
   /// Whether the diver decided on [i], or named it from the frame.
   static bool _saidByDiver(MediaIdentification i) =>
       i.decision != IdentificationDecision.undecided ||
@@ -538,7 +543,7 @@ class MediaIdentificationService {
           !job.cancelled &&
           !_disposed &&
           _paused == 0 &&
-          _waiting.isEmpty &&
+          !_otherWaiting(job) &&
           _databaseGeneration() == generation,
     );
     _videoProgress = scan.progress;
@@ -549,7 +554,7 @@ class MediaIdentificationService {
           await scan.finish();
           return false;
         }
-        if (_paused > 0 || _waiting.isNotEmpty) {
+        if (_paused > 0 || _otherWaiting(job)) {
           await scan.finish();
           return true;
         }
@@ -565,7 +570,7 @@ class MediaIdentificationService {
           return !job.cancelled &&
               !_disposed &&
               _databaseGeneration() == generation &&
-              (_paused > 0 || _waiting.isNotEmpty);
+              (_paused > 0 || _otherWaiting(job));
         }
         _videoProgress = scan.progress;
         _changed();

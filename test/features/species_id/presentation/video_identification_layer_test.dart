@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:video_player/video_player.dart';
@@ -110,6 +112,7 @@ void main() {
     WidgetTester tester, {
     List<MediaIdentification>? tracks,
     List<SpeciesTagChip> chips = const [],
+    bool tagsLoading = false,
     bool playing = false,
     bool editable = true,
     EditSession<PhotoRecord>? sitting,
@@ -125,7 +128,10 @@ void main() {
           videoTracksProvider('v1').overrideWith(
             (ref) async => tracks ?? [confident, suggestion, unnamed],
           ),
-          mediaTagChipsProvider('v1').overrideWith((ref) async => chips),
+          mediaTagChipsProvider('v1').overrideWith(
+            (ref) =>
+                tagsLoading ? Completer<List<SpeciesTagChip>>().future : chips,
+          ),
           allSpeciesProvider.overrideWith((ref) async => const [_rockBeauty]),
           mediaIdentificationServiceProvider.overrideWithValue(service),
           speciesTaggingServiceProvider.overrideWithValue(tagging),
@@ -210,6 +216,24 @@ void main() {
     );
     expect(find.text('Rock Beauty'), findsOneWidget);
     expect(find.text('Queen Parrotfish'), findsNothing);
+  });
+
+  testWidgets('a tagged fish keeps its pill while the tags load', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      tracks: [
+        track(
+          'a',
+          decision: IdentificationDecision.accepted,
+          decidedSpeciesId: 'sp_rock_beauty',
+        ),
+      ],
+      tagsLoading: true,
+      playing: true,
+    );
+    expect(find.text('Rock Beauty'), findsOneWidget);
   });
 
   testWidgets('a tag shown on the video changes the labels before it is '

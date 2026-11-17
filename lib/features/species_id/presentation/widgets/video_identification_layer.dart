@@ -12,7 +12,9 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
 import 'package:submersion/features/media/presentation/helpers/face_box_geometry.dart';
+import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
@@ -63,12 +65,19 @@ class VideoIdentificationLayer extends ConsumerWidget {
   Widget _labels(BuildContext context, WidgetRef ref) {
     final tracks = ref.watch(videoTracksProvider(item.id)).value ?? const [];
     if (tracks.isEmpty) return const SizedBox.shrink();
-    // What Save would make of the tags shown, worked out in memory.
-    final shown = decisionsAsShown(
-      tracks,
-      shownTaggedSpecies(ref, item.id, sitting),
-      now: DateTime.now().toUtc(),
-    );
+    // What Save would make of the tags shown, worked out in memory; the
+    // stored decisions until the tags have loaded, which would otherwise
+    // read as none and take every tagged fish's pill away.
+    final tagsKnown =
+        sittingIsOver(sitting, item.id) ||
+        ref.watch(mediaTagChipsProvider(item.id)).hasValue;
+    final shown = tagsKnown
+        ? decisionsAsShown(
+            tracks,
+            shownTaggedSpecies(ref, item.id, sitting),
+            now: DateTime.now().toUtc(),
+          )
+        : tracks;
     final byId = {for (final t in shown) t.id: t};
     final species = {
       for (final s in ref.watch(allSpeciesProvider).value ?? const <Species>[])
