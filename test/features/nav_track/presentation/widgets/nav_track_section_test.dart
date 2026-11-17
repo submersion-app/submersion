@@ -25,8 +25,9 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   }
 
   @override
-  Future<void> setPrimary(String routeId) async {
+  Future<bool> setPrimary(String routeId, {String? onlyForDiveId}) async {
     primaryId = routeId;
+    return true;
   }
 }
 

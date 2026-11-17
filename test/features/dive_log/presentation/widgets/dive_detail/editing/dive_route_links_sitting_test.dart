@@ -35,8 +35,10 @@ class _Repo extends NavTrackRepository {
       calls.add('unlink $routeId');
 
   @override
-  Future<void> setPrimary(String routeId) async =>
-      calls.add('primary $routeId');
+  Future<bool> setPrimary(String routeId, {String? onlyForDiveId}) async {
+    calls.add('primary $routeId');
+    return true;
+  }
 }
 
 /// A dive's route links held in a sitting (issue #4527, plan 6).

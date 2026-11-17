@@ -176,9 +176,17 @@ mixin _NavTrackRouteLinks {
 
   /// Makes [routeId] the route a dive's 3D seascape draws, demoting every
   /// other route linked to the same dive.
-  Future<void> setPrimary(String routeId) async {
+  ///
+  /// Given [onlyForDiveId], it does so only while the route is still on
+  /// that dive, and answers false otherwise (gone, unlinked, or moved by a
+  /// sync to another dive) without touching anything: a held change must
+  /// not reorder another dive's routes (issue #4527). True once set.
+  Future<bool> setPrimary(String routeId, {String? onlyForDiveId}) async {
     try {
       final route = await getById(routeId, includePoints: false);
+      if (onlyForDiveId != null && route?.diveId != onlyForDiveId) {
+        return false;
+      }
       if (route == null) {
         throw ArgumentError.value(routeId, 'routeId', 'No such route');
       }
@@ -222,6 +230,7 @@ mixin _NavTrackRouteLinks {
       for (final demotedId in demotedIds) {
         await _markPending(demotedId, now);
       }
+      return true;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to set nav track $routeId primary',
