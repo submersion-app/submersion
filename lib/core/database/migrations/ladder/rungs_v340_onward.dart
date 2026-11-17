@@ -276,5 +276,11 @@ extension RungsFromV340 on AppDatabase {
     // Renumbered from 374, which main took for #4660.
     if (from < 375) await _assertMediaIdentificationTables();
     if (from < 375) await reportProgress();
+
+    // v376: a video's scan progress and length on the run, and each
+    // identification's time range, path, claim and label flags (issue
+    // #4675). Columns only, no backfill.
+    if (from < 376) await _assertIdentificationVideoColumns();
+    if (from < 376) await reportProgress();
   }
 }

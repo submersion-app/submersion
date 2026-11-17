@@ -15,6 +15,8 @@ enum VisionError: Error {
   case decodeFailed(String)
   case inferenceFailed(String)
   case badArguments(String)
+  case notForeground
+  case tooHot
 
   var code: String {
     switch self {
@@ -22,6 +24,8 @@ enum VisionError: Error {
     case .decodeFailed: return "decode_failed"
     case .inferenceFailed: return "inference_failed"
     case .badArguments: return "bad_arguments"
+    case .notForeground: return "not_foreground"
+    case .tooHot: return "too_hot"
     }
   }
 
@@ -31,6 +35,8 @@ enum VisionError: Error {
     case .decodeFailed(let detail): return "Could not read the image: \(detail)"
     case .inferenceFailed(let detail): return detail
     case .badArguments(let name): return "Missing or invalid argument: \(name)"
+    case .notForeground: return "The app is not in the foreground"
+    case .tooHot: return "The device is too hot"
     }
   }
 }
@@ -154,50 +160,73 @@ final class VisionPipeline {
   }
 
   func analyze(_ args: [String: Any]) throws -> [String: Any] {
-    guard let settings = settings, let detector = detector, let classifier = classifier else {
+    guard let settings = settings, let detector = detector, classifier != nil else {
       throw VisionError.notLoaded
     }
     let image = try Self.decode(args)
-    let width = image.width
-    let height = image.height
-
     let detectStart = Date()
     let boxes = try detect(image, settings: settings, model: detector)
     let detectMs = Date().timeIntervalSince(detectStart) * 1000
     var detections: [[String: Any]] = []
     for box in boxes {
-      // Pixel box of the detection, then padded for the crop.
-      let bx = box.x * Double(width), by = box.y * Double(height)
-      let bw = box.w * Double(width), bh = box.h * Double(height)
-      let padX = bw * settings.cropPadding, padY = bh * settings.cropPadding
-      let cropRect = CGRect(
-        x: max(0, bx - padX), y: max(0, by - padY),
-        width: min(Double(width), bx + bw + padX) - max(0, bx - padX),
-        height: min(Double(height), by + bh + padY) - max(0, by - padY)
-      ).integral
-      guard cropRect.width >= 2, cropRect.height >= 2, let crop = image.cropping(to: cropRect),
-            let jpeg = Self.jpeg(Self.fitted(crop, within: settings.cropThumbnailSize)) else {
-        // No crop to show for it, so no suggestion either.
+      // No crop to show for it, so no suggestion either.
+      guard var detection = try cropAndEmbed(image, x: box.x, y: box.y, w: box.w, h: box.h) else {
         continue
       }
-      let embedStart = Date()
-      let embedding = try embed(crop, settings: settings, model: classifier)
-      let embedMs = Date().timeIntervalSince(embedStart) * 1000
-      detections.append([
-        "x": box.x, "y": box.y, "width": box.w, "height": box.h,
-        "score": Double(box.score),
-        "pixelWidth": Int(bw.rounded()), "pixelHeight": Int(bh.rounded()),
-        "crop": FlutterStandardTypedData(bytes: jpeg),
-        "embedding": FlutterStandardTypedData(float32: embedding.withUnsafeBufferPointer { Data(buffer: $0) }),
-        "embedMs": embedMs,
-      ])
+      detection["x"] = box.x
+      detection["y"] = box.y
+      detection["width"] = box.w
+      detection["height"] = box.h
+      detection["score"] = Double(box.score)
+      detections.append(detection)
     }
-    return ["imageWidth": width, "imageHeight": height, "detections": detections, "detectMs": detectMs]
+    return [
+      "imageWidth": image.width, "imageHeight": image.height, "detections": detections,
+      "detectMs": detectMs,
+    ]
+  }
+
+  /// The detector over an already decoded frame (a video's, issue #4675).
+  func detectBoxes(in image: CGImage) throws -> [Box] {
+    guard let settings = settings, let detector = detector else { throw VisionError.notLoaded }
+    return try detect(image, settings: settings, model: detector)
+  }
+
+  /// The box at normalised [x, y, w, h] of [image], padded, cropped and
+  /// embedded: `{pixelWidth, pixelHeight, crop, embedding}`, or nil when
+  /// the crop is too small to read. Shared by photos and video moments.
+  func cropAndEmbed(_ image: CGImage, x: Double, y: Double, w: Double, h: Double) throws -> [String: Any]? {
+    guard let settings = settings, let classifier = classifier else { throw VisionError.notLoaded }
+    let width = image.width
+    let height = image.height
+    // Pixel box of the detection, then padded for the crop.
+    let bx = x * Double(width), by = y * Double(height)
+    let bw = w * Double(width), bh = h * Double(height)
+    let padX = bw * settings.cropPadding, padY = bh * settings.cropPadding
+    let cropRect = CGRect(
+      x: max(0, bx - padX), y: max(0, by - padY),
+      width: min(Double(width), bx + bw + padX) - max(0, bx - padX),
+      height: min(Double(height), by + bh + padY) - max(0, by - padY)
+    ).integral
+    guard cropRect.width >= 2, cropRect.height >= 2, let crop = image.cropping(to: cropRect),
+          let jpeg = Self.jpeg(Self.fitted(crop, within: settings.cropThumbnailSize)) else {
+      return nil
+    }
+    let embedStart = Date()
+    let embedding = try embed(crop, settings: settings, model: classifier)
+    // Read by the accuracy tool (tool/species_pack); the app ignores it.
+    let embedMs = Date().timeIntervalSince(embedStart) * 1000
+    return [
+      "pixelWidth": Int(bw.rounded()), "pixelHeight": Int(bh.rounded()),
+      "crop": FlutterStandardTypedData(bytes: jpeg),
+      "embedding": FlutterStandardTypedData(float32: embedding.withUnsafeBufferPointer { Data(buffer: $0) }),
+      "embedMs": embedMs,
+    ]
   }
 
   // MARK: Detection
 
-  private struct Box {
+  struct Box {
     let x: Double, y: Double, w: Double, h: Double
     let score: Float
   }

@@ -30,6 +30,13 @@ class _PhotoGallery extends ConsumerWidget {
   /// through its check (issue #4527).
   final bool pagingLocked;
 
+  /// Whether a video's fish labels take taps: not on a locked video
+  /// (issue #4675).
+  final bool identificationsEditable;
+
+  /// Whether a video's fish labels are hidden: while picking a white point.
+  final bool hideIdentifications;
+
   const _PhotoGallery({
     required this.mediaList,
     required this.pageController,
@@ -43,6 +50,8 @@ class _PhotoGallery extends ConsumerWidget {
     required this.currentIndex,
     required this.people,
     this.pagingLocked = false,
+    this.identificationsEditable = true,
+    this.hideIdentifications = false,
   });
 
   @override
@@ -96,6 +105,8 @@ class _PhotoGallery extends ConsumerWidget {
               onHoldChanged: onVideoHoldChanged,
               onControllerChanged: onVideoControllerChanged,
               people: people,
+              identificationsEditable: identificationsEditable,
+              hideIdentifications: hideIdentifications,
             ),
           );
         }

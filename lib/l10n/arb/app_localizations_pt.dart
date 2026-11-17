@@ -29214,11 +29214,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Encontre peixes nas suas fotos e sugira a espécie';
+      'Encontre peixes nas suas fotos e vídeos e sugira a espécie';
 
   @override
   String get settings_speciesId_intro =>
-      'Encontra peixes nas suas fotos e sugere qual é a espécie. Funciona neste dispositivo. Suas fotos nunca saem dele.';
+      'Encontra peixes nas suas fotos e vídeos e sugere qual é a espécie. Funciona neste dispositivo. Suas fotos e vídeos nunca saem dele.';
 
   @override
   String get settings_speciesId_model => 'Modelo';
@@ -29294,7 +29294,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Identificar peixes ao abrir uma foto';
+      'Identificar peixes ao abrir uma foto ou um vídeo';
 
   @override
   String get settings_speciesId_kept => 'Sugestões guardadas neste dispositivo';
@@ -56201,6 +56201,20 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_species_identifying => 'Procurando peixes...';
+
+  @override
+  String get media_species_sheetTitleVideo => 'Espécies neste vídeo';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return 'Procurando peixes, $percent';
+  }
+
+  @override
+  String get media_species_unnamedFish => 'Peixe sem nome, toque para nomear';
+
+  @override
+  String get media_species_unnamedFishLocked => 'Peixe sem nome';
 
   @override
   String get media_species_possibleMatches => 'Possíveis correspondências';

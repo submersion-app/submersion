@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/species_id/data/engines/channel_vision_engine.dart';
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
@@ -227,5 +229,130 @@ void main() {
     expect(models.embeddingSize, 768);
     expect(models.cropThumbnailSize, 320);
     expect(models.classifierMean, manifest.classifier.mean);
+  });
+
+  group('video (issue #4675)', () {
+    test('detectVideo sends the range and decodes the frames', () async {
+      late MethodCall sent;
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        sent = call;
+        return {
+          'width': 1080,
+          'height': 1920,
+          'durationMs': 25000,
+          'frames': [
+            {
+              'ms': 0,
+              'boxes': [
+                {'x': 0.1, 'y': 0.2, 'width': 0.3, 'height': 0.4, 'score': 0.9},
+              ],
+            },
+            {'ms': 250, 'boxes': <Object?>[]},
+          ],
+        };
+      });
+      final video = await engine().detectVideo(
+        path: '/v.mp4',
+        startMs: 10000,
+        endMs: 20000,
+        sampleIntervalMs: 250,
+      );
+      expect(sent.method, 'detectVideo');
+      expect(sent.arguments, {
+        'path': '/v.mp4',
+        'startMs': 10000,
+        'endMs': 20000,
+        'sampleIntervalMs': 250,
+      });
+      expect(video.width, 1080);
+      expect(video.height, 1920);
+      expect(video.durationMs, 25000);
+      expect(video.frames.map((f) => f.ms), [0, 250]);
+      expect(
+        video.frames.first.boxes.single,
+        const DetectedBox(
+          box: IdentificationBox(x: 0.1, y: 0.2, width: 0.3, height: 0.4),
+          score: 0.9,
+        ),
+      );
+    });
+
+    test('embedMoments sends each moment and keeps a gap where a frame '
+        'failed', () async {
+      late MethodCall sent;
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        sent = call;
+        return [
+          {
+            'pixelWidth': 80,
+            'pixelHeight': 60,
+            'crop': Uint8List.fromList([0xFF, 0xD8]),
+            'embedding': Float32List.fromList([1, 0, 0]),
+          },
+          null,
+        ];
+      });
+      final crops = await engine().embedMoments(
+        path: '/v.mp4',
+        moments: const [
+          VisionMoment(
+            ms: 500,
+            box: IdentificationBox(x: 0.1, y: 0.2, width: 0.3, height: 0.4),
+          ),
+          VisionMoment(
+            ms: 900,
+            box: IdentificationBox(x: 0.5, y: 0.5, width: 0.1, height: 0.1),
+          ),
+        ],
+      );
+      expect(sent.method, 'embedMoments');
+      expect(sent.arguments, {
+        'path': '/v.mp4',
+        'moments': [
+          {'ms': 500, 'x': 0.1, 'y': 0.2, 'width': 0.3, 'height': 0.4},
+          {'ms': 900, 'x': 0.5, 'y': 0.5, 'width': 0.1, 'height': 0.1},
+        ],
+      });
+      expect(crops, hasLength(2));
+      expect(crops.first!.pixelWidth, 80);
+      expect(crops.first!.embedding, [1, 0, 0]);
+      expect(crops.last, isNull);
+    });
+
+    test('an app in the background is reported as such', () async {
+      messenger.setMockMethodCallHandler(
+        channel,
+        (call) async => throw PlatformException(code: 'not_foreground'),
+      );
+      expect(
+        engine().detectVideo(
+          path: '/v.mp4',
+          startMs: 0,
+          endMs: 10000,
+          sampleIntervalMs: 250,
+        ),
+        throwsA(
+          isA<VisionEngineException>().having(
+            (e) => e.code,
+            'code',
+            VisionEngineException.notForeground,
+          ),
+        ),
+      );
+    });
+
+    test('a missing plugin is unsupported', () async {
+      messenger.setMockMethodCallHandler(channel, null);
+      expect(
+        engine().embedMoments(path: '/v.mp4', moments: const []),
+        throwsA(
+          isA<VisionEngineException>().having(
+            (e) => e.code,
+            'code',
+            'unsupported',
+          ),
+        ),
+      );
+    });
   });
 }

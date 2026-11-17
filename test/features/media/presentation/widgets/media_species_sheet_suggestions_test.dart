@@ -83,6 +83,8 @@ const _ownTag = SpeciesTagChip(
 );
 
 MediaItem _photo() => testMediaItem(id: 'p1', diveId: 'd1');
+MediaItem _video() =>
+    testMediaItem(id: 'p1', diveId: 'd1', mediaType: MediaType.video);
 
 void main() {
   late bool flagBefore;
@@ -107,6 +109,8 @@ void main() {
     EditSession<PhotoRecord>? sitting,
     bool settle = true,
     List<Species> allSpecies = const [],
+    MediaItem? item,
+    double? progress,
   }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
@@ -127,8 +131,11 @@ void main() {
           suggestionAcceptorProvider.overrideWithValue(acceptor),
           identificationCropFileProvider.overrideWith((ref, key) async => null),
           allSpeciesProvider.overrideWith((ref) async => allSpecies),
+          mediaIdentificationProgressProvider(
+            'p1',
+          ).overrideWith((ref) => Stream.value(progress)),
         ],
-        child: MediaSpeciesSheet(item: _photo(), sitting: sitting),
+        child: MediaSpeciesSheet(item: item ?? _photo(), sitting: sitting),
       ),
     );
     if (settle) {
@@ -163,6 +170,41 @@ void main() {
     ) async {
       await pump(tester);
       expect(find.text('Suggested'), findsNothing);
+    });
+
+    testWidgets('a video says video in its title (issue #4675)', (
+      tester,
+    ) async {
+      await pump(tester, item: _video());
+      expect(find.text('Species in this video'), findsOneWidget);
+      expect(find.text('Species in this photo'), findsNothing);
+    });
+
+    testWidgets('a video suggestion shows no count', (tester) async {
+      await pump(
+        tester,
+        item: _video(),
+        suggestions: [suggestion(chromis, score: 0.71, count: 3)],
+      );
+      expect(find.text('Brown Chromis'), findsOneWidget);
+      expect(find.text('Brown Chromis (3)'), findsNothing);
+    });
+
+    testWidgets('a video being scanned shows how far it has got, above '
+        'what it found', (tester) async {
+      await pump(
+        tester,
+        item: _video(),
+        busy: true,
+        progress: 0.4,
+        suggestions: [suggestion(parrotfish, score: 0.92)],
+        settle: false,
+      );
+      expect(find.text('Looking for fish, 40%'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('media_suggested_row_1')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('while analysing it says so', (tester) async {

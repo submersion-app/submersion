@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:submersion_vision/submersion_vision.dart';
 
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
@@ -60,6 +62,72 @@ class ChannelVisionEngine implements VisionEngine {
   }
 
   @override
+  Future<VideoDetections> detectVideo({
+    required String path,
+    required int startMs,
+    required int endMs,
+    required int sampleIntervalMs,
+  }) => _guard(() async {
+    final reply = await SubmersionVision.detectVideo({
+      'path': path,
+      'startMs': startMs,
+      'endMs': endMs,
+      'sampleIntervalMs': sampleIntervalMs,
+    });
+    if (reply == null) {
+      throw const VisionEngineException('inference_failed', 'no reply');
+    }
+    final frames = reply['frames'];
+    return VideoDetections(
+      width: _int(reply['width']),
+      height: _int(reply['height']),
+      durationMs: _int(reply['durationMs']),
+      frames: [
+        if (frames is List)
+          for (final raw in frames)
+            if (raw is Map) _frame(raw),
+      ],
+    );
+  });
+
+  @override
+  Future<List<VisionMomentCrop?>> embedMoments({
+    required String path,
+    required List<VisionMoment> moments,
+  }) => _guard(() async {
+    final reply = await SubmersionVision.embedMoments({
+      'path': path,
+      'moments': [
+        for (final m in moments)
+          {
+            'ms': m.ms,
+            'x': m.box.x,
+            'y': m.box.y,
+            'width': m.box.width,
+            'height': m.box.height,
+          },
+      ],
+    });
+    if (reply == null || reply.length != moments.length) {
+      throw const VisionEngineException('inference_failed', 'no reply');
+    }
+    return [
+      for (final raw in reply)
+        if (raw is Map)
+          VisionMomentCrop(
+            pixelWidth: _int(raw['pixelWidth']),
+            pixelHeight: _int(raw['pixelHeight']),
+            cropJpeg: raw['crop'] is Uint8List
+                ? raw['crop']! as Uint8List
+                : Uint8List(0),
+            embedding: _floats(raw['embedding']),
+          )
+        else
+          null,
+    ];
+  });
+
+  @override
   Future<void> unload() => _guard(SubmersionVision.unload);
 
   @override
@@ -103,6 +171,27 @@ class ChannelVisionEngine implements VisionEngine {
             : Uint8List(0),
         embedding: _floats(raw['embedding']),
       );
+
+  static FrameDetections _frame(Map<Object?, Object?> raw) {
+    final boxes = raw['boxes'];
+    return FrameDetections(
+      ms: _int(raw['ms']),
+      boxes: [
+        if (boxes is List)
+          for (final b in boxes)
+            if (b is Map)
+              DetectedBox(
+                box: IdentificationBox(
+                  x: _double(b['x']),
+                  y: _double(b['y']),
+                  width: _double(b['width']),
+                  height: _double(b['height']),
+                ),
+                score: _double(b['score']),
+              ),
+      ],
+    );
+  }
 
   static double _double(Object? v) => v is num ? v.toDouble() : 0;
   static int _int(Object? v) => v is num ? v.toInt() : 0;

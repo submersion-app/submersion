@@ -5,8 +5,11 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
+import 'package:submersion/features/species_id/domain/services/track_path_codec.dart';
 
 /// What the marine life model found on each piece of media, and the diver's
 /// decisions on it (issue #4668). Never synced: the rows are this device's,
@@ -100,28 +103,67 @@ class MediaIdentificationRepository {
     });
   }
 
-  /// Writes [changed] over the stored rows with the same ids, and [run]
-  /// when given, in one transaction. Only rows still stored are written: a
-  /// decision that lands after the photo's rows were cleared or replaced
-  /// must not bring them back.
-  Future<void> updateIdentifications(
+  /// Writes the decisions on [changed] (the decision, its species and
+  /// when) and nothing else, in one transaction. [changed] comes from an
+  /// earlier read: a video's scan may have moved, renamed or claimed the
+  /// same rows since (issue #4675), and those columns stay as stored. Only
+  /// rows still stored are written: a decision that lands after the rows
+  /// were cleared or replaced must not bring them back.
+  Future<void> updateDecisions(List<MediaIdentification> changed) =>
+      _db.transaction(() async {
+        for (final identification in changed) {
+          final row = _toCompanion(identification);
+          await _writeOver(
+            identification.id,
+            MediaIdentificationsCompanion(
+              decision: row.decision,
+              decidedSpeciesId: row.decidedSpeciesId,
+              decidedAt: row.decidedAt,
+            ),
+          );
+        }
+      });
+
+  /// Writes what naming found for [changed] (scores, candidates and label
+  /// flags) and [run], moved on to the pack and place they were named for,
+  /// in one transaction. Decisions, claims, boxes and paths stay as stored:
+  /// the diver may have decided since [changed] was read. Only rows still
+  /// stored are written, and [run] only while it is.
+  Future<void> updateNames(
     List<MediaIdentification> changed, {
-    MediaIdentificationRun? run,
-  }) {
-    final db = _db;
-    return db.transaction(() async {
-      for (final identification in changed) {
-        await db
-            .update(db.mediaIdentifications)
-            .replace(_toCompanion(identification));
-      }
-      if (run != null) {
-        await db
-            .update(db.mediaIdentificationRuns)
-            .replace(_runToCompanion(run));
-      }
-    });
-  }
+    required MediaIdentificationRun run,
+  }) => _db.transaction(() async {
+    for (final identification in changed) {
+      final row = _toCompanion(identification);
+      await _writeOver(
+        identification.id,
+        MediaIdentificationsCompanion(
+          openScore: row.openScore,
+          candidatesJson: row.candidatesJson,
+          locationLimited: row.locationLimited,
+          suggestable: row.suggestable,
+          confident: row.confident,
+          specific: row.specific,
+        ),
+      );
+    }
+    await _db.update(_db.mediaIdentificationRuns).replace(_runToCompanion(run));
+  });
+
+  Future<void> _writeOver(String id, MediaIdentificationsCompanion columns) =>
+      (_db.update(
+        _db.mediaIdentifications,
+      )..where((r) => r.id.equals(id))).write(columns);
+
+  /// Records that the diver gave [identificationId] the species
+  /// [speciesId] from the frame (issue #4675). Writes nothing when the row
+  /// is gone: a claim must not bring back a cleared identification.
+  Future<void> claim(String identificationId, String speciesId) =>
+      (_db.update(
+        _db.mediaIdentifications,
+      )..where((r) => r.id.equals(identificationId))).write(
+        MediaIdentificationsCompanion(claimedSpeciesId: Value(speciesId)),
+      );
 
   /// Removes the runs and identifications of [mediaIds]; returns the ids of
   /// the identifications removed, for their crops and embeddings.
@@ -209,6 +251,8 @@ class MediaIdentificationRepository {
         imageWidth: row.imageWidth,
         imageHeight: row.imageHeight,
         detectionCount: row.detectionCount,
+        scannedMs: row.scannedMs,
+        videoDurationMs: row.videoDurationMs,
       );
 
   static MediaIdentificationRunsCompanion _runToCompanion(
@@ -223,6 +267,8 @@ class MediaIdentificationRepository {
     imageWidth: run.imageWidth,
     imageHeight: run.imageHeight,
     detectionCount: run.detectionCount,
+    scannedMs: Value(run.scannedMs),
+    videoDurationMs: Value(run.videoDurationMs),
   );
 
   static MediaIdentification _fromRow(MediaIdentificationRow row) =>
@@ -249,6 +295,13 @@ class MediaIdentificationRepository {
         decidedSpeciesId: row.decidedSpeciesId,
         decidedAt: row.decidedAt == null ? null : _time(row.decidedAt!),
         createdAt: _time(row.createdAt),
+        startMs: row.startMs,
+        endMs: row.endMs,
+        bestMs: row.bestMs,
+        path: _decodePath(row),
+        claimedSpeciesId: row.claimedSpeciesId,
+        confident: row.confident,
+        specific: row.specific,
       );
 
   static MediaIdentificationsCompanion _toCompanion(MediaIdentification i) =>
@@ -270,7 +323,32 @@ class MediaIdentificationRepository {
         decidedSpeciesId: Value(i.decidedSpeciesId),
         decidedAt: Value(i.decidedAt?.millisecondsSinceEpoch),
         createdAt: i.createdAt.millisecondsSinceEpoch,
+        startMs: Value(i.startMs),
+        endMs: Value(i.endMs),
+        bestMs: Value(i.bestMs),
+        trackPath: Value(
+          i.isTrack ? encodeTrackPath(i.startMs!, i.path) : null,
+        ),
+        claimedSpeciesId: Value(i.claimedSpeciesId),
+        confident: Value(i.confident),
+        specific: Value(i.specific),
       );
+
+  /// A path that cannot be read keeps its row with no path, which draws no
+  /// label: the rest of what was found stays usable.
+  static List<TrackSample> _decodePath(MediaIdentificationRow row) {
+    final bytes = row.trackPath;
+    final start = row.startMs;
+    if (bytes == null || start == null) return const [];
+    try {
+      return decodeTrackPath(start, bytes);
+    } on FormatException catch (e) {
+      _log.debug('Unreadable track path on ${row.id}', error: e);
+      return const [];
+    }
+  }
+
+  static final _log = LoggerService.forClass(MediaIdentificationRepository);
 
   /// A row whose JSON cannot be read keeps its place with no candidates,
   /// which the rules never suggest.
