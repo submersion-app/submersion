@@ -448,7 +448,10 @@ class RecordEditController<T> extends ChangeNotifier {
   /// ([isBusy]). [operation] answers whether it wrote anything. When it did,
   /// the record is read again ([reread]) and a fresh sitting starts on it
   /// ([retake]), or the page locks when the record is gone. When it did not,
-  /// or throws, the sitting carries on as it was; a throw is passed on.
+  /// or throws, the sitting carries on as it was; a throw is passed on. A
+  /// read that throws after a write locks the page and is passed on too: the
+  /// sitting's copy is from before the write, and a Save from it would put
+  /// the old record back.
   /// False also when the controller was disposed meanwhile.
   Future<bool> runOperation(Future<bool> Function() operation) async {
     final session = _session;
@@ -465,7 +468,13 @@ class RecordEditController<T> extends ChangeNotifier {
       if (!wrote || reread == null || !identical(_session, session)) {
         return true;
       }
-      final fresh = await reread(session.stored);
+      final T? fresh;
+      try {
+        fresh = await reread(session.stored);
+      } catch (_) {
+        if (!_disposed && identical(_session, session)) _endSitting();
+        rethrow;
+      }
       if (_disposed) return false;
       if (!identical(_session, session)) return true;
       _operatingOn = null;

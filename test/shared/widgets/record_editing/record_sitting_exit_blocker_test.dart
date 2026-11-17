@@ -68,6 +68,34 @@ void main() {
     expect(await guard.mayLeave(), isTrue);
   });
 
+  test(
+    'leaving another page passes a sitting by; leaving its own asks',
+    () async {
+      final onPage = RecordSittingExitBlocker<String>(
+        controller: controller,
+        guard: guard,
+        confirm: () async {
+          asked++;
+          return answer;
+        },
+        page: () => 'list',
+      );
+      addTearDown(onPage.dispose);
+      blocker.dispose();
+      controller.unlock('a');
+      controller.session!.set(_notes, 'b');
+
+      expect(await guard.mayLeave(page: 'pushed'), isTrue);
+      expect(asked, 0);
+
+      expect(await guard.mayLeave(page: 'list'), isFalse);
+      expect(asked, 1);
+      // A quit, or a leaving with no page, still asks about it.
+      expect(await guard.mayLeave(), isFalse);
+      expect(asked, 2);
+    },
+  );
+
   test('a clean sitting is no unsaved work', () async {
     controller.unlock('a');
 

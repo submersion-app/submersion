@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -54,6 +56,25 @@ void main() {
 
     expect(find.text('Discard changes?'), findsNothing);
     expect(location(page.router), '/home');
+  });
+
+  testWidgets('Back from a page pushed above leaves the sitting below alone', (
+    tester,
+  ) async {
+    // As Open full page from the list pane: the pushed page is left, the
+    // page beneath it stays, so its unsaved changes are not in question.
+    final page = await pumpPage(tester);
+    await change(tester);
+    unawaited(page.router.push('/home/dive'));
+    await settle(tester);
+    expect(find.text('Discard changes?'), findsNothing);
+
+    await tester.binding.handlePopRoute();
+    await settle(tester);
+
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(location(page.router), '/home/dive');
+    expect(action(tester, 'Save').onPressed, isNotNull);
   });
 
   testWidgets('Back on the full page asks once, not twice', (tester) async {

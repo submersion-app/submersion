@@ -35,6 +35,8 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       controller: controller,
       guard: container.read(appExitGuardProvider),
       confirm: () async => mounted && await cancelSitting(context, controller),
+      // The route the page is on, so leaving another page asks nothing.
+      page: () => mounted ? recordSittingPageOf(context) : null,
     );
     return controller;
   }

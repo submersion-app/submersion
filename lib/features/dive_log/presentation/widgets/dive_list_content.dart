@@ -2672,7 +2672,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 onLogManually: () {
                   if (ResponsiveBreakpoints.isMasterDetail(context)) {
                     final routerState = GoRouterState.of(context);
-                    context.goInPlace('${routerState.uri.path}?mode=new');
+                    // A filter can empty the list while the pane still
+                    // shows a dive: its unsaved work is asked about first.
+                    context.goInPlaceGuarded(
+                      '${routerState.uri.path}?mode=new',
+                    );
                   } else {
                     context.push('/dives/new');
                   }

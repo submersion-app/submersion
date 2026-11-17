@@ -192,6 +192,22 @@ void main() {
     expect(controller.isOperating, isFalse);
   });
 
+  test('a failed read after a write locks the page and rethrows', () async {
+    // The record changed underneath the sitting, and what it is now is
+    // unknown: a Save from the old copy would write the change back over.
+    final controller = _controller(
+      reread: (_) async => throw StateError('closed'),
+    )..unlock(const _Rec('a'));
+
+    await expectLater(
+      controller.runOperation(() async => true),
+      throwsStateError,
+    );
+
+    expect(controller.isUnlocked, isFalse);
+    expect(controller.isOperating, isFalse);
+  });
+
   test('a controller disposed while an operation runs reads nothing', () async {
     var reads = 0;
     final controller = RecordEditController<_Rec>(

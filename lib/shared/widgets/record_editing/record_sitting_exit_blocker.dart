@@ -18,11 +18,13 @@ class RecordSittingExitBlocker<T> {
     required RecordEditController<T> controller,
     required AppExitGuard guard,
     required Future<bool> Function() confirm,
+    Object? Function()? page,
   }) : _controller = controller,
        _guard = guard {
     _blocker = AppExitBlocker(
       hasUnsavedWork: () => controller.isDirty,
       confirmLeaving: confirm,
+      page: page,
     );
     controller.addListener(_follow);
     _follow();
@@ -54,10 +56,21 @@ class RecordSittingExitBlocker<T> {
 /// [GoRoute.onExit] for a record page's routes: a `go` that would leave a
 /// sitting with unsaved changes asks first. A Back that has already asked
 /// finds nothing left to ask about.
+///
+/// Only the sittings on the page being left are asked about, matched by
+/// [GoRouterState.pageKey], the key go_router builds that page with: a page
+/// pushed above the list pane is popped without a word about the pane.
 Future<bool> confirmLeaveRecordSitting(
   BuildContext context,
   GoRouterState state,
 ) => ProviderScope.containerOf(
   context,
   listen: false,
-).read(appExitGuardProvider).mayLeave();
+).read(appExitGuardProvider).mayLeave(page: state.pageKey);
+
+/// The key of the page [context] is built in, as [GoRouterState.pageKey]
+/// names it, for [RecordSittingExitBlocker]'s `page`.
+Object? recordSittingPageOf(BuildContext context) {
+  final settings = ModalRoute.of(context)?.settings;
+  return settings is Page ? settings.key : null;
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
@@ -83,6 +84,69 @@ void main() {
     await tester.pumpAndSettle();
     return opened;
   }
+
+  testWidgets('an empty list\'s Log manually asks before replacing the pane', (
+    tester,
+  ) async {
+    // A filter can empty the list while the pane still shows a dive.
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    guard = AppExitGuard(
+      retryExit: () async {},
+      preventWindowClose: (_) async {},
+      revealWindow: () async {},
+    );
+    asked = 0;
+    guard.hold(
+      AppExitBlocker(
+        hasUnsavedWork: () => true,
+        confirmLeaving: () async {
+          asked++;
+          return false;
+        },
+      ),
+    );
+    final router = GoRouter(
+      initialLocation: '/dives?selected=d1',
+      routes: [
+        GoRoute(
+          path: '/dives',
+          builder: (context, state) => Scaffold(
+            body: DiveListContent(
+              showAppBar: false,
+              selectedId: state.uri.queryParameters['selected'],
+              onItemSelected: (_) {},
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    final overrides = await groupingOverrides(const []);
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        locale: const Locale('en'),
+        overrides: [
+          ...overrides,
+          appExitGuardProvider.overrideWithValue(guard),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Log Your First Dive'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Log Dive Manually'));
+    await tester.pumpAndSettle();
+
+    expect(asked, 1);
+    expect(
+      router.routerDelegate.currentConfiguration.uri.toString(),
+      '/dives?selected=d1',
+    );
+  });
 
   testWidgets('the dive already open asks nothing', (tester) async {
     final opened = await pump(tester);
