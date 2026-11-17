@@ -121,7 +121,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
         if (isDesktop && viewMode != ListViewMode.table) {
           final state = GoRouterState.of(context);
           final currentPath = state.uri.path;
-          context.goInPlace('$currentPath?mode=new');
+          context.goInPlaceGuarded('$currentPath?mode=new');
         } else {
           context.push('/dives/new');
         }
@@ -151,16 +151,17 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
     if (_isMapView) {
       // Switch back to detail view
       if (selectedId != null) {
-        context.goInPlace('$currentPath?selected=$selectedId');
+        context.goInPlaceGuarded('$currentPath?selected=$selectedId');
       } else {
-        context.goInPlace(currentPath);
+        context.goInPlaceGuarded(currentPath);
       }
     } else {
-      // Switch to map view
+      // Switch to map view, which replaces the pane's dive: a sitting
+      // there is asked about first (issue #4527).
       if (selectedId != null) {
-        context.goInPlace('$currentPath?selected=$selectedId&view=map');
+        context.goInPlaceGuarded('$currentPath?selected=$selectedId&view=map');
       } else {
-        context.goInPlace('$currentPath?view=map');
+        context.goInPlaceGuarded('$currentPath?view=map');
       }
     }
   }
@@ -428,7 +429,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
             // Exit map view and show detail pane for the selected dive
             final state = GoRouterState.of(context);
             final currentPath = state.uri.path;
-            context.goInPlace('$currentPath?selected=$diveId');
+            context.goInPlaceGuarded('$currentPath?selected=$diveId');
           },
         ),
         editBuilder: (context, id, onSaved, onCancel) {

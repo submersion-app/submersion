@@ -80,7 +80,7 @@ class _EquipmentAvatarState extends ConsumerState<EquipmentAvatar> {
       radius: widget.radius,
       backgroundColor: widget.backgroundColor ?? scheme.tertiaryContainer,
       child: Icon(
-        equipmentTypeIcon(widget.item.type),
+        equipmentItemIcon(widget.item),
         size: widget.iconSize,
         color: widget.iconColor ?? scheme.onTertiaryContainer,
       ),

@@ -99,7 +99,7 @@ class GeneratedAtCallSiteTest(unittest.TestCase):
 
 
 class CatalogueOutputTest(unittest.TestCase):
-    """The site catalogue is built by scripts/site_catalogue/, not here.
+    """The site catalogue is built by submersion-app/site-catalogue, not here.
 
     A source scan: this script must never write the catalogue again, or a
     centres-only run would replace the merged catalogue with OpenStreetMap

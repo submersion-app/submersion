@@ -1500,6 +1500,14 @@
   "accessibility_shortcut_previousPlannedDive": "Previous planned dive",
   "accessibility_shortcut_nextPlannedDive": "Next planned dive",
   "accessibility_shortcut_newDive": "New dive",
+  "accessibility_shortcut_unlockRecord": "Unlock to edit",
+  "@accessibility_shortcut_unlockRecord": {
+    "description": "Keyboard shortcut label for unlocking the record page in view (a dive) to edit it"
+  },
+  "accessibility_shortcut_saveChanges": "Save changes",
+  "@accessibility_shortcut_saveChanges": {
+    "description": "Keyboard shortcut label for saving the changes made to an unlocked record page"
+  },
   "accessibility_shortcut_openSettings": "Open settings",
   "accessibility_shortcut_searchDives": "Search dives",
   "accessibility_shortcut_searchEverything": "Search everything",
@@ -6073,6 +6081,14 @@
   "@recordEdit_saveOrCancelFirst": {
     "description": "Why an action that changes a whole record is disabled: the editing sitting has unsaved changes."
   },
+  "recordEdit_unlockToUseThese": "Unlock to use these",
+  "@recordEdit_unlockToUseThese": {
+    "description": "Caption over a menu's actions that change a whole record (delete, re-parse and the like), shown while the record's page is locked."
+  },
+  "diveLog_profile_editProfile": "Edit profile",
+  "@diveLog_profile_editProfile": {
+    "description": "Tooltip of the button on a dive's Profile card that opens the profile editor, which saves the edited profile on its own page."
+  },
   "settings_manage_setupAssistant": "Setup assistant",
   "settings_manage_setupAssistant_subtitle": "Revisit units, backups, sync and photos",
   "setup_common_back": "Back",
@@ -6403,9 +6419,9 @@
   "diveLog_map_emptyTitle": "No dive activity to display",
   "diveLog_map_errorLoading": "Error loading dive data: {error}",
   "diveLog_map_tooltip_fitAllSites": "Fit All Sites",
-  "diveLog_media_dropUnlockHint": "Unlock this dive on its own page to add photos.",
+  "diveLog_media_dropUnlockHint": "Unlock this dive to add photos.",
   "@diveLog_media_dropUnlockHint": {
-    "description": "Shown when photos or videos are dropped on a dive that is locked, on its page or in the list's detail pane (which cannot unlock): dives are edited only while unlocked, on their own page."
+    "description": "Shown when photos or videos are dropped on a dive that is locked, on its page or in the list's detail pane: a dive is changed only while unlocked."
   },
   "diveLog_numbering_actions": "Actions",
   "diveLog_numbering_allCorrect": "All dives numbered correctly",
@@ -17115,6 +17131,14 @@
   "enum_fillSource_nfc": "NFC tag",
   "enum_fillSource_qr": "QR code",
   "enum_tripCylinderEventKind_adjustment": "Adjustment",
+  "enum_navTrackLinkMode_auto": "Automatically",
+  "@enum_navTrackLinkMode_auto": {
+    "description": "How a route came to be linked to a dive, after the label Linked: the app matched it by time"
+  },
+  "enum_navTrackLinkMode_manual": "Manually",
+  "@enum_navTrackLinkMode_manual": {
+    "description": "How a route came to be linked to a dive, after the label Linked: the diver chose the dive"
+  },
   "enum_tripCylinderEventKind_fill": "Fill",
   "enum_weatherSource_manual": "Manual",
   "enum_weatherSource_openMeteo": "Open-Meteo",
@@ -26103,6 +26127,7 @@
   "attrChoice_cylinder_use_breathing_gas": "Breathing gas",
   "attrChoice_cylinder_use_suit_inflation": "Suit inflation",
   "attrChoice_worn_as_back": "Back mount",
+  "attrChoice_worn_as_twin_set": "Twin set",
   "attrChoice_worn_as_sidemount_left": "Sidemount, left",
   "attrChoice_worn_as_sidemount_right": "Sidemount, right",
   "attrChoice_worn_as_stage": "Stage",

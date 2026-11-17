@@ -88,6 +88,7 @@ void main() {
   group('wornAsZones', () {
     test('maps each choice to its zones, the named side first', () {
       expect(wornAsZones('back'), [FigureZone.backTank]);
+      expect(wornAsZones('twin_set'), [FigureZone.backTank]);
       expect(wornAsZones('sidemount_left'), [
         FigureZone.sidemountLeft,
         FigureZone.sidemountRight,

@@ -2656,6 +2656,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'Nouvelle plongée';
 
   @override
+  String get accessibility_shortcut_unlockRecord =>
+      'Déverrouiller pour modifier';
+
+  @override
+  String get accessibility_shortcut_saveChanges =>
+      'Enregistrer les modifications';
+
+  @override
   String get accessibility_shortcut_openSettings => 'Ouvrir les réglages';
 
   @override
@@ -10222,6 +10230,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Enregistrez ou annulez d\'abord vos modifications';
 
   @override
+  String get recordEdit_unlockToUseThese =>
+      'Déverrouillez pour utiliser ces actions';
+
+  @override
+  String get diveLog_profile_editProfile => 'Modifier le profil';
+
+  @override
   String get settings_manage_setupAssistant => 'Assistant de configuration';
 
   @override
@@ -10906,7 +10921,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'Déverrouillez cette plongée sur sa propre page pour y ajouter des photos.';
+      'Déverrouillez cette plongée pour y ajouter des photos.';
 
   @override
   String get diveLog_numbering_actions => 'Actions';
@@ -28993,6 +29008,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_tripCylinderEventKind_adjustment => 'Ajustement';
 
   @override
+  String get enum_navTrackLinkMode_auto => 'Automatiquement';
+
+  @override
+  String get enum_navTrackLinkMode_manual => 'Manuellement';
+
+  @override
   String get enum_tripCylinderEventKind_fill => 'Gonflage';
 
   @override
@@ -42927,6 +42948,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attrChoice_worn_as_back => 'Montage dorsal';
+
+  @override
+  String get attrChoice_worn_as_twin_set => 'Bi-bouteille';
 
   @override
   String get attrChoice_worn_as_sidemount_left => 'Sidemount gauche';

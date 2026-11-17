@@ -13,6 +13,25 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
+/// Where Locate and Replace link find the replacement file, and how they
+/// read its digest: the image picker and a hash of the file's bytes.
+@immutable
+class MediaLinkFileSource {
+  const MediaLinkFileSource({
+    this.pick = _pickImagePath,
+    this.hash = sha256OfFile,
+  });
+
+  final Future<String?> Function() pick;
+  final Future<({String hash, int sizeBytes})> Function(File file) hash;
+}
+
+/// The [MediaLinkFileSource] [replaceMediaLink] uses when it is given none;
+/// a test answers it without a native dialog.
+final mediaLinkFileSourceProvider = Provider<MediaLinkFileSource>(
+  (ref) => const MediaLinkFileSource(),
+);
+
 /// Picks a replacement file for [item] and routes the re-link through the
 /// repair engine.
 ///
@@ -51,11 +70,12 @@ Future<bool> replaceMediaLink(
   // disposed. Capturing here also means a repair the user already confirmed
   // still lands if they dismiss the sheet while it applies.
   final repairService = ref.read(mediaRepairServiceProvider);
-  final picked = pickPath ?? _pickImagePath;
+  final source = ref.read(mediaLinkFileSourceProvider);
+  final picked = pickPath ?? source.pick;
   final newPath = await picked();
   if (newPath == null) return false;
 
-  final digest = await (hashFile ?? sha256OfFile)(File(newPath));
+  final digest = await (hashFile ?? source.hash)(File(newPath));
   final rowHash = item.contentHash;
   final sameBytes = rowHash == null || digest.hash == rowHash;
 

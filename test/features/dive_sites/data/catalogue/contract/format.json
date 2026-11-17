@@ -1,0 +1,138 @@
+{
+  "entry_methods": [
+    "shore",
+    "boat",
+    "backRoll",
+    "frontRoll",
+    "giantStride",
+    "seatedEntry",
+    "ladder",
+    "platform",
+    "jetty",
+    "other"
+  ],
+  "fields": {
+    "body_of_water": {
+      "required": false
+    },
+    "country": {
+      "required": false
+    },
+    "country_code": {
+      "required": false
+    },
+    "description": {
+      "required": false
+    },
+    "difficulty": {
+      "required": false
+    },
+    "entry": {
+      "required": false
+    },
+    "features": {
+      "required": false
+    },
+    "hazards": {
+      "required": false
+    },
+    "id": {
+      "required": true
+    },
+    "island": {
+      "required": false
+    },
+    "kind": {
+      "required": false
+    },
+    "lat": {
+      "required": false
+    },
+    "locality": {
+      "required": false
+    },
+    "lon": {
+      "required": false
+    },
+    "max_depth_m": {
+      "required": false
+    },
+    "min_depth_m": {
+      "required": false
+    },
+    "name": {
+      "required": true
+    },
+    "position_from": {
+      "required": false
+    },
+    "region": {
+      "required": false
+    },
+    "source": {
+      "required": true
+    },
+    "source_ref": {
+      "required": false
+    },
+    "trust": {
+      "required": true
+    },
+    "types": {
+      "required": false
+    },
+    "water_type": {
+      "required": false
+    },
+    "website": {
+      "required": false
+    }
+  },
+  "format": 2,
+  "hazard_codes": [
+    "boat_traffic",
+    "cold",
+    "depth",
+    "entanglement",
+    "low_visibility",
+    "overhead",
+    "permit",
+    "strong_current",
+    "surge"
+  ],
+  "kinds": [
+    "site",
+    "register"
+  ],
+  "position_from": [
+    "map"
+  ],
+  "site_types": [
+    "reef",
+    "wall",
+    "wreck",
+    "artificial_reef",
+    "cave",
+    "cavern",
+    "cenote",
+    "blue_hole",
+    "lake",
+    "quarry",
+    "river",
+    "spring",
+    "pool",
+    "pier",
+    "muck",
+    "kelp_forest"
+  ],
+  "trust_levels": [
+    "verified",
+    "researched"
+  ],
+  "withdrawal_reasons": [
+    "position",
+    "not_a_site",
+    "duplicate",
+    "other"
+  ]
+}

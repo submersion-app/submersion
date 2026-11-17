@@ -8,6 +8,7 @@ import 'package:submersion/features/media/domain/entities/media_person_tag.dart'
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
+import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/domain/value_objects/photo_tag_edits.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/helpers/media_time_choice.dart';
@@ -221,5 +222,148 @@ void main() {
     expect(session.isDirty, isTrue);
     expect(session.working.species.map((c) => c.speciesId), ['shark']);
     expect(session.working.people.single.tag.id, 't9');
+  });
+
+  test('a held relink is drawn as the file it found: its path and size, '
+      'found, and not yet checked', () {
+    final stored = _item().copyWith(
+      sourceType: MediaSourceType.localFile,
+      localPath: '/gone/m1.jpg',
+      bookmarkRef: 'old-ref',
+      isOrphaned: true,
+      lastVerifiedAt: _at,
+      contentSizeBytes: 100,
+    );
+    final session = EditSession<PhotoRecord>(
+      PhotoRecord(item: stored, species: const [], people: const []),
+    );
+    addTearDown(session.dispose);
+    session
+      ..remember(
+        photoRelinkProposalKey,
+        RepairProposal(
+          item: stored,
+          confidence: RepairConfidence.exact,
+          candidate: const RepairCandidate.file(
+            path: '/found/m1.jpg',
+            sizeBytes: 9,
+            hash: 'h',
+          ),
+        ),
+      )
+      ..holdChange(photoRelinkKey, cardId: photoFileCardId, write: () async {});
+
+    final drawn = withHeldRelink(session, stored);
+
+    expect(drawn.localPath, '/found/m1.jpg');
+    expect(drawn.bookmarkRef, isNull);
+    expect(drawn.isOrphaned, isFalse);
+    // The stored check was of the old file, and so was its size.
+    expect(drawn.lastVerifiedAt, isNull);
+    expect(drawn.contentSizeBytes, 9);
+  });
+
+  test('a held relink to other bytes is drawn with their hash, as not yet '
+      'backed up, and as linked on this device', () {
+    final stored = _item().copyWith(
+      sourceType: MediaSourceType.localFile,
+      localPath: '/gone/m1.jpg',
+      contentHash: 'OLD',
+      remoteUploadedAt: _at,
+      remoteThumbUploadedAt: _at,
+      remoteCompressedUploadedAt: _at,
+      originDeviceId: 'other-device',
+    );
+    final session = EditSession<PhotoRecord>(
+      PhotoRecord(item: stored, species: const [], people: const []),
+    );
+    addTearDown(session.dispose);
+    session
+      ..remember(
+        photoRelinkProposalKey,
+        RepairProposal(
+          item: stored,
+          confidence: RepairConfidence.edited,
+          candidate: const RepairCandidate.file(
+            path: '/found/m1.jpg',
+            sizeBytes: 9,
+            hash: 'NEW',
+          ),
+        ),
+      )
+      ..holdChange(photoRelinkKey, cardId: photoFileCardId, write: () async {});
+
+    final drawn = withHeldRelink(session, stored, thisDevice: 'this-device');
+
+    expect(drawn.contentHash, 'NEW');
+    expect(drawn.remoteUploadedAt, isNull);
+    expect(drawn.remoteThumbUploadedAt, isNull);
+    expect(drawn.remoteCompressedUploadedAt, isNull);
+    expect(drawn.originDeviceId, 'this-device');
+  });
+
+  test('a held relink to the same bytes keeps what the store holds', () {
+    final stored = _item().copyWith(
+      sourceType: MediaSourceType.localFile,
+      localPath: '/gone/m1.jpg',
+      contentHash: 'SAME',
+      remoteUploadedAt: _at,
+    );
+    final session = EditSession<PhotoRecord>(
+      PhotoRecord(item: stored, species: const [], people: const []),
+    );
+    addTearDown(session.dispose);
+    session
+      ..remember(
+        photoRelinkProposalKey,
+        RepairProposal(
+          item: stored,
+          confidence: RepairConfidence.exact,
+          candidate: const RepairCandidate.file(
+            path: '/found/m1.jpg',
+            sizeBytes: 9,
+            hash: 'SAME',
+          ),
+        ),
+      )
+      ..holdChange(photoRelinkKey, cardId: photoFileCardId, write: () async {});
+
+    final drawn = withHeldRelink(session, stored);
+
+    expect(drawn.contentHash, 'SAME');
+    expect(drawn.remoteUploadedAt, _at);
+  });
+
+  test('a held relink over a row with no hash keeps what the store holds, '
+      'as the repair takes the bytes as the same', () {
+    final stored = _item().copyWith(
+      sourceType: MediaSourceType.localFile,
+      localPath: '/gone/m1.jpg',
+      contentHash: null,
+      remoteUploadedAt: _at,
+    );
+    final session = EditSession<PhotoRecord>(
+      PhotoRecord(item: stored, species: const [], people: const []),
+    );
+    addTearDown(session.dispose);
+    session
+      ..remember(
+        photoRelinkProposalKey,
+        RepairProposal(
+          item: stored,
+          confidence: RepairConfidence.exact,
+          candidate: const RepairCandidate.file(
+            path: '/found/m1.jpg',
+            sizeBytes: 9,
+            hash: 'H',
+          ),
+        ),
+      )
+      ..holdChange(photoRelinkKey, cardId: photoFileCardId, write: () async {});
+
+    final drawn = withHeldRelink(session, stored);
+
+    expect(drawn.contentHash, isNull);
+    expect(drawn.remoteUploadedAt, _at);
   });
 }

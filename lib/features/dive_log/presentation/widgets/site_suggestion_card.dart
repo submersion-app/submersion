@@ -21,6 +21,7 @@ import 'package:submersion/features/media/presentation/widgets/quick_site_from_g
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 const _log = LoggerService('SiteSuggestionCard');
 
@@ -67,6 +68,16 @@ final class SiteSuggestionSitting extends SiteSuggestionEditing {
 
   final EditSession<Dive> session;
   final Dive? layout;
+}
+
+/// How the page around [context] edits the dive, for its suggestion card:
+/// no unlock offered, locked, or the sitting's.
+SiteSuggestionEditing siteSuggestionEditingOf(BuildContext context) {
+  final controller = RecordEditScope.maybeOf<Dive>(context);
+  final session = controller?.session;
+  if (controller == null) return const SiteSuggestionNoEditing();
+  if (session == null) return const SiteSuggestionLocked();
+  return SiteSuggestionSitting(session, layout: controller.layoutRecord);
 }
 
 /// Watches the site suggestion for [diveId] and renders the banner with its

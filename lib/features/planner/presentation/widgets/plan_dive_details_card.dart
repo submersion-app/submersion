@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
+import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_dive_site_field.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_dive_start_field.dart';
@@ -20,9 +21,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// height and nothing below it moves when the diver changes dives.
 class PlanDiveDetailsCard extends ConsumerStatefulWidget {
   const PlanDiveDetailsCard({super.key});
-
-  /// Longest dive name, so a chip in the navigator stays a chip.
-  static const maxNameLength = 40;
 
   @override
   ConsumerState<PlanDiveDetailsCard> createState() =>
@@ -123,8 +121,9 @@ class _PlanDiveDetailsCardState extends ConsumerState<PlanDiveDetailsCard> {
               readOnly: locked,
               textCapitalization: TextCapitalization.sentences,
               inputFormatters: [
+                // Longest dive name, so a chip in the navigator stays a chip.
                 LengthLimitingTextInputFormatter(
-                  PlanDiveDetailsCard.maxNameLength,
+                  StoredSeriesDive.maxNameLength,
                 ),
               ],
               decoration: InputDecoration(

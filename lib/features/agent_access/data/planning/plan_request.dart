@@ -341,8 +341,25 @@ List<int?>? _carriesFrom(
   return raw.cast<int?>();
 }
 
-AgentToolException _refuse(String field, String message) => AgentToolException(
-  AgentToolErrorCode.invalidArgument,
-  message,
-  details: {'field': field},
-);
+/// A refusal of `compute_plan`'s argument [field]: shared by the dives
+/// parser and a recall of a saved plan, so both name the field at fault the
+/// same way.
+AgentToolException planArgumentRefusal(String field, String message) =>
+    AgentToolException(
+      AgentToolErrorCode.invalidArgument,
+      message,
+      details: {'field': field},
+    );
+
+const _refuse = planArgumentRefusal;
+
+/// [args]' [key] as an id: null when it is not given, refused when it is not
+/// a non-empty string, rather than failing on a cast.
+String? optionalIdArg(Map<String, Object?> args, String key) {
+  final value = args[key];
+  if (value == null) return null;
+  if (value is! String || value.isEmpty) {
+    throw _refuse(key, '$key takes an id.');
+  }
+  return value;
+}

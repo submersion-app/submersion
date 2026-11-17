@@ -80,6 +80,10 @@ enum AttributeDimension {
   durationH,
 }
 
+/// The `worn_as` choice for a pair of manifolded back cylinders kept as one
+/// gear item, such as a "D12" (issue #4641).
+const String kWornAsTwinSet = 'twin_set';
+
 /// Stable attribute keys referenced from more than one file.
 abstract final class EquipmentAttrKeys {
   static const size = 'size';
@@ -122,7 +126,9 @@ abstract final class EquipmentAttrKeys {
   // How a cylinder is usually carried (issue #4493): on the back, at the
   // diver's left or right side as a sidemount tank, or clipped on as a
   // stage. The diver figure draws it there unless a dive tank's role says
-  // otherwise.
+  // otherwise. A twin set (issue #4641) is a pair of manifolded back
+  // cylinders logged as this one item: drawn as doubles, and a dive tank
+  // picked from it defaults to the Twin Set role.
   static const wornAs = 'worn_as';
 
   // A cylinder's last visual inspection and hydro test dates. The VIP and
@@ -463,7 +469,13 @@ abstract final class EquipmentAttributeCatalog {
       EquipmentAttributeDef(
         key: EquipmentAttrKeys.wornAs,
         kind: AttributeKind.choice,
-        choiceKeys: ['back', 'sidemount_left', 'sidemount_right', 'stage'],
+        choiceKeys: [
+          'back',
+          kWornAsTwinSet,
+          'sidemount_left',
+          'sidemount_right',
+          'stage',
+        ],
       ),
       EquipmentAttributeDef(
         key: EquipmentAttrKeys.lastVisualInspection,

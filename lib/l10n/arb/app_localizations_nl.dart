@@ -2636,6 +2636,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'Nieuwe duik';
 
   @override
+  String get accessibility_shortcut_unlockRecord =>
+      'Ontgrendelen om te bewerken';
+
+  @override
+  String get accessibility_shortcut_saveChanges => 'Wijzigingen opslaan';
+
+  @override
   String get accessibility_shortcut_openSettings => 'Instellingen openen';
 
   @override
@@ -10123,6 +10130,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Sla je wijzigingen eerst op of annuleer ze';
 
   @override
+  String get recordEdit_unlockToUseThese => 'Ontgrendel om deze te gebruiken';
+
+  @override
+  String get diveLog_profile_editProfile => 'Profiel bewerken';
+
+  @override
   String get settings_manage_setupAssistant => 'Configuratie-assistent';
 
   @override
@@ -10800,7 +10813,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'Ontgrendel deze duik op zijn eigen pagina om er foto\'s aan toe te voegen.';
+      'Ontgrendel deze duik om er foto\'s aan toe te voegen.';
 
   @override
   String get diveLog_numbering_actions => 'Acties';
@@ -28736,6 +28749,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_tripCylinderEventKind_adjustment => 'Aanpassing';
 
   @override
+  String get enum_navTrackLinkMode_auto => 'Automatisch';
+
+  @override
+  String get enum_navTrackLinkMode_manual => 'Handmatig';
+
+  @override
   String get enum_tripCylinderEventKind_fill => 'Vulling';
 
   @override
@@ -42525,6 +42544,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_worn_as_back => 'Rugmontage';
+
+  @override
+  String get attrChoice_worn_as_twin_set => 'Dubbelset';
 
   @override
   String get attrChoice_worn_as_sidemount_left => 'Sidemount links';

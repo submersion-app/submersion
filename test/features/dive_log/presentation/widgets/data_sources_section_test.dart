@@ -1876,4 +1876,89 @@ void main() {
       expect(find.text('Separate combined dives'), findsOneWidget);
     });
   });
+
+  group('operations on a page that offers editing (issue #4527)', () {
+    Future<List<String>> pumpTwo(WidgetTester tester, String? reason) async {
+      final calls = <String>[];
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [
+                _makeSource(id: 'src-a', computerId: 'comp-a'),
+                _makeSource(
+                  id: 'src-b',
+                  computerId: 'comp-b',
+                  isPrimary: false,
+                ),
+              ],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+              onSetPrimary: (id) => calls.add('primary $id'),
+              onSplit: (id) => calls.add('split $id'),
+              onRemove: (id, _) => calls.add('remove $id'),
+              onSeparate: () => calls.add('separate'),
+              onCompareIn3d: () => calls.add('compare'),
+              operationReason: reason,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return calls;
+    }
+
+    bool enabled(WidgetTester tester, String label) => tester
+        .widget<PopupMenuItem<Object?>>(
+          find.ancestor(
+            of: find.text(label),
+            matching: find.byWidgetPredicate((w) => w is PopupMenuItem),
+          ),
+        )
+        .enabled;
+
+    testWidgets('with a reason the source menu lists its operations disabled '
+        'under it', (tester) async {
+      final calls = await pumpTwo(tester, 'Unlock to use these');
+      await tester.tap(find.byIcon(Icons.more_vert).last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Unlock to use these'), findsOneWidget);
+      expect(enabled(tester, 'Set as primary'), isFalse);
+      expect(enabled(tester, 'Split into separate dive'), isFalse);
+      expect(enabled(tester, 'Remove source'), isFalse);
+      await tester.tap(find.text('Remove source'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(calls, isEmpty);
+    });
+
+    testWidgets('the section menu: Separate disabled, Compare in 3D enabled', (
+      tester,
+    ) async {
+      final calls = await pumpTwo(tester, 'Unlock to use these');
+      await tester.tap(find.byKey(DataSourcesSection.sectionMenuKey));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Unlock to use these'), findsOneWidget);
+      expect(enabled(tester, 'Separate combined dives'), isFalse);
+      await tester.tap(find.text('Compare in 3D'));
+      await tester.pumpAndSettle();
+      expect(calls, ['compare']);
+    });
+
+    testWidgets('with no reason the operations run', (tester) async {
+      final calls = await pumpTwo(tester, null);
+      await tester.tap(find.byIcon(Icons.more_vert).last);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('recordOperationCaption')),
+        findsNothing,
+      );
+      await tester.tap(find.text('Set as primary'));
+      await tester.pumpAndSettle();
+      expect(calls, ['primary src-b']);
+    });
+  });
 }

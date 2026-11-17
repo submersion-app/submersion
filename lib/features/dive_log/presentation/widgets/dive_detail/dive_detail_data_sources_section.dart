@@ -7,6 +7,9 @@ import 'package:submersion/features/dive_log/presentation/providers/active_sourc
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Data sources section.
 class DiveDetailDataSourcesSection extends ConsumerWidget {
@@ -64,6 +67,13 @@ class DiveDetailDataSourcesSection extends ConsumerWidget {
       onSeparate: segmentCount >= 2
           ? () => actions.separateSegments(dive, segmentCount)
           : null,
+      // On a page that offers editing, set primary, split, remove and
+      // separate act on the whole dive at once (issue #4527).
+      operationReason: recordOperationReason(
+        context.l10n,
+        recordOperationBlockOf(RecordEditScope.maybeOf<Dive>(context)),
+        plural: true,
+      ),
       onCompareIn3d: () => Navigator.push(
         context,
         MaterialPageRoute(

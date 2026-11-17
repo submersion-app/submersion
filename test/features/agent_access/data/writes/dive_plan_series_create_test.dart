@@ -3,6 +3,7 @@ import 'package:submersion/core/database/database.dart' hide Dive, DivePlan;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/tools/compute_plan_tool.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
@@ -75,6 +76,7 @@ void main() {
       ),
       settings: settings,
       followOf: followOf,
+      records: RecordRepositories(),
       caveat: () => '',
     );
   }

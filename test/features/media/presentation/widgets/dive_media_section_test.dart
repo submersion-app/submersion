@@ -312,11 +312,17 @@ void main() {
       expect(tiles, ['n1', 's2']);
       expect(find.byIcon(Icons.add_photo_alternate), findsOneWidget);
 
-      // Not stored yet, so the viewer, which reads stored media, has
-      // nothing to open it on.
+      // Not stored yet: the viewer opens on it all the same, from the
+      // sitting's photos (plan 10 Task 13), with the dive's sitting and a
+      // lock of its own.
       await tester.tap(find.byType(MediaThumbnailTile).first);
       await tester.pumpAndSettle();
-      expect(find.byType(PhotoViewerPage), findsNothing);
+      final viewer = tester.widget<PhotoViewerPage>(
+        find.byType(PhotoViewerPage),
+      );
+      expect(viewer.initialMediaId, 'n1');
+      expect(viewer.diveEditing, same(controller));
+      expect(viewer.unlockEditing, isTrue);
     });
 
     testWidgets('open: a read that failed offers Try again, which reads the '

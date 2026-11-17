@@ -129,6 +129,8 @@ String changeLogTableLabel(AppLocalizations l, String table) => switch (table) {
   'dive_safety_findings' => l.changeLog_table_safetyFinding,
   'tank_pressure_series' => l.changeLog_table_pressureSeries,
   'nav_tracks' => l.changeLog_table_navTrack,
+  // A dive's link to one of its types, named as the type it links.
+  'dive_dive_types' => l.settings_conflict_ref_diveType,
   _ => conflictReferenceLabel(
     l,
     ConflictReference(

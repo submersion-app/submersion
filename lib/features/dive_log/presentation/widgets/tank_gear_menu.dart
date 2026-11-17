@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/services/tank_cylinder_matc
 import 'package:submersion/features/equipment/presentation/providers/cylinder_proposal_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/cylinders_from_tanks_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 
 enum _TankGearAction { add, link, unlink }
 
@@ -17,10 +18,25 @@ enum _TankGearAction { add, link, unlink }
 /// Every action writes at once, so the host shows this only where the
 /// Tanks card may write (#4527).
 class TankGearMenu extends ConsumerWidget {
-  const TankGearMenu({super.key, required this.dive, required this.tank});
+  const TankGearMenu({
+    super.key,
+    required this.dive,
+    required this.tank,
+    this.operationReason,
+    this.runAsOperation,
+  });
 
   final Dive dive;
   final DiveTank tank;
+
+  /// Why the menu is unavailable on a dive page that offers editing: each
+  /// action writes at once, a whole-record operation (issue #4527). The
+  /// button is drawn disabled with this as its tooltip.
+  final String? operationReason;
+
+  /// Runs the chosen action as the page's whole-record operation. Null
+  /// runs it directly, as off such a page.
+  final RecordOperationRunner? runAsOperation;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,11 +44,16 @@ class TankGearMenu extends ConsumerWidget {
     final linked = tank.equipmentId != null;
     return PopupMenuButton<_TankGearAction>(
       key: Key('tank-gear-menu-${tank.id}'),
-      tooltip: l10n.diveLog_tank_gearMenu,
+      tooltip: operationReason ?? l10n.diveLog_tank_gearMenu,
+      enabled: operationReason == null,
       // Horizontal, so the page's own overflow stays the only vertical one
       // on the dive page.
       icon: const Icon(Icons.more_horiz),
-      onSelected: (action) => _run(context, ref, action),
+      onSelected: (action) {
+        Future<bool> act() => _run(context, ref, action);
+        final run = runAsOperation;
+        run == null ? act() : run(act);
+      },
       itemBuilder: (context) => [
         if (!linked) ...[
           PopupMenuItem(
@@ -52,7 +73,10 @@ class TankGearMenu extends ConsumerWidget {
     );
   }
 
-  Future<void> _run(
+  /// Runs [action] and answers whether it changed the dive's tanks: a sheet
+  /// or a picker closed without a choice, a stale link or unlink, or a
+  /// failed one changed nothing.
+  Future<bool> _run(
     BuildContext context,
     WidgetRef ref,
     _TankGearAction action,
@@ -62,17 +86,17 @@ class TankGearMenu extends ConsumerWidget {
     final service = ref.read(cylinderFromTankServiceProvider);
     switch (action) {
       case _TankGearAction.add:
-        await showCylindersFromTanksSheet(context, [
+        final added = await showCylindersFromTanksSheet(context, [
           proposalForTank(TankRef(diveId: dive.id, tank: tank)),
         ]);
-        return;
+        return (added ?? 0) > 0;
       case _TankGearAction.link:
         final item = await showOwnCylinderPicker(
           context,
           hideSpare: false,
           hint: context.l10n.diveLog_tank_linkCylinderHint,
         );
-        if (item == null) return;
+        if (item == null) return false;
         try {
           // False when the tank was linked elsewhere while the picker was
           // open: that link stands, and the diver is told this one did not.
@@ -82,8 +106,10 @@ class TankGearMenu extends ConsumerWidget {
             equipmentId: item.id,
           );
           if (!linked) messenger?.showSnackBar(SnackBar(content: Text(failed)));
+          return linked;
         } catch (_) {
           messenger?.showSnackBar(SnackBar(content: Text(failed)));
+          return false;
         }
       case _TankGearAction.unlink:
         try {
@@ -96,8 +122,10 @@ class TankGearMenu extends ConsumerWidget {
           if (!unlinked) {
             messenger?.showSnackBar(SnackBar(content: Text(failed)));
           }
+          return unlinked;
         } catch (_) {
           messenger?.showSnackBar(SnackBar(content: Text(failed)));
+          return false;
         }
     }
   }

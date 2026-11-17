@@ -13,7 +13,7 @@ Future<bool> cancelSitting<T>(
   BuildContext context,
   RecordEditController<T> controller,
 ) async {
-  if (controller.isSaving) return false;
+  if (controller.isBusy) return false;
   if (controller.isDirty && !await showDiscardDialog(context)) return false;
   controller.lock();
   return true;
@@ -46,22 +46,25 @@ class RecordEditLeaveGuard<T> extends StatelessWidget {
       listenable: controller,
       child: child,
       builder: (context, child) => PopScope(
-        canPop: !controller.isDirty && !controller.isSaving,
+        canPop: !controller.isDirty && !controller.isBusy,
         onPopInvokedWithResult: (didPop, _) async {
           if (didPop) {
             controller.lock();
             return;
           }
-          if (controller.isSaving) return;
+          if (controller.isBusy) return;
           final navigator = Navigator.of(context);
-          if (await cancelSitting(context, controller)) navigator.pop();
+          if (!await cancelSitting(context, controller)) return;
+          // A page with nothing under it (the list pane's, its tab's first
+          // page) locks and stays: there is nowhere to go back to.
+          if (navigator.canPop()) navigator.pop();
         },
         // Both stay in the tree, so a save starting or ending never
         // rebuilds the page beneath them. Excluding focus also takes it
         // from a field that has it, which closes the keyboard.
         child: AbsorbPointer(
-          absorbing: controller.isSaving,
-          child: ExcludeFocus(excluding: controller.isSaving, child: child!),
+          absorbing: controller.isBusy,
+          child: ExcludeFocus(excluding: controller.isBusy, child: child!),
         ),
       ),
     );

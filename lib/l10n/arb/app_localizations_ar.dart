@@ -2724,6 +2724,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'غوصة جديدة';
 
   @override
+  String get accessibility_shortcut_unlockRecord => 'إلغاء القفل للتعديل';
+
+  @override
+  String get accessibility_shortcut_saveChanges => 'حفظ التغييرات';
+
+  @override
   String get accessibility_shortcut_openSettings => 'فتح الإعدادات';
 
   @override
@@ -10344,6 +10350,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordEdit_saveOrCancelFirst => 'احفظ تغييراتك أو ألغها أولًا';
 
   @override
+  String get recordEdit_unlockToUseThese => 'افتح القفل لاستخدام هذه';
+
+  @override
+  String get diveLog_profile_editProfile => 'تعديل ملف الغوصة';
+
+  @override
   String get settings_manage_setupAssistant => 'مساعد الإعداد';
 
   @override
@@ -11033,7 +11045,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'افتح قفل هذه الغطسة من صفحتها لإضافة صور إليها.';
+      'افتح قفل هذه الغطسة لإضافة صور إليها.';
 
   @override
   String get diveLog_numbering_actions => 'الإجراءات';
@@ -29228,6 +29240,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_tripCylinderEventKind_adjustment => 'تعديل';
 
   @override
+  String get enum_navTrackLinkMode_auto => 'تلقائيًا';
+
+  @override
+  String get enum_navTrackLinkMode_manual => 'يدويًا';
+
+  @override
   String get enum_tripCylinderEventKind_fill => 'تعبئة';
 
   @override
@@ -43378,6 +43396,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_worn_as_back => 'تثبيت خلفي';
+
+  @override
+  String get attrChoice_worn_as_twin_set => 'طقم مزدوج';
 
   @override
   String get attrChoice_worn_as_sidemount_left => 'تعليق جانبي أيسر';

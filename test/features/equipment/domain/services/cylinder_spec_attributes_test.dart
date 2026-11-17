@@ -39,4 +39,14 @@ void main() {
     final attrs = cylinderSpecAttributes(volumeL: 11.1);
     expect(attrs.map((a) => a.key), [EquipmentAttrKeys.volumeL]);
   });
+
+  test(
+    'a cylinder made from a Twin Set tank is worn as a twin set (#4641)',
+    () {
+      final attrs = cylinderSpecAttributes(volumeL: 24, twinSet: true);
+      final byKey = {for (final a in attrs) a.key: a};
+      expect(byKey[EquipmentAttrKeys.wornAs]!.valueText, kWornAsTwinSet);
+      expect(byKey.containsKey(EquipmentAttrKeys.cylinderUse), isFalse);
+    },
+  );
 }

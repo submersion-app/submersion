@@ -91,6 +91,7 @@ class CylinderFromTankService {
                 workingPressureBar: draft.workingPressureBar,
                 material: draft.material,
                 suitInflation: proposal.suitInflation,
+                twinSet: proposal.twinSet,
               ),
             ),
             notify: false,

@@ -119,15 +119,21 @@ class _PhotoGallery extends ConsumerWidget {
 /// [item], from the list the viewer opened with, drawn with the live row's
 /// colour adjustment and profile match (issue #3520): one saved since (the
 /// panel, Apply to this dive) shows on every page, not only the current
-/// one. Only those two: MediaItemView does not resolve the image again for
-/// them, so a caption or time pin arriving while the page is open does not
-/// reload the photo.
-MediaItem _withLiveColor(WidgetRef ref, MediaItem item) {
+/// one. MediaItemView does not resolve the image again for those, so a
+/// caption or time pin arriving while the page is open does not reload the
+/// photo. Also the live row's link to its file, which only a relink changes
+/// (Locate, saved in the photo's sitting, issue #4527): the photo is then
+/// drawn from the file it now points at, not the one the list was read with.
+MediaItem _withLiveRow(WidgetRef ref, MediaItem item) {
   final live = ref.watch(mediaByIdProvider(item.id)).value;
   if (live == null) return item;
   return item.copyWith(
     colorAdjustment: live.colorAdjustment,
     enrichment: live.enrichment ?? item.enrichment,
+    sourceType: live.sourceType,
+    localPath: live.localPath,
+    bookmarkRef: live.bookmarkRef,
+    platformAssetId: live.platformAssetId,
   );
 }
 
@@ -156,7 +162,7 @@ class _PhotoItem extends ConsumerWidget {
           // The sitting's photo is drawn as the sitting has it (issue #4527).
           item: sittingIsOver(people.sitting, item.id)
               ? item
-              : _withLiveColor(ref, item),
+              : _withLiveRow(ref, item),
           fit: BoxFit.contain,
           showAccessActions: true,
           onImageSize: (size) => people.onImageSize(item.id, size),
@@ -265,7 +271,7 @@ class _ConnectorVideoItem extends ConsumerWidget {
           MediaItemView(
             item: sittingIsOver(sitting, item.id)
                 ? item
-                : _withLiveColor(ref, item),
+                : _withLiveRow(ref, item),
             fit: BoxFit.contain,
           ),
           if (!fullscreen)

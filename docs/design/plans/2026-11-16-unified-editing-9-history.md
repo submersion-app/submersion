@@ -621,3 +621,9 @@ A third whole-branch review and the PR's first automated review found these; eac
 - **`planField` refuses a row of `changeLogRevertsWithEntryOnly`**, so the readings rule holds for any caller, not only the entry page.
 - **A sitting label that names no card still decodes** and pins the entry to its dive; it reads as "Edited".
 - **Cleanups:** `asSeenBy` reads a page's restricted entries in one grouped query and their names one query per table; the visibility subquery looks only at other divers' entries; `ChangeLogSql` and `changeLogMarks` live in `change_log_sql.dart`.
+
+### Task 7 (2026-11-17)
+
+Built after plan 6 merged, on a branch of its own. Plan 6 has no "After the review" section, so the names were checked against the code: they are as Task 7 lists them, except that `attachDocument` takes the `Document`, not its id. The test starts the sitting with `startDiveSitting` over a `ProviderContainer` on the test database, so every held change goes through its card's own function. The four tests passed as written; removing the pin failed the first, and removing the sitting's opt-in failed the first two.
+
+Step 4's pictures came from a headless golden, deleted afterwards. A fixture cylinder needs an explicit `source_tank_index`: without one, an exchange resolves it first (0 for the one with readings, -1 for the other) and the entry reads "Not set" to -1 and 0. Two wording gaps showed, both from before this plan and left for their own change: a route link's `link_mode` reads as the raw word "manual" in every language, and a dive that gains its first dive type lists an unnamed "Dive Dive Types" row.

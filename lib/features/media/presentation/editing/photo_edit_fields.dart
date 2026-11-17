@@ -3,8 +3,10 @@ import 'package:submersion/features/media/data/services/dive_media_enricher.dart
 import 'package:submersion/features/media/data/services/enrichment_service.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
+import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/domain/value_objects/photo_tag_edits.dart';
 import 'package:submersion/features/media/presentation/helpers/media_time_choice.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
@@ -163,16 +165,68 @@ int? elapsedInSitting(EditSession<PhotoRecord> session) {
   return automatic.elapsedSeconds + ((shift ?? 0) - automatic.diveShiftSeconds);
 }
 
+/// The held change of Locate (Task 13): the photo relinked at Save.
+const photoRelinkKey = 'photo:relink';
+
+/// The note under which the sitting keeps the relink it holds.
+const photoRelinkProposalKey = 'photo:relink.proposal';
+
+/// The relink [session] holds for its photo, or null.
+RepairProposal? heldRelink(EditSession<PhotoRecord> session) =>
+    session.isDisposed || !session.isHeld(photoRelinkKey)
+    ? null
+    : session.recall<RepairProposal>(photoRelinkProposalKey);
+
+/// [item] pointing at the file [session]'s held relink found, as the relink
+/// will write it; [item] itself with none held.
+///
+/// Drawn as found, not orphaned: the stored row's orphan flag is the old
+/// file's, and drawing the new file must not clear it before Save. Its last
+/// check and its size were the old file's too. As the repair writes it, a
+/// file is linked on this device ([thisDevice], unknown when null), and
+/// other bytes than the stored ones carry their own hash and are not yet in
+/// the store.
+MediaItem withHeldRelink(
+  EditSession<PhotoRecord> session,
+  MediaItem item, {
+  String? thisDevice,
+}) {
+  final candidate = heldRelink(session)?.candidate;
+  final path = candidate?.path;
+  if (candidate == null || path == null) return item;
+  // As the repair judges it: a row with no hash takes any bytes as its own.
+  final hash = candidate.hash;
+  final rowHash = item.contentHash;
+  final otherBytes = hash != null && rowHash != null && hash != rowHash;
+  return item.copyWith(
+    originDeviceId: thisDevice,
+    contentHash: otherBytes ? hash : item.contentHash,
+    remoteUploadedAt: otherBytes ? null : item.remoteUploadedAt,
+    remoteThumbUploadedAt: otherBytes ? null : item.remoteThumbUploadedAt,
+    remoteCompressedUploadedAt: otherBytes
+        ? null
+        : item.remoteCompressedUploadedAt,
+    localPath: path,
+    // The row's bookmark names the old file; a new one is made at Save.
+    bookmarkRef: null,
+    sourceType: MediaSourceType.localFile,
+    isOrphaned: false,
+    lastVerifiedAt: null,
+    contentSizeBytes: candidate.sizeBytes ?? item.contentSizeBytes,
+  );
+}
+
 const _enrichment = EnrichmentService();
 
 /// The photo as the sitting has it, with its position worked out from
 /// [profile] when the sitting moved it in time, so the chips, the mini
-/// profile and the dive computer face show the held time at once.
+/// profile and the dive computer face show the held time at once, and with
+/// the file a held relink found.
 MediaItem photoShownItem(
   EditSession<PhotoRecord> session,
   List<DiveProfilePoint> profile,
 ) {
-  final item = session.working.item;
+  final item = withHeldRelink(session, session.working.item);
   final elapsed = elapsedInSitting(session);
   if (elapsed == null) return item;
   final result = _enrichment.calculateEnrichmentAtElapsed(

@@ -25,6 +25,42 @@ class ParsedSiteCatalogue {
   });
 }
 
+/// The newest catalogue format this build reads. A catalogue release whose
+/// format contract states a newer one fails the contract test in its intake
+/// PR (site_catalogue_contract_test.dart), before it reaches a build.
+const int kSupportedCatalogueFormat = 2;
+
+/// Every record field [parseSiteCatalogue] reads. A release whose contract
+/// lists a field outside this set fails the contract test: the app would
+/// drop it without a word.
+const Set<String> kParsedCatalogueFields = {
+  'id',
+  'name',
+  'lat',
+  'lon',
+  'country_code',
+  'country',
+  'region',
+  'locality',
+  'island',
+  'body_of_water',
+  'water_type',
+  'max_depth_m',
+  'min_depth_m',
+  'types',
+  'entry',
+  'difficulty',
+  'features',
+  'hazards',
+  'description',
+  'website',
+  'kind',
+  'source',
+  'source_ref',
+  'trust',
+  'position_from',
+};
+
 /// Names the sea at a position, or null when it is inland or unknown.
 typedef SeaNamer = String? Function(double latitude, double longitude);
 

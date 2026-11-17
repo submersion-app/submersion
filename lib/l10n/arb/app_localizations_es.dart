@@ -2649,6 +2649,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'Nueva inmersión';
 
   @override
+  String get accessibility_shortcut_unlockRecord => 'Desbloquear para editar';
+
+  @override
+  String get accessibility_shortcut_saveChanges => 'Guardar cambios';
+
+  @override
   String get accessibility_shortcut_openSettings => 'Abrir configuración';
 
   @override
@@ -10191,6 +10197,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'Guarda o cancela tus cambios primero';
 
   @override
+  String get recordEdit_unlockToUseThese =>
+      'Desbloquea para usar estas opciones';
+
+  @override
+  String get diveLog_profile_editProfile => 'Editar perfil';
+
+  @override
   String get settings_manage_setupAssistant => 'Asistente de configuración';
 
   @override
@@ -10872,7 +10885,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'Desbloquea esta inmersión en su propia página para añadirle fotos.';
+      'Desbloquea esta inmersión para añadirle fotos.';
 
   @override
   String get diveLog_numbering_actions => 'Acciones';
@@ -28932,6 +28945,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_tripCylinderEventKind_adjustment => 'Ajuste';
 
   @override
+  String get enum_navTrackLinkMode_auto => 'Automáticamente';
+
+  @override
+  String get enum_navTrackLinkMode_manual => 'Manualmente';
+
+  @override
   String get enum_tripCylinderEventKind_fill => 'Carga';
 
   @override
@@ -42833,6 +42852,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get attrChoice_worn_as_back => 'Montaje dorsal';
+
+  @override
+  String get attrChoice_worn_as_twin_set => 'Bibotella';
 
   @override
   String get attrChoice_worn_as_sidemount_left => 'Sidemount izquierdo';

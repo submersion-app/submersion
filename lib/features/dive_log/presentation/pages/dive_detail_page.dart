@@ -6,6 +6,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
+import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -37,6 +40,8 @@ import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart'
 import 'package:submersion/features/dive_import/presentation/dive_resync_failure_message.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_health_metrics_providers.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_resync_providers.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/open_profile_editor.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/download_target_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_header_block.dart';
@@ -64,6 +69,7 @@ import 'package:submersion/features/dive_log/presentation/providers/safety_revie
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_title.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_embedded_editing_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_embedded_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_overflow_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
@@ -113,14 +119,17 @@ import 'package:submersion/shared/widgets/record_editing/add_strip_layout.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 
 part 'dive_detail_page_actions.dart';
+part 'dive_detail_page_bars.dart';
 part 'dive_detail_page_editing.dart';
 part 'dive_detail_page_exports.dart';
+part 'dive_detail_page_operations.dart';
 
 final _log = LoggerService.forClass(DiveDetailPage);
 
@@ -162,7 +171,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     with
         _DiveDetailPageActions,
         _DiveDetailPageExports,
-        _DiveDetailPageEditing {
+        _DiveDetailPageEditing,
+        _DiveDetailPageOperations,
+        _DiveDetailPageBars {
   /// Track if we've already initiated a redirect to prevent multiple calls
   bool _hasRedirected = false;
 
@@ -324,21 +335,32 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   /// normally points a toolbar-initiated share sheet. Two keys because the
   /// standalone page and the embedded master-detail header each render their
   /// own button, and a GlobalKey may only be mounted once.
+  @override
   final GlobalKey _appBarMenuKey = GlobalKey();
   final GlobalKey _headerMenuKey = GlobalKey();
 
   /// Opens the display-options panel from the overflow menu. One controller
   /// serves both headers, since only one of them is ever built.
+  @override
   final MenuController _displayOptionsMenu = MenuController();
 
   final DiveDetailAnalysisRetention _analysisRetention =
       DiveDetailAnalysisRetention();
 
   late final DiveDetailActions _sectionActions = DiveDetailActions(
-    setPrimarySource: _setPrimarySource,
-    splitSource: _confirmAndSplit,
-    removeSource: _confirmAndRemoveSource,
-    separateSegments: _confirmAndSeparate,
+    setPrimarySource: _setPrimarySourceOperation,
+    splitSource: (dive, sourceId) =>
+        _runOperation(() => _confirmAndSplit(dive, sourceId)),
+    removeSource: (dive, sourceId, sourceName) => _runOperation(
+      () => _confirmAndRemoveSource(
+        dive,
+        sourceId,
+        sourceName,
+        offerUndo: !editingOffered,
+      ),
+    ),
+    separateSegments: (dive, segmentCount) =>
+        _runOperation(() => _confirmAndSeparate(dive, segmentCount)),
     scanGallery: _scanGalleryForDive,
     addPhotos: _addPhotos,
     addDocument: (dive) => DocumentOpenHelper.pickAndAttach(
@@ -349,6 +371,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     openDocument: (item) => DocumentOpenHelper.open(context, ref, item),
     openAnnotation: _scrollToProfileAndFocus,
   );
+
+  /// Set as primary, from the Data sources card or a profile's source bar.
+  void _setPrimarySourceOperation(String readingId) =>
+      _runOperation(() => _setPrimarySource(readingId));
 
   /// What [_profileSectionFor] last built.
   DiveDetailProfileSection? _profileSection;
@@ -369,9 +395,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       diveId: id,
       exportKey: _profileChartExportKey,
       onSafetyFindingDetails: _scrollToSafetySection,
-      onSetPrimarySource: _setPrimarySource,
+      onSetPrimarySource: _setPrimarySourceOperation,
       onOpenInNotes: _scrollToNotes,
       onViewportChanged: _noteProfileViewport,
+      onEditProfile: editingOffered ? () => _runOperation(_editProfile) : null,
     );
   }
 
@@ -383,6 +410,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   /// The list lights the row it opened through [highlightedDiveIdProvider] as
   /// well as the selected param, so the highlight moves with the pane. Left
   /// behind, it keeps the first dive lit next to the one on show (#2345).
+  @override
   void _navigateToDive(String neighborId) {
     // A sitting ends by Save or Cancel, not by stepping to another dive.
     if (isSittingOpen) return;
@@ -530,9 +558,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
               stored: dive,
               shown: shown,
               embedded: widget.embedded,
-              onMarkLogged: () => _markAsLogged(dive),
+              onMarkLogged: () => _runOperation(() => _markAsLogged(dive)),
               onDownloadDraft: _downloadForDraft,
-              onSurfaceDraft: () => _surfaceDraft(dive),
+              onSurfaceDraft: () => _runOperation(() => _surfaceDraft(dive)),
             ),
             SizedBox(height: layout.headerGap),
             // Configurable sections in user-defined order, the dive profile
@@ -582,7 +610,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             diveId: dive.id,
             exportKey: _pinnedProfileExportKey,
             onSafetyFindingDetails: _scrollToSafetySection,
-            onSetPrimarySource: _setPrimarySource,
+            onSetPrimarySource: _setPrimarySourceOperation,
             onOpenInNotes: _scrollToNotes,
             fillHeight: true,
             onPlotFrame: onPlotFrame,
@@ -593,146 +621,41 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
 
     // Embedded mode: Return content with a compact header bar (no Scaffold)
     if (widget.embedded) {
-      return Column(
-        children: [
-          DiveDetailEmbeddedHeader(
-            dive: dive,
-            menu: _overflowMenu(dive, _headerMenuKey),
-            onNavigate: _navigateToDive,
-            onMarkLogged: () => _markAsLogged(dive),
-            onDownloadDraft: _downloadForDraft,
-            onSurfaceDraft: () => _surfaceDraft(dive),
-          ),
-          Expanded(child: content),
-        ],
+      final header = DiveDetailEmbeddedHeader(
+        dive: dive,
+        menu: _overflowMenu(dive, _headerMenuKey, historyInBar: editingOffered),
+        onNavigate: _navigateToDive,
+        onMarkLogged: () => _runOperation(() => _markAsLogged(dive)),
+        onDownloadDraft: _downloadForDraft,
+        onSurfaceDraft: () => _runOperation(() => _surfaceDraft(dive)),
+        // The pane unlocks as the page does (issue #4527, plan 7).
+        editing: editingOffered ? editController : null,
+        history: editingOffered ? historyButton(dive, compact: true) : null,
+        lock: editingOffered ? lockButton(shown, compact: true) : null,
+        unlockedRow: isSittingOpen
+            ? editingPaneRow(dive, menu: _overflowMenu(dive, _appBarMenuKey))
+            : null,
       );
+      if (!editingOffered) {
+        return Column(
+          children: [
+            header,
+            Expanded(child: content),
+          ],
+        );
+      }
+      return editPane(header: header, shown: shown, content: content);
     }
 
-    // Standalone mode: Full Scaffold with AppBar. On a phone-width window
-    // the title has no room beside five action icons, so the favorite toggle,
-    // the one action that reads as well from a menu, moves into the overflow.
-    final compactActions =
-        MediaQuery.sizeOf(context).width < _kCompactAppBarWidth;
-    final favoriteLabel = dive.isFavorite
-        ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
-        : context.l10n.diveLog_detail_tooltip_addToFavorites;
-    final appBar = AppBar(
-      // Titled like the desktop pane's header, not "Dive Details" (#4445).
-      title: Text(
-        diveTitle(context, dive),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      actions: [
-        DiveNavButtons(diveId: diveId, onNavigate: _navigateToDive),
-        // With editing offered favourite is a field of the header card, so
-        // a locked page shows it as a state only, at every width: the menu
-        // has no favourite item then (issue #4527).
-        if (editingOffered && dive.isFavorite)
-          Icon(
-            Icons.favorite,
-            color: Colors.red,
-            semanticLabel: context.l10n.enum_diveField_isFavorite,
-          )
-        else if (!editingOffered && !compactActions)
-          IconButton(
-            icon: Icon(
-              dive.isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: dive.isFavorite ? Colors.red : null,
-            ),
-            tooltip: favoriteLabel,
-            onPressed: () {
-              ref
-                  .read(paginatedDiveListProvider.notifier)
-                  .toggleFavorite(diveId);
-            },
-          ),
-        if (editingOffered) lockButton(shown),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: context.l10n.diveLog_detail_tooltip_editDive,
-          onPressed: () => context.push('/dives/$diveId/edit'),
-        ),
-        _overflowMenu(
-          dive,
-          _appBarMenuKey,
-          showFavorite: compactActions && !editingOffered,
-        ),
-      ],
-    );
+    final appBar = _standaloneBar(dive, shown);
     if (!editingOffered) return Scaffold(appBar: appBar, body: content);
     return editScaffold(
       dive: dive,
       shown: shown,
       lockedBar: appBar,
       content: content,
+      unlockedActions: [_overflowMenu(dive, _appBarMenuKey)],
     );
-  }
-
-  Widget _overflowMenu(
-    Dive dive,
-    GlobalKey menuKey, {
-    bool showFavorite = false,
-  }) {
-    return DiveDetailOverflowMenu(
-      dive: dive,
-      embedded: widget.embedded,
-      menuKey: menuKey,
-      displayOptions: _displayOptionsMenu,
-      showFavorite: showFavorite,
-      onSelected: (value, linkedPreDive) =>
-          _onMenuSelected(value, dive, linkedPreDive, menuKey),
-    );
-  }
-
-  void _onMenuSelected(
-    String value,
-    Dive dive,
-    PreDiveSession? linkedPreDive,
-    GlobalKey menuKey,
-  ) {
-    switch (value) {
-      case 'toggleFavorite':
-        ref.read(paginatedDiveListProvider.notifier).toggleFavorite(diveId);
-      case 'displayOptions':
-        _displayOptionsMenu.open();
-      case 'export':
-        _showExportOptions(dive, shareAnchorFrom(menuKey.currentContext));
-      case 'reparse':
-        _reparseDive(dive);
-      case 'resync':
-        _resyncDive(dive);
-      case 'logNearMiss':
-        context.push('/incidents/new?diveId=$diveId');
-      case 'markLogged' || 'markComplete':
-        _markAsLogged(dive);
-      case 'addHeartRate':
-        _addHeartRate(dive);
-      case 'logForBuddy':
-        _logForBuddy(dive);
-      case 'linkPreDive':
-        _linkPreDiveChecklist(dive);
-      case 'unlinkPreDive':
-        _unlinkPreDiveChecklist(linkedPreDive!);
-      case 'whatIf':
-        openWhatIf(context, dive);
-      case 'viewInPlanner':
-        final planId = ref.read(planForLoggedDiveProvider(dive.id)).value;
-        if (planId != null) openSavedPlanInPlanner(context, planId);
-      case 'planRepetitive':
-        logFailure(
-          _planRepetitiveDive(dive),
-          _DiveDetailPageState,
-          'plan a repetitive dive',
-        );
-      case 'delete':
-        _showDeleteConfirmation();
-      case 'open':
-        // Open in full-page mode. push (not go) so there's a back button and
-        // the pushed page skips the master-detail redirect above instead of
-        // bouncing straight back into the pane it was opened from.
-        context.push('/dives/$diveId');
-    }
   }
 }
 
@@ -744,48 +667,3 @@ AsyncValue<Dive?> _withoutRefreshFlag(AsyncValue<Dive?> value) {
       ? AsyncData<Dive?>(value.value)
       : value;
 }
-
-/// Left/Right arrow-key bindings for previous/next dive around [child]. Up/Down
-/// are left untouched so vertical scrolling still works.
-///
-/// Watches the neighbors itself, so a change to them leaves [child] alone.
-class _DiveShortcuts extends ConsumerWidget {
-  const _DiveShortcuts({
-    required this.diveId,
-    required this.onNavigate,
-    required this.child,
-    this.enabled = true,
-  });
-
-  final String diveId;
-
-  /// Off during an editing sitting, when the arrow keys belong to the text
-  /// being typed: a binding here would swallow them before a field saw them.
-  final bool enabled;
-  final void Function(String neighborId) onNavigate;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final neighbors = ref.watch(diveNeighborsProvider(diveId));
-    return CallbackShortcuts(
-      bindings: !enabled
-          ? const {}
-          : {
-              const SingleActivator(LogicalKeyboardKey.arrowLeft): () {
-                final id = neighbors.previousId;
-                if (id != null) onNavigate(id);
-              },
-              const SingleActivator(LogicalKeyboardKey.arrowRight): () {
-                final id = neighbors.nextId;
-                if (id != null) onNavigate(id);
-              },
-            },
-      child: Focus(child: child),
-    );
-  }
-}
-
-/// Below this window width the standalone app bar keeps only the actions
-/// that leave room for its title; the rest go into the overflow menu.
-const double _kCompactAppBarWidth = 600;

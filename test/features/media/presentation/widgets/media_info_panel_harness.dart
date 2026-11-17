@@ -137,6 +137,10 @@ Future<void> pumpInfoPanel(
   List<MediaItem>? liveRow,
   bool readOnly = false,
   EditSession<PhotoRecord>? sitting,
+
+  /// How the stored row is read, in place of answering [item] (or
+  /// [liveRow]): a read that has not answered, or a row that is not there.
+  Future<MediaItem?> Function()? readRow,
 }) async {
   // Four stacked sections overflow a default 800x600 surface, and a
   // ListView does not build what is below the fold, so the Serving block
@@ -164,7 +168,9 @@ Future<void> pumpInfoPanel(
         // The panel re-reads the row so persisted actions show up; without
         // an override this would reach for an uninitialised database.
         mediaByIdProvider.overrideWith(
-          (ref, id) async => liveRow == null ? item : liveRow.first,
+          (ref, id) =>
+              readRow?.call() ??
+              Future.value(liveRow == null ? item : liveRow.first),
         ),
         ...extra.cast(),
       ],

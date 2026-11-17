@@ -85,18 +85,20 @@ void main() {
     expect((await tank('t1')).roleSource, isNull);
   });
 
-  test('marks the tank and its dive pending for sync', () async {
+  test('marks the tank pending and leaves its dive alone (#4651)', () async {
     await insertDive('d1');
     await insertTank('t1', 'd1', 0);
 
     await repository.setTankRoles(['t1'], TankRole.twinSet);
 
+    // The tank travels on its own clock. Restamping the dive would let this
+    // device's copy of it overwrite a newer edit made on another device.
     final dive = await (db.select(
       db.dives,
     )..where((d) => d.id.equals('d1'))).getSingle();
-    expect(dive.updatedAt, greaterThan(seededAt));
+    expect(dive.updatedAt, seededAt);
     expect(await pending('diveTanks'), {'t1'});
-    expect(await pending('dives'), {'d1'});
+    expect(await pending('dives'), isEmpty);
   });
 
   test('onlyFrom leaves a row whose role has since changed', () async {

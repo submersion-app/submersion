@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/app/app_exit_guard.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/pushed_route.dart';
 
 /// Navigation helper for jumping to a detail page from a section the user
@@ -54,6 +56,26 @@ extension SectionNavigation on BuildContext {
     } else {
       GoRouter.of(this).go(location);
     }
+  }
+
+  /// [goInPlace], for a change that replaces the record a list pane shows:
+  /// unsaved work held there (a record's editing sitting, issue #4527) is
+  /// asked about first, and nothing changes when the diver keeps it.
+  Future<void> goInPlaceGuarded(String location) =>
+      _guarded(() => goInPlace(location));
+
+  /// `go`, for a tab's destination: a tab's own entry keeps its route, so
+  /// no `GoRoute.onExit` sees it, yet it drops the record its list pane
+  /// shows. Held work is asked about first (issue #4527).
+  Future<void> goGuarded(String location) => _guarded(() => go(location));
+
+  Future<void> _guarded(void Function() navigate) async {
+    final guard = ProviderScope.containerOf(
+      this,
+      listen: false,
+    ).read(appExitGuardProvider);
+    if (!await guard.mayLeave() || !mounted) return;
+    navigate();
   }
 }
 

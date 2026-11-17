@@ -486,7 +486,7 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
             CircleAvatar(
               backgroundColor: scheme.tertiaryContainer,
               child: Icon(
-                equipmentTypeIcon(item.type),
+                equipmentItemIcon(item),
                 color: scheme.onTertiaryContainer,
               ),
             ),

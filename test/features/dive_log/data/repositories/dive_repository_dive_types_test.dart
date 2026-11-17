@@ -158,10 +158,32 @@ void main() {
     });
   });
 
-  group('bulk type edits bump only the dives they change (#4477)', () {
+  // #4477: a bulk type edit touches only the dives it changes. Since #4651
+  // it stages their type rows and restamps neither dive, because the first
+  // (representative) type stays 'shore' on both.
+  group('bulk type edits stage only the dives they change (#4477)', () {
     Future<int> updatedAt(String id) async => (await (db.select(
       db.dives,
     )..where((t) => t.id.equals(id))).getSingle()).updatedAt;
+
+    /// The dives whose type rows this device staged: pending rows, and
+    /// tombstones of rows [before] says the dive had.
+    Future<Set<String>> stagedDives(Map<String, String> before) async {
+      final rows = {
+        for (final r in await db.select(db.diveDiveTypes).get()) r.id: r.diveId,
+        ...before,
+      };
+      return {
+        for (final r in await db.select(db.syncRecords).get())
+          if (r.entityType == 'diveDiveTypes') ?rows[r.recordId],
+        for (final t in await db.select(db.deletionLog).get())
+          if (t.entityType == 'diveDiveTypes') ?rows[t.recordId],
+      };
+    }
+
+    Future<Map<String, String>> typeRowDives() async => {
+      for (final r in await db.select(db.diveDiveTypes).get()) r.id: r.diveId,
+    };
 
     setUp(() async {
       for (final (id, types) in [
@@ -179,26 +201,34 @@ void main() {
           const DivesCompanion(updatedAt: Value(1)),
         );
       }
+      await db.delete(db.syncRecords).go();
+      await db.delete(db.deletionLog).go();
     });
 
     test('adding a type one dive already has leaves that dive alone', () async {
+      final before = await typeRowDives();
       await repository.bulkAddDiveTypes(['has', 'lacks'], ['wreck']);
 
+      expect(await stagedDives(before), {'lacks'});
       expect(await updatedAt('has'), 1);
-      expect(await updatedAt('lacks'), greaterThan(1));
+      expect(await updatedAt('lacks'), 1);
     });
 
     test('removing a type one dive lacks leaves that dive alone', () async {
+      final before = await typeRowDives();
       await repository.bulkRemoveDiveTypes(['has', 'lacks'], ['wreck']);
 
-      expect(await updatedAt('has'), greaterThan(1));
+      expect(await stagedDives(before), {'has'});
+      expect(await updatedAt('has'), 1);
       expect(await updatedAt('lacks'), 1);
     });
 
     test('replacing with the set a dive has leaves that dive alone', () async {
+      final before = await typeRowDives();
       await repository.bulkReplaceDiveTypes(['has', 'lacks'], ['shore']);
 
-      expect(await updatedAt('has'), greaterThan(1));
+      expect(await stagedDives(before), {'has'});
+      expect(await updatedAt('has'), 1);
       expect(await updatedAt('lacks'), 1);
     });
   });

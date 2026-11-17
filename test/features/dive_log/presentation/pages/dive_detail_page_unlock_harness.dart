@@ -21,6 +21,8 @@ import 'package:submersion/features/weather/data/services/weather_service.dart';
 import 'package:submersion/features/weather/domain/entities/weather_data.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -131,6 +133,7 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
   bool imperial = false,
   ValueNotifier<String>? shownDiveId,
   List<DiveDataSource> sources = const [],
+  bool shortcuts = false,
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = size;
@@ -174,15 +177,21 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
         routes: [
           GoRoute(
             path: 'dive',
+            // As the app's dive routes: leaving by `go` asks the sitting.
+            onExit: confirmLeaveRecordSitting,
             // With [shownDiveId] the same page is handed another dive,
             // keeping its state, as the list pane does with its detail.
             builder: (context, state) => ValueListenableBuilder<String>(
               valueListenable: shownId,
-              builder: (context, id, _) => DiveDetailPage(
-                diveId: id,
-                embedded: embedded,
-                unlockEditing: unlockEditing,
-              ),
+              builder: (context, id, _) {
+                final page = DiveDetailPage(
+                  diveId: id,
+                  embedded: embedded,
+                  unlockEditing: unlockEditing,
+                );
+                // The list pane sits in the master-detail scaffold.
+                return embedded ? Scaffold(body: page) : page;
+              },
             ),
           ),
         ],
@@ -191,6 +200,26 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
         path: '/dives/:id',
         builder: (context, state) =>
             Scaffold(body: Text('OTHER ${state.pathParameters['id']}')),
+      ),
+      // Stands in for the profile editor, which saves on its own page.
+      GoRoute(
+        path: '/profile-editor/:diveId',
+        name: 'editProfile',
+        builder: (context, state) => Scaffold(
+          body: Column(
+            children: [
+              Text('PROFILE EDITOR ${state.uri.queryParameters['mode']}'),
+              TextButton(
+                onPressed: () => context.pop(true),
+                child: const Text('SAVE PROFILE'),
+              ),
+              TextButton(
+                onPressed: () => context.pop(false),
+                child: const Text('LEAVE PROFILE'),
+              ),
+            ],
+          ),
+        ),
       ),
     ],
   );
@@ -223,6 +252,10 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
       ],
       child: MaterialApp.router(
         routerConfig: router,
+        // The editing keys, as the app's shell mounts them.
+        builder: shortcuts
+            ? (context, child) => RecordEditShortcuts(child: child!)
+            : null,
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,

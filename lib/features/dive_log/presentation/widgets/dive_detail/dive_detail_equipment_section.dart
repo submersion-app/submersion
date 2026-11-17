@@ -16,6 +16,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 
 /// The Equipment card.
 class DiveEquipmentSection extends ConsumerWidget {
@@ -39,14 +40,19 @@ class DiveEquipmentSection extends ConsumerWidget {
     );
 
     final edit = RecordEditScope.maybeOf<Dive>(context);
-    // A check-in writes at once: a locked page shows its state only, and a
-    // sitting offers it for gear the dive is stored with, not for gear that
-    // is only in the sitting and may never be saved.
-    final storedGearIds = edit?.session == null
-        ? null
-        : {for (final link in edit!.session!.stored.gear) link.item.id};
+    // A check-in writes at once, a whole-record operation (issue #4527):
+    // listed but disabled until the page is unlocked with nothing to save,
+    // and only for gear the dive is stored with, not for gear that is only
+    // in the sitting and may never be saved.
+    final storedGearIds = {
+      for (final link in (edit?.session?.stored ?? dive).gear) link.item.id,
+    };
     bool checkInReadOnly(String equipmentId) =>
-        edit != null && !(storedGearIds?.contains(equipmentId) ?? false);
+        edit != null && !storedGearIds.contains(equipmentId);
+    final operationReason = recordOperationReason(
+      context.l10n,
+      recordOperationBlockOf(edit),
+    );
     final card = CollapsibleCardSection(
       title: context.l10n.diveLog_detail_section_equipment,
       icon: Icons.backpack,
@@ -93,6 +99,8 @@ class DiveEquipmentSection extends ConsumerWidget {
             equipment: item,
             dive: dive,
             readOnly: checkInReadOnly(item.id),
+            operationReason: checkInReadOnly(item.id) ? null : operationReason,
+            runAsOperation: edit?.runOperation,
           ),
         ),
       ),

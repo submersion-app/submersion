@@ -1,4 +1,11 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:submersion/core/database/app_sql_functions.dart';
+import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
@@ -13,14 +20,17 @@ import 'package:submersion/features/media/data/repositories/media_species_reposi
 import 'package:submersion/features/media/data/repositories/site_attachment_repository.dart';
 import 'package:submersion/features/media/data/services/photo_edit_save_service.dart';
 import 'package:submersion/features/media/data/services/photo_record_reader.dart';
+import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
 import 'package:submersion/features/media/data/services/species_tagging_service.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
+import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/domain/value_objects/photo_tag_edits.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/editing/photo_held_writes.dart';
+import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/tags/data/repositories/tag_link_repository.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
@@ -429,5 +439,252 @@ void main() {
         if (op['label'] != null) op['label'],
     ];
     expect(labelled, ['record_edit:media:tags']);
+  });
+  group('Locate held (Task 13)', () {
+    late LocalCacheDatabase cacheDb;
+    late MediaTransferQueueRepository queue;
+    final relinkedPath = p.join(Directory.systemTemp.path, 'relinked.jpg');
+
+    setUp(() {
+      cacheDb = LocalCacheDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
+      queue = MediaTransferQueueRepository(database: cacheDb);
+    });
+    tearDown(() => cacheDb.close());
+
+    Future<List<String>> uploads() async => [
+      for (final row
+          in await cacheDb
+              .customSelect(
+                "SELECT media_id FROM media_transfer_queue "
+                "WHERE direction = 'upload'",
+              )
+              .get())
+        row.read<String>('media_id'),
+    ];
+
+    /// Different bytes from the row's (stamped OLD-HASH by [sittingWithHash]),
+    /// so the relink re-uploads.
+    RepairProposal locate(EditSession<PhotoRecord> session) => RepairProposal(
+      item: session.stored.item,
+      confidence: RepairConfidence.edited,
+      candidate: RepairCandidate.file(
+        path: relinkedPath,
+        sizeBytes: 9,
+        hash: 'NEW-HASH',
+      ),
+    );
+
+    /// A sitting on p1, whose row has the content hash [hash].
+    Future<EditSession<PhotoRecord>> sittingWithHash(String hash) async {
+      await media.stampContentIdentity('p1', contentHash: hash, sizeBytes: 9);
+      await changeLog.settleAll();
+      await db.customStatement('DELETE FROM change_log_operations');
+      return sitting('p1');
+    }
+
+    test('a relink held with a tag: one operation; the upload is queued '
+        'after the commit', () async {
+      final repair = MediaRepairService(
+        repository: media,
+        queue: queue,
+        createBookmark: null,
+        writeBookmark: null,
+      );
+      final session = await sittingWithHash('OLD-HASH');
+      session.set(
+        photoSpeciesField,
+        SpeciesTagEdits.none.toggled(turtle, tagged: true, stored: const []),
+      );
+      holdRelink(session, locate(session), service: repair);
+      expect(session.changedCardIds, {photoFileCardId, photoSpeciesCardId});
+
+      await undoRelinkOnFailure(session, () => save(session));
+
+      final after = await stored('p1');
+      expect(after.item.localPath, relinkedPath);
+      expect(after.species.map((c) => c.speciesId), ['sp_turtle']);
+      final labelled = [
+        for (final op in await operations())
+          if (op['label'] != null) op['label'],
+      ];
+      expect(labelled, ['record_edit:media:file,species']);
+      expect(await operations(), hasLength(1));
+      // Queued only once the write has committed.
+      expect(await uploads(), isEmpty);
+      final steps = relinkAfterCommit(session);
+      expect(steps, isNotEmpty);
+      for (final step in steps) {
+        await step();
+      }
+      expect(await uploads(), ['p1']);
+    });
+
+    test('a save that fails after the relink: the link is as it was, no '
+        'upload is owed, and the new bookmark is taken away', () async {
+      final written = <String>[];
+      final deleted = <String>[];
+      final repair = MediaRepairService(
+        repository: media,
+        queue: queue,
+        createBookmark: (path) async => Uint8List(1),
+        writeBookmark: (ref, blob) async => written.add(ref),
+        deleteBookmark: (ref) async => deleted.add(ref),
+      );
+      final session = await sitting('p1');
+      holdRelink(session, locate(session), service: repair);
+      // A held write after the relink fails (the buddy could not be added).
+      session.holdChange(
+        'photo:addBuddyToDive:b1',
+        cardId: photoPeopleCardId,
+        write: () async => throw StateError('the buddy could not be added'),
+      );
+
+      await expectLater(
+        undoRelinkOnFailure(session, () => save(session)),
+        throwsStateError,
+      );
+
+      expect((await stored('p1')).item.localPath, isNull);
+      expect(written, hasLength(1));
+      expect(deleted, written);
+      expect(relinkAfterCommit(session), isEmpty);
+      expect(await uploads(), isEmpty);
+    });
+
+    test('a relink the repair cannot make fails the save: nothing is '
+        'written, and the photo stays as it was', () async {
+      final repair = MediaRepairService(
+        repository: media,
+        queue: queue,
+        createBookmark: null,
+        writeBookmark: null,
+      );
+      final session = await sittingWithHash('ROW-HASH');
+      session.set(
+        photoSpeciesField,
+        SpeciesTagEdits.none.toggled(turtle, tagged: true, stored: const []),
+      );
+      // Found as the same bytes, but they are not: the repair skips it.
+      holdRelink(
+        session,
+        RepairProposal(
+          item: session.stored.item,
+          confidence: RepairConfidence.exact,
+          candidate: RepairCandidate.file(
+            path: relinkedPath,
+            sizeBytes: 9,
+            hash: 'OTHER-HASH',
+          ),
+        ),
+        service: repair,
+      );
+
+      await expectLater(
+        undoRelinkOnFailure(session, () => save(session)),
+        throwsStateError,
+      );
+
+      final after = await stored('p1');
+      expect(after.item.localPath, isNull);
+      expect(after.species, isEmpty);
+      expect(relinkAfterCommit(session), isEmpty);
+    });
+
+    test('the relink is checked against the photo as stored at Save, not '
+        'as it was when the file was found', () async {
+      final repair = MediaRepairService(
+        repository: media,
+        queue: queue,
+        createBookmark: null,
+        writeBookmark: null,
+      );
+      await media.stampContentIdentity(
+        'p1',
+        contentHash: 'FOUND-HASH',
+        sizeBytes: 9,
+      );
+      final session = await sitting('p1');
+      // Found with the row's own bytes.
+      holdRelink(
+        session,
+        RepairProposal(
+          item: session.stored.item,
+          confidence: RepairConfidence.exact,
+          candidate: RepairCandidate.file(
+            path: relinkedPath,
+            sizeBytes: 9,
+            hash: 'FOUND-HASH',
+          ),
+        ),
+        service: repair,
+      );
+      // Another device stamps other bytes on the row meanwhile.
+      await media.stampContentIdentity(
+        'p1',
+        contentHash: 'RESTAMPED',
+        sizeBytes: 12,
+      );
+      session.rebase(await stored('p1'));
+
+      await expectLater(
+        undoRelinkOnFailure(session, () => save(session)),
+        throwsStateError,
+      );
+      expect((await stored('p1')).item.localPath, isNull);
+    });
+
+    test('the relink is checked against the row read inside the save, even '
+        'when the sitting has not caught up with it', () async {
+      final repair = MediaRepairService(
+        repository: media,
+        queue: queue,
+        createBookmark: null,
+        writeBookmark: null,
+      );
+      final session = await sittingWithHash('FOUND-HASH');
+      holdRelink(
+        session,
+        RepairProposal(
+          item: session.stored.item,
+          confidence: RepairConfidence.exact,
+          candidate: RepairCandidate.file(
+            path: relinkedPath,
+            sizeBytes: 9,
+            hash: 'FOUND-HASH',
+          ),
+        ),
+        service: repair,
+      );
+      // Another device stamps other bytes on the row, and the sitting has not
+      // followed it yet (no rebase).
+      await media.stampContentIdentity(
+        'p1',
+        contentHash: 'RESTAMPED',
+        sizeBytes: 12,
+      );
+
+      await expectLater(
+        undoRelinkOnFailure(session, () => save(session)),
+        throwsStateError,
+      );
+      expect((await stored('p1')).item.localPath, isNull);
+    });
+
+    test('Cancel after Locate: nothing is written', () async {
+      final repair = MediaRepairService(
+        repository: media,
+        queue: queue,
+        createBookmark: null,
+        writeBookmark: null,
+      );
+      final session = await sitting('p1');
+      holdRelink(session, locate(session), service: repair);
+      session.dispose();
+
+      expect((await stored('p1')).item.localPath, isNull);
+      expect(await operations(), isEmpty);
+    });
   });
 }

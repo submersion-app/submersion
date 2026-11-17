@@ -18,6 +18,7 @@ class RecordEditBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onCancel,
     required this.onSave,
     this.actions = const [],
+    this.isBusy = false,
   });
 
   final String title;
@@ -30,6 +31,10 @@ class RecordEditBar extends StatelessWidget implements PreferredSizeWidget {
   final bool canSave;
 
   final bool isSaving;
+
+  /// Something other than a save is running on the record (a whole-record
+  /// operation): Cancel and Save are disabled, with no progress mark.
+  final bool isBusy;
   final VoidCallback onCancel;
   final VoidCallback onSave;
 
@@ -61,7 +66,7 @@ class RecordEditBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           AppBarTextAction(
             label: l10n.forms_cancel,
-            onPressed: isSaving ? null : onCancel,
+            onPressed: isSaving || isBusy ? null : onCancel,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -73,7 +78,7 @@ class RecordEditBar extends StatelessWidget implements PreferredSizeWidget {
         ...actions,
         AppBarTextAction(
           label: l10n.forms_save,
-          onPressed: canSave && !isSaving ? onSave : null,
+          onPressed: canSave && !isSaving && !isBusy ? onSave : null,
           busy: isSaving,
         ),
         const SizedBox(width: 4),

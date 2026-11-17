@@ -8,13 +8,15 @@ import 'package:submersion/features/equipment/domain/entities/equipment_attribut
 /// equipment id). Shared by a scanned tag's "Add to my gear" and by a
 /// cylinder made from a dive's tank (issue #4494). [valveChoice] is a tank
 /// catalog valve key; [suitInflation] records `cylinder_use`, which is left
-/// unset for breathing gas as the catalog's default.
+/// unset for breathing gas as the catalog's default; [twinSet] records Worn
+/// as Twin set for doubles kept as one item (issue #4641).
 List<EquipmentAttribute> cylinderSpecAttributes({
   double? volumeL,
   double? workingPressureBar,
   TankMaterial? material,
   String? valveChoice,
   bool suitInflation = false,
+  bool twinSet = false,
 }) => [
   if (volumeL != null)
     EquipmentAttribute.curated(
@@ -45,5 +47,11 @@ List<EquipmentAttribute> cylinderSpecAttributes({
       equipmentId: '',
       key: EquipmentAttrKeys.cylinderUse,
       valueText: 'suit_inflation',
+    ),
+  if (twinSet)
+    EquipmentAttribute.curated(
+      equipmentId: '',
+      key: EquipmentAttrKeys.wornAs,
+      valueText: kWornAsTwinSet,
     ),
 ];

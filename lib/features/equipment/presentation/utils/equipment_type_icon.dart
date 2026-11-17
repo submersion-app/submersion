@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/icons/submersion_icons.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 /// The glyph that stands for [type] everywhere it appears: the equipment list,
 /// the equipment detail header, the dive-edit gear row, and the equipment
@@ -156,3 +158,19 @@ IconData equipmentTypeIcon(EquipmentType type) {
       return Icons.category;
   }
 }
+
+/// The glyph for one item rather than its type: a tank worn as a twin set
+/// (issue #4641) shows the twin set icon, everything else its type's icon.
+/// Use it wherever a specific item is shown; places that stand for a whole
+/// type (filters, type pickers) keep [equipmentTypeIcon].
+IconData equipmentItemIcon(EquipmentItem item) => equipmentIconFor(
+  item.type,
+  wornAs: item.attrText(EquipmentAttrKeys.wornAs),
+);
+
+/// [equipmentItemIcon] for callers holding an item's type and its stored
+/// Worn as choice instead of the item, such as the diver figure's inputs.
+IconData equipmentIconFor(EquipmentType type, {String? wornAs}) =>
+    type == EquipmentType.tank && wornAs == kWornAsTwinSet
+    ? SubmersionIcons.tankTwinSet
+    : equipmentTypeIcon(type);

@@ -2514,6 +2514,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accessibility_shortcut_newDive => '新建潜水';
 
   @override
+  String get accessibility_shortcut_unlockRecord => '解锁以编辑';
+
+  @override
+  String get accessibility_shortcut_saveChanges => '保存更改';
+
+  @override
   String get accessibility_shortcut_openSettings => '打开设置';
 
   @override
@@ -9655,6 +9661,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recordEdit_saveOrCancelFirst => '请先保存或取消更改';
 
   @override
+  String get recordEdit_unlockToUseThese => '解锁后才能使用这些操作';
+
+  @override
+  String get diveLog_profile_editProfile => '编辑轮廓';
+
+  @override
   String get settings_manage_setupAssistant => '设置向导';
 
   @override
@@ -10308,7 +10320,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_map_tooltip_fitAllSites => '适应所有潜水点';
 
   @override
-  String get diveLog_media_dropUnlockHint => '请在此潜水的页面上解锁后再添加照片。';
+  String get diveLog_media_dropUnlockHint => '请先解锁此潜水，再添加照片。';
 
   @override
   String get diveLog_numbering_actions => '操作';
@@ -27286,6 +27298,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_tripCylinderEventKind_adjustment => '调整';
 
   @override
+  String get enum_navTrackLinkMode_auto => '自动';
+
+  @override
+  String get enum_navTrackLinkMode_manual => '手动';
+
+  @override
   String get enum_tripCylinderEventKind_fill => '充气';
 
   @override
@@ -40249,6 +40267,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_worn_as_back => '背挂式';
+
+  @override
+  String get attrChoice_worn_as_twin_set => '双瓶';
 
   @override
   String get attrChoice_worn_as_sidemount_left => '左侧挂';
