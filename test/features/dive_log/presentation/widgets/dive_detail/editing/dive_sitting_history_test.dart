@@ -85,6 +85,14 @@ void main() {
       'point_count, points, created_at, updated_at) VALUES '
       "('route', 'me', 'suunto_route', 0, 60, 0, X'', 0, 0)",
     );
+    // A route the dive already has as its primary, so making the new one
+    // primary is a change of its own.
+    await db.customStatement(
+      'INSERT INTO nav_tracks (id, diver_id, dive_id, link_mode, is_primary, '
+      'source, start_time, end_time, point_count, points, created_at, '
+      "updated_at) VALUES ('old', 'me', 'dive', 'manual', 1, 'suunto_route', "
+      "0, 60, 0, X'', 0, 0)",
+    );
     await changeLog.settleAll();
     await clearLog(db);
     await db.customStatement('DELETE FROM change_log_operations');
@@ -145,6 +153,44 @@ void main() {
         alsoWriteIsAChange: session.hasHeldChanges,
       );
 
+  /// Every record as the sitting left it at Save.
+  Future<void> expectSaved() async {
+    expect(await cell("SELECT notes FROM dives WHERE id = 'dive'"), 'Current');
+    expect(
+      await cell(
+        "SELECT dismissed_at FROM dive_safety_findings WHERE id = 'finding'",
+      ),
+      isNotNull,
+    );
+    expect(
+      await cell(
+        "SELECT tank_id FROM tank_pressure_series WHERE id = 'series'",
+      ),
+      'b',
+    );
+    expect(
+      await cell("SELECT source_tank_index FROM dive_tanks WHERE id = 'a'"),
+      1,
+    );
+    expect(
+      await cell("SELECT dive_id FROM documents WHERE id = 'doc'"),
+      'dive',
+    );
+    expect(
+      await cell("SELECT linked_dive_id FROM dive_plans WHERE id = 'plan'"),
+      'dive',
+    );
+    expect(
+      await cell("SELECT dive_id FROM nav_tracks WHERE id = 'route'"),
+      'dive',
+    );
+    expect(
+      await cell("SELECT is_primary FROM nav_tracks WHERE id = 'route'"),
+      1,
+    );
+    expect(await cell("SELECT is_primary FROM nav_tracks WHERE id = 'old'"), 0);
+  }
+
   /// The dive's History, as its page opens it.
   Future<List<ChangeLogOperation>> diveHistory() async {
     await changeLog.settleAll();
@@ -178,11 +224,7 @@ void main() {
         'nav_tracks',
       ]),
     );
-    // The exchange swapped what each cylinder recorded, its index included.
-    expect(
-      await cell("SELECT source_tank_index FROM dive_tanks WHERE id = 'a'"),
-      1,
-    );
+    await expectSaved();
     // Nothing of the sitting was filed apart from it.
     expect(
       await cell(
@@ -198,6 +240,7 @@ void main() {
     await changeEverything(session);
     await save(session);
     final entry = (await diveHistory()).single;
+    await expectSaved();
     final revert = ChangeLogRevertService(afterDiveWrites: (_) {});
 
     await revert.execute(await revert.planOperation(entry.id));
@@ -236,6 +279,7 @@ void main() {
       await cell("SELECT source_tank_index FROM dive_tanks WHERE id = 'b'"),
       1,
     );
+    expect(await cell("SELECT is_primary FROM nav_tracks WHERE id = 'old'"), 1);
     expect((await changeLog.getOperation(entry.id))!.isReverted, isTrue);
   });
 
