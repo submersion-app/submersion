@@ -154,6 +154,20 @@ class _DiveTripRowState extends ConsumerState<DiveTripRow> {
     );
   }
 
+  /// Takes the dive off a trip that did not load. Its cylinders' slot
+  /// links went with that trip, as for any change of trip.
+  void _clearUnloaded(EditSession<Dive> session) {
+    _setIfStillEditing(this, session, diveTripIdField, null);
+    if (!mounted || session.valueOf(diveTripIdField) != null) return;
+    tanksAfterTripChange(
+      session,
+      readSlots: tripSlotReader(
+        ProviderScope.containerOf(context, listen: false),
+        session.stored.id,
+      ),
+    );
+  }
+
   Future<void> _pick() async {
     final session = widget.session;
     // Read now: the lookup below can run after the row has gone.
@@ -216,16 +230,27 @@ class _DiveTripRowState extends ConsumerState<DiveTripRow> {
       listenable: session,
       builder: (context, _) {
         final trip = session.valueOf(diveTripField);
+        // A trip id whose trip did not load would read as no trip, but Save
+        // keeps the id. The row says the trip is not there, and offers the
+        // clear.
+        final unloaded =
+            trip == null && session.valueOf(diveTripIdField) != null;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
             FormRow.picker(
               label: l10n.diveLog_edit_row_trip,
-              value: trip?.name,
+              value:
+                  trip?.name ??
+                  (unloaded ? l10n.trips_gallery_tripNotFound : null),
               placeholder: l10n.diveLog_edit_row_notSet,
               onTap: _pick,
-              onClear: trip == null ? null : () => _set(session, null),
+              onClear: trip != null
+                  ? () => _set(session, null)
+                  : unloaded
+                  ? () => _clearUnloaded(session)
+                  : null,
               clearTooltip: l10n.common_action_remove,
             ),
             if (trip != null)
