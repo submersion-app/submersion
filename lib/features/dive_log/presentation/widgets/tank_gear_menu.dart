@@ -73,8 +73,9 @@ class TankGearMenu extends ConsumerWidget {
     );
   }
 
-  /// Runs [action] and answers whether it tried to write: a sheet or a
-  /// picker closed without a choice wrote nothing.
+  /// Runs [action] and answers whether it changed the dive's tanks: a sheet
+  /// or a picker closed without a choice, a stale link or unlink, or a
+  /// failed one changed nothing.
   Future<bool> _run(
     BuildContext context,
     WidgetRef ref,
@@ -105,8 +106,10 @@ class TankGearMenu extends ConsumerWidget {
             equipmentId: item.id,
           );
           if (!linked) messenger?.showSnackBar(SnackBar(content: Text(failed)));
+          return linked;
         } catch (_) {
           messenger?.showSnackBar(SnackBar(content: Text(failed)));
+          return false;
         }
       case _TankGearAction.unlink:
         try {
@@ -119,10 +122,11 @@ class TankGearMenu extends ConsumerWidget {
           if (!unlinked) {
             messenger?.showSnackBar(SnackBar(content: Text(failed)));
           }
+          return unlinked;
         } catch (_) {
           messenger?.showSnackBar(SnackBar(content: Text(failed)));
+          return false;
         }
     }
-    return true;
   }
 }

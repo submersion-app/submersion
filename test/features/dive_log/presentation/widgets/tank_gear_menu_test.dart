@@ -129,4 +129,19 @@ void main() {
 
     expect(ran, [true]);
   });
+
+  testWidgets('a stale unlink answers that nothing was written', (
+    tester,
+  ) async {
+    await pumpMenu(
+      tester,
+      const DiveTank(id: 't', volume: 11.1, equipmentId: 'mine'),
+      asOperation: true,
+    );
+    service.unlinkResult = false;
+    await tester.tap(find.text('Unlink cylinder'));
+    await tester.pumpAndSettle();
+
+    expect(ran, [false]);
+  });
 }

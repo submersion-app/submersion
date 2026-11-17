@@ -141,4 +141,23 @@ void main() {
 
     expect(ran, hasLength(1));
   });
+
+  // A check-in is the gear's own record: the dive the sitting holds is
+  // unchanged, so the page has nothing to read again (issue #4527).
+  testWidgets('a check-in run as an operation answers that the dive is '
+      'unchanged', (tester) async {
+    Future<bool>? pending;
+    await pump(
+      tester,
+      const [],
+      runAsOperation: (operation) async => pending = operation(),
+    );
+
+    await tester.tap(find.byType(IconButton));
+    await tester.pumpAndSettle();
+    Navigator.of(tester.element(find.byType(BottomSheet))).pop();
+    await tester.pumpAndSettle();
+
+    expect(await pending, isFalse);
+  });
 }

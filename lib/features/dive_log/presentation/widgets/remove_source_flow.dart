@@ -25,8 +25,9 @@ const Duration _undoWindow = Duration(seconds: 10);
 /// the removal or its Undo has landed. [undo] is replaceable for tests.
 ///
 /// Every failure is reported here: callers drop the returned Future, or
-/// read it as whether a removal was attempted (false when the diver was
-/// told why not or turned the confirmation down). [offerUndo] false leaves
+/// read it as whether the source was removed (false when the diver was told
+/// why not, turned the confirmation down, or the removal failed and rolled
+/// back). [offerUndo] false leaves
 /// the Undo off the snackbar: on a dive page that offers editing the
 /// removal reverts from History instead (issue #4527).
 Future<bool> removeSourceWithUndo(
@@ -93,7 +94,7 @@ Future<bool> removeSourceWithUndo(
     messenger.showSnackBar(
       SnackBar(content: Text(l10n.diveLog_sources_removeFailed)),
     );
-    return true;
+    return false;
   }
   await quietly(onRemoved, 'After removing source $sourceId');
   afterChange();

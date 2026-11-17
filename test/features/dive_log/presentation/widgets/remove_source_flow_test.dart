@@ -46,6 +46,9 @@ void main() {
   late int changes;
   late List<String> hooks;
 
+  /// What the flow answered: whether a removal was attempted that wrote.
+  late List<bool> results;
+
   Future<void> pump(
     WidgetTester tester, {
     Future<void> Function()? onRemoved,
@@ -61,17 +64,19 @@ void main() {
         ],
         child: Consumer(
           builder: (context, ref, _) => TextButton(
-            onPressed: () => removeSourceWithUndo(
-              context,
-              ref,
-              diveId: 'd1',
-              sourceId: 's2',
-              sourceName: 'Perdix 2',
-              afterChange: () => changes++,
-              onRemoved: onRemoved,
-              onUndone: onUndone,
-              undo: undo ?? (_) async => true,
-              offerUndo: offerUndo,
+            onPressed: () async => results.add(
+              await removeSourceWithUndo(
+                context,
+                ref,
+                diveId: 'd1',
+                sourceId: 's2',
+                sourceName: 'Perdix 2',
+                afterChange: () => changes++,
+                onRemoved: onRemoved,
+                onUndone: onUndone,
+                undo: undo ?? (_) async => true,
+                offerUndo: offerUndo,
+              ),
             ),
             child: const Text('go'),
           ),
@@ -85,6 +90,7 @@ void main() {
   setUp(() {
     changes = 0;
     hooks = [];
+    results = [];
   });
 
   testWidgets('a shared computer is explained, never confirmed', (
@@ -120,6 +126,8 @@ void main() {
     expect(find.text('Could not remove the source'), findsOneWidget);
     expect(hooks, isEmpty);
     expect(changes, 0);
+    // Nothing was removed: the dive page keeps its sitting (issue #4527).
+    expect(results, [false]);
   });
 
   testWidgets('a confirmed removal runs the hooks and offers Undo', (

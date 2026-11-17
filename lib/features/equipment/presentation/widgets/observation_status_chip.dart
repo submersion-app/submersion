@@ -77,13 +77,15 @@ class ObservationStatusChip extends ConsumerWidget {
       onPressed: readOnly || reason != null
           ? null
           : () {
+              // A check-in is the gear's own record: the dive the page's
+              // sitting holds is unchanged, so it has nothing to read again.
               Future<bool> checkIn() async {
                 await showEquipmentObservationSheet(
                   context,
                   equipment: equipment,
                   dive: dive,
                 );
-                return true;
+                return false;
               }
 
               final run = runAsOperation;
