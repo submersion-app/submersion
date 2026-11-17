@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show DiagnosticsDebugCreator;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -8,6 +9,7 @@ import 'package:submersion/features/dive_log/data/services/profile_editing_servi
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/outlier_result.dart';
 import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'dive_detail_page_unlock_harness.dart';
@@ -101,6 +103,33 @@ void main() {
   testWidgets('at phone width the toolbar with the button fits the screen', (
     tester,
   ) async {
+    // Another card overflows at 360 wide; only an overflow inside the
+    // Profile card, where the button sits, fails this test.
+    final inProfileCard = <String>[];
+    final originalOnError = FlutterError.onError;
+    FlutterError.onError = (details) {
+      // A failed expect comes this way too, quoting the overflow: only the
+      // rendering library's own report is an overflow.
+      final overflow =
+          details.library == 'rendering library' &&
+          details.exceptionAsString().contains('overflowed');
+      if (!overflow) {
+        originalOnError?.call(details);
+        return;
+      }
+      for (final node in details.informationCollector?.call() ?? const []) {
+        final creator = node is DiagnosticsDebugCreator ? node.value : null;
+        if (creator is! DebugCreator) continue;
+        // The chain walks parents without the lookup's lifecycle checks,
+        // which do not hold in the middle of a layout.
+        final chain = creator.element.debugGetDiagnosticChain();
+        if (chain.any((e) => e.widget is DiveDetailProfileSection)) {
+          inProfileCard.add(details.exceptionAsString());
+        }
+      }
+    };
+    addTearDown(() => FlutterError.onError = originalOnError);
+
     await pumpPage(
       tester,
       stored: profiled,
@@ -108,8 +137,6 @@ void main() {
       size: const Size(360, 1600),
     );
     await settleLong(tester);
-    // Something else on the page overflows at 360 wide; it is not this row.
-    tester.takeException();
 
     double right(IconData icon) =>
         tester.getRect(find.byIcon(icon).first).right;
@@ -119,9 +146,9 @@ void main() {
 
     await unlock(tester);
     await settleLong(tester);
-    tester.takeException();
     expect(right(Icons.warning_amber), lessThanOrEqualTo(360));
     expect(right(Icons.fullscreen), lessThanOrEqualTo(360));
+    expect(inProfileCard, isEmpty);
   });
 
   testWidgets('a profile of nine points shows no outliers button', (
