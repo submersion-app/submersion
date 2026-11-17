@@ -99,6 +99,14 @@
   },
   "diveSites_refresh_progress_title": "מעדכן את שמות המקומות",
   "diveSites_refresh_nothing": "לאף אתר אין קואורדינטות לבדיקה.",
+  "diveLog_edit_flightWindowWarning": "הצלילה הזו מסתיימת אחרי הזמן הבטוח האחרון לעלייה לפני הטיסה שלך ({time})",
+  "@diveLog_edit_flightWindowWarning": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_tab_blender": "מערבל טרימיקס",
   "gasCalculators_blender_startCylinder": "בבלון",
   "gasCalculators_blender_targetFill": "מילוי יעד",

@@ -99,6 +99,14 @@
   },
   "diveSites_refresh_progress_title": "Helynevek frissítése",
   "diveSites_refresh_nothing": "Egyetlen merülőhelynek sincs lekérdezhető koordinátája.",
+  "diveLog_edit_flightWindowWarning": "Ez a merülés a járatod előtti utolsó biztonságos felszínre érési idő után ér véget ({time})",
+  "@diveLog_edit_flightWindowWarning": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_tab_blender": "Trimix keverő",
   "gasCalculators_blender_startCylinder": "A palackban",
   "gasCalculators_blender_targetFill": "Cél töltés",

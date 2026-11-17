@@ -99,6 +99,14 @@
   },
   "diveSites_refresh_progress_title": "جارٍ تحديث أسماء الأماكن",
   "diveSites_refresh_nothing": "لا يوجد موقع غوص له إحداثيات للبحث.",
+  "diveLog_edit_flightWindowWarning": "ينتهي هذا الغوص بعد آخر وقت آمن للصعود إلى السطح قبل رحلتك ({time})",
+  "@diveLog_edit_flightWindowWarning": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_tab_blender": "خلاط ترايمكس",
   "gasCalculators_blender_startCylinder": "في الأسطوانة",
   "gasCalculators_blender_targetFill": "التعبئة المستهدفة",

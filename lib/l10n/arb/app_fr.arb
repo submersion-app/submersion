@@ -99,6 +99,14 @@
   },
   "diveSites_refresh_progress_title": "Actualisation des noms de lieux",
   "diveSites_refresh_nothing": "Aucun site n'a de coordonnées à consulter.",
+  "diveLog_edit_flightWindowWarning": "Cette plongée se termine après l'heure limite de remontée pour votre vol ({time})",
+  "@diveLog_edit_flightWindowWarning": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_tab_blender": "Mélangeur trimix",
   "gasCalculators_blender_startCylinder": "Dans le bloc",
   "gasCalculators_blender_targetFill": "Remplissage cible",

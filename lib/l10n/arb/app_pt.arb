@@ -99,6 +99,14 @@
   },
   "diveSites_refresh_progress_title": "A atualizar os nomes de lugares",
   "diveSites_refresh_nothing": "Nenhum local tem coordenadas para consultar.",
+  "diveLog_edit_flightWindowWarning": "Este mergulho termina depois do último horário seguro para emergir antes do seu voo ({time})",
+  "@diveLog_edit_flightWindowWarning": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_tab_blender": "Misturador de trimix",
   "gasCalculators_blender_startCylinder": "No cilindro",
   "gasCalculators_blender_targetFill": "Enchimento alvo",

@@ -1332,6 +1332,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_action_importFromGarmin => '从 Garmin 设备导入';
 
   @override
+  String diveLog_edit_flightWindowWarning(String time) {
+    return '此次潜水的结束时间晚于您航班的最后安全出水时间($time)';
+  }
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return '靠近 $location';
   }

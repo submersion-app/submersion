@@ -390,18 +390,40 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
             header,
             Expanded(
               child: AddStripLayout(
-                strip: AddStrip(
-                  entries: controller.isUnlocked
-                      ? _addStripEntries(shown)
-                      : const [],
-                  onAdd: controller.addCard,
-                ),
+                strip: _editStrip(controller, shown),
                 body: content,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  /// What lies under the edit bar while the dive is unlocked: the cards it
+  /// can add and, when the dive ends after the latest safe surfacing time
+  /// for its trip's flight, that warning, pinned as the old edit form
+  /// pinned it. Nothing while locked.
+  Widget _editStrip(RecordEditController<Dive> controller, Dive shown) {
+    final strip = AddStrip(
+      entries: controller.isUnlocked ? _addStripEntries(shown) : const [],
+      onAdd: controller.addCard,
+    );
+    if (!controller.isUnlocked) return strip;
+    final runtime = shown.runtime;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        strip,
+        FlightWindowWarningBanner(
+          tripId: shown.tripId,
+          // As the form read it: the exit, else entry plus runtime.
+          diveEndTime:
+              shown.exitTime ??
+              (runtime == null ? null : shown.effectiveEntryTime.add(runtime)),
+        ),
+      ],
     );
   }
 
@@ -484,10 +506,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
         // The strip comes and goes as the page unlocks and locks, and as
         // cards are added and closed; the page under it stays where it is.
         body: AddStripLayout(
-          strip: AddStrip(
-            entries: controller.isUnlocked ? _addStripEntries(shown) : const [],
-            onAdd: controller.addCard,
-          ),
+          strip: _editStrip(controller, shown),
           body: RecordEditScope<Dive>(controller: controller, child: content),
         ),
       ),

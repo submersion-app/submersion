@@ -43,6 +43,7 @@ import 'package:submersion/features/change_log/presentation/widgets/change_log_h
 import 'package:submersion/features/dive_log/presentation/helpers/open_profile_editor.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/download_target_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/flight_window_warning_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_header_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_health_section.dart';
 import 'package:submersion/features/dive_lab/presentation/what_if_entry.dart';

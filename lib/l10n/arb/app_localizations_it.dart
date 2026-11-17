@@ -1392,6 +1392,11 @@ class AppLocalizationsIt extends AppLocalizations {
       'Importa da dispositivo Garmin';
 
   @override
+  String diveLog_edit_flightWindowWarning(String time) {
+    return 'Questa immersione termina dopo l\'ultimo orario sicuro di riemersione per il tuo volo ($time)';
+  }
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'Vicino a $location';
   }

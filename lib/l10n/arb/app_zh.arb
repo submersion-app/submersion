@@ -99,6 +99,14 @@
   },
   "diveSites_refresh_progress_title": "正在刷新地名",
   "diveSites_refresh_nothing": "没有潜点带有可查询的坐标。",
+  "diveLog_edit_flightWindowWarning": "此次潜水的结束时间晚于您航班的最后安全出水时间({time})",
+  "@diveLog_edit_flightWindowWarning": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_tab_blender": "三混气配气器",
   "gasCalculators_blender_startCylinder": "瓶内现有",
   "gasCalculators_blender_targetFill": "目标充填",

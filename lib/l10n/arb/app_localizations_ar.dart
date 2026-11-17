@@ -1433,6 +1433,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'استيراد من جهاز Garmin';
 
   @override
+  String diveLog_edit_flightWindowWarning(String time) {
+    return 'ينتهي هذا الغوص بعد آخر وقت آمن للصعود إلى السطح قبل رحلتك ($time)';
+  }
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'بالقرب من $location';
   }

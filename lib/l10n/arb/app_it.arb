@@ -99,6 +99,14 @@
   },
   "diveSites_refresh_progress_title": "Aggiornamento dei nomi dei luoghi",
   "diveSites_refresh_nothing": "Nessun sito ha coordinate da cercare.",
+  "diveLog_edit_flightWindowWarning": "Questa immersione termina dopo l'ultimo orario sicuro di riemersione per il tuo volo ({time})",
+  "@diveLog_edit_flightWindowWarning": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_tab_blender": "Miscelatore trimix",
   "gasCalculators_blender_startCylinder": "Nella bombola",
   "gasCalculators_blender_targetFill": "Riempimento target",

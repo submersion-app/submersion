@@ -99,6 +99,14 @@
   },
   "diveSites_refresh_progress_title": "Plaatsnamen bijwerken",
   "diveSites_refresh_nothing": "Geen enkele duikstek heeft coördinaten om op te zoeken.",
+  "diveLog_edit_flightWindowWarning": "Deze duik eindigt na het laatste veilige opstijgmoment voor je vlucht ({time})",
+  "@diveLog_edit_flightWindowWarning": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_tab_blender": "Trimix-menger",
   "gasCalculators_blender_startCylinder": "In de fles",
   "gasCalculators_blender_targetFill": "Doelvulling",

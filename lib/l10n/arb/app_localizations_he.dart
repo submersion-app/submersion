@@ -1370,6 +1370,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_action_importFromGarmin => 'ייבוא מהתקן Garmin';
 
   @override
+  String diveLog_edit_flightWindowWarning(String time) {
+    return 'הצלילה הזו מסתיימת אחרי הזמן הבטוח האחרון לעלייה לפני הטיסה שלך ($time)';
+  }
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'ליד $location';
   }

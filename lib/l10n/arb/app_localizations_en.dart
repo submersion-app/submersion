@@ -1378,6 +1378,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Import from Garmin Device';
 
   @override
+  String diveLog_edit_flightWindowWarning(String time) {
+    return 'This dive ends after the latest safe surfacing time for your flight ($time)';
+  }
+
+  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'Near $location';
   }

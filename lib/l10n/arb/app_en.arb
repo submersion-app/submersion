@@ -763,6 +763,14 @@
   "settings_oauth_connect_copyLink": "Copy link",
   "settings_oauth_connect_linkCopied": "Link copied. Paste it into your browser to authorize.",
   "universalImport_action_importFromGarmin": "Import from Garmin Device",
+  "diveLog_edit_flightWindowWarning": "This dive ends after the latest safe surfacing time for your flight ({time})",
+  "@diveLog_edit_flightWindowWarning": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_edit_geofenceSuggestion_near": "Near {location}",
   "@diveLog_edit_geofenceSuggestion_near": {
     "placeholders": {
