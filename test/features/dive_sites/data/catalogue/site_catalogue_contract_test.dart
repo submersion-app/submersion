@@ -94,6 +94,10 @@ void main() {
     expect(contract['position_from'], ['map']);
   });
 
+  // The contract's hazard_codes are not checked: they are the research
+  // evidence's codes, which the pipeline writes into each record as
+  // sentences, and the app reads a record's hazards as free text.
+
   test('every withdrawal reason in the contract is one the app knows', () {
     for (final reason in contract['withdrawal_reasons'] as List) {
       expect(
