@@ -16,6 +16,13 @@ class _Repo extends Fake implements DiveRepository {
   /// Set once the page is pumped: the fake whose dive the page reads.
   FakeSave? save;
   final promoted = <String>[];
+  final primaries = <String>[];
+
+  @override
+  Future<void> setPrimaryDataSource({
+    required String diveId,
+    required String computerReadingId,
+  }) async => primaries.add(computerReadingId);
 
   @override
   Future<String> convertPlanToActualDive(
@@ -140,5 +147,58 @@ void main() {
     await settle(tester);
 
     expect(repo.promoted, [dive.id]);
+  });
+
+  Future<void> openSourceMenu(WidgetTester tester) async {
+    final sourceMenu = find
+        .descendant(
+          of: find.byType(DataSourcesSection),
+          matching: find.byIcon(Icons.more_vert),
+        )
+        .last;
+    await tester.ensureVisible(sourceMenu);
+    await settle(tester);
+    await tester.tap(sourceMenu);
+    await settle(tester);
+  }
+
+  testWidgets('locked: the Data sources card writes nothing', (tester) async {
+    final repo = _Repo();
+    final page = await pumpPage(
+      tester,
+      sources: _twoSources,
+      visible: const {DiveDetailSectionId.dataSources},
+      extra: [diveRepositoryProvider.overrideWithValue(repo)],
+    );
+    repo.save = page.save;
+
+    await openSourceMenu(tester);
+    expect(find.text('Unlock to use these'), findsOneWidget);
+    await tester.tap(find.text('Set as primary'), warnIfMissed: false);
+    await settle(tester);
+
+    expect(repo.primaries, isEmpty);
+  });
+
+  testWidgets('unlocked and clean, Set as primary from the card runs and the '
+      'sitting starts again', (tester) async {
+    final repo = _Repo();
+    final page = await pumpPage(
+      tester,
+      sources: _twoSources,
+      visible: const {DiveDetailSectionId.dataSources},
+      extra: [diveRepositoryProvider.overrideWithValue(repo)],
+    );
+    repo.save = page.save;
+    await unlock(tester);
+    final before = _controller(tester).session;
+
+    await openSourceMenu(tester);
+    await tester.tap(find.text('Set as primary'));
+    await settle(tester);
+    await settle(tester);
+
+    expect(repo.primaries, ['src-b']);
+    expect(_controller(tester).session, isNot(same(before)));
   });
 }

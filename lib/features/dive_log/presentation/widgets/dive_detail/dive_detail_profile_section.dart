@@ -32,6 +32,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 
 /// The parts of a dive the chart subtree draws from.
 ///
@@ -483,6 +484,11 @@ class _ProfileSourceBar extends ConsumerWidget {
             : ({...current}..remove(id));
       },
       onSetPrimary: onSetPrimarySource,
+      // Set as primary acts on the whole dive at once (issue #4527).
+      operationReason: recordOperationReason(
+        context.l10n,
+        recordOperationBlockOf(RecordEditScope.maybeOf<Dive>(context)),
+      ),
     );
   }
 }
