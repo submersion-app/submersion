@@ -109,8 +109,19 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
     _ => _published?.credits ?? const [],
   };
 
+  /// Where the pack stands now. Never throws: an unexpected error ends
+  /// as [PackFailed], so the page always leaves [PackChecking].
   Future<void> refresh() async {
     if (_busy) return;
+    try {
+      await _refresh();
+    } on Object catch (e) {
+      _log.warning('Could not check the marine life model', error: e);
+      state = const PackFailed(reason: PackDownloadFailure.network, bytes: 0);
+    }
+  }
+
+  Future<void> _refresh() async {
     final engine = ref.read(visionEngineProvider);
     final availability = await engine.availability();
     if (availability != VisionAvailability.available) {

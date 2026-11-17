@@ -207,6 +207,28 @@ void main() {
       expect(NamedCandidate.fromJson(named.toJson()), named);
     });
 
+    test('a catalogue id that is not text is malformed', () {
+      expect(
+        () => parseCandidates(
+          '[{"gbifKey": 1, "scientificName": "Scarus vetula", "catalogId": 5}]',
+        ),
+        throwsA(isA<PackManifestException>()),
+      );
+    });
+
+    test('a credit whose licence is not text is malformed', () {
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestJson(
+            (m) => m['credits'] = [
+              {'name': 'BioCLIP 2', 'licence': 1},
+            ],
+          ),
+        ),
+        throwsA(isA<PackManifestException>()),
+      );
+    });
+
     test('a candidate list that is not a list is malformed', () {
       expect(
         () => parseCandidates('{}'),

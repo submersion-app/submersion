@@ -111,8 +111,10 @@ class MediaIdentificationService {
       return running.done.future;
     }
     final queued = _waiting.remove(item.id);
-    final job = queued ?? _Job(item, location);
-    if (location != null) job.location = location;
+    // A later location replaces a queued one; the callers' future stays.
+    final job = queued == null
+        ? _Job(item, location)
+        : queued.withLocation(location ?? queued.location);
     // Re-inserting moves it to the newest end.
     _waiting[item.id] = job;
     _changed();
@@ -507,11 +509,14 @@ class MediaIdentificationService {
 }
 
 class _Job {
-  _Job(this.item, this.location);
+  _Job(this.item, this.location, [Completer<void>? done])
+    : done = done ?? Completer<void>();
 
   final MediaItem item;
-  GeoPoint? location;
-  final done = Completer<void>();
+  final GeoPoint? location;
+  final Completer<void> done;
+
+  _Job withLocation(GeoPoint? location) => _Job(item, location, done);
 }
 
 class _NamingJob {

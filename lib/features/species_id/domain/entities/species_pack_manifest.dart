@@ -407,6 +407,14 @@ PackFile _file(Map<String, Object?> map) {
 
 PackCredit _credit(Map<String, Object?> map) => PackCredit(
   name: _string(map, 'name'),
-  licence: map['licence'] as String? ?? '',
-  text: map['text'] as String? ?? '',
+  licence: _optionalString(map, 'licence'),
+  text: _optionalString(map, 'text'),
 );
+
+/// Text, or empty when absent; anything else is malformed.
+String _optionalString(Map<String, Object?> map, String key) {
+  final value = map[key];
+  if (value == null) return '';
+  if (value is String) return value;
+  _bad('$key is not text');
+}

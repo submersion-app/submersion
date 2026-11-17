@@ -21,7 +21,7 @@ class _Client extends SpeciesPackManifestClient {
   _Client() : super(url: Uri.parse('https://example.test/pack/manifest.json'));
 
   SpeciesPackManifest? manifest;
-  PackDownloadException? failure;
+  Object? failure;
 
   @override
   Future<SpeciesPackManifest?> fetch() async {
@@ -190,6 +190,15 @@ void main() {
     await controller().refresh();
     expect(state(), isA<PackNeedsAppUpdate>());
   });
+
+  test(
+    'an unexpected error while checking ends as failed, not checking',
+    () async {
+      client.failure = StateError('broken');
+      await controller().refresh();
+      expect(state(), isA<PackFailed>());
+    },
+  );
 
   test('a published pack not yet downloaded quotes its size', () async {
     await controller().refresh();

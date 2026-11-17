@@ -37,6 +37,13 @@ class PackCandidate extends Equatable {
       );
     }
     final categoryName = json['category'];
+    final catalogId = json['catalogId'];
+    if (catalogId != null && catalogId is! String) {
+      throw const PackManifestException(
+        PackManifestFailure.malformed,
+        'catalogue id is not text',
+      );
+    }
     return PackCandidate(
       gbifKey: key,
       scientificName: scientific,
@@ -45,7 +52,7 @@ class PackCandidate extends Equatable {
         (c) => c.name == categoryName,
         orElse: () => SpeciesCategory.other,
       ),
-      catalogId: json['catalogId'] as String?,
+      catalogId: catalogId as String?,
     );
   }
 
