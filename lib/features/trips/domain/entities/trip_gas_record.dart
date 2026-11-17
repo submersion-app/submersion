@@ -23,6 +23,7 @@ class TripGasRecordTank extends Equatable {
     this.gasMix = const GasMix(),
     required this.tripCylinderId,
     this.breathing = true,
+    this.measuresGasUse = true,
   });
 
   final String tankId;
@@ -45,6 +46,12 @@ class TripGasRecordTank extends Equatable {
   /// no litres breathed.
   final bool breathing;
 
+  /// Whether the fall in the tank's pressure is the gas breathed from it.
+  /// An Avelo Hydrotank's is not, since its pressure rises with the water
+  /// pumped in (issue #4657): it adds no litres, and, being breathed, its
+  /// dive is left out of the slot's total.
+  final bool measuresGasUse;
+
   @override
   List<Object?> get props => [
     tankId,
@@ -60,6 +67,7 @@ class TripGasRecordTank extends Equatable {
     gasMix,
     tripCylinderId,
     breathing,
+    measuresGasUse,
   ];
 }
 

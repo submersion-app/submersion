@@ -74,14 +74,14 @@ String _surfaceSeconds(String dive, GasUseLane lane) =>
     '(SELECT COALESCE(SUM(gu_t.surface_breathing_duration), 0) '
     'FROM dive_tanks gu_t WHERE gu_t.dive_id = $dive.id '
     'AND gu_t.start_pressure > gu_t.end_pressure '
-    "AND ${breathingTankSql('gu_t')} "
+    "AND ${gasUseTankSql('gu_t')} "
     'AND gu_t.surface_breathing_duration > 0 '
     "AND ${_unloggedSql('gu_t')} "
     "AND ${_contributesSql('gu_t', dive, lane)} "
     'AND NOT EXISTS (SELECT 1 FROM dive_tanks gu_p '
     'WHERE gu_p.dive_id = gu_t.dive_id AND gu_p.id <> gu_t.id '
     'AND gu_p.start_pressure > gu_p.end_pressure '
-    "AND ${breathingTankSql('gu_p')} "
+    "AND ${gasUseTankSql('gu_p')} "
     "AND ${_unloggedSql('gu_p')} "
     "AND ${matchedPairSql('gu_t', 'gu_p')} "
     'AND (COALESCE(gu_p.surface_breathing_duration, 0) '

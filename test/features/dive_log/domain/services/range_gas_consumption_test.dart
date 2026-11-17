@@ -746,4 +746,37 @@ void main() {
       expect(result.rmv, isNull);
     });
   });
+
+  // An Avelo Hydrotank's pressure falls when water is pushed out, so a range
+  // with a purge would read a huge rate (#4657): no figures at all, as the
+  // whole-dive rates have none.
+  group('Avelo Hydrotank', () {
+    const hydrotank = DiveTank(
+      id: 'hydro',
+      volume: 10,
+      role: TankRole.hydrotank,
+    );
+    final pressures = {
+      'bg': _linear('bg', from: 200, to: 100),
+      'hydro': _linear('hydro', from: 230, to: 200),
+    };
+
+    RangeGasConsumption of(List<DiveTank> tanks) => rangeGasConsumption(
+      tanks: tanks,
+      tankPressures: pressures,
+      startTimestamp: 120,
+      endTimestamp: 420,
+      profile: _flatAt10m,
+      model: GasModel.ideal,
+    );
+
+    test('alone gives no figures', () {
+      expect(of(const [hydrotank]).sac, isNull);
+      expect(of(const [hydrotank]).rmv, isNull);
+    });
+
+    test('beside another cylinder gives no RMV', () {
+      expect(of(const [hydrotank, backGas]).rmv, isNull);
+    });
+  });
 }

@@ -386,6 +386,48 @@ void main() {
         expect(tanks.map((t) => t['name']), ['T2', 'T3']);
       });
 
+      test('an Avelo dive\'s Hydrotank keeps its role through the merge '
+          '(#4657)', () {
+        final parsed = pigeon.ParsedDive(
+          fingerprint: '',
+          dateTimeYear: 2025,
+          dateTimeMonth: 1,
+          dateTimeDay: 1,
+          dateTimeHour: 0,
+          dateTimeMinute: 0,
+          dateTimeSecond: 0,
+          maxDepthMeters: 0,
+          avgDepthMeters: 0,
+          durationSeconds: 0,
+          diveMode: 'open_circuit',
+          samples: [],
+          tanks: [
+            pigeon.TankInfo(
+              index: 0,
+              gasMixIndex: 0,
+              startPressureBar: 200.1,
+              transmitterSerial: 12345,
+              usage: 4,
+            ),
+          ],
+          gasMixes: [],
+          events: [],
+        );
+
+        final result = ShearwaterDiveMapper.mergeWithParsedDive(
+          <String, dynamic>{
+            'tanks': [
+              {'name': 'Avelo', 'startPressure': 200.0},
+            ],
+            'profile': <Map<String, dynamic>>[],
+          },
+          parsed,
+        );
+
+        final tanks = result['tanks'] as List<Map<String, dynamic>>;
+        expect(tanks.single['role'], 'hydrotank');
+      });
+
       test('maps dive mode from parsed data', () {
         final baseMap = <String, dynamic>{'profile': <Map<String, dynamic>>[]};
         final parsed = pigeon.ParsedDive(

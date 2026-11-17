@@ -362,6 +362,10 @@ class CylindersCard extends ConsumerWidget {
     // A tank carried but not breathed used 0, which is not missing data;
     // only a rise (a sensor or entry error) has no meaningful figure.
     final hasUsed = pressureUsed != null && pressureUsed > 0;
+    // An Avelo Hydrotank is breathed, but its pressure rises and falls with
+    // the water pumped in for buoyancy (issue #4657): its drop is no gas
+    // used, so the card shows its pressures and says why it has no figures.
+    final waterDriven = tank.role.isUnmeasuredBreathingGas;
 
     // Preset display name, falling back to formatted volume.
     final preset = tank.presetName != null
@@ -400,7 +404,7 @@ class CylindersCard extends ConsumerWidget {
           endLabel: l10n.diveLog_cylinders_figureEnd(
             units.formatPressure(pressures.$2),
           ),
-          usedLabel: pressureUsed != null && pressureUsed >= 0
+          usedLabel: !waterDriven && pressureUsed != null && pressureUsed >= 0
               ? l10n.diveLog_cylinders_figureUsed(
                   units.formatPressure(pressureUsed),
                 )
@@ -471,20 +475,23 @@ class CylindersCard extends ConsumerWidget {
           children: [
             if (sourceName != null)
               FieldAttributionBadge(sourceName: sourceName),
-            if (breathing && hasUsed && gasUsedLiters != null)
+            if (breathing && !waterDriven && hasUsed && gasUsedLiters != null)
               Text(
                 l10n.diveLog_cylinders_gasUsed(
                   '${units.convertVolume(gasUsedLiters).round()} '
                   '${units.volumeSymbol}',
                 ),
               ),
-            if (breathing)
+            if (breathing && !waterDriven)
               if (cylinderSac?.loopRate case final loopRate?)
                 Text(
                   key: Key('tank-loop-use-${tank.id}'),
                   l10n.diveLog_cylinders_loopUse(units.formatRmv(loopRate)),
                 ),
-            if (breathing && cylinderSac != null && cylinderSac.hasValidSac)
+            if (breathing &&
+                !waterDriven &&
+                cylinderSac != null &&
+                cylinderSac.hasValidSac)
               for (final line in _consumptionLines(l10n, cylinderSac))
                 Text(line),
             if (breathing) ...[
@@ -493,6 +500,14 @@ class CylindersCard extends ConsumerWidget {
             ],
           ],
         ),
+        if (waterDriven)
+          Text(
+            l10n.diveLog_cylinders_hydrotankNote,
+            key: Key('tank-hydrotank-note-${tank.id}'),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
         if (slotLabel != null)
           Text(
             tripCylinderTankLine(l10n, slotLabel),

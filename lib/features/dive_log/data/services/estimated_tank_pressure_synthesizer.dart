@@ -54,8 +54,10 @@ EstimatedTankPressures synthesizeEstimatedTankPressures({
   for (final tank in tanks) {
     if (measured[tank.id]?.isNotEmpty ?? false) continue;
     // A suit inflation bottle is not breathed (issue #4243): an estimated
-    // line would draw it as if it were. Its logged pressures still show.
-    if (!tank.role.isBreathingGas) continue;
+    // line would draw it as if it were. Nor is an Avelo Hydrotank's pressure
+    // the gas breathed (issue #4657), so no steady use is drawn for it
+    // either. Their logged pressures still show.
+    if (!tank.role.pressureMeasuresGasUse) continue;
     final start = tank.startPressure;
     final end = tank.endPressure;
     if (start == null || end == null || start <= end) continue;

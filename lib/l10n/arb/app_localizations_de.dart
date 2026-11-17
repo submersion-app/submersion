@@ -11509,6 +11509,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_cylinders_hydrotankNote =>
+      'Der Druck im Hydrotank misst nicht das verbrauchte Gas';
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD bei ppO₂ $ppO2';
   }
@@ -15270,6 +15274,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_tankRole_twinSet => 'Doppelgerät';
+
+  @override
+  String get enum_tankRole_hydrotank => 'Hydrotank';
 
   @override
   String get enum_tideState_rising => 'Auflaufend';

@@ -402,4 +402,28 @@ void main() {
     expect(total.litres, isNull);
     expect(total.leftOut, 0);
   });
+
+  // An Avelo Hydrotank is breathed, but its pressure rises with the water
+  // pumped in (issue #4657): no litres from it, and its dive is left out of
+  // the slot's total, which says so.
+  test('an Avelo Hydrotank adds no litres and its dive is left out', () {
+    final hydrotank = TripGasRecordTank(
+      tankId: 'hydro',
+      diveId: 'd1',
+      entryTime: at(9, 9),
+      volume: 10,
+      startPressure: 200,
+      endPressure: 185,
+      gasMix: const GasMix(o2: 21),
+      tripCylinderId: 'b',
+      measuresGasUse: false,
+    );
+
+    final r = record(tanks: [hydrotank]);
+    final total = r.slots.singleWhere((t) => t.cylinder.id == 'b');
+
+    expect(r.rows.single.litres, isNull);
+    expect(total.litres, isNull);
+    expect(total.leftOut, 1);
+  });
 }

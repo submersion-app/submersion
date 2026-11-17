@@ -137,7 +137,7 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
       // Named as the full chart's tooltip names a tank.
       tankLabel: (tank, index) => DiveProfileChart.tankTooltipLabel(
         tank,
-        l10n.diveLog_tank_title(index + 1),
+        DiveProfileChart.tankDefaultLabel(l10n, tank, index),
       ),
     );
   }

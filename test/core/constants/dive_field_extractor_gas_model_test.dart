@@ -103,4 +103,47 @@ void main() {
       expect(DiveField.tankCount.extractFromDive(withSuit), 2);
     });
   });
+
+  // An Avelo Hydrotank's pressure rises with the water pumped in, so its
+  // drop is no gas consumed (#4657); a pony beside it still counts.
+  group('an Avelo Hydrotank', () {
+    Dive withTanks(List<DiveTank> tanks) => Dive(
+      id: 'dive-4657',
+      dateTime: DateTime(2026, 11, 17, 9),
+      runtime: const Duration(minutes: 45),
+      avgDepth: 12.0,
+      tanks: tanks,
+    );
+    const hydrotank = DiveTank(
+      id: 'hydro',
+      volume: 10,
+      startPressure: 200.0,
+      endPressure: 185.0,
+      gasMix: GasMix(o2: 21.0),
+      role: TankRole.hydrotank,
+    );
+    const pony = DiveTank(
+      id: 'pony',
+      volume: 3,
+      startPressure: 200.0,
+      endPressure: 170.0,
+      gasMix: GasMix(o2: 21.0),
+      role: TankRole.pony,
+    );
+
+    double? consumed(List<DiveTank> tanks) =>
+        DiveField.gasConsumed.extractFromDive(
+              withTanks(tanks),
+              gasModel: GasModel.ideal,
+            )
+            as double?;
+
+    test('alone has no gas consumed', () {
+      expect(consumed(const [hydrotank]), isNull);
+    });
+
+    test('beside a pony adds nothing to it', () {
+      expect(consumed(const [hydrotank, pony]), consumed(const [pony]));
+    });
+  });
 }

@@ -1,5 +1,6 @@
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 /// Whether the Gas consumption by segment card should explain that no tank
 /// pressure was recorded during the dive (issue #2505).
@@ -31,6 +32,9 @@ bool sacSegmentsLackRecordedPressure(
   if (analysis == null || dive.isRebreather) return false;
   if (analysis.sacSegments?.isNotEmpty ?? false) return false;
   if (analysis.sacCurve != null) return false;
+  // On an Avelo Hydrotank dive the segments are missing because its pressure
+  // is no gas used (issue #4657), not because no pressure was logged.
+  if (breathesUnmeasuredTank(dive.tanks)) return false;
   // A suit inflation bottle's drop is not breathing (issue #4243).
   return dive.breathingTanks.any((tank) {
     if (computerId != null &&

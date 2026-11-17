@@ -2663,6 +2663,47 @@ void main() {
     });
   });
 
+  group('DiveProfileChart.tankDefaultLabel (#4657)', () {
+    final l10n = lookupAppLocalizations(const Locale('en'));
+
+    test('an unnamed Avelo Hydrotank is called a Hydrotank', () {
+      const hydrotank = DiveTank(
+        id: 'h',
+        gasMix: GasMix(o2: 21),
+        role: TankRole.hydrotank,
+      );
+      expect(
+        DiveProfileChart.tankTooltipLabel(
+          hydrotank,
+          DiveProfileChart.tankDefaultLabel(l10n, hydrotank, 0),
+        ),
+        'Hydrotank (Air)',
+      );
+    });
+
+    test('a named Hydrotank keeps its name', () {
+      const named = DiveTank(
+        id: 'h',
+        name: 'Avelo',
+        gasMix: GasMix(o2: 21),
+        role: TankRole.hydrotank,
+      );
+      expect(
+        DiveProfileChart.tankTooltipLabel(
+          named,
+          DiveProfileChart.tankDefaultLabel(l10n, named, 0),
+        ),
+        'Avelo (Air)',
+      );
+    });
+
+    test('any other tank is numbered, and so is an unknown one', () {
+      const back = DiveTank(id: 'b', gasMix: GasMix(o2: 21));
+      expect(DiveProfileChart.tankDefaultLabel(l10n, back, 1), 'Tank 2');
+      expect(DiveProfileChart.tankDefaultLabel(l10n, null, 0), 'Tank 1');
+    });
+  });
+
   group('DiveProfileChart.tooltipRowText', () {
     test('keeps a full long label and its value with a separator', () {
       // Regression for two prior bugs: the 8-char column truncated to

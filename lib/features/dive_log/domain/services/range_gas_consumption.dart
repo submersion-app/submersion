@@ -47,6 +47,9 @@ RangeGasConsumption rangeGasConsumption({
   tanks = breathingTanks(tanks);
   final span = plottedSpan(profile);
   if (isRebreather || span == null || tanks.isEmpty) return none;
+  // An Avelo Hydrotank's pressure falls when water is pushed out, so a range
+  // has no rate the dive itself does not (issue #4657).
+  if (breathesUnmeasuredTank(tanks)) return none;
 
   final from = math.max(startTimestamp, span.start);
   final to = math.min(endTimestamp, span.end);

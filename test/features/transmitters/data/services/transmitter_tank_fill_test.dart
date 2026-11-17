@@ -56,6 +56,12 @@ void main() {
     expect(fill.tankRole, const Value('sidemountLeft'));
   });
 
+  test('never replaces an Avelo Hydrotank (#4657)', () {
+    final fill = transmitterFillFor(row(role: 'hydrotank'), entry)!;
+
+    expect(fill.tankRole, const Value<String>.absent());
+  });
+
   test('keeps a role the diver set', () {
     final fill = transmitterFillFor(row(role: 'stage', name: 'Stage'), entry)!;
 

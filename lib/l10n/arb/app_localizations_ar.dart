@@ -11675,6 +11675,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_cylinders_hydrotankNote =>
+      'ضغط Hydrotank لا يقيس الغاز المستهلك';
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD عند ppO₂ $ppO2';
   }
@@ -15482,6 +15486,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_tankRole_twinSet => 'طقم مزدوج';
+
+  @override
+  String get enum_tankRole_hydrotank => 'Hydrotank';
 
   @override
   String get enum_tideState_rising => 'مد';

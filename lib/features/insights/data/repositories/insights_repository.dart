@@ -438,6 +438,7 @@ class InsightsRepository with InsightsChartDives {
         FROM dives d
         JOIN dive_tanks t ON t.dive_id = d.id AND ${breathingTankSql('t')}
         WHERE 1 = 1 $diverFilter ${df.clause}
+          AND NOT ${diveBreathesUnmeasuredTankSql('d')}
           AND ${measuredRuntimeSecondsSql('d')} > 0
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
@@ -650,7 +651,8 @@ class InsightsRepository with InsightsChartDives {
         FROM dives d
         JOIN dive_tanks t ON t.dive_id = d.id AND ${breathingTankSql('t')}
         LEFT JOIN dive_sites ds ON ds.id = d.site_id
-        WHERE ${measuredRuntimeSecondsSql('d')} > 0
+        WHERE NOT ${diveBreathesUnmeasuredTankSql('d')}
+          AND ${measuredRuntimeSecondsSql('d')} > 0
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
          

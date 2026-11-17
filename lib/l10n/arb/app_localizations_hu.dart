@@ -11492,6 +11492,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_cylinders_hydrotankNote =>
+      'A Hydrotank nyomása nem méri az elhasznált gázt';
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD $ppO2 ppO₂-nél';
   }
@@ -15242,6 +15246,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_tankRole_twinSet => 'Ikerpalack';
+
+  @override
+  String get enum_tankRole_hydrotank => 'Hydrotank';
 
   @override
   String get enum_tideState_rising => 'Emelkedő';

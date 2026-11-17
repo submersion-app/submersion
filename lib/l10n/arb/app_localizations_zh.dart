@@ -10930,6 +10930,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_cylinders_hydrotankNote => 'Hydrotank 压力不代表已用气量';
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return '氧分压 $ppO2 时的最大作业深度';
   }
@@ -14543,6 +14546,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_tankRole_twinSet => '双瓶';
+
+  @override
+  String get enum_tankRole_hydrotank => 'Hydrotank';
 
   @override
   String get enum_tideState_rising => '涨潮';
