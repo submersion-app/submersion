@@ -716,6 +716,13 @@ class AppSettings implements UnitFormatterSettings {
   final double plannerBatteryReserveFraction;
   final double plannerWalkSpeedMps;
 
+  /// The planner's semi-closed loop defaults, surface L/min (issue #4660):
+  /// the CMF supply injection rate and the diver's VO2 on that loop, and the
+  /// diver's VO2 on a passive (pSCR) loop. A plan's own value wins.
+  final double plannerScrInjectionRate;
+  final double plannerScrVo2;
+  final double plannerPscrVo2;
+
   /// Turn-pressure/air-break global defaults (issue #3552, follow-up to
   /// v304-306). Nullable, unlike the fields above: null = no rule/no
   /// breaks, matching today's behaviour for a diver who has not opted in.
@@ -979,6 +986,9 @@ class AppSettings implements UnitFormatterSettings {
     this.plannerDeviationTimeMinutes = 5,
     this.plannerBatteryReserveFraction = 1.0 / 3.0,
     this.plannerWalkSpeedMps = 0.8,
+    this.plannerScrInjectionRate = 12.0,
+    this.plannerScrVo2 = 1.3,
+    this.plannerPscrVo2 = 0.72,
     this.plannerTurnPressureRule,
     this.plannerTurnPressureFraction,
     this.plannerAirBreakO2Seconds,
@@ -1216,6 +1226,9 @@ class AppSettings implements UnitFormatterSettings {
     int? plannerDeviationTimeMinutes,
     double? plannerBatteryReserveFraction,
     double? plannerWalkSpeedMps,
+    double? plannerScrInjectionRate,
+    double? plannerScrVo2,
+    double? plannerPscrVo2,
     domain.TurnPressureRule? plannerTurnPressureRule,
     bool clearPlannerTurnPressureRule = false,
     double? plannerTurnPressureFraction,
@@ -1476,6 +1489,10 @@ class AppSettings implements UnitFormatterSettings {
       plannerBatteryReserveFraction:
           plannerBatteryReserveFraction ?? this.plannerBatteryReserveFraction,
       plannerWalkSpeedMps: plannerWalkSpeedMps ?? this.plannerWalkSpeedMps,
+      plannerScrInjectionRate:
+          plannerScrInjectionRate ?? this.plannerScrInjectionRate,
+      plannerScrVo2: plannerScrVo2 ?? this.plannerScrVo2,
+      plannerPscrVo2: plannerPscrVo2 ?? this.plannerPscrVo2,
       plannerTurnPressureRule: clearPlannerTurnPressureRule
           ? null
           : (plannerTurnPressureRule ?? this.plannerTurnPressureRule),
@@ -2840,6 +2857,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setPlannerWalkSpeedMps(double value) =>
       _update((s) => s.copyWith(plannerWalkSpeedMps: value));
 
+  Future<void> setPlannerScrInjectionRate(double value) =>
+      _update((s) => s.copyWith(plannerScrInjectionRate: value));
+
+  Future<void> setPlannerScrVo2(double value) =>
+      _update((s) => s.copyWith(plannerScrVo2: value));
+
+  Future<void> setPlannerPscrVo2(double value) =>
+      _update((s) => s.copyWith(plannerPscrVo2: value));
+
   Future<void> setPlannerTurnPressureRule(domain.TurnPressureRule? value) =>
       _update(
         (s) => s.copyWith(
@@ -3697,6 +3723,18 @@ final plannerBatteryReserveFractionProvider = Provider<double>((ref) {
 
 final plannerWalkSpeedMpsProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.plannerWalkSpeedMps));
+});
+
+final plannerScrInjectionRateProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerScrInjectionRate));
+});
+
+final plannerScrVo2Provider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerScrVo2));
+});
+
+final plannerPscrVo2Provider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerPscrVo2));
 });
 
 /// The diver's default turn-pressure rule; null = no rule (issue #3552).

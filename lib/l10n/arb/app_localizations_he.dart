@@ -21826,6 +21826,15 @@ class AppLocalizationsHe extends AppLocalizations {
       'גדול יותר = יותר גז טרי, ירידת חמצן קטנה יותר';
 
   @override
+  String get plannerCanvas_scr_injectionRate => 'קצב הזרקה';
+
+  @override
+  String get plannerCanvas_scr_vo2 => 'VO₂ (SCR)';
+
+  @override
+  String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }

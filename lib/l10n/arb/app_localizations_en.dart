@@ -21981,6 +21981,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Larger adds more fresh gas and lowers the O₂ drop';
 
   @override
+  String get plannerCanvas_scr_injectionRate => 'Injection rate';
+
+  @override
+  String get plannerCanvas_scr_vo2 => 'VO₂ (SCR)';
+
+  @override
+  String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }

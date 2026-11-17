@@ -35200,6 +35200,24 @@ abstract class AppLocalizations {
   /// **'Larger adds more fresh gas and lowers the O₂ drop'**
   String get plannerCanvas_pscr_ratio_hint;
 
+  /// No description provided for @plannerCanvas_scr_injectionRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Injection rate'**
+  String get plannerCanvas_scr_injectionRate;
+
+  /// No description provided for @plannerCanvas_scr_vo2.
+  ///
+  /// In en, this message translates to:
+  /// **'VO₂ (SCR)'**
+  String get plannerCanvas_scr_vo2;
+
+  /// No description provided for @plannerCanvas_pscr_vo2.
+  ///
+  /// In en, this message translates to:
+  /// **'VO₂ (pSCR)'**
+  String get plannerCanvas_pscr_vo2;
+
   /// No description provided for @plannerCanvas_chip_cns.
   ///
   /// In en, this message translates to:

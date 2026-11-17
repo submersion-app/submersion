@@ -22371,6 +22371,15 @@ class AppLocalizationsFr extends AppLocalizations {
       'Plus grand = plus de gaz frais, chute d\'O₂ plus faible';
 
   @override
+  String get plannerCanvas_scr_injectionRate => 'Débit d\'injection';
+
+  @override
+  String get plannerCanvas_scr_vo2 => 'VO₂ (SCR)';
+
+  @override
+  String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }

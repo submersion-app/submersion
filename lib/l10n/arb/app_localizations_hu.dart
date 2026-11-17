@@ -22240,6 +22240,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nagyobb = több friss gáz, kisebb O₂-esés';
 
   @override
+  String get plannerCanvas_scr_injectionRate => 'Adagolási sebesség';
+
+  @override
+  String get plannerCanvas_scr_vo2 => 'VO₂ (SCR)';
+
+  @override
+  String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }

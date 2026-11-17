@@ -21207,6 +21207,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_pscr_ratio_hint => '越大 = 新鲜气体越多，氧分压下降越小';
 
   @override
+  String get plannerCanvas_scr_injectionRate => '注入流量';
+
+  @override
+  String get plannerCanvas_scr_vo2 => 'VO₂ (SCR)';
+
+  @override
+  String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
