@@ -242,20 +242,31 @@ class VideoIdentificationScan {
   }) async {
     final named = await _nameTracks(closed, stopping: stopping);
     if (named == null || _databaseGeneration() != _generation) return false;
-    if (named.isNotEmpty && _carry.isNotEmpty) {
-      // As stored now: the diver may have decided or named one since the
-      // scan began.
+    final continuing = [
+      for (final n in named)
+        if (_continuing.containsKey(n.identification.id)) n.identification,
+    ];
+    var continued = continuing;
+    if (named.isNotEmpty && (_carry.isNotEmpty || continuing.isNotEmpty)) {
+      // As stored now: the diver may have decided or named a fish since
+      // the scan read the rows, or cleared them.
       final current = {
         for (final i in await _identifications.forMedia(_item.id)) i.id: i,
       };
       _carry = [for (final c in _carry) ?current[c.id]];
+      continued = [
+        for (final c in continuing)
+          if (current[c.id] case final now?)
+            c.copyWith(
+              decision: now.decision,
+              decidedSpeciesId: now.decidedSpeciesId,
+              decidedAt: now.decidedAt,
+              claimedSpeciesId: () => now.claimedSpeciesId,
+            ),
+      ];
     }
     // A continued track keeps its own row and decision; only the new ones
     // can take over a decision from a previous scan.
-    final continued = [
-      for (final n in named)
-        if (_continuing.containsKey(n.identification.id)) n.identification,
-    ];
     final found = carryTrackDecisions(
       decided: _carry,
       fresh: [

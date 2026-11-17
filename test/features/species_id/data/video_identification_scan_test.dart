@@ -228,6 +228,51 @@ void main() {
     expect((await identifications.runFor('v1'))!.detectionCount, 1);
   });
 
+  test(
+    'a decision made on a continued fish while it is scanned is kept',
+    () async {
+      engine.videoFrames = _fish(1000, 15000);
+      final first = scan();
+      expect(await first.runChunk(), isTrue);
+      await first.finish();
+      final cut = (await identifications.forMedia('v1')).single;
+      final resumed = scan(
+        resumeFrom: await identifications.runFor('v1'),
+        stored: await identifications.forMedia('v1'),
+      );
+      // The diver names the fish after the scan read the rows.
+      await identifications.claim(cut.id, 'sp_named_meanwhile');
+      await identifications.updateIdentifications([
+        cut.copyWith(
+          decision: IdentificationDecision.rejected,
+          decidedAt: fixtureT1,
+        ),
+      ]);
+      await runAll(resumed);
+      final found = (await identifications.forMedia('v1')).single;
+      expect(found.claimedSpeciesId, 'sp_named_meanwhile');
+      expect(found.decision, IdentificationDecision.rejected);
+    },
+  );
+
+  test('a continued fish whose row was cleared meanwhile is not brought '
+      'back', () async {
+    engine.videoFrames = _fish(1000, 15000);
+    final first = scan();
+    expect(await first.runChunk(), isTrue);
+    await first.finish();
+    final resumed = scan(
+      resumeFrom: await identifications.runFor('v1'),
+      stored: await identifications.forMedia('v1'),
+    );
+    await identifications.deleteForMedia(['v1']);
+    await runAll(resumed);
+    expect(
+      (await identifications.forMedia('v1')).map((i) => i.startMs),
+      isNot(contains(1000)),
+    );
+  });
+
   test('a track that ended well before the stop is not continued', () async {
     engine.videoFrames = {..._fish(1000, 4000), ..._fish(12000, 15000)};
     final first = scan();
