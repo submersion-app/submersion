@@ -3,6 +3,12 @@ part of 'media_viewer_page.dart';
 /// The viewer's top bar, and the ways it leaves or steps through the
 /// photo's lock (issue #4527).
 extension _ViewerChrome on _MediaViewerPageState {
+  /// Whether [item] has no stored row: read, and not found.
+  bool _rowless(MediaItem item) {
+    final row = ref.watch(mediaByIdProvider(item.id));
+    return row.hasValue && row.value == null;
+  }
+
   Widget _toolbar(
     BuildContext context, {
     required MediaItem currentItem,
@@ -28,7 +34,9 @@ extension _ViewerChrome on _MediaViewerPageState {
       readOnly: photoLocked,
       sitting: photoSitting,
     ),
-    onReupload: mediaReuploadAvailable(ref)
+    // A photo held only in a dive's sitting has no row for the store to
+    // take again until the dive is saved (issue #4527).
+    onReupload: mediaReuploadAvailable(ref) && !_rowless(currentItem)
         ? (anchor) => showMediaReuploadMenu(anchor, ref, currentItem)
         : null,
     onShare: (anchor) => _shareCurrentPhoto(currentItem, anchor),

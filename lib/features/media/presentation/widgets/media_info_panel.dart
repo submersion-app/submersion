@@ -33,7 +33,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/features/media/presentation/editing/photo_held_writes.dart';
 import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
+import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/utils/byte_format.dart';
 import 'package:submersion/shared/utils/file_reveal.dart';
@@ -71,6 +73,17 @@ class MediaInfoPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // The sheet is a route of its own, which the viewer's redraws do not
+    // reach: it follows the sitting itself, for a relink held by Locate.
+    final session = sitting;
+    if (session == null || session.isDisposed) return _panel(context, ref);
+    return ListenableBuilder(
+      listenable: session,
+      builder: (context, _) => _panel(context, ref),
+    );
+  }
+
+  Widget _panel(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     // Re-read the row rather than rendering the snapshot handed to the sheet.
     // mediaProvenanceProvider is keyed by the MediaItem VALUE and derives
@@ -78,7 +91,15 @@ class MediaInfoPanel extends ConsumerWidget {
     // same stale object: Check now would write isOrphaned to the database and
     // the Status row would never move. The passed item is the seed and the
     // fallback for the frame before the read lands.
-    final live = ref.watch(mediaByIdProvider(item.id)).value ?? item;
+    final row = ref.watch(mediaByIdProvider(item.id));
+    final stored = row.value ?? item;
+    // A photo held only in a dive's sitting has no row yet: nothing can be
+    // checked, backed up or relinked until the dive is saved.
+    final rowless = row.hasValue && row.value == null;
+    final session = sitting;
+    final inSitting = sittingIsOver(session, stored.id);
+    // In a sitting the origin is the file a held relink found.
+    final live = inSitting ? withHeldRelink(session!, stored) : stored;
     final provenance = ref.watch(mediaProvenanceProvider(live));
     final units = ref.watch(unitFormatterProvider);
 
@@ -101,11 +122,18 @@ class MediaInfoPanel extends ConsumerWidget {
           item: live,
           origin: provenance.origin,
           units: units,
-          // Locate is not offered in a sitting until it can be held.
-          canLocate: !readOnly && sitting == null,
+          // In a sitting, Locate is held until Save.
+          canLocate: !readOnly && !rowless && (session == null || inSitting),
+          canCheck: !rowless,
+          sitting: inSitting ? session : null,
         ),
         const SizedBox(height: 12),
-        _BackupSection(item: live, backup: provenance.backup, units: units),
+        _BackupSection(
+          item: live,
+          backup: provenance.backup,
+          units: units,
+          canUpload: !rowless,
+        ),
         const SizedBox(height: 12),
         _ServingSection(item: live),
       ],
@@ -165,6 +193,8 @@ class _OriginSection extends ConsumerWidget {
     required this.origin,
     required this.units,
     required this.canLocate,
+    required this.canCheck,
+    required this.sitting,
   });
 
   final MediaItem item;
@@ -173,6 +203,12 @@ class _OriginSection extends ConsumerWidget {
 
   /// Whether Locate may relink the photo here.
   final bool canLocate;
+
+  /// Whether the photo has a row whose file can be checked.
+  final bool canCheck;
+
+  /// The photo's sitting, which holds what Locate finds until Save.
+  final EditSession<PhotoRecord>? sitting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -195,7 +231,7 @@ class _OriginSection extends ConsumerWidget {
     return _Section(
       title: l10n.media_info_originSection,
       actions: [
-        if (canEdit) _CheckNowButton(item: item),
+        if (canEdit && canCheck) _CheckNowButton(item: item),
         // Under limited photo access a gallery photo may be outside what the
         // user allowed (spec 6.3). Offered whenever access is limited: the
         // panel reads stored facts, not this device's live verdict.
@@ -215,7 +251,7 @@ class _OriginSection extends ConsumerWidget {
             isLocalFile &&
             canEdit &&
             canLocate)
-          _LocateButton(item: item),
+          _LocateButton(item: item, sitting: sitting),
         if (pointer != null && isLocalFile && canRevealInFileManager)
           TextButton(
             // Explicitly unawaited: revealInFileManager swallows its own
@@ -292,11 +328,15 @@ class _BackupSection extends ConsumerWidget {
     required this.item,
     required this.backup,
     required this.units,
+    required this.canUpload,
   });
 
   final MediaItem item;
   final BackupFacts backup;
   final UnitFormatter units;
+
+  /// Whether the photo has a row to upload.
+  final bool canUpload;
 
   /// Whether to offer an upload at all.
   ///
@@ -304,6 +344,7 @@ class _BackupSection extends ConsumerWidget {
   /// is already on screen, and a second nudge would only re-enqueue what is
   /// already queued.
   bool get _offerUpload =>
+      canUpload &&
       backup.eligible &&
       backup.storeAttached &&
       backup.tier != BackupTier.full &&
@@ -498,15 +539,33 @@ class _CheckNowButtonState extends ConsumerState<_CheckNowButton> {
   );
 }
 
-/// Picks a replacement file and re-links through the repair engine.
+/// Picks a replacement file and re-links through the repair engine; in a
+/// sitting the relink is held until Save (issue #4527).
 class _LocateButton extends ConsumerWidget {
-  const _LocateButton({required this.item});
+  const _LocateButton({required this.item, required this.sitting});
 
   final MediaItem item;
+  final EditSession<PhotoRecord>? sitting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => TextButton(
     onPressed: () async {
+      // Captured before the picker: a sitting that ends while it is open
+      // must not turn its answer into a write.
+      final held = sitting;
+      if (held != null) {
+        final service = ref.read(mediaRepairServiceProvider);
+        await replaceMediaLink(
+          context,
+          ref,
+          item,
+          onHold: (proposal) {
+            if (!sittingIsOver(held, item.id) || held.isFrozen) return;
+            holdRelink(held, proposal, service: service);
+          },
+        );
+        return;
+      }
       final applied = await replaceMediaLink(context, ref, item);
       // The picker and confirm dialog can outlive the sheet, and ref after
       // dispose throws, which would turn a plain user-cancel into an error.

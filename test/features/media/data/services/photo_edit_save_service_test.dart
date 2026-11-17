@@ -1,4 +1,11 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:submersion/core/database/app_sql_functions.dart';
+import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
@@ -13,14 +20,17 @@ import 'package:submersion/features/media/data/repositories/media_species_reposi
 import 'package:submersion/features/media/data/repositories/site_attachment_repository.dart';
 import 'package:submersion/features/media/data/services/photo_edit_save_service.dart';
 import 'package:submersion/features/media/data/services/photo_record_reader.dart';
+import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
 import 'package:submersion/features/media/data/services/species_tagging_service.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
+import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/domain/value_objects/photo_tag_edits.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/editing/photo_held_writes.dart';
+import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/tags/data/repositories/tag_link_repository.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
@@ -429,5 +439,124 @@ void main() {
         if (op['label'] != null) op['label'],
     ];
     expect(labelled, ['record_edit:media:tags']);
+  });
+  group('Locate held (Task 13)', () {
+    late LocalCacheDatabase cacheDb;
+    late MediaTransferQueueRepository queue;
+    final relinkedPath = p.join(Directory.systemTemp.path, 'relinked.jpg');
+
+    setUp(() {
+      cacheDb = LocalCacheDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
+      queue = MediaTransferQueueRepository(database: cacheDb);
+    });
+    tearDown(() => cacheDb.close());
+
+    Future<List<String>> uploads() async => [
+      for (final row
+          in await cacheDb
+              .customSelect(
+                "SELECT media_id FROM media_transfer_queue "
+                "WHERE direction = 'upload'",
+              )
+              .get())
+        row.read<String>('media_id'),
+    ];
+
+    /// Different bytes from the row's, so the relink re-uploads.
+    RepairProposal locate(EditSession<PhotoRecord> session) => RepairProposal(
+      item: session.stored.item.copyWith(contentHash: 'OLD-HASH'),
+      confidence: RepairConfidence.edited,
+      candidate: RepairCandidate.file(
+        path: relinkedPath,
+        sizeBytes: 9,
+        hash: 'NEW-HASH',
+      ),
+    );
+
+    test('a relink held with a tag: one operation; the upload is queued '
+        'after the commit', () async {
+      final repair = MediaRepairService(
+        repository: media,
+        queue: queue,
+        createBookmark: null,
+        writeBookmark: null,
+      );
+      final session = await sitting('p1');
+      session.set(
+        photoSpeciesField,
+        SpeciesTagEdits.none.toggled(turtle, tagged: true, stored: const []),
+      );
+      holdRelink(session, locate(session), service: repair);
+      expect(session.changedCardIds, {photoFileCardId, photoSpeciesCardId});
+
+      await undoRelinkOnFailure(session, () => save(session));
+
+      final after = await stored('p1');
+      expect(after.item.localPath, relinkedPath);
+      expect(after.species.map((c) => c.speciesId), ['sp_turtle']);
+      final labelled = [
+        for (final op in await operations())
+          if (op['label'] != null) op['label'],
+      ];
+      expect(labelled, ['record_edit:media:file,species']);
+      expect(await operations(), hasLength(1));
+      // Queued only once the write has committed.
+      expect(await uploads(), isEmpty);
+      final steps = relinkAfterCommit(session);
+      expect(steps, isNotEmpty);
+      for (final step in steps) {
+        await step();
+      }
+      expect(await uploads(), ['p1']);
+    });
+
+    test('a save that fails after the relink: the link is as it was, no '
+        'upload is owed, and the new bookmark is taken away', () async {
+      final written = <String>[];
+      final deleted = <String>[];
+      final repair = MediaRepairService(
+        repository: media,
+        queue: queue,
+        createBookmark: (path) async => Uint8List(1),
+        writeBookmark: (ref, blob) async => written.add(ref),
+        deleteBookmark: (ref) async => deleted.add(ref),
+      );
+      final session = await sitting('p1');
+      holdRelink(session, locate(session), service: repair);
+      // A held write after the relink fails (the buddy could not be added).
+      session.holdChange(
+        'photo:addBuddyToDive:b1',
+        cardId: photoPeopleCardId,
+        write: () async => throw StateError('the buddy could not be added'),
+      );
+
+      await expectLater(
+        undoRelinkOnFailure(session, () => save(session)),
+        throwsStateError,
+      );
+
+      expect((await stored('p1')).item.localPath, isNull);
+      expect(written, hasLength(1));
+      expect(deleted, written);
+      expect(relinkAfterCommit(session), isEmpty);
+      expect(await uploads(), isEmpty);
+    });
+
+    test('Cancel after Locate: nothing is written', () async {
+      final repair = MediaRepairService(
+        repository: media,
+        queue: queue,
+        createBookmark: null,
+        writeBookmark: null,
+      );
+      final session = await sitting('p1');
+      holdRelink(session, locate(session), service: repair);
+      session.dispose();
+
+      expect((await stored('p1')).item.localPath, isNull);
+      expect(await operations(), isEmpty);
+    });
   });
 }

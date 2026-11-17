@@ -33,6 +33,7 @@ import 'package:submersion/features/media/presentation/helpers/document_open_hel
 import 'package:submersion/features/media/presentation/helpers/photo_import_helper.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 /// Returns the OS-appropriate label for the "show file in OS file manager"
@@ -626,17 +627,16 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                   onSelectionModeChanged: (_) {},
                   onItemTap: (index) {
                     final item = media[index];
-                    // Held until Save: the viewer reads stored media only.
-                    final session =
-                        widget.editing ??
-                        RecordEditScope.maybeOf<Dive>(context)?.session;
-                    if (session != null &&
-                        sittingMedia(
-                          session,
-                        ).added.any((a) => a.preview.id == item.id)) {
-                      return;
-                    }
+                    final scope = RecordEditScope.maybeOf<Dive>(context);
+                    final session = widget.editing ?? scope?.session;
                     if (item.isDocument) {
+                      // A document held until Save has no file to open yet.
+                      if (session != null &&
+                          sittingMedia(
+                            session,
+                          ).added.any((a) => a.preview.id == item.id)) {
+                        return;
+                      }
                       widget.onOpenDocument?.call(item);
                       return;
                     }
@@ -646,6 +646,16 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                         builder: (_) => PhotoViewerPage(
                           diveId: widget.diveId,
                           initialMediaId: item.id,
+                          // The photos as the dive's sitting has them, so a
+                          // photo held for Save opens on itself; with no row
+                          // it cannot be unlocked, and reads only.
+                          diveSitting: session,
+                          // On a page with the lock, the viewer has its own
+                          // (issue #4527).
+                          unlockEditing:
+                              scope != null ||
+                              session != null ||
+                              kUnlockEditing,
                         ),
                       ),
                     );

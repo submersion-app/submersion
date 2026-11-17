@@ -1,16 +1,30 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/features/media/data/services/media_serving_recorder.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/features/media/presentation/helpers/media_link_replacer.dart';
+import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import 'media_info_panel_harness.dart';
+
+/// A repair service that must not be used: a held relink is applied only
+/// at Save.
+class _NeverApplied implements MediaRepairService {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw StateError('applied before Save: ${invocation.memberName}');
+}
 
 /// The info panel under the photo viewer's lock (issue #4527): read only
 /// while the photo is locked, and holding its changes in the sitting while
@@ -130,20 +144,82 @@ void main() {
       expect(field.controller!.text, '5:00');
     });
 
-    testWidgets('in a sitting: Locate is not offered until it can be held', (
-      tester,
-    ) async {
-      final item = infoPanelItem(
-        sourceType: MediaSourceType.localFile,
-        platformAssetId: null,
-        localPath: '/gone/reef.jpg',
-        isOrphaned: true,
-      );
+    MediaItem missingFile() => infoPanelItem(
+      sourceType: MediaSourceType.localFile,
+      platformAssetId: null,
+      localPath: '/gone/reef.jpg',
+      isOrphaned: true,
+    );
+
+    /// Locate's picker answering [path] (when it completes), with the
+    /// row's own bytes, so no confirmation is asked.
+    Override pickerAnswering(Future<String?> path) =>
+        mediaLinkFileSourceProvider.overrideWithValue(
+          MediaLinkFileSource(
+            pick: () => path,
+            hash: (_) async => (hash: 'same', sizeBytes: 9),
+          ),
+        );
+
+    testWidgets('in a sitting: Locate holds the relink; nothing is applied, '
+        'and the sheet shows the held file', (tester) async {
+      final item = missingFile();
       final sitting = EditSession<PhotoRecord>(
         PhotoRecord(item: item, species: const [], people: const []),
       );
       addTearDown(sitting.dispose);
-      await pump(tester, item, sitting: sitting);
+      await pump(
+        tester,
+        item,
+        extra: [
+          pickerAnswering(Future.value('/found/reef.jpg')),
+          mediaRepairServiceProvider.overrideWithValue(_NeverApplied()),
+        ],
+        sitting: sitting,
+      );
+
+      await tester.tap(find.text('Locate file...'));
+      await tester.pumpAndSettle();
+
+      expect(sitting.isHeld(photoRelinkKey), isTrue);
+      expect(sitting.changedCardIds, {photoFileCardId});
+      expect(heldRelink(sitting)?.candidate?.path, '/found/reef.jpg');
+      // The sheet reads the held file: found, so nothing left to locate.
+      expect(find.text('/found/reef.jpg'), findsOneWidget);
+      expect(find.text('/gone/reef.jpg'), findsNothing);
+      expect(find.text('Locate file...'), findsNothing);
+    });
+
+    testWidgets('a pick that answers after the sitting ended holds nothing', (
+      tester,
+    ) async {
+      final item = missingFile();
+      final sitting = EditSession<PhotoRecord>(
+        PhotoRecord(item: item, species: const [], people: const []),
+      );
+      final picked = Completer<String?>();
+      await pump(
+        tester,
+        item,
+        extra: [
+          pickerAnswering(picked.future),
+          mediaRepairServiceProvider.overrideWithValue(_NeverApplied()),
+        ],
+        sitting: sitting,
+      );
+
+      await tester.tap(find.text('Locate file...'));
+      await tester.pump();
+      sitting.dispose();
+      picked.complete('/found/reef.jpg');
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('locked: Locate is not offered', (tester) async {
+      final item = missingFile();
+      await pump(tester, item, readOnly: true);
 
       expect(find.text('Locate file...'), findsNothing);
     });

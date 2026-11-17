@@ -12,6 +12,7 @@ import 'package:submersion/features/media/data/services/photo_edit_save_service.
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/features/media/presentation/editing/photo_held_writes.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -314,19 +315,36 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     final diverId = ref.read(validatedCurrentDiverIdProvider.future);
     final changed = session.changedCardIds;
     final diveId = session.stored.item.diveId;
-    await service.save(
-      mediaId: session.stored.item.id,
-      diverId: await diverId,
-      apply: session.applyTo,
-      changedCardIds: changed,
-      alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
-      alsoWriteIsAChange: session.hasHeldChanges,
-      // Moved to another dive meanwhile: its time and its writes to the dive
-      // were made for the dive it was on.
-      diveAtStart: _diveAtUnlock,
+    // A held relink's new bookmark is taken back if the write does not
+    // commit.
+    await undoRelinkOnFailure(
+      session,
+      () async => service.save(
+        mediaId: session.stored.item.id,
+        diverId: await diverId,
+        apply: session.applyTo,
+        changedCardIds: changed,
+        alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
+        alsoWriteIsAChange: session.hasHeldChanges,
+        // Moved to another dive meanwhile: its time and its writes to the
+        // dive were made for the dive it was on.
+        diveAtStart: _diveAtUnlock,
+      ),
     );
-    // The write is committed. Placing the dive's photos again is derived,
-    // and best effort: a failure here is not a failed save.
+    // The write is committed. What a relink left for now (the upload of
+    // different bytes, the cache's drop) and placing the dive's photos
+    // again are each best effort: a failure here is not a failed save.
+    for (final step in relinkAfterCommit(session)) {
+      try {
+        await step();
+      } catch (error, stackTrace) {
+        _log.error(
+          'Finishing a relink after a save failed',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+    }
     if (diveId == null || !changed.contains(photoTimeCardId)) return;
     try {
       await enricher.enrichMissingForDive(diveId);
