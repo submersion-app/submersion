@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -9,6 +11,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/tides/data/repositories/tide_record_repository.dart';
+import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart';
 import 'package:submersion/features/tides/data/services/tide_constituent_resolver.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
@@ -41,6 +44,7 @@ class _Sites extends SiteRepository {
 
 class _Tides extends TideRecordRepository {
   final recorded = <String>[];
+  final statuses = <TideStatus>[];
   final deleted = <String>[];
 
   @override
@@ -50,6 +54,7 @@ class _Tides extends TideRecordRepository {
     String? id,
   }) async {
     recorded.add(diveId);
+    statuses.add(status);
     return TideRecord.fromStatus(id: 'r1', diveId: diveId, status: status);
   }
 
@@ -145,5 +150,65 @@ void main() {
       expect(tides.recorded, isEmpty);
       expect(tides.deleted, ['d1']);
     });
+  });
+  // Copilot's review of PR #4670: each save's tide is recorded without
+  // being waited for, and a record replaces the dive's last one. An older
+  // save whose tide model answers late must not land over a newer save's.
+  test('two saves in a row: the later save\'s tide is the one kept', () async {
+    const there = GeoPoint(-16.5, 145.8);
+    TideCalculator calculator(double amplitude) => TideCalculator(
+      constituents: {
+        'M2': TideConstituent(name: 'M2', amplitude: amplitude, phase: 0.0),
+      },
+    );
+    final slow = Completer<ResolvedTideData?>();
+    final tides = _Tides();
+    final container = ProviderContainer(
+      overrides: [
+        tideRecordRepositoryProvider.overrideWithValue(tides),
+        resolvedTideDataProvider(point).overrideWith((ref) => slow.future),
+        resolvedTideDataProvider(there).overrideWith(
+          (ref) async => ResolvedTideData(
+            calculator: calculator(2.0),
+            source: const TideDataSource.fesModel(),
+          ),
+        ),
+        tideRecordForDiveProvider('d1').overrideWith((ref) async => null),
+      ],
+    );
+    addTearDown(container.dispose);
+    final record = container.read(diveTideRecordProvider);
+    final entry = DateTime.utc(2026, 3, 28, 10);
+    final first = Dive(
+      id: 'd1',
+      dateTime: entry,
+      site: const DiveSite(id: 'a', name: 'A', location: point),
+    );
+    final second = first.copyWith(
+      site: const DiveSite(id: 'b', name: 'B', location: there),
+    );
+
+    final older = record(first);
+    final newer = record(second);
+    await Future<void>.delayed(Duration.zero);
+    slow.complete(
+      ResolvedTideData(
+        calculator: calculator(1.0),
+        source: const TideDataSource.fesModel(),
+      ),
+    );
+    await Future.wait([older, newer]);
+
+    final alone = _Tides();
+    await recordDiveTide(
+      repository: alone,
+      calculator: calculator(2.0),
+      diveId: 'd1',
+      entryWallClock: entry,
+      location: there,
+      waterType: null,
+    );
+    expect(tides.statuses, hasLength(2));
+    expect(tides.statuses.last, alone.statuses.single);
   });
 }

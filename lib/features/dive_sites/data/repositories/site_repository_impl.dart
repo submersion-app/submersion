@@ -472,7 +472,8 @@ class SiteRepository {
   /// no altitude, and writes it when it is saved; an altitude the site
   /// gained meanwhile (typed on the site page, or brought in by a sync) is
   /// newer than that lookup and is kept (issue #4527). Returns true when the
-  /// altitude was written.
+  /// altitude was stored: read back, as the write declines a shared library
+  /// site this profile may not edit without saying so.
   ///
   /// One transaction, so an altitude stored between the read and the write
   /// (a sync landing while the lookup's answer is written) is not
@@ -484,7 +485,10 @@ class SiteRepository {
         )..where((t) => t.id.equals(siteId))).getSingleOrNull();
         if (row == null || row.altitude != null) return false;
         await updateSiteAltitude(siteId, altitudeMeters);
-        return true;
+        final stored = await (_db.select(
+          _db.diveSites,
+        )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+        return stored?.altitude == altitudeMeters;
       });
 
   /// Stores coordinates (and optionally an altitude) for [siteId] without

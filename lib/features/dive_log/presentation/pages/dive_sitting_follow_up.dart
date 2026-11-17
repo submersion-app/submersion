@@ -56,34 +56,58 @@ final diveGearRefreshProvider = Provider<void Function(String diveId)>(
 
 /// Records the tide for a saved dive at its site, when the site has
 /// coordinates, as the dive form does after every save
-/// (`dive_edit_page.dart`, after `_saveDive`). A dive with no sea site (none,
-/// one with no location, or fresh water) has its record cleared instead: a
-/// tide record is worked out from the site, never typed, so one left from a
-/// site the dive is no longer at would show a tide that never was
-/// (issue #4527). A provider, so a test can stand in for the tide model.
-final diveTideRecordProvider = Provider<Future<void> Function(Dive dive)>(
-  (ref) => (dive) async {
-    final location = dive.site?.location;
-    if (location == null || dive.effectiveWaterType == WaterType.fresh) {
-      await ref
-          .read(tideRecordRepositoryProvider)
-          .deleteTideRecordForDive(dive.id);
-      ref.invalidate(tideRecordForDiveProvider(dive.id));
-      return;
-    }
-    final resolved = await ref.read(resolvedTideDataProvider(location).future);
-    if (resolved == null) return;
+/// (`dive_edit_page.dart`, after `_saveDive`). A dive with no tide to record
+/// (no site, one with no location, fresh water, or a place no tide model
+/// covers) has its record cleared instead: a tide record is worked out from
+/// the site, never typed, so one left from a site the dive is no longer at
+/// would show a tide that never was (issue #4527).
+///
+/// The saves' calls are not waited for, and a record replaces the dive's
+/// last one, so each dive's are run one after another, in the order the
+/// saves asked: an older save whose tide model answers late never lands
+/// over a newer one's. A provider, so a test can stand in for the tide
+/// model.
+final diveTideRecordProvider = Provider<Future<void> Function(Dive dive)>((
+  ref,
+) {
+  final last = <String, Future<void>>{};
+  return (dive) {
+    final previous = last[dive.id] ?? Future<void>.value();
+    // A failed earlier one has been reported to its own caller.
+    final next = previous
+        .then<void>((_) {}, onError: (_) {})
+        .then((_) => _recordDiveTide(ref, dive));
+    last[dive.id] = next;
+    unawaited(
+      next.then<void>((_) {}, onError: (_) {}).whenComplete(() {
+        if (identical(last[dive.id], next)) last.remove(dive.id);
+      }),
+    );
+    return next;
+  };
+});
+
+Future<void> _recordDiveTide(Ref ref, Dive dive) async {
+  final repository = ref.read(tideRecordRepositoryProvider);
+  final location = dive.site?.location;
+  final resolved =
+      location == null || dive.effectiveWaterType == WaterType.fresh
+      ? null
+      : await ref.read(resolvedTideDataProvider(location).future);
+  if (location == null || resolved == null) {
+    await repository.deleteTideRecordForDive(dive.id);
+  } else {
     await recordDiveTide(
-      repository: ref.read(tideRecordRepositoryProvider),
+      repository: repository,
       calculator: resolved.calculator,
       diveId: dive.id,
       entryWallClock: dive.effectiveEntryTime,
       location: location,
       waterType: dive.effectiveWaterType,
     );
-    ref.invalidate(tideRecordForDiveProvider(dive.id));
-  },
-);
+  }
+  ref.invalidate(tideRecordForDiveProvider(dive.id));
+}
 
 /// Looks up the altitude of [point] for the site [siteId], which a saved
 /// sitting has just given that location, and stores it while the site has
