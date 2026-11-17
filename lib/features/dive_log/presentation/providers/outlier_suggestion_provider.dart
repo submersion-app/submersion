@@ -11,9 +11,13 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 final outlierSuggestionProvider = FutureProvider.autoDispose
     .family<List<OutlierResult>, String>((ref, diveId) async {
       retainDiveData(ref);
-      final dive = await ref.watch(diveProvider(diveId).future);
-      if (dive == null || dive.profile.length < 10) return [];
+      // The profile alone: a change to anything else on the dive (notes, a
+      // rating, a sync) does not run the detection again.
+      final profile = await ref.watch(
+        diveProvider(diveId).selectAsync((dive) => dive?.profile),
+      );
+      if (profile == null || profile.length < 10) return [];
 
       final service = ProfileEditingService();
-      return service.detectOutliers(dive.profile);
+      return service.detectOutliers(profile);
     });

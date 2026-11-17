@@ -213,6 +213,63 @@ void main() {
 
     expect(ended, 0);
   });
+  // A leave that discards a sitting the diver unlocked by hand ends no
+  // sitting the page opened, so it must not swallow the end of the next one.
+  testWidgets('a leave after a hand-made sitting does not hide the next '
+      "opened sitting's end", (tester) async {
+    var ended = 0;
+    final open = ValueNotifier(false);
+    addTearDown(open.dispose);
+    await pumpPage(
+      tester,
+      initialLocation: '/live',
+      routes: [
+        GoRoute(
+          path: '/live',
+          builder: (context, state) => ValueListenableBuilder<bool>(
+            valueListenable: open,
+            builder: (context, value, _) => DiveDetailPage(
+              diveId: dive.id,
+              openUnlocked: value,
+              onSittingEnded: () => ended++,
+            ),
+          ),
+        ),
+      ],
+    );
+    await settle(tester);
+    await unlock(tester);
+    await openNotes(tester);
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(MarkdownNotesField),
+        matching: find.byType(TextField),
+      ),
+      'Changed',
+    );
+    await settle(tester);
+    final guard = ProviderScope.containerOf(
+      tester.element(find.byType(DiveDetailPage)),
+    ).read(appExitGuardProvider);
+    final leaving = guard.mayLeave();
+    await settle(tester);
+    await tester.tap(find.text('Discard'));
+    await settle(tester);
+    expect(await leaving, isTrue);
+    expect(lock(), findsOneWidget);
+
+    open.value = true;
+    await settle(tester);
+    await tester.tap(
+      find.byWidgetPredicate(
+        (w) => w is AppBarTextAction && w.label == 'Cancel',
+      ),
+    );
+    await settle(tester);
+
+    expect(ended, 1);
+  });
+
   // The address dropping mode=edit on the same page (Android Back's shell
   // fallback strips it) locks a sitting with nothing to lose.
   for (final changed in [false, true]) {

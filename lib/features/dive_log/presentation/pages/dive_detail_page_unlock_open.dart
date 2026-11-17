@@ -56,14 +56,16 @@ mixin _DiveDetailPageUnlockOpen
   /// when the sitting it opened unlocked has ended.
   @override
   void _noteSittingEnded() {
-    if (!_sittingOpenedUnlocked || isSittingOpen) return;
+    if (isSittingOpen) return;
+    // Whichever sitting a leave discarded, its end clears the mark, so it
+    // cannot stand for a later sitting's end.
+    final byLeave = _endedByLeave;
+    _endedByLeave = false;
+    if (!_sittingOpenedUnlocked) return;
     _sittingOpenedUnlocked = false;
     // Discarded by a leave the app asked about: the pane is moving on, and
     // the router may not have applied that yet.
-    if (_endedByLeave) {
-      _endedByLeave = false;
-      return;
-    }
+    if (byLeave) return;
     final ended = widget.onSittingEnded;
     if (ended == null) return;
     // After the frame: the lock can come while the page is being built.
