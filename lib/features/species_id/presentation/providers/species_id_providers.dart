@@ -9,6 +9,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/data/streaming/video_playback_plan.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/video_color_track_provider.dart';
 import 'package:submersion/features/media/presentation/providers/video_playback_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
@@ -134,15 +135,29 @@ final mediaIdentificationServiceProvider = Provider<MediaIdentificationService>(
 /// The file the player opened for a video, read one call at a time
 /// through its bookmark where it has one (issue #4675). Null when the video
 /// does not play from a file here: nothing is downloaded for a scan.
-final videoFileReaderProvider = FutureProvider.autoDispose
-    .family<VideoFileReader?, MediaItem>((ref, item) async {
-      final playback = await ref.read(videoPlaybackProvider(item).future);
-      if (playback is! FilePlayback) return null;
-      final access = ref.read(videoFileAccessProvider);
-      final path = playback.path;
-      return <T>(Future<T> Function(String path) read) =>
-          access<T>(path: path, bookmarkRef: item.bookmarkRef, read: read);
-    });
+///
+/// Held while it resolves, as [resolvedFilePathProvider] is: the service
+/// reads it once, keeping no listener, and finding the file takes real IO,
+/// so an unheld provider would be disposed before its answer. It never
+/// retries a failure: nothing would be listening for a second attempt.
+final videoFileReaderProvider =
+    FutureProvider.family<VideoFileReader?, MediaItem>(
+      (ref, item) async {
+        final resolving = ref.keepAlive();
+        try {
+          final access = ref.read(videoFileAccessProvider);
+          final playback = await ref.read(videoPlaybackProvider(item).future);
+          if (playback is! FilePlayback) return null;
+          final path = playback.path;
+          return <T>(Future<T> Function(String path) read) =>
+              access<T>(path: path, bookmarkRef: item.bookmarkRef, read: read);
+        } finally {
+          resolving.close();
+        }
+      },
+      isAutoDispose: true,
+      retry: (_, _) => null,
+    );
 
 /// A readable file when the photo has one here; otherwise the bytes the
 /// viewer itself would show. Starts no download of its own beyond that.

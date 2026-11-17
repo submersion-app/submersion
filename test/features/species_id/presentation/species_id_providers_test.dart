@@ -264,11 +264,17 @@ void main() {
     );
     final opened = <(String?, String?)>[];
 
-    ProviderContainer withPlayback(VideoPlayback playback) {
+    ProviderContainer withPlayback(
+      VideoPlayback playback, {
+      Duration takes = Duration.zero,
+    }) {
       opened.clear();
       final c = ProviderContainer(
         overrides: [
-          videoPlaybackProvider(item).overrideWith((ref) async => playback),
+          videoPlaybackProvider(item).overrideWith((ref) async {
+            if (takes > Duration.zero) await Future<void>.delayed(takes);
+            return playback;
+          }),
           videoFileAccessProvider.overrideWithValue(<T>({
             String? path,
             String? bookmarkRef,
@@ -288,6 +294,17 @@ void main() {
       final reader = await c.read(videoFileReaderProvider(item).future);
       expect(await reader!((path) async => path), '/opened/videos/v1.mp4');
       expect(opened, [('/videos/v1.mp4', 'bm-1')]);
+    });
+
+    test('survives a one-off read while the file takes time to find', () async {
+      // The service reads it once, keeping no listener, and resolving the
+      // file does real IO: the provider must still be there after the wait.
+      final c = withPlayback(
+        const FilePlayback('/videos/v1.mp4'),
+        takes: const Duration(milliseconds: 5),
+      );
+      final reader = await c.read(videoFileReaderProvider(item).future);
+      expect(await reader!((path) async => path), '/opened/videos/v1.mp4');
     });
 
     test('is none when the video does not play from a file', () async {
