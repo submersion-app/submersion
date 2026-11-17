@@ -11,8 +11,8 @@ mixin _DiveDetailPageOperations
         _DiveDetailPageActions,
         _DiveDetailPageEditing {
   /// Whether the operations may run now.
-  RecordOperationBlock? get operationBlock =>
-      recordOperationBlockOf(editController);
+  RecordOperationBlock get operationBlock =>
+      recordOperationBlockOf(editController)!;
 
   /// Runs [operation], which answers whether it wrote. A page that offers
   /// editing runs it through its controller, which refuses while locked or

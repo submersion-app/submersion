@@ -782,6 +782,8 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: SourceBar(
+                        // No Set as primary on this page.
+                        operationReason: null,
                         sources: [
                           for (final s in dataSources)
                             SourceBarItem(

@@ -381,8 +381,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     splitSource: (dive, sourceId) =>
         _runOperation(() => _confirmAndSplit(dive, sourceId)),
     removeSource: (dive, sourceId, sourceName) => _runOperation(
-      () =>
-          _confirmAndRemoveSource(dive, sourceId, sourceName, offerUndo: false),
+      () => _confirmAndRemoveSource(dive, sourceId, sourceName),
     ),
     separateSegments: (dive, segmentCount) =>
         _runOperation(() => _confirmAndSeparate(dive, segmentCount)),

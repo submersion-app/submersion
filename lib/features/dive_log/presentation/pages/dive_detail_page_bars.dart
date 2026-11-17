@@ -59,7 +59,6 @@ mixin _DiveDetailPageBars
   Widget _overflowMenu(
     Dive dive,
     GlobalKey menuKey, {
-    bool showFavorite = false,
     bool historyInBar = false,
   }) {
     return DiveDetailOverflowMenu(
@@ -67,7 +66,6 @@ mixin _DiveDetailPageBars
       embedded: widget.embedded,
       menuKey: menuKey,
       displayOptions: _displayOptionsMenu,
-      showFavorite: showFavorite,
       operations: operationBlock,
       historyInBar: historyInBar,
       onSelected: (value, linkedPreDive) =>
@@ -82,8 +80,6 @@ mixin _DiveDetailPageBars
     GlobalKey menuKey,
   ) {
     switch (value) {
-      case 'toggleFavorite':
-        ref.read(paginatedDiveListProvider.notifier).toggleFavorite(diveId);
       case 'displayOptions':
         _displayOptionsMenu.open();
       case 'export':

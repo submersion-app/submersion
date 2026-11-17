@@ -17,7 +17,7 @@ class DraftDiveBanner extends StatelessWidget {
     required this.onMarkComplete,
     required this.onDownload,
     this.onSurfaced,
-    this.operationReason,
+    required this.operationReason,
   });
 
   final Dive dive;

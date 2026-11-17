@@ -126,7 +126,7 @@ class DataSourcesSection extends StatefulWidget {
     this.onSeparate,
     this.onTapSource,
     this.onCompareIn3d,
-    this.operationReason,
+    required this.operationReason,
   });
 
   @override
@@ -262,7 +262,7 @@ class _SectionMenu extends StatelessWidget {
     super.key,
     this.onCompareIn3d,
     this.onSeparate,
-    this.operationReason,
+    required this.operationReason,
   });
 
   final VoidCallback? onCompareIn3d;
@@ -394,7 +394,7 @@ class _DataSourceCard extends StatelessWidget {
     this.onSplit,
     this.onRemove,
     this.onTap,
-    this.operationReason,
+    required this.operationReason,
   });
 
   @override

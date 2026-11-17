@@ -21,7 +21,7 @@ class PlannedDiveBanner extends ConsumerWidget {
     super.key,
     required this.diveId,
     required this.onMarkLogged,
-    this.operationReason,
+    required this.operationReason,
   });
 
   @override

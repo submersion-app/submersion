@@ -47,6 +47,7 @@ void main() {
           cylinderFromTankServiceProvider.overrideWithValue(service),
         ],
         child: TankGearMenu(
+          operationReason: null,
           dive: Dive(id: 'd', dateTime: DateTime(2026), tanks: [tank]),
           tank: tank,
           runAsOperation: asOperation

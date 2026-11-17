@@ -30,8 +30,7 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
     required this.menuKey,
     required this.displayOptions,
     required this.onSelected,
-    this.showFavorite = false,
-    this.operations,
+    required this.operations,
     this.historyInBar = false,
   });
 
@@ -46,13 +45,8 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
   /// Opens the display-options panel, which hangs off this button.
   final MenuController displayOptions;
 
-  /// Offer the favorite toggle here, for an app bar with no room for its icon.
-  final bool showFavorite;
-
-  /// Whether the whole-record operations may run, on a page that offers
-  /// editing (issue #4527); null on one that does not, where the menu is as
-  /// it always was.
-  final RecordOperationBlock? operations;
+  /// Whether the whole-record operations may run (issue #4527).
+  final RecordOperationBlock operations;
 
   /// The bar shows History beside the lock, so the menu leaves it out.
   final bool historyInBar;
@@ -86,9 +80,6 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
         dive.diverId != null &&
         !(dive.isPlanned && !dive.isDraft) &&
         !(dive.isDraft && dive.exitTime == null);
-    final favoriteLabel = dive.isFavorite
-        ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
-        : context.l10n.diveLog_detail_tooltip_addToFavorites;
 
     return DiveDetailPropertiesMenu(
       isGauge: dive.isGauge,
@@ -99,13 +90,10 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
         padding: embedded ? EdgeInsets.zero : const EdgeInsets.all(8),
         onSelected: (value) => onSelected(value, linkedPreDive),
         itemBuilder: (context) {
-          // With editing offered the whole-record operations follow the
-          // items that only read, under one caption while unavailable, and
-          // each is enabled only on an unlocked page with nothing to save
-          // (issue #4527). Without it the menu is as it always was.
-          final operations = this.operations;
-          final free =
-              operations == null || operations == RecordOperationBlock.none;
+          // The whole-record operations follow the items that only read,
+          // under one caption while unavailable, and each is enabled only on
+          // an unlocked page with nothing to save (issue #4527).
+          final free = operations == RecordOperationBlock.none;
           PopupMenuItem<String> item(
             String value,
             IconData icon,
@@ -133,8 +121,7 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
           // One sitting per dive (issue #4527): the full page could be
           // unlocked too while the pane holds a sitting, so it waits until
           // the pane is locked again, Save or Cancel.
-          final paneUnlocked =
-              operations != null && operations != RecordOperationBlock.locked;
+          final paneUnlocked = operations != RecordOperationBlock.locked;
           final open = PopupMenuItem<String>(
             value: 'open',
             enabled: !paneUnlocked,
@@ -144,17 +131,6 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
               subtitle: paneUnlocked
                   ? Text(l10n.recordEdit_saveOrCancelFirst)
                   : null,
-              contentPadding: EdgeInsets.zero,
-            ),
-          );
-          final favorite = PopupMenuItem<String>(
-            value: 'toggleFavorite',
-            child: ListTile(
-              leading: Icon(
-                dive.isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: dive.isFavorite ? Colors.red : null,
-              ),
-              title: Text(favoriteLabel),
               contentPadding: EdgeInsets.zero,
             ),
           );
@@ -235,27 +211,6 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
           // out of the water.
           final canMarkComplete = dive.isDraft && dive.exitTime != null;
           final canPlanRepetitive = !dive.isPlanned;
-          if (operations == null) {
-            return [
-              history,
-              if (embedded) open,
-              displayOptionsMenuItem(context, 'displayOptions'),
-              if (showFavorite) favorite,
-              export,
-              nearMiss,
-              if (canMarkLogged) markLogged,
-              if (canMarkComplete) markComplete,
-              if (canAddHeartRate) heartRate,
-              if (canLogForBuddy) forBuddy,
-              preDive,
-              if (canReparse) reparse,
-              if (hasImportedFile) resync,
-              if (dive.profile.isNotEmpty) whatIf,
-              if (linkedPlanId != null) viewInPlanner,
-              if (canPlanRepetitive) planRepetitive,
-              delete,
-            ];
-          }
           final reason = recordOperationReason(l10n, operations, plural: true);
           return [
             if (!historyInBar) history,

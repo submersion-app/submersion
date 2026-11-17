@@ -34,7 +34,7 @@ class ObservationStatusChip extends ConsumerWidget {
     required this.equipment,
     required this.dive,
     this.readOnly = false,
-    this.operationReason,
+    required this.operationReason,
     this.runAsOperation,
   });
 
