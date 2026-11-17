@@ -51,6 +51,25 @@ void main() {
     expect(runs, before);
   });
 
+  // A reload reads the dive again from the database: an equal profile in a
+  // new list is still the same profile.
+  test('a reload bringing the same profile finds nothing again', () async {
+    await container.read(outlierSuggestionProvider('d1').future);
+    final before = runs;
+
+    container.read(stored.notifier).state = dive.copyWith(
+      notes: 'Choppy',
+      profile: [
+        for (final p in spiked)
+          DiveProfilePoint(timestamp: p.timestamp, depth: p.depth),
+      ],
+    );
+    await container.read(diveProvider('d1').future);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(runs, before);
+  });
+
   test('a new profile is checked again', () async {
     await container.read(outlierSuggestionProvider('d1').future);
 
