@@ -41,10 +41,12 @@ Iterable<PlanIssue> scrFlowIssues(
     yield PlanIssue(
       type: PlanIssueType.scrFlowTooLow,
       severity: PlanIssueSeverity.critical,
+      // The engine's own wording, in surface litres a minute; the planner
+      // shows the localized, unit-aware text from plan_issue_text.dart.
       message:
-          'SCR injection rate ${rate.toStringAsFixed(1)} L/min cannot '
-          'sustain the loop at VO2 ${vo2.toStringAsFixed(2)} L/min: it needs '
-          'more than ${needed.toStringAsFixed(1)} L/min',
+          'SCR injection rate ${rate.toStringAsFixed(1)} cannot sustain the '
+          'loop at VO2 ${vo2.toStringAsFixed(2)}: it needs more than '
+          '${needed.toStringAsFixed(1)} (surface litres a minute)',
       tankId: segment.tankId,
       value: rate,
       threshold: needed > vo2 ? needed : vo2,
