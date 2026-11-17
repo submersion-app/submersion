@@ -102,16 +102,18 @@ void main() {
       site: reef,
     );
 
-    Future<_Tides> record(Dive dive) async {
+    Future<_Tides> record(Dive dive, {bool modelAnswers = true}) async {
       final tides = _Tides();
       final container = ProviderContainer(
         overrides: [
           tideRecordRepositoryProvider.overrideWithValue(tides),
           resolvedTideDataProvider(point).overrideWith(
-            (ref) async => ResolvedTideData(
-              calculator: calculator,
-              source: const TideDataSource.fesModel(),
-            ),
+            (ref) async => modelAnswers
+                ? ResolvedTideData(
+                    calculator: calculator,
+                    source: const TideDataSource.fesModel(),
+                  )
+                : null,
           ),
           tideRecordForDiveProvider(dive.id).overrideWith((ref) async => null),
         ],
@@ -143,6 +145,15 @@ void main() {
       );
       expect(tides.recorded, isEmpty);
       expect(tides.deleted, ['d1']);
+    });
+
+    // The tide model answers null for a fetch that failed with nothing
+    // cached, or a grid this device has not got, as well as for a place it
+    // does not cover: it cannot say the record is wrong, so it stays.
+    test('is kept when the tide model cannot answer now', () async {
+      final tides = await record(atReef, modelAnswers: false);
+      expect(tides.recorded, isEmpty);
+      expect(tides.deleted, isEmpty);
     });
 
     test('is cleared for a freshwater dive', () async {

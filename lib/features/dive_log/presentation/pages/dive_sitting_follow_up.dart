@@ -57,10 +57,13 @@ final diveGearRefreshProvider = Provider<void Function(String diveId)>(
 /// Records the tide for a saved dive at its site, when the site has
 /// coordinates, as the dive form does after every save
 /// (`dive_edit_page.dart`, after `_saveDive`). A dive with no tide to record
-/// (no site, one with no location, fresh water, or a place no tide model
-/// covers) has its record cleared instead: a tide record is worked out from
-/// the site, never typed, so one left from a site the dive is no longer at
-/// would show a tide that never was (issue #4527).
+/// (no site, one with no location, or fresh water) has its record cleared
+/// instead: a tide record is worked out from the site, never typed, so one
+/// left from a site the dive is no longer at would show a tide that never
+/// was (issue #4527). A tide model that cannot answer leaves the record as
+/// it is: it answers null for a fetch that failed with nothing cached, or a
+/// grid this device has not got, as well as for a place it does not cover,
+/// and cannot say which.
 ///
 /// The saves' calls are not waited for, and a record replaces the dive's
 /// last one, so each dive's are run one after another, in the order the
@@ -90,13 +93,11 @@ final diveTideRecordProvider = Provider<Future<void> Function(Dive dive)>((
 Future<void> _recordDiveTide(Ref ref, Dive dive) async {
   final repository = ref.read(tideRecordRepositoryProvider);
   final location = dive.site?.location;
-  final resolved =
-      location == null || dive.effectiveWaterType == WaterType.fresh
-      ? null
-      : await ref.read(resolvedTideDataProvider(location).future);
-  if (location == null || resolved == null) {
+  if (location == null || dive.effectiveWaterType == WaterType.fresh) {
     await repository.deleteTideRecordForDive(dive.id);
   } else {
+    final resolved = await ref.read(resolvedTideDataProvider(location).future);
+    if (resolved == null) return;
     await recordDiveTide(
       repository: repository,
       calculator: resolved.calculator,
@@ -141,9 +142,10 @@ final divePlanLinkAdoptProvider =
               .adoptLink(planId, diveId),
     );
 
-/// The cards whose values feed the refresh above: the header's times,
-/// depths and site as well as the gear (issue #4527).
-final _gearCardIds = {
+/// The cards whose values feed the background refresh
+/// ([diveGearRefreshProvider]): the header's times, depths and site as well
+/// as the gear (issue #4527).
+final _refreshedByCardIds = {
   diveHeaderCardId,
   DiveDetailSectionId.tanks.name,
   DiveDetailSectionId.equipment.name,
@@ -250,7 +252,7 @@ class DiveSittingFollowUp {
     );
     // Gas switches and the readings moved by a reassign change no dive
     // value, so this is asked of the cards, not of before and after.
-    if (changedCardIds.any(_gearCardIds.contains)) {
+    if (changedCardIds.any(_refreshedByCardIds.contains)) {
       await _guarded(
         'refresh what its cylinders, gear and weights feed',
         after,

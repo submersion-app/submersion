@@ -410,12 +410,13 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
             rect: drawn?.box ?? Rect.zero,
             // It lies over the page, not in its scroll view: vertical drags
             // and wheel scrolls on it go on to the page.
-            // A semantics container of its own: the copy in it is rebuilt
-            // as the page reads the dive again (after Set as primary, say),
-            // and merged into the page's node it tripped the framework's
-            // `node.built` check (issue #4527).
+            // A semantics container of its own while something is pinned:
+            // the copy in it is rebuilt as the page reads the dive again
+            // (after Set as primary, say), and merged into the page's node
+            // it tripped the framework's `node.built` check (issue #4527).
+            // Empty, it adds no node.
             child: Semantics(
-              container: true,
+              container: drawn != null,
               child: PageScrollForwarder(
                 position: () => _pagePosition,
                 child: drawn?.child ?? const SizedBox.shrink(),

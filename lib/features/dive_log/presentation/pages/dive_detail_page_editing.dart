@@ -383,6 +383,8 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     // so none leaves the strip. One emptied and closed has left the page,
     // and is offered here again.
     final presence = editController.layoutRecord ?? working;
+    // Worked out once: the getter builds a new set each time it is read.
+    final changed = editController.session?.changedCardIds ?? const {};
     return [
       for (final section in sections)
         if (diveEditCards[section.id] case final card?)
@@ -408,9 +410,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
               cardId: card.id,
               label: section.id.localizedDisplayName(l10n),
               hidden: !section.visible,
-              changed:
-                  editController.session?.changedCardIds.contains(card.id) ??
-                  false,
+              changed: changed.contains(card.id),
             ),
     ];
   }
