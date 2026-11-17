@@ -140,14 +140,26 @@ class SpeciesNamer {
       }
     }
 
-    final ranked = <(int, double)>[
-      for (var i = 0; i < logits.length; i++)
-        if (allowed == null || allowed[i])
-          (i, math.exp(logits[i] - allowedMax) / sum),
-    ]..sort((a, b) => b.$2.compareTo(a.$2));
+    // The best few in one pass, best first: no need to sort them all.
+    final best = <int>[];
+    for (var i = 0; i < logits.length; i++) {
+      if (allowed != null && !allowed[i]) continue;
+      if (best.length == _config.topK && logits[i] <= logits[best.last]) {
+        continue;
+      }
+      var at = best.length;
+      while (at > 0 && logits[best[at - 1]] < logits[i]) {
+        at--;
+      }
+      best.insert(at, i);
+      if (best.length > _config.topK) best.removeLast();
+    }
     final top = [
-      for (final (index, score) in ranked.take(_config.topK))
-        NamedCandidate(candidate: _candidates[index], score: score),
+      for (final index in best)
+        NamedCandidate(
+          candidate: _candidates[index],
+          score: math.exp(logits[index] - allowedMax) / sum,
+        ),
     ];
 
     final bar = limited ? _config.suggestScore : _config.suggestScoreNoLocation;

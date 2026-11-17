@@ -447,4 +447,19 @@ void main() {
     await a;
     expect(await identifications.runFor('a'), isNull);
   });
+
+  test('a pack change waits for the analysis under way', () async {
+    engine.gate = Completer<void>();
+    final a = service.request(photo('a'));
+    await pumpEventQueue();
+    var changed = false;
+    final change = service.packChanged().then((_) => changed = true);
+    await pumpEventQueue();
+    expect(changed, isFalse);
+    expect(engine.unloads, 0);
+    engine.gate!.complete();
+    await Future.wait([a, change]);
+    expect(await identifications.runFor('a'), isNotNull);
+    expect(engine.unloads, 1);
+  });
 }

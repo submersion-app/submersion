@@ -128,4 +128,15 @@ void main() {
     expect(back['x'], [0.5, -0.25, 1.0]);
     expect(await embeddings.get(['x'], classifierId: 'other'), isEmpty);
   });
+
+  test('more ids than SQLite takes in one statement are deleted in '
+      'slices', () async {
+    final many = [for (var i = 0; i < 40000; i++) 'gone-$i'];
+    await expectLater(
+      identifications.deleteForMedia(many),
+      completion(isEmpty),
+    );
+    await expectLater(embeddings.delete(many), completes);
+    expect(await embeddings.get(many, classifierId: 'clf'), isEmpty);
+  });
 }

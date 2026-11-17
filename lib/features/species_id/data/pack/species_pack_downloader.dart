@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
@@ -74,7 +75,11 @@ class SpeciesPackManifestClient {
       );
     }
     try {
-      return SpeciesPackManifest.parse(response.body);
+      // Always UTF-8: release assets come with no charset, and
+      // `response.body` would then read them as Latin-1.
+      return SpeciesPackManifest.parse(
+        utf8.decode(response.bodyBytes, allowMalformed: true),
+      );
     } on PackManifestException catch (e) {
       throw PackDownloadException(
         e.reason == PackManifestFailure.unsupportedFormat

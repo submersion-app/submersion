@@ -93,9 +93,10 @@ class SpeciesPackStore {
         if (entity is Directory && !entity.path.endsWith(_stagingSuffix))
           entity,
     ];
-    candidates.sort(
-      (a, b) => b.statSync().modified.compareTo(a.statSync().modified),
-    );
+    final modified = {
+      for (final dir in candidates) dir.path: (await dir.stat()).modified,
+    };
+    candidates.sort((a, b) => modified[b.path]!.compareTo(modified[a.path]!));
     for (final dir in candidates) {
       final pack = await _read(dir);
       if (pack != null) return pack;

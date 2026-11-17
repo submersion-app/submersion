@@ -201,6 +201,27 @@ void main() {
   group('SpeciesPackManifestClient', () {
     final manifestUrl = Uri.parse('https://example.test/pack/manifest.json');
 
+    test('a manifest served with no charset is read as UTF-8', () async {
+      final body = utf8.encode(
+        manifestJson(
+          (m) => m['credits'] = [
+            {'name': 'Détecteur', 'licence': 'MIT', 'text': 'Ré'},
+          ],
+        ),
+      );
+      final client = SpeciesPackManifestClient(
+        client: MockClient(
+          (_) async => http.Response.bytes(
+            body,
+            200,
+            headers: {'content-type': 'application/octet-stream'},
+          ),
+        ),
+        url: manifestUrl,
+      );
+      expect((await client.fetch())!.credits.single.name, 'Détecteur');
+    });
+
     test('nothing published reads as null', () async {
       final client = SpeciesPackManifestClient(
         client: MockClient((_) async => http.Response('', 404)),

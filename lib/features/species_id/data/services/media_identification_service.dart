@@ -176,8 +176,11 @@ class MediaIdentificationService {
   }
 
   /// The installed pack changed or was removed: forget the cached tables and
-  /// free the models.
+  /// free the models, once the analysis under way (on the old pack) is done,
+  /// so it is never left without its models.
   Future<void> packChanged() async {
+    _pack = null;
+    await _running?.done.future;
     _pack = null;
     await _unloadModels();
   }

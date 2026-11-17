@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
@@ -42,25 +43,32 @@ class IdentificationEmbeddingRepository {
   }) async {
     if (ids.isEmpty) return const {};
     final table = _db.identificationEmbeddings;
-    final rows =
-        await (_db.select(table)..where(
-              (r) =>
-                  r.identificationId.isIn(ids) &
-                  r.classifierId.equals(classifierId),
-            ))
-            .get();
-    return {
-      for (final row in rows)
-        row.identificationId: decodeFloat16(row.embedding),
-    };
+    final found = <String, Float32List>{};
+    for (final slice in ids.slices(_slice)) {
+      final rows =
+          await (_db.select(table)..where(
+                (r) =>
+                    r.identificationId.isIn(slice) &
+                    r.classifierId.equals(classifierId),
+              ))
+              .get();
+      for (final row in rows) {
+        found[row.identificationId] = decodeFloat16(row.embedding);
+      }
+    }
+    return found;
   }
 
+  /// In slices: a sweep can name more ids than SQLite takes at once.
   Future<void> delete(List<String> ids) async {
-    if (ids.isEmpty) return;
-    await (_db.delete(
-      _db.identificationEmbeddings,
-    )..where((r) => r.identificationId.isIn(ids))).go();
+    for (final slice in ids.slices(_slice)) {
+      await (_db.delete(
+        _db.identificationEmbeddings,
+      )..where((r) => r.identificationId.isIn(slice))).go();
+    }
   }
+
+  static const _slice = 500;
 
   Future<void> deleteAll() => _db.delete(_db.identificationEmbeddings).go();
 }

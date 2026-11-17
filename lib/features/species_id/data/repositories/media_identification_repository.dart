@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -120,16 +121,23 @@ class MediaIdentificationRepository {
   Future<List<String>> deleteForMedia(List<String> mediaIds) async {
     if (mediaIds.isEmpty) return const [];
     return _db.transaction(() async {
-      final ids = await _idsWhere((r) => r.mediaId.isIn(mediaIds));
-      await (_db.delete(
-        _db.mediaIdentifications,
-      )..where((r) => r.mediaId.isIn(mediaIds))).go();
-      await (_db.delete(
-        _db.mediaIdentificationRuns,
-      )..where((r) => r.mediaId.isIn(mediaIds))).go();
+      final ids = <String>[];
+      // In slices: a sweep after a large sync deletion can name more media
+      // than SQLite takes in one statement.
+      for (final slice in mediaIds.slices(_slice)) {
+        ids.addAll(await _idsWhere((r) => r.mediaId.isIn(slice)));
+        await (_db.delete(
+          _db.mediaIdentifications,
+        )..where((r) => r.mediaId.isIn(slice))).go();
+        await (_db.delete(
+          _db.mediaIdentificationRuns,
+        )..where((r) => r.mediaId.isIn(slice))).go();
+      }
       return ids;
     });
   }
+
+  static const _slice = 500;
 
   /// Media ids with rows here but no media row: deleted by sync, or by a
   /// delete that was held for undo and never undone.
