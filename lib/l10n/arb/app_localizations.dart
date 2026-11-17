@@ -4072,6 +4072,18 @@ abstract class AppLocalizations {
   /// **'New dive'**
   String get accessibility_shortcut_newDive;
 
+  /// Keyboard shortcut label for unlocking the record page in view (a dive) to edit it
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to edit'**
+  String get accessibility_shortcut_unlockRecord;
+
+  /// Keyboard shortcut label for saving the changes made to an unlocked record page
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get accessibility_shortcut_saveChanges;
+
   /// Keyboard shortcut label for opening settings
   ///
   /// In en, this message translates to:
@@ -15991,6 +16003,18 @@ abstract class AppLocalizations {
   /// **'Save or cancel your changes first'**
   String get recordEdit_saveOrCancelFirst;
 
+  /// Caption over a menu's actions that change a whole record (delete, re-parse and the like), shown while the record's page is locked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to use these'**
+  String get recordEdit_unlockToUseThese;
+
+  /// Tooltip of the button on a dive's Profile card that opens the profile editor, which saves the edited profile on its own page.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get diveLog_profile_editProfile;
+
   /// No description provided for @settings_manage_setupAssistant.
   ///
   /// In en, this message translates to:
@@ -17107,10 +17131,10 @@ abstract class AppLocalizations {
   /// **'Fit All Sites'**
   String get diveLog_map_tooltip_fitAllSites;
 
-  /// Shown when photos or videos are dropped on a dive that is locked, on its page or in the list's detail pane (which cannot unlock): dives are edited only while unlocked, on their own page.
+  /// Shown when photos or videos are dropped on a dive that is locked, on its page or in the list's detail pane: a dive is changed only while unlocked.
   ///
   /// In en, this message translates to:
-  /// **'Unlock this dive on its own page to add photos.'**
+  /// **'Unlock this dive to add photos.'**
   String get diveLog_media_dropUnlockHint;
 
   /// No description provided for @diveLog_numbering_actions.

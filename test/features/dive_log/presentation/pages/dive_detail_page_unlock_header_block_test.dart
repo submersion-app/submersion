@@ -277,4 +277,17 @@ void main() {
     expect(page.save.calls.single.cards, [diveHeaderCardId]);
     expect(page.save.calls.single.merged.name, 'Evening drift');
   });
+
+  testWidgets('locked, the planned banner cannot mark as logged; unlocked it '
+      'can', (tester) async {
+    await pumpPage(tester, stored: dive.copyWith(isPlanned: true));
+    TextButton mark() => tester.widget<TextButton>(
+      find.widgetWithText(TextButton, 'Mark as logged'),
+    );
+    expect(mark().onPressed, isNull);
+    expect(find.byTooltip('Unlock to use this'), findsOneWidget);
+
+    await unlock(tester);
+    expect(mark().onPressed, isNotNull);
+  });
 }

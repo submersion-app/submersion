@@ -107,20 +107,28 @@ void main() {
     expect(find.text(l.diveLog_tank_reassignSeries), findsOneWidget);
   });
 
-  testWidgets('locked: no Reassign, no Assign, check-in chips do not open', (
-    tester,
-  ) async {
+  TextButton assign(WidgetTester tester) => tester.widget<TextButton>(
+    find.widgetWithText(TextButton, l.diveLog_tank_assignTransmitter),
+  );
+
+  // Plan 7: whole-record operations are listed, disabled, while locked.
+  testWidgets('locked: no Reassign; Assign shows, disabled; check-in chips '
+      'say why they do not open', (tester) async {
     await open(tester);
 
     expect(find.text(l.diveLog_tank_reassignSeries), findsNothing);
     expect(
       find.text(l.diveLog_tank_assignTransmitter).hitTestable(),
-      findsNothing,
+      findsOneWidget,
     );
-    for (final chip in tester.widgetList<ObservationStatusChip>(
+    expect(assign(tester).onPressed, isNull);
+    expect(find.byTooltip(l.recordEdit_unlockToUseThis), findsWidgets);
+    final chips = tester.widgetList<ObservationStatusChip>(
       find.byType(ObservationStatusChip),
-    )) {
-      expect(chip.readOnly, isTrue);
+    );
+    expect(chips, isNotEmpty);
+    for (final chip in chips) {
+      expect(chip.operationReason, l.recordEdit_unlockToUseThis);
     }
   });
 
@@ -128,11 +136,13 @@ void main() {
       '(issue #4494)', (tester) async {
     await open(tester);
     final menu = find.byKey(const Key('tank-gear-menu-a'));
-    expect(menu, findsOneWidget);
-    expect(menu.hitTestable(), findsNothing);
+    PopupMenuButton<Object?> button() =>
+        tester.widget<PopupMenuButton<Object?>>(menu);
+    expect(menu.hitTestable(), findsOneWidget);
+    expect(button().enabled, isFalse);
 
     await unlock(tester);
-    expect(menu.hitTestable(), findsOneWidget);
+    expect(button().enabled, isTrue);
   });
 
   testWidgets('locked: Sort still opens its sheet', (tester) async {
@@ -198,13 +208,10 @@ void main() {
     );
   });
 
-  testWidgets('Assign shows in a sitting with no changes only', (tester) async {
+  testWidgets('Assign works in a sitting with no changes only', (tester) async {
     await open(tester);
     await unlock(tester);
-    expect(
-      find.text(l.diveLog_tank_assignTransmitter).hitTestable(),
-      findsOneWidget,
-    );
+    expect(assign(tester).onPressed, isNotNull);
 
     // A change on another card: a weight added.
     await tester.tap(
@@ -219,8 +226,21 @@ void main() {
 
     expect(
       find.text(l.diveLog_tank_assignTransmitter).hitTestable(),
-      findsNothing,
+      findsOneWidget,
     );
+    expect(assign(tester).onPressed, isNull);
+    expect(find.byTooltip(l.recordEdit_saveOrCancelFirst), findsWidgets);
+  });
+
+  testWidgets('the Cylinders card is the same height locked and unlocked', (
+    tester,
+  ) async {
+    await open(tester);
+    final card = find.byKey(const ValueKey('diveSection_tanks'));
+    final locked = tester.getSize(card).height;
+
+    await unlock(tester);
+    expect(tester.getSize(card).height, locked);
   });
 
   testWidgets('a reassign held in a sitting moves each series on the closed '

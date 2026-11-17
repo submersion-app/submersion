@@ -2648,6 +2648,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'Neuer Tauchgang';
 
   @override
+  String get accessibility_shortcut_unlockRecord => 'Zum Bearbeiten entsperren';
+
+  @override
+  String get accessibility_shortcut_saveChanges => 'Änderungen speichern';
+
+  @override
   String get accessibility_shortcut_openSettings => 'Einstellungen öffnen';
 
   @override
@@ -10181,6 +10187,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Speichere oder verwirf zuerst deine Änderungen';
 
   @override
+  String get recordEdit_unlockToUseThese =>
+      'Zum Verwenden dieser Aktionen entsperren';
+
+  @override
+  String get diveLog_profile_editProfile => 'Profil bearbeiten';
+
+  @override
   String get settings_manage_setupAssistant => 'Einrichtungsassistent';
 
   @override
@@ -10864,7 +10877,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'Entsperre diesen Tauchgang auf seiner eigenen Seite, um Fotos hinzuzufügen.';
+      'Entsperre diesen Tauchgang, um Fotos hinzuzufügen.';
 
   @override
   String get diveLog_numbering_actions => 'Aktionen';

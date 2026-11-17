@@ -2620,6 +2620,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'New dive';
 
   @override
+  String get accessibility_shortcut_unlockRecord => 'Unlock to edit';
+
+  @override
+  String get accessibility_shortcut_saveChanges => 'Save changes';
+
+  @override
   String get accessibility_shortcut_openSettings => 'Open settings';
 
   @override
@@ -10028,6 +10034,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Save or cancel your changes first';
 
   @override
+  String get recordEdit_unlockToUseThese => 'Unlock to use these';
+
+  @override
+  String get diveLog_profile_editProfile => 'Edit profile';
+
+  @override
   String get settings_manage_setupAssistant => 'Setup assistant';
 
   @override
@@ -10701,8 +10713,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_map_tooltip_fitAllSites => 'Fit All Sites';
 
   @override
-  String get diveLog_media_dropUnlockHint =>
-      'Unlock this dive on its own page to add photos.';
+  String get diveLog_media_dropUnlockHint => 'Unlock this dive to add photos.';
 
   @override
   String get diveLog_numbering_actions => 'Actions';

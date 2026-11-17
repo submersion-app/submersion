@@ -98,7 +98,9 @@ class DiveDetailHeroSection extends ConsumerWidget {
                   state.uri.queryParameters,
                 );
                 params['site'] = site.id;
-                context.goInPlace(
+                // The site replaces the dive in the pane: a sitting there
+                // is asked about first (issue #4527).
+                context.goInPlaceGuarded(
                   Uri(path: currentPath, queryParameters: params).toString(),
                 );
               } else {

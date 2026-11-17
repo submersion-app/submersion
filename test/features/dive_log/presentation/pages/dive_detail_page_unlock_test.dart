@@ -51,10 +51,10 @@ void main() {
     expect(find.byTooltip('Unlock to edit'), findsNothing);
   });
 
-  testWidgets('in the list pane the page has no lock yet', (tester) async {
+  testWidgets('in the list pane the page has the lock too', (tester) async {
     await pumpPage(tester, embedded: true, size: const Size(1200, 900));
 
-    expect(find.byTooltip('Unlock to edit'), findsNothing);
+    expect(find.byTooltip('Unlock to edit'), findsOneWidget);
   });
 
   testWidgets('unlock swaps the bar and moves nothing in the page', (

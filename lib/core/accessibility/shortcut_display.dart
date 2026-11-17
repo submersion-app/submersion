@@ -27,6 +27,8 @@ bool hasShortcutEntryTranslation(String label) =>
 
 final Map<String, String Function(AppLocalizations)> _shortcutEntryLabels = {
   'New dive': (l10n) => l10n.accessibility_shortcut_newDive,
+  'Unlock to edit': (l10n) => l10n.accessibility_shortcut_unlockRecord,
+  'Save changes': (l10n) => l10n.accessibility_shortcut_saveChanges,
   'Go to Dives': (l10n) => l10n.accessibility_shortcut_goToDives,
   'Go to Sites': (l10n) => l10n.accessibility_shortcut_goToSites,
   'Go to Equipment': (l10n) => l10n.accessibility_shortcut_goToEquipment,

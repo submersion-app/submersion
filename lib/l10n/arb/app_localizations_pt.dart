@@ -2648,6 +2648,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'Novo mergulho';
 
   @override
+  String get accessibility_shortcut_unlockRecord => 'Desbloquear para editar';
+
+  @override
+  String get accessibility_shortcut_saveChanges => 'Salvar alterações';
+
+  @override
   String get accessibility_shortcut_openSettings => 'Abrir configurações';
 
   @override
@@ -10186,6 +10192,12 @@ class AppLocalizationsPt extends AppLocalizations {
       'Guarde ou cancele as suas alterações primeiro';
 
   @override
+  String get recordEdit_unlockToUseThese => 'Desbloqueie para usar estas ações';
+
+  @override
+  String get diveLog_profile_editProfile => 'Editar perfil';
+
+  @override
   String get settings_manage_setupAssistant => 'Assistente de configuração';
 
   @override
@@ -10868,7 +10880,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'Desbloqueie este mergulho na página dele para adicionar fotos.';
+      'Desbloqueie este mergulho para adicionar fotos.';
 
   @override
   String get diveLog_numbering_actions => 'Ações';

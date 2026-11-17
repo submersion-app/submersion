@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/back_navigation.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
@@ -160,7 +161,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       return;
     }
     if (destination.route.isEmpty) return;
-    context.go(destination.route);
+    await context.goGuarded(destination.route);
   }
 
   /// [overflow] is captured by the caller in the same build that rendered the
@@ -236,7 +237,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                           : null,
                       onTap: () {
                         Navigator.pop(sheetContext);
-                        context.go(destination.route);
+                        context.goGuarded(destination.route);
                       },
                     ),
                   const SizedBox(height: 8),

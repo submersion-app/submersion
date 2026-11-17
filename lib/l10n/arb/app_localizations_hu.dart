@@ -2643,6 +2643,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'Új merülés';
 
   @override
+  String get accessibility_shortcut_unlockRecord => 'Feloldás a szerkesztéshez';
+
+  @override
+  String get accessibility_shortcut_saveChanges => 'Változások mentése';
+
+  @override
   String get accessibility_shortcut_openSettings => 'Beállítások megnyitása';
 
   @override
@@ -10165,6 +10171,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'Előbb mentsd el vagy vesd el a módosításokat';
 
   @override
+  String get recordEdit_unlockToUseThese => 'Oldd fel ezek használatához';
+
+  @override
+  String get diveLog_profile_editProfile => 'Profil szerkesztése';
+
+  @override
   String get settings_manage_setupAssistant => 'Beállítási varázsló';
 
   @override
@@ -10847,7 +10859,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'Oldd fel a merülés zárolását a saját oldalán, hogy fotókat adhass hozzá.';
+      'Oldd fel a merülés zárolását, hogy fotókat adhass hozzá.';
 
   @override
   String get diveLog_numbering_actions => 'Műveletek';

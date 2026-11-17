@@ -8,6 +8,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_b
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 
 /// The fixed block above the dive page's sections: the planned and draft
 /// banners, the site suggestion, and the hero card.
@@ -43,13 +45,14 @@ class DiveDetailHeaderBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = RecordEditScope.maybeOf<Dive>(context);
-    final session = controller?.session;
-    final SiteSuggestionEditing editing = controller == null
-        ? const SiteSuggestionNoEditing()
-        : session == null
-        ? const SiteSuggestionLocked()
-        : SiteSuggestionSitting(session, layout: controller.layoutRecord);
+    final editing = siteSuggestionEditingOf(context);
     final hero = DiveDetailHeroSection(dive: shown, embedded: embedded);
+    // What the banners offer acts on the whole dive at once: only on an
+    // unlocked page with nothing to save (issue #4527).
+    final operationReason = recordOperationReason(
+      context.l10n,
+      recordOperationBlockOf(controller),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -61,13 +64,18 @@ class DiveDetailHeaderBlock extends StatelessWidget {
         // spacing of its own is needed.
         if (!embedded) ...[
           if (stored.isPlanned)
-            PlannedDiveBanner(diveId: stored.id, onMarkLogged: onMarkLogged),
+            PlannedDiveBanner(
+              diveId: stored.id,
+              onMarkLogged: onMarkLogged,
+              operationReason: operationReason,
+            ),
           if (stored.isDraft)
             DraftDiveBanner(
               dive: stored,
               onMarkComplete: onMarkLogged,
               onDownload: onDownloadDraft,
               onSurfaced: onSurfaceDraft,
+              operationReason: operationReason,
             ),
           SiteSuggestionCard(
             diveId: stored.id,

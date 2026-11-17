@@ -64,7 +64,7 @@ const _guardedHandlers = <(String, String)>[
   ),
   (
     'lib/features/dive_log/presentation/pages/dive_detail_page_actions.dart',
-    'Future<void> _resyncDive(',
+    'Future<bool> _resyncDive(',
   ),
   (
     'lib/features/dive_lab/presentation/pages/dive_lab_page.dart',

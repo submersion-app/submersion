@@ -26,6 +26,7 @@ void main() {
     WidgetTester tester,
     Dive dive, {
     bool withSurfaced = true,
+    String? operationReason,
   }) async {
     final calls = <String>[];
     await tester.pumpWidget(
@@ -37,6 +38,7 @@ void main() {
             onMarkComplete: () => calls.add('complete'),
             onDownload: () => calls.add('download'),
             onSurfaced: withSurfaced ? () => calls.add('surfaced') : null,
+            operationReason: operationReason,
           ),
         ),
       ),
@@ -82,5 +84,38 @@ void main() {
     await tester.tap(find.text('Download now'));
     await tester.tap(find.text('Mark as complete'));
     expect(calls, ['download', 'complete']);
+  });
+
+  testWidgets('with a reason Surfaced and Mark as complete are disabled, '
+      'Download now is not', (tester) async {
+    final calls = await pump(
+      tester,
+      open,
+      operationReason: 'Save or cancel your changes first',
+    );
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, 'Surfaced'))
+          .onPressed,
+      isNull,
+    );
+    await tester.tap(find.text('Download now'));
+    expect(calls, ['download']);
+
+    final closedCalls = await pump(
+      tester,
+      closed,
+      operationReason: 'Save or cancel your changes first',
+    );
+    expect(
+      tester
+          .widget<TextButton>(
+            find.widgetWithText(TextButton, 'Mark as complete'),
+          )
+          .onPressed,
+      isNull,
+    );
+    expect(find.byTooltip('Save or cancel your changes first'), findsOneWidget);
+    expect(closedCalls, isEmpty);
   });
 }

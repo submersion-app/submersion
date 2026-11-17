@@ -32,6 +32,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 
 /// The parts of a dive the chart subtree draws from.
 ///
@@ -85,6 +86,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
     this.viewport,
     this.onViewportChanged,
     this.editing,
+    this.onEditProfile,
   });
 
   /// This section with the same inputs, the page's zoom among them, drawn
@@ -104,6 +106,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
     viewport: viewport,
     onViewportChanged: onViewportChanged,
     editing: session,
+    onEditProfile: onEditProfile,
   );
 
   final String diveId;
@@ -143,6 +146,11 @@ class DiveDetailProfileSection extends ConsumerWidget {
   final VoidCallback onSafetyFindingDetails;
 
   final void Function(String readingId) onSetPrimarySource;
+
+  /// Opens the profile editor, which saves on its own page: a whole-record
+  /// operation on a page that offers editing (issue #4527). Null leaves the
+  /// toolbar without it (no editing offered, or the pinned copy).
+  final VoidCallback? onEditProfile;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -224,6 +232,8 @@ class DiveDetailProfileSection extends ConsumerWidget {
             ),
           ),
         ),
+        if (onEditProfile case final onEditProfile?)
+          _EditProfileButton(scope: scope, onPressed: onEditProfile),
         IconButton(
           icon: const Icon(Icons.fullscreen),
           tooltip: context.l10n.diveLog_detail_tooltip_viewFullscreen,
@@ -483,6 +493,11 @@ class _ProfileSourceBar extends ConsumerWidget {
             : ({...current}..remove(id));
       },
       onSetPrimary: onSetPrimarySource,
+      // Set as primary acts on the whole dive at once (issue #4527).
+      operationReason: recordOperationReason(
+        context.l10n,
+        recordOperationBlockOf(RecordEditScope.maybeOf<Dive>(context)),
+      ),
     );
   }
 }
@@ -513,6 +528,30 @@ class _ProfileRangeStats extends ConsumerWidget {
           environment: dive.environment,
         ),
       ],
+    );
+  }
+}
+
+/// Edit profile on the Profile card's toolbar (issue #4527): a whole-record
+/// operation, so while it is unavailable its one tooltip says why, rather
+/// than a second tooltip competing with the button's own label.
+class _EditProfileButton extends StatelessWidget {
+  const _EditProfileButton({required this.scope, required this.onPressed});
+
+  final RecordEditController<Dive>? scope;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final reason = recordOperationReason(
+      context.l10n,
+      recordOperationBlockOf(scope),
+    );
+    return IconButton(
+      icon: const Icon(Icons.edit_note),
+      tooltip: reason ?? context.l10n.diveLog_profile_editProfile,
+      visualDensity: VisualDensity.compact,
+      onPressed: reason == null ? onPressed : null,
     );
   }
 }

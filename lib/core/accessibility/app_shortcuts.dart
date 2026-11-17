@@ -230,20 +230,22 @@ class AppShortcuts {
         // opens a sub-page and must stay poppable (#647).
         context.push('/dives/new');
       },
+      // Guarded: a tab's own key keeps its route, so no onExit asks about a
+      // record held in its list pane (issue #4527).
       platformShortcut(LogicalKeyboardKey.digit1): () {
-        context.go('/dives');
+        context.goGuarded('/dives');
       },
       platformShortcut(LogicalKeyboardKey.digit2): () {
-        context.go('/sites');
+        context.goGuarded('/sites');
       },
       platformShortcut(LogicalKeyboardKey.digit3): () {
-        context.go('/equipment');
+        context.goGuarded('/equipment');
       },
       platformShortcut(LogicalKeyboardKey.digit4): () {
-        context.go('/insights');
+        context.goGuarded('/insights');
       },
       platformShortcut(LogicalKeyboardKey.digit5): () {
-        context.go('/settings');
+        context.goGuarded('/settings');
       },
       platformShortcut(LogicalKeyboardKey.keyW): () {
         if (context.canPop()) {

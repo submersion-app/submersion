@@ -2609,6 +2609,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'צלילה חדשה';
 
   @override
+  String get accessibility_shortcut_unlockRecord => 'ביטול נעילה לעריכה';
+
+  @override
+  String get accessibility_shortcut_saveChanges => 'שמירת שינויים';
+
+  @override
   String get accessibility_shortcut_openSettings => 'פתיחת הגדרות';
 
   @override
@@ -9964,6 +9970,12 @@ class AppLocalizationsHe extends AppLocalizations {
       'יש לשמור או לבטל את השינויים קודם';
 
   @override
+  String get recordEdit_unlockToUseThese => 'יש לבטל את הנעילה כדי להשתמש באלה';
+
+  @override
+  String get diveLog_profile_editProfile => 'עריכת פרופיל';
+
+  @override
   String get settings_manage_setupAssistant => 'אשף ההגדרה';
 
   @override
@@ -10632,7 +10644,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'בטל את נעילת הצלילה בעמוד שלה כדי להוסיף לה תמונות.';
+      'בטל את נעילת הצלילה כדי להוסיף לה תמונות.';
 
   @override
   String get diveLog_numbering_actions => 'פעולות';
