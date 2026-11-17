@@ -1,0 +1,259 @@
+{
+ "cellDegrees": 30,
+ "neighbourCells": 1,
+ "embeddingSize": 4,
+ "logitScale": 10.0,
+ "config": {
+  "minCropSide": 64,
+  "minOpenScore": 0.65,
+  "suggestScore": 0.5,
+  "confidentScore": 0.7,
+  "suggestScoreNoLocation": 0.7,
+  "minAllowedCandidates": 2,
+  "topK": 3
+ },
+ "textEmbeddings": [
+  [
+   1,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   1,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   1,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   1
+  ],
+  [
+   0.5,
+   0.5,
+   0.5,
+   0.5
+  ],
+  [
+   0.75,
+   0.625,
+   0,
+   0
+  ]
+ ],
+ "recorded": [
+  [
+   39
+  ],
+  [
+   39
+  ],
+  [
+   39
+  ],
+  [],
+  [
+   40
+  ],
+  [
+   21
+  ]
+ ],
+ "cases": [
+  {
+   "label": "no location",
+   "embedding": [
+    1,
+    0.25,
+    0.125,
+    0
+   ],
+   "cell": null,
+   "boxShorterSide": 200,
+   "tie": false,
+   "expected": {
+    "openScore": 0.6869462593678003,
+    "locationLimited": false,
+    "candidates": [
+     {
+      "index": 0,
+      "score": 0.6869462593678003
+     },
+     {
+      "index": 5,
+      "score": 0.2784844341144136
+     },
+     {
+      "index": 4,
+      "score": 0.03387271208304811
+     }
+    ],
+    "suggestable": false
+   }
+  },
+  {
+   "label": "tie between two candidates",
+   "embedding": [
+    0.5,
+    0.5,
+    0,
+    0
+   ],
+   "cell": null,
+   "boxShorterSide": 200,
+   "tie": true,
+   "expected": {
+    "openScore": 0.8252704908134162,
+    "locationLimited": false,
+    "candidates": [
+     {
+      "index": 5,
+      "score": 0.8252704908134162
+     },
+     {
+      "index": 0,
+      "score": 0.058210210110378705
+     },
+     {
+      "index": 1,
+      "score": 0.058210210110378705
+     }
+    ],
+    "suggestable": true
+   }
+  },
+  {
+   "label": "a limited list lifts the score but the open score guards it",
+   "embedding": [
+    0.75,
+    0.5,
+    0,
+    0.6875
+   ],
+   "cell": 39,
+   "boxShorterSide": 200,
+   "tie": false,
+   "expected": {
+    "openScore": 0.5943754267835865,
+    "locationLimited": true,
+    "candidates": [
+     {
+      "index": 4,
+      "score": 0.8610272590971282
+     },
+     {
+      "index": 0,
+      "score": 0.1250249979949161
+     },
+     {
+      "index": 1,
+      "score": 0.013780331413014244
+     }
+    ],
+    "suggestable": false
+   }
+  },
+  {
+   "label": "a neighbouring cell counts",
+   "embedding": [
+    0.25,
+    0,
+    0,
+    1
+   ],
+   "cell": 40,
+   "boxShorterSide": 200,
+   "tie": false,
+   "expected": {
+    "openScore": 0.9732401649575584,
+    "locationLimited": true,
+    "candidates": [
+     {
+      "index": 4,
+      "score": 0.9699725638181835
+     },
+     {
+      "index": 0,
+      "score": 0.0255141553734053
+     },
+     {
+      "index": 1,
+      "score": 0.002256640404205563
+     }
+    ],
+    "suggestable": true
+   }
+  },
+  {
+   "label": "too few recorded falls back",
+   "embedding": [
+    0.75,
+    0.625,
+    0,
+    0
+   ],
+   "cell": 21,
+   "boxShorterSide": 200,
+   "tie": false,
+   "expected": {
+    "openScore": 0.8159966241998333,
+    "locationLimited": false,
+    "candidates": [
+     {
+      "index": 5,
+      "score": 0.8159966241998333
+     },
+     {
+      "index": 0,
+      "score": 0.10188155560992733
+     },
+     {
+      "index": 4,
+      "score": 0.0537114671330792
+     }
+    ],
+    "suggestable": true
+   }
+  },
+  {
+   "label": "too small to suggest",
+   "embedding": [
+    1,
+    0,
+    0,
+    0
+   ],
+   "cell": 39,
+   "boxShorterSide": 63,
+   "tie": false,
+   "expected": {
+    "openScore": 0.9183080965093577,
+    "locationLimited": true,
+    "candidates": [
+     {
+      "index": 0,
+      "score": 0.9932175686481771
+     },
+     {
+      "index": 4,
+      "score": 0.006692247336111949
+     },
+     {
+      "index": 1,
+      "score": 4.509200785549322e-05
+     }
+    ],
+    "suggestable": false
+   }
+  }
+ ]
+}
