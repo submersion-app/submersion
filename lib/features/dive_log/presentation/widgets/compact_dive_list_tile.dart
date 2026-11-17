@@ -115,8 +115,9 @@ class CompactDiveListTile extends ConsumerWidget {
   /// Whether the configurable slots have a source to read from.
   bool get _hasSlotData => fullDive != null || summary != null;
 
-  /// Whether [field] is one the [duration] parameter stands in for when
-  /// there is no source to read: the runtime (the default) or bottom time.
+  /// Whether [field] is a duration field that the [duration] parameter fills
+  /// when there is no source to read: the runtime (the default) or bottom
+  /// time.
   static bool _isDurationField(DiveField field) =>
       field == DiveField.runtime || field == DiveField.bottomTime;
 
