@@ -42,7 +42,9 @@ After the commit, each best effort and guarded as `DiveSittingFollowUp` guards i
 
 ## Calls made in this plan, for Eric to check
 
-Eric's standing choices apply: a locked record allows no change; one Save per unlock; day-to-day logging needs the unlock; a new dive opens already unlocked with the starter cards. Where a case could go either way the stricter, uniform option is written below first. Made in writing this plan, not confirmed:
+Eric's standing choices apply: a locked record allows no change; one Save per unlock; day-to-day logging needs the unlock; a new dive opens already unlocked with the starter cards. Where a case could go either way the stricter, uniform option is written below first.
+
+**Eric confirmed all thirteen as written on 2026-11-17** (calls 1 and 2 the stricter way), and chose "Native" to build the plan.
 
 1. **Save is disabled until something is entered.** The seed's defaults (now, the next number, the default cylinder, the default set) are not entries, so an untouched new dive has nothing to save, the same rule as an unlocked dive with no changes. Cmd/Ctrl+S on it does nothing and the page stays. The other way: Save enabled from the start, as the mockup draws it and as today's form allows, creating a dive from the defaults alone.
 2. **A prefill is an entry.** A scan, a passport cylinder, the trip board's slot and a logbook photo give their cards the dot, and Cancel asks before dropping them. Today's form drops a whole scan on Back without asking. The other way: prefills form part of the seed, and Cancel asks only once the diver types something.
