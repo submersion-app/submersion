@@ -138,6 +138,28 @@ void main() {
     );
   });
 
+  String updateTriggerOf(String table) => buildChangeLogTriggers(
+    _specFor(db, table),
+    changeLogTables[table]!,
+    schemaVersion: 1,
+  ).singleWhere((s) => s.contains('AFTER UPDATE'));
+
+  test('a finding gets an opt-in update trigger that compares only '
+      'dismissed_at', () {
+    final update = updateTriggerOf('dive_safety_findings');
+    expect(update, contains('OLD."dismissed_at" IS NOT NEW."dismissed_at"'));
+    expect(update, isNot(contains('"severity"')));
+    expect(update, isNot(contains('"value"')));
+    expect(update, isNot(contains('"engine_version"')));
+  });
+
+  test('the opt-in clause matches a sitting by its label prefix', () {
+    expect(
+      updateTriggerOf('dive_profile_series'),
+      contains("substr(o.label, 1, 12) = 'record_edit:'"),
+    );
+  });
+
   test('a declared column the file lacks is left out', () {
     final spec = _specFor(db, 'dives');
     final narrowed = spec.narrowedTo({'id', 'notes'});

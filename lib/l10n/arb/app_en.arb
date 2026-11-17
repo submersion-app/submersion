@@ -1071,6 +1071,18 @@
       }
     }
   },
+  "trips_story_fromTripNotes": "From trip notes",
+  "@trips_story_fromTripNotes": {
+    "description": "Caption over the part of a trip's Notes that belongs to the day shown; tapping it opens the trip's Notes."
+  },
+  "trips_story_addDayNote": "Add note",
+  "@trips_story_addDayNote": {
+    "description": "Button on a trip day's page that opens the trip editor at a new heading for that day in the trip's Notes."
+  },
+  "trips_story_editDayNote": "Edit note",
+  "@trips_story_editDayNote": {
+    "description": "Button on a trip day's page that opens the trip editor at the end of that day's part of the trip's Notes."
+  },
   "trips_story_surfaceDay": "Surface day",
   "trips_story_today": "Today",
   "trips_story_tripTile": "Trip",
@@ -1984,6 +1996,8 @@
   "buddies_field_notesHint": "Add notes about this buddy...",
   "buddies_field_phone": "Phone",
   "buddies_field_phoneHint": "+1 (555) 123-4567",
+  "buddies_field_country": "Country",
+  "buddies_field_countryHint": "e.g. Italy",
   "buddies_label_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "buddies_linkText_action": "Link to buddy records",
   "buddies_linkText_addName": "Add a name",
@@ -4396,6 +4410,10 @@
   "diveCenters_label_source": "Source: {source}",
   "diveCenters_label_website": "Website",
   "diveCenters_label_permanentlyClosed": "Permanently closed",
+  "diveCenters_field_logo": "Logo",
+  "@diveCenters_field_logo": {
+    "description": "Label for a dive center's logo: the edit page avatar's accessible name and the logo picker sheet title"
+  },
   "diveCenters_map_addCoordinatesHint": "Add coordinates to your dive centers to see them on the map",
   "diveCenters_map_noCoordinates": "No dive centers with coordinates",
   "diveCenters_picker_allCenters": "All dive centers",
@@ -4961,6 +4979,7 @@
   "diveLog_detail_section_tide": "Tide",
   "diveLog_detail_section_trainingSignature": "Training Signature",
   "diveLog_detail_section_weight": "Weight",
+  "diveLog_detail_weight_fromEquipment": "From equipment",
   "diveLog_detail_signatureDescription": "Tap to add instructor verification for this training dive",
   "diveLog_detail_soloDive": "Solo dive or no buddies recorded",
   "diveLog_detail_speciesCount": "{count} species",
@@ -5489,6 +5508,9 @@
   "diveLog_edit_weightPreset_nameLabel": "Preset name",
   "diveLog_edit_weightPreset_saved": "Weight preset “{name}” saved",
   "diveLog_edit_weightTotal": "Total: {total}",
+  "diveLog_edit_weightGearNote": "Also counted: {weight} carried as equipment ({items}). Add a weight here only for separate lead.",
+  "diveLog_edit_weightGearNote_listSeparator": ", ",
+  "@diveLog_edit_weightGearNote_listSeparator": {"description": "Joins the names of weights gear in the note under the Weights editor. Include any trailing space your language uses."},
   "diveLog_emptyFiltered_clearFilters": "Clear Filters",
   "diveLog_emptyFiltered_subtitle": "Try adjusting or clearing your filters",
   "diveLog_emptyFiltered_title": "No dives match your filters",
@@ -6019,6 +6041,22 @@
       }
     }
   },
+  "recordEdit_calculated": "Calculated",
+  "@recordEdit_calculated": {
+    "description": "Label on a card with nothing to edit, shown while its record is unlocked: its content is calculated from other data."
+  },
+  "recordEdit_loadFailed": "This card could not be loaded.",
+  "@recordEdit_loadFailed": {
+    "description": "An open card whose rows (buddies, sightings, signatures, the linked plan) could not be read while the record is being edited."
+  },
+  "recordEdit_tryAgain": "Try again",
+  "@recordEdit_tryAgain": {
+    "description": "Button under a card that could not be loaded: reads it again."
+  },
+  "recordEdit_imported": "Imported",
+  "@recordEdit_imported": {
+    "description": "Label on a card with nothing to edit, shown while its record is unlocked: its content was imported from a device or service."
+  },
   "recordEdit_saveFailed": "Couldn't save your changes. Nothing was changed.",
   "@recordEdit_saveFailed": {
     "description": "Message shown when saving an unlocked record fails."
@@ -6365,6 +6403,10 @@
   "diveLog_map_emptyTitle": "No dive activity to display",
   "diveLog_map_errorLoading": "Error loading dive data: {error}",
   "diveLog_map_tooltip_fitAllSites": "Fit All Sites",
+  "diveLog_media_dropUnlockHint": "Unlock this dive on its own page to add photos.",
+  "@diveLog_media_dropUnlockHint": {
+    "description": "Shown when photos or videos are dropped on a dive that is locked, on its page or in the list's detail pane (which cannot unlock): dives are edited only while unlocked, on their own page."
+  },
   "diveLog_numbering_actions": "Actions",
   "diveLog_numbering_allCorrect": "All dives numbered correctly",
   "diveLog_numbering_assignMissing": "Assign missing numbers",
@@ -6569,6 +6611,67 @@
   "diveLog_tank_ownCylinderFailed": "Could not fill the tank from that cylinder. Try again.",
   "diveLog_tank_ownCylinderHint": "Copies the cylinder's size and latest fill into this tank and adds the cylinder to this dive's equipment.",
   "diveLog_tank_ownCylinderTitle": "My cylinders",
+  "cylindersFromTanks_title": "Add cylinders to your gear",
+  "cylindersFromTanks_onDives": "{count, plural, =1{on {count} dive} other{on {count} dives}}",
+  "@cylindersFromTanks_onDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_makes": "{count, plural, =1{{count} cylinder} other{{count} cylinders}}",
+  "@cylindersFromTanks_makes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_add": "{count, plural, =1{Add {count} cylinder} other{Add {count} cylinders}}",
+  "@cylindersFromTanks_add": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_added": "{count, plural, =1{Added {count} cylinder to your gear} other{Added {count} cylinders to your gear}}",
+  "@cylindersFromTanks_added": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_summary": "{count, plural, =1{{count} tank isn't in your gear} other{{count} tanks aren't in your gear}}",
+  "@cylindersFromTanks_summary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cylindersFromTanks_review": "Review",
+  "cylindersFromTanks_name": "Name",
+  "cylindersFromTanks_sizeName": "{size} {material}",
+  "@cylindersFromTanks_sizeName": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "material": {
+        "type": "String"
+      }
+    }
+  },
+  "cylindersFromTanks_failed": "Couldn't add the cylinders",
+  "diveLog_tank_gearMenu": "Cylinder options",
+  "diveLog_tank_addToGear": "Add to my gear",
+  "diveLog_tank_linkCylinder": "Link to a cylinder I own",
+  "diveLog_tank_linkCylinderHint": "Links this tank to the cylinder and adds the cylinder to this dive's equipment. The tank keeps its recorded size.",
+  "diveLog_tank_unlinkCylinder": "Unlink cylinder",
+  "diveLog_tank_linkFailed": "Couldn't change the cylinder link",
   "diveLog_tank_regulatorLabel": "Regulator",
   "diveLog_tank_regulatorNone": "None",
   "diveLog_tank_regulatorShowLeftKit": "Show retired and sold regulators",
@@ -12817,6 +12920,15 @@
       }
     }
   },
+  "media_picker_otherDivesLeftOut": "{count, plural, =1{{count} file matches another dive and was left out} other{{count} files match other dives and were left out}}",
+  "@media_picker_otherDivesLeftOut": {
+    "description": "Shown after the photo picker, opened while a dive is being edited, hands its files to that dive: how many staged files matched other dives and were left out.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "media_photoPicker_files_attachedToSiteCount": "{count, plural, =1{Attached 1 item to this site} other{Attached {count} items to this site}}",
   "@media_photoPicker_files_attachedToSiteCount": {
     "placeholders": {
@@ -16333,6 +16445,7 @@
   "settings_conflict_field_passportId": "Cylinder passport",
   "settings_conflict_field_phone": "Phone",
   "settings_conflict_field_photo": "Photo",
+  "settings_conflict_field_logo": "Logo",
   "settings_conflict_field_photoBack": "Card back",
   "settings_conflict_field_photoBackPath": "Card back",
   "settings_conflict_field_photoFront": "Card front",
@@ -18383,6 +18496,10 @@
   "signatures_buddySignature": "Buddy Signature",
   "signatures_instructorSignature": "Instructor Signature",
   "signatures_noSignatureImage": "No signature image",
+  "signatures_notSigned": "Not signed",
+  "@signatures_notSigned": {
+    "description": "Shown on a training dive's instructor signature card when no one has signed and the card is read only (the dive is locked)."
+  },
   "signatures_signHere": "{name} - Sign Here",
   "signatures_signed": "Signed",
   "signatures_signedCountSemantics": "{signed} of {total} buddies have signed",
@@ -28586,6 +28703,8 @@
   "tableEditor_summary_pairClear": "Clearing one coordinate clears both",
   "tableEditor_weightRows": "{count, plural, =1{{count} weight row, edit it in the dive} other{{count} weight rows, edit them in the dive}}",
   "@tableEditor_weightRows": {"placeholders": {"count": {"type": "int"}}},
+  "tableEditor_weightGear": "Includes lead carried as equipment, edit it in the dive",
+  "@tableEditor_weightGear": {"description": "Why the table editor's Total weight cell is read-only for a dive that carries lead as weights gear: that lead is in the total and is edited on the dive."},
   "tableEditor_summary_siteSnap": "Setting a site also sets its water type, entry, exit and dive types on the dive",
   "enum_diveField_excludedFromStats": "Excluded from Stats",
   "enum_diveField_excludedFromStats_short": "No Stats",
@@ -28712,6 +28831,7 @@
   "enum_buddyField_buddyName": "Name",
   "enum_buddyField_email": "Email",
   "enum_buddyField_phone": "Phone",
+  "enum_buddyField_country": "Country",
   "enum_buddyField_certificationLevel": "Certification Level",
   "enum_buddyField_certificationAgency": "Certification Agency",
   "enum_buddyField_diveCount": "Dive Count",
@@ -28719,6 +28839,7 @@
   "enum_buddyField_buddyName_short": "Name",
   "enum_buddyField_email_short": "Email",
   "enum_buddyField_phone_short": "Phone",
+  "enum_buddyField_country_short": "Country",
   "enum_buddyField_certificationLevel_short": "Cert Level",
   "enum_buddyField_certificationAgency_short": "Agency",
   "enum_buddyField_diveCount_short": "Dives",
@@ -33974,6 +34095,19 @@
   "diveLab_compare_planTable": "Plan against dive",
   "diveLab_compare_plannedSchedule": "Planned schedule",
   "diveLab_compare_waiting": "Waiting for the dive",
+  "diveLab_compare_heldLink": "{plan} is linked at Save.",
+  "@diveLab_compare_heldLink": {
+    "description": "The closed Compare card while a dive is unlocked and a plan has been linked but not saved yet: names the plan Save will link.",
+    "placeholders": {
+      "plan": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLab_compare_heldUnlink": "The plan is unlinked at Save.",
+  "@diveLab_compare_heldUnlink": {
+    "description": "The closed Compare card while a dive is unlocked and its plan has been unlinked but not saved yet."
+  },
   "diveLab_link_unlinkTitle": "Unlink this plan?",
   "diveLab_link_unlinkBody": "The plan and the dive both stay. They just stop being compared.",
   "diveLab_link_unlinkConfirm": "Unlink",
@@ -35578,6 +35712,8 @@
   "@query_buddies_notes": {"description": "Field label in the query builder"},
   "query_buddies_phone": "Phone",
   "@query_buddies_phone": {"description": "Field label in the query builder"},
+  "query_buddies_country": "Country",
+  "@query_buddies_country": {"description": "Field label in the query builder"},
   "query_centers_affiliations": "Affiliations",
   "@query_centers_affiliations": {"description": "Query builder: a dive center's agency affiliations"},
   "query_centers_city": "City",
@@ -37408,6 +37544,9 @@
   "@changeLog_value_data": {"placeholders": {"size": {"type": "String"}}},
   "changeLog_table_settings": "App settings",
   "changeLog_table_diverSettings": "Diver settings",
+  "changeLog_table_safetyFinding": "Safety finding",
+  "changeLog_table_pressureSeries": "Pressure readings",
+  "changeLog_table_navTrack": "Underwater track",
   "changeLog_history": "History",
   "changeLog_detail_title": "Change details",
   "changeLog_detail_open": "Open record",

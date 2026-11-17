@@ -47,7 +47,9 @@ class SafetyFindingsOverlay extends StatelessWidget {
   /// already the selection.
   final void Function(SafetyFinding finding) onFindingTap;
 
-  final void Function(SafetyFinding finding) onFindingDismiss;
+  /// Null offers no Dismiss: a page that offers editing dismisses a
+  /// finding in the open Safety review card only (issue #4527).
+  final void Function(SafetyFinding finding)? onFindingDismiss;
 
   /// Opens the finding's detail view (the safety review section). Null when
   /// no detail surface exists (fullscreen); the callout hides the link.
@@ -384,10 +386,11 @@ class SafetyFindingsOverlay extends StatelessWidget {
                       onPressed: () => onFindingDetails!(finding),
                       child: Text(l10n.safetyReview_details),
                     ),
-                  TextButton(
-                    onPressed: () => onFindingDismiss(finding),
-                    child: Text(l10n.safetyReview_dismiss),
-                  ),
+                  if (onFindingDismiss case final dismiss?)
+                    TextButton(
+                      onPressed: () => dismiss(finding),
+                      child: Text(l10n.safetyReview_dismiss),
+                    ),
                 ],
               ),
             ],

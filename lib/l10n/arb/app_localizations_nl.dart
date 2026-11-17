@@ -1791,6 +1791,15 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'Uit de reisnotities';
+
+  @override
+  String get trips_story_addDayNote => 'Notitie toevoegen';
+
+  @override
+  String get trips_story_editDayNote => 'Notitie bewerken';
+
+  @override
   String get trips_story_surfaceDay => 'Oppervlaktedag';
 
   @override
@@ -3488,6 +3497,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buddies_field_phoneHint => '+31 6 12345678';
+
+  @override
+  String get buddies_field_country => 'Land';
+
+  @override
+  String get buddies_field_countryHint => 'bijv. Italië';
 
   @override
   String buddies_label_diveCount(int count) {
@@ -7196,6 +7211,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_label_permanentlyClosed => 'Permanent gesloten';
 
   @override
+  String get diveCenters_field_logo => 'Logo';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Voeg coördinaten toe aan je duikcentra om ze op de kaart te zien';
 
@@ -8239,6 +8257,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_detail_section_weight => 'Gewicht';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'Uit de uitrusting';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'Tik om instructeurverificatie toe te voegen voor deze trainingsduik';
 
@@ -9081,6 +9102,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String diveLog_edit_weightTotal(Object total) {
     return 'Totaal: $total';
   }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'Ook meegeteld: $weight gedragen als uitrusting ($items). Voeg hier alleen extra lood toe.';
+  }
+
+  @override
+  String get diveLog_edit_weightGearNote_listSeparator => ', ';
 
   @override
   String get diveLog_emptyFiltered_clearFilters => 'Filters wissen';
@@ -10067,6 +10096,18 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'Berekend';
+
+  @override
+  String get recordEdit_loadFailed => 'Deze kaart kon niet worden geladen.';
+
+  @override
+  String get recordEdit_tryAgain => 'Opnieuw proberen';
+
+  @override
+  String get recordEdit_imported => 'Geïmporteerd';
+
+  @override
   String get recordEdit_saveFailed =>
       'Kon de wijzigingen niet opslaan. Er is niets gewijzigd.';
 
@@ -10756,6 +10797,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_map_tooltip_fitAllSites => 'Alle stekken passend maken';
+
+  @override
+  String get diveLog_media_dropUnlockHint =>
+      'Ontgrendel deze duik op zijn eigen pagina om er foto\'s aan toe te voegen.';
 
   @override
   String get diveLog_numbering_actions => 'Acties';
@@ -11452,6 +11497,99 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tank_ownCylinderTitle => 'Mijn flessen';
+
+  @override
+  String get cylindersFromTanks_title => 'Flessen aan je uitrusting toevoegen';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'bij $count duiken',
+      one: 'bij $count duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flessen',
+      one: '$count fles',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flessen toevoegen',
+      one: '$count fles toevoegen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flessen aan je uitrusting toegevoegd',
+      one: '$count fles aan je uitrusting toegevoegd',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flessen staan niet in je uitrusting',
+      one: '$count fles staat niet in je uitrusting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => 'Bekijken';
+
+  @override
+  String get cylindersFromTanks_name => 'Naam';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size $material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed =>
+      'De flessen konden niet worden toegevoegd';
+
+  @override
+  String get diveLog_tank_gearMenu => 'Flesopties';
+
+  @override
+  String get diveLog_tank_addToGear => 'Aan mijn uitrusting toevoegen';
+
+  @override
+  String get diveLog_tank_linkCylinder => 'Koppelen aan een eigen fles';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      'Koppelt deze fles aan die uit je uitrusting en voegt hem toe aan de uitrusting van deze duik. De fles houdt de vastgelegde grootte.';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => 'Fles ontkoppelen';
+
+  @override
+  String get diveLog_tank_linkFailed =>
+      'De koppeling van de fles kon niet worden gewijzigd';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Ademautomaat';
@@ -21050,6 +21188,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestanden horen bij andere duiken en zijn weggelaten',
+      one: '$count bestand hoort bij een andere duik en is weggelaten',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -26798,6 +26947,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_photo => 'Foto';
 
   @override
+  String get settings_conflict_field_logo => 'Logo';
+
+  @override
   String get settings_conflict_field_photoBack => 'Achterkant van de kaart';
 
   @override
@@ -31314,6 +31466,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get signatures_noSignatureImage => 'Geen handtekeningafbeelding';
+
+  @override
+  String get signatures_notSigned => 'Niet ondertekend';
 
   @override
   String signatures_signHere(Object name) {
@@ -46080,6 +46235,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear =>
+      'Bevat lood dat als uitrusting wordt gedragen, bewerk het in de duik';
+
+  @override
   String get tableEditor_summary_siteSnap =>
       'Een stek instellen zet ook het watertype, de in- en uitstap en de duiktypes op de duik';
 
@@ -46442,6 +46601,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_buddyField_phone => 'Telefoon';
 
   @override
+  String get enum_buddyField_country => 'Land';
+
+  @override
   String get enum_buddyField_certificationLevel => 'Certificeringsniveau';
 
   @override
@@ -46461,6 +46623,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => 'Tel.';
+
+  @override
+  String get enum_buddyField_country_short => 'Land';
 
   @override
   String get enum_buddyField_certificationLevel_short => 'Niveau';
@@ -56623,6 +56788,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLab_compare_waiting => 'Wacht op de duik';
 
   @override
+  String diveLab_compare_heldLink(String plan) {
+    return '$plan wordt gekoppeld bij Opslaan.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink =>
+      'Het plan wordt ontkoppeld bij Opslaan.';
+
+  @override
   String get diveLab_link_unlinkTitle => 'Dit plan ontkoppelen?';
 
   @override
@@ -59080,6 +59254,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_buddies_phone => 'Telefoon';
+
+  @override
+  String get query_buddies_country => 'Land';
 
   @override
   String get query_centers_affiliations => 'Aangesloten bij';
@@ -62728,6 +62905,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get changeLog_table_diverSettings => 'Duikerinstellingen';
+
+  @override
+  String get changeLog_table_safetyFinding => 'Veiligheidsbevinding';
+
+  @override
+  String get changeLog_table_pressureSeries => 'Drukmetingen';
+
+  @override
+  String get changeLog_table_navTrack => 'Onderwatertrack';
 
   @override
   String get changeLog_history => 'Geschiedenis';

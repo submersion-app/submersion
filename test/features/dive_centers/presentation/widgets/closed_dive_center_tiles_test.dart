@@ -6,8 +6,10 @@ import 'package:submersion/features/dive_centers/presentation/widgets/compact_di
 import 'package:submersion/features/dive_centers/presentation/widgets/dense_dive_center_list_tile.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_list_content.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/record_chevron_expectations.dart';
 
 /// Every dive center list tile greys a permanently closed center and tags it
 /// (#3379).
@@ -100,6 +102,36 @@ void main() {
 
       expect(find.bySemanticsLabel(RegExp('Closed')), findsWidgets);
       handle.dispose();
+    });
+  }
+
+  // Every density puts its chevron one padding from the end, the same place
+  // as in the other lists (#4639).
+  const chevronPadding = {
+    'detailed': kRecordCardDetailedPadding,
+    'compact': kRecordCardCompactPadding,
+    'dense': kRecordRowDenseHorizontalPadding,
+  };
+
+  for (final entry in tiles.entries) {
+    testWidgets('${entry.key} tile chevron ends one padding from the edge', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [diveCenterDiveCountProvider.overrideWith((ref, id) => 3)],
+          child: entry.value(_center(closed: false)),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expectChevronAtEndPadding(
+        tester,
+        bounds: entry.key == 'dense'
+            ? tester.getRect(find.byType(DenseDiveCenterListTile))
+            : recordCardBounds(tester),
+        padding: chevronPadding[entry.key]!,
+      );
     });
   }
 }

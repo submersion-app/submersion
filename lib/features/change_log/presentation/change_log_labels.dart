@@ -74,11 +74,13 @@ String changeLogStoredLabel(AppLocalizations l, String label) =>
 final _diveSectionsByName = DiveDetailSectionId.values.asNameMap();
 
 /// "Edited: Notes, Tags" for the label of an editing sitting, naming each
-/// card by its title; null for any other label. A card id with no title in
-/// this version of the app is shown as written.
+/// card by its title, or "Edited" when it named none; null for any other
+/// label. A card id with no title in this version of the app is shown as
+/// written.
 String? _recordEditLabel(AppLocalizations l, String label) {
   final edit = RecordEditLabel.decode(label);
   if (edit == null) return null;
+  if (edit.cardIds.isEmpty) return l.changeLog_action_edited;
   // A photo's sitting reads apart from the dive's own cards: its entry sits
   // in the dive's History, where "Species" alone would read as the dive's.
   if (edit.table == 'media') {
@@ -122,6 +124,11 @@ String changeLogTableLabel(AppLocalizations l, String table) => switch (table) {
   'dives' => l.changeLog_dive,
   'settings' => l.changeLog_table_settings,
   'diver_settings' => l.changeLog_table_diverSettings,
+  // Listed under a dive by its editing sitting (issue #4527), and with no
+  // name of their own among the sync references.
+  'dive_safety_findings' => l.changeLog_table_safetyFinding,
+  'tank_pressure_series' => l.changeLog_table_pressureSeries,
+  'nav_tracks' => l.changeLog_table_navTrack,
   _ => conflictReferenceLabel(
     l,
     ConflictReference(
@@ -194,7 +201,11 @@ String changeLogSubtitle(
   };
   final label = operation.label;
   // A sitting on one record is titled by the record, so its label, which
-  // names the cards it changed, is read here.
-  final edited = label == null ? null : _recordEditLabel(l, label);
+  // names the cards it changed, is read here. A diver who sees only part of
+  // it ([ChangeLogOperation.shownRoots]) is not told: the cards are about a
+  // record they cannot open.
+  final edited = label == null || operation.shownRoots != null
+      ? null
+      : _recordEditLabel(l, label);
   return [units.formatTime(operation.endedAt), origin, ?edited].join(' · ');
 }

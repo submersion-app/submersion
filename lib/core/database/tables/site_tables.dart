@@ -153,6 +153,11 @@ class DiveCenters extends Table {
   /// and statistics; the picker leaves it out of nearby centers.
   BoolColumn get isPermanentlyClosed =>
       boolean().withDefault(const Constant(false))();
+
+  /// v373: logo, a 512x512 square JPEG produced by
+  /// `lib/core/services/images/profile_photo_codec.dart` (issue #4460).
+  /// Stored on the row so it syncs with the center, as a buddy's photo does.
+  BlobColumn get logo => blob().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

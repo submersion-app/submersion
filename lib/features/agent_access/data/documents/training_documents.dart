@@ -19,6 +19,8 @@ Map<String, Object?> buddyDocument(Buddy b) => {
   'name': b.name,
   'email': b.email,
   'phone': b.phone,
+  'country': b.country,
+  'country_code': b.countryCode,
   'social_handle': b.socialHandle,
   'certification_level': b.certificationLevel,
   'certification_agency': b.certificationAgency,

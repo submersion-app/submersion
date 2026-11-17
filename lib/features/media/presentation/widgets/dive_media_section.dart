@@ -11,6 +11,7 @@ import 'package:submersion/features/media/presentation/helpers/lightroom_scan_he
 import 'package:submersion/features/media/presentation/helpers/media_link_replacer.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/utils/file_reveal.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
@@ -25,6 +26,14 @@ import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/presentation/helpers/dive_gallery_scan_in_sitting.dart';
+import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
+import 'package:submersion/features/media/presentation/helpers/photo_import_helper.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 /// Returns the OS-appropriate label for the "show file in OS file manager"
 /// menu item used by the right-click context menu.
@@ -71,6 +80,12 @@ class DiveMediaSection extends ConsumerStatefulWidget {
   /// names what is under the pointer now. Touch never hovers.
   final void Function(MediaItem? item)? onHoverMedia;
 
+  /// The open Media card's sitting on the dive (issue #4527): photos and
+  /// documents added, unlinked or relinked go there, held until Save. On a
+  /// page that offers editing and with no sitting given, the card reads
+  /// only: a tap still opens a photo or a document.
+  final EditSession<Dive>? editing;
+
   const DiveMediaSection({
     super.key,
     required this.diveId,
@@ -79,6 +94,7 @@ class DiveMediaSection extends ConsumerStatefulWidget {
     this.onAddDocumentPressed,
     this.onOpenDocument,
     this.onHoverMedia,
+    this.editing,
   });
 
   @override
@@ -88,6 +104,13 @@ class DiveMediaSection extends ConsumerStatefulWidget {
 class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   /// A browser shows the media it can and links none (issue #4121).
   bool get _canAttach => ref.watch(deviceCapabilitiesProvider).mediaAttach;
+
+  /// Whether the card changes nothing: a page that offers editing, with
+  /// the card not open.
+  bool _readOnly = false;
+
+  /// Whether this card can link, unlink or relink media here and now.
+  bool get _canWrite => _canAttach && !_readOnly;
 
   /// Owns the bulk-selection state machine for this section.
   ///
@@ -240,6 +263,14 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
       ),
     );
 
+    final editing = widget.editing;
+    if (confirmed == true && editing != null) {
+      unlinkMediaInSitting(editing, selectedIds.toSet());
+      return BulkActionOutcome.completed;
+    }
+    // The card closed while the dialog was up: read only now, so nothing
+    // may reach the stored rows before Save.
+    if (_readOnly) return BulkActionOutcome.cancelled;
     if (confirmed == true && context.mounted) {
       try {
         // Unlink IS the removal: the rows leave the library along with
@@ -294,7 +325,16 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   /// Phase 2 photo-only constraint: picker is restricted to `FileType.image`
   /// (videos aren't supported as local-file media yet, see [FilesTab]).
   Future<void> _replaceLink(MediaItem item) async {
-    final applied = await replaceMediaLink(context, ref, item);
+    final editing = widget.editing;
+    final applied = await replaceMediaLink(
+      context,
+      ref,
+      item,
+      onHold: editing == null
+          ? null
+          : (proposal) => replaceLinkInSitting(editing, item.id, proposal),
+    );
+    if (editing != null) return;
     // The refresh stays here rather than in the helper: it is dive-scoped,
     // and the info panel calls the same flow without a dive list to refresh.
     if (!applied || !mounted) return;
@@ -329,7 +369,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
             // TODO(media): l10n
             child: Text(showInOsFileManagerLabel()),
           ),
-        if (ref.read(deviceCapabilitiesProvider).mediaAttach)
+        if (ref.read(deviceCapabilitiesProvider).mediaAttach && !_readOnly)
           const PopupMenuItem<String>(
             value: 'replace',
             // TODO(media): l10n
@@ -349,7 +389,14 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
 
   @override
   Widget build(BuildContext context) {
-    final mediaAsync = ref.watch(mediaForDiveProvider(widget.diveId));
+    final scope = RecordEditScope.maybeOf<Dive>(context);
+    _readOnly = scope != null && widget.editing == null;
+    final session = widget.editing ?? scope?.session;
+    final stored = ref.watch(mediaForDiveProvider(widget.diveId));
+    // During a sitting, the media it holds: added ones in, unlinked out.
+    final mediaAsync = session == null
+        ? stored
+        : stored.whenData((media) => mediaInSitting(session, media));
     _scheduleEnrichmentBackfill(mediaAsync.valueOrNull);
     final settings = ref.watch(unitFormatterProvider).settings;
     final colorScheme = Theme.of(context).colorScheme;
@@ -359,10 +406,17 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     // unlink can never reach an item that is not on screen.
     final visibleIds =
         mediaAsync.value?.map((m) => m.id).toList() ?? const <String>[];
+    // Judged here, in build: _canWrite watches a provider.
+    final canWrite = _canWrite;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _selection.pruneToSettled(mediaAsync, (rows) => rows.map((m) => m.id));
+      if (!mounted) return;
+      // A card that can no longer write keeps no selection, so its Unlink
+      // cannot outlive the open card (or reach the stored rows directly).
+      if (!canWrite) {
+        if (_isSelectionMode) _selection.exit();
+        return;
       }
+      _selection.pruneToSettled(mediaAsync, (rows) => rows.map((m) => m.id));
     });
 
     return SelectableListScope(
@@ -384,6 +438,27 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     TextTheme textTheme,
   ) {
     final selectionMedia = mediaAsync.value ?? const <MediaItem>[];
+    // In the open card the actions go to the sitting.
+    final editing = widget.editing;
+    final VoidCallback? onAdd = editing == null
+        ? widget.onAddPressed
+        : () => PhotoImportHelper.importPhotosForDive(
+            context: context,
+            ref: ref,
+            dive: editing.working,
+            onHold: (adds) => addMediaToSitting(editing, adds),
+          );
+    final VoidCallback? onScan = editing == null
+        ? widget.onScanPressed
+        : () => scanGalleryInSitting(context, ref, editing);
+    final VoidCallback? onAddDocument = editing == null
+        ? widget.onAddDocumentPressed
+        : () => DocumentOpenHelper.pickAndAttach(
+            context: context,
+            ref: ref,
+            diveId: widget.diveId,
+            onHold: (adds) => addMediaToSitting(editing, adds),
+          );
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -394,7 +469,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
             // Built from the value rather than the data branch, so a reload
             // that holds its rows keeps the bar (and its exit) on screen; the
             // controller disables the row actions while the rows are loading.
-            if (_isSelectionMode)
+            if (_isSelectionMode && _canWrite)
               SelectionAppBar(
                 controller: _selection,
                 selectableIds: selectionMedia.map((m) => m.id).toList(),
@@ -433,7 +508,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                   // The only way into selection: entry by long-press was
                   // removed, so nothing but this control opens the mode.
                   mediaAsync.whenOrNull(
-                        data: (media) => media.isEmpty || !_canAttach
+                        data: (media) => media.isEmpty || !_canWrite
                             ? const SizedBox.shrink()
                             : IconButton(
                                 key: const ValueKey('enter_selection'),
@@ -448,7 +523,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                               ),
                       ) ??
                       const SizedBox.shrink(),
-                  if (_canAttach && widget.onScanPressed != null)
+                  if (_canWrite && onScan != null)
                     IconButton(
                       icon: Icon(
                         Icons.image_search,
@@ -456,11 +531,11 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       ),
                       visualDensity: VisualDensity.compact,
                       tooltip: context.l10n.media_diveScan_scanTooltip,
-                      onPressed: widget.onScanPressed,
+                      onPressed: onScan,
                     ),
                   // Lightroom scan hidden pending Adobe review
                   // (lightroomUiEnabled).
-                  if (_canAttach &&
+                  if (_canWrite &&
                       lightroomUiEnabled &&
                       ref.watch(lightroomAccountProvider).value != null)
                     IconButton(
@@ -472,9 +547,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       tooltip: context.l10n.settings_lightroom_scanNow,
                       onPressed: () => _scanLightroom(context),
                     ),
-                  if (_canAttach &&
-                      widget.onAddPressed != null &&
-                      widget.onAddDocumentPressed == null)
+                  if (_canWrite && onAdd != null && onAddDocument == null)
                     IconButton(
                       icon: Icon(
                         Icons.add_photo_alternate,
@@ -482,9 +555,9 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       ),
                       visualDensity: VisualDensity.compact,
                       tooltip: context.l10n.media_diveMediaSection_addTooltip,
-                      onPressed: widget.onAddPressed,
+                      onPressed: onAdd,
                     )
-                  else if (_canAttach && widget.onAddPressed != null)
+                  else if (_canWrite && onAdd != null)
                     PopupMenuButton<String>(
                       icon: Icon(
                         Icons.add_photo_alternate,
@@ -492,10 +565,8 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       ),
                       tooltip: context.l10n.media_diveMediaSection_addTooltip,
                       onSelected: (value) {
-                        if (value == 'photos') widget.onAddPressed!();
-                        if (value == 'document') {
-                          widget.onAddDocumentPressed!();
-                        }
+                        if (value == 'photos') onAdd();
+                        if (value == 'document') onAddDocument?.call();
                       },
                       itemBuilder: (context) => [
                         PopupMenuItem(
@@ -512,6 +583,10 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                         ),
                       ],
                     ),
+                  // Its pencil, while the dive is unlocked.
+                  RecordCardPencil(
+                    cardTitle: context.l10n.media_diveMediaSection_title,
+                  ),
                 ],
               ),
             const SizedBox(height: 16),
@@ -551,6 +626,16 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                   onSelectionModeChanged: (_) {},
                   onItemTap: (index) {
                     final item = media[index];
+                    // Held until Save: the viewer reads stored media only.
+                    final session =
+                        widget.editing ??
+                        RecordEditScope.maybeOf<Dive>(context)?.session;
+                    if (session != null &&
+                        sittingMedia(
+                          session,
+                        ).added.any((a) => a.preview.id == item.id)) {
+                      return;
+                    }
                     if (item.isDocument) {
                       widget.onOpenDocument?.call(item);
                       return;
@@ -606,10 +691,19 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                 height: 100,
                 child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
               ),
-              error: (error, stack) => Text(
-                context.l10n.media_diveMediaSection_errorLoading,
-                style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
-              ),
+              // The open card offers to read again, as every card of a
+              // sitting does (issue #4527).
+              error: (error, stack) => widget.editing != null
+                  ? SittingLoadFailed(
+                      onRetry: () =>
+                          ref.invalidate(mediaForDiveProvider(widget.diveId)),
+                    )
+                  : Text(
+                      context.l10n.media_diveMediaSection_errorLoading,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.error,
+                      ),
+                    ),
             ),
             // Lightroom suggestions hidden pending Adobe review
             // (lightroomUiEnabled).

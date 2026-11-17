@@ -19,11 +19,17 @@ List<String> suggestedSiteNames(List<DiveSite> sites, {String? excludeId}) {
 
 /// Hybrid country suggestions: the user's distinct countries first (alpha),
 /// then ISO 3166 country names not already used (alpha).
-List<String> suggestedCountries(List<DiveSite> sites) {
+List<String> suggestedCountries(List<DiveSite> sites) =>
+    suggestedCountryNames(sites.map((site) => site.country));
+
+/// Country suggestions from any [used] country texts, such as buddies' and
+/// sites' (issue #4457): the distinct used names first (alpha, compared
+/// without case), then the ISO 3166 names not already used.
+List<String> suggestedCountryNames(Iterable<String?> used) {
   final seen = <String>{};
   final userCountries = <String>[];
-  for (final site in sites) {
-    final country = site.country?.trim() ?? '';
+  for (final value in used) {
+    final country = value?.trim() ?? '';
     if (country.isEmpty) continue;
     if (seen.add(country.toLowerCase())) userCountries.add(country);
   }

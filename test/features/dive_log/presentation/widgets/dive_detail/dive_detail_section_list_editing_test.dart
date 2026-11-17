@@ -166,7 +166,7 @@ void main() {
     expect(find.byIcon(Icons.edit_outlined), findsNothing);
   });
 
-  testWidgets('unlocked: Notes and Tags gain a pencil, other cards do not', (
+  testWidgets('unlocked: Notes, Tags and Custom fields gain a pencil', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -180,8 +180,9 @@ void main() {
 
     expect(find.byTooltip('Edit Notes'), findsOneWidget);
     expect(find.byTooltip('Edit Tags'), findsOneWidget);
+    expect(find.byTooltip('Edit Custom Fields'), findsOneWidget);
     expect(_section(DiveDetailSectionId.customFields), findsOneWidget);
-    expect(find.byIcon(Icons.edit_outlined), findsNWidgets(2));
+    expect(find.byIcon(Icons.edit_outlined), findsNWidgets(3));
   });
 
   testWidgets('a card the page leaves out appears, open, once added', (

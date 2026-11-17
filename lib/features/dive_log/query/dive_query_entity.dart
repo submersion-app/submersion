@@ -46,7 +46,8 @@ const _day =
     "CAST(strftime('%d', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
 
 /// No weight entry at all: neither a `dive_weights` row nor a positive legacy
-/// scalar, the one the edit form migrates into the table on load (#1392). ONE
+/// scalar, the one the edit form migrates into the table on load (#1392),
+/// nor lead carried as weights gear (#4442). ONE
 /// rule, read by the `weight` field and the `weights` relation so `weight:none`
 /// and `weights:none` cannot disagree, and defined as the NULL case of
 /// [recordedWeightKgSql] so neither can disagree with the value (#3914).
@@ -489,14 +490,15 @@ final QueryEntity diveQueryEntity = QueryEntity(
     ),
     _num('otu', '{r}.otu', dimension: FieldDimension.count),
     // Total lead in kg: the weights table when it has rows, else the
-    // legacy scalar the edit form retired (#1392). Empty means neither.
+    // legacy scalar the edit form retired (#1392), plus lead carried as
+    // weights gear (#4442). Empty means none of them.
     _num(
       'weight',
       recordedWeightKgSql('{r}'),
       aliases: ['lead'],
       dimension: FieldDimension.weight,
       emptySql: kDiveNoWeightSql,
-      tables: ['dive_weights'],
+      tables: recordedWeightTables,
     ),
     _num(
       'gasCount',
@@ -725,6 +727,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
       isMany: true,
       labelKey: _label('weights'),
       emptySql: kDiveNoWeightSql.replaceAll('{r}', '{from}'),
+      tables: recordedWeightTables,
     ),
     _child('customFields', QuerySubject.customFields),
     _child('sightings', QuerySubject.sightings),

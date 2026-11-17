@@ -4,7 +4,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badg
 
 /// Single-line run of [DiveTypeBadge]s that collapses into a "+N" badge
 /// (with a tooltip listing the hidden types) instead of wrapping when the
-/// available width can't fit every label.
+/// available width can't fit every label, and shows nothing when even the
+/// "+N" badge cannot fit.
 ///
 /// Sits below the OC/CCR mode badge in the dive detail header, where a
 /// second line of type badges would push into the stat row underneath -- so
@@ -89,6 +90,12 @@ class DiveTypeBadgeRow extends StatelessWidget {
         }
 
         final hidden = labels.sublist(visibleCount);
+        // Not even the "+N" badge fits: give the line up rather than paint
+        // past it. A crowded compact dive card reaches this (#4639); the
+        // types stay on the dive's own page.
+        if (visibleCount == 0 && badgeWidth('+${hidden.length}') > maxWidth) {
+          return const SizedBox.shrink();
+        }
 
         return Row(
           mainAxisSize: MainAxisSize.min,

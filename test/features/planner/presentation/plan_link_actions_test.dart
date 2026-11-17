@@ -387,4 +387,28 @@ void main() {
       expect(planLinkBadge(l10n, summary(), units), isNull);
     });
   });
+
+  testWidgets('confirmPlanLink asks what linking would ask, and writes '
+      'nothing', (tester) async {
+    await tester.runAsync(() async {
+      await seedDive('dive-1');
+      await seedDive('dive-2');
+      await seedPlan('plan-1', linkedDiveId: 'dive-1');
+    });
+    final results = await pumpAction(
+      tester,
+      (context, ref) =>
+          confirmPlanLink(context, ref, planId: 'plan-1', diveId: 'dive-2'),
+    );
+
+    await tester.tap(find.text('go'));
+    await untilDialog(tester);
+    expect(find.text("Move this plan's link?"), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Link'));
+    await untilDone(tester, results);
+
+    expect(results, [true]);
+    final plan = await tester.runAsync(() => repository.getPlan('plan-1'));
+    expect(plan!.linkedDiveId, 'dive-1');
+  });
 }

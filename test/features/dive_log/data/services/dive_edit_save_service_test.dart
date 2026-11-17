@@ -162,7 +162,7 @@ void main() {
 
     final operation = (await operations()).single;
     expect(operation['source'], 'manual');
-    expect(operation['label'], 'record_edit:dives:notes,tags');
+    expect(operation['label'], 'record_edit:dives:dive:notes,tags');
   });
 
   test('changes are applied to the dive as stored at save time', () async {
@@ -360,7 +360,7 @@ void main() {
             .getSingle();
         expect(row.data['at'], isNotNull);
         final operation = (await operations()).single;
-        expect(operation['label'], 'record_edit:dives:header');
+        expect(operation['label'], 'record_edit:dives:dive:header');
         final events = await logEvents(db);
         expect(events, isNotEmpty);
         expect({for (final e in events) e['operation_id']}, {operation['id']});

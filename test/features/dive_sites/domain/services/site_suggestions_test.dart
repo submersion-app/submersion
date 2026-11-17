@@ -61,6 +61,21 @@ void main() {
     });
   });
 
+  group('suggestedCountryNames', () {
+    test('used names come first, once each, then ISO names not used', () {
+      final result = suggestedCountryNames([
+        'Malta',
+        'malta',
+        null,
+        ' ',
+        'Bonaire',
+      ]);
+      expect(result.take(2), ['Bonaire', 'Malta']);
+      expect(result.where((c) => c.toLowerCase() == 'malta').length, 1);
+      expect(result, contains('Italy'));
+    });
+  });
+
   group('suggestedRegions', () {
     test('scopes regions to the given country', () {
       expect(suggestedRegions(sites, 'Indonesia'), ['Bali', 'Nusa Penida']);

@@ -1843,6 +1843,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'من ملاحظات الرحلة';
+
+  @override
+  String get trips_story_addDayNote => 'إضافة ملاحظة';
+
+  @override
+  String get trips_story_editDayNote => 'تعديل الملاحظة';
+
+  @override
   String get trips_story_surfaceDay => 'يوم سطح';
 
   @override
@@ -3590,6 +3599,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buddies_field_phoneHint => '+1 (555) 123-4567';
+
+  @override
+  String get buddies_field_country => 'البلد';
+
+  @override
+  String get buddies_field_countryHint => 'مثلاً إيطاليا';
 
   @override
   String buddies_label_diveCount(int count) {
@@ -7358,6 +7373,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_label_permanentlyClosed => 'مغلق نهائيًا';
 
   @override
+  String get diveCenters_field_logo => 'الشعار';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'أضف الإحداثيات إلى مراكز الغوص لرؤيتها على الخريطة';
 
@@ -8423,6 +8441,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_section_weight => 'الأثقال';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'من المعدات';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'انقر لإضافة توثيق المدرب لهذه الغوصة التدريبية';
 
@@ -9288,6 +9309,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String diveLog_edit_weightTotal(Object total) {
     return 'الإجمالي: $total';
   }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'محسوب أيضًا: $weight محمولة ضمن المعدات ($items). أضف ثقلًا هنا فقط إذا كان رصاصًا منفصلًا.';
+  }
+
+  @override
+  String get diveLog_edit_weightGearNote_listSeparator => '، ';
 
   @override
   String get diveLog_emptyFiltered_clearFilters => 'مسح عوامل التصفية';
@@ -10290,6 +10319,18 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'محسوب';
+
+  @override
+  String get recordEdit_loadFailed => 'تعذّر تحميل هذه البطاقة.';
+
+  @override
+  String get recordEdit_tryAgain => 'إعادة المحاولة';
+
+  @override
+  String get recordEdit_imported => 'مستورد';
+
+  @override
   String get recordEdit_saveFailed => 'تعذّر حفظ التغييرات. لم يتغيّر شيء.';
 
   @override
@@ -10991,6 +11032,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_map_tooltip_fitAllSites => 'احتواء جميع المواقع';
 
   @override
+  String get diveLog_media_dropUnlockHint =>
+      'افتح قفل هذه الغطسة من صفحتها لإضافة صور إليها.';
+
+  @override
   String get diveLog_numbering_actions => 'الإجراءات';
 
   @override
@@ -11683,6 +11728,112 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_tank_ownCylinderTitle => 'أسطواناتي';
+
+  @override
+  String get cylindersFromTanks_title => 'إضافة أسطوانات إلى معداتك';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'في $count غطسة',
+      many: 'في $count غطسة',
+      few: 'في $count غطسات',
+      two: 'في غطستين',
+      one: 'في غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أسطوانة',
+      many: '$count أسطوانة',
+      few: '$count أسطوانات',
+      two: 'أسطوانتان',
+      one: 'أسطوانة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إضافة $count أسطوانة',
+      many: 'إضافة $count أسطوانة',
+      few: 'إضافة $count أسطوانات',
+      two: 'إضافة أسطوانتين',
+      one: 'إضافة أسطوانة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أُضيفت $count أسطوانة إلى معداتك',
+      many: 'أُضيفت $count أسطوانة إلى معداتك',
+      few: 'أُضيفت $count أسطوانات إلى معداتك',
+      two: 'أُضيفت أسطوانتان إلى معداتك',
+      one: 'أُضيفت أسطوانة واحدة إلى معداتك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أسطوانة ليست في معداتك',
+      many: '$count أسطوانة ليست في معداتك',
+      few: '$count أسطوانات ليست في معداتك',
+      two: 'أسطوانتان ليستا في معداتك',
+      one: 'أسطوانة واحدة ليست في معداتك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => 'مراجعة';
+
+  @override
+  String get cylindersFromTanks_name => 'الاسم';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size $material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed => 'تعذرت إضافة الأسطوانات';
+
+  @override
+  String get diveLog_tank_gearMenu => 'خيارات الأسطوانة';
+
+  @override
+  String get diveLog_tank_addToGear => 'إضافة إلى معداتي';
+
+  @override
+  String get diveLog_tank_linkCylinder => 'ربط بأسطوانة أملكها';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      'يربط هذه الأسطوانة بالأسطوانة الموجودة في المعدات ويضيفها إلى معدات هذه الغطسة. تحتفظ الأسطوانة بحجمها المسجل.';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => 'إلغاء ربط الأسطوانة';
+
+  @override
+  String get diveLog_tank_linkFailed => 'تعذر تغيير ربط الأسطوانة';
 
   @override
   String get diveLog_tank_regulatorLabel => 'منظم التنفس';
@@ -21524,6 +21675,20 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملف يطابق غطسات أخرى وتم استبعاده',
+      many: '$count ملفًا تطابق غطسات أخرى وتم استبعادها',
+      few: '$count ملفات تطابق غطسات أخرى وتم استبعادها',
+      two: 'ملفان يطابقان غطسات أخرى وتم استبعادهما',
+      one: 'ملف واحد يطابق غطسة أخرى وتم استبعاده',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -27274,6 +27439,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_photo => 'الصورة';
 
   @override
+  String get settings_conflict_field_logo => 'الشعار';
+
+  @override
   String get settings_conflict_field_photoBack => 'ظهر البطاقة';
 
   @override
@@ -31804,6 +31972,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get signatures_noSignatureImage => 'لا توجد صورة توقيع';
+
+  @override
+  String get signatures_notSigned => 'غير موقّع';
 
   @override
   String signatures_signHere(Object name) {
@@ -47052,6 +47223,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear =>
+      'يشمل رصاصًا محمولًا كمعدات، عدّله في الغطسة';
+
+  @override
   String get tableEditor_summary_siteSnap =>
       'تعيين الموقع يضبط أيضًا نوع الماء والدخول والخروج وأنواع الغطس على الغطسة';
 
@@ -47413,6 +47588,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_buddyField_phone => 'الهاتف';
 
   @override
+  String get enum_buddyField_country => 'البلد';
+
+  @override
   String get enum_buddyField_certificationLevel => 'مستوى الاعتماد';
 
   @override
@@ -47432,6 +47610,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => 'الهاتف';
+
+  @override
+  String get enum_buddyField_country_short => 'البلد';
 
   @override
   String get enum_buddyField_certificationLevel_short => 'المستوى';
@@ -57757,6 +57938,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLab_compare_waiting => 'بانتظار الغطسة';
 
   @override
+  String diveLab_compare_heldLink(String plan) {
+    return 'سيُربط $plan عند الحفظ.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink => 'سيُلغى ربط الخطة عند الحفظ.';
+
+  @override
   String get diveLab_link_unlinkTitle => 'إلغاء ربط هذه الخطة؟';
 
   @override
@@ -60258,6 +60447,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_buddies_phone => 'الهاتف';
+
+  @override
+  String get query_buddies_country => 'البلد';
 
   @override
   String get query_centers_affiliations => 'الانتماءات';
@@ -64023,6 +64215,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get changeLog_table_diverSettings => 'إعدادات الغواص';
+
+  @override
+  String get changeLog_table_safetyFinding => 'نتيجة سلامة';
+
+  @override
+  String get changeLog_table_pressureSeries => 'قراءات الضغط';
+
+  @override
+  String get changeLog_table_navTrack => 'مسار تحت الماء';
 
   @override
   String get changeLog_history => 'السجل';

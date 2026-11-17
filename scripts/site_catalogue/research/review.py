@@ -38,6 +38,7 @@ h1 { font-size: 22px; } h2 { font-size: 18px; margin-top: 32px; border-bottom: 1
 table { border-collapse: collapse; width: 100%; } td { padding: 2px 8px 2px 0; vertical-align: top; }
 td:first-child { color: var(--muted); width: 110px; } .fail { color: var(--bad); }
 .decision { margin-top: 8px; font-weight: 600; } .left { color: var(--muted); }
+.flag { font-style: italic; }
 """
 
 
@@ -70,6 +71,63 @@ def _map_link(lat: float, lon: float) -> str:
     return f'<a href="{_e(url)}">map</a>'
 
 
+# How each route placed the site, as the reviewer reads it. The map route
+# also takes coarse figures and fine ones that do not confirm each other
+# (check.py, _check_position), so its wording claims no map; the source
+# rows below say how each figure was read.
+_ROUTES = {
+    "confirmed": "two or more fine stated figures that agree",
+    "stated": "one fine stated figure",
+    "map": (
+        "map-grade figures at their mean (a map reading, a coarse figure, "
+        "or figures that do not confirm each other)"
+    ),
+}
+
+
+def _named_rows(checked, domains) -> list[str]:
+    """The pages that name the site: for a stated or map-read site, the
+    only proof it exists."""
+    named = checked.entry.get("named")
+    if not isinstance(named, dict):
+        return []
+    rows = [f"<tr><td>Named in</td><td>{_e(named.get('place') or '(no place)')}</td></tr>"]
+    for source in named.get("sources") or []:
+        if not isinstance(source, dict):
+            continue
+        url = source.get("url")
+        url = url if isinstance(url, str) else ""
+        domain = _domain(url)
+        kind = domains.kind_of(url) or "on no list"
+        link = f'<a href="{_e(url)}">page</a>' if domain else ""
+        rows.append(
+            f"<tr><td></td><td>{_e(domain or url or '(no address)')} &nbsp; "
+            f"{_e(kind.replace('_', ' '))} &nbsp; {link}</td></tr>"
+        )
+    return rows
+
+
+def _between_row(position: dict, domains) -> list[str]:
+    """The distance between the two counting figures, when there are two."""
+    points = []
+    for source in position.get("sources") or []:
+        if not isinstance(source, dict) or not isinstance(source.get("url"), str):
+            continue
+        if domains.kind_of(source["url"]) != "counting":
+            continue
+        try:
+            points.append((
+                evidence.parse_coordinate(source.get("lat"), "lat")[0],
+                evidence.parse_coordinate(source.get("lon"), "lon")[0],
+            ))
+        except ValueError:
+            return []
+    if len(points) != 2:
+        return []
+    apart = _metres(evidence.metres_between(*points[0], *points[1]))
+    return [f"<tr><td>Between figures</td><td>{_e(apart)}</td></tr>"]
+
+
 def _position_rows(checked, domains) -> list[str]:
     position = checked.entry.get("position") or {}
     rows = []
@@ -77,6 +135,8 @@ def _position_rows(checked, domains) -> list[str]:
         lat, lon = checked.position
         rows.append(f"<tr><td>Position</td><td>{lat:.6f}, {lon:.6f} "
                     f"[{_map_link(lat, lon)}]</td></tr>")
+    if checked.route in _ROUTES:
+        rows.append(f"<tr><td>Placed by</td><td>{_e(_ROUTES[checked.route])}</td></tr>")
     for source in position.get("sources") or []:
         if not isinstance(source, dict):
             continue
@@ -94,12 +154,18 @@ def _position_rows(checked, domains) -> list[str]:
         domain = _domain(url)
         where = domain or url or "(no address)"
         link = f'<a href="{_e(url)}">page</a>' if domain else ""
+        # A map reading names the image it was read off; a stated pin on the
+        # publisher's embedded map names the map's layer.
+        image = source.get("map")
+        if isinstance(image, str) and _domain(image):
+            label = "map image" if source.get("method") == "map" else "map layer"
+            link += f' <a href="{_e(image)}">{label}</a>'
         rows.append(
             f"<tr><td></td><td>{_e(where)} "
             f"&nbsp; {_e(_figure(source))} &nbsp; {_e(distance)} &nbsp; "
             f"{_e(kind.replace('_', ' '))} &nbsp; {link}</td></tr>"
         )
-    return rows
+    return rows + _between_row(position, domains)
 
 
 def _depth(checked) -> str:
@@ -112,7 +178,7 @@ def _depth(checked) -> str:
 
 def _entry_html(checked, domains) -> str:
     entry = checked.entry
-    rows = _position_rows(checked, domains)
+    rows = _named_rows(checked, domains) + _position_rows(checked, domains)
     rows.append(f"<tr><td>Depth</td><td>{_e(_depth(checked))}</td></tr>")
     rows.append(f"<tr><td>Entry</td><td>{_e(', '.join(checked.entries) or 'none')}</td></tr>")
     rows.append(f"<tr><td>Type</td><td>{_e(', '.join(checked.types) or 'none')}</td></tr>")
@@ -124,6 +190,9 @@ def _entry_html(checked, domains) -> str:
         rows.append(f'<tr><td></td><td class="left">{_e(left)}</td></tr>')
     if entry.get("note"):
         rows.append(f"<tr><td>Note</td><td>{_e(entry['note'])}</td></tr>")
+    for flag in checked.flags:
+        rows.append(f'<tr><td>Check</td><td class="flag">{_e(flag.rule)}: '
+                    f"{_e(flag.message)}</td></tr>")
     failures = [f for f in checked.findings if f.fatal]
     for finding in failures:
         rows.append(f'<tr><td class="fail">{_e(finding.rule)}</td>'

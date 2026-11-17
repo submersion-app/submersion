@@ -10,7 +10,11 @@ import 'package:submersion/features/dive_log/presentation/widgets/collapsible_se
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_shape_thumbnail.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_route_links_sitting.dart';
+import 'package:submersion/features/nav_track/domain/dive_route_link_draft.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// The dive detail "Underwater Track" section (spec
 /// 2026-09-10-underwater-nav-track-design.md, "Dive detail section"): the
@@ -25,7 +29,14 @@ class NavTrackSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final routesAsync = ref.watch(navTracksForDiveProvider(dive.id));
-    final routes = routesAsync.value ?? const <NavTrack>[];
+    // On a page that offers editing (issue #4527) the card reads only, and
+    // shows a sitting's routes once it changed them.
+    final scope = RecordEditScope.maybeOf<Dive>(context);
+    final session = scope?.session;
+    final draft = session == null ? null : sittingRouteDraft(session);
+    final routes = draft != null && draft.hasChanges
+        ? _withPrimary(draft)
+        : routesAsync.value ?? const <NavTrack>[];
     final isExpanded = ref.watch(navTrackSectionExpandedProvider);
     final l10n = context.l10n;
 
@@ -33,6 +44,8 @@ class NavTrackSection extends ConsumerWidget {
       title: l10n.navTrack_section_trackTitle,
       icon: Icons.route,
       collapsedSubtitle: l10n.navTrack_section_trackCount(routes.length),
+      // Its pencil, while the dive is unlocked.
+      trailing: RecordCardPencil(cardTitle: l10n.navTrack_section_trackTitle),
       isExpanded: isExpanded,
       onToggle: (expanded) =>
           ref.read(navTrackSectionExpandedProvider.notifier).state = expanded,
@@ -44,7 +57,8 @@ class NavTrackSection extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Divider(),
-              for (final route in routes) _RouteRow(route: route),
+              for (final route in routes)
+                _RouteRow(route: route, readOnly: scope != null),
             ],
           ),
         );
@@ -53,10 +67,22 @@ class NavTrackSection extends ConsumerWidget {
   }
 }
 
+/// [draft]'s routes, with its chosen primary marked as the primary.
+List<NavTrack> _withPrimary(DiveRouteLinkDraft draft) {
+  final primary = draft.primaryId;
+  if (primary == null) return draft.current;
+  return [
+    for (final r in draft.current) r.copyWith(isPrimary: r.id == primary),
+  ];
+}
+
 class _RouteRow extends ConsumerWidget {
-  const _RouteRow({required this.route});
+  const _RouteRow({required this.route, this.readOnly = false});
 
   final NavTrack route;
+
+  /// Offers only Open and 3D: linking is changed in the open card.
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -109,11 +135,12 @@ class _RouteRow extends ConsumerWidget {
               value: '3d',
               child: Text(l10n.navTrack_section_menuOpen3d),
             ),
-            PopupMenuItem(
-              value: 'unlink',
-              child: Text(l10n.navTrack_common_unlink),
-            ),
-            if (!route.isPrimary)
+            if (!readOnly)
+              PopupMenuItem(
+                value: 'unlink',
+                child: Text(l10n.navTrack_common_unlink),
+              ),
+            if (!readOnly && !route.isPrimary)
               PopupMenuItem(
                 value: 'primary',
                 child: Text(l10n.navTrack_section_menuMakePrimary),

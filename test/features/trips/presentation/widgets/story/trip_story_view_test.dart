@@ -14,6 +14,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_picker_providers.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/trips/presentation/widgets/story/trip_day_picker.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_line.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_page.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_plan.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_trip_page.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -104,6 +106,7 @@ void main() {
     Stream<int>? profileWrites,
     Map<int, TripDayWeather>? tripDayWeather,
     Size viewSize = const Size(420, 900),
+    ValueChanged<TripNoteDay>? onEditDayNote,
   }) async {
     tester.view.physicalSize = viewSize;
     tester.view.devicePixelRatio = 1.0;
@@ -119,6 +122,7 @@ void main() {
       story: shown,
       stats: TripWithStats(trip: shown.trip, diveCount: 2),
       selection: selection,
+      onEditDayNote: onEditDayNote,
     );
     final router = GoRouter(
       routes: [
@@ -186,6 +190,97 @@ void main() {
     ],
     today: DateTime(2026, 6, 1),
   );
+
+  group("a day's part of the trip's Notes (#4625)", () {
+    final noted = _story(
+      marchTrip.copyWith(notes: 'Intro\n\n## Day 2\nCurrent was strong'),
+      dives: [_dive('d1', DateTime(2026, 3, 25, 9))],
+      today: DateTime(2026, 6, 1),
+    );
+    final day2 = DateTime(2026, 3, 26);
+
+    testWidgets('the day shows its passage', (tester) async {
+      await pumpView(
+        tester,
+        noted,
+        selection: ValueNotifier(TripStorySelection.day(day2)),
+      );
+
+      expect(dayPage(tester).tripNotes, 'Current was strong');
+      expect(find.text('Current was strong'), findsOneWidget);
+    });
+
+    testWidgets('edited Notes reach the day page', (tester) async {
+      final stories = ValueNotifier(noted);
+      addTearDown(stories.dispose);
+      await pumpView(
+        tester,
+        noted,
+        stories: stories,
+        selection: ValueNotifier(TripStorySelection.day(day2)),
+      );
+      expect(dayPage(tester).tripNotes, 'Current was strong');
+
+      stories.value = _story(
+        marchTrip.copyWith(notes: 'Intro\n\n## Day 2\nMantas at dusk'),
+        dives: [_dive('d1', DateTime(2026, 3, 25, 9))],
+        today: DateTime(2026, 6, 1),
+      );
+      await tester.pumpAndSettle();
+
+      expect(dayPage(tester).tripNotes, 'Mantas at dusk');
+    });
+
+    testWidgets('another day has no passage', (tester) async {
+      await pumpView(
+        tester,
+        noted,
+        selection: ValueNotifier(TripStorySelection.day(DateTime(2026, 3, 25))),
+      );
+
+      expect(dayPage(tester).tripNotes, isNull);
+    });
+
+    testWidgets('the caption opens the Trip page at its Notes', (tester) async {
+      await pumpView(
+        tester,
+        noted,
+        selection: ValueNotifier(TripStorySelection.day(day2)),
+        viewSize: const Size(420, 420),
+      );
+
+      await tester.tap(find.byKey(TripStoryDayPlan.fromTripNotesKey));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TripStoryTripPage), findsOneWidget);
+      final notes = tester.getRect(find.text('Current was strong'));
+      expect(notes.top, greaterThanOrEqualTo(0));
+      expect(notes.bottom, lessThanOrEqualTo(420));
+    });
+
+    testWidgets('the edit action names the day it is on', (tester) async {
+      final edited = <TripNoteDay>[];
+      await pumpView(
+        tester,
+        noted,
+        selection: ValueNotifier(TripStorySelection.day(day2)),
+        onEditDayNote: edited.add,
+      );
+
+      await tester.tap(find.byKey(TripStoryDayPage.editNoteKey));
+      expect(edited, [TripNoteDay(date: day2, dayNumber: 2)]);
+    });
+
+    testWidgets('no edit action without a handler', (tester) async {
+      await pumpView(
+        tester,
+        noted,
+        selection: ValueNotifier(TripStorySelection.day(day2)),
+      );
+
+      expect(find.byKey(TripStoryDayPage.editNoteKey), findsNothing);
+    });
+  });
 
   group('where the page opens', () {
     testWidgets('a finished trip opens on the Trip page', (tester) async {

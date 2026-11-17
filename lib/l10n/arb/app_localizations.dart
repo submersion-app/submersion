@@ -2797,6 +2797,24 @@ abstract class AppLocalizations {
   /// **'Day {number}'**
   String trips_story_dayLabel(int number);
 
+  /// Caption over the part of a trip's Notes that belongs to the day shown; tapping it opens the trip's Notes.
+  ///
+  /// In en, this message translates to:
+  /// **'From trip notes'**
+  String get trips_story_fromTripNotes;
+
+  /// Button on a trip day's page that opens the trip editor at a new heading for that day in the trip's Notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add note'**
+  String get trips_story_addDayNote;
+
+  /// Button on a trip day's page that opens the trip editor at the end of that day's part of the trip's Notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit note'**
+  String get trips_story_editDayNote;
+
   /// No description provided for @trips_story_surfaceDay.
   ///
   /// In en, this message translates to:
@@ -5415,6 +5433,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'+1 (555) 123-4567'**
   String get buddies_field_phoneHint;
+
+  /// No description provided for @buddies_field_country.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get buddies_field_country;
+
+  /// No description provided for @buddies_field_countryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Italy'**
+  String get buddies_field_countryHint;
 
   /// No description provided for @buddies_label_diveCount.
   ///
@@ -11339,6 +11369,12 @@ abstract class AppLocalizations {
   /// **'Permanently closed'**
   String get diveCenters_label_permanentlyClosed;
 
+  /// Label for a dive center's logo: the edit page avatar's accessible name and the logo picker sheet title
+  ///
+  /// In en, this message translates to:
+  /// **'Logo'**
+  String get diveCenters_field_logo;
+
   /// No description provided for @diveCenters_map_addCoordinatesHint.
   ///
   /// In en, this message translates to:
@@ -12990,6 +13026,12 @@ abstract class AppLocalizations {
   /// **'Weight'**
   String get diveLog_detail_section_weight;
 
+  /// No description provided for @diveLog_detail_weight_fromEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'From equipment'**
+  String get diveLog_detail_weight_fromEquipment;
+
   /// No description provided for @diveLog_detail_signatureDescription.
   ///
   /// In en, this message translates to:
@@ -14282,6 +14324,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total: {total}'**
   String diveLog_edit_weightTotal(Object total);
+
+  /// No description provided for @diveLog_edit_weightGearNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Also counted: {weight} carried as equipment ({items}). Add a weight here only for separate lead.'**
+  String diveLog_edit_weightGearNote(Object items, Object weight);
+
+  /// Joins the names of weights gear in the note under the Weights editor. Include any trailing space your language uses.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get diveLog_edit_weightGearNote_listSeparator;
 
   /// No description provided for @diveLog_emptyFiltered_clearFilters.
   ///
@@ -15889,6 +15943,30 @@ abstract class AppLocalizations {
   /// **'{card}, hidden'**
   String recordEdit_hiddenCard(String card);
 
+  /// Label on a card with nothing to edit, shown while its record is unlocked: its content is calculated from other data.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated'**
+  String get recordEdit_calculated;
+
+  /// An open card whose rows (buddies, sightings, signatures, the linked plan) could not be read while the record is being edited.
+  ///
+  /// In en, this message translates to:
+  /// **'This card could not be loaded.'**
+  String get recordEdit_loadFailed;
+
+  /// Button under a card that could not be loaded: reads it again.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get recordEdit_tryAgain;
+
+  /// Label on a card with nothing to edit, shown while its record is unlocked: its content was imported from a device or service.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported'**
+  String get recordEdit_imported;
+
   /// Message shown when saving an unlocked record fails.
   ///
   /// In en, this message translates to:
@@ -17028,6 +17106,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fit All Sites'**
   String get diveLog_map_tooltip_fitAllSites;
+
+  /// Shown when photos or videos are dropped on a dive that is locked, on its page or in the list's detail pane (which cannot unlock): dives are edited only while unlocked, on their own page.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock this dive on its own page to add photos.'**
+  String get diveLog_media_dropUnlockHint;
 
   /// No description provided for @diveLog_numbering_actions.
   ///
@@ -18198,6 +18282,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My cylinders'**
   String get diveLog_tank_ownCylinderTitle;
+
+  /// No description provided for @cylindersFromTanks_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add cylinders to your gear'**
+  String get cylindersFromTanks_title;
+
+  /// No description provided for @cylindersFromTanks_onDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{on {count} dive} other{on {count} dives}}'**
+  String cylindersFromTanks_onDives(int count);
+
+  /// No description provided for @cylindersFromTanks_makes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} cylinder} other{{count} cylinders}}'**
+  String cylindersFromTanks_makes(int count);
+
+  /// No description provided for @cylindersFromTanks_add.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Add {count} cylinder} other{Add {count} cylinders}}'**
+  String cylindersFromTanks_add(int count);
+
+  /// No description provided for @cylindersFromTanks_added.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Added {count} cylinder to your gear} other{Added {count} cylinders to your gear}}'**
+  String cylindersFromTanks_added(int count);
+
+  /// No description provided for @cylindersFromTanks_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} tank isn\'t in your gear} other{{count} tanks aren\'t in your gear}}'**
+  String cylindersFromTanks_summary(int count);
+
+  /// No description provided for @cylindersFromTanks_review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get cylindersFromTanks_review;
+
+  /// No description provided for @cylindersFromTanks_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get cylindersFromTanks_name;
+
+  /// No description provided for @cylindersFromTanks_sizeName.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} {material}'**
+  String cylindersFromTanks_sizeName(String size, String material);
+
+  /// No description provided for @cylindersFromTanks_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add the cylinders'**
+  String get cylindersFromTanks_failed;
+
+  /// No description provided for @diveLog_tank_gearMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder options'**
+  String get diveLog_tank_gearMenu;
+
+  /// No description provided for @diveLog_tank_addToGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to my gear'**
+  String get diveLog_tank_addToGear;
+
+  /// No description provided for @diveLog_tank_linkCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a cylinder I own'**
+  String get diveLog_tank_linkCylinder;
+
+  /// No description provided for @diveLog_tank_linkCylinderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Links this tank to the cylinder and adds the cylinder to this dive\'s equipment. The tank keeps its recorded size.'**
+  String get diveLog_tank_linkCylinderHint;
+
+  /// No description provided for @diveLog_tank_unlinkCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink cylinder'**
+  String get diveLog_tank_unlinkCylinder;
+
+  /// No description provided for @diveLog_tank_linkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t change the cylinder link'**
+  String get diveLog_tank_linkFailed;
 
   /// No description provided for @diveLog_tank_regulatorLabel.
   ///
@@ -33406,6 +33586,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Linked 1 item} other{Linked {count} items}}'**
   String media_photoPicker_files_linkedCount(int count);
 
+  /// Shown after the photo picker, opened while a dive is being edited, hands its files to that dive: how many staged files matched other dives and were left out.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} file matches another dive and was left out} other{{count} files match other dives and were left out}}'**
+  String media_picker_otherDivesLeftOut(int count);
+
   /// No description provided for @media_photoPicker_files_attachedToSiteCount.
   ///
   /// In en, this message translates to:
@@ -42622,6 +42808,12 @@ abstract class AppLocalizations {
   /// **'Photo'**
   String get settings_conflict_field_photo;
 
+  /// No description provided for @settings_conflict_field_logo.
+  ///
+  /// In en, this message translates to:
+  /// **'Logo'**
+  String get settings_conflict_field_logo;
+
   /// No description provided for @settings_conflict_field_photoBack.
   ///
   /// In en, this message translates to:
@@ -50199,6 +50391,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No signature image'**
   String get signatures_noSignatureImage;
+
+  /// Shown on a training dive's instructor signature card when no one has signed and the card is read only (the dive is locked).
+  ///
+  /// In en, this message translates to:
+  /// **'Not signed'**
+  String get signatures_notSigned;
 
   /// Title shown on the signature capture screen with buddy name
   ///
@@ -72472,6 +72670,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{{count} weight row, edit it in the dive} other{{count} weight rows, edit them in the dive}}'**
   String tableEditor_weightRows(int count);
 
+  /// Why the table editor's Total weight cell is read-only for a dive that carries lead as weights gear: that lead is in the total and is edited on the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes lead carried as equipment, edit it in the dive'**
+  String get tableEditor_weightGear;
+
   /// No description provided for @tableEditor_summary_siteSnap.
   ///
   /// In en, this message translates to:
@@ -73192,6 +73396,12 @@ abstract class AppLocalizations {
   /// **'Phone'**
   String get enum_buddyField_phone;
 
+  /// No description provided for @enum_buddyField_country.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get enum_buddyField_country;
+
   /// No description provided for @enum_buddyField_certificationLevel.
   ///
   /// In en, this message translates to:
@@ -73233,6 +73443,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Phone'**
   String get enum_buddyField_phone_short;
+
+  /// No description provided for @enum_buddyField_country_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get enum_buddyField_country_short;
 
   /// No description provided for @enum_buddyField_certificationLevel_short.
   ///
@@ -89531,6 +89747,18 @@ abstract class AppLocalizations {
   /// **'Waiting for the dive'**
   String get diveLab_compare_waiting;
 
+  /// The closed Compare card while a dive is unlocked and a plan has been linked but not saved yet: names the plan Save will link.
+  ///
+  /// In en, this message translates to:
+  /// **'{plan} is linked at Save.'**
+  String diveLab_compare_heldLink(String plan);
+
+  /// The closed Compare card while a dive is unlocked and its plan has been unlinked but not saved yet.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan is unlinked at Save.'**
+  String get diveLab_compare_heldUnlink;
+
   /// No description provided for @diveLab_link_unlinkTitle.
   ///
   /// In en, this message translates to:
@@ -93312,6 +93540,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Phone'**
   String get query_buddies_phone;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get query_buddies_country;
 
   /// Query builder: a dive center's agency affiliations
   ///
@@ -98993,6 +99227,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diver settings'**
   String get changeLog_table_diverSettings;
+
+  /// No description provided for @changeLog_table_safetyFinding.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety finding'**
+  String get changeLog_table_safetyFinding;
+
+  /// No description provided for @changeLog_table_pressureSeries.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure readings'**
+  String get changeLog_table_pressureSeries;
+
+  /// No description provided for @changeLog_table_navTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater track'**
+  String get changeLog_table_navTrack;
 
   /// No description provided for @changeLog_history.
   ///

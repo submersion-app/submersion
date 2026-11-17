@@ -20,6 +20,8 @@ class _CapturingRepairService implements MediaRepairService {
   Future<RepairApplyReport> apply(
     List<RepairProposal> accepted, {
     RepairLogSource source = RepairLogSource.manual,
+    List<Future<void> Function()>? afterCommit,
+    List<Future<void> Function()>? onRollback,
   }) async {
     applied.add(accepted);
     return const RepairApplyReport(
@@ -174,5 +176,24 @@ void main() {
     // Recorded as edited rather than exact, so the store knows these are new
     // bytes and does not deduplicate the re-upload against the old hash.
     expect(repair.applied.single.single.confidence, RepairConfidence.edited);
+  });
+
+  testWidgets('with onHold the proposal is handed over, not applied '
+      '(issue #4527)', (tester) async {
+    final h = await host(tester);
+    final held = <RepairProposal>[];
+    final pending = replaceMediaLink(
+      h.context,
+      h.ref,
+      _item(contentHash: _pickedHash),
+      pickPath: () async => _pickedPath,
+      hashFile: _fakeHash,
+      onHold: held.add,
+    );
+    await tester.pumpAndSettle();
+
+    expect(await pending, isTrue);
+    expect(held.single.candidate!.path, _pickedPath);
+    expect(repair.applied, isEmpty);
   });
 }

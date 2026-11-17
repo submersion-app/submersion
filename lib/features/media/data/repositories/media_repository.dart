@@ -3223,4 +3223,14 @@ class MediaRepository {
       ..where(_db.media.contentHash.equals(contentHash));
     return (await query.getSingle()).read(count) ?? 0;
   }
+
+  /// Number of media rows whose bookmark is [bookmarkRef]: none once the
+  /// write that pointed a row at it has rolled back (issue #4527).
+  Future<int> countRowsWithBookmarkRef(String bookmarkRef) async {
+    final count = _db.media.id.count();
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([count])
+      ..where(_db.media.bookmarkRef.equals(bookmarkRef));
+    return (await query.getSingle()).read(count) ?? 0;
+  }
 }

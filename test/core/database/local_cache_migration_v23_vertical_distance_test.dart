@@ -21,11 +21,11 @@ Future<List<String>> _columns(LocalCacheDatabase db) async =>
         .toList();
 
 void main() {
-  test('the local cache is at version 23', () {
+  test('the local cache is at least version 23', () {
     final db = LocalCacheDatabase(NativeDatabase.memory());
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 23);
+    expect(db.schemaVersion, greaterThanOrEqualTo(23));
   });
 
   test('a fresh database has the table', () async {

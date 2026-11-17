@@ -129,7 +129,7 @@ void main() {
         'why', (tester) async {
       final page = await pumpPage(tester, visible: cards, size: tall);
       await unlock(tester);
-      await tester.tap(find.byKey(addAltitude));
+      await tapStripChip(tester, 'altitude');
       await settle(tester);
       final l10n = l10nOf(tester);
       final altitude = l10n.diveLog_edit_label_altitude;
@@ -164,7 +164,7 @@ void main() {
     testWidgets('unreadable input is forgotten after Cancel', (tester) async {
       await pumpPage(tester, visible: cards, size: tall);
       await unlock(tester);
-      await tester.tap(find.byKey(addAltitude));
+      await tapStripChip(tester, 'altitude');
       await settle(tester);
       await typeIn(tester, l10nOf(tester).diveLog_edit_label_altitude, '1.2.3');
       expect(controller(tester).invalidCardIds, {'altitude'});
@@ -325,7 +325,7 @@ void main() {
       expect(onAltitudeCard(find.text('900 mbar')), findsNothing);
 
       // Change the Environment card too, then fetch.
-      await tester.tap(find.byKey(addEnvironment));
+      await tapStripChip(tester, 'environment');
       await settle(tester);
       await typeIn(tester, l10n.diveLog_edit_label_humidity, '50');
       expect(controller(tester).session!.changedCardIds, {
@@ -438,7 +438,7 @@ void main() {
           },
         );
         await unlock(tester);
-        await tester.tap(find.byKey(addEnvironment));
+        await tapStripChip(tester, 'environment');
         await settle(tester);
         final editor = find.byType(DiveEnvironmentCardEditor);
         final before = tester.state(editor);
@@ -463,7 +463,7 @@ void main() {
       testWidgets('keeps the Altitude editor', (tester) async {
         await pumpPage(tester, size: wide, visible: cards);
         await unlock(tester);
-        await tester.tap(find.byKey(addAltitude));
+        await tapStripChip(tester, 'altitude');
         await settle(tester);
         final editor = find.byType(DiveAltitudeCardEditor);
         final before = tester.state(editor);

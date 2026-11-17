@@ -259,7 +259,10 @@ class BuoyancyTwinAssembler {
       }
       return sum + gear;
     }
-    final legacy = dive.weightAmount ?? 0.0;
+    // A non-positive legacy scalar is no lead, as in [Dive.recordedWeightKg],
+    // so it is no droppable lead either.
+    final scalar = dive.weightAmount;
+    final legacy = scalar != null && scalar > 0 ? scalar : 0.0;
     final type = dive.weightType;
     return ((type == null || EquipmentLead.isDroppable(type)) ? legacy : 0.0) +
         gear;
@@ -326,12 +329,10 @@ class BuoyancyTwinAssembler {
   /// weighted backplate are different lead. Gear only contributes when it
   /// declares a mass, so rigs that list weights without numbers are
   /// unaffected. See [EquipmentLead].
-  static double _carriedLead(Dive dive) {
-    final typed = dive.weights.isNotEmpty
-        ? dive.weights.fold(0.0, (sum, w) => sum + w.amountKg)
-        : (dive.weightAmount ?? 0.0);
-    return typed + EquipmentLead.totalKg(GearTree.leafItems(dive.gear));
-  }
+  ///
+  /// The same total the dive page's Weights card and every weight statistic
+  /// read ([Dive.recordedWeightKg], issue #4442).
+  static double _carriedLead(Dive dive) => dive.recordedWeightKg ?? 0.0;
 
   static EquipmentItem? _exposureSuit(List<EquipmentItem> items) {
     for (final item in items) {

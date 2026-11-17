@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/database/change_log/change_log_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -168,7 +169,8 @@ class _EntryBody extends ConsumerWidget {
       ?.block;
 
   /// A field's Revert button, or why it has none. A field already back at
-  /// its old value has neither.
+  /// its old value has neither, and nor does a row that goes back only with
+  /// the whole entry ([changeLogRevertsWithEntryOnly]).
   Widget? _fieldRevert(
     BuildContext context,
     WidgetRef ref,
@@ -176,6 +178,7 @@ class _EntryBody extends ConsumerWidget {
     ChangeLogEvent event,
     ChangeLogFieldChange field,
   ) {
+    if (changeLogRevertsWithEntryOnly.contains(event.table)) return null;
     final item = detail.plan?.items
         .where(
           (item) =>
@@ -334,7 +337,10 @@ class _RevertAction extends ConsumerWidget {
             onPressed: () => runChangeLogRevert(
               context,
               ref,
-              plan: (service) => service.planOperation(operation.id),
+              plan: (service) => service.planOperation(
+                operation.id,
+                onlyRoots: operation.shownRoots,
+              ),
               bulk: bulk,
             ),
             child: Text(label),

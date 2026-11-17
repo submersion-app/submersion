@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklists_panel.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_picker_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
@@ -26,10 +27,14 @@ class TripDetailTabs extends ConsumerStatefulWidget {
   /// Where the Overview's Plan row goes; null pushes the edit page.
   final VoidCallback? onEditPlan;
 
+  /// Opens the trip editor at a day's note (#4625); null hides the action.
+  final ValueChanged<TripNoteDay>? onEditDayNote;
+
   const TripDetailTabs({
     super.key,
     required this.tripWithStats,
     this.onEditPlan,
+    this.onEditDayNote,
   });
 
   @override
@@ -106,6 +111,7 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
                   tripWithStats: tripWithStats,
                   onEditPlan: onEditPlan,
                   selection: _storySelection,
+                  onEditDayNote: widget.onEditDayNote,
                 ),
                 TripItineraryTab(tripId: trip.id),
                 TripGearTab(trip: trip),

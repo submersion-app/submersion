@@ -14,12 +14,39 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class BuddySignaturesSection extends ConsumerWidget {
   final String diveId;
 
-  const BuddySignaturesSection({super.key, required this.diveId});
+  /// The dive's buddies and their signatures as a sitting on the dive has
+  /// them (issue #4527); null for each reads the stored ones.
+  final List<BuddyWithRole>? buddies;
+  final List<Signature>? signatures;
+
+  /// Whether a buddy can be asked to sign. A page that offers editing asks
+  /// only in the open card.
+  final bool requestShown;
+
+  /// Takes a signature just drawn, in place of saving it: a sitting holds
+  /// it until Save. Null saves it at once, as the dive page always has.
+  final void Function(BuddyWithRole bwr, List<List<Offset>> strokes, Size size)?
+  onCaptured;
+
+  const BuddySignaturesSection({
+    super.key,
+    required this.diveId,
+    this.buddies,
+    this.signatures,
+    this.requestShown = true,
+    this.onCaptured,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final buddiesAsync = ref.watch(buddiesForDiveProvider(diveId));
-    final signaturesAsync = ref.watch(buddySignaturesForDiveProvider(diveId));
+    final heldBuddies = buddies;
+    final heldSignatures = signatures;
+    final buddiesAsync = heldBuddies != null
+        ? AsyncValue.data(heldBuddies)
+        : ref.watch(buddiesForDiveProvider(diveId));
+    final signaturesAsync = heldSignatures != null
+        ? AsyncValue.data(heldSignatures)
+        : ref.watch(buddySignaturesForDiveProvider(diveId));
 
     return buddiesAsync.when(
       data: (buddies) {
@@ -116,6 +143,7 @@ class BuddySignaturesSection extends ConsumerWidget {
               return BuddySignatureCard(
                 buddyWithRole: bwr,
                 signature: sig,
+                requestShown: requestShown,
                 onRequestSignature: () => _requestSignature(context, ref, bwr),
                 onViewSignature: sig != null
                     ? () => _viewSignature(context, sig)
@@ -147,10 +175,15 @@ class BuddySignaturesSection extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
 
+    final captured = onCaptured;
     showBuddySignatureRequestSheet(
       context: context,
       buddyWithRole: bwr,
       onSave: (strokes, canvasSize) async {
+        if (captured != null) {
+          captured(bwr, strokes, canvasSize);
+          return;
+        }
         final notifier = ref.read(buddySignatureSaveNotifierProvider.notifier);
         // The strokes are in the capture canvas's own coordinates, so the
         // PNG is rendered at that exact size. A hardcoded size cropped every

@@ -12,8 +12,10 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_lis
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/max_width_fraction.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/record_chevron_expectations.dart';
 
 /// A rollup badge names the due part, and a part's name can be long. The
 /// tile's trailing column must not take the row from the title, which used to
@@ -182,5 +184,23 @@ void main() {
         ),
       );
     });
+  });
+
+  // The status keeps the trailing slot and the chevron follows it, one card
+  // padding from the edge like every other list (#4639).
+  testWidgets('a chevron follows the status at the card edge', (tester) async {
+    await pumpAt(tester, 560, ServiceClockSeverity.overdue);
+
+    final card = recordCardBounds(tester);
+    expectChevronAtEndPadding(
+      tester,
+      bounds: card,
+      padding: kRecordCardDetailedPadding,
+    );
+    expect(
+      tester.getRect(find.byType(MaxWidthFraction)).right,
+      lessThanOrEqualTo(tester.getRect(find.byType(RecordListChevron)).left),
+      reason: 'the status ends before the chevron',
+    );
   });
 }

@@ -6,6 +6,7 @@ import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// Single-row flat tile for the buddy list (maximum density).
 ///
@@ -57,7 +58,10 @@ class DenseBuddyListTile extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(
+              horizontal: kRecordRowDenseHorizontalPadding,
+              vertical: 10,
+            ),
             child: Row(
               children: [
                 SelectionCheckboxSlot(
@@ -124,12 +128,9 @@ class DenseBuddyListTile extends StatelessWidget {
                   iconSize: 16,
                   unselectedColor: secondaryTextColor,
                 ),
-                ExcludeSemantics(
-                  child: Icon(
-                    Icons.chevron_right,
-                    color: secondaryTextColor,
-                    size: 18,
-                  ),
+                RecordListChevron(
+                  size: RecordListChevron.denseSize,
+                  color: secondaryTextColor,
                 ),
               ],
             ),

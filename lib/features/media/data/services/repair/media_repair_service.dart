@@ -76,6 +76,7 @@ class MediaRepairService {
     required this.queue,
     required this.createBookmark,
     required this.writeBookmark,
+    this.deleteBookmark,
     this.log,
     this.cloudIdentifiers,
     this.assetCache,
@@ -88,6 +89,10 @@ class MediaRepairService {
   /// Platform bookmark hooks (macOS/iOS); null elsewhere.
   final Future<Uint8List> Function(String path)? createBookmark;
   final Future<void> Function(String ref, Uint8List blob)? writeBookmark;
+
+  /// Takes a bookmark away again: a held relink's new one, once its write
+  /// has rolled back (see [apply]'s `onRollback`). Null keeps every one.
+  final Future<void> Function(String ref)? deleteBookmark;
 
   /// Audit trail (Media section Phase 5). Optional so the engine stays
   /// constructible in tests that do not care about history.
@@ -146,18 +151,36 @@ class MediaRepairService {
     ];
   }
 
+  /// With [afterCommit], the apply runs inside a write that can still be
+  /// rolled back (a dive's sitting saved, issue #4527): what lives outside
+  /// the database is left for the caller to run once that write commits,
+  /// by adding it to [afterCommit] (the upload queue and the asset cache),
+  /// and a file's bookmark goes under a new ref rather than over the
+  /// row's, so a rolled-back row still resolves its old file. That new
+  /// bookmark is written now; [onRollback] gets what takes it away again,
+  /// for the caller to run if the write does not commit. It deletes only a
+  /// bookmark no row refers to, so running it after a commit is harmless.
   Future<RepairApplyReport> apply(
     List<RepairProposal> accepted, {
     RepairLogSource source = RepairLogSource.manual,
+    List<Future<void> Function()>? afterCommit,
+    List<Future<void> Function()>? onRollback,
   }) => ChangeLogScope.bulk(
     DatabaseService.instance.databaseOrNull,
     label: ChangeLogLabels.mediaRepair,
-    body: () => _applyInner(accepted, source: source),
+    body: () => _applyInner(
+      accepted,
+      source: source,
+      afterCommit: afterCommit,
+      onRollback: onRollback,
+    ),
   );
 
   Future<RepairApplyReport> _applyInner(
     List<RepairProposal> accepted, {
     RepairLogSource source = RepairLogSource.manual,
+    List<Future<void> Function()>? afterCommit,
+    List<Future<void> Function()>? onRollback,
   }) async {
     var failed = 0;
     var skipped = 0;
@@ -238,8 +261,19 @@ class MediaRepairService {
         final write = writeBookmark;
         if (create != null && write != null) {
           final blob = await create(candidate.path!);
-          newRef = proposal.item.bookmarkRef ?? _uuid.v4();
-          await write(newRef, blob);
+          final ref = afterCommit == null
+              ? proposal.item.bookmarkRef ?? _uuid.v4()
+              : _uuid.v4();
+          await write(ref, blob);
+          newRef = ref;
+          final delete = deleteBookmark;
+          if (afterCommit != null && delete != null) {
+            onRollback?.add(() async {
+              if (await repository.countRowsWithBookmarkRef(ref) == 0) {
+                await delete(ref);
+              }
+            });
+          }
         }
 
         writes.add(
@@ -279,12 +313,20 @@ class MediaRepairService {
 
     // Stage B: one transaction for every surviving write.
     await repository.applyRepairWrites(await _withCloudIds(writes));
-    try {
-      await assetCache?.clearEntries([for (final w in writes) w.mediaId]);
-    } on Object catch (e) {
-      // The relink has committed; a stale entry costs one failed fetch,
-      // after which the resolver re-resolves the row.
-      _log.warning('Could not drop cached mappings for relinked rows: $e');
+    Future<void> clearCache() async {
+      try {
+        await assetCache?.clearEntries([for (final w in writes) w.mediaId]);
+      } on Object catch (e) {
+        // The relink has committed; a stale entry costs one failed fetch,
+        // after which the resolver re-resolves the row.
+        _log.warning('Could not drop cached mappings for relinked rows: $e');
+      }
+    }
+
+    if (afterCommit == null) {
+      await clearCache();
+    } else {
+      afterCommit.add(clearCache);
     }
 
     // Stage C: store side effects.
@@ -297,7 +339,12 @@ class MediaRepairService {
       await repository.clearRemoteUploaded(stamp.mediaId);
       await repository.clearRemoteThumbUploaded(stamp.mediaId);
       await repository.clearRemoteCompressed(stamp.mediaId);
-      await queue.enqueueUpload(mediaId: stamp.mediaId);
+      Future<void> enqueue() => queue.enqueueUpload(mediaId: stamp.mediaId);
+      if (afterCommit == null) {
+        await enqueue();
+      } else {
+        afterCommit.add(enqueue);
+      }
       reuploadsQueued++;
     }
     if (storeIds.isNotEmpty) {

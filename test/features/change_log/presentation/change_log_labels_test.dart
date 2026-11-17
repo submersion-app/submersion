@@ -12,6 +12,12 @@ import 'package:submersion/l10n/arb/app_localizations_en.dart';
 void main() {
   final l = AppLocalizationsEn();
 
+  test('the tables a sitting lists under its dive have names of their own', () {
+    expect(changeLogTableLabel(l, 'dive_safety_findings'), 'Safety finding');
+    expect(changeLogTableLabel(l, 'tank_pressure_series'), 'Pressure readings');
+    expect(changeLogTableLabel(l, 'nav_tracks'), 'Underwater track');
+  });
+
   test('the agent source has a label and an icon', () {
     expect(changeLogSourceLabel(l, ChangeLogSource.agent), 'Agent');
     expect(
@@ -37,11 +43,19 @@ void main() {
     final tags = DiveDetailSectionId.tags.localizedDisplayName(l);
     final label = RecordEditLabel.encode(
       table: 'dives',
+      id: 'dive',
       cardIds: ['tags', 'notes'],
     );
 
     test('its stored label reads as Edited: with the card titles', () {
       expect(changeLogStoredLabel(l, label), 'Edited: $notes, $tags');
+    });
+
+    test('a label written before it named its record reads the same', () {
+      expect(
+        changeLogStoredLabel(l, 'record_edit:dives:notes,tags'),
+        'Edited: $notes, $tags',
+      );
     });
 
     // The header block is not a section (issue #4527, plan 4).
@@ -131,6 +145,49 @@ void main() {
       expect(
         subtitle,
         endsWith('${l.changeLog_thisDevice} · Edited: $notes, $tags'),
+      );
+    });
+
+    // Another diver sees only the records of the sitting shared with them
+    // (issue #4527); the cards it changed are about the dive they cannot
+    // open.
+    test(
+      'a diver who sees only part of it is not told which cards changed',
+      () {
+        final operation =
+            ChangeLogOperation(
+              id: 'op',
+              source: ChangeLogSource.manual,
+              label: label,
+              diverId: 'owner',
+              rootTable: 'dives',
+              rootId: 'd1',
+              startedAt: DateTime(2026, 11, 2, 9, 30),
+              endedAt: DateTime(2026, 11, 2, 9, 30),
+            ).restrictedTo(
+              {(table: 'dive_sites', id: 's1')},
+              root: (table: 'dive_sites', id: 's1'),
+              label: 'Reef',
+            );
+
+        final subtitle = changeLogSubtitle(
+          l,
+          const UnitFormatter(AppSettings()),
+          operation,
+          const {},
+        );
+
+        expect(subtitle, endsWith(l.changeLog_thisDevice));
+      },
+    );
+
+    test('a sitting that named no card reads as Edited', () {
+      expect(
+        changeLogStoredLabel(
+          l,
+          RecordEditLabel.encode(table: 'dives', id: 'd1', cardIds: const []),
+        ),
+        l.changeLog_action_edited,
       );
     });
 

@@ -40,11 +40,15 @@ class DiveDetailLinkRow extends StatelessWidget {
     required this.label,
     required this.title,
     this.subtitle,
+    this.leading,
   });
 
   final String label;
   final String title;
   final String? subtitle;
+
+  /// Drawn before the title, such as a dive center's logo (#4460).
+  final Widget? leading;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +59,7 @@ class DiveDetailLinkRow extends StatelessWidget {
       value: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (leading != null) ...[leading!, const SizedBox(width: 8)],
           Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

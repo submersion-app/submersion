@@ -108,10 +108,12 @@ def working_record(
     min_depth: float | None = None,
     hazards: str | None = None,
     description: str | None = None,
+    position_from: str | None = None,
 ) -> dict:
     """A researched site as the merge's working record. [country_hint] is
     the researcher's country code, which the merge checks against its
-    own lookup."""
+    own lookup. [position_from] is "map" when the position was read off a
+    counting page's map."""
     record = rec.working(
         id=site_id,
         name=name,
@@ -128,6 +130,8 @@ def working_record(
         entry_type=entry_type,
     )
     record["country_hint"] = country_hint
+    if position_from is not None:
+        record["position_from"] = position_from
     return record
 
 
@@ -158,6 +162,7 @@ def records(entries, domains, *, today: date) -> tuple[list[dict], Counter]:
                     min_depth=checked.min_depth,
                     hazards=evidence.hazards_text(checked.hazards),
                     description=describe(checked.entries, checked.types),
+                    position_from="map" if checked.map_read else None,
                 )
             )
     return formed, counts

@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_plan_link_sitting.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -24,6 +26,8 @@ import 'package:submersion/features/planner/presentation/providers/plan_overlay_
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// Width at or above which the table sits beside the chart.
 const double kCompareSectionWideBreakpoint = 720;
@@ -51,6 +55,15 @@ class CompareSection extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final linked = ref.watch(hasLinkedPlanProvider(diveId));
+    // On a page that offers editing (issue #4527), a plan is linked in the
+    // open card, where the sitting holds it: the read card offers no Link.
+    // Asking a what-if still works: a what-if is a record of its own.
+    final scope = RecordEditScope.maybeOf<Dive>(context);
+    final linkOffered = scope == null;
+    // A link changed in the open card shows here as what Save will do: the
+    // stored comparison is of the plan that will no longer be linked.
+    final session = scope?.session;
+    final heldLink = session == null ? null : heldPlanLinkChange(session);
     final scenariosAsync = ref.watch(diveScenariosForDiveProvider(diveId));
     final scenarios = scenariosAsync.value ?? const <DiveScenario>[];
     final eligible = isDiveLabEligible(dive);
@@ -61,12 +74,14 @@ class CompareSection extends ConsumerWidget {
         ref.watch(linkedPlanComparisonProvider(diveId)).hasSettled;
 
     final Widget body;
-    if (!settled) {
+    if (heldLink != null) {
+      body = _HeldPlanLink(planId: heldLink.planId);
+    } else if (!settled) {
       body = const SizedBox.shrink();
     } else if (dive.isPlanned) {
       body = _Message(
         text: l10n.diveLab_compare_waiting,
-        actions: [if (!linked) _LinkPlanButton(diveId: diveId)],
+        actions: [if (!linked && linkOffered) _LinkPlanButton(diveId: diveId)],
       );
     } else if (!linked && scenarios.isEmpty) {
       body = _Message(
@@ -78,7 +93,7 @@ class CompareSection extends ConsumerWidget {
               icon: const Icon(Icons.add),
               label: Text(l10n.diveLab_compare_askWhatIf),
             ),
-          _LinkPlanButton(diveId: diveId),
+          if (linkOffered) _LinkPlanButton(diveId: diveId),
         ],
       );
     } else {
@@ -86,6 +101,7 @@ class CompareSection extends ConsumerWidget {
         dive: dive,
         scenarios: eligible ? scenarios : const [],
         eligible: eligible,
+        linkOffered: linkOffered,
       );
     }
 
@@ -115,6 +131,10 @@ class CompareSection extends ConsumerWidget {
                     title: l10n.diveDetailSection_diveLab_name,
                     content: (context) =>
                         diveLabCompareInfo(context.l10n, infoUnits(context)),
+                  ),
+                  // Its pencil, while the dive is unlocked.
+                  RecordCardPencil(
+                    cardTitle: l10n.diveDetailSection_diveLab_name,
                   ),
                 ],
               ),
@@ -177,7 +197,10 @@ class _Comparison extends ConsumerWidget {
     required this.dive,
     required this.scenarios,
     required this.eligible,
+    this.linkOffered = true,
   });
+
+  final bool linkOffered;
 
   final Dive dive;
   final List<DiveScenario> scenarios;
@@ -319,7 +342,7 @@ class _Comparison extends ConsumerWidget {
                 label: Text(l10n.diveLab_compare_addWhatIf),
                 onPressed: () => showDiveLab(context, diveId),
               ),
-            if (comparison == null)
+            if (comparison == null && linkOffered)
               ActionChip(
                 avatar: const Icon(Icons.link, size: 18),
                 label: Text(l10n.diveLab_compare_linkPlan),
@@ -352,6 +375,37 @@ class _Comparison extends ConsumerWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+/// What Save will do to the dive's plan link, while a sitting holds a
+/// change to it (issue #4527).
+class _HeldPlanLink extends ConsumerWidget {
+  const _HeldPlanLink({required this.planId});
+
+  final String? planId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final planId = this.planId;
+    if (planId == null) return Text(l10n.diveLab_compare_heldUnlink);
+    return FutureBuilder(
+      // Keyed by the plan, so a new link reads its own name.
+      key: ValueKey(planId),
+      future: ref.read(divePlanRepositoryProvider).getPlan(planId),
+      builder: (context, snapshot) {
+        final name = snapshot.data?.name;
+        if (name == null) return const SizedBox.shrink();
+        return Row(
+          children: [
+            const Icon(Icons.link, size: 18),
+            const SizedBox(width: 8),
+            Expanded(child: Text(l10n.diveLab_compare_heldLink(name))),
+          ],
+        );
+      },
     );
   }
 }

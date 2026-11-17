@@ -135,7 +135,7 @@ class ChangeLogFeedNotifier extends AsyncNotifier<ChangeLogFeedState> {
     );
     final previews = await repository.getPreviewFields([
       for (final operation in page)
-        if (!operation.isBulk) operation.id,
+        if (!operation.isBulk) operation,
     ]);
     final references = await repository.resolveReferences([
       for (final preview in previews.values) ...preview.fields,
@@ -234,15 +234,17 @@ final changeLogEntryDetailProvider = FutureProvider.autoDispose
       if (diverId == null) return null;
       final operation = await repository.getVisibleOperation(id, diverId);
       if (operation == null) return null;
+      final shown = operation.shownRoots;
       final events = await repository.getEvents(
         id,
         limit: kChangeLogDetailLimit,
+        onlyRoots: shown,
       );
       final rootTable = operation.rootTable;
       final rootId = operation.rootId;
       final plan = operation.isBulk || operation.isSummary
           ? null
-          : await service.planOperation(id);
+          : await service.planOperation(id, onlyRoots: shown);
       return ChangeLogEntryDetail(
         operation: operation,
         events: events,
@@ -259,7 +261,7 @@ final changeLogEntryDetailProvider = FutureProvider.autoDispose
             rootTable != null &&
             rootId != null &&
             await repository.recordExists(rootTable, rootId),
-        eventCount: await repository.countEvents(id),
+        eventCount: await repository.countEvents(id, onlyRoots: shown),
         plan: plan,
       );
     });

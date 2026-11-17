@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_centers/domain/services/dive_center_pic
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
 
 /// A bottom sheet widget for selecting a dive center from a list.
 ///
@@ -185,16 +186,15 @@ class DiveCenterPickerSheet extends ConsumerWidget {
         if (isSelected) context.l10n.diveCenters_accessibility_selected,
       ].join(', '),
       child: ListTile(
-        leading: CircleAvatar(
+        leading: DiveCenterAvatar(
+          logo: center.logo,
           backgroundColor: isSelected
               ? colorScheme.primary
               : colorScheme.primaryContainer,
-          child: Icon(
-            Icons.store,
-            color: isSelected
-                ? colorScheme.onPrimary
-                : colorScheme.onPrimaryContainer,
-          ),
+          iconColor: isSelected
+              ? colorScheme.onPrimary
+              : colorScheme.onPrimaryContainer,
+          iconSize: 24,
         ),
         title: DiveCenterNameWithTag(closed: closed, name: Text(center.name)),
         subtitle: center.displayLocation != null

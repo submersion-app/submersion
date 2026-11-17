@@ -93,7 +93,7 @@ const _guardedHandlers = <(String, String)>[
   // Photo and document imports that reach a gated service through a
   // helper, so no picker call in their own file would flag them.
   (
-    'lib/features/media/presentation/pages/photo_picker_page.dart',
+    'lib/features/media/presentation/pages/photo_picker_launch.dart',
     'Future<List<AssetInfo>?> showPhotoPicker(',
   ),
   (

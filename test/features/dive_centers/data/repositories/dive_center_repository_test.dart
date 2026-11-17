@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -52,6 +54,72 @@ void main() {
   }
 
   group('DiveCenterRepository', () {
+    group('logo', () {
+      final logo = Uint8List.fromList([1, 2, 3]);
+
+      test('a created center keeps its logo', () async {
+        final created = await repository.createDiveCenter(
+          createTestCenter(name: 'Blue Reef').copyWith(logo: logo),
+        );
+
+        final read = await repository.getDiveCenterById(created.id);
+        expect(read!.logo, [1, 2, 3]);
+      });
+
+      test('updating with logo null removes it', () async {
+        final created = await repository.createDiveCenter(
+          createTestCenter(name: 'Blue Reef').copyWith(logo: logo),
+        );
+
+        await repository.updateDiveCenter(created.copyWith(logo: null));
+
+        final read = await repository.getDiveCenterById(created.id);
+        expect(read!.logo, isNull);
+      });
+
+      test('the search results read the logo', () async {
+        await repository.createDiveCenter(
+          createTestCenter(name: 'Blue Reef').copyWith(logo: logo),
+        );
+
+        final found = await repository.searchDiveCenters('blue');
+        expect(found.single.logo, [1, 2, 3]);
+      });
+
+      test('dives at one center share one logo instance', () async {
+        final center = await repository.createDiveCenter(
+          createTestCenter(name: 'Blue Reef').copyWith(logo: logo),
+        );
+        final dives = DiveRepository();
+        final at = DateTime(2024, 1, 1, 10);
+        await dives.createDive(Dive(id: '', dateTime: at, diveCenter: center));
+        await dives.createDive(Dive(id: '', dateTime: at, diveCenter: center));
+
+        final all = await dives.getAllDives();
+        expect(all, hasLength(2));
+        expect(all.first.diveCenter!.logo, [1, 2, 3]);
+        // ProfileAvatar's image cache is keyed by the byte list's identity,
+        // so one shared instance means one decode however many dives.
+        expect(
+          identical(all.first.diveCenter!.logo, all.last.diveCenter!.logo),
+          isTrue,
+        );
+      });
+
+      test('a single dive read carries its center logo', () async {
+        final center = await repository.createDiveCenter(
+          createTestCenter(name: 'Blue Reef').copyWith(logo: logo),
+        );
+        final dives = DiveRepository();
+        final dive = await dives.createDive(
+          Dive(id: '', dateTime: DateTime(2024, 1, 1), diveCenter: center),
+        );
+
+        final read = await dives.getDiveById(dive.id);
+        expect(read!.diveCenter!.logo, [1, 2, 3]);
+      });
+    });
+
     group('createDiveCenter', () {
       test(
         'should create a new center with generated ID when ID is empty',

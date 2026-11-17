@@ -11,7 +11,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_details_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_environment_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_tide_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_signatures_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_fields.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -534,7 +536,7 @@ void main() {
     });
 
     testWidgets('adding a first course keeps Signatures as it was until '
-        'Save', (tester) async {
+        'the editors close', (tester) async {
       sizeTo(tester, 600);
       await DatabaseService.instance.database.customStatement(
         "INSERT INTO courses (id, diver_id, name, agency, start_date, "
@@ -542,6 +544,11 @@ void main() {
         "'padi', 0, 0, 0)",
       );
       final controller = controllerOver(plain);
+      // What the page reads as a sitting starts (plan 6).
+      await tester.runAsync(() async {
+        await diveBuddiesList.load(controller.session!);
+        await diveSignaturesList.load(controller.session!);
+      });
       final settings = _settings(const [
         DiveDetailSectionId.signatures,
         DiveDetailSectionId.details,
@@ -573,8 +580,9 @@ void main() {
       controller.closeCard('details');
       await repump();
 
-      // Signatures has no editor: the stored dive until Save (plan 4).
-      expect(training, findsNothing);
+      // Signatures has an editor since plan 6: once the editors close it
+      // shows the sitting's course, as any card that gained a value does.
+      expect(training, findsOneWidget);
     });
 
     testWidgets('the Buddies and Signatures pair does not form until Save', (

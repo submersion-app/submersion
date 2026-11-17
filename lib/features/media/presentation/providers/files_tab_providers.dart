@@ -1,3 +1,4 @@
+import 'package:uuid/uuid.dart';
 import 'package:equatable/equatable.dart';
 import 'package:path/path.dart' as p;
 
@@ -326,6 +327,26 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     return created;
   }
 
+  /// The rows [commit] would write for [diveId], each under a fresh id,
+  /// built and not written, and how many staged files matched another dive
+  /// and were left out: a sitting on [diveId] holds its own photos until
+  /// Save, and changes no other dive (issue #4527). Clears the staged files.
+  Future<({List<MediaItem> rows, int leftOut})> heldRows(String diveId) async {
+    final rows = <MediaItem>[];
+    var leftOut = 0;
+    for (final entry in state.match.matched.entries) {
+      if (entry.key != diveId) {
+        leftOut += entry.value.length;
+        continue;
+      }
+      for (final file in entry.value) {
+        rows.add(await _itemFor(file, id: const Uuid().v4(), diveId: diveId));
+      }
+    }
+    clear();
+    return (rows: rows, leftOut: leftOut);
+  }
+
   /// Reverses a prior [commit] by deleting each row by id. Bookmark blobs
   /// in the keychain are intentionally not cleaned up — see class doc.
   Future<void> undoCommit(List<String> ids) async {
@@ -342,8 +363,9 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
   /// Writes one row. Exactly one of [diveId] / [siteId] is supplied by
   /// [commit]; the other stays null so the row belongs to one owner and does
   /// not surface in both a dive's grid and a site's.
-  Future<String> _persistOne(
+  Future<MediaItem> _itemFor(
     ExtractedFile file, {
+    String id = '',
     String? diveId,
     String? siteId,
     String? equipmentId,
@@ -364,9 +386,9 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     final handle = await _handles.create(file.file.path);
 
     final now = DateTime.now();
-    final item = MediaItem(
+    return MediaItem(
       // Empty id triggers UUID generation in MediaRepository.createMedia.
-      id: '',
+      id: id,
       diveId: diveId,
       siteId: siteId,
       equipmentId: equipmentId,
@@ -398,7 +420,24 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
       createdAt: now,
       updatedAt: now,
     );
+  }
 
+  /// Writes one row. Exactly one of [diveId] / [siteId] / [equipmentId] is
+  /// supplied by [commit].
+  Future<String> _persistOne(
+    ExtractedFile file, {
+    String? diveId,
+    String? siteId,
+    String? equipmentId,
+    String? observationId,
+  }) async {
+    final item = await _itemFor(
+      file,
+      diveId: diveId,
+      siteId: siteId,
+      equipmentId: equipmentId,
+      observationId: observationId,
+    );
     final saved = await mediaRepository.createMedia(item);
     onMediaCreated?.call(saved.id);
     return saved.id;

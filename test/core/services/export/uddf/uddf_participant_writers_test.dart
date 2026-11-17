@@ -77,6 +77,36 @@ void main() {
       expect(buddy.findAllElements('phone'), isEmpty);
       expect(buddy.findAllElements('notes'), isEmpty);
     });
+
+    test('writes the country in the buddy address (issue #4457)', () {
+      final root = _write(
+        (b) => UddfParticipantWriters.writeBuddyDeclarations(b, [
+          _guide.copyWith(country: 'Italy', countryCode: 'IT'),
+        ]),
+      );
+      final buddy = root.findElements('buddy').single;
+      final address = buddy.findElements('address').single;
+      expect(address.findElements('country').single.innerText, 'Italy');
+      // UDDF orders a buddy's children: personal before address.
+      final names = [for (final child in buddy.childElements) child.name.local];
+      expect(names.indexOf('address'), greaterThan(names.indexOf('personal')));
+    });
+
+    test('a trimmed export leaves the country out (issue #4457)', () {
+      final root = _write(
+        (b) => UddfParticipantWriters.writeBuddyDeclarations(b, [
+          _guide.copyWith(country: 'Italy', countryCode: 'IT'),
+        ], trimmed: true),
+      );
+      expect(root.findAllElements('address'), isEmpty);
+    });
+
+    test('a buddy without a country writes no address', () {
+      final root = _write(
+        (b) => UddfParticipantWriters.writeBuddyDeclarations(b, [_guide]),
+      );
+      expect(root.findAllElements('address'), isEmpty);
+    });
   });
 
   group('writeLeaders', () {

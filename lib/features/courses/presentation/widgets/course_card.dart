@@ -9,6 +9,7 @@ import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// Card widget for displaying a course in a list
 class CourseCard extends ConsumerWidget {
@@ -60,46 +61,49 @@ class CourseCard extends ConsumerWidget {
         color: isSelected
             ? colorScheme.primaryContainer.withValues(alpha: 0.5)
             : null,
-        child: ListTile(
-          onTap: onTap,
-          // Status icon, which becomes the checkbox in selection mode.
-          leading: SelectionLeading(
-            isSelectionMode: isSelectionMode,
-            isChecked: isChecked,
-            onChanged: onCheckChanged,
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                course.isCompleted
-                    ? Icons.check_circle_outline
-                    : Icons.school_outlined,
-                color: accent,
+        child: RecordListChevronOverlay(
+          child: ListTile(
+            onTap: onTap,
+            contentPadding: kRecordListTileContentPadding,
+            // Status icon, which becomes the checkbox in selection mode.
+            leading: SelectionLeading(
+              isSelectionMode: isSelectionMode,
+              isChecked: isChecked,
+              onChanged: onCheckChanged,
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  course.isCompleted
+                      ? Icons.check_circle_outline
+                      : Icons.school_outlined,
+                  color: accent,
+                ),
               ),
             ),
+            title: Text(
+              course.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              [
+                agencyName,
+                startDateStr,
+                if (course.instructorName != null)
+                  context.l10n.courses_card_instructor(course.instructorName!),
+              ].join(' - '),
+              // One line, so a long instructor name cannot make this row taller
+              // than the other sections' tiles.
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            trailing: _buildStatusBadge(context, statusStr, accent),
           ),
-          title: Text(
-            course.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Text(
-            [
-              agencyName,
-              startDateStr,
-              if (course.instructorName != null)
-                context.l10n.courses_card_instructor(course.instructorName!),
-            ].join(' - '),
-            // One line, so a long instructor name cannot make this row taller
-            // than the other sections' tiles.
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: _buildStatusBadge(context, statusStr, accent),
         ),
       ),
     );

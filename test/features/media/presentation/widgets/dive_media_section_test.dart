@@ -11,6 +11,11 @@ import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 
 import '../../../../helpers/mock_providers.dart' show Override;
 import '../support/media_widget_harness.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 void main() {
   test('showInOsFileManagerLabel returns OS-appropriate label', () {
@@ -34,6 +39,8 @@ void main() {
     List<MediaItem> media = const [],
     void Function(MediaItem)? onOpenDocument,
     List<Override> overrides = const [],
+    RecordEditController<Dive>? lockable,
+    bool open = false,
   }) => mediaTestApp(
     overrides: [
       mediaForDiveProvider('dive-1').overrideWith((ref) async => media),
@@ -41,12 +48,23 @@ void main() {
     ],
     home: Scaffold(
       body: SingleChildScrollView(
-        child: DiveMediaSection(
-          diveId: 'dive-1',
-          onAddPressed: onAdd,
-          onAddDocumentPressed: onAddDocument,
-          onOpenDocument: onOpenDocument,
-        ),
+        child: lockable == null
+            ? DiveMediaSection(
+                diveId: 'dive-1',
+                onAddPressed: onAdd,
+                onAddDocumentPressed: onAddDocument,
+                onOpenDocument: onOpenDocument,
+              )
+            : RecordEditScope<Dive>(
+                controller: lockable,
+                child: DiveMediaSection(
+                  diveId: 'dive-1',
+                  onAddPressed: onAdd,
+                  onAddDocumentPressed: onAddDocument,
+                  onOpenDocument: onOpenDocument,
+                  editing: open ? lockable.session : null,
+                ),
+              ),
       ),
     ),
   );
@@ -227,5 +245,142 @@ void main() {
     expect(find.byType(MediaThumbnailTile), findsOneWidget);
     expect(find.byIcon(Icons.add_photo_alternate), findsNothing);
     expect(find.byKey(const ValueKey('enter_selection')), findsNothing);
+  });
+
+  group('on a dive page that offers editing (issue #4527)', () {
+    MediaItem photo(String id, int minute) => MediaItem(
+      id: id,
+      diveId: 'dive-1',
+      mediaType: MediaType.photo,
+      takenAt: DateTime.utc(2026, 1, 1, 10, minute),
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    );
+
+    testWidgets('locked: no add, no scan and no selection', (tester) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {});
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        await host(
+          onAdd: () {},
+          onAddDocument: () {},
+          media: [photo('s1', 5)],
+          lockable: controller,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.add_photo_alternate), findsNothing);
+      expect(find.byKey(const ValueKey('enter_selection')), findsNothing);
+      expect(find.byType(MediaThumbnailTile), findsOneWidget);
+    });
+
+    testWidgets("open: the sitting's photos are drawn, an unlinked one "
+        'gone', (tester) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(Dive(id: 'dive-1', dateTime: DateTime.utc(2026)));
+      addTearDown(controller.dispose);
+      final session = controller.session!;
+      holdSittingMedia(
+        session,
+        SittingMediaWriters(
+          writeRows: (_) async => const [],
+          insertNetwork: (_) async => const [],
+          unlink: (_) async {},
+          replace: (_, _, _) async {},
+          drainDeletes: () async {},
+          enqueueUpload: (_) {},
+        ),
+      );
+      addMediaToSitting(session, [
+        HeldMediaRow((item: photo('n1', 10), enrichment: null)),
+      ]);
+      unlinkMediaInSitting(session, {'s1'});
+
+      await tester.pumpWidget(
+        await host(
+          media: [photo('s1', 5), photo('s2', 20)],
+          lockable: controller,
+          open: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final tiles = tester
+          .widgetList<MediaThumbnailTile>(find.byType(MediaThumbnailTile))
+          .map((t) => t.item.id);
+      expect(tiles, ['n1', 's2']);
+      expect(find.byIcon(Icons.add_photo_alternate), findsOneWidget);
+
+      // Not stored yet, so the viewer, which reads stored media, has
+      // nothing to open it on.
+      await tester.tap(find.byType(MediaThumbnailTile).first);
+      await tester.pumpAndSettle();
+      expect(find.byType(PhotoViewerPage), findsNothing);
+    });
+
+    testWidgets('open: a read that failed offers Try again, which reads the '
+        'media again', (tester) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(Dive(id: 'dive-1', dateTime: DateTime.utc(2026)));
+      addTearDown(controller.dispose);
+      var reads = 0;
+      await tester.pumpWidget(
+        await mediaTestApp(
+          overrides: [
+            mediaForDiveProvider('dive-1').overrideWith((ref) async {
+              if (reads++ == 0) throw StateError('database closed');
+              return [photo('s1', 5)];
+            }),
+          ],
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: RecordEditScope<Dive>(
+                controller: controller,
+                child: DiveMediaSection(
+                  diveId: 'dive-1',
+                  editing: controller.session,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SittingLoadFailed), findsOneWidget);
+      await tester.tap(find.text('Try again'));
+      await tester.pumpAndSettle();
+
+      expect(reads, 2);
+      expect(find.byType(MediaThumbnailTile), findsOneWidget);
+    });
+
+    testWidgets('a selection made in the open card ends when the card '
+        'closes, so no Unlink is left on the read-only card', (tester) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(Dive(id: 'dive-1', dateTime: DateTime.utc(2026)));
+      addTearDown(controller.dispose);
+      Future<Widget> card({required bool open}) => host(
+        onAdd: () {},
+        media: [photo('s1', 5), photo('s2', 20)],
+        lockable: controller,
+        open: open,
+      );
+
+      await tester.pumpWidget(await card(open: true));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(MediaThumbnailTile).first);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
+
+      await tester.pumpWidget(await card(open: false));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('selection_exit')), findsNothing);
+      expect(find.byIcon(Icons.link_off), findsNothing);
+    });
   });
 }

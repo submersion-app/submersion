@@ -299,6 +299,10 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   final TagRepository? _tagRepository;
   final RuleEngine? _ruleEngine;
 
+  /// Where this import's dives come from. The summary offers some follow-ups
+  /// for one source only, such as a download's cylinders (issue #4494).
+  ImportSourceType get sourceType => _adapter.sourceType;
+
   /// Stamps the imported dives' entry and exit GPS from recorded surface
   /// tracks (issue #3704). Null in tests that do not need it.
   final GpsTrackMatchService? _gpsTrackMatchService;

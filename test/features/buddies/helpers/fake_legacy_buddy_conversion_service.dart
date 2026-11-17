@@ -55,6 +55,29 @@ class FakeLegacyBuddyConversionService implements LegacyBuddyConversionService {
     );
   }
 
+  /// What [resolveForSitting] was asked to resolve.
+  final List<ConversionPlan> resolvedForSitting = [];
+
+  @override
+  Future<({List<({String buddyId, String roleId})> links, Set<String> toClaim})>
+  resolveForSitting(
+    ConversionPlan plan, {
+    required String diverId,
+    required String newBuddyNote,
+  }) async {
+    resolvedForSitting.add(plan);
+    return (
+      links: [
+        for (final (i, link) in plan.links.indexed)
+          (buddyId: 'resolved-$i', roleId: link.roleId),
+      ],
+      toClaim: toClaimForSitting,
+    );
+  }
+
+  /// What [resolveForSitting] reports as buddies to claim at Save.
+  Set<String> toClaimForSitting = const {};
+
   @override
   Future<ConversionReceipt> apply(
     List<ConversionPlan> plans, {

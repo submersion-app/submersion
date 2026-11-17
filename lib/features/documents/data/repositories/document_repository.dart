@@ -613,6 +613,33 @@ class DocumentRepository with _DocumentClearanceQueries {
     Map<String, String> owners,
   ) => _setOwners(kind, owners);
 
+  /// Files each of [documentIds] under the dive [diveId], or as Personal
+  /// for null, marking each pending (issue #4527: a sitting on the dive
+  /// holds the link until Save). A document has one owner, so filing it
+  /// under the dive moves it from wherever it was.
+  Future<void> setDiveOwner(List<String> documentIds, String? diveId) async {
+    if (documentIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final columns = {for (final c in kDocumentOwnerColumns.values) c};
+    final diveColumn = kDocumentOwnerColumns[DocumentOwnerKind.dive]!;
+    final assignments = [
+      for (final c in columns) c == diveColumn ? '$c = ?' : '$c = NULL',
+    ].join(', ');
+    await _db.transaction(() async {
+      for (final id in documentIds) {
+        await _db.customStatement(
+          'UPDATE documents SET $assignments, updated_at = ? WHERE id = ?',
+          [diveId, now, id],
+        );
+        await _syncRepository.markRecordPending(
+          entityType: _docEntity,
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+  }
+
   Future<Map<String, String>> _ownersOf(
     DocumentOwnerKind kind,
     List<String> ownerIds,

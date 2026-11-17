@@ -166,6 +166,27 @@ void main() {
       expect(parsed.sites.single.trust, CatalogueTrust.researched);
     });
 
+    test('a researched record placed from a map is read as such', () {
+      final parsed = parseSiteCatalogue(
+        _file([
+          _site({'trust': 'researched', 'position_from': 'map'}),
+        ]),
+      );
+
+      expect(parsed.sites.single.positionFromMap, isTrue);
+    });
+
+    test('any other value or none reads as not placed from a map', () {
+      final parsed = parseSiteCatalogue(
+        _file([
+          _site({'id': 'a', 'trust': 'researched', 'position_from': 'guess'}),
+          _site({'id': 'b', 'trust': 'researched'}),
+        ]),
+      );
+
+      expect(parsed.sites.map((s) => s.positionFromMap), [false, false]);
+    });
+
     test('a record without an id or a name is skipped', () {
       final parsed = parseSiteCatalogue(
         _file([

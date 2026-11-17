@@ -1728,6 +1728,15 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => '来自行程备注';
+
+  @override
+  String get trips_story_addDayNote => '添加备注';
+
+  @override
+  String get trips_story_editDayNote => '编辑备注';
+
+  @override
   String get trips_story_surfaceDay => '水面日';
 
   @override
@@ -3318,6 +3327,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buddies_field_phoneHint => '+1 (555) 123-4567';
+
+  @override
+  String get buddies_field_country => '国家/地区';
+
+  @override
+  String get buddies_field_countryHint => '例如：意大利';
 
   @override
   String buddies_label_diveCount(int count) {
@@ -6863,6 +6878,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_label_permanentlyClosed => '已永久关闭';
 
   @override
+  String get diveCenters_field_logo => '徽标';
+
+  @override
   String get diveCenters_map_addCoordinatesHint => '为您的潜水中心添加坐标以在地图上显示';
 
   @override
@@ -7872,6 +7890,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_section_weight => '配重';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => '来自装备';
+
+  @override
   String get diveLog_detail_signatureDescription => '点击为此培训潜水添加教练验证';
 
   @override
@@ -8667,6 +8688,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String diveLog_edit_weightTotal(Object total) {
     return '总计：$total';
   }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return '已计入：作为装备携带的 $weight（$items）。仅在有额外配重时于此处添加。';
+  }
+
+  @override
+  String get diveLog_edit_weightGearNote_listSeparator => '、';
 
   @override
   String get diveLog_emptyFiltered_clearFilters => '清除筛选';
@@ -9602,6 +9631,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => '计算得出';
+
+  @override
+  String get recordEdit_loadFailed => '无法加载此卡片。';
+
+  @override
+  String get recordEdit_tryAgain => '重试';
+
+  @override
+  String get recordEdit_imported => '已导入';
+
+  @override
   String get recordEdit_saveFailed => '无法保存更改。未做任何更改。';
 
   @override
@@ -10265,6 +10306,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_map_tooltip_fitAllSites => '适应所有潜水点';
+
+  @override
+  String get diveLog_media_dropUnlockHint => '请在此潜水的页面上解锁后再添加照片。';
 
   @override
   String get diveLog_numbering_actions => '操作';
@@ -10936,6 +10980,97 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_tank_ownCylinderTitle => '我的气瓶';
+
+  @override
+  String get cylindersFromTanks_title => '将气瓶加入装备';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '用于 $count 次潜水',
+      one: '用于 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个气瓶',
+      one: '$count 个气瓶',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '添加 $count 个气瓶',
+      one: '添加 $count 个气瓶',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已将 $count 个气瓶加入装备',
+      one: '已将 $count 个气瓶加入装备',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个气瓶不在装备中',
+      one: '$count 个气瓶不在装备中',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => '查看';
+
+  @override
+  String get cylindersFromTanks_name => '名称';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size$material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed => '无法添加气瓶';
+
+  @override
+  String get diveLog_tank_gearMenu => '气瓶选项';
+
+  @override
+  String get diveLog_tank_addToGear => '加入我的装备';
+
+  @override
+  String get diveLog_tank_linkCylinder => '关联到我的气瓶';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      '将此气瓶关联到装备中的气瓶，并将其加入本次潜水的装备。气瓶保留记录的规格。';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => '取消关联气瓶';
+
+  @override
+  String get diveLog_tank_linkFailed => '无法更改气瓶关联';
 
   @override
   String get diveLog_tank_regulatorLabel => '调节器';
@@ -20129,6 +20264,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文件属于其他潜水，已略过',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -25462,6 +25607,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_photo => '照片';
 
   @override
+  String get settings_conflict_field_logo => '徽标';
+
+  @override
   String get settings_conflict_field_photoBack => '证卡背面';
 
   @override
@@ -29698,6 +29846,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get signatures_noSignatureImage => '无签名图片';
+
+  @override
+  String get signatures_notSigned => '未签名';
 
   @override
   String signatures_signHere(Object name) {
@@ -43678,6 +43829,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear => '包含作为装备携带的配重，请在潜水中编辑';
+
+  @override
   String get tableEditor_summary_siteSnap => '设置潜点也会在潜水上设置其水体类型、入水、出水和潜水类型';
 
   @override
@@ -44038,6 +44192,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_buddyField_phone => '电话';
 
   @override
+  String get enum_buddyField_country => '国家/地区';
+
+  @override
   String get enum_buddyField_certificationLevel => '认证等级';
 
   @override
@@ -44057,6 +44214,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => '电话';
+
+  @override
+  String get enum_buddyField_country_short => '国家/地区';
 
   @override
   String get enum_buddyField_certificationLevel_short => '等级';
@@ -53438,6 +53598,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLab_compare_waiting => '等待潜水';
 
   @override
+  String diveLab_compare_heldLink(String plan) {
+    return '保存时将关联 $plan。';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink => '保存时将取消关联该计划。';
+
+  @override
   String get diveLab_link_unlinkTitle => '取消关联此计划？';
 
   @override
@@ -55749,6 +55917,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_buddies_phone => '电话';
+
+  @override
+  String get query_buddies_country => '国家/地区';
 
   @override
   String get query_centers_affiliations => '所属机构';
@@ -59239,6 +59410,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get changeLog_table_diverSettings => '潜水员设置';
+
+  @override
+  String get changeLog_table_safetyFinding => '安全发现';
+
+  @override
+  String get changeLog_table_pressureSeries => '压力读数';
+
+  @override
+  String get changeLog_table_navTrack => '水下轨迹';
 
   @override
   String get changeLog_history => '历史记录';

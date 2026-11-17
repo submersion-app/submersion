@@ -19,9 +19,11 @@ import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/record_chevron_expectations.dart';
 
 const _defaultConfig = EntityCardViewConfig<SiteField>(
   slots: [
@@ -452,16 +454,18 @@ void main() {
       final lastBadge = tester.getRect(
         find.widgetWithText(DiveTypeBadge, 'Wall'),
       );
-      final chevron = tester.getRect(find.byIcon(Icons.chevron_right));
+      final chevron = tester.getRect(find.byType(RecordListChevron));
 
       expect(
         lastBadge.center.dy,
         moreOrLessEquals(stat.center.dy, epsilon: 1),
         reason: 'the badges share the stat line, as on a dive card',
       );
+      // The chevron has a column of its own at the end of the card (#4639),
+      // so the content edge is where that column starts.
       expect(
         lastBadge.right,
-        moreOrLessEquals(chevron.right, epsilon: 0.5),
+        moreOrLessEquals(chevron.left, epsilon: 0.5),
         reason: 'the badges are right-aligned to the content edge',
       );
     });
@@ -736,5 +740,23 @@ void main() {
         reason: 'the missing count does not leave two stat gaps',
       );
     });
+  });
+
+  testWidgets('chevron ends one card padding from the edge (#4639)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: await _overrides(),
+        child: SiteListTile(entry: _richEntry, onTap: () {}),
+      ),
+    );
+    await tester.pump();
+
+    expectChevronAtEndPadding(
+      tester,
+      bounds: recordCardBounds(tester),
+      padding: kRecordCardDetailedPadding,
+    );
   });
 }

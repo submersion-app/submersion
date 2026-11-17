@@ -180,7 +180,7 @@ class CardViewConfig extends Equatable {
         CardSlotConfig(slotId: 'title', field: DiveField.siteName),
         CardSlotConfig(slotId: 'date', field: DiveField.dateTime),
         CardSlotConfig(slotId: 'stat1', field: DiveField.maxDepth),
-        CardSlotConfig(slotId: 'stat2', field: DiveField.bottomTime),
+        CardSlotConfig(slotId: 'stat2', field: DiveField.runtime),
       ],
     );
   }
@@ -193,7 +193,7 @@ class CardViewConfig extends Equatable {
         CardSlotConfig(slotId: 'slot1', field: DiveField.siteName),
         CardSlotConfig(slotId: 'slot2', field: DiveField.dateTime),
         CardSlotConfig(slotId: 'slot3', field: DiveField.maxDepth),
-        CardSlotConfig(slotId: 'slot4', field: DiveField.bottomTime),
+        CardSlotConfig(slotId: 'slot4', field: DiveField.runtime),
       ],
     );
   }

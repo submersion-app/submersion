@@ -122,6 +122,7 @@ class CenterTableEditorEntity
       fillOpensAt: c.fillOpensAt,
       fillClosesAt: c.fillClosesAt,
       isPermanentlyClosed: c.isPermanentlyClosed,
+      logo: c.logo,
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
     );

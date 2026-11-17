@@ -176,18 +176,30 @@ mixin _NavTrackRouteLinks {
 
   /// Makes [routeId] the route a dive's 3D seascape draws, demoting every
   /// other route linked to the same dive.
-  Future<void> setPrimary(String routeId) async {
+  ///
+  /// Given [onlyForDiveId], it does so only while the route is still on
+  /// that dive, and answers false otherwise (gone, unlinked, or moved by a
+  /// sync to another dive) without touching anything: a held change must
+  /// not reorder another dive's routes (issue #4527). True once set.
+  Future<bool> setPrimary(String routeId, {String? onlyForDiveId}) async {
     try {
-      final route = await getById(routeId, includePoints: false);
-      if (route == null) {
-        throw ArgumentError.value(routeId, 'routeId', 'No such route');
-      }
-      final diveId = route.diveId;
-      if (diveId == null) {
-        throw StateError('Route $routeId has no linked dive to be primary for');
-      }
       final now = DateTime.now().millisecondsSinceEpoch;
+      // Read inside the write, so a sync cannot move the route between the
+      // check and the demotions it decides.
       final demotedIds = await _db.transaction(() async {
+        final route = await getById(routeId, includePoints: false);
+        if (onlyForDiveId != null && route?.diveId != onlyForDiveId) {
+          return null;
+        }
+        if (route == null) {
+          throw ArgumentError.value(routeId, 'routeId', 'No such route');
+        }
+        final diveId = route.diveId;
+        if (diveId == null) {
+          throw StateError(
+            'Route $routeId has no linked dive to be primary for',
+          );
+        }
         final demoted = await _idsWhere(
           (t) =>
               t.diveId.equals(diveId) &
@@ -213,6 +225,7 @@ mixin _NavTrackRouteLinks {
         );
         return demoted;
       });
+      if (demotedIds == null) return false;
       // Every demoted route must be marked pending with the same timestamp
       // too, not only the newly primary one -- otherwise a sibling route's
       // stale isPrimary: true survives on another device until something
@@ -222,6 +235,7 @@ mixin _NavTrackRouteLinks {
       for (final demotedId in demotedIds) {
         await _markPending(demotedId, now);
       }
+      return true;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to set nav track $routeId primary',

@@ -27,6 +27,7 @@ void main() {
     Offset at = const Offset(200, 200),
     Locale locale = const Locale('en'),
     bool canOpenInNotes = true,
+    bool readOnly = false,
   }) async {
     final calls = <String>[];
     await tester.pumpWidget(
@@ -40,9 +41,9 @@ void main() {
               globalPosition: at,
               units: UnitFormatter(AppSettings(depthUnit: unit)),
               onOpenInNotes: canOpenInNotes ? () => calls.add('open') : null,
-              onMove: () => calls.add('move'),
-              onEditTime: () => calls.add('time'),
-              onRemove: () => calls.add('remove'),
+              onMove: readOnly ? null : () => calls.add('move'),
+              onEditTime: readOnly ? null : () => calls.add('time'),
+              onRemove: readOnly ? null : () => calls.add('remove'),
             ),
             child: const Text('go'),
           ),
@@ -191,5 +192,18 @@ void main() {
     );
     expect(find.text('1:05'), findsOneWidget);
     expect(find.textContaining(' at '), findsNothing);
+  });
+
+  testWidgets('read only: Open in Notes alone, and the time is not a link', (
+    tester,
+  ) async {
+    final calls = await open(tester, readOnly: true);
+    expect(find.text('Open in Notes'), findsOneWidget);
+    expect(find.text('Move'), findsNothing);
+    expect(find.text('Remove'), findsNothing);
+
+    await tester.tap(find.textContaining('21:30'));
+    await tester.pumpAndSettle();
+    expect(calls, isEmpty);
   });
 }

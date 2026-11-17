@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 
 /// Depth profile of the newest dive, shown beside the recent-dives list on
 /// wide windows.
@@ -154,7 +155,12 @@ class _Header extends ConsumerWidget {
           // navigation bar painted under a supposedly fullscreen chart (#811).
           onPressed: () => Navigator.of(context, rootNavigator: true).push(
             MaterialPageRoute<void>(
-              builder: (_) => FullscreenProfilePage(diveId: dive.id),
+              // The dashboard has no lock, so with in-place editing on the
+              // fullscreen page only reads (issue #4527).
+              builder: (_) => FullscreenProfilePage(
+                diveId: dive.id,
+                readOnly: kUnlockEditing,
+              ),
             ),
           ),
         ),

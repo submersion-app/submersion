@@ -135,7 +135,7 @@ void main() {
     await unlock(tester);
     expect(find.byTooltip('Edit Details'), findsNothing);
 
-    await tester.tap(find.widgetWithText(ActionChip, 'Details'));
+    await tapStripChip(tester, DiveDetailSectionId.details.name);
     await settle(tester);
 
     expect(find.byType(DiveDetailsCardEditor), findsOneWidget);

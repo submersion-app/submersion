@@ -41,6 +41,7 @@ Future<bool> replaceMediaLink(
   /// it through `runAsync` puts the resulting future in a different zone from
   /// the pumps that dismiss the dialog, which deadlocks.
   Future<({String hash, int sizeBytes})> Function(File)? hashFile,
+  void Function(RepairProposal proposal)? onHold,
 }) async {
   if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
     return false;
@@ -80,17 +81,21 @@ Future<bool> replaceMediaLink(
     if (confirmed != true) return false;
   }
 
-  await repairService.apply([
-    RepairProposal(
-      item: item,
-      confidence: sameBytes ? RepairConfidence.exact : RepairConfidence.edited,
-      candidate: RepairCandidate.file(
-        path: newPath,
-        sizeBytes: digest.sizeBytes,
-        hash: digest.hash,
-      ),
+  final proposal = RepairProposal(
+    item: item,
+    confidence: sameBytes ? RepairConfidence.exact : RepairConfidence.edited,
+    candidate: RepairCandidate.file(
+      path: newPath,
+      sizeBytes: digest.sizeBytes,
+      hash: digest.hash,
     ),
-  ]);
+  );
+  // A sitting on the dive (issue #4527) applies it at Save.
+  if (onHold != null) {
+    onHold(proposal);
+    return true;
+  }
+  await repairService.apply([proposal]);
   return true;
 }
 

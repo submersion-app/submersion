@@ -30,18 +30,61 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
           for (final card in diveEditCards.values)
             if (card.isValid?.call(session) == false) card.id,
         ],
-        // Whatever unlocked the page.
-        onStart: (session) => startDiveSitting(session, ref.read),
+        // Whatever unlocked the page. The container's read, not the
+        // page's: a held write can run after the page has gone.
+        onStart: (session) => startDiveSitting(
+          session,
+          ProviderScope.containerOf(context, listen: false).read,
+        ),
       )..addListener(_onEditChanged);
+
+  /// Where a drop finds the open sitting, read with the controller so it
+  /// can still be cleared once the page has gone.
+  late final StateController<OpenDiveSitting?> _openSittingSlot = ref.read(
+    openDiveSittingProvider.notifier,
+  );
+
+  /// The sitting this page last told [openDiveSittingProvider] about.
+  EditSession<Dive>? _toldSitting;
 
   /// Whether a sitting is in progress.
   bool get isSittingOpen => _editController?.isUnlocked ?? false;
 
   void _onEditChanged() {
+    _tellOpenSitting(_editController?.session);
     if (mounted) setState(() {});
   }
 
-  void disposeEditing() => _editController?.dispose();
+  /// Tells a drop which sitting is open, or that this page's has ended.
+  /// Set after the frame's work, since a lock can come while the page is
+  /// being built (another dive handed to it); a drop in between finds the
+  /// ended sitting disposed and is refused.
+  void _tellOpenSitting(EditSession<Dive>? session) {
+    if (session == _toldSitting) return;
+    final told = _toldSitting;
+    _toldSitting = session;
+    final slot = _openSittingSlot;
+    final open = session == null
+        ? null
+        : OpenDiveSitting(
+            diveId: session.stored.id,
+            session: session,
+            showMediaCard: () =>
+                _editController?.addCard(DiveDetailSectionId.media.name),
+          );
+    Future.microtask(() {
+      // The app (its provider scope) may have gone with the page.
+      if (!slot.mounted) return;
+      // Only this page's own: another page may have unlocked since.
+      if (open == null && slot.state?.session != told) return;
+      slot.state = open;
+    });
+  }
+
+  void disposeEditing() {
+    _tellOpenSitting(null);
+    _editController?.dispose();
+  }
 
   /// The dive the cards display: the diver's working copy during a
   /// sitting, or the dive as just saved, else [stored]. Either is used only
@@ -101,19 +144,33 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     final followUp = DiveSittingFollowUp.read(context, ref);
     // Read now: the sitting is disposed once the write has gone through.
     final changedCardIds = session.changedCardIds;
+    // The buddies the dive had and has, whose counts and lists the save
+    // changes; the list reads nothing once the sitting has ended.
+    final buddyIds = {
+      for (final b in [
+        ...?diveBuddiesList.loaded(session),
+        ...?diveBuddiesList.current(session),
+      ])
+        b.buddy.id,
+    };
     // The dive the sitting was opened on, whatever the page shows by the
     // time the write is asked for.
-    final result = await service.save(
-      diveId: session.stored.id,
-      // The changes, and the rebreather values a changed mode no longer
-      // uses dropped.
-      apply: (stored) => diveSittingApply(session, stored),
-      changedCardIds: session.changedCardIds,
-      writeFirst: session.hasHeldWritesBeforeRecord
-          ? () => session.runHeldWrites(beforeRecord: true)
-          : null,
-      alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
-      alsoWriteIsAChange: session.hasHeldChanges,
+    // A write that does not commit takes back what the sitting's media
+    // write did outside the database (a relink's new bookmark).
+    final result = await undoMediaOnFailure(
+      session,
+      () => service.save(
+        diveId: session.stored.id,
+        // The changes, and the rebreather values a changed mode no longer
+        // uses dropped.
+        apply: (stored) => diveSittingApply(session, stored),
+        changedCardIds: session.changedCardIds,
+        writeFirst: session.hasHeldWritesBeforeRecord
+            ? () => session.runHeldWrites(beforeRecord: true)
+            : null,
+        alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
+        alsoWriteIsAChange: session.hasHeldChanges,
+      ),
     );
     if (result == null) return;
     if (result.after.id == widget.diveId) _justSaved = result.after;
@@ -149,6 +206,13 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       after: result.after,
       tripDateStretches: result.tripDateStretches,
       changedCardIds: changedCardIds,
+      // What the sitting's own writes left for after the commit.
+      mediaAfterCommit: mediaAfterCommit(session),
+      buddyIds: buddyIds,
+      skippedRouteIds:
+          session.recall<List<String>>(routeLinksSkippedKey) ?? const [],
+      planLinksAdopted:
+          session.recall<List<(String, String?)>>(planLinkAdoptKey) ?? const [],
     );
   }
 
@@ -209,13 +273,19 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
           // emptiness counts a gauge dive, and its editor is where the mode
           // is changed back (issue #4527, plan 5).
           if (!open.contains(card.id) &&
-              (!diveCardIsOnPage(
-                    ref,
-                    section.id,
-                    layout: presence,
-                    working: working,
-                    stored: editController.session?.stored,
-                  ) ||
+              ((!diveCardIsOnPage(
+                        ref,
+                        section.id,
+                        layout: presence,
+                        working: working,
+                        stored: editController.session?.stored,
+                        edit: editController,
+                      ) &&
+                      // A card with nothing to edit until something else
+                      // exists stays out, unless the diver hid it.
+                      (!section.visible ||
+                          editController.session == null ||
+                          card.isOfferedWhenEmpty(editController.session!))) ||
                   (!section.visible && !added.contains(card.id))))
             AddStripEntry(
               cardId: card.id,

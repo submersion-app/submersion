@@ -1777,6 +1777,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'מתוך הערות הטיול';
+
+  @override
+  String get trips_story_addDayNote => 'הוסף הערה';
+
+  @override
+  String get trips_story_editDayNote => 'ערוך הערה';
+
+  @override
   String get trips_story_surfaceDay => 'יום פני השטח';
 
   @override
@@ -3445,6 +3454,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddies_field_phoneHint => '+972-50-123-4567';
+
+  @override
+  String get buddies_field_country => 'מדינה';
+
+  @override
+  String get buddies_field_countryHint => 'למשל איטליה';
 
   @override
   String buddies_label_diveCount(int count) {
@@ -7086,6 +7101,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_label_permanentlyClosed => 'סגור לצמיתות';
 
   @override
+  String get diveCenters_field_logo => 'לוגו';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'הוסף קואורדינטות למרכזי הצלילה שלך כדי לראות אותם במפה';
 
@@ -8117,6 +8135,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_section_weight => 'משקולות';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'מהציוד';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'הקש להוספת אימות מדריך לצלילת הכשרה זו';
 
@@ -8944,6 +8965,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String diveLog_edit_weightTotal(Object total) {
     return 'סה\"כ: $total';
   }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'נספר גם: $weight שנישאים כציוד ($items). הוסיפו כאן משקולת רק אם היא עופרת נפרדת.';
+  }
+
+  @override
+  String get diveLog_edit_weightGearNote_listSeparator => ', ';
 
   @override
   String get diveLog_emptyFiltered_clearFilters => 'ניקוי מסננים';
@@ -9908,6 +9937,18 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'מחושב';
+
+  @override
+  String get recordEdit_loadFailed => 'לא ניתן היה לטעון כרטיס זה.';
+
+  @override
+  String get recordEdit_tryAgain => 'נסה שוב';
+
+  @override
+  String get recordEdit_imported => 'מיובא';
+
+  @override
   String get recordEdit_saveFailed =>
       'לא ניתן היה לשמור את השינויים. שום דבר לא השתנה.';
 
@@ -10590,6 +10631,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_map_tooltip_fitAllSites => 'התאמה לכל האתרים';
 
   @override
+  String get diveLog_media_dropUnlockHint =>
+      'בטל את נעילת הצלילה בעמוד שלה כדי להוסיף לה תמונות.';
+
+  @override
   String get diveLog_numbering_actions => 'פעולות';
 
   @override
@@ -11269,6 +11314,97 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_ownCylinderTitle => 'המיכלים שלי';
+
+  @override
+  String get cylindersFromTanks_title => 'הוספת מיכלים לציוד';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ב-$count צלילות',
+      one: 'בצלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מיכלים',
+      one: 'מיכל אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הוספת $count מיכלים',
+      one: 'הוספת מיכל אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מיכלים נוספו לציוד',
+      one: 'מיכל אחד נוסף לציוד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מיכלים אינם בציוד',
+      one: 'מיכל אחד אינו בציוד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => 'בדיקה';
+
+  @override
+  String get cylindersFromTanks_name => 'שם';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size $material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed => 'לא ניתן היה להוסיף את המיכלים';
+
+  @override
+  String get diveLog_tank_gearMenu => 'אפשרויות מיכל';
+
+  @override
+  String get diveLog_tank_addToGear => 'הוספה לציוד שלי';
+
+  @override
+  String get diveLog_tank_linkCylinder => 'קישור למיכל שלי';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      'מקשר את המיכל הזה למיכל שבציוד ומוסיף אותו לציוד של הצלילה הזו. המיכל שומר על הגודל שנרשם.';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => 'ביטול קישור המיכל';
+
+  @override
+  String get diveLog_tank_linkFailed => 'לא ניתן היה לשנות את קישור המיכל';
 
   @override
   String get diveLog_tank_regulatorLabel => 'וסת';
@@ -20720,6 +20856,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קבצים תואמים צלילות אחרות והושמטו',
+      one: 'קובץ אחד תואם צלילה אחרת והושמט',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -26310,6 +26457,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_photo => 'תמונה';
 
   @override
+  String get settings_conflict_field_logo => 'לוגו';
+
+  @override
   String get settings_conflict_field_photoBack => 'גב הכרטיס';
 
   @override
@@ -30733,6 +30883,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get signatures_noSignatureImage => 'אין תמונת חתימה';
+
+  @override
+  String get signatures_notSigned => 'לא נחתם';
 
   @override
   String signatures_signHere(Object name) {
@@ -45269,6 +45422,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get tableEditor_weightGear =>
+      'כולל משקולת שנישאת כציוד, ערוך אותה בצלילה';
+
+  @override
   String get tableEditor_summary_siteSnap =>
       'הגדרת אתר מגדירה גם את סוג המים, הכניסה, היציאה וסוגי הצלילה בצלילה';
 
@@ -45630,6 +45787,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_buddyField_phone => 'טלפון';
 
   @override
+  String get enum_buddyField_country => 'מדינה';
+
+  @override
   String get enum_buddyField_certificationLevel => 'רמת הסמכה';
 
   @override
@@ -45649,6 +45809,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => 'טלפון';
+
+  @override
+  String get enum_buddyField_country_short => 'מדינה';
 
   @override
   String get enum_buddyField_certificationLevel_short => 'רמת הסמכה';
@@ -55779,6 +55942,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLab_compare_waiting => 'ממתין לצלילה';
 
   @override
+  String diveLab_compare_heldLink(String plan) {
+    return '$plan יקושר בשמירה.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink => 'קישור התוכנית יבוטל בשמירה.';
+
+  @override
   String get diveLab_link_unlinkTitle => 'לבטל את קישור התוכנית?';
 
   @override
@@ -58199,6 +58370,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_buddies_phone => 'טלפון';
+
+  @override
+  String get query_buddies_country => 'מדינה';
 
   @override
   String get query_centers_affiliations => 'השתייכויות';
@@ -61802,6 +61976,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get changeLog_table_diverSettings => 'הגדרות צוללן';
+
+  @override
+  String get changeLog_table_safetyFinding => 'ממצא בטיחות';
+
+  @override
+  String get changeLog_table_pressureSeries => 'קריאות לחץ';
+
+  @override
+  String get changeLog_table_navTrack => 'מסלול תת-ימי';
 
   @override
   String get changeLog_history => 'היסטוריה';

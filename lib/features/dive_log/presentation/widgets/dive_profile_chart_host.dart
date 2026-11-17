@@ -25,6 +25,7 @@ import 'package:submersion/features/dive_log/presentation/providers/safety_revie
 import 'package:submersion/features/dive_log/presentation/utils/profile_extent_sync.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cell_divergence_highlight.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_placement_provider.dart';
@@ -119,6 +120,10 @@ class DiveProfileChartHost extends ConsumerWidget {
     this.onTooltipData,
     this.onSafetyFindingDetails,
     this.annotationActions,
+    this.findingsDismissable = true,
+    this.annotationsInSitting,
+    this.gasSwitchesInSitting,
+    this.safetyReviewInSitting,
     this.onPlotFrame,
     this.viewport,
     this.onViewportChanged,
@@ -157,6 +162,19 @@ class DiveProfileChartHost extends ConsumerWidget {
   /// profile (the dashboard preview, a plan's logged dive).
   final DiveDetailAnnotationActions? annotationActions;
 
+  /// The annotations and gas switches as a sitting on the dive has them
+  /// (issue #4527), drawn in place of the stored ones. Null draws those.
+  final List<ProfileEvent>? annotationsInSitting;
+  final List<GasSwitchWithTank>? gasSwitchesInSitting;
+
+  /// The stored safety review as that sitting has it, its dismissals
+  /// applied, so a finding dismissed in the open card leaves the lane.
+  final SafetyReview Function(SafetyReview stored)? safetyReviewInSitting;
+
+  /// Whether a finding's callout offers Dismiss. A page that offers editing
+  /// dismisses findings in the open Safety review card only (issue #4527).
+  final bool findingsDismissable;
+
   /// "Show me the details" on a safety finding's callout. Null hides the
   /// action, which is right wherever the safety section is not on screen to
   /// scroll to.
@@ -188,9 +206,10 @@ class DiveProfileChartHost extends ConsumerWidget {
       showPressureThresholdMarkersProvider,
     );
 
-    final gasSwitches = ref.watch(
+    final storedSwitches = ref.watch(
       gasSwitchesProvider(diveId).select((a) => a.value),
     );
+    final gasSwitches = gasSwitchesInSitting ?? storedSwitches;
 
     // Cell divergence bands (condition phase 2). .value keeps the previous
     // summary while the provider reloads behind a detail tick, like the
@@ -359,9 +378,13 @@ class DiveProfileChartHost extends ConsumerWidget {
 
     final trackingIndex = ref.watch(profileTrackingIndexProvider(diveId));
     final selectedFinding = ref.watch(selectedSafetyFindingProvider(diveId));
-    final safetyReview = ref.watch(
+    final storedReview = ref.watch(
       safetyReviewProvider(diveId).select((a) => a.value),
     );
+    final inSitting = safetyReviewInSitting;
+    final safetyReview = storedReview == null || inSitting == null
+        ? storedReview
+        : inSitting(storedReview);
     final appSettings = ref.watch(
       settingsProvider.select(
         (s) => (
@@ -396,10 +419,12 @@ class DiveProfileChartHost extends ConsumerWidget {
     // analysis, so they draw whether or not the dive has an analysis.
     // `.value`, not the app's valueOrNull: a reload after a write keeps the
     // previous list on screen instead of blinking the markers out.
+    final storedAnnotations =
+        ref.watch(diveAnnotationsProvider(diveId)).value ??
+        const <ProfileEvent>[];
     final chartEvents = mergeChartEvents(
       analysis?.events,
-      ref.watch(diveAnnotationsProvider(diveId)).value ??
-          const <ProfileEvent>[],
+      annotationsInSitting ?? storedAnnotations,
     );
 
     return MouseRegion(
@@ -520,8 +545,13 @@ class DiveProfileChartHost extends ConsumerWidget {
           );
           notifier.state = notifier.state?.id == finding.id ? null : finding;
         },
-        onSafetyFindingDismiss: (finding) =>
-            setSafetyFindingDismissed(ref, finding: finding, dismissed: true),
+        onSafetyFindingDismiss: findingsDismissable
+            ? (finding) => setSafetyFindingDismissed(
+                ref,
+                finding: finding,
+                dismissed: true,
+              )
+            : null,
         onSafetyFindingDetails: onSafetyFindingDetails,
         // Range handles are drawn by the chart itself so they land on the
         // plot rect at any zoom (#1579).

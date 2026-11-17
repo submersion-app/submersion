@@ -44,11 +44,13 @@ class SignatureStorageService {
   /// [imageBytes] - PNG bytes of the signature
   /// [signerName] - Name of the instructor signing
   /// [signerId] - Optional buddy ID if instructor is in system
+  /// [signedAt] - When it was signed, if before now (a sitting saved later)
   Future<Signature> saveSignature({
     required String diveId,
     required Uint8List imageBytes,
     required String signerName,
     String? signerId,
+    DateTime? signedAt,
   }) async {
     try {
       _log.info('Saving signature for dive: $diveId');
@@ -68,7 +70,7 @@ class SignatureStorageService {
               fileType: const Value(_signatureFileType),
               sourceType: const Value(_signatureSourceType),
               signatureType: const Value('instructor'),
-              takenAt: Value(now.millisecondsSinceEpoch),
+              takenAt: Value((signedAt ?? now).millisecondsSinceEpoch),
               signerId: Value(signerId),
               signerName: Value(signerName),
               createdAt: Value(now.millisecondsSinceEpoch),
@@ -91,7 +93,7 @@ class SignatureStorageService {
         imageData: imageBytes,
         signerId: signerId,
         signerName: signerName,
-        signedAt: now,
+        signedAt: signedAt ?? now,
         type: SignatureType.instructor,
       );
     } catch (e, stackTrace) {
@@ -215,6 +217,7 @@ class SignatureStorageService {
     required String buddyId,
     required String buddyName,
     required String role,
+    DateTime? signedAt,
   }) async {
     try {
       _log.info('Saving buddy signature for dive: $diveId, buddy: $buddyId');
@@ -233,7 +236,7 @@ class SignatureStorageService {
               filePath: const Value(_signatureFilePath),
               fileType: const Value(_buddySignatureFileType),
               sourceType: const Value(_signatureSourceType),
-              takenAt: Value(now.millisecondsSinceEpoch),
+              takenAt: Value((signedAt ?? now).millisecondsSinceEpoch),
               signerId: Value(buddyId),
               signerName: Value(buddyName),
               signatureType: const Value('buddy'),
@@ -257,7 +260,7 @@ class SignatureStorageService {
         imageData: imageBytes,
         signerId: buddyId,
         signerName: buddyName,
-        signedAt: now,
+        signedAt: signedAt ?? now,
         type: SignatureType.buddy,
         role: role,
       );

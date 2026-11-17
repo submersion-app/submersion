@@ -11,6 +11,7 @@ import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -722,5 +723,39 @@ void main() {
         },
       );
     }
+
+    // Add note on a day lands on that day's note in the pane (#4625).
+    testWidgets('edit pane opens at the day note in the URL', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: [
+            ...baseOverrides(viewMode: ListViewMode.detailed),
+            tableDetailsPaneProvider('trips').overrideWith((ref) => true),
+            highlightedTripIdProvider.overrideWith((ref) => 'test-trip-id'),
+          ],
+          initialLocation:
+              '/trips?selected=test-trip-id&mode=edit&section=notes'
+              '&noteDate=2026-11-05&noteDay=3',
+        ),
+      );
+      await tester.pump();
+      tester.takeException();
+      await tester.pump();
+      tester.takeException();
+
+      final page = tester.widget<TripEditPage>(find.byType(TripEditPage));
+      expect(page.initialSection, TripEditSection.notes);
+      expect(
+        page.noteDay,
+        TripNoteDay(date: DateTime(2026, 11, 5), dayNumber: 3),
+      );
+    });
   });
 }

@@ -247,5 +247,19 @@ extension RungsFromV340 on AppDatabase {
     // backfill, so the floor does not move; re-asserted in beforeOpen.
     if (from < 371) await _assertFavouriteDiveTypeIdsColumn();
     if (from < 371) await reportProgress();
+
+    // v372: buddies.country and buddies.country_code, where a buddy is from
+    // and the ISO code read from it (issue #4457). Nullable, nothing to
+    // backfill, so the floor does not move. Re-asserted in beforeOpen.
+    // Renumbered from 371, which main took for #4413.
+    if (from < 372) await _assertBuddyCountryColumns();
+    if (from < 372) await reportProgress();
+
+    // v373: dive_centers.logo, a center's logo as a square JPEG (issue
+    // #4460). Nullable, no backfill, so the floor does not move.
+    // Re-asserted in beforeOpen. Renumbered twice: main took 371 for #4413
+    // and 372 for #4457.
+    if (from < 373) await _assertDiveCenterLogoColumn();
+    if (from < 373) await reportProgress();
   }
 }

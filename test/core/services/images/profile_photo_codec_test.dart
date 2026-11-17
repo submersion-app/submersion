@@ -15,6 +15,29 @@ Uint8List _jpeg(int width, int height) {
 img.Image _decode(Uint8List bytes) => img.decodeImage(bytes)!;
 
 void main() {
+  test('a transparent PNG encodes onto white, not black', () {
+    // Fully transparent pixels carry rgb 0 and JPEG has no alpha channel.
+    // package:image's JPEG encoder blends alpha onto white; this pins that,
+    // so a transparent dive center logo never lands on a black square.
+    final source = img.Image(width: 64, height: 64, numChannels: 4);
+    img.fill(source, color: img.ColorRgba8(0, 0, 0, 0));
+    final png = Uint8List.fromList(img.encodePng(source));
+
+    final result = runImageEncodeRequest(
+      ImageEncodeRequest.fromBytes(
+        bytes: png,
+        spec: ImageEncodeSpec.avatar,
+        declaredName: 'logo.png',
+      ),
+    );
+
+    expect(result.outcome, ImageEncodeOutcome.encoded);
+    final centre = _decode(result.bytes!).getPixel(32, 32);
+    expect(centre.r, greaterThanOrEqualTo(250));
+    expect(centre.g, greaterThanOrEqualTo(250));
+    expect(centre.b, greaterThanOrEqualTo(250));
+  });
+
   test('a landscape source becomes a 512x512 square', () {
     final result = runImageEncodeRequest(
       ImageEncodeRequest.fromBytes(

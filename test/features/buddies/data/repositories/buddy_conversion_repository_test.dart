@@ -439,6 +439,50 @@ void main() {
     });
   });
 
+  // A dive's sitting resolves the names at once but holds what changes
+  // another record's ownership until Save (issue #4527).
+  group('resolveForSitting', () {
+    test('creates a new buddy at once but claims an unowned one only when '
+        'told to', () async {
+      await insertDive('d1', buddy: 'Leo, Ann');
+      await insertBuddy('leo', 'Leo Cox', diverId: null);
+
+      final resolved = await repo.resolveForSitting(
+        plan('d1', [existing('leo', 'Leo Cox'), newLink('Ann')]),
+        diverId: 'me',
+        newBuddyNote: 'converted',
+      );
+
+      Future<String?> ownerOfLeo() async => (await (db.select(
+        db.buddies,
+      )..where((t) => t.id.equals('leo'))).getSingle()).diverId;
+      expect(resolved.links.map((l) => l.buddyId), contains('leo'));
+      expect(resolved.toClaim, {'leo'});
+      expect(await ownerOfLeo(), isNull);
+      expect(await db.select(db.diveBuddies).get(), isEmpty);
+      expect(
+        (await db.select(db.buddies).get()).map((b) => b.name),
+        containsAll(['Leo Cox', 'Ann']),
+      );
+
+      await repo.claimUnowned(resolved.toClaim, diverId: 'me');
+      expect(await ownerOfLeo(), 'me');
+      expect(await pending('buddies'), contains('leo'));
+    });
+
+    test('a buddy another diver claimed meanwhile is left theirs', () async {
+      await insertDiver('them');
+      await insertBuddy('leo', 'Leo Cox', diverId: 'them');
+
+      await repo.claimUnowned({'leo'}, diverId: 'me');
+
+      final leo = await (db.select(
+        db.buddies,
+      )..where((t) => t.id.equals('leo'))).getSingle();
+      expect(leo.diverId, 'them');
+    });
+  });
+
   group('undo', () {
     test('removes the links and the buddies the conversion created', () async {
       await insertDive('d1', buddy: 'Ann');

@@ -1,6 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,6 +13,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_map_page.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -261,5 +266,43 @@ void main() {
       expect(after.center.longitude, closeTo(-60.0, 1e-6));
       expect(after.zoom, closeTo(14.0, 1e-9));
     });
+  });
+  group('a permanently closed center (#3379)', () {
+    Finder faded() => find.descendant(
+      of: find.byWidgetPredicate(
+        (w) => w is Opacity && w.opacity == kClosedDiveCenterOpacity,
+      ),
+      matching: find.byIcon(Icons.store),
+    );
+
+    testWidgets('draws its marker faded, as the master-detail map does', (
+      tester,
+    ) async {
+      await _pumpPage(tester, [_southWest.copyWith(isPermanentlyClosed: true)]);
+      expect(faded(), findsWidgets);
+    });
+
+    testWidgets('an open center is not faded', (tester) async {
+      await _pumpPage(tester, [_southWest]);
+      expect(faded(), findsNothing);
+    });
+  });
+
+  testWidgets('a center with a logo draws it in its marker (#4460)', (
+    tester,
+  ) async {
+    final image = img.Image(width: 32, height: 32);
+    img.fill(image, color: img.ColorRgb8(0, 90, 160));
+    final logo = Uint8List.fromList(img.encodeJpg(image, quality: 80));
+
+    await _pumpPage(tester, [_southWest.copyWith(logo: logo)]);
+
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is DiveCenterMarkerGlyph && identical(w.logo, logo),
+      ),
+      findsWidgets,
+    );
+    expect(find.byIcon(Icons.store), findsNothing);
   });
 }
