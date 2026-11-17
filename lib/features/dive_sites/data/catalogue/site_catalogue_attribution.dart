@@ -16,8 +16,8 @@ abstract final class SiteCatalogueAttribution {
   /// records are named apart, as not part of the ODbL database.
   ///
   /// The sources and their licences are the ones the catalogue file
-  /// declares (`metadata.sources`, written by
-  /// scripts/site_catalogue_format.py); a test fails when the file
+  /// declares (`metadata.sources`, written by the site catalogue
+  /// repository's pipeline); a test fails when the file
   /// declares one this text does not credit. Called once from `main()`.
   static void registerLicense() {
     LicenseRegistry.addLicense(() async* {
@@ -41,18 +41,17 @@ https://opendatacommons.org/licenses/odbl/1-0/
 
 The built-in dive site data is a database compiled from OpenStreetMap and
 the sources below, and is made available under the same licence. It is
-published, with the scripts that produce it, in the Submersion source
-repository:
-https://github.com/submersion-app/submersion
+published, with the scripts that produce it, in the Submersion site
+catalogue repository:
+https://github.com/submersion-app/site-catalogue
 
-Sites added by the Submersion project (scripts/dive_sites_curated.json),
+Sites added by the Submersion project (curated/dive_sites_curated.json),
 under the Open Database License 1.0.
 
 Submersion site research: dive sites researched by the Submersion
 project, under the Open Database License 1.0. Each of their facts cites
-the published pages it was read from, in the source repository
-(scripts/site_catalogue/research/sites.json); no wording from those
-pages is kept.
+the published pages it was read from, in the site catalogue repository
+(research/sites.json); no wording from those pages is kept.
 
 The researched sites and the sites added by the Submersion project are
 gathered from published sources and are marked "Not verified" in the

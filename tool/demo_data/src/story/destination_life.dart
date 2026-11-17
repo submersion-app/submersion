@@ -297,7 +297,7 @@ const destinationSiteTypes = <String, List<String>>{
 };
 
 /// How deep each home site goes, in metres, from the curated New Jersey
-/// sites (`scripts/dive_sites_curated.json`): a home dive goes to a site
+/// sites (the catalogue's `curated_nj_` records): a home dive goes to a site
 /// deep enough for it.
 const homeSiteDepthM = <String, double>{
   'curated_nj_shark_river_inlet': 5.0,
