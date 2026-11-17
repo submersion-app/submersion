@@ -62,7 +62,7 @@ class MediaSpeciesSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = sitting;
-    if (session == null) return _content(context, ref);
+    if (session == null || session.isDisposed) return _content(context, ref);
     return ListenableBuilder(
       listenable: session,
       builder: (context, _) => _content(context, ref),
@@ -72,6 +72,9 @@ class MediaSpeciesSheet extends ConsumerWidget {
   Widget _content(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final diveId = item.diveId;
+    // A sitting that has ended takes nothing, and does not fall back to
+    // writing at once either: that would change the photo outside its lock.
+    final ended = sitting?.isDisposed ?? false;
     final tagged = {
       for (final chip in speciesChipsShown(ref, item.id, sitting))
         chip.speciesId,
@@ -119,20 +122,23 @@ class MediaSpeciesSheet extends ConsumerWidget {
                     ),
                   ),
                   selected: tagged.contains(sighting.speciesId),
-                  onSelected: (selected) => _toggle(
-                    ref,
-                    speciesId: sighting.speciesId,
-                    selected: selected,
-                    // Nothing in the viewer reads isBuiltIn; Save writes the
-                    // species id alone.
-                    held: SpeciesTagChip(
-                      speciesId: sighting.speciesId,
-                      storedName: sighting.speciesName,
-                      category:
-                          sighting.speciesCategory ?? SpeciesCategory.other,
-                      isBuiltIn: false,
-                    ),
-                  ),
+                  onSelected: ended
+                      ? null
+                      : (selected) => _toggle(
+                          ref,
+                          speciesId: sighting.speciesId,
+                          selected: selected,
+                          // Nothing in the viewer reads isBuiltIn; Save writes the
+                          // species id alone.
+                          held: SpeciesTagChip(
+                            speciesId: sighting.speciesId,
+                            storedName: sighting.speciesName,
+                            category:
+                                sighting.speciesCategory ??
+                                SpeciesCategory.other,
+                            isBuiltIn: false,
+                          ),
+                        ),
                 ),
             ],
           ),
@@ -142,7 +148,7 @@ class MediaSpeciesSheet extends ConsumerWidget {
           key: const ValueKey('media_species_other'),
           icon: const Icon(Icons.search),
           label: Text(l10n.media_species_otherSpecies),
-          onPressed: () => _pickOther(context, ref),
+          onPressed: ended ? null : () => _pickOther(context, ref),
         ),
       ],
     );

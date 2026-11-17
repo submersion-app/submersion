@@ -13815,6 +13815,14 @@
   "@media_viewer_photoGoneWhileEditing": {
     "description": "Shown when the photo being edited in the viewer is deleted elsewhere (another device, a sync) during the editing sitting; the sitting ends without saving."
   },
+  "media_viewer_videoGoneWhileEditing": "This video was removed. Your changes were not saved.",
+  "@media_viewer_videoGoneWhileEditing": {
+    "description": "Shown when the video being edited in the viewer is deleted elsewhere (another device, a sync) during the editing sitting; the sitting ends without saving."
+  },
+  "media_viewer_movedWhileEditing": "Moved to another dive since you unlocked it. Cancel, then unlock it again.",
+  "@media_viewer_movedWhileEditing": {
+    "description": "Shown when Save is refused because the photo or video being edited was moved to another dive (on another device, or by a sync) after the diver unlocked it. Cancel ends the sitting; unlocking again starts one on the new dive."
+  },
   "media_viewer_exitFullscreen": "Exit full screen",
   "@media_viewer_exitFullscreen": {
     "description": "Button revealed by a tap in fullscreen mode: return to the normal viewer"

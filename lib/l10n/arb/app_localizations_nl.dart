@@ -21905,6 +21905,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze foto is verwijderd. Je wijzigingen zijn niet opgeslagen.';
 
   @override
+  String get media_viewer_videoGoneWhileEditing =>
+      'Deze video is verwijderd. Je wijzigingen zijn niet opgeslagen.';
+
+  @override
+  String get media_viewer_movedWhileEditing =>
+      'Verplaatst naar een andere duik sinds je het ontgrendelde. Annuleer en ontgrendel het opnieuw.';
+
+  @override
   String get media_viewer_exitFullscreen => 'Volledig scherm verlaten';
 
   @override

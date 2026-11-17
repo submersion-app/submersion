@@ -21711,6 +21711,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'This photo was removed. Your changes were not saved.';
 
   @override
+  String get media_viewer_videoGoneWhileEditing =>
+      'This video was removed. Your changes were not saved.';
+
+  @override
+  String get media_viewer_movedWhileEditing =>
+      'Moved to another dive since you unlocked it. Cancel, then unlock it again.';
+
+  @override
   String get media_viewer_exitFullscreen => 'Exit full screen';
 
   @override

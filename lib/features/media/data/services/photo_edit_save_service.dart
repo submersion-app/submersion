@@ -16,6 +16,14 @@ import 'package:submersion/features/media/domain/value_objects/attachment_detail
 import 'package:submersion/features/media/domain/value_objects/photo_tag_edits.dart';
 import 'package:submersion/features/tags/data/repositories/tag_link_repository.dart';
 
+/// Thrown by [PhotoEditSaveService.save] when the photo has been moved to
+/// another dive since its sitting began: the sitting's time and its writes
+/// to the dive were made for the other one, so it can never be saved.
+class PhotoMovedError extends StateError {
+  PhotoMovedError(String mediaId)
+    : super('Media $mediaId moved to another dive');
+}
+
 /// Saves one editing sitting on a photo or video (issue #4527).
 ///
 /// As `DiveEditSaveService` does for a dive: the diver's changes are applied
@@ -68,8 +76,7 @@ class PhotoEditSaveService {
   ///
   /// [diveAtStart] is the dive the photo was on when the sitting began.
   /// When the photo has since been moved to another dive, the save is
-  /// refused with a [StateError]: the sitting's time and its writes to the
-  /// dive were made for the other one.
+  /// refused with a [PhotoMovedError].
   Future<({PhotoRecord before, PhotoRecord after})?> save({
     required String mediaId,
     required String? diverId,
@@ -92,7 +99,7 @@ class PhotoEditSaveService {
           throw StateError('Media $mediaId no longer exists');
         }
         if (diveAtStart != null && stored.item.diveId != diveAtStart.id) {
-          throw StateError('Media $mediaId moved to another dive');
+          throw PhotoMovedError(mediaId);
         }
         final merged = apply(stored);
         if (merged == stored) {

@@ -21968,6 +21968,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ezt a fotót eltávolították. A módosításaid nem lettek mentve.';
 
   @override
+  String get media_viewer_videoGoneWhileEditing =>
+      'Ezt a videót eltávolították. A módosításaid nem lettek mentve.';
+
+  @override
+  String get media_viewer_movedWhileEditing =>
+      'A feloldás óta egy másik merülésre került. Válaszd a Mégse gombot, majd oldd fel újra.';
+
+  @override
   String get media_viewer_exitFullscreen => 'Kilépés a teljes képernyőből';
 
   @override

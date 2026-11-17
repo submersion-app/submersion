@@ -84,18 +84,8 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
   bool get colorLockOffered => editingOffered;
 
   /// Steps through the check while unlocked, so the next photo opens locked.
-  void _step(int delta, int totalCount) {
-    if (!editingOffered) return _stepPage(delta, totalCount);
-    unawaited(stepGuarded(delta, (by) => _stepPage(by, totalCount)));
-  }
-
-  /// Closes the viewer, through the check while unlocked.
-  void _close() {
-    if (!editingOffered) return Navigator.of(context).pop();
-    unawaited(() async {
-      if (await leaveGuarded() && mounted) Navigator.of(context).pop();
-    }());
-  }
+  void _step(int delta, int totalCount) =>
+      unawaited(stepGuarded(delta, (by) => _stepPage(by, totalCount)));
 
   /// Keeps the pager on the sitting's photo when the list moves under it.
   void _followSittingTo(int index) {
@@ -280,7 +270,7 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                 onVerticalDragEnd: (details) {
                   if (details.primaryVelocity != null &&
                       details.primaryVelocity! > 300) {
-                    _close();
+                    closeGuarded();
                   }
                 },
                 child: Stack(
@@ -336,7 +326,7 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                         !pickingWhite) ...[
                       _TopOverlay(
                         onAdjustColor: () => openColorPanel(),
-                        writeControls: !editingOffered || photoUnlocked,
+                        writeControls: !photoLocked,
                         onUnlock:
                             !photoUnlocked &&
                                 canUnlock(currentItem, storedPhoto)
@@ -355,7 +345,7 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                             : null,
                         currentIndex: currentIndex,
                         totalCount: mediaList.length,
-                        onClose: _close,
+                        onClose: closeGuarded,
                         onEnterFullscreen: enterFullscreen,
                         onShare: (anchor) =>
                             _shareCurrentItem(currentItem, anchor),

@@ -6334,6 +6334,8 @@
   "media_viewer_editingPhoto": "A editar foto",
   "media_viewer_editingVideo": "A editar vídeo",
   "media_viewer_photoGoneWhileEditing": "Esta foto foi removida. As suas alterações não foram guardadas.",
+  "media_viewer_videoGoneWhileEditing": "Este vídeo foi removido. As suas alterações não foram guardadas.",
+  "media_viewer_movedWhileEditing": "Movido para outro mergulho desde que o desbloqueou. Cancele e desbloqueie-o novamente.",
   "media_viewer_exitFullscreen": "Sair da tela cheia",
   "media_viewer_moreOptions": "Mais opções",
   "nav_media": "Mídia",

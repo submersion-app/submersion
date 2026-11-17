@@ -20943,6 +20943,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_viewer_photoGoneWhileEditing => '此照片已被移除。你的更改未保存。';
 
   @override
+  String get media_viewer_videoGoneWhileEditing => '此视频已被移除。你的更改未保存。';
+
+  @override
+  String get media_viewer_movedWhileEditing => '自解锁后已移至另一次潜水。请取消，然后重新解锁。';
+
+  @override
   String get media_viewer_exitFullscreen => '退出全屏';
 
   @override

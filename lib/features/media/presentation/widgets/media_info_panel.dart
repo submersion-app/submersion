@@ -33,6 +33,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/utils/byte_format.dart';
 import 'package:submersion/shared/utils/file_reveal.dart';
@@ -171,6 +172,17 @@ class _FileSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // The info sheet is a route of its own, which the viewer's redraws do
+    // not reach: the section follows the sitting itself (issue #4527).
+    final session = sitting;
+    if (session == null || session.isDisposed) return _section(context, ref);
+    return ListenableBuilder(
+      listenable: session,
+      builder: (context, _) => _section(context, ref),
+    );
+  }
+
+  Widget _section(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final unknown = l10n.media_info_unknown;
     // The dive's profile decides whether the stored position is inside the
@@ -181,7 +193,13 @@ class _FileSection extends ConsumerWidget {
         : ref.watch(diveProvider(diveId)).value?.profile ??
               const <DiveProfilePoint>[];
     final profileLength = MediaDiveWindow.profileLengthSeconds(profile);
-    final enrichment = item.enrichment;
+    // In a sitting the photo sits where its held time puts it, and Set time
+    // starts from there.
+    final session = sitting;
+    final timed = sittingIsOver(session, item.id)
+        ? photoShownItem(session!, profile)
+        : item;
+    final enrichment = timed.enrichment;
     final positioned = enrichment?.isWithinDiveWindow(profileLength) ?? false;
     final String timeInDive;
     if (!positioned) {
@@ -206,11 +224,11 @@ class _FileSection extends ConsumerWidget {
         // Pinning needs a profile to pin against.
         if (diveId != null && profile.isNotEmpty && canEdit && !readOnly)
           _SetTimeButton(
-            item: item,
+            item: timed,
             sitting: sitting,
             profile: profile,
             initialElapsedSeconds: setTimeSeedFor(
-              item,
+              timed,
               profileLengthSeconds: profileLength,
             ),
           ),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/models/log_entry.dart';
@@ -6,6 +8,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/media/data/services/photo_edit_save_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
@@ -59,6 +62,11 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
 
   bool get photoUnlocked => _photoController?.isUnlocked ?? false;
 
+  /// Whether the viewer only reads: built with the lock and not unlocked. A
+  /// device that cannot unlock at all (a browser) is always here, so nothing
+  /// there falls back to writing at once.
+  bool get photoLocked => unlockEditingRequested && !photoUnlocked;
+
   /// The photo the sitting is over.
   String? get _sittingId => photoSitting?.stored.item.id;
 
@@ -70,9 +78,22 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
       _listened = session?..addListener(_onSittingChanged);
     }
     final unlocked = photoUnlocked;
-    if (_wasUnlocked && !unlocked) onPhotoLocked();
+    if (_wasUnlocked && !unlocked) {
+      _closeRoutesAbove();
+      onPhotoLocked();
+    }
     _wasUnlocked = unlocked;
     setState(() {});
+  }
+
+  /// Closes the sheets and dialogs open over the viewer once its sitting
+  /// has ended (the photo deleted elsewhere): they hold into a sitting that
+  /// no longer exists. Cancel and Save are tapped on the viewer itself, so
+  /// there is nothing above it then.
+  void _closeRoutesAbove() {
+    final route = ModalRoute.of(context);
+    if (route == null || route.isCurrent || !route.isActive) return;
+    Navigator.of(context).popUntil((other) => other == route);
   }
 
   void _onSittingChanged() {
@@ -123,7 +144,10 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !controller.isUnlocked) return;
       final messenger = ScaffoldMessenger.maybeOf(context);
-      final message = context.l10n.media_viewer_photoGoneWhileEditing;
+      final l10n = context.l10n;
+      final message = controller.session?.stored.item.isVideo ?? false
+          ? l10n.media_viewer_videoGoneWhileEditing
+          : l10n.media_viewer_photoGoneWhileEditing;
       controller.lock();
       messenger?.showSnackBar(SnackBar(content: Text(message)));
     });
@@ -204,6 +228,15 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     }
   }
 
+  /// Closes the viewer; while unlocked, through the check, as the close
+  /// button and the swipe down pop past the leave guard.
+  void closeGuarded() {
+    if (!editingOffered) return Navigator.of(context).pop();
+    unawaited(() async {
+      if (await leaveGuarded() && mounted) Navigator.of(context).pop();
+    }());
+  }
+
   /// For a way out that `PopScope` does not see (the close button, the
   /// swipe down, Go to dive): true when the viewer may go, the photo locked.
   Future<bool> leaveGuarded() async {
@@ -223,8 +256,14 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     final l10n = context.l10n;
     final controller = photoEditController;
     final saved = await controller.save();
-    if (saved || controller.saveError == null) return;
-    messenger.showSnackBar(SnackBar(content: Text(l10n.recordEdit_saveFailed)));
+    final error = controller.saveError;
+    if (saved || error == null) return;
+    // A photo moved to another dive can never be saved: say so, and how to
+    // go on, rather than invite a retry.
+    final message = error is PhotoMovedError
+        ? l10n.media_viewer_movedWhileEditing
+        : l10n.recordEdit_saveFailed;
+    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _savePhotoSitting(EditSession<PhotoRecord> session) async {

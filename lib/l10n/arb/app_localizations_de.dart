@@ -22014,6 +22014,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dieses Foto wurde entfernt. Deine Änderungen wurden nicht gespeichert.';
 
   @override
+  String get media_viewer_videoGoneWhileEditing =>
+      'Dieses Video wurde entfernt. Deine Änderungen wurden nicht gespeichert.';
+
+  @override
+  String get media_viewer_movedWhileEditing =>
+      'Seit dem Entsperren in einen anderen Tauchgang verschoben. Brich ab und entsperre erneut.';
+
+  @override
   String get media_viewer_exitFullscreen => 'Vollbild beenden';
 
   @override

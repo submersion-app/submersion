@@ -20,12 +20,12 @@ extension _ViewerChrome on _MediaViewerPageState {
     item: currentItem,
     currentIndex: currentIndex,
     totalCount: totalCount,
-    onClose: _close,
+    onClose: closeGuarded,
     onEnterFullscreen: enterFullscreen,
     onShowInfo: () => showMediaInfoSheet(
       context,
       currentItem,
-      readOnly: editingOffered && !photoUnlocked,
+      readOnly: photoLocked,
       sitting: photoSitting,
     ),
     onReupload: mediaReuploadAvailable(ref)
@@ -43,7 +43,7 @@ extension _ViewerChrome on _MediaViewerPageState {
     onUnlock: !photoUnlocked && canUnlock(currentItem, storedPhoto)
         ? () => unlockPhoto(storedPhoto!)
         : null,
-    writeControls: !editingOffered || photoUnlocked,
+    writeControls: !photoLocked,
     editBar: photoUnlocked
         ? MediaViewerEditBar(
             title: currentItem.isVideo
@@ -88,19 +88,7 @@ extension _ViewerChrome on _MediaViewerPageState {
 
   /// Steps [delta] photos; while unlocked, through the check, so the next
   /// photo opens locked.
-  void _step(int delta) {
-    if (!editingOffered) return _stepPage(delta);
-    unawaited(stepGuarded(delta, _stepPage));
-  }
-
-  /// Closes the viewer; while unlocked, through the check, as the close
-  /// button and the swipe down pop past the leave guard.
-  void _close() {
-    if (!editingOffered) return Navigator.of(context).pop();
-    unawaited(() async {
-      if (await leaveGuarded() && mounted) Navigator.of(context).pop();
-    }());
-  }
+  void _step(int delta) => unawaited(stepGuarded(delta, _stepPage));
 
   /// Keeps the pager on the sitting's photo when the list moves under it.
   void _followSittingTo(int index) {

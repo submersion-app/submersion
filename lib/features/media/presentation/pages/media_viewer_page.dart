@@ -466,7 +466,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                 onVerticalDragEnd: (details) {
                   if (details.primaryVelocity != null &&
                       details.primaryVelocity! > 300) {
-                    _close();
+                    closeGuarded();
                   }
                 },
                 child: Stack(
@@ -618,7 +618,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                             photoElapsedSeconds: enrichment.elapsedSeconds!,
                             photoDepthMeters: enrichment.depthMeters,
                             settings: units.settings,
-                            visible: _showOverlay,
+                            visible: _showOverlay || photoUnlocked,
                           ),
 
                         // Bottom metadata
@@ -633,7 +633,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                           onSetTime:
                               diveProfile == null ||
                                   diveProfile.isEmpty ||
-                                  (editingOffered && !photoUnlocked)
+                                  photoLocked
                               ? null
                               : () => _setTimeInDive(currentItem, diveProfile),
                           siteName: diveAsync.whenOrNull(

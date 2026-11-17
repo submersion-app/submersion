@@ -45,8 +45,10 @@ Future<void> showMediaTagSheet(
   ),
 );
 
-/// Tag a photo or video. Every change is saved as it is made, as species
-/// tags are: the sheet has no Save button to forget.
+/// Tag a photo or video. With no sitting every change is saved as it is
+/// made, as species tags are: the sheet has no Save button to forget. With
+/// one, the tags are held in it until the viewer's Save (issue #4527), and
+/// once it has ended the sheet only reads.
 class MediaTagSheet extends ConsumerWidget {
   const MediaTagSheet({
     super.key,

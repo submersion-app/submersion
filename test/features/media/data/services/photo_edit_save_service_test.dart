@@ -363,7 +363,7 @@ void main() {
         alsoWriteIsAChange: true,
         diveAtStart: (id: 'd1'),
       ),
-      throwsStateError,
+      throwsA(isA<PhotoMovedError>()),
     );
 
     final after = await stored('p1');

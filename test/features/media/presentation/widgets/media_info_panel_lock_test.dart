@@ -101,6 +101,35 @@ void main() {
       expect(sitting.valueOf(photoPinField), 300);
     });
 
+    testWidgets('in a sitting: the held time is shown, and Set time starts '
+        'from it', (tester) async {
+      final item = infoPanelLinked(enrichment: infoPanelEnrichmentAt(750));
+      final sitting = EditSession<PhotoRecord>(
+        PhotoRecord(item: item, species: const [], people: const []),
+      );
+      addTearDown(sitting.dispose);
+      await pump(
+        tester,
+        item,
+        extra: [
+          infoPanelDiveOverride(),
+          mediaTimePinnerProvider.overrideWithValue(CapturingPinner([])),
+        ],
+        sitting: sitting,
+      );
+      expect(find.text('12:30'), findsOneWidget);
+
+      sitting.set(photoPinField, 300);
+      await tester.pumpAndSettle();
+
+      expect(find.text('5:00 (set manually)'), findsOneWidget);
+      expect(find.text('12:30'), findsNothing);
+      await tester.tap(find.text('Set time in dive'));
+      await tester.pumpAndSettle();
+      final field = tester.widget<TextField>(find.byType(TextField));
+      expect(field.controller!.text, '5:00');
+    });
+
     testWidgets('in a sitting: Locate is not offered until it can be held', (
       tester,
     ) async {

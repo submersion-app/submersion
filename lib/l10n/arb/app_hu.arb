@@ -6208,6 +6208,8 @@
   "media_viewer_editingPhoto": "Fotó szerkesztése",
   "media_viewer_editingVideo": "Videó szerkesztése",
   "media_viewer_photoGoneWhileEditing": "Ezt a fotót eltávolították. A módosításaid nem lettek mentve.",
+  "media_viewer_videoGoneWhileEditing": "Ezt a videót eltávolították. A módosításaid nem lettek mentve.",
+  "media_viewer_movedWhileEditing": "A feloldás óta egy másik merülésre került. Válaszd a Mégse gombot, majd oldd fel újra.",
   "media_viewer_exitFullscreen": "Kilépés a teljes képernyőből",
   "media_viewer_moreOptions": "További lehetőségek",
   "nav_media": "Média",

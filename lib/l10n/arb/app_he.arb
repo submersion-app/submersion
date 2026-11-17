@@ -6208,6 +6208,8 @@
   "media_viewer_editingPhoto": "עריכת תמונה",
   "media_viewer_editingVideo": "עריכת סרטון",
   "media_viewer_photoGoneWhileEditing": "התמונה הוסרה. השינויים שלך לא נשמרו.",
+  "media_viewer_videoGoneWhileEditing": "הסרטון הוסר. השינויים שלך לא נשמרו.",
+  "media_viewer_movedWhileEditing": "הועבר לצלילה אחרת מאז ביטול הנעילה. בטל, ואז בטל שוב את הנעילה.",
   "media_viewer_exitFullscreen": "יציאה ממסך מלא",
   "media_viewer_moreOptions": "אפשרויות נוספות",
   "nav_media": "מדיה",

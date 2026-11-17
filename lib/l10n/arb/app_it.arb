@@ -6208,6 +6208,8 @@
   "media_viewer_editingPhoto": "Modifica della foto",
   "media_viewer_editingVideo": "Modifica del video",
   "media_viewer_photoGoneWhileEditing": "Questa foto è stata rimossa. Le modifiche non sono state salvate.",
+  "media_viewer_videoGoneWhileEditing": "Questo video è stato rimosso. Le modifiche non sono state salvate.",
+  "media_viewer_movedWhileEditing": "Spostato in un'altra immersione dopo lo sblocco. Annulla, poi sbloccalo di nuovo.",
   "media_viewer_exitFullscreen": "Esci da schermo intero",
   "media_viewer_moreOptions": "Altre opzioni",
   "nav_media": "Media",

@@ -21556,6 +21556,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'התמונה הוסרה. השינויים שלך לא נשמרו.';
 
   @override
+  String get media_viewer_videoGoneWhileEditing =>
+      'הסרטון הוסר. השינויים שלך לא נשמרו.';
+
+  @override
+  String get media_viewer_movedWhileEditing =>
+      'הועבר לצלילה אחרת מאז ביטול הנעילה. בטל, ואז בטל שוב את הנעילה.';
+
+  @override
   String get media_viewer_exitFullscreen => 'יציאה ממסך מלא';
 
   @override

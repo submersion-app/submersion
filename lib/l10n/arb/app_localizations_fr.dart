@@ -22098,6 +22098,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cette photo a été supprimée. Vos modifications n\'ont pas été enregistrées.';
 
   @override
+  String get media_viewer_videoGoneWhileEditing =>
+      'Cette vidéo a été supprimée. Vos modifications n\'ont pas été enregistrées.';
+
+  @override
+  String get media_viewer_movedWhileEditing =>
+      'Déplacé vers une autre plongée depuis le déverrouillage. Annulez, puis déverrouillez à nouveau.';
+
+  @override
   String get media_viewer_exitFullscreen => 'Quitter le plein écran';
 
   @override

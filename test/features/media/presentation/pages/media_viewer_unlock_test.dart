@@ -20,6 +20,7 @@ import 'package:submersion/features/media/presentation/pages/media_viewer_page.d
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_panel.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
+import 'package:submersion/features/media/presentation/widgets/mini_dive_profile_overlay.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -400,17 +401,23 @@ void main() {
       expect(find.byType(RecordEditBar), findsOneWidget);
     });
 
-    testWidgets('a tap on the photo keeps the bar up; no fullscreen offered', (
-      tester,
-    ) async {
+    testWidgets('a tap on the photo keeps the bar and the mini profile up; '
+        'no fullscreen offered', (tester) async {
       await pumpViewer(tester);
       await tapUnlock(tester);
+      photoController(tester).session!.set(photoPinField, 120);
+      await settleViewer(tester);
 
       await tester.tapAt(const Offset(640, 400));
       await settleViewer(tester);
 
       expect(find.byType(RecordEditBar), findsOneWidget);
       expect(find.byTooltip('Full screen'), findsNothing);
+      final profile = find.byType(PositionedMiniProfileOverlay);
+      expect(
+        tester.widget<PositionedMiniProfileOverlay>(profile).visible,
+        isTrue,
+      );
     });
   });
 
@@ -616,26 +623,26 @@ void main() {
       );
     });
 
-    testWidgets(
-      'the dialog answering after the sitting ended changes nothing',
-      (tester) async {
-        await pumpViewer(tester);
-        await tapUnlock(tester);
-        await tester.tap(find.byIcon(Icons.timer_off_outlined));
-        await settleViewer(tester);
+    testWidgets('the sitting ending closes the dialog; nothing is written', (
+      tester,
+    ) async {
+      await pumpViewer(tester);
+      await tapUnlock(tester);
+      await tester.tap(find.byIcon(Icons.timer_off_outlined));
+      await settleViewer(tester);
+      expect(find.byType(TextField), findsOneWidget);
 
-        photoController(tester).lock();
-        await tester.enterText(find.byType(TextField), '2:00');
-        await tester.tap(find.text('Save').last);
-        await settleViewer(tester);
+      photoController(tester).lock();
+      await settleViewer(tester);
 
-        final after = (await tester.runAsync(
-          () => MediaRepository().getMediaById('p2'),
-        ))!;
-        expect(after.manualElapsedSeconds, isNull);
-        expect(photoController(tester).isUnlocked, isFalse);
-      },
-    );
+      expect(find.byType(TextField), findsNothing);
+
+      final after = (await tester.runAsync(
+        () => MediaRepository().getMediaById('p2'),
+      ))!;
+      expect(after.manualElapsedSeconds, isNull);
+      expect(photoController(tester).isUnlocked, isFalse);
+    });
 
     testWidgets('locked: the info sheet offers no Set time', (tester) async {
       await pumpViewer(tester);

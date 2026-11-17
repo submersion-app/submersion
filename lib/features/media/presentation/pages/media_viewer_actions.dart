@@ -82,7 +82,10 @@ extension _ViewerActions on _MediaViewerPageState {
     );
     if (choice == null || !mounted) return;
     if (held != null) return holdTimeChoice(held, item.id, choice, automatic);
-    if (editingOffered) return;
+    // Built with the lock, a time is only ever held: a sitting that ended
+    // while the dialog was open, or a device that cannot unlock, writes
+    // nothing.
+    if (unlockEditingRequested) return;
     await pinner.apply(item, choice);
   }
 

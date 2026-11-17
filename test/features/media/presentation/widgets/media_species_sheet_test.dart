@@ -225,6 +225,44 @@ void main() {
       );
     });
 
+    testWidgets('a sitting that ends while the sheet is open leaves it read '
+        'only', (tester) async {
+      final service = _RecordingTaggingService();
+      final sitting = EditSession<PhotoRecord>(
+        PhotoRecord(
+          item: _photo(diveId: 'd1'),
+          species: const [whale],
+          people: const [],
+        ),
+      );
+      await _pump(
+        tester,
+        item: _photo(diveId: 'd1'),
+        service: service,
+        chips: const [whale],
+        sitting: sitting,
+      );
+
+      sitting.dispose();
+      await _pump(
+        tester,
+        item: _photo(diveId: 'd1'),
+        service: service,
+        chips: const [whale],
+        sitting: sitting,
+      );
+
+      final chip = tester.widget<FilterChip>(
+        find.widgetWithText(FilterChip, 'My Nudibranch'),
+      );
+      expect(chip.onSelected, isNull);
+      final other = tester.widget<OutlinedButton>(
+        find.byKey(const ValueKey('media_species_other')),
+      );
+      expect(other.onPressed, isNull);
+      expect(service.tagged, isEmpty);
+    });
+
     test('a species from the picker is held', () {
       final sitting = sittingWith(const [whale]);
 

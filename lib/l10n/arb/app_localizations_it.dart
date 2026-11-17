@@ -22042,6 +22042,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questa foto è stata rimossa. Le modifiche non sono state salvate.';
 
   @override
+  String get media_viewer_videoGoneWhileEditing =>
+      'Questo video è stato rimosso. Le modifiche non sono state salvate.';
+
+  @override
+  String get media_viewer_movedWhileEditing =>
+      'Spostato in un\'altra immersione dopo lo sblocco. Annulla, poi sbloccalo di nuovo.';
+
+  @override
   String get media_viewer_exitFullscreen => 'Esci da schermo intero';
 
   @override
