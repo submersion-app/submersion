@@ -525,13 +525,15 @@ void main() {
             duration: const Duration(minutes: 25),
             summary: summary,
             stat1Field: DiveField.ratingStars,
-            stat2Field: DiveField.runtime,
+            stat2Field: DiveField.bottomTime,
             onTap: () {},
           ),
         ),
       );
 
       expect(find.text('#15'), findsOneWidget);
+      // The non-default Bottom Time slot reads the summary's bottom time.
+      expect(find.textContaining('25'), findsOneWidget);
     });
 
     testWidgets('renders stat slot without icon using label:value format', (
@@ -576,7 +578,8 @@ void main() {
       'renders stat fallback when summary null and non-default field',
       (tester) async {
         // Exercise the fallback path in _buildStatText when summary is null
-        // and the field is neither maxDepth nor bottomTime.
+        // and the field is neither maxDepth nor a duration field (runtime or
+        // bottom time).
         await tester.pumpWidget(
           testApp(
             overrides: [
