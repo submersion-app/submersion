@@ -213,6 +213,26 @@ void main() {
 
     expect(ended, 0);
   });
+  // On a desktop window a root visit moves into the list pane: an edit
+  // address must arrive there still asking for edit mode, or the dive
+  // opens locked.
+  testWidgets('a desktop deep link moves into the pane in edit mode', (
+    tester,
+  ) async {
+    final page = await pumpPage(
+      tester,
+      openUnlocked: true,
+      size: const Size(1400, 1000),
+      initialLocation: '/root-dive',
+    );
+    await settle(tester);
+
+    final landed = page.router.routerDelegate.currentConfiguration.uri;
+    expect(landed.path, '/dives');
+    expect(landed.queryParameters['selected'], dive.id);
+    expect(landed.queryParameters['mode'], 'edit');
+  });
+
   // A leave that discards a sitting the diver unlocked by hand ends no
   // sitting the page opened, so it must not swallow the end of the next one.
   testWidgets('a leave after a hand-made sitting does not hide the next '

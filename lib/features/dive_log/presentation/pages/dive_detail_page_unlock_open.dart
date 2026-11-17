@@ -17,10 +17,16 @@ mixin _DiveDetailPageUnlockOpen
   /// end is told to [DiveDetailPage.onSittingEnded].
   bool _sittingOpenedUnlocked = false;
 
+  /// Set when a desktop root visit moves this page into the list pane, which
+  /// opens the dive unlocked itself: this page, about to go, does not.
+  bool _redirectingToPane = false;
+
   /// Unlocks on [stored] after this frame, once per page, when the page was
   /// asked to open unlocked. Call where the page first has the stored dive.
   void _openUnlockedOnce(Dive stored) {
     if (!widget.openUnlocked || _openedUnlocked || isCreating) return;
+    // A page moving into the list pane leaves the unlock to the pane's.
+    if (_redirectingToPane) return;
     _openedUnlocked = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;

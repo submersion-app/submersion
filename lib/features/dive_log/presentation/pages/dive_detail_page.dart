@@ -473,9 +473,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
           viewMode: ref.read(diveListViewModeProvider),
         )) {
       _hasRedirected = true;
+      _redirectingToPane = true;
+      // An edit address keeps asking for edit mode in the pane, which opens
+      // the dive unlocked there (issue #4527, plan 11).
+      final mode = widget.openUnlocked ? '&mode=edit' : '';
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.go('/dives?selected=$diveId');
+          context.go('/dives?selected=$diveId$mode');
         }
       });
     }
