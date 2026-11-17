@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """The pack's candidate list: every built-in catalogue species with its own
 GBIF key, then the species GBIF has the most photographed observations of
-within the catalogue's higher taxa.
+within the catalogue's higher taxa, then the species divers record most in
+shallow surveys there, photographed or not.
 
 Network access is only in the `fetch_*` functions; the rest is pure and
 tested by manifest_test.py.
@@ -128,27 +129,55 @@ def _get_json(url, cache_path):
     return data
 
 
-def fetch_photographed_species(taxon_keys, work, *, min_images, page=1000, limit=20000):
-    """(speciesKey, count) for species with at least `min_images` photographed
-    human observations under any of `taxon_keys`, most photographed first."""
-    params = [("taxon_key", str(k)) for k in taxon_keys] + [
-        ("media_type", "StillImage"),
-        ("basis_of_record", "HUMAN_OBSERVATION"),
+# Photographed human observations: mostly iNaturalist, so every one is a
+# sighting.
+PHOTO_FILTERS = [("media_type", "StillImage"), ("basis_of_record", "HUMAN_OBSERVATION")]
+
+# Human observations from dive surveys, photographed or not. Reef visual
+# census programmes record species divers see often but rarely photograph
+# (Creole Wrasse). Monitoring programmes also publish a row for every
+# species not seen on a survey, so only sightings count. Fishery catches and
+# deep ROV surveys log millions of records below diving depth, so only
+# records from 0 to 40 m count; records without a depth do not.
+SURVEY_FILTERS = [
+    ("basis_of_record", "HUMAN_OBSERVATION"),
+    ("occurrence_status", "PRESENT"),
+    ("depth", "0,40"),
+]
+
+
+def facet_cache_path(work, route, taxon_keys, filters, min_count, offset):
+    """Where one page of a species facet is cached. The name says which taxa
+    (and, for any query but the photo one, which filters) were asked about,
+    so a changed query cannot be answered from an earlier one's cache. The
+    photo query keeps the name it had before surveys were counted, so an
+    earlier build's work folder still answers it."""
+    taxa = ",".join(str(k) for k in sorted(taxon_keys))
+    if route == "photographed":
+        return os.path.join(
+            work, "facets", f"species_{hashlib.sha256(taxa.encode()).hexdigest()[:12]}_{min_count}_{offset}.json"
+        )
+    query = taxa + "|" + "&".join(f"{k}={v}" for k, v in filters)
+    digest = hashlib.sha256(query.encode()).hexdigest()[:12]
+    return os.path.join(work, "facets", f"{route}_{digest}_{min_count}_{offset}.json")
+
+
+def _species_facet(taxon_keys, work, route, filters, min_count, page, limit):
+    """(speciesKey, count) for species with at least `min_count` occurrences
+    matching `filters` under any of `taxon_keys`, most first."""
+    params = [("taxon_key", str(k)) for k in taxon_keys] + filters + [
         ("limit", "0"),
         ("facet", "speciesKey"),
-        ("facetMincount", str(min_images)),
+        ("facetMincount", str(min_count)),
         ("facetLimit", str(page)),
     ]
-    # The cache name says which taxa were asked about, so a changed list
-    # cannot be answered from an earlier query's cache.
-    query_id = hashlib.sha256(",".join(str(k) for k in sorted(taxon_keys)).encode()).hexdigest()[:12]
     found = []
     offset = 0
     while offset < limit:
         query = urllib.parse.urlencode(params + [("facetOffset", str(offset))])
         data = _get_json(
             f"{API}/occurrence/search?{query}",
-            os.path.join(work, "facets", f"species_{query_id}_{min_images}_{offset}.json"),
+            facet_cache_path(work, route, taxon_keys, filters, min_count, offset),
         )
         counts = (data.get("facets") or [{}])[0].get("counts", [])
         found.extend((int(c["name"]), int(c["count"])) for c in counts)
@@ -156,6 +185,36 @@ def fetch_photographed_species(taxon_keys, work, *, min_images, page=1000, limit
             break
         offset += page
     return found
+
+
+def fetch_photographed_species(taxon_keys, work, *, min_images, page=1000, limit=20000):
+    """(speciesKey, count) for species with at least `min_images` photographed
+    human observations under any of `taxon_keys`, most photographed first."""
+    return _species_facet(taxon_keys, work, "photographed", PHOTO_FILTERS, min_images, page, limit)
+
+
+def fetch_surveyed_species(taxon_keys, work, *, min_records, page=1000, limit=40000):
+    """(speciesKey, count) for species with at least `min_records` present
+    human observations at 0 to 40 m under any of `taxon_keys`, most recorded
+    first."""
+    return _species_facet(taxon_keys, work, "surveyed", SURVEY_FILTERS, min_records, page, limit)
+
+
+def wanted_keys(photographed, surveyed, have, room):
+    """The species keys to add to a list that already holds `have`, at most
+    `room` of them: the photographed ones in their order, then the surveyed
+    ones not already chosen, in theirs. `photographed` and `surveyed` are
+    (key, count) pairs, most first. When the room runs out, survey-only
+    species are the ones left out."""
+    chosen = []
+    seen = set(have)
+    for key, _ in list(photographed) + list(surveyed):
+        if len(chosen) >= room:
+            break
+        if key not in seen:
+            seen.add(key)
+            chosen.append(key)
+    return chosen
 
 
 def fetch_species(key, work):

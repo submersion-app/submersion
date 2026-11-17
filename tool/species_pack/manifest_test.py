@@ -256,6 +256,67 @@ class ExpansionTests(unittest.TestCase):
         self.assertEqual(candidates.expansion_order_keys(records), set())
 
 
+class SurveyQueryTests(unittest.TestCase):
+    def test_survey_counts_only_present_shallow_human_observations(self):
+        f = dict(candidates.SURVEY_FILTERS)
+        self.assertEqual(f["basis_of_record"], "HUMAN_OBSERVATION")
+        self.assertEqual(f["occurrence_status"], "PRESENT")
+        self.assertEqual(f["depth"], "0,40")
+        self.assertNotIn("media_type", f)
+
+    def test_photo_query_is_unchanged(self):
+        self.assertEqual(
+            candidates.PHOTO_FILTERS,
+            [("media_type", "StillImage"), ("basis_of_record", "HUMAN_OBSERVATION")],
+        )
+
+    def test_photo_cache_keeps_its_name(self):
+        # Earlier builds' work folders answer the photo query from here.
+        path = candidates.facet_cache_path("w", "photographed", [3, 1], candidates.PHOTO_FILTERS, 50, 1000)
+        digest = hashlib.sha256(b"1,3").hexdigest()[:12]
+        self.assertEqual(path, os.path.join("w", "facets", f"species_{digest}_50_1000.json"))
+
+    def test_survey_cache_differs_from_the_photo_cache(self):
+        photo = candidates.facet_cache_path("w", "photographed", [1], candidates.PHOTO_FILTERS, 50, 0)
+        survey = candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 0)
+        self.assertNotEqual(photo, survey)
+
+    def test_survey_cache_changes_with_its_filters(self):
+        a = candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 0)
+        b = candidates.facet_cache_path("w", "surveyed", [1], [("depth", "0,30")], 50, 0)
+        self.assertNotEqual(a, b)
+
+    def test_survey_cache_changes_with_its_taxa(self):
+        a = candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 0)
+        b = candidates.facet_cache_path("w", "surveyed", [1, 2], candidates.SURVEY_FILTERS, 50, 0)
+        self.assertNotEqual(a, b)
+
+
+class WantedKeysTests(unittest.TestCase):
+    def test_photographed_first_then_surveyed(self):
+        self.assertEqual(
+            candidates.wanted_keys([(1, 90), (2, 80)], [(3, 900), (4, 50)], set(), 10), [1, 2, 3, 4]
+        )
+
+    def test_a_species_in_both_is_listed_once_at_its_photographed_place(self):
+        self.assertEqual(
+            candidates.wanted_keys([(1, 90), (2, 80)], [(2, 5000), (3, 60)], set(), 10), [1, 2, 3]
+        )
+
+    def test_species_already_on_the_list_are_skipped(self):
+        self.assertEqual(candidates.wanted_keys([(1, 90), (2, 80)], [(3, 60)], {1, 3}, 10), [2])
+
+    def test_survey_only_species_are_cut_first(self):
+        self.assertEqual(candidates.wanted_keys([(1, 90), (2, 80)], [(3, 900)], set(), 2), [1, 2])
+
+    def test_no_room_adds_nothing(self):
+        self.assertEqual(candidates.wanted_keys([(1, 90)], [(3, 900)], set(), 0), [])
+        self.assertEqual(candidates.wanted_keys([(1, 90)], [(3, 900)], set(), -5), [])
+
+    def test_a_key_repeated_within_a_ranking_counts_once(self):
+        self.assertEqual(candidates.wanted_keys([(1, 90), (1, 90)], [(3, 9), (3, 9)], set(), 10), [1, 3])
+
+
 
 class PackVersionTests(unittest.TestCase):
     def test_two_builds_on_one_day_get_different_versions(self):
