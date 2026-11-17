@@ -43,23 +43,25 @@ RecordOperationBlock? recordOperationBlockOf(
 
 final _log = LoggerService.forClass(RecordEditController);
 
-/// The runner a card hands the controls on it that act on the whole record
-/// (Assign, the cylinder menu, a check-in), or null when the page offers no
-/// editing. It runs through [controller] and logs a failure rather than
-/// throwing: every such control drops the Future, so a failed write, or a
-/// failed read of the record after one, would otherwise escape as an
-/// uncaught error. The operation's own message has told the diver, and the
-/// page carries on as the controller left it (locked, after a failed read).
+/// The runner for a page's whole-record operations, from its menus and from
+/// the controls on its cards (Assign, the cylinder menu, a check-in), or
+/// null when the page offers no editing. It runs through [controller] and
+/// logs a failure rather than throwing: every caller drops the Future, so a
+/// failed write, or a failed read of the record after one, would otherwise
+/// escape as an uncaught error. The operation's own message has told the
+/// diver, and the page carries on as the controller left it (locked, after
+/// a failed read). [record] names the record in the log.
 RecordOperationRunner? recordOperationRunnerOf(
-  RecordEditController<Object?>? controller,
-) {
+  RecordEditController<Object?>? controller, {
+  String record = 'a record',
+}) {
   if (controller == null) return null;
   return (operation) async {
     try {
       await controller.runOperation(operation);
     } catch (error, stackTrace) {
       _log.error(
-        'A whole-record operation from a card failed',
+        'A whole-record operation on $record failed',
         error: error,
         stackTrace: stackTrace,
       );

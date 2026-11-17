@@ -145,43 +145,39 @@ void main() {
         ),
       );
 
-  // Without the semantics tree: Set as primary from the pinned copy trips
-  // the framework's debug check `node.built` in flushSemantics as the page
-  // reads the dive again, with the switch off as well, so it is not the
-  // sitting's doing. Reported with these tests, left for its own fix.
-  testWidgets(
-    'unlocked and clean: the copy has no Edit profile, and Set as '
-    'primary from it runs and the sitting starts again',
-    semanticsEnabled: false,
-    (tester) async {
-      await pump(tester);
-      await unlock(tester);
-      await settleLong(tester);
-      final before = controllerOf(tester).session;
+  // With the semantics tree on: Set as primary from the pinned copy used to
+  // trip the framework's debug check `node.built` in flushSemantics as the
+  // page read the dive again; the pinned box is now a semantics container
+  // of its own.
+  testWidgets('unlocked and clean: the copy has no Edit profile, and Set as '
+      'primary from it runs and the sitting starts again', (tester) async {
+    await pump(tester);
+    await unlock(tester);
+    await settleLong(tester);
+    final before = controllerOf(tester).session;
 
-      await pinTheCopy(tester);
-      expect(copy(), findsOneWidget);
-      expect(
-        find.descendant(of: copy(), matching: find.byTooltip('Edit profile')),
-        findsNothing,
-      );
-      expect(
-        find.descendant(of: copy(), matching: find.byTooltip('Add annotation')),
-        findsNothing,
-      );
+    await pinTheCopy(tester);
+    expect(copy(), findsOneWidget);
+    expect(
+      find.descendant(of: copy(), matching: find.byTooltip('Edit profile')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: copy(), matching: find.byTooltip('Add annotation')),
+      findsNothing,
+    );
 
-      await openCopysChipMenu(tester);
-      expect(setPrimaryItem(tester).enabled, isTrue);
-      await tester.tap(find.text('Set as primary'));
-      await settleLong(tester);
+    await openCopysChipMenu(tester);
+    expect(setPrimaryItem(tester).enabled, isTrue);
+    await tester.tap(find.text('Set as primary'));
+    await settleLong(tester);
 
-      expect(repo.primaries, ['src-b']);
-      final controller = controllerOf(tester);
-      expect(controller.isUnlocked, isTrue);
-      expect(controller.session, isNot(same(before)));
-      expect(controller.isDirty, isFalse);
-    },
-  );
+    expect(repo.primaries, ['src-b']);
+    final controller = controllerOf(tester);
+    expect(controller.isUnlocked, isTrue);
+    expect(controller.session, isNot(same(before)));
+    expect(controller.isDirty, isFalse);
+  });
 
   testWidgets('with unsaved changes Set as primary on the copy is disabled '
       'under the reason, and writes nothing', (tester) async {

@@ -257,4 +257,26 @@ void main() {
     await run(tester, await followUp(tester), changed: const {'header'});
     expect(altitudeLookups, isEmpty);
   });
+  // The save's `after` is the sitting's copy, whose site has no location
+  // yet when the location was a held write: the tide is worked out at the
+  // point the save gave the site.
+  testWidgets('the tide is recorded at the location the save gave the site', (
+    tester,
+  ) async {
+    const point = GeoPoint(-16.5, 145.8);
+    const bare = DiveSite(id: 'reef', name: 'Reef');
+    final atBare = before.copyWith(site: bare);
+    final f = await followUp(tester);
+    await f.run(
+      before: atBare,
+      after: atBare.copyWith(notes: 'saved'),
+      tripDateStretches: const [],
+      changedCardIds: const {'header'},
+      mediaAfterCommit: const [],
+      sitesLocated: const {'reef': point},
+    );
+    await tester.pump();
+
+    expect(tides.map((d) => d.site?.location), [point]);
+  });
 }

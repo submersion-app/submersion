@@ -183,6 +183,8 @@ void main() {
   // A photo's sitting draws a held relink as the repair will write it
   // (issue #4527): one rule, so the drawing cannot drift from the write.
   group('relinkedToFile describes the row a file relink writes', () {
+    // Every column but the bookmark, which the repair makes at Save where
+    // the platform has bookmarks and the rule cannot name before then.
     Object? facts(MediaItem m) => (
       m.localPath,
       m.platformAssetId,

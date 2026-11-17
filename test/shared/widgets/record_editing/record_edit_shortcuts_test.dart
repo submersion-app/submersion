@@ -204,6 +204,27 @@ void main() {
     expect(controller.isUnlocked, isTrue);
   });
 
+  // Escape held down to leave selection mode repeats: the repeats are the
+  // same press, and must not go on to cancel the sitting (issue #4527).
+  testWidgets('Escape held inside a list with rows selected leaves selection '
+      'and keeps the sitting', (tester) async {
+    final list = SelectionController();
+    addTearDown(list.dispose);
+    await pump(tester, list: list);
+    await chord(tester, LogicalKeyboardKey.keyL);
+    list.enterImplicit('a');
+    await tester.pumpAndSettle();
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.escape);
+    await tester.sendKeyRepeatEvent(LogicalKeyboardKey.escape);
+    await tester.sendKeyRepeatEvent(LogicalKeyboardKey.escape);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+
+    expect(list.value.isActive, isFalse);
+    expect(controller.isUnlocked, isTrue);
+  });
+
   testWidgets('Save and Escape work while a text field has focus', (
     tester,
   ) async {

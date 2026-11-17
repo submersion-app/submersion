@@ -71,13 +71,17 @@ class SelectableListScope extends StatelessWidget {
             // Escape answers only while there is a selection to leave. A
             // binding above would claim every Escape, and with nothing
             // selected it must go on to what is around the list: the list
-            // pane's editing sitting, which it cancels (issue #4527).
+            // pane's editing sitting, which it cancels (issue #4527). A held
+            // Escape's repeats are kept here: they are the press that left
+            // selection mode, not a new one asking to cancel.
             child: Focus(
               autofocus: true,
               onKeyEvent: (_, event) {
-                if (event is! KeyDownEvent ||
-                    event.logicalKey != LogicalKeyboardKey.escape ||
-                    !controller.value.isActive) {
+                if (event.logicalKey != LogicalKeyboardKey.escape) {
+                  return KeyEventResult.ignored;
+                }
+                if (event is KeyRepeatEvent) return KeyEventResult.handled;
+                if (event is! KeyDownEvent || !controller.value.isActive) {
                   return KeyEventResult.ignored;
                 }
                 controller.exit();

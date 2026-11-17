@@ -19,16 +19,19 @@ mixin _DiveDetailPageOperations
   /// editing runs it through its controller, which refuses while locked or
   /// with unsaved changes; the controls that start one say so beforehand.
   ///
-  /// Every caller drops the returned Future, so a failure is logged here,
-  /// never thrown: the operation's own message has told the diver, and the
-  /// page carries on as the controller left it.
+  /// Every caller drops the returned Future, so a failure is logged, never
+  /// thrown ([recordOperationRunnerOf], which the cards' controls use too):
+  /// the operation's own message has told the diver, and the page carries
+  /// on as the controller left it.
   Future<void> _runOperation(Future<bool> Function() operation) async {
+    if (editingOffered) {
+      await recordOperationRunnerOf(editController, record: 'dive $diveId')!(
+        operation,
+      );
+      return;
+    }
     try {
-      if (!editingOffered) {
-        await operation();
-        return;
-      }
-      await editController.runOperation(operation);
+      await operation();
     } catch (error, stackTrace) {
       _log.error(
         'A whole-record operation on dive $diveId failed',

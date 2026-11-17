@@ -473,17 +473,19 @@ class SiteRepository {
   /// gained meanwhile (typed on the site page, or brought in by a sync) is
   /// newer than that lookup and is kept (issue #4527). Returns true when the
   /// altitude was written.
-  Future<bool> fillSiteAltitudeIfEmpty(
-    String siteId,
-    double altitudeMeters,
-  ) async {
-    final row = await (_db.select(
-      _db.diveSites,
-    )..where((t) => t.id.equals(siteId))).getSingleOrNull();
-    if (row == null || row.altitude != null) return false;
-    await updateSiteAltitude(siteId, altitudeMeters);
-    return true;
-  }
+  ///
+  /// One transaction, so an altitude stored between the read and the write
+  /// (a sync landing while the lookup's answer is written) is not
+  /// overwritten.
+  Future<bool> fillSiteAltitudeIfEmpty(String siteId, double altitudeMeters) =>
+      _db.transaction(() async {
+        final row = await (_db.select(
+          _db.diveSites,
+        )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+        if (row == null || row.altitude != null) return false;
+        await updateSiteAltitude(siteId, altitudeMeters);
+        return true;
+      });
 
   /// Stores coordinates (and optionally an altitude) for [siteId] without
   /// touching any other column.

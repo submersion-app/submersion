@@ -225,10 +225,19 @@ class DiveSittingFollowUp {
     }
     // The dive form records the tide on every save. Here it is recorded
     // again when the site, the entry time or the water type moved, the
-    // values it is worked out from. Not waited for: working the tide out
-    // can take a while, and the save has already gone through.
-    if (_tideInputsMoved(before, after)) {
-      unawaited(_guarded('record its tide', after, () => _recordTide(after)));
+    // values it is worked out from, or the save gave the site its location:
+    // [after] is the sitting's copy, whose site does not have that location
+    // yet. Not waited for: working the tide out can take a while, and the
+    // save has already gone through.
+    final site = after.site;
+    final located = site == null ? null : sitesLocated[site.id];
+    final tideDive = located == null
+        ? after
+        : after.copyWith(site: site!.copyWith(location: located));
+    if (located != null || _tideInputsMoved(before, after)) {
+      unawaited(
+        _guarded('record its tide', after, () => _recordTide(tideDive)),
+      );
     }
     // A location the sitting held for a site is written now, so its
     // altitude is looked up as the immediate path does: after the commit,

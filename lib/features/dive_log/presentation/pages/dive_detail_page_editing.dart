@@ -219,10 +219,10 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     };
     // The dive the sitting was opened on, whatever the page shows by the
     // time the write is asked for.
-    // A write that does not commit takes back what the sitting's media
-    // write did outside the database (a relink's new bookmark).
     // A save that did not commit may have noted sites it located.
     forgetSitesLocated(session);
+    // A write that does not commit takes back what the sitting's media
+    // write did outside the database (a relink's new bookmark).
     final result = await undoMediaOnFailure(
       session,
       () => service.save(

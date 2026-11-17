@@ -29,9 +29,11 @@ bool relinkBringsOtherBytes(MediaItem item, RepairCandidate candidate) {
 /// with the store's upload stamps cleared, so the file is backed up again.
 ///
 /// [originDeviceId] is the device the file resolves on (the one relinking
-/// it) and [verifiedAt] the check the write records. The row's bookmark is
-/// left out: the repair makes a new one, which a drawing of the relink
-/// before it runs cannot name (issue #4527).
+/// it) and [verifiedAt] the check the write records. The bookmark is the
+/// one column it does not describe: the repair makes a new one where the
+/// platform has bookmarks, which a drawing of the relink before it runs
+/// cannot name, and leaves the row's own where it has none. It is drawn as
+/// none (issue #4527).
 MediaItem relinkedToFile(
   MediaItem item,
   RepairCandidate candidate, {
