@@ -11541,6 +11541,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_cylinders_hydrotankNote =>
+      'La pression du Hydrotank ne mesure pas le gaz consommé';
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'PMU à ppO₂ $ppO2';
   }

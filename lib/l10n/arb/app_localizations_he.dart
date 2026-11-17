@@ -11247,6 +11247,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_cylinders_hydrotankNote =>
+      'הלחץ ב-Hydrotank אינו מודד את הגז שנצרך';
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD ב-ppO₂ $ppO2';
   }

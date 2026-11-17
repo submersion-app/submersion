@@ -3499,6 +3499,7 @@
   "diveLog_cylinders_loopUse": "Consommation sur boucle {rate}",
   "diveLog_cylinders_mod": "PMU {depth}",
   "diveLog_cylinders_mnd": "PNM {depth}",
+  "diveLog_cylinders_hydrotankNote": "La pression du Hydrotank ne mesure pas le gaz consommé",
   "diveLog_cylinders_modNote": "PMU à ppO₂ {ppO2}",
   "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
   "diveLog_cylinders_modLimitSeparator": ", ",

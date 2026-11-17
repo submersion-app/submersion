@@ -3651,6 +3651,7 @@
   "diveLog_cylinders_loopUse": "Loop-Verbrauch {rate}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
+  "diveLog_cylinders_hydrotankNote": "Der Druck im Hydrotank misst nicht das verbrauchte Gas",
   "diveLog_cylinders_modNote": "MOD bei ppO₂ {ppO2}",
   "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
   "diveLog_cylinders_modLimitSeparator": ", ",

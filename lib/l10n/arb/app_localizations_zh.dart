@@ -10915,6 +10915,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_cylinders_hydrotankNote => 'Hydrotank 压力不代表已用气量';
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return '氧分压 $ppO2 时的最大作业深度';
   }

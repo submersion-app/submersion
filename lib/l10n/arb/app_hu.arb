@@ -3499,6 +3499,7 @@
   "diveLog_cylinders_loopUse": "Hurokfogyasztás {rate}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
+  "diveLog_cylinders_hydrotankNote": "A Hydrotank nyomása nem méri az elhasznált gázt",
   "diveLog_cylinders_modNote": "MOD {ppO2} ppO₂-nél",
   "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
   "diveLog_cylinders_modLimitSeparator": ", ",

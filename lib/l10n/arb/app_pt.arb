@@ -3625,6 +3625,7 @@
   "diveLog_cylinders_loopUse": "Uso no circuito {rate}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
+  "diveLog_cylinders_hydrotankNote": "A pressão do Hydrotank não mede o gás consumido",
   "diveLog_cylinders_modNote": "MOD a ppO₂ {ppO2}",
   "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
   "diveLog_cylinders_modLimitSeparator": ", ",

@@ -11427,6 +11427,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_cylinders_hydrotankNote =>
+      'De druk van de Hydrotank meet het verbruikte gas niet';
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD bij ppO₂ $ppO2';
   }

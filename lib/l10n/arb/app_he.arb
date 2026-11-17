@@ -3499,6 +3499,7 @@
   "diveLog_cylinders_loopUse": "צריכה בלולאה {rate}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
+  "diveLog_cylinders_hydrotankNote": "הלחץ ב-Hydrotank אינו מודד את הגז שנצרך",
   "diveLog_cylinders_modNote": "MOD ב-ppO₂ {ppO2}",
   "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
   "diveLog_cylinders_modLimitSeparator": ", ",

@@ -69,6 +69,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_o
 import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_tooltip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_line_hover.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_findings_overlay.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_event_labels.dart';
@@ -658,6 +659,18 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     if (tank == null) return base;
     return '$base (${tank.gasMix.name})';
   }
+
+  /// The [tankTooltipLabel] fallback for [tank], the [index]th cylinder: an
+  /// unnamed Avelo Hydrotank by its role, so its pressure line, which rises
+  /// with the water pumped in, reads as the Hydrotank's (issue #4657); any
+  /// other cylinder by its number, "Tank 2".
+  static String tankDefaultLabel(
+    AppLocalizations l10n,
+    DiveTank? tank,
+    int index,
+  ) => tank?.role == TankRole.hydrotank
+      ? l10n.enum_tankRole_hydrotank
+      : l10n.diveLog_tank_title(index + 1);
 
   /// Column widths for [tooltipRowText], used by this widget's own native
   /// bubble ([TooltipPresentation.nativeBubble]) to align its monospace
@@ -2820,7 +2833,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         final tankLabel =
             DiveProfileChart.tankTooltipLabel(
               tank,
-              l10n.diveLog_tank_title(i + 1),
+              DiveProfileChart.tankDefaultLabel(l10n, tank, i),
             ) +
             _tankSourceSuffix(
               tankId,

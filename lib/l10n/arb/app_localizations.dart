@@ -18169,6 +18169,12 @@ abstract class AppLocalizations {
   /// **'MND {depth}'**
   String diveLog_cylinders_mnd(String depth);
 
+  /// Cylinders card line under an Avelo Hydrotank (issue #4657): water pumped into the Hydrotank for buoyancy raises its pressure, so the card shows no gas used or SAC for it. Hydrotank is the product name of the Avelo Dive System cylinder and stays untranslated.
+  ///
+  /// In en, this message translates to:
+  /// **'Hydrotank pressure does not measure gas used'**
+  String get diveLog_cylinders_hydrotankNote;
+
   /// Note under the Cylinders card table: the ppO2 every MOD on the card was computed at. {ppO2} is one value ("MOD at ppO₂ 1.4") or, when the cylinders use different limits, a list of diveLog_cylinders_modLimit items ("MOD at ppO₂ 1.4 (bottom limit), 1.6 (deco limit)")
   ///
   /// In en, this message translates to:
