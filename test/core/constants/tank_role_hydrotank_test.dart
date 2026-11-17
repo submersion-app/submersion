@@ -25,6 +25,12 @@ void main() {
       }
     });
 
+    test('is the only breathed role whose pressure is unmeasured', () {
+      expect(TankRole.values.where((r) => r.isUnmeasuredBreathingGas), [
+        TankRole.hydrotank,
+      ]);
+    });
+
     test('round-trips through its stored name', () {
       expect(TankRole.hydrotank.name, 'hydrotank');
       expect(TankRole.fromName('hydrotank'), TankRole.hydrotank);

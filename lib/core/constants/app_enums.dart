@@ -336,6 +336,12 @@ enum TankRole {
   bool get pressureMeasuresGasUse =>
       this != TankRole.suitInflation && this != TankRole.hydrotank;
 
+  /// Breathed, but its pressure is not the gas used: an Avelo Hydrotank
+  /// (issue #4657). A dive that breathes one has no whole-dive or range rate,
+  /// and its pressure's rises and falls are its use, not a fault.
+  bool get isUnmeasuredBreathingGas =>
+      isBreathingGas && !pressureMeasuresGasUse;
+
   /// The role stored as [name], or back gas for null or a name this build
   /// does not know (a newer peer's role), the fallback every tolerant reader
   /// of a stored role uses.

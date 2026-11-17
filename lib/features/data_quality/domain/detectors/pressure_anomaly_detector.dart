@@ -1,4 +1,3 @@
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/profile/surfacing_pressure.dart'
     show lastTimeBelowSurfaceThreshold;
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
@@ -46,7 +45,7 @@ class PressureAnomalyDetector extends QualityDetector {
       // falls as it is pushed out (#4657): that is its use, not a fault, so
       // the rise, swap and consumption checks leave it alone. The source,
       // glitch and endpoint checks still read it.
-      final waterDriven = tank.role == TankRole.hydrotank;
+      final waterDriven = tank.role.isUnmeasuredBreathingGas;
 
       // Two recordings interleaved into one series (#2440) are reported as
       // that and nothing else: every alternation would read as a rise, the

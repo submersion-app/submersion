@@ -117,10 +117,9 @@ class DerivedMetricsRepository {
     // A breathed Avelo Hydrotank's pressure rises with the water pumped in
     // (#4657), and its dive has no whole-dive rate: no cylinder feeds the SAC
     // drift then, or a pony would stand in for the dive.
-    final unmeasured = tankRows.any((t) {
-      final role = TankRole.fromName(t.tankRole);
-      return role.isBreathingGas && !role.pressureMeasuresGasUse;
-    });
+    final unmeasured = tankRows.any(
+      (t) => TankRole.fromName(t.tankRole).isUnmeasuredBreathingGas,
+    );
     final metrics = await _runner(
       DerivedMetricsWorkInput(
         diveId: diveId,

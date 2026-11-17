@@ -355,8 +355,7 @@ class CylindersCard extends ConsumerWidget {
     // An Avelo Hydrotank is breathed, but its pressure rises and falls with
     // the water pumped in for buoyancy (issue #4657): its drop is no gas
     // used, so the card shows its pressures and says why it has no figures.
-    final waterDriven =
-        tank.role.isBreathingGas && !tank.role.pressureMeasuresGasUse;
+    final waterDriven = tank.role.isUnmeasuredBreathingGas;
 
     // Preset display name, falling back to formatted volume.
     final preset = tank.presetName != null

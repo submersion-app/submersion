@@ -125,9 +125,9 @@ class TransmitterRepository {
   /// (issue #2595) is an unconfirmed guess, and suggesting it would let
   /// [applyToExistingDives] confirm it on every matching dive. Falls back
   /// to [TankRole.backGas] when no such history exists, matching that
-  /// column's own default. An Avelo Hydrotank suggests back gas too: it is a
-  /// fact about the dive logged in Avelo mode (issue #4657), not a default
-  /// for the cylinder.
+  /// column's own default. An Avelo Hydrotank is passed over: it is a fact
+  /// about the dive logged in Avelo mode (issue #4657), not a default for the
+  /// cylinder, so the role before it stands.
   Future<TankRole> lastRoleForEquipment(
     String equipmentId, {
     String? diverId,
@@ -139,6 +139,7 @@ class TransmitterRepository {
           'WHERE dt.equipment_id = ? '
           'AND d.is_planned = 0 '
           'AND dt.role_source IS NULL '
+          "AND dt.tank_role IS NOT '${TankRole.hydrotank.name}' "
           'AND (? IS NULL OR d.diver_id = ?) '
           'ORDER BY d.dive_date_time DESC LIMIT 1',
           variables: [
@@ -150,11 +151,10 @@ class TransmitterRepository {
         )
         .getSingleOrNull();
     final tankRole = row?.read<String>('tank_role');
-    final role = TankRole.values.firstWhere(
+    return TankRole.values.firstWhere(
       (e) => e.name == tankRole,
       orElse: () => TankRole.backGas,
     );
-    return role == TankRole.hydrotank ? TankRole.backGas : role;
   }
 
   /// The normalised serials of every registry row that names [equipmentId]

@@ -38,6 +38,7 @@ void main() {
     String diveId,
     String serial, {
     String role = 'stage',
+    int at = 0,
   }) async {
     await db
         .into(db.dives)
@@ -45,7 +46,7 @@ void main() {
           DivesCompanion.insert(
             id: diveId,
             diverId: const Value('d1'),
-            diveDateTime: 0,
+            diveDateTime: at,
             createdAt: 0,
             updatedAt: 0,
           ),
@@ -98,6 +99,17 @@ void main() {
 
       final row = (await TransmitterRepository().getForDiver('d1')).single;
       expect(row.role.name, 'backGas');
+    });
+
+    test('a later Hydrotank does not hide the role the serial had before '
+        '(#4657)', () async {
+      await diveWithSerial('dive1', '7C0B19');
+      await diveWithSerial('dive2', '7C0B19', role: 'hydrotank', at: 1000);
+
+      await registrar().registerNewSerials(['7C0B19'], diverId: 'd1');
+
+      final row = (await TransmitterRepository().getForDiver('d1')).single;
+      expect(row.role.name, 'stage');
     });
 
     test('treats a serial padded with whitespace as the same serial', () async {
