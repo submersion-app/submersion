@@ -94,7 +94,13 @@ class _EntryBody extends ConsumerWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                changeLogSubtitle(l, units, operation, peerNames),
+                changeLogSubtitle(
+                  l,
+                  units,
+                  operation,
+                  peerNames,
+                  rootAction: _rootAction(detail),
+                ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -291,6 +297,22 @@ class _EntryBody extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// What the entry did to the record it is titled with, as the feed reads it:
+/// that the record arrived or went outranks any edit around it.
+ChangeLogAction? _rootAction(ChangeLogEntryDetail detail) {
+  final operation = detail.operation;
+  ChangeLogAction? found;
+  for (final event in detail.events) {
+    if (event.table != operation.rootTable ||
+        event.recordId != operation.rootId) {
+      continue;
+    }
+    if (event.action != ChangeLogAction.update) return event.action;
+    found ??= event.action;
+  }
+  return found;
 }
 
 String _actionLabel(AppLocalizations l, ChangeLogAction action) =>

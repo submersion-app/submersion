@@ -8,6 +8,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/change_log/domain/change_log_entities.dart';
+import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_operation.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_reference_labels.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -77,10 +78,17 @@ final _diveSectionsByName = DiveDetailSectionId.values.asNameMap();
 /// card by its title, or "Edited" when it named none; null for any other
 /// label. A card id with no title in this version of the app is shown as
 /// written.
-String? _recordEditLabel(AppLocalizations l, String label) {
+///
+/// A sitting that [created] its record (a new dive, issue #4527) is already
+/// read as Added: its cards are named alone, and none named reads as nothing.
+String? _recordEditLabel(
+  AppLocalizations l,
+  String label, {
+  bool created = false,
+}) {
   final edit = RecordEditLabel.decode(label);
   if (edit == null) return null;
-  if (edit.cardIds.isEmpty) return l.changeLog_action_edited;
+  if (edit.cardIds.isEmpty) return created ? null : l.changeLog_action_edited;
   // A photo's sitting reads apart from the dive's own cards: its entry sits
   // in the dive's History, where "Species" alone would read as the dive's.
   if (edit.table == 'media') {
@@ -101,9 +109,8 @@ String? _recordEditLabel(AppLocalizations l, String label) {
       else
         diveSections[id]?.localizedDisplayName(l) ?? id,
   ];
-  return l.changeLog_label_recordEdit(
-    cards.join(l.changeLog_label_recordEditSeparator),
-  );
+  final named = cards.join(l.changeLog_label_recordEditSeparator);
+  return created ? named : l.changeLog_label_recordEdit(named);
 }
 
 /// What a photo's sitting changed, by the id it is stored under; an id
@@ -181,13 +188,16 @@ String changeLogTitle(AppLocalizations l, ChangeLogOperation operation) {
   };
 }
 
-/// When it happened and where it came from.
+/// When it happened and where it came from. [rootAction] is what the entry
+/// did to the record it is titled with, when the caller knows it: a sitting
+/// that inserted it names its cards without "Edited:".
 String changeLogSubtitle(
   AppLocalizations l,
   UnitFormatter units,
   ChangeLogOperation operation,
-  Map<String, String> peerNames,
-) {
+  Map<String, String> peerNames, {
+  ChangeLogAction? rootAction,
+}) {
   final deviceId = operation.deviceId;
   final origin = switch (operation.source) {
     ChangeLogSource.sync => l.changeLog_syncedFrom(
@@ -208,6 +218,10 @@ String changeLogSubtitle(
   // record they cannot open.
   final edited = label == null || operation.shownRoots != null
       ? null
-      : _recordEditLabel(l, label);
+      : _recordEditLabel(
+          l,
+          label,
+          created: rootAction == ChangeLogAction.insert,
+        );
   return [units.formatTime(operation.endedAt), origin, ?edited].join(' · ');
 }
