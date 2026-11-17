@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -80,6 +81,26 @@ void main() {
       expect(
         changeLogStoredLabel(l, 'record_edit:trips:dates,gear'),
         'Edited: dates, gear',
+      );
+    });
+
+    // A site's sitting names the site page's cards (issue #4527, phase 2).
+    test('a site sitting names its cards by their titles', () {
+      final description = SiteDetailSectionId.description.localizedDisplayName(
+        l,
+      );
+      final siteNotes = SiteDetailSectionId.notes.localizedDisplayName(l);
+      expect(
+        changeLogStoredLabel(l, 'record_edit:dive_sites:s1:description,notes'),
+        'Edited: $description, $siteNotes',
+      );
+    });
+
+    test('a site card id with no title is shown as written', () {
+      final siteNotes = SiteDetailSectionId.notes.localizedDisplayName(l);
+      expect(
+        changeLogStoredLabel(l, 'record_edit:dive_sites:s1:notes,zzz'),
+        'Edited: $siteNotes, zzz',
       );
     });
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
@@ -74,6 +75,20 @@ String changeLogStoredLabel(AppLocalizations l, String label) =>
 /// the History list asks for a label for every row it draws.
 final _diveSectionsByName = DiveDetailSectionId.values.asNameMap();
 
+/// The site page's cards by id, as [_diveSectionsByName] is for a dive's.
+final _siteSectionsByName = SiteDetailSectionId.values.asNameMap();
+
+/// The title of the card [id] of a sitting on a record of [table], or [id]
+/// as written when this version of the app has no title for it.
+String _recordCardName(AppLocalizations l, String table, String id) =>
+    switch (table) {
+      // The dive page's header block is a card but not a section.
+      'dives' when id == diveHeaderCardId => l.diveLog_detail_section_header,
+      'dives' => _diveSectionsByName[id]?.localizedDisplayName(l) ?? id,
+      'dive_sites' => _siteSectionsByName[id]?.localizedDisplayName(l) ?? id,
+      _ => id,
+    };
+
 /// "Edited: Notes, Tags" for the label of an editing sitting, naming each
 /// card by its title, or "Edited" when it named none; null for any other
 /// label. A card id with no title in this version of the app is shown as
@@ -98,16 +113,8 @@ String? _recordEditLabel(
       ].join(l.changeLog_label_recordEditSeparator),
     );
   }
-  final diveSections = edit.table == 'dives'
-      ? _diveSectionsByName
-      : const <String, DiveDetailSectionId>{};
   final cards = [
-    for (final id in edit.cardIds)
-      // The dive page's header block is a card but not a section.
-      if (edit.table == 'dives' && id == diveHeaderCardId)
-        l.diveLog_detail_section_header
-      else
-        diveSections[id]?.localizedDisplayName(l) ?? id,
+    for (final id in edit.cardIds) _recordCardName(l, edit.table, id),
   ];
   final named = cards.join(l.changeLog_label_recordEditSeparator);
   return created ? named : l.changeLog_label_recordEdit(named);
