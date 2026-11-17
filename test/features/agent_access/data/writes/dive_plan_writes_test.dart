@@ -233,6 +233,51 @@ void main() {
     expect([for (final k in keys) cleared[k]], everyElement(isNull));
   });
 
+  test('a plan sets and clears its semi-closed loop flow (#4660)', () async {
+    const keys = [
+      'scr_injection_rate_l_min',
+      'scr_vo2_l_min',
+      'pscr_vo2_l_min',
+    ];
+    final id = await make('dive_plans', {
+      'name': 'Ray',
+      'mode': 'scr',
+      'tanks': [
+        {'volume_l': 7, 'start_pressure_bar': 200, 'o2_fraction': 0.5},
+      ],
+      'segments': [
+        {'target_depth_m': 18, 'duration_s': 1800, 'tank': 0},
+      ],
+      'scr_injection_rate_l_min': 7.5,
+      'scr_vo2_l_min': 2.0,
+      'pscr_vo2_l_min': 0.9,
+    });
+    final saved = (await h.one('dive_plans', id))!;
+    expect([for (final k in keys) saved[k]], [7.5, 2.0, 0.9]);
+
+    await h.run([
+      updateOp('dive_plans', id, {for (final k in keys) k: null}),
+    ]);
+    final cleared = (await h.one('dive_plans', id))!;
+    expect([for (final k in keys) cleared[k]], everyElement(isNull));
+  });
+
+  test('a plan flow of zero or less is refused (#4660)', () async {
+    await expectLater(
+      make('dive_plans', {
+        'name': 'Ray',
+        'tanks': [
+          {'volume_l': 7, 'start_pressure_bar': 200},
+        ],
+        'segments': [
+          {'target_depth_m': 18, 'duration_s': 1800, 'tank': 0},
+        ],
+        'scr_vo2_l_min': -1,
+      }),
+      throwsA(anything),
+    );
+  });
+
   test('a plan naming a missing site is refused', () async {
     final plan = await h.preview([
       createOp('dive_plans', {'name': 'X', 'site_id': 'gone'}),
