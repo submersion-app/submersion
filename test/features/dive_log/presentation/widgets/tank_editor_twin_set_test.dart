@@ -537,6 +537,29 @@ void main() {
       expect(changed!.role, TankRole.twinSet);
     });
 
+    testWidgets('a tank that held a linked pair becomes this twin set', (
+      tester,
+    ) async {
+      final item = await d12(tester);
+      DiveTank? changed;
+      await pump(
+        tester,
+        gear: [item],
+        tank: const DiveTank(
+          id: 'tank-1',
+          role: TankRole.twinSet,
+          passportId: 'p-a',
+          twinPassportId: 'p-b',
+        ),
+        onChanged: (t) => changed = t,
+        onOwnCylinderUsed: (_) async {},
+      );
+      await pick(tester, item);
+      expect(changed!.role, TankRole.twinSet);
+      expect(changed!.twinPassportId, isNull);
+      expect(changed!.volume, 24);
+    });
+
     testWidgets('a linked cylinder picked alone stays back gas even when '
         'worn as a twin set: the pairing question decides', (tester) async {
       final marked = a.copyWith(

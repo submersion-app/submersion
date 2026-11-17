@@ -1356,14 +1356,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     if (item.isSuitInflationCylinder && _role != TankRole.suitInflation) {
       setState(() => _role = TankRole.suitInflation);
       _notifyChange();
-    } else if (item.isWornAsTwinSet &&
-        !pairOffered &&
-        _role != TankRole.twinSet) {
-      // Doubles kept as one gear item (issue #4641) default the tank to the
-      // Twin Set role the same way. A cylinder linked in a pair has just
-      // been asked about, and "this cylinder alone" is the answer to keep.
-      setState(() => _role = TankRole.twinSet);
-      _notifyChange();
     }
     final filled = _applyScannedSpec(
       passportId: passportId,
@@ -1372,6 +1364,18 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       material: item.tankMaterial,
       mix: fills.isEmpty ? null : fills.first.gasMix,
     );
+    // Doubles kept as one gear item (issue #4641) default the tank to the
+    // Twin Set role the same way. It runs after the cylinders are named,
+    // since naming one cylinder ends a linked pair's Twin Set (#4242). A
+    // cylinder linked in a pair has just been asked about, and "this
+    // cylinder alone" is the answer to keep.
+    if (item.isWornAsTwinSet &&
+        !item.isSuitInflationCylinder &&
+        !pairOffered &&
+        _role != TankRole.twinSet) {
+      setState(() => _role = TankRole.twinSet);
+      _notifyChange();
+    }
     // The cylinder joins the dive's gear even when it records no spec.
     await widget.onOwnCylinderUsed?.call(item);
     if (filled) {
