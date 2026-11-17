@@ -69,6 +69,4 @@ class IdentificationEmbeddingRepository {
   }
 
   static const _slice = 500;
-
-  Future<void> deleteAll() => _db.delete(_db.identificationEmbeddings).go();
 }

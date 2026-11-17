@@ -179,9 +179,7 @@ final suggestionAcceptorProvider = Provider<SuggestionAcceptor>(
 final identificationCropFileProvider = FutureProvider.autoDispose
     .family<File?, (String mediaId, String identificationId)>((ref, key) async {
       final store = ref.watch(identificationCropStoreProvider);
-      ref.invalidateSelfWhen(
-        store.watchChanges().where((id) => id == null || id == key.$1),
-      );
+      ref.invalidateSelfWhen(store.watchChanges().where((id) => id == key.$1));
       final file = await store.fileFor(key.$1, key.$2);
       return await file.exists() ? file : null;
     });

@@ -46,6 +46,24 @@ class DetectorConfig extends Equatable {
   /// of the box.
   final double cropPadding;
 
+  DetectorConfig copyWith({
+    String? id,
+    int? inputSize,
+    List<double>? mean,
+    List<double>? std,
+    double? scoreThreshold,
+    int? maxBoxes,
+    double? cropPadding,
+  }) => DetectorConfig(
+    id: id ?? this.id,
+    inputSize: inputSize ?? this.inputSize,
+    mean: mean ?? this.mean,
+    std: std ?? this.std,
+    scoreThreshold: scoreThreshold ?? this.scoreThreshold,
+    maxBoxes: maxBoxes ?? this.maxBoxes,
+    cropPadding: cropPadding ?? this.cropPadding,
+  );
+
   @override
   List<Object?> get props => [
     id,
@@ -76,6 +94,22 @@ class ClassifierConfig extends Equatable {
   final List<double> std;
   final int embeddingSize;
   final double logitScale;
+
+  ClassifierConfig copyWith({
+    String? id,
+    int? inputSize,
+    List<double>? mean,
+    List<double>? std,
+    int? embeddingSize,
+    double? logitScale,
+  }) => ClassifierConfig(
+    id: id ?? this.id,
+    inputSize: inputSize ?? this.inputSize,
+    mean: mean ?? this.mean,
+    std: std ?? this.std,
+    embeddingSize: embeddingSize ?? this.embeddingSize,
+    logitScale: logitScale ?? this.logitScale,
+  );
 
   @override
   List<Object?> get props => [
@@ -112,6 +146,27 @@ class NamingConfig extends Equatable {
   final int minAllowedCandidates;
   final int topK;
 
+  NamingConfig copyWith({
+    bool? provisional,
+    int? minCropSide,
+    double? minOpenScore,
+    double? suggestScore,
+    double? confidentScore,
+    double? suggestScoreNoLocation,
+    int? minAllowedCandidates,
+    int? topK,
+  }) => NamingConfig(
+    provisional: provisional ?? this.provisional,
+    minCropSide: minCropSide ?? this.minCropSide,
+    minOpenScore: minOpenScore ?? this.minOpenScore,
+    suggestScore: suggestScore ?? this.suggestScore,
+    confidentScore: confidentScore ?? this.confidentScore,
+    suggestScoreNoLocation:
+        suggestScoreNoLocation ?? this.suggestScoreNoLocation,
+    minAllowedCandidates: minAllowedCandidates ?? this.minAllowedCandidates,
+    topK: topK ?? this.topK,
+  );
+
   @override
   List<Object?> get props => [
     provisional,
@@ -130,6 +185,12 @@ class RegionConfig extends Equatable {
 
   final int cellDegrees;
   final int neighbourCells;
+
+  RegionConfig copyWith({int? cellDegrees, int? neighbourCells}) =>
+      RegionConfig(
+        cellDegrees: cellDegrees ?? this.cellDegrees,
+        neighbourCells: neighbourCells ?? this.neighbourCells,
+      );
 
   @override
   List<Object?> get props => [cellDegrees, neighbourCells];
@@ -150,6 +211,18 @@ class PackFile extends Equatable {
   final int size;
   final String sha256;
 
+  PackFile copyWith({
+    String? name,
+    String? engine,
+    int? size,
+    String? sha256,
+  }) => PackFile(
+    name: name ?? this.name,
+    engine: engine ?? this.engine,
+    size: size ?? this.size,
+    sha256: sha256 ?? this.sha256,
+  );
+
   @override
   List<Object?> get props => [name, engine, size, sha256];
 }
@@ -164,6 +237,13 @@ class PackCredit extends Equatable {
   final String name;
   final String licence;
   final String text;
+
+  PackCredit copyWith({String? name, String? licence, String? text}) =>
+      PackCredit(
+        name: name ?? this.name,
+        licence: licence ?? this.licence,
+        text: text ?? this.text,
+      );
 
   @override
   List<Object?> get props => [name, licence, text];
@@ -308,6 +388,30 @@ class SpeciesPackManifest extends Equatable {
     }
     return null;
   }
+
+  SpeciesPackManifest copyWith({
+    int? formatVersion,
+    String? packVersion,
+    DetectorConfig? detector,
+    ClassifierConfig? classifier,
+    NamingConfig? naming,
+    RegionConfig? region,
+    int? cropThumbnailSize,
+    List<PackFile>? files,
+    List<PackCredit>? credits,
+    String? source,
+  }) => SpeciesPackManifest(
+    formatVersion: formatVersion ?? this.formatVersion,
+    packVersion: packVersion ?? this.packVersion,
+    detector: detector ?? this.detector,
+    classifier: classifier ?? this.classifier,
+    naming: naming ?? this.naming,
+    region: region ?? this.region,
+    cropThumbnailSize: cropThumbnailSize ?? this.cropThumbnailSize,
+    files: files ?? this.files,
+    credits: credits ?? this.credits,
+    source: source ?? this.source,
+  );
 
   @override
   List<Object?> get props => [

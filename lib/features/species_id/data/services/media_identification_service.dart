@@ -264,7 +264,12 @@ class MediaIdentificationService {
       if (pack == null) return;
       final manifest = pack.pack.manifest;
       final location = job.location;
-      final cell = location == null
+      // A position that is not a number (a bad EXIF read) is no position:
+      // the photo is named without a region rather than not at all.
+      final cell =
+          location == null ||
+              !location.latitude.isFinite ||
+              !location.longitude.isFinite
           ? null
           : RegionGrid(
               cellDegrees: manifest.region.cellDegrees,

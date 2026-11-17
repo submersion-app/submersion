@@ -36,6 +36,18 @@ class IdentificationBox extends Equatable {
     return union <= 0 ? 0 : intersection / union;
   }
 
+  IdentificationBox copyWith({
+    double? x,
+    double? y,
+    double? width,
+    double? height,
+  }) => IdentificationBox(
+    x: x ?? this.x,
+    y: y ?? this.y,
+    width: width ?? this.width,
+    height: height ?? this.height,
+  );
+
   @override
   List<Object?> get props => [x, y, width, height];
 }
@@ -204,6 +216,16 @@ class TaggedSpecies extends Equatable {
   final String speciesId;
   final String? scientificName;
 
+  TaggedSpecies copyWith({
+    String? speciesId,
+    String? Function()? scientificName,
+  }) => TaggedSpecies(
+    speciesId: speciesId ?? this.speciesId,
+    scientificName: scientificName == null
+        ? this.scientificName
+        : scientificName(),
+  );
+
   @override
   List<Object?> get props => [speciesId, scientificName];
 }
@@ -232,6 +254,22 @@ class SpeciesSuggestion extends Equatable {
 
   /// The shown crop's candidates, at most three.
   final List<NamedCandidate> alternatives;
+
+  SpeciesSuggestion copyWith({
+    NamedCandidate? top,
+    double? score,
+    int? count,
+    String? cropIdentificationId,
+    List<String>? identificationIds,
+    List<NamedCandidate>? alternatives,
+  }) => SpeciesSuggestion(
+    top: top ?? this.top,
+    score: score ?? this.score,
+    count: count ?? this.count,
+    cropIdentificationId: cropIdentificationId ?? this.cropIdentificationId,
+    identificationIds: identificationIds ?? this.identificationIds,
+    alternatives: alternatives ?? this.alternatives,
+  );
 
   @override
   List<Object?> get props => [

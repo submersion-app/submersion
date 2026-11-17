@@ -51,12 +51,12 @@ class IdentificationCleanup {
     }
   }
 
-  /// Every identification in the open logbook and every crop on the device.
-  /// Species tags are not touched.
+  /// Every identification in the open logbook, with its crops and
+  /// embeddings. Only this logbook's: the crops folder and the embeddings
+  /// are shared by every logbook opened on the device. Species tags are not
+  /// touched.
   Future<void> clearAll() async {
-    await _identifications.deleteAll();
-    await _embeddings.deleteAll();
-    await _crops.deleteAll();
+    await _purge(await _identifications.mediaIds());
   }
 
   Future<void> _purge(List<String> mediaIds) async {

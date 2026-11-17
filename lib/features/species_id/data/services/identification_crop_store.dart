@@ -18,15 +18,14 @@ class IdentificationCropStore {
     : _supportPath = supportPath;
 
   final Future<String> Function() _supportPath;
-  final _changes = StreamController<String?>.broadcast();
+  final _changes = StreamController<String>.broadcast();
 
   /// Marks a photo's folder once the photo has been analysed on this
   /// device. A dot name, so it can never be an identification's crop.
   static const _analysedMarker = '.analysed';
 
-  /// The media id whose crops were written or deleted; null when every
-  /// crop was.
-  Stream<String?> watchChanges() => _changes.stream;
+  /// The media id whose crops were written or deleted.
+  Stream<String> watchChanges() => _changes.stream;
 
   Future<void> dispose() => _changes.close();
 
@@ -98,13 +97,7 @@ class IdentificationCropStore {
     if (identificationIds.isNotEmpty) _changed(mediaId);
   }
 
-  Future<void> deleteAll() async {
-    final base = await root();
-    if (await base.exists()) await base.delete(recursive: true);
-    _changed(null);
-  }
-
-  void _changed(String? mediaId) {
+  void _changed(String mediaId) {
     if (!_changes.isClosed) _changes.add(mediaId);
   }
 

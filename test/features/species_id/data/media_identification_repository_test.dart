@@ -136,16 +136,19 @@ void main() {
     );
   });
 
-  test('count and deleteAll cover every identification', () async {
+  test('count and media ids cover every identification and run', () async {
     await repo.storeRun(
       run(),
       insert: [identification('a'), identification('b')],
       deleteIds: [],
     );
+    await repo.storeRun(
+      run(mediaId: 'm2', count: 0),
+      insert: const [],
+      deleteIds: const [],
+    );
     expect(await repo.count(), 2);
-    expect(await repo.deleteAll(), unorderedEquals(['a', 'b']));
-    expect(await repo.count(), 0);
-    expect(await repo.runFor('m1'), isNull);
+    expect(await repo.mediaIds(), unorderedEquals(['m1', 'm2']));
   });
 
   test('tagged species come with their scientific names', () async {

@@ -64,6 +64,20 @@ class PackCandidate extends Equatable {
     if (catalogId != null) 'catalogId': catalogId,
   };
 
+  PackCandidate copyWith({
+    int? gbifKey,
+    String? scientificName,
+    String? commonName,
+    SpeciesCategory? category,
+    String? Function()? catalogId,
+  }) => PackCandidate(
+    gbifKey: gbifKey ?? this.gbifKey,
+    scientificName: scientificName ?? this.scientificName,
+    commonName: commonName ?? this.commonName,
+    category: category ?? this.category,
+    catalogId: catalogId == null ? this.catalogId : catalogId(),
+  );
+
   @override
   List<Object?> get props => [
     gbifKey,
@@ -92,6 +106,12 @@ class NamedCandidate extends Equatable {
   }
 
   Map<String, Object?> toJson() => {...candidate.toJson(), 'score': score};
+
+  NamedCandidate copyWith({PackCandidate? candidate, double? score}) =>
+      NamedCandidate(
+        candidate: candidate ?? this.candidate,
+        score: score ?? this.score,
+      );
 
   @override
   List<Object?> get props => [candidate, score];

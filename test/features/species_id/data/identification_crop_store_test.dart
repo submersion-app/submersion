@@ -56,15 +56,14 @@ void main() {
   });
 
   test('writes and deletes are announced by media id', () async {
-    final seen = <String?>[];
+    final seen = <String>[];
     final sub = store.watchChanges().listen(seen.add);
     await store.write('m1', 'i1', jpeg);
     await store.delete('m1', ['i1']);
     await store.deleteMedia(['m2']);
-    await store.deleteAll();
     await pumpEventQueue();
     await sub.cancel();
-    expect(seen, ['m1', 'm1', 'm2', null]);
+    expect(seen, ['m1', 'm1', 'm2']);
   });
 
   test('no identifications means nothing is missing', () async {
@@ -92,10 +91,10 @@ void main() {
     expect(await store.allPresent('m1', ['i1']), isFalse);
   });
 
-  test('deleting everything empties the root and counts zero bytes', () async {
+  test('deleting a photo\'s crops counts zero bytes', () async {
     await store.write('m1', 'i1', jpeg);
     expect(await store.sizeBytes(), jpeg.length);
-    await store.deleteAll();
+    await store.deleteMedia(['m1']);
     expect(await store.sizeBytes(), 0);
   });
 

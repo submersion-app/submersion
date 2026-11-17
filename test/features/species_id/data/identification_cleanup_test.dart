@@ -100,13 +100,25 @@ void main() {
     expect(await crops.allPresent('m-live', ['i1']), isTrue);
   });
 
-  test('clearing removes everything', () async {
+  test('clearing removes this logbook\'s suggestions and keeps what '
+      'another logbook on the device owns', () async {
     await seed('m1', 'i1');
+    // Another logbook's photo: a crop and an embedding, no rows here.
+    await crops.write('m-other', 'i-other', jpeg);
+    await embeddings.put({
+      'i-other': Float32List.fromList([0, 1, 0]),
+    }, classifierId: 'clf');
+
     await cleanup.clearAll();
 
     expect(await identifications.count(), 0);
     expect(await embeddings.get(['i1'], classifierId: 'clf'), isEmpty);
-    expect(await crops.sizeBytes(), 0);
+    expect(await crops.allPresent('m1', ['i1']), isFalse);
+    expect(await crops.allPresent('m-other', ['i-other']), isTrue);
+    expect(
+      await embeddings.get(['i-other'], classifierId: 'clf'),
+      hasLength(1),
+    );
   });
 
   test('a failure does not escape a deletion hook', () async {

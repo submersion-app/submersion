@@ -216,6 +216,22 @@ void main() {
     expect(find.text('Not available yet'), findsOneWidget);
   });
 
+  testWidgets('a check that failed offers to check again, not to continue', (
+    tester,
+  ) async {
+    final controller = await pump(
+      tester,
+      const PackFailed(reason: PackDownloadFailure.network, bytes: 0),
+    );
+    expect(find.byKey(const ValueKey('species_id_download')), findsNothing);
+    final before = controller.refreshes;
+    await tester.tap(find.byKey(const ValueKey('species_id_retry')));
+    await tester.pumpAndSettle();
+    expect(find.text('Try again'), findsOneWidget);
+    expect(controller.refreshes, before + 1);
+    expect(controller.downloads, 0);
+  });
+
   testWidgets('a full disk says so', (tester) async {
     await pump(
       tester,

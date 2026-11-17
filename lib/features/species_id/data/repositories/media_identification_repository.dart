@@ -175,13 +175,18 @@ class MediaIdentificationRepository {
     return row.read(countExp) ?? 0;
   }
 
-  /// Removes every run and identification; returns the identification ids.
-  Future<List<String>> deleteAll() => _db.transaction(() async {
-    final ids = await _idsWhere(_db, null);
-    await _db.delete(_db.mediaIdentifications).go();
-    await _db.delete(_db.mediaIdentificationRuns).go();
-    return ids;
-  });
+  /// Every media id with a run or an identification in this logbook.
+  Future<List<String>> mediaIds() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT media_id FROM media_identification_runs '
+          'UNION '
+          'SELECT media_id FROM media_identifications',
+          readsFrom: {_db.mediaIdentificationRuns, _db.mediaIdentifications},
+        )
+        .get();
+    return [for (final row in rows) row.read<String>('media_id')];
+  }
 
   Future<List<String>> _idsWhere(
     AppDatabase db,

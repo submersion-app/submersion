@@ -182,7 +182,7 @@ void main() {
       final sub = withCrops.listen(identificationCropBytesProvider, (_, _) {});
       addTearDown(sub.close);
       expect(await withCrops.read(identificationCropBytesProvider.future), 4);
-      await crops.deleteAll();
+      await crops.deleteMedia(['m1']);
       await pumpEventQueue();
       expect(await withCrops.read(identificationCropBytesProvider.future), 0);
     });

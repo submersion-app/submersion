@@ -557,4 +557,14 @@ void main() {
       IdentificationDecision.undecided,
     );
   });
+
+  test('a location that is not a number is treated as none', () async {
+    await service.request(
+      photo('m1'),
+      location: const GeoPoint(double.nan, double.infinity),
+    );
+    final run = await identifications.runFor('m1');
+    expect(run, isNotNull);
+    expect(run!.locationCell, isNull);
+  });
 }

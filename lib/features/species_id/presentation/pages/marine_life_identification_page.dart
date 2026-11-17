@@ -160,6 +160,16 @@ class _MarineLifeIdentificationPageState
         ),
       ),
     ],
+    // The check itself failed: nothing is known to download yet.
+    PackFailed(bytes: 0, :final reason)
+        when reason != PackDownloadFailure.unsupportedFormat =>
+      [
+        FilledButton(
+          key: const ValueKey('species_id_retry'),
+          onPressed: controller.refresh,
+          child: Text(l10n.common_action_tryAgain),
+        ),
+      ],
     PackFailed(:final bytes, :final reason)
         when reason != PackDownloadFailure.unsupportedFormat =>
       [

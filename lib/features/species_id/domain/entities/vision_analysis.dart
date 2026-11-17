@@ -83,6 +83,36 @@ class VisionModels extends Equatable {
     'cropThumbnailSize': cropThumbnailSize,
   };
 
+  VisionModels copyWith({
+    String? detectorPath,
+    String? classifierPath,
+    int? detectorInputSize,
+    List<double>? detectorMean,
+    List<double>? detectorStd,
+    double? scoreThreshold,
+    int? maxBoxes,
+    double? cropPadding,
+    int? classifierInputSize,
+    List<double>? classifierMean,
+    List<double>? classifierStd,
+    int? embeddingSize,
+    int? cropThumbnailSize,
+  }) => VisionModels(
+    detectorPath: detectorPath ?? this.detectorPath,
+    classifierPath: classifierPath ?? this.classifierPath,
+    detectorInputSize: detectorInputSize ?? this.detectorInputSize,
+    detectorMean: detectorMean ?? this.detectorMean,
+    detectorStd: detectorStd ?? this.detectorStd,
+    scoreThreshold: scoreThreshold ?? this.scoreThreshold,
+    maxBoxes: maxBoxes ?? this.maxBoxes,
+    cropPadding: cropPadding ?? this.cropPadding,
+    classifierInputSize: classifierInputSize ?? this.classifierInputSize,
+    classifierMean: classifierMean ?? this.classifierMean,
+    classifierStd: classifierStd ?? this.classifierStd,
+    embeddingSize: embeddingSize ?? this.embeddingSize,
+    cropThumbnailSize: cropThumbnailSize ?? this.cropThumbnailSize,
+  );
+
   @override
   List<Object?> get props => [
     detectorPath,
@@ -132,6 +162,28 @@ class VisionDetection extends Equatable {
   /// The embedding model's output for the crop, not normalised.
   final Float32List embedding;
 
+  VisionDetection copyWith({
+    double? x,
+    double? y,
+    double? width,
+    double? height,
+    double? score,
+    int? pixelWidth,
+    int? pixelHeight,
+    Uint8List? cropJpeg,
+    Float32List? embedding,
+  }) => VisionDetection(
+    x: x ?? this.x,
+    y: y ?? this.y,
+    width: width ?? this.width,
+    height: height ?? this.height,
+    score: score ?? this.score,
+    pixelWidth: pixelWidth ?? this.pixelWidth,
+    pixelHeight: pixelHeight ?? this.pixelHeight,
+    cropJpeg: cropJpeg ?? this.cropJpeg,
+    embedding: embedding ?? this.embedding,
+  );
+
   @override
   List<Object?> get props => [
     x,
@@ -157,6 +209,16 @@ class VisionAnalysis extends Equatable {
   final int imageWidth;
   final int imageHeight;
   final List<VisionDetection> detections;
+
+  VisionAnalysis copyWith({
+    int? imageWidth,
+    int? imageHeight,
+    List<VisionDetection>? detections,
+  }) => VisionAnalysis(
+    imageWidth: imageWidth ?? this.imageWidth,
+    imageHeight: imageHeight ?? this.imageHeight,
+    detections: detections ?? this.detections,
+  );
 
   @override
   List<Object?> get props => [imageWidth, imageHeight, detections];
