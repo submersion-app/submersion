@@ -4,8 +4,10 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/dense_site_list_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/country_flag.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/record_chevron_expectations.dart';
 
 void main() {
   group('DenseSiteListTile', () {
@@ -105,5 +107,26 @@ void main() {
       );
       expect(find.byType(CountryFlag), findsNothing);
     });
+  });
+
+  testWidgets('chevron ends one row padding from the edge (#4639)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        child: DenseSiteListTile(
+          name: 'Blue Corner Wall',
+          location: 'Palau, Micronesia',
+          diveCount: 12,
+          onTap: () {},
+        ),
+      ),
+    );
+
+    expectChevronAtEndPadding(
+      tester,
+      bounds: tester.getRect(find.byType(DenseSiteListTile)),
+      padding: kRecordRowDenseHorizontalPadding,
+    );
   });
 }

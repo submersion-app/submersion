@@ -46,6 +46,7 @@ import 'package:submersion/features/certification_agencies/presentation/certific
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/shared/widgets/section_title_toggle.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// Content widget for the certification list, used in master-detail layout.
 class CertificationListContent extends ConsumerStatefulWidget {
@@ -962,23 +963,26 @@ class CertificationListTile extends ConsumerWidget {
         color: isSelected
             ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
             : null,
-        child: ListTile(
-          onTap: onTap,
-          leading: SelectionLeading(
-            isSelectionMode: isSelectionMode,
-            isChecked: isChecked,
-            onChanged: onCheckChanged,
-            child: _buildLeadingIcon(context),
-          ),
-          title: Text(
-            certificationTitleL10n(
-              certification,
-              context.l10n,
-              catalog: context.certificationCatalog,
+        child: RecordListChevronOverlay(
+          child: ListTile(
+            onTap: onTap,
+            contentPadding: kRecordListTileContentPadding,
+            leading: SelectionLeading(
+              isSelectionMode: isSelectionMode,
+              isChecked: isChecked,
+              onChanged: onCheckChanged,
+              child: _buildLeadingIcon(context),
             ),
+            title: Text(
+              certificationTitleL10n(
+                certification,
+                context.l10n,
+                catalog: context.certificationCatalog,
+              ),
+            ),
+            subtitle: _buildSubtitle(context, units),
+            trailing: _buildTrailing(context),
           ),
-          subtitle: _buildSubtitle(context, units),
-          trailing: _buildTrailing(context),
         ),
       ),
     );
@@ -1026,7 +1030,9 @@ class CertificationListTile extends ConsumerWidget {
     return Text(parts.join(' - '));
   }
 
-  Widget _buildTrailing(BuildContext context) {
+  /// The expiry badge, if any. The chevron is not in this slot: it follows
+  /// the badge at the card edge, as in every list (#4639).
+  Widget? _buildTrailing(BuildContext context) {
     if (certification.isExpired) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -1061,7 +1067,7 @@ class CertificationListTile extends ConsumerWidget {
         ),
       );
     }
-    return const Icon(Icons.chevron_right);
+    return null;
   }
 
   /// The first four characters of an agency name, for the badge.

@@ -12,6 +12,7 @@ import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_site_badge.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// Two-line compact card tile for the site list, driven by
 /// [siteCompactCardConfigProvider].
@@ -107,96 +108,95 @@ class CompactSiteListTile extends ConsumerWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Row(
-              children: [
-                SelectionCheckboxSlot(
-                  isSelectionMode: isSelectionMode,
-                  isChecked: isSelected,
-                  onChanged: (_) => onTap?.call(),
-                  gap: 8,
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              title,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          LibrarySiteBadge(site: site),
-                          if (site.rating != null) ...[
-                            const SizedBox(width: 6),
-                            const Icon(
-                              Icons.star,
-                              color: Colors.amber,
-                              size: 14,
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              formatRatingForDisplay(site.rating!),
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                          if (showSharedBadge) ...[
-                            const SizedBox(width: 6),
-                            Tooltip(
-                              message:
-                                  l10n.accessibility_label_sharedWithProfiles,
-                              child: Icon(
-                                Icons.people_outline,
-                                size: 16,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                          ],
-                          const SizedBox(width: 8),
-                          stat('stat1', SiteField.diveCount),
-                          ExcludeSemantics(
-                            child: Icon(
-                              Icons.chevron_right,
-                              color: secondaryTextColor,
-                              size: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (showSecondLine) ...[
-                        const SizedBox(height: 2),
+            padding: const EdgeInsets.all(kRecordCardCompactPadding),
+            child: RecordListChevronRow(
+              chevronSize: RecordListChevron.compactSize,
+              chevronColor: secondaryTextColor,
+              child: Row(
+                children: [
+                  SelectionCheckboxSlot(
+                    isSelectionMode: isSelectionMode,
+                    isChecked: isSelected,
+                    onChanged: (_) => onTap?.call(),
+                    gap: 8,
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Row(
                           children: [
                             Expanded(
-                              child: Align(
-                                alignment: AlignmentDirectional.centerStart,
-                                child: LocationWithFlag(
-                                  country: flagSite?.country,
-                                  countryCode: flagSite?.countryCode,
-                                  text: Text(
-                                    subtitle ?? '',
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(color: secondaryTextColor),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                              child: Text(
+                                title,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            LibrarySiteBadge(site: site),
+                            if (site.rating != null) ...[
+                              const SizedBox(width: 6),
+                              const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                formatRatingForDisplay(site.rating!),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                            if (showSharedBadge) ...[
+                              const SizedBox(width: 6),
+                              Tooltip(
+                                message:
+                                    l10n.accessibility_label_sharedWithProfiles,
+                                child: Icon(
+                                  Icons.people_outline,
+                                  size: 16,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(width: 8),
+                            stat('stat1', SiteField.diveCount),
+                          ],
+                        ),
+                        if (showSecondLine) ...[
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: LocationWithFlag(
+                                    country: flagSite?.country,
+                                    countryCode: flagSite?.countryCode,
+                                    text: Text(
+                                      subtitle ?? '',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(color: secondaryTextColor),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            stat('stat2', SiteField.depthRange),
-                          ],
-                        ),
+                              const SizedBox(width: 8),
+                              stat('stat2', SiteField.depthRange),
+                            ],
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

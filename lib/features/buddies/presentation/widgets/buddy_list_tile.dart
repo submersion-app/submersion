@@ -22,6 +22,7 @@ import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// Detailed list card for one buddy.
 ///
@@ -170,120 +171,117 @@ class BuddyListTile extends ConsumerWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    SelectionLeading(
-                      isSelectionMode: isSelectionMode,
-                      isChecked: isChecked,
-                      onChanged: (_) => onTap?.call(),
-                      child: SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: Center(
-                          child: _BuddyAvatar(
-                            buddy: buddy,
-                            backgroundColor:
-                                accent?.withValues(alpha: 0.15) ??
-                                colorScheme.primaryContainer,
-                            foregroundColor:
-                                accent ?? colorScheme.onPrimaryContainer,
+            padding: const EdgeInsets.all(kRecordCardDetailedPadding),
+            child: RecordListChevronRow(
+              showChevron: !isSelectionMode,
+              chevronColor: colorScheme.outline,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      SelectionLeading(
+                        isSelectionMode: isSelectionMode,
+                        isChecked: isChecked,
+                        onChanged: (_) => onTap?.call(),
+                        child: SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: Center(
+                            child: _BuddyAvatar(
+                              buddy: buddy,
+                              backgroundColor:
+                                  accent?.withValues(alpha: 0.15) ??
+                                  colorScheme.primaryContainer,
+                              foregroundColor:
+                                  accent ?? colorScheme.onPrimaryContainer,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (subtitle != null) ...[
-                            const SizedBox(height: 2),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Text(
-                              subtitle,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: secondaryTextColor,
+                              title,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
+                            if (subtitle != null) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                subtitle,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: secondaryTextColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
-                    ),
-                    // Favoriting (issue #1336) is independent of bulk
-                    // selection, unlike the chevron below, so it stays
-                    // visible and tappable in every mode.
-                    BuddyFavoriteButton(
-                      buddyId: buddy.id,
-                      isFavorite: buddy.isFavorite,
-                      iconSize: 20,
-                      unselectedColor: secondaryTextColor,
-                    ),
-                    if (!isSelectionMode)
-                      ExcludeSemantics(
-                        child: Icon(
-                          Icons.chevron_right,
-                          color: colorScheme.outline,
                         ),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                SelectionInset(
-                  isSelectionMode: isSelectionMode,
-                  start: _contentInset,
-                  child: Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 16,
-                    runSpacing: 6,
-                    children: [
-                      stat('stat1', BuddyField.diveCount),
-                      stat('stat2', BuddyField.lastDive),
+                      // Favoriting (issue #1336) is independent of bulk
+                      // selection, unlike the chevron after the content, so it stays
+                      // visible and tappable in every mode.
+                      BuddyFavoriteButton(
+                        buddyId: buddy.id,
+                        isFavorite: buddy.isFavorite,
+                        iconSize: 20,
+                        unselectedColor: secondaryTextColor,
+                      ),
                     ],
                   ),
-                ),
-                if (trailer.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   SelectionInset(
                     isSelectionMode: isSelectionMode,
                     start: _contentInset,
                     child: Wrap(
                       crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: trailer,
+                      spacing: 16,
+                      runSpacing: 6,
+                      children: [
+                        stat('stat1', BuddyField.diveCount),
+                        stat('stat2', BuddyField.lastDive),
+                      ],
                     ),
                   ),
+                  if (trailer.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    SelectionInset(
+                      isSelectionMode: isSelectionMode,
+                      start: _contentInset,
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: trailer,
+                      ),
+                    ),
+                  ],
+                  if (config.extraFields.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    SelectionInset(
+                      isSelectionMode: isSelectionMode,
+                      start: _contentInset,
+                      child:
+                          EntityCardExtraFields<BuddyWithDiveCount, BuddyField>(
+                            adapter: adapter,
+                            entity: entry,
+                            fields: config.extraFields,
+                            units: units,
+                            labelColor: secondaryTextColor,
+                            valueColor: colorScheme.onSurface,
+                          ),
+                    ),
+                  ],
                 ],
-                if (config.extraFields.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  SelectionInset(
-                    isSelectionMode: isSelectionMode,
-                    start: _contentInset,
-                    child:
-                        EntityCardExtraFields<BuddyWithDiveCount, BuddyField>(
-                          adapter: adapter,
-                          entity: entry,
-                          fields: config.extraFields,
-                          units: units,
-                          labelColor: secondaryTextColor,
-                          valueColor: colorScheme.onSurface,
-                        ),
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
         ),
