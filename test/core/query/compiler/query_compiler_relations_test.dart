@@ -48,7 +48,7 @@ void main() {
       j.where,
       '(EXISTS (SELECT 1 FROM buddies r1 WHERE EXISTS (SELECT 1 FROM '
       'dive_buddies j WHERE j.dive_id = r0.id AND j.buddy_id = r1.id) '
-      "AND (unicode_lower(r1.name) LIKE ? ESCAPE '\\')))",
+      "AND (search_fold(r1.name) LIKE ? ESCAPE '\\')))",
     );
     expect(j.tablesTouched, {'dives', 'buddies', 'dive_buddies'});
   });

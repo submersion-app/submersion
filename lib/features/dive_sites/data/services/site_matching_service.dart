@@ -225,10 +225,25 @@ class SiteMatchingService {
       final point = resolved.point;
       _pointByDive[dive.id] = point;
 
-      final bundled = await _catalogue.near(
+      // Map-placed records are offered from further out than the rest,
+      // and are always read on their own: in a shared read, the records
+      // nearer the dive could fill its limit first, even when the outer
+      // radius is already as wide as the map-placed reach.
+      final inRadius = await _catalogue.near(
         point,
         radiusMeters: thresholds.outerRadiusMeters,
       );
+      final mapPlaced = await _catalogue.near(
+        point,
+        radiusMeters: mapPlacedReachMeters(thresholds),
+        mapPlacedOnly: true,
+      );
+      final inRadiusIds = {for (final b in inRadius) b.id};
+      final bundled = [
+        ...inRadius,
+        for (final b in mapPlaced)
+          if (!inRadiusIds.contains(b.id)) b,
+      ];
 
       final refs = <String, _CandidateRef>{};
       final candidates = <MatchCandidate>[];
@@ -266,6 +281,7 @@ class SiteMatchingService {
             isExisting: false,
             isRegister: b.kind == CatalogueKind.register,
             isResearched: b.isResearched,
+            isMapPlaced: b.isResearched && b.positionFromMap,
           ),
         );
       }
@@ -275,7 +291,9 @@ class SiteMatchingService {
       // decision so distances are computed a single time per dive/site pair.
       final ranked = rankCandidates(point, candidates);
       final views = ranked
-          .where((r) => r.distanceMeters <= thresholds.outerRadiusMeters)
+          .where(
+            (r) => r.distanceMeters <= reachMeters(r.candidate, thresholds),
+          )
           .map(
             (r) =>
                 _viewFor(r.candidate, refs[r.candidate.id]!, r.distanceMeters),

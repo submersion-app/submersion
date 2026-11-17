@@ -99,6 +99,22 @@ class RecordsTest(unittest.TestCase):
         self.assertEqual(counts["withdrawn"], 1)
         self.assertEqual(counts["failed"], 1)
 
+    def test_a_map_read_entry_forms_a_record_placed_from_a_map(self):
+        entry = _entry(named={"place": "Tulamben Bay", "sources": [
+            {"url": "https://opa.com/a", "read": "2026-11-16"},
+            {"url": "https://pressb.org/b", "read": "2026-11-16"},
+        ]})
+        entry["position"] = {"lat": -8.2759, "lon": 115.5937, "sources": [
+            {"url": "https://opa.com/a", "read": "2026-11-16", "method": "map",
+             "map": "https://opa.com/m.jpg", "lat": -8.2759, "lon": 115.5937},
+        ]}
+        records, _ = _records(entry)
+        self.assertEqual(records[0]["position_from"], "map")
+
+    def test_a_stated_entry_forms_a_record_with_no_position_from(self):
+        records, _ = _records(_entry())
+        self.assertNotIn("position_from", records[0])
+
     def test_app_entry_names_survive_the_format(self):
         entry = _entry()
         entry["entry"]["value"] = ["boat", "giantStride"]

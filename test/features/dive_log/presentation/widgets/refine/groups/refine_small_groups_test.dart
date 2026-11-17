@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, TagsCompanion;
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -20,11 +21,14 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_field.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../../helpers/test_database.dart';
 import 'group_test_host.dart';
@@ -122,6 +126,24 @@ void main() {
   });
 
   group('People and life', () {
+    final roles = allDiveRolesProvider.overrideWith(
+      (ref) async => [
+        DiveRole(
+          id: 'instructor',
+          name: 'Instructor',
+          isBuiltIn: true,
+          createdAt: DateTime(2020),
+          updatedAt: DateTime(2020),
+        ),
+        DiveRole(
+          id: 'r1',
+          diverId: 'me',
+          name: 'Cave Guide',
+          createdAt: DateTime(2020),
+          updatedAt: DateTime(2020),
+        ),
+      ],
+    );
     Future<GroupHarness> pump(
       WidgetTester tester, [
       DiveFilterState initial = const DiveFilterState(),
@@ -130,6 +152,7 @@ void main() {
       (d, on) => RefinePeopleGroup(draft: d, onChanged: on),
       initial: initial,
       overrides: [
+        roles,
         allBuddiesProvider.overrideWith(
           (ref) async => [
             Buddy(id: 'b1', name: 'Ana', createdAt: now, updatedAt: now),
@@ -165,16 +188,87 @@ void main() {
       expect(h.draft.buddyNameFilter, isNull);
     });
 
-    testWidgets('the no-role switch turns the axis on and off', (tester) async {
+    // The diver's own role (#4409): a chip per role and Not set, which ORs
+    // with the roles listed (it was the No Role Assigned switch, #3622).
+    testWidgets('my role chips pick roles and Not set', (tester) async {
       final h = await pump(tester);
-      expect(find.text('No Role Assigned'), findsOneWidget);
-      await tester.tap(find.byKey(kRefineNoRoleSwitchKey));
+      expect(find.text('Instructor'), findsOneWidget);
+      expect(find.text('Cave Guide'), findsOneWidget);
+      await tester.tap(find.byKey(refineRoleChipKey('instructor')));
+      await tester.pump();
+      expect(h.draft.diverRoleIds, ['instructor']);
+      await tester.tap(find.byKey(kRefineRoleNotSetChipKey));
       await tester.pump();
       expect(h.draft.noRoleOnly, isTrue);
+      expect(h.draft.diverRoleIds, ['instructor']);
       expect(h.draft.noBuddyOnly, isNull, reason: 'the buddy axis is apart');
-      await tester.tap(find.byKey(kRefineNoRoleSwitchKey));
+      await tester.tap(find.byKey(refineRoleChipKey('instructor')));
+      await tester.pump();
+      expect(h.draft.diverRoleIds, isEmpty);
+      await tester.tap(find.byKey(kRefineRoleNotSetChipKey));
       await tester.pump();
       expect(h.draft.noRoleOnly, isNull);
+    });
+
+    // A divers write (a diver edited, a sync) reloads the role list through
+    // its diver id dependency; the unpicked role chips stay until the new
+    // list lands rather than vanishing for the reload.
+    testWidgets('a role list reload keeps the role chips', (tester) async {
+      final trigger = NotifierProvider<_Trigger, int>(_Trigger.new);
+      final list = [
+        DiveRole(
+          id: 'instructor',
+          name: 'Instructor',
+          isBuiltIn: true,
+          createdAt: DateTime(2020),
+          updatedAt: DateTime(2020),
+        ),
+        DiveRole(
+          id: 'r1',
+          diverId: 'me',
+          name: 'Cave Guide',
+          createdAt: DateTime(2020),
+          updatedAt: DateTime(2020),
+        ),
+      ];
+      var next = Completer<List<DiveRole>>()..complete(list);
+      await pumpGroup(
+        tester,
+        (d, on) => RefinePeopleGroup(draft: d, onChanged: on),
+        initial: const DiveFilterState(diverRoleIds: ['instructor']),
+        overrides: [
+          allDiveRolesProvider.overrideWith((ref) {
+            ref.watch(trigger);
+            return next.future;
+          }),
+          allBuddiesProvider.overrideWith((ref) async => const <Buddy>[]),
+          allSpeciesProvider.overrideWith((ref) async => const <Species>[]),
+        ],
+      );
+      expect(find.byKey(refineRoleChipKey('r1')), findsOneWidget);
+
+      next = Completer<List<DiveRole>>();
+      ProviderScope.containerOf(
+        tester.element(find.byType(RefinePeopleGroup)),
+      ).read(trigger.notifier).bump();
+      await tester.pump();
+      expect(find.byKey(refineRoleChipKey('r1')), findsOneWidget);
+      expect(find.text('Cave Guide'), findsOneWidget);
+      next.complete(list);
+    });
+
+    testWidgets('built-in role chips are in the diver\'s language', (
+      tester,
+    ) async {
+      final de = lookupAppLocalizations(const Locale('de'));
+      await pumpGroup(
+        tester,
+        (d, on) => RefinePeopleGroup(draft: d, onChanged: on),
+        locale: const Locale('de'),
+        overrides: [roles],
+      );
+      expect(find.text(de.diveRole_builtin_instructor), findsOneWidget);
+      expect(find.text('Cave Guide'), findsOneWidget);
     });
 
     testWidgets('a buddy suggestion completes the name', (tester) async {
@@ -358,12 +452,31 @@ void main() {
     });
   });
 
+  test('the role axis counts once in the People group badge (#4409)', () {
+    expect(
+      RefinePeopleGroup.activeCount(
+        const DiveFilterState(
+          diverRoleIds: ['instructor', 'student'],
+          noRoleOnly: true,
+        ),
+      ),
+      1,
+    );
+    expect(
+      RefinePeopleGroup.activeCount(
+        const DiveFilterState(diverRoleIds: ['instructor']),
+      ),
+      1,
+    );
+  });
+
   test('the four groups declare their fields', () {
     expect(RefineLocationGroup.fields, {'siteId', 'tripId', 'diveCenterId'});
     expect(RefinePeopleGroup.fields, {
       'buddyNameFilter',
       'noBuddyOnly',
       'noRoleOnly',
+      'diverRoleIds',
       'speciesIds',
     });
     expect(RefineOrganizationGroup.fields, {
@@ -377,4 +490,11 @@ void main() {
       'customFieldValue',
     });
   });
+}
+
+class _Trigger extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void bump() => state = state + 1;
 }

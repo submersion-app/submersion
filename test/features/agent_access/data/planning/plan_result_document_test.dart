@@ -71,6 +71,15 @@ void main() {
     final usage = (doc['tank_usage']! as List).cast<Map>();
     expect(usage.map((u) => u['tank']), [0, 1]);
     expect(usage.first['litres_used'], greaterThan(0));
+    // The problem-solving allowance is its own figure, on the bottom gas
+    // only, and minimum gas is read where the bottom ends (#4475).
+    expect(usage.first['problem_solving_litres'], greaterThan(0));
+    expect(usage.last['problem_solving_litres'], 0);
+    expect(usage.first['bottom_end_pressure_bar'], isA<double>());
+    expect(
+      usage.first['min_gas_ascent_bar'],
+      lessThan(usage.first['min_gas_bar']! as double),
+    );
     expect(doc['cns_end_percent'], greaterThan(0));
     expect(doc['otu_total'], greaterThan(0));
     expect(doc['issues'], isA<List>());
@@ -134,7 +143,7 @@ void main() {
       'value': config.ascentRate,
       'source': 'settings',
     });
-    // The problem-solving allowance litres_used includes.
+    // The problem-solving allowance tank_usage reports on its own.
     expect(settings['problem_solving_minutes'], {
       'value': config.problemSolvingMinutes,
       'source': 'settings',

@@ -2127,6 +2127,43 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_bulkEdit_tankRoleSameForAll => 'Same role on every tank';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleByPosition => 'Role by tank position';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleAddPosition => 'Add position';
+
+  @override
+  String get diveLog_bulkEdit_tankRoleRemovePosition => 'Remove position';
+
+  @override
+  String diveLog_bulkEdit_tankRolesByPositionHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Only dives with exactly $count tanks get these roles, in tank order.',
+      one: 'Only dives with exactly $count tank get this role.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_bulkEdit_tankRolesSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count dives don\'t match the tank positions, so their tank roles stay as they are.',
+      one:
+          '$count dive doesn\'t match the tank positions, so its tank roles stay as they are.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_bulkEdit_confirmTitle => 'Apply changes?';
 
   @override
@@ -9257,7 +9294,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_noEntryMethodOnly => 'No entry method recorded';
 
   @override
-  String get diveLog_filter_noRoleOnly => 'No Role Assigned';
+  String get diveLog_filter_sectionMyRole => 'My role';
+
+  @override
+  String get diveLog_filter_myRoleNotSet => 'Not set';
 
   @override
   String get diveLog_filter_noTagsYet => 'No tags created yet';
@@ -9326,10 +9366,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoEntryMethod =>
       'Show only dives with no known entry method';
-
-  @override
-  String get diveLog_filter_showOnlyNoRole =>
-      'Show only dives where your role is not set';
 
   @override
   String get diveLog_filter_startDate => 'Start Date';
@@ -13576,6 +13612,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveTypes_deleteTooltip => 'Delete dive type';
+
+  @override
+  String diveTypes_favourite_add(String name) {
+    return 'Add $name to favorites';
+  }
+
+  @override
+  String diveTypes_favourite_remove(String name) {
+    return 'Remove $name from favorites';
+  }
+
+  @override
+  String get diveTypes_favourites_header => 'Favorites';
 
   @override
   String get diveTypes_editDialog_builtInNameHelper =>
@@ -22196,6 +22245,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_gas_problemSolvingReading(String reading) {
+    return 'problem solving: $reading';
+  }
+
+  @override
   String plannerCanvas_issue_gasDensityCritical(String value) {
     return 'Gas density $value g/L over hard limit';
   }
@@ -22211,8 +22265,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_minGas(String pressure) {
-    return 'Tank ends below the rock-bottom minimum of $pressure';
+  String plannerCanvas_issue_minGas(String remaining, String minimum) {
+    return 'Leaves the bottom with $remaining, under the rock-bottom minimum of $minimum: no gas held back for problem-solving time';
+  }
+
+  @override
+  String plannerCanvas_issue_minGasAscent(String remaining, String minimum) {
+    return 'Leaves the bottom with $remaining, under the $minimum an emergency ascent needs';
   }
 
   @override
@@ -22377,6 +22436,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_minGas => 'Min gas';
+
+  @override
+  String get plannerCanvas_slate_problemSolving => 'Problem solving';
 
   @override
   String get plannerCanvas_slate_saved => 'Slate saved';
@@ -32560,6 +32622,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String insights_profile_timeAtDepth_hoursFormat(int hours) {
+    final intl.NumberFormat hoursNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String hoursString = hoursNumberFormat.format(hours);
+
+    return '$hoursString h';
+  }
+
+  @override
   String get insights_progression_appBar_title => 'Dive Progression';
 
   @override
@@ -33057,6 +33128,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_social_soloVsBuddy_withBuddy => 'With Buddy';
+
+  @override
+  String get insights_social_myRole_title => 'My role';
+
+  @override
+  String get insights_social_myRole_subtitle =>
+      'Dives by the role you held; a dive with several roles counts under each';
+
+  @override
+  String get insights_social_myRole_empty => 'No dive data available';
+
+  @override
+  String get insights_social_myRole_error => 'Failed to load role data';
+
+  @override
+  String get insights_social_myRole_notSet => 'Not set';
 
   @override
   String get insights_social_topBuddies_error =>
@@ -36220,6 +36307,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get units_profileMetric_min => 'min';
+
+  @override
+  String get units_profileMetric_h => 'h';
 
   @override
   String get units_profileMetric_percent => '%';
@@ -51911,6 +52001,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_roleCount(int count) {
+    return '$count roles';
+  }
+
+  @override
   String diveLog_filterChip_tankConfigCount(Object count) {
     return '$count tank configurations';
   }
@@ -58532,6 +58627,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_divePlans_site => 'Site';
 
   @override
+  String get query_diveRoles_builtIn => 'Built-in';
+
+  @override
+  String get query_diveRoles_name => 'Name';
+
+  @override
   String get query_diveTypes_builtIn => 'Built-in';
 
   @override
@@ -58638,6 +58739,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_dives_role => 'My role';
+
+  @override
+  String get query_dives_myRole => 'My roles';
 
   @override
   String get query_dives_media => 'Media';
@@ -58773,6 +58877,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_entity_diveTypes => 'Dive types';
+
+  @override
+  String get query_entity_diveRoles => 'Dive roles';
 
   @override
   String get query_entity_dives => 'Dives';
@@ -60421,6 +60528,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_hiddenBuiltInIds =>
       'Hidden built-in entries';
+
+  @override
+  String get settings_conflict_field_favouriteDiveTypeIds =>
+      'Favorite dive types';
 
   @override
   String get backup_restore_copyInOtherAccount =>

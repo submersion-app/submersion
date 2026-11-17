@@ -6,10 +6,13 @@
 
 A researched site ships only when its evidence meets the rules of the
 slice 3 design (docs/design/specs/2026-11-15-site-catalogue-researched-
-sites-design.md, section 4): two counting pages on different domains
-agree on its position within 150 m, each written finely enough to say so;
-its depths agree well enough or are left out; every fact has a counting
-page; and nothing holds any page's text. This script runs those rules on
+sites-design.md, section 4) as widened by the wider sources design
+(docs/design/specs/2026-11-16-site-catalogue-wider-sources-design.md,
+section 2): two counting pages on different domains name it, or confirm
+its position; a counting page places it, by a stated figure or a point
+read off its own map, every counting figure within 2 km; its depths agree
+well enough or are left out; every fact has a counting page; and nothing
+holds any page's text. This script runs those rules on
 `sites.json` with no network, prints what it found, and exits 1 when any
 entry breaks one, whatever that entry's review state. CI runs it on the
 committed file.
@@ -46,6 +49,11 @@ DOMAINS_FILE = Path(_HERE) / "domains.json"
 
 # Two counting positions agree when they lie this close.
 AGREE_M = 150.0
+# Every counting figure lies this close to the shipped point: a
+# researched position is good enough to name the dive.
+AGREE_COARSE_M = 2000.0
+# A map-read site this close to another is flagged for the reviewer.
+FLAG_M = 500.0
 # The shipped point is the mean of the counting positions, to within this.
 MEAN_M = 10.0
 # The coarsest figure that can confirm a position: a tenth of a minute.
@@ -58,16 +66,27 @@ FEET = 0.3048
 NAME_MAX = 60
 
 ENTRY_FIELDS = frozenset({
-    "id", "name", "area", "country_code", "position", "max_depth_m",
+    "id", "name", "area", "country_code", "named", "position", "max_depth_m",
     "min_depth_m", "entry", "types", "hazards", "review", "withdrawn", "note",
+    "distinct_from",
 })
 SOURCE_FIELDS = frozenset({
     "url", "read", "lat", "lon", "value", "unit", "contradicts", "archive",
+    "method", "map",
 })
 FACTS = {
     "entry": frozenset(ENTRY_METHODS),
     "types": frozenset(SITE_TYPE_IDS),
     "hazards": frozenset(evidence.HAZARD_SENTENCES),
+}
+# The fields each fact may hold: its sources and what they say, never a
+# page's words.
+FACT_FIELDS = {
+    "named": frozenset({"place", "sources"}),
+    "position": frozenset({"lat", "lon", "sources"}),
+    "max_depth_m": frozenset({"sources"}),
+    "min_depth_m": frozenset({"sources"}),
+    **{key: frozenset({"value", "sources"}) for key in FACTS},
 }
 REVIEW_STATES = ("pending", "approved", "rejected")
 _COUNTRY = re.compile(r"^[A-Z]{2}$")
@@ -89,16 +108,25 @@ class CheckedEntry:
     entry: dict
     findings: list = field(default_factory=list)
     position: tuple | None = None
+    # How the position was reached: "confirmed" (two stated figures
+    # agree), "stated" (one) or "map" (map-grade figures).
+    route: str | None = None
     min_depth: float | None = None
     max_depth: float | None = None
     types: list = field(default_factory=list)
     entries: list = field(default_factory=list)
     hazards: list = field(default_factory=list)
     left_out: list = field(default_factory=list)
+    # Points for the reviewer that block nothing (see flag()).
+    flags: list = field(default_factory=list)
 
     @property
     def ok(self) -> bool:
         return not any(finding.fatal for finding in self.findings)
+
+    @property
+    def map_read(self) -> bool:
+        return self.route == "map"
 
     @property
     def id(self) -> str:
@@ -124,6 +152,13 @@ class CheckedEntry:
         self.findings.append(Finding(self.id, rule, message, fatal=False))
         self.left_out.append(message)
 
+    def flag(self, rule: str, message: str) -> None:
+        """A point for the reviewer to look at: it blocks nothing and
+        leaves nothing out."""
+        finding = Finding(self.id, rule, message, fatal=False)
+        self.findings.append(finding)
+        self.flags.append(finding)
+
 
 def _sources(fact) -> list[dict]:
     if isinstance(fact, dict) and isinstance(fact.get("sources"), list):
@@ -133,7 +168,7 @@ def _sources(fact) -> list[dict]:
 
 def _all_sources(entry: dict) -> list[dict]:
     found = []
-    for key in ("position", "max_depth_m", "min_depth_m", *FACTS):
+    for key in ("named", "position", "max_depth_m", "min_depth_m", *FACTS):
         found.extend(_sources(entry.get(key)))
     return found
 
@@ -147,6 +182,20 @@ def _check_shape(checked: CheckedEntry, ids: set[str], today: date) -> None:
         checked.fail("id_repeat", "the id is used by another entry")
     for key in sorted(set(entry) - ENTRY_FIELDS):
         checked.fail("text_field", f"no field {key!r}: a page's text is never kept")
+    for fact_key, allowed in FACT_FIELDS.items():
+        fact = entry.get(fact_key)
+        for key in sorted(set(fact) - allowed) if isinstance(fact, dict) else ():
+            checked.fail("text_field", f"no field {fact_key}.{key}")
+    named = entry.get("named")
+    if named is not None and not (
+        isinstance(named, dict) and _has_words(named.get("place"))
+    ):
+        checked.fail("shape", "named.place is the bay, island or reef system")
+    distinct = entry.get("distinct_from")
+    if distinct is not None and not (
+        isinstance(distinct, list) and all(_is_record_id(i) for i in distinct)
+    ):
+        checked.fail("shape", "distinct_from is a list of entry ids")
     name = entry.get("name")
     if not isinstance(name, str) or not name.strip():
         checked.fail("shape", "no name")
@@ -192,9 +241,14 @@ def _check_shape(checked: CheckedEntry, ids: set[str], today: date) -> None:
             checked.fail("shape", "withdrawn.replaced_by is a record id")
 
 
+def _has_words(value) -> bool:
+    """Whether [value] is a string with something other than spaces."""
+    return isinstance(value, str) and bool(value.strip())
+
+
 def _is_record_id(value) -> bool:
     """Whether [value] can name a catalogue record: a non-empty string."""
-    return isinstance(value, str) and bool(value.strip())
+    return _has_words(value)
 
 
 def _check_domains(checked: CheckedEntry, domains) -> None:
@@ -216,7 +270,7 @@ def _counting(sources, domains) -> list[dict]:
 
 
 def _mean_longitude(values: list[float]) -> float:
-    """The mean of longitudes that agree within 150 m, taken the short way
+    """The mean of longitudes no more than 2 km apart, taken the short way
     round: two figures either side of 180 degrees average to 180, not 0."""
     first = values[0]
     unwrapped = [first + (v - first + 180.0) % 360.0 - 180.0 for v in values]
@@ -224,10 +278,46 @@ def _mean_longitude(values: list[float]) -> float:
     return (mean + 180.0) % 360.0 - 180.0 if not -180.0 <= mean <= 180.0 else mean
 
 
+def _is_web_address(value) -> bool:
+    """Whether [value] is an http(s) address with a host: a map reading
+    names a map the reviewer can open."""
+    if not isinstance(value, str) or not re.match(r"^https?://", value):
+        return False
+    try:
+        return bool(evidence.registrable_domain(value))
+    except ValueError:
+        return False
+
+
+def _mean_point(figures) -> tuple:
+    return (
+        sum(f[1] for f in figures) / len(figures),
+        _mean_longitude([f[2] for f in figures]),
+    )
+
+
 def _check_position(checked: CheckedEntry, domains) -> None:
+    """Places the site by one of three routes (wider sources design,
+    section 2): two fine stated figures that agree ("confirmed"), one fine
+    stated figure with no map reading beside it ("stated"), or map-grade
+    figures ("map"): points read off a counting page's map, figures
+    coarser than a tenth of a minute, stated figures that disagree, or a
+    fine figure beside a map reading."""
     position = checked.entry.get("position")
     sources = _sources(position)
     counted = _counting(sources, domains)
+    for source in sources:
+        if source.get("method", "stated") not in ("stated", "map"):
+            checked.fail("shape", f"{source.get('url')}: method is stated or map")
+            return
+        if source.get("method") == "map" and (
+            source not in counted or not _is_web_address(source.get("map"))
+        ):
+            checked.fail(
+                "position_domains",
+                f"{source.get('url')}: a map reading comes from a counting "
+                "page and names its map",
+            )
     figures = []
     for source in sources:
         try:
@@ -242,38 +332,57 @@ def _check_position(checked: CheckedEntry, domains) -> None:
             continue
         figures.append((source, lat, lon, max(lat_p, lon_p)))
     counting = [f for f in figures if f[0] in counted]
-    if len(counting) < 2:
-        checked.fail("position_sources", "two counting pages state a position")
+    if not counting:
+        checked.fail("position_sources", "a counting page places the site")
         return
-    hosts = {evidence.registrable_domain(f[0]["url"]) for f in counting}
-    if len(hosts) < 2:
-        checked.fail("position_domains", "the counting positions share a domain")
-    for source, _, _, precision in counting:
-        if precision > COARSEST_DEG:
-            checked.fail(
-                "position_precision",
-                f"{source['url']}: written coarser than a tenth of a minute",
-            )
-    for i, a in enumerate(counting):
-        for b in counting[i + 1:]:
-            apart = evidence.metres_between(a[1], a[2], b[1], b[2])
-            if apart > AGREE_M:
-                checked.fail(
-                    "position_spread",
-                    f"{a[0]['url']} and {b[0]['url']} are {apart:.0f} m apart",
-                )
-    mean = (
-        sum(f[1] for f in counting) / len(counting),
-        _mean_longitude([f[2] for f in counting]),
+    fine = [
+        f for f in counting
+        if f[0].get("method", "stated") == "stated" and f[3] <= COARSEST_DEG
+    ]
+    hosts = {evidence.registrable_domain(f[0]["url"]) for f in fine}
+    agree = all(
+        evidence.metres_between(a[1], a[2], b[1], b[2]) <= AGREE_M
+        for i, a in enumerate(fine) for b in fine[i + 1:]
     )
-    checked.position = mean
+    # A map reading beside a fine figure makes a mix, which is map-grade; a
+    # coarse stated figure does not, since it makes a record map-read only
+    # when nothing finer exists.
+    read_off_a_map = any(f[0].get("method") == "map" for f in counting)
+    if len(fine) >= 2 and len(hosts) >= 2 and agree:
+        checked.route, shipped = "confirmed", _mean_point(fine)
+    elif len(fine) == 1 and not read_off_a_map:
+        checked.route, shipped = "stated", (fine[0][1], fine[0][2])
+    else:
+        checked.route, shipped = "map", _mean_point(counting)
+    checked.position = shipped
+    for source, lat, lon, _ in counting:
+        apart = evidence.metres_between(*shipped, lat, lon)
+        if apart > AGREE_COARSE_M:
+            checked.fail(
+                "position_spread",
+                f"{source['url']} is {apart:.0f} m from the shipped point",
+            )
     try:
         stated = (float(position["lat"]), float(position["lon"]))
     except (KeyError, TypeError, ValueError):
         checked.fail("shape", "position.lat and position.lon are numbers")
         return
-    if evidence.metres_between(*stated, *mean) > MEAN_M:
-        checked.fail("position_mean", "lat and lon are not the counting mean")
+    if evidence.metres_between(*stated, *shipped) > MEAN_M:
+        checked.fail("position_mean", "lat and lon are not the computed point")
+
+
+def _check_named(checked: CheckedEntry, domains) -> None:
+    """Two counting pages on different domains name the site. A position
+    two counting pages confirm proves that already."""
+    # No route: the position check stopped on a failure already reported.
+    if checked.route in (None, "confirmed"):
+        return
+    named = _counting(_sources(checked.entry.get("named")), domains)
+    hosts = {evidence.registrable_domain(s["url"]) for s in named}
+    if len(hosts) < 2:
+        checked.fail(
+            "named_sources", "two counting pages on different domains name the site"
+        )
 
 
 def _depth_values(checked: CheckedEntry, key: str, domains) -> list[float]:
@@ -350,6 +459,7 @@ def check_entries(entries, domains, *, today: date) -> list[CheckedEntry]:
         ids.add(checked.id)
         _check_domains(checked, domains)
         _check_position(checked, domains)
+        _check_named(checked, domains)
         _check_depth(checked, domains)
         _check_facts(checked, domains)
         results.append(checked)
@@ -357,20 +467,37 @@ def check_entries(entries, domains, *, today: date) -> list[CheckedEntry]:
     return results
 
 
+def _distinct(a: CheckedEntry, b: CheckedEntry) -> bool:
+    """Whether each entry names the other as a separate site."""
+
+    def names(entry: CheckedEntry, other: CheckedEntry) -> bool:
+        listed = entry.entry.get("distinct_from")
+        return isinstance(listed, list) and other.id in listed
+
+    return names(a, b) and names(b, a)
+
+
 def _check_neighbours(results: list[CheckedEntry]) -> None:
     """Two standing entries within 150 m are one site written twice,
-    unless one of them says why both stand."""
+    unless each names the other in `distinct_from`. A map-read entry
+    within 500 m of another is flagged for the reviewer."""
     standing = [
         r for r in results
         if r.position and not r.withdrawn and r.state != "rejected"
     ]
     for i, a in enumerate(standing):
         for b in standing[i + 1:]:
-            if a.entry.get("note") or b.entry.get("note"):
-                continue
             apart = evidence.metres_between(*a.position, *b.position)
-            if apart <= AGREE_M:
-                b.fail("neighbour", f"{apart:.0f} m from {a.id}; a note says why both stand")
+            if apart <= AGREE_M and not _distinct(a, b):
+                b.fail(
+                    "neighbour",
+                    f"{apart:.0f} m from {a.id}; if both are separate sites, "
+                    "each names the other in distinct_from",
+                )
+            if apart <= FLAG_M:
+                for one, other in ((a, b), (b, a)):
+                    if one.map_read:
+                        one.flag("neighbour_near", f"{apart:.0f} m from {other.id}")
 
 
 def withdrawn_curated_problems(items) -> list[str]:
@@ -420,6 +547,8 @@ def report(results: list[CheckedEntry]) -> str:
             f"{states['rejected']} rejected, {withdrawn} withdrawn"
         )
     for checked in results:
+        if checked.route:
+            lines.append(f"  {checked.id} placed by {checked.route}")
         for finding in checked.findings:
             mark = "FAIL" if finding.fatal else "note"
             lines.append(f"  {mark} {finding.entry_id} [{finding.rule}] {finding.message}")

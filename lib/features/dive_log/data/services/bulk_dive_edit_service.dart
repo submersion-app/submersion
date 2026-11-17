@@ -485,8 +485,13 @@ class BulkDiveEditService {
             // field mask a plain tank list cannot express.
             throw UnsupportedError('Use TankSpecsOp to update tanks in place');
         }
-      case TankSpecsOp(:final specs, :final fields):
-        await _diveRepo.bulkUpdateTankSpecs(ids, specs, fields);
+      case TankSpecsOp(:final specs, :final fields, :final slotRoles):
+        await _diveRepo.bulkUpdateTankSpecs(
+          ids,
+          specs,
+          fields,
+          slotRoles: slotRoles,
+        );
       case WeightsOp(:final mode, :final weights):
         switch (mode) {
           case BulkCollectionMode.replace:

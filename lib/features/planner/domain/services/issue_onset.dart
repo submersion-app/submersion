@@ -47,6 +47,21 @@ int? runtimeReaching(
   return null;
 }
 
+/// How much of [increments] has accrued by [runtime], each accruing evenly
+/// over its duration. A lump counts once [runtime] is past it, so one charged
+/// at exactly [runtime] is still to come (#4475).
+double amountAccruedBy(Iterable<RuntimeIncrement> increments, int runtime) {
+  var total = 0.0;
+  for (final step in increments) {
+    if (step.startRuntime >= runtime) continue;
+    final end = step.startRuntime + step.durationSeconds;
+    total += step.durationSeconds <= 0 || end <= runtime
+        ? step.amount
+        : step.amount * (runtime - step.startRuntime) / step.durationSeconds;
+  }
+  return total;
+}
+
 /// The runtime within a leg from [startDepth] to [endDepth] at which
 /// [exceeds] first holds. [exceeds] must depend on depth alone and change
 /// only once across the leg, as every depth limit does (deeper is worse for

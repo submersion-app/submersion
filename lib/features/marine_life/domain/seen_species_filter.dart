@@ -1,4 +1,6 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/marine_life/domain/entities/seen_species.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 
@@ -26,7 +28,7 @@ List<SeenSpecies> filterSeenSpecies(
   required SeenSpeciesSort sort,
   required SpeciesNameOf nameOf,
 }) {
-  final needle = query.trim().toLowerCase();
+  final needle = foldForSearch(query.trim());
   Iterable<SeenSpecies> result = entries;
   if (category != null) {
     result = result.where((e) => e.species.category == category);
@@ -38,10 +40,10 @@ List<SeenSpecies> filterSeenSpecies(
 }
 
 bool _matches(Species species, String needle, SpeciesNameOf nameOf) {
-  if (nameOf(species).toLowerCase().contains(needle)) return true;
-  if (species.commonName.toLowerCase().contains(needle)) return true;
+  if (foldForSearch(nameOf(species)).contains(needle)) return true;
+  if (foldForSearch(species.commonName).contains(needle)) return true;
   final scientific = species.scientificName;
-  return scientific != null && scientific.toLowerCase().contains(needle);
+  return scientific != null && foldForSearch(scientific).contains(needle);
 }
 
 /// Total order on displayed name, then scientific name, then species id.
@@ -50,12 +52,11 @@ bool _matches(Species species, String needle, SpeciesNameOf nameOf) {
 /// repository query has no `ORDER BY`, so two species sharing a name would
 /// otherwise swap places between loads.
 int _byName(SeenSpecies a, SeenSpecies b, SpeciesNameOf nameOf) {
-  final byName = nameOf(
-    a.species,
-  ).toLowerCase().compareTo(nameOf(b.species).toLowerCase());
+  final byName = compareTextForSort(nameOf(a.species), nameOf(b.species));
   if (byName != 0) return byName;
-  final byScientific = (a.species.scientificName ?? '').toLowerCase().compareTo(
-    (b.species.scientificName ?? '').toLowerCase(),
+  final byScientific = compareTextForSort(
+    a.species.scientificName ?? '',
+    b.species.scientificName ?? '',
   );
   if (byScientific != 0) return byScientific;
   return a.species.id.compareTo(b.species.id);

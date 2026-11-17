@@ -295,18 +295,19 @@ void main() {
     expect(issue.atRuntime, closeTo(30, 2));
   });
 
-  test('problem-solving gas counts from where the bottom ends', () {
-    // The gas is charged once every authored leg is, yet the diver needs it
-    // in hand on leaving the bottom, so the ascent after it must not be read
-    // first. The reserve here falls between the bottom's end and the ascent's.
-    final outcome = engine.compute(
+  test('problem-solving gas never moves where the reserve is reached', () {
+    // The gas is held apart from what the dive draws (#4475), so the
+    // reserve, which falls just past the bottom's end here, is reached on the
+    // ascent with or without it. It once counted as a lump where the bottom
+    // ends and marked the reserve there.
+    PlanOutcome outcomeWith(int problemSolvingMinutes) => engine.compute(
       domain.DivePlan(
         id: 'plan-lump',
         name: 'Lump',
         gfLow: 40,
         gfHigh: 80,
         reservePressure: 213,
-        problemSolvingMinutes: 4,
+        problemSolvingMinutes: problemSolvingMinutes,
         tanks: const [
           DiveTank(id: 'back', volume: 24, startPressure: 232, gasMix: _air),
         ],
@@ -342,7 +343,14 @@ void main() {
         updatedAt: DateTime(2026, 10, 28),
       ),
     );
-    expect(_issue(outcome, PlanIssueType.gasReserveViolation).atRuntime, 390);
+    int? reserveAt(int minutes) => _issue(
+      outcomeWith(minutes),
+      PlanIssueType.gasReserveViolation,
+    ).atRuntime;
+
+    // Past the 390 s the bottom ends at: on the way up.
+    expect(reserveAt(4), greaterThan(390));
+    expect(reserveAt(4), reserveAt(0));
   });
 
   group('a CCR plan with a leg off the loop', () {

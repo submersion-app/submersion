@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:submersion/core/text/text_sort.dart';
 
 /// A person a multi-diver logbook attributes records to (issue #1893).
 ///
@@ -105,7 +106,7 @@ List<SourceDiver> orderedDiverRows(List<SourceDiver> divers) {
   ];
   named.sort((a, b) {
     final byCount = b.diveCount.compareTo(a.diveCount);
-    return byCount != 0 ? byCount : a.name.compareTo(b.name);
+    return byCount != 0 ? byCount : compareTextForSort(a.name, b.name);
   });
   return [
     ...named,

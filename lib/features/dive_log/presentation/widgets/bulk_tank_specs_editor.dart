@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart' show TankRole;
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_tank_slot_roles_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -20,8 +22,10 @@ class BulkTankSpecsEditor extends StatefulWidget {
     super.key,
     required this.specs,
     required this.fields,
+    required this.slotRoles,
     required this.onSpecsChanged,
     required this.onFieldsChanged,
+    required this.onSlotRolesChanged,
   });
 
   /// The template cylinder. Only the attributes named in [fields] are read.
@@ -30,8 +34,21 @@ class BulkTankSpecsEditor extends StatefulWidget {
   /// Which attributes to overwrite. Empty means the edit does nothing.
   final Set<TankSpecField> fields;
 
+  /// A role per tank position in place of the template's single role, or
+  /// null for the same role on every tank (issue #4412). Read only while
+  /// [fields] has [TankSpecField.role].
+  final List<TankRole>? slotRoles;
+
   final ValueChanged<DiveTank> onSpecsChanged;
   final ValueChanged<Set<TankSpecField>> onFieldsChanged;
+  final ValueChanged<List<TankRole>?> onSlotRolesChanged;
+
+  /// Where "Role by tank position" starts: the sidemount pair that asked
+  /// for it.
+  static const defaultSlotRoles = [
+    TankRole.sidemountLeft,
+    TankRole.sidemountRight,
+  ];
 
   @override
   State<BulkTankSpecsEditor> createState() => _BulkTankSpecsEditorState();
@@ -78,9 +95,47 @@ class _BulkTankSpecsEditorState extends State<BulkTankSpecsEditor> {
     );
   }
 
+  Widget _roleLayout() {
+    final l10n = context.l10n;
+    final byPosition = widget.slotRoles != null;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SegmentedButton<bool>(
+            segments: [
+              ButtonSegment(
+                value: false,
+                label: Text(l10n.diveLog_bulkEdit_tankRoleSameForAll),
+              ),
+              ButtonSegment(
+                value: true,
+                label: Text(l10n.diveLog_bulkEdit_tankRoleByPosition),
+              ),
+            ],
+            selected: {byPosition},
+            onSelectionChanged: (s) => widget.onSlotRolesChanged(
+              s.first ? BulkTankSpecsEditor.defaultSlotRoles : null,
+            ),
+          ),
+          if (byPosition) ...[
+            const SizedBox(height: 12),
+            BulkTankSlotRolesEditor(
+              roles: widget.slotRoles!,
+              onChanged: widget.onSlotRolesChanged,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final rolesByPosition =
+        widget.fields.contains(TankSpecField.role) && widget.slotRoles != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -108,6 +163,7 @@ class _BulkTankSpecsEditorState extends State<BulkTankSpecsEditor> {
             ],
           ),
         ),
+        if (widget.fields.contains(TankSpecField.role)) _roleLayout(),
         // TankEditor carries every spec except the tank name, which it passes
         // through untouched, so the name input has to live here.
         if (widget.fields.contains(TankSpecField.name))
@@ -135,6 +191,8 @@ class _BulkTankSpecsEditorState extends State<BulkTankSpecsEditor> {
           onChanged: widget.onSpecsChanged,
           canRemove: false,
           showPressures: false,
+          // Per-position roles replace the template's one role (#4412).
+          showRole: !rolesByPosition,
         ),
       ],
     );

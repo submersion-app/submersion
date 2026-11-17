@@ -1,5 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -82,7 +83,7 @@ final personPickerOptionsProvider = FutureProvider.autoDispose
                 b.buddy.id,
             };
       final byName = [...all]
-        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+        ..sort((a, b) => compareTextForSort(a.name, b.name));
       return PersonPickerOptions(
         meDiverId: meDiverId,
         onThisDive: [

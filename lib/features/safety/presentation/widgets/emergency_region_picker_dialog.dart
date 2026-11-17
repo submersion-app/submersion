@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/safety/domain/constants/emergency_country_names.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -47,12 +48,12 @@ class _EmergencyRegionPickerDialogState
     );
 
   List<String> get _visible {
-    final query = _query.trim().toLowerCase();
+    final query = foldForSearch(_query.trim());
     if (query.isEmpty) return _byName;
     return [
       for (final code in _byName)
         // The display name carries the code, so this matches either.
-        if (emergencyRegionDisplayName(code).toLowerCase().contains(query))
+        if (foldForSearch(emergencyRegionDisplayName(code)).contains(query))
           code,
     ];
   }

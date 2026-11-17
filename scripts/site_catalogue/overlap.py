@@ -24,7 +24,8 @@ Two things never happen:
   the same site, or beside any dive site record within 150 m, or passes
   a field either way. It ranks last, so it is the one left out.
   Researched records are never merged with each other: the research
-  checker refuses two within 150 m.
+  checker refuses two within 150 m unless each names the other as a
+  separate site (`distinct_from`), and then both ship.
 """
 
 import collections

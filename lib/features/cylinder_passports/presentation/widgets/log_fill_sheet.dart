@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
@@ -661,8 +662,11 @@ class _SuggestingField extends StatelessWidget {
       optionsBuilder: (value) {
         final typed = value.text.trim().toLowerCase();
         if (typed.isEmpty) return const [];
+        // Matches ignoring accents; hides only the suggestion already typed
+        // exactly, so "jose" still offers "José".
+        final folded = foldForSearch(typed);
         return suggestions.where(
-          (s) => s.toLowerCase().contains(typed) && s.toLowerCase() != typed,
+          (s) => foldForSearch(s).contains(folded) && s.toLowerCase() != typed,
         );
       },
       fieldViewBuilder: (context, controller, focusNode, onSubmitted) =>

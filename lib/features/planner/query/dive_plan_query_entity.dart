@@ -20,8 +20,8 @@ final divePlanQueryEntity = QueryEntity(
   table: 'dive_plans',
   diverScopeColumn: 'diver_id',
   textSearchSql: const [
-    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.notes) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.notes) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     _text('name', 'name'),

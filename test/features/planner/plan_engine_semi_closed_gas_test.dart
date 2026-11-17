@@ -136,12 +136,19 @@ void main() {
       );
     });
 
+    // Held apart from what the supply uses (#4475).
     test('problem-solving time runs at the injection rate too', () {
       final plain = engine.compute(_plan(problemSolvingMinutes: 0));
       final withTime = engine.compute(_plan(problemSolvingMinutes: 3));
 
       expect(
-        _liters(withTime, 'supply') - _liters(plain, 'supply'),
+        _liters(withTime, 'supply'),
+        closeTo(_liters(plain, 'supply'), 1e-6),
+      );
+      expect(
+        withTime.tankUsages
+            .firstWhere((u) => u.tankId == 'supply')
+            .problemSolvingLiters,
         closeTo(12.0 * 3, 1e-6),
       );
     });
@@ -223,7 +230,14 @@ void main() {
       const config = PlanEngineConfig();
 
       expect(
-        _liters(outcomeWith(3), 'supply') - _liters(outcomeWith(0), 'supply'),
+        _liters(outcomeWith(3), 'supply'),
+        closeTo(_liters(outcomeWith(0), 'supply'), 1e-6),
+      );
+      // Held apart from what the supply uses (#4475).
+      expect(
+        outcomeWith(3).tankUsages
+            .firstWhere((u) => u.tankId == 'supply')
+            .problemSolvingLiters,
         closeTo(
           config.sacBottom *
               config.buddyFactor *

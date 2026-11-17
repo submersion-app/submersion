@@ -59,6 +59,18 @@ class PlanGasRow extends StatelessWidget {
                       : null,
                 ),
               ),
+              // Held back for a problem at the bottom, not part of used
+              // (#4475).
+              if (usage.problemSolvingLiters > 0)
+                Text(
+                  l10n.plannerCanvas_gas_problemSolvingReading(
+                    _reading(
+                      usage.problemSolvingLiters,
+                      usage.problemSolvingPressure,
+                    ),
+                  ),
+                  style: statsStyle,
+                ),
             ],
           ),
           if (_limitParts(l10n) case final parts when parts.isNotEmpty)

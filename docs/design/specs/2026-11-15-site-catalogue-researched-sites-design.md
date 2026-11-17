@@ -4,6 +4,8 @@ Date: 2026-11-15
 Status: approved 2026-11-15
 Program: `2026-11-13-site-catalogue-program.md`
 Issue: #4514 (the program's last slice)
+Amended: 2026-11-16 by `2026-11-16-site-catalogue-wider-sources-design.md`
+(decision 4 and the description rule below)
 
 ## Intent
 
@@ -53,6 +55,11 @@ These were chosen by the maintainer during the design conversation
 4. **A position ships only when two counting sources agree within 150 m.**
    Otherwise the record does not ship. No record ships without a position,
    and no position is placed from a description.
+   *Amended 2026-11-16 (wider sources design, section 2):* this is now one
+   of three routes. Two counting pages naming the site prove it exists,
+   and one counting page may place it, by a stated figure or a point read
+   off its own map, every counting figure within 2 km. A counting page's
+   map is evidence of position; words alone still are not.
 5. **The mark is a label and a sentence.** A short "Not verified" label on
    every surface that shows a built-in record to choose, and one sentence
    where there is room: "Gathered from published dive guides, not from a

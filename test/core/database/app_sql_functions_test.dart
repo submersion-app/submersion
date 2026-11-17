@@ -7,6 +7,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_connection_setup.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_name_key.dart';
 
 void main() {
@@ -78,6 +79,43 @@ void main() {
     test('renders a number as text, as LOWER() does', () {
       expect(lower(42), '42');
       expect(lower(1.5), '1.5');
+    });
+  });
+
+  group('search_fold', () {
+    late sqlite3.Database db;
+
+    setUp(() {
+      db = sqlite3.sqlite3.openInMemory();
+      registerAppSqlFunctions(db);
+    });
+
+    tearDown(() => db.close());
+
+    Object? fold(Object? value) =>
+        db.select('SELECT $kSearchFoldFunction(?) AS v', [value]).first['v'];
+
+    test('folds case and accents, so "jeremie" finds "Jérémie" (#4498)', () {
+      expect(fold('Jérémie'), 'jeremie');
+      expect(
+        db.select('SELECT $kSearchFoldFunction(?) LIKE ? AS v', [
+          'Jérémie Dupont',
+          '%${foldForSearch('jeremie')}%',
+        ]).first['v'],
+        1,
+      );
+    });
+
+    test('is the fold the Dart side applies to the needle', () {
+      for (final s in ['Łukasz', 'Straße', 'Cancún', 'Ελλάδα']) {
+        expect(fold(s), foldForSearch(s), reason: s);
+      }
+    });
+
+    test('passes NULL through, a number as text, a blob unchanged', () {
+      expect(fold(null), isNull);
+      expect(fold(42), '42');
+      expect(fold(Uint8List.fromList([0x41, 0xC9])), [0x41, 0xC9]);
     });
   });
 
