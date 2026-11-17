@@ -22,9 +22,18 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   bool get editingOffered => widget.unlockEditing && !widget.embedded;
 
   /// Created on first use, so a page that never offers editing has none.
-  RecordEditController<Dive> get editController =>
-      _editController ??= RecordEditController<Dive>(
+  RecordEditController<Dive> get editController => _editController ??=
+      _newEditController(ProviderScope.containerOf(context, listen: false));
+
+  RecordEditController<Dive> _newEditController(ProviderContainer container) =>
+      RecordEditController<Dive>(
         onSave: _saveSitting,
+        // After a whole-record operation: the dive as stored now, read
+        // through the provider the page shows, so both agree.
+        reread: (stored) {
+          container.invalidate(diveProvider(stored.id));
+          return container.read(diveProvider(stored.id).future);
+        },
         // Each card's own check, asked at Save of open and closed cards.
         invalidCards: (session) => [
           for (final card in diveEditCards.values)

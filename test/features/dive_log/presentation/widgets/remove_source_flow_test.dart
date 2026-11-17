@@ -51,6 +51,7 @@ void main() {
     Future<void> Function()? onRemoved,
     Future<void> Function()? onUndone,
     Future<bool> Function(String operationId)? undo,
+    bool offerUndo = true,
   }) async {
     await tester.pumpWidget(
       testApp(
@@ -70,6 +71,7 @@ void main() {
               onRemoved: onRemoved,
               onUndone: onUndone,
               undo: undo ?? (_) async => true,
+              offerUndo: offerUndo,
             ),
             child: const Text('go'),
           ),
@@ -141,6 +143,19 @@ void main() {
     await tester.pumpAndSettle();
     expect(hooks, ['removed', 'undone']);
     expect(changes, 2);
+  });
+
+  testWidgets('a removal on a page that offers editing has no Undo', (
+    tester,
+  ) async {
+    removal = _FakeRemoval();
+    await pump(tester, offerUndo: false);
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    expect(removal.removed, ['s2']);
+    expect(find.text('Source removed'), findsOneWidget);
+    expect(find.text('Undo'), findsNothing);
   });
 
   testWidgets('a failing hook after the removal still offers Undo', (

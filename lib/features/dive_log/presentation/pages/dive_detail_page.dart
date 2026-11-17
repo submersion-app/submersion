@@ -113,6 +113,7 @@ import 'package:submersion/shared/widgets/record_editing/add_strip_layout.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
@@ -122,6 +123,7 @@ part 'dive_detail_page_actions.dart';
 part 'dive_detail_page_bars.dart';
 part 'dive_detail_page_editing.dart';
 part 'dive_detail_page_exports.dart';
+part 'dive_detail_page_operations.dart';
 
 final _log = LoggerService.forClass(DiveDetailPage);
 
@@ -164,6 +166,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         _DiveDetailPageActions,
         _DiveDetailPageExports,
         _DiveDetailPageEditing,
+        _DiveDetailPageOperations,
         _DiveDetailPageBars {
   /// Track if we've already initiated a redirect to prevent multiple calls
   bool _hasRedirected = false;
@@ -339,10 +342,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       DiveDetailAnalysisRetention();
 
   late final DiveDetailActions _sectionActions = DiveDetailActions(
-    setPrimarySource: _setPrimarySource,
-    splitSource: _confirmAndSplit,
-    removeSource: _confirmAndRemoveSource,
-    separateSegments: _confirmAndSeparate,
+    setPrimarySource: _setPrimarySourceOperation,
+    splitSource: (dive, sourceId) =>
+        _runOperation(() => _confirmAndSplit(dive, sourceId)),
+    removeSource: (dive, sourceId, sourceName) => _runOperation(
+      () => _confirmAndRemoveSource(
+        dive,
+        sourceId,
+        sourceName,
+        offerUndo: !editingOffered,
+      ),
+    ),
+    separateSegments: (dive, segmentCount) =>
+        _runOperation(() => _confirmAndSeparate(dive, segmentCount)),
     scanGallery: _scanGalleryForDive,
     addPhotos: _addPhotos,
     addDocument: (dive) => DocumentOpenHelper.pickAndAttach(
@@ -353,6 +365,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     openDocument: (item) => DocumentOpenHelper.open(context, ref, item),
     openAnnotation: _scrollToProfileAndFocus,
   );
+
+  /// Set as primary, from the Data sources card or a profile's source bar.
+  void _setPrimarySourceOperation(String readingId) =>
+      _runOperation(() => _setPrimarySource(readingId));
 
   /// What [_profileSectionFor] last built.
   DiveDetailProfileSection? _profileSection;
@@ -373,7 +389,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       diveId: id,
       exportKey: _profileChartExportKey,
       onSafetyFindingDetails: _scrollToSafetySection,
-      onSetPrimarySource: _setPrimarySource,
+      onSetPrimarySource: _setPrimarySourceOperation,
       onOpenInNotes: _scrollToNotes,
       onViewportChanged: _noteProfileViewport,
     );
@@ -535,9 +551,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
               stored: dive,
               shown: shown,
               embedded: widget.embedded,
-              onMarkLogged: () => _markAsLogged(dive),
+              onMarkLogged: () => _runOperation(() => _markAsLogged(dive)),
               onDownloadDraft: _downloadForDraft,
-              onSurfaceDraft: () => _surfaceDraft(dive),
+              onSurfaceDraft: () => _runOperation(() => _surfaceDraft(dive)),
             ),
             SizedBox(height: layout.headerGap),
             // Configurable sections in user-defined order, the dive profile
@@ -587,7 +603,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             diveId: dive.id,
             exportKey: _pinnedProfileExportKey,
             onSafetyFindingDetails: _scrollToSafetySection,
-            onSetPrimarySource: _setPrimarySource,
+            onSetPrimarySource: _setPrimarySourceOperation,
             onOpenInNotes: _scrollToNotes,
             fillHeight: true,
             onPlotFrame: onPlotFrame,
@@ -604,9 +620,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             dive: dive,
             menu: _overflowMenu(dive, _headerMenuKey),
             onNavigate: _navigateToDive,
-            onMarkLogged: () => _markAsLogged(dive),
+            onMarkLogged: () => _runOperation(() => _markAsLogged(dive)),
             onDownloadDraft: _downloadForDraft,
-            onSurfaceDraft: () => _surfaceDraft(dive),
+            onSurfaceDraft: () => _runOperation(() => _surfaceDraft(dive)),
           ),
           Expanded(child: content),
         ],

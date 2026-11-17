@@ -7,7 +7,8 @@ mixin _DiveDetailPageBars
         ConsumerState<DiveDetailPage>,
         _DiveDetailPageActions,
         _DiveDetailPageExports,
-        _DiveDetailPageEditing {
+        _DiveDetailPageEditing,
+        _DiveDetailPageOperations {
   GlobalKey get _appBarMenuKey;
   MenuController get _displayOptionsMenu;
   void _navigateToDive(String neighborId);
@@ -99,21 +100,21 @@ mixin _DiveDetailPageBars
       case 'export':
         _showExportOptions(dive, shareAnchorFrom(menuKey.currentContext));
       case 'reparse':
-        _reparseDive(dive);
+        _runOperation(() => _reparseDive(dive));
       case 'resync':
-        _resyncDive(dive);
+        _runOperation(() => _resyncDive(dive));
       case 'logNearMiss':
         context.push('/incidents/new?diveId=$diveId');
       case 'markLogged' || 'markComplete':
-        _markAsLogged(dive);
+        _runOperation(() => _markAsLogged(dive));
       case 'addHeartRate':
-        _addHeartRate(dive);
+        _runOperation(() => _addHeartRate(dive));
       case 'logForBuddy':
         _logForBuddy(dive);
       case 'linkPreDive':
-        _linkPreDiveChecklist(dive);
+        _runOperation(() => _linkPreDiveChecklist(dive));
       case 'unlinkPreDive':
-        _unlinkPreDiveChecklist(linkedPreDive!);
+        _runOperation(() => _unlinkPreDiveChecklist(linkedPreDive!));
       case 'whatIf':
         openWhatIf(context, dive);
       case 'viewInPlanner':
@@ -126,7 +127,7 @@ mixin _DiveDetailPageBars
           'plan a repetitive dive',
         );
       case 'delete':
-        _showDeleteConfirmation();
+        _deleteDive();
       case 'open':
         // Open in full-page mode. push (not go) so there's a back button and
         // the pushed page skips the master-detail redirect above instead of

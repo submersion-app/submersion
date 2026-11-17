@@ -26,9 +26,9 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
   /// Reads heart rate, recovery and sleep from Apple Health for [dive]
   /// (issue #637), for a dive the automatic read never reached. Says so
   /// when Health has nothing for it.
-  Future<void> _addHeartRate(Dive dive) async {
+  Future<bool> _addHeartRate(Dive dive) async {
     final metrics = ref.read(diveHealthMetricsServiceProvider);
-    if (metrics == null) return;
+    if (metrics == null) return false;
     final records = ref.read(diveHealthRecordRepositoryProvider);
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
@@ -44,6 +44,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     if (problem != null) {
       messenger.showSnackBar(SnackBar(content: Text(problem)));
     }
+    return true;
   }
 
   Future<void> _addPhotos(Dive dive) async {
@@ -54,7 +55,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     );
   }
 
-  Future<void> _linkPreDiveChecklist(Dive dive) async {
+  Future<bool> _linkPreDiveChecklist(Dive dive) async {
     final messenger = ScaffoldMessenger.of(context);
     final confirmation = context.l10n.preDive_link_linked;
     final failureMessage = context.l10n.common_error_tryAgain;
@@ -63,19 +64,20 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       context,
       diverId: dive.diverId,
     );
-    if (sessionId == null) return;
+    if (sessionId == null) return false;
     try {
       await repository.linkToDive(sessionId, dive.id);
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(failureMessage)));
-      return;
+      return true;
     }
     // Nothing on this page renders the link, so the snackbar is the only
     // evidence the write happened.
     messenger.showSnackBar(SnackBar(content: Text(confirmation)));
+    return true;
   }
 
-  Future<void> _unlinkPreDiveChecklist(PreDiveSession linked) async {
+  Future<bool> _unlinkPreDiveChecklist(PreDiveSession linked) async {
     final messenger = ScaffoldMessenger.of(context);
     final confirmation = context.l10n.preDive_link_unlinked;
     final failureMessage = context.l10n.common_error_tryAgain;
@@ -85,9 +87,10 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
           .unlinkFromDive(linked.id);
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(failureMessage)));
-      return;
+      return true;
     }
     messenger.showSnackBar(SnackBar(content: Text(confirmation)));
+    return true;
   }
 
   /// Log this dive into a linked buddy's profile from the overflow menu.
@@ -185,12 +188,15 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
   /// Marks a plan as logged, or a draft as complete (issue #637): both go
   /// through the one promotion that clears the flag and assigns the next
   /// number.
-  Future<void> _markAsLogged(Dive dive) async {
+  ///
+  /// Like each whole-record operation here, it answers whether it tried to
+  /// write (a failed write counts: the dive is read again either way).
+  Future<bool> _markAsLogged(Dive dive) async {
     // The button stays enabled while the promotion runs, and the same
     // action sits in the overflow menu, so a second call can arrive after
     // the flag is already cleared. The promotion throws then, and nothing
     // awaits this callback, so it must not escape.
-    if (_promoting) return;
+    if (_promoting) return false;
     _promoting = true;
     final container = ProviderScope.containerOf(context, listen: false);
     final messenger = ScaffoldMessenger.of(context);
@@ -214,7 +220,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       _promoting = false;
       container.invalidate(diveProvider(dive.id));
       messenger.showSnackBar(SnackBar(content: Text(failureMessage)));
-      return;
+      return true;
     }
     _promoting = false;
     container.invalidate(diveProvider(dive.id));
@@ -227,11 +233,12 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     // A plan marked as logged is a dive logged by hand for the logbook
     // rules (#3513), and so is a draft marked complete.
     await rulesAfterCreate(subject: RuleSubject.dives, ids: [dive.id]);
+    return true;
   }
 
   /// Closes an open draft now, from its banner (issue #637). The site
   /// buttons on the GPS log record a position as well; this one has none.
-  Future<void> _surfaceDraft(Dive dive) async {
+  Future<bool> _surfaceDraft(Dive dive) async {
     final container = ProviderScope.containerOf(context, listen: false);
     try {
       await ref
@@ -249,6 +256,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       );
     }
     container.invalidate(diveProvider(dive.id));
+    return true;
   }
 
   /// A draft's "Download now" (issue #637): opens the download of the
@@ -373,7 +381,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     }
   }
 
-  Future<void> _confirmAndSplit(Dive dive, String sourceId) async {
+  Future<bool> _confirmAndSplit(Dive dive, String sourceId) async {
     final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -392,7 +400,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) return false;
     final container = ProviderScope.containerOf(context, listen: false);
     final messenger = ScaffoldMessenger.of(context);
     try {
@@ -417,16 +425,20 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
         SnackBar(content: Text(l10n.diveLog_sources_splitFailed)),
       );
     }
+    return true;
   }
 
   /// Runs Remove source (issue #4393) through the flow the inbox shares.
   /// After the removal and after its Undo the dive refreshes, and a source
   /// the chart was showing or overlaying stops being asked for once gone.
-  Future<void> _confirmAndRemoveSource(
+  /// [offerUndo] is false on a page that offers editing, where the removal
+  /// reverts from History instead (issue #4527).
+  Future<bool> _confirmAndRemoveSource(
     Dive dive,
     String sourceId,
-    String sourceName,
-  ) {
+    String sourceName, {
+    bool offerUndo = true,
+  }) {
     final container = ProviderScope.containerOf(context, listen: false);
     void afterChange() {
       final active = container.read(activeDiveSourceProvider(dive.id).notifier);
@@ -450,12 +462,13 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       sourceId: sourceId,
       sourceName: sourceName,
       afterChange: afterChange,
+      offerUndo: offerUndo,
     );
   }
 
   /// Confirms and runs "Separate combined dives": the inverse of Combine,
   /// and the only recovery path once the merge undo snackbar has dismissed.
-  Future<void> _confirmAndSeparate(Dive dive, int segmentCount) async {
+  Future<bool> _confirmAndSeparate(Dive dive, int segmentCount) async {
     final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -474,7 +487,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) return false;
     final container = ProviderScope.containerOf(context, listen: false);
     final messenger = ScaffoldMessenger.of(context);
     try {
@@ -502,9 +515,10 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
         SnackBar(content: Text(l10n.diveLog_sources_separateFailed)),
       );
     }
+    return true;
   }
 
-  Future<void> _setPrimarySource(String readingId) async {
+  Future<bool> _setPrimarySource(String readingId) async {
     final diveId = this.diveId;
     final container = ProviderScope.containerOf(context, listen: false);
     final messenger = ScaffoldMessenger.of(context);
@@ -517,12 +531,13 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       // Nothing awaits this callback, so a failure must not escape, and the
       // chip staying as it was would explain nothing.
       messenger.showSnackBar(SnackBar(content: Text(failureMessage)));
-      return;
+      return true;
     }
     _refreshDive(container, diveId);
+    return true;
   }
 
-  Future<void> _reparseDive(Dive dive) async {
+  Future<bool> _reparseDive(Dive dive) async {
     final service = ref.read(reparseServiceProvider);
     final l10n = context.l10n;
     final container = ProviderScope.containerOf(context, listen: false);
@@ -540,7 +555,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.diveLog_detail_reparseFailed('$e'))),
       );
-      return;
+      return true;
     }
     final errors = result.errors;
 
@@ -571,10 +586,13 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
         ),
       );
     }
+    return true;
   }
 
-  Future<void> _resyncDive(Dive dive) async {
-    if (!demoSealGuard(context, DemoSealedFeature.diveComputerDownload)) return;
+  Future<bool> _resyncDive(Dive dive) async {
+    if (!demoSealGuard(context, DemoSealedFeature.diveComputerDownload)) {
+      return false;
+    }
     final orchestrator = ref.read(diveResyncOrchestratorProvider);
     final l10n = context.l10n;
     final container = ProviderScope.containerOf(context, listen: false);
@@ -612,48 +630,52 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
         ),
       ),
     );
+    return true;
   }
 
-  void _showDeleteConfirmation() {
-    showDialog(
+  /// Asks, then deletes the dive. True when it was deleted.
+  Future<bool> _confirmAndDelete() async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.diveLog_delete_title),
-        content: Text(context.l10n.diveLog_delete_confirm),
+        title: Text(l10n.diveLog_delete_title),
+        content: Text(l10n.diveLog_delete_confirm),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(context.l10n.diveLog_delete_cancel),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.diveLog_delete_cancel),
           ),
           FilledButton(
-            onPressed: () async {
-              Navigator.of(dialogContext).pop();
-              await ref
-                  .read(paginatedDiveListProvider.notifier)
-                  .deleteDive(diveId);
-              if (mounted) {
-                if (widget.embedded && widget.onDeleted != null) {
-                  // In embedded mode, call the callback to clear selection
-                  widget.onDeleted!();
-                } else if (context.canPop()) {
-                  // The dive is gone, so this page has to go too, but pop
-                  // back to whoever pushed it rather than `go`ing to the list,
-                  // which would discard the section the user came from.
-                  context.pop();
-                } else {
-                  // Nothing underneath (deep link / fresh start): fall back to
-                  // the list.
-                  context.go('/dives');
-                }
-              }
-            },
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
             ),
-            child: Text(context.l10n.diveLog_delete_delete),
+            child: Text(l10n.diveLog_delete_delete),
           ),
         ],
       ),
     );
+    if (confirmed != true || !mounted) return false;
+    await ref.read(paginatedDiveListProvider.notifier).deleteDive(diveId);
+    return true;
+  }
+
+  /// The page has gone with its dive: back to whoever opened it.
+  void _leaveDeletedDive() {
+    if (!mounted) return;
+    if (widget.embedded && widget.onDeleted != null) {
+      // In embedded mode, call the callback to clear selection
+      widget.onDeleted!();
+    } else if (context.canPop()) {
+      // The dive is gone, so this page has to go too, but pop back to
+      // whoever pushed it rather than `go`ing to the list, which would
+      // discard the section the user came from.
+      context.pop();
+    } else {
+      // Nothing underneath (deep link / fresh start): fall back to the
+      // list.
+      context.go('/dives');
+    }
   }
 }
