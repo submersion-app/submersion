@@ -7,8 +7,8 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 
 /// Wraps a selectable list with its keyboard and back-navigation handling.
 ///
-/// Escape leaves selection mode (and only then is it taken: with nothing
-/// selected it goes on to what is around the list), Ctrl/Cmd-A checks
+/// Escape leaves selection mode (and only then is it taken: outside the
+/// mode it goes on to what is around the list), Ctrl/Cmd-A checks
 /// everything, and Android back leaves the mode rather than popping the
 /// route. Without this the only way out is the bar's close button, which is
 /// what made selection mode feel like a trap.
@@ -68,12 +68,15 @@ class SelectableListScope extends StatelessWidget {
               const SingleActivator(LogicalKeyboardKey.keyA, meta: true): () =>
                   controller.selectAll(selectableIds),
             },
-            // Escape answers only while there is a selection to leave. A
-            // binding above would claim every Escape, and with nothing
-            // selected it must go on to what is around the list: the list
-            // pane's editing sitting, which it cancels (issue #4527). A held
-            // Escape's repeats are kept here: they are the press that left
-            // selection mode, not a new one asking to cancel.
+            // Escape answers only while selection mode is on. A binding
+            // above would claim every Escape, and outside the mode it must
+            // go on to what is around the list: the list pane's editing
+            // sitting, which it cancels (issue #4527). The mode entered from
+            // Select with no row checked yet counts: its bar is showing, and
+            // one press closes the bar without also discarding the pane's
+            // changes. A held Escape's repeats are kept here: they are the
+            // press that left selection mode, not a new one asking to
+            // cancel.
             child: Focus(
               autofocus: true,
               onKeyEvent: (_, event) {

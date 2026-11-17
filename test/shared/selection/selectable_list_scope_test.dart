@@ -69,6 +69,26 @@ void main() {
       expect(above, 0);
     });
 
+    // Copilot's review of PR #4670 asked for this press to go on to the
+    // pane as well. Select with no row checked still shows the selection
+    // bar: one Escape closes it, and a second is needed to cancel the
+    // pane's sitting, so its changes are never dropped as a side effect.
+    testWidgets('Escape in selection mode with no row checked closes the '
+        'mode and goes no further', (tester) async {
+      var above = 0;
+      controller.enterExplicit();
+      await tester.pumpWidget(host(onEscapeAbove: () => above++));
+      await tester.pumpAndSettle();
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+      expect(controller.value.isActive, isFalse);
+      expect(above, 0);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+      expect(above, 1);
+    });
+
     testWidgets('Ctrl-A selects all and enters the mode', (tester) async {
       await tester.pumpWidget(host());
       await tester.pumpAndSettle();

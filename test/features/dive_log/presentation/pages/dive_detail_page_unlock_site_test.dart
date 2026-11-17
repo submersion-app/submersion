@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_sitting_follow_up.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_hero_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
@@ -133,12 +134,16 @@ void main() {
     const bare = DiveSite(id: 'bare', name: 'Typed Twice');
     final service = FakeMatchingService();
     final sites = _SpySiteRepository();
+    final altitudesLookedUp = <(String, GeoPoint)>[];
     SpySites? siteList;
     final page = await pumpPage(
       tester,
       stored: dive.copyWith(site: bare),
       extra: [
         siteRepositoryProvider.overrideWithValue(sites),
+        diveSiteAltitudeFillProvider.overrideWithValue(
+          (siteId, point) async => altitudesLookedUp.add((siteId, point)),
+        ),
         siteListNotifierProvider.overrideWith(
           (ref) => siteList = SpySites(ref.watch(siteRepositoryProvider), ref),
         ),
@@ -158,6 +163,10 @@ void main() {
     await settle(tester);
 
     expect(sites.coordinates, [('bare', const GeoPoint(20.5, -87.25))]);
+    // The site had no altitude: the held write noted it during the save,
+    // and the follow-up after the commit looks it up (Copilot's review of
+    // PR #4670 read the note as cleared before the save could make it).
+    expect(altitudesLookedUp, [('bare', const GeoPoint(20.5, -87.25))]);
     expect(page.save.calls.single.cards, [diveHeaderCardId]);
     expect(page.save.heldChangeFlags.single, isTrue);
     expect(siteList?.refreshes, 1);
