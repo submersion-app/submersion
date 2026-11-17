@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
 import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// Two-line compact card tile for the dive center list.
@@ -60,6 +61,17 @@ class CompactDiveCenterListTile extends StatelessWidget {
                     isChecked: isChecked,
                     onChanged: onCheckChanged,
                   ),
+                  // A logo only when the center has one; the compact row has
+                  // no store icon to replace (#4460).
+                  if (center.logo != null) ...[
+                    DiveCenterAvatar(
+                      logo: center.logo,
+                      radius: 16,
+                      shape: DiveCenterAvatarShape.roundedSquare,
+                      cornerRadius: 6,
+                    ),
+                    const SizedBox(width: 10),
+                  ],
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

@@ -27,6 +27,7 @@ class TripStoryTripPage extends ConsumerWidget {
     required this.stats,
     required this.onSelectDay,
     this.onScanForDives,
+    this.notesKey,
   });
 
   final TripStory story;
@@ -37,6 +38,9 @@ class TripStoryTripPage extends ConsumerWidget {
 
   /// Looks for dives in the trip's dates, from the empty state.
   final VoidCallback? onScanForDives;
+
+  /// Put on the Notes card, so a day's page can scroll the Trip page to it.
+  final Key? notesKey;
 
   static const totalsKey = Key('trip-page-totals');
 
@@ -146,6 +150,7 @@ class TripStoryTripPage extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Card(
+                key: notesKey,
                 margin: EdgeInsets.zero,
                 child: Padding(
                   padding: const EdgeInsets.all(16),

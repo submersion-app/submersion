@@ -1803,6 +1803,15 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'Dalle note del viaggio';
+
+  @override
+  String get trips_story_addDayNote => 'Aggiungi nota';
+
+  @override
+  String get trips_story_editDayNote => 'Modifica nota';
+
+  @override
   String get trips_story_surfaceDay => 'Giorno di superficie';
 
   @override
@@ -3515,6 +3524,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get buddies_field_phoneHint => '+39 123 456 7890';
+
+  @override
+  String get buddies_field_country => 'Paese';
+
+  @override
+  String get buddies_field_countryHint => 'es. Italia';
 
   @override
   String buddies_label_diveCount(int count) {
@@ -7244,6 +7259,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveCenters_label_permanentlyClosed => 'Chiuso definitivamente';
+
+  @override
+  String get diveCenters_field_logo => 'Logo';
 
   @override
   String get diveCenters_map_addCoordinatesHint =>
@@ -11521,6 +11539,98 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_tank_ownCylinderTitle => 'Le mie bombole';
+
+  @override
+  String get cylindersFromTanks_title => 'Aggiungi bombole all\'attrezzatura';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count immersioni',
+      one: 'in $count immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bombole',
+      one: '$count bombola',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Aggiungi $count bombole',
+      one: 'Aggiungi $count bombola',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bombole aggiunte all\'attrezzatura',
+      one: '$count bombola aggiunta all\'attrezzatura',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bombole non sono nell\'attrezzatura',
+      one: '$count bombola non è nell\'attrezzatura',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => 'Rivedi';
+
+  @override
+  String get cylindersFromTanks_name => 'Nome';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size $material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed => 'Impossibile aggiungere le bombole';
+
+  @override
+  String get diveLog_tank_gearMenu => 'Opzioni bombola';
+
+  @override
+  String get diveLog_tank_addToGear => 'Aggiungi alla mia attrezzatura';
+
+  @override
+  String get diveLog_tank_linkCylinder => 'Collega a una mia bombola';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      'Collega questa bombola a quella dell\'attrezzatura e la aggiunge all\'attrezzatura di questa immersione. La bombola mantiene le dimensioni registrate.';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => 'Scollega bombola';
+
+  @override
+  String get diveLog_tank_linkFailed =>
+      'Impossibile modificare il collegamento della bombola';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Erogatore';
@@ -26947,6 +27057,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_photo => 'Foto';
+
+  @override
+  String get settings_conflict_field_logo => 'Logo';
 
   @override
   String get settings_conflict_field_photoBack => 'Retro della tessera';
@@ -46722,6 +46835,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_buddyField_phone => 'Telefono';
 
   @override
+  String get enum_buddyField_country => 'Paese';
+
+  @override
   String get enum_buddyField_certificationLevel => 'Livello di certificazione';
 
   @override
@@ -46741,6 +46857,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => 'Tel.';
+
+  @override
+  String get enum_buddyField_country_short => 'Paese';
 
   @override
   String get enum_buddyField_certificationLevel_short => 'Livello';
@@ -59426,6 +59545,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_buddies_phone => 'Telefono';
+
+  @override
+  String get query_buddies_country => 'Paese';
 
   @override
   String get query_centers_affiliations => 'Affiliazioni';

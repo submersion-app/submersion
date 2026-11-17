@@ -1777,6 +1777,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'מתוך הערות הטיול';
+
+  @override
+  String get trips_story_addDayNote => 'הוסף הערה';
+
+  @override
+  String get trips_story_editDayNote => 'ערוך הערה';
+
+  @override
   String get trips_story_surfaceDay => 'יום פני השטח';
 
   @override
@@ -3445,6 +3454,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddies_field_phoneHint => '+972-50-123-4567';
+
+  @override
+  String get buddies_field_country => 'מדינה';
+
+  @override
+  String get buddies_field_countryHint => 'למשל איטליה';
 
   @override
   String buddies_label_diveCount(int count) {
@@ -7084,6 +7099,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveCenters_label_permanentlyClosed => 'סגור לצמיתות';
+
+  @override
+  String get diveCenters_field_logo => 'לוגו';
 
   @override
   String get diveCenters_map_addCoordinatesHint =>
@@ -11262,6 +11280,97 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_ownCylinderTitle => 'המיכלים שלי';
+
+  @override
+  String get cylindersFromTanks_title => 'הוספת מיכלים לציוד';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ב-$count צלילות',
+      one: 'בצלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מיכלים',
+      one: 'מיכל אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הוספת $count מיכלים',
+      one: 'הוספת מיכל אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מיכלים נוספו לציוד',
+      one: 'מיכל אחד נוסף לציוד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מיכלים אינם בציוד',
+      one: 'מיכל אחד אינו בציוד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => 'בדיקה';
+
+  @override
+  String get cylindersFromTanks_name => 'שם';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size $material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed => 'לא ניתן היה להוסיף את המיכלים';
+
+  @override
+  String get diveLog_tank_gearMenu => 'אפשרויות מיכל';
+
+  @override
+  String get diveLog_tank_addToGear => 'הוספה לציוד שלי';
+
+  @override
+  String get diveLog_tank_linkCylinder => 'קישור למיכל שלי';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      'מקשר את המיכל הזה למיכל שבציוד ומוסיף אותו לציוד של הצלילה הזו. המיכל שומר על הגודל שנרשם.';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => 'ביטול קישור המיכל';
+
+  @override
+  String get diveLog_tank_linkFailed => 'לא ניתן היה לשנות את קישור המיכל';
 
   @override
   String get diveLog_tank_regulatorLabel => 'וסת';
@@ -26283,6 +26392,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_photo => 'תמונה';
+
+  @override
+  String get settings_conflict_field_logo => 'לוגו';
 
   @override
   String get settings_conflict_field_photoBack => 'גב הכרטיס';
@@ -45605,6 +45717,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_buddyField_phone => 'טלפון';
 
   @override
+  String get enum_buddyField_country => 'מדינה';
+
+  @override
   String get enum_buddyField_certificationLevel => 'רמת הסמכה';
 
   @override
@@ -45624,6 +45739,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => 'טלפון';
+
+  @override
+  String get enum_buddyField_country_short => 'מדינה';
 
   @override
   String get enum_buddyField_certificationLevel_short => 'רמת הסמכה';
@@ -58162,6 +58280,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_buddies_phone => 'טלפון';
+
+  @override
+  String get query_buddies_country => 'מדינה';
 
   @override
   String get query_centers_affiliations => 'השתייכויות';

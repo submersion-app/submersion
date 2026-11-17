@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -87,9 +88,11 @@ class BuddyListTile extends ConsumerWidget {
     final title =
         slotText(resolveCardSlot(slots, 'title', BuddyField.buddyName)) ??
         buddy.name;
-    final subtitle = slotText(
-      resolveCardSlot(slots, 'subtitle', BuddyField.email),
-    );
+    final subtitleField = resolveCardSlot(slots, 'subtitle', BuddyField.email);
+    final subtitle = slotText(subtitleField);
+    // A subtitle naming the country gets its flag, as a site row's does
+    // (issue #4457).
+    final flagBuddy = subtitleField == BuddyField.country ? buddy : null;
 
     String formatStat(BuddyField field, dynamic value) {
       if (field == BuddyField.diveCount) {
@@ -214,13 +217,17 @@ class BuddyListTile extends ConsumerWidget {
                             ),
                             if (subtitle != null) ...[
                               const SizedBox(height: 2),
-                              Text(
-                                subtitle,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: secondaryTextColor,
+                              LocationWithFlag(
+                                country: flagBuddy?.country,
+                                countryCode: flagBuddy?.countryCode,
+                                text: Text(
+                                  subtitle,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: secondaryTextColor,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ],

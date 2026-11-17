@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
 
 /// Represents a dive center/operator
@@ -27,6 +29,11 @@ class DiveCenter extends Equatable {
   /// Out of business (v313, #3379). Kept for past dives and statistics, but
   /// never offered as a nearby center in the picker.
   final bool isPermanentlyClosed;
+
+  /// Logo (v373, #4460): a 512x512 square JPEG from the profile photo codec,
+  /// or null to draw the store icon. Pass the repository's instance through
+  /// unchanged: avatar image caching is keyed by its identity.
+  final Uint8List? logo;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -50,6 +57,7 @@ class DiveCenter extends Equatable {
     this.fillOpensAt,
     this.fillClosesAt,
     this.isPermanentlyClosed = false,
+    this.logo,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -124,6 +132,7 @@ class DiveCenter extends Equatable {
     Object? fillOpensAt = _undefined,
     Object? fillClosesAt = _undefined,
     bool? isPermanentlyClosed,
+    Object? logo = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -151,6 +160,7 @@ class DiveCenter extends Equatable {
           ? this.fillClosesAt
           : fillClosesAt as int?,
       isPermanentlyClosed: isPermanentlyClosed ?? this.isPermanentlyClosed,
+      logo: logo == _undefined ? this.logo : logo as Uint8List?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -183,6 +193,7 @@ class DiveCenter extends Equatable {
     fillOpensAt,
     fillClosesAt,
     isPermanentlyClosed,
+    logo,
     createdAt,
     updatedAt,
   ];

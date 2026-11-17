@@ -2797,6 +2797,24 @@ abstract class AppLocalizations {
   /// **'Day {number}'**
   String trips_story_dayLabel(int number);
 
+  /// Caption over the part of a trip's Notes that belongs to the day shown; tapping it opens the trip's Notes.
+  ///
+  /// In en, this message translates to:
+  /// **'From trip notes'**
+  String get trips_story_fromTripNotes;
+
+  /// Button on a trip day's page that opens the trip editor at a new heading for that day in the trip's Notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add note'**
+  String get trips_story_addDayNote;
+
+  /// Button on a trip day's page that opens the trip editor at the end of that day's part of the trip's Notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit note'**
+  String get trips_story_editDayNote;
+
   /// No description provided for @trips_story_surfaceDay.
   ///
   /// In en, this message translates to:
@@ -5415,6 +5433,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'+1 (555) 123-4567'**
   String get buddies_field_phoneHint;
+
+  /// No description provided for @buddies_field_country.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get buddies_field_country;
+
+  /// No description provided for @buddies_field_countryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Italy'**
+  String get buddies_field_countryHint;
 
   /// No description provided for @buddies_label_diveCount.
   ///
@@ -11338,6 +11368,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Permanently closed'**
   String get diveCenters_label_permanentlyClosed;
+
+  /// Label for a dive center's logo: the edit page avatar's accessible name and the logo picker sheet title
+  ///
+  /// In en, this message translates to:
+  /// **'Logo'**
+  String get diveCenters_field_logo;
 
   /// No description provided for @diveCenters_map_addCoordinatesHint.
   ///
@@ -18186,6 +18222,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My cylinders'**
   String get diveLog_tank_ownCylinderTitle;
+
+  /// No description provided for @cylindersFromTanks_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add cylinders to your gear'**
+  String get cylindersFromTanks_title;
+
+  /// No description provided for @cylindersFromTanks_onDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{on {count} dive} other{on {count} dives}}'**
+  String cylindersFromTanks_onDives(int count);
+
+  /// No description provided for @cylindersFromTanks_makes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} cylinder} other{{count} cylinders}}'**
+  String cylindersFromTanks_makes(int count);
+
+  /// No description provided for @cylindersFromTanks_add.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Add {count} cylinder} other{Add {count} cylinders}}'**
+  String cylindersFromTanks_add(int count);
+
+  /// No description provided for @cylindersFromTanks_added.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Added {count} cylinder to your gear} other{Added {count} cylinders to your gear}}'**
+  String cylindersFromTanks_added(int count);
+
+  /// No description provided for @cylindersFromTanks_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} tank isn\'t in your gear} other{{count} tanks aren\'t in your gear}}'**
+  String cylindersFromTanks_summary(int count);
+
+  /// No description provided for @cylindersFromTanks_review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get cylindersFromTanks_review;
+
+  /// No description provided for @cylindersFromTanks_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get cylindersFromTanks_name;
+
+  /// No description provided for @cylindersFromTanks_sizeName.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} {material}'**
+  String cylindersFromTanks_sizeName(String size, String material);
+
+  /// No description provided for @cylindersFromTanks_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add the cylinders'**
+  String get cylindersFromTanks_failed;
+
+  /// No description provided for @diveLog_tank_gearMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder options'**
+  String get diveLog_tank_gearMenu;
+
+  /// No description provided for @diveLog_tank_addToGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to my gear'**
+  String get diveLog_tank_addToGear;
+
+  /// No description provided for @diveLog_tank_linkCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a cylinder I own'**
+  String get diveLog_tank_linkCylinder;
+
+  /// No description provided for @diveLog_tank_linkCylinderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Links this tank to the cylinder and adds the cylinder to this dive\'s equipment. The tank keeps its recorded size.'**
+  String get diveLog_tank_linkCylinderHint;
+
+  /// No description provided for @diveLog_tank_unlinkCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink cylinder'**
+  String get diveLog_tank_unlinkCylinder;
+
+  /// No description provided for @diveLog_tank_linkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t change the cylinder link'**
+  String get diveLog_tank_linkFailed;
 
   /// No description provided for @diveLog_tank_regulatorLabel.
   ///
@@ -42579,6 +42711,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Photo'**
   String get settings_conflict_field_photo;
+
+  /// No description provided for @settings_conflict_field_logo.
+  ///
+  /// In en, this message translates to:
+  /// **'Logo'**
+  String get settings_conflict_field_logo;
 
   /// No description provided for @settings_conflict_field_photoBack.
   ///
@@ -73150,6 +73288,12 @@ abstract class AppLocalizations {
   /// **'Phone'**
   String get enum_buddyField_phone;
 
+  /// No description provided for @enum_buddyField_country.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get enum_buddyField_country;
+
   /// No description provided for @enum_buddyField_certificationLevel.
   ///
   /// In en, this message translates to:
@@ -73191,6 +73335,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Phone'**
   String get enum_buddyField_phone_short;
+
+  /// No description provided for @enum_buddyField_country_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get enum_buddyField_country_short;
 
   /// No description provided for @enum_buddyField_certificationLevel_short.
   ///
@@ -93246,6 +93396,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Phone'**
   String get query_buddies_phone;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get query_buddies_country;
 
   /// Query builder: a dive center's agency affiliations
   ///

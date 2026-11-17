@@ -21,6 +21,7 @@ import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
 
 /// The Details card, the same one in the normal section flow and beside
 /// Conditions.
@@ -162,6 +163,7 @@ class DiveDetailsSection extends ConsumerWidget {
   }
 
   Widget _buildDiveCenterRow(BuildContext context) {
+    final logo = dive.diveCenter!.logo;
     return Semantics(
       button: true,
       label: context.l10n.diveLog_detail_semantics_viewDiveCenter(
@@ -172,6 +174,16 @@ class DiveDetailsSection extends ConsumerWidget {
         child: DiveDetailLinkRow(
           label: context.l10n.diveLog_edit_section_diveCenter,
           title: dive.diveCenter!.name,
+          // The center's logo when it has one (#4460); the row keeps its
+          // plain look otherwise, like the trip row above it.
+          leading: logo == null
+              ? null
+              : DiveCenterAvatar(
+                  logo: logo,
+                  radius: 10,
+                  shape: DiveCenterAvatarShape.roundedSquare,
+                  cornerRadius: 4,
+                ),
         ),
       ),
     );

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/constants/dive_center_field.dart';
@@ -43,6 +45,26 @@ void main() {
 
   TableDraft draft(String id, DiveCenterField f, Object? original, Object? v) =>
       TableDraft(entityId: id, fieldName: f.name, original: original, value: v);
+
+  test('editing a cell keeps the center logo', () async {
+    await seed('c1');
+    final withLogo = (await repo.getDiveCenterById(
+      'c1',
+    ))!.copyWith(logo: Uint8List.fromList([4, 5, 6]));
+    await repo.updateDiveCenter(withLogo);
+    final e = CenterTableEditorEntity(repo: repo);
+
+    await e.save(
+      {
+        'c1': [draft('c1', DiveCenterField.phone, '123', '456')],
+      },
+      {'c1': await row('c1')},
+    );
+
+    final after = (await repo.getDiveCenterById('c1'))!;
+    expect(after.phone, '456');
+    expect(after.logo, [4, 5, 6]);
+  });
 
   test('save clears a coordinate when the draft is null', () async {
     await seed('c1');

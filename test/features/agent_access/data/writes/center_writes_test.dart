@@ -59,6 +59,23 @@ void main() {
     expect(await h.one('dives', 'd1'), isNotNull);
   });
 
+  test('an agent update keeps the center logo', () async {
+    final id = await center({'name': 'Reef Divers', 'city': 'Dahab'});
+    await (db.update(db.diveCenters)..where((c) => c.id.equals(id))).write(
+      DiveCentersCompanion(logo: Value(Uint8List.fromList([7, 7, 7]))),
+    );
+
+    await h.run([
+      updateOp('centers', id, {'city': 'Sharm'}),
+    ]);
+
+    final row = await (db.select(
+      db.diveCenters,
+    )..where((c) => c.id.equals(id))).getSingle();
+    expect(row.city, 'Sharm');
+    expect(row.logo, [7, 7, 7]);
+  });
+
   test('a center needs both coordinates or neither, and both fill hours or '
       'neither', () async {
     final plan = await h.preview([

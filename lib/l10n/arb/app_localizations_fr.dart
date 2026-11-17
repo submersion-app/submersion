@@ -1804,6 +1804,15 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get trips_story_fromTripNotes => 'Extrait des notes du voyage';
+
+  @override
+  String get trips_story_addDayNote => 'Ajouter une note';
+
+  @override
+  String get trips_story_editDayNote => 'Modifier la note';
+
+  @override
   String get trips_story_surfaceDay => 'Journée en surface';
 
   @override
@@ -3523,6 +3532,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get buddies_field_phoneHint => '+33 6 12 34 56 78';
+
+  @override
+  String get buddies_field_country => 'Pays';
+
+  @override
+  String get buddies_field_countryHint => 'ex. : Italie';
 
   @override
   String buddies_label_diveCount(int count) {
@@ -7262,6 +7277,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveCenters_label_permanentlyClosed => 'Fermé définitivement';
+
+  @override
+  String get diveCenters_field_logo => 'Logo';
 
   @override
   String get diveCenters_map_addCoordinatesHint =>
@@ -11559,6 +11577,98 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_tank_ownCylinderTitle => 'Mes blocs';
+
+  @override
+  String get cylindersFromTanks_title => 'Ajouter des blocs à votre équipement';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'sur $count plongées',
+      one: 'sur $count plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count blocs',
+      one: '$count bloc',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ajouter $count blocs',
+      one: 'Ajouter $count bloc',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count blocs ajoutés à votre équipement',
+      one: '$count bloc ajouté à votre équipement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count blocs ne sont pas dans votre équipement',
+      one: '$count bloc n\'est pas dans votre équipement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => 'Vérifier';
+
+  @override
+  String get cylindersFromTanks_name => 'Nom';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size $material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed => 'Impossible d\'ajouter les blocs';
+
+  @override
+  String get diveLog_tank_gearMenu => 'Options du bloc';
+
+  @override
+  String get diveLog_tank_addToGear => 'Ajouter à mon équipement';
+
+  @override
+  String get diveLog_tank_linkCylinder => 'Associer à un de mes blocs';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      'Associe ce bloc à celui de l\'équipement et l\'ajoute à l\'équipement de cette plongée. Le bloc garde la taille enregistrée.';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => 'Dissocier le bloc';
+
+  @override
+  String get diveLog_tank_linkFailed =>
+      'Impossible de modifier l\'association du bloc';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Détendeur';
@@ -27009,6 +27119,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_photo => 'Photo';
+
+  @override
+  String get settings_conflict_field_logo => 'Logo';
 
   @override
   String get settings_conflict_field_photoBack => 'Verso de la carte';
@@ -46838,6 +46951,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_buddyField_phone => 'Téléphone';
 
   @override
+  String get enum_buddyField_country => 'Pays';
+
+  @override
   String get enum_buddyField_certificationLevel => 'Niveau de certification';
 
   @override
@@ -46858,6 +46974,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => 'Tél.';
+
+  @override
+  String get enum_buddyField_country_short => 'Pays';
 
   @override
   String get enum_buddyField_certificationLevel_short => 'Niveau';
@@ -59553,6 +59672,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get query_buddies_phone => 'Téléphone';
+
+  @override
+  String get query_buddies_country => 'Pays';
 
   @override
   String get query_centers_affiliations => 'Affiliations';

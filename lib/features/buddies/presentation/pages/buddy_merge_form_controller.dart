@@ -59,6 +59,7 @@ class BuddyMergeFormController {
     required TextEditingController nameController,
     required TextEditingController emailController,
     required TextEditingController phoneController,
+    required TextEditingController countryController,
     required TextEditingController notesController,
   }) {
     if (isInitialized) return;
@@ -91,6 +92,13 @@ class BuddyMergeFormController {
       controller: phoneController,
       buddies: buddies,
       getValue: (buddy) => buddy.phone ?? '',
+      isMeaningful: (value) => value.trim().isNotEmpty,
+    );
+    _initializeTextField(
+      key: 'country',
+      controller: countryController,
+      buddies: buddies,
+      getValue: (buddy) => buddy.country ?? '',
       isMeaningful: (value) => value.trim().isNotEmpty,
     );
     _initializeTextField(
