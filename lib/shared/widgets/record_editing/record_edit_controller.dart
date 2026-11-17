@@ -56,7 +56,10 @@ class RecordEditController<T> extends ChangeNotifier {
 
   EditSession<T>? _session;
   bool _isSaving = false;
-  bool _isOperating = false;
+
+  /// The sitting a whole-record operation has frozen while it runs, if
+  /// any. It belongs to that sitting: ending it ends the operating state.
+  EditSession<T>? _operatingOn;
   bool _disposed = false;
   Object? _saveError;
   final Set<String> _openCardIds = {};
@@ -100,10 +103,10 @@ class RecordEditController<T> extends ChangeNotifier {
   bool get isSaving => _isSaving;
 
   /// A whole-record operation is running ([runOperation]).
-  bool get isOperating => _isOperating;
+  bool get isOperating => _operatingOn != null;
 
   /// Saving, or running an operation: the page takes no input meanwhile.
-  bool get isBusy => _isSaving || _isOperating;
+  bool get isBusy => _isSaving || isOperating;
 
   /// The last failed save. Cleared by the next save and by [lock].
   Object? get saveError => _saveError;
@@ -219,6 +222,9 @@ class RecordEditController<T> extends ChangeNotifier {
     _layoutAnswers.clear();
     _saveError = null;
     _isSaving = false;
+    // An operation running on the sitting carries on, but the page is no
+    // longer held for it: what it finds afterwards is not its sitting.
+    _operatingOn = null;
     _storedDuringSave = null;
     notifyListeners();
   }
@@ -449,7 +455,7 @@ class RecordEditController<T> extends ChangeNotifier {
     if (session == null || isBusy || session.isDirty || _disposed) {
       return false;
     }
-    _isOperating = true;
+    _operatingOn = session;
     session.freeze();
     notifyListeners();
     try {
@@ -462,7 +468,7 @@ class RecordEditController<T> extends ChangeNotifier {
       final fresh = await reread(session.stored);
       if (_disposed) return false;
       if (!identical(_session, session)) return true;
-      _isOperating = false;
+      _operatingOn = null;
       session.thaw();
       if (fresh == null) {
         _endSitting();
@@ -471,8 +477,10 @@ class RecordEditController<T> extends ChangeNotifier {
       }
       return true;
     } finally {
-      if (_isOperating) {
-        _isOperating = false;
+      // Only this operation's own hold: a lock may have ended it, and a
+      // later sitting may be running an operation of its own.
+      if (identical(_operatingOn, session)) {
+        _operatingOn = null;
         if (!session.isDisposed) session.thaw();
         if (!_disposed) notifyListeners();
       }

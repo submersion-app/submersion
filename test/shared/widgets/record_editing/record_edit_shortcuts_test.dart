@@ -50,40 +50,59 @@ class _PageState extends ConsumerState<_Page> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    body: Focus(
-      autofocus: true,
-      onKeyEvent: (_, event) {
-        if (event is KeyDownEvent &&
-            event.logicalKey == LogicalKeyboardKey.escape) {
-          widget.onEscapeBelow?.call();
-        }
-        return KeyEventResult.ignored;
-      },
-      child: Column(
-        children: [
-          const TextField(key: ValueKey('field')),
-          Builder(
-            builder: (context) => TextButton(
-              onPressed: () => showDialog<void>(
-                context: context,
-                builder: (_) => const AlertDialog(content: Text('Dialog')),
-              ),
-              child: const Text('Open dialog'),
+  Widget build(BuildContext context) => Scaffold(body: _body(context));
+
+  Widget _body(BuildContext context) => Focus(
+    autofocus: true,
+    onKeyEvent: (_, event) {
+      if (event is KeyDownEvent &&
+          event.logicalKey == LogicalKeyboardKey.escape) {
+        widget.onEscapeBelow?.call();
+      }
+      return KeyEventResult.ignored;
+    },
+    child: Column(
+      children: [
+        const TextField(key: ValueKey('field')),
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showDialog<void>(
+              context: context,
+              builder: (_) => const AlertDialog(content: Text('Dialog')),
             ),
+            child: const Text('Open dialog'),
           ),
-          Builder(
-            builder: (context) => TextButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const Scaffold(body: Text('On top')),
-                ),
+        ),
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const Scaffold(body: Text('On top')),
               ),
-              child: const Text('Push page'),
             ),
+            child: const Text('Push page'),
           ),
-        ],
-      ),
+        ),
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              builder: (_) => const SizedBox(height: 100, child: Text('Sheet')),
+            ),
+            child: const Text('Open sheet'),
+          ),
+        ),
+        PopupMenuButton<String>(
+          itemBuilder: (_) => const [
+            PopupMenuItem(value: 'a', child: Text('Menu item')),
+          ],
+        ),
+        Autocomplete<String>(
+          optionsBuilder: (value) => value.text.isEmpty
+              ? const <String>[]
+              : const ['Suggestion one', 'Suggestion two'],
+        ),
+      ],
     ),
   );
 }
@@ -99,6 +118,9 @@ void main() {
   tearDown(() => controller.dispose());
 
   Future<void> pump(WidgetTester tester, {VoidCallback? onEscapeBelow}) async {
+    tester.view.physicalSize = const Size(800, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
@@ -146,9 +168,12 @@ void main() {
     await chord(tester, LogicalKeyboardKey.keyS);
     expect(saves, 1);
 
-    await chord(tester, LogicalKeyboardKey.keyL);
+    // Unlocked again from outside the field (the unlock key is refused
+    // while typing), then Escape from inside it.
+    controller.unlock('stored');
     await tester.tap(find.byKey(const ValueKey('field')));
     await tester.pump();
+    expect(controller.isUnlocked, isTrue);
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
     expect(controller.isUnlocked, isFalse);
@@ -189,16 +214,51 @@ void main() {
     expect(controller.isUnlocked, isFalse);
   });
 
-  testWidgets('Escape with no sitting reaches whatever else listens', (
+  testWidgets('Escape in an open sheet closes it and keeps the sitting', (
     tester,
   ) async {
-    var below = 0;
-    await pump(tester, onEscapeBelow: () => below++);
+    await pump(tester);
+    await chord(tester, LogicalKeyboardKey.keyL);
+    await tester.tap(find.text('Open sheet'));
+    await tester.pumpAndSettle();
 
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
 
-    expect(below, 1);
+    expect(find.text('Sheet'), findsNothing);
+    expect(controller.isUnlocked, isTrue);
+  });
+
+  testWidgets('Escape in an open menu closes it and keeps the sitting', (
+    tester,
+  ) async {
+    await pump(tester);
+    await chord(tester, LogicalKeyboardKey.keyL);
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    expect(find.text('Menu item'), findsOneWidget);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Menu item'), findsNothing);
+    expect(controller.isUnlocked, isTrue);
+  });
+
+  testWidgets('Escape with suggestions showing closes them and keeps the '
+      'sitting', (tester) async {
+    await pump(tester);
+    await chord(tester, LogicalKeyboardKey.keyL);
+    await tester.tap(find.byType(TextField).last);
+    await tester.enterText(find.byType(TextField).last, 'S');
+    await tester.pumpAndSettle();
+    expect(find.text('Suggestion one'), findsOneWidget);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Suggestion one'), findsNothing);
+    expect(controller.isUnlocked, isTrue);
   });
 
   testWidgets('Save with nothing to save does nothing', (tester) async {

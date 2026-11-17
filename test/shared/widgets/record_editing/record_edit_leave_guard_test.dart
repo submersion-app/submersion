@@ -156,6 +156,37 @@ void main() {
     expect(controller.isUnlocked, isFalse);
   });
 
+  // The list pane's page is its tab's first page: there is nothing under
+  // it to go back to (issue #4527, plan 7).
+  testWidgets('at the root, Back with changes asks, and Discard locks in '
+      'place', (tester) async {
+    final controller = RecordEditController<_Rec>(onSave: (_) async {});
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RecordEditLeaveGuard<_Rec>(
+          controller: controller,
+          child: const Scaffold(body: Text('Root record')),
+        ),
+      ),
+    );
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'b');
+    await tester.pump();
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Discard'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Root record'), findsOneWidget);
+    expect(controller.isUnlocked, isFalse);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('cancelSitting with changes asks, and Discard locks in place', (
     tester,
   ) async {

@@ -54,7 +54,10 @@ class RecordEditLeaveGuard<T> extends StatelessWidget {
           }
           if (controller.isBusy) return;
           final navigator = Navigator.of(context);
-          if (await cancelSitting(context, controller)) navigator.pop();
+          if (!await cancelSitting(context, controller)) return;
+          // A page with nothing under it (the list pane's, its tab's first
+          // page) locks and stays: there is nowhere to go back to.
+          if (navigator.canPop()) navigator.pop();
         },
         // Both stay in the tree, so a save starting or ending never
         // rebuilds the page beneath them. Excluding focus also takes it

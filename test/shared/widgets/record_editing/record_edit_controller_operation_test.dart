@@ -210,6 +210,34 @@ void main() {
     expect(reads, 0);
   });
 
+  test('a lock during an operation leaves the next sitting free', () async {
+    var reads = 0;
+    final controller = _controller(
+      reread: (_) async {
+        reads++;
+        return const _Rec('fresh');
+      },
+    )..unlock(const _Rec('a'));
+    final running = Completer<bool>();
+    final done = controller.runOperation(() => running.future);
+    controller.lock();
+
+    expect(controller.isOperating, isFalse);
+    expect(controller.isBusy, isFalse);
+    controller.unlock(const _Rec('b'));
+    final next = controller.session!;
+    expect(next.isFrozen, isFalse);
+    next.set(_notes, 'typed');
+    expect(next.isDirty, isTrue);
+
+    running.complete(true);
+    await done;
+    expect(controller.session, same(next));
+    expect(next.isFrozen, isFalse);
+    expect(controller.isOperating, isFalse);
+    expect(reads, 0);
+  });
+
   test('retake is refused with unsaved changes', () {
     final controller = _controller()..unlock(const _Rec('a'));
     final before = controller.session!..set(_notes, 'b');

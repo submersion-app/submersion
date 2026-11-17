@@ -69,9 +69,9 @@ final recordEditShortcutTargetsProvider = Provider<RecordEditShortcutTargets>(
 /// (issue #4527). Mounted once above the app's pages.
 ///
 /// Each key acts only when it has something to do there: unlock on a locked
-/// page, save with changes to save, cancel during a sitting. Otherwise the
-/// key is left to whatever else listens, so Escape still closes a menu or a
-/// sheet over the page. Save and Cancel work while a field is being typed
+/// page, save with changes to save, cancel during a sitting with nothing
+/// nearer to dismiss. Otherwise the key is left to whatever else listens, so
+/// Escape still closes suggestions, a menu or a sheet over the page. Save and Cancel work while a field is being typed
 /// in; unlock, a plain chord, not then.
 class RecordEditShortcuts extends ConsumerStatefulWidget {
   const RecordEditShortcuts({
@@ -150,7 +150,10 @@ class _RecordEditShortcutsState extends ConsumerState<RecordEditShortcuts> {
           ),
           CancelSittingIntent: _TargetAction<CancelSittingIntent>(
             targets,
-            when: (c) => c.isUnlocked && !c.isBusy,
+            // Escape is the app's dismiss key too: whatever nearer the
+            // focus would dismiss something of its own (an autocomplete's
+            // suggestions, a menu, a sheet) closes that first.
+            when: (c) => c.isUnlocked && !c.isBusy && !_nearerDismissal(),
             run: (t) => t.cancel(),
           ),
         },
@@ -158,6 +161,30 @@ class _RecordEditShortcutsState extends ConsumerState<RecordEditShortcuts> {
       ),
     );
   }
+}
+
+/// Whether Escape has something nearer the focus to dismiss: an enabled
+/// [DismissIntent] action between the focused widget and the app, such as
+/// an autocomplete's while its suggestions show. A disabled one (a
+/// Scaffold's, with no drawer open) and a text field's own do not count.
+bool _nearerDismissal() {
+  final focused = FocusManager.instance.primaryFocus?.context;
+  if (focused == null) return false;
+  // A text field answers the dismiss key itself, always (it hides its own
+  // toolbar): that is no reason to keep the sitting, so the search starts
+  // above the field. An autocomplete's, around the field, still counts.
+  Element? field;
+  focused.visitAncestorElements((element) {
+    if (element.widget is! EditableText) return true;
+    field = element;
+    return false;
+  });
+  final context = field ?? focused;
+  final action = Actions.maybeFind<DismissIntent>(context);
+  if (action == null) return false;
+  return action is ContextAction<DismissIntent>
+      ? action.isEnabled(const DismissIntent(), context)
+      : action.isEnabled(const DismissIntent());
 }
 
 /// An editing key's action on the current target, enabled only when [when]
