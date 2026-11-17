@@ -143,7 +143,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   EditSession<PhotoRecord>? get colorSitting => photoSitting;
 
   @override
-  bool get colorLockOffered => editingOffered;
+  bool get colorLockOffered => unlockEditingRequested;
 
   /// Locking, by any route, closes what changes the photo.
   @override

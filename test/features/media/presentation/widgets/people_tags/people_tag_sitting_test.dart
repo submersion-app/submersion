@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
@@ -41,7 +46,10 @@ void main() {
       )!;
 
   /// Opens the viewer on `p1`, unlocks it and enters tag mode.
-  Future<void> openTagging(WidgetTester tester) async {
+  Future<void> openTagging(
+    WidgetTester tester, {
+    List<Override> overrides = const [],
+  }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(1200, 900);
     addTearDown(tester.view.reset);
@@ -54,6 +62,7 @@ void main() {
             initialMediaId: shown.id,
             unlockEditing: true,
           ),
+          overrides: overrides,
         ),
       );
     });
@@ -186,6 +195,27 @@ void main() {
     expect(find.text("Add Alex to this dive's buddies?"), findsNothing);
   });
 
+  testWidgets('a sitting that ends while the offer is being made: no offer '
+      'is left behind', (tester) async {
+    final buddies = _GatedBuddies();
+    await openTagging(
+      tester,
+      overrides: [buddyRepositoryProvider.overrideWithValue(buddies)],
+    );
+    await tester.tapAt(const Offset(600, 450));
+    await settle(tester);
+    buddies.hold = true;
+    await tester.tap(find.text('Alex'));
+    await settle(tester);
+
+    controller(tester).lock();
+    await settle(tester);
+    await tester.runAsync(() async => buddies.gate.complete());
+    await settle(tester);
+
+    expect(find.text("Add Alex to this dive's buddies?"), findsNothing);
+  });
+
   testWidgets('Cancel after a held Add adds nothing', (tester) async {
     await openTagging(tester);
     await tester.tapAt(const Offset(600, 450));
@@ -220,4 +250,17 @@ void main() {
     expect(await rows(tester), isEmpty);
     expect(controller(tester).isUnlocked, isFalse);
   });
+}
+
+/// A buddy repository whose dive buddies read waits on [gate] once [hold]
+/// is set, so a test can end the sitting while the offer is being made.
+class _GatedBuddies extends BuddyRepository {
+  final gate = Completer<void>();
+  bool hold = false;
+
+  @override
+  Future<List<BuddyWithRole>> getBuddiesForDive(String diveId) async {
+    if (hold) await gate.future;
+    return super.getBuddiesForDive(diveId);
+  }
 }

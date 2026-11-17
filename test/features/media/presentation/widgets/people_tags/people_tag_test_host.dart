@@ -67,7 +67,11 @@ class _BytesResolver implements MediaSourceResolver {
 
 /// [home] in a provider scope with diver A active and a resolver that
 /// serves a 1200 x 900 image, or nothing when [withImage] is false.
-Future<Widget> peopleTagHost(Widget home, {bool withImage = true}) async {
+Future<Widget> peopleTagHost(
+  Widget home, {
+  bool withImage = true,
+  List<Override> overrides = const [],
+}) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   final diver = MockCurrentDiverIdNotifier();
@@ -84,6 +88,7 @@ Future<Widget> peopleTagHost(Widget home, {bool withImage = true}) async {
           MediaSourceType.platformGallery: _BytesResolver(png),
         }),
       ),
+      ...overrides,
     ],
     child: MaterialApp(
       locale: const Locale('en'),

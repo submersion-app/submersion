@@ -89,11 +89,14 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   /// Closes the sheets and dialogs open over the viewer once its sitting
   /// has ended (the photo deleted elsewhere): they hold into a sitting that
   /// no longer exists. Cancel and Save are tapped on the viewer itself, so
-  /// there is nothing above it then.
+  /// there is nothing above it then. A page the diver opened from the viewer
+  /// (a species from its chip) is theirs, and stays.
   void _closeRoutesAbove() {
     final route = ModalRoute.of(context);
     if (route == null || route.isCurrent || !route.isActive) return;
-    Navigator.of(context).popUntil((other) => other == route);
+    Navigator.of(
+      context,
+    ).popUntil((other) => other == route || other is! PopupRoute);
   }
 
   void _onSittingChanged() {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
@@ -16,14 +18,32 @@ import 'package:submersion/features/media/presentation/providers/media_library_p
 /// The filter is replaced rather than merged: a leftover site, trip or date
 /// bound would hide some of what was asked for. The library's active filter
 /// chips clear it again.
+///
+/// A route that refuses to be popped (the viewer unlocked with unsaved
+/// changes, issue #4527) is not popped past: `Navigator.pop` would close it
+/// anyway and its guard would drop the changes unasked. It is asked
+/// instead, as Back asks it, and the library is not opened.
 void openMediaWithFilter(
   BuildContext context,
   WidgetRef ref,
   MediaLibraryFilter filter,
 ) {
   final router = GoRouter.of(context);
+  final navigator = Navigator.of(context);
+  var guarded = false;
+  navigator.popUntil((route) {
+    if (route.settings is Page) return true;
+    if (route.popDisposition == RoutePopDisposition.doNotPop) {
+      guarded = true;
+      return true;
+    }
+    return false;
+  });
+  if (guarded) {
+    unawaited(navigator.maybePop());
+    return;
+  }
   ref.read(mediaLibraryFilterProvider.notifier).state = filter;
-  Navigator.of(context).popUntil((route) => route.settings is Page);
   router.go('/media');
 }
 

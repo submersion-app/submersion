@@ -435,6 +435,12 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
         );
       },
     );
+    // The sitting ended while the offer was being made (the dive's buddies
+    // are read first): dismissHeldOffer has run already, so close it here.
+    if (!_stillOpen(session, item.id)) {
+      offer?.close();
+      return;
+    }
     _heldOffer = offer;
     // Gone by itself (its Add, its timeout): nothing is left to close.
     unawaited(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +10,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
@@ -84,6 +87,26 @@ void main() {
       find.text('This photo was removed. Your changes were not saved.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('the photo deleted while a page is open over the viewer: the '
+      'page stays', (tester) async {
+    await pumpViewer(tester);
+    await tapUnlock(tester);
+    final viewer = tester.element(find.byType(MediaSpeciesChipsRow));
+    unawaited(
+      Navigator.of(viewer).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: Text('A species page')),
+        ),
+      ),
+    );
+    await settleViewer(tester);
+
+    await tester.runAsync(() => MediaRepository().deleteMedia('p2'));
+    await settleViewer(tester, rounds: 10);
+
+    expect(find.text('A species page'), findsOneWidget);
   });
 
   testWidgets('a video deleted in its sitting: the message names a video', (

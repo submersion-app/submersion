@@ -81,7 +81,7 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
   EditSession<PhotoRecord>? get colorSitting => photoSitting;
 
   @override
-  bool get colorLockOffered => editingOffered;
+  bool get colorLockOffered => unlockEditingRequested;
 
   /// Steps through the check while unlocked, so the next photo opens locked.
   void _step(int delta, int totalCount) =>
