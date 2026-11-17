@@ -13,6 +13,14 @@ mixin _DiveDetailPageBars
   MenuController get _displayOptionsMenu;
   void _navigateToDive(String neighborId);
 
+  /// History, beside the lock on a locked page with room for it.
+  Widget historyButton(Dive dive) => IconButton(
+    icon: const Icon(Icons.history),
+    tooltip: context.l10n.changeLog_history,
+    onPressed: () =>
+        openChangeLogHistory(context, rootTable: 'dives', rootId: dive.id),
+  );
+
   /// The standalone page's locked top bar. [shown] is the dive the cards
   /// display, which a sitting starts from.
   PreferredSizeWidget _standaloneBar(Dive dive, Dive shown) {
@@ -55,6 +63,9 @@ mixin _DiveDetailPageBars
                   .toggleFavorite(diveId);
             },
           ),
+        // History beside the lock where the bar has room (issue #4527),
+        // else the menu's first item.
+        if (editingOffered && !compactActions) historyButton(dive),
         if (editingOffered) lockButton(shown),
         IconButton(
           icon: const Icon(Icons.edit),
@@ -65,6 +76,7 @@ mixin _DiveDetailPageBars
           dive,
           _appBarMenuKey,
           showFavorite: compactActions && !editingOffered,
+          historyInBar: editingOffered && !compactActions,
         ),
       ],
     );
@@ -74,6 +86,7 @@ mixin _DiveDetailPageBars
     Dive dive,
     GlobalKey menuKey, {
     bool showFavorite = false,
+    bool historyInBar = false,
   }) {
     return DiveDetailOverflowMenu(
       dive: dive,
@@ -81,6 +94,8 @@ mixin _DiveDetailPageBars
       menuKey: menuKey,
       displayOptions: _displayOptionsMenu,
       showFavorite: showFavorite,
+      operations: operationBlock,
+      historyInBar: historyInBar,
       onSelected: (value, linkedPreDive) =>
           _onMenuSelected(value, dive, linkedPreDive, menuKey),
     );

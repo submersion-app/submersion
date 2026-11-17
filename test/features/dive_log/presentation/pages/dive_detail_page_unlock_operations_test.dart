@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -105,8 +106,14 @@ void main() {
     await unlock(tester);
     final before = _controller(tester).session;
 
-    await tester.ensureVisible(find.byIcon(Icons.more_vert).last);
-    await tester.tap(find.byIcon(Icons.more_vert).last);
+    final sourceMenu = find
+        .descendant(
+          of: find.byType(DataSourcesSection),
+          matching: find.byIcon(Icons.more_vert),
+        )
+        .last;
+    await tester.ensureVisible(sourceMenu);
+    await tester.tap(sourceMenu);
     await settle(tester);
     await tester.tap(find.text('Split into separate dive'));
     await settle(tester);

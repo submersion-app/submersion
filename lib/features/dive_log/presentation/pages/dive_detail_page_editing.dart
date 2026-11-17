@@ -314,6 +314,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     required Dive shown,
     required PreferredSizeWidget lockedBar,
     required Widget content,
+    List<Widget> unlockedActions = const [],
   }) {
     final controller = editController;
     return RecordEditLeaveGuard<Dive>(
@@ -326,6 +327,8 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
                 ),
                 canSave: controller.isDirty,
                 isSaving: controller.isSaving,
+                isBusy: controller.isOperating,
+                actions: unlockedActions,
                 onCancel: () => cancelSitting(context, controller),
                 onSave: _saveAndReport,
               )

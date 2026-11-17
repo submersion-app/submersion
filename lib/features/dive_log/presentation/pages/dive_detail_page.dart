@@ -37,6 +37,7 @@ import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart'
 import 'package:submersion/features/dive_import/presentation/dive_resync_failure_message.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_health_metrics_providers.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_resync_providers.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/download_target_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_header_block.dart';
@@ -636,6 +637,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       shown: shown,
       lockedBar: appBar,
       content: content,
+      unlockedActions: [_overflowMenu(dive, _appBarMenuKey)],
     );
   }
 }
