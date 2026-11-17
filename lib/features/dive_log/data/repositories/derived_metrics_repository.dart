@@ -119,10 +119,11 @@ class DerivedMetricsRepository {
         diveId: diveId,
         primaryBlobs: [for (final r in seriesRows) r.samples],
         // A suit inflation bottle's pressure is not breathing (issue #4243),
-        // so it never becomes the SAC drift reference.
+        // and an Avelo Hydrotank's rises with the water pumped in (#4657),
+        // so neither becomes the SAC drift reference.
         tankBlobs: [
           for (final t in tankRows)
-            if (TankRole.fromName(t.tankRole).isBreathingGas)
+            if (TankRole.fromName(t.tankRole).pressureMeasuresGasUse)
               if (_richestSeriesFor(pressureRows, t.id) case final series?)
                 TankPressureBlob(
                   tankId: t.id,

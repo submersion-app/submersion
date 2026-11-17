@@ -599,6 +599,10 @@ class Dive extends Equatable {
   double? rmvFor(GasModel model) {
     final breathing = breathingTanks;
     if (breathing.isEmpty) return null;
+    // A breathed cylinder whose pressure is not the gas used (an Avelo
+    // Hydrotank, issue #4657) leaves the dive's total gas unknown: summing
+    // only the others would understate the rate, as [sac] does not either.
+    if (breathing.any((t) => !t.role.pressureMeasuresGasUse)) return null;
     // Entered surface minutes of the cylinders whose gas this rate sums.
     final basis = _consumptionBasis(
       _surfaceSecondsWhere((t) => consumptionVolume(t, breathing) != null),

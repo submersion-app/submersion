@@ -668,6 +668,11 @@ void main() {
     testWidgets(
       'selecting Oxygen Supply role auto-fills 100% O2 / 0% He (issue #726)',
       (tester) async {
+        // Tall enough for the role menu to show every role: in the default
+        // 800x600 view twelve roles scroll and O2 Supply sits off-screen.
+        tester.view.physicalSize = const Size(800, 1600);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
         SharedPreferences.setMockInitialValues({});
         final prefs = await SharedPreferences.getInstance();
 
@@ -738,6 +743,11 @@ void main() {
       'selecting Oxygen Supply role updates the last-known-good O2, not '
       'just the displayed text (issue #726 follow-up, code review)',
       (tester) async {
+        // Tall enough for the role menu to show every role: in the default
+        // 800x600 view twelve roles scroll and O2 Supply sits off-screen.
+        tester.view.physicalSize = const Size(800, 1600);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
         // The role switch must feed _lastValidO2/_lastValidHe, not only the
         // text controllers: retyping the O2 field afterward falls back to
         // _lastValidO2 on an unparseable (non-blank) value (#1900's
