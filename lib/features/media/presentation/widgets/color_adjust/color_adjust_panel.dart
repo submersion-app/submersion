@@ -13,6 +13,9 @@ import 'package:submersion/features/media/presentation/widgets/color_adjust/appl
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_sliders.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_correction_label.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 final _log = LoggerService.forClass(ColorAdjustPanel);
 
@@ -32,6 +35,7 @@ class ColorAdjustPanel extends ConsumerStatefulWidget {
     required this.onPickWhite,
     this.pickWhiteAvailable = true,
     this.layout = Axis.horizontal,
+    this.sitting,
   });
 
   final MediaItem item;
@@ -39,6 +43,10 @@ class ColorAdjustPanel extends ConsumerStatefulWidget {
   final VoidCallback onPickWhite;
   final bool pickWhiteAvailable;
   final Axis layout;
+
+  /// The photo's sitting (issue #4527): every change is held in it until
+  /// Save, and drawn from it. Null saves each change at once, as before.
+  final EditSession<PhotoRecord>? sitting;
 
   @override
   ConsumerState<ColorAdjustPanel> createState() => _ColorAdjustPanelState();
@@ -150,6 +158,15 @@ class _ColorAdjustPanelState extends ConsumerState<ColorAdjustPanel> {
   Future<void> _save(ColorAdjustment? adjustment) async {
     // The item this save is for: the panel may page on during the write.
     final mediaId = widget.item.id;
+    final held = widget.sitting;
+    if (held != null) {
+      if (held.isDisposed || held.isFrozen) return;
+      held.set(photoColorField, adjustment);
+      // The viewer draws the held colour from the sitting, so no draft is
+      // left to hand over to a stored row.
+      ref.read(colorAdjustmentDraftNotifierProvider(mediaId).notifier).clear();
+      return;
+    }
     _draw(adjustment ?? const ColorAdjustment());
     final messenger = ScaffoldMessenger.maybeOf(context);
     final l10n = context.l10n;
@@ -329,8 +346,13 @@ class _ColorAdjustPanelState extends ConsumerState<ColorAdjustPanel> {
                 ),
                 if (item.diveId != null)
                   TextButton(
-                    onPressed: () =>
-                        runApplyToDive(context, ref, item, current),
+                    onPressed: () => runApplyToDive(
+                      context,
+                      ref,
+                      item,
+                      current,
+                      sitting: widget.sitting,
+                    ),
                     child: Text(l10n.media_color_applyToDive),
                   ),
                 FilledButton.tonal(

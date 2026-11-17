@@ -5,7 +5,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
 import 'package:submersion/features/media/presentation/helpers/face_box_geometry.dart';
 import 'package:submersion/features/media/presentation/media_tag_navigation.dart';
-import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The people tagged on a photo or video (issue #1745), as a wrapping row of
@@ -19,17 +21,20 @@ class MediaPeopleChipsRow extends ConsumerWidget {
   final String mediaId;
   final ValueChanged<MediaPersonTag>? onMomentTap;
 
+  /// The photo's sitting, whose held tags are drawn (issue #4527).
+  final EditSession<PhotoRecord>? sitting;
+
   const MediaPeopleChipsRow({
     super.key,
     required this.mediaId,
     this.onMomentTap,
+    this.sitting,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final chips =
-        ref.watch(mediaPeopleChipsProvider(mediaId)).value ?? const [];
+    final chips = peopleChipsShown(ref, mediaId, sitting);
     if (chips.isEmpty) return const SizedBox.shrink();
 
     return Semantics(

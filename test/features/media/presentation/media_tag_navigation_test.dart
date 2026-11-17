@@ -65,4 +65,68 @@ void main() {
     expect(find.text('LIBRARY'), findsOneWidget);
     expect(container.read(mediaLibraryFilterProvider).tagIds, {'wreck'});
   });
+
+  // A viewer unlocked with unsaved changes refuses to pop (issue #4527):
+  // Navigator.pop would close it anyway, past its guard, and the changes
+  // would be dropped unasked.
+  testWidgets('a viewer guarding unsaved changes is asked, not popped past', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final asked = <bool>[];
+    final router = GoRouter(
+      initialLocation: '/media',
+      routes: [
+        GoRoute(
+          path: '/media',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (viewerContext) => PopScope(
+                    canPop: false,
+                    onPopInvokedWithResult: (didPop, _) => asked.add(didPop),
+                    child: Scaffold(
+                      body: TextButton(
+                        onPressed: () => showModalBottomSheet<void>(
+                          context: viewerContext,
+                          builder: (_) => Consumer(
+                            builder: (sheetContext, ref, _) => TextButton(
+                              onPressed: () =>
+                                  openMediaWithTag(sheetContext, ref, 'wreck'),
+                              child: const Text('tag chip'),
+                            ),
+                          ),
+                        ),
+                        child: const Text('VIEWER'),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              child: const Text('LIBRARY'),
+            ),
+          ),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.tap(find.text('LIBRARY'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('VIEWER'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('tag chip'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('VIEWER'), findsOneWidget);
+    expect(asked, [false]);
+    expect(container.read(mediaLibraryFilterProvider).tagIds, isEmpty);
+  });
 }

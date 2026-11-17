@@ -10215,6 +10215,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Certaines valeurs sont illisibles. Corrigez-les avant d\'enregistrer.';
 
   @override
+  String get recordEdit_unlockToUseThis => 'Déverrouillez pour utiliser ceci';
+
+  @override
+  String get recordEdit_saveOrCancelFirst =>
+      'Enregistrez ou annulez d\'abord vos modifications';
+
+  @override
   String get settings_manage_setupAssistant => 'Assistant de configuration';
 
   @override
@@ -22228,6 +22235,24 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_viewer_enterFullscreen => 'Plein écran';
+
+  @override
+  String get media_viewer_editingPhoto => 'Modification de la photo';
+
+  @override
+  String get media_viewer_editingVideo => 'Modification de la vidéo';
+
+  @override
+  String get media_viewer_photoGoneWhileEditing =>
+      'Cette photo a été supprimée. Vos modifications n\'ont pas été enregistrées.';
+
+  @override
+  String get media_viewer_videoGoneWhileEditing =>
+      'Cette vidéo a été supprimée. Vos modifications n\'ont pas été enregistrées.';
+
+  @override
+  String get media_viewer_movedWhileEditing =>
+      'Déplacé vers une autre plongée depuis le déverrouillage. Annulez, puis déverrouillez à nouveau.';
 
   @override
   String get media_viewer_exitFullscreen => 'Quitter le plein écran';
@@ -56240,6 +56265,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_species_actionTooltip => 'Espèces';
 
   @override
+  String get media_editCard_people => 'Personnes';
+
+  @override
+  String get media_editCard_timeInDive => 'Moment dans la plongée';
+
+  @override
+  String get media_editCard_color => 'Couleur';
+
+  @override
+  String get media_editCard_details => 'Détails';
+
+  @override
   String get media_species_sheetTitle => 'Espèces sur cette photo';
 
   @override
@@ -63348,6 +63385,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get changeLog_label_recordEditSeparator => ', ';
+
+  @override
+  String changeLog_label_photoEdit(String cards) {
+    return 'Photo modifiée : $cards';
+  }
 
   @override
   String get changeLog_undoIncomplete =>

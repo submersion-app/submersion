@@ -31,9 +31,15 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/utils/byte_format.dart';
 import 'package:submersion/shared/utils/file_reveal.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+
+part 'media_info_file_section.dart';
 
 /// Everything the app knows about where one media item came from, whether it
 /// is backed up, and where its bytes are being served from right now.
@@ -43,9 +49,22 @@ import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 /// machinery that already exists; the only capability added for the panel is
 /// checking a single item's source.
 class MediaInfoPanel extends ConsumerWidget {
-  const MediaInfoPanel({super.key, required this.item, this.scrollController});
+  const MediaInfoPanel({
+    super.key,
+    required this.item,
+    this.scrollController,
+    this.readOnly = false,
+    this.sitting,
+  });
 
   final MediaItem item;
+
+  /// No action that changes the photo's record (Set time, Locate): the photo
+  /// is locked, or shown where it has no lock of its own (issue #4527).
+  final bool readOnly;
+
+  /// The photo's sitting: Set time is held in it until Save.
+  final EditSession<PhotoRecord>? sitting;
 
   /// Supplied when hosted in a DraggableScrollableSheet, which owns scrolling.
   final ScrollController? scrollController;
@@ -69,11 +88,22 @@ class MediaInfoPanel extends ConsumerWidget {
       children: [
         Text(l10n.media_info_title, style: _titleStyle(context)),
         const SizedBox(height: 16),
-        MediaInfoTagsSection(item: live),
+        MediaInfoTagsSection(item: live, readOnly: readOnly, sitting: sitting),
         const SizedBox(height: 12),
-        _FileSection(item: live, units: units),
+        _FileSection(
+          item: live,
+          units: units,
+          readOnly: readOnly,
+          sitting: sitting,
+        ),
         const SizedBox(height: 12),
-        _OriginSection(item: live, origin: provenance.origin, units: units),
+        _OriginSection(
+          item: live,
+          origin: provenance.origin,
+          units: units,
+          // Locate is not offered in a sitting until it can be held.
+          canLocate: !readOnly && sitting == null,
+        ),
         const SizedBox(height: 12),
         _BackupSection(item: live, backup: provenance.backup, units: units),
         const SizedBox(height: 12),
@@ -129,139 +159,20 @@ class _Section extends StatelessWidget {
   }
 }
 
-class _FileSection extends ConsumerWidget {
-  const _FileSection({required this.item, required this.units});
-
-  final MediaItem item;
-  final UnitFormatter units;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final unknown = l10n.media_info_unknown;
-    // The dive's profile decides whether the stored position is inside the
-    // dive window and gives the Set-time dialog its range (issue #1090).
-    final diveId = item.diveId;
-    final profile = diveId == null
-        ? const <DiveProfilePoint>[]
-        : ref.watch(diveProvider(diveId)).value?.profile ??
-              const <DiveProfilePoint>[];
-    final profileLength = MediaDiveWindow.profileLengthSeconds(profile);
-    final enrichment = item.enrichment;
-    final positioned = enrichment?.isWithinDiveWindow(profileLength) ?? false;
-    final String timeInDive;
-    if (!positioned) {
-      timeInDive = unknown;
-    } else {
-      final formatted = formatElapsedMmSs(enrichment!.elapsedSeconds!);
-      timeInDive = enrichment.isManual
-          ? l10n.media_timeInDive_manual(formatted)
-          : formatted;
-    }
-    final width = item.width;
-    final height = item.height;
-    final size = item.contentSizeBytes;
-    final lat = item.latitude;
-    final lon = item.longitude;
-    // A browser reads the media facts and changes none (issue #4121).
-    final canEdit = ref.watch(deviceCapabilitiesProvider).mediaAttach;
-
-    return _Section(
-      title: l10n.media_info_fileSection,
-      actions: [
-        // Pinning needs a profile to pin against.
-        if (diveId != null && profile.isNotEmpty && canEdit)
-          _SetTimeButton(
-            item: item,
-            profile: profile,
-            initialElapsedSeconds: setTimeSeedFor(
-              item,
-              profileLengthSeconds: profileLength,
-            ),
-          ),
-      ],
-      children: [
-        DiveDetailRow(
-          label: l10n.media_info_filename,
-          value: item.originalFilename ?? unknown,
-        ),
-        DiveDetailRow(
-          label: l10n.media_info_type,
-          value: mediaTypeLabel(l10n, item.mediaType),
-        ),
-        DiveDetailRow(
-          label: l10n.media_info_dimensions,
-          // Pixels are unit-system invariant, so this is one of the few
-          // displayed quantities the diver's unit settings do not touch.
-          value: (width != null && height != null)
-              ? '$width x $height'
-              : unknown,
-        ),
-        DiveDetailRow(
-          label: l10n.media_info_size,
-          value: size == null ? unknown : formatBytes(size),
-        ),
-        DiveDetailRow(
-          label: l10n.media_info_taken,
-          // takenAt is non-nullable on the row, so there is no unknown case.
-          value: units.formatDateTime(item.takenAt, l10n: l10n),
-        ),
-        if (diveId != null)
-          DiveDetailRow(label: l10n.media_timeInDive_label, value: timeInDive),
-        if (lat != null && lon != null)
-          DiveDetailRow(
-            label: l10n.media_info_coordinates,
-            value: '${lat.toStringAsFixed(5)}, ${lon.toStringAsFixed(5)}',
-          ),
-      ],
-    );
-  }
-}
-
-/// Opens the Set-time dialog and applies the diver's choice (issue #1090).
-class _SetTimeButton extends ConsumerWidget {
-  const _SetTimeButton({
-    required this.item,
-    required this.profile,
-    required this.initialElapsedSeconds,
-  });
-
-  final MediaItem item;
-  final List<DiveProfilePoint> profile;
-  final int initialElapsedSeconds;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return TextButton.icon(
-      icon: const Icon(Icons.push_pin_outlined),
-      label: Text(context.l10n.media_timeInDive_setAction),
-      onPressed: () async {
-        final pinner = ref.read(mediaTimePinnerProvider);
-        final choice = await showSetMediaTimeDialog(
-          context,
-          profile: profile,
-          initialElapsedSeconds: initialElapsedSeconds,
-          isPinned: item.manualElapsedSeconds != null,
-          settings: ref.read(settingsProvider),
-          automatic: pinner.automaticTimeFor(item),
-        );
-        if (choice == null || !context.mounted) return;
-        await pinner.apply(item, choice);
-      },
-    );
-  }
-}
-
 class _OriginSection extends ConsumerWidget {
   const _OriginSection({
     required this.item,
     required this.origin,
     required this.units,
+    required this.canLocate,
   });
 
   final MediaItem item;
   final OriginFacts origin;
   final UnitFormatter units;
+
+  /// Whether Locate may relink the photo here.
+  final bool canLocate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -300,7 +211,10 @@ class _OriginSection extends ConsumerWidget {
         // points at a path, so this is not offered for a missing gallery
         // asset, where picking a file would relink it to the wrong source
         // type.
-        if (origin.health == OriginHealth.missing && isLocalFile && canEdit)
+        if (origin.health == OriginHealth.missing &&
+            isLocalFile &&
+            canEdit &&
+            canLocate)
           _LocateButton(item: item),
         if (pointer != null && isLocalFile && canRevealInFileManager)
           TextButton(

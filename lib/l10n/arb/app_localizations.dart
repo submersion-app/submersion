@@ -15979,6 +15979,18 @@ abstract class AppLocalizations {
   /// **'Some values can\'t be read. Fix them before saving.'**
   String get recordEdit_fixInvalid;
 
+  /// Why an action that changes a whole record (such as writing dive data into a photo file) is disabled: the record is locked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to use this'**
+  String get recordEdit_unlockToUseThis;
+
+  /// Why an action that changes a whole record is disabled: the editing sitting has unsaved changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Save or cancel your changes first'**
+  String get recordEdit_saveOrCancelFirst;
+
   /// No description provided for @settings_manage_setupAssistant.
   ///
   /// In en, this message translates to:
@@ -34947,6 +34959,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Full screen'**
   String get media_viewer_enterFullscreen;
+
+  /// Title of the photo viewer's top bar while a photo is unlocked for editing.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing photo'**
+  String get media_viewer_editingPhoto;
+
+  /// Title of the photo viewer's top bar while a video is unlocked for editing.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing video'**
+  String get media_viewer_editingVideo;
+
+  /// Shown when the photo being edited in the viewer is deleted elsewhere (another device, a sync) during the editing sitting; the sitting ends without saving.
+  ///
+  /// In en, this message translates to:
+  /// **'This photo was removed. Your changes were not saved.'**
+  String get media_viewer_photoGoneWhileEditing;
+
+  /// Shown when the video being edited in the viewer is deleted elsewhere (another device, a sync) during the editing sitting; the sitting ends without saving.
+  ///
+  /// In en, this message translates to:
+  /// **'This video was removed. Your changes were not saved.'**
+  String get media_viewer_videoGoneWhileEditing;
+
+  /// Shown when Save is refused because the photo or video being edited was moved to another dive (on another device, or by a sync) after the diver unlocked it. Cancel ends the sitting; unlocking again starts one on the new dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to another dive since you unlocked it. Cancel, then unlock it again.'**
+  String get media_viewer_movedWhileEditing;
 
   /// Button revealed by a tap in fullscreen mode: return to the normal viewer
   ///
@@ -87960,6 +88002,30 @@ abstract class AppLocalizations {
   /// **'Species'**
   String get media_species_actionTooltip;
 
+  /// What a photo's editing sitting changed, in its History entry: the people tagged on it.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get media_editCard_people;
+
+  /// What a photo's editing sitting changed, in its History entry: where it sits in time in its dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Time in dive'**
+  String get media_editCard_timeInDive;
+
+  /// What a photo's editing sitting changed, in its History entry: its colour adjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get media_editCard_color;
+
+  /// What a photo's editing sitting changed, in its History entry: a site attachment's category and display size.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get media_editCard_details;
+
   /// No description provided for @media_species_sheetTitle.
   ///
   /// In en, this message translates to:
@@ -99095,6 +99161,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **', '**
   String get changeLog_label_recordEditSeparator;
+
+  /// Change log entry title for one editing sitting on a photo or video, shown in its dive's History. cards is a list of what changed, already joined.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited photo: {cards}'**
+  String changeLog_label_photoEdit(String cards);
 
   /// Snackbar shown when an Undo that reverts a change log operation left some records unrestored.
   ///

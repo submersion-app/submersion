@@ -10184,6 +10184,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Alcuni valori non sono leggibili. Correggili prima di salvare.';
 
   @override
+  String get recordEdit_unlockToUseThis => 'Sblocca per usarlo';
+
+  @override
+  String get recordEdit_saveOrCancelFirst =>
+      'Salva o annulla prima le modifiche';
+
+  @override
   String get settings_manage_setupAssistant => 'Assistente di configurazione';
 
   @override
@@ -22172,6 +22179,24 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_viewer_enterFullscreen => 'Schermo intero';
+
+  @override
+  String get media_viewer_editingPhoto => 'Modifica della foto';
+
+  @override
+  String get media_viewer_editingVideo => 'Modifica del video';
+
+  @override
+  String get media_viewer_photoGoneWhileEditing =>
+      'Questa foto è stata rimossa. Le modifiche non sono state salvate.';
+
+  @override
+  String get media_viewer_videoGoneWhileEditing =>
+      'Questo video è stato rimosso. Le modifiche non sono state salvate.';
+
+  @override
+  String get media_viewer_movedWhileEditing =>
+      'Spostato in un\'altra immersione dopo lo sblocco. Annulla, poi sbloccalo di nuovo.';
 
   @override
   String get media_viewer_exitFullscreen => 'Esci da schermo intero';
@@ -56113,6 +56138,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_species_actionTooltip => 'Specie';
 
   @override
+  String get media_editCard_people => 'Persone';
+
+  @override
+  String get media_editCard_timeInDive => 'Momento nell\'immersione';
+
+  @override
+  String get media_editCard_color => 'Colore';
+
+  @override
+  String get media_editCard_details => 'Dettagli';
+
+  @override
   String get media_species_sheetTitle => 'Specie in questa foto';
 
   @override
@@ -63210,6 +63247,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get changeLog_label_recordEditSeparator => ', ';
+
+  @override
+  String changeLog_label_photoEdit(String cards) {
+    return 'Foto modificata: $cards';
+  }
 
   @override
   String get changeLog_undoIncomplete =>

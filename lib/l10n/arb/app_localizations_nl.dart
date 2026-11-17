@@ -10116,6 +10116,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Sommige waarden kunnen niet worden gelezen. Corrigeer ze voordat je opslaat.';
 
   @override
+  String get recordEdit_unlockToUseThis => 'Ontgrendel om dit te gebruiken';
+
+  @override
+  String get recordEdit_saveOrCancelFirst =>
+      'Sla je wijzigingen eerst op of annuleer ze';
+
+  @override
   String get settings_manage_setupAssistant => 'Configuratie-assistent';
 
   @override
@@ -22035,6 +22042,24 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_viewer_enterFullscreen => 'Volledig scherm';
+
+  @override
+  String get media_viewer_editingPhoto => 'Foto bewerken';
+
+  @override
+  String get media_viewer_editingVideo => 'Video bewerken';
+
+  @override
+  String get media_viewer_photoGoneWhileEditing =>
+      'Deze foto is verwijderd. Je wijzigingen zijn niet opgeslagen.';
+
+  @override
+  String get media_viewer_videoGoneWhileEditing =>
+      'Deze video is verwijderd. Je wijzigingen zijn niet opgeslagen.';
+
+  @override
+  String get media_viewer_movedWhileEditing =>
+      'Verplaatst naar een andere duik sinds je het ontgrendelde. Annuleer en ontgrendel het opnieuw.';
 
   @override
   String get media_viewer_exitFullscreen => 'Volledig scherm verlaten';
@@ -55764,6 +55789,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_species_actionTooltip => 'Soorten';
 
   @override
+  String get media_editCard_people => 'Personen';
+
+  @override
+  String get media_editCard_timeInDive => 'Tijdstip in de duik';
+
+  @override
+  String get media_editCard_color => 'Kleur';
+
+  @override
+  String get media_editCard_details => 'Details';
+
+  @override
   String get media_species_sheetTitle => 'Soorten op deze foto';
 
   @override
@@ -62819,6 +62856,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get changeLog_label_recordEditSeparator => ', ';
+
+  @override
+  String changeLog_label_photoEdit(String cards) {
+    return 'Foto bewerkt: $cards';
+  }
 
   @override
   String get changeLog_undoIncomplete =>
