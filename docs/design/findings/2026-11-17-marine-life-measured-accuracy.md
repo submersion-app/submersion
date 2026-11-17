@@ -44,7 +44,7 @@ interval where one is given. The bars were chosen on the other half.
 
 `tool/species_pack/testdata/accuracy_set.csv` lists every photo with its
 licence and attribution. The photos are not committed;
-`tool/species_pack/fetch_testset.py` downloads them again.
+`fetch_testset.py photos-from-csv` downloads exactly these again.
 
 - **Pool:** 108,280 research-grade, wild, open-location iNaturalist
   observations created from 2024-07-01 (after BioCLIP 2's training data was
@@ -54,8 +54,9 @@ licence and attribution. The photos are not committed;
   qualifying pool), one per observer per day: 3,115. Top-ups brought each
   group other than fish towards 150: 403 more.
 - **Labels:** each name matched to a GBIF accepted species key. 32 of 1,467
-  names had none; their 67 observations were dropped.
-- **Underwater only:** a BioCLIP 2 zero-shot filter dropped 472 photos. Its
+  names had none; their 67 observations were dropped, leaving 3,451.
+- **Underwater only:** a BioCLIP 2 zero-shot filter dropped 450 of those
+  (472 of the 3,518 sampled). Its
   contact sheets showed it kept about 60% out-of-water photos of crabs,
   snails, sea stars and octopus (shells in hands, crabs on beaches, sea
   stars at low tide), so every kept photo in those four groups (1,074) was
@@ -83,10 +84,12 @@ licence and attribution. The photos are not committed;
   observation, GBIF was asked whether its species had records before
   2024-07-01 in its 5 degree cell or the cells around it. 3,447 of 3,451 did,
   so this guard changed little.
-- **Junk:** 150 openly licensed Commons photos of divers. Each detector's
-  boxes on them were labelled by eye; 65 of the Community Fish Detector's 191
-  boxes and 60 of Megalodon's 103 were people, gear or bare scenery. The
-  contact sheets are in the work folder (`sheets/junk_*.png`) for checking.
+- **Junk:** both detectors ran on 150 openly licensed Commons photos of
+  divers, and each box was labelled by eye; 65 of the Community Fish
+  Detector's 191 boxes and 60 of Megalodon's 103 were people, gear or bare
+  scenery. Those 125 boxes, on 78 of the photos, are the CSV's junk rows,
+  each with its box so a later run finds the same one. The contact sheets
+  are in the work folder (`sheets/junk_*.png`) for checking.
 
 ## Results
 
@@ -102,7 +105,14 @@ licence and attribution. The photos are not committed;
 | Both, centre crop | 0.30 | 0.78 | 0.85 | never | 91.1% (87.6 to 93.7) | 33.3% | 1 of 62 |
 
 "Coverage" is the share of boxed animals given a suggestion, with location.
-No bar was switched off by the held-out gate.
+No bar was switched off by the held-out gate (which also switches off a bar
+that names nothing on the held-out half, having no evidence for it).
+
+Among bars that meet a target, the search takes the one naming the most
+animals right and, on a tie, the higher bar, where the design said "the
+lowest bar that meets". A lower bar naming the same number right only adds
+wrong names on the tune half; on new photos it can cut a correct name that
+falls in the gap, by at most one 0.01 step.
 
 The fish detector's chosen bars named 2 of 35 held-out junk crops (5.7%,
 interval 1.6 to 18.6%), above the 2% the tune half met. The junk set is
@@ -181,7 +191,10 @@ keep divers from being named.
 | Fish detector | 11.7 ms (13.1) | 9.9 ms | 1.30 GB |
 | Megalodon | 16.1 ms (20.0) | 10.5 ms | 1.36 GB |
 
-Peak memory includes the 608 MB classifier. Running both adds Megalodon's
+Times are from the scoring runs. Peak memory is from a separate run of 100
+photos per detector and includes the 608 MB classifier; the 13 to 16 GB
+"whole run" peaks in `report.md` come from scoring runs made before the
+tool released each photo's memory, and do not reflect the app. Running both adds Megalodon's
 detection time and about 110 MB of model to the fish detector's. Megalodon
 is 56.8 million parameters and 195 GFLOPs per image; the fish detector is an
 RF-DETR nano.
@@ -190,7 +203,7 @@ RF-DETR nano.
 
 By the rule fixed before the run (most animals named right at the 85%
 target, junk within 2%, close results to the simpler and explicitly
-licensed choice):
+licensed choice), which `score.py` applies and records in `results.json`:
 
 - **Run both**, if the fish detector's terms are acceptable. The pair names
   significantly more animals than either alone (317 against 285 and 268),
@@ -203,6 +216,15 @@ licensed choice):
   it finds fish less often (80% of fish photos against 95%).
 
 The choice is the maintainer's.
+
+### Megalodon's conversion
+
+The converted Megalodon matches the PyTorch model on a dive photo (score
+drift 0.0003, best box overlap 0.998). The app pipeline's YOLO path
+(letterbox, suppression, mapping back) was checked against ultralytics' own
+letterbox, suppression and box scaling on 20 test photos, 10 portrait and
+10 landscape, upright as the app decodes them: 23 of 23 boxes matched at an
+intersection over union of 0.9 or more.
 
 ## Licence notes
 
@@ -248,7 +270,8 @@ Stated, not settled:
 
 ## Reproducing
 
-See "Measuring accuracy" in
-[the developer page](../../developer/species-identification.md). The report
-these numbers come from is `report.md` in the work folder, written by
-`tool/species_pack/score.py`.
+Fetch these photos with `fetch_testset.py photos-from-csv`, convert
+Megalodon, and run `score.py`; see "Measuring accuracy" in
+[the developer page](../../developer/species-identification.md). The tables
+here come from `report.md` and `results.json` in the work folder, written by
+`tool/species_pack/score.py`, except where noted.

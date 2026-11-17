@@ -115,36 +115,43 @@ with `ultralytics` added for Megalodon:
 .venv-species-pack/bin/pip install ultralytics
 ```
 
-Fetch the test set. Each stage caches in the work folder
-(`build/species_accuracy_work` by default, `--work` to change it) and
-resumes if stopped:
+To measure again on the same photos (after a candidate list change, say),
+fetch what the committed list names into the work folder
+(`build/species_accuracy_work` by default, `--work` to change it), convert
+Megalodon, checking it against PyTorch on any photo with an animal in it,
+and score the pack:
 
 ```bash
-for stage in pool labels photos underwater commons; do .venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py $stage; done
+.venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py photos-from-csv
 ```
-
-Convert Megalodon, checking it against PyTorch on any photo with an animal
-in it, then draw contact sheets of every box both detectors put on the
-diver photos:
 
 ```bash
 .venv-species-pack/bin/python -I tool/species_pack/megalodon.py convert megalodon-2024 --check-image PHOTO
 ```
 
 ```bash
+.venv-species-pack/bin/python -I tool/species_pack/score.py --pack build/species_pack
+```
+
+Drawing a new test set is longer, and replaces the list the findings were
+measured on. Each stage caches in the work folder and resumes if stopped:
+
+```bash
+for stage in pool labels photos underwater review-sheets commons; do .venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py $stage; done
+```
+
+```bash
 .venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py junk-sheets --pack build/species_pack
 ```
 
-Label each box in `junk_labels.json` in the work folder as `person`,
-`scenery`, `animal` or `unclear`, keyed `detector:photo:box`, then write the
-CSV and score the pack:
+Look over the review sheets and mark each out-of-water photo in
+`underwater_overrides.json` in the work folder (`{"<observation id>":
+false}`), and label each junk box in `junk_labels.json` as `person`,
+`scenery`, `animal` or `unclear`, keyed `detector:photo:box`. Then write the
+CSV, which needs `--force` because it replaces the committed one:
 
 ```bash
-.venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py write
-```
-
-```bash
-.venv-species-pack/bin/python -I tool/species_pack/score.py --pack build/species_pack
+.venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py write --force
 ```
 
 The scorer runs the app's own Swift pipeline through a small command-line

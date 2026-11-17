@@ -160,14 +160,16 @@ def choose_bars(
 def held_out_gate(bars, with_location, no_location, *, min_side, suggest_target=0.85, confident_target=0.95):
     """Checks each bar once on the held-out half. A bar whose two-sided 95%
     interval lies wholly below its target is switched off; a confident bar
-    goes with its suggest bar. Returns the gated bars and the manifest
-    names of those switched off. No value is chosen here."""
+    goes with its suggest bar. A bar that names nothing held out has no
+    evidence of meeting its target, so it is switched off too. Returns the
+    gated bars and the manifest names of those switched off. No value is
+    chosen here."""
     limited = [c for c in with_location if c.limited]
 
     def fails(scored, bar, target):
-        if bar == NEVER:
-            return False
         picked = _suggested(scored, min_open=bars.min_open, bar=bar, min_side=min_side)
+        if not picked:
+            return True
         correct = sum(1 for c in picked if c.correct)
         return wilson(correct, len(picked), Z_TWO_SIDED)[1] < target
 

@@ -53,6 +53,32 @@ class RateTests(unittest.TestCase):
         self.assertEqual(precision.n, 0)
 
 
+class RecommendTests(unittest.TestCase):
+    PREFERENCE = ["licensed", "unlicensed", "pair"]
+
+    def recommend(self, named, p, junk_ok=None):
+        return metrics.recommend(named, p, self.PREFERENCE, junk_ok or {n: True for n in named})
+
+    def test_a_significantly_better_pair_wins(self):
+        named = {"licensed": 268, "unlicensed": 285, "pair": 317}
+        p = {frozenset(("licensed", "pair")): 0.0002, frozenset(("unlicensed", "pair")): 0.0035, frozenset(("licensed", "unlicensed")): 0.28}
+        self.assertEqual(self.recommend(named, p), "pair")
+
+    def test_a_close_result_goes_to_the_simpler_choice(self):
+        named = {"licensed": 268, "unlicensed": 285, "pair": 290}
+        p = {frozenset(("licensed", "pair")): 0.2, frozenset(("unlicensed", "pair")): 0.6, frozenset(("licensed", "unlicensed")): 0.28}
+        self.assertEqual(self.recommend(named, p), "licensed")
+
+    def test_too_much_junk_rules_a_run_out(self):
+        named = {"licensed": 268, "unlicensed": 285, "pair": 317}
+        p = {frozenset(("licensed", "pair")): 0.0002, frozenset(("unlicensed", "pair")): 0.0035, frozenset(("licensed", "unlicensed")): 0.01}
+        junk_ok = {"licensed": True, "unlicensed": True, "pair": False}
+        self.assertEqual(self.recommend(named, p, junk_ok), "unlicensed")
+
+    def test_nothing_within_the_junk_target_is_none(self):
+        self.assertIsNone(self.recommend({"pair": 1}, {}, {"pair": False}))
+
+
 class BreakdownTests(unittest.TestCase):
     def test_breakdown_groups_and_sorts(self):
         items = [("b", 1), ("a", 2), ("b", 3)]

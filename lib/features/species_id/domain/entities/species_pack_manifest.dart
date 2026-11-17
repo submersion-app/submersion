@@ -76,7 +76,6 @@ class DetectorConfig extends Equatable {
   ];
 }
 
-/// How the embedding model is fed and how its output is scored.
 /// How a crop is fitted to the classifier's square input. The names are
 /// the manifest's and the native pipeline's.
 enum CropFit {
@@ -94,6 +93,7 @@ enum CropFit {
   );
 }
 
+/// How the embedding model is fed and how its output is scored.
 class ClassifierConfig extends Equatable {
   const ClassifierConfig({
     required this.id,

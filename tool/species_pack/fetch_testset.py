@@ -2,7 +2,13 @@
 """Builds the accuracy test set: tool/species_pack/testdata/accuracy_set.csv,
 and the photos it lists in a work folder kept out of git.
 
-Run the stages in order; each caches its results in --work and resumes:
+To rebuild the test set exactly as it was measured, fetch the photos the
+committed CSV lists:
+
+    python -I tool/species_pack/fetch_testset.py photos-from-csv
+
+To draw a new one, run the stages in order; each caches its results in
+--work and resumes:
 
     python -I tool/species_pack/fetch_testset.py pool
     python -I tool/species_pack/fetch_testset.py labels
@@ -10,8 +16,10 @@ Run the stages in order; each caches its results in --work and resumes:
     python -I tool/species_pack/fetch_testset.py underwater
     python -I tool/species_pack/fetch_testset.py commons
     python -I tool/species_pack/fetch_testset.py junk-sheets --pack PACK
-    (label the junk boxes by eye in WORK/junk_labels.json)
-    python -I tool/species_pack/fetch_testset.py write
+    python -I tool/species_pack/fetch_testset.py review-sheets
+    (mark out-of-water photos in WORK/underwater_overrides.json, and label
+    the junk boxes in WORK/junk_labels.json, both by eye)
+    python -I tool/species_pack/fetch_testset.py write --force
 
 `underwater` needs requirements.txt; the rest needs only Pillow. The rules
 themselves live in testset.py, which is tested in CI. Developer-run only.
@@ -535,7 +543,44 @@ def stage_junk_sheets(work, pack):
 # Stage 7: the CSV.
 
 
-def stage_write(work, csv_path):
+def stage_photos_from_csv(work, csv_path):
+    """Downloads every photo the committed list names: the way to rebuild
+    the test set exactly as it was measured, rather than drawing a new
+    sample."""
+    rows = testset.read_rows(csv_path)
+    wanted = {}
+    for r in rows:
+        wanted[_photo_path(work, r["source"], r["id"])] = r["photo_url"]
+    with concurrent.futures.ThreadPoolExecutor(8) as pool:
+        list(pool.map(lambda item: _download(item[1], item[0]), wanted.items()))
+    missing = [p for p in wanted if not os.path.exists(p)]
+    print(f"{len(wanted) - len(missing)} of {len(wanted)} photos in {os.path.join(work, 'photos')}")
+    if missing:
+        raise SystemExit(f"{len(missing)} photos could not be fetched")
+
+
+def _junk_boxes(work):
+    """Each detector's boxes on the diver photos, as labelled:
+    {"detector:photo:index": (x, y, w, h)}."""
+    boxes = {}
+    for path in sorted(os.listdir(work)):
+        if not (path.startswith("junk_detections_") and path.endswith(".jsonl")):
+            continue
+        detector = path[len("junk_detections_") : -len(".jsonl")]
+        with open(os.path.join(work, path), encoding="utf-8") as fh:
+            for line in fh:
+                r = json.loads(line)
+                ident = os.path.basename(r["path"])[len("commons_") : -len(".jpg")]
+                for i, d in enumerate(r.get("detections", [])):
+                    boxes[f"{detector}:{ident}:{i}"] = (d["x"], d["y"], d["w"], d["h"])
+    return boxes
+
+
+def stage_write(work, csv_path, force=False):
+    if os.path.exists(csv_path) and not force:
+        raise SystemExit(
+            f"{csv_path} exists; it is the list the findings were measured on. Pass --force to replace it."
+        )
     sample = _load(os.path.join(work, "sample.json"), [])
     keys = _load(os.path.join(work, "gbif", "match.json"), {})
     habitats = _load(os.path.join(work, "gbif", "habitat.json"), {})
@@ -556,6 +601,10 @@ def stage_write(work, csv_path):
                 "source": "inaturalist",
                 "id": o["id"],
                 "box": "",
+                "box_x": "",
+                "box_y": "",
+                "box_w": "",
+                "box_h": "",
                 "photo_url": o["photo_url"],
                 "licence": o["licence"],
                 "attribution": o["attribution"],
@@ -578,6 +627,7 @@ def stage_write(work, csv_path):
         )
     commons = {f["id"]: f for f in _load(os.path.join(work, "commons.json"), [])}
     labels = _load(os.path.join(work, "junk_labels.json"), {})
+    junk_boxes = _junk_boxes(work)
     for label_id, label in sorted(labels.items()):
         if label not in ("person", "scenery"):
             continue
@@ -588,6 +638,10 @@ def stage_write(work, csv_path):
                 "source": "commons",
                 "id": ident,
                 "box": box,
+                "box_x": junk_boxes[label_id][0],
+                "box_y": junk_boxes[label_id][1],
+                "box_w": junk_boxes[label_id][2],
+                "box_h": junk_boxes[label_id][3],
                 "photo_url": f["photo_url"],
                 "licence": f["licence"],
                 "attribution": f["attribution"],
@@ -616,11 +670,22 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
         "stage",
-        choices=["pool", "labels", "photos", "underwater", "review-sheets", "commons", "junk-sheets", "write"],
+        choices=[
+            "pool",
+            "labels",
+            "photos",
+            "underwater",
+            "review-sheets",
+            "commons",
+            "junk-sheets",
+            "write",
+            "photos-from-csv",
+        ],
     )
     parser.add_argument("--work", default=DEFAULT_WORK)
     parser.add_argument("--csv", default=DEFAULT_CSV)
     parser.add_argument("--pack", help="a built pack folder, for junk-sheets")
+    parser.add_argument("--force", action="store_true", help="let write replace an existing CSV")
     args = parser.parse_args(argv)
     os.makedirs(args.work, exist_ok=True)
     if args.stage == "pool":
@@ -639,8 +704,10 @@ def main(argv=None):
         if not args.pack:
             parser.error("junk-sheets needs --pack")
         stage_junk_sheets(args.work, args.pack)
+    elif args.stage == "photos-from-csv":
+        stage_photos_from_csv(args.work, args.csv)
     else:
-        stage_write(args.work, args.csv)
+        stage_write(args.work, args.csv, force=args.force)
     return 0
 
 

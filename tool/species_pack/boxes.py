@@ -18,6 +18,17 @@ def iou(a, b):
     return inter / union if union > 0 else 0.0
 
 
+def best_match(target, candidates, *, min_iou=0.9):
+    """The index of the candidate box overlapping `target` most, at
+    `min_iou` or more, or None. Boxes are (x, y, w, h)."""
+    best, best_iou = None, min_iou
+    for i, box in enumerate(candidates):
+        overlap = iou(target, box)
+        if overlap >= best_iou:
+            best, best_iou = i, overlap
+    return best
+
+
 def merge(runs, *, iou_threshold=0.5, max_boxes=8):
     """The boxes of several runs pooled, best score first, dropping any box
     that overlaps a kept one at or above `iou_threshold`, up to `max_boxes`.

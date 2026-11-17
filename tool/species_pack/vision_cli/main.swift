@@ -58,6 +58,8 @@ do {
   ].merging(detector["detectorFormat"].map { ["detectorFormat": $0] } ?? [:]) { a, _ in a })
 } catch let error as VisionError {
   fail(error.message)
+} catch {
+  fail("\(error)")
 }
 
 let pipeline = VisionPipeline()
@@ -65,6 +67,8 @@ do {
   try pipeline.load(settings)
 } catch let error as VisionError {
   fail(error.message)
+} catch {
+  fail("could not load the models: \(error)")
 }
 
 while let line = readLine() {
@@ -85,6 +89,14 @@ while let line = readLine() {
         "embedding": floats.map { Double($0) },
         "embedMs": d["embedMs"] as Any,
       ]
+    }
+    // JSON has no NaN or infinity; such an embedding is the model failing.
+    let finite = detections.allSatisfy { d in
+      (d["embedding"] as? [Double] ?? []).allSatisfy { $0.isFinite }
+    }
+    guard finite else {
+      emit(["path": path, "error": "the classifier returned a value that is not a number"])
+      return
     }
     emit([
       "path": path, "width": result["imageWidth"] as Any, "height": result["imageHeight"] as Any,

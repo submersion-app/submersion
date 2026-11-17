@@ -236,10 +236,40 @@ def _photo(work, row):
     return os.path.join(work, "photos", f"{row['source']}_{row['id']}.jpg")
 
 
+def _junk_records(name, results_by_photo, junk_rows, namer, work, fish_cells):
+    """Each junk row named from the detection it labels, found by its box
+    (an intersection over union of 0.9 or more with a box from the same
+    detector). A single detector's run must find every one of its rows, or
+    the junk check would pass on nothing; in a merged run a junk box may
+    have given way to a better box from the other detector."""
+    records, missing = [], []
+    for row in junk_rows:
+        if name != BOTH and row["detector"] != name:
+            continue
+        key = f"{row['detector']}:{row['id']}:{row['box']}"
+        detections = [
+            d
+            for d in (results_by_photo.get(_photo(work, row)) or {}).get("detections", [])
+            if d.get("source") == row["detector"]
+        ]
+        target = tuple(float(row[k]) for k in ("box_x", "box_y", "box_w", "box_h"))
+        found = box_math.best_match(target, [(d["x"], d["y"], d["w"], d["h"]) for d in detections])
+        if found is None:
+            missing.append(key)
+            continue
+        cell = fish_cells[int(hashlib.sha256(key.encode()).hexdigest(), 16) % len(fish_cells)]
+        record = _crop_record(row, detections[found], namer, junk_cell=cell)
+        if record:
+            records.append(record)
+    if missing and name != BOTH:
+        raise SystemExit(f"{name}: {len(missing)} junk rows match no box in this run, for example {missing[:3]}")
+    return records
+
+
 def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, tune):
     """Every number for one detector (or merged pair) and fitting.
-    `results_by_photo` maps a photo path to its detections, each with a
-    `label_id` when a junk label could apply to it."""
+    `results_by_photo` maps a photo path to its detections, each tagged
+    with the detector (`source`) that found it."""
     natural = [r for r in animals if r["sample"] == "natural"]
     fish_cells = [region_grid.cell_of(float(r["lat"]), float(r["lon"]), namer.cell_degrees) for r in natural]
 
@@ -254,17 +284,7 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
             if record:
                 crops[row["id"]] = record
 
-    junk = []
-    labels = {f"{r['detector']}:{r['id']}:{r['box']}": r for r in junk_rows}
-    for path, result in results_by_photo.items():
-        for d in result.get("detections", []):
-            row = labels.get(d.get("label_id", ""))
-            if row is None:
-                continue
-            cell = fish_cells[int(hashlib.sha256(d["label_id"].encode()).hexdigest(), 16) % len(fish_cells)]
-            record = _crop_record(row, d, namer, junk_cell=cell)
-            if record:
-                junk.append(record)
+    junk = _junk_records(name, results_by_photo, junk_rows, namer, work, fish_cells)
 
     def half(records, want_tune):
         return [c for c in records if (c["row"]["id"] in tune) == want_tune]
@@ -272,6 +292,8 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
     nat = [crops[r["id"]] for r in natural if r["id"] in crops]
     tune_nat, held_nat = half(nat, True), half(nat, False)
     tune_junk, held_junk = half(junk, True), half(junk, False)
+    if not tune_junk:
+        raise SystemExit(f"{name}: no junk crops in the tune half, so the junk check would test nothing")
     chosen = bar_search.choose_bars(
         [c["with"] for c in tune_nat],
         [c["without"] for c in tune_nat],
@@ -360,6 +382,9 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
         "fallback to no location": metrics.rate(
             sum(1 for c in held_nat if not c["with"].limited), len(held_nat)
         ).__dict__,
+        "junk named (tune, at the chosen bars)": bar_search.junk_rate(
+            [c["with"] for c in tune_junk], [c["without"] for c in tune_junk], chosen, min_side=min_side
+        ),
         "junk named (held-out)": metrics.rate(sum(junk_named), len(junk_named)).__dict__,
         "junk crops": {"tune": len(tune_junk), "held-out": len(held_junk)},
         "by group (held-out, natural and top-up)": metrics.breakdown(
@@ -395,19 +420,11 @@ def _timings(results):
 
 
 def _labelled(results, detector):
-    """Each detection tagged with the junk label id it would carry."""
-    out = {}
-    for path, r in results.items():
-        ident = os.path.basename(path)
-        ident = ident[len("commons_") : -len(".jpg")] if ident.startswith("commons_") else None
-        detections = []
-        for i, d in enumerate(r.get("detections", [])):
-            d = dict(d, source=detector)
-            if ident is not None:
-                d["label_id"] = f"{detector}:{ident}:{i}"
-            detections.append(d)
-        out[path] = dict(r, detections=detections)
-    return out
+    """Each detection tagged with the detector that found it."""
+    return {
+        path: dict(r, detections=[dict(d, source=detector) for d in r.get("detections", [])])
+        for path, r in results.items()
+    }
 
 
 def _merged(a, b, max_boxes):
@@ -485,8 +502,9 @@ def write_report(results, path):
         lines.append(f"- {pair}: only first right {c['only first']}, only second {c['only second']}, p {c['p']:.3g}")
     for name, n in results["named right per detector"].items():
         lines.append(f"- {name}: {n} held-out photos named right at its bars")
+    lines.append(f"- recommended by the design's rule: {results['recommendation']}")
     lines += ["", "## Speed and memory on this Mac", ""]
-    lines += ["| Run | detect ms (median, p90) | embed ms per crop (median, p90) | peak memory |"]
+    lines += ["| Run | detect ms (median, p90) | embed ms per crop (median, p90) | peak memory of the whole run |"]
     lines += ["| --- | --- | --- | --- |"]
     for key, sp in results["speed"].items():
         mem = sp["peak memory bytes"]
@@ -508,8 +526,13 @@ def main(argv=None):
 
     rows = testset.read_rows(args.set)
     animals = [r for r in rows if r["source"] == "inaturalist" and r["underwater"] == "yes"]
-    animals = [r for r in animals if os.path.exists(_photo(args.work, r))]
     junk_rows = [r for r in rows if r["source"] == "commons"]
+    missing = sorted({_photo(args.work, r) for r in animals + junk_rows if not os.path.exists(_photo(args.work, r))})
+    if missing:
+        raise SystemExit(
+            f"{len(missing)} test photos are not in {args.work}/photos, for example {missing[:2]}; "
+            "fetch them with fetch_testset.py photos-from-csv"
+        )
     tune = (
         testset.tune_ids([r for r in animals if r["sample"] == "natural"])
         | testset.tune_ids([r for r in animals if r["sample"] == "top-up"])
@@ -561,6 +584,18 @@ def main(argv=None):
     for key, value in kept.items():
         results["evaluations"][key] = {k: v for k, v in value.items() if not k.startswith("_")}
     results["named right per detector"] = {name: sum(v.values()) for name, v in detectors.items()}
+    # Simplest first: one explicitly licensed detector, then the other, then
+    # the pair.
+    preference = [mega, cfd, BOTH]
+    junk_ok = {
+        name: kept[f"{name} {results['fitting chosen'][name]}"]["junk named (tune, at the chosen bars)"] <= 0.02
+        for name in preference
+    }
+    paired = {
+        frozenset((a, b)): _paired(detectors[a], detectors[b])["p"]
+        for a, b in ((mega, cfd), (BOTH, cfd), (BOTH, mega))
+    }
+    results["recommendation"] = metrics.recommend(results["named right per detector"], paired, preference, junk_ok)
 
     os.makedirs(args.work, exist_ok=True)
     with open(os.path.join(args.work, "results.json"), "w", encoding="utf-8") as fh:

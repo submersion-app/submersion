@@ -127,10 +127,26 @@ class SuggestableTests(unittest.TestCase):
 
 
 class VectorFileTests(unittest.TestCase):
+    def assertClose(self, got, want, where="vectors"):
+        """Equal, except floats to 12 places: `math.exp` need not round the
+        same way on every platform."""
+        if isinstance(want, float):
+            self.assertAlmostEqual(got, want, places=12, msg=where)
+        elif isinstance(want, dict):
+            self.assertEqual(sorted(got), sorted(want), where)
+            for k in want:
+                self.assertClose(got[k], want[k], f"{where}.{k}")
+        elif isinstance(want, list):
+            self.assertEqual(len(got), len(want), where)
+            for i, (g, w) in enumerate(zip(got, want)):
+                self.assertClose(g, w, f"{where}[{i}]")
+        else:
+            self.assertEqual(got, want, where)
+
     def test_written_vectors_match_vectors(self):
         path = os.path.join(_HERE, "testdata", "naming_vectors.json")
         with open(path, encoding="utf-8") as fh:
-            self.assertEqual(json.load(fh), json.loads(json.dumps(naming.vectors())))
+            self.assertClose(json.load(fh), json.loads(json.dumps(naming.vectors())))
 
     def test_vector_values_are_exact_in_float32(self):
         v = naming.vectors()

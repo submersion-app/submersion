@@ -52,5 +52,16 @@ class MergeTests(unittest.TestCase):
         self.assertEqual(boxes.merge([[box]])[0]["embedding"], [1.0])
 
 
+class BestMatchTests(unittest.TestCase):
+    def test_the_box_that_overlaps_most_above_the_floor(self):
+        target = (0.1, 0.1, 0.2, 0.2)
+        found = [(0.5, 0.5, 0.1, 0.1), (0.1, 0.1, 0.2, 0.21), (0.1, 0.1, 0.2, 0.2)]
+        self.assertEqual(boxes.best_match(target, found), 2)
+
+    def test_none_when_nothing_overlaps_enough(self):
+        self.assertIsNone(boxes.best_match((0.1, 0.1, 0.2, 0.2), [(0.15, 0.1, 0.2, 0.2)]))
+        self.assertIsNone(boxes.best_match((0.1, 0.1, 0.2, 0.2), []))
+
+
 if __name__ == "__main__":
     unittest.main()

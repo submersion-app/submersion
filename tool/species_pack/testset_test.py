@@ -46,6 +46,17 @@ class AcceptedKeyTests(unittest.TestCase):
         }
         self.assertEqual(testset.accepted_key(match), 10)
 
+    def test_a_synonym_of_a_subspecies_takes_the_species(self):
+        match = {
+            "usageKey": 11,
+            "acceptedUsageKey": 99,
+            "rank": "SPECIES",
+            "status": "SYNONYM",
+            "matchType": "EXACT",
+            "speciesKey": 10,
+        }
+        self.assertEqual(testset.accepted_key(match), 10)
+
     def test_below_species_takes_its_species(self):
         match = {"usageKey": 12, "rank": "SUBSPECIES", "status": "ACCEPTED", "matchType": "EXACT", "speciesKey": 10}
         self.assertEqual(testset.accepted_key(match), 10)
@@ -104,6 +115,11 @@ class QueryBoxTests(unittest.TestCase):
         cell = region_grid.cell_of(-18.0, 177.5, 5)
         boxes = testset.query_boxes(cell, 1, 5)
         self.assertEqual(sorted(boxes), [(-25.0, -180.0, -10.0, -175.0), (-25.0, 170.0, -10.0, 180.0)])
+
+    def test_a_cell_at_the_west_edge_is_two_boxes(self):
+        cell = region_grid.cell_of(-18.0, -177.5, 5)
+        boxes = testset.query_boxes(cell, 1, 5)
+        self.assertEqual(sorted(boxes), [(-25.0, -180.0, -10.0, -170.0), (-25.0, 175.0, -10.0, 180.0)])
 
     def test_a_polar_cell_stops_at_the_pole(self):
         cell = region_grid.cell_of(88.0, 0.0, 5)
@@ -180,7 +196,7 @@ class CsvTests(unittest.TestCase):
             self.assertEqual(testset.read_rows(path), [row])
 
     def test_fields_carry_group_sample_and_detector(self):
-        for field in ("group", "sample", "detector"):
+        for field in ("group", "sample", "detector", "box_x", "box_y", "box_w", "box_h"):
             self.assertIn(field, testset.FIELDS)
 
     def test_regions_cover_the_seven_dive_areas(self):

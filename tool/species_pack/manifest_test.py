@@ -41,46 +41,51 @@ class NamingForTests(unittest.TestCase):
         "naming": {"provisional": False, "minOpenScore": 0.3},
         "detectorId": "cfd-rfdetr-nano-640-20260706",
         "classifierId": "bioclip-2-vitl14-2957b32",
+        "cropFit": "centreCrop",
         "candidates": 7646,
         "findings": "docs/design/findings/x.md",
     }
 
     def test_measured_bars_for_the_measured_classifier_and_list_size(self):
         for count in (7646, 6900, 8400):
-            naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "bioclip-2-vitl14-2957b32", count, self.MEASURED)
+            naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "bioclip-2-vitl14-2957b32", count, "centreCrop", self.MEASURED)
             self.assertEqual(naming, self.MEASURED["naming"])
 
     def test_provisional_bars_for_a_development_pack(self):
-        naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "bioclip-2-vitl14-2957b32", 1495, self.MEASURED)
+        naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "bioclip-2-vitl14-2957b32", 1495, "centreCrop", self.MEASURED)
         self.assertEqual(naming, manifest.NAMING_PROVISIONAL)
         self.assertIs(naming["provisional"], True)
 
     def test_provisional_bars_beyond_ten_percent(self):
         for count in (6880, 8411):
-            naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "bioclip-2-vitl14-2957b32", count, self.MEASURED)
+            naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "bioclip-2-vitl14-2957b32", count, "centreCrop", self.MEASURED)
             self.assertIs(naming["provisional"], True)
 
     def test_provisional_bars_for_another_classifier(self):
-        naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "another-classifier", 7646, self.MEASURED)
+        naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "another-classifier", 7646, "centreCrop", self.MEASURED)
         self.assertIs(naming["provisional"], True)
 
     def test_provisional_bars_for_another_detector(self):
-        naming = manifest.naming_for("megalodon-2024", "bioclip-2-vitl14-2957b32", 7646, self.MEASURED)
+        naming = manifest.naming_for("megalodon-2024", "bioclip-2-vitl14-2957b32", 7646, "centreCrop", self.MEASURED)
+        self.assertIs(naming["provisional"], True)
+
+    def test_provisional_bars_for_another_crop_fitting(self):
+        naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "bioclip-2-vitl14-2957b32", 7646, "padSquare", self.MEASURED)
         self.assertIs(naming["provisional"], True)
 
     def test_provisional_bars_when_nothing_is_measured(self):
-        naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "bioclip-2-vitl14-2957b32", 7646, None)
+        naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "bioclip-2-vitl14-2957b32", 7646, "centreCrop", None)
         self.assertIs(naming["provisional"], True)
 
     def test_returned_bars_are_a_copy(self):
-        naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "bioclip-2-vitl14-2957b32", 1495, None)
+        naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "bioclip-2-vitl14-2957b32", 1495, "centreCrop", None)
         naming["minOpenScore"] = 9
         self.assertNotEqual(manifest.NAMING_PROVISIONAL["minOpenScore"], 9)
 
 
 class MeasuredBarsTests(unittest.TestCase):
     def test_a_full_fish_detector_pack_gets_the_measured_bars(self):
-        naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "bioclip-2-vitl14-2957b32", 7646)
+        naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "bioclip-2-vitl14-2957b32", 7646, "centreCrop")
         self.assertIs(naming["provisional"], False)
         self.assertEqual(naming["minOpenScore"], 0.34)
         self.assertEqual(naming["suggestScore"], 0.72)

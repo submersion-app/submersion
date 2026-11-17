@@ -57,6 +57,10 @@ FIELDS = [
     "source",
     "id",
     "box",
+    "box_x",
+    "box_y",
+    "box_w",
+    "box_h",
     "photo_url",
     "licence",
     "attribution",
@@ -128,13 +132,14 @@ def accepted_key(match):
     when the name did not match at species rank or below."""
     if match.get("matchType") in (None, "NONE", "HIGHERRANK"):
         return None
+    # speciesKey is the accepted species for any match at species rank or
+    # below, even a synonym whose accepted name is a subspecies.
     rank = match.get("rank")
-    if rank == "SPECIES":
-        if match.get("status") == "SYNONYM":
-            return match.get("acceptedUsageKey")
-        return match.get("usageKey")
-    if rank in _GBIF_BELOW_SPECIES:
-        return match.get("speciesKey")
+    if rank == "SPECIES" or rank in _GBIF_BELOW_SPECIES:
+        if match.get("speciesKey") is not None:
+            return match["speciesKey"]
+        if rank == "SPECIES":
+            return match.get("acceptedUsageKey") if match.get("status") == "SYNONYM" else match.get("usageKey")
     return None
 
 

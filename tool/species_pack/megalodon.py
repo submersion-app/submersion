@@ -121,23 +121,28 @@ def letterbox(image, size):
 
 
 def reference_boxes(model, image, size=640):
-    """Boxes from the PyTorch model with ultralytics' own suppression,
-    normalised 0 to 1 against `image`, best first."""
+    """Boxes from the PyTorch model through ultralytics' own letterbox,
+    suppression and mapping back, normalised 0 to 1 against `image` (an
+    upright PIL image), best first. None of this module's own geometry is
+    used, so a mistake shared with the Swift side cannot hide."""
+    import numpy as np
     import torch
-    from ultralytics.utils import nms
+    from ultralytics.data.augment import LetterBox
+    from ultralytics.utils import nms, ops
 
-    x, (sx, sy, left, top) = letterbox(image, size)
+    rgb = np.asarray(image.convert("RGB"))
+    boxed = LetterBox(new_shape=(size, size), auto=False)(image=rgb)
+    x = torch.from_numpy(np.ascontiguousarray(boxed.transpose(2, 0, 1))[None].astype(np.float32) / 255)
     with torch.no_grad():
-        out = model(torch.from_numpy(x))
+        out = model(x)
     kept = nms.non_max_suppression(
         out, conf_thres=SETTINGS["scoreThreshold"], iou_thres=SUPPRESS_IOU, max_det=SETTINGS["maxBoxes"]
     )[0]
-    w, h = image.size
+    kept[:, :4] = ops.scale_boxes((size, size), kept[:, :4], rgb.shape[:2])
+    h, w = rgb.shape[:2]
     found = []
     for x0, y0, x1, y1, score, _ in kept.tolist():
-        x0, x1 = (x0 - left) / sx / w, (x1 - left) / sx / w
-        y0, y1 = (y0 - top) / sy / h, (y1 - top) / sy / h
-        x0, y0, x1, y1 = (min(max(v, 0.0), 1.0) for v in (x0, y0, x1, y1))
+        x0, x1, y0, y1 = x0 / w, x1 / w, y0 / h, y1 / h
         found.append({"x": x0, "y": y0, "w": x1 - x0, "h": y1 - y0, "score": score})
     return found
 
@@ -199,7 +204,7 @@ def manifest_for(name, pack_manifest):
 def check(name, tool, manifest_path, classifier, photos, work):
     """The share of the reference boxes on `photos` that the vision tool's
     yolo path matches at an intersection over union of 0.9 or more."""
-    from PIL import Image
+    from PIL import Image, ImageOps
 
     model = load(name)
     detector = os.path.join(work, "models", name, "detector.mlpackage")
@@ -225,7 +230,8 @@ def check(name, tool, manifest_path, classifier, photos, work):
     for line, photo in zip(run.stdout.splitlines(), photos):
         result = json.loads(line)
         ours = [(d["x"], d["y"], d["w"], d["h"]) for d in result.get("detections", [])]
-        for ref in reference_boxes(model, Image.open(photo)):
+        # Upright, as the Swift side decodes it.
+        for ref in reference_boxes(model, ImageOps.exif_transpose(Image.open(photo))):
             total += 1
             rect = (ref["x"], ref["y"], ref["w"], ref["h"])
             if any(box_math.iou(rect, o) >= 0.9 for o in ours):

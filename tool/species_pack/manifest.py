@@ -63,6 +63,7 @@ NAMING_MEASURED = {
     },
     "detectorId": "cfd-rfdetr-nano-640-20260706",
     "classifierId": "bioclip-2-vitl14-2957b32",
+    "cropFit": "centreCrop",
     "candidates": 7646,
     "findings": "docs/design/findings/2026-11-17-marine-life-measured-accuracy.md",
 }
@@ -92,15 +93,16 @@ def file_entry(path, engine):
     }
 
 
-def naming_for(detector_id, classifier_id, candidate_count, measured=NAMING_MEASURED):
+def naming_for(detector_id, classifier_id, candidate_count, crop_fit, measured=NAMING_MEASURED):
     """The naming bars for a pack: the measured ones when it has the
-    measured detector and classifier and a candidate list within 10% of the
-    measured size, otherwise the provisional ones. Another detector gives
-    other crops, and so other scores."""
+    measured detector, classifier and crop fitting and a candidate list
+    within 10% of the measured size, otherwise the provisional ones.
+    Another detector or fitting gives other crops, and so other scores."""
     if (
         measured is not None
         and detector_id == measured["detectorId"]
         and classifier_id == measured["classifierId"]
+        and crop_fit == measured["cropFit"]
         and abs(candidate_count - measured["candidates"])
         <= MEASURED_COUNT_TOLERANCE * measured["candidates"]
     ):
@@ -128,7 +130,7 @@ def build_manifest(
             "embeddingSize": embedding_size,
             **CLASSIFIER_SETTINGS,
         },
-        "naming": dict(naming or naming_for(detector_id, classifier_id, candidate_count)),
+        "naming": dict(naming or naming_for(detector_id, classifier_id, candidate_count, CLASSIFIER_SETTINGS["cropFit"])),
         "region": dict(REGION),
         "cropThumbnailSize": CROP_THUMBNAIL_SIZE,
         "files": list(files),

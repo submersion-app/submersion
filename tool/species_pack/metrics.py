@@ -55,6 +55,26 @@ def coverage_precision(named, correct):
     return rate(named_count, len(named)), rate(right, named_count)
 
 
+def recommend(named_right, paired_p, preference, junk_ok, *, alpha=0.05):
+    """The design's detector rule. Among runs within the junk target, the
+    one naming the most animals right, unless a run earlier in `preference`
+    (simpler, or explicitly licensed) is not significantly worse than it.
+    `paired_p` maps a frozenset of two run names to their paired test's p.
+    None when no run is within the junk target."""
+    eligible = [name for name in named_right if junk_ok.get(name)]
+    if not eligible:
+        return None
+    best = max(eligible, key=lambda name: named_right[name])
+    for name in preference:
+        if name not in eligible:
+            continue
+        if name == best or named_right[name] >= named_right[best]:
+            return name
+        if paired_p.get(frozenset((name, best)), 0.0) >= alpha:
+            return name
+    return best
+
+
 def breakdown(items, key, measure):
     """`measure` applied to each group of `items` sharing a `key`, keys
     sorted."""

@@ -156,6 +156,18 @@ class GateTests(unittest.TestCase):
         self.assertEqual(off, [])
 
 
+class GateEvidenceTests(unittest.TestCase):
+    def test_a_bar_that_names_nothing_held_out_is_switched_off(self):
+        chosen = bars.Bars(min_open=0.0, suggest=0.5, suggest_no_location=0.5, confident=0.99, confident_no_location=0.99)
+        with_loc = [s(0.5, 0.9, True)] * 50
+        no_loc = [s(0.5, 0.9, True, limited=False)] * 50
+        gated, off = bars.held_out_gate(chosen, with_loc, no_loc, min_side=64)
+        self.assertEqual(gated.suggest, 0.5)
+        self.assertEqual(gated.confident, NEVER)
+        self.assertEqual(gated.confident_no_location, NEVER)
+        self.assertEqual(off, ["confidentScore", "confidentScoreNoLocation"])
+
+
 class McNemarTests(unittest.TestCase):
     def test_mcnemar_symmetric_and_exact(self):
         self.assertAlmostEqual(bars.mcnemar_p(0, 6), 2 * 0.5**6, places=12)
