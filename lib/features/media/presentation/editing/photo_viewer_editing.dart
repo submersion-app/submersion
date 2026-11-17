@@ -145,15 +145,22 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     final controller = _photoController;
     if (controller == null || !controller.isUnlocked) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !controller.isUnlocked) return;
-      final messenger = ScaffoldMessenger.maybeOf(context);
-      final l10n = context.l10n;
-      final message = controller.session?.stored.item.isVideo ?? false
-          ? l10n.media_viewer_videoGoneWhileEditing
-          : l10n.media_viewer_photoGoneWhileEditing;
-      controller.lock();
-      messenger?.showSnackBar(SnackBar(content: Text(message)));
+      // A save running now cannot be locked: it fails on the missing row,
+      // and its failure ends the sitting with this same message.
+      if (!mounted || !controller.isUnlocked || controller.isSaving) return;
+      _lockAsGone(controller);
     });
+  }
+
+  /// Ends the sitting over a photo that no longer exists, and says so.
+  void _lockAsGone(RecordEditController<PhotoRecord> controller) {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final l10n = context.l10n;
+    final message = controller.session?.stored.item.isVideo ?? false
+        ? l10n.media_viewer_videoGoneWhileEditing
+        : l10n.media_viewer_photoGoneWhileEditing;
+    controller.lock();
+    messenger?.showSnackBar(SnackBar(content: Text(message)));
   }
 
   /// Where the sitting's photo last was in the viewer's list.
@@ -261,6 +268,12 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     final saved = await controller.save();
     final error = controller.saveError;
     if (saved || error == null) return;
+    // Deleted while the save ran: the sitting is over, as when the photo
+    // goes at any other moment.
+    if (error is PhotoGoneError) {
+      if (mounted) _lockAsGone(controller);
+      return;
+    }
     // A photo moved to another dive can never be saved: say so, and how to
     // go on, rather than invite a retry.
     final message = error is PhotoMovedError

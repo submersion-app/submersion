@@ -325,6 +325,14 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
 
   void clearPeopleSelection() => setState(() => selectedPeopleTagId = null);
 
+  /// Puts back a selection the pager cleared while staying on the same
+  /// photo (issue #4527).
+  void restorePeopleSelection(String? tagId) {
+    if (selectedPeopleTagId != tagId) {
+      setState(() => selectedPeopleTagId = tagId);
+    }
+  }
+
   /// Asks who the selected box really is and saves the change.
   Future<void> changeTaggedPerson(MediaItem item, MediaPersonTag tag) async {
     final session = peopleSitting;

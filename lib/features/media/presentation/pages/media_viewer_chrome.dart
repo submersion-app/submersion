@@ -96,7 +96,11 @@ extension _ViewerChrome on _MediaViewerPageState {
       if (!mounted || !_pageController.hasClients) return;
       _currentIndex = index;
       _navTargetIndex = index;
+      // The page settling clears the tag selection, but the photo is the
+      // same one: keep what the diver had selected on it.
+      final selected = selectedPeopleTagId;
       _pageController.jumpToPage(index);
+      restorePeopleSelection(selected);
     });
   }
 

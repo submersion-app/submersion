@@ -24,6 +24,12 @@ class PhotoMovedError extends StateError {
     : super('Media $mediaId moved to another dive');
 }
 
+/// Thrown by [PhotoEditSaveService.save] when the photo no longer exists:
+/// deleted, on another device or by a sync, since its sitting began.
+class PhotoGoneError extends StateError {
+  PhotoGoneError(String mediaId) : super('Media $mediaId no longer exists');
+}
+
 /// Saves one editing sitting on a photo or video (issue #4527).
 ///
 /// As `DiveEditSaveService` does for a dive: the diver's changes are applied
@@ -71,7 +77,7 @@ class PhotoEditSaveService {
   /// [changedCardIds] names what the sitting changed, for its History label.
   /// Returns the photo before and after, or null when nothing differed and
   /// [alsoWrite] is not a change in its own right ([alsoWriteIsAChange]).
-  /// Throws [StateError] when the photo no longer exists. [diverId] scopes
+  /// Throws [PhotoGoneError] when the photo no longer exists. [diverId] scopes
   /// the people tags read, as the viewer's are.
   ///
   /// [diveAtStart] is the dive the photo was on when the sitting began.
@@ -96,7 +102,7 @@ class PhotoEditSaveService {
       body: () => _db.transaction(() async {
         final stored = await _reader.read(mediaId, diverId: diverId);
         if (stored == null) {
-          throw StateError('Media $mediaId no longer exists');
+          throw PhotoGoneError(mediaId);
         }
         if (diveAtStart != null && stored.item.diveId != diveAtStart.id) {
           throw PhotoMovedError(mediaId);

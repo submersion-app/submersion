@@ -938,7 +938,7 @@ Tasks 1 to 12 are one pull request, `Refs #4527`. Task 13 joins it if plan 6 has
 
 ## After the review
 
-Tasks 1 to 12 were built as written in one session (Eric chose "Native"), then reviewed as a whole branch by a fresh reviewer. Task 13 is not built: it waits for plan 6. This is what differs from the task text above, for whoever builds Task 13 and writes plan 11.
+Tasks 1 to 12 were built as written in one session (Eric chose "Native"), then reviewed as a whole branch by a fresh reviewer, then by three more review rounds and the PR's own review (PR #4646). Task 13 is not built: it waits for plan 6. This is what differs from the task text above, for whoever builds Task 13 and writes plan 11.
 
 ### Decided by Eric after the review (2026-11-16)
 
@@ -953,31 +953,37 @@ Tasks 1 to 12 were built as written in one session (Eric chose "Native"), then r
 | `holdAddBuddyToDive(session, {diveId, buddy, repository})` | Takes `buddyId` |
 | `holdColorToDive(session, {diveId, source, repository})` | No `source`: the colour is read from the sitting when the write runs |
 | `PhotoRecordReader({media, species, people, dives})` | `({media, species, people, tags})`: the dive shift is one column query, not `DiveRepository.getDiveById` (which loads the profile) |
-| `PhotoEditSaveService.save(...)` | Gains `diveAtStart`: a photo moved to another dive since the sitting began is refused with a `StateError` (review) |
+| `PhotoEditSaveService.save(...)` | Gains `diveAtStart`: a photo moved to another dive since the sitting began is refused with `PhotoMovedError`, and a photo no longer stored with `PhotoGoneError` (both `StateError`s), so the viewer can say which |
 | `followStoredPhoto(onScreen)` returns nothing | Returns the stored `PhotoRecord` of the photo on screen; `canUnlock(item, stored)` and `unlockPhoto(stored)` take it |
 | `photo_sitting_shown.dart` in Task 5 | Created in Task 6, where it is first used |
 | `MediaInfoPanel` | Its tags section (`MediaInfoTagsSection`) and tag sheet (`showMediaTagSheet`) take `readOnly` and `sitting` too |
 | `PhotoViewerPage` | Gains `unlockEditing`, passed to the viewer, so a test can open the dive's viewer with the lock |
+| `editingOffered` as the read-only test | `photoLocked` (`unlockEditing && !photoUnlocked`): built with the lock, a device that cannot unlock (a browser) reads only; `editingOffered` still decides whether Unlock is offered |
+| Each viewer's own close | `closeGuarded()` in the mixin, for the close button and the swipe down of both viewers |
+| `MediaViewerToolbar._buttons` | `toolbarActionButtons(context, split, color)`, shared with the site viewer's editing bar |
+| `media_info_panel.dart` | Its File section and Set time button are in the part file `media_info_file_section.dart`, under the 800-line cap |
 
 ### Added
 
 - **The viewer redraws on every change to its sitting** (the mixin listens to the session); the chip and box widgets take the sitting as a parameter rather than each listening.
 - **Both editing bars are semantics containers of their own.** Without it, in the site viewer, a dialog closing over a dirty sitting tripped Flutter's `node.built` semantics check.
 - **The editing bar's actions take what Cancel, Save and the title leave**, up to half the bar, so a phone still reads the title.
-- **The add-to-dive offer made in a sitting closes when the sitting ends** (`dismissHeldOffer`), so a late Add is never dropped unsaid.
+- **The add-to-dive offer made in a sitting closes when the sitting ends** (`dismissHeldOffer`), so a late Add is never dropped unsaid; an offer still being made as the sitting ends is closed as it appears.
+- **When a sitting ends, the sheets and dialogs over the viewer close** (`PopupRoute`s only; a page the diver opened from a chip stays): `EditSession.dispose` does not notify, so an open sheet would otherwise go on showing held values.
+- **A library link from the viewer asks its guard.** `openMediaWithFilter` popped every pageless route, and `Navigator.pop` ignores `PopScope`, so the Me chip or a tag chip closed a viewer with unsaved changes and dropped them. A route that refuses to pop is asked instead (`maybePop`), and the library is not opened.
+- **Escape backs out one step at a time in a sitting:** Pick white, then the colour panel, then people tag mode, then Cancel.
+- **A photo deleted while its save runs** ends the sitting when the save fails on the missing row, with the one gone message.
+- **Messages:** `media_viewer_videoGoneWhileEditing` for a video's sitting ending; `media_viewer_movedWhileEditing` when Save is refused for a photo moved to another dive (Cancel, then unlock again).
+- **The info sheet in a sitting** shows the held time in dive and starts Set time from it, and its sheets read only once their sitting has ended.
 - **The colour field counts null and the neutral adjustment as the same colour**, as the repository stores a cleared one as neutral.
 - **`media_viewer_page.dart`** was split by moving the gallery, the video item, the bottom chips, the Perdix resolver, the write to the file, the controls' actions and the toolbar's construction into part files (`media_viewer_*.dart`, extensions on the page state). It ends at 758 lines.
 
-### Left open (deferred minors from the review)
+### Left open
 
-- Escape while Pick white or the colour panel is open cancels the sitting rather than stepping back through them.
-- A photo deleted while its save runs shows the gone message without ending the sitting.
-- The info sheet's Set time is seeded from the stored row, so with a pin held from the chip it does not know the photo is pinned.
-- The site viewer's editing bar does not split its actions by width.
-- While unlocked the mini profile still hides on a tap; following the sitting's photo clears the people tag selection.
 - The add-to-dive snackbar covers tag mode's bar for its four seconds (as before this plan).
+- Check now, Back up now and Retry upload stay in the locked info sheet: they act on the file check and the media store copy, outside the lock (Eric's choice, restated on the PR).
 
 ### For Task 13 and plan 11
 
 - **Task 13.** Locate is hidden in a sitting until it can be held. `MediaInfoPanel(sitting:)` is where its hold goes; `PhotoEditSaveService.save(alsoWrite:)` takes the relink. The Media card opening the viewer on `mediaInSitting` gets "no unlock" for a held photo for free: `canUnlock` needs a stored row.
-- **Plan 11.** Both viewers' `unlockEditing` default to `kUnlockEditing`; nothing else reads the switch here except the library grid and the status badge (`readOnly: kUnlockEditing` on the info sheet).
+- **Plan 11.** Both viewers' `unlockEditing` default to `kUnlockEditing`; nothing else reads the switch here except the library grid and the status badge (`readOnly: kUnlockEditing` on the info sheet). Inside the viewers the read-only gates (`photoLocked`, `colorLockOffered`) follow `unlockEditing`, not the device's capability, so turning the switch on never leaves a device that cannot unlock writing at once.

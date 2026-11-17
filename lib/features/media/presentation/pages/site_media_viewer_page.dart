@@ -186,6 +186,16 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
       return KeyEventResult.handled;
     }
     if (event.logicalKey == LogicalKeyboardKey.escape) {
+      // In a sitting Escape backs out of Pick white and the colour panel
+      // first (issue #4527).
+      if (photoUnlocked && pickingWhite) {
+        togglePickWhite();
+        return KeyEventResult.handled;
+      }
+      if (photoUnlocked && colorPanelOpen) {
+        closeColorEditing();
+        return KeyEventResult.handled;
+      }
       // While unlocked, Escape is Cancel: the viewer stays open.
       if (photoUnlocked) {
         unawaited(cancelPhotoSitting());
@@ -532,6 +542,37 @@ class _TopOverlay extends StatelessWidget {
       ),
   ];
 
+  /// The editing bar's actions: Adjust color, Edit details and Share, with
+  /// Share kept in the bar longest.
+  List<MediaViewerAction> _editActions(BuildContext context) {
+    final l10n = context.l10n;
+    final details = onEditDetails;
+    return [
+      MediaViewerAction(
+        id: 'adjust_color',
+        icon: Icons.palette_outlined,
+        label: l10n.media_color_adjustAction,
+        priority: 1,
+        onPressed: (_) => onAdjustColor(),
+      ),
+      if (details != null)
+        MediaViewerAction(
+          id: 'edit_details',
+          icon: Icons.edit_outlined,
+          label: l10n.media_siteAttachment_editDetails,
+          priority: 2,
+          onPressed: (_) => details(),
+        ),
+      MediaViewerAction(
+        id: 'share',
+        icon: Icons.share,
+        label: l10n.media_photoViewer_shareTooltip,
+        priority: 0,
+        onPressed: (anchor) => onShare(shareAnchorFrom(anchor)),
+      ),
+    ];
+  }
+
   // Builder so the iPad share popover anchors to this button:
   // findRenderObject from a Builder's context descends to the IconButton
   // rather than yielding the whole overlay.
@@ -559,13 +600,24 @@ class _TopOverlay extends StatelessWidget {
         // semantics tree is left half built after a dialog closes.
         child: Semantics(
           container: true,
-          child: RecordEditBar(
-            title: bar.title,
-            canSave: bar.canSave,
-            isSaving: bar.isSaving,
-            onCancel: bar.onCancel,
-            onSave: bar.onSave,
-            actions: [..._writeActions(context, null), _share(context, null)],
+          // The bar's own width: on a narrow window the actions fold into
+          // the overflow menu, as in the dive viewer's bar.
+          child: LayoutBuilder(
+            builder: (context, constraints) => RecordEditBar(
+              title: bar.title,
+              canSave: bar.canSave,
+              isSaving: bar.isSaving,
+              onCancel: bar.onCancel,
+              onSave: bar.onSave,
+              actions: toolbarActionButtons(
+                context,
+                splitToolbarActions(
+                  _editActions(context),
+                  editBarActionsWidth(constraints.maxWidth),
+                ),
+                null,
+              ),
+            ),
           ),
         ),
       );

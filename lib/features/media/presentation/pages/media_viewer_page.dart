@@ -327,7 +327,16 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       return KeyEventResult.handled;
     }
     if (event.logicalKey == LogicalKeyboardKey.escape) {
-      // Escape backs out one step at a time: people tag mode first.
+      // Escape backs out one step at a time: in a sitting, Pick white and
+      // the colour panel first (issue #4527), then people tag mode.
+      if (photoUnlocked && pickingWhite) {
+        togglePickWhite();
+        return KeyEventResult.handled;
+      }
+      if (photoUnlocked && colorPanelOpen) {
+        closeColorEditing();
+        return KeyEventResult.handled;
+      }
       if (taggingPeople) {
         togglePeopleTagging();
         return KeyEventResult.handled;

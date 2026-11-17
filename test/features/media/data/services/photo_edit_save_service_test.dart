@@ -386,7 +386,7 @@ void main() {
       session.set(photoPinField, 90);
       await media.deleteMedia('p1');
 
-      await expectLater(save(session), throwsStateError);
+      await expectLater(save(session), throwsA(isA<PhotoGoneError>()));
       expect(await reader.read('p1', diverId: 'me'), isNull);
     },
   );

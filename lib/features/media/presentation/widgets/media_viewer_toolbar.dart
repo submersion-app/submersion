@@ -380,7 +380,7 @@ class MediaViewerToolbar extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    ..._buttons(context, split, Colors.white),
+                    ...toolbarActionButtons(context, split, Colors.white),
                   ],
                 );
               },
@@ -417,7 +417,7 @@ class MediaViewerToolbar extends ConsumerWidget {
             isSaving: bar.isSaving,
             onCancel: bar.onCancel,
             onSave: bar.onSave,
-            actions: _buttons(
+            actions: toolbarActionButtons(
               context,
               splitToolbarActions(
                 actions,
@@ -430,67 +430,68 @@ class MediaViewerToolbar extends ConsumerWidget {
       ),
     );
   }
-
-  /// The icons that fit, then the overflow menu holding the rest. [color]
-  /// tints icons with no state colour of their own; null takes the bar's.
-  List<Widget> _buttons(
-    BuildContext context,
-    ToolbarActionSplit split,
-    Color? color,
-  ) => [
-    for (final action in split.visible)
-      // Builder so the anchor context is the button itself: findRenderObject
-      // from it descends to the IconButton.
-      Builder(
-        key: ValueKey('viewer_${action.id}'),
-        builder: (anchor) => IconButton(
-          icon: Icon(
-            action.icon,
-            color: action.iconColor ?? color,
-            semanticLabel: action.disabledReason == null ? null : action.label,
-          ),
-          tooltip: action.disabledReason ?? action.label,
-          onPressed: action.disabledReason == null
-              ? () => action.onPressed(anchor)
-              : null,
-        ),
-      ),
-    if (split.overflow.isNotEmpty)
-      Builder(
-        builder: (anchor) => PopupMenuButton<MediaViewerAction>(
-          key: const ValueKey('viewer_overflow'),
-          icon: Icon(Icons.more_vert, color: color),
-          tooltip: context.l10n.media_viewer_moreOptions,
-          onSelected: (action) => action.onPressed(anchor),
-          itemBuilder: (_) => [
-            for (final action in split.overflow)
-              PopupMenuItem<MediaViewerAction>(
-                key: ValueKey('viewer_menu_${action.id}'),
-                value: action,
-                enabled: action.disabledReason == null,
-                child: Row(
-                  children: [
-                    Icon(action.icon, color: action.iconColor),
-                    const SizedBox(width: 12),
-                    Flexible(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(action.label),
-                          if (action.disabledReason case final reason?)
-                            Text(
-                              reason,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-  ];
 }
+
+/// The icons in [split] that fit, then the overflow menu holding the rest,
+/// for the viewer's toolbar and for the editing bars (issue #4527). [color]
+/// tints icons with no state colour of their own; null takes the bar's.
+List<Widget> toolbarActionButtons(
+  BuildContext context,
+  ToolbarActionSplit split,
+  Color? color,
+) => [
+  for (final action in split.visible)
+    // Builder so the anchor context is the button itself: findRenderObject
+    // from it descends to the IconButton.
+    Builder(
+      key: ValueKey('viewer_${action.id}'),
+      builder: (anchor) => IconButton(
+        icon: Icon(
+          action.icon,
+          color: action.iconColor ?? color,
+          semanticLabel: action.disabledReason == null ? null : action.label,
+        ),
+        tooltip: action.disabledReason ?? action.label,
+        onPressed: action.disabledReason == null
+            ? () => action.onPressed(anchor)
+            : null,
+      ),
+    ),
+  if (split.overflow.isNotEmpty)
+    Builder(
+      builder: (anchor) => PopupMenuButton<MediaViewerAction>(
+        key: const ValueKey('viewer_overflow'),
+        icon: Icon(Icons.more_vert, color: color),
+        tooltip: context.l10n.media_viewer_moreOptions,
+        onSelected: (action) => action.onPressed(anchor),
+        itemBuilder: (_) => [
+          for (final action in split.overflow)
+            PopupMenuItem<MediaViewerAction>(
+              key: ValueKey('viewer_menu_${action.id}'),
+              value: action,
+              enabled: action.disabledReason == null,
+              child: Row(
+                children: [
+                  Icon(action.icon, color: action.iconColor),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(action.label),
+                        if (action.disabledReason case final reason?)
+                          Text(
+                            reason,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    ),
+];

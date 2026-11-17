@@ -130,6 +130,25 @@ void main() {
     expect(find.byType(RecordEditBar), findsOneWidget);
   });
 
+  testWidgets('a narrow window: the editing bar folds its actions into the '
+      'menu and does not overflow', (tester) async {
+    await pumpViewerApp(
+      tester,
+      const SiteMediaViewerPage(
+        siteId: 's1',
+        initialMediaId: 'a1',
+        scope: SiteViewerScope.attachments,
+        unlockEditing: true,
+      ),
+      size: const Size(300, 800),
+    );
+    await tapUnlock(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.byKey(const ValueKey('viewer_overflow')), findsOneWidget);
+  });
+
   testWidgets('switch off: as today', (tester) async {
     await pumpSite(tester, unlockEditing: false);
 
