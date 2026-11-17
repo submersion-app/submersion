@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/tools/compute_plan_tool.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -59,6 +60,7 @@ void main() {
       ),
       settings: settings,
       followOf: (id) async => followed[id],
+      records: RecordRepositories(),
       caveat: () => 'Check every number yourself.',
       now: () => now,
     );

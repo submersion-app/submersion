@@ -321,7 +321,7 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet>
                         ),
                       ],
                     ),
-                    secondary: Icon(equipmentTypeIcon(item.type)),
+                    secondary: Icon(equipmentItemIcon(item)),
                     controlAffinity: ListTileControlAffinity.trailing,
                   ),
                 ),

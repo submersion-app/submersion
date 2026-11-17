@@ -1327,7 +1327,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     if (!mounted || choice != _specChoice) return;
     // A pair with a cylinder of unknown size has no volume to log, so it is
     // not offered; the pick is the cylinder alone.
-    if (partner != null && twinPairVolume(item, partner) != null) {
+    final pairOffered =
+        partner != null && twinPairVolume(item, partner) != null;
+    if (pairOffered) {
       final kind = await askTwinSetChoice(
         context,
         ref.read(unitFormatterProvider),
@@ -1362,6 +1364,18 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       material: item.tankMaterial,
       mix: fills.isEmpty ? null : fills.first.gasMix,
     );
+    // Doubles kept as one gear item (issue #4641) default the tank to the
+    // Twin Set role the same way. It runs after the cylinders are named,
+    // since naming one cylinder ends a linked pair's Twin Set (#4242). A
+    // cylinder linked in a pair has just been asked about, and "this
+    // cylinder alone" is the answer to keep.
+    if (item.isWornAsTwinSet &&
+        !item.isSuitInflationCylinder &&
+        !pairOffered &&
+        _role != TankRole.twinSet) {
+      setState(() => _role = TankRole.twinSet);
+      _notifyChange();
+    }
     // The cylinder joins the dive's gear even when it records no spec.
     await widget.onOwnCylinderUsed?.call(item);
     if (filled) {

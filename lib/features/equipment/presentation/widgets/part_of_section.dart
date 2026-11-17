@@ -105,7 +105,9 @@ class _ParentTile extends StatelessWidget {
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(equipmentTypeIcon(type)),
+      leading: Icon(
+        parent == null ? equipmentTypeIcon(type) : equipmentItemIcon(parent),
+      ),
       title: Text(parent?.name ?? edge.parentEquipmentId),
       subtitle: Row(
         children: [

@@ -30,6 +30,7 @@ import snapshots  # noqa: E402
 import src_awois  # noqa: E402
 import src_ireland  # noqa: E402
 import src_reefs  # noqa: E402
+import src_research  # noqa: E402
 import src_ukho  # noqa: E402
 import src_wikidata  # noqa: E402
 from places import Place  # noqa: E402
@@ -78,6 +79,12 @@ def _snapshots():
         ],
     }
 
+
+# The merge reads the committed evidence file unless told otherwise. These
+# tests place every point with a stand-in lookup, so the real researched
+# sites would fail its country check: they run with an empty batch, and
+# merge_research_test.py covers researched records.
+_NO_RESEARCH = src_research.ResearchBatch()
 
 _CURATED = [
     {
@@ -503,6 +510,7 @@ class MainTest(unittest.TestCase):
                 ["--cache", str(self.cache), "--out", str(self.out), *arguments],
                 places=_Places(),
                 curated=_CURATED,
+                research=_NO_RESEARCH,
             )
         return code, output.getvalue()
 
@@ -601,6 +609,7 @@ class MainTest(unittest.TestCase):
                 ["--cache", str(self.cache), "--open-only"],
                 places=_Places(),
                 curated=_CURATED,
+                research=_NO_RESEARCH,
             )
         self.assertEqual(code, 2)
         self.assertIn("--out", output.getvalue())
@@ -628,6 +637,7 @@ class MainTest(unittest.TestCase):
                      "--out", str(self.out)],
                     places=_Places(),
                     curated=_CURATED,
+                    research=_NO_RESEARCH,
                 )
             self.assertEqual(code, 0)
 
@@ -640,6 +650,7 @@ class MainTest(unittest.TestCase):
                  "--without", *sorted(merge.SOURCE_STEPS)],
                 places=_Places(),
                 curated=_CURATED,
+                research=_NO_RESEARCH,
             )
         self.assertEqual(code, 2)
         self.assertIn("--without", output.getvalue())

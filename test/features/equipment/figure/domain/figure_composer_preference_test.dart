@@ -83,6 +83,54 @@ void main() {
       expect(model.byId('b')!.pieceIds, isEmpty);
     });
 
+    group('twin set (issue #4641)', () {
+      test('one item worn as a twin set is drawn as doubles on the back', () {
+        final model = composeFigure([
+          item('bcd', EquipmentType.bcd),
+          tank('d12', wornAs: kWornAsTwinSet),
+        ]);
+        expect(model.byId('d12')!.zone, FigureZone.backTank);
+        expect(model.byId('d12')!.pieceIds, ['tank_doubles_back']);
+      });
+
+      test('a dive role other than Twin Set wins over the item', () {
+        final model = composeFigure([
+          item(
+            'd12',
+            EquipmentType.tank,
+            attributes: {EquipmentAttrKeys.wornAs: kWornAsTwinSet},
+            tankRole: TankRole.backGas,
+          ),
+        ]);
+        expect(model.byId('d12')!.zone, FigureZone.backTank);
+        expect(model.byId('d12')!.pieceIds, ['tank_single_back']);
+      });
+
+      test('with a second back cylinder only one doubles piece is drawn', () {
+        final model = composeFigure([
+          tank('d12', wornAs: kWornAsTwinSet),
+          tank('al80', wornAs: 'back'),
+        ]);
+        final doubles = [
+          for (final p in model.placed)
+            if (p.pieceIds.contains('tank_doubles_back')) p,
+        ];
+        expect(doubles, hasLength(1));
+      });
+
+      test('a twin set stays on the back in a sidemount BCD rig', () {
+        final model = composeFigure([
+          item(
+            'harness',
+            EquipmentType.bcd,
+            attributes: {EquipmentAttrKeys.bcdStyle: 'sidemount'},
+          ),
+          tank('d12', wornAs: kWornAsTwinSet),
+        ]);
+        expect(model.byId('d12')!.zone, FigureZone.backTank);
+      });
+    });
+
     test('a back cylinder stays on the back in a sidemount BCD rig', () {
       final model = composeFigure([
         item(

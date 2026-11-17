@@ -28799,6 +28799,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_tripCylinderEventKind_adjustment => 'Módosítás';
 
   @override
+  String get enum_navTrackLinkMode_auto => 'Automatikusan';
+
+  @override
+  String get enum_navTrackLinkMode_manual => 'Kézzel';
+
+  @override
   String get enum_tripCylinderEventKind_fill => 'Töltés';
 
   @override
@@ -42463,6 +42469,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_worn_as_back => 'Háti rögzítés';
+
+  @override
+  String get attrChoice_worn_as_twin_set => 'Ikerpalack';
 
   @override
   String get attrChoice_worn_as_sidemount_left => 'Sidemount bal';

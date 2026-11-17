@@ -119,6 +119,35 @@ final Map<String, FieldCodec> planComputeFields = {
   'segments': planSegmentsField,
 };
 
+/// The tanks and segments of a `dive_plans` [document] in the shape
+/// [planTanksField] and [planSegmentsField] take them: each tank by the
+/// fields an agent writes, each segment naming its tank by place. Shared by
+/// the write family, which compares a change against it, and a recalled
+/// plan's `resolved_inputs`, which compute it again (issue #4203).
+Map<String, Object?> planPartsAsWritten(Map<String, Object?> document) {
+  final tanks = [
+    for (final t in document['tanks'] as List? ?? const [])
+      (t as Map).cast<String, Object?>(),
+  ];
+  final place = {for (final (i, t) in tanks.indexed) t['id']: i};
+  return {
+    'tanks': [
+      for (final t in tanks)
+        {for (final key in planTanksField.keys.keys) key: t[key]},
+    ],
+    'segments': [
+      for (final s in document['segments'] as List? ?? const [])
+        {
+          'target_depth_m': (s as Map)['target_depth_m'],
+          'duration_s': s['duration_s'],
+          'tank': place[s['tank_id']],
+          'setpoint_bar': s['setpoint_bar'],
+          'split_at_configured_rate': s['split_at_configured_rate'],
+        },
+    ],
+  };
+}
+
 String? _tankRule(Map<String, Object?> tank) =>
     (tank['o2_fraction']! as num) + (tank['he_fraction']! as num) > 1
     ? 'o2_fraction and he_fraction add to more than 1.'

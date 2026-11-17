@@ -199,6 +199,14 @@ class EquipmentItem extends Equatable {
   bool get isSuitInflationCylinder =>
       attrText(EquipmentAttrKeys.cylinderUse) == 'suit_inflation';
 
+  /// Whether this tank is a pair of manifolded cylinders kept as one item,
+  /// such as a "D12" (issue #4641): Worn as is Twin set. Like
+  /// [isSuitInflationCylinder] it is a default for a dive tank picked from
+  /// it, never the source of truth; the dive tank's role is.
+  bool get isWornAsTwinSet =>
+      type == EquipmentType.tank &&
+      attrText(EquipmentAttrKeys.wornAs) == kWornAsTwinSet;
+
   /// The catalog stores the choice key ('aluminum', 'steel',
   /// 'carbon_composite'); the enum name for the last one differs.
   TankMaterial? get tankMaterial =>

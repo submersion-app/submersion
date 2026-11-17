@@ -2013,6 +2013,30 @@ class SyncDataSerializer {
     return maxHlc;
   }
 
+  /// The dive children a bulk edit writes without restamping the dive
+  /// (issue #4651): tanks, weights, tags, dive types, courses and gear links.
+  /// They arrive here on their own clocks, without the dive row, so applying
+  /// one ticks `dives` as well: many screens, the dive list among them,
+  /// refresh only on a `dives` tick.
+  static const Set<String> diveChildEntitiesThatTickDives = {
+    'diveTanks',
+    'diveWeights',
+    'diveTags',
+    'diveDiveTypes',
+    'diveCourses',
+    'diveEquipment',
+  };
+
+  /// Ticks `dives` after a row of [entityType] was applied, when it is one of
+  /// [diveChildEntitiesThatTickDives]. Inside a transaction the tick is
+  /// delivered on commit, like a write's.
+  void _tickDivesForChild(String entityType) {
+    if (!diveChildEntitiesThatTickDives.contains(entityType)) return;
+    _db.notifyUpdates({
+      TableUpdate.onTable(_db.dives, kind: UpdateKind.update),
+    });
+  }
+
   /// Children with no clock of their own whose incremental export selects
   /// rows through a parent's HLC (a dive's tanks, gear links, tags and so
   /// on). A change to only such a child reached peers only if the parent was
@@ -5627,6 +5651,15 @@ class SyncDataSerializer {
     String entityType,
     Map<String, dynamic> data,
   ) async {
+    await _upsertRecordApply(entityType, data);
+    _tickDivesForChild(entityType);
+  }
+
+  /// The write behind [upsertRecord].
+  Future<void> _upsertRecordApply(
+    String entityType,
+    Map<String, dynamic> data,
+  ) async {
     await _ensureLegacyDefaultChecklists(entityType, [data]);
     data = _withoutUnsetNulls(
       entityType,
@@ -6716,6 +6749,15 @@ class SyncDataSerializer {
     List<Map<String, dynamic>> records,
   ) async {
     if (records.isEmpty) return;
+    await _upsertRecordsApply(entityType, records);
+    _tickDivesForChild(entityType);
+  }
+
+  /// The write behind [upsertRecords].
+  Future<void> _upsertRecordsApply(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
     await _ensureLegacyDefaultChecklists(entityType, records);
     records = await _withLocalForOmitted(
       entityType,
@@ -9299,6 +9341,12 @@ class SyncDataSerializer {
   // it later would resurrect what the peer deleted, so the tombstone clears
   // it there. Everything else falls through the switch with no default.
   Future<void> deleteRecord(String entityType, String recordId) async {
+    await _deleteRecordApply(entityType, recordId);
+    _tickDivesForChild(entityType);
+  }
+
+  /// The tombstone apply behind [deleteRecord].
+  Future<void> _deleteRecordApply(String entityType, String recordId) async {
     await deleteStagedLegacyRow(_db, entityType, recordId);
     switch (entityType) {
       case 'divers':

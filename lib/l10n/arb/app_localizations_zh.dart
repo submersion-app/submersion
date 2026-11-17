@@ -27298,6 +27298,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_tripCylinderEventKind_adjustment => '调整';
 
   @override
+  String get enum_navTrackLinkMode_auto => '自动';
+
+  @override
+  String get enum_navTrackLinkMode_manual => '手动';
+
+  @override
   String get enum_tripCylinderEventKind_fill => '充气';
 
   @override
@@ -40154,6 +40160,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_worn_as_back => '背挂式';
+
+  @override
+  String get attrChoice_worn_as_twin_set => '双瓶';
 
   @override
   String get attrChoice_worn_as_sidemount_left => '左侧挂';

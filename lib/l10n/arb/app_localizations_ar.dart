@@ -29240,6 +29240,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_tripCylinderEventKind_adjustment => 'تعديل';
 
   @override
+  String get enum_navTrackLinkMode_auto => 'تلقائيًا';
+
+  @override
+  String get enum_navTrackLinkMode_manual => 'يدويًا';
+
+  @override
   String get enum_tripCylinderEventKind_fill => 'تعبئة';
 
   @override
@@ -43276,6 +43282,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_worn_as_back => 'تثبيت خلفي';
+
+  @override
+  String get attrChoice_worn_as_twin_set => 'طقم مزدوج';
 
   @override
   String get attrChoice_worn_as_sidemount_left => 'تعليق جانبي أيسر';

@@ -205,6 +205,52 @@ rewritten in place, a dived one is left alone.
   revert does not count a link it takes back itself as a use, so the plan's
   new link does not keep the new entry.
 
+### Recall
+
+A saved plan stores inputs, not results, so recalling one computes it again
+(`data/planning/plan_recall.dart`).
+
+- **Where each dive stands.** `PlanLogState.of` (planner domain) is the one
+  rule: no entry is `planned`, an entry still planned is `logged_as_planned`,
+  any other is `dived`. `PlannedDivesWriter` decides by it, and the
+  `dive_plans` document and each dive of a `dive_plan_series` document carry
+  it as `log_state` with `linked_dive_id` (`planLogFields`). Only the linked
+  dives' `is_planned` flags are read, in one batch per read
+  (`loggedEntryFlags` in `records/families/plan_record_loads.dart`), so the
+  field is always there, not a block. A link to a dive no longer in the log
+  reads as `planned` with no link; a write still compares against the
+  stored link, so clearing it is a change. `list_records` shows a plan's
+  `log_state`.
+- **`compute_plan` by id.** `plan_id` (a plan in no series) or `series_id`,
+  never with `dives` or `follow_dive_id`. A plan in a series is refused,
+  naming its series, since its carry-in depends on the dives before it. It
+  computes through `computeStoredSeries` / `computeStoredPlan`, as the planner
+  opens a saved plan: with the diver's Settings as they are now, the followed
+  dive as it is in the log now (`followed_dive_in_log` says whether it still
+  is), and each dived dive taken as dived for the dives after it. The answer
+  says so in `recall_note`.
+- **Whose Settings.** `diver_id` if given, else a series' own diver while
+  that profile exists, else the active diver, as the planned dives action
+  chooses.
+- **`overrides`** takes the `planSettingFields` only, written over every dive
+  for that one computation; a null clears the plan's own value so Settings
+  decide. Nothing is saved. Given without an id it is refused, not ignored.
+- **`resolved_inputs`** for a recalled dive is the saved plan read back as
+  `compute_plan` inputs (`stored_plan_inputs.dart`), from its `dive_plans`
+  document: its own settings, tanks, segments, and its start or its
+  interval as the series calculator times it (the default interval when it
+  stores none, and no start on a series without a clock), with
+  `carries_from_tank` (none for a pinned tank, which keeps its own
+  pressure). Given back as `dives`, with `follow_dive_id` set to
+  `followed_dive_id` for a series that still follows its logged dive, the
+  same object computes the same schedule again, with two exceptions. A
+  dived dive's successors carry in what the log says it left, which inputs
+  cannot say, so they compute again only as planned. A plan's settings that
+  `compute_plan` does not take (stop minimums, deco ppO2 bands, setpoints, a
+  segment's mode override)
+  still compute the recall but are not in it, as the tool description says;
+  the `dive_plans` document has them.
+
 ## Writes
 
 A write takes two calls. `preview_changes` reads and diffs, and `apply_changes`

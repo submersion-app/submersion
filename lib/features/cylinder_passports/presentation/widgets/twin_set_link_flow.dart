@@ -19,7 +19,8 @@ const _log = LoggerService('twinSetLinkFlow');
 /// The cylinders [cylinder] can be paired with (issue #4242): the diver's
 /// other cylinders, own or shared, except those retired, sold or lost. A
 /// spare is offered, since a spare is what gets swapped in after a failed
-/// test.
+/// test. Doubles kept as one item, worn as a twin set (issue #4641), already
+/// are a twin set and are not offered.
 List<EquipmentItem> twinPartnerCandidates(
   List<EquipmentItem> gear,
   String cylinderId, {
@@ -31,6 +32,7 @@ List<EquipmentItem> twinPartnerCandidates(
         item.id != cylinderId &&
         item.id != currentPartnerId &&
         item.isFitted &&
+        !item.isWornAsTwinSet &&
         item.effectiveStatus != EquipmentStatus.lost)
       item,
 ];

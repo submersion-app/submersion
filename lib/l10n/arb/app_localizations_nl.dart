@@ -28749,6 +28749,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_tripCylinderEventKind_adjustment => 'Aanpassing';
 
   @override
+  String get enum_navTrackLinkMode_auto => 'Automatisch';
+
+  @override
+  String get enum_navTrackLinkMode_manual => 'Handmatig';
+
+  @override
   String get enum_tripCylinderEventKind_fill => 'Vulling';
 
   @override
@@ -42422,6 +42428,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_worn_as_back => 'Rugmontage';
+
+  @override
+  String get attrChoice_worn_as_twin_set => 'Dubbelset';
 
   @override
   String get attrChoice_worn_as_sidemount_left => 'Sidemount links';

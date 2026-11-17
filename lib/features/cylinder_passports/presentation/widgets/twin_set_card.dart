@@ -25,11 +25,17 @@ class TwinSetCard extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final cylinder = ref.watch(equipmentItemProvider(equipmentId)).value;
-    final pairings =
-        ref.watch(pairingsForCylinderProvider(equipmentId)).value ??
-        const <CylinderPairing>[];
+    final pairingsAsync = ref.watch(pairingsForCylinderProvider(equipmentId));
+    final pairings = pairingsAsync.value ?? const <CylinderPairing>[];
     // Wanted gear is not owned yet, so it is in no twin set.
     if (cylinder == null || cylinder.isWanted) return const SizedBox.shrink();
+    // Doubles kept as one item (issue #4641) already are a twin set, so they
+    // are not offered a partner; a pairing they were given still shows, so
+    // the card stays hidden until the pairings have been read.
+    if (cylinder.isWornAsTwinSet &&
+        (!pairingsAsync.hasValue || pairings.isEmpty)) {
+      return const SizedBox.shrink();
+    }
     final current = currentPairing(pairings, equipmentId);
     final history = [
       for (final p in pairings)

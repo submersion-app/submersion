@@ -28214,6 +28214,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_tripCylinderEventKind_adjustment => 'תיקון';
 
   @override
+  String get enum_navTrackLinkMode_auto => 'אוטומטית';
+
+  @override
+  String get enum_navTrackLinkMode_manual => 'ידנית';
+
+  @override
   String get enum_tripCylinderEventKind_fill => 'מילוי';
 
   @override
@@ -41657,6 +41663,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_worn_as_back => 'הרכבה על הגב';
+
+  @override
+  String get attrChoice_worn_as_twin_set => 'צמד בלונים';
 
   @override
   String get attrChoice_worn_as_sidemount_left => 'סיידמאונט שמאל';

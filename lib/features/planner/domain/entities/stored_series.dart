@@ -7,6 +7,18 @@ import 'package:submersion/features/planner/domain/entities/plan_setting_group.d
 /// places it in the series. What it carries in from the dive before is
 /// derived when it is opened, never stored.
 class StoredSeriesDive extends Equatable {
+  /// Longest [name], so a chip in the planner's navigator stays a chip, in
+  /// characters as a text field counts them (grapheme clusters).
+  static const maxNameLength = 40;
+
+  /// [raw] as a dive's [name] is kept: trimmed, and null when blank, so the
+  /// dive goes by its letter. The planner's name field and an agent's write
+  /// both keep a name this way.
+  static String? nameOf(String raw) {
+    final trimmed = raw.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
   final DivePlan plan;
 
   /// The diver's own name for the dive; null = shown by its letter.

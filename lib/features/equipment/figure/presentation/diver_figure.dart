@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_model.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_view.dart';
 import 'package:submersion/features/equipment/figure/presentation/diver_figure_painter.dart';
@@ -314,7 +315,12 @@ class _TrayTile extends StatelessWidget {
           number: number,
           text: name,
           selected: selected,
-          leading: Icon(equipmentTypeIcon(item.item.type)),
+          leading: Icon(
+            equipmentIconFor(
+              item.item.type,
+              wornAs: item.item.attributes[EquipmentAttrKeys.wornAs],
+            ),
+          ),
           // The tile is its own tap target (less the body's padding).
           minHeight: kFigureLabelHeight - 6,
         ),
