@@ -46,6 +46,12 @@ class MediaIdentificationRuns extends Table {
   /// How many identifications were stored, possibly zero.
   IntColumn get detectionCount => integer()();
 
+  /// Video only (issue #4675): how far the scan has got, in milliseconds,
+  /// and the video's length as the engine read it. Null for a photo. The
+  /// scan is complete when the first reaches the second.
+  IntColumn get scannedMs => integer().nullable()();
+  IntColumn get videoDurationMs => integer().nullable()();
+
   @override
   Set<Column> get primaryKey => {mediaId};
 }
@@ -93,6 +99,26 @@ class MediaIdentifications extends Table {
   /// Epoch milliseconds.
   IntColumn get decidedAt => integer().nullable()();
   IntColumn get createdAt => integer()();
+
+  /// Video only (issue #4675): one row is one animal followed through the
+  /// video. When it was first and last seen, and the moment whose box,
+  /// crop and size the box columns hold, in milliseconds from the start.
+  IntColumn get startMs => integer().nullable()();
+  IntColumn get endMs => integer().nullable()();
+  IntColumn get bestMs => integer().nullable()();
+
+  /// Video only: the box at each sample, packed (track_path_codec.dart).
+  BlobColumn get trackPath => blob().nullable()();
+
+  /// The species the diver gave this animal from the frame (a dot or a
+  /// pill), held until the tag is written. It wins over the name rules.
+  TextColumn get claimedSpeciesId => text().nullable()();
+
+  /// Whether it passed the confident bar, and whether its open score
+  /// passed the floor, when it was last named. Stored so the labels over
+  /// a video keep working after the model is removed.
+  BoolColumn get confident => boolean().withDefault(const Constant(false))();
+  BoolColumn get specific => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
