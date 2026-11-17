@@ -18,6 +18,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart'
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_card_columns.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_country_columns.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_conversion_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -183,6 +184,7 @@ class BuddyRepository {
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
       Variable.withString(searchTerm),
+      Variable.withString(searchTerm),
       if (diverId != null) Variable.withString(diverId),
     ];
 
@@ -190,7 +192,8 @@ class BuddyRepository {
       SELECT * FROM buddies
       WHERE (search_fold(name) LIKE ?
          OR search_fold(email) LIKE ?
-         OR phone LIKE ?)
+         OR phone LIKE ?
+         OR search_fold(country) LIKE ?)
       $diverFilter
       ORDER BY name COLLATE NOCASE ASC
     ''', variables: variables).get();
@@ -203,6 +206,30 @@ class BuddyRepository {
     return _withPrimaryCerts(buddies);
   }
 
+  /// The distinct countries written on buddies (issue #4457), for the
+  /// Country field's suggestions; [diverId] narrows them to that diver's
+  /// people. Reads only the one column, not whole buddies.
+  Future<List<String>> getUsedCountries({String? diverId}) async {
+    try {
+      final rows = await _db
+          .customSelect(
+            'SELECT DISTINCT country FROM buddies '
+            "WHERE country IS NOT NULL AND TRIM(country) != ''"
+            '${diverId == null ? '' : ' AND diver_id = ?'}',
+            variables: [if (diverId != null) Variable.withString(diverId)],
+          )
+          .get();
+      return [for (final row in rows) row.read<String>('country')];
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to read buddy countries',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Create a new buddy
   Future<domain.Buddy> createBuddy(domain.Buddy buddy) async {
     try {
@@ -210,11 +237,17 @@ class BuddyRepository {
       final id = buddy.id.isEmpty ? _uuid.v4() : buddy.id;
       final now = DateTime.now();
 
+      final country = BuddyCountryColumns.of(
+        country: buddy.country,
+        code: buddy.countryCode,
+      );
       await _db
           .into(_db.buddies)
           .insert(
             BuddyCardColumns.of(buddy).copyWith(
               id: Value(id),
+              country: country.country,
+              countryCode: country.countryCode,
               diverId: Value(buddy.diverId),
               linkedDiverId: Value(buddy.linkedDiverId),
               name: Value(buddy.name),
@@ -238,7 +271,14 @@ class BuddyRepository {
       SyncEventBus.notifyLocalChange();
 
       _log.info('Created buddy with id: $id');
-      return buddy.copyWith(id: id, createdAt: now, updatedAt: now);
+      return buddy.copyWith(
+        id: id,
+        country: country.country.value,
+        countryCode: country.countryCode.value,
+        clearCountry: country.country.value == null,
+        createdAt: now,
+        updatedAt: now,
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to create buddy: ${buddy.name}',
@@ -330,11 +370,23 @@ class BuddyRepository {
     try {
       _log.info('Updating buddy: ${buddy.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
+      final stored = await (_db.select(
+        _db.buddies,
+      )..where((t) => t.id.equals(buddy.id))).getSingleOrNull();
+      final country = BuddyCountryColumns.of(
+        country: buddy.country,
+        code: buddy.countryCode,
+        before: stored == null
+            ? null
+            : (country: stored.country, code: stored.countryCode),
+      );
 
       await (_db.update(
         _db.buddies,
       )..where((t) => t.id.equals(buddy.id))).write(
         BuddyCardColumns.of(buddy).copyWith(
+          country: country.country,
+          countryCode: country.countryCode,
           diverId: Value(buddy.diverId),
           linkedDiverId: Value(buddy.linkedDiverId),
           name: Value(buddy.name),
@@ -373,7 +425,9 @@ class BuddyRepository {
     if (partial.toColumns(false).isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(_db.buddies)..where((t) => t.id.equals(id))).write(
-      partial.copyWith(updatedAt: Value(now)),
+      BuddyCountryColumns.withDerivedCode(
+        partial,
+      ).copyWith(updatedAt: Value(now)),
     );
     await _syncRepository.markRecordPending(
       entityType: 'buddies',
@@ -988,7 +1042,7 @@ class BuddyRepository {
         if (idList != null) 'b.id IN $idList',
         if (query != null && query.isNotEmpty)
           '(search_fold(b.name) LIKE ? OR search_fold(b.email) LIKE ? '
-              'OR b.phone LIKE ?)',
+              'OR b.phone LIKE ? OR search_fold(b.country) LIKE ?)',
       ];
       final where = conditions.isEmpty
           ? ''
@@ -1003,6 +1057,7 @@ class BuddyRepository {
         if (diverId != null) Variable.withString(diverId),
         ...idVariables,
         if (searchTerm != null) ...[
+          Variable.withString(searchTerm),
           Variable.withString(searchTerm),
           Variable.withString(searchTerm),
           Variable.withString(searchTerm),
@@ -1345,6 +1400,8 @@ class BuddyRepository {
       name: row.name,
       email: row.email,
       phone: row.phone,
+      country: row.country,
+      countryCode: row.countryCode,
       // Derived at hydration from the certifications table (issue #553);
       // _withPrimaryCerts overwrites these on the read paths.
       certificationLevel: null,

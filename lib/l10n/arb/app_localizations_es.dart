@@ -3516,6 +3516,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_field_phoneHint => '+1 (555) 123-4567';
 
   @override
+  String get buddies_field_country => 'País';
+
+  @override
+  String get buddies_field_countryHint => 'p. ej., Italia';
+
+  @override
   String buddies_label_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11524,6 +11530,98 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_tank_ownCylinderTitle => 'Mis botellas';
+
+  @override
+  String get cylindersFromTanks_title => 'Añadir botellas a tu equipo';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'en $count inmersiones',
+      one: 'en $count inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count botellas',
+      one: '$count botella',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Añadir $count botellas',
+      one: 'Añadir $count botella',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count botellas añadidas a tu equipo',
+      one: '$count botella añadida a tu equipo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count botellas no están en tu equipo',
+      one: '$count botella no está en tu equipo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => 'Revisar';
+
+  @override
+  String get cylindersFromTanks_name => 'Nombre';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size $material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed => 'No se pudieron añadir las botellas';
+
+  @override
+  String get diveLog_tank_gearMenu => 'Opciones de la botella';
+
+  @override
+  String get diveLog_tank_addToGear => 'Añadir a mi equipo';
+
+  @override
+  String get diveLog_tank_linkCylinder => 'Vincular a una botella mía';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      'Vincula esta botella con la del equipo y la añade al equipo de esta inmersión. La botella conserva el tamaño registrado.';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => 'Desvincular botella';
+
+  @override
+  String get diveLog_tank_linkFailed =>
+      'No se pudo cambiar el vínculo de la botella';
 
   @override
   String get diveLog_tank_regulatorLabel => 'Regulador';
@@ -46752,6 +46850,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_buddyField_phone => 'Teléfono';
 
   @override
+  String get enum_buddyField_country => 'País';
+
+  @override
   String get enum_buddyField_certificationLevel => 'Nivel de certificación';
 
   @override
@@ -46771,6 +46872,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => 'Tel.';
+
+  @override
+  String get enum_buddyField_country_short => 'País';
 
   @override
   String get enum_buddyField_certificationLevel_short => 'Nivel';
@@ -59476,6 +59580,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get query_buddies_phone => 'Teléfono';
+
+  @override
+  String get query_buddies_country => 'País';
 
   @override
   String get query_centers_affiliations => 'Afiliaciones';

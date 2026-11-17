@@ -30,7 +30,7 @@ class DiveCenter extends Equatable {
   /// never offered as a nearby center in the picker.
   final bool isPermanentlyClosed;
 
-  /// Logo (v372, #4460): a 512x512 square JPEG from the profile photo codec,
+  /// Logo (v373, #4460): a 512x512 square JPEG from the profile photo codec,
   /// or null to draw the store icon. Pass the repository's instance through
   /// unchanged: avatar image caching is keyed by its identity.
   final Uint8List? logo;

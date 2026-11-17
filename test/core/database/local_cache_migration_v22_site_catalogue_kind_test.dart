@@ -108,11 +108,11 @@ void main() {
     expect(db.schemaVersion, greaterThanOrEqualTo(22));
   });
 
-  test('a fresh database has the kind, last, and its index', () async {
+  test('a fresh database has the kind and its index', () async {
     final db = LocalCacheDatabase(NativeDatabase.memory());
     addTearDown(db.close);
 
-    expect((await _columnsOf(db)).last, 'kind');
+    expect(await _columnsOf(db), contains('kind'));
     expect(await _hasKindIndex(db), isTrue);
   });
 
@@ -121,7 +121,7 @@ void main() {
     final db = _existing(21);
     addTearDown(db.close);
 
-    expect((await _columnsOf(db)).last, 'kind');
+    expect(await _columnsOf(db), contains('kind'));
     expect(await _hasKindIndex(db), isTrue);
     final row = await db.select(db.siteCatalogueEntries).getSingle();
     expect(row.id, 'osm_node_1');
@@ -133,7 +133,7 @@ void main() {
     final db = _existing(22);
     addTearDown(db.close);
 
-    expect((await _columnsOf(db)).last, 'kind');
+    expect(await _columnsOf(db), contains('kind'));
     expect(await _hasKindIndex(db), isTrue);
     expect(await db.select(db.siteCatalogueEntries).get(), hasLength(1));
   });

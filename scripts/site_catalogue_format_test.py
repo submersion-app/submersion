@@ -673,6 +673,42 @@ class ResearchedTrustTest(unittest.TestCase):
         self.assertIn("Submersion site research", fmt.catalogue_notice())
         self.assertEqual(fmt.RESEARCHED_SOURCES, ("curated", "research"))
 
+    def _researched(self, **overrides):
+        return _record(id="research_id_x", source="research",
+                       trust="researched", **overrides)
+
+    def test_position_from_map_on_a_researched_record_validates(self):
+        problems = fmt.validate_catalogue(
+            _doc([self._researched(position_from="map", lat=-8.27, lon=115.59)])
+        )
+        self.assertEqual(problems, [])
+
+    def test_position_from_map_without_a_position_fails(self):
+        # It says where the position came from, so it needs one.
+        problems = fmt.validate_catalogue(
+            _doc([self._researched(position_from="map")])
+        )
+        self.assertTrue(any("position_from" in p for p in problems), problems)
+
+    def test_position_from_on_a_verified_record_fails(self):
+        problems = fmt.validate_catalogue(_doc([_record(position_from="map")]))
+        self.assertTrue(any("position_from" in p for p in problems), problems)
+
+    def test_position_from_with_another_value_fails(self):
+        problems = fmt.validate_catalogue(
+            _doc([self._researched(position_from="guess")])
+        )
+        self.assertTrue(any("position_from" in p for p in problems), problems)
+
+    def test_position_from_is_written_after_trust(self):
+        record = fmt.to_catalogue_record(
+            self._legacy(), source="research", source_ref=None,
+            country_code="ID", country="Indonesia", trust="researched",
+            position_from="map",
+        )
+        self.assertEqual(list(record)[-2:], ["trust", "position_from"])
+        self.assertEqual(record["position_from"], "map")
+
     def test_validate_rejects_researched_trust_outside_researched_sources(self):
         problems = fmt.validate_catalogue(
             _doc([_record(trust="researched")])

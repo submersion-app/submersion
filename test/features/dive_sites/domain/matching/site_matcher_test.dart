@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/matching/match_candidate.dart';
 import 'package:submersion/features/dive_sites/domain/matching/match_thresholds.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_outcome.dart';
+import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_matcher.dart';
 
 const _balanced = MatchThresholds(
@@ -37,7 +38,95 @@ MatchCandidate _researched(String id, double metersEast) => MatchCandidate(
   isResearched: true,
 );
 
+MatchCandidate _mapPlaced(String id, double metersEast) => MatchCandidate(
+  id: id,
+  location: _eastMeters(metersEast),
+  isExisting: false,
+  isResearched: true,
+  isMapPlaced: true,
+);
+
 void main() {
+  group('a map-placed researched record (wider sources design, section 5)', () {
+    SiteMatchOutcome match(
+      List<MatchCandidate> candidates, [
+      MatchThresholds thresholds = _balanced,
+    ]) => matchDive(
+      point: _origin(),
+      candidates: candidates,
+      thresholds: thresholds,
+    );
+
+    List<String> ids(SiteMatchOutcome out) =>
+        (out as Suggested).candidates.map((r) => r.candidate.id).toList();
+
+    test('a lone map-placed record 1.5 km away is suggested', () {
+      final out = match([_mapPlaced('garden', 1500)]);
+
+      expect(out, isA<Suggested>());
+      expect(ids(out), ['garden']);
+    });
+
+    test('a verified site 100 m away is auto-matched past a map-placed '
+        'record 120 m away', () {
+      final out = match([_bundled('site', 100), _mapPlaced('garden', -120)]);
+
+      expect(out, isA<AutoMatch>());
+      expect((out as AutoMatch).siteId, 'site');
+    });
+
+    test('a verified site 140 m away is auto-matched past a map-placed '
+        'record 80 m away', () {
+      final out = match([_bundled('site', 140), _mapPlaced('garden', -80)]);
+
+      expect(out, isA<AutoMatch>());
+      expect((out as AutoMatch).siteId, 'site');
+    });
+
+    test('a stated researched record 80 m away still blocks a verified site '
+        '140 m away', () {
+      final out = match([_bundled('site', 140), _researched('garden', -80)]);
+
+      expect(out, isA<Suggested>());
+    });
+
+    test('a map-placed record does not count as a dive site close behind a '
+        'register record', () {
+      final out = match([_register('wreck', 60), _mapPlaced('garden', -90)]);
+
+      expect(out, isA<AutoMatch>());
+      expect((out as AutoMatch).siteId, 'wreck');
+    });
+
+    test('map-placed reach is never below 2 km', () {
+      final out = match([
+        _mapPlaced('garden', 1500),
+      ], SiteMatchSensitivity.strict.thresholds);
+
+      expect(out, isA<Suggested>());
+      expect(ids(out), ['garden']);
+    });
+
+    test('the map-placed reach is 2 km, or the outer radius when wider', () {
+      const wide = MatchThresholds(
+        innerRadiusMeters: 150,
+        outerRadiusMeters: 3000,
+        separationMeters: 50,
+      );
+
+      expect(mapPlacedReachMeters(_balanced), kMapPlacedReachMeters);
+      expect(mapPlacedReachMeters(wide), 3000);
+      expect(reachMeters(_mapPlaced('garden', 0), wide), 3000);
+    });
+
+    test('a verified record beyond the outer radius is still out of '
+        'range', () {
+      final out = match([_bundled('far', 1500)]);
+
+      expect(out, isA<NoMatch>());
+    });
+  });
+
   group('a researched record (gathered from dive guides, not verified)', () {
     SiteMatchOutcome match(List<MatchCandidate> candidates) => matchDive(
       point: _origin(),

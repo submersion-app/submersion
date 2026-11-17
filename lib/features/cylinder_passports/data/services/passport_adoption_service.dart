@@ -5,10 +5,10 @@ import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_
 import 'package:submersion/features/cylinder_passports/domain/services/passport_attribute_keys.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
-import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/domain/services/cylinder_spec_attributes.dart';
 
 /// "Add to my gear" for a scanned tag (spec section 9): a tank row with the
 /// tag's spec, the tag's passport id, and clock baselines from its dates,
@@ -71,32 +71,13 @@ class PassportAdoptionService {
     return (await _equipment.getEquipmentById(item.id)) ?? item;
   }
 
-  List<EquipmentAttribute> _specAttributes(CylinderPassportPayload tag) => [
-    if (tag.volumeL case final v?)
-      EquipmentAttribute.curated(
-        equipmentId: '',
-        key: EquipmentAttrKeys.volumeL,
-        valueNum: v,
-      ),
-    if (tag.workingPressureBar case final wp?)
-      EquipmentAttribute.curated(
-        equipmentId: '',
-        key: EquipmentAttrKeys.workingPressureBar,
-        valueNum: wp.toDouble(),
-      ),
-    if (tag.material case final m?)
-      EquipmentAttribute.curated(
-        equipmentId: '',
-        key: EquipmentAttrKeys.tankMaterial,
-        valueText: tankMaterialChoiceKey(m),
-      ),
-    if (tag.valve case final v?)
-      EquipmentAttribute.curated(
-        equipmentId: '',
-        key: 'valve_type',
-        valueText: valveChoiceKey(v),
-      ),
-  ];
+  List<EquipmentAttribute> _specAttributes(CylinderPassportPayload tag) =>
+      cylinderSpecAttributes(
+        volumeL: tag.volumeL,
+        workingPressureBar: tag.workingPressureBar?.toDouble(),
+        material: tag.material,
+        valveChoice: tag.valve == null ? null : valveChoiceKey(tag.valve!),
+      );
 
   Future<void> _applyBaselines(
     String equipmentId,

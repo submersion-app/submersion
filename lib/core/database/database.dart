@@ -328,7 +328,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 372;
+  static const int currentSchemaVersion = 373;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1723,10 +1723,14 @@ class AppDatabase extends _$AppDatabase {
     // starred to list first in the pickers (issue #4413). Nullable, no
     // backfill; the floor does not move.
     371,
-    // v372: dive_centers.logo, a dive center's logo (issue #4460). Nullable,
-    // no backfill; the floor does not move. Renumbered from 371, which main
-    // took for #4413.
+    // v372: buddies.country and buddies.country_code (issue #4457).
+    // Nullable, nothing to backfill; the floor does not move. Renumbered
+    // from 371, which main took for #4413.
     372,
+    // v373: dive_centers.logo, a dive center's logo (issue #4460). Nullable,
+    // no backfill; the floor does not move. Renumbered twice: main took 371
+    // for #4413 and 372 for #4457.
+    373,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

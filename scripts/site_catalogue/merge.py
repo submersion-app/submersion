@@ -202,6 +202,7 @@ def _catalogue_record(record: dict, places, curated_countries: dict) -> dict:
         country=country,
         kind=record["kind"],
         trust="researched" if record["source"] in RESEARCHED_SOURCES else "verified",
+        position_from=record.get("position_from"),
     )
 
 

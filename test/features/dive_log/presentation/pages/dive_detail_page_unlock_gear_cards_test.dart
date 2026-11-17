@@ -124,6 +124,17 @@ void main() {
     }
   });
 
+  testWidgets('the cylinder menu writes at once, so it follows Assign '
+      '(issue #4494)', (tester) async {
+    await open(tester);
+    final menu = find.byKey(const Key('tank-gear-menu-a'));
+    expect(menu, findsOneWidget);
+    expect(menu.hitTestable(), findsNothing);
+
+    await unlock(tester);
+    expect(menu.hitTestable(), findsOneWidget);
+  });
+
   testWidgets('locked: Sort still opens its sheet', (tester) async {
     await open(tester);
 

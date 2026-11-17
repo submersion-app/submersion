@@ -46,10 +46,16 @@ class LocalSiteCatalogue implements SiteCatalogue {
     required double radiusMeters,
     int limit = 500,
     CatalogueKind? kind,
+    bool mapPlacedOnly = false,
   }) => _read(const [], (db) async {
-    final rows = await (db.select(
-      db.siteCatalogueEntries,
-    )..where((t) => _ofKind(t, kind, _inBox(t, point, radiusMeters)))).get();
+    final rows =
+        await (db.select(db.siteCatalogueEntries)..where((t) {
+              final inBox = _ofKind(t, kind, _inBox(t, point, radiusMeters));
+              return mapPlacedOnly
+                  ? inBox & t.positionFrom.equals('map')
+                  : inBox;
+            }))
+            .get();
     // Rows become sites only once the distance check and the limit have
     // chosen them: decoding a row's lists is the costly part of a read.
     return _nearestFirst(
