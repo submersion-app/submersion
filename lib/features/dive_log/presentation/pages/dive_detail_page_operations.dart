@@ -53,6 +53,15 @@ mixin _DiveDetailPageOperations
   Future<bool> _editProfile() async =>
       (await openProfileEditor(context, ref, diveId)).saved;
 
+  /// The profile's outliers, from the Profile card: the editor opened in
+  /// Outlier mode.
+  Future<bool> _editOutliers() async => (await openProfileEditor(
+    context,
+    ref,
+    diveId,
+    initialMode: 'outlier',
+  )).saved;
+
   /// Draw a profile, from the menu, for a dive that has none.
   Future<bool> _drawProfile() async => (await openProfileEditor(
     context,

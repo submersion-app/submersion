@@ -7,7 +7,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 /// Detects outliers in a dive's profile for showing suggestion badges.
 ///
 /// Returns the list of detected outliers (empty if none found).
-/// Used on DiveDetailPage to show "X potential outliers detected" chip.
+/// Read by the Profile card's outliers button, beside Edit profile.
 final outlierSuggestionProvider = FutureProvider.autoDispose
     .family<List<OutlierResult>, String>((ref, diveId) async {
       retainDiveData(ref);

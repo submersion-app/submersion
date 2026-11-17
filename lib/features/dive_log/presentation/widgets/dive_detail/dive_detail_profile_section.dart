@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/presentation/info/dive_profile_info
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show TooltipPresentation;
@@ -87,6 +88,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
     this.onViewportChanged,
     this.editing,
     this.onEditProfile,
+    this.onEditOutliers,
   });
 
   /// This section with the same inputs, the page's zoom among them, drawn
@@ -107,6 +109,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
     onViewportChanged: onViewportChanged,
     editing: session,
     onEditProfile: onEditProfile,
+    onEditOutliers: onEditOutliers,
   );
 
   final String diveId;
@@ -151,6 +154,11 @@ class DiveDetailProfileSection extends ConsumerWidget {
   /// operation on a page that offers editing (issue #4527). Null leaves the
   /// toolbar without it (no editing offered, or the pinned copy).
   final VoidCallback? onEditProfile;
+
+  /// Opens the profile editor in Outlier mode: the same operation as
+  /// [onEditProfile], offered beside it when the profile has outliers
+  /// (issue #4527, plan 11). Null leaves the toolbar without it.
+  final VoidCallback? onEditOutliers;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -234,6 +242,12 @@ class DiveDetailProfileSection extends ConsumerWidget {
         ),
         if (onEditProfile case final onEditProfile?)
           _EditProfileButton(scope: scope, onPressed: onEditProfile),
+        if (onEditOutliers case final onEditOutliers?)
+          _OutliersButton(
+            diveId: diveId,
+            scope: scope,
+            onPressed: onEditOutliers,
+          ),
         IconButton(
           icon: const Icon(Icons.fullscreen),
           tooltip: context.l10n.diveLog_detail_tooltip_viewFullscreen,
@@ -550,6 +564,43 @@ class _EditProfileButton extends StatelessWidget {
     return IconButton(
       icon: const Icon(Icons.edit_note),
       tooltip: reason ?? context.l10n.diveLog_profile_editProfile,
+      visualDensity: VisualDensity.compact,
+      onPressed: reason == null ? onPressed : null,
+    );
+  }
+}
+
+/// The profile's outliers, when it has any: a warning with their count,
+/// opening the profile editor in Outlier mode. A whole-record operation,
+/// so it follows the page's lock as Edit profile does. Watches the
+/// detection on its own, so the card does not rebuild with it.
+class _OutliersButton extends ConsumerWidget {
+  const _OutliersButton({
+    required this.diveId,
+    required this.scope,
+    required this.onPressed,
+  });
+
+  final String diveId;
+  final RecordEditController<Dive>? scope;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final outliers =
+        ref.watch(outlierSuggestionProvider(diveId)).value ?? const [];
+    if (outliers.isEmpty) return const SizedBox.shrink();
+    final reason = recordOperationReason(
+      context.l10n,
+      recordOperationBlockOf(scope),
+    );
+    return IconButton(
+      icon: Badge(
+        label: Text('${outliers.length}'),
+        child: const Icon(Icons.warning_amber),
+      ),
+      tooltip:
+          reason ?? context.l10n.diveLog_edit_profile_outliers(outliers.length),
       visualDensity: VisualDensity.compact,
       onPressed: reason == null ? onPressed : null,
     );

@@ -440,6 +440,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       onOpenInNotes: _scrollToNotes,
       onViewportChanged: _noteProfileViewport,
       onEditProfile: editingOffered ? () => _runOperation(_editProfile) : null,
+      onEditOutliers: editingOffered
+          ? () => _runOperation(_editOutliers)
+          : null,
     );
   }
 
