@@ -192,6 +192,19 @@ def convert(name, work, check_image):
     return target
 
 
+def converted_dir(work, name):
+    """The folder holding the converted detector in `work`, or a stop that
+    says how to make it: `convert` is a separate step, since it needs a
+    check image and several minutes."""
+    folder = os.path.join(work, "models", name)
+    if not any(os.path.exists(os.path.join(folder, f"detector.{ext}")) for ext in ("mlpackage", "mlmodelc")):
+        raise SystemExit(
+            f"{name} is not converted in {work}; run "
+            f"`python -I tool/species_pack/megalodon.py convert {name} --work {work} --check-image PHOTO` first"
+        )
+    return folder
+
+
 def manifest_for(name, pack_manifest):
     """A copy of a pack manifest with Megalodon's detector settings, for
     the vision tool."""

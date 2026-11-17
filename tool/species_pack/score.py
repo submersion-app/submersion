@@ -67,7 +67,7 @@ class Runner:
                     zf.extractall(self.models)
         self.tool = os.path.join(work, "species_vision")
         subprocess.run([os.path.join(os.path.dirname(__file__), "vision_cli", "build.sh"), self.tool], check=True)
-        mega_dir = os.path.join(work, "models", MEGALODON)
+        mega_dir = megalodon.converted_dir(work, MEGALODON)
         self.mega_manifest = os.path.join(mega_dir, "manifest.json")
         with open(self.mega_manifest, "w", encoding="utf-8") as fh:
             json.dump(megalodon.manifest_for(MEGALODON, os.path.join(pack, "manifest.json")), fh)

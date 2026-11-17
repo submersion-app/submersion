@@ -140,6 +140,9 @@ measured on. Each stage caches in the work folder and resumes if stopped:
 for stage in pool labels photos underwater review-sheets commons; do .venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py $stage; done
 ```
 
+Convert Megalodon (as above) before drawing the junk contact sheets, which
+run both detectors:
+
 ```bash
 .venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py junk-sheets --pack build/species_pack
 ```

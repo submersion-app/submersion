@@ -486,7 +486,7 @@ def stage_junk_sheets(work, pack):
                 zf.extractall(pack_models)
     with open(os.path.join(pack, "manifest.json"), encoding="utf-8") as fh:
         pack_detector = json.load(fh)["detector"]["id"]
-    mega_manifest = os.path.join(work, "models", "megalodon-2024", "manifest.json")
+    mega_manifest = os.path.join(megalodon.converted_dir(work, "megalodon-2024"), "manifest.json")
     with open(mega_manifest, "w", encoding="utf-8") as fh:
         json.dump(megalodon.manifest_for("megalodon-2024", os.path.join(pack, "manifest.json")), fh)
     runs = {
