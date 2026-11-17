@@ -299,4 +299,44 @@ One. Title `feat(dive-log): unlock to edit a dive, everywhere (Unified Editing, 
 
 ## After the build
 
-(Written when the plan is built.)
+The plan was built as written in one session (Eric chose "Native"), task by task with a failing test first. This is what differs from the task text above.
+
+### Moved between tasks
+
+- `unlock_editing_flag.dart` was deleted in Task 4, not Task 3: the viewers still read it until then, and every commit builds.
+- The two mixed form tests were not split in Task 1. Task 7 trimmed each to its bulk case and renamed it: `bulk_dive_edit_new_trip_prefill_test.dart` and `bulk_dive_edit_route_links_test.dart` (the Nav track card still has the route row, so "bulk edit has no route row" still pins something).
+
+### Names that changed, or were added
+
+| Above | Now |
+| --- | --- |
+| `unlockedDivePane` in `dive_list_page.dart` | In `dive_create_builder.dart`, beside `newDivePaneBuilder`, so the over-cap list page shrinks (1,258 to 1,248) |
+| `DiveVolumeHint(diveId:, volumeSymbol:)` | `DiveVolumeHint(volumeSymbol:)`; `DiveAltitudeMismatchNote()` lost its `dive`: both only built the old address |
+| The bulk page's `_existingDive`, `_currentLocation` | Gone: always null in bulk edit. The dive center picker ranks by the chosen site alone |
+| `bulk_dive_edit_page_test.dart` | Deleted: it asserted the wrapper built `DiveEditPage` |
+
+### Decided while building
+
+- **The dive lab's menu is hidden on a dive that cannot branch.** Without the plan link items it would open empty.
+- **Set time in the photo viewer only ever holds.** Its switch-off write path is gone; a sitting that ended while the dialog was open writes nothing, as before.
+- **The dive page's no-marker annotation link does nothing** on every page (its switch-off branch opened the time sheet at once).
+- **The favourite toggle went from the standalone bar and the overflow menu** with the switch-off branches: favourite is a field of the header card.
+- **The pane's edit mode passes `onDeleted`** (back to the list) as well as `onSittingEnded`.
+- **42 strings were removed** from all 11 ARB files: the 40 only the deleted form used, and `diveLog_detail_tooltip_editDive` and `diveLog_detail_tooltip_edit`, which Task 5 left unused. `ocr_import_strings_test.dart` checks `ocrImport_newDive_photoHoldFailed` in place of the removed string.
+- **Doc comments that cited `dive_edit_page.dart` lines** now describe the behaviour ("as the old dive form did").
+- **No page-level test that Remove source offers no Undo:** `remove_source_flow_test.dart` pins `offerUndo: false` at the flow, and the page has passed `false` since Task 3.
+
+### The five old tests no earlier plan named (Task 7 Step 2)
+
+| Old test | Pinned now by |
+| --- | --- |
+| `dive_edit_boat_fields_test` | `dive_details_fields_test` (blank clears, trimmed), `dive_environment_fields_test` (surface conditions), and a new `dive_details_card_test` case: each row suggests from its own field on earlier dives (red against a mutation, then green). Saving only changed fields is the sitting's general rule |
+| `dive_edit_entry_exit_mirror_test` | `dive_environment_fields_test`, the exit-follows-entry group |
+| `dive_edit_rules_test` | `new_dive_after_create_test`; a stored dive's Save runs no rules by construction (only `NewDiveAfterCreate` and Mark as logged or complete call them) |
+| `dive_edit_tag_picker_test` | `tag_form_block_test` (Browse), the block the Tags card uses |
+| `dive_edit_weight_gear_note_test` | `dive_weight_gear_lead_test` |
+
+### Follow-up issues
+
+- #4673: remove the immediate-write branches no caller reaches (call 9).
+- #4674: bulk edit shows a weighting feedback row it never saves (call 7).
