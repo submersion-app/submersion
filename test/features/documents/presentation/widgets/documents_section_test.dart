@@ -8,6 +8,10 @@ import 'package:submersion/features/documents/presentation/providers/document_pr
 import 'package:submersion/features/documents/presentation/widgets/document_tile.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_document_links_sitting.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 Document _doc(String id, DocumentType type) => Document(
   id: id,
@@ -27,6 +31,9 @@ void main() {
     DocumentOwner owner,
     List<Document> docs, {
     bool excludeCards = false,
+    RecordEditController<Dive>? lockable,
+    bool open = false,
+    Future<List<Document>> Function()? read,
   }) async {
     pushed = null;
     final router = GoRouter(
@@ -35,7 +42,19 @@ void main() {
           path: '/',
           builder: (context, state) => Scaffold(
             body: SingleChildScrollView(
-              child: DocumentsSection(owner: owner, excludeCards: excludeCards),
+              child: lockable == null
+                  ? DocumentsSection(owner: owner, excludeCards: excludeCards)
+                  : RecordEditScope<Dive>(
+                      controller: lockable,
+                      child: ListenableBuilder(
+                        listenable: lockable,
+                        builder: (context, _) => DocumentsSection(
+                          owner: owner,
+                          excludeCards: excludeCards,
+                          editing: open ? lockable.session : null,
+                        ),
+                      ),
+                    ),
             ),
           ),
         ),
@@ -58,7 +77,9 @@ void main() {
     await t.pumpWidget(
       ProviderScope(
         overrides: [
-          documentsForOwnerProvider(owner).overrideWith((ref) async => docs),
+          documentsForOwnerProvider(
+            owner,
+          ).overrideWith((ref) => read?.call() ?? Future.value(docs)),
           documentFirstPageProvider.overrideWith((ref, id) async => null),
         ],
         child: MaterialApp.router(
@@ -149,6 +170,77 @@ void main() {
       // The card's own margin of 4, then its padding of 16, between the
       // button and the edge.
       expect(add.right, moreOrLessEquals(card.right - 20, epsilon: 0.5));
+    });
+  });
+
+  group('on a dive page that offers editing (issue #4527)', () {
+    const owner = DocumentOwner(DocumentOwnerKind.dive, 'dive-1');
+    final dive = Dive(id: 'dive-1', dateTime: DateTime.utc(2026));
+
+    testWidgets('locked: no Add, and a tap still opens the document', (
+      t,
+    ) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {});
+      addTearDown(controller.dispose);
+      await pump(t, owner, [
+        _doc('a', DocumentType.other),
+      ], lockable: controller);
+
+      expect(find.text('Add document').hitTestable(), findsNothing);
+      expect(find.byKey(const ValueKey('document-remove-a')), findsNothing);
+      await t.tap(find.byKey(const ValueKey('document-a')));
+      await t.pumpAndSettle();
+      expect(pushed?.path, '/documents/a');
+    });
+
+    testWidgets('open: Remove detaches in the sitting', (t) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(dive);
+      addTearDown(controller.dispose);
+      await pump(
+        t,
+        owner,
+        [_doc('a', DocumentType.other)],
+        lockable: controller,
+        open: true,
+      );
+      holdDocumentLinks(
+        controller.session!,
+        ProviderScope.containerOf(
+          t.element(find.byType(DocumentsSection)),
+        ).read,
+      );
+
+      await t.tap(find.byKey(const ValueKey('document-remove-a')));
+      await t.pumpAndSettle();
+      expect(sittingDocumentLinks(controller.session!).detach, {'a'});
+      expect(find.byKey(const ValueKey('document-a')), findsNothing);
+    });
+
+    testWidgets('open: a read that failed offers Try again, which reads the '
+        'documents again', (t) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(dive);
+      addTearDown(controller.dispose);
+      var reads = 0;
+      await pump(
+        t,
+        owner,
+        const [],
+        lockable: controller,
+        open: true,
+        read: () async {
+          if (reads++ == 0) throw StateError('database closed');
+          return [_doc('a', DocumentType.other)];
+        },
+      );
+
+      expect(find.byType(SittingLoadFailed), findsOneWidget);
+      await t.tap(find.text('Try again'));
+      await t.pumpAndSettle();
+
+      expect(reads, 2);
+      expect(find.byKey(const ValueKey('document-a')), findsOneWidget);
     });
   });
 }

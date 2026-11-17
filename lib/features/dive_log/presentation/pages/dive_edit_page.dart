@@ -14,7 +14,6 @@ import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/gear_passports/presentation/utils/scan_owned_item.dart';
-import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
@@ -23,9 +22,6 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
-import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
-import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
-import 'package:submersion/features/marine_life/presentation/widgets/sighting_amount_badge.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/services/location_service.dart';
@@ -150,7 +146,6 @@ import 'package:submersion/features/weight_presets/domain/entities/weight_preset
 import 'package:submersion/features/weight_presets/presentation/providers/weight_preset_providers.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/weight_preset_picker_sheet.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_bulk_membership_labels.dart';
 import 'package:submersion/shared/bulk_edit/bulk_change_summary.dart';
 import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
@@ -166,10 +161,7 @@ import 'package:submersion/features/dive_log/presentation/utils/entry_exit_autof
 import 'package:submersion/features/dive_log/presentation/utils/water_type_autofill.dart';
 import 'package:submersion/features/dive_log/presentation/utils/dive_type_autofill.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/pickers/species_picker_sheet.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/site_species_suggestion_chips.dart';
-import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
-import 'package:submersion/features/marine_life/domain/site_species_suggestions.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/sightings_editor.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ccr_settings_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_selector.dart';
@@ -6143,202 +6135,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Widget _sightingsChild() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                context.l10n.diveLog_edit_section_marineLife,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              TextButton.icon(
-                onPressed: _showSpeciesPicker,
-                icon: const Icon(Icons.add, size: 18),
-                label: Text(context.l10n.diveLog_edit_add),
-              ),
-            ],
-          ),
-          if (_sightings.isEmpty) ...[
-            const SizedBox(height: 8),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.water,
-                      size: 48,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      context.l10n.diveLog_edit_noMarineLife,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      context.l10n.diveLog_edit_marineLifeHint,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ] else ...[
-            const Divider(),
-            ...List.generate(_sightings.length, (index) {
-              final sighting = _sightings[index];
-              return ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: CircleAvatar(
-                  backgroundColor: colorForSpeciesCategory(
-                    sighting.speciesCategory,
-                    Theme.of(context).brightness,
-                  ),
-                  child: Icon(
-                    iconForSpeciesCategory(
-                      sighting.speciesCategory ?? SpeciesCategory.other,
-                    ),
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                title: Text(
-                  localizedSpeciesName(
-                    context.l10n,
-                    sighting.speciesId,
-                    sighting.speciesName,
-                  ),
-                ),
-                subtitle: sighting.notes.isNotEmpty
-                    ? Text(
-                        sighting.notes,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      )
-                    : null,
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SightingAmountBadge(amount: sighting.amount),
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 18),
-                      tooltip: context.l10n.diveLog_edit_tooltip_removeSighting,
-                      onPressed: () {
-                        setState(() {
-                          _markDirty();
-                          _sightings.removeAt(index);
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                onTap: () => _editSighting(index),
-              );
-            }),
-          ],
-          // Bulk edit spans dives that may be at different sites, so there
-          // is no one site to suggest from.
-          if (!widget.isBulk && _selectedSite != null)
-            SiteSpeciesSuggestionChips(
-              // A new site starts collapsed rather than inheriting "Show all".
-              key: ValueKey(_selectedSite!.id),
-              siteId: _selectedSite!.id,
-              siteName: _selectedSite!.name,
-              excludeDiveId: widget.diveId,
-              loggedSpeciesIds: {for (final s in _sightings) s.speciesId},
-              onAdd: _addSuggestedSighting,
-            ),
-        ],
-      ),
-    );
-  }
-
-  /// A suggestion chip's tap (issue #4383): the species goes on as Seen with
-  /// no notes, as the picker's default does (#4337), and its row then edits
-  /// the amount and notes like any other sighting.
-  void _addSuggestedSighting(SiteSpeciesSuggestion suggestion) {
-    setState(() {
-      _markDirty();
-      _sightings.add(
-        Sighting(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
-          diveId: widget.diveId ?? '',
-          speciesId: suggestion.speciesId,
-          speciesName: suggestion.speciesName,
-          speciesCategory: suggestion.category,
-          abundance: SightingAbundance.seen,
-          notes: '',
-        ),
-      );
-    });
-  }
-
-  void _showSpeciesPicker() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => SpeciesPickerSheet(
-          scrollController: scrollController,
-          onSpeciesSelected: (species, amount, notes) {
-            setState(() {
-              _markDirty();
-              _sightings.add(
-                Sighting(
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  diveId: widget.diveId ?? '',
-                  speciesId: species.id,
-                  speciesName: species.commonName,
-                  speciesCategory: species.category,
-                  abundance: amount.abundance,
-                  count: amount.count,
-                  notes: notes,
-                ),
-              );
-            });
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-    );
-  }
-
-  void _editSighting(int index) {
-    final sighting = _sightings[index];
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => EditSightingSheet(
-        sighting: sighting,
-        onSave: (updatedSighting) {
-          setState(() {
-            _markDirty();
-            _sightings[index] = updatedSighting;
-          });
-          Navigator.of(context).pop();
-        },
-        onDelete: () {
-          setState(() {
-            _markDirty();
-            _sightings.removeAt(index);
-          });
-          Navigator.of(context).pop();
-        },
+      child: SightingsEditor(
+        sightings: _sightings,
+        diveId: widget.diveId ?? '',
+        onChanged: (sightings) => setState(() {
+          _markDirty();
+          _sightings = sightings;
+        }),
+        // Bulk edit spans dives that may be at different sites, so there
+        // is no one site to suggest from.
+        siteId: widget.isBulk ? null : _selectedSite?.id,
+        siteName: _selectedSite?.name,
+        excludeDiveId: widget.diveId,
       ),
     );
   }

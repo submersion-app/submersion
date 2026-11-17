@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -59,6 +60,12 @@ class _RecordingRepository extends NavTrackRepository {
   }) async {
     calls.add('update $routeId');
     return !gone.contains(routeId);
+  }
+
+  @override
+  Future<bool> setPrimary(String routeId, {String? onlyForDiveId}) async {
+    calls.add('primary $routeId on $onlyForDiveId');
+    return true;
   }
 }
 
@@ -216,5 +223,90 @@ void main() {
       expect(after.isPrimary, isTrue);
       expect(await routes.getSourceFile(routeId), file);
     });
+
+    /// Two routes on one dive and one on another, and a draft making the
+    /// second route of the first dive its primary.
+    Future<
+      ({
+        NavTrackRepository routes,
+        String second,
+        String other,
+        DiveRouteLinkDraft draft,
+      })
+    >
+    twoDives() async {
+      final dives = DiveRepository();
+      await dives.createDive(
+        Dive(id: 'd-one', dateTime: DateTime.utc(2025, 8, 22, 10)),
+      );
+      await dives.createDive(
+        Dive(id: 'd-two', dateTime: DateTime.utc(2025, 8, 22, 14)),
+      );
+      final routes = NavTrackRepository();
+      Future<String> route(String ref, String diveId) =>
+          routes.insertImportedRoute(
+            points: kTestNavTrackPoints,
+            source: NavTrackSource.seacraftEnc,
+            sourceRef: ref,
+            diveId: diveId,
+          );
+      await route('first.csv', 'd-one');
+      final second = await route('second.csv', 'd-one');
+      final other = await route('other.csv', 'd-two');
+      final draft = DiveRouteLinkDraft.initial(
+        await routes.getForDive('d-one'),
+      ).withPrimary(second);
+      expect(draft.changesPrimary, isTrue);
+      return (routes: routes, second: second, other: other, draft: draft);
+    }
+
+    // Code review (#4527): set primary demotes the other routes of the
+    // route's dive as it is now, not as the sitting read it.
+    test('a route sync moved to another dive before Save is not made '
+        'primary there, and is reported skipped', () async {
+      final (:routes, :second, :other, :draft) = await twoDives();
+      await DatabaseService.instance.database.customStatement(
+        "UPDATE nav_tracks SET dive_id = 'd-two', is_primary = 0 "
+        'WHERE id = ?',
+        [second],
+      );
+
+      final skipped = await applyDiveRouteLinkDraft(
+        routes,
+        diveId: 'd-one',
+        draft: draft,
+      );
+
+      expect(skipped, [second]);
+      expect(
+        (await routes.getById(other, includePoints: false))!.isPrimary,
+        isTrue,
+      );
+      expect(
+        (await routes.getById(second, includePoints: false))!.isPrimary,
+        isFalse,
+      );
+    });
+
+    test('a route unlinked before Save is reported skipped, and the Save '
+        'goes through', () async {
+      final (:routes, :second, other: _, :draft) = await twoDives();
+      await routes.unlink(second);
+
+      final skipped = await applyDiveRouteLinkDraft(
+        routes,
+        diveId: 'd-one',
+        draft: draft,
+      );
+
+      expect(skipped, [second]);
+    });
+  });
+
+  test('sets the primary after linking, while it is still linked', () async {
+    final repository = _RecordingRepository();
+    final draft = DiveRouteLinkDraft.initial([a]).add(b).withPrimary('b');
+    await applyDiveRouteLinkDraft(repository, diveId: 'd1', draft: draft);
+    expect(repository.calls, ['link b d1 manual', 'primary b on d1']);
   });
 }

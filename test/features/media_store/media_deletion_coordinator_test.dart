@@ -4,9 +4,13 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
+import 'package:submersion/features/media_store/data/media_delete_processor.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 
+import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
 
 void main() {
@@ -64,6 +68,55 @@ void main() {
     expect(row.payloadJson, contains('"originalExt":"jpeg"'));
     expect(row.payloadJson, contains('"renditionExt":"jpg"'));
     expect(kicks, 1);
+  });
+
+  // A dive's sitting unlinks inside its save, which a later write can still
+  // roll back (issue #4527): the worker waits for the commit.
+  test('held by id: the row goes and its intent is queued, but the worker '
+      'waits for drainHeldDeletes', () async {
+    await repo.createMedia(
+      photo('m1', hash: 'aa', uploadedAt: DateTime(2026, 2)),
+    );
+    await coordinator.deleteMultipleMedia(['m1'], holdRemoteDelete: true);
+    expect(await repo.getMediaById('m1'), isNull);
+    expect((await queue.allForTesting()).single.direction, 'delete');
+    expect(kicks, 0);
+
+    await coordinator.drainHeldDeletes();
+    expect(kicks, 1);
+  });
+
+  // A held delete whose transaction rolls back has still queued its intent
+  // and purged the copies this device remakes (issue #4527). The intent is
+  // harmless: the drain re-counts the rows by hash and finds the restored
+  // row, so the remote copy stays.
+  test('held inside a write that rolls back: the drained intent leaves the '
+      'remote copy of the restored row', () async {
+    await repo.createMedia(
+      photo('m1', hash: 'aa', uploadedAt: DateTime(2026, 2)),
+    );
+    final store = InMemoryMediaObjectStore();
+    final original = StoreKeys.objectKey('aa', extension: 'jpeg');
+    store.objects[original] = [1, 2, 3];
+
+    await expectLater(
+      DatabaseService.instance.database.transaction(() async {
+        await coordinator.deleteMultipleMedia(['m1'], holdRemoteDelete: true);
+        throw StateError('a later card failed');
+      }),
+      throwsStateError,
+    );
+    expect(await repo.getMediaById('m1'), isNotNull);
+
+    final intent = (await queue.allForTesting()).single;
+    await MediaDeleteProcessor(
+      queue: queue,
+      store: store,
+      mediaRepository: repo,
+    ).process(intent);
+
+    expect(store.objects.keys, [original]);
+    expect((await queue.allForTesting()).single.state, 'done');
   });
 
   test('videos record an mp4 rendition extension', () async {

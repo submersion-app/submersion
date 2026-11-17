@@ -10308,6 +10308,18 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'محسوب';
+
+  @override
+  String get recordEdit_loadFailed => 'تعذّر تحميل هذه البطاقة.';
+
+  @override
+  String get recordEdit_tryAgain => 'إعادة المحاولة';
+
+  @override
+  String get recordEdit_imported => 'مستورد';
+
+  @override
   String get recordEdit_saveFailed => 'تعذّر حفظ التغييرات. لم يتغيّر شيء.';
 
   @override
@@ -11001,6 +11013,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_map_tooltip_fitAllSites => 'احتواء جميع المواقع';
+
+  @override
+  String get diveLog_media_dropUnlockHint =>
+      'افتح قفل هذه الغطسة من صفحتها لإضافة صور إليها.';
 
   @override
   String get diveLog_numbering_actions => 'الإجراءات';
@@ -21642,6 +21658,20 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملف يطابق غطسات أخرى وتم استبعاده',
+      many: '$count ملفًا تطابق غطسات أخرى وتم استبعادها',
+      few: '$count ملفات تطابق غطسات أخرى وتم استبعادها',
+      two: 'ملفان يطابقان غطسات أخرى وتم استبعادهما',
+      one: 'ملف واحد يطابق غطسة أخرى وتم استبعاده',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -31907,6 +31937,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get signatures_noSignatureImage => 'لا توجد صورة توقيع';
+
+  @override
+  String get signatures_notSigned => 'غير موقّع';
 
   @override
   String signatures_signHere(Object name) {
@@ -57852,6 +57885,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLab_compare_waiting => 'بانتظار الغطسة';
+
+  @override
+  String diveLab_compare_heldLink(String plan) {
+    return 'سيُربط $plan عند الحفظ.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink => 'سيُلغى ربط الخطة عند الحفظ.';
 
   @override
   String get diveLab_link_unlinkTitle => 'إلغاء ربط هذه الخطة؟';

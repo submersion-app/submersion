@@ -138,8 +138,8 @@ void main() {
     'lib/features/dive_log/presentation/widgets/dive_sighting_row.dart '
             'sighting.notes':
         'sighting notes are a short log entry',
-    'lib/features/dive_log/presentation/pages/dive_edit_page.dart '
-            'sighting.notes':
+    'lib/features/dive_log/presentation/widgets/edit_sections/'
+            'sightings_editor.dart sighting.notes':
         'sighting notes are a short log entry',
     'lib/features/equipment/presentation/widgets/service_history_section.dart '
             'record.notes':

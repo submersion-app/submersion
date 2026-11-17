@@ -9620,6 +9620,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => '计算得出';
+
+  @override
+  String get recordEdit_loadFailed => '无法加载此卡片。';
+
+  @override
+  String get recordEdit_tryAgain => '重试';
+
+  @override
+  String get recordEdit_imported => '已导入';
+
+  @override
   String get recordEdit_saveFailed => '无法保存更改。未做任何更改。';
 
   @override
@@ -10277,6 +10289,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_map_tooltip_fitAllSites => '适应所有潜水点';
+
+  @override
+  String get diveLog_media_dropUnlockHint => '请在此潜水的页面上解锁后再添加照片。';
 
   @override
   String get diveLog_numbering_actions => '操作';
@@ -20232,6 +20247,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文件属于其他潜水，已略过',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -29789,6 +29814,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get signatures_noSignatureImage => '无签名图片';
+
+  @override
+  String get signatures_notSigned => '未签名';
 
   @override
   String signatures_signHere(Object name) {
@@ -53521,6 +53549,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLab_compare_waiting => '等待潜水';
+
+  @override
+  String diveLab_compare_heldLink(String plan) {
+    return '保存时将关联 $plan。';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink => '保存时将取消关联该计划。';
 
   @override
   String get diveLab_link_unlinkTitle => '取消关联此计划？';

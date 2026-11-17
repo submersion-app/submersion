@@ -96,4 +96,21 @@ void main() {
     expect(identical(first, second), isFalse);
     expect(first.current.map((r) => r.id), ['a']);
   });
+
+  test('withPrimary is a change; back to the original primary, none', () {
+    final draft = DiveRouteLinkDraft.initial([
+      a,
+      testNavTrack('b', diveId: 'd1', isPrimary: false),
+    ]);
+    expect(draft.hasChanges, isFalse);
+    final moved = draft.withPrimary('b');
+    expect(moved.hasChanges, isTrue);
+    expect(moved.primaryId, 'b');
+    expect(moved.withPrimary('a').hasChanges, isFalse);
+  });
+
+  test('removing the chosen primary forgets it', () {
+    final draft = DiveRouteLinkDraft.initial([a]).add(b).withPrimary('b');
+    expect(draft.remove('b').primaryId, isNull);
+  });
 }

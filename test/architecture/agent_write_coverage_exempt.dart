@@ -292,6 +292,12 @@ final exempt = <String, String>{
       'the set editor\'s "From now on" answer: logged dives keep their gear '
       'and stop naming the set (issue #4500); an agent\'s set edit leaves '
       'logged dives alone (issue #4283)',
+  'lib/features/documents/data/repositories/document_repository.dart:setDiveOwner':
+      'the dive page files documents under the dive at Save (issue #4527): '
+      'one added there was just created, as an agent creates one with '
+      'owner_kind dive; owner_kind and owner_id are create-only for an '
+      'agent, so moving an existing document between owners is done in '
+      'the app',
   // Planned dives.
   for (final method in const [
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createPlannedDive',

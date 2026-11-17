@@ -9990,6 +9990,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'Calculated';
+
+  @override
+  String get recordEdit_loadFailed => 'This card could not be loaded.';
+
+  @override
+  String get recordEdit_tryAgain => 'Try again';
+
+  @override
+  String get recordEdit_imported => 'Imported';
+
+  @override
   String get recordEdit_saveFailed =>
       'Couldn\'t save your changes. Nothing was changed.';
 
@@ -10669,6 +10681,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_map_tooltip_fitAllSites => 'Fit All Sites';
+
+  @override
+  String get diveLog_media_dropUnlockHint =>
+      'Unlock this dive on its own page to add photos.';
 
   @override
   String get diveLog_numbering_actions => 'Actions';
@@ -20975,6 +20991,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files match other dives and were left out',
+      one: '$count file matches another dive and was left out',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -31078,6 +31105,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signatures_noSignatureImage => 'No signature image';
+
+  @override
+  String get signatures_notSigned => 'Not signed';
 
   @override
   String signatures_signHere(Object name) {
@@ -56169,6 +56199,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLab_compare_waiting => 'Waiting for the dive';
+
+  @override
+  String diveLab_compare_heldLink(String plan) {
+    return '$plan is linked at Save.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink => 'The plan is unlinked at Save.';
 
   @override
   String get diveLab_link_unlinkTitle => 'Unlink this plan?';

@@ -10127,6 +10127,18 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'Számított';
+
+  @override
+  String get recordEdit_loadFailed => 'Ezt a kártyát nem sikerült betölteni.';
+
+  @override
+  String get recordEdit_tryAgain => 'Újra';
+
+  @override
+  String get recordEdit_imported => 'Importált';
+
+  @override
   String get recordEdit_saveFailed =>
       'Nem sikerült menteni a módosításokat. Semmi sem változott.';
 
@@ -10814,6 +10826,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_map_tooltip_fitAllSites => 'Összes merülőhely mutatása';
+
+  @override
+  String get diveLog_media_dropUnlockHint =>
+      'Oldd fel a merülés zárolását a saját oldalán, hogy fotókat adhass hozzá.';
 
   @override
   String get diveLog_numbering_actions => 'Műveletek';
@@ -21221,6 +21237,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fájl más merülésekhez tartozik, ezért kimaradt',
+      one: '$count fájl egy másik merüléshez tartozik, ezért kimaradt',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -31463,6 +31490,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get signatures_noSignatureImage => 'Nincs aláírás kép';
+
+  @override
+  String get signatures_notSigned => 'Nincs aláírva';
 
   @override
   String signatures_signHere(Object name) {
@@ -56759,6 +56789,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLab_compare_waiting => 'Várakozás a merülésre';
+
+  @override
+  String diveLab_compare_heldLink(String plan) {
+    return 'A(z) $plan mentéskor lesz összekapcsolva.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink => 'A terv mentéskor lesz leválasztva.';
 
   @override
   String get diveLab_link_unlinkTitle => 'Leválasztod ezt a tervet?';

@@ -19,6 +19,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/services/files/picked_file_materializer.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 
 /// Routes document attachments: PDFs to the in-app viewer, other formats
 /// to the platform; and hosts the pick-and-attach flow shared by dives,
@@ -100,6 +101,7 @@ class DocumentOpenHelper {
     required WidgetRef ref,
     String? diveId,
     String? siteId,
+    MediaHoldSink? onHold,
   }) async {
     if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
       return;
@@ -148,6 +150,19 @@ class DocumentOpenHelper {
 
     try {
       final service = ref.read(documentImportServiceProvider);
+      // A sitting on the dive (issue #4527) holds them until Save.
+      if (onHold != null) {
+        final prepared = await service.prepareDocuments(
+          picked: picked,
+          diveId: diveId,
+          siteId: siteId,
+        );
+        onHold([
+          for (final item in prepared)
+            HeldMediaRow((item: item, enrichment: null)),
+        ]);
+        return;
+      }
       final created = await service.importDocuments(
         picked: picked,
         diveId: diveId,

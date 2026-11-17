@@ -39,6 +39,11 @@ class DocumentEditPage extends ConsumerStatefulWidget {
 
   /// Called with the saved document's id; null pops the route instead.
   final ValueChanged<String>? onSaved;
+
+  /// The owner it starts with is the one it saves with, and the owner field
+  /// is not shown: a sitting on a dive files a new document as Personal and
+  /// joins it to the dive at Save (issue #4527).
+  final bool ownerFixed;
   final VoidCallback? onCancel;
 
   /// Test seam for the platform pickers.
@@ -54,6 +59,7 @@ class DocumentEditPage extends ConsumerStatefulWidget {
     this.initialType,
     this.embedded = false,
     this.onSaved,
+    this.ownerFixed = false,
     this.onCancel,
     @visibleForTesting this.capture,
     @visibleForTesting this.pickOwner,
@@ -387,12 +393,14 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                DocumentOwnerField(
-                  owner: _owner,
-                  locked: _type == DocumentType.certificationCard,
-                  onTap: _pickOwner,
-                ),
-                const SizedBox(height: 16),
+                if (!widget.ownerFixed) ...[
+                  DocumentOwnerField(
+                    owner: _owner,
+                    locked: _type == DocumentType.certificationCard,
+                    onTap: _pickOwner,
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 DocumentFormFields(
                   type: _type,
                   typeChoices: _typeChoices,

@@ -1,10 +1,11 @@
+// showPhotoPicker lives beside the page; callers import it from here.
+export 'package:submersion/features/media/presentation/pages/photo_picker_launch.dart';
+
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart' as pm;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
-import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/helpers/files_tab_staging.dart';
@@ -756,42 +757,4 @@ class _PlaceholderTab extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Shows the photo picker as a full-screen modal.
-///
-/// Returns the list of selected [AssetInfo] objects, or null if cancelled.
-/// [initialFilePaths] opens it on the Files tab with those files staged; see
-/// [PhotoPickerPage.initialFilePaths]. [loadAssets] replaces the Gallery
-/// tab's date range search; see [PhotoPickerPage.loadAssets].
-Future<List<AssetInfo>?> showPhotoPicker({
-  required BuildContext context,
-  required DateTime diveStartTime,
-  required DateTime diveEndTime,
-  Set<String> alreadyLinkedIds = const {},
-  Duration buffer = const Duration(minutes: 30),
-  MediaAttachTarget? target,
-  List<String>? initialFilePaths,
-  Future<List<AssetInfo>> Function(bool Function() isActive)? loadAssets,
-}) {
-  // Nothing comes in while demo mode is on (#3708): the note, not a picker.
-  if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
-    return Future<List<AssetInfo>?>.value();
-  }
-  final startTime = diveStartTime.subtract(buffer);
-  final endTime = diveEndTime.add(buffer);
-
-  return Navigator.of(context).push<List<AssetInfo>>(
-    MaterialPageRoute(
-      fullscreenDialog: true,
-      builder: (context) => PhotoPickerPage(
-        startTime: startTime,
-        endTime: endTime,
-        alreadyLinkedIds: alreadyLinkedIds,
-        target: target,
-        initialFilePaths: initialFilePaths,
-        loadAssets: loadAssets,
-      ),
-    ),
-  );
 }

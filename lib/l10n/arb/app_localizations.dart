@@ -15925,6 +15925,30 @@ abstract class AppLocalizations {
   /// **'{card}, hidden'**
   String recordEdit_hiddenCard(String card);
 
+  /// Label on a card with nothing to edit, shown while its record is unlocked: its content is calculated from other data.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated'**
+  String get recordEdit_calculated;
+
+  /// An open card whose rows (buddies, sightings, signatures, the linked plan) could not be read while the record is being edited.
+  ///
+  /// In en, this message translates to:
+  /// **'This card could not be loaded.'**
+  String get recordEdit_loadFailed;
+
+  /// Button under a card that could not be loaded: reads it again.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get recordEdit_tryAgain;
+
+  /// Label on a card with nothing to edit, shown while its record is unlocked: its content was imported from a device or service.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported'**
+  String get recordEdit_imported;
+
   /// Message shown when saving an unlocked record fails.
   ///
   /// In en, this message translates to:
@@ -17052,6 +17076,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fit All Sites'**
   String get diveLog_map_tooltip_fitAllSites;
+
+  /// Shown when photos or videos are dropped on a dive that is locked, on its page or in the list's detail pane (which cannot unlock): dives are edited only while unlocked, on their own page.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock this dive on its own page to add photos.'**
+  String get diveLog_media_dropUnlockHint;
 
   /// No description provided for @diveLog_numbering_actions.
   ///
@@ -33525,6 +33555,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Linked 1 item} other{Linked {count} items}}'**
   String media_photoPicker_files_linkedCount(int count);
+
+  /// Shown after the photo picker, opened while a dive is being edited, hands its files to that dive: how many staged files matched other dives and were left out.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} file matches another dive and was left out} other{{count} files match other dives and were left out}}'**
+  String media_picker_otherDivesLeftOut(int count);
 
   /// No description provided for @media_photoPicker_files_attachedToSiteCount.
   ///
@@ -50295,6 +50331,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No signature image'**
   String get signatures_noSignatureImage;
+
+  /// Shown on a training dive's instructor signature card when no one has signed and the card is read only (the dive is locked).
+  ///
+  /// In en, this message translates to:
+  /// **'Not signed'**
+  String get signatures_notSigned;
 
   /// Title shown on the signature capture screen with buddy name
   ///
@@ -89614,6 +89656,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Waiting for the dive'**
   String get diveLab_compare_waiting;
+
+  /// The closed Compare card while a dive is unlocked and a plan has been linked but not saved yet: names the plan Save will link.
+  ///
+  /// In en, this message translates to:
+  /// **'{plan} is linked at Save.'**
+  String diveLab_compare_heldLink(String plan);
+
+  /// The closed Compare card while a dive is unlocked and its plan has been unlinked but not saved yet.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan is unlinked at Save.'**
+  String get diveLab_compare_heldUnlink;
 
   /// No description provided for @diveLab_link_unlinkTitle.
   ///

@@ -10142,6 +10142,19 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'Berechnet';
+
+  @override
+  String get recordEdit_loadFailed =>
+      'Diese Karte konnte nicht geladen werden.';
+
+  @override
+  String get recordEdit_tryAgain => 'Erneut versuchen';
+
+  @override
+  String get recordEdit_imported => 'Importiert';
+
+  @override
   String get recordEdit_saveFailed =>
       'Die Änderungen konnten nicht gespeichert werden. Es wurde nichts geändert.';
 
@@ -10830,6 +10843,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_map_tooltip_fitAllSites => 'Alle Tauchplätze anzeigen';
+
+  @override
+  String get diveLog_media_dropUnlockHint =>
+      'Entsperre diesen Tauchgang auf seiner eigenen Seite, um Fotos hinzuzufügen.';
 
   @override
   String get diveLog_numbering_actions => 'Aktionen';
@@ -21263,6 +21280,19 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Dateien passen zu anderen Tauchgängen und wurden ausgelassen',
+      one:
+          '$count Datei passt zu einem anderen Tauchgang und wurde ausgelassen',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -31540,6 +31570,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get signatures_noSignatureImage => 'Kein Signaturbild';
+
+  @override
+  String get signatures_notSigned => 'Nicht unterschrieben';
 
   @override
   String signatures_signHere(Object name) {
@@ -56935,6 +56968,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLab_compare_waiting => 'Wartet auf den Tauchgang';
+
+  @override
+  String diveLab_compare_heldLink(String plan) {
+    return '$plan wird beim Speichern verknüpft.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink =>
+      'Der Plan wird beim Speichern getrennt.';
 
   @override
   String get diveLab_link_unlinkTitle => 'Diesen Plan trennen?';

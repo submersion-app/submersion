@@ -10184,6 +10184,18 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'Calculé';
+
+  @override
+  String get recordEdit_loadFailed => 'Impossible de charger cette carte.';
+
+  @override
+  String get recordEdit_tryAgain => 'Réessayer';
+
+  @override
+  String get recordEdit_imported => 'Importé';
+
+  @override
   String get recordEdit_saveFailed =>
       'Impossible d\'enregistrer vos modifications. Rien n\'a été modifié.';
 
@@ -10873,6 +10885,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_map_tooltip_fitAllSites => 'Ajuster à tous les sites';
+
+  @override
+  String get diveLog_media_dropUnlockHint =>
+      'Déverrouillez cette plongée sur sa propre page pour y ajouter des photos.';
 
   @override
   String get diveLog_numbering_actions => 'Actions';
@@ -21342,6 +21358,18 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fichiers correspondent à d\'autres plongées et ont été écartés',
+      one: '$count fichier correspond à une autre plongée et a été écarté',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -31695,6 +31723,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get signatures_noSignatureImage => 'Aucune image de signature';
+
+  @override
+  String get signatures_notSigned => 'Non signé';
 
   @override
   String signatures_signHere(Object name) {
@@ -57190,6 +57221,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLab_compare_waiting => 'En attente de la plongée';
+
+  @override
+  String diveLab_compare_heldLink(String plan) {
+    return '$plan sera lié à l\'enregistrement.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink =>
+      'Le plan sera délié à l\'enregistrement.';
 
   @override
   String get diveLab_link_unlinkTitle => 'Dissocier ce plan ?';

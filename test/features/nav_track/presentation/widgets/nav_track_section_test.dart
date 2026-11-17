@@ -12,6 +12,7 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_sec
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// Records calls instead of touching a real database.
 class _RecordingNavTrackRepository extends NavTrackRepository {
@@ -24,8 +25,9 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   }
 
   @override
-  Future<void> setPrimary(String routeId) async {
+  Future<bool> setPrimary(String routeId, {String? onlyForDiveId}) async {
     primaryId = routeId;
+    return true;
   }
 }
 
@@ -58,6 +60,7 @@ Future<_RecordingNavTrackRepository> _pump(
   bool expanded = true,
   GoRouter? router,
   List<Override> extraOverrides = const [],
+  RecordEditController<Dive>? lockable,
 }) async {
   // Pinned so the English finders below pass regardless of the host's
   // platform locale: without this, a supported non-English translation can
@@ -100,7 +103,14 @@ Future<_RecordingNavTrackRepository> _pump(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: NavTrackSection(dive: _dive)),
+          home: Scaffold(
+            body: lockable == null
+                ? NavTrackSection(dive: _dive)
+                : RecordEditScope<Dive>(
+                    controller: lockable,
+                    child: NavTrackSection(dive: _dive),
+                  ),
+          ),
         ),
       ),
     );
@@ -284,5 +294,22 @@ void main() {
 
       expect(find.text('ROUTE_3D_PAGE'), findsOneWidget);
     });
+  });
+
+  testWidgets('on a page that offers editing the row menu offers Open and '
+      '3D only', (tester) async {
+    final controller = RecordEditController<Dive>(onSave: (_) async {});
+    addTearDown(controller.dispose);
+    await _pump(
+      tester,
+      linkedRoutes: [_route(diveId: _dive.id, isPrimary: false)],
+      lockable: controller,
+    );
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Open track'), findsOneWidget);
+    expect(find.text('Unlink'), findsNothing);
+    expect(find.text('Make primary'), findsNothing);
   });
 }

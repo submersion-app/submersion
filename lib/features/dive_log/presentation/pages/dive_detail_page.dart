@@ -45,6 +45,11 @@ import 'package:submersion/features/dive_lab/presentation/what_if_entry.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/open_dive_sitting_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_plan_link_sitting.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_route_links_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -242,10 +247,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   /// toggle back on if it was off, scrolls to the profile and asks the chart
   /// to light the marker and open its popup. A dive with no profile, or a
   /// page with the profile section switched off, has no marker to open, so
-  /// the link changes the time instead.
+  /// the link changes the time instead; on a page that locks it does
+  /// nothing, as the open Profile or Notes card is where an annotation
+  /// changes (issue #4527).
   Future<void> _scrollToProfileAndFocus(String annotationId) async {
     final dive = ref.read(diveProvider(widget.diveId)).value;
     if (dive != null && !_hasMarkerToOpen(dive)) {
+      if (editingOffered) return;
       final annotations = await ref
           .read(annotationRepositoryProvider)
           .annotationsForDive(widget.diveId);

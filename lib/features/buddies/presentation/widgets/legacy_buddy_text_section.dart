@@ -9,9 +9,23 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// `buddy` and `dive_master` text and the action that links them to buddy
 /// records. Shown only while the dive has no linked buddies.
 class LegacyBuddyTextSection extends StatefulWidget {
-  const LegacyBuddyTextSection({super.key, required this.dive});
+  const LegacyBuddyTextSection({
+    super.key,
+    required this.dive,
+    this.onLink,
+    this.linkShown = true,
+  });
 
   final Dive dive;
+
+  /// Links the text: null links it at once, as the dive page always has.
+  /// A sitting on the dive passes its own, which holds the links until
+  /// Save (issue #4527).
+  final Future<void> Function(BuildContext context)? onLink;
+
+  /// Whether the link action is offered. Hidden, it keeps its room, so the
+  /// card does not change height when the action comes and goes.
+  final bool linkShown;
 
   /// Whether [dive] has legacy text that parses to at least one name. A
   /// text holding only a placeholder such as `None` does not count.
@@ -38,7 +52,12 @@ class _LegacyBuddyTextSectionState extends State<LegacyBuddyTextSection> {
   Future<void> _link() async {
     setState(() => _busy = true);
     try {
-      await linkLegacyBuddiesForDive(context, widget.dive);
+      final link = widget.onLink;
+      if (link != null) {
+        await link(context);
+      } else {
+        await linkLegacyBuddiesForDive(context, widget.dive);
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -76,10 +95,16 @@ class _LegacyBuddyTextSectionState extends State<LegacyBuddyTextSection> {
             dive.diveMaster!.trim(),
             subtitle: l10n.diveRole_builtin_diveMaster,
           ),
-        TextButton.icon(
-          onPressed: _busy ? null : _link,
-          icon: const Icon(Icons.link),
-          label: Text(l10n.buddies_linkText_action),
+        Visibility(
+          visible: widget.linkShown,
+          maintainSize: true,
+          maintainAnimation: true,
+          maintainState: true,
+          child: TextButton.icon(
+            onPressed: _busy || !widget.linkShown ? null : _link,
+            icon: const Icon(Icons.link),
+            label: Text(l10n.buddies_linkText_action),
+          ),
         ),
       ],
     );

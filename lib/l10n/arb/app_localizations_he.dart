@@ -9926,6 +9926,18 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'מחושב';
+
+  @override
+  String get recordEdit_loadFailed => 'לא ניתן היה לטעון כרטיס זה.';
+
+  @override
+  String get recordEdit_tryAgain => 'נסה שוב';
+
+  @override
+  String get recordEdit_imported => 'מיובא';
+
+  @override
   String get recordEdit_saveFailed =>
       'לא ניתן היה לשמור את השינויים. שום דבר לא השתנה.';
 
@@ -10599,6 +10611,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_map_tooltip_fitAllSites => 'התאמה לכל האתרים';
+
+  @override
+  String get diveLog_media_dropUnlockHint =>
+      'בטל את נעילת הצלילה בעמוד שלה כדי להוסיף לה תמונות.';
 
   @override
   String get diveLog_numbering_actions => 'פעולות';
@@ -20822,6 +20838,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count קבצים תואמים צלילות אחרות והושמטו',
+      one: 'קובץ אחד תואם צלילה אחרת והושמט',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -30820,6 +30847,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get signatures_noSignatureImage => 'אין תמונת חתימה';
+
+  @override
+  String get signatures_notSigned => 'לא נחתם';
 
   @override
   String signatures_signHere(Object name) {
@@ -55858,6 +55888,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLab_compare_waiting => 'ממתין לצלילה';
+
+  @override
+  String diveLab_compare_heldLink(String plan) {
+    return '$plan יקושר בשמירה.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink => 'קישור התוכנית יבוטל בשמירה.';
 
   @override
   String get diveLab_link_unlinkTitle => 'לבטל את קישור התוכנית?';

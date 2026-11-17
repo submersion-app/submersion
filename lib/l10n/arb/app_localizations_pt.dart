@@ -10148,6 +10148,18 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'Calculado';
+
+  @override
+  String get recordEdit_loadFailed => 'Não foi possível carregar este cartão.';
+
+  @override
+  String get recordEdit_tryAgain => 'Tentar novamente';
+
+  @override
+  String get recordEdit_imported => 'Importado';
+
+  @override
   String get recordEdit_saveFailed =>
       'Não foi possível guardar as alterações. Nada foi alterado.';
 
@@ -10835,6 +10847,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_map_tooltip_fitAllSites => 'Ajustar Todos os Pontos';
+
+  @override
+  String get diveLog_media_dropUnlockHint =>
+      'Desbloqueie este mergulho na página dele para adicionar fotos.';
 
   @override
   String get diveLog_numbering_actions => 'Ações';
@@ -21288,6 +21304,18 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count arquivos correspondem a outros mergulhos e foram deixados de fora',
+      one: '$count arquivo corresponde a outro mergulho e foi deixado de fora',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -31592,6 +31620,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get signatures_noSignatureImage => 'Sem imagem de assinatura';
+
+  @override
+  String get signatures_notSigned => 'Não assinado';
 
   @override
   String signatures_signHere(Object name) {
@@ -57052,6 +57083,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLab_compare_waiting => 'À espera do mergulho';
+
+  @override
+  String diveLab_compare_heldLink(String plan) {
+    return '$plan será vinculado ao salvar.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink =>
+      'O plano será desvinculado ao salvar.';
 
   @override
   String get diveLab_link_unlinkTitle => 'Desassociar este plano?';

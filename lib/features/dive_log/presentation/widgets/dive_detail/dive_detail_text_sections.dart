@@ -117,22 +117,17 @@ class DiveCustomFieldsSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  context.l10n.diveLog_detail_section_customFields,
-                  style: Theme.of(context).textTheme.titleMedium,
+            // Its pencil, while the dive is unlocked (issue #4527).
+            RecordCardHeader(
+              title: context.l10n.diveLog_detail_section_customFields,
+              trailing: Text(
+                context.l10n.diveLog_detail_customFieldCount(
+                  dive.customFields.length,
                 ),
-                Text(
-                  context.l10n.diveLog_detail_customFieldCount(
-                    dive.customFields.length,
-                  ),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-              ],
+              ),
             ),
             const Divider(),
             ...dive.customFields.map(

@@ -20,9 +20,18 @@ import 'package:submersion/shared/widgets/record_editing/reveal_answering.dart';
 /// withdraws the request. That is how a card brought in from the Add strip,
 /// which may take its place below what is on screen, is seen to have opened.
 class RecordCardFrame<T> extends StatefulWidget {
-  const RecordCardFrame({super.key, required this.card, required this.child});
+  const RecordCardFrame({
+    super.key,
+    required this.card,
+    required this.child,
+    this.topGap = 0,
+  });
 
   final EditCard<T> card;
+
+  /// The gap a read card that places its own gap puts above itself, kept
+  /// above the open card so that opening it does not move it.
+  final double topGap;
 
   /// The card's read widget.
   final Widget child;
@@ -62,17 +71,24 @@ class _RecordCardFrameState<T> extends State<RecordCardFrame<T>>
         onOpen: () => controller.openCard(card.id),
         onDone: () => controller.closeCard(card.id),
       ),
-      child: isOpen ? _OpenCard<T>(card: card, session: session) : widget.child,
+      child: isOpen
+          ? _OpenCard<T>(card: card, session: session, topGap: widget.topGap)
+          : widget.child,
     );
   }
 }
 
 /// A card with its editor showing, outlined in the accent colour.
 class _OpenCard<T> extends StatelessWidget {
-  const _OpenCard({required this.card, required this.session});
+  const _OpenCard({
+    required this.card,
+    required this.session,
+    required this.topGap,
+  });
 
   final EditCard<T> card;
   final EditSession<T> session;
+  final double topGap;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +97,7 @@ class _OpenCard<T> extends StatelessWidget {
     final radius = themed is RoundedRectangleBorder
         ? themed.borderRadius
         : BorderRadius.circular(12);
-    return Card(
+    final open = Card(
       shape: RoundedRectangleBorder(
         borderRadius: radius,
         side: BorderSide(color: theme.colorScheme.primary, width: 2),
@@ -101,6 +117,14 @@ class _OpenCard<T> extends StatelessWidget {
           ],
         ),
       ),
+    );
+    if (topGap == 0) return open;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(height: topGap),
+        open,
+      ],
     );
   }
 }

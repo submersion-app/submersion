@@ -102,7 +102,10 @@ class _RecordingDeletionCoordinator implements MediaDeletionCoordinator {
   final List<String> deleted = [];
 
   @override
-  Future<void> deleteMultipleMedia(List<String> ids) async {
+  Future<void> deleteMultipleMedia(
+    List<String> ids, {
+    bool holdRemoteDelete = false,
+  }) async {
     deleted.addAll(ids);
   }
 

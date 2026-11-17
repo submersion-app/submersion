@@ -6037,6 +6037,22 @@
       }
     }
   },
+  "recordEdit_calculated": "Calculated",
+  "@recordEdit_calculated": {
+    "description": "Label on a card with nothing to edit, shown while its record is unlocked: its content is calculated from other data."
+  },
+  "recordEdit_loadFailed": "This card could not be loaded.",
+  "@recordEdit_loadFailed": {
+    "description": "An open card whose rows (buddies, sightings, signatures, the linked plan) could not be read while the record is being edited."
+  },
+  "recordEdit_tryAgain": "Try again",
+  "@recordEdit_tryAgain": {
+    "description": "Button under a card that could not be loaded: reads it again."
+  },
+  "recordEdit_imported": "Imported",
+  "@recordEdit_imported": {
+    "description": "Label on a card with nothing to edit, shown while its record is unlocked: its content was imported from a device or service."
+  },
   "recordEdit_saveFailed": "Couldn't save your changes. Nothing was changed.",
   "@recordEdit_saveFailed": {
     "description": "Message shown when saving an unlocked record fails."
@@ -6375,6 +6391,10 @@
   "diveLog_map_emptyTitle": "No dive activity to display",
   "diveLog_map_errorLoading": "Error loading dive data: {error}",
   "diveLog_map_tooltip_fitAllSites": "Fit All Sites",
+  "diveLog_media_dropUnlockHint": "Unlock this dive on its own page to add photos.",
+  "@diveLog_media_dropUnlockHint": {
+    "description": "Shown when photos or videos are dropped on a dive that is locked, on its page or in the list's detail pane (which cannot unlock): dives are edited only while unlocked, on their own page."
+  },
   "diveLog_numbering_actions": "Actions",
   "diveLog_numbering_allCorrect": "All dives numbered correctly",
   "diveLog_numbering_assignMissing": "Assign missing numbers",
@@ -12888,6 +12908,15 @@
       }
     }
   },
+  "media_picker_otherDivesLeftOut": "{count, plural, =1{{count} file matches another dive and was left out} other{{count} files match other dives and were left out}}",
+  "@media_picker_otherDivesLeftOut": {
+    "description": "Shown after the photo picker, opened while a dive is being edited, hands its files to that dive: how many staged files matched other dives and were left out.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "media_photoPicker_files_attachedToSiteCount": "{count, plural, =1{Attached 1 item to this site} other{Attached {count} items to this site}}",
   "@media_photoPicker_files_attachedToSiteCount": {
     "placeholders": {
@@ -18435,6 +18464,10 @@
   "signatures_buddySignature": "Buddy Signature",
   "signatures_instructorSignature": "Instructor Signature",
   "signatures_noSignatureImage": "No signature image",
+  "signatures_notSigned": "Not signed",
+  "@signatures_notSigned": {
+    "description": "Shown on a training dive's instructor signature card when no one has signed and the card is read only (the dive is locked)."
+  },
   "signatures_signHere": "{name} - Sign Here",
   "signatures_signed": "Signed",
   "signatures_signedCountSemantics": "{signed} of {total} buddies have signed",
@@ -34012,6 +34045,19 @@
   "diveLab_compare_planTable": "Plan against dive",
   "diveLab_compare_plannedSchedule": "Planned schedule",
   "diveLab_compare_waiting": "Waiting for the dive",
+  "diveLab_compare_heldLink": "{plan} is linked at Save.",
+  "@diveLab_compare_heldLink": {
+    "description": "The closed Compare card while a dive is unlocked and a plan has been linked but not saved yet: names the plan Save will link.",
+    "placeholders": {
+      "plan": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLab_compare_heldUnlink": "The plan is unlinked at Save.",
+  "@diveLab_compare_heldUnlink": {
+    "description": "The closed Compare card while a dive is unlocked and its plan has been unlinked but not saved yet."
+  },
   "diveLab_link_unlinkTitle": "Unlink this plan?",
   "diveLab_link_unlinkBody": "The plan and the dive both stay. They just stop being compared.",
   "diveLab_link_unlinkConfirm": "Unlink",

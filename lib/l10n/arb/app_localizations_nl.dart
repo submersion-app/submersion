@@ -10085,6 +10085,18 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'Berekend';
+
+  @override
+  String get recordEdit_loadFailed => 'Deze kaart kon niet worden geladen.';
+
+  @override
+  String get recordEdit_tryAgain => 'Opnieuw proberen';
+
+  @override
+  String get recordEdit_imported => 'Geïmporteerd';
+
+  @override
   String get recordEdit_saveFailed =>
       'Kon de wijzigingen niet opslaan. Er is niets gewijzigd.';
 
@@ -10767,6 +10779,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_map_tooltip_fitAllSites => 'Alle stekken passend maken';
+
+  @override
+  String get diveLog_media_dropUnlockHint =>
+      'Ontgrendel deze duik op zijn eigen pagina om er foto\'s aan toe te voegen.';
 
   @override
   String get diveLog_numbering_actions => 'Acties';
@@ -21154,6 +21170,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bestanden horen bij andere duiken en zijn weggelaten',
+      one: '$count bestand hoort bij een andere duik en is weggelaten',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -31403,6 +31430,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get signatures_noSignatureImage => 'Geen handtekeningafbeelding';
+
+  @override
+  String get signatures_notSigned => 'Niet ondertekend';
 
   @override
   String signatures_signHere(Object name) {
@@ -56704,6 +56734,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLab_compare_waiting => 'Wacht op de duik';
+
+  @override
+  String diveLab_compare_heldLink(String plan) {
+    return '$plan wordt gekoppeld bij Opslaan.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink =>
+      'Het plan wordt ontkoppeld bij Opslaan.';
 
   @override
   String get diveLab_link_unlinkTitle => 'Dit plan ontkoppelen?';

@@ -50,6 +50,10 @@ import 'package:submersion/features/settings/presentation/providers/viewer_fulls
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_buoyancy_inputs.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/annotation_edits.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_annotations_sitting.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_gas_switch_sitting.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// Fullscreen dive review: full-height profile chart with a dive-computer
 /// instrument bar, playback, and scrubbing (issues #443, #169).
@@ -61,10 +65,21 @@ class FullscreenProfilePage extends ConsumerStatefulWidget {
   /// which leaves Open in Notes out of the marker popup.
   final ValueChanged<String>? onOpenInNotes;
 
+  /// The open Profile card's sitting (issue #4527): annotations placed,
+  /// moved and removed here are held in it, and the sitting's annotations
+  /// and gas switches are drawn.
+  final EditSession<Dive>? session;
+
+  /// Shows no control that writes: opened from a locked dive, a closed
+  /// Profile card, or the dashboard, with in-place editing switched on.
+  final bool readOnly;
+
   const FullscreenProfilePage({
     super.key,
     required this.diveId,
     this.onOpenInNotes,
+    this.session,
+    this.readOnly = false,
   });
 
   @override
@@ -73,6 +88,11 @@ class FullscreenProfilePage extends ConsumerStatefulWidget {
 }
 
 class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
+  /// The sitting's changes are drawn as they are made.
+  void _onSession() {
+    if (mounted) setState(() {});
+  }
+
   /// Width the chart header leaves for the legend and its zoom controls
   /// (plus the page's side padding) before the title starts to ellipsize.
   static const double _legendReservedWidth = 150;
@@ -102,6 +122,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
   @override
   void initState() {
     super.initState();
+    widget.session?.addListener(_onSession);
     _playbackNotifier = ref.read(playbackProvider(widget.diveId).notifier);
     _reviewController = ref.read(profileReviewProvider(widget.diveId).notifier);
     _wasPlaybackActiveOnEntry = ref
@@ -133,6 +154,10 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
 
   @override
   void dispose() {
+    final session = widget.session;
+    if (session != null && !session.isDisposed) {
+      session.removeListener(_onSession);
+    }
     _removePlaybackListener();
     _lifecycleListener.dispose();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -191,7 +216,21 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     final dataSources =
         ref.watch(diveDataSourcesProvider(widget.diveId)).value ?? const [];
     final overlayIds = ref.watch(overlaySourcesProvider(widget.diveId));
-    final gasSwitches = ref.watch(gasSwitchesProvider(widget.diveId)).value;
+    final session = widget.session;
+    // A sitting that has ended (the dive changed elsewhere) edits nothing.
+    final sitting = session == null || session.isDisposed ? null : session;
+    // Read only as asked, or once a sitting it was handed has ended: with no
+    // sitting the edits would otherwise go straight to the database.
+    final writesNothing =
+        widget.readOnly || (session != null && sitting == null);
+    // In a sitting, annotations are edited only once it holds them: until
+    // then a pin, a move or a removal would go nowhere.
+    final annotationsReadOnly =
+        writesNothing ||
+        (sitting != null && sittingAnnotations(sitting) == null);
+    final gasSwitches =
+        (sitting == null ? null : sittingGasSwitchesWithTanks(sitting)) ??
+        ref.watch(gasSwitchesProvider(widget.diveId)).value;
     final tankPressures = ref
         .watch(activeSourceTankPressuresProvider(widget.diveId))
         .value;
@@ -308,6 +347,8 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
       ref: ref,
       context: context,
       dive: dive,
+      edits: sitting == null ? null : SittingAnnotationEdits(sitting),
+      readOnly: annotationsReadOnly,
       onOpenInNotes: openInNotes == null
           ? null
           : (id) {
@@ -320,10 +361,14 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     );
     final focusedAnnotation = ref.watch(annotationFocusProvider(widget.diveId));
     // `.value` keeps the previous annotations on screen through a reload.
+    final storedAnnotations =
+        ref.watch(diveAnnotationsProvider(widget.diveId)).value ??
+        const <ProfileEvent>[];
     final chartEvents = mergeChartEvents(
       analysis?.events,
-      ref.watch(diveAnnotationsProvider(widget.diveId)).value ??
-          const <ProfileEvent>[],
+      sitting != null && sittingAnnotations(sitting) != null
+          ? sittingAnnotationEvents(sitting)
+          : storedAnnotations,
     );
 
     // Active source and overlays (mirrors the detail page's wiring).
@@ -541,10 +586,11 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                   // No trailing gap: the info icon's slot
                                   // after it spaces the pair, and the group
                                   // must fit a 320 pt phone.
-                                  AnnotationPinButton(
-                                    active: annotationPlacement != null,
-                                    onPressed: chartActions.onPinPressed,
-                                  ),
+                                  if (!annotationsReadOnly)
+                                    AnnotationPinButton(
+                                      active: annotationPlacement != null,
+                                      onPressed: chartActions.onPinPressed,
+                                    ),
                                   HeaderInfoButton(
                                     title: context
                                         .l10n
@@ -676,12 +722,16 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                   ? null
                                   : finding;
                             },
-                            onSafetyFindingDismiss: (finding) =>
-                                setSafetyFindingDismissed(
-                                  ref,
-                                  finding: finding,
-                                  dismissed: true,
-                                ),
+                            // With editing switched on, findings are
+                            // dismissed in the open Safety review card.
+                            onSafetyFindingDismiss:
+                                widget.readOnly || session != null
+                                ? null
+                                : (finding) => setSafetyFindingDismissed(
+                                    ref,
+                                    finding: finding,
+                                    dismissed: true,
+                                  ),
                             // Time, not sample index: the surface lead-in
                             // before the first sample reports 0, so playback
                             // and the tooltip agree on 00:00.

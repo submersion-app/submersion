@@ -40,9 +40,9 @@ Future<void> showAnnotationMarkerPopup(
   required Offset globalPosition,
   required UnitFormatter units,
   VoidCallback? onOpenInNotes,
-  required VoidCallback onMove,
-  required VoidCallback onEditTime,
-  required VoidCallback onRemove,
+  required VoidCallback? onMove,
+  required VoidCallback? onEditTime,
+  required VoidCallback? onRemove,
 }) async {
   final choice = await showMenu<_PopupChoice>(
     context: context,
@@ -56,6 +56,9 @@ Future<void> showAnnotationMarkerPopup(
           annotation: annotation,
           units: units,
           canOpenInNotes: onOpenInNotes != null,
+          // Read only (a locked dive), the popup says what the annotation is
+          // and leads to the Notes, and changes nothing.
+          canEdit: onMove != null && onEditTime != null && onRemove != null,
         ),
       ),
     ],
@@ -66,11 +69,11 @@ Future<void> showAnnotationMarkerPopup(
     case _PopupChoice.openInNotes:
       onOpenInNotes?.call();
     case _PopupChoice.move:
-      onMove();
+      onMove?.call();
     case _PopupChoice.editTime:
-      onEditTime();
+      onEditTime?.call();
     case _PopupChoice.remove:
-      onRemove();
+      onRemove?.call();
     case null:
       break;
   }
@@ -81,11 +84,13 @@ class _PopupBody extends StatelessWidget {
     required this.annotation,
     required this.units,
     required this.canOpenInNotes,
+    required this.canEdit,
   });
 
   final ProfileEvent annotation;
   final UnitFormatter units;
   final bool canOpenInNotes;
+  final bool canEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +121,7 @@ class _PopupBody extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               InkWell(
-                onTap: () => choose(_PopupChoice.editTime),
+                onTap: canEdit ? () => choose(_PopupChoice.editTime) : null,
                 borderRadius: BorderRadius.circular(4),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 2),
@@ -141,14 +146,16 @@ class _PopupBody extends StatelessWidget {
                       onPressed: () => choose(_PopupChoice.openInNotes),
                       child: Text(l10n.diveLog_annotation_popup_openInNotes),
                     ),
-                  TextButton(
-                    onPressed: () => choose(_PopupChoice.move),
-                    child: Text(l10n.diveLog_annotation_popup_move),
-                  ),
-                  TextButton(
-                    onPressed: () => choose(_PopupChoice.remove),
-                    child: Text(l10n.diveLog_annotation_popup_remove),
-                  ),
+                  if (canEdit) ...[
+                    TextButton(
+                      onPressed: () => choose(_PopupChoice.move),
+                      child: Text(l10n.diveLog_annotation_popup_move),
+                    ),
+                    TextButton(
+                      onPressed: () => choose(_PopupChoice.remove),
+                      child: Text(l10n.diveLog_annotation_popup_remove),
+                    ),
+                  ],
                 ],
               ),
             ],

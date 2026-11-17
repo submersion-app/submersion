@@ -10153,6 +10153,18 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_calculated => 'Calculado';
+
+  @override
+  String get recordEdit_loadFailed => 'No se ha podido cargar esta tarjeta.';
+
+  @override
+  String get recordEdit_tryAgain => 'Reintentar';
+
+  @override
+  String get recordEdit_imported => 'Importado';
+
+  @override
   String get recordEdit_saveFailed =>
       'No se pudieron guardar los cambios. No se realizó ningún cambio.';
 
@@ -10839,6 +10851,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_map_tooltip_fitAllSites => 'Ajustar a todos los puntos';
+
+  @override
+  String get diveLog_media_dropUnlockHint =>
+      'Desbloquea esta inmersión en su propia página para añadirle fotos.';
 
   @override
   String get diveLog_numbering_actions => 'Acciones';
@@ -21278,6 +21294,17 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String media_picker_otherDivesLeftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count archivos coinciden con otras inmersiones y se han omitido',
+      one: '$count archivo coincide con otra inmersión y se ha omitido',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_photoPicker_files_attachedToSiteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -31621,6 +31648,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get signatures_noSignatureImage => 'Sin imagen de firma';
+
+  @override
+  String get signatures_notSigned => 'Sin firmar';
 
   @override
   String signatures_signHere(Object name) {
@@ -57111,6 +57141,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLab_compare_waiting => 'A la espera de la inmersión';
+
+  @override
+  String diveLab_compare_heldLink(String plan) {
+    return '$plan se vincula al guardar.';
+  }
+
+  @override
+  String get diveLab_compare_heldUnlink => 'El plan se desvincula al guardar.';
 
   @override
   String get diveLab_link_unlinkTitle => '¿Desvincular este plan?';
