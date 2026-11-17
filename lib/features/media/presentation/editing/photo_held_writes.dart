@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_color_adjustment_repository.dart';
 import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
@@ -17,8 +19,11 @@ const _relinkUndoKey = 'photo:relink.undo';
 ///
 /// At Save the file is checked against the photo as stored then, not as it
 /// was when the file was found, and a relink the repair cannot make (other
-/// bytes than the photo's, a file gone since) fails the save, so the change
-/// the diver saw is never dropped without a word.
+/// bytes than the photo's) fails the save, so the change the diver saw is
+/// never dropped without a word. The file itself is read again then with
+/// [hashFile] (Locate's own): one gone since, or edited since so that its
+/// bytes are no longer the ones found, fails the save too, as the diver
+/// chose that file and not whatever is at its path now.
 ///
 /// The relink runs inside the save's transaction; what it does
 /// outside the database waits: the upload of different bytes and the
@@ -29,6 +34,7 @@ void holdRelink(
   EditSession<PhotoRecord> session,
   RepairProposal proposal, {
   required MediaRepairService service,
+  required Future<({String hash, int sizeBytes})> Function(File file) hashFile,
 }) {
   if (session.isDisposed || session.isFrozen) return;
   session.remember(photoRelinkProposalKey, proposal);
@@ -53,7 +59,7 @@ void holdRelink(
           RepairProposal(
             item: current,
             confidence: proposal.confidence,
-            candidate: proposal.candidate,
+            candidate: await _asFoundStill(id, proposal.candidate, hashFile),
           ),
         ],
         afterCommit: after,
@@ -64,6 +70,32 @@ void holdRelink(
       }
       session.remember(_relinkAfterKey, after);
     },
+  );
+}
+
+/// [found], the file Locate found, as it is at Save: read again, and
+/// refused (a [StateError], which fails the save) when it is gone or its
+/// bytes are no longer the ones found.
+Future<RepairCandidate?> _asFoundStill(
+  String id,
+  RepairCandidate? found,
+  Future<({String hash, int sizeBytes})> Function(File file) hashFile,
+) async {
+  final path = found?.path;
+  if (found == null || path == null) return found;
+  final ({String hash, int sizeBytes}) now;
+  try {
+    now = await hashFile(File(path));
+  } on FileSystemException catch (error) {
+    throw StateError('The file found for media $id is gone: $error');
+  }
+  if (found.hash != null && now.hash != found.hash) {
+    throw StateError('The file found for media $id changed since');
+  }
+  return RepairCandidate.file(
+    path: path,
+    sizeBytes: now.sizeBytes,
+    hash: now.hash,
   );
 }
 
