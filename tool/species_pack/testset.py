@@ -82,6 +82,7 @@ UNDERWATER_PROMPTS = [
     "a fish swimming over a coral reef",
     "an animal on the sea floor, photographed underwater by a diver",
     "a sea creature among rocks and seaweed underwater",
+    "a sea animal in a rock pool, seen through clear water",
 ]
 DRY_PROMPTS = [
     "an animal held in a person's hand",
@@ -94,6 +95,11 @@ DRY_PROMPTS = [
     "a crab or a shell on a sandy beach",
     "a snail on a leaf or on a garden wall",
     "an empty seashell",
+    "a seashell or snail held between someone's fingers",
+    "a crab or snail on a dry rock at the seashore, out of the water",
+    "a sea star lying on wet sand at low tide",
+    "an animal on a wooden dock, a pier or a boat",
+    "a shell photographed on paper or on a table",
 ]
 
 _BELOW_SPECIES = {"species", "subspecies", "variety", "form"}
