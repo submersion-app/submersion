@@ -10,7 +10,6 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_list_count_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -1068,7 +1067,12 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      expect(find.byType(DiveEditPage), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is DiveDetailPage && w.newDiveRequest != null,
+        ),
+        findsOneWidget,
+      );
     });
 
     // Note: The edit builder test for dives is not included because

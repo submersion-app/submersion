@@ -10,30 +10,19 @@ void main() {
 
   OpenDiveSitting open(EditSession<Dive> session) =>
       OpenDiveSitting(diveId: 'dive-1', session: session, showMediaCard: () {});
-
-  test('switch off: as today', () {
-    expect(
-      diveDropAnswer(lockable: false, open: null, diveId: 'dive-1'),
-      DiveDropAnswer.asToday,
-    );
-  });
-
   test('a locked dive, page or pane: refused', () {
-    expect(
-      diveDropAnswer(lockable: true, open: null, diveId: 'dive-1'),
-      DiveDropAnswer.refuse,
-    );
+    expect(diveDropAnswer(open: null, diveId: 'dive-1'), DiveDropAnswer.refuse);
   });
 
   test("in a sitting on that dive: held; on another dive's: refused", () {
     final session = EditSession<Dive>(dive);
     addTearDown(session.dispose);
     expect(
-      diveDropAnswer(lockable: true, open: open(session), diveId: 'dive-1'),
+      diveDropAnswer(open: open(session), diveId: 'dive-1'),
       DiveDropAnswer.hold,
     );
     expect(
-      diveDropAnswer(lockable: true, open: open(session), diveId: 'dive-2'),
+      diveDropAnswer(open: open(session), diveId: 'dive-2'),
       DiveDropAnswer.refuse,
     );
   });
@@ -42,12 +31,12 @@ void main() {
     final saving = EditSession<Dive>(dive)..freeze();
     addTearDown(saving.dispose);
     expect(
-      diveDropAnswer(lockable: true, open: open(saving), diveId: 'dive-1'),
+      diveDropAnswer(open: open(saving), diveId: 'dive-1'),
       DiveDropAnswer.refuse,
     );
     final ended = EditSession<Dive>(dive)..dispose();
     expect(
-      diveDropAnswer(lockable: true, open: open(ended), diveId: 'dive-1'),
+      diveDropAnswer(open: open(ended), diveId: 'dive-1'),
       DiveDropAnswer.refuse,
     );
   });

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:submersion/core/database/database.dart'
     show
         AppDatabase,
@@ -12,7 +11,6 @@ import 'package:submersion/core/database/database.dart'
         DivesCompanion,
         DiveTanksCompanion;
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/router/app_router.dart' show newDivePage;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
@@ -565,28 +563,6 @@ void main() {
     }
     final saved = await repository.getDiveById(savedId!);
     expect(saved!.tanks.first.tripCylinderId, b.id);
-  });
-
-  testWidgets('the new-dive route passes the trip and slot through', (
-    tester,
-  ) async {
-    DiveEditPage? built;
-    final router = GoRouter(
-      initialLocation: '/dives/new?tripId=t9&tripCylinderId=c9',
-      routes: [
-        GoRoute(
-          path: '/dives/new',
-          builder: (context, state) {
-            built = newDivePage(state, unlockEditing: false) as DiveEditPage;
-            return const SizedBox.shrink();
-          },
-        ),
-      ],
-    );
-    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
-    await tester.pump();
-    expect(built!.tripId, 't9');
-    expect(built!.tripCylinderId, 'c9');
   });
 }
 

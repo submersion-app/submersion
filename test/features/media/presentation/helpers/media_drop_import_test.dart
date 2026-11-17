@@ -39,7 +39,6 @@ void main() {
                   ref,
                   MediaDropDestination(target: DiveAttachTarget(diveId)),
                   const ['/photos/a.jpg'],
-                  lockable: true,
                 ),
                 child: const Text('drop'),
               ),

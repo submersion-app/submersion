@@ -2695,14 +2695,13 @@ bool parseForceFullQueryParam(String? value) => value == 'true';
 
 /// The new-dive page for [state]: a prefill passed as `extra` (the OCR scan,
 /// a passport tag), and the board's Log dive shortcut as the `tripId` and
-/// `tripCylinderId` query parameters. Which page that is, the dive page
-/// opened unlocked or the old form, is the dive log's ([newDiveRoutePage]).
-Widget newDivePage(GoRouterState state, {bool? unlockEditing}) =>
+/// `tripCylinderId` query parameters, on the dive page opened unlocked
+/// ([newDiveRoutePage]).
+Widget newDivePage(GoRouterState state) =>
     newDiveRoutePage(
       prefill: state.extra as DivePrefill?,
       tripId: state.uri.queryParameters['tripId'],
       tripCylinderId: state.uri.queryParameters['tripCylinderId'],
-      unlockEditing: unlockEditing,
     );
 
 /// `/dives/search` was Advanced Search and `/dives/explore` was Explore;

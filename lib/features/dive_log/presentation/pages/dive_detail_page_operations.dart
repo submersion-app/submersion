@@ -10,10 +10,9 @@ mixin _DiveDetailPageOperations
         ConsumerState<DiveDetailPage>,
         _DiveDetailPageActions,
         _DiveDetailPageEditing {
-  /// Whether the operations may run now, or null when the page offers no
-  /// editing and they act as they always have.
+  /// Whether the operations may run now.
   RecordOperationBlock? get operationBlock =>
-      editingOffered ? recordOperationBlockOf(editController) : null;
+      recordOperationBlockOf(editController);
 
   /// Runs [operation], which answers whether it wrote. A page that offers
   /// editing runs it through its controller, which refuses while locked or
@@ -23,23 +22,10 @@ mixin _DiveDetailPageOperations
   /// thrown ([recordOperationRunnerOf], which the cards' controls use too):
   /// the operation's own message has told the diver, and the page carries
   /// on as the controller left it.
-  Future<void> _runOperation(Future<bool> Function() operation) async {
-    if (editingOffered) {
-      await recordOperationRunnerOf(editController, record: 'dive $diveId')!(
+  Future<void> _runOperation(Future<bool> Function() operation) =>
+      recordOperationRunnerOf(editController, record: 'dive $diveId')!(
         operation,
       );
-      return;
-    }
-    try {
-      await operation();
-    } catch (error, stackTrace) {
-      _log.error(
-        'A whole-record operation on dive $diveId failed',
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
-  }
 
   /// Delete, from the menu: asks, deletes, then leaves the page. A sitting
   /// ends first, as the dive it was opened on is gone.

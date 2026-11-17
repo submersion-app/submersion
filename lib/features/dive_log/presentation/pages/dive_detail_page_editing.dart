@@ -7,8 +7,7 @@ part of 'dive_detail_page.dart';
 /// the page leaves out are offered in a strip under the bar. Save writes
 /// the whole sitting at once and locks again.
 ///
-/// Offered only when [DiveDetailPage.unlockEditing] is on, on the full page
-/// and in the list pane alike. With it off, the page builds none of this.
+/// Offered on the full page and in the list pane alike.
 mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   RecordEditController<Dive>? _editController;
 
@@ -29,10 +28,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   /// lock returning and the reload landing.
   Dive? _justSaved;
 
-  /// Whether this page offers unlock-to-edit.
-  bool get editingOffered => widget.unlockEditing;
-
-  /// Created on first use, so a page that never offers editing has none.
+  /// Created on first use.
   RecordEditController<Dive> get editController => _editController ??=
       _newEditController(ProviderScope.containerOf(context, listen: false));
 
@@ -127,7 +123,6 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   @override
   void initState() {
     super.initState();
-    if (!editingOffered) return;
     final controller = editController;
     final target = _shortcutTarget = RecordEditShortcutTarget(
       controller: controller,
@@ -192,7 +187,6 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   /// has not touched follows a change that arrives underneath. Call from
   /// `build`.
   void followStoredDive() {
-    if (!editingOffered) return;
     ref.listen(diveProvider(diveId), (_, next) {
       // A reload in flight still carries the dive it started from.
       if (next.isLoading) return;
