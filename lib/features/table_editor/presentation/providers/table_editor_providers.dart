@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart' show WeightType;
 import 'package:submersion/core/providers/provider.dart';
@@ -9,7 +7,6 @@ import 'package:submersion/features/dive_centers/domain/constants/dive_center_fi
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/query/dive_center_query_entity.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label.dart';
 import 'package:submersion/features/dive_log/presentation/providers/bulk_dive_edit_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -168,51 +165,14 @@ final tableEditorCenterConfigProvider =
 // Rows, one list per tab, narrowed by the tab's filter
 // ---------------------------------------------------------------------------
 
-/// The dive list narrowed by the editor's filter, as the list loads it:
-/// without weight rows.
-final tableEditorListedDivesProvider = Provider<AsyncValue<List<Dive>>>((ref) {
+/// The sheet's dives: the dive list narrowed by the editor's filter. The
+/// list loads each dive's weight rows and gear, which the weight column and
+/// the stale check read, and reloads on a write to either alone (#4442).
+final tableEditorDivesProvider = Provider<AsyncValue<List<Dive>>>((ref) {
   final filter = ref.watch(tableEditorDiveFilterProvider);
   return narrowDivesByIds(
     ref.watch(diveListNotifierProvider),
     ref.watch(queryFilteredDiveIdsProvider(filter)),
-  );
-});
-
-/// Weight rows for the dives on the sheet: the list never loads them, and
-/// the weight cell needs the row count and the single row's amount.
-final tableEditorWeightsProvider =
-    FutureProvider<Map<String, List<DiveWeight>>>((ref) async {
-      final listed = ref.watch(tableEditorListedDivesProvider);
-      final repository = ref.watch(diveRepositoryProvider);
-      // Weight rows change under a save, an undo or a sync pull, and a pull
-      // can change one without touching its dive.
-      ref.invalidateSelfWhen(
-        repository.watchTables(const {'dives', 'dive_weights'}),
-      );
-      // A list on its way names no dives, and answering for none would read
-      // as every dive being weightless. Waiting keeps the last answer until
-      // the list lands and runs this again.
-      if (listed.isLoading && !listed.hasValue) {
-        return Completer<Map<String, List<DiveWeight>>>().future;
-      }
-      final dives = listed.value ?? const [];
-      if (dives.isEmpty) return const {};
-      return repository.getWeightsForDives([for (final d in dives) d.id]);
-    });
-
-/// The sheet's dives: the listed dives with their weight rows merged in, so
-/// the weight column and the stale check read the row itself. A refetch of
-/// the weights keeps the previous rows, so the sheet never drops to a
-/// spinner mid-edit.
-final tableEditorDivesProvider = Provider<AsyncValue<List<Dive>>>((ref) {
-  final listed = ref.watch(tableEditorListedDivesProvider);
-  final weights = ref.watch(tableEditorWeightsProvider);
-  if (!weights.hasValue) return _waitingOn([weights]);
-  final byDive = weights.value ?? const <String, List<DiveWeight>>{};
-  return listed.whenData(
-    (dives) => [
-      for (final d in dives) d.copyWith(weights: byDive[d.id] ?? const []),
-    ],
   );
 });
 

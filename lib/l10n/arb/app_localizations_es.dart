@@ -8312,6 +8312,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_detail_section_weight => 'Lastre';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'Del equipo';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'Toca para agregar la verificación del instructor para esta inmersión de entrenamiento';
 
@@ -9155,6 +9158,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String diveLog_edit_weightTotal(Object total) {
     return 'Total: $total';
   }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'También se cuenta: $weight de lastre llevado como equipo ($items). Añade aquí solo lastre adicional.';
+  }
+
+  @override
+  String get diveLog_edit_weightGearNote_listSeparator => ', ';
 
   @override
   String get diveLog_emptyFiltered_clearFilters => 'Borrar filtros';
@@ -46525,6 +46536,10 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get tableEditor_weightGear =>
+      'Incluye lastre llevado como equipo, edítalo en la inmersión';
 
   @override
   String get tableEditor_summary_siteSnap =>

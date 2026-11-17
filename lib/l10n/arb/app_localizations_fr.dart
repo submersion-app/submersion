@@ -8332,6 +8332,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_detail_section_weight => 'Lestage';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'Depuis l\'équipement';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'Appuie pour ajouter la vérification du moniteur pour cette plongée de formation';
 
@@ -9177,6 +9180,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String diveLog_edit_weightTotal(Object total) {
     return 'Total : $total';
   }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'Également compté : $weight porté comme équipement ($items). N\'ajoutez ici que du lest supplémentaire.';
+  }
+
+  @override
+  String get diveLog_edit_weightGearNote_listSeparator => ', ';
 
   @override
   String get diveLog_emptyFiltered_clearFilters => 'Effacer les filtres';
@@ -46619,6 +46630,10 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get tableEditor_weightGear =>
+      'Inclut du lest porté comme équipement, à modifier dans la plongée';
 
   @override
   String get tableEditor_summary_siteSnap =>

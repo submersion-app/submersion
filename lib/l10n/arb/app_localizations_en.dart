@@ -8185,6 +8185,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_detail_section_weight => 'Weight';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'From equipment';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'Tap to add instructor verification for this training dive';
 
@@ -9018,6 +9021,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String diveLog_edit_weightTotal(Object total) {
     return 'Total: $total';
   }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'Also counted: $weight carried as equipment ($items). Add a weight here only for separate lead.';
+  }
+
+  @override
+  String get diveLog_edit_weightGearNote_listSeparator => ', ';
 
   @override
   String get diveLog_emptyFiltered_clearFilters => 'Clear Filters';
@@ -45738,6 +45749,10 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get tableEditor_weightGear =>
+      'Includes lead carried as equipment, edit it in the dive';
 
   @override
   String get tableEditor_summary_siteSnap =>

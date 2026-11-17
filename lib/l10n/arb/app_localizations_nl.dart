@@ -8257,6 +8257,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_detail_section_weight => 'Gewicht';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'Uit de uitrusting';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'Tik om instructeurverificatie toe te voegen voor deze trainingsduik';
 
@@ -9099,6 +9102,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String diveLog_edit_weightTotal(Object total) {
     return 'Totaal: $total';
   }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'Ook meegeteld: $weight gedragen als uitrusting ($items). Voeg hier alleen extra lood toe.';
+  }
+
+  @override
+  String get diveLog_edit_weightGearNote_listSeparator => ', ';
 
   @override
   String get diveLog_emptyFiltered_clearFilters => 'Filters wissen';
@@ -46197,6 +46208,10 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get tableEditor_weightGear =>
+      'Bevat lood dat als uitrusting wordt gedragen, bewerk het in de duik';
 
   @override
   String get tableEditor_summary_siteSnap =>

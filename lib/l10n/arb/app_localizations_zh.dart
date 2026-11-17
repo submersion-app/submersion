@@ -7890,6 +7890,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_section_weight => '配重';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => '来自装备';
+
+  @override
   String get diveLog_detail_signatureDescription => '点击为此培训潜水添加教练验证';
 
   @override
@@ -8685,6 +8688,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String diveLog_edit_weightTotal(Object total) {
     return '总计：$total';
   }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return '已计入：作为装备携带的 $weight（$items）。仅在有额外配重时于此处添加。';
+  }
+
+  @override
+  String get diveLog_edit_weightGearNote_listSeparator => '、';
 
   @override
   String get diveLog_emptyFiltered_clearFilters => '清除筛选';
@@ -43795,6 +43806,9 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get tableEditor_weightGear => '包含作为装备携带的配重，请在潜水中编辑';
 
   @override
   String get tableEditor_summary_siteSnap => '设置潜点也会在潜水上设置其水体类型、入水、出水和潜水类型';

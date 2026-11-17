@@ -8441,6 +8441,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_section_weight => 'الأثقال';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'من المعدات';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'انقر لإضافة توثيق المدرب لهذه الغوصة التدريبية';
 
@@ -9306,6 +9309,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String diveLog_edit_weightTotal(Object total) {
     return 'الإجمالي: $total';
   }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'محسوب أيضًا: $weight محمولة ضمن المعدات ($items). أضف ثقلًا هنا فقط إذا كان رصاصًا منفصلًا.';
+  }
+
+  @override
+  String get diveLog_edit_weightGearNote_listSeparator => '، ';
 
   @override
   String get diveLog_emptyFiltered_clearFilters => 'مسح عوامل التصفية';
@@ -47186,6 +47197,10 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get tableEditor_weightGear =>
+      'يشمل رصاصًا محمولًا كمعدات، عدّله في الغطسة';
 
   @override
   String get tableEditor_summary_siteSnap =>

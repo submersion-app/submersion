@@ -290,6 +290,8 @@ class DiveRepository {
   /// [_mapRowsWithPreloadedData] embeds. See [watchDiveHydrationWrites].
   static const Set<String> diveHydrationTables = {
     'dive_tanks',
+    // A dive's total weight adds its rows to its gear lead (#4442).
+    'dive_weights',
     'dive_sites',
     'dive_centers',
     'trips',
@@ -466,6 +468,10 @@ class DiveRepository {
   /// Also watches `equipment_attributes`: each gear item is hydrated with its
   /// attributes, and its colour tints the diver figure in the equipment card
   /// (issue #2326). A synced colour edit writes only this table.
+  ///
+  /// Also watches `dive_weights`: the Weights card and the buoyancy model add
+  /// the rows to the lead carried as gear (issue #4442), and a synced row
+  /// never restamps its dive (#1769).
   Stream<void> watchDiveDetailChanges() => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
@@ -476,6 +482,7 @@ class DiveRepository {
           TableUpdateQuery.onTable(_db.diveEquipment),
           TableUpdateQuery.onTable(_db.equipment),
           TableUpdateQuery.onTable(_db.equipmentAttributes),
+          TableUpdateQuery.onTable(_db.diveWeights),
           TableUpdateQuery.onTable(_db.gasSwitches),
           TableUpdateQuery.onTable(_db.diveDataSources),
           TableUpdateQuery.onTable(_db.diveComputers),
@@ -677,15 +684,16 @@ class DiveRepository {
   ///
   /// No sample is read, so `profile` stays empty and what [_mapRowToDive]
   /// derives from samples stays missing, apart from `profileSpan`, which keeps
-  /// [domain.Dive.measuredRuntime] the same on both. Weights are left to the
-  /// callers that show them, through [weightsByDive].
-  Future<List<domain.Dive>> _mapRowsWithPreloadedData(
-    List<Dive> rows, {
-    Map<String, List<domain.DiveWeight>> weightsByDive = const {},
-  }) async {
+  /// [domain.Dive.measuredRuntime] the same on both.
+  ///
+  /// Weights are always read: [domain.Dive.recordedWeightKg] adds them to the
+  /// lead carried as gear, which is hydrated here too, so a dive without its
+  /// rows would report the gear's share alone as its total weight (#4442).
+  Future<List<domain.Dive>> _mapRowsWithPreloadedData(List<Dive> rows) async {
     if (rows.isEmpty) return [];
 
     final diveIds = rows.map((r) => r.id).toList();
+    final weightsByDive = await _weightsForDives(diveIds);
 
     // Load all tanks for these dives in one query
     final allTanks =
@@ -3365,12 +3373,7 @@ class DiveRepository {
                 .map((r) => _mapRowToDive(r, offUiIsolate: offUiIsolate)),
           );
           final chunkDives = [
-            ...await _mapRowsWithPreloadedData(
-              lean,
-              weightsByDive: await _weightsForDives([
-                for (final row in lean) row.id,
-              ]),
-            ),
+            ...await _mapRowsWithPreloadedData(lean),
             // [_mapRowToDive] leaves the buddy junction unloaded.
             ...await _buddyRepository.withBuddies(sampled),
           ];
@@ -6284,16 +6287,6 @@ class DiveRepository {
     }
     return byDive;
   }
-
-  /// Weights for [diveIds] grouped by dive, for a sheet that shows many
-  /// dives at once (issue #3422). A dive with no weights has no entry.
-  Future<Map<String, List<domain.DiveWeight>>> getWeightsForDives(
-    List<String> diveIds, {
-    @visibleForTesting int chunkSize = kSeriesIdChunkSize,
-  }) async => {
-    for (final chunk in seriesIdChunks(diveIds, size: chunkSize))
-      ...await _weightsForDives(chunk),
-  };
 
   /// The type of the weight row on [diverId]'s most recent dive that has one,
   /// or null when they have none (issue #3422). Asks the log rather than a

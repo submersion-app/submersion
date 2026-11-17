@@ -6,9 +6,12 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_weights_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_weight_entry_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/gear_lead_note.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
 import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
 import 'package:submersion/features/weight_presets/presentation/providers/weight_preset_providers.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
@@ -139,11 +142,15 @@ class _DiveWeightsCardEditorState extends ConsumerState<DiveWeightsCardEditor> {
     final l10n = context.l10n;
     final rows = _session.valueOf(diveWeightsField);
     final generation = _followed.generationOf(_session);
-    final total = rows.fold(0.0, (sum, w) => sum + w.amountKg);
+    // The gear is the dive's as the sitting has it, so a change made on the
+    // Equipment card in the same sitting shows here too. Its lead is in the
+    // total, as on the read card (issue #4442).
+    final leadGear = EquipmentLead.carriers(_session.valueOf(diveGearField));
+    final total = editorWeightTotalKg(rows, leadGear);
     return [
       FormOverline(
         label: l10n.diveLog_edit_section_weight,
-        trailingText: rows.isEmpty
+        trailingText: total == null
             ? null
             : l10n.diveLog_edit_weightTotal(units.formatWeight(total)),
         actions: [
@@ -183,6 +190,7 @@ class _DiveWeightsCardEditorState extends ConsumerState<DiveWeightsCardEditor> {
             ),
           ),
         ),
+      GearLeadNote(items: leadGear, units: units),
       FormAppendRow(
         label: l10n.diveLog_edit_addWeightEntry,
         onTap: () => _setRows([...rows, newSittingWeight(_session)]),

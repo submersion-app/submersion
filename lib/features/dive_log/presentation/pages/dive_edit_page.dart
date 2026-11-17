@@ -54,6 +54,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
@@ -196,6 +197,7 @@ import 'package:submersion/features/tank_presets/domain/services/default_tank_pr
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_weight_entry_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/gear_lead_note.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart';
 import 'package:submersion/features/dive_log/presentation/providers/shared_gear_overlap_providers.dart';
@@ -5841,13 +5843,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Widget _weightChild(UnitFormatter units) {
-    final totalWeight = _weights.fold(0.0, (sum, w) => sum + w.amountKg);
+    // Lead the attached weights gear already carries is in the total, as on
+    // the dive page's Weight card (issue #4442).
+    final leadGear = EquipmentLead.carriers(
+      gearLinksFor(_selectedEquipment, _gearRows),
+    );
+    final totalWeight = editorWeightTotalKg(_weights, leadGear);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FormOverline(
           label: context.l10n.diveLog_edit_section_weight,
-          trailingText: _weights.isEmpty
+          trailingText: totalWeight == null
               ? null
               : context.l10n.diveLog_edit_weightTotal(
                   units.formatWeight(totalWeight),
@@ -5889,6 +5896,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ],
             ),
           ),
+        GearLeadNote(items: leadGear, units: units),
         FormAppendRow(
           label: context.l10n.diveLog_edit_addWeightEntry,
           onTap: () {

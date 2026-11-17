@@ -13026,6 +13026,12 @@ abstract class AppLocalizations {
   /// **'Weight'**
   String get diveLog_detail_section_weight;
 
+  /// No description provided for @diveLog_detail_weight_fromEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'From equipment'**
+  String get diveLog_detail_weight_fromEquipment;
+
   /// No description provided for @diveLog_detail_signatureDescription.
   ///
   /// In en, this message translates to:
@@ -14318,6 +14324,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total: {total}'**
   String diveLog_edit_weightTotal(Object total);
+
+  /// No description provided for @diveLog_edit_weightGearNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Also counted: {weight} carried as equipment ({items}). Add a weight here only for separate lead.'**
+  String diveLog_edit_weightGearNote(Object items, Object weight);
+
+  /// Joins the names of weights gear in the note under the Weights editor. Include any trailing space your language uses.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get diveLog_edit_weightGearNote_listSeparator;
 
   /// No description provided for @diveLog_emptyFiltered_clearFilters.
   ///
@@ -72609,6 +72627,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{{count} weight row, edit it in the dive} other{{count} weight rows, edit them in the dive}}'**
   String tableEditor_weightRows(int count);
+
+  /// Why the table editor's Total weight cell is read-only for a dive that carries lead as weights gear: that lead is in the total and is edited on the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes lead carried as equipment, edit it in the dive'**
+  String get tableEditor_weightGear;
 
   /// No description provided for @tableEditor_summary_siteSnap.
   ///

@@ -8290,6 +8290,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_section_weight => 'Súly';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'A felszerelésből';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'Koppintson az oktatói ellenőrzés hozzáadásához ehhez a képzési merüléshez';
 
@@ -9130,6 +9133,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String diveLog_edit_weightTotal(Object total) {
     return 'Összes: $total';
   }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'Szintén beszámítva: $weight felszerelésként viselve ($items). Itt csak külön ólmot adjon meg.';
+  }
+
+  @override
+  String get diveLog_edit_weightGearNote_listSeparator => ', ';
 
   @override
   String get diveLog_emptyFiltered_clearFilters => 'Szűrők törlése';
@@ -46251,6 +46262,10 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get tableEditor_weightGear =>
+      'Felszerelésként viselt ólmot is tartalmaz, a merülésben szerkeszthető';
 
   @override
   String get tableEditor_summary_siteSnap =>

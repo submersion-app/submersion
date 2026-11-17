@@ -8135,6 +8135,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_section_weight => 'משקולות';
 
   @override
+  String get diveLog_detail_weight_fromEquipment => 'מהציוד';
+
+  @override
   String get diveLog_detail_signatureDescription =>
       'הקש להוספת אימות מדריך לצלילת הכשרה זו';
 
@@ -8962,6 +8965,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String diveLog_edit_weightTotal(Object total) {
     return 'סה\"כ: $total';
   }
+
+  @override
+  String diveLog_edit_weightGearNote(Object items, Object weight) {
+    return 'נספר גם: $weight שנישאים כציוד ($items). הוסיפו כאן משקולת רק אם היא עופרת נפרדת.';
+  }
+
+  @override
+  String get diveLog_edit_weightGearNote_listSeparator => ', ';
 
   @override
   String get diveLog_emptyFiltered_clearFilters => 'ניקוי מסננים';
@@ -45384,6 +45395,10 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get tableEditor_weightGear =>
+      'כולל משקולת שנישאת כציוד, ערוך אותה בצלילה';
 
   @override
   String get tableEditor_summary_siteSnap =>
