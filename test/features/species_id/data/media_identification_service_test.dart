@@ -647,6 +647,22 @@ void main() {
       expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
     });
 
+    test(
+      'coming back before the stopped chunk ends keeps the scan going',
+      () async {
+        engine.videoGate = Completer<void>();
+        final first = service.request(video());
+        await until(() => engine.detectCalls.length == 1);
+        expect(service.cancelPending('v1'), isTrue);
+        final again = service.request(video());
+        engine.videoGate!.complete();
+        engine.videoGate = null;
+        await first;
+        await again;
+        expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+      },
+    );
+
     test('a pack change waits for one chunk, not the whole video', () async {
       engine.videoGate = Completer<void>();
       final done = service.request(video());

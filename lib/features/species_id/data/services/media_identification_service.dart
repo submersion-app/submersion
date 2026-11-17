@@ -121,6 +121,8 @@ class MediaIdentificationService {
     if (running != null &&
         running.item.id == item.id &&
         (location == null || location == running.location)) {
+      // Back on a video whose scan was told to stop: it carries on.
+      running.cancelled = false;
       return running.done.future;
     }
     final queued = _waiting.remove(item.id);
