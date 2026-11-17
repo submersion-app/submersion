@@ -65,6 +65,14 @@ class PackBitsTests(unittest.TestCase):
         self.assertEqual(packed[grid.row_bytes(5)], 1)
 
 
+class AllowedMaskTests(unittest.TestCase):
+    def test_allowed_mask_reads_packed_bits(self):
+        packed = grid.pack_bits([[3], [], [700, 3]], 5)
+        self.assertEqual(grid.allowed_mask(packed, 3, {3}, 5), [True, False, True])
+        self.assertEqual(grid.allowed_mask(packed, 3, {700}, 5), [False, False, True])
+        self.assertEqual(grid.allowed_mask(packed, 3, set(), 5), [False, False, False])
+
+
 class VectorFileTests(unittest.TestCase):
     def test_checked_in_vectors_match_this_module(self):
         path = os.path.join(_HERE, "testdata", "region_vectors.json")

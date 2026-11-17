@@ -36,6 +36,109 @@ class FileEntryTests(unittest.TestCase):
             self.assertEqual(entry["sha256"], hashlib.sha256(b"[1, 2, 3]").hexdigest())
 
 
+CFD = "cfd-rfdetr-nano-640-20260706"
+BIOCLIP = "bioclip-2-vitl14-2957b32"
+CONTENTS = {"candidates.json": "a" * 64, "text_embeddings.f16": "b" * 64, "regions.bin": "c" * 64}
+
+
+def entries(contents):
+    """Manifest file entries carrying `contents`' hashes, plus a model."""
+    files = [{"name": "detector.coreml.zip", "engine": "coreml", "size": 1, "sha256": "d" * 64}]
+    return files + [{"name": n, "engine": "all", "size": 1, "sha256": h} for n, h in contents.items()]
+
+
+class ContentsTests(unittest.TestCase):
+    def test_contents_are_the_shared_naming_files(self):
+        self.assertEqual(manifest.contents_of(entries(CONTENTS)), CONTENTS)
+
+    def test_a_missing_file_is_absent(self):
+        partial = {"candidates.json": "a" * 64}
+        self.assertEqual(manifest.contents_of(entries(partial)), partial)
+
+
+class NamingForTests(unittest.TestCase):
+    MEASURED = {
+        "naming": {"provisional": False, "minOpenScore": 0.3},
+        "detectorId": CFD,
+        "classifierId": BIOCLIP,
+        "cropFit": "centreCrop",
+        "contents": CONTENTS,
+        "findings": "docs/design/findings/x.md",
+    }
+
+    def naming(self, detector=CFD, classifier=BIOCLIP, fit="centreCrop", contents=CONTENTS, measured=MEASURED):
+        return manifest.naming_for(detector, classifier, fit, contents, measured)
+
+    def test_measured_bars_for_the_exact_measured_pack(self):
+        self.assertEqual(self.naming(), self.MEASURED["naming"])
+
+    def test_provisional_bars_when_any_naming_file_differs(self):
+        for name in CONTENTS:
+            changed = dict(CONTENTS, **{name: "e" * 64})
+            naming = self.naming(contents=changed)
+            self.assertEqual(naming, manifest.NAMING_PROVISIONAL, name)
+            self.assertIs(naming["provisional"], True)
+
+    def test_provisional_bars_when_a_naming_file_is_missing(self):
+        partial = {k: v for k, v in CONTENTS.items() if k != "regions.bin"}
+        self.assertIs(self.naming(contents=partial)["provisional"], True)
+
+    def test_provisional_bars_for_another_classifier(self):
+        self.assertIs(self.naming(classifier="another-classifier")["provisional"], True)
+
+    def test_provisional_bars_for_another_detector(self):
+        self.assertIs(self.naming(detector="megalodon-2024")["provisional"], True)
+
+    def test_provisional_bars_for_another_crop_fitting(self):
+        self.assertIs(self.naming(fit="padSquare")["provisional"], True)
+
+    def test_provisional_bars_when_nothing_is_measured(self):
+        self.assertIs(self.naming(measured=None)["provisional"], True)
+
+    def test_returned_bars_are_a_copy(self):
+        naming = self.naming(measured=None)
+        naming["minOpenScore"] = 9
+        self.assertNotEqual(manifest.NAMING_PROVISIONAL["minOpenScore"], 9)
+
+
+class MeasuredBarsTests(unittest.TestCase):
+    MEASURED_PACK = {
+        "candidates.json": "7e36bbf837c705f2679baf29e120462b35707421c96955403e031d61d3e7accb",
+        "text_embeddings.f16": "957f0e7ee016dc7ef99a1b96c81b81130439b5dbb9b9170e0d190839b0e1b20e",
+        "regions.bin": "ec2f86088a9bd113b7faa96550168e8672ed7e63f6cb2b6d0d64f43e15ac426f",
+    }
+
+    def test_the_measured_pack_gets_the_measured_bars(self):
+        naming = manifest.naming_for(CFD, BIOCLIP, "centreCrop", self.MEASURED_PACK)
+        self.assertIs(naming["provisional"], False)
+        self.assertEqual(naming["minOpenScore"], 0.34)
+        self.assertEqual(naming["suggestScore"], 0.72)
+        self.assertEqual(naming["suggestScoreNoLocation"], 0.79)
+        self.assertEqual(naming["confidentScore"], 1.01)
+        self.assertEqual(naming["confidentScoreNoLocation"], 1.01)
+        self.assertEqual(naming["minCropSide"], 64)
+        self.assertEqual(naming["minAllowedCandidates"], 200)
+        self.assertEqual(naming["topK"], 5)
+
+    def test_build_manifest_writes_measured_bars_only_for_that_pack(self):
+        def build(contents):
+            return manifest.build_manifest(
+                pack_version="2026.11.17",
+                detector_id=CFD,
+                classifier_id=BIOCLIP,
+                embedding_size=768,
+                files=entries(contents),
+                credits=[],
+            )
+
+        self.assertIs(build(self.MEASURED_PACK)["naming"]["provisional"], False)
+        self.assertIs(build(CONTENTS)["naming"]["provisional"], True)
+
+    def test_the_measured_bars_name_their_findings(self):
+        path = os.path.join(_HERE, "..", "..", manifest.NAMING_MEASURED["findings"])
+        self.assertTrue(os.path.exists(path), path)
+
+
 class BuildManifestTests(unittest.TestCase):
     def build(self):
         return manifest.build_manifest(
@@ -58,6 +161,7 @@ class BuildManifestTests(unittest.TestCase):
         self.assertEqual(naming["suggestScore"], 0.50)
         self.assertEqual(naming["confidentScore"], 0.70)
         self.assertEqual(naming["suggestScoreNoLocation"], 0.70)
+        self.assertEqual(naming["confidentScoreNoLocation"], 0.70)
         self.assertEqual(naming["minAllowedCandidates"], 200)
         self.assertEqual(naming["topK"], 5)
         self.assertEqual(m["region"], {"cellDegrees": 5, "neighbourCells": 1})
@@ -76,7 +180,7 @@ class BuildManifestTests(unittest.TestCase):
         self.assertEqual(clf["inputSize"], 224)
         self.assertEqual(clf["embeddingSize"], 768)
         self.assertEqual(clf["logitScale"], 100.0)
-        self.assertEqual(clf["cropFit"], "padSquare")
+        self.assertEqual(clf["cropFit"], "centreCrop")
 
     def test_round_trips_through_json(self):
         with tempfile.TemporaryDirectory() as tmp:

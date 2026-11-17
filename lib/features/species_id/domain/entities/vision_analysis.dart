@@ -31,6 +31,7 @@ class VisionModels extends Equatable {
     required this.classifierStd,
     required this.embeddingSize,
     required this.cropThumbnailSize,
+    this.cropFit = CropFit.padSquare,
   });
 
   factory VisionModels.fromManifest(
@@ -51,6 +52,7 @@ class VisionModels extends Equatable {
     classifierStd: manifest.classifier.std,
     embeddingSize: manifest.classifier.embeddingSize,
     cropThumbnailSize: manifest.cropThumbnailSize,
+    cropFit: manifest.classifier.cropFit,
   );
 
   final String detectorPath;
@@ -66,6 +68,7 @@ class VisionModels extends Equatable {
   final List<double> classifierStd;
   final int embeddingSize;
   final int cropThumbnailSize;
+  final CropFit cropFit;
 
   Map<String, Object?> toChannel() => {
     'detectorPath': detectorPath,
@@ -81,6 +84,7 @@ class VisionModels extends Equatable {
     'classifierStd': classifierStd,
     'embeddingSize': embeddingSize,
     'cropThumbnailSize': cropThumbnailSize,
+    'cropFit': cropFit.name,
   };
 
   VisionModels copyWith({
@@ -97,6 +101,7 @@ class VisionModels extends Equatable {
     List<double>? classifierStd,
     int? embeddingSize,
     int? cropThumbnailSize,
+    CropFit? cropFit,
   }) => VisionModels(
     detectorPath: detectorPath ?? this.detectorPath,
     classifierPath: classifierPath ?? this.classifierPath,
@@ -111,6 +116,7 @@ class VisionModels extends Equatable {
     classifierStd: classifierStd ?? this.classifierStd,
     embeddingSize: embeddingSize ?? this.embeddingSize,
     cropThumbnailSize: cropThumbnailSize ?? this.cropThumbnailSize,
+    cropFit: cropFit ?? this.cropFit,
   );
 
   @override
@@ -128,6 +134,7 @@ class VisionModels extends Equatable {
     classifierStd,
     embeddingSize,
     cropThumbnailSize,
+    cropFit,
   ];
 }
 
