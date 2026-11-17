@@ -10,8 +10,9 @@ import 'package:submersion/features/dive_log/domain/services/multi_cylinder_cons
 
 const String _sidemountRolesSql = "('sidemountLeft', 'sidemountRight')";
 
-/// The SQL form of `backmountRoles`: back gas or a twin set (issue #3374).
-const String _backmountRolesSql = "('backGas', 'twinSet')";
+/// The SQL form of `backmountRoles`: back gas, a twin set (issue #3374) or
+/// an Avelo Hydrotank (issue #4657).
+const String _backmountRolesSql = "('backGas', 'twinSet', 'hydrotank')";
 
 /// Whether the `dive_tanks` row aliased [alias] holds breathing gas: every
 /// row but a suit inflation bottle (issue #4243). The SQL form of
@@ -19,6 +20,22 @@ const String _backmountRolesSql = "('backGas', 'twinSet')";
 /// `NULL <> 'x'` is NULL rather than true.
 String breathingTankSql(String alias) =>
     "($alias.tank_role IS NULL OR $alias.tank_role <> 'suitInflation')";
+
+/// Whether the fall in the pressure of the `dive_tanks` row aliased [alias]
+/// is gas used: every row but a suit inflation bottle and an Avelo Hydrotank,
+/// whose pressure rises with the water pumped in (issue #4657). The SQL form
+/// of `TankRole.pressureMeasuresGasUse`. A row with no role stays in.
+String gasUseTankSql(String alias) =>
+    "($alias.tank_role IS NULL "
+    "OR $alias.tank_role NOT IN ('suitInflation', 'hydrotank'))";
+
+/// Whether the `dives` row aliased [dive] breathes a cylinder whose pressure
+/// is not the gas used, an Avelo Hydrotank (issue #4657). Its total gas is
+/// then unknown, so it has no whole-dive SAC or RMV: the SQL form of the
+/// guard in `Dive.rmvFor`.
+String diveBreathesUnmeasuredTankSql(String dive) =>
+    '(EXISTS (SELECT 1 FROM dive_tanks unm_t '
+    "WHERE unm_t.dive_id = $dive.id AND unm_t.tank_role = 'hydrotank'))";
 
 /// The consumption volume of the `dive_tanks` row aliased [tank], in
 /// liters: its own volume, else the volume of the first other cylinder of
@@ -83,7 +100,9 @@ String diveAmbientBarSql(String dive, String depth) =>
 /// volume, or one to one when a size is missing and the two are a matched
 /// pair (both sidemount, both twin set, or both back gas on the same gas). A reference that did not fall adds
 /// zero, since only breathed cylinders are summed (#3974). A suit inflation
-/// bottle is neither summed nor the reference (issue #4243). NULL on a
+/// bottle is neither summed nor the reference (issue #4243). An Avelo
+/// Hydrotank (issue #4657) is the reference but never measured, so a dive
+/// with one has NULL. NULL on a
 /// rebreather dive, whose cylinders do not drain with the diver's breathing
 /// (issue #3673), when the reference has no pressures logged, since it must
 /// join, and when nothing adds up to a drop; the caller guards the runtime
@@ -101,7 +120,7 @@ String diveSacPressureSql(String dive) {
       "sac_t.tank_role = 'backGas' AS back_gas, "
       'sac_t.o2_percent AS o2, sac_t.he_percent AS he '
       'FROM dive_tanks sac_t WHERE sac_t.dive_id = $dive.id '
-      'AND ${breathingTankSql('sac_t')} AND $where)';
+      'AND ${gasUseTankSql('sac_t')} AND $where)';
   final breathed = cylinders('sac_t.start_pressure > sac_t.end_pressure');
   final measured = cylinders(
     'sac_t.start_pressure IS NOT NULL AND sac_t.end_pressure IS NOT NULL',
