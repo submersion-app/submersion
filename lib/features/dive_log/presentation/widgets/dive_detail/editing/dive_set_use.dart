@@ -97,8 +97,8 @@ SetUseCards setUseCardsOf(EditSession<Dive> session) => (
   tanks: session.valueOf(diveTanksField),
 );
 
-/// Uses [set] on the sitting, as the dive form's `_useSet` does on the form
-/// (`dive_edit_page_set_bundle.dart:10`, issue #4525): the sets it includes
+/// Uses [set] on the sitting, as the old dive form did (issue #4525): the
+/// sets it includes
 /// that are already on the dive are absorbed into it, its gear [items] are
 /// added, then the weights and cylinders it carries.
 ///

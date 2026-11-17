@@ -37,8 +37,6 @@ void main() {
     // Equipment card (issue #4527).
     'lib/features/dive_log/presentation/widgets/save_gear_as_set_dialog.dart':
         'MarkdownNotesField(',
-    'lib/features/dive_log/presentation/widgets/edit_sections/experience_section.dart':
-        'markdown: true',
     'lib/features/dive_sites/presentation/widgets/edit_sections/access_safety_section.dart':
         'markdown: true',
     'lib/features/dive_sites/presentation/widgets/edit_sections/identity_section.dart':

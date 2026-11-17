@@ -9,9 +9,7 @@ extension _BulkDiveEditRows on _BulkDiveEditPageState {
   Future<SiteAreaAnchor?> _areaAnchor() async {
     try {
       final repository = ref.read(siteAreaAnchorRepositoryProvider);
-      final diverId =
-          _existingDive?.diverId ??
-          await ref.read(validatedCurrentDiverIdProvider.future);
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
       return await repository.forDives(widget.diveIds, diverId: diverId);
     } catch (e, stackTrace) {
       _BulkDiveEditPageState._log.warning(
@@ -96,19 +94,9 @@ extension _BulkDiveEditRows on _BulkDiveEditPageState {
         builder: (_, scrollController) => DiveCenterPickerSheet(
           scrollController: scrollController,
           selectedCenter: _selectedDiveCenter,
-          // Centers near the dive first (#3379): the site, else the dive's
-          // GPS, else where a new dive was logged from.
-          reference: resolveDiveCenterPickerReference(
-            site: _selectedSite,
-            entryLocation: _existingDive?.entryLocation,
-            exitLocation: _existingDive?.exitLocation,
-            deviceLocation: _currentLocation == null
-                ? null
-                : GeoPoint(
-                    _currentLocation!.latitude,
-                    _currentLocation!.longitude,
-                  ),
-          ),
+          // Centers near the chosen site first (#3379); the dives being
+          // edited have no one position of their own.
+          reference: resolveDiveCenterPickerReference(site: _selectedSite),
           onCenterSelected: (center) {
             Navigator.of(sheetContext).pop();
             _markDirty();

@@ -1390,11 +1390,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Importálás Garmin eszközről';
 
   @override
-  String diveLog_edit_flightWindowWarning(String time) {
-    return 'Ez a merülés a járatod előtti utolsó biztonságos felszínre érési idő után ér véget ($time)';
-  }
-
-  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return '$location közelében';
   }
@@ -8342,12 +8337,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Hozzáadás a kedvencekhez';
 
   @override
-  String get diveLog_detail_tooltip_edit => 'Szerkesztés';
-
-  @override
-  String get diveLog_detail_tooltip_editDive => 'Merülés szerkesztése';
-
-  @override
   String get diveLog_detail_tooltip_previousDive => 'Előző merülés';
 
   @override
@@ -8418,9 +8407,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String diveLog_edit_addedGps(Object name) {
     return 'GPS hozzáadva: $name';
   }
-
-  @override
-  String get diveLog_edit_appBarEdit => 'Merülés szerkesztése';
 
   @override
   String get diveLog_edit_appBarNew => 'Merülés rögzítése';
@@ -8538,39 +8524,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_group_buddies => 'Merülőtársak';
 
   @override
-  String get diveLog_edit_group_conditions => 'Körülmények';
-
-  @override
-  String get diveLog_edit_group_experience => 'Élmény';
-
-  @override
-  String get diveLog_edit_group_gasGear => 'Gáz és felszerelés';
-
-  @override
-  String get diveLog_edit_group_theDive => 'A merülés';
-
-  @override
-  String get diveLog_edit_group_trip => 'Utazás';
-
-  @override
-  String get diveLog_edit_invite_buddies => 'Merülőtársak hozzáadása';
-
-  @override
-  String get diveLog_edit_invite_conditions =>
-      'Körülmények hozzáadása - víz, látótávolság, időjárás';
-
-  @override
-  String get diveLog_edit_invite_experience =>
-      'Értékelés, észlelések, jegyzetek vagy címkék hozzáadása';
-
-  @override
-  String get diveLog_edit_invite_gasGear =>
-      'Gáz és felszerelés hozzáadása - mód, palackok, felszerelés, súly';
-
-  @override
-  String get diveLog_edit_invite_trip => 'Utazás vagy búvárközpont hozzáadása';
-
-  @override
   String get diveLog_edit_label_airTemp => 'Levegő hőm.';
 
   @override
@@ -8651,9 +8604,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Koppintson a \"Hozzáadás\" gombra az észlelések rögzítéséhez';
 
   @override
-  String get diveLog_edit_nearbySitesFirst => 'Közeli helyek elöl';
-
-  @override
   String get diveLog_edit_noEquipmentSelected =>
       'Nincs kiválasztott felszerelés';
 
@@ -8696,10 +8646,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_notSpecified => 'Nincs megadva';
 
   @override
-  String get diveLog_edit_notesHint =>
-      'Jegyzetek hozzáadása ehhez a merüléshez...';
-
-  @override
   String get diveLog_edit_overline_gasSwitches => 'Gázváltások';
 
   @override
@@ -8716,9 +8662,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_profile_draw => 'Profil rajzolása';
 
   @override
-  String get diveLog_edit_profile_none => 'Nincs rögzítve';
-
-  @override
   String diveLog_edit_profile_outliers(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -8727,37 +8670,6 @@ class AppLocalizationsHu extends AppLocalizations {
       one: '1 lehetséges kiugró érték észlelve',
     );
     return '$_temp0';
-  }
-
-  @override
-  String diveLog_edit_profile_points(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count pont',
-      one: '1 pont',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String diveLog_edit_profile_pointsAndProfiles(
-    num pointCount,
-    num profileCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      pointCount,
-      locale: localeName,
-      other: '$pointCount pont',
-      one: '1 pont',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      profileCount,
-      locale: localeName,
-      other: '$profileCount revízió',
-      one: '1 revízió',
-    );
-    return '$_temp0 · $_temp1';
   }
 
   @override
@@ -8776,9 +8688,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_row_boatCaptain => 'Kapitány';
 
   @override
-  String get diveLog_edit_row_diveProfile => 'Merülési profil';
-
-  @override
   String get diveLog_edit_row_entry => 'Beszállás';
 
   @override
@@ -8789,9 +8698,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_edit_row_site => 'Merülőhely';
-
-  @override
-  String get diveLog_edit_row_surfaceInterval => 'Felszíni idő';
 
   @override
   String get diveLog_edit_row_trip => 'Utazás';
@@ -8849,9 +8755,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_edit_section_conditions => 'Körülmények';
-
-  @override
-  String get diveLog_edit_section_customFields => 'Egyéni mezők';
 
   @override
   String get diveLog_edit_section_diveCenter => 'Merülőcentrum';
@@ -8958,59 +8861,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_section_weight => 'Súly';
 
   @override
-  String diveLog_edit_snackbar_avgDepthCalculated(Object depth) {
-    return 'Átlagos mélység kiszámítva: $depth';
-  }
-
-  @override
-  String diveLog_edit_snackbar_bottomTimeCalculated(Object minutes) {
-    return 'Fenékidő kiszámítva: $minutes min';
-  }
-
-  @override
   String diveLog_edit_snackbar_errorSaving(Object error) {
     return 'Hiba a merülés mentésekor: $error';
-  }
-
-  @override
-  String diveLog_edit_snackbar_maxDepthCalculated(Object depth) {
-    return 'Maximális mélység kiszámítva: $depth';
-  }
-
-  @override
-  String get diveLog_edit_snackbar_noProfileData =>
-      'Nincs elérhető merülési profil adat';
-
-  @override
-  String diveLog_edit_snackbar_runtimeCalculated(Object minutes) {
-    return 'Futásidő kiszámítva: $minutes perc';
-  }
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateAvgDepth =>
-      'Az átlagos mélység nem számítható ki a profilból';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculate =>
-      'Nem sikerült a fenékidőt kiszámítani a profilból';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateMaxDepth =>
-      'A maximális mélység nem számítható ki a profilból';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateRuntime =>
-      'A futásidő nem számítható ki a profilból';
-
-  @override
-  String diveLog_edit_summary_items(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count elem',
-      one: '1 elem',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -9026,20 +8878,6 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String diveLog_edit_summary_tanks(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count palack',
-      one: '1 palack',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get diveLog_edit_surfacePressureDefault => '1013';
 
   @override
   String get diveLog_edit_tankCard_done => 'Kész';
@@ -9065,10 +8903,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_edit_tooltip_removeWeight => 'Eltávolítás';
-
-  @override
-  String get diveLog_edit_trainingCoursesHint =>
-      'Merülés összekapcsolása egy vagy több képzési tanfolyammal';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {
@@ -9785,10 +9619,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'A szövegfelismerés nem érhető el. Telepítse a Tesseract-ot a papír naplók beolvasásához (például: sudo apt install tesseract-ocr).';
 
   @override
-  String get ocrImport_editPage_photoAttachFailed =>
-      'A merülés mentve, de a beolvasott oldal csatolása nem sikerült';
-
-  @override
   String get ocrImport_newDive_photoHoldFailed =>
       'A beolvasott oldalt nem sikerült ehhez a merüléshez csatolni';
 
@@ -10095,9 +9925,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_edit_summary_shared => 'megosztva';
-
-  @override
-  String get forms_addSection_prefix => 'Hozzáadás:';
 
   @override
   String get forms_cancel => 'Mégse';
@@ -36116,10 +35943,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_photos_viewAll => 'Összes megtekintése';
 
   @override
-  String get trips_dateStretch_failed =>
-      'A merülés mentve, de az út dátumait nem sikerült frissíteni';
-
-  @override
   String trips_dateStretch_message(String trip, String dates) {
     return '$trip időtartama mostantól $dates';
   }
@@ -39785,12 +39608,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
       'Az Apple HealthKit által biztosítva';
-
-  @override
-  String get diveLog_edit_subsection_autofill => 'Automatikus kitöltés';
-
-  @override
-  String get diveLog_edit_subsection_weather => 'Időjárás';
 
   @override
   String get diveLog_edit_label_windSpeed => 'Szélsebesség';
@@ -57594,10 +57411,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_summary_gasExcluded => 'Gáz kizárva';
 
   @override
-  String get diveLog_edit_statisticsIncludedHint =>
-      'Minden statisztikában szerepel';
-
-  @override
   String get suuntoCloud_signIn_title => 'Bejelentkezés a Suunto fiókba';
 
   @override
@@ -59285,11 +59098,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get navTrack_editSheet_trackOnAnotherDive =>
       'Ez a nyomvonal egy másik merüléshez tartozik. Frissítsd annál a merülésnél, vagy importáld a fájlt új nyomvonalként.';
-
-  @override
-  String navTrack_editRow_tracksSaveFailed(String error) {
-    return 'Nem sikerült frissíteni a merülés víz alatti nyomvonalait: $error';
-  }
 
   @override
   String get navTrack_importError_unsupportedFormat =>

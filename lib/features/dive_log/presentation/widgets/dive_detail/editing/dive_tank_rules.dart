@@ -74,8 +74,7 @@ void setTanks(
   dropGasSwitchesWithoutTank(session);
 }
 
-/// Removes the cylinder [tankId] and numbers the rest from 0, as the form
-/// does (`dive_edit_page.dart:4454`).
+/// Removes the cylinder [tankId] and numbers the rest from 0.
 void removeSittingTank(EditSession<Dive> session, String tankId) {
   final kept = [
     for (final t in session.valueOf(diveTanksField))
@@ -91,8 +90,8 @@ void removeSittingTank(EditSession<Dive> session, String tankId) {
 /// with none.
 String newSittingTankId() => _uuid.v4();
 
-/// A cylinder to add after [tanks], as the form's `_addTank` builds it
-/// (`dive_edit_page.dart:4427`): [preset]'s size, or [defaultVolume]; the
+/// A cylinder to add after [tanks], as the old dive form built one:
+/// [preset]'s size, or [defaultVolume]; the
 /// diver's [defaultStartPressure], 50 bar at the end, air, back gas when it
 /// is the first and a stage after. A fresh id, as `updateDive` requires.
 DiveTank newSittingTank({

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_text_suggestion_field.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -382,6 +383,24 @@ void main() {
         l.diveLog_edit_row_diveOperator,
         l.diveLog_edit_row_boatName,
         l.diveLog_edit_row_boatCaptain,
+      ]);
+    });
+
+    // Each row suggests what the diver typed there on earlier dives (the
+    // old form's "Boat offers a boat from an earlier dive", #3229).
+    testWidgets('each row suggests from its own field on earlier dives', (
+      tester,
+    ) async {
+      await pumpEditor(tester, bare);
+
+      final fields = tester
+          .widgetList<SuggestedTextRow>(find.byType(SuggestedTextRow))
+          .map((row) => row.field)
+          .toList();
+      expect(fields, [
+        DiveTextSuggestionField.diveOperator,
+        DiveTextSuggestionField.boatName,
+        DiveTextSuggestionField.boatCaptain,
       ]);
     });
 

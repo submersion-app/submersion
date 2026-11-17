@@ -8,8 +8,8 @@ import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 
 /// The dive's sightings, edited on the Sightings card.
 ///
-/// Written at Save as the dive form's save writes them
-/// (`dive_edit_page.dart`, after the dive): a loaded sighting missing now is
+/// Written at Save, after the dive, as the old dive form's save wrote them:
+/// a loaded sighting missing now is
 /// deleted, a loaded one changed is updated, and one the sitting added (an
 /// id that was not loaded) is added under an id of the database's own. A
 /// sighting stored meanwhile that the sitting never loaded is not touched.

@@ -56,7 +56,7 @@ final diveSetpointDecoField = _optional<double>(
 );
 
 /// The diluent on a closed circuit, the supply gas on a semi-closed one:
-/// both are stored as the dive's diluent (`dive_edit_page.dart:1233`).
+/// both are stored as the dive's diluent.
 final diveDiluentGasField = _optional<GasMix>(
   'diluentGas',
   read: (d) => d.diluentGas,
@@ -193,7 +193,7 @@ void _takeBackSeed(EditSession<Dive> session) {
 }
 
 /// [dive] with the rebreather values its mode does not use cleared, as the
-/// dive form's save does (`dive_edit_page.dart:6743`): setpoints and loop
+/// old dive form's save did: setpoints and loop
 /// volume belong to CCR; diluent and scrubber to CCR and SCR; the SCR type,
 /// flow, orifice, VO2 and loop O2 values to SCR.
 Dive fitRebreatherToMode(Dive dive) {

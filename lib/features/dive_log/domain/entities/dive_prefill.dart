@@ -1,7 +1,8 @@
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
-/// Initial values for DiveEditPage create mode. All metric.
+/// Initial values for a new dive's page (a scan, a passport tag). All
+/// metric.
 /// Built by the OCR scan flow; deliberately independent of ocr_import
 /// so dive_log never imports that feature.
 class DivePrefill {

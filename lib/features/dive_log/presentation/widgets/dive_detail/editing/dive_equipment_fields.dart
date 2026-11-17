@@ -82,8 +82,8 @@ void clearGear(EditSession<Dive> session) {
 /// The latest gear add in a sitting: adds run one after another.
 const _addKey = 'gearAdd';
 
-/// Adds [items] as the dive form's `_addGearNow` does
-/// (`dive_edit_page.dart:4731`): for a set ([viaSetId]), only the members
+/// Adds [items] as the old dive form did: for a set ([viaSetId]), only the
+/// members
 /// the dive's diver may use (issue #2046); merged by id; assemblies expanded
 /// with their parts (issue #1487). Providers are read through [read].
 ///

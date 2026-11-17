@@ -1,20 +1,15 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_field_gate.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 
@@ -79,11 +74,6 @@ void main() {
     return router;
   }
 
-  GoRoute singleEditor(String id) => GoRoute(
-    path: '/edit',
-    builder: (context, state) => Scaffold(body: DiveEditPage(diveId: id)),
-  );
-
   Future<void> openNewTrip(WidgetTester tester) async {
     final tripRow = find.ancestor(
       of: find.text('Trip'),
@@ -105,55 +95,6 @@ void main() {
 
   TripDraft draftOnScreen(WidgetTester tester) =>
       tester.widget<TripEditPage>(find.byType(TripEditPage)).draft!;
-
-  testWidgets('the dive editor opens the form at the dive\'s day', (
-    tester,
-  ) async {
-    final at = DateTime.utc(2025, 3, 10, 9);
-    await dives.createDive(dive('d', at));
-    await pumpRouter(tester, singleEditor('d'));
-
-    await openNewTrip(tester);
-
-    final draft = draftOnScreen(tester);
-    expect(draft.trip.startDate, DateTime(2025, 3, 10));
-    expect(draft.trip.endDate, DateTime(2025, 3, 10));
-    expect(draft.diveIds, isEmpty);
-  });
-
-  testWidgets('it carries the site\'s location and the center\'s name', (
-    tester,
-  ) async {
-    final at = DateTime.utc(2025, 3, 10, 9);
-    await DatabaseService.instance.database
-        .into(DatabaseService.instance.database.diveSites)
-        .insert(
-          db.DiveSitesCompanion.insert(
-            id: 's',
-            name: 'Mary\'s Place',
-            region: const Value('Roatan'),
-            country: const Value('Honduras'),
-            createdAt: 1,
-            updatedAt: 1,
-          ),
-        );
-    await DatabaseService.instance.database.customStatement(
-      "INSERT INTO dive_centers (id, name, created_at, updated_at) "
-      "VALUES ('c', 'Coconut Tree', 1, 1)",
-    );
-    await dives.createDive(dive('d', at));
-    await DatabaseService.instance.database.customStatement(
-      "UPDATE dives SET site_id = 's', dive_center_id = 'c' WHERE id = 'd'",
-    );
-    await pumpRouter(tester, singleEditor('d'));
-
-    await openNewTrip(tester);
-
-    final trip = draftOnScreen(tester).trip;
-    expect(trip.location, 'Roatan, Honduras');
-    expect(trip.resortName, 'Coconut Tree');
-  });
-
   testWidgets('bulk edit\'s form spans the selected dives', (tester) async {
     await dives.createDive(dive('a', DateTime.utc(2025, 3, 10, 9)));
     await dives.createDive(dive('b', DateTime.utc(2025, 3, 14, 9)));
@@ -182,52 +123,5 @@ void main() {
     expect(draft.trip.startDate, DateTime(2025, 3, 10));
     expect(draft.trip.endDate, DateTime(2025, 3, 14));
     expect(draft.diveIds, isEmpty);
-  });
-
-  testWidgets('a draft that cannot load still opens the form', (tester) async {
-    await dives.createDive(dive('d', DateTime.utc(2025, 3, 10, 9)));
-    await pumpRouter(
-      tester,
-      singleEditor('d'),
-      extra: [allTripsProvider.overrideWith((ref) => throw StateError('x'))],
-    );
-
-    await openNewTrip(tester);
-
-    final page = tester.widget<TripEditPage>(find.byType(TripEditPage));
-    expect(page.draft, isNull);
-  });
-
-  testWidgets('backing out of the form moves no dive', (tester) async {
-    await dives.createDive(dive('d', DateTime.utc(2025, 3, 10, 9)));
-    final router = await pumpRouter(tester, singleEditor('d'));
-
-    await openNewTrip(tester);
-    router.pop();
-    await tester.pumpAndSettle();
-
-    expect(find.byType(DiveEditPage), findsOneWidget);
-    expect((await dives.getDiveById('d'))!.trip, isNull);
-  });
-
-  testWidgets('saving the form selects the trip, the edit moves the dive', (
-    tester,
-  ) async {
-    await dives.createDive(dive('d', DateTime.utc(2025, 3, 10, 9)));
-    await pumpRouter(tester, singleEditor('d'));
-
-    await openNewTrip(tester);
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(DiveEditPage), findsOneWidget);
-    expect((await dives.getDiveById('d'))!.trip, isNull);
-
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    final trip = (await dives.getDiveById('d'))!.trip;
-    expect(trip, isNotNull);
-    expect(trip!.startDate, DateTime(2025, 3, 10));
   });
 }

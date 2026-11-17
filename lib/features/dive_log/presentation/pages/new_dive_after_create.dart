@@ -17,8 +17,8 @@ import 'package:submersion/features/weather/presentation/providers/weather_provi
 const _log = LoggerService('NewDiveAfterCreate');
 
 /// What a new dive is owed once its sitting has created it (issue #4527,
-/// plan 8), as the new-dive form runs it after its write
-/// (`dive_edit_page.dart:6494-6725`): the weather fetch, the tide record,
+/// plan 8), in the order the old new-dive form ran it after its write:
+/// the weather fetch, the tide record,
 /// the logbook rules and the question whether to log it for linked
 /// buddies. None of it is part of the sitting's History entry, and each
 /// step is best effort: one that fails is logged and the next runs.

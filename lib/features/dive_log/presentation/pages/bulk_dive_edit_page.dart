@@ -17,7 +17,6 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
-import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
@@ -180,9 +179,6 @@ class _BulkDiveEditPageState extends ConsumerState<BulkDiveEditPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isSaving = false;
 
-  // Form controllers - Entry/Exit times
-  // The one setState seam for the linked time edits in
-  // dive_edit_page_linked_times.dart.
   final _notesController = TextEditingController();
 
   /// The dive's visibility as loaded (issue #3226), saved back untouched
@@ -208,7 +204,6 @@ class _BulkDiveEditPageState extends ConsumerState<BulkDiveEditPage> {
   DiveSite? _selectedSite;
   Trip? _selectedTrip;
   DiveCenter? _selectedDiveCenter;
-  // The dive's training courses (#2515).
   List<Sighting> _sightings = [];
   final List<EquipmentItem> _selectedEquipment = [];
 
@@ -223,10 +218,8 @@ class _BulkDiveEditPageState extends ConsumerState<BulkDiveEditPage> {
   CurrentDirection? _currentDirection;
   CurrentStrength? _currentStrength;
   EntryMethod? _entryMethod;
+  // Exit does not follow entry here: each is its own bulk row.
   EntryMethod? _exitMethod;
-  // Exit mirrors entry until the user edits the exit picker directly.
-  // Single-dive form only; the bulk layout's dropdowns share these value
-  // fields but must never trigger mirroring.
   WaterType? _waterType;
 
   final _swellHeightController = TextEditingController();
@@ -258,11 +251,6 @@ class _BulkDiveEditPageState extends ConsumerState<BulkDiveEditPage> {
   // Tank data - list of tanks with multi-tank support
   List<DiveTank> _tanks = [];
 
-  // The gas switch list (issue #32); the handlers live in
-  // dive_edit_page_gas_switches.dart, which reaches setState through
-  // [_updateGasSwitches].
-  // The earliest loaded switch, when it lies before the dive start
-  // (#4335): what the dive already holds never fails validation.
   final _uuid = const Uuid();
   TankPresetEntity? _defaultPreset;
   bool _tanksDirty = false;
@@ -273,8 +261,6 @@ class _BulkDiveEditPageState extends ConsumerState<BulkDiveEditPage> {
   /// keystroke; a new key gives it fresh fields (issue #2563).
   final int _tankRowGeneration = 0;
 
-  // Tags
-  // Custom fields
   // Dive mode and rebreather settings
   DiveMode _diveMode = DiveMode.oc;
   // CCR settings
@@ -287,13 +273,6 @@ class _BulkDiveEditPageState extends ConsumerState<BulkDiveEditPage> {
   /// Text controllers for the bulk rebreather number fields, created on first
   /// build by [_bulkNumberField].
   final Map<BulkField, TextEditingController> _bulkNumberControllers = {};
-  // SCR settings
-  // Existing dive for editing
-  Dive? _existingDive;
-
-  // Current device location (for new dives - to suggest nearby sites)
-  LocationResult? _currentLocation;
-  // GPS suggestion from photos
 
   /// Unsaved-changes guard state. The page never had one before the form
   /// redesign; EditFormScaffold's PopScope consumes this.

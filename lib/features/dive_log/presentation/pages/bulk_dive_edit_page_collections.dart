@@ -182,7 +182,6 @@ extension _BulkDiveEditCollections on _BulkDiveEditPageState {
         context,
         ref,
         selectedSiteId: _selectedSite?.id,
-        currentLocation: _currentLocation,
         areaAnchor: areaAnchor,
       );
       if (site != null && mounted) {

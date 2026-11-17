@@ -235,8 +235,8 @@ void dropGasSwitchesWithoutTank(EditSession<Dive> session) {
   setGasSwitches(session, kept, removedWithTank: dropped);
 }
 
-/// The earliest and latest second a switch may fall on, as the form works
-/// them out (`dive_edit_page_gas_switches.dart:42` and `:61`), from the
+/// The earliest and latest second a switch may fall on, as the old dive
+/// form worked them out, from the
 /// sitting: the stored profile's last sample, else the runtime, else the
 /// bottom time, else exit minus entry; no latest when nothing says how long
 /// the dive was. The earliest is the profile's first sample or a loaded

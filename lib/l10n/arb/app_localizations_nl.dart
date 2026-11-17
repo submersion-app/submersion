@@ -1383,11 +1383,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Importeren vanaf Garmin-apparaat';
 
   @override
-  String diveLog_edit_flightWindowWarning(String time) {
-    return 'Deze duik eindigt na het laatste veilige opstijgmoment voor je vlucht ($time)';
-  }
-
-  @override
   String diveLog_edit_geofenceSuggestion_near(String location) {
     return 'Bij $location';
   }
@@ -8311,12 +8306,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Aan favorieten toevoegen';
 
   @override
-  String get diveLog_detail_tooltip_edit => 'Bewerken';
-
-  @override
-  String get diveLog_detail_tooltip_editDive => 'Duik bewerken';
-
-  @override
   String get diveLog_detail_tooltip_previousDive => 'Vorige duik';
 
   @override
@@ -8388,9 +8377,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String diveLog_edit_addedGps(Object name) {
     return 'GPS toegevoegd aan $name';
   }
-
-  @override
-  String get diveLog_edit_appBarEdit => 'Duik bewerken';
 
   @override
   String get diveLog_edit_appBarNew => 'Duik loggen';
@@ -8508,39 +8494,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_group_buddies => 'Buddy\'s';
 
   @override
-  String get diveLog_edit_group_conditions => 'Omstandigheden';
-
-  @override
-  String get diveLog_edit_group_experience => 'Ervaring';
-
-  @override
-  String get diveLog_edit_group_gasGear => 'Gas & uitrusting';
-
-  @override
-  String get diveLog_edit_group_theDive => 'De duik';
-
-  @override
-  String get diveLog_edit_group_trip => 'Reis';
-
-  @override
-  String get diveLog_edit_invite_buddies => 'Buddy\'s toevoegen';
-
-  @override
-  String get diveLog_edit_invite_conditions =>
-      'Omstandigheden toevoegen - water, zicht, weer';
-
-  @override
-  String get diveLog_edit_invite_experience =>
-      'Beoordeling, waarnemingen, notities of tags toevoegen';
-
-  @override
-  String get diveLog_edit_invite_gasGear =>
-      'Gas & uitrusting toevoegen - modus, flessen, uitrusting, lood';
-
-  @override
-  String get diveLog_edit_invite_trip => 'Reis of duikcentrum toevoegen';
-
-  @override
   String get diveLog_edit_label_airTemp => 'Luchttemp.';
 
   @override
@@ -8622,9 +8575,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Tik op \"Toevoegen\" om waarnemingen vast te leggen';
 
   @override
-  String get diveLog_edit_nearbySitesFirst => 'Nabijgelegen stekken eerst';
-
-  @override
   String get diveLog_edit_noEquipmentSelected => 'Geen uitrusting geselecteerd';
 
   @override
@@ -8667,9 +8617,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_notSpecified => 'Niet opgegeven';
 
   @override
-  String get diveLog_edit_notesHint => 'Voeg notities toe over deze duik...';
-
-  @override
   String get diveLog_edit_overline_gasSwitches => 'Gaswissels';
 
   @override
@@ -8686,9 +8633,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_profile_draw => 'Profiel tekenen';
 
   @override
-  String get diveLog_edit_profile_none => 'Niet vastgelegd';
-
-  @override
   String diveLog_edit_profile_outliers(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -8697,37 +8641,6 @@ class AppLocalizationsNl extends AppLocalizations {
       one: '1 mogelijke uitschieter gedetecteerd',
     );
     return '$_temp0';
-  }
-
-  @override
-  String diveLog_edit_profile_points(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count punten',
-      one: '1 punt',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String diveLog_edit_profile_pointsAndProfiles(
-    num pointCount,
-    num profileCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      pointCount,
-      locale: localeName,
-      other: '$pointCount punten',
-      one: '1 punt',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      profileCount,
-      locale: localeName,
-      other: '$profileCount revisies',
-      one: '1 revisie',
-    );
-    return '$_temp0 · $_temp1';
   }
 
   @override
@@ -8746,9 +8659,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_row_boatCaptain => 'Kapitein';
 
   @override
-  String get diveLog_edit_row_diveProfile => 'Duikprofiel';
-
-  @override
   String get diveLog_edit_row_entry => 'Te water';
 
   @override
@@ -8759,9 +8669,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_edit_row_site => 'Duikstek';
-
-  @override
-  String get diveLog_edit_row_surfaceInterval => 'Oppervlakte-interval';
 
   @override
   String get diveLog_edit_row_trip => 'Reis';
@@ -8819,9 +8726,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_edit_section_conditions => 'Omstandigheden';
-
-  @override
-  String get diveLog_edit_section_customFields => 'Aangepaste velden';
 
   @override
   String get diveLog_edit_section_diveCenter => 'Duikcentrum';
@@ -8928,59 +8832,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_section_weight => 'Gewicht';
 
   @override
-  String diveLog_edit_snackbar_avgDepthCalculated(Object depth) {
-    return 'Gem. diepte berekend: $depth';
-  }
-
-  @override
-  String diveLog_edit_snackbar_bottomTimeCalculated(Object minutes) {
-    return 'Bodemtijd berekend: $minutes min';
-  }
-
-  @override
   String diveLog_edit_snackbar_errorSaving(Object error) {
     return 'Fout bij opslaan van duik: $error';
-  }
-
-  @override
-  String diveLog_edit_snackbar_maxDepthCalculated(Object depth) {
-    return 'Max. diepte berekend: $depth';
-  }
-
-  @override
-  String get diveLog_edit_snackbar_noProfileData =>
-      'Geen duikprofielgegevens beschikbaar';
-
-  @override
-  String diveLog_edit_snackbar_runtimeCalculated(Object minutes) {
-    return 'Looptijd berekend: $minutes min';
-  }
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateAvgDepth =>
-      'Kan gemiddelde diepte niet berekenen uit profiel';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculate =>
-      'Kan bodemtijd niet berekenen uit profiel';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateMaxDepth =>
-      'Kan maximale diepte niet berekenen uit profiel';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateRuntime =>
-      'Kan looptijd niet berekenen uit profiel';
-
-  @override
-  String diveLog_edit_summary_items(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count items',
-      one: '1 item',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -8996,20 +8849,6 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String diveLog_edit_summary_tanks(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count flessen',
-      one: '1 fles',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get diveLog_edit_surfacePressureDefault => '1013';
 
   @override
   String get diveLog_edit_tankCard_done => 'Klaar';
@@ -9035,10 +8874,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_edit_tooltip_removeWeight => 'Verwijderen';
-
-  @override
-  String get diveLog_edit_trainingCoursesHint =>
-      'Koppel deze duik aan een of meer trainingscursussen';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {
@@ -9745,10 +9580,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Tekstherkenning is niet beschikbaar. Installeer Tesseract om papieren logboeken te scannen (bijvoorbeeld: sudo apt install tesseract-ocr).';
 
   @override
-  String get ocrImport_editPage_photoAttachFailed =>
-      'De duik is opgeslagen, maar het bijvoegen van de gescande pagina is mislukt';
-
-  @override
   String get ocrImport_newDive_photoHoldFailed =>
       'De gescande pagina kon niet aan deze duik worden toegevoegd';
 
@@ -10054,9 +9885,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_edit_summary_shared => 'gedeeld';
-
-  @override
-  String get forms_addSection_prefix => 'Toevoegen:';
 
   @override
   String get forms_cancel => 'Annuleren';
@@ -36059,10 +35887,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_photos_viewAll => 'Alles bekijken';
 
   @override
-  String get trips_dateStretch_failed =>
-      'Duik opgeslagen, maar de reisdatums konden niet worden bijgewerkt';
-
-  @override
   String trips_dateStretch_message(String trip, String dates) {
     return '$trip loopt nu $dates';
   }
@@ -39721,12 +39545,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
       'Mogelijk gemaakt door Apple HealthKit';
-
-  @override
-  String get diveLog_edit_subsection_autofill => 'Automatisch invullen';
-
-  @override
-  String get diveLog_edit_subsection_weather => 'Weer';
 
   @override
   String get diveLog_edit_label_windSpeed => 'Windsnelheid';
@@ -57542,10 +57360,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_summary_gasExcluded => 'Gas uitgesloten';
 
   @override
-  String get diveLog_edit_statisticsIncludedHint =>
-      'Meegeteld in alle statistieken';
-
-  @override
   String get suuntoCloud_signIn_title => 'Aanmelden bij Suunto';
 
   @override
@@ -59221,11 +59035,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get navTrack_editSheet_trackOnAnotherDive =>
       'Deze track hoort bij een andere duik. Werk hem bij vanuit die duik, of importeer het bestand als nieuwe track.';
-
-  @override
-  String navTrack_editRow_tracksSaveFailed(String error) {
-    return 'Kan de onderwatertracks van deze duik niet bijwerken: $error';
-  }
 
   @override
   String get navTrack_importError_unsupportedFormat =>
