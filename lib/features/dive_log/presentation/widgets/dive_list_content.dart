@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/router/section_navigation.dart';
@@ -1323,7 +1324,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// Opens [dive] the way a list tap does outside selection mode. The search
   /// row's jump list calls this directly: its rows may not be in the list
   /// at all, so selecting them would do nothing visible.
-  void _openDive(DiveSummary dive) {
+  Future<void> _openDive(DiveSummary dive) async {
+    // Opening another dive leaves the one the pane shows: unsaved changes
+    // there are asked about before the highlight moves (issue #4527).
+    if (!await ref.read(appExitGuardProvider).mayLeave() || !mounted) return;
     // In map mode, call onItemTapForMap instead of navigating
     if (widget.isMapMode && widget.onItemTapForMap != null) {
       // Also update the visual selection highlight

@@ -25,7 +25,21 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   RecordEditController<Dive> get editController => _editController ??=
       _newEditController(ProviderScope.containerOf(context, listen: false));
 
-  RecordEditController<Dive> _newEditController(ProviderContainer container) =>
+  /// Makes the sitting's unsaved changes work the app asks about before a
+  /// tab, a pane row or a quit leaves them (issue #4527).
+  RecordSittingExitBlocker<Dive>? _exitBlocker;
+
+  RecordEditController<Dive> _newEditController(ProviderContainer container) {
+    final controller = _newController(container);
+    _exitBlocker = RecordSittingExitBlocker<Dive>(
+      controller: controller,
+      guard: container.read(appExitGuardProvider),
+      confirm: () async => mounted && await cancelSitting(context, controller),
+    );
+    return controller;
+  }
+
+  RecordEditController<Dive> _newController(ProviderContainer container) =>
       RecordEditController<Dive>(
         onSave: _saveSitting,
         // After a whole-record operation: the dive as stored now, read
@@ -92,6 +106,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
 
   void disposeEditing() {
     _tellOpenSitting(null);
+    _exitBlocker?.dispose();
     _editController?.dispose();
   }
 
@@ -112,6 +127,12 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   @override
   void didUpdateWidget(DiveDetailPage oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // The pane showing a site in the dive's place ends the sitting: its
+    // link asked first when there was anything to lose.
+    final site = widget.embeddedSiteId;
+    if (site != null && site.isNotEmpty && site != oldWidget.embeddedSiteId) {
+      _editController?.lock();
+    }
     if (oldWidget.diveId == widget.diveId) return;
     _justSaved = null;
     _editController?.lock();

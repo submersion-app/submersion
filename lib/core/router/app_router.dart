@@ -140,6 +140,7 @@ import 'package:submersion/features/settings/presentation/pages/link_buddy_names
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/settings_legacy_links.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
@@ -526,6 +527,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/dives',
             name: 'dives',
+            // A dive's sitting in the list pane, or on a page pushed above
+            // it, is asked about before a tab or a link goes (issue #4527).
+            onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               // Set when openDiveList pushed this list: what to put back
@@ -621,6 +625,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':diveId',
                 name: 'diveDetail',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) =>
                     DiveDetailPage(diveId: state.pathParameters['diveId']!),
                 routes: [

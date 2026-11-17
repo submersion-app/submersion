@@ -21,6 +21,7 @@ import 'package:submersion/features/weather/data/services/weather_service.dart';
 import 'package:submersion/features/weather/domain/entities/weather_data.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -174,6 +175,8 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
         routes: [
           GoRoute(
             path: 'dive',
+            // As the app's dive routes: leaving by `go` asks the sitting.
+            onExit: confirmLeaveRecordSitting,
             // With [shownDiveId] the same page is handed another dive,
             // keeping its state, as the list pane does with its detail.
             builder: (context, state) => ValueListenableBuilder<String>(
