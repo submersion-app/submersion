@@ -3,8 +3,8 @@ import 'package:submersion/features/media/data/services/dive_media_enricher.dart
 import 'package:submersion/features/media/data/services/enrichment_service.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/domain/value_objects/photo_tag_edits.dart';
@@ -181,16 +181,20 @@ RepairProposal? heldRelink(EditSession<PhotoRecord> session) =>
 /// will write it; [item] itself with none held.
 ///
 /// Drawn as found, not orphaned: the stored row's orphan flag is the old
-/// file's, and drawing the new file must not clear it before Save.
+/// file's, and drawing the new file must not clear it before Save. Its last
+/// check and its size were the old file's too.
 MediaItem withHeldRelink(EditSession<PhotoRecord> session, MediaItem item) {
-  final path = heldRelink(session)?.candidate?.path;
-  if (path == null) return item;
+  final candidate = heldRelink(session)?.candidate;
+  final path = candidate?.path;
+  if (candidate == null || path == null) return item;
   return item.copyWith(
     localPath: path,
     // The row's bookmark names the old file; a new one is made at Save.
     bookmarkRef: null,
     sourceType: MediaSourceType.localFile,
     isOrphaned: false,
+    lastVerifiedAt: null,
+    contentSizeBytes: candidate.sizeBytes ?? item.contentSizeBytes,
   );
 }
 

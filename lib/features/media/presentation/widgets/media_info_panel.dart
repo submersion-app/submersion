@@ -32,6 +32,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/dive_log/presentation/providers/open_dive_sitting_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/editing/photo_held_writes.dart';
 import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
@@ -95,9 +97,16 @@ class MediaInfoPanel extends ConsumerWidget {
     final stored = row.value ?? item;
     // A photo held only in a dive's sitting has no row yet: nothing can be
     // checked, backed up or relinked until the dive is saved.
-    final rowless = row.hasValue && row.value == null;
+    final rowless = noStoredRow(row);
     final session = sitting;
     final inSitting = sittingIsOver(session, stored.id);
+    // The dive's own sitting already relinks this photo (its Media card's
+    // Replace link): a second relink held here would be written over by the
+    // dive's Save.
+    final open = ref.watch(openDiveSittingProvider);
+    final relinkedOnDive =
+        open != null &&
+        sittingMedia(open.session).replaced.containsKey(stored.id);
     // In a sitting the origin is the file a held relink found.
     final live = inSitting ? withHeldRelink(session!, stored) : stored;
     final provenance = ref.watch(mediaProvenanceProvider(live));
@@ -123,8 +132,13 @@ class MediaInfoPanel extends ConsumerWidget {
           origin: provenance.origin,
           units: units,
           // In a sitting, Locate is held until Save.
-          canLocate: !readOnly && !rowless && (session == null || inSitting),
+          canLocate:
+              !readOnly &&
+              !rowless &&
+              !relinkedOnDive &&
+              (session == null || inSitting),
           canCheck: !rowless,
+          stored: stored,
           sitting: inSitting ? session : null,
         ),
         const SizedBox(height: 12),
@@ -195,6 +209,7 @@ class _OriginSection extends ConsumerWidget {
     required this.canLocate,
     required this.canCheck,
     required this.sitting,
+    required this.stored,
   });
 
   final MediaItem item;
@@ -209,6 +224,10 @@ class _OriginSection extends ConsumerWidget {
 
   /// The photo's sitting, which holds what Locate finds until Save.
   final EditSession<PhotoRecord>? sitting;
+
+  /// The photo as stored: what Check now checks and Locate relinks, while
+  /// [item] may be drawn with a relink the sitting holds.
+  final MediaItem stored;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -231,7 +250,7 @@ class _OriginSection extends ConsumerWidget {
     return _Section(
       title: l10n.media_info_originSection,
       actions: [
-        if (canEdit && canCheck) _CheckNowButton(item: item),
+        if (canEdit && canCheck) _CheckNowButton(item: stored),
         // Under limited photo access a gallery photo may be outside what the
         // user allowed (spec 6.3). Offered whenever access is limited: the
         // panel reads stored facts, not this device's live verdict.
@@ -251,7 +270,7 @@ class _OriginSection extends ConsumerWidget {
             isLocalFile &&
             canEdit &&
             canLocate)
-          _LocateButton(item: item, sitting: sitting),
+          _LocateButton(item: stored, sitting: sitting),
         if (pointer != null && isLocalFile && canRevealInFileManager)
           TextButton(
             // Explicitly unawaited: revealInFileManager swallows its own

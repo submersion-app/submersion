@@ -464,9 +464,10 @@ void main() {
         row.read<String>('media_id'),
     ];
 
-    /// Different bytes from the row's, so the relink re-uploads.
+    /// Different bytes from the row's (stamped OLD-HASH by [sittingWithHash]),
+    /// so the relink re-uploads.
     RepairProposal locate(EditSession<PhotoRecord> session) => RepairProposal(
-      item: session.stored.item.copyWith(contentHash: 'OLD-HASH'),
+      item: session.stored.item,
       confidence: RepairConfidence.edited,
       candidate: RepairCandidate.file(
         path: relinkedPath,
@@ -474,6 +475,14 @@ void main() {
         hash: 'NEW-HASH',
       ),
     );
+
+    /// A sitting on p1, whose row has the content hash [hash].
+    Future<EditSession<PhotoRecord>> sittingWithHash(String hash) async {
+      await media.stampContentIdentity('p1', contentHash: hash, sizeBytes: 9);
+      await changeLog.settleAll();
+      await db.customStatement('DELETE FROM change_log_operations');
+      return sitting('p1');
+    }
 
     test('a relink held with a tag: one operation; the upload is queued '
         'after the commit', () async {
@@ -483,7 +492,7 @@ void main() {
         createBookmark: null,
         writeBookmark: null,
       );
-      final session = await sitting('p1');
+      final session = await sittingWithHash('OLD-HASH');
       session.set(
         photoSpeciesField,
         SpeciesTagEdits.none.toggled(turtle, tagged: true, stored: const []),
@@ -542,6 +551,88 @@ void main() {
       expect(deleted, written);
       expect(relinkAfterCommit(session), isEmpty);
       expect(await uploads(), isEmpty);
+    });
+
+    test('a relink the repair cannot make fails the save: nothing is '
+        'written, and the photo stays as it was', () async {
+      final repair = MediaRepairService(
+        repository: media,
+        queue: queue,
+        createBookmark: null,
+        writeBookmark: null,
+      );
+      final session = await sittingWithHash('ROW-HASH');
+      session.set(
+        photoSpeciesField,
+        SpeciesTagEdits.none.toggled(turtle, tagged: true, stored: const []),
+      );
+      // Found as the same bytes, but they are not: the repair skips it.
+      holdRelink(
+        session,
+        RepairProposal(
+          item: session.stored.item,
+          confidence: RepairConfidence.exact,
+          candidate: RepairCandidate.file(
+            path: relinkedPath,
+            sizeBytes: 9,
+            hash: 'OTHER-HASH',
+          ),
+        ),
+        service: repair,
+      );
+
+      await expectLater(
+        undoRelinkOnFailure(session, () => save(session)),
+        throwsStateError,
+      );
+
+      final after = await stored('p1');
+      expect(after.item.localPath, isNull);
+      expect(after.species, isEmpty);
+      expect(relinkAfterCommit(session), isEmpty);
+    });
+
+    test('the relink is checked against the photo as stored at Save, not '
+        'as it was when the file was found', () async {
+      final repair = MediaRepairService(
+        repository: media,
+        queue: queue,
+        createBookmark: null,
+        writeBookmark: null,
+      );
+      await media.stampContentIdentity(
+        'p1',
+        contentHash: 'FOUND-HASH',
+        sizeBytes: 9,
+      );
+      final session = await sitting('p1');
+      // Found with the row's own bytes.
+      holdRelink(
+        session,
+        RepairProposal(
+          item: session.stored.item,
+          confidence: RepairConfidence.exact,
+          candidate: RepairCandidate.file(
+            path: relinkedPath,
+            sizeBytes: 9,
+            hash: 'FOUND-HASH',
+          ),
+        ),
+        service: repair,
+      );
+      // Another device stamps other bytes on the row meanwhile.
+      await media.stampContentIdentity(
+        'p1',
+        contentHash: 'RESTAMPED',
+        sizeBytes: 12,
+      );
+      session.rebase(await stored('p1'));
+
+      await expectLater(
+        undoRelinkOnFailure(session, () => save(session)),
+        throwsStateError,
+      );
+      expect((await stored('p1')).item.localPath, isNull);
     });
 
     test('Cancel after Locate: nothing is written', () async {

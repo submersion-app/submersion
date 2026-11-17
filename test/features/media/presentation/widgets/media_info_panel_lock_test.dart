@@ -4,6 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/open_dive_sitting_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/data/services/media_item_verifier.dart';
+import 'package:submersion/features/media/domain/services/media_repair_types.dart';
+import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
+import 'package:submersion/features/media/presentation/providers/media_provenance_providers.dart';
 import 'package:submersion/features/media/data/services/media_serving_recorder.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -24,6 +31,21 @@ class _NeverApplied implements MediaRepairService {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw StateError('applied before Save: ${invocation.memberName}');
+}
+
+/// Records which file each Check now was asked about.
+class _RecordingVerifier implements MediaItemVerifier {
+  final List<String?> checked = [];
+
+  @override
+  Future<VerifyResult> verify(MediaItem item) async {
+    checked.add(item.localPath);
+    return VerifyResult.available;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} is not stubbed');
 }
 
 /// The info panel under the photo viewer's lock (issue #4527): read only
@@ -215,6 +237,100 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('in a sitting with a relink held, Check now checks the '
+        'stored file, not the one found', (tester) async {
+      final item = missingFile();
+      final sitting = EditSession<PhotoRecord>(
+        PhotoRecord(item: item, species: const [], people: const []),
+      );
+      addTearDown(sitting.dispose);
+      final verifier = _RecordingVerifier();
+      await pump(
+        tester,
+        item,
+        extra: [
+          pickerAnswering(Future.value('/found/reef.jpg')),
+          mediaRepairServiceProvider.overrideWithValue(_NeverApplied()),
+          mediaItemVerifierProvider.overrideWithValue(verifier),
+        ],
+        sitting: sitting,
+      );
+      await tester.tap(find.text('Locate file...'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Check now'));
+      await tester.pumpAndSettle();
+
+      expect(verifier.checked, ['/gone/reef.jpg']);
+    });
+
+    testWidgets('Locate is not offered over a photo whose link the dive\'s '
+        'sitting already replaces', (tester) async {
+      final item = missingFile().copyWith(diveId: 'd1');
+      final sitting = EditSession<PhotoRecord>(
+        PhotoRecord(item: item, species: const [], people: const []),
+      );
+      addTearDown(sitting.dispose);
+      final dive = EditSession<Dive>(
+        Dive(id: 'd1', dateTime: DateTime.utc(2026)),
+      );
+      addTearDown(dive.dispose);
+      holdSittingMedia(
+        dive,
+        SittingMediaWriters(
+          writeRows: (_) async => const [],
+          insertNetwork: (_) async => const [],
+          unlink: (_) async {},
+          replace: (_, _, _) async {},
+          drainDeletes: () async {},
+          enqueueUpload: (_) {},
+        ),
+      );
+      replaceLinkInSitting(
+        dive,
+        item.id,
+        RepairProposal(
+          item: item,
+          confidence: RepairConfidence.exact,
+          candidate: const RepairCandidate.file(
+            path: '/card/reef.jpg',
+            sizeBytes: 9,
+          ),
+        ),
+      );
+      await pump(
+        tester,
+        item,
+        extra: [
+          openDiveSittingProvider.overrideWith(
+            (ref) => OpenDiveSitting(
+              diveId: 'd1',
+              session: dive,
+              showMediaCard: () {},
+            ),
+          ),
+        ],
+        sitting: sitting,
+      );
+
+      expect(find.text('Locate file...'), findsNothing);
+    });
+
+    testWidgets('while the stored row is still being read, no store action '
+        'is offered', (tester) async {
+      final item = missingFile();
+      final never = Completer<MediaItem?>();
+      await pumpInfoPanel(
+        tester,
+        item,
+        recorder: recorder,
+        readRow: () => never.future,
+      );
+
+      expect(find.text('Check now'), findsNothing);
+      expect(find.text('Locate file...'), findsNothing);
     });
 
     testWidgets('locked: Locate is not offered', (tester) async {

@@ -37,16 +37,19 @@ class PhotoViewerPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mediaAsync = ref.watch(mediaForDiveProvider(diveId));
     return mediaAsync.when(
-      data: (stored) {
-        final session = diveSitting;
-        if (session == null || session.isDisposed) return _viewer(stored);
-        return ListenableBuilder(
-          listenable: session,
-          builder: (context, _) => _viewer(
-            session.isDisposed ? stored : mediaInSitting(session, stored),
-          ),
-        );
-      },
+      // One shape whether or not the dive's sitting is open, so the viewer
+      // keeps its place, and its own sitting, when that one ends under it.
+      data: (stored) => ListenableBuilder(
+        listenable: diveSitting ?? const _NoSitting(),
+        builder: (context, _) {
+          final session = diveSitting;
+          return _viewer(
+            session == null || session.isDisposed
+                ? stored
+                : mediaInSitting(session, stored),
+          );
+        },
+      ),
       loading: () => const Scaffold(
         backgroundColor: Colors.black,
         body: Center(child: CircularProgressIndicator(color: Colors.white)),
@@ -65,4 +68,15 @@ class PhotoViewerPage extends ConsumerWidget {
     initialMediaId: initialMediaId,
     unlockEditing: unlockEditing,
   );
+}
+
+/// No dive sitting to follow.
+class _NoSitting implements Listenable {
+  const _NoSitting();
+
+  @override
+  void addListener(VoidCallback listener) {}
+
+  @override
+  void removeListener(VoidCallback listener) {}
 }

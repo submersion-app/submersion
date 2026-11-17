@@ -3,11 +3,9 @@ part of 'media_viewer_page.dart';
 /// The viewer's top bar, and the ways it leaves or steps through the
 /// photo's lock (issue #4527).
 extension _ViewerChrome on _MediaViewerPageState {
-  /// Whether [item] has no stored row: read, and not found.
-  bool _rowless(MediaItem item) {
-    final row = ref.watch(mediaByIdProvider(item.id));
-    return row.hasValue && row.value == null;
-  }
+  /// Whether [item] has no stored row, or its read has not answered yet.
+  bool _rowless(MediaItem item) =>
+      noStoredRow(ref.watch(mediaByIdProvider(item.id)));
 
   Widget _toolbar(
     BuildContext context, {

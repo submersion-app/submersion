@@ -15,9 +15,14 @@ const _relinkUndoKey = 'photo:relink.undo';
 
 /// Holds Locate's relink of the photo to [proposal]'s file until the
 /// sitting is saved (issue #4527, plan 10 Task 13), as the dive's Media card
-/// holds Replace link. A later Locate replaces it.
+/// holds Replace link.
 ///
-/// At Save the relink runs inside the save's transaction; what it does
+/// At Save the file is checked against the photo as stored then, not as it
+/// was when the file was found, and a relink the repair cannot make (other
+/// bytes than the photo's, a file gone since) fails the save, so the change
+/// the diver saw is never dropped without a word.
+///
+/// The relink runs inside the save's transaction; what it does
 /// outside the database waits: the upload of different bytes and the
 /// asset cache's drop for the commit ([relinkAfterCommit]), and its new
 /// bookmark is taken away again if the save does not commit
@@ -40,7 +45,22 @@ void holdRelink(
       session
         ..remember(_relinkAfterKey, null)
         ..remember(_relinkUndoKey, undo);
-      await service.apply([proposal], afterCommit: after, onRollback: undo);
+      final report = await service.apply(
+        [
+          RepairProposal(
+            item: session.stored.item,
+            confidence: proposal.confidence,
+            candidate: proposal.candidate,
+          ),
+        ],
+        afterCommit: after,
+        onRollback: undo,
+      );
+      if (report.relinked == 0) {
+        throw StateError(
+          'Media ${session.stored.item.id} could not be relinked',
+        );
+      }
       session.remember(_relinkAfterKey, after);
     },
   );

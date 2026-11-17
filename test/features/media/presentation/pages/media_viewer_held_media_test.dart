@@ -45,6 +45,7 @@ import 'package:submersion/features/media/presentation/editing/photo_held_writes
 import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/features/media/presentation/helpers/media_link_replacer.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
@@ -231,6 +232,26 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('viewer_info')));
       await settleViewer(tester);
       expect(find.text('Check now'), findsOneWidget);
+    });
+
+    testWidgets('the viewer keeps its place and its own sitting when the '
+        'dive\'s sitting ends under it', (tester) async {
+      final dive = await pumpCard(tester);
+      await openTile(tester, 'p2');
+      await tapUnlock(tester);
+      final viewer = tester.state(find.byType(MediaViewerPage));
+      final photo = photoController(tester);
+
+      dive.lock();
+      // The dive's photos are read again (a photo synced in, say).
+      ProviderScope.containerOf(
+        tester.element(find.byType(MediaViewerPage)),
+      ).invalidate(mediaForDiveProvider('d1'));
+      await settleViewer(tester);
+
+      expect(tester.state(find.byType(MediaViewerPage)), same(viewer));
+      expect(onScreen(tester), 'p2');
+      expect(photo.isUnlocked, isTrue);
     });
   });
 
@@ -504,6 +525,11 @@ void main() {
       expect(await storedPath(tester), '/gone/p1.jpg');
 
       await tester.tap(find.text('Save'));
+      // Until the save's transaction has ended: a read of the database
+      // while it runs would wait on a write the test's clock is not moving.
+      for (var i = 0; i < 100 && photoController(tester).isSaving; i++) {
+        await settleViewer(tester, rounds: 1);
+      }
       await settleViewer(tester);
 
       expect(photoController(tester).isUnlocked, isFalse);
