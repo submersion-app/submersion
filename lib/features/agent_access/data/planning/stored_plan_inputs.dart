@@ -62,6 +62,7 @@ List<Map<String, Object?>> seriesInputsOf(
             : s.dives[i - 1].plan.tanks,
         first: i == 0,
         timed: timed,
+        previous: i == 0 ? null : s.dives[i - 1].plan,
       ),
   ];
 }
@@ -71,8 +72,19 @@ Map<String, Object?> _seriesDive(
   required List<DiveTank>? before,
   required bool first,
   required bool timed,
+  required DivePlan? previous,
 }) {
   final plan = dive.plan;
+  // The parser gives a later dive the dive before's value of any setting
+  // it leaves out, while the planner computes it with its own, null
+  // meaning Settings. So a setting this dive leaves unset where the dive
+  // before sets one is written as null.
+  final own = planSettingValues(plan);
+  final cleared = [
+    if (previous != null)
+      for (final MapEntry(:key, :value) in planSettingValues(previous).entries)
+        if (value != null && own[key] == null) key,
+  ];
   // A dive that carries in, a later one or a first one after a followed
   // dive, starts at its own start only when it holds one fixed on a series
   // with a clock. Otherwise it is timed by its interval, the planner's
@@ -89,6 +101,7 @@ Map<String, Object?> _seriesDive(
   };
   return {
     ...planInputsOf(plan, withStart: !byInterval),
+    for (final key in cleared) key: null,
     'surface_interval_s': ?interval,
     if (before != null)
       'carries_from_tank': [

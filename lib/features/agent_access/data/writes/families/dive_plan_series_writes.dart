@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:submersion/features/agent_access/data/documents/plan_documents.dart';
+import 'package:submersion/features/agent_access/data/records/families/plan_record_loads.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_plan_series_create.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_plan_series_names.dart';
@@ -246,10 +247,15 @@ class DivePlanSeriesWrites extends WritableEntry {
     if (values[_names] == null) return none;
     final read = await _renames(id, values, pass);
     if (read.renames.isEmpty) return none;
+    final next = _updated(read.series, values);
+    // Where each dive stands in the log, as the stored document reads it,
+    // so the change shows the names alone.
+    final logged = await loggedEntryFlags(
+      _r,
+      linkedDiveIds([for (final dive in next.dives) dive.plan]),
+    );
     return (
-      fields: {
-        'dives': divePlanSeriesDocument(_updated(read.series, values))['dives'],
-      },
+      fields: {'dives': divePlanSeriesDocument(next, logged: logged)['dives']},
       basis: jsonEncode([
         for (final r in read.renames) [r.planId, r.diveId, r.dived],
       ]),
