@@ -31,6 +31,13 @@ enum PlanIssueType {
   /// there, in bar.
   bailoutGasHypoxic,
 
+  /// A constant mass flow SCR loop whose injection rate cannot sustain it at
+  /// the plan's VO2 on a supply (#4660): at or below VO2, or carrying less O2
+  /// than the diver uses. [PlanIssue.value] is the injection rate and
+  /// [PlanIssue.threshold] the least flow with a steady state on that supply,
+  /// both surface L/min; [PlanIssue.tankId] is the supply.
+  scrFlowTooLow,
+
   /// A back gas leaves the bottom with enough for an emergency ascent but
   /// not for the problem-solving time as well (#4475). [PlanIssue.value] is
   /// the pressure as the diver leaves the bottom and [PlanIssue.threshold]

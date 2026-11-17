@@ -22792,6 +22792,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_scrFlowTooLow(String rate, String needed) {
+    return 'Eine Dosierrate von $rate kann den Kreislauf bei diesem VO₂ nicht versorgen: Dieses Versorgungsgas braucht mehr als $needed.';
+  }
+
+  @override
   String plannerCanvas_issue_noEligibleBailoutGas(
     String depth,
     String deepestMod,

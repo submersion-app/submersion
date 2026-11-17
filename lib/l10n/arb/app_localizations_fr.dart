@@ -22877,6 +22877,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_scrFlowTooLow(String rate, String needed) {
+    return 'Un débit d\'injection de $rate ne peut pas entretenir la boucle à ce VO₂ : ce gaz d\'alimentation demande plus de $needed.';
+  }
+
+  @override
   String plannerCanvas_issue_noEligibleBailoutGas(
     String depth,
     String deepestMod,

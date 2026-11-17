@@ -22321,6 +22321,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_scrFlowTooLow(String rate, String needed) {
+    return 'קצב הזרקה של $rate אינו יכול לקיים את הלולאה ב-VO₂ הזה: גז האספקה הזה דורש יותר מ-$needed.';
+  }
+
+  @override
   String plannerCanvas_issue_noEligibleBailoutGas(
     String depth,
     String deepestMod,

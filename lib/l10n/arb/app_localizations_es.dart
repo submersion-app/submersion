@@ -22807,6 +22807,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_scrFlowTooLow(String rate, String needed) {
+    return 'Un caudal de inyección de $rate no puede sostener el circuito con este VO₂: este gas de suministro necesita más de $needed.';
+  }
+
+  @override
   String plannerCanvas_issue_noEligibleBailoutGas(
     String depth,
     String deepestMod,

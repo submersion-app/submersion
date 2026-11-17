@@ -35,6 +35,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart'
     show kDefaultBatteryReserveFraction, kDefaultWalkSpeedMps;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/features/planner/domain/services/scr_flow_check.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
 
 /// Thresholds and policy limits the engine evaluates plans against.
@@ -2455,6 +2456,7 @@ class PlanEngine {
     }
 
     issues.addAll(_modOverrideIssues(plan.tanks, environment, onsets.schedule));
+    issues.addAll(scrFlowIssues(plan, config));
     issues.sort((a, b) => b.severity.index.compareTo(a.severity.index));
     return issues;
   }

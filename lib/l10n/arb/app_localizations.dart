@@ -35932,6 +35932,12 @@ abstract class AppLocalizations {
   /// **'Bailout gas is hypoxic at {depth} (ppO₂ {value} bar). Carry a gas breathable to the surface.'**
   String plannerCanvas_issue_bailoutHypoxic(String depth, String value);
 
+  /// No description provided for @plannerCanvas_issue_scrFlowTooLow.
+  ///
+  /// In en, this message translates to:
+  /// **'An injection rate of {rate} cannot sustain the loop at this VO₂: this supply needs more than {needed}.'**
+  String plannerCanvas_issue_scrFlowTooLow(String rate, String needed);
+
   /// No description provided for @plannerCanvas_issue_noEligibleBailoutGas.
   ///
   /// In en, this message translates to:

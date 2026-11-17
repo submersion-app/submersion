@@ -22480,6 +22480,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_scrFlowTooLow(String rate, String needed) {
+    return 'An injection rate of $rate cannot sustain the loop at this VO₂: this supply needs more than $needed.';
+  }
+
+  @override
   String plannerCanvas_issue_noEligibleBailoutGas(
     String depth,
     String deepestMod,

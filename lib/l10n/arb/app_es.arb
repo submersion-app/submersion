@@ -6529,6 +6529,7 @@
   "plannerCanvas_issue_ceilingViolated": "El perfil sobrepasa el techo de descompresión de {ceiling} y omite paradas obligatorias",
   "plannerCanvas_issue_noBailout": "El plan de descompresión no lleva gas de bailout",
   "plannerCanvas_issue_bailoutHypoxic": "El gas de bailout es hipóxico a {depth} (ppO₂ {value} bar). Lleva un gas respirable hasta la superficie.",
+  "plannerCanvas_issue_scrFlowTooLow": "Un caudal de inyección de {rate} no puede sostener el circuito con este VO₂: este gas de suministro necesita más de {needed}.",
   "plannerCanvas_issue_noEligibleBailoutGas": "Ningún gas de bailout llega a {depth}: la MOD más profunda que se lleva es {deepestMod}. Lleva un gas utilizable a esa profundidad; más del mismo gas no servirá.",
   "plannerCanvas_issue_noDecoGas": "Se requiere descompresión pero no se lleva gas de deco",
   "plannerCanvas_range_base": "Base",

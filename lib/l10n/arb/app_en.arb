@@ -14535,6 +14535,17 @@
       }
     }
   },
+  "plannerCanvas_issue_scrFlowTooLow": "An injection rate of {rate} cannot sustain the loop at this VO₂: this supply needs more than {needed}.",
+  "@plannerCanvas_issue_scrFlowTooLow": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "needed": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_issue_noEligibleBailoutGas": "No bailout gas reaches {depth}: the deepest MOD carried is {deepestMod}. Carry a gas usable at that depth; more of the same gas will not help.",
   "@plannerCanvas_issue_noEligibleBailoutGas": {
     "placeholders": {

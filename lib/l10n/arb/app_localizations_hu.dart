@@ -22743,6 +22743,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_scrFlowTooLow(String rate, String needed) {
+    return '$rate adagolási sebesség ennél a VO₂-nél nem tartja fenn a hurkot: ez a tápgáz $needed fölötti értéket igényel.';
+  }
+
+  @override
   String plannerCanvas_issue_noEligibleBailoutGas(
     String depth,
     String deepestMod,

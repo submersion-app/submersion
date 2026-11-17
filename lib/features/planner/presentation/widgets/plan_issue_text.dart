@@ -99,6 +99,11 @@ String planIssueMessage(
         units.formatDepth(issue.atDepth ?? 0, decimals: 0),
         issue.value?.toStringAsFixed(2) ?? '--',
       );
+    case PlanIssueType.scrFlowTooLow:
+      return l10n.plannerCanvas_issue_scrFlowTooLow(
+        issue.value == null ? '--' : units.formatRmv(issue.value!),
+        issue.threshold == null ? '--' : units.formatRmv(issue.threshold!),
+      );
     case PlanIssueType.minGasViolation:
       return l10n.plannerCanvas_issue_minGas(
         units.formatPressure(issue.value ?? 0),
