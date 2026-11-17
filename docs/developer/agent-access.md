@@ -243,7 +243,8 @@ A saved plan stores inputs, not results, so recalling one computes it again
   dived dive's successors carry in what the log says it left, which inputs
   cannot say, so they compute again only as planned. A plan's settings that
   `compute_plan` does not take (stop minimums, deco ppO2 bands, setpoints)
-  still compute but are not in it; the `dive_plans` document has them.
+  still compute the recall but are not in it, as the tool description says;
+  the `dive_plans` document has them.
 
 ## Writes
 
