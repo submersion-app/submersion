@@ -66,7 +66,6 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_create_buil
 import 'package:submersion/features/ocr_import/presentation/pages/ocr_scan_page.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/compare_dives_3d_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/profile_editor_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
@@ -636,14 +635,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: ':diveId',
                 name: 'diveDetail',
                 onExit: confirmLeaveRecordSitting,
-                builder: (context, state) =>
-                    DiveDetailPage(diveId: state.pathParameters['diveId']!),
+                builder: (context, state) => DiveDetailPage(
+                  diveId: state.pathParameters['diveId']!,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
+                ),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editDive',
-                    builder: (context, state) =>
-                        DiveEditPage(diveId: state.pathParameters['diveId']),
+                    redirect: (context, state) =>
+                        '/dives/${state.pathParameters['diveId']}?mode=edit',
                   ),
                   GoRoute(
                     path: 'edit-profile',
@@ -2697,12 +2698,11 @@ bool parseForceFullQueryParam(String? value) => value == 'true';
 /// a passport tag), and the board's Log dive shortcut as the `tripId` and
 /// `tripCylinderId` query parameters, on the dive page opened unlocked
 /// ([newDiveRoutePage]).
-Widget newDivePage(GoRouterState state) =>
-    newDiveRoutePage(
-      prefill: state.extra as DivePrefill?,
-      tripId: state.uri.queryParameters['tripId'],
-      tripCylinderId: state.uri.queryParameters['tripCylinderId'],
-    );
+Widget newDivePage(GoRouterState state) => newDiveRoutePage(
+  prefill: state.extra as DivePrefill?,
+  tripId: state.uri.queryParameters['tripId'],
+  tripCylinderId: state.uri.queryParameters['tripCylinderId'],
+);
 
 /// `/dives/search` was Advanced Search and `/dives/explore` was Explore;
 /// they are the Refine panel and Ask in the search row now (#2773), so an

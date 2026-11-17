@@ -138,6 +138,7 @@ part 'dive_detail_page_creating.dart';
 part 'dive_detail_page_editing.dart';
 part 'dive_detail_page_exports.dart';
 part 'dive_detail_page_operations.dart';
+part 'dive_detail_page_unlock_open.dart';
 
 final _log = LoggerService.forClass(DiveDetailPage);
 
@@ -157,6 +158,15 @@ class DiveDetailPage extends ConsumerStatefulWidget {
   /// Callback when the dive is deleted (used in embedded mode).
   final VoidCallback? onDeleted;
 
+  /// Open the page unlocked once the dive has loaded, as the old edit
+  /// addresses do: `/dives/<id>/edit` and the list pane's `&mode=edit`
+  /// (issue #4527, plan 11). Read once per page, and again if it turns on.
+  final bool openUnlocked;
+
+  /// Told when a sitting this page opened unlocked ends (Save, Cancel, a
+  /// lock): the list pane returns from its edit mode to the dive.
+  final VoidCallback? onSittingEnded;
+
   /// A new dive, still to be created (issue #4527, plan 8): the page opens
   /// unlocked on it and Save creates it. Null on a stored dive's page.
   final NewDiveRequest? newDiveRequest;
@@ -173,6 +183,8 @@ class DiveDetailPage extends ConsumerStatefulWidget {
     this.embeddedSiteId,
     this.onCloseEmbeddedSite,
     this.onDeleted,
+    this.openUnlocked = false,
+    this.onSittingEnded,
   }) : newDiveRequest = null,
        onCreated = null,
        onCreateCancelled = null;
@@ -187,6 +199,8 @@ class DiveDetailPage extends ConsumerStatefulWidget {
     this.onCreated,
     this.onCreateCancelled,
   }) : diveId = '',
+       openUnlocked = false,
+       onSittingEnded = null,
        newDiveRequest = request,
        embeddedSiteId = null,
        onCloseEmbeddedSite = null,
@@ -201,6 +215,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         _DiveDetailPageActions,
         _DiveDetailPageExports,
         _DiveDetailPageEditing,
+        _DiveDetailPageUnlockOpen,
         _DiveDetailPageCreating,
         _DiveDetailPageOperations,
         _DiveDetailPageBars {
@@ -509,6 +524,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             body: Center(child: Text(context.l10n.diveLog_detail_notFound)),
           );
         }
+        _openUnlockedOnce(dive);
         return _DiveShortcuts(
           diveId: dive.id,
           enabled: !isSittingOpen,

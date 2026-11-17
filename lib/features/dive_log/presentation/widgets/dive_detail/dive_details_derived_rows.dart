@@ -227,7 +227,7 @@ class DiveDetailsDerivedRows extends ConsumerWidget {
         ),
       if (display.showsRmv && rmv == null && sac != null) ...[
         if (!display.showsSac) sacRow(),
-        DiveVolumeHint(diveId: dive.id, volumeSymbol: units.volumeSymbol),
+        DiveVolumeHint(volumeSymbol: units.volumeSymbol),
       ],
     ];
     if (rows.isEmpty) return const SizedBox.shrink();

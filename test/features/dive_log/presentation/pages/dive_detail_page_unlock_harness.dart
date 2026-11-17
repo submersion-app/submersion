@@ -140,6 +140,8 @@ final dive = Dive(
 Future<({GoRouter router, FakeSave save})> pumpPage(
   WidgetTester tester, {
   bool embedded = false,
+  bool openUnlocked = false,
+  VoidCallback? onSittingEnded,
   Size size = const Size(700, 1000),
   Dive? stored,
   Set<DiveDetailSectionId> visible = const {
@@ -186,7 +188,11 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
       // The dive as a root page, the way a deep link opens it.
       GoRoute(
         path: '/root-dive',
-        builder: (context, state) => DiveDetailPage(diveId: dive.id),
+        builder: (context, state) => DiveDetailPage(
+          diveId: dive.id,
+          openUnlocked: openUnlocked,
+          onSittingEnded: onSittingEnded,
+        ),
       ),
       GoRoute(
         path: '/dives',
@@ -208,6 +214,8 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
                 final page = DiveDetailPage(
                   diveId: id,
                   embedded: embedded,
+                  openUnlocked: openUnlocked,
+                  onSittingEnded: onSittingEnded,
                   // With [siteInPane], a `site=` in the location shows that
                   // site in the dive's place, as the list pane does.
                   embeddedSiteId: siteInPane

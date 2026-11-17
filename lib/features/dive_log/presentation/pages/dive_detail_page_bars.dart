@@ -51,11 +51,6 @@ mixin _DiveDetailPageBars
         // else the menu's first item.
         if (!compactActions) historyButton(dive),
         lockButton(shown),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: context.l10n.diveLog_detail_tooltip_editDive,
-          onPressed: () => context.push('/dives/$diveId/edit'),
-        ),
         _overflowMenu(dive, _appBarMenuKey, historyInBar: !compactActions),
       ],
     );

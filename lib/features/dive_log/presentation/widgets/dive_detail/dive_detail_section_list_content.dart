@@ -86,7 +86,7 @@ extension _DiveDetailSectionContent on DiveDetailSectionList {
             diveAltitude: presence.altitude,
             siteAltitude: presence.site?.altitude,
           )) {
-            return DiveAltitudeMismatchNote(dive: dive);
+            return const DiveAltitudeMismatchNote();
           }
           return null;
         }

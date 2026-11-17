@@ -203,7 +203,7 @@ class DiveSacSegmentsSection extends ConsumerWidget {
             ),
             if (lacksVolume) ...[
               const SizedBox(height: 8),
-              DiveVolumeHint(diveId: dive.id, volumeSymbol: units.volumeSymbol),
+              DiveVolumeHint(volumeSymbol: units.volumeSymbol),
             ],
           ],
         ),

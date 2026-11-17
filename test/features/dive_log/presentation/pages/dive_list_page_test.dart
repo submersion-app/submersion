@@ -1075,11 +1075,58 @@ void main() {
       );
     });
 
-    // Note: The edit builder test for dives is not included because
-    // DiveEditPage.initState synchronously accesses the database, which
-    // throws a StateError that cannot be caught by takeException().
-    // The detail and create builder tests above are sufficient to cover the
-    // editBuilder closure line (it follows the same pattern).
+    // The old address of the pane's edit form opens the dive page in the
+    // pane, unlocked; the sitting's end returns the pane to the dive
+    // (issue #4527, plan 11).
+    for (final mode in [ListViewMode.detailed, ListViewMode.table]) {
+      testWidgets('${mode.name}: ?selected=<id>&mode=edit shows the dive page '
+          'unlocked, and its sitting ending returns to ?selected=<id>', (
+        tester,
+      ) async {
+        tester.view.devicePixelRatio = 1.0;
+        tester.view.physicalSize = const Size(1200, 800);
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final overrides = await buildBranchOverrides(viewMode: mode);
+        await tester.pumpWidget(
+          buildBranchTestWidget(
+            child: const DiveListPage(),
+            overrides: [
+              ...overrides,
+              tableDetailsPaneProvider('dives').overrideWith((ref) => true),
+            ],
+            initialLocation: '/dives?selected=test-dive-id&mode=edit',
+          ),
+        );
+        await tester.pump();
+        tester.takeException();
+        await tester.pump();
+        tester.takeException();
+
+        final opened = find.byWidgetPredicate(
+          (w) => w is DiveDetailPage && w.openUnlocked,
+        );
+        expect(opened, findsOneWidget);
+        expect(tester.widget<DiveDetailPage>(opened).diveId, 'test-dive-id');
+
+        tester.widget<DiveDetailPage>(opened).onSittingEnded!();
+        for (var i = 0; i < 4; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+          tester.takeException();
+        }
+
+        expect(opened, findsNothing);
+        expect(
+          find.byWidgetPredicate(
+            (w) => w is DiveDetailPage && w.diveId == 'test-dive-id',
+          ),
+          findsOneWidget,
+        );
+      });
+    }
   });
 }
 

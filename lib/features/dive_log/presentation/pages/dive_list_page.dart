@@ -27,7 +27,6 @@ import 'package:submersion/features/data_quality/presentation/providers/data_qua
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_create_builder.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/card_photo_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_list_count_providers.dart';
@@ -237,12 +236,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
           );
         },
         summaryBuilder: (context) => const DiveSummaryWidget(),
-        editBuilder: (context, id, onSaved, onCancel) => DiveEditPage(
-          diveId: id,
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
+        editBuilder: (context, id, onSaved, onCancel) =>
+            unlockedDivePane(context, id, onCancel),
         createBuilder: newDivePaneBuilder(),
         mapContent: DiveMapContent(
           selectedId: ref.watch(highlightedDiveIdProvider),
@@ -477,12 +472,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
               },
             );
           }
-          return DiveEditPage(
-            diveId: id,
-            embedded: true,
-            onSaved: onSaved,
-            onCancel: onCancel,
-          );
+          return unlockedDivePane(context, id, onCancel);
         },
         createBuilder: newDivePaneBuilder(),
         floatingActionButton: fab,

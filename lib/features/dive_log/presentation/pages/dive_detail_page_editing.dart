@@ -84,8 +84,13 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   /// Whether a sitting is in progress.
   bool get isSittingOpen => _editController?.isUnlocked ?? false;
 
+  /// Tells the page's owner when a sitting opened unlocked has ended
+  /// ([_DiveDetailPageUnlockOpen]).
+  void _noteSittingEnded();
+
   void _onEditChanged() {
     _tellOpenSitting(_editController?.session);
+    _noteSittingEnded();
     if (mounted) setState(() {});
   }
 

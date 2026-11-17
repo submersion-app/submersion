@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_title.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -168,17 +166,6 @@ class DiveDetailEmbeddedHeader extends ConsumerWidget {
             ),
           ?history,
           ?lock,
-          // Edit button: use query params in master-detail layout
-          IconButton(
-            icon: const Icon(Icons.edit, size: 20),
-            visualDensity: VisualDensity.compact,
-            tooltip: context.l10n.diveLog_detail_tooltip_edit,
-            onPressed: () {
-              final state = GoRouterState.of(context);
-              final currentPath = state.uri.path;
-              context.goInPlace('$currentPath?selected=${dive.id}&mode=edit');
-            },
-          ),
           menu,
         ],
       ),
