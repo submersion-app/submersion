@@ -76,11 +76,14 @@ class MediaInfoPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // The sheet is a route of its own, which the viewer's redraws do not
-    // reach: it follows the sitting itself, for a relink held by Locate.
+    // reach: it follows the sitting itself, for a relink held by Locate. One
+    // shape with or without a sitting, so the sheet keeps its place (its
+    // scroll, a check in progress) when the sitting ends under it.
     final session = sitting;
-    if (session == null || session.isDisposed) return _panel(context, ref);
     return ListenableBuilder(
-      listenable: session,
+      listenable: session == null || session.isDisposed
+          ? const NoSittingChanges()
+          : session,
       builder: (context, _) => _panel(context, ref),
     );
   }
@@ -588,7 +591,8 @@ class _LocateButton extends ConsumerWidget {
           ref,
           item,
           onHold: (proposal) {
-            if (!sittingIsOver(held, item.id) || held.isFrozen) return;
+            // holdRelink drops it once the sitting ended or is saving.
+            if (!sittingIsOver(held, item.id)) return;
             holdRelink(held, proposal, service: service);
           },
         );

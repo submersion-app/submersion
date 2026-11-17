@@ -333,4 +333,37 @@ void main() {
     expect(drawn.contentHash, 'SAME');
     expect(drawn.remoteUploadedAt, _at);
   });
+
+  test('a held relink over a row with no hash keeps what the store holds, '
+      'as the repair takes the bytes as the same', () {
+    final stored = _item().copyWith(
+      sourceType: MediaSourceType.localFile,
+      localPath: '/gone/m1.jpg',
+      contentHash: null,
+      remoteUploadedAt: _at,
+    );
+    final session = EditSession<PhotoRecord>(
+      PhotoRecord(item: stored, species: const [], people: const []),
+    );
+    addTearDown(session.dispose);
+    session
+      ..remember(
+        photoRelinkProposalKey,
+        RepairProposal(
+          item: stored,
+          confidence: RepairConfidence.exact,
+          candidate: const RepairCandidate.file(
+            path: '/found/m1.jpg',
+            sizeBytes: 9,
+            hash: 'H',
+          ),
+        ),
+      )
+      ..holdChange(photoRelinkKey, cardId: photoFileCardId, write: () async {});
+
+    final drawn = withHeldRelink(session, stored);
+
+    expect(drawn.contentHash, isNull);
+    expect(drawn.remoteUploadedAt, _at);
+  });
 }

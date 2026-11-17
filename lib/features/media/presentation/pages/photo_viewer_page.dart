@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
@@ -42,7 +43,7 @@ class PhotoViewerPage extends ConsumerWidget {
       // One shape whether or not the dive's sitting is open, so the viewer
       // keeps its place, and its own sitting, when that one ends under it.
       data: (stored) => ListenableBuilder(
-        listenable: diveEditing ?? const _NoSitting(),
+        listenable: diveEditing ?? const NoSittingChanges(),
         builder: (context, _) {
           final session = diveEditing?.session;
           return _viewer(
@@ -70,15 +71,4 @@ class PhotoViewerPage extends ConsumerWidget {
     initialMediaId: initialMediaId,
     unlockEditing: unlockEditing,
   );
-}
-
-/// No dive sitting to follow.
-class _NoSitting implements Listenable {
-  const _NoSitting();
-
-  @override
-  void addListener(VoidCallback listener) {}
-
-  @override
-  void removeListener(VoidCallback listener) {}
 }

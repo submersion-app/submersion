@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -450,7 +451,7 @@ void main() {
       await db.customStatement('DELETE FROM change_log_operations');
     });
 
-    Future<void> pump(WidgetTester tester) async {
+    Future<void> pump(WidgetTester tester, {MediaRepairService? repair}) async {
       final items = await tester.runAsync(() => storedMedia(['p1', 'p2']));
       final diver = (await tester.runAsync(asDiver))!;
       await pumpViewerApp(
@@ -470,15 +471,26 @@ void main() {
             ),
           ),
           mediaRepairServiceProvider.overrideWithValue(
-            MediaRepairService(
-              repository: MediaRepository(),
-              queue: MediaTransferQueueRepository(database: cacheDb),
-              createBookmark: null,
-              writeBookmark: null,
-            ),
+            repair ??
+                MediaRepairService(
+                  repository: MediaRepository(),
+                  queue: MediaTransferQueueRepository(database: cacheDb),
+                  createBookmark: null,
+                  writeBookmark: null,
+                ),
           ),
         ],
       );
+    }
+
+    Future<void> saveAndWait(WidgetTester tester) async {
+      await tester.tap(find.text('Save'));
+      // Until the save's transaction has ended: a read of the database
+      // while it runs would wait on a write the test's clock is not moving.
+      for (var i = 0; i < 100 && photoController(tester).isSaving; i++) {
+        await settleViewer(tester, rounds: 1);
+      }
+      await settleViewer(tester);
     }
 
     MediaItem drawn(WidgetTester tester) => tester
@@ -553,6 +565,41 @@ void main() {
       expect(await storedPath(tester), '/found/p1.jpg');
       expect(await tester.runAsync(labels), ['record_edit:media:file']);
       expect(await uploads(tester), ['p1']);
+      // The viewer goes on drawing the file the photo now points at, once
+      // the row's change has come through (its tick is debounced).
+      await tester.pump(const Duration(seconds: 1));
+      await settleViewer(tester);
+      expect(drawn(tester).localPath, '/found/p1.jpg');
+    });
+
+    testWidgets('a Save that fails after the relink takes its new bookmark '
+        'back, and the photo stays unlocked with the change', (tester) async {
+      final written = <String>[];
+      final deleted = <String>[];
+      await pump(
+        tester,
+        repair: MediaRepairService(
+          repository: MediaRepository(),
+          queue: MediaTransferQueueRepository(database: cacheDb),
+          createBookmark: (path) async => Uint8List(1),
+          writeBookmark: (ref, blob) async => written.add(ref),
+          deleteBookmark: (ref) async => deleted.add(ref),
+        ),
+      );
+      await locate(tester);
+      // A held write after the relink fails (the buddy could not be added).
+      photoController(tester).session!.holdChange(
+        'photo:addBuddyToDive:b1',
+        cardId: photoPeopleCardId,
+        write: () async => throw StateError('the buddy could not be added'),
+      );
+
+      await saveAndWait(tester);
+
+      expect(photoController(tester).isUnlocked, isTrue);
+      expect(written, hasLength(1));
+      expect(deleted, written);
+      expect(await storedPath(tester), '/gone/p1.jpg');
     });
 
     testWidgets('Locate in a sitting, then Cancel: the link is as it was', (

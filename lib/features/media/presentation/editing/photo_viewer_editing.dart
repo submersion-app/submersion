@@ -339,7 +339,7 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
         await step();
       } catch (error, stackTrace) {
         _log.error(
-          'Finishing a relink after a save failed',
+          "A relink's work after its committed save failed",
           error: error,
           stackTrace: stackTrace,
         );

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' show ProviderScope;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
@@ -20,6 +21,7 @@ import 'package:submersion/features/media/presentation/editing/photo_edit_fields
 import 'package:submersion/features/media/presentation/helpers/media_link_replacer.dart';
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_info_panel.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -367,6 +369,24 @@ void main() {
 
       expect(find.text('Copy now'), findsNothing);
       expect(find.text('Check now'), findsNothing);
+    });
+
+    testWidgets('when the sitting ends under the sheet, the sheet keeps its '
+        'place', (tester) async {
+      final item = missingFile();
+      final sitting = EditSession<PhotoRecord>(
+        PhotoRecord(item: item, species: const [], people: const []),
+      );
+      await pump(tester, item, sitting: sitting);
+      final scrollable = tester.state(find.byType(Scrollable).first);
+
+      sitting.dispose();
+      ProviderScope.containerOf(
+        tester.element(find.byType(MediaInfoPanel)),
+      ).invalidate(mediaByIdProvider(item.id));
+      await tester.pumpAndSettle();
+
+      expect(tester.state(find.byType(Scrollable).first), same(scrollable));
     });
 
     testWidgets('locked: Locate is not offered', (tester) async {

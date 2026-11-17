@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
@@ -13,6 +15,19 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 /// offered then. A read that failed is not taken as no row.
 bool noStoredRow(AsyncValue<MediaItem?> row) =>
     row.hasValue ? row.value == null : row.isLoading;
+
+/// A listenable that never notifies: what a widget that follows a sitting
+/// listens to when there is none, so its shape does not change as a sitting
+/// starts or ends.
+class NoSittingChanges implements Listenable {
+  const NoSittingChanges();
+
+  @override
+  void addListener(VoidCallback listener) {}
+
+  @override
+  void removeListener(VoidCallback listener) {}
+}
 
 /// Whether [sitting] is a sitting over the photo [mediaId].
 bool sittingIsOver(EditSession<PhotoRecord>? sitting, String mediaId) =>

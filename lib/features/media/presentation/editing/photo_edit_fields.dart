@@ -194,8 +194,10 @@ MediaItem withHeldRelink(
   final candidate = heldRelink(session)?.candidate;
   final path = candidate?.path;
   if (candidate == null || path == null) return item;
+  // As the repair judges it: a row with no hash takes any bytes as its own.
   final hash = candidate.hash;
-  final otherBytes = hash != null && hash != item.contentHash;
+  final rowHash = item.contentHash;
+  final otherBytes = hash != null && rowHash != null && hash != rowHash;
   return item.copyWith(
     originDeviceId: thisDevice,
     contentHash: otherBytes ? hash : item.contentHash,
