@@ -268,6 +268,140 @@ void main() {
     });
   });
 
+  group('reconcileDecisions on a video (issue #4675)', () {
+    MediaIdentification fish(
+      String id, {
+      List<(PackCandidate, double)> candidates = const [(_parrotfish, 0.9)],
+      bool suggestable = true,
+      String? claim,
+    }) => _id(id, candidates: candidates, suggestable: suggestable).copyWith(
+      startMs: () => 0,
+      endMs: () => 2000,
+      claimedSpeciesId: () => claim,
+    );
+
+    test('a claim accepts its track when its species is tagged', () {
+      final changed = reconcileDecisions(
+        [
+          fish(
+            'a',
+            candidates: [(_chromis, 0.9)],
+            claim: 'sp_queen_parrotfish',
+          ),
+        ],
+        [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
+        now: _now,
+      );
+      expect(changed.single.decision, IdentificationDecision.accepted);
+      expect(changed.single.decidedSpeciesId, 'sp_queen_parrotfish');
+    });
+
+    test('a claim outside the candidates still accepts', () {
+      final changed = reconcileDecisions(
+        [fish('a', suggestable: false, claim: 'own-7')],
+        [
+          const TaggedSpecies(
+            speciesId: 'own-7',
+            scientificName: 'Gramma loreto',
+          ),
+        ],
+        now: _now,
+      );
+      expect(changed.single.decidedSpeciesId, 'own-7');
+    });
+
+    test('a claim with no tag stays undecided', () {
+      expect(
+        reconcileDecisions([fish('a', claim: 'own-7')], const [], now: _now),
+        isEmpty,
+      );
+    });
+
+    test('a claimed track takes its claim, not the name rules', () {
+      final changed = reconcileDecisions(
+        [
+          fish('a', candidates: [(_parrotfish, 0.9)], claim: 'sp_blue_tang'),
+          fish('b', candidates: [(_parrotfish, 0.8)]),
+        ],
+        [
+          const TaggedSpecies(speciesId: 'sp_queen_parrotfish'),
+          const TaggedSpecies(speciesId: 'sp_blue_tang'),
+        ],
+        now: _now,
+      );
+      final byId = {for (final c in changed) c.id: c.decidedSpeciesId};
+      expect(byId['a'], 'sp_blue_tang');
+      expect(byId['b'], 'sp_queen_parrotfish');
+    });
+
+    test('a tag a claim took does not also take a neighbour by rank', () {
+      final changed = reconcileDecisions(
+        [
+          fish('dot', suggestable: false, claim: 'sp_blue_tang'),
+          fish('other', candidates: [(_parrotfish, 0.7), (_tang, 0.2)]),
+        ],
+        [const TaggedSpecies(speciesId: 'sp_blue_tang')],
+        now: _now,
+      );
+      expect(changed.map((i) => i.id), ['dot']);
+    });
+
+    test('on video, a weak best guess is not accepted by name', () {
+      expect(
+        reconcileDecisions(
+          [fish('a', suggestable: false)],
+          [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
+          now: _now,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('on video, the fallback skips tracks that are not suggestable', () {
+      final changed = reconcileDecisions(
+        [
+          fish(
+            'weak',
+            candidates: [(_tang, 0.5), (_chromis, 0.4)],
+            suggestable: false,
+          ),
+          fish('named', candidates: [(_tang, 0.8), (_chromis, 0.1)]),
+        ],
+        [
+          const TaggedSpecies(
+            speciesId: 'uuid-1',
+            scientificName: 'Chromis multilineata',
+          ),
+        ],
+        now: _now,
+      );
+      expect(changed.map((i) => i.id), ['named']);
+    });
+
+    test('photos still accept a best name that is not suggestable', () {
+      final changed = reconcileDecisions(
+        [_id('a', suggestable: false)],
+        [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
+        now: _now,
+      );
+      expect(changed.single.decision, IdentificationDecision.accepted);
+    });
+
+    test('decisionsAsShown applies held tags in memory', () {
+      final stored = [
+        fish('a'),
+        fish('b', candidates: [(_chromis, 0.9)]),
+      ];
+      final shown = decisionsAsShown(stored, [
+        const TaggedSpecies(speciesId: 'sp_queen_parrotfish'),
+      ], now: _now);
+      expect(shown.map((i) => i.id), ['a', 'b']);
+      expect(shown[0].decision, IdentificationDecision.accepted);
+      expect(shown[1].decision, IdentificationDecision.undecided);
+      expect(stored[0].decision, IdentificationDecision.undecided);
+    });
+  });
+
   group('groupSuggestions', () {
     test('merges detections of one species, keeping the best crop', () {
       final suggestions = groupSuggestions([

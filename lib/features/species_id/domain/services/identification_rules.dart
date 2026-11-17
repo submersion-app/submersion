@@ -33,6 +33,10 @@ bool candidateMatches(PackCandidate candidate, TaggedSpecies tagged) {
 ///   identification that ranks it highest (the diver corrected the app's
 ///   guess). A neighbouring fish that only lists the species lower down
 ///   keeps its own suggestion (decided 2026-11-17, issue #4668).
+/// - On a video (issue #4675), an animal the diver named from the frame (a
+///   claim) is decided by its claim alone, and the name rules consider
+///   only animals the app could suggest: one tag must not label every
+///   distant fish whose weak guess is that species (decided 2026-11-17).
 /// - Accepted, whose species is no longer tagged: rejected.
 /// - Rejected: never changed here.
 List<MediaIdentification> reconcileDecisions(
@@ -78,11 +82,20 @@ Map<String, TaggedSpecies> _acceptingTags(
   List<MediaIdentification> all,
   List<TaggedSpecies> tagged,
 ) {
-  final undecided = [
-    for (final i in all)
-      if (i.decision == IdentificationDecision.undecided) i,
-  ];
+  final byId = {for (final t in tagged) t.speciesId: t};
   final accepting = <String, TaggedSpecies>{};
+  final undecided = <MediaIdentification>[];
+  for (final i in all) {
+    if (i.decision != IdentificationDecision.undecided) continue;
+    final claim = i.claimedSpeciesId;
+    if (claim != null) {
+      final tag = byId[claim];
+      if (tag != null) accepting[i.id] = tag;
+      continue;
+    }
+    if (i.isTrack && !i.suggestable) continue;
+    undecided.add(i);
+  }
   final unnamed = <TaggedSpecies>[];
   for (final t in tagged) {
     var named = false;
@@ -93,7 +106,10 @@ Map<String, TaggedSpecies> _acceptingTags(
         named = true;
       }
     }
-    if (!named) unnamed.add(t);
+    // A tag the diver gave one animal from the frame is not a correction
+    // of some other animal's guess.
+    final claimed = accepting.values.any((c) => c.speciesId == t.speciesId);
+    if (!named && !claimed) unnamed.add(t);
   }
   for (final t in unnamed) {
     MediaIdentification? best;
@@ -178,6 +194,20 @@ SpeciesSuggestion _suggestionFor(List<MediaIdentification> group) {
         result.suggestable && top != null && top.score >= config.confidentScore,
     specific: result.openScore >= config.minOpenScore,
   );
+}
+
+/// [stored] as the tags [shown] would leave them, worked out in memory and
+/// written nowhere: what the labels over a video draw while a sitting holds
+/// tags that are not saved yet (issue #4675).
+List<MediaIdentification> decisionsAsShown(
+  List<MediaIdentification> stored,
+  List<TaggedSpecies> shown, {
+  required DateTime now,
+}) {
+  final changed = {
+    for (final i in reconcileDecisions(stored, shown, now: now)) i.id: i,
+  };
+  return [for (final i in stored) changed[i.id] ?? i];
 }
 
 enum RefreshAction {
