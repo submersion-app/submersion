@@ -135,28 +135,25 @@ Future<GoRouter> _pump(
   return router;
 }
 
-/// A hub with no Material of its own whose ink (an [Ink] fill, like a
-/// coloured tile) is painted by the nearest Material above it.
-class _InkHub extends StatelessWidget {
-  const _InkHub();
+/// A page with no Material of its own, named [label], whose ink (an [Ink]
+/// fill, like a coloured tile) is painted by the nearest Material above it.
+class _Inked extends StatelessWidget {
+  final String label;
+
+  const _Inked(this.label);
 
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      const Text('Hub'),
+      Text(label),
       Ink(color: Colors.teal, child: const SizedBox(height: 40)),
     ],
   );
 }
 
-/// [_pageFor] plus a page with ink and no Scaffold, at `/settings/ink`.
+/// [_pageFor] plus an [_Inked] page with no Scaffold, at `/settings/ink`.
 Widget? _pageWithInk(Uri location) => switch (location.pathSegments) {
-  ['settings', 'ink'] => Column(
-    children: [
-      const Text('Page Ink'),
-      Ink(color: Colors.teal, child: const SizedBox(height: 40)),
-    ],
-  ),
+  ['settings', 'ink'] => const _Inked('Page Ink'),
   _ => _pageFor(location),
 };
 
@@ -448,11 +445,17 @@ void main() {
         await _pump(
           tester,
           '/settings?selected=data&dataPage=a',
-          hub: const _InkHub(),
+          hub: const _Inked('Hub'),
         );
 
         expect(tester.takeException(), isNull);
         expect(find.text('Page A'), findsOneWidget);
+
+        // Back uncovers the hub, laid out for the first time, ink and all.
+        await tester.tap(find.byTooltip('Back'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.text('Hub'), findsOneWidget);
       },
     );
 
@@ -468,6 +471,11 @@ void main() {
 
         expect(tester.takeException(), isNull);
         expect(find.text('Page A'), findsOneWidget);
+
+        await tester.tap(find.byTooltip('Back'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.text('Page Ink'), findsOneWidget);
       },
     );
   });
