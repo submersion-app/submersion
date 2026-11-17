@@ -205,7 +205,10 @@ void main() {
       await tester.tap(find.text('Save'));
       await settle(tester);
 
-      expect(find.text("Couldn't save your changes. Nothing was changed."), findsOneWidget);
+      expect(
+        find.text("Couldn't save your changes. Nothing was changed."),
+        findsOneWidget,
+      );
       expect(location(page.router), '/home/new');
       expect(newDiveController(tester).isUnlocked, isTrue);
       expect(find.text('First dive'), findsOneWidget);

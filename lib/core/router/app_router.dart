@@ -62,6 +62,7 @@ import 'package:submersion/features/data_quality/presentation/pages/data_quality
 import 'package:submersion/features/data_quality/presentation/pages/data_quality_settings_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_create_builder.dart';
 import 'package:submersion/features/ocr_import/presentation/pages/ocr_scan_page.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/compare_dives_3d_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
@@ -555,6 +556,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newDive',
+                // A new dive with something entered asks before a `go`
+                // leaves it, as a dive's sitting does (issue #4527, plan 8).
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => newDivePage(state),
               ),
               GoRoute(
@@ -2684,12 +2688,15 @@ bool parseForceFullQueryParam(String? value) => value == 'true';
 
 /// The new-dive page for [state]: a prefill passed as `extra` (the OCR scan,
 /// a passport tag), and the board's Log dive shortcut as the `tripId` and
-/// `tripCylinderId` query parameters.
-DiveEditPage newDivePage(GoRouterState state) => DiveEditPage(
-  prefill: state.extra as DivePrefill?,
-  tripId: state.uri.queryParameters['tripId'],
-  tripCylinderId: state.uri.queryParameters['tripCylinderId'],
-);
+/// `tripCylinderId` query parameters. Which page that is, the dive page
+/// opened unlocked or the old form, is the dive log's ([newDiveRoutePage]).
+Widget newDivePage(GoRouterState state, {bool? unlockEditing}) =>
+    newDiveRoutePage(
+      prefill: state.extra as DivePrefill?,
+      tripId: state.uri.queryParameters['tripId'],
+      tripCylinderId: state.uri.queryParameters['tripCylinderId'],
+      unlockEditing: unlockEditing,
+    );
 
 /// `/dives/search` was Advanced Search and `/dives/explore` was Explore;
 /// they are the Refine panel and Ask in the search row now (#2773), so an

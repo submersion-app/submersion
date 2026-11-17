@@ -121,8 +121,8 @@ Future<NewDivePage> pumpNewDivePage(
   return (router: router, save: save, created: created, cancelled: cancelled);
 }
 
-/// The new dive page's editing controller.
-RecordEditController<Dive> newDiveController(WidgetTester tester) =>
-    RecordEditScope.maybeOf<Dive>(
-      tester.element(find.byType(RecordEditScope<Dive>).first),
-    )!;
+/// The new dive page's editing controller, read off its scope without
+/// making the test a dependent of it.
+RecordEditController<Dive> newDiveController(WidgetTester tester) => tester
+    .widget<RecordEditScope<Dive>>(find.byType(RecordEditScope<Dive>).first)
+    .notifier!;

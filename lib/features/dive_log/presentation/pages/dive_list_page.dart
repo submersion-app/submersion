@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_log/presentation/formatters/dive_type_l
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_create_builder.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/card_photo_providers.dart';
@@ -242,8 +243,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
           onSaved: onSaved,
           onCancel: onCancel,
         ),
-        createBuilder: (context, onSaved, onCancel) =>
-            DiveEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
+        createBuilder: newDivePaneBuilder(),
         mapContent: DiveMapContent(
           selectedId: ref.watch(highlightedDiveIdProvider),
           onItemSelected: (diveId) {
@@ -484,8 +484,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
             onCancel: onCancel,
           );
         },
-        createBuilder: (context, onSaved, onCancel) =>
-            DiveEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
+        createBuilder: newDivePaneBuilder(),
         floatingActionButton: fab,
         onFabPressed: () => _showAddDiveSheet(context),
       );
