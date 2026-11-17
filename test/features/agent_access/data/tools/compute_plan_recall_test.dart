@@ -211,6 +211,29 @@ void main() {
       },
     );
 
+    test('a later dive leaving a setting to Settings keeps it so', () async {
+      final (id, _) = await savedSeries([
+        {...deep, 'gf_low': 50, 'gf_high': 85},
+        shallow,
+      ]);
+      final stored = (await DivePlanSeriesRepository().getSeries(id))!;
+      // As the planner can save it: the first dive's own gradient factors,
+      // the second on Settings'.
+      await db.customStatement(
+        'UPDATE dive_plans SET gf_low = NULL, gf_high = NULL WHERE id = ?',
+        [stored.dives.last.plan.id],
+      );
+
+      final recalled = await compute({'series_id': id});
+      final second = divesOf(recalled).last['resolved_inputs']! as Map;
+      expect(second.containsKey('gf_low'), isTrue);
+      expect(second['gf_low'], isNull);
+      final again = await compute({
+        'dives': [for (final d in divesOf(recalled)) d['resolved_inputs']],
+      });
+      expect(scheduleOf(again), scheduleOf(recalled));
+    });
+
     test('says where each dive stands once it is in the log', () async {
       final (id, _) = await savedSeries([deep, shallow]);
       await h.run([
