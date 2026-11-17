@@ -7,7 +7,10 @@ import 'package:submersion/core/platform/app_directories.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/media/data/streaming/video_playback_plan.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
+import 'package:submersion/features/media/presentation/providers/video_color_track_provider.dart';
+import 'package:submersion/features/media/presentation/providers/video_playback_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/data/engines/channel_vision_engine.dart';
@@ -18,6 +21,7 @@ import 'package:submersion/features/species_id/data/services/identification_clea
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
+import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
@@ -117,6 +121,7 @@ final mediaIdentificationServiceProvider = Provider<MediaIdentificationService>(
       embeddings: ref.watch(identificationEmbeddingRepositoryProvider),
       crops: ref.watch(identificationCropStoreProvider),
       resolveImage: (item) => _imageOf(ref, item),
+      resolveVideo: (item) => ref.read(videoFileReaderProvider(item).future),
       taggedSpecies: identifications.taggedSpecies,
       enabled: () =>
           marineLifeIdEnabled && ref.read(identifyFishOnOpenProvider),
@@ -125,6 +130,19 @@ final mediaIdentificationServiceProvider = Provider<MediaIdentificationService>(
     return service;
   },
 );
+
+/// The file the player opened for a video, read one call at a time
+/// through its bookmark where it has one (issue #4675). Null when the video
+/// does not play from a file here: nothing is downloaded for a scan.
+final videoFileReaderProvider = FutureProvider.autoDispose
+    .family<VideoFileReader?, MediaItem>((ref, item) async {
+      final playback = await ref.read(videoPlaybackProvider(item).future);
+      if (playback is! FilePlayback) return null;
+      final access = ref.read(videoFileAccessProvider);
+      final path = playback.path;
+      return <T>(Future<T> Function(String path) read) =>
+          access<T>(path: path, bookmarkRef: item.bookmarkRef, read: read);
+    });
 
 /// A readable file when the photo has one here; otherwise the bytes the
 /// viewer itself would show. Starts no download of its own beyond that.

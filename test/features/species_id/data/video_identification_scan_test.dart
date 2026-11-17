@@ -1,0 +1,234 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/core/database/app_sql_functions.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
+import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
+import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
+import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
+import 'package:submersion/features/species_id/domain/services/species_namer.dart';
+
+import '../../../helpers/temp_dir.dart';
+import 'fake_vision_engine.dart';
+import 'identification_fixtures.dart';
+import 'pack_fixture.dart';
+
+/// Scanning a video chunk by chunk (issue #4675).
+MediaItem _video() => MediaItem(
+  id: 'v1',
+  mediaType: MediaType.video,
+  takenAt: DateTime.utc(2026, 5, 7, 12),
+  createdAt: DateTime.utc(2026, 5, 7, 12),
+  updatedAt: DateTime.utc(2026, 5, 7, 12),
+);
+
+/// One fish seen every sample from [fromMs] until before [toMs], drifting
+/// slowly right.
+Map<int, List<DetectedBox>> _fish(int fromMs, int toMs, {double y = 0.4}) => {
+  for (var ms = fromMs; ms < toMs; ms += 250)
+    ms: [
+      DetectedBox(
+        box: IdentificationBox(
+          x: 0.1 + ms / 1000000,
+          y: y,
+          width: 0.2,
+          height: 0.1,
+        ),
+        score: 0.9,
+      ),
+    ],
+};
+
+void main() {
+  late AppDatabase library;
+  late LocalCacheDatabase local;
+  late Directory support;
+  late MediaIdentificationRepository identifications;
+  late IdentificationEmbeddingRepository embeddings;
+  late IdentificationCropStore crops;
+  late FakeEngine engine;
+  late bool fileReadable;
+  var generation = 0;
+  var ids = 0;
+
+  setUp(() async {
+    library = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    local = LocalCacheDatabase(NativeDatabase.memory());
+    support = await Directory.systemTemp.createTemp('video_scan');
+    identifications = MediaIdentificationRepository(database: library);
+    embeddings = IdentificationEmbeddingRepository(database: local);
+    crops = IdentificationCropStore(supportPath: () async => support.path);
+    engine = FakeEngine()..loaded = true;
+    fileReadable = true;
+    generation = 0;
+    ids = 0;
+  });
+  tearDown(() async {
+    await crops.dispose();
+    await library.close();
+    await local.close();
+    await deleteTempDir(support);
+  });
+
+  /// Names every crop the first candidate, confidently.
+  Future<List<NamingResult>> name(
+    List<({Float32List embedding, int shorterSide})> crops,
+  ) async => [
+    for (final _ in crops)
+      const NamingResult(
+        openScore: 0.9,
+        candidates: [NamedCandidate(candidate: fixtureParrotfish, score: 0.9)],
+        locationLimited: true,
+        suggestable: true,
+      ),
+  ];
+
+  VideoIdentificationScan scan({
+    MediaIdentificationRun? resumeFrom,
+    List<MediaIdentification> carry = const [],
+  }) => VideoIdentificationScan(
+    engine: engine,
+    pack: fixturePack(),
+    identifications: identifications,
+    embeddings: embeddings,
+    crops: crops,
+    item: _video(),
+    cell: 1462,
+    reader: <T>(read) async => fileReadable ? read('/videos/v1.mp4') : null,
+    name: name,
+    now: () => DateTime.utc(2026, 11, 17),
+    newId: () => 'id-${ids++}',
+    databaseGeneration: () => generation,
+    resumeFrom: resumeFrom,
+    carry: carry,
+  );
+
+  Future<void> runAll(VideoIdentificationScan s) async {
+    while (await s.runChunk()) {}
+  }
+
+  test('a 25 second video is scanned in three chunks', () async {
+    final s = scan();
+    await runAll(s);
+    expect(engine.detectCalls, [(0, 10000), (10000, 20000), (20000, 30000)]);
+    final run = (await identifications.runFor('v1'))!;
+    expect(run.scannedMs, 25000);
+    expect(run.videoDurationMs, 25000);
+    expect(run.scanComplete, isTrue);
+    expect(run.imageWidth, 1920);
+    expect(run.detectorId, 'det-a');
+    expect(s.progress, 1);
+  });
+
+  test('a track crossing a chunk boundary is one row', () async {
+    engine.videoFrames = _fish(5000, 14000);
+    await runAll(scan());
+    final found = await identifications.forMedia('v1');
+    expect(found, hasLength(1));
+    expect(found.single.startMs, 5000);
+    expect(found.single.endMs, 13750);
+  });
+
+  test('each stored track has its range, path, best moment, crop, '
+      'embedding and flags', () async {
+    engine.videoFrames = _fish(1000, 4000);
+    await runAll(scan());
+    final fish = (await identifications.forMedia('v1')).single;
+    expect(fish.isTrack, isTrue);
+    expect(fish.path, hasLength(12));
+    expect(fish.bestMs, inInclusiveRange(1000, 3750));
+    expect(fish.top!.candidate, fixtureParrotfish);
+    expect(fish.confident, isTrue);
+    expect(fish.specific, isTrue);
+    expect(fish.boxPixelWidth, 384);
+    expect(engine.embedCalls.single, hasLength(3));
+    expect(await (await crops.fileFor('v1', fish.id)).exists(), isTrue);
+    expect((await embeddings.get([fish.id], classifierId: 'clf-a')).keys, [
+      fish.id,
+    ]);
+  });
+
+  test('a video shorter than a chunk finishes in one', () async {
+    engine.videoDurationMs = 4000;
+    final s = scan();
+    expect(await s.runChunk(), isFalse);
+    expect(engine.detectCalls, [(0, 10000)]);
+    expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+  });
+
+  test('a reported length of 0 stores a complete run and stops', () async {
+    engine.videoDurationMs = 0;
+    final s = scan();
+    expect(await s.runChunk(), isFalse);
+    final run = (await identifications.runFor('v1'))!;
+    expect(run.scanComplete, isTrue);
+    expect(await identifications.forMedia('v1'), isEmpty);
+  });
+
+  test('finish stores the tracks still open', () async {
+    engine.videoFrames = _fish(1000, 15000);
+    final s = scan();
+    expect(await s.runChunk(), isTrue);
+    expect(await identifications.forMedia('v1'), isEmpty);
+    await s.finish();
+    final fish = (await identifications.forMedia('v1')).single;
+    expect(fish.endMs, 9750);
+    expect((await identifications.runFor('v1'))!.scannedMs, 10000);
+  });
+
+  test('a resumed scan starts where the run stopped', () async {
+    await runAll(scan());
+    engine.detectCalls.clear();
+    final resumed = scan(
+      resumeFrom: (await identifications.runFor(
+        'v1',
+      ))!.copyWith(scannedMs: () => 10000),
+    );
+    await runAll(resumed);
+    expect(engine.detectCalls.first, (10000, 20000));
+  });
+
+  test('a rescan carries a dismissal to the same fish', () async {
+    engine.videoFrames = _fish(1000, 4000);
+    await runAll(scan());
+    final old = (await identifications.forMedia('v1')).single;
+    final dismissed = old.copyWith(
+      decision: IdentificationDecision.rejected,
+      decidedAt: fixtureT1,
+    );
+    await identifications.updateIdentifications([dismissed]);
+    await runAll(scan(carry: [dismissed]));
+    final found = await identifications.forMedia('v1');
+    expect(found, hasLength(1));
+    expect(found.single.id, isNot(old.id));
+    expect(found.single.decision, IdentificationDecision.rejected);
+  });
+
+  test('with no file nothing is stored and the scan stops', () async {
+    fileReadable = false;
+    expect(await scan().runChunk(), isFalse);
+    expect(await identifications.runFor('v1'), isNull);
+  });
+
+  test('another logbook opening during a chunk drops it', () async {
+    engine.videoFrames = _fish(1000, 4000);
+    engine.videoFailureAt = (_) {
+      generation++;
+      return null;
+    };
+    expect(await scan().runChunk(), isFalse);
+    expect(await identifications.runFor('v1'), isNull);
+    expect(await identifications.forMedia('v1'), isEmpty);
+  });
+}

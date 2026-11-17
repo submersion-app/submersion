@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show compute;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/services/database_service.dart';
@@ -11,14 +10,16 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
+import 'package:submersion/features/species_id/data/services/crop_naming.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
+import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
-import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 import 'package:submersion/features/species_id/domain/services/region_grid.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
+import 'package:submersion/features/species_id/domain/services/video_identification_rules.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 /// The image to analyse: a readable file, or its bytes.
@@ -45,6 +46,7 @@ class MediaIdentificationService {
     required IdentificationEmbeddingRepository embeddings,
     required IdentificationCropStore crops,
     required Future<IdentificationImage?> Function(MediaItem item) resolveImage,
+    Future<VideoFileReader?> Function(MediaItem item)? resolveVideo,
     required Future<List<TaggedSpecies>> Function(String mediaId) taggedSpecies,
     required bool Function() enabled,
     int Function()? databaseGeneration,
@@ -57,6 +59,7 @@ class MediaIdentificationService {
        _embeddings = embeddings,
        _crops = crops,
        _resolveImage = resolveImage,
+       _resolveVideo = resolveVideo ?? ((_) async => null),
        _taggedSpecies = taggedSpecies,
        _enabled = enabled,
        _databaseGeneration =
@@ -71,6 +74,9 @@ class MediaIdentificationService {
   final IdentificationEmbeddingRepository _embeddings;
   final IdentificationCropStore _crops;
   final Future<IdentificationImage?> Function(MediaItem) _resolveImage;
+
+  /// The file the player opened for a video, or null (issue #4675).
+  final Future<VideoFileReader?> Function(MediaItem) _resolveVideo;
   final Future<List<TaggedSpecies>> Function(String) _taggedSpecies;
   final bool Function() _enabled;
 
@@ -84,8 +90,15 @@ class MediaIdentificationService {
 
   /// Insertion-ordered (a map literal is a LinkedHashMap): the newest
   /// request is last.
-  final _waiting = <String, _Job>{};
+  var _waiting = <String, _Job>{};
   _Job? _running;
+
+  /// Completes when the running job's work is over, whether or not its
+  /// callers are answered yet: a video put back in the queue is not.
+  Future<void>? _runningEnded;
+
+  /// How far the running video's scan is, 0 to 1.
+  double? _videoProgress;
   final _activity = StreamController<void>.broadcast();
 
   LoadedPack? _pack;
@@ -124,16 +137,35 @@ class MediaIdentificationService {
 
   /// Drops a queued request that has not started. Returns whether there
   /// was one, so a caller knows the photo was never looked at.
+  ///
+  /// A video being scanned stops after the chunk in progress (issue
+  /// #4675); what was scanned is kept, so this also returns true for it:
+  /// it is asked for again, and resumes, when the diver comes back.
   bool cancelPending(String mediaId) {
     final job = _waiting.remove(mediaId);
-    if (job == null) return false;
-    job.done.complete();
-    _changed();
-    return true;
+    if (job != null) {
+      job.done.complete();
+      _changed();
+      return true;
+    }
+    final running = _running;
+    if (running != null &&
+        running.item.id == mediaId &&
+        running.item.mediaType == MediaType.video &&
+        !running.cancelled) {
+      running.cancelled = true;
+      return true;
+    }
+    return false;
   }
 
   bool isBusy(String mediaId) =>
       _running?.item.id == mediaId || _waiting.containsKey(mediaId);
+
+  /// How far the scan of the video [mediaId] has got, 0 to 1, while it is
+  /// being scanned; null otherwise.
+  double? progressOf(String mediaId) =>
+      _running?.item.id == mediaId ? _videoProgress : null;
 
   /// Ticks whenever a request starts, finishes or is dropped.
   Stream<void> watchActivity() => _activity.stream;
@@ -192,7 +224,7 @@ class MediaIdentificationService {
       cancelPending(id);
     }
     while (_running != null && ids.contains(_running!.item.id)) {
-      await _running!.done.future;
+      await _runningEnded;
     }
   }
 
@@ -205,7 +237,7 @@ class MediaIdentificationService {
     _paused++;
     try {
       while (_running != null) {
-        await _running!.done.future;
+        await _runningEnded;
       }
       _pack = null;
       await _unloadModels();
@@ -227,7 +259,7 @@ class MediaIdentificationService {
       job.done.complete();
     }
     _waiting.clear();
-    await _running?.done.future;
+    await _runningEnded;
     await _unloadModels();
     await _activity.close();
   }
@@ -240,28 +272,42 @@ class MediaIdentificationService {
     final job = _waiting.remove(id)!;
     _running = job;
     _changed();
-    unawaited(
-      _process(job).whenComplete(() {
-        _running = null;
+    final ended = _process(job).then((putBack) {
+      _running = null;
+      _videoProgress = null;
+      // A video stopped for a newer request or a pack change goes to the
+      // oldest end, to carry on once the rest is done.
+      if (putBack && !_disposed && !_waiting.containsKey(job.item.id)) {
+        _waiting = {job.item.id: job, ..._waiting};
+      } else {
         job.done.complete();
-        _changed();
-        _pump();
-      }),
-    );
+      }
+      _changed();
+      _pump();
+    });
+    _runningEnded = ended;
+    unawaited(ended);
   }
 
   void _changed() {
     if (!_activity.isClosed) _activity.add(null);
   }
 
-  Future<void> _process(_Job job) async {
+  /// Returns whether [job] should go back in the queue: a video stopped
+  /// between chunks for other work.
+  Future<bool> _process(_Job job) async {
     final item = job.item;
     final generation = _databaseGeneration();
     try {
-      if (!_enabled() || item.mediaType != MediaType.photo) return;
-      if (await _engine.availability() != VisionAvailability.available) return;
+      final video = item.mediaType == MediaType.video;
+      if (!_enabled() || (!video && item.mediaType != MediaType.photo)) {
+        return false;
+      }
+      if (await _engine.availability() != VisionAvailability.available) {
+        return false;
+      }
       final pack = _pack ??= await _loadPack();
-      if (pack == null) return;
+      if (pack == null) return false;
       final manifest = pack.pack.manifest;
       final location = job.location;
       // A position that is not a number (a bad EXIF read) is no position:
@@ -294,34 +340,209 @@ class MediaIdentificationService {
           : await _embeddings.get([
               for (final i in undecided) i.id,
             ], classifierId: manifest.classifier.id);
-      final action = decideRefresh(
-        run: run,
-        packVersion: manifest.packVersion,
-        detectorId: manifest.detector.id,
-        classifierId: manifest.classifier.id,
-        cell: cell,
-        cropsPresent: cropsPresent,
-        embeddingsPresent: storedEmbeddings.length == undecided.length,
-      );
-      switch (action) {
-        case RefreshAction.none:
-          break;
-        case RefreshAction.rename:
-          await _rename(
-            pack,
-            run!,
-            undecided,
-            storedEmbeddings,
-            cell,
-            generation,
-          );
-        case RefreshAction.analyse:
-          await _analyse(pack, item, stored, cell, generation);
+      final embeddingsPresent = storedEmbeddings.length == undecided.length;
+      var putBack = false;
+      if (video) {
+        putBack = await _refreshVideo(
+          job,
+          pack,
+          run,
+          stored,
+          undecided,
+          storedEmbeddings,
+          cell: cell,
+          cropsPresent: cropsPresent,
+          embeddingsPresent: embeddingsPresent,
+          generation: generation,
+        );
+      } else {
+        switch (decideRefresh(
+          run: run,
+          packVersion: manifest.packVersion,
+          detectorId: manifest.detector.id,
+          classifierId: manifest.classifier.id,
+          cell: cell,
+          cropsPresent: cropsPresent,
+          embeddingsPresent: embeddingsPresent,
+        )) {
+          case RefreshAction.none:
+            break;
+          case RefreshAction.rename:
+            await _rename(
+              pack,
+              run!,
+              undecided,
+              storedEmbeddings,
+              cell,
+              generation,
+            );
+          case RefreshAction.analyse:
+            await _analyse(pack, item, stored, cell, generation);
+        }
       }
-      if (_databaseGeneration() != generation) return;
+      if (_databaseGeneration() != generation) return false;
       await reconcile(item.id);
+      return putBack;
     } on Object catch (e) {
       _log.debug('Could not identify marine life in ${item.id}', error: e);
+      return false;
+    }
+  }
+
+  /// A video (issue #4675): resumed, scanned from the start, or named
+  /// again, as [decideVideoRefresh] says. Returns whether it stopped
+  /// between chunks for other work and should go back in the queue.
+  Future<bool> _refreshVideo(
+    _Job job,
+    LoadedPack pack,
+    MediaIdentificationRun? run,
+    List<MediaIdentification> stored,
+    List<MediaIdentification> undecided,
+    Map<String, Float32List> embeddings, {
+    required int? cell,
+    required bool cropsPresent,
+    required bool embeddingsPresent,
+    required int generation,
+  }) async {
+    final manifest = pack.pack.manifest;
+    final action = decideVideoRefresh(
+      run: run,
+      packVersion: manifest.packVersion,
+      detectorId: manifest.detector.id,
+      classifierId: manifest.classifier.id,
+      cell: cell,
+      cropsPresent: cropsPresent,
+      embeddingsPresent: embeddingsPresent,
+    );
+    switch (action) {
+      case VideoRefreshAction.none:
+        return false;
+      case VideoRefreshAction.rename:
+        await _rename(pack, run!, undecided, embeddings, cell, generation);
+        return false;
+      case VideoRefreshAction.resume:
+        final reader = await _resolveVideo(job.item);
+        if (reader == null) return false;
+        var from = run!;
+        final moved =
+            from.packVersion != manifest.packVersion ||
+            from.locationCell != cell;
+        if (moved && embeddingsPresent) {
+          await _rename(pack, from, undecided, embeddings, cell, generation);
+          from = await _identifications.runFor(job.item.id) ?? from;
+        }
+        return _scanVideo(job, pack, cell, reader, from, const []);
+      case VideoRefreshAction.rescan:
+        final reader = await _resolveVideo(job.item);
+        if (reader == null) return false;
+        // What the diver said about a fish (a decision, or a claim from
+        // the frame) is carried to the fresh track of the same fish; the
+        // app's own guesses are found again.
+        final carry = [
+          for (final i in stored)
+            if (i.decision != IdentificationDecision.undecided ||
+                i.claimedSpeciesId != null)
+              i,
+        ];
+        final dropped = [
+          for (final i in stored)
+            if (!carry.contains(i)) i.id,
+        ];
+        final start = MediaIdentificationRun(
+          mediaId: job.item.id,
+          packVersion: manifest.packVersion,
+          detectorId: manifest.detector.id,
+          classifierId: manifest.classifier.id,
+          locationCell: cell,
+          analysedAt: _now().toUtc(),
+          imageWidth: run?.imageWidth ?? 0,
+          imageHeight: run?.imageHeight ?? 0,
+          detectionCount: carry.length,
+          scannedMs: 0,
+        );
+        if (_databaseGeneration() != generation) return false;
+        await _identifications.storeRun(
+          start,
+          insert: const [],
+          deleteIds: dropped,
+        );
+        await _embeddings.delete(dropped);
+        await _crops.delete(job.item.id, dropped);
+        return _scanVideo(job, pack, cell, reader, start, carry);
+    }
+  }
+
+  /// Scans [job]'s video a chunk at a time from [from]. Between chunks it
+  /// stops when the video was left, another logbook opened, a pack change
+  /// or a newer request is waiting (then it returns true, to be put back),
+  /// or the service is closing. Never throws.
+  Future<bool> _scanVideo(
+    _Job job,
+    LoadedPack pack,
+    int? cell,
+    VideoFileReader reader,
+    MediaIdentificationRun from,
+    List<MediaIdentification> carry,
+  ) async {
+    final scan = VideoIdentificationScan(
+      engine: _engine,
+      pack: pack,
+      identifications: _identifications,
+      embeddings: _embeddings,
+      crops: _crops,
+      item: job.item,
+      cell: cell,
+      reader: reader,
+      name: (crops) => nameCrops(pack, crops, cell),
+      now: _now,
+      newId: _newId,
+      databaseGeneration: _databaseGeneration,
+      resumeFrom: from,
+      carry: carry,
+    );
+    final generation = _databaseGeneration();
+    _videoProgress = scan.progress;
+    _changed();
+    var reloaded = false;
+    try {
+      while (true) {
+        if (job.cancelled || _disposed || _databaseGeneration() != generation) {
+          await scan.finish();
+          return false;
+        }
+        if (_paused > 0 || _waiting.isNotEmpty) {
+          await scan.finish();
+          return true;
+        }
+        await _ensureLoaded(pack);
+        final bool more;
+        try {
+          more = await scan.runChunk();
+        } on VisionEngineException catch (e) {
+          // Models the system unloaded (an iOS memory warning) are loaded
+          // again, once.
+          if (e.code != VisionEngineException.notLoaded || reloaded) rethrow;
+          reloaded = true;
+          _loadedModels = null;
+          continue;
+        }
+        reloaded = false;
+        _videoProgress = scan.progress;
+        _changed();
+        if (!more) return false;
+      }
+    } on Object catch (e) {
+      // In the background, too hot, or a failure: what was stored stays,
+      // and the next opening carries on from it.
+      _log.debug('Video scan of ${job.item.id} stopped', error: e);
+      try {
+        await scan.finish();
+      } on Object {
+        // The open tracks are lost; the stored progress is not.
+      }
+      return false;
+    } finally {
+      _armIdleUnload();
     }
   }
 
@@ -333,7 +554,7 @@ class MediaIdentificationService {
     int? cell,
     int generation,
   ) async {
-    final results = await _name(pack, [
+    final results = await nameCrops(pack, [
       for (final i in undecided)
         (embedding: embeddings[i.id]!, shorterSide: i.boxShorterSide),
     ], cell);
@@ -367,7 +588,7 @@ class MediaIdentificationService {
     } finally {
       _armIdleUnload();
     }
-    final results = await _name(pack, [
+    final results = await nameCrops(pack, [
       for (final d in analysis.detections)
         (
           embedding: d.embedding,
@@ -517,31 +738,6 @@ class MediaIdentificationService {
       _log.debug('Could not unload the marine life models', error: e);
     }
   }
-
-  /// Names crops off the UI isolate: with thousands of candidates it is
-  /// millions of multiplications a crop.
-  static Future<List<NamingResult>> _name(
-    LoadedPack pack,
-    List<({Float32List embedding, int shorterSide})> crops,
-    int? cell,
-  ) async {
-    if (crops.isEmpty) return const [];
-    final manifest = pack.pack.manifest;
-    return compute(
-      _nameAll,
-      _NamingJob(
-        candidates: pack.candidates,
-        textEmbeddings: pack.textEmbeddings,
-        embeddingSize: manifest.classifier.embeddingSize,
-        logitScale: manifest.classifier.logitScale,
-        naming: manifest.naming,
-        regions: pack.regions,
-        neighbourCells: manifest.region.neighbourCells,
-        crops: crops,
-        cell: cell,
-      ),
-    );
-  }
 }
 
 class _Job {
@@ -552,49 +748,8 @@ class _Job {
   final GeoPoint? location;
   final Completer<void> done;
 
+  /// A video the diver left: its scan stops after the chunk in progress.
+  var cancelled = false;
+
   _Job withLocation(GeoPoint? location) => _Job(item, location, done);
-}
-
-class _NamingJob {
-  const _NamingJob({
-    required this.candidates,
-    required this.textEmbeddings,
-    required this.embeddingSize,
-    required this.logitScale,
-    required this.naming,
-    required this.regions,
-    required this.neighbourCells,
-    required this.crops,
-    required this.cell,
-  });
-
-  final List<PackCandidate> candidates;
-  final Float32List textEmbeddings;
-  final int embeddingSize;
-  final double logitScale;
-  final NamingConfig naming;
-  final RegionTable regions;
-  final int neighbourCells;
-  final List<({Float32List embedding, int shorterSide})> crops;
-  final int? cell;
-}
-
-List<NamingResult> _nameAll(_NamingJob job) {
-  final namer = SpeciesNamer(
-    candidates: job.candidates,
-    textEmbeddings: job.textEmbeddings,
-    embeddingSize: job.embeddingSize,
-    logitScale: job.logitScale,
-    config: job.naming,
-    regions: job.regions,
-    neighbourCells: job.neighbourCells,
-  );
-  return [
-    for (final crop in job.crops)
-      namer.name(
-        embedding: crop.embedding,
-        boxShorterSide: crop.shorterSide,
-        cell: job.cell,
-      ),
-  ];
 }

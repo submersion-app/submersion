@@ -76,6 +76,9 @@ class FakeEngine implements VisionEngine {
   /// Thrown by the next [detectVideo], then cleared.
   Object? videoFailure;
 
+  /// What a [detectVideo] starting at a given time throws, if anything.
+  Object? Function(int startMs)? videoFailureAt;
+
   /// Completed by a test to let the next [detectVideo] reply.
   Completer<void>? videoGate;
 
@@ -104,6 +107,8 @@ class FakeEngine implements VisionEngine {
       videoFailure = null;
       throw failure;
     }
+    final failureAt = videoFailureAt?.call(startMs);
+    if (failureAt != null) throw failureAt;
     if (!loaded) throw const VisionEngineException('not_loaded');
     final end = endMs < videoDurationMs ? endMs : videoDurationMs;
     return VideoDetections(

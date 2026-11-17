@@ -18,8 +18,10 @@ import 'package:submersion/features/species_id/data/services/media_identificatio
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/region_grid.dart';
+import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 import 'package:submersion/core/constants/app_enums.dart';
 
 import '../../../helpers/temp_dir.dart';
@@ -118,6 +120,7 @@ void main() {
   late bool enabled;
   late List<TaggedSpecies> tagged;
   late IdentificationImage? Function(MediaItem item) imageFor;
+  late bool videoReadable;
   late MediaIdentificationService service;
   var ids = 0;
   var packLoads = 0;
@@ -139,6 +142,7 @@ void main() {
     enabled = true;
     tagged = [];
     imageFor = (item) => IdentificationImage.path('/photos/${item.id}.jpeg');
+    videoReadable = true;
     ids = 0;
     packLoads = 0;
     generation = 0;
@@ -154,6 +158,11 @@ void main() {
       embeddings: embeddings,
       crops: crops,
       resolveImage: (item) async => imageFor(item),
+      resolveVideo: (item) async {
+        if (!videoReadable) return null;
+        return <T>(Future<T> Function(String path) read) =>
+            read('/videos/${item.id}.mp4');
+      },
       taggedSpecies: (_) async {
         tagsAsked++;
         await tagsGate?.future;
@@ -181,9 +190,11 @@ void main() {
       expect(engine.analysed, isEmpty);
     });
 
-    test('for a video', () async {
-      await service.request(photo('m1', type: MediaType.video));
+    test('for a video with no file to read', () async {
+      videoReadable = false;
+      await service.request(photo('v1', type: MediaType.video));
       expect(engine.analysed, isEmpty);
+      expect(await identifications.runFor('v1'), isNull);
     });
 
     test('when the engine is not available here', () async {
@@ -584,5 +595,160 @@ void main() {
     final run = await identifications.runFor('m1');
     expect(run, isNotNull);
     expect(run!.locationCell, isNull);
+  });
+
+  group('videos (issue #4675)', () {
+    MediaItem video([String id = 'v1']) => photo(id, type: MediaType.video);
+
+    /// A fish in view from 1 s to 4 s.
+    void oneFish() {
+      engine.videoFrames = {
+        for (var ms = 1000; ms < 4000; ms += 250)
+          ms: [
+            const DetectedBox(
+              box: IdentificationBox(x: 0.1, y: 0.4, width: 0.2, height: 0.1),
+              score: 0.9,
+            ),
+          ],
+      };
+    }
+
+    Future<void> until(bool Function() done) async {
+      for (var k = 0; k < 200 && !done(); k++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(done(), isTrue);
+    }
+
+    test('a video is scanned to the end and its fish stored', () async {
+      oneFish();
+      await service.request(video());
+      expect(engine.detectCalls, [(0, 10000), (10000, 20000), (20000, 30000)]);
+      expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+      final fish = (await identifications.forMedia('v1')).single;
+      expect(fish.isTrack, isTrue);
+      expect(fish.top!.candidate, _parrotfish);
+    });
+
+    test('leaving the video stops after the chunk in progress and resumes '
+        'next time', () async {
+      engine.videoGate = Completer<void>();
+      final done = service.request(video());
+      await until(() => engine.detectCalls.length == 1);
+      expect(service.cancelPending('v1'), isTrue);
+      engine.videoGate!.complete();
+      await done;
+      expect(engine.detectCalls, hasLength(1));
+      expect((await identifications.runFor('v1'))!.scannedMs, 10000);
+
+      engine.videoGate = null;
+      await service.request(video());
+      expect(engine.detectCalls[1], (10000, 20000));
+      expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+    });
+
+    test('a pack change waits for one chunk, not the whole video', () async {
+      engine.videoGate = Completer<void>();
+      final done = service.request(video());
+      await until(() => engine.detectCalls.length == 1);
+      final change = service.packChanged();
+      engine.videoGate!.complete();
+      await change;
+      expect(engine.detectCalls, hasLength(1));
+      engine.videoGate = null;
+      await done;
+      expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+    });
+
+    test(
+      'a newer photo runs between chunks and the video carries on after',
+      () async {
+        engine.videoGate = Completer<void>();
+        final scanning = service.request(video());
+        await until(() => engine.detectCalls.length == 1);
+        final opened = service.request(photo('m1'));
+        engine.videoGate!.complete();
+        engine.videoGate = null;
+        await opened;
+        await scanning;
+        final order = engine.events
+            .where(
+              (e) => e.startsWith('detectVideo') || e.startsWith('analyze'),
+            )
+            .toList();
+        expect(order.take(3), [
+          'detectVideo:0',
+          'analyze:/photos/m1.jpeg',
+          'detectVideo:10000',
+        ]);
+        expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+      },
+    );
+
+    test(
+      'an app in the background ends the scan and keeps what was stored',
+      () async {
+        engine.videoFailureAt = (start) => start == 10000
+            ? const VisionEngineException(VisionEngineException.notForeground)
+            : null;
+        await service.request(video());
+        expect((await identifications.runFor('v1'))!.scannedMs, 10000);
+
+        engine.videoFailureAt = null;
+        await service.request(video());
+        expect(engine.detectCalls.last, (20000, 30000));
+        expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+      },
+    );
+
+    test('another logbook opening mid-scan drops the chunk', () async {
+      engine.videoGate = Completer<void>();
+      final done = service.request(video());
+      await until(() => engine.detectCalls.length == 1);
+      generation++;
+      engine.videoGate!.complete();
+      await done;
+      // The scan's starting row predates the switch; nothing after it is
+      // stored.
+      expect((await identifications.runFor('v1'))!.scannedMs, 0);
+      expect(await identifications.forMedia('v1'), isEmpty);
+    });
+
+    test('progressOf follows the running video', () async {
+      final seen = <double?>[];
+      final sub = service.watchActivity().listen(
+        (_) => seen.add(service.progressOf('v1')),
+      );
+      addTearDown(sub.cancel);
+      await service.request(video());
+      await pumpEventQueue();
+      expect(seen, containsAll([0.4, 0.8]));
+      expect(service.progressOf('v1'), isNull);
+    });
+
+    test('a rescan carries a dismissal to the same fish', () async {
+      oneFish();
+      await service.request(video());
+      final first = (await identifications.forMedia('v1')).single;
+      await service.reject('v1', [first.id]);
+
+      installed = pack(detector: 'det-b');
+      await service.packChanged();
+      await service.request(video());
+      final again = (await identifications.forMedia('v1')).single;
+      expect(again.id, isNot(first.id));
+      expect(again.decision, IdentificationDecision.rejected);
+    });
+
+    test('a new pack renames a scanned video without the engine', () async {
+      oneFish();
+      await service.request(video());
+      engine.detectCalls.clear();
+      installed = pack(version: '2026.12.1');
+      await service.packChanged();
+      await service.request(video());
+      expect(engine.detectCalls, isEmpty);
+      expect((await identifications.runFor('v1'))!.packVersion, '2026.12.1');
+    });
   });
 }

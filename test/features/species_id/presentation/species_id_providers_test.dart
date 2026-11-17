@@ -11,6 +11,10 @@ import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/media/data/streaming/video_playback_plan.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/providers/video_color_track_provider.dart';
+import 'package:submersion/features/media/presentation/providers/video_playback_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/data/engines/channel_vision_engine.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
@@ -197,6 +201,49 @@ void main() {
     marineLifeIdEnabled = true;
     await sweepIdentificationOrphansAtLaunch(cleanup);
     expect(cleanup.sweeps, 1);
+  });
+
+  group('the video file a scan reads (issue #4675)', () {
+    final item = MediaItem(
+      id: 'v1',
+      mediaType: MediaType.video,
+      takenAt: DateTime.utc(2026),
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+      bookmarkRef: 'bm-1',
+    );
+    final opened = <(String?, String?)>[];
+
+    ProviderContainer withPlayback(VideoPlayback playback) {
+      opened.clear();
+      final c = ProviderContainer(
+        overrides: [
+          videoPlaybackProvider(item).overrideWith((ref) async => playback),
+          videoFileAccessProvider.overrideWithValue(<T>({
+            String? path,
+            String? bookmarkRef,
+            required Future<T> Function(String path) read,
+          }) {
+            opened.add((path, bookmarkRef));
+            return read('/opened$path');
+          }),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    test('is the file the player opened, through its bookmark', () async {
+      final c = withPlayback(const FilePlayback('/videos/v1.mp4'));
+      final reader = await c.read(videoFileReaderProvider(item).future);
+      expect(await reader!((path) async => path), '/opened/videos/v1.mp4');
+      expect(opened, [('/videos/v1.mp4', 'bm-1')]);
+    });
+
+    test('is none when the video does not play from a file', () async {
+      final c = withPlayback(const NoPlayback(NoPlaybackReason.notFound));
+      expect(await c.read(videoFileReaderProvider(item).future), isNull);
+    });
   });
 
   test('the engine is the channel engine, unsupported off Apple', () async {
