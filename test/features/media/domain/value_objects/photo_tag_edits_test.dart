@@ -89,6 +89,61 @@ void main() {
     });
   });
 
+  group('SpeciesTagEdits against a store that moved (issue #4527)', () {
+    test('tagging again, after the species was untagged underneath too, '
+        'tags it', () {
+      final edits = SpeciesTagEdits.none.toggled(
+        _species('turtle'),
+        tagged: false,
+        stored: [_species('turtle')],
+      );
+      // Another device untagged it as well.
+      const storedNow = <SpeciesTagChip>[];
+
+      final again = edits.toggled(
+        _species('turtle'),
+        tagged: true,
+        stored: storedNow,
+      );
+
+      expect(again.applyTo(storedNow).map((c) => c.speciesId), ['turtle']);
+    });
+
+    test('untagging a held tag, after it was tagged underneath too, '
+        'untags it', () {
+      final edits = SpeciesTagEdits.none.toggled(
+        _species('ray'),
+        tagged: true,
+        stored: const [],
+      );
+      final storedNow = [_species('ray')];
+
+      final again = edits.toggled(
+        _species('ray'),
+        tagged: false,
+        stored: storedNow,
+      );
+
+      expect(again.applyTo(storedNow), isEmpty);
+    });
+
+    test('prunedTo drops the edits the store has made moot', () {
+      final edits = SpeciesTagEdits(
+        added: {'ray': _species('ray'), 'shark': _species('shark')},
+        removed: const {'turtle', 'eel'},
+      );
+
+      final pruned = edits.prunedTo([_species('ray'), _species('eel')]);
+
+      expect(pruned.added.keys, ['shark']);
+      expect(pruned.removed, {'eel'});
+      expect(
+        const SpeciesTagEdits(removed: {'turtle'}).prunedTo(const []),
+        SpeciesTagEdits.none,
+      );
+    });
+  });
+
   group('PersonTagEdits', () {
     final stored = [_person('t1', buddyId: 'b1', box: _boxA, name: 'Ann')];
 
@@ -194,6 +249,31 @@ void main() {
     });
   });
 
+  group('PersonTagEdits.prunedTo (issue #4527)', () {
+    test('drops removals and changes of tags no longer stored, and changes '
+        'the store has caught up with', () {
+      final stored = [
+        _person('t1', buddyId: 'ann', box: _boxA),
+        _person('t2', buddyId: 'bo', box: _boxA),
+      ];
+      final edits = PersonTagEdits.none
+          .remove('t1', stored: stored)
+          .change(
+            _person('t2', buddyId: 'bo', box: _boxB),
+            stored: stored,
+          )
+          .add(_person('new', buddyId: 'cy'), stored: stored, isVideo: false);
+      // Another device removed t1 and moved t2 to the same spot.
+      final storedNow = [_person('t2', buddyId: 'bo', box: _boxB)];
+
+      final pruned = edits.prunedTo(storedNow);
+
+      expect(pruned.removed, isEmpty);
+      expect(pruned.changed, isEmpty);
+      expect(pruned.added.map((c) => c.tag.id), ['new']);
+    });
+  });
+
   group('MediaTagEdits (#1970 tags)', () {
     Tag tag(String id) => Tag(
       id: id,
@@ -217,6 +297,18 @@ void main() {
         MediaTagEdits.between([tag('wreck')], [tag('wreck')]),
         MediaTagEdits.none,
       );
+    });
+
+    test('prunedTo drops the edits the store has made moot', () {
+      final edits = MediaTagEdits.between(
+        [tag('wreck'), tag('night')],
+        [tag('night'), tag('macro'), tag('reef')],
+      );
+
+      final pruned = edits.prunedTo([tag('night'), tag('macro')]);
+
+      expect(pruned.added.keys, ['reef']);
+      expect(pruned.removed, isEmpty);
     });
 
     test('applyTo keeps a tag the edits never named', () {

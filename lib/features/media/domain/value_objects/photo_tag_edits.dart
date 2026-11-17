@@ -24,8 +24,10 @@ class SpeciesTagEdits extends Equatable {
 
   bool get isEmpty => added.isEmpty && removed.isEmpty;
 
-  /// These edits with [chip] tagged or untagged. Untagging one the sitting
-  /// added, or tagging back one it removed, leaves no edit behind.
+  /// These edits with [chip] tagged or untagged, against [stored] as it is
+  /// now. Untagging one the sitting added, or tagging back one it removed,
+  /// leaves no edit behind; one the store has meanwhile tagged or untagged
+  /// itself is still left the way the diver asked.
   SpeciesTagEdits toggled(
     SpeciesTagChip chip, {
     required bool tagged,
@@ -33,13 +35,10 @@ class SpeciesTagEdits extends Equatable {
   }) {
     final id = chip.speciesId;
     final isStored = stored.any((s) => s.speciesId == id);
-    final nextAdded = {...added};
-    final nextRemoved = {...removed};
-    if (tagged) {
-      if (!nextRemoved.remove(id) && !isStored) nextAdded[id] = chip;
-    } else {
-      if (nextAdded.remove(id) == null && isStored) nextRemoved.add(id);
-    }
+    final nextAdded = {...added}..remove(id);
+    final nextRemoved = {...removed}..remove(id);
+    if (tagged && !isStored) nextAdded[id] = chip;
+    if (!tagged && isStored) nextRemoved.add(id);
     return SpeciesTagEdits(added: nextAdded, removed: nextRemoved);
   }
 
@@ -56,6 +55,19 @@ class SpeciesTagEdits extends Equatable {
       for (final chip in added.values)
         if (!have.contains(chip.speciesId)) chip,
     ];
+  }
+
+  /// These edits less the ones [stored] has made moot: a species tagged
+  /// that is stored already, or untagged that is no longer stored.
+  SpeciesTagEdits prunedTo(List<SpeciesTagChip> stored) {
+    final ids = {for (final chip in stored) chip.speciesId};
+    return SpeciesTagEdits(
+      added: {
+        for (final entry in added.entries)
+          if (!ids.contains(entry.key)) entry.key: entry.value,
+      },
+      removed: removed.intersection(ids),
+    );
   }
 
   @override
@@ -179,6 +191,22 @@ class PersonTagEdits extends Equatable {
     ...added,
   ];
 
+  /// These edits less the ones [stored] has made moot: a removal or change
+  /// of a tag no longer stored, or a change the stored tag now matches.
+  PersonTagEdits prunedTo(List<MediaPersonChip> stored) {
+    final byId = {for (final chip in stored) chip.tag.id: chip.tag};
+    return PersonTagEdits(
+      added: added,
+      changed: {
+        for (final entry in changed.entries)
+          if (byId[entry.key] case final tag?
+              when !samePersonTag(tag, entry.value.tag))
+            entry.key: entry.value,
+      },
+      removed: removed.intersection(byId.keys.toSet()),
+    );
+  }
+
   @override
   List<Object?> get props => [added, changed, removed];
 }
@@ -226,6 +254,19 @@ class MediaTagEdits extends Equatable {
       for (final tag in added.values)
         if (!have.contains(tag.id)) tag,
     ];
+  }
+
+  /// These edits less the ones [stored] has made moot, as
+  /// [SpeciesTagEdits.prunedTo] does.
+  MediaTagEdits prunedTo(List<Tag> stored) {
+    final ids = {for (final tag in stored) tag.id};
+    return MediaTagEdits(
+      added: {
+        for (final entry in added.entries)
+          if (!ids.contains(entry.key)) entry.key: entry.value,
+      },
+      removed: removed.intersection(ids),
+    );
   }
 
   @override

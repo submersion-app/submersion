@@ -15,6 +15,7 @@ import 'package:submersion/features/media/presentation/editing/photo_edit_fields
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
@@ -120,9 +121,33 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
         return;
       }
       controller.storedChanged(stored);
+      _pruneMootEdits(controller.session);
     });
     final stored = ref.watch(photoRecordProvider(id)).value;
     return stored?.item.id == onScreen.id ? stored : null;
+  }
+
+  /// Drops the held tag edits the stored photo has made moot (another device
+  /// made the same change), so a sitting with nothing left to save is clean.
+  void _pruneMootEdits(EditSession<PhotoRecord>? session) {
+    if (session == null || session.isDisposed || session.isFrozen) return;
+    final stored = session.stored;
+    void prune<V>(EditField<PhotoRecord, V> field, V pruned) {
+      if (pruned != session.valueOf(field)) session.set(field, pruned);
+    }
+
+    prune(
+      photoSpeciesField,
+      session.valueOf(photoSpeciesField).prunedTo(stored.species),
+    );
+    prune(
+      photoPeopleField,
+      session.valueOf(photoPeopleField).prunedTo(stored.people),
+    );
+    prune(
+      photoTagsField,
+      session.valueOf(photoTagsField).prunedTo(stored.tags),
+    );
   }
 
   /// Whether [item] can be unlocked here: the viewer offers editing, the

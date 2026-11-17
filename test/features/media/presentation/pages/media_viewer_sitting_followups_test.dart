@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
 import 'package:submersion/features/media/data/services/photo_edit_save_service.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
@@ -67,6 +68,23 @@ void main() {
     expect(photoController(tester).isDirty, isTrue);
   });
 
+  testWidgets('the colour panel is handed the held colour, so a released '
+      'slider stays where it was let go', (tester) async {
+    await pumpViewer(tester);
+    await tapUnlock(tester);
+    await tester.tap(find.byKey(const ValueKey('viewer_adjust_color')));
+    await settleViewer(tester);
+
+    const held = ColorAdjustment(warmth: 0.4);
+    photoController(tester).session!.set(photoColorField, held);
+    await settleViewer(tester);
+
+    final panel = tester.widget<ColorAdjustPanel>(
+      find.byType(ColorAdjustPanel),
+    );
+    expect(panel.item.colorAdjustment, held);
+  });
+
   testWidgets('following the sitting\'s photo keeps the selected tag', (
     tester,
   ) async {
@@ -111,6 +129,42 @@ void main() {
     await settleViewer(tester, rounds: 10);
 
     expect(annSelected(), isTrue);
+  });
+
+  testWidgets('a held untag the store has made moot leaves the sitting '
+      'clean', (tester) async {
+    await tester.runAsync(
+      () => MediaSpeciesRepository().addTag(
+        mediaId: 'p2',
+        speciesId: 'sp_turtle',
+      ),
+    );
+    await pumpViewer(tester);
+    await tapUnlock(tester);
+    final session = photoController(tester).session!;
+    session.set(
+      photoSpeciesField,
+      session
+          .valueOf(photoSpeciesField)
+          .toggled(
+            session.stored.species.single,
+            tagged: false,
+            stored: session.stored.species,
+          ),
+    );
+    await settleViewer(tester);
+    expect(photoController(tester).isDirty, isTrue);
+
+    // Another device untags it too.
+    await tester.runAsync(
+      () => MediaSpeciesRepository().removeTag(
+        mediaId: 'p2',
+        speciesId: 'sp_turtle',
+      ),
+    );
+    await settleViewer(tester, rounds: 10);
+
+    expect(photoController(tester).isDirty, isFalse);
   });
 
   testWidgets('the photo deleted while its save runs: one message, and the '

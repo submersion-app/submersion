@@ -975,6 +975,7 @@ Tasks 1 to 12 were built as written in one session (Eric chose "Native"), then r
 - **A photo deleted while its save runs** ends the sitting when the save fails on the missing row, with the one gone message.
 - **Messages:** `media_viewer_videoGoneWhileEditing` for a video's sitting ending; `media_viewer_movedWhileEditing` when Save is refused for a photo moved to another dive (Cancel, then unlock again).
 - **The info sheet in a sitting** shows the held time in dive and starts Set time from it, and its sheets read only once their sitting has ended.
+- **Held tag edits follow the store.** `SpeciesTagEdits.toggled` leaves a species the way the diver asked even when the store moved underneath (tagged or untagged on another device), and each time the stored photo changes the viewer drops the edits the store has made moot (`prunedTo` on the species, people and tag edits), so a sitting with nothing left to save is clean.
 - **The colour field counts null and the neutral adjustment as the same colour**, as the repository stores a cleared one as neutral.
 - **`media_viewer_page.dart`** was split by moving the gallery, the video item, the bottom chips, the Perdix resolver, the write to the file, the controls' actions and the toolbar's construction into part files (`media_viewer_*.dart`, extensions on the page state). It ends at 758 lines.
 
