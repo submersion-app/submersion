@@ -1,5 +1,9 @@
+import 'dart:convert';
+
+import 'package:submersion/features/agent_access/data/documents/plan_documents.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_plan_series_create.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_plan_series_names.dart';
 import 'package:submersion/features/agent_access/data/writes/families/planned_dives_effect.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -10,12 +14,16 @@ import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart'
     show SeriesDiveResult;
 
+/// A dive an update renames: its plan, the entry in the log the plan links
+/// to, and whether that entry has been dived, as the rename was decided on.
+typedef _Rename = ({String planId, String? diveId, bool dived});
+
 /// Repetitive dive series, through the repository the planner saves them
 /// with. A series is created from its dives, as `compute_plan` takes them,
-/// or as a copy of another; here it is renamed, its dives kept, reordered
-/// or dropped (a dropped dive's plan goes with it), dissolved into one
-/// plan, or deleted with its plans; and its dives written to the log as
-/// planned dives, on a create or an update.
+/// or as a copy of another; here it is renamed, its dives renamed, kept,
+/// reordered or dropped (a dropped dive's plan goes with it), dissolved
+/// into one plan, or deleted with its plans; and its dives written to the
+/// log as planned dives, on a create or an update.
 class DivePlanSeriesWrites extends WritableEntry {
   /// [followOf] reads the logged dive a new series follows, as
   /// `compute_plan` reads it; without it a series cannot follow one, nor
@@ -32,6 +40,7 @@ class DivePlanSeriesWrites extends WritableEntry {
   static const _dissolve = 'dissolve_keeping_plan_id';
   static const _dives = 'dives';
   static const _follow = 'followed_dive_id';
+  static const _names = 'dive_names';
 
   @override
   String get name => 'dive_plan_series';
@@ -42,11 +51,15 @@ class DivePlanSeriesWrites extends WritableEntry {
   @override
   String get note =>
       'plan_ids are the series\' dives in order, a selection of the ones it '
-      'holds; a plan left out is deleted. $_dissolve turns the series back '
-      'into that one plan, deleting the rest. A new series takes a name and '
-      '$_dives, as compute_plan takes them (a dive\'s resolved_inputs save '
-      'unchanged), and $_follow for the logged dive it follows; or it is a '
-      'copy, $_copy. A single dive is a dive_plans record. '
+      'holds; a plan left out is deleted. $_names names dives by plan id, '
+      'null going back to the letter; a dive left out keeps its name, a '
+      'dived one cannot be renamed, and planned entries take the names '
+      'when ${PlannedDivesEffect.field} is written. $_dissolve turns the '
+      'series back into that one plan, deleting the rest. A new series '
+      'takes a name and $_dives, as compute_plan takes them (a dive\'s '
+      'resolved_inputs save unchanged; each may have a name), and $_follow '
+      'for the logged dive it follows; or it is a copy, $_copy. A single '
+      'dive is a dive_plans record. '
       '${PlannedDivesEffect.note} ${PlannedDivesEffect.deleteRemoved} '
       'deletes the planned entries of dives plan_ids drops in the same '
       'change.';
@@ -59,6 +72,7 @@ class DivePlanSeriesWrites extends WritableEntry {
     _copy: const FieldCodec.reference('dive_plan_series'),
     _dives: const PlanSeriesDivesCodec(),
     _follow: const FieldCodec.reference('dives'),
+    _names: const SeriesDiveNamesCodec(),
     PlannedDivesEffect.field: PlannedDivesEffect.codec,
   };
 
@@ -93,7 +107,9 @@ class DivePlanSeriesWrites extends WritableEntry {
     ];
     final v = check.values;
     if (v.containsKey(_dissolve) &&
-        (v.containsKey('plan_ids') || v[PlannedDivesEffect.field] != null)) {
+        (v.containsKey('plan_ids') ||
+            v.containsKey(_names) ||
+            v[PlannedDivesEffect.field] != null)) {
       return const PlanBlock(
         BlockReason.notPermitted,
         'Dissolve a series in a change of its own.',
@@ -114,6 +130,9 @@ class DivePlanSeriesWrites extends WritableEntry {
         );
       }
     }
+    if (v.containsKey(_names)) {
+      if (await _refuseNames(check, held) case final block?) return block;
+    }
     if (PlannedDivesRequest.of(v[PlannedDivesEffect.field]) case final ask?) {
       if (_changedEarlier(check.soFar, check.id!, held) case final block?) {
         return block;
@@ -123,6 +142,118 @@ class DivePlanSeriesWrites extends WritableEntry {
       );
     }
     return null;
+  }
+
+  /// A block when [check]'s dive names are not of dives the series keeps,
+  /// [held] or the ones `plan_ids` gives, or would rename a dive that has
+  /// been dived, whose details the planner no longer changes (issue #4626).
+  /// Giving a dived dive the name it has is no change, so is let through.
+  /// The stored rows cannot show what an earlier change in the set does to
+  /// a renamed dive's plan or entry, which can make it dived, so such a
+  /// rename waits for a set of its own.
+  Future<PlanBlock?> _refuseNames(WriteCheck check, List<String> held) async {
+    final values = check.values;
+    final names = SeriesDiveNamesCodec.names(values[_names]);
+    final kept = switch (values['plan_ids']) {
+      final Object raw => _texts(raw),
+      null => held,
+    };
+    for (final planId in names.keys) {
+      if (!kept.contains(planId)) {
+        return PlanBlock(
+          BlockReason.invalidValue,
+          held.contains(planId)
+              ? '$_names: $planId is dropped by plan_ids in the same change.'
+              : '$_names: $planId is not a dive of this series.',
+        );
+      }
+    }
+    for (final rename in (await _renames(
+      check.id!,
+      values,
+      check.pass,
+    )).renames) {
+      if (rename.dived) {
+        return PlanBlock(
+          BlockReason.notPermitted,
+          '$_names: ${rename.planId} has been dived, so its name stays as it '
+          'is.',
+        );
+      }
+      if (_changedEarlierThan(check.soFar, rename)) {
+        return PlanBlock(
+          BlockReason.notPermitted,
+          '$_names: rename ${rename.planId} in a change set after the one '
+          'that changes its plan or its entry in the log.',
+        );
+      }
+    }
+    return null;
+  }
+
+  /// Whether a change earlier in the set writes [rename]'s plan, which can
+  /// link it to a dived dive, or the entry in the log it links to.
+  static bool _changedEarlierThan(SetSoFar soFar, _Rename rename) =>
+      (soFar.touched['dive_plans']?.contains(rename.planId) ?? false) ||
+      (soFar.touched['dives']?.contains(rename.diveId) ?? false);
+
+  /// The series [values] name dives of, and each dive whose name they
+  /// change, read as the planner reads a dived dive: linked to an entry in
+  /// the log that is no longer planned. Read once per preview in [pass], so
+  /// the refusal and the side effects decide on the same reads.
+  Future<({StoredSeries series, List<_Rename> renames})> _renames(
+    String id,
+    Map<String, Object?> values,
+    PlanningPass? pass,
+  ) {
+    Future<({StoredSeries series, List<_Rename> renames})> read() async {
+      final names = SeriesDiveNamesCodec.names(values[_names]);
+      final series = await _series(id);
+      // Each entry is read on its own, so all of them at once.
+      final renames = await Future.wait([
+        for (final dive in series.dives)
+          if (names.containsKey(dive.plan.id) &&
+              names[dive.plan.id] != dive.name)
+            _renameOf(dive),
+      ]);
+      return (series: series, renames: renames);
+    }
+
+    return pass?.once((this, _names, id, values), read) ?? read();
+  }
+
+  Future<_Rename> _renameOf(StoredSeriesDive dive) async {
+    final diveId = dive.plan.linkedDiveId;
+    final logged = diveId == null ? null : await _r.dives.getDiveById(diveId);
+    return (
+      planId: dive.plan.id,
+      diveId: diveId,
+      dived: logged != null && !logged.isPlanned,
+    );
+  }
+
+  /// What an update's dive names show and rest on, when they change one:
+  /// the series' dives as its document will read them, so a name going
+  /// back to its letter shows beside the name it had, and what each renamed
+  /// dive's lock was decided on, so an apply after one is dived or linked
+  /// finds the plan stale.
+  Future<({Map<String, Object?> fields, String basis})> _namesShown(
+    String id,
+    Map<String, Object?> values,
+    PlanningPass? pass,
+  ) async {
+    const none = (fields: <String, Object?>{}, basis: '');
+    if (values[_names] == null) return none;
+    final read = await _renames(id, values, pass);
+    if (read.renames.isEmpty) return none;
+    return (
+      fields: {
+        'dives': divePlanSeriesDocument(_updated(read.series, values))['dives'],
+      },
+      basis: jsonEncode([
+        for (final r in read.renames) [r.planId, r.diveId, r.dived],
+      ]),
+    );
   }
 
   /// A block when an earlier change in the set writes this series, its
@@ -178,18 +309,30 @@ class DivePlanSeriesWrites extends WritableEntry {
   Future<String?> _ownerOf(StoredSeries series) async =>
       series.diverId ?? await _r.activeDiverId?.call();
 
-  /// [series] with an update's name and order, as [update] saves it.
+  /// [series] with an update's name, order and dive names, as [update]
+  /// saves it.
   static StoredSeries _updated(StoredSeries series, Map<String, Object?> v) {
     final raw = v['plan_ids'];
+    final names = SeriesDiveNamesCodec.names(v[_names]);
     final byPlan = {for (final d in series.dives) d.plan.id: d};
+    final ordered = raw == null
+        ? series.dives
+        : [for (final planId in _texts(raw)) byPlan[planId]!];
     return StoredSeries(
       id: series.id,
       name: v['name'] as String? ?? series.name,
       diverId: series.diverId,
       followedDiveId: series.followedDiveId,
-      dives: raw == null
-          ? series.dives
-          : [for (final planId in _texts(raw)) byPlan[planId]!],
+      dives: [
+        for (final dive in ordered)
+          if (names.containsKey(dive.plan.id))
+            dive.copyWith(
+              name: names[dive.plan.id],
+              clearName: names[dive.plan.id] == null,
+            )
+          else
+            dive,
+      ],
     );
   }
 
@@ -217,6 +360,20 @@ class DivePlanSeriesWrites extends WritableEntry {
     final v = check.values;
     final dives = v[_dives];
     final ask = PlannedDivesRequest.of(v[PlannedDivesEffect.field]);
+    // Fields of a saved series' dives, which a create would otherwise take
+    // and drop without a word.
+    final updateOnly = [
+      for (final key in const ['plan_ids', _dissolve, _names])
+        if (v.containsKey(key)) key,
+    ];
+    if (updateOnly.isNotEmpty) {
+      return PlanBlock(
+        BlockReason.notPermitted,
+        '${updateOnly.join(', ')}: only a saved series takes '
+        '${updateOnly.length == 1 ? 'this' : 'these'}. A new series names '
+        'its dives by each of $_dives\' name; a copy\'s, once it exists.',
+      );
+    }
     if (v[_copy] != null) {
       if (ask != null) {
         return const PlanBlock(
@@ -277,10 +434,10 @@ class DivePlanSeriesWrites extends WritableEntry {
     Map<String, Object?> values,
   ) async => {
     if (values[_dives] case final Object dives) ...{
-      'dive_plans': PlanSeriesDivesCodec.dives(dives).length,
+      'dive_plans': PlanSeriesDivesCodec.count(dives),
       // A new series has no entries in the log, so each dive gets one.
       if (values[PlannedDivesEffect.field] != null)
-        'dives': PlanSeriesDivesCodec.dives(dives).length,
+        'dives': PlanSeriesDivesCodec.count(dives),
     },
   };
 
@@ -313,22 +470,29 @@ class DivePlanSeriesWrites extends WritableEntry {
         ? held
         : _texts(v['plan_ids']!).length;
     final dropped = held - kept;
+    final shown = await _namesShown(id, v, update.pass);
     final ask = PlannedDivesRequest.of(v[PlannedDivesEffect.field]);
     if (ask == null) {
-      return SideEffects(parts: {if (dropped > 0) 'dive_plans': dropped});
+      return SideEffects(
+        fields: shown.fields,
+        parts: {if (dropped > 0) 'dive_plans': dropped},
+        basis: shown.basis,
+      );
     }
     final planned = PlannedDivesEffect.effectsOf(
       await _outlookOfUpdate(id, v, ask, update.pass),
     );
     return SideEffects(
-      fields: planned.fields,
+      fields: {...planned.fields, ...shown.fields},
       created: planned.created,
       touched: planned.touched,
       parts: {if (dropped > 0) 'dive_plans': dropped, ...planned.parts},
       records: planned.records,
       unlinked: planned.unlinked,
       rewrites: planned.rewrites,
-      basis: planned.basis,
+      basis: shown.basis.isEmpty
+          ? planned.basis
+          : '${planned.basis} ${shown.basis}',
     );
   }
 
@@ -381,13 +545,15 @@ class DivePlanSeriesWrites extends WritableEntry {
       return;
     }
     final ask = PlannedDivesRequest.of(v[PlannedDivesEffect.field]);
-    // Read only when the save or the planned dives need it: a rename alone
-    // reads nothing.
-    final before = v['plan_ids'] != null || ask != null
-        ? await _series(id)
-        : null;
-    if (v['plan_ids'] != null) {
-      await repo.saveSeries(_updated(before!, v));
+    // Read only when the save or the planned dives need it: a rename of the
+    // series alone reads nothing.
+    final saves = v['plan_ids'] != null || v[_names] != null;
+    final before = saves || ask != null ? await _series(id) : null;
+    if (saves) {
+      final next = _updated(before!, v);
+      // Names the dives already have change nothing, and a save rewrites
+      // every plan of the series.
+      if (next != before) await repo.saveSeries(next);
     } else if (v['name'] case final String name) {
       await repo.renameSeries(id, name);
     }
