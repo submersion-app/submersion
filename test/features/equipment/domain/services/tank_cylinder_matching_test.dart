@@ -273,6 +273,25 @@ void main() {
       expect(proposals.where((p) => p.suitInflation), hasLength(1));
     });
 
+    test('Twin Set tanks group apart and keep the flag (#4641)', () {
+      final proposals = proposeCylinders(
+        [
+          TankRef(
+            diveId: 'd1',
+            tank: _tank('doubles', volume: 24, role: TankRole.twinSet),
+          ),
+          TankRef(diveId: 'd2', tank: _tank('big', volume: 24)),
+        ],
+        owned: const [],
+        ownedPairs: const [],
+      );
+      expect(proposals, hasLength(2));
+      final twin = proposals.where((p) => p.twinSet).toList();
+      expect(twin, hasLength(1));
+      expect(twin.single.allTanks.single.tank.id, 'doubles');
+      expect(twin.single.suitInflation, isFalse);
+    });
+
     test('rows are ordered by dive count, most first', () {
       final proposals = proposeCylinders(
         [

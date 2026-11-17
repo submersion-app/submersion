@@ -30,6 +30,7 @@ class CylinderProposal {
     required this.workingPressureBar,
     required this.material,
     required this.suitInflation,
+    this.twinSet = false,
     required this.suggestedName,
     required this.tanksByCylinder,
   });
@@ -38,6 +39,10 @@ class CylinderProposal {
   final double? workingPressureBar;
   final TankMaterial? material;
   final bool suitInflation;
+
+  /// The tanks were logged with the Twin Set role: doubles kept as one
+  /// item, so the cylinder is made worn as a twin set (issue #4641).
+  final bool twinSet;
 
   /// The first tank's own name, else the preset these specs match; null when
   /// neither exists, and the UI describes the size instead.
@@ -52,6 +57,8 @@ class CylinderProposal {
 }
 
 bool _isSuitTank(DiveTank tank) => tank.role == TankRole.suitInflation;
+
+bool _isTwinSetTank(DiveTank tank) => tank.role == TankRole.twinSet;
 
 /// A working pressure as a rating: a logged 0 (some imports record it for
 /// "unknown") or less is no rating at all.
@@ -261,6 +268,7 @@ CylinderProposal _proposalOf(List<TankRef> refs) {
     workingPressureBar: _rating(first.workingPressure),
     material: first.material,
     suitInflation: _isSuitTank(first),
+    twinSet: _isTwinSetTank(first),
     suggestedName: _suggestedName(refs, first),
     tanksByCylinder: cylinders,
   );
@@ -283,11 +291,14 @@ String? _suggestedName(List<TankRef> refs, DiveTank first) {
 
 /// Whether two tanks are one row: the same cylinder by the tolerances
 /// matching uses (so 206.4 and 206.6 bar never split one size in two), the
-/// same material and suit use, and a rating on both or on neither. An absent
-/// rating or material is its own value, not a wildcard, so a tank with only
-/// a volume never merges into a row that states more.
+/// same material, suit use and Twin Set role (issue #4641), and a rating
+/// on both or on neither. An absent rating or material is its own value,
+/// not a wildcard, so a tank with only a volume never merges into a row
+/// that states more.
 bool _sameRow(DiveTank a, DiveTank b) {
-  if (_isSuitTank(a) != _isSuitTank(b) || a.material != b.material) {
+  if (_isSuitTank(a) != _isSuitTank(b) ||
+      _isTwinSetTank(a) != _isTwinSetTank(b) ||
+      a.material != b.material) {
     return false;
   }
   if ((a.volume! - b.volume!).abs() >= _volumeToleranceL) return false;
