@@ -117,13 +117,19 @@ void main() {
 
   group('labelsAt', () {
     test('lists each visible fish with its kind, box and name', () {
+      final elsewhere = track(
+        'b',
+        decision: IdentificationDecision.accepted,
+        decidedSpeciesId: 'sp_b',
+      );
       final labels = labelsAt(
         [
           track('a', confident: true),
-          track(
-            'b',
-            decision: IdentificationDecision.accepted,
-            decidedSpeciesId: 'sp_b',
+          elsewhere.copyWith(
+            path: [
+              for (final s in elsewhere.path)
+                s.copyWith(box: s.box.copyWith(y: 0.8)),
+            ],
           ),
         ],
         1500,
@@ -146,10 +152,11 @@ void main() {
               for (var ms = 1000; ms <= 2000; ms += 250)
                 TrackSample(
                   ms: ms,
+                  // Eight fish in a row, each a little bigger.
                   box: IdentificationBox(
-                    x: 0.1,
+                    x: k * 0.12,
                     y: 0.1,
-                    width: 0.05 + k * 0.01,
+                    width: 0.05 + k * 0.005,
                     height: 0.1,
                   ),
                 ),
@@ -160,6 +167,47 @@ void main() {
       expect(labels, hasLength(6));
       expect(labels.first.identificationId, 't7');
       expect(labels.last.identificationId, 't2');
+    });
+
+    test('two tracks on the same fish draw one label, the diver\'s first', () {
+      final labels = labelsAt(
+        [
+          track('app', confident: true),
+          track(
+            'diver',
+            decision: IdentificationDecision.accepted,
+            decidedSpeciesId: 'sp_b',
+          ),
+        ],
+        1500,
+        playing: true,
+      );
+      expect(labels.map((l) => l.identificationId), ['diver']);
+    });
+
+    test('a pill wins over a dot on the same fish', () {
+      final labels = labelsAt(
+        [
+          track('dot', suggestable: false, confident: false),
+          track('pill', confident: false),
+        ],
+        1500,
+        playing: false,
+      );
+      expect(labels.map((l) => l.identificationId), ['pill']);
+    });
+
+    test('fish side by side keep their own labels', () {
+      final apart = track('b', confident: true).copyWith(
+        path: [
+          for (final s in track('b').path)
+            s.copyWith(box: s.box.copyWith(x: s.box.x + 0.5)),
+        ],
+      );
+      expect(
+        labelsAt([track('a', confident: true), apart], 1500, playing: true),
+        hasLength(2),
+      );
     });
 
     test('ignores photo identifications and fish not on screen', () {

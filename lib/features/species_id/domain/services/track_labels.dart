@@ -6,6 +6,7 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 
 enum TrackLabelKind {
   /// The app's confident name: an outlined pill, playing or paused.
@@ -160,11 +161,34 @@ List<TrackLabel> labelsAt(
       ),
     );
   }
-  // Largest first; ties keep their stored order (List.sort is not stable).
-  final order = [for (var k = 0; k < labels.length; k++) k]
+  // Two tracks on one fish (a decided row a rescan could not carry, or the
+  // tracker splitting a fish) draw one label: the diver's tag first, then
+  // the app's surest name, a dot last.
+  final rank = [for (var k = 0; k < labels.length; k++) k]
     ..sort((a, b) {
-      final byArea = labels[b].box.area.compareTo(labels[a].box.area);
-      return byArea != 0 ? byArea : a.compareTo(b);
+      final byKind = _precedence(
+        labels[a].kind,
+      ).compareTo(_precedence(labels[b].kind));
+      return byKind != 0 ? byKind : a.compareTo(b);
     });
-  return [for (final k in order.take(maxLabels)) labels[k]];
+  final kept = <int>[];
+  for (final k in rank) {
+    final sameFish = kept.any(
+      (j) => labels[j].box.iou(labels[k].box) >= sameAnimalOverlap,
+    );
+    if (!sameFish) kept.add(k);
+  }
+  // Largest first; ties keep their stored order (List.sort is not stable).
+  kept.sort((a, b) {
+    final byArea = labels[b].box.area.compareTo(labels[a].box.area);
+    return byArea != 0 ? byArea : a.compareTo(b);
+  });
+  return [for (final k in kept.take(maxLabels)) labels[k]];
 }
+
+int _precedence(TrackLabelKind kind) => switch (kind) {
+  TrackLabelKind.accepted => 0,
+  TrackLabelKind.confident => 1,
+  TrackLabelKind.suggestion => 2,
+  TrackLabelKind.dot => 3,
+};
