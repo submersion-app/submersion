@@ -12,6 +12,11 @@ class TrackedAnimal {
   TrackedAnimal(this.points, {this.storedId, bool pending = false})
     : storedLength = storedId == null || pending ? 0 : points.length;
 
+  TrackedAnimal._copy(TrackedAnimal other)
+    : points = [...other.points],
+      storedId = other.storedId,
+      storedLength = other.storedLength;
+
   /// Where it was seen, oldest first.
   final List<({int ms, DetectedBox detection})> points;
 
@@ -56,6 +61,22 @@ class VideoTracker {
   final _open = <_Open>[];
 
   int get openCount => _open.length;
+
+  /// The open tracks as they are now, for [restore].
+  VideoTrackerState save() => VideoTrackerState._([
+    for (final open in _open)
+      (animal: TrackedAnimal._copy(open.animal), missed: open.missed),
+  ]);
+
+  /// Back to the open tracks [state] saved: frames added since are undone.
+  void restore(VideoTrackerState state) {
+    _open
+      ..clear()
+      ..addAll([
+        for (final open in state._open)
+          _Open(TrackedAnimal._copy(open.animal))..missed = open.missed,
+      ]);
+  }
 
   /// Adds [frame]; returns the tracks it closed.
   List<TrackedAnimal> add(FrameDetections frame) {
@@ -120,6 +141,13 @@ class VideoTracker {
     _open.clear();
     return closed;
   }
+}
+
+/// What [VideoTracker.save] keeps: its open tracks at one moment.
+class VideoTrackerState {
+  const VideoTrackerState._(this._open);
+
+  final List<({TrackedAnimal animal, int missed})> _open;
 }
 
 /// Up to [max] moments of [track] worth cropping and naming: the highest

@@ -143,6 +143,8 @@ The tracks still open at a stop are stored too. As many as one batch of
 moments (12) are named, the fish with no name yet first, so stopping stays
 quick. The rest keep their path with no best moment, crop or name (a pending
 row: `best_ms` is null), show no label, and are named when the scan resumes.
+A stop or a failure part-way through a chunk's pass 2 stores nothing of that
+chunk: the tracks go back to where it began and are all kept unnamed.
 Each track is one `media_identifications` row with its time range, the box at
 each sample packed into `track_path`, and any species the diver gave it from
 the frame (`claimed_species_id`).

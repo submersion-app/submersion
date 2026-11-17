@@ -18,7 +18,7 @@
 - Labels: at most 6 at once, largest box first; a gap over 500 ms has no label; a dot needs `specific` and a track of at least 1000 ms.
 - Main schema 376. Neither identification table gains an `hlc` column. Integer columns end in `_ms`.
 - Never edit how `VisionPipeline.swift` fits a crop for embedding, `tool/species_pack/`, `SpeciesNamer`, or the naming bars (the measured accuracy piece owns them).
-- No em-dashes in any text. No mention of Claude or Anthropic anywhere.
+- No em-dashes in any text. No tool attribution anywhere (commits, PR text, comments, files).
 - Strings in all 11 locales: ar, de, en, es, fr, he, hu, it, nl, pt, zh. ARB files are feature-grouped: insert each new key beside its neighbours of the same group.
 - `media_viewer_page.dart` is at 785 of 800 lines: put viewer changes in `media_viewer_video_item.dart` and `media_viewer_gallery.dart`.
 - Run only the test files a task names, by path. Never a folder.

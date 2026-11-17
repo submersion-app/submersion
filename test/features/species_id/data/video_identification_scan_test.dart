@@ -58,6 +58,8 @@ void main() {
   late IdentificationCropStore crops;
   late FakeEngine engine;
   late bool fileReadable;
+  var reloads = 0;
+  bool Function() keepGoing = () => true;
   var generation = 0;
   var ids = 0;
 
@@ -74,6 +76,8 @@ void main() {
     fileReadable = true;
     generation = 0;
     ids = 0;
+    keepGoing = () => true;
+    reloads = 0;
   });
   tearDown(() async {
     await crops.dispose();
@@ -94,9 +98,6 @@ void main() {
         suggestable: true,
       ),
   ];
-
-  var reloads = 0;
-  bool Function() keepGoing = () => true;
 
   VideoIdentificationScan scan({
     MediaIdentificationRun? resumeFrom,
@@ -515,6 +516,74 @@ void main() {
           fish,
     ];
     expect(keptName, isNotEmpty);
+  });
+
+  /// A fish crossing the 10 s boundary (8 s to 12 s, low in the frame),
+  /// then five more from 10 s to 14 s: chunk 2 closes six tracks, so its
+  /// pass 2 takes two batches.
+  void crossingFishThenSchool() {
+    engine.videoFrames = {
+      for (var ms = 8000; ms < 14000; ms += 250)
+        ms: [
+          if (ms < 12000)
+            const DetectedBox(
+              box: IdentificationBox(x: 0.05, y: 0.8, width: 0.1, height: 0.1),
+              score: 0.9,
+            ),
+          ...?school(5, 10000, 14000)[ms],
+        ],
+    };
+  }
+
+  test('a stop between batches keeps the fish open since the chunk before, '
+      'as it was there', () async {
+    crossingFishThenSchool();
+    final s = scan();
+    expect(await s.runChunk(), isTrue);
+    keepGoing = () => engine.embedCalls.isEmpty;
+    await expectLater(s.runChunk(), throwsA(isA<VideoScanStopped>()));
+    await s.finish(naming: false);
+    final kept = (await identifications.forMedia('v1')).single;
+    expect(kept.isPending, isTrue);
+    expect((kept.startMs, kept.endMs), (8000, 9750));
+    expect((await identifications.runFor('v1'))!.scannedMs, 10000);
+
+    keepGoing = () => true;
+    await runAll(
+      scan(
+        resumeFrom: await identifications.runFor('v1'),
+        stored: await identifications.forMedia('v1'),
+      ),
+    );
+    final found = await identifications.forMedia('v1');
+    expect(found, hasLength(6));
+    expect(found.where((i) => i.isPending), isEmpty);
+    final fish = found.singleWhere((i) => i.id == kept.id);
+    expect((fish.startMs, fish.endMs), (8000, 11750));
+  });
+
+  test('an engine failure in pass 2 keeps the fish open since the chunk '
+      'before, unnamed when naming fails again', () async {
+    crossingFishThenSchool();
+    final s = scan();
+    expect(await s.runChunk(), isTrue);
+    const away = VisionEngineException('not_foreground');
+    engine.embedFailure = away;
+    await expectLater(s.runChunk(), throwsA(away));
+    engine.embedFailure = away;
+    await s.finish();
+    final kept = (await identifications.forMedia('v1')).single;
+    expect(kept.isPending, isTrue);
+    expect((kept.startMs, kept.endMs), (8000, 9750));
+  });
+
+  test('finish runs no pass 2 once another logbook has opened', () async {
+    crossingFishThenSchool();
+    final s = scan();
+    expect(await s.runChunk(), isTrue);
+    generation++;
+    await s.finish();
+    expect(engine.embedCalls, isEmpty);
   });
 
   test('with no file nothing is stored and the scan stops', () async {

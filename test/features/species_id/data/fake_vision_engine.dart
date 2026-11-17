@@ -125,6 +125,10 @@ class FakeEngine implements VisionEngine {
   /// Thrown by the next [embedMoments], then cleared.
   Object? embedFailure;
 
+  /// Called as each [embedMoments] starts: where a test stops a scan
+  /// part-way through pass 2.
+  void Function()? onEmbedMoments;
+
   @override
   Future<List<VisionMomentCrop?>> embedMoments({
     required String path,
@@ -132,6 +136,7 @@ class FakeEngine implements VisionEngine {
   }) async {
     events.add('embedMoments');
     embedCalls.add(moments);
+    onEmbedMoments?.call();
     final failure = embedFailure;
     if (failure != null) {
       embedFailure = null;

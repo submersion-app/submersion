@@ -87,7 +87,10 @@ final class VideoScanner {
     reading: while next < end, stillWanted() {
       let step: Step = try autoreleasepool {
         guard let sample = output.copyNextSampleBuffer() else { return .end }
-        let ms = Int((CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sample)) * 1000).rounded())
+        // A marker buffer may carry no usable time; converting it would trap.
+        let time = CMSampleBufferGetPresentationTimeStamp(sample)
+        guard time.isNumeric else { return .skip }
+        let ms = Int((CMTimeGetSeconds(time) * 1000).rounded())
         // Frames between the sampled times are decoded but not looked at.
         guard ms >= next, let pixels = CMSampleBufferGetImageBuffer(sample) else { return .skip }
         while next <= ms { next += interval }

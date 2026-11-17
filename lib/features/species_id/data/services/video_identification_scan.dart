@@ -198,6 +198,10 @@ class VideoIdentificationScan {
       return false;
     }
     final duration = math.max(0, detections.durationMs);
+    // Nothing of a chunk is stored until its pass 2 is done: a stop or a
+    // failure there puts the tracks back as they were where it began, so
+    // the next chunk, or [finish], starts from what is stored.
+    final before = _tracker.save();
     final closed = [
       for (final frame in detections.frames) ..._tracker.add(frame),
     ];
@@ -206,16 +210,28 @@ class VideoIdentificationScan {
     if (!more) closed.addAll(_tracker.closeAll());
     // A continued track not seen again is already stored as it is.
     closed.removeWhere((t) => !t.hasNewPoints);
+    final List<_Stored>? named;
+    try {
+      named = await _nameTracks(closed, stopping: false);
+    } on Object {
+      _tracker.restore(before);
+      rethrow;
+    }
+    if (named == null) {
+      _tracker.restore(before);
+      return false;
+    }
     final bool stored;
     try {
       stored = await _store(
-        closed,
+        named,
         scanned: scanned,
         duration: duration,
         width: detections.width,
         height: detections.height,
       );
     } on Object {
+      // Part of it may be written: nothing more is stored from this scan.
       _broken = true;
       rethrow;
     }
@@ -223,39 +239,46 @@ class VideoIdentificationScan {
   }
 
   /// Closes the tracks still open (the scan is stopping) and stores them,
-  /// without moving the progress on. Only as many are named as one batch
-  /// of moments takes, so stopping is never slow; the rest are stored
-  /// unnamed, and named when the scan resumes.
-  Future<void> finish() async {
-    if (_broken) return;
+  /// without moving the progress on. With [naming], as many are named as
+  /// one batch of moments takes, so stopping is never slow. The rest, and
+  /// all of them without [naming] or when naming fails, are stored unnamed
+  /// and named when the scan resumes.
+  Future<void> finish({bool naming = true}) async {
+    if (_broken || _databaseGeneration() != _generation) return;
     final closed = [
       for (final t in _tracker.closeAll())
         if (t.hasNewPoints) t,
     ];
     final duration = _durationMs;
     if (closed.isEmpty || duration == null) return;
+    List<_Stored>? named;
+    if (naming) {
+      try {
+        named = await _nameTracks(closed, stopping: true);
+      } on Object {
+        // Out of the foreground, too hot, or the file gone: the tracks are
+        // still kept, unnamed.
+      }
+    }
+    final now = _now().toUtc();
     await _store(
-      closed,
+      named ?? [for (final t in closed) _unnamed(t, now)],
       scanned: _scannedMs,
       duration: duration,
       width: _width,
       height: _height,
-      stopping: true,
     );
   }
 
-  /// Names and stores [closed] and the run's progress. False when nothing
-  /// was stored.
+  /// Stores [named] and the run's progress. False when nothing was stored.
   Future<bool> _store(
-    List<TrackedAnimal> closed, {
+    List<_Stored> named, {
     required int scanned,
     required int duration,
     required int width,
     required int height,
-    bool stopping = false,
   }) async {
-    final named = await _nameTracks(closed, stopping: stopping);
-    if (named == null || _databaseGeneration() != _generation) return false;
+    if (_databaseGeneration() != _generation) return false;
     final continuing = [
       for (final n in named)
         if (_continuing.containsKey(n.identification.id)) n.identification,

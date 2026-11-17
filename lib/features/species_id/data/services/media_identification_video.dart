@@ -183,7 +183,10 @@ extension _VideoScanning on MediaIdentificationService {
           more = await scan.runChunk();
         } on VideoScanStopped {
           // Stopped between batches: that chunk is scanned again next
-          // time. Put back only for a pack change or a newer request.
+          // time, and the tracks open where it began are kept, unnamed
+          // (the stop has waited for a batch already). Put back only for a
+          // pack change or a newer request.
+          await scan.finish(naming: false);
           return !job.cancelled &&
               !_disposed &&
               _databaseGeneration() == generation &&

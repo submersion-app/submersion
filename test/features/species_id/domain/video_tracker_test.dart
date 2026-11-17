@@ -100,6 +100,24 @@ void main() {
     expect(tracker.openCount, 0);
   });
 
+  test('restore undoes the frames added since save, gaps included', () {
+    final tracker = VideoTracker();
+    tracker.add(frame(0, [_box(0.1)]));
+    tracker.add(frame(250, [_box(0.1)]));
+    tracker.add(frame(500, const []));
+    final saved = tracker.save();
+    // Two more misses close it; a new fish opens.
+    tracker.add(frame(750, [_box(0.6)]));
+    expect(tracker.add(frame(1000, [_box(0.6)])).single.endMs, 250);
+    tracker.restore(saved);
+    expect(tracker.openCount, 1);
+    // Still one miss behind: one more frame without it keeps it open.
+    expect(tracker.add(frame(750, const [])), isEmpty);
+    final rest = tracker.closeAll().single;
+    expect((rest.startMs, rest.endMs), (0, 250));
+    expect(rest.points, hasLength(2));
+  });
+
   test('a track is returned by the frame that closes it', () {
     final tracker = VideoTracker();
     tracker.add(frame(0, [_box(0.1)]));

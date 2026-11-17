@@ -28,10 +28,9 @@ Future<List<NamingResult>> nameCrops(
 /// candidates: [nameCrops] copies it into a new isolate every call, this
 /// copies it once for the whole scan.
 class CropNamingWorker {
-  CropNamingWorker._(this._isolate, this._requests, this._exit) {
-    _exit.listen((_) {
+  CropNamingWorker._(this._isolate, this._requests, this._exit, this._exited) {
+    _exited.then((_) {
       _stopped = true;
-      if (!_exited.isCompleted) _exited.complete();
       for (final waiting in _waiting) {
         if (!waiting.isCompleted) {
           waiting.completeError(StateError('The naming worker stopped'));
@@ -45,13 +44,21 @@ class CropNamingWorker {
 
   /// Tells of the worker exiting or failing.
   final ReceivePort _exit;
+
+  /// Completes when the worker has exited or failed.
+  final Future<void> _exited;
   final _waiting = <Completer<List<NamingResult>>>{};
-  final _exited = Completer<void>();
   var _stopped = false;
 
+  /// Throws [StateError] when the worker stops before it is ready, rather
+  /// than waiting for it forever.
   static Future<CropNamingWorker> start(LoadedPack pack, int? cell) async {
     final ready = ReceivePort();
     final exit = ReceivePort();
+    final exited = Completer<void>();
+    exit.listen((_) {
+      if (!exited.isCompleted) exited.complete();
+    });
     try {
       final isolate = await Isolate.spawn(
         _serve,
@@ -59,8 +66,18 @@ class CropNamingWorker {
         onExit: exit.sendPort,
         onError: exit.sendPort,
       );
-      final requests = await ready.first as SendPort;
-      return CropNamingWorker._(isolate, requests, exit);
+      final requests = await Future.any<Object?>([
+        ready.first,
+        exited.future.then<Object?>(
+          (_) => throw StateError('The naming worker stopped before ready'),
+        ),
+      ]);
+      return CropNamingWorker._(
+        isolate,
+        requests! as SendPort,
+        exit,
+        exited.future,
+      );
     } on Object {
       exit.close();
       rethrow;
@@ -77,6 +94,8 @@ class CropNamingWorker {
     final reply = ReceivePort();
     final answer = Completer<List<NamingResult>>();
     _waiting.add(answer);
+    // The port closes unanswered only after [answer] has failed (the
+    // worker stopped): that end of it reports nothing more.
     reply.first.then((message) {
       if (answer.isCompleted) return;
       if (message is List<NamingResult>) {
@@ -84,7 +103,7 @@ class CropNamingWorker {
       } else {
         answer.completeError(StateError('Naming failed: $message'));
       }
-    });
+    }).ignore();
     try {
       _requests.send((crops, reply.sendPort));
       return await answer.future;
@@ -96,7 +115,7 @@ class CropNamingWorker {
 
   Future<void> close() async {
     if (!_stopped) _isolate.kill(priority: Isolate.immediate);
-    await _exited.future;
+    await _exited;
     _exit.close();
   }
 }

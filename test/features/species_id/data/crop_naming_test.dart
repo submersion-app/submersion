@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/services/crop_naming.dart';
 
 import 'pack_fixture.dart';
@@ -28,5 +29,29 @@ void main() {
     final worker = await CropNamingWorker.start(fixturePack(), null);
     await worker.close();
     await expectLater(worker.name(crops), throwsStateError);
+  });
+
+  test('a worker that stops while naming fails the call, and nothing is '
+      'left unhandled', () async {
+    final worker = await CropNamingWorker.start(fixturePack(), null);
+    final closing = worker.close();
+    await expectLater(worker.name(crops), throwsStateError);
+    await closing;
+  });
+
+  test('a worker that dies before it is ready fails to start rather than '
+      'waiting forever', () async {
+    final good = fixturePack();
+    // A table that does not fit its candidates: the namer refuses it.
+    final broken = LoadedPack(
+      pack: good.pack,
+      candidates: good.candidates,
+      textEmbeddings: Float32List(1),
+      regions: good.regions,
+    );
+    await expectLater(
+      CropNamingWorker.start(broken, null).timeout(const Duration(seconds: 10)),
+      throwsStateError,
+    );
   });
 }

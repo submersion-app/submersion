@@ -482,6 +482,42 @@ void main() {
       expect(found.where((i) => i.isPending), isEmpty);
     });
 
+    test('leaving a video while pass 2 runs keeps the fish open since the '
+        'chunk before', () async {
+      engine.videoFrames = {
+        for (var ms = 8000; ms < 14000; ms += 250)
+          ms: [
+            if (ms < 12000)
+              const DetectedBox(
+                box: IdentificationBox(
+                  x: 0.05,
+                  y: 0.8,
+                  width: 0.1,
+                  height: 0.1,
+                ),
+                score: 0.9,
+              ),
+            if (ms >= 10000)
+              for (var k = 0; k < 5; k++)
+                DetectedBox(
+                  box: IdentificationBox(
+                    x: k / 5,
+                    y: 0.4,
+                    width: 0.1,
+                    height: 0.1,
+                  ),
+                  score: 0.9,
+                ),
+          ],
+      };
+      engine.onEmbedMoments = () => service.cancelPending('v1');
+      await service.request(video());
+      expect(engine.embedCalls, hasLength(1));
+      final kept = (await identifications.forMedia('v1')).single;
+      expect(kept.isPending, isTrue);
+      expect((kept.startMs, kept.endMs), (8000, 9750));
+    });
+
     test('a new pack renames a scanned video without the engine', () async {
       oneFish();
       await service.request(video());
