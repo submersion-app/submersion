@@ -584,7 +584,7 @@ Tasks 1 to 6 were built as written in one session (Eric chose "Native"), then re
 
 ### Fixed from the review
 
-- **A sitting whose only write is to another diver's shared site files it under that diver.** `_forOwner` takes a pinned scope's owner from its record before its first event; it compared against a null owner and kept the write.
+- **Superseded by the second review below: a sitting's write to another diver's shared site now stays in the dive's entry.** This first fix made a sitting whose only write was to another diver's shared site file it under that diver: `_forOwner` took a pinned scope's owner from its record before its first event, where it had compared against a null owner and kept the write.
 - **A finding deleted by a review inside a sitting is not kept.** A table in `changeLogOptInUpdateColumns` opts in its updates only; its deletes follow the ordinary machine-row rule.
 
 ### Tests the plan listed that were written differently

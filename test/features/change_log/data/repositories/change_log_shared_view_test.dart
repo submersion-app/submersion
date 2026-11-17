@@ -191,4 +191,82 @@ void main() {
       expect(await seenBy('other', id), isNull);
     },
   );
+
+  test(
+    "a diver's kind filter goes by the record the entry is shown under",
+    () async {
+      final id = await copyAltitude('reef');
+
+      Future<List<String>> ids(String diverId, String table) async => [
+        for (final operation in await repository.getFeed(
+          diverId: diverId,
+          filter: ChangeLogFilter(rootTables: {table}),
+        ))
+          operation.id,
+      ];
+
+      expect(await ids('them', 'dive_sites'), contains(id));
+      expect(await ids('them', 'dives'), isNot(contains(id)));
+      expect(await ids('me', 'dives'), contains(id));
+      expect(await ids('me', 'dive_sites'), isNot(contains(id)));
+    },
+  );
+
+  // Its own record is one they see, so it reads as its owner reads it.
+  test(
+    'an entry about a shared record keeps the name it was logged with',
+    () async {
+      await db.customStatement(
+        "UPDATE dive_sites SET notes = 'Calm' WHERE id = 'reef'",
+      );
+      await repository.settleAll();
+      final id = (await repository.getFeed(
+        diverId: 'me',
+        filter: _noFilter,
+      )).single.id;
+      await db.customStatement(
+        'UPDATE change_log_context SET suppressed_until = 9999999999999 '
+        'WHERE id = 1',
+      );
+      await db.customStatement(
+        "UPDATE dive_sites SET name = 'Reef Wall' WHERE id = 'reef'",
+      );
+      await db.customStatement(
+        'UPDATE change_log_context SET suppressed_until = 0 WHERE id = 1',
+      );
+
+      final theirs = (await seenBy('them', id))!;
+      expect(theirs.rootTable, 'dive_sites');
+      expect(theirs.rootId, 'reef');
+      expect(theirs.rootLabel, 'reef');
+      expect(theirs.shownRoots, {(table: 'dive_sites', id: 'reef')});
+    },
+  );
+
+  // Who sees a record in the History is who sees it anywhere else in the
+  // app (VisibilityFilter): a record shared with everyone counts, and one
+  // the diver hid from themselves does not.
+  group('the shared view follows the app\'s visibility rules', () {
+    test('a site shared with everyone shows the sitting', () async {
+      await insertSite('public', 'me');
+      await db.customStatement(
+        "UPDATE dive_sites SET is_shared = 1 WHERE id = 'public'",
+      );
+      final id = await copyAltitude('public');
+
+      final theirs = (await seenBy('other', id))!;
+      expect(theirs.rootTable, 'dive_sites');
+      expect(theirs.rootId, 'public');
+    });
+
+    test('a shared site the diver hid does not show it', () async {
+      await db.customStatement(
+        'INSERT INTO site_hides (id, site_id, diver_id, created_at) '
+        "VALUES ('h1', 'reef', 'them', 0)",
+      );
+      final id = await copyAltitude('reef');
+
+      expect(await seenBy('them', id), isNull);
+    });
+  });
 }

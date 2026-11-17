@@ -63,15 +63,30 @@ void main() {
     expect(decoded.cardIds, ['notes', 'tags']);
   });
 
+  // A sitting is still about its record when it names no card, so its
+  // History entry stays pinned to it (issue #4527).
+  test('a label with no card ids decodes, record included', () {
+    final label = RecordEditLabel.encode(
+      table: 'dives',
+      id: 'd1',
+      cardIds: const [],
+    );
+
+    final decoded = RecordEditLabel.decode(label)!;
+
+    expect(decoded.table, 'dives');
+    expect(decoded.id, 'd1');
+    expect(decoded.cardIds, isEmpty);
+    expect(RecordEditLabel.decode('record_edit:dives:')!.cardIds, isEmpty);
+  });
+
   test('decode returns null for any label this class did not write', () {
     expect(RecordEditLabel.decode('bulk_edit'), isNull);
     expect(RecordEditLabel.decode('Perdix 2'), isNull);
     expect(RecordEditLabel.decode('record_edit'), isNull);
     expect(RecordEditLabel.decode('record_edit:dives'), isNull);
     expect(RecordEditLabel.decode('record_edit::notes'), isNull);
-    expect(RecordEditLabel.decode('record_edit:dives:'), isNull);
     expect(RecordEditLabel.decode('record_edit:dives::notes'), isNull);
-    expect(RecordEditLabel.decode('record_edit:dives:d1:'), isNull);
     expect(RecordEditLabel.decode('record_edit:dives:d1:notes:x'), isNull);
     expect(RecordEditLabel.decode(''), isNull);
   });

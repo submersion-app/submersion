@@ -111,6 +111,49 @@ void main() {
       );
     });
 
+    // Another diver sees only the records of the sitting shared with them
+    // (issue #4527); the cards it changed are about the dive they cannot
+    // open.
+    test(
+      'a diver who sees only part of it is not told which cards changed',
+      () {
+        final operation =
+            ChangeLogOperation(
+              id: 'op',
+              source: ChangeLogSource.manual,
+              label: label,
+              diverId: 'owner',
+              rootTable: 'dives',
+              rootId: 'd1',
+              startedAt: DateTime(2026, 11, 2, 9, 30),
+              endedAt: DateTime(2026, 11, 2, 9, 30),
+            ).restrictedTo(
+              {(table: 'dive_sites', id: 's1')},
+              root: (table: 'dive_sites', id: 's1'),
+              label: 'Reef',
+            );
+
+        final subtitle = changeLogSubtitle(
+          l,
+          const UnitFormatter(AppSettings()),
+          operation,
+          const {},
+        );
+
+        expect(subtitle, endsWith(l.changeLog_thisDevice));
+      },
+    );
+
+    test('a sitting that named no card reads as Edited', () {
+      expect(
+        changeLogStoredLabel(
+          l,
+          RecordEditLabel.encode(table: 'dives', id: 'd1', cardIds: const []),
+        ),
+        l.changeLog_action_edited,
+      );
+    });
+
     test('an entry with no sitting label ends at where it came from', () {
       final operation = ChangeLogOperation(
         id: 'op',

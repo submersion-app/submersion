@@ -105,6 +105,11 @@ void main() {
     expect(formatter().label('dives', 'max_depth'), 'Max Depth');
   });
 
+  // A newer peer's column, neither catalogued nor a reference.
+  test('a column the catalogue does not know is spelled from its name', () {
+    expect(formatter().label('dives', 'brand_new_column'), 'Brand New Column');
+  });
+
   test('a dismissal reads as the moment it was made', () {
     const ms = 1794825060000;
     const units = UnitFormatter(AppSettings());

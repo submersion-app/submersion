@@ -222,4 +222,17 @@ void main() {
       );
     },
   );
+
+  // Readings move between cylinders in pairs, so one series going back on
+  // its own would leave both on one cylinder.
+  test('a moved series cannot be reverted on its own', () async {
+    await inSitting(moveSeries);
+    await repository.settleAll();
+    final event = (await logEvents(db)).single;
+
+    expect(
+      () => service.planField(event['id']! as int, 'tank_id'),
+      throwsArgumentError,
+    );
+  });
 }

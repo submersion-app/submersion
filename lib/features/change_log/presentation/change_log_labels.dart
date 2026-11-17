@@ -73,11 +73,13 @@ String changeLogStoredLabel(AppLocalizations l, String label) =>
 final _diveSectionsByName = DiveDetailSectionId.values.asNameMap();
 
 /// "Edited: Notes, Tags" for the label of an editing sitting, naming each
-/// card by its title; null for any other label. A card id with no title in
-/// this version of the app is shown as written.
+/// card by its title, or "Edited" when it named none; null for any other
+/// label. A card id with no title in this version of the app is shown as
+/// written.
 String? _recordEditLabel(AppLocalizations l, String label) {
   final edit = RecordEditLabel.decode(label);
   if (edit == null) return null;
+  if (edit.cardIds.isEmpty) return l.changeLog_action_edited;
   final diveSections = edit.table == 'dives'
       ? _diveSectionsByName
       : const <String, DiveDetailSectionId>{};
@@ -176,7 +178,11 @@ String changeLogSubtitle(
   };
   final label = operation.label;
   // A sitting on one record is titled by the record, so its label, which
-  // names the cards it changed, is read here.
-  final edited = label == null ? null : _recordEditLabel(l, label);
+  // names the cards it changed, is read here. A diver who sees only part of
+  // it ([ChangeLogOperation.shownRoots]) is not told: the cards are about a
+  // record they cannot open.
+  final edited = label == null || operation.shownRoots != null
+      ? null
+      : _recordEditLabel(l, label);
   return [units.formatTime(operation.endedAt), origin, ?edited].join(' · ');
 }

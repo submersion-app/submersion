@@ -1,43 +1,79 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_operation.dart';
 
+/// A fragment of SQL and the values bound to its marks, in order.
+typedef ChangeLogSql = ({String sql, List<Variable<Object>> variables});
+
 /// What a diver sees of an entry another diver owns (issue #4527).
 ///
 /// A diver's editing sitting is one entry about the record it was opened
-/// on, whoever owns the other records it wrote. Another diver who owns one
-/// of those records, or has it shared with them, sees the entry too, but
-/// only its rows about such records, and titled with one of them: the
-/// sitting's own record may be private to its owner.
+/// on, whoever owns the other records it wrote. Another diver who sees one
+/// of those records (their own, or one shared with them, by the rules of
+/// `VisibilityFilter`) sees the entry too, but only its rows about such
+/// records, and titled with one of them: the sitting's own record may be
+/// private to its owner.
 abstract final class ChangeLogSharedView {
-  /// Each table a diver can share, with its share table and that table's
-  /// column naming the record.
-  static const _shareable = {
-    'dive_sites': ('site_shares', 'site_id'),
-    'equipment': ('equipment_shares', 'equipment_id'),
-    'trips': ('trip_shares', 'trip_id'),
-  };
+  static String _marks(int count) => List.filled(count, '?').join(', ');
 
-  /// Whether the root of an event [events] is a record [diverId] owns or
-  /// that is shared with them.
-  static ({String sql, List<Variable<Object>> variables}) seenRoot(
-    String events,
-    String diverId,
-  ) {
-    final clauses = [
-      for (final MapEntry(key: table, value: (shares, key))
-          in _shareable.entries)
-        "($events.root_table = '$table' AND $events.root_id IN "
-            '(SELECT $key FROM $shares WHERE diver_id = ? '
-            'UNION SELECT id FROM $table WHERE diver_id = ?))',
-    ];
+  /// Whether the record named by the SQL expressions [table] and [id] is one
+  /// [diverId] sees anywhere else in the app ([VisibilityFilter]): their
+  /// own, shared with them or with everyone, or in a site library they
+  /// belong to, and not one they hid.
+  static ChangeLogSql _visible(String table, String id, String diverId) {
+    final site = VisibilityFilter.sqlFragment(
+      tableAlias: 'vs',
+      diverId: diverId,
+      conjunction: '',
+      kind: SharedItemKind.site,
+    );
+    final trip = VisibilityFilter.sqlFragment(
+      tableAlias: 'vt',
+      diverId: diverId,
+      conjunction: '',
+      kind: SharedItemKind.trip,
+    );
+    final gear = VisibilityFilter.equipmentSqlFragment(
+      tableAlias: 've',
+      diverId: diverId,
+      conjunction: '',
+    );
     return (
-      sql: '(${clauses.join(' OR ')})',
-      variables: [
-        for (var i = 0; i < clauses.length * 2; i++) Variable<Object>(diverId),
-      ],
+      sql:
+          "(($table = 'dive_sites' AND $id IN (SELECT vs.id FROM dive_sites vs "
+          'WHERE ${site.whereClause})) '
+          "OR ($table = 'trips' AND $id IN (SELECT vt.id FROM trips vt "
+          'WHERE ${trip.whereClause})) '
+          "OR ($table = 'equipment' AND $id IN (SELECT ve.id FROM equipment ve "
+          'WHERE ${gear.whereClause})))',
+      variables: [...site.variables, ...trip.variables, ...gear.variables],
+    );
+  }
+
+  /// Whether the record [rows] (an event, or an entry) is about is one
+  /// [diverId] sees: a site, trip or item of gear that is theirs or that
+  /// they may see.
+  static ChangeLogSql seenRoot(String rows, String diverId) =>
+      _visible('$rows.root_table', '$rows.root_id', diverId);
+
+  /// The table of the record [diverId] sees an entry [operations] under, as
+  /// [asSeenBy] titles it, or NULL when it is not restricted for them: its
+  /// own record if they see that, else the first they see.
+  static ChangeLogSql shownTable(String operations, String diverId) {
+    final seen = seenRoot('se', diverId);
+    return (
+      sql:
+          '(CASE WHEN $operations.diver_id IS NULL '
+          'OR $operations.diver_id = ? THEN NULL ELSE '
+          '(SELECT se.root_table FROM change_log_events se '
+          'WHERE se.operation_id = $operations.id AND ${seen.sql} '
+          'ORDER BY (se.root_table = $operations.root_table '
+          'AND se.root_id = $operations.root_id) DESC, se.id LIMIT 1) END)',
+      variables: [Variable<Object>(diverId), ...seen.variables],
     );
   }
 
@@ -49,58 +85,105 @@ abstract final class ChangeLogSharedView {
     AppDatabase db,
     List<ChangeLogOperation> operations,
     String diverId,
-  ) async => [
-    for (final operation in operations)
-      operation.diverId == null || operation.diverId == diverId
-          ? operation
-          : await _restricted(db, operation, diverId),
-  ];
+  ) async {
+    final others = [
+      for (final operation in operations)
+        if (operation.diverId != null && operation.diverId != diverId)
+          operation.id,
+    ];
+    if (others.isEmpty) return operations;
+    final shown = await _shownRoots(db, others, diverId);
+    if (shown.isEmpty) return operations;
 
-  static Future<ChangeLogOperation> _restricted(
+    final owns = <String, ChangeLogRoot?>{
+      for (final operation in operations)
+        if (shown[operation.id] case final roots?)
+          operation.id: _ownRootIn(operation, roots),
+    };
+    final names = await _names(db, {
+      for (final MapEntry(key: id, value: own) in owns.entries)
+        if (own == null) shown[id]!.first,
+    });
+    return [
+      for (final operation in operations)
+        if (shown[operation.id] case final roots?)
+          operation.restrictedTo(
+            roots,
+            root: owns[operation.id] ?? roots.first,
+            label: owns[operation.id] != null
+                ? operation.rootLabel
+                : names[roots.first],
+          )
+        else
+          operation,
+    ];
+  }
+
+  /// The records each of [operationIds] changed that [diverId] sees, in the
+  /// order the entry first changed them.
+  static Future<Map<String, Set<ChangeLogRoot>>> _shownRoots(
     AppDatabase db,
-    ChangeLogOperation operation,
+    List<String> operationIds,
     String diverId,
   ) async {
     final seen = seenRoot('e', diverId);
     final rows = await db
         .customSelect(
-          'SELECT e.root_table, e.root_id, MIN(e.id) AS first '
-          'FROM change_log_events e WHERE e.operation_id = ? '
-          'AND ${seen.sql} GROUP BY e.root_table, e.root_id ORDER BY first',
-          variables: [Variable<String>(operation.id), ...seen.variables],
+          'SELECT e.operation_id, e.root_table, e.root_id, MIN(e.id) AS first '
+          'FROM change_log_events e '
+          'WHERE e.operation_id IN (${_marks(operationIds.length)}) '
+          'AND ${seen.sql} '
+          'GROUP BY e.operation_id, e.root_table, e.root_id ORDER BY first',
+          variables: [
+            ...operationIds.map(Variable<Object>.new),
+            ...seen.variables,
+          ],
         )
         .get();
-    if (rows.isEmpty) return operation;
-    final shown = <ChangeLogRoot>{
-      for (final row in rows)
-        (
-          table: row.read<String>('root_table'),
-          id: row.read<String>('root_id'),
-        ),
-    };
-    final ownTable = operation.rootTable;
-    final ownId = operation.rootId;
-    final own = ownTable == null || ownId == null
-        ? null
-        : (table: ownTable, id: ownId);
-    if (own != null && shown.contains(own)) {
-      return operation.restrictedTo(
-        shown,
-        root: own,
-        label: operation.rootLabel,
-      );
+    final shown = <String, Set<ChangeLogRoot>>{};
+    for (final row in rows) {
+      (shown[row.read<String>('operation_id')] ??= {}).add((
+        table: row.read<String>('root_table'),
+        id: row.read<String>('root_id'),
+      ));
     }
-    final root = shown.first;
-    final name = await db
-        .customSelect(
-          'SELECT name FROM ${root.table} WHERE id = ?',
-          variables: [Variable<String>(root.id)],
-        )
-        .getSingleOrNull();
-    return operation.restrictedTo(
-      shown,
-      root: root,
-      label: name?.readNullable<String>('name'),
-    );
+    return shown;
+  }
+
+  /// The entry's own record when it is one of [shown].
+  static ChangeLogRoot? _ownRootIn(
+    ChangeLogOperation operation,
+    Set<ChangeLogRoot> shown,
+  ) {
+    final table = operation.rootTable;
+    final id = operation.rootId;
+    if (table == null || id == null) return null;
+    final own = (table: table, id: id);
+    return shown.contains(own) ? own : null;
+  }
+
+  /// The name of each of [roots], one query per table.
+  static Future<Map<ChangeLogRoot, String?>> _names(
+    AppDatabase db,
+    Set<ChangeLogRoot> roots,
+  ) async {
+    final names = <ChangeLogRoot, String?>{};
+    for (final table in {for (final root in roots) root.table}) {
+      final ids = [
+        for (final root in roots)
+          if (root.table == table) root.id,
+      ];
+      final rows = await db
+          .customSelect(
+            'SELECT id, name FROM $table WHERE id IN (${_marks(ids.length)})',
+            variables: [...ids.map(Variable<Object>.new)],
+          )
+          .get();
+      for (final row in rows) {
+        names[(table: table, id: row.read<String>('id'))] = row
+            .readNullable<String>('name');
+      }
+    }
+    return names;
   }
 }

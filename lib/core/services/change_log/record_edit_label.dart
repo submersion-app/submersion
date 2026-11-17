@@ -29,7 +29,8 @@ abstract final class RecordEditLabel {
 
   /// The table, record and card ids of a label [encode] wrote, or null for
   /// any other label. A label written before it named its record
-  /// (`record_edit:<table>:<cards>`) reads with a null id.
+  /// (`record_edit:<table>:<cards>`) reads with a null id, and one that named
+  /// no card with an empty list.
   static ({String table, String? id, List<String> cardIds})? decode(
     String label,
   ) {
@@ -40,7 +41,7 @@ abstract final class RecordEditLabel {
     final table = parts[1];
     final id = parts.length == 4 ? parts[2] : null;
     final cardIds = parts.last.split(',').where((c) => c.isNotEmpty).toList();
-    if (table.isEmpty || id == '' || cardIds.isEmpty) return null;
+    if (table.isEmpty || id == '') return null;
     return (table: table, id: id, cardIds: cardIds);
   }
 }
