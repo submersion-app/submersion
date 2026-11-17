@@ -55814,6 +55814,46 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_species_chipsLabel => 'Soorttags';
 
   @override
+  String get media_species_suggested => 'Suggesties';
+
+  @override
+  String media_species_suggestedChip(String name, int percent) {
+    return '$name $percent%';
+  }
+
+  @override
+  String media_species_suggestedCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String get media_species_add => 'Toevoegen';
+
+  @override
+  String get media_species_addAll => 'Alles toevoegen';
+
+  @override
+  String get media_species_dismiss => 'Suggestie negeren';
+
+  @override
+  String get media_species_identifying => 'Zoeken naar vissen...';
+
+  @override
+  String get media_species_possibleMatches => 'Mogelijke overeenkomsten';
+
+  @override
+  String get media_species_cropUnavailable =>
+      'Afbeelding staat niet op dit apparaat';
+
+  @override
+  String get media_species_taggedOnPhoto => 'Getagd op deze foto';
+
+  @override
+  String media_species_removeTag(String name) {
+    return '$name verwijderen';
+  }
+
+  @override
   String get media_people_me => 'Ik';
 
   @override

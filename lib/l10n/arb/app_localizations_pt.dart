@@ -56157,6 +56157,46 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_species_chipsLabel => 'Marcações de espécies';
 
   @override
+  String get media_species_suggested => 'Sugestões';
+
+  @override
+  String media_species_suggestedChip(String name, int percent) {
+    return '$name $percent%';
+  }
+
+  @override
+  String media_species_suggestedCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String get media_species_add => 'Adicionar';
+
+  @override
+  String get media_species_addAll => 'Adicionar todas';
+
+  @override
+  String get media_species_dismiss => 'Dispensar sugestão';
+
+  @override
+  String get media_species_identifying => 'Procurando peixes...';
+
+  @override
+  String get media_species_possibleMatches => 'Possíveis correspondências';
+
+  @override
+  String get media_species_cropUnavailable =>
+      'Imagem não está neste dispositivo';
+
+  @override
+  String get media_species_taggedOnPhoto => 'Marcadas nesta foto';
+
+  @override
+  String media_species_removeTag(String name) {
+    return 'Remover $name';
+  }
+
+  @override
   String get media_people_me => 'Eu';
 
   @override

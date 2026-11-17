@@ -55291,6 +55291,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_species_chipsLabel => 'Species tags';
 
   @override
+  String get media_species_suggested => 'Suggested';
+
+  @override
+  String media_species_suggestedChip(String name, int percent) {
+    return '$name $percent%';
+  }
+
+  @override
+  String media_species_suggestedCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String get media_species_add => 'Add';
+
+  @override
+  String get media_species_addAll => 'Add all';
+
+  @override
+  String get media_species_dismiss => 'Dismiss suggestion';
+
+  @override
+  String get media_species_identifying => 'Looking for fish...';
+
+  @override
+  String get media_species_possibleMatches => 'Possible matches';
+
+  @override
+  String get media_species_cropUnavailable => 'Image not on this device';
+
+  @override
+  String get media_species_taggedOnPhoto => 'Tagged on this photo';
+
+  @override
+  String media_species_removeTag(String name) {
+    return 'Remove $name';
+  }
+
+  @override
   String get media_people_me => 'Me';
 
   @override

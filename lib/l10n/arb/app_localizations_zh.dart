@@ -52663,6 +52663,45 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_species_chipsLabel => '物种标签';
 
   @override
+  String get media_species_suggested => '建议';
+
+  @override
+  String media_species_suggestedChip(String name, int percent) {
+    return '$name $percent%';
+  }
+
+  @override
+  String media_species_suggestedCount(String name, int count) {
+    return '$name（$count）';
+  }
+
+  @override
+  String get media_species_add => '添加';
+
+  @override
+  String get media_species_addAll => '全部添加';
+
+  @override
+  String get media_species_dismiss => '忽略建议';
+
+  @override
+  String get media_species_identifying => '正在识别鱼类...';
+
+  @override
+  String get media_species_possibleMatches => '可能的匹配';
+
+  @override
+  String get media_species_cropUnavailable => '图像不在此设备上';
+
+  @override
+  String get media_species_taggedOnPhoto => '此照片中已标记';
+
+  @override
+  String media_species_removeTag(String name) {
+    return '移除$name';
+  }
+
+  @override
   String get media_people_me => '我';
 
   @override

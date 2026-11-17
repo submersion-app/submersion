@@ -56978,6 +56978,46 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_species_chipsLabel => 'وسوم الأنواع';
 
   @override
+  String get media_species_suggested => 'مقترحة';
+
+  @override
+  String media_species_suggestedChip(String name, int percent) {
+    return '$name $percent٪';
+  }
+
+  @override
+  String media_species_suggestedCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String get media_species_add => 'إضافة';
+
+  @override
+  String get media_species_addAll => 'إضافة الكل';
+
+  @override
+  String get media_species_dismiss => 'تجاهل الاقتراح';
+
+  @override
+  String get media_species_identifying => 'جارٍ البحث عن الأسماك...';
+
+  @override
+  String get media_species_possibleMatches => 'تطابقات محتملة';
+
+  @override
+  String get media_species_cropUnavailable =>
+      'الصورة غير موجودة على هذا الجهاز';
+
+  @override
+  String get media_species_taggedOnPhoto => 'موسومة في هذه الصورة';
+
+  @override
+  String media_species_removeTag(String name) {
+    return 'إزالة $name';
+  }
+
+  @override
   String get media_people_me => 'أنا';
 
   @override

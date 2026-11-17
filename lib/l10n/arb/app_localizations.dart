@@ -88050,6 +88050,72 @@ abstract class AppLocalizations {
   /// **'Species tags'**
   String get media_species_chipsLabel;
 
+  /// No description provided for @media_species_suggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested'**
+  String get media_species_suggested;
+
+  /// No description provided for @media_species_suggestedChip.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} {percent}%'**
+  String media_species_suggestedChip(String name, int percent);
+
+  /// No description provided for @media_species_suggestedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({count})'**
+  String media_species_suggestedCount(String name, int count);
+
+  /// No description provided for @media_species_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get media_species_add;
+
+  /// No description provided for @media_species_addAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Add all'**
+  String get media_species_addAll;
+
+  /// No description provided for @media_species_dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss suggestion'**
+  String get media_species_dismiss;
+
+  /// No description provided for @media_species_identifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for fish...'**
+  String get media_species_identifying;
+
+  /// No description provided for @media_species_possibleMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Possible matches'**
+  String get media_species_possibleMatches;
+
+  /// No description provided for @media_species_cropUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Image not on this device'**
+  String get media_species_cropUnavailable;
+
+  /// No description provided for @media_species_taggedOnPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Tagged on this photo'**
+  String get media_species_taggedOnPhoto;
+
+  /// No description provided for @media_species_removeTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}'**
+  String media_species_removeTag(String name);
+
   /// No description provided for @media_people_me.
   ///
   /// In en, this message translates to:

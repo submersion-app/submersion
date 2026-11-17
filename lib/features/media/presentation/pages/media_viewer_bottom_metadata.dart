@@ -19,6 +19,10 @@ class _BottomMetadataOverlay extends StatelessWidget {
   /// The photo's sitting, whose held tags the chips show (issue #4527).
   final EditSession<PhotoRecord>? sitting;
 
+  /// Opens the species sheet from a suggested species (issue #4668); null
+  /// while the photo is locked.
+  final VoidCallback? onSuggestionTap;
+
   const _BottomMetadataOverlay({
     required this.item,
     required this.settings,
@@ -27,6 +31,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
     this.siteName,
     this.onMomentTap,
     this.sitting,
+    this.onSuggestionTap,
   });
 
   @override
@@ -92,7 +97,11 @@ class _BottomMetadataOverlay extends StatelessWidget {
                   onMomentTap: onMomentTap,
                   sitting: sitting,
                 ),
-                MediaSpeciesChipsRow(mediaId: item.id, sitting: sitting),
+                MediaSpeciesChipsRow(
+                  mediaId: item.id,
+                  sitting: sitting,
+                  onSuggestionTap: onSuggestionTap,
+                ),
                 // Metadata row
                 Row(
                   children: [

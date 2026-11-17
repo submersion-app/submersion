@@ -54990,6 +54990,45 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_species_chipsLabel => 'תגיות מינים';
 
   @override
+  String get media_species_suggested => 'הצעות';
+
+  @override
+  String media_species_suggestedChip(String name, int percent) {
+    return '$name $percent%';
+  }
+
+  @override
+  String media_species_suggestedCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String get media_species_add => 'הוספה';
+
+  @override
+  String get media_species_addAll => 'הוספת הכול';
+
+  @override
+  String get media_species_dismiss => 'דחיית ההצעה';
+
+  @override
+  String get media_species_identifying => 'מחפש דגים...';
+
+  @override
+  String get media_species_possibleMatches => 'התאמות אפשריות';
+
+  @override
+  String get media_species_cropUnavailable => 'התמונה לא נמצאת במכשיר זה';
+
+  @override
+  String get media_species_taggedOnPhoto => 'מתויגים בתמונה זו';
+
+  @override
+  String media_species_removeTag(String name) {
+    return 'הסרת $name';
+  }
+
+  @override
   String get media_people_me => 'אני';
 
   @override

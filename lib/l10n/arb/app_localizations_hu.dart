@@ -55865,6 +55865,45 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_species_chipsLabel => 'Fajcímkék';
 
   @override
+  String get media_species_suggested => 'Javaslatok';
+
+  @override
+  String media_species_suggestedChip(String name, int percent) {
+    return '$name $percent%';
+  }
+
+  @override
+  String media_species_suggestedCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String get media_species_add => 'Hozzáadás';
+
+  @override
+  String get media_species_addAll => 'Összes hozzáadása';
+
+  @override
+  String get media_species_dismiss => 'Javaslat elvetése';
+
+  @override
+  String get media_species_identifying => 'Halak keresése...';
+
+  @override
+  String get media_species_possibleMatches => 'Lehetséges egyezések';
+
+  @override
+  String get media_species_cropUnavailable => 'A kép nincs ezen az eszközön';
+
+  @override
+  String get media_species_taggedOnPhoto => 'Ezen a fotón címkézve';
+
+  @override
+  String media_species_removeTag(String name) {
+    return '$name eltávolítása';
+  }
+
+  @override
   String get media_people_me => 'Én';
 
   @override

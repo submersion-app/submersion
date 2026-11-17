@@ -56290,6 +56290,45 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_species_chipsLabel => 'Étiquettes d\'espèces';
 
   @override
+  String get media_species_suggested => 'Suggestions';
+
+  @override
+  String media_species_suggestedChip(String name, int percent) {
+    return '$name $percent %';
+  }
+
+  @override
+  String media_species_suggestedCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String get media_species_add => 'Ajouter';
+
+  @override
+  String get media_species_addAll => 'Tout ajouter';
+
+  @override
+  String get media_species_dismiss => 'Ignorer la suggestion';
+
+  @override
+  String get media_species_identifying => 'Recherche de poissons...';
+
+  @override
+  String get media_species_possibleMatches => 'Correspondances possibles';
+
+  @override
+  String get media_species_cropUnavailable => 'Image absente de cet appareil';
+
+  @override
+  String get media_species_taggedOnPhoto => 'Identifiées sur cette photo';
+
+  @override
+  String media_species_removeTag(String name) {
+    return 'Retirer $name';
+  }
+
+  @override
   String get media_people_me => 'Moi';
 
   @override

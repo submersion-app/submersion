@@ -56163,6 +56163,46 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_species_chipsLabel => 'Tag delle specie';
 
   @override
+  String get media_species_suggested => 'Suggerimenti';
+
+  @override
+  String media_species_suggestedChip(String name, int percent) {
+    return '$name $percent%';
+  }
+
+  @override
+  String media_species_suggestedCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String get media_species_add => 'Aggiungi';
+
+  @override
+  String get media_species_addAll => 'Aggiungi tutte';
+
+  @override
+  String get media_species_dismiss => 'Ignora suggerimento';
+
+  @override
+  String get media_species_identifying => 'Ricerca di pesci...';
+
+  @override
+  String get media_species_possibleMatches => 'Possibili corrispondenze';
+
+  @override
+  String get media_species_cropUnavailable =>
+      'Immagine non presente su questo dispositivo';
+
+  @override
+  String get media_species_taggedOnPhoto => 'Taggate in questa foto';
+
+  @override
+  String media_species_removeTag(String name) {
+    return 'Rimuovi $name';
+  }
+
+  @override
   String get media_people_me => 'Io';
 
   @override

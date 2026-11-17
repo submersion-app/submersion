@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/platform/app_directories.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/species_id/data/repositories/media_identific
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
+import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
@@ -151,4 +153,18 @@ final mediaIdentificationBusyProvider = StreamProvider.autoDispose
       await for (final _ in service.watchActivity()) {
         yield service.isBusy(mediaId);
       }
+    });
+
+final suggestionAcceptorProvider = Provider<SuggestionAcceptor>(
+  (ref) => SuggestionAcceptor(species: ref.watch(speciesRepositoryProvider)),
+);
+
+/// The crop file of an identification, or null when it is not on this
+/// device.
+final identificationCropFileProvider = FutureProvider.autoDispose
+    .family<File?, (String mediaId, String identificationId)>((ref, key) async {
+      final file = await ref
+          .watch(identificationCropStoreProvider)
+          .fileFor(key.$1, key.$2);
+      return await file.exists() ? file : null;
     });

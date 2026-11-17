@@ -20,65 +20,11 @@ import 'package:submersion/features/species_id/domain/entities/pack_candidate.da
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/region_grid.dart';
-import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 import 'package:submersion/core/constants/app_enums.dart';
 
 import '../../../helpers/temp_dir.dart';
 import '../domain/manifest_fixture.dart';
-
-/// Detections the fake engine returns, one per entry: an embedding along an
-/// axis names the crop as that candidate.
-class FakeEngine implements VisionEngine {
-  VisionAvailability available = VisionAvailability.available;
-  List<Float32List> embeddings = [
-    Float32List.fromList([1, 0, 0]),
-  ];
-  Object? failure;
-  Completer<void>? gate;
-  final analysed = <String>[];
-  final loads = <VisionModels>[];
-  var unloads = 0;
-
-  @override
-  String? get engineName => VisionEngine.coreMlEngine;
-
-  @override
-  Future<VisionAvailability> availability() async => available;
-
-  @override
-  Future<void> load(VisionModels models) async => loads.add(models);
-
-  @override
-  Future<VisionAnalysis> analyze({String? path, Uint8List? bytes}) async {
-    analysed.add(path ?? 'bytes');
-    await gate?.future;
-    if (failure != null) throw failure!;
-    return VisionAnalysis(
-      imageWidth: 4000,
-      imageHeight: 3000,
-      detections: [
-        for (var i = 0; i < embeddings.length; i++)
-          VisionDetection(
-            x: 0.1 + i * 0.3,
-            y: 0.1,
-            width: 0.2,
-            height: 0.2,
-            score: 0.9,
-            pixelWidth: 800,
-            pixelHeight: 600,
-            cropJpeg: Uint8List.fromList([0xFF, 0xD8, i]),
-            embedding: embeddings[i],
-          ),
-      ],
-    );
-  }
-
-  @override
-  Future<void> unload() async => unloads++;
-
-  @override
-  Future<void> excludeFromBackup(String directory) async {}
-}
+import 'fake_vision_engine.dart';
 
 const _parrotfish = PackCandidate(
   gbifKey: 1,
