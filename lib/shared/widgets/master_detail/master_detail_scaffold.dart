@@ -281,7 +281,9 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
   /// Changing the selection leaves the record the pane shows: unsaved work
   /// held there is asked about first (issue #4527).
   Future<void> _onItemSelected(String? itemId) async {
-    if (!await _mayLeaveShown() || !mounted) return;
+    // The record already shown leaves nothing behind: no need to ask.
+    final leaving = itemId != _selectedId || _mode != DetailPaneMode.view;
+    if (leaving && (!await _mayLeaveShown() || !mounted)) return;
     final currentPath = _ownPath;
 
     if (ResponsiveBreakpoints.isMasterDetail(context)) {

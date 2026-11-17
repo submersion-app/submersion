@@ -34,6 +34,10 @@ void main() {
             masterBuilder: (_, onItemSelected, _) => Column(
               children: [
                 TextButton(
+                  onPressed: () => onItemSelected('a'),
+                  child: const Text('Row a'),
+                ),
+                TextButton(
                   onPressed: () => onItemSelected('b'),
                   child: const Text('Row b'),
                 ),
@@ -101,6 +105,28 @@ void main() {
     await tester.tap(find.text('Add Item'));
     await tester.pumpAndSettle();
     expect(find.text('Create form'), findsNothing);
+  });
+
+  testWidgets('the row already shown asks nothing: nothing would leave', (
+    tester,
+  ) async {
+    var asked = 0;
+    guard.hold(
+      AppExitBlocker(
+        hasUnsavedWork: () => true,
+        confirmLeaving: () async {
+          asked++;
+          return false;
+        },
+      ),
+    );
+    await pump(tester);
+
+    await tester.tap(find.text('Row a'));
+    await tester.pumpAndSettle();
+
+    expect(asked, 0);
+    expect(router.state.uri.toString(), '/test?selected=a');
   });
 
   testWidgets('with nothing held selection changes at once', (tester) async {
