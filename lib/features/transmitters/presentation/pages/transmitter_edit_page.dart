@@ -226,10 +226,13 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     });
     if (_roleTouched) return;
     // A cylinder marked as a suit inflation bottle says what the transmitter
-    // reads, ahead of any role its history suggests (issue #4243).
+    // reads, ahead of any role its history suggests (issue #4243), and so
+    // does doubles kept as one item worn as a twin set (issue #4641).
     final TankRole role;
     if (item.isSuitInflationCylinder) {
       role = TankRole.suitInflation;
+    } else if (item.isWornAsTwinSet) {
+      role = TankRole.twinSet;
     } else {
       try {
         final diverId = await ref.read(validatedCurrentDiverIdProvider.future);

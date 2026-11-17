@@ -1327,7 +1327,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     if (!mounted || choice != _specChoice) return;
     // A pair with a cylinder of unknown size has no volume to log, so it is
     // not offered; the pick is the cylinder alone.
-    if (partner != null && twinPairVolume(item, partner) != null) {
+    final pairOffered =
+        partner != null && twinPairVolume(item, partner) != null;
+    if (pairOffered) {
       final kind = await askTwinSetChoice(
         context,
         ref.read(unitFormatterProvider),
@@ -1353,6 +1355,14 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     // already in that role is left alone and nothing else is unset.
     if (item.isSuitInflationCylinder && _role != TankRole.suitInflation) {
       setState(() => _role = TankRole.suitInflation);
+      _notifyChange();
+    } else if (item.isWornAsTwinSet &&
+        !pairOffered &&
+        _role != TankRole.twinSet) {
+      // Doubles kept as one gear item (issue #4641) default the tank to the
+      // Twin Set role the same way. A cylinder linked in a pair has just
+      // been asked about, and "this cylinder alone" is the answer to keep.
+      setState(() => _role = TankRole.twinSet);
       _notifyChange();
     }
     final filled = _applyScannedSpec(
