@@ -58,6 +58,7 @@ void main() {
     expect(sources.keys.toSet(), {
       'osm',
       'curated',
+      'research',
       'ukho',
       'awois',
       'fwc',
@@ -146,7 +147,7 @@ void main() {
     final sources = (doc['metadata'] as Map<String, dynamic>)['sources'] as Map;
     final ids = <String>{};
 
-    expect(sites, hasLength(20926));
+    expect(sites, hasLength(20988));
     for (final site in sites) {
       final id = site['id'] as String;
       expect(ids.add(id), isTrue, reason: 'duplicate id $id');
@@ -192,9 +193,11 @@ void main() {
       }
     }
     final registers = sites.where((s) => s['kind'] == 'register').length;
-    // 17,000 less the five Massachusetts reefs (2026-11-15).
-    expect(registers, 16995);
-    expect(sites.length - registers, 3931);
+    // 17,000 less the five Massachusetts reefs (2026-11-15), then four
+    // more from the sources' refresh with the first researched batch
+    // (2026-11-16), whose 57 sites are among the dive sites.
+    expect(registers, 16999);
+    expect(sites.length - registers, 3989);
   });
 
   test('no dive site a diver may hold was lost to a register', () {
@@ -375,7 +378,7 @@ void main() {
       const CatalogueBounds(south: -90, west: -180, north: 90, east: 180),
       limit: 1000000,
     );
-    expect(located.sites, hasLength(20926));
+    expect(located.sites, hasLength(20988));
     expect(located.truncated, isFalse);
     // Salt Pier, by name and by place.
     final found = await catalogue.search('salt pier');
