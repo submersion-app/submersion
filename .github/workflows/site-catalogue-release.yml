@@ -1,0 +1,112 @@
+name: Site catalogue release
+
+# Weekly: when submersion-app/site-catalogue has published a catalogue
+# release newer than the one in assets/data/, open a PR that takes it in.
+# Releases are public, so no credential crosses repositories. A PR opened
+# with the built-in token starts no CI: close and reopen it to run the
+# checks (the PR body says so). A release built before the shipped
+# catalogue is refused unless allow_older is set (a rollback on purpose).
+#
+# Inputs and step outputs reach the shell only through environment
+# variables, and the tag is checked against the release tag format before
+# it is used.
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to take, YYYY.MM.DD or YYYY.MM.DD.N (default: the newest)"
+        required: false
+      allow_older:
+        description: "Take a release built before the shipped catalogue (a rollback)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: site-catalogue-release
+  cancel-in-progress: false
+
+jobs:
+  intake:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CATALOGUE_REPO: submersion-app/site-catalogue
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Find the release
+        id: find
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          tag="$INPUT_TAG"
+          if [ -z "$tag" ]; then
+            # Filtered in gh's own query: a grep or head pipeline fails the
+            # step under pipefail when no catalogue release is listed yet.
+            tag="$(gh release list --repo "$CATALOGUE_REPO" --exclude-drafts --limit 100 \
+              --json tagName \
+              -q '[.[].tagName | select(startswith("snapshots-") | not)] | first // empty')"
+          fi
+          if [ -z "$tag" ]; then
+            echo "No catalogue release yet."
+            echo "take=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! printf '%s' "$tag" | grep -Eq '^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]+)?$'; then
+            echo "Not a catalogue release tag: $tag"
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          mkdir -p release
+          gh release download "$tag" --repo "$CATALOGUE_REPO" --pattern site_catalogue.version --dir release
+          if [ "$(cat release/site_catalogue.version)" = "$(cat assets/data/site_catalogue.version)" ]; then
+            echo "The app already ships $tag."
+            echo "take=false" >> "$GITHUB_OUTPUT"
+          elif git ls-remote --exit-code --heads origin "site-catalogue/$tag" > /dev/null; then
+            echo "A PR branch for $tag already exists."
+            echo "take=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "take=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Take it in
+        if: steps.find.outputs.take == 'true'
+        env:
+          TAG: ${{ steps.find.outputs.tag }}
+          ALLOW_OLDER: ${{ inputs.allow_older }}
+        run: |
+          gh release download "$TAG" --repo "$CATALOGUE_REPO" --dir release --clobber
+          gh release view "$TAG" --repo "$CATALOGUE_REPO" --json body -q .body > release-notes.md
+          older=""
+          if [ "$ALLOW_OLDER" = "true" ]; then older="--allow-older"; fi
+          python3.14 scripts/site_catalogue_intake.py release --tag "$TAG" \
+            --notes release-notes.md --body pr-body.md $older
+
+      - name: Open the PR
+        if: steps.find.outputs.take == 'true'
+        env:
+          TAG: ${{ steps.find.outputs.tag }}
+        run: |
+          branch="site-catalogue/$TAG"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add assets/data/site_catalogue.json assets/data/site_catalogue.version \
+            assets/data/site_catalogue_njdep_metadata.xml assets/data/site_catalogue_md_dnr_metadata.xml \
+            test/features/dive_sites/data/catalogue/contract/format.json \
+            test/features/dive_sites/data/catalogue/contract/countries.json
+          git commit -m "chore(dive-sites): take site catalogue release $TAG"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "chore(dive-sites): take site catalogue release $TAG" \
+            --body-file pr-body.md

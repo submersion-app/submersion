@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import '../../../tool/demo_data/src/story/catalog.dart';
 import '../../../tool/demo_data/src/story/destination_life.dart';
@@ -115,17 +116,24 @@ void main() {
   });
 
   test('the home site table matches the curated sites', () {
+    // The curated sites as the built-in catalogue ships them (their source
+    // file lives in the site catalogue repository).
     final curated =
-        (jsonDecode(File('scripts/dive_sites_curated.json').readAsStringSync())
+        ((jsonDecode(
+                      File(
+                        p.join('assets', 'data', 'site_catalogue.json'),
+                      ).readAsStringSync(),
+                    )
+                    as Map<String, Object?>)['sites']!
                 as List)
             .cast<Map<String, Object?>>()
             .where((s) => (s['id']! as String).startsWith('curated_nj_'));
     expect(homeSiteDepthM, {
-      for (final s in curated) s['id']: (s['depthM']! as num).toDouble(),
+      for (final s in curated) s['id']: (s['max_depth_m']! as num).toDouble(),
     });
     expect(homeShoreSites, {
       for (final s in curated)
-        if (s['kind'] == 'shore') s['id'],
+        if ((s['entry'] as List?)?.contains('shore') ?? false) s['id'],
     });
   });
 

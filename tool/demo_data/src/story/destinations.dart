@@ -6,7 +6,8 @@ import 'story_plan.dart';
 /// Where the demo diver lives: Princeton, New Jersey, diving the central
 /// Jersey shore, its wrecks and artificial reefs, from the shore and from
 /// the Manasquan and Point Pleasant boats. The sites are the catalogue's
-/// curated New Jersey supplement (`scripts/dive_sites_curated.json`).
+/// curated New Jersey supplement (the `curated_nj_` records in
+/// `assets/data/site_catalogue.json`).
 ///
 /// Summer lays warm water over a cold bottom here, so its temperatures are
 /// quoted for the deep water, as for a lake.
@@ -95,7 +96,7 @@ const tripDestinations = <Destination>[
     resortNames: ['Kas Flamingo', 'Bon Kunuku Dive Lodge'],
   ),
   // Grand Cayman, Roatán, Belize and Turks and Caicos dive mostly at the
-  // catalogue's curated sites (`scripts/dive_sites_curated.json`).
+  // catalogue's curated sites (its `curated_` records).
   Destination(
     key: 'cayman',
     label: 'Grand Cayman',
