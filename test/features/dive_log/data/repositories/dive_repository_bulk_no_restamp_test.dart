@@ -224,6 +224,52 @@ void main() {
       expect(await pending('diveCourses'), hasLength(1));
     });
 
+    /// A dive in courses c1 (the representative) and c2, nothing pending;
+    /// returns its `updated_at`.
+    Future<int> seedTwoCourses() async {
+      await seedCourses();
+      await seedDive('d1');
+      await repository.bulkAddCourses(['d1'], ['c1', 'c2']);
+      await SyncRepository().clearAllSyncRecords();
+      await db.delete(db.deletionLog).go();
+      return (await diveRow('d1')).updatedAt;
+    }
+
+    test('removing the representative course restamps the dive', () async {
+      final seededAt = await seedTwoCourses();
+      await Future<void>.delayed(const Duration(milliseconds: 2));
+
+      await repository.bulkRemoveCourses(['d1'], ['c1']);
+
+      final dive = await diveRow('d1');
+      expect(dive.courseId, 'c2');
+      expect(dive.updatedAt, greaterThan(seededAt));
+      expect(await pending('dives'), {'d1'});
+    });
+
+    test('replacing the courses with none restamps the dive', () async {
+      final seededAt = await seedTwoCourses();
+      await Future<void>.delayed(const Duration(milliseconds: 2));
+
+      await repository.bulkReplaceCourses(['d1'], const []);
+
+      final dive = await diveRow('d1');
+      expect(dive.courseId, isNull);
+      expect(dive.updatedAt, greaterThan(seededAt));
+      expect(await pending('dives'), {'d1'});
+    });
+
+    test('removing a later course stages the course link only', () async {
+      final seededAt = await seedTwoCourses();
+
+      await repository.bulkRemoveCourses(['d1'], ['c2']);
+
+      final dive = await diveRow('d1');
+      expect(dive.courseId, 'c1');
+      expectDiveLeftAlone(dive, seededAt);
+      expect(await pending('dives'), isEmpty);
+    });
+
     test('a first course restamps the dive, whose representative course '
         'column changed', () async {
       await seedCourses();

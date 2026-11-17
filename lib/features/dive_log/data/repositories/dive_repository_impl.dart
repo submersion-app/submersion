@@ -8313,7 +8313,10 @@ class DiveRepository {
         if (e.value.representativeChanged) e.key,
     ];
     if (restamp.isNotEmpty) await _bumpDives(restamp, now);
-    if (results.values.any((r) => r.changed)) _tickDives();
+    // A restamp's write already ticks; tick for the dives it did not cover.
+    if (results.values.any((r) => r.changed && !r.representativeChanged)) {
+      _tickDives();
+    }
   }
 
   /// Add [typeIds] to each dive's set (union, deduped). No notify/txn.

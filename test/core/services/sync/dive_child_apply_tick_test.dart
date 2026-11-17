@@ -73,6 +73,28 @@ void main() {
     expect(ticks, greaterThan(0));
   });
 
+  // Every member, by its tombstone, so a dropped or misspelt entry fails.
+  for (final entity in const [
+    'diveTanks',
+    'diveWeights',
+    'diveTags',
+    'diveDiveTypes',
+    'diveCourses',
+    'diveEquipment',
+  ]) {
+    test('a $entity tombstone ticks dives', () async {
+      expect(
+        SyncDataSerializer.diveChildEntitiesThatTickDives,
+        contains(entity),
+      );
+      final ticks = await divesTicksDuring(
+        () => serializer.deleteRecord(entity, 'not-here'),
+      );
+
+      expect(ticks, greaterThan(0));
+    });
+  }
+
   test('rows that are not dive children leave dives quiet', () async {
     final row = (await serializer.fetchRecord('tags', 'tag1'))!;
 

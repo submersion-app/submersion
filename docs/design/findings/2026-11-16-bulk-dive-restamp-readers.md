@@ -93,6 +93,8 @@ Option 1, chosen 2026-11-16.
 Found while checking, not converted here:
 
 - `updateTankRecordPressures` (tank pressures)
+- the tag merge in `TagRepository`, which restamps every dive whose tag link
+  it relinks (`TagScopeTable.restampedParentTable`)
 - gas switch and profile event writers (`createGasSwitch`,
   `deleteGasSwitch`, `deleteGasSwitchesForDive`, `insertProfileEvents` and
   the event tombstone path)
