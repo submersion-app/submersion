@@ -680,6 +680,19 @@ class DiverSettings extends Table {
       real().withDefault(const Constant(1.0 / 3.0))();
   RealColumn get plannerWalkSpeedMps =>
       real().withDefault(const Constant(0.8))();
+
+  /// Planner default CMF supply injection rate, surface L/min (v374, issue
+  /// #4660; each loop default is the figure every plan used before).
+  RealColumn get plannerScrInjectionRate =>
+      // Drift copies a default's expression verbatim into database.g.dart, so
+      // these three are literals mirroring ScrCalculator's defaults.
+      real().withDefault(const Constant(12.0))();
+
+  /// Planner default diver VO2 on a CMF loop, surface L/min.
+  RealColumn get plannerScrVo2 => real().withDefault(const Constant(1.3))();
+
+  /// Planner default diver VO2 on a passive (pSCR) loop, surface L/min.
+  RealColumn get plannerPscrVo2 => real().withDefault(const Constant(0.72))();
   // v307: planner air-break and turn-pressure global defaults (issue
   // #3552). Nullable, unlike the v304 columns above: null means "no
   // policy"/"no rule", matching today's behaviour for every diver who has

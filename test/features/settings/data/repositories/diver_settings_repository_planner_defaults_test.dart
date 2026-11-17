@@ -87,6 +87,36 @@ void main() {
       expect(loaded.plannerReservePressure, 60.0);
     });
 
+    test(
+      'SCR and pSCR loop defaults start at the old fixed figures (#4660)',
+      () async {
+        await repository.createSettingsForDiver('d1');
+        final loaded = await repository.getSettingsForDiver('d1');
+        expect(loaded!.plannerScrInjectionRate, 12.0);
+        expect(loaded.plannerScrVo2, 1.3);
+        expect(loaded.plannerPscrVo2, 0.72);
+      },
+    );
+
+    test(
+      'SCR and pSCR loop defaults round-trip independently (#4660)',
+      () async {
+        await repository.createSettingsForDiver('d1');
+        await repository.updateSettingsForDiver(
+          'd1',
+          const AppSettings(
+            plannerScrInjectionRate: 7.5,
+            plannerScrVo2: 2.0,
+            plannerPscrVo2: 0.9,
+          ),
+        );
+        final loaded = await repository.getSettingsForDiver('d1');
+        expect(loaded!.plannerScrInjectionRate, 7.5);
+        expect(loaded.plannerScrVo2, 2.0);
+        expect(loaded.plannerPscrVo2, 0.9);
+      },
+    );
+
     test('sacDeco and sacBottom persist as independent columns', () async {
       await repository.createSettingsForDiver('d1');
       await repository.updateSettingsForDiver(

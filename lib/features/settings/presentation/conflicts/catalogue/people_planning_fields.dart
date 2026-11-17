@@ -475,6 +475,12 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_setpointSwitchDepth,
     FieldKind.depth,
   ),
+  // scrInjectionRate shares the logged dive's entry (dive_log_fields.dart):
+  // same column name, same volume-rate kind.
+  // VO2 reads as the logged dive's assumedVo2 does: at RMV precision in
+  // cuft/min, 1.3 and 1.4 L/min would show alike.
+  'scrVo2': ConflictField((l) => l.plannerCanvas_scr_vo2, FieldKind.number),
+  'pscrVo2': ConflictField((l) => l.plannerCanvas_pscr_vo2, FieldKind.number),
   // The setting groups a planned dive keeps its own (issue #3565).
   'settingOverrides': ConflictField(
     (l) => l.settings_conflict_field_settingOverrides,

@@ -1,6 +1,7 @@
 import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/gas_density.dart';
+import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -127,6 +128,8 @@ enum DiveTerm {
   reserveGas,
   setpointSwitchDepth,
   pscrRatio,
+  scrInjectionRate,
+  vo2,
   turnFraction,
   dpv,
   ceilingViolation,
@@ -303,6 +306,8 @@ String _label(AppLocalizations l10n, DiveTerm term) {
     DiveTerm.reserveGas => l10n.info_term_reserveGas_label,
     DiveTerm.setpointSwitchDepth => l10n.info_term_setpointSwitchDepth_label,
     DiveTerm.pscrRatio => l10n.info_term_pscrRatio_label,
+    DiveTerm.scrInjectionRate => l10n.info_term_scrInjectionRate_label,
+    DiveTerm.vo2 => l10n.info_term_vo2_label,
     DiveTerm.turnFraction => l10n.info_term_turnFraction_label,
     DiveTerm.dpv => l10n.info_term_dpv_label,
     DiveTerm.ceilingViolation => l10n.info_term_ceilingViolation_label,
@@ -448,6 +453,12 @@ String _body(AppLocalizations l10n, UnitFormatter units, DiveTerm term) {
     DiveTerm.reserveGas => l10n.info_term_reserveGas_body,
     DiveTerm.setpointSwitchDepth => l10n.info_term_setpointSwitchDepth_body,
     DiveTerm.pscrRatio => l10n.info_term_pscrRatio_body,
+    DiveTerm.scrInjectionRate => l10n.info_term_scrInjectionRate_body,
+    DiveTerm.vo2 => l10n.info_term_vo2_body(
+      _vo2(units, ScrCalculator.restingVo2),
+      _vo2(units, ScrCalculator.defaultVo2),
+      _vo2(units, ScrCalculator.hardWorkVo2),
+    ),
     DiveTerm.turnFraction => l10n.info_term_turnFraction_body,
     DiveTerm.dpv => l10n.info_term_dpv_body,
     DiveTerm.ceilingViolation => l10n.info_term_ceilingViolation_body,
@@ -461,3 +472,8 @@ String _body(AppLocalizations l10n, UnitFormatter units, DiveTerm term) {
     DiveTerm.ascentGasSet => l10n.info_term_ascentGasSet_body,
   };
 }
+
+/// A VO2 in the diver's volume unit per minute, at a loop flow's precision
+/// (0.25 L/min is 0.009 cuft/min).
+String _vo2(UnitFormatter units, double litersPerMinute) =>
+    units.formatRmv(litersPerMinute, decimals: units.loopFlowDecimals);

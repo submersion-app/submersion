@@ -21845,6 +21845,33 @@ class AppLocalizationsHe extends AppLocalizations {
       'גדול יותר = יותר גז טרי, ירידת חמצן קטנה יותר';
 
   @override
+  String get plannerCanvas_scr_injectionRate => 'קצב הזרקה';
+
+  @override
+  String get plannerCanvas_scr_vo2 => 'VO₂ (SCR)';
+
+  @override
+  String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
+
+  @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'חמצן בלולאה עם $gas: $atVo2 ב-VO₂ הזה, $resting במנוחה, $hardWork במאמץ קשה';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'זרימה נמוכה מדי';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'ירידת ppO₂ בלולאה: $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -22328,6 +22355,15 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
     return 'גז החילוץ (bailout) היפוקסי ב-$depth (ppO₂ $value bar). יש לשאת גז שניתן לנשימה עד פני המים.';
+  }
+
+  @override
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  ) {
+    return 'קצב הזרקה של $rate אינו יכול לקיים את הלולאה ב-VO₂ הזה: $gas דורש יותר מ-$needed.';
   }
 
   @override
@@ -52277,6 +52313,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'רזרבת הסקוטר וקצב ההליכה שאיתם מתחילה משימת DPV חדשה. שינוי בתוך משימה יחליף אותו רק שם, מבלי לשנות ברירת מחדל זו.';
 
   @override
+  String get settings_decompression_header_plannerRebreather => 'מחזר בתכנון';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'הזרימה בלולאה החצי סגורה שאיתה מתחילה תוכנית SCR או pSCR חדשה. שינוי בתוך תוכנית עוקף אותה רק שם, בלי לשנות את ברירת המחדל הזו.';
+
+  @override
   String get settings_decompression_rates_finalAscent => 'קצב עלייה סופי';
 
   @override
@@ -63388,6 +63431,21 @@ class AppLocalizationsHe extends AppLocalizations {
       'החלק מכל נשיפה שמכשיר מחזור חצי-סגור פסיבי משליך. הוא קובע כמה החמצן בלולאה נמוך מגז האספקה.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'קצב הזרקה';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'הזרימה בפני השטח שהנחיר של מחזר בזרימת מסה קבועה מזרים ללולאה, הנקבעת לפי הנחיר וגז האספקה. קח אותה מתיעוד היחידה או מבדיקת זרימה מדודה.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'החמצן שגוף הצולל צורך, נמדד כגז בפני השטח: כ-$rest במנוחה, $swim בשחייה ו-$hard במאמץ קשה. מאמץ רב יותר משאיר פחות חמצן בלולאה חצי סגורה.';
+  }
+
+  @override
   String get info_term_turnFraction_label => 'שבר החזרה';
 
   @override
@@ -63806,6 +63864,14 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'הזינו את יחס ההשלכה שיצרן מכשיר המחזור מציין.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'כיצד המחזר החצי סגור בזרימת מסה קבועה ממודל בתוכנית.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'הזן את קצב ההזרקה של הנחיר שלך לגז האספקה הזה ואת ה-VO₂ הצפוי; שדה ריק עוקב אחר ההגדרות. השווה את החמצן המוצג בלולאה לתיעוד היחידה שלך.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

@@ -41,6 +41,9 @@ List<GroupedPlanIssue> groupPlanIssues(List<PlanIssue> issues) {
 }
 
 bool _isWorse(PlanIssue candidate, PlanIssue current) {
+  if (candidate.type.ranksByThreshold) {
+    return (candidate.threshold ?? 0) > (current.threshold ?? 0);
+  }
   final a = candidate.value;
   final b = current.value;
   if (a == null) return false;

@@ -6,6 +6,7 @@ import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
 /// Everything the engine needs from diver settings and the dive, resolved by
@@ -35,6 +36,8 @@ class ScenarioSettings extends Equatable {
     this.defaultSacLpm = 15.0,
     this.buddyFactor = 2.0,
     this.reservePressureBar = 50.0,
+    this.defaultScrInjectionRateLpm = ScrCalculator.defaultInjectionRateLpm,
+    this.defaultScrVo2Lpm = ScrCalculator.defaultVo2,
   });
 
   /// Fractions (0-1).
@@ -66,6 +69,12 @@ class ScenarioSettings extends Equatable {
   final double buddyFactor;
   final double reservePressureBar;
 
+  /// The diver's SCR supply injection rate and VO2 (surface L/min), used for
+  /// a dive that logged neither (issue #4660), so the lab and the planner
+  /// agree on a diver's loop.
+  final double defaultScrInjectionRateLpm;
+  final double defaultScrVo2Lpm;
+
   /// Mirrors profile_analysis_provider: altitude, water type and surface
   /// pressure straight from the dive (PlanEngine applies its own "altitude
   /// <= 0 is unset" rule to the altitude it receives separately).
@@ -84,7 +93,7 @@ class ScenarioSettings extends Equatable {
   PlanEngineConfig get engineConfig => engineConfigFor();
 
   /// The engine config, with the dive's SCR injection rate and VO2 when it
-  /// logged them (the engine's defaults otherwise).
+  /// logged them (the diver's defaults otherwise, issue #4660).
   PlanEngineConfig engineConfigFor({
     double? scrInjectionRateLpm,
     double? scrVo2Lpm,
@@ -96,9 +105,8 @@ class ScenarioSettings extends Equatable {
     buddyFactor: buddyFactor,
     cnsMethod: cnsMethod,
     gasModel: gasModel,
-    scrInjectionRateLpm:
-        scrInjectionRateLpm ?? const PlanEngineConfig().scrInjectionRateLpm,
-    scrVo2Lpm: scrVo2Lpm ?? const PlanEngineConfig().scrVo2Lpm,
+    scrInjectionRateLpm: scrInjectionRateLpm ?? defaultScrInjectionRateLpm,
+    scrVo2Lpm: scrVo2Lpm ?? defaultScrVo2Lpm,
   );
 
   ProfileAnalysisService buildAnalysisService() => ProfileAnalysisService(
@@ -138,6 +146,8 @@ class ScenarioSettings extends Equatable {
     double? defaultSacLpm,
     double? buddyFactor,
     double? reservePressureBar,
+    double? defaultScrInjectionRateLpm,
+    double? defaultScrVo2Lpm,
   }) {
     return ScenarioSettings(
       gfLow: gfLow ?? this.gfLow,
@@ -162,6 +172,9 @@ class ScenarioSettings extends Equatable {
       defaultSacLpm: defaultSacLpm ?? this.defaultSacLpm,
       buddyFactor: buddyFactor ?? this.buddyFactor,
       reservePressureBar: reservePressureBar ?? this.reservePressureBar,
+      defaultScrInjectionRateLpm:
+          defaultScrInjectionRateLpm ?? this.defaultScrInjectionRateLpm,
+      defaultScrVo2Lpm: defaultScrVo2Lpm ?? this.defaultScrVo2Lpm,
     );
   }
 
@@ -189,5 +202,7 @@ class ScenarioSettings extends Equatable {
     defaultSacLpm,
     buddyFactor,
     reservePressureBar,
+    defaultScrInjectionRateLpm,
+    defaultScrVo2Lpm,
   ];
 }

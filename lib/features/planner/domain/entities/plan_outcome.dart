@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/deco/deco_model.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart'
+    show GasMix;
 
 /// Severity of a computed plan issue, ordered least to most severe.
 enum PlanIssueSeverity { info, warning, alert, critical }
@@ -30,6 +32,13 @@ enum PlanIssueType {
   /// [PlanIssue.atDepth] is where, and [PlanIssue.value] the inspired ppO2
   /// there, in bar.
   bailoutGasHypoxic,
+
+  /// A constant mass flow SCR loop whose injection rate cannot sustain it at
+  /// the plan's VO2 on a supply (#4660): at or below VO2, or carrying less O2
+  /// than the diver uses. [PlanIssue.value] is the injection rate and
+  /// [PlanIssue.threshold] the least flow with a steady state on that supply,
+  /// both surface L/min; [PlanIssue.tankId] is the supply.
+  scrFlowTooLow,
 
   /// A back gas leaves the bottom with enough for an emergency ascent but
   /// not for the problem-solving time as well (#4475). [PlanIssue.value] is
@@ -87,6 +96,12 @@ enum PlanIssueType {
     _ => false,
   };
 
+  /// Whether the issue's grouped row is the one with the highest
+  /// [PlanIssue.threshold] rather than the worst [PlanIssue.value]: every SCR
+  /// flow issue carries the plan's one injection rate as its value, and the
+  /// row must name the supply needing the most flow (issue #4660).
+  bool get ranksByThreshold => this == scrFlowTooLow;
+
   /// Critical, yet the plan as computed still reaches the surface: a margin
   /// held back for an emergency is short, not the dive itself (#4475).
   bool get isMarginShortfall => this == minGasAscentViolation;
@@ -112,6 +127,10 @@ class PlanIssue extends Equatable {
 
   /// The cylinder a gas issue is about.
   final String? tankId;
+
+  /// The gas in [tankId], where the warning must name it to be acted on:
+  /// the supply an SCR flow issue is about (#4660).
+  final GasMix? gasMix;
   final double? value;
   final double? threshold;
 
@@ -123,6 +142,7 @@ class PlanIssue extends Equatable {
     this.atDepth,
     this.segmentId,
     this.tankId,
+    this.gasMix,
     this.value,
     this.threshold,
   });
@@ -136,6 +156,7 @@ class PlanIssue extends Equatable {
     atDepth,
     segmentId,
     tankId,
+    gasMix,
     value,
     threshold,
   ];

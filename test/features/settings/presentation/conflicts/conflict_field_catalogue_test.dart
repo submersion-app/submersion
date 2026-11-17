@@ -277,4 +277,21 @@ void main() {
   test('an SCR injection rate follows the volume unit', () {
     expect(conflictFieldFor('dives', 'scrInjectionRate').kind, FieldKind.rmv);
   });
+
+  test('a planned injection rate shares the logged dive entry (#4660)', () {
+    // The catalogue is keyed by column, so the plan's column needs no entry
+    // of its own: it reads as a volume rate, labelled as the dive's is.
+    final planned = conflictFieldFor('divePlans', 'scrInjectionRate');
+    expect(planned.kind, FieldKind.rmv);
+    expect(planned, same(conflictFieldFor('dives', 'scrInjectionRate')));
+  });
+
+  test('a planned VO2 reads as the logged dive VO2 does (#4660)', () {
+    // A VO2 at RMV precision in cuft/min would show 1.3 and 1.4 L/min alike.
+    final logged = conflictFieldFor('dives', 'assumedVo2').kind;
+    expect(conflictFieldFor('divePlans', 'scrVo2').kind, logged);
+    expect(conflictFieldFor('divePlans', 'pscrVo2').kind, logged);
+    expect(conflictFieldFor('diverSettings', 'plannerScrVo2').kind, logged);
+    expect(conflictFieldFor('diverSettings', 'plannerPscrVo2').kind, logged);
+  });
 }

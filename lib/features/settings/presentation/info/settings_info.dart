@@ -18,6 +18,7 @@ enum SettingsInfoSection {
   plannerGas,
   plannerContingency,
   plannerDpvTeam,
+  plannerRebreather,
   safetyReviewRules,
   conditionThresholds,
   sensorSummaries,
@@ -105,6 +106,12 @@ InfoContent settingsSectionInfo(
       units,
       'dpvTeam',
       l10n.settings_decompression_header_plannerDpvTeam,
+    ),
+    SettingsInfoSection.plannerRebreather => _plannerDefaultInfo(
+      l10n,
+      units,
+      'scr',
+      l10n.settings_decompression_header_plannerRebreather,
     ),
     SettingsInfoSection.safetyReviewRules => termsInfo(
       l10n,

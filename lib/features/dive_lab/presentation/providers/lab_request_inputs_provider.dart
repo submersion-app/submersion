@@ -36,6 +36,7 @@ class LabRequestInputs {
     this.scrInjectionRate,
     this.scrSupplyO2Percent,
     this.scrVo2 = ScrCalculator.defaultVo2,
+    this.replanScrVo2,
     this.startCompartments,
     required this.startCns,
     required this.startOtu,
@@ -58,6 +59,9 @@ class LabRequestInputs {
   final double? scrInjectionRate;
   final double? scrSupplyO2Percent;
   final double scrVo2;
+
+  /// See [ScenarioRequest.replanScrVo2].
+  final double? replanScrVo2;
   final List<TissueCompartment>? startCompartments;
   final double startCns;
   final double startOtu;
@@ -82,6 +86,7 @@ class LabRequestInputs {
     scrInjectionRate: scrInjectionRate,
     scrSupplyO2Percent: scrSupplyO2Percent,
     scrVo2: scrVo2,
+    replanScrVo2: replanScrVo2,
     startCompartments: startCompartments,
     startCns: startCns,
     startOtu: startOtu,
@@ -137,6 +142,8 @@ final labRequestInputsProvider = FutureProvider.autoDispose
         gasModel: ref.watch(gasModelProvider),
         o2Narcotic: ref.watch(settingsProvider.select((s) => s.o2Narcotic)),
         buddyFactor: engineConfig.buddyFactor,
+        defaultScrInjectionRateLpm: engineConfig.scrInjectionRateLpm,
+        defaultScrVo2Lpm: engineConfig.scrVo2Lpm,
       );
 
       final timestamps = [for (final p in profile) p.timestamp];
@@ -191,6 +198,9 @@ final labRequestInputsProvider = FutureProvider.autoDispose
         scrInjectionRate: dive.scrInjectionRate,
         scrSupplyO2Percent: dive.diluentGas?.o2,
         scrVo2: dive.assumedVo2 ?? ScrCalculator.defaultVo2,
+        // A passive loop's VO2 (a logged pSCR plan writes it here too) is
+        // not a constant mass flow VO2: the re-plan takes the diver's.
+        replanScrVo2: dive.scrType == ScrType.pascr ? null : dive.assumedVo2,
         startCompartments: startCompartments,
         startCns: startCns,
         startOtu: startOtu,

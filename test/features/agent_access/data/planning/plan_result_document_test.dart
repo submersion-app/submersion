@@ -201,6 +201,57 @@ void main() {
     });
   });
 
+  test('an SCR plan reports its loop flow and where it came from (#4660)', () {
+    final built = storedSeriesFor(
+      parsePlanRequest({
+        'dives': [
+          {
+            'mode': 'scr',
+            'scr_injection_rate_l_min': 7.5,
+            'tanks': [
+              {'volume_l': 7, 'o2_fraction': 0.5, 'role': 'diluent'},
+            ],
+            'bottom': {'depth_m': 18, 'time_s': 1800},
+          },
+        ],
+      }, settings: config),
+      follow: null,
+      now: DateTime.utc(2026, 11, 14),
+    );
+    final settings = effectiveSettings(built.stored.dives.single.plan, config);
+    expect(settings['scr_injection_rate_l_min'], {
+      'value': 7.5,
+      'source': 'plan',
+    });
+    expect(settings['scr_vo2_l_min'], {
+      'value': config.scrVo2Lpm,
+      'source': 'settings',
+    });
+    expect(settings.containsKey('pscr_vo2_l_min'), isFalse);
+  });
+
+  test('a pSCR plan reports its VO2 and no injection rate (#4660)', () {
+    final built = storedSeriesFor(
+      parsePlanRequest({
+        'dives': [
+          {
+            'mode': 'pscr',
+            'pscr_vo2_l_min': 0.9,
+            'tanks': [
+              {'volume_l': 7, 'o2_fraction': 0.32, 'role': 'diluent'},
+            ],
+            'bottom': {'depth_m': 18, 'time_s': 1800},
+          },
+        ],
+      }, settings: config),
+      follow: null,
+      now: DateTime.utc(2026, 11, 14),
+    );
+    final settings = effectiveSettings(built.stored.dives.single.plan, config);
+    expect(settings['pscr_vo2_l_min'], {'value': 0.9, 'source': 'plan'});
+    expect(settings.containsKey('scr_injection_rate_l_min'), isFalse);
+  });
+
   test('settings name the salinity, deco layers and air breaks used', () {
     const layered = PlanEngineConfig(
       ppO2DecoBandsEnabled: true,

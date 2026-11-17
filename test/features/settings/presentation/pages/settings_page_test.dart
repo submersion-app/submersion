@@ -560,6 +560,15 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setPlannerWalkSpeedMps(double value) async =>
       state = state.copyWith(plannerWalkSpeedMps: value);
   @override
+  Future<void> setPlannerScrInjectionRate(double value) async =>
+      state = state.copyWith(plannerScrInjectionRate: value);
+  @override
+  Future<void> setPlannerScrVo2(double value) async =>
+      state = state.copyWith(plannerScrVo2: value);
+  @override
+  Future<void> setPlannerPscrVo2(double value) async =>
+      state = state.copyWith(plannerPscrVo2: value);
+  @override
   Future<void> setPlannerTurnPressureRule(
     domain.TurnPressureRule? value,
   ) async => state = state.copyWith(
