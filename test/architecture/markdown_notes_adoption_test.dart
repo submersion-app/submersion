@@ -28,7 +28,7 @@ void main() {
     'lib/features/dive_centers/presentation/pages/dive_center_edit_page.dart':
         'MarkdownNotesField(',
     // The bulk notes field.
-    'lib/features/dive_log/presentation/pages/dive_edit_page.dart':
+    'lib/features/dive_log/presentation/pages/bulk_dive_edit_page_form.dart':
         'MarkdownNotesField(',
     // The Notes card edited in place on the dive page (issue #4527).
     'lib/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart':

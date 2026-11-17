@@ -40,7 +40,7 @@ extension _AnnotationEditing on _DiveEditPageState {
   /// notes still link, deletes the rows whose link is gone, and refreshes
   /// the cached words of the rest.
   Future<void> _reconcileAnnotations(String? savedDiveId) async {
-    if (savedDiveId == null || widget.isBulk) return;
+    if (savedDiveId == null) return;
     await ref
         .read(annotationRepositoryProvider)
         .reconcile(

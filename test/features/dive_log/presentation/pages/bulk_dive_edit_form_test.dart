@@ -9,7 +9,7 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/visibility_input_mode_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
@@ -33,7 +33,7 @@ import '../../../../helpers/test_database.dart';
 import '../../../../helpers/role_sheet.dart';
 
 void main() {
-  group('DiveEditPage bulk mode', () {
+  group('BulkDiveEditPage', () {
     late DiveRepository repository;
     late AppDatabase db;
 
@@ -70,7 +70,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: ['d1', 'd2'], embedded: true),
+              body: BulkDiveEditPage(diveIds: ['d1', 'd2'], embedded: true),
             ),
           ),
         ),
@@ -167,7 +167,7 @@ void main() {
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: Scaffold(
-                body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+                body: BulkDiveEditPage(diveIds: [d1.id], embedded: true),
               ),
             ),
           ),
@@ -244,7 +244,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id, d2.id], embedded: true),
             ),
           ),
         ),
@@ -305,7 +305,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id, d2.id], embedded: true),
             ),
           ),
         ),
@@ -407,7 +407,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: ids, embedded: true),
+              body: BulkDiveEditPage(diveIds: ids, embedded: true),
             ),
           ),
         ),
@@ -749,7 +749,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id, d2.id], embedded: true),
             ),
           ),
         ),
@@ -824,7 +824,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id, d2.id], embedded: true),
             ),
           ),
         ),
@@ -889,7 +889,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id, d2.id], embedded: true),
             ),
           ),
         ),
@@ -967,7 +967,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id, d2.id], embedded: true),
             ),
           ),
         ),
@@ -1038,7 +1038,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id], embedded: true),
             ),
           ),
         ),
@@ -1108,7 +1108,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id], embedded: true),
             ),
           ),
         ),
@@ -1162,7 +1162,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id], embedded: true),
             ),
           ),
         ),
@@ -1224,7 +1224,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id], embedded: true),
             ),
           ),
         ),
@@ -1288,7 +1288,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id], embedded: true),
             ),
           ),
         ),
@@ -1344,7 +1344,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [dive.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [dive.id], embedded: true),
             ),
           ),
         ),
@@ -1408,7 +1408,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [dive.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [dive.id], embedded: true),
             ),
           ),
         ),
@@ -1455,7 +1455,7 @@ void main() {
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: Scaffold(
-                body: DiveEditPage(bulkDiveIds: ids, embedded: true),
+                body: BulkDiveEditPage(diveIds: ids, embedded: true),
               ),
             ),
           ),
@@ -1582,7 +1582,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [dive.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [dive.id], embedded: true),
             ),
           ),
         ),
@@ -1651,7 +1651,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id], embedded: true),
             ),
           ),
         ),

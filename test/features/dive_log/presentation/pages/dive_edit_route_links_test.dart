@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
@@ -109,13 +110,19 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: DiveEditPage(
-              diveId: diveId,
-              bulkDiveIds: bulkDiveIds,
-              embedded: true,
-              onCancel: onCancel,
-              onSaved: onSaved,
-            ),
+            body: bulkDiveIds != null
+                ? BulkDiveEditPage(
+                    diveIds: bulkDiveIds,
+                    embedded: true,
+                    onCancel: onCancel,
+                    onSaved: onSaved,
+                  )
+                : DiveEditPage(
+                    diveId: diveId,
+                    embedded: true,
+                    onCancel: onCancel,
+                    onSaved: onSaved,
+                  ),
           ),
         ),
       ),

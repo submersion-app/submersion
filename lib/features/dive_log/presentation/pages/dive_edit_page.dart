@@ -5,8 +5,6 @@ import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/text/blank_text.dart';
-import 'package:submersion/core/built_ins/built_in_catalog.dart';
-import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/utils/usable_set_items.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -14,7 +12,6 @@ import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/gear_passports/presentation/utils/scan_owned_item.dart';
-import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -40,11 +37,6 @@ import 'package:submersion/features/dive_log/presentation/helpers/linked_dive_ti
 import 'package:submersion/features/dive_log/presentation/helpers/open_profile_editor.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/seeded_dive_times.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
-import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
-import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
-import 'package:submersion/features/dive_roles/presentation/dive_role_list_display.dart';
-import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
-import 'package:submersion/features/dive_roles/presentation/widgets/dive_role_selector_sheet.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -60,11 +52,8 @@ import 'package:submersion/features/equipment/domain/entities/gear_provenance.da
 import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
-import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_equipment_sets.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_tree_view.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_set_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/geofence_suggestion_banner.dart';
@@ -83,13 +72,8 @@ import 'package:submersion/features/dive_centers/presentation/widgets/dive_cente
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_memory_card.dart';
 import 'package:submersion/features/dive_centers/domain/services/dive_center_picker_ranking.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
-import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
-import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
-import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
-import 'package:submersion/features/trips/data/repositories/selection_trip_facts.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 import 'package:submersion/features/trips/domain/services/trip_draft.dart';
@@ -120,7 +104,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/mirror_dive_di
 import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/custom_field_input_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/buddies_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/conditions_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/experience_section.dart';
@@ -146,15 +129,6 @@ import 'package:submersion/features/weight_presets/domain/entities/weight_preset
 import 'package:submersion/features/weight_presets/presentation/providers/weight_preset_providers.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/weight_preset_picker_sheet.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_bulk_membership_labels.dart';
-import 'package:submersion/shared/bulk_edit/bulk_change_summary.dart';
-import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_gear_actions.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_gear_rows.dart';
-import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/utils/entry_exit_autofill.dart';
@@ -181,15 +155,8 @@ import 'package:submersion/shared/widgets/forms/form_caption.dart';
 import 'package:submersion/shared/widgets/forms/form_empty_row.dart';
 import 'package:submersion/shared/widgets/forms/form_overline.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
-import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/forms/responsive_form_columns.dart';
-import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
-import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
-import 'package:submersion/features/dive_log/presentation/providers/bulk_dive_edit_provider.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_collection_mode_selector.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_tank_specs_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/flight_window_warning_banner.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/bulk_field_gate.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
@@ -202,7 +169,6 @@ import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart'
 import 'package:submersion/features/dive_log/presentation/providers/shared_gear_overlap_providers.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
-import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/cylinder_configs/domain/services/main_supply.dart';
 import 'package:submersion/features/equipment/presentation/providers/set_bundle_providers.dart';
@@ -272,15 +238,6 @@ double? _savedNumber(
 class DiveEditPage extends ConsumerStatefulWidget {
   final String? diveId;
 
-  /// When set, the page renders in bulk-edit mode for these dive ids (mutually
-  /// exclusive with [diveId]). Mirrors `SiteEditPage.mergeSiteIds`.
-  final List<String>? bulkDiveIds;
-
-  /// Bulk edit only: leave by popping back to the list that opened the form,
-  /// rather than going to /dives. Set when that list was itself pushed over
-  /// another page, whose back arrow a go() would erase (#3292).
-  final bool bulkPopOnSave;
-
   /// When true, renders without Scaffold wrapper for use in master-detail layout.
   final bool embedded;
 
@@ -305,21 +262,15 @@ class DiveEditPage extends ConsumerStatefulWidget {
   const DiveEditPage({
     super.key,
     this.diveId,
-    this.bulkDiveIds,
-    this.bulkPopOnSave = false,
     this.embedded = false,
     this.onSaved,
     this.onCancel,
     this.prefill,
     this.tripId,
     this.tripCylinderId,
-  }) : assert(
-         diveId == null || bulkDiveIds == null,
-         'diveId and bulkDiveIds are mutually exclusive',
-       );
+  });
 
   bool get isEditing => diveId != null;
-  bool get isBulk => bulkDiveIds != null && bulkDiveIds!.isNotEmpty;
 
   @override
   ConsumerState<DiveEditPage> createState() => _DiveEditPageState();
@@ -412,8 +363,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   // having silently overwritten it.
   bool _excludedFromStats = false;
   bool _excludedFromGasStats = false;
-  bool _bulkExcludedFromStats = false;
-  bool _bulkExcludedFromGasStats = false;
   DiveSite? _selectedSite;
   Trip? _selectedTrip;
   DiveCenter? _selectedDiveCenter;
@@ -553,9 +502,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   String? _scrubberType;
   int? _scrubberDurationMinutes;
 
-  /// Text controllers for the bulk rebreather number fields, created on first
-  /// build by [_bulkNumberField].
-  final Map<BulkField, TextEditingController> _bulkNumberControllers = {};
   int? _scrubberRemainingMinutes;
   double? _loopVolume;
 
@@ -752,7 +698,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
     // New single dive: auto-apply the diver's default/geofenced equipment set
     // once the form is up, only when no gear is present.
-    if (!widget.isEditing && widget.bulkDiveIds == null) {
+    if (!widget.isEditing) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _applyEquipmentDefaultsOnEmpty();
       });
@@ -774,16 +720,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       ),
     ];
 
-    if (widget.isBulk) {
-      // Bulk mode: start from empty form state; no draft load, no GPS/number,
-      // and no starting tank (bulk tanks are Add/Replace, not a default list).
-      _tanks = [];
-      // Bulk dive-type selection starts empty (like tags); a ['recreational']
-      // default would make enabling the collection silently operate on it.
-      _selectedDiveTypeIds = <String>[];
-      _suppressDirty = false;
-      logFailure(_loadBulkMembers(), _DiveEditPageState, 'load bulk members');
-    } else if (widget.isEditing) {
+    if (widget.isEditing) {
       logFailure(_loadExistingDive(), _DiveEditPageState, 'load existing dive');
     } else {
       // A new dive has no links yet, so its draft is ready immediately.
@@ -1323,9 +1260,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   @override
   void dispose() {
-    for (final controller in _bulkNumberControllers.values) {
-      controller.dispose();
-    }
     _diveNumberController.dispose();
     _durationController.dispose();
     _runtimeController.dispose();
@@ -1370,10 +1304,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       );
     }
 
-    if (widget.isBulk) {
-      return _buildBulkScaffold(units);
-    }
-
     final formBody = Form(
       key: _formKey,
       onChanged: _markDirty,
@@ -1389,7 +1319,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           // the left column and the contextual ones fill the right on wide
           // windows. ResponsiveFormColumns owns the scroll view, so it
           // needs the bounded height Expanded provides.
-          if (!_hasPrimarySource && !widget.isBulk && !_isDraft)
+          if (!_hasPrimarySource && !_isDraft)
             SwitchListTile(
               key: const Key('dive_edit_planned_switch'),
               value: _isPlanned,
@@ -1460,1430 +1390,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   // === Bulk edit mode ===
   // Filled in across Phases 2-5. Shell + stubs here so bulk mode compiles.
 
-  Widget _buildBulkScaffold(UnitFormatter units) {
-    return EditFormScaffold(
-      title: context.l10n.diveLog_bulkEdit_appBarTitle(
-        widget.bulkDiveIds!.length,
-      ),
-      embedded: widget.embedded,
-      isSaving: _isSaving,
-      hasUnsavedChanges: _hasUnsavedChanges,
-      onSave: () => _saveBulk(units),
-      onCancel: widget.onCancel,
-      headerIcon: Icons.edit_note,
-      child: _buildBulkForm(units),
-    );
-  }
-
   // Bulk-mode state.
-  final Set<BulkField> _bulkEnabled = {};
-  bool _bulkFavorite = false;
-  bool _bulkNotesAppend = false; // false = Set (overwrite), true = Append
-  final Map<BulkCollectionType, BulkCollectionMode> _collectionModes = {};
-  bool _bulkTankOnlyIfEmpty = false;
-
   // Tanks "Update" mode (#797): a template cylinder plus the mask of which of
   // its attributes to write onto the tanks each dive already has.
-  DiveTank _bulkTankSpecs = const DiveTank(id: 'bulk-tank-specs');
-  Set<TankSpecField> _bulkTankSpecFields = {};
-
-  /// A role per tank position for Update's Role field, or null for the
-  /// template's single role on every tank (issue #4412).
-  List<TankRole>? _bulkTankSlotRoles;
-
   // Bulk tri-state membership state for each reference collection: the members
   // shown across the selected dives (existing + picker-added), their per-item
   // dive counts, and the resulting add/remove delta.
-  Map<String, int> _equipmentCounts = {};
-
-  /// The gear listed in the bulk equipment editor, in no particular order:
-  /// it renders through the diver's gear arrangement (#2274), so it is kept
-  /// as whole items: the arrangement orders them by type and then by the
-  /// diver's chosen item field (name, or one of the gear's dates).
-  List<EquipmentItem> _bulkGear = [];
-  MembershipDelta _equipmentDelta = MembershipDelta.empty;
-
-  /// The last "Use Set" instruction to the equipment editor: every item of the
-  /// set goes on all the selected dives (#1754). The serial makes each
-  /// application a fresh request, even for the same set.
-  ({int serial, Set<String> ids})? _equipmentEnsureOn;
-
-  /// Which set "Use Set" switched each equipment row on with, so those adds
-  /// carry the set (#4284).
-  Map<String, String> _equipmentSetOf = const {};
-
-  /// Sets staged to come off every selected dive with what they brought.
-  List<BulkStagedSet> _equipmentSetRemovals = const [];
-
-  /// Sets used in this bulk edit that bring no gear, only weights or tanks
-  /// (issue #4525): with no gear row to carry them, they are staged here.
-  List<BulkStagedSet> _equipmentSetAdds = const [];
-
-  /// The gear rows already on every selected dive.
-  Set<String> get _equipmentOnEveryDive {
-    final total = widget.bulkDiveIds?.length ?? 0;
-    return {
-      for (final e in _equipmentCounts.entries)
-        if (total > 0 && e.value >= total) e.key,
-    };
-  }
-
-  Map<String, int> _tagCounts = {};
-  List<BulkMembershipItem> _tagMembers = [];
-  MembershipDelta _tagDelta = MembershipDelta.empty;
-
-  Map<String, int> _diveTypeCounts = {};
-  final Map<String, String> _diveTypeNames = {};
-  List<BulkMembershipItem> _diveTypeMembers = [];
-  MembershipDelta _diveTypeDelta = MembershipDelta.empty;
-
   // The dives' training courses (#2515).
-  Map<String, int> _courseCounts = {};
-  List<BulkMembershipItem> _courseMembers = [];
-  MembershipDelta _courseDelta = MembershipDelta.empty;
-
-  Map<String, int> _buddyCounts = {};
-  final Map<String, Buddy> _buddyById = {};
-
-  /// Roles the user picked in the buddy picker during this edit. Membership
-  /// alone never lands here, so an entry means "apply these roles" (#893,
-  /// several since #1221).
-  final Map<String, List<DiveRole>> _buddyRoleById = {};
-
-  /// Role set each buddy already carries on every selected dive that has
-  /// them, so filling in the missing links reuses it instead of the default
-  /// Buddy. Buddies with a mix of sets across the selection are absent.
-  final Map<String, List<String>> _existingBuddyRoleIds = {};
-
-  /// The diver's own role set every selected dive shares, or null when the
-  /// dives disagree ([_diverRolesMixed]). A shared set seeds [_diverRoleIds],
-  /// so it is the My role row's value; only Mixed or Not set is shown as a
-  /// placeholder.
-  List<String>? _existingDiverRoleIds;
-  bool _diverRolesMixed = false;
-  List<BulkMembershipItem> _buddyMembers = [];
-  MembershipDelta _buddyDelta = MembershipDelta.empty;
-
-  Widget _gatedRow(BulkField field, Widget child) {
-    return BulkFieldGate(
-      enabled: _bulkEnabled.contains(field),
-      onChanged: (v) => setState(() {
-        if (v) {
-          _bulkEnabled.add(field);
-        } else {
-          _bulkEnabled.remove(field);
-        }
-        _markDirty();
-      }),
-      child: child,
-    );
-  }
-
-  Widget _buildBulkForm(UnitFormatter units) {
-    final l10n = context.l10n;
-    return Form(
-      key: _formKey,
-      onChanged: _markDirty,
-      child: ResponsiveFormColumns(
-        children: [
-          FormSection(
-            label: context.l10n.diveLog_bulkEdit_groupLogistics,
-            expanded: true,
-            onToggle: null,
-            children: [
-              _gatedRow(
-                BulkField.site,
-                FormRow.picker(
-                  label: l10n.diveLog_edit_row_site,
-                  value: _selectedSite?.name,
-                  placeholder: l10n.diveLog_edit_row_notSet,
-                  onTap: _showBulkSitePicker,
-                  onClear: _selectedSite == null
-                      ? null
-                      : () => setState(() => _selectedSite = null),
-                ),
-              ),
-              _gatedRow(
-                BulkField.diveCenter,
-                FormRow.picker(
-                  label: l10n.diveLog_edit_row_diveCenter,
-                  value: _selectedDiveCenter?.name,
-                  placeholder: l10n.diveLog_edit_row_notSet,
-                  onTap: _showDiveCenterPicker,
-                  onClear: _selectedDiveCenter == null
-                      ? null
-                      : () => setState(() => _selectedDiveCenter = null),
-                ),
-              ),
-              for (final (field, label, controller) in [
-                (
-                  BulkField.diveOperator,
-                  l10n.diveLog_edit_row_diveOperator,
-                  _diveOperatorController,
-                ),
-                (
-                  BulkField.boatName,
-                  l10n.diveLog_edit_row_boatName,
-                  _boatNameController,
-                ),
-                (
-                  BulkField.boatCaptain,
-                  l10n.diveLog_edit_row_boatCaptain,
-                  _boatCaptainController,
-                ),
-              ])
-                _gatedRow(
-                  field,
-                  FormRow.text(
-                    label: label,
-                    controller: controller,
-                    alwaysEditing: true,
-                    textCapitalization: TextCapitalization.words,
-                  ),
-                ),
-              _gatedRow(
-                BulkField.trip,
-                FormRow.picker(
-                  label: l10n.diveLog_edit_row_trip,
-                  value: _selectedTrip?.name,
-                  placeholder: l10n.diveLog_edit_row_notSet,
-                  onTap: _showTripPicker,
-                  onClear: _selectedTrip == null
-                      ? null
-                      : () => _setTrip(null, markDirty: false),
-                ),
-              ),
-              _gatedRow(
-                BulkField.rating,
-                FormRow.rating(
-                  label: l10n.diveLog_edit_section_rating,
-                  value: _rating,
-                  onChanged: (v) => setState(() => _rating = v),
-                  clearTooltip: l10n.common_action_clearRating,
-                ),
-              ),
-              _gatedRow(
-                BulkField.isFavorite,
-                FormRow.toggle(
-                  label: context.l10n.diveLog_bulkEdit_fieldFavorite,
-                  value: _bulkFavorite,
-                  onChanged: (v) => setState(() => _bulkFavorite = v),
-                ),
-              ),
-              _gatedRow(
-                BulkField.excludedFromStats,
-                FormRow.toggle(
-                  label: context.l10n.diveLog_bulkEdit_fieldExcludeFromStats,
-                  value: _bulkExcludedFromStats,
-                  onChanged: (v) => setState(() => _bulkExcludedFromStats = v),
-                ),
-              ),
-              _gatedRow(
-                BulkField.excludedFromGasStats,
-                FormRow.toggle(
-                  label: context.l10n.diveLog_bulkEdit_fieldExcludeFromGasStats,
-                  value: _bulkExcludedFromGasStats,
-                  onChanged: (v) =>
-                      setState(() => _bulkExcludedFromGasStats = v),
-                ),
-              ),
-            ],
-          ),
-          _buildBulkConditionsSection(units),
-          _buildBulkWeatherSection(units),
-          _buildBulkRebreatherSection(units),
-          _buildBulkCollectionsSection(units),
-          FormSection(
-            label: l10n.diveLog_edit_section_notes,
-            expanded: true,
-            onToggle: null,
-            children: [
-              _gatedRow(
-                BulkField.notes,
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SegmentedButton<bool>(
-                      segments: [
-                        ButtonSegment(
-                          value: false,
-                          label: Text(l10n.diveLog_bulkEdit_notesSet),
-                        ),
-                        ButtonSegment(
-                          value: true,
-                          label: Text(l10n.diveLog_bulkEdit_notesAppend),
-                        ),
-                      ],
-                      selected: {_bulkNotesAppend},
-                      onSelectionChanged: (s) =>
-                          setState(() => _bulkNotesAppend = s.first),
-                    ),
-                    const SizedBox(height: 8),
-                    MarkdownNotesField(
-                      controller: _notesController,
-                      maxLines: 4,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// The bulk visibility value: bulk has no stored shape to keep, so the
-  /// active mode's value is the input (issue #3226).
-  StoredVisibility _bulkVisibility(UnitFormatter units) =>
-      resolveVisibilityEntry(
-        mode: _visibilityMode,
-        preciseMeters: _visibilityMetersInput(units),
-        band: _visibilityBand,
-        preciseTouched: true,
-        rangeTouched: true,
-        original: StoredVisibility.none,
-        scale: _visibilityScale,
-      );
-
-  BulkScalarInputs _collectScalarInputs(UnitFormatter units) {
-    final bulkVisibility = _bulkVisibility(units);
-    // High-value Logistics + notes fields. Extended per group in later tasks.
-    return BulkScalarInputs(
-      diveCenterId: _selectedDiveCenter?.id,
-      diveOperator: trimmedOrNull(_diveOperatorController.text),
-      boatName: trimmedOrNull(_boatNameController.text),
-      boatCaptain: trimmedOrNull(_boatCaptainController.text),
-      tripId: _selectedTrip?.id,
-      rating: _rating > 0 ? _rating : null,
-      isFavorite: _bulkFavorite,
-      excludedFromStats: _bulkExcludedFromStats,
-      excludedFromGasStats: _bulkExcludedFromGasStats,
-      waterType: _waterType?.name,
-      visibilityMeters: bulkVisibility.meters,
-      visibilityMinMeters: bulkVisibility.range?.minM,
-      visibilityMaxMeters: bulkVisibility.range?.maxM,
-      currentDirection: _currentDirection?.name,
-      currentStrength: _currentStrength?.name,
-      swellHeight: _savedNumber(
-        _swellHeightController,
-      ).map(units.depthToMeters),
-      surfaceConditions: trimmedOrNull(_surfaceConditionsController.text),
-      entryMethod: _entryMethod?.name,
-      exitMethod: _exitMethod?.name,
-      altitude: _savedNumber(_altitudeController).map(units.altitudeToMeters),
-      surfacePressure: _savedNumber(_surfacePressureController).map(
-        (mbar) => mbar / 1000, // Convert mbar to bar
-      ),
-      windSpeed: _savedNumber(_windSpeedController).map(units.windSpeedToMs),
-      windDirection: _windDirection?.name,
-      cloudCover: _cloudCover?.name,
-      precipitation: _precipitation?.name,
-      humidity: _savedNumber(_humidityController),
-      weatherDescription: _weatherDescriptionController.text.isNotEmpty
-          ? _weatherDescriptionController.text
-          : null,
-      diveMode: _diveMode.code,
-      setpointLow: _setpointLow,
-      setpointHigh: _setpointHigh,
-      setpointDeco: _setpointDeco,
-      scrubberType: _scrubberType,
-      scrubberDuration: _scrubberDurationMinutes,
-      notes: _notesController.text,
-    );
-  }
-
-  Widget _collectionEntry({
-    required BulkCollectionType type,
-    required String label,
-    required List<BulkCollectionMode> allowed,
-    required Widget editor,
-  }) {
-    final mode = _collectionModes[type];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-              ),
-              BulkCollectionModeSelector(
-                mode: mode,
-                allowed: allowed,
-                onChanged: (m) => setState(() {
-                  if (m == null) {
-                    _collectionModes.remove(type);
-                  } else {
-                    _collectionModes[type] = m;
-                  }
-                }),
-              ),
-            ],
-          ),
-        ),
-        if (mode != null) editor,
-      ],
-    );
-  }
-
-  /// Localized name of the role currently staged for the bulk "My role" gate,
-  /// or null when no role is staged (the row then shows its placeholder).
-  String? _bulkDiverRoleLabel() {
-    // Watched before the null check so the row stays subscribed while no role
-    // is staged and relabels itself once the role list resolves.
-    final rolesById =
-        ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
-    if (_diverRoleIds.isEmpty) return null;
-    return rolesForIds(
-      _diverRoleIds,
-      rolesById,
-    ).joinedLocalizedNames(context.l10n);
-  }
-
-  /// What the My role row says when no set is staged: Mixed when the
-  /// selected dives' sets differ, otherwise Not set. A set the dives share is
-  /// the row's value from the start, not a placeholder.
-  String _bulkDiverRolePlaceholder() {
-    final l10n = context.l10n;
-    return _diverRolesMixed
-        ? l10n.diveLog_bulkEdit_buddyRoleMixed
-        : l10n.diveLog_edit_row_notSet;
-  }
-
-  Future<void> _showBulkDiverRolePicker() async {
-    // Awaited rather than read off the AsyncValue: nothing here watches the
-    // role list, so a plain read can hand back a still-loading empty list.
-    final roles = await ref.read(allDiveRolesProvider.future);
-    if (!mounted) return;
-    final selection = await showDiveRoleSelector(
-      context,
-      title: context.l10n.buddies_picker_selectMyRole,
-      roles: roles,
-      hiddenRoleIds: ref.read(
-        hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
-      ),
-      allowEmpty: true,
-      selectedRoleIds: _diverRoleIds,
-    );
-    if (selection == null || !mounted) return;
-    setState(() {
-      _markDirty();
-      _diverRoleIds = [for (final r in selection) r.id];
-    });
-  }
-
-  /// The role ids to show for a buddy row, or null when the selection has no
-  /// single answer: the buddy's links disagree across the selected dives, so
-  /// [_existingBuddyRoleIds] (unanimous only) has nothing for them.
-  List<String>? _bulkBuddyRoleIds(String id) {
-    final picked = _buddyRoleById[id];
-    if (picked != null) return [for (final r in picked) r.id];
-    final existing = _existingBuddyRoleIds[id];
-    if (existing != null) return existing;
-    // Not on any selected dive yet (a fresh picker add): the link the save
-    // will create defaults to Buddy, so say so rather than "Mixed".
-    return (_buddyCounts[id] ?? 0) == 0 ? const [DiveRole.buddyId] : null;
-  }
-
-  String _bulkBuddyRoleLabel(String id) {
-    final rolesById =
-        ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
-    final roleIds = _bulkBuddyRoleIds(id);
-    if (roleIds == null) return context.l10n.diveLog_bulkEdit_buddyRoleMixed;
-    return rolesForIds(roleIds, rolesById).joinedLocalizedNames(context.l10n);
-  }
-
-  Future<void> _showBulkBuddyRolePicker(BulkMembershipItem item) async {
-    final roles = await ref.read(allDiveRolesProvider.future);
-    if (!mounted) return;
-    final selection = await showDiveRoleSelector(
-      context,
-      title: context.l10n.buddies_picker_selectRole(item.label),
-      roles: roles,
-      hiddenRoleIds: ref.read(
-        hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
-      ),
-      selectedRoleIds: _bulkBuddyRoleIds(item.id) ?? const [],
-      keepRoleIds: [...?_existingBuddyRoleIds[item.id]],
-      onCreateCustomRole: (name) => ref
-          .read(diveRoleListNotifierProvider.notifier)
-          .addDiveRoleByName(name),
-    );
-    if (selection == null || !mounted) return;
-    setState(() {
-      _markDirty();
-      _buddyRoleById[item.id] = selection.isEmpty
-          ? [DiveRole.builtInBuddy()]
-          : selection;
-    });
-  }
-
-  Widget _bulkTanksEditor(UnitFormatter units) {
-    // Update edits the tanks each dive already has, so it takes a template plus
-    // a field mask instead of a tank list (#797).
-    if (_collectionModes[BulkCollectionType.tanks] ==
-        BulkCollectionMode.update) {
-      return BulkTankSpecsEditor(
-        specs: _bulkTankSpecs,
-        fields: _bulkTankSpecFields,
-        slotRoles: _bulkTankSlotRoles,
-        onSlotRolesChanged: (r) => setState(() {
-          _markDirty();
-          _bulkTankSlotRoles = r;
-        }),
-        onSpecsChanged: (t) => setState(() {
-          _markDirty();
-          _bulkTankSpecs = t;
-        }),
-        onFieldsChanged: (f) => setState(() {
-          _markDirty();
-          _bulkTankSpecFields = f;
-        }),
-      );
-    }
-    return Column(
-      children: [
-        for (var i = 0; i < _tanks.length; i++)
-          TankRow(
-            key: ValueKey((_tanks[i].id, _tankRowGeneration)),
-            tank: _tanks[i],
-            tankNumber: i + 1,
-            units: units,
-            onChanged: (t) => setState(() {
-              _markDirty();
-              _tanks[i] = t;
-            }),
-            onRemove: () => _removeTank(i),
-          ),
-        TextButton.icon(
-          onPressed: _addTank,
-          icon: const Icon(Icons.add),
-          label: Text(context.l10n.diveLog_edit_addTank),
-        ),
-        if (_collectionModes[BulkCollectionType.tanks] ==
-            BulkCollectionMode.add)
-          CheckboxListTile(
-            value: _bulkTankOnlyIfEmpty,
-            onChanged: (v) => setState(() => _bulkTankOnlyIfEmpty = v ?? false),
-            title: Text(context.l10n.diveLog_bulkEdit_tankOnlyIfEmpty),
-            controlAffinity: ListTileControlAffinity.leading,
-            dense: true,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildBulkCollectionsSection(UnitFormatter units) {
-    final l10n = context.l10n;
-    final total = widget.bulkDiveIds!.length;
-    final labels = diveBulkMembershipLabels(l10n);
-    const ownedModes = [BulkCollectionMode.add, BulkCollectionMode.replace];
-    // Only an assembly or a part gets a chip row, as on the equipment list;
-    // plain gear keeps the status line as its whole subtitle.
-    final componentIndex = ref.watch(equipmentComponentsIndexProvider).value;
-    final gearRows = _bulkGearRows(ref.watch(equipmentArrangementProvider));
-    return FormSection(
-      label: context.l10n.diveLog_bulkEdit_groupCollections,
-      expanded: true,
-      onToggle: null,
-      children: [
-        BulkMembershipEditor(
-          title: l10n.diveLog_edit_section_tags,
-          total: total,
-          labels: labels,
-          items: _tagMembers,
-          counts: _tagCounts,
-          onAdd: _bulkAddTags,
-          onChanged: (d) => setState(() => _tagDelta = d),
-        ),
-        BulkMembershipEditor(
-          title: l10n.diveLog_edit_label_diveTypes,
-          total: total,
-          labels: labels,
-          items: _diveTypeMembers,
-          counts: _diveTypeCounts,
-          onAdd: _bulkAddDiveTypes,
-          onChanged: (d) => setState(() => _diveTypeDelta = d),
-        ),
-        BulkMembershipEditor(
-          title: l10n.diveLog_edit_section_trainingCourses,
-          total: total,
-          labels: labels,
-          items: _courseMembers,
-          counts: _courseCounts,
-          onAdd: _bulkAddCourses,
-          onChanged: (d) => setState(() => _courseDelta = d),
-        ),
-        BulkMembershipEditor(
-          title: l10n.diveLog_edit_section_equipment,
-          total: total,
-          labels: labels,
-          items: gearRows.items,
-          counts: _equipmentCounts,
-          onAdd: _bulkAddEquipment,
-          secondaryAction: BulkGearActions(onUseSet: _bulkUseEquipmentSet),
-          headerBuilder: (item) => switch (gearRows.headings[item.id]) {
-            final type? => EquipmentGroupHeader(type: type),
-            null => null,
-          },
-          onChanged: (d) => setState(() => _equipmentDelta = d),
-          ensureOn: _equipmentEnsureOn,
-          // Assembly and part-of chips, as on the equipment list (#1487). They
-          // go under the name, not in the trailing slot: a long assembly name
-          // there squeezed the row to one character per line (#2276).
-          detailBuilder: (item) =>
-              componentIndex != null &&
-                  (componentIndex.isAssembly(item.id) ||
-                      componentIndex.parentIdsOf(item.id).isNotEmpty)
-              ? AssemblyChips(itemId: item.id)
-              : null,
-        ),
-        if (_equipmentSetAdds.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
-            child: Wrap(
-              spacing: 8,
-              children: [
-                for (final staged in _equipmentSetAdds)
-                  InputChip(
-                    key: ValueKey('bulk-used-set-${staged.id}'),
-                    avatar: const Icon(Icons.folder_special, size: 18),
-                    label: Text(staged.name),
-                    onDeleted: () => setState(
-                      () => _equipmentSetAdds = [
-                        for (final s in _equipmentSetAdds)
-                          if (s.id != staged.id) s,
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        BulkEquipmentSetRemovals(
-          sets: _equipmentSetRemovals,
-          onPick: _bulkRemoveEquipmentSet,
-          onUnstage: (id) => setState(
-            () => _equipmentSetRemovals = [
-              for (final s in _equipmentSetRemovals)
-                if (s.id != id) s,
-            ],
-          ),
-        ),
-        BulkMembershipEditor(
-          title: l10n.diveLog_edit_group_buddies,
-          total: total,
-          labels: labels,
-          items: _buddyMembers,
-          counts: _buddyCounts,
-          onAdd: _bulkAddBuddies,
-          onChanged: (d) => setState(() => _buddyDelta = d),
-          // Each dive_buddies link carries roles, so the row needs an
-          // affordance membership alone cannot express (#1220). It sits under
-          // the name, not in the trailing slot, because a set of roles can be
-          // long (#1221, as #2276 did for assembly chips).
-          detailBuilder: (item) => Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: TextButton(
-              key: ValueKey('buddy-role-${item.id}'),
-              onPressed: () => _showBulkBuddyRolePicker(item),
-              child: Text(
-                _bulkBuddyRoleLabel(item.id),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-        ),
-        // The diver's own role is a scalar column, not a membership row, so it
-        // rides the gate lane. It sits with Buddies because that is where the
-        // single-dive editor keeps it (#1220).
-        _gatedRow(
-          BulkField.diverRole,
-          FormRow.picker(
-            label: l10n.diveLog_bulkEdit_fieldMyRole,
-            value: _bulkDiverRoleLabel(),
-            placeholder: _bulkDiverRolePlaceholder(),
-            onTap: _showBulkDiverRolePicker,
-            onClear: _diverRoleIds.isEmpty
-                ? null
-                : () => setState(() {
-                    _markDirty();
-                    _diverRoleIds = const [];
-                  }),
-          ),
-        ),
-        _collectionEntry(
-          type: BulkCollectionType.weights,
-          label: context.l10n.diveLog_bulkEdit_collectionWeights,
-          allowed: ownedModes,
-          editor: _weightChild(units),
-        ),
-        _collectionEntry(
-          type: BulkCollectionType.tanks,
-          label: context.l10n.diveLog_bulkEdit_collectionTanks,
-          // Tanks alone can be edited in place, keeping their pressures (#797).
-          allowed: const [
-            BulkCollectionMode.add,
-            BulkCollectionMode.update,
-            BulkCollectionMode.replace,
-          ],
-          editor: _bulkTanksEditor(units),
-        ),
-        _collectionEntry(
-          type: BulkCollectionType.sightings,
-          label: context.l10n.diveLog_edit_section_marineLife,
-          allowed: ownedModes,
-          editor: _sightingsChild(),
-        ),
-      ],
-    );
-  }
-
-  /// The bulk Site row's picker. Unlike [_showSitePicker] it only stages the
-  /// site: the snap onto water type, entry/exit and dive types happens per
-  /// dive in the bulk service, so the form's own rows keep what the diver
-  /// set (#3657).
-  Future<void> _showBulkSitePicker() async {
-    if (_openingSitePicker) return;
-    _openingSitePicker = true;
-    try {
-      final areaAnchor = await _areaAnchor();
-      if (!mounted) return;
-      final site = await pickOrCreateSite(
-        context,
-        ref,
-        selectedSiteId: _selectedSite?.id,
-        currentLocation: _currentLocation,
-        areaAnchor: areaAnchor,
-      );
-      if (site != null && mounted) {
-        _markDirty();
-        setState(() => _selectedSite = site);
-      }
-    } finally {
-      _openingSitePicker = false;
-    }
-  }
-
-  List<BulkCollectionOp> _collectCollectionOps() {
-    final ops = <BulkCollectionOp>[];
-    if (_bulkEnabled.contains(BulkField.site)) {
-      ops.add(SiteOp(siteId: _selectedSite?.id));
-    }
-    if (_bulkEnabled.contains(BulkField.diverRole)) {
-      ops.add(DiverRolesOp(roleIds: _diverRoleIds));
-    }
-    if (_tagDelta.addIds.isNotEmpty) {
-      ops.add(TagsOp(mode: BulkCollectionMode.add, tagIds: _tagDelta.addIds));
-    }
-    if (_tagDelta.removeIds.isNotEmpty) {
-      ops.add(
-        TagsOp(mode: BulkCollectionMode.remove, tagIds: _tagDelta.removeIds),
-      );
-    }
-    if (_diveTypeDelta.addIds.isNotEmpty) {
-      ops.add(
-        DiveTypesOp(
-          mode: BulkCollectionMode.add,
-          diveTypeIds: _diveTypeDelta.addIds,
-        ),
-      );
-    }
-    if (_diveTypeDelta.removeIds.isNotEmpty) {
-      ops.add(
-        DiveTypesOp(
-          mode: BulkCollectionMode.remove,
-          diveTypeIds: _diveTypeDelta.removeIds,
-        ),
-      );
-    }
-    for (final (mode, ids) in [
-      (BulkCollectionMode.add, _courseDelta.addIds),
-      (BulkCollectionMode.remove, _courseDelta.removeIds),
-    ]) {
-      if (ids.isNotEmpty) ops.add(DiveCoursesOp(mode: mode, courseIds: ids));
-    }
-    // Sets come off before any gear goes on, so a set removed and another
-    // added in one edit cannot take gear the two share (#4284).
-    if (_equipmentSetRemovals.isNotEmpty) {
-      ops.add(
-        EquipmentSetsOp(
-          mode: BulkCollectionMode.remove,
-          setIds: [for (final s in _equipmentSetRemovals) s.id],
-        ),
-      );
-    }
-    // A set with no gear has no gear op to ride on (issue #4525).
-    if (_equipmentSetAdds.isNotEmpty) {
-      ops.add(
-        EquipmentSetsOp(
-          mode: BulkCollectionMode.add,
-          setIds: [for (final s in _equipmentSetAdds) s.id],
-        ),
-      );
-    }
-    ops.addAll(
-      equipmentAddOps(
-        equipmentAddIds(
-          _equipmentDelta,
-          _equipmentSetOf,
-          onEveryDive: _equipmentOnEveryDive,
-        ),
-        _equipmentSetOf,
-      ),
-    );
-    if (_equipmentDelta.removeIds.isNotEmpty) {
-      ops.add(
-        EquipmentOp(
-          mode: BulkCollectionMode.remove,
-          equipmentIds: _equipmentDelta.removeIds,
-        ),
-      );
-    }
-    // Membership and role are separate instructions. A row the user only
-    // ticked on must not rewrite the role of links that already exist (#893).
-    final membershipOnlyAdds = _buddyDelta.addIds
-        .where((id) => !_buddyRoleById.containsKey(id))
-        .toList();
-    // A picked role on a buddy who is also being added rides the add, so the
-    // links it creates carry that role from the start.
-    final pickedRoleAdds = _buddyRoleById.keys
-        .where(
-          (id) =>
-              !_buddyDelta.removeIds.contains(id) &&
-              _buddyDelta.addIds.contains(id),
-        )
-        .toList();
-    // A picked role with no membership change is role-only: rewrite the links
-    // that exist and create none, so changing the role of a buddy who is on
-    // some of the selection cannot add them to the rest (#1220).
-    final roleOnlyUpdates = _buddyRoleById.keys
-        .where(
-          (id) =>
-              !_buddyDelta.removeIds.contains(id) &&
-              !_buddyDelta.addIds.contains(id),
-        )
-        .toList();
-    if (membershipOnlyAdds.isNotEmpty) {
-      ops.add(
-        BuddiesOp(
-          mode: BulkCollectionMode.add,
-          buddies: membershipOnlyAdds.map(_buddyWithRole).toList(),
-          overwriteRole: false,
-        ),
-      );
-    }
-    if (pickedRoleAdds.isNotEmpty) {
-      ops.add(
-        BuddiesOp(
-          mode: BulkCollectionMode.add,
-          buddies: pickedRoleAdds.map(_buddyWithRole).toList(),
-        ),
-      );
-    }
-    if (roleOnlyUpdates.isNotEmpty) {
-      ops.add(
-        BuddiesOp(
-          mode: BulkCollectionMode.update,
-          buddies: roleOnlyUpdates.map(_buddyWithRole).toList(),
-        ),
-      );
-    }
-    if (_buddyDelta.removeIds.isNotEmpty) {
-      ops.add(
-        BuddiesOp(
-          mode: BulkCollectionMode.remove,
-          buddies: _buddyDelta.removeIds.map(_buddyWithRole).toList(),
-        ),
-      );
-    }
-    final tanksMode = _collectionModes[BulkCollectionType.tanks];
-    if (tanksMode == BulkCollectionMode.update) {
-      // An empty mask would touch nothing; _saveBulk reports that separately
-      // rather than sending a no-op op through the engine.
-      if (_bulkTankSpecFields.isNotEmpty) {
-        ops.add(
-          TankSpecsOp(
-            specs: _bulkTankSpecs,
-            fields: _bulkTankSpecFields,
-            // Only while Role is ticked: positions picked and then unticked
-            // must not reach the dives (#4412).
-            slotRoles: _bulkTankSpecFields.contains(TankSpecField.role)
-                ? _bulkTankSlotRoles
-                : null,
-          ),
-        );
-      }
-    } else if (tanksMode != null) {
-      ops.add(
-        TanksOp(
-          mode: tanksMode,
-          tanks: _tanks,
-          onlyIfEmpty: _bulkTankOnlyIfEmpty,
-        ),
-      );
-    }
-    final weightsMode = _collectionModes[BulkCollectionType.weights];
-    if (weightsMode != null) {
-      ops.add(WeightsOp(mode: weightsMode, weights: _weights));
-    }
-    final sightingsMode = _collectionModes[BulkCollectionType.sightings];
-    if (sightingsMode != null) {
-      ops.add(SightingsOp(mode: sightingsMode, sightings: _sightings));
-    }
-    return ops;
-  }
-
-  Widget _enumDropdown<T extends Object>({
-    required T? value,
-    required List<T> options,
-    required String Function(T) label,
-    required ValueChanged<T?> onChanged,
-  }) {
-    return DropdownButtonFormField<T?>(
-      initialValue: value,
-      items: <DropdownMenuItem<T?>>[
-        DropdownMenuItem<T?>(
-          value: null,
-          child: Text(context.l10n.diveLog_edit_notSpecified),
-        ),
-        for (final o in options)
-          DropdownMenuItem<T?>(value: o, child: Text(label(o))),
-      ],
-      onChanged: onChanged,
-    );
-  }
-
-  Widget _buildBulkConditionsSection(UnitFormatter units) {
-    return FormSection(
-      label: context.l10n.diveLog_edit_section_conditions,
-      expanded: true,
-      onToggle: null,
-      children: [
-        _gatedRow(
-          BulkField.waterType,
-          FormRow.custom(
-            label: context.l10n.diveLog_edit_label_waterType,
-            child: _enumDropdown<WaterType>(
-              value: _waterType,
-              options: WaterType.values,
-              label: (v) => v.localizedName(context.l10n),
-              onChanged: (v) => setState(() {
-                _waterType = v;
-                _waterTypeFromSite = false;
-              }),
-            ),
-          ),
-        ),
-        _gatedRow(
-          BulkField.visibility,
-          _visibilityInput(
-            units,
-            validator: _bulkValidator(BulkField.visibility),
-          ),
-        ),
-        _gatedRow(
-          BulkField.currentDirection,
-          FormRow.custom(
-            label: context.l10n.diveLog_edit_label_currentDirection,
-            child: _enumDropdown<CurrentDirection>(
-              value: _currentDirection,
-              options: CurrentDirection.values,
-              label: (v) => v.localizedName(context.l10n),
-              onChanged: (v) => setState(() => _currentDirection = v),
-            ),
-          ),
-        ),
-        _gatedRow(
-          BulkField.currentStrength,
-          FormRow.custom(
-            label: context.l10n.diveLog_edit_label_currentStrength,
-            child: _enumDropdown<CurrentStrength>(
-              value: _currentStrength,
-              options: CurrentStrength.values,
-              label: (v) => v.localizedName(context.l10n),
-              onChanged: (v) => setState(() => _currentStrength = v),
-            ),
-          ),
-        ),
-        _gatedRow(
-          BulkField.swellHeight,
-          FormRow.text(
-            label: context.l10n.diveLog_edit_label_swellHeight,
-            controller: _swellHeightController,
-            suffixText: units.depthSymbol,
-            keyboardType: TextInputType.number,
-            alwaysEditing: true,
-            inputValidator: _bulkValidator(BulkField.swellHeight),
-          ),
-        ),
-        _gatedRow(
-          BulkField.surfaceConditions,
-          FormRow.text(
-            label: context.l10n.diveLog_edit_label_surfaceConditions,
-            controller: _surfaceConditionsController,
-            alwaysEditing: true,
-            textCapitalization: TextCapitalization.sentences,
-          ),
-        ),
-        _gatedRow(
-          BulkField.entryMethod,
-          FormRow.custom(
-            label: context.l10n.diveLog_edit_label_entryMethod,
-            child: _enumDropdown<EntryMethod>(
-              value: _entryMethod,
-              options: EntryMethod.values,
-              label: (v) => v.localizedName(context.l10n),
-              onChanged: (v) => setState(() => _entryMethod = v),
-            ),
-          ),
-        ),
-        _gatedRow(
-          BulkField.exitMethod,
-          FormRow.custom(
-            label: context.l10n.diveLog_edit_label_exitMethod,
-            child: _enumDropdown<EntryMethod>(
-              value: _exitMethod,
-              options: EntryMethod.values,
-              label: (v) => v.localizedName(context.l10n),
-              onChanged: (v) => setState(() => _exitMethod = v),
-            ),
-          ),
-        ),
-        _gatedRow(
-          BulkField.altitude,
-          FormRow.text(
-            label: context.l10n.diveLog_edit_label_altitude,
-            controller: _altitudeController,
-            keyboardType: TextInputType.number,
-            alwaysEditing: true,
-            inputValidator: _bulkValidator(BulkField.altitude),
-          ),
-        ),
-        _gatedRow(
-          BulkField.surfacePressure,
-          FormRow.text(
-            label: context.l10n.diveLog_edit_label_surfacePressure,
-            controller: _surfacePressureController,
-            keyboardType: TextInputType.number,
-            alwaysEditing: true,
-            inputValidator: _bulkValidator(BulkField.surfacePressure),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBulkWeatherSection(UnitFormatter units) {
-    return FormSection(
-      label: context.l10n.diveLog_bulkEdit_groupWeather,
-      expanded: true,
-      onToggle: null,
-      children: [
-        _gatedRow(
-          BulkField.windSpeed,
-          FormRow.text(
-            label: context.l10n.diveLog_edit_label_windSpeed,
-            controller: _windSpeedController,
-            keyboardType: TextInputType.number,
-            alwaysEditing: true,
-            inputValidator: _bulkValidator(BulkField.windSpeed),
-          ),
-        ),
-        _gatedRow(
-          BulkField.windDirection,
-          FormRow.custom(
-            label: context.l10n.diveLog_edit_label_windDirection,
-            child: _enumDropdown<CurrentDirection>(
-              value: _windDirection,
-              options: CurrentDirection.values,
-              label: (v) => v.localizedName(context.l10n),
-              onChanged: (v) => setState(() => _windDirection = v),
-            ),
-          ),
-        ),
-        _gatedRow(
-          BulkField.cloudCover,
-          FormRow.custom(
-            label: context.l10n.diveLog_edit_label_cloudCover,
-            child: _enumDropdown<CloudCover>(
-              value: _cloudCover,
-              options: CloudCover.values,
-              label: (v) => v.localizedName(context.l10n),
-              onChanged: (v) => setState(() => _cloudCover = v),
-            ),
-          ),
-        ),
-        _gatedRow(
-          BulkField.precipitation,
-          FormRow.custom(
-            label: context.l10n.diveLog_edit_label_precipitation,
-            child: _enumDropdown<Precipitation>(
-              value: _precipitation,
-              options: Precipitation.values,
-              label: (v) => v.localizedName(context.l10n),
-              onChanged: (v) => setState(() => _precipitation = v),
-            ),
-          ),
-        ),
-        _gatedRow(
-          BulkField.humidity,
-          FormRow.text(
-            label: context.l10n.diveLog_edit_label_humidity,
-            controller: _humidityController,
-            keyboardType: TextInputType.number,
-            alwaysEditing: true,
-            inputValidator: _bulkValidator(BulkField.humidity),
-          ),
-        ),
-        _gatedRow(
-          BulkField.weatherDescription,
-          FormRow.text(
-            label: context.l10n.diveLog_edit_label_weatherDescription,
-            controller: _weatherDescriptionController,
-            alwaysEditing: true,
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// The number validator for bulk row [field], or none while the row is
-  /// switched off: text in a row that will not be written must not block
-  /// the save (#1900 review).
-  FormFieldValidator<String>? _bulkValidator(BulkField field) =>
-      _bulkEnabled.contains(field) ? numberValidator(context) : null;
-
-  /// A bulk-edit number. It has no controller of its own, so it owns one
-  /// through [_bulkNumberControllers]; [_saveBulk] validates the form first,
-  /// so unreadable text never reaches the bulk write.
-  Widget _bulkNumberField(
-    BulkField field,
-    ValueChanged<double?> onChanged, {
-    bool integer = false,
-  }) {
-    final controller = _bulkNumberControllers.putIfAbsent(
-      field,
-      TextEditingController.new,
-    );
-    return NumberField(
-      controller: controller,
-      integer: integer,
-      // A switched-off row is not written, so it cannot block the save.
-      validates: _bulkEnabled.contains(field),
-      decoration: const InputDecoration(isDense: true),
-      onChanged: (read) => switch (read) {
-        NumberValue(:final value) => onChanged(value),
-        NumberBlank() => onChanged(null), // clears the setting, as before
-        NumberInvalid() => null, // keep the last readable value
-      },
-    );
-  }
-
-  Widget _buildBulkRebreatherSection(UnitFormatter units) {
-    return FormSection(
-      label: context.l10n.diveLog_bulkEdit_groupRebreather,
-      expanded: true,
-      onToggle: null,
-      children: [
-        _gatedRow(
-          BulkField.diveMode,
-          FormRow.custom(
-            label: context.l10n.diveLog_diveMode_title,
-            child: _enumDropdown<DiveMode>(
-              value: _diveMode,
-              options: DiveMode.values,
-              label: (v) => v.localizedName(context.l10n),
-              onChanged: (v) => setState(() => _diveMode = v ?? DiveMode.oc),
-            ),
-          ),
-        ),
-        _gatedRow(
-          BulkField.setpointLow,
-          FormRow.custom(
-            label: context.l10n.diveLog_bulkEdit_fieldSetpointLow,
-            child: _bulkNumberField(
-              BulkField.setpointLow,
-              (v) => _setpointLow = v,
-            ),
-          ),
-        ),
-        _gatedRow(
-          BulkField.setpointHigh,
-          FormRow.custom(
-            label: context.l10n.diveLog_bulkEdit_fieldSetpointHigh,
-            child: _bulkNumberField(
-              BulkField.setpointHigh,
-              (v) => _setpointHigh = v,
-            ),
-          ),
-        ),
-        _gatedRow(
-          BulkField.setpointDeco,
-          FormRow.custom(
-            label: context.l10n.diveLog_bulkEdit_fieldSetpointDeco,
-            child: _bulkNumberField(
-              BulkField.setpointDeco,
-              (v) => _setpointDeco = v,
-            ),
-          ),
-        ),
-        _gatedRow(
-          BulkField.scrubberType,
-          FormRow.custom(
-            label: context.l10n.diveLog_bulkEdit_fieldScrubberType,
-            child: TextFormField(
-              decoration: const InputDecoration(isDense: true),
-              onChanged: (v) => _scrubberType = v.isEmpty ? null : v,
-            ),
-          ),
-        ),
-        _gatedRow(
-          BulkField.scrubberDuration,
-          FormRow.custom(
-            label: context.l10n.diveLog_bulkEdit_fieldScrubberDuration,
-            child: _bulkNumberField(
-              BulkField.scrubberDuration,
-              (v) => _scrubberDurationMinutes = v?.toInt(),
-              integer: true,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _saveBulk(UnitFormatter units) async {
-    // An unreadable number must not reach a write across many dives.
-    if (!_formKey.currentState!.validate()) return;
-    final l10n = context.l10n;
-    final ids = widget.bulkDiveIds!;
-
-    // Contradiction guard: mode = OC cannot carry rebreather settings.
-    const rebreatherFields = {
-      BulkField.setpointLow,
-      BulkField.setpointHigh,
-      BulkField.setpointDeco,
-      BulkField.scrubberType,
-      BulkField.scrubberDuration,
-    };
-    if (_bulkEnabled.contains(BulkField.diveMode) &&
-        _diveMode == DiveMode.oc &&
-        _bulkEnabled.any(rebreatherFields.contains)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.diveLog_bulkEdit_contradiction)),
-      );
-      return;
-    }
-
-    // The My role gate rides DiverRolesOp (#1221) and the Site gate SiteOp
-    // (#3657), not a scalar column.
-    final scalarFields = Set<BulkField>.from(_bulkEnabled)
-      ..remove(BulkField.diverRole)
-      ..remove(BulkField.site);
-    String? notesAppend;
-    if (_bulkEnabled.contains(BulkField.notes) && _bulkNotesAppend) {
-      scalarFields.remove(BulkField.notes);
-      notesAppend = _notesController.text;
-    }
-    final scalars = buildScalarCompanion(
-      scalarFields,
-      _collectScalarInputs(units),
-    );
-    final ops = _collectCollectionOps();
-    final hasScalar = scalars.toColumns(false).isNotEmpty;
-    if (!hasScalar &&
-        (notesAppend == null || notesAppend.isEmpty) &&
-        ops.isEmpty) {
-      // An incomplete tank intent only blocks the save when it is the whole
-      // request; alongside other changes it no-ops, as every other collection
-      // does with an empty payload. Name the tank case so the hint is
-      // actionable rather than the generic "nothing selected".
-      final tanksUpdateEmpty =
-          _collectionModes[BulkCollectionType.tanks] ==
-              BulkCollectionMode.update &&
-          _bulkTankSpecFields.isEmpty;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            tanksUpdateEmpty
-                ? l10n.diveLog_bulkEdit_tankSpecsNoFields
-                : l10n.diveLog_bulkEdit_nothingSelected,
-          ),
-        ),
-      );
-      return;
-    }
-
-    // An in-place tank update skips dives with no tanks; warn before applying.
-    final skipped = ops.any((o) => o is TankSpecsOp)
-        ? await ref.read(diveRepositoryProvider).divesWithoutTanksCount(ids)
-        : 0;
-    // Roles by position leave dives whose tanks do not line up alone (#4412).
-    final slotRoles = ops.whereType<TankSpecsOp>().firstOrNull?.slotRoles;
-    final roleSkipped = slotRoles == null
-        ? 0
-        : await ref
-              .read(diveRepositoryProvider)
-              .divesWithSlotRoleMismatchCount(ids, slotRoles);
-    if (!mounted) return;
-
-    // Name every membership change up front: a stray removal otherwise lands
-    // on every selected dive with nothing but "Apply changes?" to warn (#1754).
-    final changes = summarizeBulkMembership([
-      (
-        title: l10n.diveLog_edit_section_tags,
-        delta: _tagDelta,
-        members: _tagMembers,
-      ),
-      (
-        title: l10n.diveLog_edit_label_diveTypes,
-        delta: _diveTypeDelta,
-        members: _diveTypeMembers,
-      ),
-      (
-        title: l10n.diveLog_edit_section_trainingCourses,
-        delta: _courseDelta,
-        members: _courseMembers,
-      ),
-      (
-        title: l10n.diveLog_edit_section_equipment,
-        delta: _equipmentDelta,
-        // Only names the ids; the summary sorts them A to Z itself.
-        members: [
-          for (final e in _bulkGear)
-            BulkMembershipItem(id: e.id, label: e.name),
-        ],
-      ),
-      (
-        title: l10n.diveLog_edit_group_buddies,
-        delta: _buddyDelta,
-        members: _buddyMembers,
-      ),
-      (
-        title: l10n.diveLog_bulkEdit_equipmentSets,
-        delta: MembershipDelta(
-          [for (final s in _equipmentSetAdds) s.id],
-          [for (final s in _equipmentSetRemovals) s.id],
-        ),
-        members: [
-          for (final s in [..._equipmentSetAdds, ..._equipmentSetRemovals])
-            BulkMembershipItem(id: s.id, label: s.name),
-        ],
-      ),
-    ]);
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.diveLog_bulkEdit_confirmTitle),
-        content: skipped > 0 || roleSkipped > 0 || changes.isNotEmpty
-            ? SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (changes.isNotEmpty)
-                      BulkChangeSummary(
-                        sections: changes,
-                        addingHeading: l10n.diveLog_bulkEdit_confirmAdding(
-                          ids.length,
-                        ),
-                        removingHeading: l10n.diveLog_bulkEdit_confirmRemoving(
-                          ids.length,
-                        ),
-                      ),
-                    if (skipped > 0)
-                      Text(l10n.diveLog_bulkEdit_tankSpecsSkipped(skipped)),
-                    if (roleSkipped > 0)
-                      Text(l10n.diveLog_bulkEdit_tankRolesSkipped(roleSkipped)),
-                  ],
-                ),
-              )
-            : null,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.common_action_cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l10n.diveLog_bulkEdit_confirmApply),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-
-    setState(() => _isSaving = true);
-    try {
-      final service = ref.read(bulkDiveEditServiceProvider);
-      final snapshot = await service.apply(
-        BulkEditRequest(
-          diveIds: ids,
-          scalars: scalars,
-          notesAppend: notesAppend,
-          ops: ops,
-        ),
-      );
-      // Queue a data-quality rescan of the edited dives (fire-and-forget).
-      scheduleQualityScan(ids);
-      scheduleSensorSummaryRefresh(ids);
-      scheduleDerivedMetricsRefresh(ids);
-      if (_bulkEnabled.contains(BulkField.visibility)) {
-        _rememberVisibilityMode(_bulkVisibility(units));
-      }
-      if (!mounted) return;
-      final messenger = ScaffoldMessenger.of(context);
-      if (widget.embedded) {
-        widget.onSaved?.call(ids.first);
-      } else if (widget.bulkPopOnSave) {
-        context.pop();
-      } else {
-        context.go('/dives');
-      }
-      final stretched = tripDateStretchMessage(
-        l10n,
-        units,
-        snapshot.tripDateStretches,
-      );
-      final applied = l10n.diveLog_bulkEdit_applied(ids.length);
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(stretched == null ? applied : '$applied\n$stretched'),
-          duration: const Duration(seconds: 5),
-          // A SnackBar with an action defaults to persist: true, which makes the
-          // auto-dismiss timer a no-op so the banner never hides on its own.
-          // Force the 5s auto-dismiss and add a close icon so the banner can be
-          // dismissed without tapping Undo (which would revert the edit). #406.
-          persist: false,
-          showCloseIcon: true,
-          action: SnackBarAction(
-            label: l10n.diveLog_bulkDelete_undo,
-            onPressed: () => service.undo(snapshot),
-          ),
-        ),
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.diveLog_edit_snackbar_errorSaving(e.toString())),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isSaving = false);
-    }
-  }
-
   Widget _customFieldsChild() {
     final currentDiverId = ref.watch(currentDiverIdProvider);
     final suggestions = currentDiverId != null
@@ -3249,9 +1762,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       final diverId =
           _existingDive?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
-      if (widget.isBulk) {
-        return await repository.forDives(widget.bulkDiveIds!, diverId: diverId);
-      }
       return await repository.forDive(
         at: _currentEntryTime(),
         tripId: _selectedTrip?.id,
@@ -3335,7 +1845,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           : null,
       diveCenterName: _selectedDiveCenter?.name,
       centerCaption: _selectedDiveCenter?.displayLocation,
-      centerChild: _selectedDiveCenter == null || widget.isBulk
+      centerChild: _selectedDiveCenter == null
           ? null
           : RentalMemoryCard(
               center: _selectedDiveCenter!,
@@ -3483,7 +1993,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// down. Runs when the trip is set and when a tank is added.
   Future<void> _suggestTripCylinders() async {
     final tripId = _selectedTrip?.id;
-    if (tripId == null || widget.isBulk) return;
+    if (tripId == null) return;
     final states = await _readTripCylinderStates(tripId);
     if (!mounted || _selectedTrip?.id != tripId) return;
     final result = suggestTripCylindersForTanks(
@@ -3563,7 +2073,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// selected dives in bulk edit, else the dive as the form holds it, saved
   /// or not.
   Future<List<SelectionDiveFacts>> _newTripFacts() async {
-    if (widget.isBulk) return loadSelectionTripFacts(widget.bulkDiveIds!);
     return [
       SelectionDiveFacts(
         diveId: '',
@@ -3753,7 +2262,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       notesPlaceholder: context.l10n.diveLog_edit_notesHint,
       sightingsChild: _sightingsChild(),
       tagsChild: _tagsChild(),
-      onAnnotate: widget.isBulk ? null : _requestAnnotation,
+      onAnnotate: _requestAnnotation,
     );
   }
 
@@ -3780,20 +2289,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       scope: TagScope.dives,
     );
   }
-
-  /// Opens the previously-used-tag picker (#1171) over [selected], so tagging
-  /// stays consistent without having to recall earlier spellings. See
-  /// [showTagPickerSheet] for when to pass [host].
-  void _showTagPickerFor({
-    required List<Tag> selected,
-    required ValueChanged<List<Tag>> onPicked,
-    BuildContext? host,
-  }) => showTagPickerSheet(
-    context,
-    selected: selected,
-    onPicked: onPicked,
-    host: host,
-  );
 
   /// Opens the profile editor (issue #3066), then reads the dive again.
   Future<void> _openProfileEditor(String diveId, {String? initialMode}) async {
@@ -4588,24 +3083,20 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 // pointless reordering of dive_equipment on every save.
                 DiveGearTreeView(
                   links: gearLinksFor(_selectedEquipment, _gearRows),
-                  overlapNote: widget.isBulk
-                      ? null
-                      : _sharedGearNotes(
-                          ref
-                                  .watch(
-                                    sharedGearOverlapProvider(
-                                      _sharedGearQuery(
-                                        ref
-                                            .watch(
-                                              validatedCurrentDiverIdProvider,
-                                            )
-                                            .value,
-                                      ),
-                                    ),
-                                  )
-                                  .value ??
-                              const {},
-                        ),
+                  overlapNote: _sharedGearNotes(
+                    ref
+                            .watch(
+                              sharedGearOverlapProvider(
+                                _sharedGearQuery(
+                                  ref
+                                      .watch(validatedCurrentDiverIdProvider)
+                                      .value,
+                                ),
+                              ),
+                            )
+                            .value ??
+                        const {},
+                  ),
                   ownerReferenceDiverId:
                       _existingDive?.diverId ??
                       ref.watch(validatedCurrentDiverIdProvider).value,
@@ -4627,16 +3118,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // "Save as Set" is single-dive only; in bulk mode the
-                    // membership editor replaces this editor entirely.
-                    if (!widget.isBulk) ...[
-                      TextButton.icon(
-                        onPressed: _saveEquipmentAsSet,
-                        icon: const Icon(Icons.save_alt, size: 18),
-                        label: Text(context.l10n.diveLog_edit_saveAsSet),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
+                    TextButton.icon(
+                      onPressed: _saveEquipmentAsSet,
+                      icon: const Icon(Icons.save_alt, size: 18),
+                      label: Text(context.l10n.diveLog_edit_saveAsSet),
+                    ),
+                    const SizedBox(width: 8),
                     TextButton(
                       onPressed: () {
                         setState(() {
@@ -4862,447 +3349,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
       ),
     );
-  }
-
-  /// Load the members (with per-item dive counts) of every id-based reference
-  /// collection across the selected dives, so each tri-state editor can show
-  /// its all/some/none state.
-  Future<void> _loadBulkMembers() async {
-    final ids = widget.bulkDiveIds!;
-    final repo = ref.read(diveRepositoryProvider);
-    final equipCounts = await repo.equipmentCountsForDives(ids);
-    final tagCounts = await repo.tagCountsForDives(ids);
-    final typeCounts = await repo.diveTypeCountsForDives(ids);
-    final courseCounts = await repo.courseCountsForDives(ids);
-    final buddyRepo = ref.read(buddyRepositoryProvider);
-    final buddyCounts = await buddyRepo.buddyCountsForDives(ids);
-    final buddyRoles = await buddyRepo.unanimousBuddyRolesForDives(ids);
-    final diverRoleSets = await DiveRoleLinkRepository().diverRoleIdsForDives(
-      ids,
-    );
-
-    final equip = await EquipmentRepository().getEquipmentByIds(
-      equipCounts.keys.toList(),
-    );
-    final allTags = await ref.read(tagsProvider.future);
-    final allTypes = await ref.read(diveTypesProvider.future);
-    final allCourses = await ref.read(allCoursesProvider.future);
-    final allBuddies = await buddyRepo.getAllBuddies();
-    if (!mounted) return;
-
-    final tagName = {for (final t in allTags) t.id: t.name};
-    final typeName = {
-      for (final t in allTypes) t.id: t.localizedName(context.l10n),
-    };
-    final buddyMap = {for (final b in allBuddies) b.id: b};
-    // The count queries group by id with no ORDER BY, so sort each member list
-    // by label to keep the bulk editor's row order stable across loads/devices.
-    // Gear needs no sort here: it renders through the gear arrangement, whose
-    // comparisons all end in a total tie-break.
-    int byLabel(BulkMembershipItem a, BulkMembershipItem b) =>
-        compareTextForSort(a.label, b.label);
-    setState(() {
-      _equipmentCounts = equipCounts;
-      _bulkGear = equip;
-      _tagCounts = tagCounts;
-      _tagMembers = [
-        for (final id in tagCounts.keys)
-          BulkMembershipItem(
-            id: id,
-            label: tagName[id] ?? id,
-            icon: Icons.label_outline,
-          ),
-      ]..sort(byLabel);
-      _diveTypeCounts = typeCounts;
-      _diveTypeNames
-        ..clear()
-        ..addAll(typeName);
-      _diveTypeMembers = [
-        for (final id in typeCounts.keys)
-          BulkMembershipItem(
-            id: id,
-            label: typeName[id] ?? id,
-            icon: Icons.scuba_diving,
-          ),
-      ]..sort(byLabel);
-      _courseCounts = courseCounts;
-      final courseName = {for (final c in allCourses) c.id: c.name};
-      _courseMembers = [
-        for (final id in courseCounts.keys)
-          BulkMembershipItem(
-            id: id,
-            label: courseName[id] ?? id,
-            icon: Icons.school_outlined,
-          ),
-      ]..sort(byLabel);
-      _buddyCounts = buddyCounts;
-      final distinctDiverSets = {
-        for (final set in diverRoleSets.values) set.join('|'),
-      };
-      _diverRolesMixed = distinctDiverSets.length > 1;
-      _existingDiverRoleIds = _diverRolesMixed
-          ? null
-          : diverRoleSets.values.firstOrNull;
-      // A set every dive shares is the row's starting value, so the picker
-      // opens with it ticked and enabling the gate keeps it rather than
-      // replacing it with nothing.
-      if (!_diverRolesMixed) _diverRoleIds = _existingDiverRoleIds ?? const [];
-      _buddyById
-        ..clear()
-        ..addAll(buddyMap);
-      _existingBuddyRoleIds
-        ..clear()
-        ..addAll(buddyRoles);
-      _buddyMembers = [
-        for (final id in buddyCounts.keys)
-          BulkMembershipItem(
-            id: id,
-            label: buddyMap[id]?.name ?? id,
-            icon: Icons.person_outline,
-          ),
-      ]..sort(byLabel);
-    });
-  }
-
-  /// The bulk equipment rows in the diver's gear arrangement, headings
-  /// included, as the single-dive gear list shows them (#2274).
-  BulkGearRows _bulkGearRows(EquipmentArrangement arrangement) {
-    final l10n = context.l10n;
-    return arrangeBulkGearRows(
-      _bulkGear,
-      arrangement,
-      typeLabel: (type) => type.localizedName(l10n),
-    );
-  }
-
-  void _bulkAddEquipment() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => EquipmentPickerSheet(
-          scrollController: scrollController,
-          selectedEquipmentIds: _bulkGear.map((e) => e.id).toSet(),
-          hideSpare: true,
-          hideAssemblyParts: true,
-          offerLeftKit: true,
-          onEquipmentConfirmed: (items) {
-            setState(() => _bulkGear = withBulkGear(_bulkGear, items));
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-    );
-  }
-
-  Future<void> _bulkUseEquipmentSet() async {
-    // The sheet closes on the tap, as before; the members are filtered once
-    // it has, so a second tap cannot land while the filter is running.
-    final picked =
-        await showModalBottomSheet<
-          ({EquipmentSet set, List<EquipmentItem> items})
-        >(
-          context: context,
-          isScrollControlled: true,
-          useSafeArea: true,
-          builder: (context) => DraggableScrollableSheet(
-            initialChildSize: 0.7,
-            minChildSize: 0.5,
-            maxChildSize: 0.95,
-            expand: false,
-            builder: (context, scrollController) => EquipmentSetPickerSheet(
-              scrollController: scrollController,
-              onSetSelected: (set, items) =>
-                  Navigator.of(context).pop((set: set, items: items)),
-            ),
-          ),
-        );
-    if (picked == null || !mounted) return;
-    final set = picked.set;
-    final items = await _bulkUsableSetItems(picked.items);
-    if (!mounted) return;
-    if (items.isEmpty) {
-      // Nothing to list among the gear, so the set itself is staged, when
-      // it carries weights or tanks to apply. A set with neither, whose
-      // gear cannot go on these dives, would change nothing.
-      if (!set.carriesBeyondGear) return;
-      _markDirty();
-      setState(
-        () => _equipmentSetAdds = withStagedSet(_equipmentSetAdds, (
-          id: set.id,
-          name: set.name,
-        )),
-      );
-      return;
-    }
-    setState(() {
-      _bulkGear = withBulkGear(_bulkGear, items);
-      // Rows already listed keep whatever the user set them to, so
-      // appending alone would let an unchecked row remove a set item
-      // from every dive (#1754). Switch the whole set on.
-      _equipmentEnsureOn = (
-        serial: (_equipmentEnsureOn?.serial ?? 0) + 1,
-        ids: {for (final item in items) item.id},
-      );
-      // An item the diver switched off since an earlier set put it
-      // on is this set's now, not the earlier one's.
-      final on = equipmentSwitchedOn(
-        _equipmentDelta,
-        onEveryDive: _equipmentOnEveryDive,
-      );
-      _equipmentSetOf = withSetItems(_equipmentSetOf, set.id, [
-        for (final item in items) item.id,
-      ], isOn: on.contains);
-    });
-  }
-
-  /// The members of a set bulk "Use Set" applies: one another profile owns
-  /// and has not shared with the diver stays in the set but is not applied
-  /// (#2046), as when the set is used on one dive. An unreadable diver
-  /// applies every member, as before sharing.
-  Future<List<EquipmentItem>> _bulkUsableSetItems(
-    List<EquipmentItem> items,
-  ) async {
-    if (items.isEmpty) return items;
-    String? diverId;
-    try {
-      diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    } catch (_) {
-      diverId = null;
-    }
-    if (diverId == null) return items;
-    final usable = await EquipmentRepository().usableSetMemberIds([
-      for (final i in items) i.id,
-    ], diverId);
-    return usableSetItems(items, usable.toSet());
-  }
-
-  /// Stages a set to come off every selected dive with the gear it brought
-  /// (#4284). Nothing is written until the edit is applied.
-  Future<void> _bulkRemoveEquipmentSet() async {
-    final set = await pickEquipmentSetToRemove(context);
-    if (set == null || !mounted) return;
-    // A staged removal is an unsaved change: leaving warns about it.
-    _markDirty();
-    setState(
-      () => _equipmentSetRemovals = withStagedSet(_equipmentSetRemovals, set),
-    );
-  }
-
-  void _bulkAddTags() {
-    var picked = <Tag>[];
-    showDialog<void>(
-      context: context,
-      // The StatefulBuilder wraps the whole dialog, not just its content, so
-      // the Browse action in the button row can restage `picked` too.
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSt) => AlertDialog(
-          title: Text(context.l10n.diveLog_edit_section_tags),
-          content: TagInputWidget(
-            selectedTags: picked,
-            onTagsChanged: (t) => setSt(() => picked = t),
-          ),
-          actions: [
-            TextButton(
-              // `ctx` is inside the dialog route, so the picker lands on the
-              // same (root) navigator and opens above the dialog (#1366).
-              onPressed: () => _showTagPickerFor(
-                host: ctx,
-                selected: picked,
-                onPicked: (tags) => setSt(() => picked = tags),
-              ),
-              child: Text(context.l10n.tags_action_browse),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(context.l10n.diveLog_edit_cancel),
-            ),
-            FilledButton(
-              onPressed: () {
-                _addTagMembers(picked);
-                Navigator.pop(ctx);
-              },
-              child: Text(context.l10n.diveLog_edit_add),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _addTagMembers(List<Tag> tags) {
-    setState(() {
-      final existing = _tagMembers.map((e) => e.id).toSet();
-      _tagMembers = [
-        ..._tagMembers,
-        for (final t in tags)
-          if (!existing.contains(t.id))
-            BulkMembershipItem(
-              id: t.id,
-              label: t.name,
-              icon: Icons.label_outline,
-            ),
-      ];
-    });
-  }
-
-  void _bulkAddDiveTypes() {
-    var picked = <String>[];
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.diveLog_edit_label_diveTypes),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: StatefulBuilder(
-            builder: (ctx, setSt) => DiveTypeMultiSelectField(
-              selectedTypeIds: picked,
-              allowEmpty: true,
-              onChanged: (ids) => setSt(() => picked = ids),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(context.l10n.diveLog_edit_cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              _addDiveTypeMembers(picked);
-              Navigator.pop(ctx);
-            },
-            child: Text(context.l10n.diveLog_edit_add),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _addDiveTypeMembers(List<String> ids) {
-    setState(() {
-      final existing = _diveTypeMembers.map((e) => e.id).toSet();
-      _diveTypeMembers = [
-        ..._diveTypeMembers,
-        for (final id in ids)
-          if (!existing.contains(id))
-            BulkMembershipItem(
-              id: id,
-              label: _diveTypeNames[id] ?? id,
-              icon: Icons.scuba_diving,
-            ),
-      ];
-    });
-  }
-
-  /// Opens the course checklist and adds the picked courses as members, each
-  /// starting "on all" in the membership editor (#2515).
-  Future<void> _bulkAddCourses() async {
-    var picked = <String>[];
-    await showCourseMultiPickerSheet(
-      context,
-      selectedCourseIds: const [],
-      onChanged: (ids) => picked = ids,
-    );
-    if (!mounted || picked.isEmpty) return;
-    final names = {
-      for (final c in ref.read(courseListNotifierProvider).value ?? const [])
-        c.id: c.name,
-    };
-    setState(() {
-      final existing = {for (final m in _courseMembers) m.id};
-      _courseMembers = [
-        ..._courseMembers,
-        for (final id in picked)
-          if (!existing.contains(id))
-            BulkMembershipItem(
-              id: id,
-              label: names[id] ?? id,
-              icon: Icons.school_outlined,
-            ),
-      ];
-    });
-  }
-
-  void _bulkAddBuddies() {
-    var picked = <BuddyWithRole>[];
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.diveLog_edit_group_buddies),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: StatefulBuilder(
-            builder: (ctx, setSt) => BuddyPicker(
-              selectedBuddies: picked,
-              onChanged: (b) => setSt(() => picked = b),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(context.l10n.diveLog_edit_cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              _addBuddyMembers(picked);
-              Navigator.pop(ctx);
-            },
-            child: Text(context.l10n.diveLog_edit_add),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _addBuddyMembers(List<BuddyWithRole> buddies) {
-    setState(() {
-      final existing = _buddyMembers.map((e) => e.id).toSet();
-      for (final bwr in buddies) {
-        _buddyById[bwr.buddy.id] = bwr.buddy;
-        _buddyRoleById[bwr.buddy.id] = bwr.roles;
-      }
-      _buddyMembers = [
-        ..._buddyMembers,
-        for (final bwr in buddies)
-          if (!existing.contains(bwr.buddy.id))
-            BulkMembershipItem(
-              id: bwr.buddy.id,
-              label: bwr.buddy.name,
-              icon: Icons.person_outline,
-            ),
-      ];
-    });
-  }
-
-  BuddyWithRole _buddyWithRole(String id) => BuddyWithRole(
-    buddy:
-        _buddyById[id] ??
-        Buddy(
-          id: id,
-          name: '',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-    roles: _rolesForBuddy(id),
-  );
-
-  /// Picked roles win; otherwise reuse the set the buddy already has across
-  /// the selection so a membership-only add cannot demote them to Buddy. Only
-  /// the ids reach the database, so unresolved ids stay synthetic (#893).
-  List<DiveRole> _rolesForBuddy(String id) {
-    final picked = _buddyRoleById[id];
-    if (picked != null) return picked;
-    final existing = _existingBuddyRoleIds[id];
-    return existing == null
-        ? [DiveRole.builtInBuddy()]
-        : [for (final r in existing) DiveRole.synthetic(r)];
   }
 
   void _saveEquipmentAsSet() {
@@ -6110,7 +4156,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         }),
         // Bulk edit spans dives that may be at different sites, so there
         // is no one site to suggest from.
-        siteId: widget.isBulk ? null : _selectedSite?.id,
+        siteId: _selectedSite?.id,
         siteName: _selectedSite?.name,
         excludeDiveId: widget.diveId,
       ),
@@ -6660,7 +4706,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // rules see the whole dive. Later edits never run them.
       if (savedDiveId != null &&
           !_isPlanned &&
-          !widget.isBulk &&
           (!widget.isEditing || promotedPlan)) {
         await rulesAfterCreate(subject: RuleSubject.dives, ids: [savedDiveId]);
       }
@@ -6701,7 +4746,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // the container so its snackbar and refresh outlive this State. A
       // planned dive never prompts: a mirrored sibling is itself planned
       // and must not cascade.
-      if (mounted && savedDiveId != null && !_isPlanned && !widget.isBulk) {
+      if (mounted && savedDiveId != null && !_isPlanned) {
         final candidates = await ref
             .read(diveMirrorServiceProvider)
             .candidates(savedDiveId);

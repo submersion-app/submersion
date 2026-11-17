@@ -10,7 +10,7 @@ import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.da
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
@@ -37,11 +37,11 @@ import '../../../../helpers/folded_groups.dart';
 import 'package:submersion/features/weight_presets/data/repositories/weight_preset_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 
-/// Covers the bulk tri-state membership wiring in DiveEditPage: loading members
+/// Covers the bulk tri-state membership wiring in BulkDiveEditPage: loading members
 /// for every reference collection, the add-affordance dialogs/sheets, and the
 /// delta -> add/remove op path through apply.
 void main() {
-  group('DiveEditPage bulk membership wiring', () {
+  group('BulkDiveEditPage membership wiring', () {
     late DiveRepository repository;
     late BuddyRepository buddyRepo;
     late AppDatabase db;
@@ -136,7 +136,7 @@ void main() {
             ],
             ...extraOverrides,
           ],
-          child: DiveEditPage(bulkDiveIds: ids, embedded: true),
+          child: BulkDiveEditPage(diveIds: ids, embedded: true),
         ),
       );
       await tester.pumpAndSettle();

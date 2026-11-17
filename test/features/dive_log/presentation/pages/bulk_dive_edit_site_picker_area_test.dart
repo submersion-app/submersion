@@ -8,7 +8,7 @@ import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_field_gate.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
@@ -130,7 +130,7 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: DiveEditPage(bulkDiveIds: ['d1', 'd2'], embedded: true),
+            body: BulkDiveEditPage(diveIds: ['d1', 'd2'], embedded: true),
           ),
         ),
       ),
