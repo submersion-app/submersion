@@ -90,10 +90,10 @@ void removeSittingTank(EditSession<Dive> session, String tankId) {
 /// with none.
 String newSittingTankId() => _uuid.v4();
 
-/// A cylinder to add after [tanks], as the old dive form built one:
-/// [preset]'s size, or [defaultVolume]; the
-/// diver's [defaultStartPressure], 50 bar at the end, air, back gas when it
-/// is the first and a stage after. A fresh id, as `updateDive` requires.
+/// A cylinder to add after [tanks], as the old dive form built one: [preset]'s
+/// size, or [defaultVolume]; the diver's [defaultStartPressure], 50 bar at the
+/// end, air, back gas when it is the first and a stage after. A fresh id, as
+/// `updateDive` requires.
 DiveTank newSittingTank({
   required List<DiveTank> tanks,
   required TankPresetEntity? preset,

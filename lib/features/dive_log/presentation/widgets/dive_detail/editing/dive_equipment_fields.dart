@@ -83,9 +83,8 @@ void clearGear(EditSession<Dive> session) {
 const _addKey = 'gearAdd';
 
 /// Adds [items] as the old dive form did: for a set ([viaSetId]), only the
-/// members
-/// the dive's diver may use (issue #2046); merged by id; assemblies expanded
-/// with their parts (issue #1487). Providers are read through [read].
+/// members the dive's diver may use (issue #2046); merged by id; assemblies
+/// expanded with their parts (issue #1487). Providers are read through [read].
 ///
 /// Adds run one at a time, in the order asked, each on the gear the one
 /// before it left, and Save waits for them. An add drops its result when

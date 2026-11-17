@@ -68,14 +68,13 @@ List<GeoPoint> _divePoints(Dive dive) => [
   ?dive.exitLocation,
 ];
 
-/// After the dive's site changed in [session] (issue #4527, plan 5): what
-/// the previous site's location set applied (gear, weights, cylinders) is
-/// taken back where it is still as the set left it, the suggestion goes,
-/// and the location sets are asked again, as the old dive form did: a dive
-/// with
-/// no gear gets the best set, applied without asking or overwriting; one
-/// with gear is offered the matching set when it is not dismissed and
-/// brings an item the dive lacks.
+/// After the dive's site changed in [session] (issue #4527, plan 5): what the
+/// previous site's location set applied (gear, weights, cylinders) is taken
+/// back where it is still as the set left it, the suggestion goes, and the
+/// location sets are asked again, as the old dive form did: a dive with no gear
+/// gets the best set, applied without asking or overwriting; one with gear is
+/// offered the matching set when it is not dismissed and brings an item the
+/// dive lacks.
 ///
 /// Called by whoever puts a site on the sitting (`readDiveSiteAssigner`),
 /// so the site rules stay free of gear. Lookups run one after another: one

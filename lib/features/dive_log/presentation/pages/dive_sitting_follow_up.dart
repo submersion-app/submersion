@@ -39,12 +39,11 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 const _log = LoggerService('DiveSittingFollowUp');
 
-/// Has what a dive's cylinders, gear, weights and header values feed worked
-/// out again in the background: its derived metrics (gas use, SAC), the
-/// sensor summary of its gear, and its data-quality findings (a reassign
-/// repairs one, gear feeds the shared-gear finding, and times, depths and
-/// the site feed the rest), after every save, as the old dive form did. A
-/// provider, so a test can
+/// Has what a dive's cylinders, gear, weights and header values feed worked out
+/// again in the background: its derived metrics (gas use, SAC), the sensor
+/// summary of its gear, and its data-quality findings (a reassign repairs one,
+/// gear feeds the shared-gear finding, and times, depths and the site feed the
+/// rest), after every save, as the old dive form did. A provider, so a test can
 /// stand in for the schedulers.
 final diveGearRefreshProvider = Provider<void Function(String diveId)>(
   (ref) => (diveId) {
@@ -55,16 +54,15 @@ final diveGearRefreshProvider = Provider<void Function(String diveId)>(
 );
 
 /// Records the tide for a saved dive at its site, when the site has
-/// coordinates, after every save, as the old dive form did. A dive with no
-/// tide to record
-/// (no site, one with no location, or fresh water) has its record cleared
-/// instead: a tide record is worked out from the site, never typed, so one
-/// left from a site the dive is no longer at would show a tide that never
-/// was (issue #4527). A tide model that cannot answer leaves the record as
-/// it is: it answers null for a fetch that failed with nothing cached, or a
-/// grid this device has not got, as well as for a place it does not cover,
-/// and cannot say which. A dive with no located site but a position of its
-/// own keeps its record too: a draft's tide is recorded there
+/// coordinates, after every save, as the old dive form did. A dive with no tide
+/// to record (no site, one with no location, or fresh water) has its record
+/// cleared instead: a tide record is worked out from the site, never typed, so
+/// one left from a site the dive is no longer at would show a tide that never
+/// was (issue #4527). A tide model that cannot answer leaves the record as it
+/// is: it answers null for a fetch that failed with nothing cached, or a grid
+/// this device has not got, as well as for a place it does not cover, and
+/// cannot say which. A dive with no located site but a position of its own
+/// keeps its record too: a draft's tide is recorded there
 /// (`DraftConditionsService`), and nothing records it again.
 ///
 /// The saves' calls are not waited for, and a record replaces the dive's

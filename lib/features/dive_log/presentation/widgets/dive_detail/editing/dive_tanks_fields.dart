@@ -192,10 +192,10 @@ void _takeBackSeed(EditSession<Dive> session) {
   session.remember(_ccrSeedKey, null);
 }
 
-/// [dive] with the rebreather values its mode does not use cleared, as the
-/// old dive form's save did: setpoints and loop
-/// volume belong to CCR; diluent and scrubber to CCR and SCR; the SCR type,
-/// flow, orifice, VO2 and loop O2 values to SCR.
+/// [dive] with the rebreather values its mode does not use cleared, as the old
+/// dive form's save did: setpoints and loop volume belong to CCR; diluent and
+/// scrubber to CCR and SCR; the SCR type, flow, orifice, VO2 and loop O2 values
+/// to SCR.
 Dive fitRebreatherToMode(Dive dive) {
   final ccr = dive.diveMode == DiveMode.ccr;
   final scr = dive.diveMode == DiveMode.scr;
