@@ -78,6 +78,24 @@ class NamingForTests(unittest.TestCase):
         self.assertNotEqual(manifest.NAMING_PROVISIONAL["minOpenScore"], 9)
 
 
+class MeasuredBarsTests(unittest.TestCase):
+    def test_a_full_fish_detector_pack_gets_the_measured_bars(self):
+        naming = manifest.naming_for("cfd-rfdetr-nano-640-20260706", "bioclip-2-vitl14-2957b32", 7646)
+        self.assertIs(naming["provisional"], False)
+        self.assertEqual(naming["minOpenScore"], 0.34)
+        self.assertEqual(naming["suggestScore"], 0.72)
+        self.assertEqual(naming["suggestScoreNoLocation"], 0.79)
+        self.assertEqual(naming["confidentScore"], 1.01)
+        self.assertEqual(naming["confidentScoreNoLocation"], 1.01)
+        self.assertEqual(naming["minCropSide"], 64)
+        self.assertEqual(naming["minAllowedCandidates"], 200)
+        self.assertEqual(naming["topK"], 5)
+
+    def test_the_measured_bars_name_their_findings(self):
+        path = os.path.join(_HERE, "..", "..", manifest.NAMING_MEASURED["findings"])
+        self.assertTrue(os.path.exists(path), path)
+
+
 class BuildManifestTests(unittest.TestCase):
     def build(self):
         return manifest.build_manifest(
@@ -120,7 +138,7 @@ class BuildManifestTests(unittest.TestCase):
         self.assertEqual(clf["inputSize"], 224)
         self.assertEqual(clf["embeddingSize"], 768)
         self.assertEqual(clf["logitScale"], 100.0)
-        self.assertEqual(clf["cropFit"], "padSquare")
+        self.assertEqual(clf["cropFit"], "centreCrop")
 
     def test_round_trips_through_json(self):
         with tempfile.TemporaryDirectory() as tmp:

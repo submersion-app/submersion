@@ -77,6 +77,23 @@ class DetectorConfig extends Equatable {
 }
 
 /// How the embedding model is fed and how its output is scored.
+/// How a crop is fitted to the classifier's square input. The names are
+/// the manifest's and the native pipeline's.
+enum CropFit {
+  /// Fitted whole inside the square, the rest filled with the mean colour.
+  padSquare,
+
+  /// Shorter side fitted to the square and the centre kept.
+  centreCrop;
+
+  /// The fitting a manifest names. Absent, or one this app does not know,
+  /// is [padSquare], which every app so far has used.
+  static CropFit fromManifest(Object? value) => CropFit.values.firstWhere(
+    (fit) => fit.name == value,
+    orElse: () => CropFit.padSquare,
+  );
+}
+
 class ClassifierConfig extends Equatable {
   const ClassifierConfig({
     required this.id,
@@ -85,6 +102,7 @@ class ClassifierConfig extends Equatable {
     required this.std,
     required this.embeddingSize,
     required this.logitScale,
+    this.cropFit = CropFit.padSquare,
   });
 
   /// Changes only when the model itself changes.
@@ -95,6 +113,15 @@ class ClassifierConfig extends Equatable {
   final int embeddingSize;
   final double logitScale;
 
+  /// The fitting the pack's bars were measured with.
+  final CropFit cropFit;
+
+  /// What a stored embedding was made by: the model and how its input was
+  /// fitted, since one fitted the other way is not comparable. Pad-to-square
+  /// is the plain model id, as every result stored before fittings existed.
+  String get embeddingId =>
+      cropFit == CropFit.padSquare ? id : '$id/${cropFit.name}';
+
   ClassifierConfig copyWith({
     String? id,
     int? inputSize,
@@ -102,6 +129,7 @@ class ClassifierConfig extends Equatable {
     List<double>? std,
     int? embeddingSize,
     double? logitScale,
+    CropFit? cropFit,
   }) => ClassifierConfig(
     id: id ?? this.id,
     inputSize: inputSize ?? this.inputSize,
@@ -109,6 +137,7 @@ class ClassifierConfig extends Equatable {
     std: std ?? this.std,
     embeddingSize: embeddingSize ?? this.embeddingSize,
     logitScale: logitScale ?? this.logitScale,
+    cropFit: cropFit ?? this.cropFit,
   );
 
   @override
@@ -119,6 +148,7 @@ class ClassifierConfig extends Equatable {
     std,
     embeddingSize,
     logitScale,
+    cropFit,
   ];
 }
 
@@ -340,6 +370,7 @@ class SpeciesPackManifest extends Equatable {
         std: _triple(classifier, 'std'),
         embeddingSize: _positiveInt(classifier, 'embeddingSize'),
         logitScale: _double(classifier, 'logitScale'),
+        cropFit: CropFit.fromManifest(classifier['cropFit']),
       ),
       naming: NamingConfig(
         provisional: naming['provisional'] == true,

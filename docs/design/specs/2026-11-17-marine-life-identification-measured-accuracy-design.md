@@ -314,6 +314,10 @@ Otherwise pad-to-square stays, which needs no app change.
 If centre crop is adopted: the Dart manifest entity reads `classifier.cropFit`
 (an unknown value is treated as `padSquare`), `VisionModels` carries it to the
 native side, the channel passes it, and `manifest.py` writes `centreCrop`.
+Stored runs and embeddings are then identified by the classifier and its
+fitting (`<classifier id>/centreCrop`; the plain id for pad-to-square), so a
+pack that changes only the fitting analyses photos again rather than naming
+embeddings fitted the other way **(added while building)**.
 
 Each detector (below) is measured with both fittings, so the fitting decision
 holds whichever detector the maintainer picks.

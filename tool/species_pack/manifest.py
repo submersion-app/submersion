@@ -25,10 +25,11 @@ CLASSIFIER_SETTINGS = {
     "mean": [0.48145466, 0.4578275, 0.40821073],
     "std": [0.26862954, 0.26130258, 0.27577711],
     "logitScale": 100.0,
-    # How the app fits a crop to the square input: padded with the mean
-    # colour, not centre-cropped. The accuracy piece must evaluate the bars
-    # with the same fitting.
-    "cropFit": "padSquare",
+    # How the app fits a crop to the square input. Centre crop named
+    # significantly more fish right than padding with the mean colour, with
+    # the Community Fish Detector (measured accuracy findings); the bars
+    # below were measured with it.
+    "cropFit": "centreCrop",
 }
 
 # Provisional: set by eye in the spike against 685 candidates. Replaced by
@@ -44,10 +45,27 @@ NAMING_PROVISIONAL = {
     "minAllowedCandidates": 200,
     "topK": 5,
 }
-# Measured bars (tool/species_pack/score.py), or None until measured. They
-# hold only for the classifier and candidate list size they were measured
-# on: `naming_for` falls back to the provisional bars for any other pack.
-NAMING_MEASURED = None
+# Measured bars (tool/species_pack/score.py). They hold only for the
+# detector, classifier and candidate list size they were measured on:
+# `naming_for` falls back to the provisional bars for any other pack. A bar
+# of 1.01 is never: no confident names, since no bar proved 95% right.
+NAMING_MEASURED = {
+    "naming": {
+        "provisional": False,
+        "minCropSide": 64,
+        "minOpenScore": 0.34,
+        "suggestScore": 0.72,
+        "confidentScore": 1.01,
+        "suggestScoreNoLocation": 0.79,
+        "confidentScoreNoLocation": 1.01,
+        "minAllowedCandidates": 200,
+        "topK": 5,
+    },
+    "detectorId": "cfd-rfdetr-nano-640-20260706",
+    "classifierId": "bioclip-2-vitl14-2957b32",
+    "candidates": 7646,
+    "findings": "docs/design/findings/2026-11-17-marine-life-measured-accuracy.md",
+}
 
 # How far a pack's candidate count may stray from the measured one. A
 # share is split across the whole list, so a much longer or shorter list

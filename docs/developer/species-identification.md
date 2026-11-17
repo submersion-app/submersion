@@ -19,10 +19,15 @@ flutter run -d macos --dart-define=MARINE_LIFE_ID=true
 
 Two things must hold before its default changes:
 
-1. The fish detector's weights are cleared for redistribution. They have no
-   stated licence; the authors' permission is needed.
-2. The confidence bars in the pack come from measured accuracy. Every value
-   under `naming` in a pack built today is marked `provisional`.
+1. A detector is chosen whose terms allow shipping it. The Community Fish
+   Detector's authors leave the terms of its weights to the user;
+   FathomNet's Megalodon is CC BY 4.0 but was trained with AGPL code. The
+   [measured accuracy findings](../design/findings/2026-11-17-marine-life-measured-accuracy.md)
+   compare the two and recommend one.
+2. The confidence bars in the pack come from measured accuracy. A full pack
+   (about 7,600 candidates) with the Community Fish Detector is now written
+   with measured bars; a smaller development pack, or one with another
+   detector, is still marked `provisional`.
 
 Only iPhone, iPad and Mac can run it so far. Phones and tablets need at
 least 6 GB of memory.
@@ -95,6 +100,68 @@ The region grid is written twice, in Python and in
 checked against `tool/species_pack/testdata/region_vectors.json`; after a
 change to the Python side, regenerate it with
 `python3.14 tool/species_pack/region_grid.py --write-vectors tool/species_pack/testdata/region_vectors.json`.
+
+## Measuring accuracy
+
+The naming bars in a pack come from a measurement, described in
+[the measured accuracy design](../design/specs/2026-11-17-marine-life-identification-measured-accuracy-design.md)
+and reported in `docs/design/findings/`. The test set is a list of openly
+licensed iNaturalist and Wikimedia Commons photos,
+`tool/species_pack/testdata/accuracy_set.csv`; the photos themselves are
+never committed. Everything below runs on a Mac, in the pack builder's venv
+with `ultralytics` added for Megalodon:
+
+```bash
+.venv-species-pack/bin/pip install ultralytics
+```
+
+Fetch the test set. Each stage caches in the work folder
+(`build/species_accuracy_work` by default, `--work` to change it) and
+resumes if stopped:
+
+```bash
+for stage in pool labels photos underwater commons; do .venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py $stage; done
+```
+
+Convert Megalodon, checking it against PyTorch on any photo with an animal
+in it, then draw contact sheets of every box both detectors put on the
+diver photos:
+
+```bash
+.venv-species-pack/bin/python -I tool/species_pack/megalodon.py convert megalodon-2024 --check-image PHOTO
+```
+
+```bash
+.venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py junk-sheets --pack build/species_pack
+```
+
+Label each box in `junk_labels.json` in the work folder as `person`,
+`scenery`, `animal` or `unclear`, keyed `detector:photo:box`, then write the
+CSV and score the pack:
+
+```bash
+.venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py write
+```
+
+```bash
+.venv-species-pack/bin/python -I tool/species_pack/score.py --pack build/species_pack
+```
+
+The scorer runs the app's own Swift pipeline through a small command-line
+tool (`tool/species_pack/vision_cli/`), once per detector and crop fitting,
+names every crop with `naming.py`, chooses bars on the tune half and checks
+them on the held-out half, and writes `report.md` and `results.json` to the
+work folder. Copy the chosen bars into `NAMING_MEASURED` in
+`tool/species_pack/manifest.py`; a pack is written with them only when its
+detector, classifier and candidate count match.
+
+The pure parts have tests that CI runs, beside the others above:
+`naming_test.py`, `bars_test.py`, `metrics_test.py`, `testset_test.py` and
+`boxes_test.py`. `naming.py` copies
+`lib/features/species_id/domain/services/species_namer.dart`; both are
+checked against `tool/species_pack/testdata/naming_vectors.json`, which
+`python3.14 tool/species_pack/naming.py --write-vectors tool/species_pack/testdata/naming_vectors.json`
+regenerates.
 
 ## Trying a pack locally
 

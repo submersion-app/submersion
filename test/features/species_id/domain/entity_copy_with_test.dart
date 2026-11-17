@@ -127,6 +127,7 @@ void main() {
         std: [0.4, 0.4, 0.4],
         embeddingSize: 512,
         logitScale: 50,
+        cropFit: CropFit.centreCrop,
       );
       expect(
         manifest.classifier.copyWith(
@@ -136,6 +137,7 @@ void main() {
           std: [0.4, 0.4, 0.4],
           embeddingSize: 512,
           logitScale: 50,
+          cropFit: CropFit.centreCrop,
         ),
         classifier,
       );
@@ -231,6 +233,7 @@ void main() {
         classifierStd: [4, 4, 4],
         embeddingSize: 3,
         cropThumbnailSize: 64,
+        cropFit: CropFit.centreCrop,
       );
       expect(
         models.copyWith(
@@ -247,6 +250,7 @@ void main() {
           classifierStd: [4, 4, 4],
           embeddingSize: 3,
           cropThumbnailSize: 64,
+          cropFit: CropFit.centreCrop,
         ),
         changedModels,
       );
