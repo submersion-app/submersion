@@ -240,16 +240,9 @@ mixin _DiveDetailPageCreating
     final buddyIds = {
       for (final b in [...?diveBuddiesList.current(session)]) b.buddy.id,
     };
-    String? activeDiverId;
-    try {
-      if (activeDiver != null) activeDiverId = await activeDiver;
-    } catch (error, stackTrace) {
-      _log.warning(
-        'Reading the active diver for a new dive failed',
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
+    // A lookup that fails is not guessed past: the save fails, the page
+    // stays with everything entered, and Save can be tried again.
+    final activeDiverId = activeDiver == null ? null : await activeDiver;
     final result = await undoMediaOnFailure(
       session,
       () => service.create(

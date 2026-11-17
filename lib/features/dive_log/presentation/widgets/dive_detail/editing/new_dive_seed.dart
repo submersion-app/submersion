@@ -43,8 +43,12 @@ Future<Dive> newDiveSeed(
 }) async {
   final settings = read(settingsProvider);
   String? diverId;
+  // Whether the diver is known: none at all is a diver too (a log with no
+  // profiles), but a lookup that failed is not.
+  var diverKnown = false;
   try {
     diverId = await read(validatedCurrentDiverIdProvider.future);
+    diverKnown = true;
   } catch (error, stackTrace) {
     _log.warning(
       'Reading the diver failed',
@@ -55,7 +59,9 @@ Future<Dive> newDiveSeed(
   final entry = wholeMinute(now());
   final planned = request.isPlanned;
   int? number;
-  if (!planned) {
+  // The diver's next number. With the diver unknown none is guessed from
+  // every diver's log: Save numbers the dive in its own diver's.
+  if (!planned && diverKnown) {
     try {
       number = await read(
         diveRepositoryProvider,

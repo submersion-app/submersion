@@ -196,4 +196,26 @@ void main() {
     expect(seed.gear, isEmpty);
     expect(seed.tanks, hasLength(1));
   });
+
+  // A number is the diver's next one: with the diver unknown, none is
+  // guessed from every diver's log, and Save numbers the dive in its own
+  // (review of #4672).
+  test('a diver that cannot be read leaves the number for Save', () async {
+    final c = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        validatedCurrentDiverIdProvider.overrideWith(
+          (ref) async => throw StateError('no database'),
+        ),
+        equipmentSetSelectionInputsProvider.overrideWith(
+          (ref) async =>
+              const EquipmentSetSelectionInputs(sets: [], geofences: []),
+        ),
+      ],
+    );
+    addTearDown(c.dispose);
+    final seed = await newDiveSeed(c.read, const NewDiveRequest());
+    expect(seed.diverId, isNull);
+    expect(seed.diveNumber, isNull);
+  });
 }

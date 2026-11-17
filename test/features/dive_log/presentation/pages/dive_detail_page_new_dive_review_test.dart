@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page
 import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/services/media_import_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -267,5 +268,28 @@ void main() {
     expect(import.copies, hasLength(2));
     expect(File(import.copies.last).existsSync(), isFalse);
     expect(File(fresh).existsSync(), isTrue);
+  });
+
+  // A diver that cannot be read at Save, for a seed that has none, is not
+  // guessed: the save fails and can be tried again (review of #4672).
+  testWidgets('a diver that cannot be read refuses the save', (tester) async {
+    final page = await pumpNewDivePage(
+      tester,
+      extra: [
+        validatedCurrentDiverIdProvider.overrideWith(
+          (ref) async => throw StateError('no database'),
+        ),
+      ],
+    );
+    await typeNote(tester, 'Wall');
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+
+    expect(page.save.creates, isEmpty);
+    expect(
+      find.text("Couldn't save your changes. Nothing was changed."),
+      findsOneWidget,
+    );
+    expect(newDiveController(tester).isUnlocked, isTrue);
   });
 }

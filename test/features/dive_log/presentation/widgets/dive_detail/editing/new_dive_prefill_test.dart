@@ -352,4 +352,28 @@ void main() {
       expect(sittingMedia(session).added, isEmpty);
     },
   );
+
+  // A trip changed while the board's slot was read keeps the diver's trip,
+  // and the slot of the other trip is not put on (review of #4672).
+  test('a trip changed while its slot is read gets no slot from it', () async {
+    final slots = Completer<List<TripCylinderState>>();
+    final other = trip.copyWith(id: 'other', name: 'Other');
+    applyNewDivePrefill(
+      session,
+      const NewDiveRequest(tripId: 'trip', tripCylinderId: 'slot-1'),
+      assignSite: (_, _) {},
+      readTrip: (id) async => trip,
+      readSlots: (tripId, at) =>
+          tripId == 'trip' ? slots.future : Future.value(const []),
+      preparePhoto: (_, _) async => throw StateError('unused'),
+    );
+    await pumpEventQueue();
+    expect(session.valueOf(diveTripField)?.id, 'trip');
+    session.set(diveTripField, other);
+    slots.complete([slot('slot-1')]);
+    await session.settled();
+
+    expect(session.valueOf(diveTripField)?.id, 'other');
+    expect(session.valueOf(diveTanksField).single.tripCylinderId, isNull);
+  });
 }

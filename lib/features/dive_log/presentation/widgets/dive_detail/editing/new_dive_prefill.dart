@@ -219,7 +219,10 @@ Future<void> _applyTrip(
     try {
       final at = session.working.effectiveEntryTime;
       final slots = await readSlots(tripId, at);
-      if (!_alive(session)) return;
+      // A trip the diver changed meanwhile keeps its own slots.
+      if (!_alive(session) || session.valueOf(diveTripField)?.id != tripId) {
+        return;
+      }
       final slot = slots.where((s) => s.cylinder.id == cylinderId).firstOrNull;
       final tanks = session.valueOf(diveTanksField);
       if (slot != null && tanks.isNotEmpty) {
