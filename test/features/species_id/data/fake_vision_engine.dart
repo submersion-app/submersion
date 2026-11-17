@@ -122,6 +122,9 @@ class FakeEngine implements VisionEngine {
     );
   }
 
+  /// Thrown by the next [embedMoments], then cleared.
+  Object? embedFailure;
+
   @override
   Future<List<VisionMomentCrop?>> embedMoments({
     required String path,
@@ -129,6 +132,11 @@ class FakeEngine implements VisionEngine {
   }) async {
     events.add('embedMoments');
     embedCalls.add(moments);
+    final failure = embedFailure;
+    if (failure != null) {
+      embedFailure = null;
+      throw failure;
+    }
     if (!loaded) throw const VisionEngineException('not_loaded');
     return [
       for (final m in moments)

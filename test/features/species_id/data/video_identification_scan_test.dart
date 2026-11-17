@@ -16,6 +16,7 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
+import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 import '../../../helpers/temp_dir.dart';
 import 'fake_vision_engine.dart';
@@ -94,10 +95,16 @@ void main() {
       ),
   ];
 
+  var reloads = 0;
+
   VideoIdentificationScan scan({
     MediaIdentificationRun? resumeFrom,
     List<MediaIdentification> carry = const [],
   }) => VideoIdentificationScan(
+    reload: () async {
+      reloads++;
+      engine.loaded = true;
+    },
     engine: engine,
     pack: fixturePack(),
     identifications: identifications,
@@ -213,6 +220,53 @@ void main() {
     expect(found, hasLength(1));
     expect(found.single.id, isNot(old.id));
     expect(found.single.decision, IdentificationDecision.rejected);
+  });
+
+  test('models freed before pass 1 are loaded again, once, and the chunk '
+      'is kept whole', () async {
+    reloads = 0;
+    engine.videoFrames = _fish(1000, 4000);
+    engine.loaded = false;
+    await runAll(scan());
+    expect(reloads, 1);
+    final fish = (await identifications.forMedia('v1')).single;
+    expect(fish.startMs, 1000);
+    expect(fish.path, hasLength(12));
+  });
+
+  test('models freed before pass 2 are loaded again without feeding the '
+      'tracker twice', () async {
+    reloads = 0;
+    engine.videoFrames = _fish(1000, 4000);
+    engine.embedFailure = const VisionEngineException(
+      VisionEngineException.notLoaded,
+    );
+    await runAll(scan());
+    expect(reloads, 1);
+    final found = await identifications.forMedia('v1');
+    expect(found, hasLength(1));
+    expect(found.single.path.map((p) => p.ms).toSet(), hasLength(12));
+  });
+
+  test('a second failure to load is thrown to the caller', () async {
+    engine.loaded = false;
+    final s = VideoIdentificationScan(
+      engine: engine,
+      pack: fixturePack(),
+      identifications: identifications,
+      embeddings: embeddings,
+      crops: crops,
+      item: _video(),
+      cell: null,
+      reader: <T>(read) => read('/videos/v1.mp4'),
+      name: name,
+      now: () => DateTime.utc(2026, 11, 17),
+      newId: () => 'id-${ids++}',
+      databaseGeneration: () => generation,
+      reload: () async {},
+    );
+    await expectLater(s.runChunk(), throwsA(isA<VisionEngineException>()));
+    expect(await identifications.runFor('v1'), isNull);
   });
 
   test('with no file nothing is stored and the scan stops', () async {

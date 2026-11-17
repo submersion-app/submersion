@@ -717,6 +717,30 @@ void main() {
       },
     );
 
+    test(
+      'a device too hot ends the scan and the next opening resumes',
+      () async {
+        engine.videoFailureAt = (start) => start == 10000
+            ? const VisionEngineException(VisionEngineException.tooHot)
+            : null;
+        await service.request(video());
+        expect((await identifications.runFor('v1'))!.scannedMs, 10000);
+        engine.videoFailureAt = null;
+        await service.request(video());
+        expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+      },
+    );
+
+    test('models freed before pass 2 leave one track per fish', () async {
+      oneFish();
+      engine.embedFailure = const VisionEngineException(
+        VisionEngineException.notLoaded,
+      );
+      await service.request(video());
+      expect(await identifications.forMedia('v1'), hasLength(1));
+      expect(engine.events.where((e) => e == 'load'), hasLength(2));
+    });
+
     test('another logbook opening mid-scan drops the chunk', () async {
       engine.videoGate = Completer<void>();
       final done = service.request(video());

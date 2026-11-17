@@ -520,11 +520,14 @@ class MediaIdentificationService {
       databaseGeneration: _databaseGeneration,
       resumeFrom: from,
       carry: carry,
+      reload: () async {
+        _loadedModels = null;
+        await _ensureLoaded(pack);
+      },
     );
     final generation = _databaseGeneration();
     _videoProgress = scan.progress;
     _changed();
-    var reloaded = false;
     try {
       while (true) {
         if (job.cancelled || _disposed || _databaseGeneration() != generation) {
@@ -536,18 +539,9 @@ class MediaIdentificationService {
           return true;
         }
         await _ensureLoaded(pack);
-        final bool more;
-        try {
-          more = await scan.runChunk();
-        } on VisionEngineException catch (e) {
-          // Models the system unloaded (an iOS memory warning) are loaded
-          // again, once.
-          if (e.code != VisionEngineException.notLoaded || reloaded) rethrow;
-          reloaded = true;
-          _loadedModels = null;
-          continue;
-        }
-        reloaded = false;
+        // Models the system freed mid-chunk are loaded again inside the
+        // scan, which retries only the call that found them gone.
+        final more = await scan.runChunk();
         _videoProgress = scan.progress;
         _changed();
         if (!more) return false;

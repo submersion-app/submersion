@@ -49,6 +49,7 @@ class VideoIdentificationScan {
     required int Function() databaseGeneration,
     MediaIdentificationRun? resumeFrom,
     List<MediaIdentification> carry = const [],
+    Future<void> Function()? reload,
     this.chunkMs = 10000,
     this.sampleIntervalMs = 250,
   }) : _engine = engine,
@@ -63,6 +64,7 @@ class VideoIdentificationScan {
        _now = now,
        _newId = newId,
        _databaseGeneration = databaseGeneration,
+       _reload = reload,
        _generation = databaseGeneration(),
        _scannedMs = resumeFrom?.scannedMs ?? 0,
        _durationMs = resumeFrom?.videoDurationMs,
@@ -86,6 +88,14 @@ class VideoIdentificationScan {
   final DateTime Function() _now;
   final String Function() _newId;
   final int Function() _databaseGeneration;
+
+  /// Loads the models again after the system freed them (an iOS memory
+  /// warning); the call that found them gone is then made once more.
+  final Future<void> Function()? _reload;
+
+  /// A chunk failed part-way: what the tracker holds may include frames
+  /// that were never stored, so nothing more is stored from it.
+  var _broken = false;
 
   /// The logbook the scan started in: nothing is stored once another
   /// one has opened.
@@ -117,8 +127,9 @@ class VideoIdentificationScan {
   /// file cannot be opened or another logbook opened meanwhile. Engine
   /// failures are thrown to the caller.
   Future<bool> runChunk() async {
+    if (_broken) return false;
     final from = _scannedMs;
-    final detections = await _reader(
+    final detections = await _call(
       (path) => _engine.detectVideo(
         path: path,
         startMs: from,
@@ -136,19 +147,26 @@ class VideoIdentificationScan {
     final scanned = math.min(from + chunkMs, duration);
     final more = scanned < duration;
     if (!more) closed.addAll(_tracker.closeAll());
-    final stored = await _store(
-      closed,
-      scanned: scanned,
-      duration: duration,
-      width: detections.width,
-      height: detections.height,
-    );
+    final bool stored;
+    try {
+      stored = await _store(
+        closed,
+        scanned: scanned,
+        duration: duration,
+        width: detections.width,
+        height: detections.height,
+      );
+    } on Object {
+      _broken = true;
+      rethrow;
+    }
     return stored && more;
   }
 
   /// Closes the tracks still open (the scan is stopping) and stores them,
   /// without moving the progress on.
   Future<void> finish() async {
+    if (_broken) return;
     final closed = _tracker.closeAll();
     final duration = _durationMs;
     if (closed.isEmpty || duration == null) return;
@@ -233,7 +251,7 @@ class VideoIdentificationScan {
   _nameTracks(List<TrackedAnimal> closed) async {
     if (closed.isEmpty) return const [];
     final picks = [for (final track in closed) bestMoments(track)];
-    final crops = await _reader(
+    final crops = await _call(
       (path) => _engine.embedMoments(
         path: path,
         moments: [
@@ -340,6 +358,21 @@ class VideoIdentificationScan {
       embedding: embedding,
       cropJpeg: crop.cropJpeg,
     );
+  }
+
+  /// [call] on the file, loading the models again once if the system freed
+  /// them. Null when the file cannot be opened.
+  Future<T?> _call<T>(Future<T> Function(String path) call) async {
+    try {
+      return await _reader(call);
+    } on VisionEngineException catch (e) {
+      final reload = _reload;
+      if (e.code != VisionEngineException.notLoaded || reload == null) {
+        rethrow;
+      }
+      await reload();
+      return _reader(call);
+    }
   }
 
   /// The mean of [embeddings], each first scaled to unit length, itself
