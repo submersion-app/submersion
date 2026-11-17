@@ -98,7 +98,16 @@ class PhotoEditSaveService {
     return ChangeLogScope.run(
       DatabaseService.instance.databaseOrNull,
       source: ChangeLogSource.manual,
-      label: RecordEditLabel.encode(table: 'media', cardIds: changedCardIds),
+      // Not pinned to the photo (no id): a pinned sitting is filed under the
+      // record it names, which would take a dive photo's entry out of its
+      // dive's History. Every row a photo's sitting writes roots to the
+      // photo's dive, or to the photo when it has none, so the entry is one
+      // all the same.
+      label: RecordEditLabel.encode(
+        table: 'media',
+        id: '',
+        cardIds: changedCardIds,
+      ),
       body: () => _db.transaction(() async {
         final stored = await _reader.read(mediaId, diverId: diverId);
         if (stored == null) {
