@@ -170,9 +170,9 @@ class _PscrVo2Row extends ConsumerWidget {
           value: state.pscrVo2 == null ? null : units.convertRmv(vo2),
           hintValue: units.convertRmv(defaultVo2),
           suffixText: units.rmvSymbol,
-          // As the SCR VO2: one more place than an RMV, so a cuft/min hint
+          // As the SCR VO2: two places finer than an RMV, so a cuft/min hint
           // retyped keeps the litres it came from.
-          decimals: units.rmvDecimals + 1,
+          decimals: units.rmvDecimals + 2,
           min: units.convertRmv(0.1),
           onChanged: (v) => notifier.updateLoopFlow(
             pscrVo2: v == null ? null : units.volumeToLiters(v),

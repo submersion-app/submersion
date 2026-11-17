@@ -43,7 +43,9 @@ class ScrSettingsSection extends ConsumerWidget {
         value: shown(state.scrInjectionRate),
         hintValue: units.convertRmv(defaultRate),
         suffixText: units.rmvSymbol,
-        decimals: units.rmvDecimals,
+        // One place finer than an RMV: a cuft/min step at RMV precision is
+        // 0.28 L/min, about 4% of a low-flow nozzle.
+        decimals: units.rmvDecimals + 1,
         min: units.convertRmv(_minLpm),
         onChanged: (v) => notifier.updateLoopFlow(
           scrInjectionRate: stored(v),
@@ -55,9 +57,9 @@ class ScrSettingsSection extends ConsumerWidget {
         value: shown(state.scrVo2),
         hintValue: units.convertRmv(defaultVo2),
         suffixText: units.rmvSymbol,
-        // One more place than the rate: 1.3 L/min is 0.046 cuft/min, and two
+        // Two places finer than an RMV: 1.3 L/min is 0.0459 cuft/min, and two
         // places would round a retyped hint to about 1.42 L/min.
-        decimals: units.rmvDecimals + 1,
+        decimals: units.rmvDecimals + 2,
         min: units.convertRmv(_minLpm),
         onChanged: (v) =>
             notifier.updateLoopFlow(scrVo2: stored(v), clearScrVo2: v == null),

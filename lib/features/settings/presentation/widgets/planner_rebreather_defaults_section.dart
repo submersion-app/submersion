@@ -37,13 +37,20 @@ class PlannerRebreatherDefaultsSection extends ConsumerWidget {
       required ValueChanged<double> onChanged,
     }) {
       final shown = units.convertRmv(litersPerMinute);
+      // The dialog opens two places finer than the row shows, and saving it
+      // unchanged keeps the stored litres: a cuft/min round trip would
+      // otherwise rewrite 12 L/min as 11.89.
+      final seeded = double.parse(shown.toStringAsFixed(decimals + 2));
       return PlannerDefaultTile(
         label: label,
         valueText:
             '${formatFixedForDisplay(shown, decimals)} ${units.rmvSymbol}',
-        initialValue: double.parse(shown.toStringAsFixed(decimals)),
+        initialValue: seeded,
         unitSymbol: units.rmvSymbol,
-        onSaved: (entered) => onChanged(units.volumeToLiters(entered)),
+        onSaved: (entered) {
+          if (entered == seeded) return;
+          onChanged(units.volumeToLiters(entered));
+        },
       );
     }
 

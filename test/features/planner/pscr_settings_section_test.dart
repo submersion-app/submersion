@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -114,6 +115,28 @@ void main() {
       final field = tester.widget<TextField>(vo2Field());
       expect(field.controller!.text, '');
       expect(field.decoration?.hintText, '0.72');
+    });
+
+    testWidgets('an imperial diver sees the VO2 hint to four places', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => MockSettingsNotifier(
+                const AppSettings(volumeUnit: VolumeUnit.cubicFeet),
+              ),
+            ),
+          ],
+          child: const SizedBox(width: 500, child: PscrSettingsSection()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<TextField>(vo2Field()).decoration?.hintText,
+        '0.0254',
+      );
     });
 
     testWidgets('typing a VO2 stores it on the plan; clearing follows the '

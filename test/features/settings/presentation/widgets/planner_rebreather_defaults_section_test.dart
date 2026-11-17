@@ -61,6 +61,27 @@ void main() {
     expect(notifier.state.plannerScrInjectionRate, 7.5);
   });
 
+  testWidgets('saving an unchanged imperial default keeps it exactly', (
+    tester,
+  ) async {
+    final notifier = MockSettingsNotifier(
+      const AppSettings(volumeUnit: VolumeUnit.cubicFeet),
+    );
+    await tester.pumpWidget(_app(notifier));
+    await tester.pumpAndSettle();
+
+    for (final label in ['Injection rate', 'VO₂ (SCR)', 'VO₂ (pSCR)']) {
+      await tester.tap(find.text(label));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+    }
+
+    expect(notifier.state.plannerScrInjectionRate, 12.0);
+    expect(notifier.state.plannerScrVo2, 1.3);
+    expect(notifier.state.plannerPscrVo2, 0.72);
+  });
+
   testWidgets('editing the pSCR VO2 writes through the notifier', (
     tester,
   ) async {
