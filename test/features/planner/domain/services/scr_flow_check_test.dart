@@ -202,17 +202,21 @@ void main() {
     testWidgets('names the rate and the flow the supply needs', (tester) async {
       expect(
         await render(tester, const AppSettings()),
-        'An injection rate of 4.0 L/min cannot sustain the loop at this VO₂: '
-        'EAN32 needs more than 4.1 L/min.',
+        'An injection rate of 4.00 L/min cannot sustain the loop at this VO₂: '
+        'EAN32 needs more than 4.06 L/min.',
       );
     });
 
-    testWidgets('follows the diver volume unit', (tester) async {
+    testWidgets('follows the diver volume unit, finely enough to tell the '
+        'rate from the flow needed', (tester) async {
+      // At RMV precision both 4.0 and 4.06 L/min read 0.14 cuft/min, and
+      // the warning would contradict itself.
       final text = await render(
         tester,
         const AppSettings(volumeUnit: VolumeUnit.cubicFeet),
       );
-      expect(text, contains('0.14 cuft/min'));
+      expect(text, contains('rate of 0.141 cuft/min'));
+      expect(text, contains('more than 0.143 cuft/min'));
       expect(text, isNot(contains('L/min')));
     });
   });

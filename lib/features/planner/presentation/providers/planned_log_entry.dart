@@ -255,10 +255,20 @@ bool _onLoop(DivePlanState state) => state.mode == PlanMode.ccr;
 
 /// A rebreather plan's diluent, the first diluent cylinder's mix, which the
 /// log's deco model and gas timeline breathe on the loop.
+///
+/// A semi-closed plan with no cylinder flagged still breathes its first loop
+/// leg's gas as the supply, as the engine does whatever the flag, and the
+/// log's loop model needs that supply beside the injection rate (#4660).
 GasMix? _diluent(DivePlanState state) {
   if (state.mode == PlanMode.oc) return null;
   for (final tank in state.tanks) {
     if (tank.role == TankRole.diluent) return tank.gasMix;
+  }
+  if (state.mode == PlanMode.ccr) return null;
+  for (final segment in state.segments) {
+    if ((segment.diveModeOverride ?? state.mode) != PlanMode.oc) {
+      return segment.gasMix;
+    }
   }
   return null;
 }

@@ -473,8 +473,7 @@ String _body(AppLocalizations l10n, UnitFormatter units, DiveTerm term) {
   };
 }
 
-/// A VO2 in the diver's volume unit per minute, one place finer than an RMV
+/// A VO2 in the diver's volume unit per minute, at a loop flow's precision
 /// (0.25 L/min is 0.009 cuft/min).
 String _vo2(UnitFormatter units, double litersPerMinute) =>
-    '${formatFixedForDisplay(units.convertRmv(litersPerMinute), units.rmvDecimals + 1)} '
-    '${units.rmvSymbol}';
+    units.formatRmv(litersPerMinute, decimals: units.loopFlowDecimals);

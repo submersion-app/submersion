@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/planner_default_number_dialog.dart';
@@ -28,27 +28,28 @@ class PlannerRebreatherDefaultsSection extends ConsumerWidget {
     final units = ref.watch(unitFormatterProvider);
     final notifier = ref.read(settingsProvider.notifier);
 
-    // VO2 shows one more place than a flow: 1.3 L/min is 0.046 cuft/min, and
-    // two places would round it to about 1.42 L/min.
+    // Each row shows a loop flow as the plan's own fields do, so a default
+    // reads here exactly as it does as the plan's hint.
+    final decimals = units.loopFlowDecimals;
     Widget tile({
       required String label,
       required double litersPerMinute,
-      required int decimals,
       required ValueChanged<double> onChanged,
     }) {
-      final shown = units.convertRmv(litersPerMinute);
       // The dialog opens two places finer than the row shows, and saving it
       // unchanged keeps the stored litres: a cuft/min round trip would
       // otherwise rewrite 12 L/min as 11.89.
-      final seeded = double.parse(shown.toStringAsFixed(decimals + 2));
+      final seeded = double.parse(
+        units.convertRmv(litersPerMinute).toStringAsFixed(decimals + 2),
+      );
       return PlannerDefaultTile(
         label: label,
-        valueText:
-            '${formatFixedForDisplay(shown, decimals)} ${units.rmvSymbol}',
+        valueText: units.formatRmv(litersPerMinute, decimals: decimals),
         initialValue: seeded,
         unitSymbol: units.rmvSymbol,
         // The floor the plan's own fields and agent writes hold to.
-        accept: (entered) => units.volumeToLiters(entered) >= 0.1,
+        accept: (entered) =>
+            units.volumeToLiters(entered) >= ScrCalculator.minLoopFlowLpm,
         onSaved: (entered) {
           if (entered == seeded) return;
           onChanged(units.volumeToLiters(entered));
@@ -63,21 +64,18 @@ class PlannerRebreatherDefaultsSection extends ConsumerWidget {
           tile(
             label: l10n.plannerCanvas_scr_injectionRate,
             litersPerMinute: settings.rate,
-            decimals: units.rmvDecimals,
             onChanged: notifier.setPlannerScrInjectionRate,
           ),
           const Divider(height: 1),
           tile(
             label: l10n.plannerCanvas_scr_vo2,
             litersPerMinute: settings.scrVo2,
-            decimals: units.rmvDecimals + 1,
             onChanged: notifier.setPlannerScrVo2,
           ),
           const Divider(height: 1),
           tile(
             label: l10n.plannerCanvas_pscr_vo2,
             litersPerMinute: settings.pscrVo2,
-            decimals: units.rmvDecimals + 1,
             onChanged: notifier.setPlannerPscrVo2,
           ),
         ],

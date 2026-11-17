@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -160,6 +161,28 @@ void main() {
       ).o2DropBar;
       expect(
         find.text('Loop ppO₂ drop: ${drop.toStringAsFixed(2)} bar'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the drop follows the locale decimal separator', (
+      tester,
+    ) async {
+      // The app sets Intl.defaultLocale from the diver's language; a comma
+      // locale must not read "0.38" beside every other "0,38" on screen.
+      final previous = Intl.defaultLocale;
+      Intl.defaultLocale = 'de';
+      addTearDown(() => Intl.defaultLocale = previous);
+      await pump(tester);
+      final drop = PassiveScr(
+        supplyFO2: 0.21,
+        o2ConsumptionMlMin: 720,
+        sacMlMin: 15000,
+      ).o2DropBar;
+      expect(
+        find.text(
+          'Loop ppO₂ drop: ${drop.toStringAsFixed(2).replaceAll('.', ',')} bar',
+        ),
         findsOneWidget,
       );
     });

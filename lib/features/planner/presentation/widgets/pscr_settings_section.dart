@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/entities/breathing_config.dart';
+import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -176,10 +178,8 @@ class _PscrVo2Row extends ConsumerWidget {
               : units.convertRmv(state.pscrVo2!),
           hintValue: units.convertRmv(defaultVo2),
           suffixText: units.rmvSymbol,
-          // As the SCR VO2: one place finer than an RMV, so a cuft/min hint
-          // retyped stays within about 0.01 L/min of the litres it came from.
-          decimals: units.rmvDecimals + 1,
-          min: units.convertRmv(0.1),
+          decimals: units.loopFlowDecimals,
+          min: units.convertRmv(ScrCalculator.minLoopFlowLpm),
           onChanged: (v) => notifier.updateLoopFlow(
             pscrVo2: v == null ? null : units.volumeToLiters(v),
             clearPscrVo2: v == null,
@@ -187,7 +187,9 @@ class _PscrVo2Row extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          context.l10n.plannerCanvas_pscr_dropSummary(drop.toStringAsFixed(2)),
+          context.l10n.plannerCanvas_pscr_dropSummary(
+            formatFixedForDisplay(drop, 2),
+          ),
           style: Theme.of(context).textTheme.bodySmall,
         ),
       ],

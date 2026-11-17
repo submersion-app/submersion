@@ -100,10 +100,15 @@ String planIssueMessage(
         issue.value?.toStringAsFixed(2) ?? '--',
       );
     case PlanIssueType.scrFlowTooLow:
+      // At a loop flow's precision: at an RMV's, 4.0 and 4.06 L/min both
+      // read 0.14 cuft/min and the warning would contradict itself.
+      String flow(double? lpm) => lpm == null
+          ? '--'
+          : units.formatRmv(lpm, decimals: units.loopFlowDecimals);
       return l10n.plannerCanvas_issue_scrFlowTooLow(
-        issue.value == null ? '--' : units.formatRmv(issue.value!),
+        flow(issue.value),
         issue.gasMix?.name ?? '--',
-        issue.threshold == null ? '--' : units.formatRmv(issue.threshold!),
+        flow(issue.threshold),
       );
     case PlanIssueType.minGasViolation:
       return l10n.plannerCanvas_issue_minGas(

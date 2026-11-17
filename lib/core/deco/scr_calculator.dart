@@ -26,6 +26,11 @@ class ScrCalculator {
   /// Subsurface's `o2consumption` of 720 mL/min (issue #4660).
   static const double defaultPscrVo2 = 0.72;
 
+  /// The least loop flow (surface L/min) any way of entering an injection
+  /// rate or a VO2 accepts: the plan's own fields, the diver's Settings
+  /// defaults and agent writes (issue #4660).
+  static const double minLoopFlowLpm = 0.1;
+
   /// Minimum VO₂ at rest
   static const double restingVo2 = 0.25;
 

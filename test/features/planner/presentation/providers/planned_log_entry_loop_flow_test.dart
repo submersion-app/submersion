@@ -90,6 +90,18 @@ void main() {
     expect(dive.assumedVo2, 0.72);
   });
 
+  test('an SCR plan with no cylinder flagged diluent logs its loop supply', () {
+    // The engine breathes a loop leg's gas as the supply whatever the flag;
+    // without it the log has a rate and nothing to inject it from.
+    final flagged = _state(domain.PlanMode.scr);
+    final state = flagged.copyWith(
+      tanks: [flagged.tanks.single.copyWith(role: TankRole.backGas)],
+    );
+    final dive = _entry(state).newDive(state, null);
+    expect(dive.scrType, ScrType.cmf);
+    expect(dive.diluentGas, _ean50);
+  });
+
   test('an open-circuit plan logs no loop values', () {
     final state = _state(domain.PlanMode.oc);
     final dive = _entry(state).newDive(state, null);

@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart' show TankRole, WaterType;
+import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/gas_percent.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
@@ -40,12 +41,20 @@ const planNumberFields = {
   'ppo2_deco_bar': FieldCodec.number(min: 0.16, max: 2, nullable: true),
   // A semi-closed loop's flow, surface L/min (issue #4660).
   'scr_injection_rate_l_min': FieldCodec.number(
-    min: 0.1,
+    min: ScrCalculator.minLoopFlowLpm,
     max: 60,
     nullable: true,
   ),
-  'scr_vo2_l_min': FieldCodec.number(min: 0.1, max: 5, nullable: true),
-  'pscr_vo2_l_min': FieldCodec.number(min: 0.1, max: 5, nullable: true),
+  'scr_vo2_l_min': FieldCodec.number(
+    min: ScrCalculator.minLoopFlowLpm,
+    max: 5,
+    nullable: true,
+  ),
+  'pscr_vo2_l_min': FieldCodec.number(
+    min: ScrCalculator.minLoopFlowLpm,
+    max: 5,
+    nullable: true,
+  ),
 };
 
 /// The settings a plan can hold its own value for, by document key: an

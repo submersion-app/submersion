@@ -422,13 +422,21 @@ class UnitFormatter {
   /// the same reason as [sacDecimals].
   int get rmvDecimals => settings.volumeUnit == VolumeUnit.liters ? 1 : 2;
 
+  /// Decimals a semi-closed loop flow (an SCR injection rate or a VO2) is
+  /// shown and typed with: one place finer than an RMV, since a cuft/min
+  /// step at RMV precision is 0.28 L/min, about 4% of a low-flow nozzle, and
+  /// 1.3 L/min of VO2 would retype as about 1.42 (issue #4660).
+  int get loopFlowDecimals => rmvDecimals + 1;
+
   /// "1.5 bar/min" or "21 psi/min".
   String formatSac(double barPerMin) =>
       '${formatFixedForDisplay(convertSac(barPerMin), sacDecimals)} $sacSymbol';
 
-  /// "16.8 L/min" or "0.59 cuft/min".
-  String formatRmv(double litersPerMin) =>
-      '${formatFixedForDisplay(convertRmv(litersPerMin), rmvDecimals)} $rmvSymbol';
+  /// "16.8 L/min" or "0.59 cuft/min"; [decimals] overrides [rmvDecimals],
+  /// as a loop flow does with [loopFlowDecimals].
+  String formatRmv(double litersPerMin, {int? decimals}) =>
+      '${formatFixedForDisplay(convertRmv(litersPerMin), decimals ?? rmvDecimals)} '
+      '$rmvSymbol';
 
   // ============================================================================
   // Weight

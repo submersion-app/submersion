@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -21,9 +22,6 @@ class ScrSettingsSection extends ConsumerWidget {
   // Below this width the two fields no longer fit their label without
   // truncating it, so they stack instead (as CcrSettingsSection does).
   static const double _narrowBreakpoint = 360;
-
-  /// Smallest flow either box accepts, surface L/min.
-  static const double _minLpm = 0.1;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,10 +47,8 @@ class ScrSettingsSection extends ConsumerWidget {
         value: shown(state.scrInjectionRate),
         hintValue: units.convertRmv(defaultRate),
         suffixText: units.rmvSymbol,
-        // One place finer than an RMV: a cuft/min step at RMV precision is
-        // 0.28 L/min, about 4% of a low-flow nozzle.
-        decimals: units.rmvDecimals + 1,
-        min: units.convertRmv(_minLpm),
+        decimals: units.loopFlowDecimals,
+        min: units.convertRmv(ScrCalculator.minLoopFlowLpm),
         onChanged: (v) => notifier.updateLoopFlow(
           scrInjectionRate: stored(v),
           clearScrInjectionRate: v == null,
@@ -63,11 +59,9 @@ class ScrSettingsSection extends ConsumerWidget {
         value: shown(state.scrVo2),
         hintValue: units.convertRmv(defaultVo2),
         suffixText: units.rmvSymbol,
-        // One place finer than an RMV: 1.3 L/min is 0.046 cuft/min (1.303
-        // L/min retyped), where two places would give about 1.42 L/min. A
-        // fourth place would not fit the shared number box.
-        decimals: units.rmvDecimals + 1,
-        min: units.convertRmv(_minLpm),
+        // A fourth cuft/min place would not fit the shared number box.
+        decimals: units.loopFlowDecimals,
+        min: units.convertRmv(ScrCalculator.minLoopFlowLpm),
         onChanged: (v) =>
             notifier.updateLoopFlow(scrVo2: stored(v), clearScrVo2: v == null),
       ),

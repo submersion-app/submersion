@@ -21,11 +21,12 @@ Widget _app(MockSettingsNotifier notifier) => ProviderScope(
 /// The diver's semi-closed loop defaults (issue #4660): SCR injection rate,
 /// SCR VO2 and pSCR VO2, in the diver's volume unit per minute.
 void main() {
+  // Every row reads at a loop flow's precision, as the plan's hint does.
   testWidgets('shows the defaults in L/min', (tester) async {
     await tester.pumpWidget(_app(MockSettingsNotifier()));
     await tester.pumpAndSettle();
 
-    expect(find.text('12.0 L/min'), findsOneWidget);
+    expect(find.text('12.00 L/min'), findsOneWidget);
     expect(find.text('1.30 L/min'), findsOneWidget);
     expect(find.text('0.72 L/min'), findsOneWidget);
   });
@@ -40,7 +41,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('0.42 cuft/min'), findsOneWidget);
+    // The injection rate to three places too: at two, 4.0 and 4.2 L/min
+    // nozzles both read 0.14 or 0.15.
+    expect(find.text('0.424 cuft/min'), findsOneWidget);
     expect(find.text('0.046 cuft/min'), findsOneWidget);
     expect(find.text('0.025 cuft/min'), findsOneWidget);
   });

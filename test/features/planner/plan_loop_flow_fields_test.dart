@@ -127,6 +127,18 @@ void main() {
       expect(restored.pscrVo2, isNull);
     });
 
+    test('drops a non-positive bottom RMV from a file, which the pSCR loop '
+        'divides by', () {
+      // Zero would give an infinite O2 drop, a negative one a loop richer
+      // than its own supply; the plan then follows the diver's RMV.
+      for (final bad in [0, -15]) {
+        final json =
+            jsonDecode(planToSubplanJson(_plan())) as Map<String, dynamic>;
+        (json['plan'] as Map<String, dynamic>)['sacBottom'] = bad;
+        expect(subplanFromJson(jsonEncode(json)).sacBottom, isNull);
+      }
+    });
+
     test('keeps unset loop flow values unset', () {
       final restored = subplanFromJson(planToSubplanJson(_plan()));
       expect(restored.scrInjectionRate, isNull);
