@@ -77,45 +77,29 @@ class DivePlanWrites extends WritableEntry {
   @override
   Set<String> get effectFields => const {_plannedField};
 
-  /// The tanks and segments in the shape an agent writes them.
+  /// The tanks and segments in the shape an agent writes them, and the link
+  /// the row holds. The document names no link to a dive no longer in the
+  /// log, so a change compares against the stored one: clearing such a link
+  /// is a change, not a plan already unlinked.
   @override
   Future<Map<String, Object?>> stored(
     String id,
     Map<String, Object?> document,
   ) async {
-    final tanks = [
-      for (final t in document['tanks'] as List? ?? const [])
-        (t as Map).cast<String, Object?>(),
-    ];
-    final place = {for (final (i, t) in tanks.indexed) t['id']: i};
+    final row = await _r.db
+        .customSelect(
+          'SELECT linked_dive_id FROM dive_plans WHERE id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .getSingleOrNull();
     return {
       ...document,
-      'tanks': [
-        for (final t in tanks) {for (final key in _tankKeys) key: t[key]},
-      ],
-      'segments': [
-        for (final s in document['segments'] as List? ?? const [])
-          {
-            'target_depth_m': (s as Map)['target_depth_m'],
-            'duration_s': s['duration_s'],
-            'tank': place[s['tank_id']],
-            'setpoint_bar': s['setpoint_bar'],
-            'split_at_configured_rate': s['split_at_configured_rate'],
-          },
-      ],
+      ...planPartsAsWritten(document),
+      'linked_dive_id': row == null
+          ? document['linked_dive_id']
+          : row.readNullable<String>('linked_dive_id'),
     };
   }
-
-  static const _tankKeys = [
-    'name',
-    'volume_l',
-    'working_pressure_bar',
-    'start_pressure_bar',
-    'o2_fraction',
-    'he_fraction',
-    'role',
-    'deco_switch_depth_m',
-  ];
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {

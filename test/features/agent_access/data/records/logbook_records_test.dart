@@ -7,6 +7,8 @@ import 'package:submersion/core/database/database.dart' hide CsvPreset;
 import 'package:submersion/features/connections/data/repositories/connection_map_repository.dart';
 import 'package:submersion/features/connections/domain/views/map_spec.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart' as log;
 import 'package:submersion/features/divers/data/repositories/diver_weight_entry_repository.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
@@ -321,6 +323,114 @@ void main() {
       expect(dives.map((d) => d['plan_id']), ['dive-a', 'dive-b']);
       expect(dives.first['name'], 'Wreck');
       expect(dives.last['surface_interval_s'], 3600);
+    });
+
+    group('log state', () {
+      final when = DateTime.utc(2026, 11, 14, 9);
+
+      Future<void> linkPlan(String planId, String? diveId) async {
+        await db
+            .into(db.divePlans)
+            .insert(
+              DivePlansCompanion.insert(
+                id: planId,
+                name: planId,
+                createdAt: t,
+                updatedAt: t,
+                linkedDiveId: Value(diveId),
+              ),
+            );
+      }
+
+      Future<void> logDive(String id, {required bool planned}) async {
+        await DiveRepository().createDive(
+          log.Dive(
+            id: id,
+            dateTime: when,
+            isPlanned: planned,
+            diverId: kDiverA,
+          ),
+        );
+      }
+
+      test('a plan with no link is only planned', () async {
+        final doc = (await h.one('dive_plans', 'plan'))!;
+        expect(doc['log_state'], 'planned');
+        expect(doc['linked_dive_id'], isNull);
+      });
+
+      test('a plan names its planned entry and its dived dive', () async {
+        await logDive('entry', planned: true);
+        await logDive('dived', planned: false);
+        await linkPlan('p-entry', 'entry');
+        await linkPlan('p-dived', 'dived');
+
+        final entry = (await h.one('dive_plans', 'p-entry'))!;
+        expect(entry['log_state'], 'logged_as_planned');
+        expect(entry['linked_dive_id'], 'entry');
+        final dived = (await h.one('dive_plans', 'p-dived'))!;
+        expect(dived['log_state'], 'dived');
+        expect(dived['linked_dive_id'], 'dived');
+      });
+
+      test("list_records shows each plan's log state", () async {
+        await logDive('entry', planned: true);
+        await linkPlan('p-entry', 'entry');
+        final out = await h.listing('dive_plans');
+        final states = {
+          for (final r in (out['records'] as List).cast<Map>())
+            r['id']: r['log_state'],
+        };
+        expect(states, {'plan': 'planned', 'p-entry': 'logged_as_planned'});
+      });
+
+      test(
+        'a link to a dive no longer in the log reads as planned, unlinked',
+        () async {
+          // Deleted on another device: the link outlives its dive.
+          await db.customStatement('PRAGMA foreign_keys = OFF');
+          await linkPlan('p-gone', 'gone');
+          await db.customStatement('PRAGMA foreign_keys = ON');
+          final doc = (await h.one('dive_plans', 'p-gone'))!;
+          expect(doc['log_state'], 'planned');
+          expect(doc['linked_dive_id'], isNull);
+        },
+      );
+
+      test('each dive of a series states where it stands', () async {
+        await logDive('entry', planned: true);
+        await logDive('dived', planned: false);
+        domain.DivePlan plan(String id, String? diveId) => domain.DivePlan(
+          id: id,
+          name: 'Reef day',
+          linkedDiveId: diveId,
+          surfaceInterval: id == 's-1' ? null : const Duration(hours: 1),
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        );
+        // Saving never writes a link; a restore keeps the ones it is given.
+        await DivePlanSeriesRepository().restoreSeries(
+          StoredSeries(
+            id: 'series',
+            name: 'Reef day',
+            diverId: kDiverA,
+            dives: [
+              StoredSeriesDive(plan: plan('s-1', 'dived')),
+              StoredSeriesDive(plan: plan('s-2', 'entry')),
+              StoredSeriesDive(plan: plan('s-3', null)),
+            ],
+          ),
+        );
+
+        final doc = (await h.one('dive_plan_series', 'series'))!;
+        final dives = (doc['dives']! as List).cast<Map<String, Object?>>();
+        expect(dives.map((d) => d['log_state']), [
+          'dived',
+          'logged_as_planned',
+          'planned',
+        ]);
+        expect(dives.map((d) => d['linked_dive_id']), ['dived', 'entry', null]);
+      });
     });
 
     test(

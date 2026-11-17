@@ -81,6 +81,7 @@ class AgentToolRegistry {
           loader: loader,
           settings: settings,
           followOf: followOf,
+          records: records,
           caveat: planCaveat,
         ),
         PreviewChangesTool(
