@@ -3,11 +3,9 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_sql.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_operation.dart';
-
-/// A fragment of SQL and the values bound to its marks, in order.
-typedef ChangeLogSql = ({String sql, List<Variable<Object>> variables});
 
 /// What a diver sees of an entry another diver owns (issue #4527).
 ///
@@ -18,8 +16,6 @@ typedef ChangeLogSql = ({String sql, List<Variable<Object>> variables});
 /// records, and titled with one of them: the sitting's own record may be
 /// private to its owner.
 abstract final class ChangeLogSharedView {
-  static String _marks(int count) => List.filled(count, '?').join(', ');
-
   /// Whether the record named by the SQL expressions [table] and [id] is one
   /// [diverId] sees anywhere else in the app ([VisibilityFilter]): their
   /// own, shared with them or with everyone, or in a site library they
@@ -95,24 +91,24 @@ abstract final class ChangeLogSharedView {
     final shown = await _shownRoots(db, others, diverId);
     if (shown.isEmpty) return operations;
 
-    final owns = <String, ChangeLogRoot?>{
+    // Each restricted entry's records, and its own among them if they are
+    // seen: then it keeps its title, else it takes the first record's name.
+    final views = {
       for (final operation in operations)
         if (shown[operation.id] case final roots?)
-          operation.id: _ownRootIn(operation, roots),
+          operation.id: (roots: roots, own: _ownRootIn(operation, roots)),
     };
     final names = await _names(db, {
-      for (final MapEntry(key: id, value: own) in owns.entries)
-        if (own == null) shown[id]!.first,
+      for (final view in views.values)
+        if (view.own == null) view.roots.first,
     });
     return [
       for (final operation in operations)
-        if (shown[operation.id] case final roots?)
+        if (views[operation.id] case (:final roots, :final own)?)
           operation.restrictedTo(
             roots,
-            root: owns[operation.id] ?? roots.first,
-            label: owns[operation.id] != null
-                ? operation.rootLabel
-                : names[roots.first],
+            root: own ?? roots.first,
+            label: own == null ? names[roots.first] : operation.rootLabel,
           )
         else
           operation,
@@ -131,7 +127,7 @@ abstract final class ChangeLogSharedView {
         .customSelect(
           'SELECT e.operation_id, e.root_table, e.root_id, MIN(e.id) AS first '
           'FROM change_log_events e '
-          'WHERE e.operation_id IN (${_marks(operationIds.length)}) '
+          'WHERE e.operation_id IN (${changeLogMarks(operationIds.length)}) '
           'AND ${seen.sql} '
           'GROUP BY e.operation_id, e.root_table, e.root_id ORDER BY first',
           variables: [
@@ -175,7 +171,7 @@ abstract final class ChangeLogSharedView {
       ];
       final rows = await db
           .customSelect(
-            'SELECT id, name FROM $table WHERE id IN (${_marks(ids.length)})',
+            'SELECT id, name FROM $table WHERE id IN (${changeLogMarks(ids.length)})',
             variables: [...ids.map(Variable<Object>.new)],
           )
           .get();

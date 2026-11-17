@@ -10,6 +10,7 @@ import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_shared_view.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_sql.dart';
 import 'package:submersion/features/change_log/data/services/change_log_settler.dart';
 import 'package:submersion/features/change_log/domain/change_log_entities.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
@@ -109,7 +110,7 @@ class ChangeLogRepository {
     }
     if (filter.rootTables.isNotEmpty) {
       final tables = filter.rootTables.toList();
-      final marks = _marks(tables.length);
+      final marks = changeLogMarks(tables.length);
       // An entry another diver owns is filtered by the record it is shown
       // under for this diver ([ChangeLogSharedView]), not the one it is
       // about.
@@ -126,7 +127,7 @@ class ChangeLogRepository {
       }
     }
     if (filter.sources.isNotEmpty) {
-      final marks = _marks(filter.sources.length);
+      final marks = changeLogMarks(filter.sources.length);
       where.add('o.source IN ($marks)');
       variables.addAll(
         filter.sources.map((source) => Variable<Object>(source.name)),
@@ -155,18 +156,22 @@ class ChangeLogRepository {
   }
 
   /// The active diver's own entries, entries with no owner, and entries
-  /// about, or that changed, a record they see ([ChangeLogSharedView]).
+  /// about, or that changed, a record they see ([ChangeLogSharedView]). The
+  /// last is looked for among other divers' entries only, so it never reads
+  /// the diver's own history.
   static ChangeLogSql _visibleTo(String diverId) {
-    final shared = ChangeLogSharedView.seenRoot('o', diverId);
+    final about = ChangeLogSharedView.seenRoot('o', diverId);
     final seen = ChangeLogSharedView.seenRoot('e', diverId);
     return (
       sql:
-          '(o.diver_id = ? OR o.diver_id IS NULL OR ${shared.sql} '
+          '(o.diver_id = ? OR o.diver_id IS NULL OR ${about.sql} '
           'OR o.id IN (SELECT e.operation_id FROM change_log_events e '
-          'WHERE ${seen.sql}))',
+          'JOIN change_log_operations eo ON eo.id = e.operation_id '
+          'WHERE eo.diver_id <> ? AND ${seen.sql}))',
       variables: [
         Variable<Object>(diverId),
-        ...shared.variables,
+        ...about.variables,
+        Variable<Object>(diverId),
         ...seen.variables,
       ],
     );
@@ -294,14 +299,12 @@ class ChangeLogRepository {
       for (final column in entry.value) '${entry.key}.$column',
   ];
 
-  static String _marks(int count) => List.filled(count, '?').join(', ');
-
   /// Whether a field [fields].column_name of an event [events] is one of
   /// [changeLogShownMachineColumns].
   static ChangeLogSql _shownField(String events, String fields) => (
     sql:
         "($events.table_name || '.' || $fields.column_name) "
-        'IN (${_marks(_shownMachineColumns.length)})',
+        'IN (${changeLogMarks(_shownMachineColumns.length)})',
     variables: [..._shownMachineColumns.map(Variable<Object>.new)],
   );
 
@@ -312,7 +315,7 @@ class ChangeLogRepository {
     final shown = _shownField(events, fields);
     return (
       sql:
-          '($events.table_name NOT IN (${_marks(_machineTables.length)}) '
+          '($events.table_name NOT IN (${changeLogMarks(_machineTables.length)}) '
           'OR ${shown.sql})',
       variables: [
         ..._machineTables.map(Variable<Object>.new),
@@ -327,7 +330,7 @@ class ChangeLogRepository {
     final shown = _shownField(events, 'lf');
     return (
       sql:
-          '($events.table_name NOT IN (${_marks(_machineTables.length)}) '
+          '($events.table_name NOT IN (${changeLogMarks(_machineTables.length)}) '
           "OR ($events.action = 'U' AND EXISTS (SELECT 1 FROM "
           'change_log_fields lf WHERE lf.event_id = $events.id '
           'AND ${shown.sql})))',
@@ -451,7 +454,7 @@ class ChangeLogRepository {
   /// its tanks as one.
   Future<Map<String, int>> getRecordCounts(List<String> operationIds) async {
     if (operationIds.isEmpty) return const {};
-    final marks = _marks(operationIds.length);
+    final marks = changeLogMarks(operationIds.length);
     final rows = await _db
         .customSelect(
           "SELECT operation_id, COUNT(DISTINCT root_table || '|' || root_id) "

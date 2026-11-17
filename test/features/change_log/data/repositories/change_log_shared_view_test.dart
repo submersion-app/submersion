@@ -269,4 +269,68 @@ void main() {
       expect(await seenBy('them', id), isNull);
     });
   });
+
+  /// A sitting on the dive 'mine' whose only write is [sql].
+  Future<String> sittingThat(String sql) async {
+    late String id;
+    await ChangeLogScope.run(
+      db,
+      source: ChangeLogSource.manual,
+      label: RecordEditLabel.encode(
+        table: 'dives',
+        id: 'mine',
+        cardIds: ['trip'],
+      ),
+      body: () async {
+        id = ChangeLogScope.currentOperationId!;
+        await db.customStatement(sql);
+      },
+    );
+    await repository.settleAll();
+    return id;
+  }
+
+  // Sites are not the only records a diver shares: a sitting can stretch a
+  // shared trip, or change shared gear.
+  group('the other kinds of record a diver shares', () {
+    test('a shared trip shows the sitting, titled with the trip', () async {
+      await db.customStatement(
+        'INSERT INTO trips (id, name, start_date, end_date, created_at, '
+        "updated_at, diver_id) VALUES ('trip', 'Bonaire', 0, 0, 0, 0, 'me')",
+      );
+      await db.customStatement(
+        'INSERT INTO trip_shares (id, trip_id, diver_id, created_at) '
+        "VALUES ('ts', 'trip', 'them', 0)",
+      );
+      final id = await sittingThat(
+        "UPDATE trips SET end_date = 86400000 WHERE id = 'trip'",
+      );
+
+      final theirs = (await seenBy('them', id))!;
+      expect(theirs.rootTable, 'trips');
+      expect(theirs.rootId, 'trip');
+      expect(theirs.rootLabel, 'Bonaire');
+      expect(await seenBy('other', id), isNull);
+    });
+
+    test('shared gear shows the sitting, titled with the item', () async {
+      await db.customStatement(
+        'INSERT INTO equipment (id, name, type, created_at, updated_at, '
+        "diver_id) VALUES ('reg', 'Mk25', 'regulator', 0, 0, 'me')",
+      );
+      await db.customStatement(
+        'INSERT INTO equipment_shares (id, equipment_id, diver_id, '
+        "created_at) VALUES ('es', 'reg', 'them', 0)",
+      );
+      final id = await sittingThat(
+        "UPDATE equipment SET name = 'Mk25 EVO' WHERE id = 'reg'",
+      );
+
+      final theirs = (await seenBy('them', id))!;
+      expect(theirs.rootTable, 'equipment');
+      expect(theirs.rootId, 'reg');
+      expect(theirs.rootLabel, 'Mk25 EVO');
+      expect(await seenBy('other', id), isNull);
+    });
+  });
 }
