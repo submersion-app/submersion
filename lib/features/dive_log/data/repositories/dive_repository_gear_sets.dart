@@ -100,8 +100,8 @@ extension DiveGearSets on DiveRepository {
   /// hand) takes this one; and a row an added assembly adopts as its part
   /// takes the assembly's set. A member or part another profile owns and
   /// has not shared with the dive's diver stays off that dive, as when the
-  /// set is used on one dive (#2046). Writes and bumps only the dives whose
-  /// rows change, and returns their ids. No notify/txn.
+  /// set is used on one dive (#2046). Writes only the dives whose rows
+  /// change, and returns their ids. No notify/txn.
   Future<List<String>> bulkAddEquipmentSets(
     List<String> diveIds,
     List<String> setIds,
@@ -154,8 +154,8 @@ extension DiveGearSets on DiveRepository {
   /// Removes from each dive every row tagged with one of [setIds], with what
   /// is attached through it. A row with no set, or another set, stays, even
   /// when one of [setIds] holds the item; a hand-added row a set later took
-  /// on carries that set, and goes with it. Writes and bumps only the dives
-  /// whose rows change, and returns their ids. No notify/txn.
+  /// on carries that set, and goes with it. Writes only the dives whose rows
+  /// change, and returns their ids. No notify/txn.
   Future<List<String>> bulkRemoveEquipmentSets(
     List<String> diveIds,
     List<String> setIds,
@@ -192,7 +192,9 @@ extension DiveGearSets on DiveRepository {
       await _writeGearDiff(diveId, next, now);
       changed.add(diveId);
     }
-    if (changed.isNotEmpty) await _bumpDives(changed, now);
+    // The gear rows travel on their own clocks; the dives are not restamped
+    // (issue #4651).
+    if (changed.isNotEmpty) _tickDives();
     return changed;
   }
 

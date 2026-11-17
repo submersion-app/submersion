@@ -10,7 +10,8 @@ import 'package:submersion/features/equipment/domain/entities/gear_provenance.da
 import '../../../../helpers/test_database.dart';
 
 /// "Also update N past dives" (issue #1487): every dive carrying the
-/// assembly is rewritten through the diff writer and re-stamped; a dive
+/// assembly is rewritten through the diff writer, its gear rows staged on
+/// their own clocks with the dive itself left alone (issue #4651); a dive
 /// without it is not touched at all.
 void main() {
   late AppDatabase db;
@@ -121,7 +122,7 @@ void main() {
   });
 
   test(
-    'a replaced part is re-keyed and each touched dive is re-stamped',
+    'a replaced part is re-keyed and staged, and the dive is not re-stamped',
     () async {
       final before = await updatedAtOf('a');
       await Future<void>.delayed(const Duration(milliseconds: 2));
@@ -132,7 +133,12 @@ void main() {
       expect(a.keys, unorderedEquals(['reg', 'newhose']));
       expect(a['newhose']!.viaEquipmentId, 'reg');
       expect(a['newhose']!.viaSetId, 'winter');
-      expect(await updatedAtOf('a'), greaterThan(before));
+      expect(await updatedAtOf('a'), before);
+      final staged = [
+        for (final r in await db.select(db.syncRecords).get())
+          if (r.entityType == 'diveEquipment') r.recordId,
+      ];
+      expect(staged, contains('a|newhose'));
     },
   );
 

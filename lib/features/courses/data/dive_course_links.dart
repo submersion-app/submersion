@@ -63,11 +63,14 @@ class DiveCourseLinks {
 
   /// Makes [diveId]'s courses exactly [courseIds]: inserts new pairs, removes
   /// and tombstones dropped ones, leaves unchanged pairs alone, then rewrites
-  /// the representative. Callers mark the dive itself pending.
+  /// the representative. Callers saving the dive mark it pending themselves;
+  /// a bulk edit passes [markPending] so the dive is restamped only when its
+  /// representative changed (issue #4651).
   Future<void> writeCourseSet(
     String diveId,
     List<String> courseIds, {
     required int now,
+    bool markPending = false,
   }) async {
     final want = courseIds.toSet();
     final existing = await (_db.select(
@@ -102,7 +105,7 @@ class DiveCourseLinks {
         localUpdatedAt: now,
       );
     }
-    await refreshRepresentative(diveId, now: now);
+    await refreshRepresentative(diveId, now: now, markPending: markPending);
   }
 
   /// Rewrites `dives.course_id` from the set (earliest course start date,
@@ -150,33 +153,44 @@ class DiveCourseLinks {
   }
 
   /// Adds [courseIds] to each dive's set, keeping its other courses.
+  /// [markPending] as for [writeCourseSet].
   Future<void> addCourses(
     List<String> diveIds,
     List<String> courseIds, {
     required int now,
+    bool markPending = false,
   }) async {
     final current = await courseIdsForDives(diveIds);
     for (final diveId in diveIds) {
-      await writeCourseSet(diveId, [
-        ...?current[diveId],
-        ...courseIds,
-      ], now: now);
+      await writeCourseSet(
+        diveId,
+        [...?current[diveId], ...courseIds],
+        now: now,
+        markPending: markPending,
+      );
     }
   }
 
   /// Removes [courseIds] from each dive's set, keeping its other courses.
+  /// [markPending] as for [writeCourseSet].
   Future<void> removeCourses(
     List<String> diveIds,
     List<String> courseIds, {
     required int now,
+    bool markPending = false,
   }) async {
     final current = await courseIdsForDives(diveIds);
     final drop = courseIds.toSet();
     for (final diveId in diveIds) {
-      await writeCourseSet(diveId, [
-        for (final c in current[diveId] ?? const <String>[])
-          if (!drop.contains(c)) c,
-      ], now: now);
+      await writeCourseSet(
+        diveId,
+        [
+          for (final c in current[diveId] ?? const <String>[])
+            if (!drop.contains(c)) c,
+        ],
+        now: now,
+        markPending: markPending,
+      );
     }
   }
 
