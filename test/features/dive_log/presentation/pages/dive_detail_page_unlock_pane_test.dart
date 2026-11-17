@@ -78,6 +78,63 @@ void main() {
     expect(find.text('History'), findsNothing);
   });
 
+  // One sitting per dive: the full page could be unlocked too while the
+  // pane holds one, so it waits until the pane is locked again.
+  group('Open Full Page while the pane is unlocked', () {
+    Finder openItem() => find.ancestor(
+      of: find.text('Open Full Page'),
+      matching: find.byWidgetPredicate((w) => w is PopupMenuItem<String>),
+    );
+
+    Future<void> openMenu(WidgetTester tester) async {
+      await tester.tap(
+        find.byWidgetPredicate((w) => w is PopupMenuButton<String>).last,
+      );
+      await settle(tester);
+    }
+
+    testWidgets('locked, it opens the full page', (tester) async {
+      final page = await pumpPage(tester, embedded: true, size: pane);
+      await openMenu(tester);
+
+      expect(tester.widget<PopupMenuItem<String>>(openItem()).enabled, isTrue);
+      await tester.tap(find.text('Open Full Page'));
+      await settle(tester);
+      expect(location(page.router), '/dives/${dive.id}');
+    });
+
+    testWidgets('unlocked with nothing to save, it is disabled and says why', (
+      tester,
+    ) async {
+      final page = await pumpPage(tester, embedded: true, size: pane);
+      await unlock(tester);
+      await openMenu(tester);
+
+      expect(tester.widget<PopupMenuItem<String>>(openItem()).enabled, isFalse);
+      expect(
+        find.descendant(
+          of: openItem(),
+          matching: find.text('Save or cancel your changes first'),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Open Full Page'), warnIfMissed: false);
+      await settle(tester);
+      expect(location(page.router), '/home/dive');
+    });
+
+    testWidgets('unlocked with a change, it is disabled', (tester) async {
+      await pumpPage(tester, embedded: true, size: pane);
+      await unlock(tester);
+      await openNotes(tester);
+      await tester.enterText(find.byType(TextField).first, 'Choppy');
+      await settle(tester);
+      await openMenu(tester);
+
+      expect(tester.widget<PopupMenuItem<String>>(openItem()).enabled, isFalse);
+    });
+  });
+
   testWidgets('the pane tells a drop which sitting is open', (tester) async {
     await pumpPage(tester, embedded: true, size: pane);
     OpenDiveSitting? open() => ProviderScope.containerOf(

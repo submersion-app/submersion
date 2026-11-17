@@ -130,10 +130,22 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
             rootTable: 'dives',
             rootId: dive.id,
           );
-          final open = item(
-            'open',
-            Icons.open_in_new,
-            l10n.diveLog_detail_menu_openFullPage,
+          // One sitting per dive (issue #4527): the full page could be
+          // unlocked too while the pane holds a sitting, so it waits until
+          // the pane is locked again, Save or Cancel.
+          final paneUnlocked =
+              operations != null && operations != RecordOperationBlock.locked;
+          final open = PopupMenuItem<String>(
+            value: 'open',
+            enabled: !paneUnlocked,
+            child: ListTile(
+              leading: const Icon(Icons.open_in_new),
+              title: Text(l10n.diveLog_detail_menu_openFullPage),
+              subtitle: paneUnlocked
+                  ? Text(l10n.recordEdit_saveOrCancelFirst)
+                  : null,
+              contentPadding: EdgeInsets.zero,
+            ),
           );
           final favorite = PopupMenuItem<String>(
             value: 'toggleFavorite',
