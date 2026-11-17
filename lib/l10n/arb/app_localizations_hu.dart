@@ -62911,6 +62911,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get changeLog_table_diverSettings => 'Búvárbeállítások';
 
   @override
+  String get changeLog_table_safetyFinding => 'Biztonsági megállapítás';
+
+  @override
+  String get changeLog_table_pressureSeries => 'Nyomásértékek';
+
+  @override
+  String get changeLog_table_navTrack => 'Víz alatti nyomvonal';
+
+  @override
   String get changeLog_history => 'Előzmények';
 
   @override

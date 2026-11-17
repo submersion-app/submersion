@@ -77,10 +77,20 @@ class ChangeLogRevertService {
 
   AppDatabase get _db => DatabaseService.instance.database;
 
+  /// Undoing one field of the record [eventId] changed. A row of
+  /// [changeLogRevertsWithEntryOnly] goes back only with its whole entry,
+  /// so it is refused.
   Future<ChangeLogRevertPlan> planField(int eventId, String column) async {
     final event = await _repository.getEvent(eventId);
     if (event == null) {
       throw ArgumentError.value(eventId, 'eventId', 'No such change log event');
+    }
+    if (changeLogRevertsWithEntryOnly.contains(event.table)) {
+      throw ArgumentError.value(
+        eventId,
+        'eventId',
+        '${event.table} goes back only with its whole entry',
+      );
     }
     // Every save to this field in the entry, not just this one: a Revert
     // goes back to what the entry found.
@@ -105,15 +115,25 @@ class ChangeLogRevertService {
     );
   }
 
-  Future<ChangeLogRevertPlan> planOperation(String operationId) async {
+  /// Undoing the entry [operationId], or as a diver who sees only
+  /// [onlyRoots] of it ([ChangeLogOperation.shownRoots]) the rows about
+  /// those. Only a revert of every row marks the entry reverted.
+  Future<ChangeLogRevertPlan> planOperation(
+    String operationId, {
+    Set<ChangeLogRoot>? onlyRoots,
+  }) async {
     final events = await _repository.getEvents(
       operationId,
       includeMachineRows: true,
+      onlyRoots: onlyRoots,
     );
     return ChangeLogRevertPlan(
       operationId: operationId,
       items: await _plan(events),
-      wholeOperation: true,
+      wholeOperation:
+          onlyRoots == null ||
+          (await _repository.getOperation(operationId))?.eventCount ==
+              events.length,
     );
   }
 

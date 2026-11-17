@@ -9,6 +9,8 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_shared_view.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_sql.dart';
 import 'package:submersion/features/change_log/data/services/change_log_settler.dart';
 import 'package:submersion/features/change_log/domain/change_log_entities.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
@@ -84,37 +86,48 @@ class ChangeLogRepository {
     ChangeLogPageCursor? after,
     int limit = 50,
   }) async {
+    final visible = _visibleTo(diverId);
     final where = <String>[
       '(o.event_count > 0 OR o.summary_count IS NOT NULL)',
-      _visibleTo,
+      visible.sql,
     ];
-    final variables = <Variable<Object>>[
-      for (var i = 0; i < 4; i++) Variable<Object>(diverId),
-    ];
+    final variables = <Variable<Object>>[...visible.variables];
 
     if (filter.isRecord) {
+      // An entry about the record (an editing sitting on it, issue #4527)
+      // belongs in its History even when every record it changed was
+      // another one, such as a document filed under a dive.
       where.add(
-        'o.id IN (SELECT operation_id FROM change_log_events '
-        'WHERE root_table = ? AND root_id = ?)',
+        '(o.id IN (SELECT operation_id FROM change_log_events '
+        'WHERE root_table = ? AND root_id = ?) '
+        'OR (o.root_table = ? AND o.root_id = ?))',
       );
-      variables
-        ..add(Variable<Object>(filter.rootTable!))
-        ..add(Variable<Object>(filter.rootId!));
+      for (final _ in const [0, 1]) {
+        variables
+          ..add(Variable<Object>(filter.rootTable!))
+          ..add(Variable<Object>(filter.rootId!));
+      }
     }
     if (filter.rootTables.isNotEmpty) {
       final tables = filter.rootTables.toList();
-      final marks = List.filled(tables.length, '?').join(', ');
+      final marks = changeLogMarks(tables.length);
+      // An entry another diver owns is filtered by the record it is shown
+      // under for this diver ([ChangeLogSharedView]), not the one it is
+      // about.
+      final shown = ChangeLogSharedView.shownTable('o', diverId);
       where.add(
+        'COALESCE(${shown.sql} IN ($marks), '
         '(o.root_table IN ($marks) OR (o.root_table IS NULL AND EXISTS ('
         'SELECT 1 FROM change_log_events e WHERE e.operation_id = o.id '
-        'AND e.root_table IN ($marks))))',
+        'AND e.root_table IN ($marks)))))',
       );
-      for (final _ in const [0, 1]) {
+      variables.addAll(shown.variables);
+      for (final _ in const [0, 1, 2]) {
         variables.addAll(tables.map(Variable<Object>.new));
       }
     }
     if (filter.sources.isNotEmpty) {
-      final marks = List.filled(filter.sources.length, '?').join(', ');
+      final marks = changeLogMarks(filter.sources.length);
       where.add('o.source IN ($marks)');
       variables.addAll(
         filter.sources.map((source) => Variable<Object>(source.name)),
@@ -137,54 +150,91 @@ class ChangeLogRepository {
           readsFrom: {_db.changeLogOperations},
         )
         .get();
-    return rows.map((row) => _operation(row.data)).toList();
+    return ChangeLogSharedView.asSeenBy(_db, [
+      for (final row in rows) _operation(row.data),
+    ], diverId);
   }
 
   /// The active diver's own entries, entries with no owner, and entries
-  /// about a record shared with them. Takes the diver id four times.
-  static const _visibleTo =
-      '(o.diver_id = ? OR o.diver_id IS NULL '
-      "OR (o.root_table = 'dive_sites' AND EXISTS (SELECT 1 FROM site_shares s "
-      'WHERE s.site_id = o.root_id AND s.diver_id = ?)) '
-      "OR (o.root_table = 'equipment' AND EXISTS (SELECT 1 FROM "
-      'equipment_shares s WHERE s.equipment_id = o.root_id '
-      'AND s.diver_id = ?)) '
-      "OR (o.root_table = 'trips' AND EXISTS (SELECT 1 FROM trip_shares s "
-      'WHERE s.trip_id = o.root_id AND s.diver_id = ?)))';
+  /// about, or that changed, a record they see ([ChangeLogSharedView]). The
+  /// last is looked for among other divers' entries only, so it never reads
+  /// the diver's own history.
+  static ChangeLogSql _visibleTo(String diverId) {
+    final about = ChangeLogSharedView.seenRoot('o', diverId);
+    final seen = ChangeLogSharedView.seenRoot('e', diverId);
+    return (
+      sql:
+          '(o.diver_id = ? OR o.diver_id IS NULL OR ${about.sql} '
+          'OR o.id IN (SELECT e.operation_id FROM change_log_events e '
+          'JOIN change_log_operations eo ON eo.id = e.operation_id '
+          'WHERE eo.diver_id <> ? AND ${seen.sql}))',
+      variables: [
+        Variable<Object>(diverId),
+        ...about.variables,
+        Variable<Object>(diverId),
+        ...seen.variables,
+      ],
+    );
+  }
 
-  /// The entry, if [diverId] may see it now.
+  /// The entry as [diverId] sees it, if they may see it now.
   Future<ChangeLogOperation?> getVisibleOperation(
     String id,
     String diverId,
   ) async {
+    final visible = _visibleTo(diverId);
     final row = await _db
         .customSelect(
           'SELECT o.* FROM change_log_operations o '
-          'WHERE o.id = ? AND $_visibleTo',
-          variables: [
-            Variable<String>(id),
-            for (var i = 0; i < 4; i++) Variable<String>(diverId),
-          ],
+          'WHERE o.id = ? AND ${visible.sql}',
+          variables: [Variable<String>(id), ...visible.variables],
           readsFrom: {_db.changeLogOperations},
         )
         .getSingleOrNull();
-    return row == null ? null : _operation(row.data);
+    if (row == null) return null;
+    return (await ChangeLogSharedView.asSeenBy(_db, [
+      _operation(row.data),
+    ], diverId)).single;
   }
 
-  /// How many of [operationId]'s records the entry's page can list.
-  Future<int> countEvents(String operationId) async {
-    final marks = List.filled(_machineTables.length, '?').join(', ');
+  /// How many of [operationId]'s records the entry's page can list, of
+  /// [onlyRoots] if given ([ChangeLogOperation.shownRoots]).
+  Future<int> countEvents(
+    String operationId, {
+    Set<ChangeLogRoot>? onlyRoots,
+  }) async {
+    final listed = _listedEvent('change_log_events');
+    final under = _under(onlyRoots);
     final row = await _db
         .customSelect(
           'SELECT COUNT(*) AS c FROM change_log_events WHERE operation_id = ? '
-          'AND table_name NOT IN ($marks)',
+          'AND ${listed.sql} ${under.sql}',
           variables: [
             Variable<String>(operationId),
-            ..._machineTables.map(Variable<String>.new),
+            ...listed.variables,
+            ...under.variables,
           ],
         )
         .getSingle();
     return row.read<int>('c');
+  }
+
+  /// `AND` an event's root is one of [roots], or nothing when null.
+  static ChangeLogSql _under(Set<ChangeLogRoot>? roots) {
+    if (roots == null) return (sql: '', variables: const []);
+    final each = List.filled(
+      roots.length,
+      '(root_table = ? AND root_id = ?)',
+    ).join(' OR ');
+    return (
+      sql: 'AND (${roots.isEmpty ? '0' : each})',
+      variables: [
+        for (final root in roots) ...[
+          Variable<Object>(root.table),
+          Variable<Object>(root.id),
+        ],
+      ],
+    );
   }
 
   Future<ChangeLogOperation?> getOperation(String id) async {
@@ -198,23 +248,29 @@ class ChangeLogRepository {
     return row == null ? null : _operation(row.data);
   }
 
-  /// [operationId]'s records, oldest first. Machine rows are kept only to
-  /// restore a deleted record, so they are left out unless asked for.
+  /// [operationId]'s records, oldest first, those under [onlyRoots] if
+  /// given ([ChangeLogOperation.shownRoots]). Machine rows are kept only to
+  /// restore a deleted record, so they are left out unless asked for, all
+  /// but the columns of [changeLogShownMachineColumns] a diver changes.
   Future<List<ChangeLogEvent>> getEvents(
     String operationId, {
     bool includeMachineRows = false,
     int? limit,
+    Set<ChangeLogRoot>? onlyRoots,
   }) async {
-    final hidden = includeMachineRows ? const <String>[] : _machineTables;
-    final marks = List.filled(hidden.length, '?').join(', ');
+    final listed = includeMachineRows
+        ? null
+        : _listedEvent('change_log_events');
+    final under = _under(onlyRoots);
     final rows = await _db
         .customSelect(
           'SELECT * FROM change_log_events WHERE operation_id = ? '
-          '${hidden.isEmpty ? '' : 'AND table_name NOT IN ($marks) '}'
+          '${listed == null ? '' : 'AND ${listed.sql} '}${under.sql} '
           'ORDER BY id ${limit == null ? '' : 'LIMIT ?'}',
           variables: [
             Variable<String>(operationId),
-            ...hidden.map(Variable<String>.new),
+            ...?listed?.variables,
+            ...under.variables,
             if (limit != null) Variable<int>(limit),
           ],
         )
@@ -224,7 +280,7 @@ class ChangeLogRepository {
     final fields = await _fieldsByEvent(
       operationId,
       lastEventId: rows.last.read<int>('id'),
-      hidden: hidden,
+      includeMachineRows: includeMachineRows,
     );
     return [
       for (final row in rows)
@@ -237,23 +293,71 @@ class ChangeLogRepository {
       if (entry.value == ChangeLogClass.deleteCopyOnly) entry.key,
   ];
 
+  /// `table.column` for each of [changeLogShownMachineColumns].
+  static final List<String> _shownMachineColumns = [
+    for (final entry in changeLogShownMachineColumns.entries)
+      for (final column in entry.value) '${entry.key}.$column',
+  ];
+
+  /// Whether a field [fields].column_name of an event [events] is one of
+  /// [changeLogShownMachineColumns].
+  static ChangeLogSql _shownField(String events, String fields) => (
+    sql:
+        "($events.table_name || '.' || $fields.column_name) "
+        'IN (${changeLogMarks(_shownMachineColumns.length)})',
+    variables: [..._shownMachineColumns.map(Variable<Object>.new)],
+  );
+
+  /// Whether a field [fields].column_name of an event [events] is listed:
+  /// any field of a logged table, and only the shown columns of a machine
+  /// table.
+  static ChangeLogSql _listedField(String events, String fields) {
+    final shown = _shownField(events, fields);
+    return (
+      sql:
+          '($events.table_name NOT IN (${changeLogMarks(_machineTables.length)}) '
+          'OR ${shown.sql})',
+      variables: [
+        ..._machineTables.map(Variable<Object>.new),
+        ...shown.variables,
+      ],
+    );
+  }
+
+  /// Whether an event [events] is listed: every event of a logged table, and
+  /// a machine table's update that changed one of its shown columns.
+  static ChangeLogSql _listedEvent(String events) {
+    final shown = _shownField(events, 'lf');
+    return (
+      sql:
+          '($events.table_name NOT IN (${changeLogMarks(_machineTables.length)}) '
+          "OR ($events.action = 'U' AND EXISTS (SELECT 1 FROM "
+          'change_log_fields lf WHERE lf.event_id = $events.id '
+          'AND ${shown.sql})))',
+      variables: [
+        ..._machineTables.map(Variable<Object>.new),
+        ...shown.variables,
+      ],
+    );
+  }
+
   Future<Map<int, List<ChangeLogFieldChange>>> _fieldsByEvent(
     String operationId, {
     required int lastEventId,
-    required List<String> hidden,
+    required bool includeMachineRows,
   }) async {
-    final marks = List.filled(hidden.length, '?').join(', ');
+    final listed = includeMachineRows ? null : _listedField('e', 'f');
     final rows = await _db
         .customSelect(
           'SELECT f.*, e.table_name FROM change_log_fields f '
           'JOIN change_log_events e ON e.id = f.event_id '
           'WHERE e.operation_id = ? AND e.id <= ? '
-          '${hidden.isEmpty ? '' : 'AND e.table_name NOT IN ($marks) '}'
+          '${listed == null ? '' : 'AND ${listed.sql} '}'
           'ORDER BY f.event_id, f.column_name',
           variables: [
             Variable<String>(operationId),
             Variable<int>(lastEventId),
-            ...hidden.map(Variable<String>.new),
+            ...?listed?.variables,
           ],
         )
         .get();
@@ -264,33 +368,60 @@ class ChangeLogRepository {
     return fields;
   }
 
-  /// The first [perOperation] changed fields of each of [operationIds], and
+  /// The first [perOperation] changed fields of each of [operations], and
   /// how many each has, net of repeat saves to one field. For entries about
   /// one record, which hold few events.
+  ///
+  /// Only fields of the entry's own record count. An editing sitting is
+  /// about its record whatever else it wrote (issue #4527), and its row is
+  /// titled with that record, so another record's field there (a site's
+  /// altitude under a dive) would read as the record's own. The entry's
+  /// page lists them all. An entry restricted to what a diver sees
+  /// ([ChangeLogOperation.shownRoots]) is titled with a record they see, so
+  /// it previews that record's fields.
   Future<Map<String, ChangeLogPreview>> getPreviewFields(
-    List<String> operationIds, {
+    List<ChangeLogOperation> operations, {
     int perOperation = 2,
   }) async {
-    if (operationIds.isEmpty) return const {};
-    final marks = List.filled(operationIds.length, '?').join(', ');
+    if (operations.isEmpty) return const {};
     final fields = <String, List<ChangeLogFieldChange>>{};
     final totals = <String, int>{};
-    for (final id in operationIds) {
-      final net = netFieldChanges(await getEvents(id, limit: _previewEvents));
+    for (final operation in operations) {
+      final id = operation.id;
+      final net = [
+        for (final change in netFieldChanges(
+          await getEvents(id, limit: _previewEvents),
+        ))
+          if (_isUnder(change.event, operation)) change,
+      ];
       if (net.isEmpty) continue;
       fields[id] = [for (final change in net.take(perOperation)) change.field];
       totals[id] = net.length;
     }
 
-    final actions = await _db
-        .customSelect(
-          'SELECT e.operation_id, e.action FROM change_log_events e '
-          'JOIN change_log_operations o ON o.id = e.operation_id '
-          'WHERE e.operation_id IN ($marks) AND e.table_name = o.root_table '
-          'AND e.record_id = o.root_id ORDER BY e.id',
-          variables: [...operationIds.map(Variable<String>.new)],
-        )
-        .get();
+    final rooted = [
+      for (final operation in operations)
+        if (operation.rootTable != null && operation.rootId != null) operation,
+    ];
+    final rootEvent = List.filled(
+      rooted.length,
+      '(e.operation_id = ? AND e.table_name = ? AND e.record_id = ?)',
+    ).join(' OR ');
+    final actions = rooted.isEmpty
+        ? const <QueryRow>[]
+        : await _db
+              .customSelect(
+                'SELECT e.operation_id, e.action FROM change_log_events e '
+                'WHERE $rootEvent ORDER BY e.id',
+                variables: [
+                  for (final operation in rooted) ...[
+                    Variable<String>(operation.id),
+                    Variable<String>(operation.rootTable!),
+                    Variable<String>(operation.rootId!),
+                  ],
+                ],
+              )
+              .get();
     // That the record arrived or went outranks any edit around it.
     final rootActions = <String, ChangeLogAction>{};
     for (final row in actions) {
@@ -310,11 +441,20 @@ class ChangeLogRepository {
     };
   }
 
+  /// Whether [event] changed the record [operation] is about or one of its
+  /// children. An entry with no record, or an event settled without one,
+  /// keeps every field.
+  static bool _isUnder(ChangeLogEvent event, ChangeLogOperation operation) =>
+      operation.rootTable == null ||
+      event.rootTable == null ||
+      (event.rootTable == operation.rootTable &&
+          event.rootId == operation.rootId);
+
   /// How many records each of [operationIds] touched, counting a dive and
   /// its tanks as one.
   Future<Map<String, int>> getRecordCounts(List<String> operationIds) async {
     if (operationIds.isEmpty) return const {};
-    final marks = List.filled(operationIds.length, '?').join(', ');
+    final marks = changeLogMarks(operationIds.length);
     final rows = await _db
         .customSelect(
           "SELECT operation_id, COUNT(DISTINCT root_table || '|' || root_id) "

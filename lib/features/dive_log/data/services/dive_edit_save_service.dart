@@ -64,7 +64,11 @@ class DiveEditSaveService {
     return ChangeLogScope.run(
       DatabaseService.instance.databaseOrNull,
       source: ChangeLogSource.manual,
-      label: RecordEditLabel.encode(table: 'dives', cardIds: changedCardIds),
+      label: RecordEditLabel.encode(
+        table: 'dives',
+        id: diveId,
+        cardIds: changedCardIds,
+      ),
       body: () => _db.transaction(() async {
         final stored = await _diveRepo.getDiveById(diveId);
         if (stored == null) {

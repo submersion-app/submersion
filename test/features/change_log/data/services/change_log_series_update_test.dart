@@ -269,8 +269,11 @@ void main() {
     expect(row['is_primary'], 0);
   });
 
-  test('the opt-in sources are the agent source', () {
-    expect(changeLogSeriesUpdateSources, {ChangeLogSource.agent.name});
+  test('the opt-in sources are the agent and a revert', () {
+    expect(changeLogSeriesUpdateSources, {
+      ChangeLogSource.agent.name,
+      ChangeLogSource.revert.name,
+    });
   });
 
   test('the opt-in labels are the removals and the planned dives update', () {

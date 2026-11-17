@@ -63257,6 +63257,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get changeLog_table_diverSettings => 'Impostazioni subacqueo';
 
   @override
+  String get changeLog_table_safetyFinding => 'Rilievo di sicurezza';
+
+  @override
+  String get changeLog_table_pressureSeries => 'Letture di pressione';
+
+  @override
+  String get changeLog_table_navTrack => 'Traccia subacquea';
+
+  @override
   String get changeLog_history => 'Cronologia';
 
   @override

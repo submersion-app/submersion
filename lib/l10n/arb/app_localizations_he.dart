@@ -61936,6 +61936,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get changeLog_table_diverSettings => 'הגדרות צוללן';
 
   @override
+  String get changeLog_table_safetyFinding => 'ממצא בטיחות';
+
+  @override
+  String get changeLog_table_pressureSeries => 'קריאות לחץ';
+
+  @override
+  String get changeLog_table_navTrack => 'מסלול תת-ימי';
+
+  @override
   String get changeLog_history => 'היסטוריה';
 
   @override
