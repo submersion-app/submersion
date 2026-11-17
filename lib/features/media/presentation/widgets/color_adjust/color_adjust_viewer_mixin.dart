@@ -29,7 +29,7 @@ mixin ColorAdjustViewerMixin<T extends ConsumerStatefulWidget>
   void openColorPanel() => setState(() => colorPanelOpen = true);
 
   /// The photo's sitting, where the panel and Pick white hold their changes
-  /// (issue #4527). Null saves each change at once, as before.
+  /// (issue #4527). Null while the photo is locked: nothing is changed.
   EditSession<PhotoRecord>? get colorSitting => null;
 
   /// Closes the panel and leaves Pick white: the photo was locked.
