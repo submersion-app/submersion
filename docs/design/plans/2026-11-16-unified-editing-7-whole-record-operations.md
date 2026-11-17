@@ -756,3 +756,52 @@ One, `Refs #4527`. It touches `lib/**/presentation/` and `lib/shared/widgets/`, 
 
 - **Plan 8 (new dive).** A new dive has no operations: `recordOperationBlockOf` reads `unsaved` for a sitting with changes, and the menu of a page that is creating offers none of them. Leaving a new dive with anything entered goes through the same `RecordSittingExitBlocker`, and the pane's `?mode=new` through `MasterDetailScaffold._onCreate`'s check.
 - **Plan 11 (switch-over).** Remove the Edit buttons from both bars; `&mode=edit` and `/dives/:id/edit` open the page unlocked (`editController.unlock` on first build). `removeSourceWithUndo(offerUndo:)`, the `operations == null` menu and every `operationReason == null` default are the switch-off paths and go with the switch. The form's outlier entry to the profile editor needs a home.
+
+---
+
+## After the review
+
+The plan was built as written in one session (Eric chose "Native"), then reviewed as a whole branch by a fresh reviewer. This is what differs from the task text above, for whoever writes plans 8 and 11.
+
+### Names that changed, or were added
+
+| Above | Now |
+| --- | --- |
+| `bool isOperating` kept as a flag | The operation names the sitting it froze: ending that sitting (a lock) ends the operating state, and an operation that finishes after it touches nothing it no longer owns |
+| `openProfileEditor(...)` returns `bool` | `Future<ProfileEditorResult>`, `({bool saved, bool promoted})`: the form still reseeds its source fields when the primary source changed |
+| The operations' handlers move to the operations part | They stay in `dive_detail_page_actions.dart`, each returning `Future<bool>` (true whenever a write was attempted, a failed one included); the part holds `operationBlock`, `_runOperation`, `_deleteDive`, `_editProfile`, `_drawProfile` |
+| Escape mapped at the shell, acting when the page is current | Still at the shell, and it stands aside whenever an enabled `DismissIntent` action is nearer the focus (an autocomplete's suggestions, a menu, a sheet), searched from above a focused text field, whose own dismiss action is always enabled |
+| Catalog entries in `AppShortcuts` | Registered by `RecordEditShortcuts` itself while mounted (`listInHelp`, default `kUnlockEditing`), so `lib/core` does not import the switch |
+| `goInPlaceGuarded` only | Also `goGuarded`, for a tab's own destination (the rail, the more sheet, Cmd/Ctrl+1 to 5): a tab's own entry keeps its route, so no `onExit` sees it |
+| `KeyboardListNavigator` | Gains `resync`: told when the list refused a keyboard move, the cursor goes back to the current row |
+
+### Fixed after the review
+
+- Escape with an autocomplete's suggestions showing cancelled the sitting; it now closes the suggestions (and a sheet or a menu) first.
+- Back with changes on the list pane, its tab's first page, popped that page after Discard; it now locks in place.
+- The current tab's own destination dropped a pane sitting without asking; it asks.
+- Tapping or arrowing back onto the dive being edited asked to discard; the row already shown asks nothing.
+- "Keep editing" after an arrow key left the list's cursor on the refused row; the cursor goes back.
+- A lock during an operation left the next sitting busy.
+
+### Left open (minor, from the review)
+
+- The check-in sheet and the tank gear menu answer "wrote" even when dismissed, so opening and dismissing one starts the sitting again and closes open, unchanged editors.
+- "Open full page" stays enabled in the unlocked pane's menu: the full page can be unlocked too, two sittings on one dive (each saves only its own changes).
+- Escape does not reach the pane's sitting while the list has focus: the list's own Escape (leave selection mode) answers first.
+- With the switch off, the dive routes' `onExit` and the lists' selection run one microtask later (the guard is asynchronous); nothing visible.
+- An error reading the dive again after an operation is not caught; after a delete it would skip leaving the page.
+- No test that the strip offers again what an operation emptied.
+- `dive_edit_page.dart` lost the doc comment on `_refreshAfterProfileSave` in the move.
+
+### Tests the plan listed that were written differently
+
+- The menu operation shown running from the unlocked bar is Unlink pre-dive checklist (Re-parse needs the native parser faked).
+- No page test for the hero's site link in the pane (it exists only with a map tile, which fetches from the network), for a clean sitting locking when the pane shows a site, for the pinned profile copy, or for History pushed during a sitting.
+- No `open_profile_editor_test.dart`: the form's `dive_edit_profile_source_test.dart` pins the source question through the helper.
+- "Edit profile keeps its place in the toolbar" replaced "the toolbar is the same width": the Profile card's own pencil arrives on unlock (plan 6) and moves the whole toolbar.
+
+### For plans 8 and 11
+
+- **Plan 8.** A new dive's sitting is clean until something is entered, so `RecordSittingExitBlocker` asks only once there is work; the pane's `?mode=new` goes through `MasterDetailScaffold._onCreate`'s ask.
+- **Plan 11.** Remove the Edit buttons in both bars; `removeSourceWithUndo(offerUndo:)`, the `operations == null` menu and every `operationReason == null` default are the switch-off paths. The form's outlier entry to the profile editor still needs a home.
