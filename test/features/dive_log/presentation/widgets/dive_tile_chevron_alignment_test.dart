@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/view_config_
 import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_badge.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/record_list_chevron.dart';
@@ -189,4 +190,38 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  // The safety badge sits inside the title-and-date LayoutBuilder; the
+  // setting it depends on must be read in build, not during layout.
+  testWidgets('a compact card with a safety finding shows its badge', (
+    tester,
+  ) async {
+    final flagged = DiveSummary(
+      id: 'd1',
+      diveNumber: 1137,
+      dateTime: DateTime(2026, 3, 15),
+      siteName: 'Valfiorita Wreck',
+      maxDepth: 42.0,
+      bottomTime: const Duration(minutes: 39),
+      sortTimestamp: 0,
+      safetyFindingCount: 2,
+    );
+    await _pumpAtWidth(
+      tester,
+      420,
+      CompactDiveListTile(
+        diveId: 'd1',
+        diveNumber: 1137,
+        dateTime: DateTime(2026, 3, 15),
+        siteName: 'Valfiorita Wreck',
+        maxDepth: 42.0,
+        duration: const Duration(minutes: 39),
+        summary: flagged,
+        onTap: () {},
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(SafetyFindingBadge), findsOneWidget);
+  });
 }

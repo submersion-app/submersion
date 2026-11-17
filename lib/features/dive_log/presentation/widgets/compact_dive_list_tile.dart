@@ -282,6 +282,11 @@ class CompactDiveListTile extends ConsumerWidget {
     );
     final colorScheme = Theme.of(context).colorScheme;
     final units = ref.watch(unitFormatterProvider);
+    // Read here rather than in line 1's LayoutBuilder, whose builder runs
+    // during layout, not this widget's build.
+    final showSafetyBadge =
+        (summary?.safetyFindingCount ?? 0) > 0 &&
+        ref.watch(safetyReviewEnabledProvider);
 
     // Card coloring
     final colorAttribute = ref.watch(cardColorAttributeProvider);
@@ -434,8 +439,7 @@ class CompactDiveListTile extends ConsumerWidget {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                if ((summary?.safetyFindingCount ?? 0) > 0 &&
-                                    ref.watch(safetyReviewEnabledProvider)) ...[
+                                if (showSafetyBadge) ...[
                                   const SizedBox(width: 6),
                                   SafetyFindingBadge(
                                     count: summary!.safetyFindingCount,
