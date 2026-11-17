@@ -48,13 +48,21 @@ CREDITS = [
 ]
 
 
+def default_version(now=None):
+    """The pack version when none is given: the UTC date and time, so two
+    builds on one day differ (devices compare versions to offer an update,
+    and to name stored crops again)."""
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    return now.strftime("%Y.%m.%d.%H%M")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out", required=True)
     parser.add_argument("--work", default=os.path.join(REPO, "build", "species_pack_work"))
     parser.add_argument("--max-candidates", type=int, default=8000)
     parser.add_argument("--min-images", type=int, default=50)
-    parser.add_argument("--version", default=datetime.date.today().strftime("%Y.%m.%d"))
+    parser.add_argument("--version", default=default_version())
     parser.add_argument("--skip-models", action="store_true", help="reuse converted models in --work")
     args = parser.parse_args(argv)
     os.makedirs(args.out, exist_ok=True)

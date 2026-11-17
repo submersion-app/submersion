@@ -73,7 +73,7 @@ class MediaTaggedSpeciesSection extends ConsumerWidget {
                   deleteButtonTooltipMessage: l10n.media_species_removeTag(
                     localizedSpeciesName(l10n, chip.speciesId, chip.storedName),
                   ),
-                  onDeleted: ended ? null : () => _remove(ref, chip),
+                  onDeleted: ended ? null : () => _remove(context, ref, chip),
                 ),
             ],
           ),
@@ -82,14 +82,23 @@ class MediaTaggedSpeciesSection extends ConsumerWidget {
     );
   }
 
-  Future<void> _remove(WidgetRef ref, SpeciesTagChip chip) async {
+  Future<void> _remove(
+    BuildContext context,
+    WidgetRef ref,
+    SpeciesTagChip chip,
+  ) async {
     final session = sitting;
     if (session != null) {
       holdSpeciesUntagged(session, chip);
       return;
     }
-    await ref
-        .read(speciesTaggingServiceProvider)
-        .untagPhoto(mediaId: item.id, speciesId: chip.speciesId);
+    final tagging = ref.read(speciesTaggingServiceProvider);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final failed = context.l10n.common_error_tryAgain;
+    try {
+      await tagging.untagPhoto(mediaId: item.id, speciesId: chip.speciesId);
+    } catch (_) {
+      messenger?.showSnackBar(SnackBar(content: Text(failed)));
+    }
   }
 }

@@ -77,7 +77,8 @@ Useful options:
 - `--min-images N` (default 50) is how many photographed observations a
   species needs on GBIF to be a candidate.
 - `--skip-models` reuses the converted models in the work folder.
-- `--version` names the pack; it defaults to today's date.
+- `--version` names the pack; it defaults to the UTC date and time, so two
+  builds on one day are two versions.
 
 The pure parts have tests that CI runs:
 

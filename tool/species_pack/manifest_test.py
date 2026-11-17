@@ -20,6 +20,7 @@ def _load(name):
 
 manifest = _load("manifest")
 candidates = _load("candidates")
+build_pack = _load("build_pack")
 
 
 class FileEntryTests(unittest.TestCase):
@@ -149,6 +150,17 @@ class ExpansionTests(unittest.TestCase):
     def test_orders_with_many_land_species_are_left_out(self):
         records = [("invertebrate", {"orderKey": 9, "order": "Stylommatophora"})]
         self.assertEqual(candidates.expansion_order_keys(records), set())
+
+
+
+class PackVersionTests(unittest.TestCase):
+    def test_two_builds_on_one_day_get_different_versions(self):
+        import datetime
+
+        morning = datetime.datetime(2026, 11, 17, 9, 5, tzinfo=datetime.timezone.utc)
+        evening = datetime.datetime(2026, 11, 17, 18, 40, tzinfo=datetime.timezone.utc)
+        self.assertEqual(build_pack.default_version(morning), "2026.11.17.0905")
+        self.assertNotEqual(build_pack.default_version(morning), build_pack.default_version(evening))
 
 
 if __name__ == "__main__":

@@ -33,6 +33,7 @@ class _Tagging extends SpeciesTaggingService {
 
   final tagged = <String>[];
   final untagged = <String>[];
+  Object? untagFailure;
 
   @override
   Future<MediaSpeciesTag> tagPhoto({
@@ -52,7 +53,10 @@ class _Tagging extends SpeciesTaggingService {
   Future<void> untagPhoto({
     required String mediaId,
     required String speciesId,
-  }) async => untagged.add(speciesId);
+  }) async {
+    if (untagFailure != null) throw untagFailure!;
+    untagged.add(speciesId);
+  }
 }
 
 const _sightings = [
@@ -302,6 +306,17 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('media_tagged_remove_own-3')));
       await tester.pumpAndSettle();
       expect(tagging.untagged, ['own-3']);
+    });
+
+    testWidgets('a removal that fails says so', (tester) async {
+      tagging.untagFailure = Exception('locked');
+      await pump(tester);
+      await tester.tap(find.byKey(const ValueKey('media_tagged_remove_own-3')));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('removing in a sitting is held', (tester) async {
