@@ -24,6 +24,7 @@ void main() {
   Future<ProviderContainer> pump(
     WidgetTester tester, {
     AppSettings settings = const AppSettings(),
+    double width = 500,
   }) async {
     await tester.pumpWidget(
       testApp(
@@ -32,7 +33,7 @@ void main() {
             (ref) => MockSettingsNotifier(settings),
           ),
         ],
-        child: const SizedBox(width: 500, child: ScrSettingsSection()),
+        child: SizedBox(width: width, child: const ScrSettingsSection()),
       ),
     );
     await tester.pumpAndSettle();
@@ -120,6 +121,18 @@ void main() {
       expect(field(tester, 0).controller!.text, '0.265');
     },
   );
+
+  testWidgets('the fields stack on a narrow pane, as the CCR section does', (
+    tester,
+  ) async {
+    await pump(tester, width: 300);
+    final fields = find.byType(TextField);
+    expect(fields, findsNWidgets(2));
+    final first = tester.getTopLeft(fields.at(0));
+    final second = tester.getTopLeft(fields.at(1));
+    expect(second.dy, greaterThan(first.dy));
+    expect(second.dx, first.dx);
+  });
 
   testWidgets('shows the loop summary for the plan', (tester) async {
     await pump(tester);
