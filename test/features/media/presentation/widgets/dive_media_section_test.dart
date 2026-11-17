@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
 import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 void main() {
   test('showInOsFileManagerLabel returns OS-appropriate label', () {
@@ -316,6 +317,43 @@ void main() {
       await tester.tap(find.byType(MediaThumbnailTile).first);
       await tester.pumpAndSettle();
       expect(find.byType(PhotoViewerPage), findsNothing);
+    });
+
+    testWidgets('open: a read that failed offers Try again, which reads the '
+        'media again', (tester) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(Dive(id: 'dive-1', dateTime: DateTime.utc(2026)));
+      addTearDown(controller.dispose);
+      var reads = 0;
+      await tester.pumpWidget(
+        await mediaTestApp(
+          overrides: [
+            mediaForDiveProvider('dive-1').overrideWith((ref) async {
+              if (reads++ == 0) throw StateError('database closed');
+              return [photo('s1', 5)];
+            }),
+          ],
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: RecordEditScope<Dive>(
+                controller: controller,
+                child: DiveMediaSection(
+                  diveId: 'dive-1',
+                  editing: controller.session,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SittingLoadFailed), findsOneWidget);
+      await tester.tap(find.text('Try again'));
+      await tester.pumpAndSettle();
+
+      expect(reads, 2);
+      expect(find.byType(MediaThumbnailTile), findsOneWidget);
     });
 
     testWidgets('a selection made in the open card ends when the card '

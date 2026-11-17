@@ -14,6 +14,7 @@ import 'package:submersion/features/documents/presentation/pages/document_edit_p
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 /// The Documents card on an owner's detail page (dive, site, trip, gear,
 /// course, certification, buddy, dive center): its documents and an "Add
@@ -196,10 +197,17 @@ class DocumentsSection extends ConsumerWidget {
                 padding: EdgeInsets.symmetric(vertical: 16),
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (e, _) => Text(
-                l10n.documents_error_load('$e'),
-                style: TextStyle(color: theme.colorScheme.error),
-              ),
+              // The open card offers to read again, as every card of a
+              // sitting does (issue #4527).
+              error: (e, _) => editing != null
+                  ? SittingLoadFailed(
+                      onRetry: () =>
+                          ref.invalidate(documentsForOwnerProvider(owner)),
+                    )
+                  : Text(
+                      l10n.documents_error_load('$e'),
+                      style: TextStyle(color: theme.colorScheme.error),
+                    ),
             ),
           ],
         ),

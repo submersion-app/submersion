@@ -180,8 +180,9 @@ class DocumentImportService {
 
       final now = DateTime.now();
       final item = MediaItem(
-        // Empty id triggers UUID generation in MediaRepository.createMedia.
-        id: '',
+        // Its own id now, not at the write: a sitting holds prepared rows
+        // by id until Save (issue #4527). createMedia keeps a given id.
+        id: _uuid.v4(),
         diveId: diveId,
         siteId: siteId,
         equipmentId: equipmentId,

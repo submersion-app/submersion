@@ -11,6 +11,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_document_links_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 Document _doc(String id, DocumentType type) => Document(
   id: id,
@@ -32,6 +33,7 @@ void main() {
     bool excludeCards = false,
     RecordEditController<Dive>? lockable,
     bool open = false,
+    Future<List<Document>> Function()? read,
   }) async {
     pushed = null;
     final router = GoRouter(
@@ -75,7 +77,9 @@ void main() {
     await t.pumpWidget(
       ProviderScope(
         overrides: [
-          documentsForOwnerProvider(owner).overrideWith((ref) async => docs),
+          documentsForOwnerProvider(
+            owner,
+          ).overrideWith((ref) => read?.call() ?? Future.value(docs)),
           documentFirstPageProvider.overrideWith((ref, id) async => null),
         ],
         child: MaterialApp.router(
@@ -211,6 +215,32 @@ void main() {
       await t.pumpAndSettle();
       expect(sittingDocumentLinks(controller.session!).detach, {'a'});
       expect(find.byKey(const ValueKey('document-a')), findsNothing);
+    });
+
+    testWidgets('open: a read that failed offers Try again, which reads the '
+        'documents again', (t) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(dive);
+      addTearDown(controller.dispose);
+      var reads = 0;
+      await pump(
+        t,
+        owner,
+        const [],
+        lockable: controller,
+        open: true,
+        read: () async {
+          if (reads++ == 0) throw StateError('database closed');
+          return [_doc('a', DocumentType.other)];
+        },
+      );
+
+      expect(find.byType(SittingLoadFailed), findsOneWidget);
+      await t.tap(find.text('Try again'));
+      await t.pumpAndSettle();
+
+      expect(reads, 2);
+      expect(find.byKey(const ValueKey('document-a')), findsOneWidget);
     });
   });
 }

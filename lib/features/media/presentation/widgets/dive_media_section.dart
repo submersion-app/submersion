@@ -33,6 +33,7 @@ import 'package:submersion/features/media/presentation/helpers/document_open_hel
 import 'package:submersion/features/media/presentation/helpers/photo_import_helper.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 /// Returns the OS-appropriate label for the "show file in OS file manager"
 /// menu item used by the right-click context menu.
@@ -690,10 +691,19 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                 height: 100,
                 child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
               ),
-              error: (error, stack) => Text(
-                context.l10n.media_diveMediaSection_errorLoading,
-                style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
-              ),
+              // The open card offers to read again, as every card of a
+              // sitting does (issue #4527).
+              error: (error, stack) => widget.editing != null
+                  ? SittingLoadFailed(
+                      onRetry: () =>
+                          ref.invalidate(mediaForDiveProvider(widget.diveId)),
+                    )
+                  : Text(
+                      context.l10n.media_diveMediaSection_errorLoading,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.error,
+                      ),
+                    ),
             ),
             // Lightroom suggestions hidden pending Adobe review
             // (lightroomUiEnabled).
