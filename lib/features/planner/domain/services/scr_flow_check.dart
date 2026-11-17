@@ -48,6 +48,7 @@ Iterable<PlanIssue> scrFlowIssues(
           'loop at VO2 ${vo2.toStringAsFixed(2)}: it needs more than '
           '${needed.toStringAsFixed(1)} (surface litres a minute)',
       tankId: segment.tankId,
+      gasMix: segment.gasMix,
       value: rate,
       threshold: needed > vo2 ? needed : vo2,
     );

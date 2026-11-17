@@ -14561,10 +14561,13 @@
       }
     }
   },
-  "plannerCanvas_issue_scrFlowTooLow": "An injection rate of {rate} cannot sustain the loop at this VO₂: this supply needs more than {needed}.",
+  "plannerCanvas_issue_scrFlowTooLow": "An injection rate of {rate} cannot sustain the loop at this VO₂: {gas} needs more than {needed}.",
   "@plannerCanvas_issue_scrFlowTooLow": {
     "placeholders": {
       "rate": {
+        "type": "String"
+      },
+      "gas": {
         "type": "String"
       },
       "needed": {

@@ -23208,8 +23208,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_scrFlowTooLow(String rate, String needed) {
-    return 'معدل حقن قدره $rate لا يكفي للحفاظ على الدائرة عند هذا الـ VO₂: يحتاج غاز الإمداد هذا إلى أكثر من $needed.';
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  ) {
+    return 'معدل حقن قدره $rate لا يكفي للحفاظ على الدائرة عند هذا الـ VO₂: يحتاج $gas إلى أكثر من $needed.';
   }
 
   @override

@@ -144,6 +144,24 @@ void main() {
       expect(atDefault20, lessThan(atDefault13 - 0.1));
     });
 
+    test('a dive with no logged rate still gets an SCR tail', () {
+      // Older SCR dives stored no injection rate; the re-plan breathes the
+      // diver's default, so the tail must show that loop, not zero.
+      final outcome = const ScenarioEngine().run(
+        _loopRequest(
+          d,
+          mode: DiveMode.scr,
+          branchSeconds: 900,
+          scenarioMode: ScenarioMode.replan,
+          scrSupplyO2Percent: 50,
+        ),
+      );
+      final after = outcome.counterfactualTimestamps.indexWhere(
+        (t) => t >= outcome.branch.runtimeSeconds + 60,
+      );
+      expect(outcome.counterfactual.ppO2Curve[after], greaterThan(1.0));
+    });
+
     test('a dive VO2 of its own wins over the diver default', () {
       expect(
         tailPpO2(replanScrVo2: 1.3, diverDefault: 2.0),

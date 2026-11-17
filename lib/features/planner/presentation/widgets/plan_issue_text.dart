@@ -102,6 +102,7 @@ String planIssueMessage(
     case PlanIssueType.scrFlowTooLow:
       return l10n.plannerCanvas_issue_scrFlowTooLow(
         issue.value == null ? '--' : units.formatRmv(issue.value!),
+        issue.gasMix?.name ?? '--',
         issue.threshold == null ? '--' : units.formatRmv(issue.threshold!),
       );
     case PlanIssueType.minGasViolation:

@@ -21702,8 +21702,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_scrFlowTooLow(String rate, String needed) {
-    return '$rate 的注入流量在此 VO₂ 下无法维持回路：该供气需要高于 $needed。';
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  ) {
+    return '$rate 的注入流量在此 VO₂ 下无法维持回路：$gas 需要高于 $needed。';
   }
 
   @override

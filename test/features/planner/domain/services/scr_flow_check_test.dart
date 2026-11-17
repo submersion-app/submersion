@@ -84,6 +84,7 @@ void main() {
     );
     final issue = scrFlowIssues(plan, _config(4.0, 1.3)).single;
     expect(issue.value, 4.0);
+    expect(issue.gasMix, _ean32);
     expect(issue.threshold, closeTo(1.3 / 0.32, 1e-9));
   });
 
@@ -173,6 +174,7 @@ void main() {
       severity: PlanIssueSeverity.critical,
       message: 'raw',
       tankId: 't1',
+      gasMix: _ean32,
       value: 4.0,
       threshold: 1.3 / 0.32,
     );
@@ -201,7 +203,7 @@ void main() {
       expect(
         await render(tester, const AppSettings()),
         'An injection rate of 4.0 L/min cannot sustain the loop at this VO₂: '
-        'this supply needs more than 4.1 L/min.',
+        'EAN32 needs more than 4.1 L/min.',
       );
     });
 

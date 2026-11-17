@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/deco/deco_model.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart'
+    show GasMix;
 
 /// Severity of a computed plan issue, ordered least to most severe.
 enum PlanIssueSeverity { info, warning, alert, critical }
@@ -125,6 +127,10 @@ class PlanIssue extends Equatable {
 
   /// The cylinder a gas issue is about.
   final String? tankId;
+
+  /// The gas in [tankId], where the warning must name it to be acted on:
+  /// the supply an SCR flow issue is about (#4660).
+  final GasMix? gasMix;
   final double? value;
   final double? threshold;
 
@@ -136,6 +142,7 @@ class PlanIssue extends Equatable {
     this.atDepth,
     this.segmentId,
     this.tankId,
+    this.gasMix,
     this.value,
     this.threshold,
   });
@@ -149,6 +156,7 @@ class PlanIssue extends Equatable {
     atDepth,
     segmentId,
     tankId,
+    gasMix,
     value,
     threshold,
   ];

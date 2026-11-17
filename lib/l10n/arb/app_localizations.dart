@@ -35958,8 +35958,12 @@ abstract class AppLocalizations {
   /// No description provided for @plannerCanvas_issue_scrFlowTooLow.
   ///
   /// In en, this message translates to:
-  /// **'An injection rate of {rate} cannot sustain the loop at this VO₂: this supply needs more than {needed}.'**
-  String plannerCanvas_issue_scrFlowTooLow(String rate, String needed);
+  /// **'An injection rate of {rate} cannot sustain the loop at this VO₂: {gas} needs more than {needed}.'**
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  );
 
   /// No description provided for @plannerCanvas_issue_noEligibleBailoutGas.
   ///

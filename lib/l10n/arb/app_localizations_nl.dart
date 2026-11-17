@@ -22696,8 +22696,12 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_scrFlowTooLow(String rate, String needed) {
-    return 'Een injectiedebiet van $rate kan de lus bij deze VO₂ niet in stand houden: dit toevoergas vraagt meer dan $needed.';
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  ) {
+    return 'Een injectiedebiet van $rate kan de lus bij deze VO₂ niet in stand houden: $gas vraagt meer dan $needed.';
   }
 
   @override

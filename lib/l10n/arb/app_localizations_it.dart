@@ -22836,8 +22836,12 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_scrFlowTooLow(String rate, String needed) {
-    return 'Una portata di iniezione di $rate non può sostenere il circuito con questo VO₂: questo gas di alimentazione richiede più di $needed.';
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  ) {
+    return 'Una portata di iniezione di $rate non può sostenere il circuito con questo VO₂: $gas richiede più di $needed.';
   }
 
   @override

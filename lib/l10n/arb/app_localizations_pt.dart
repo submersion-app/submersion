@@ -22838,8 +22838,12 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_issue_scrFlowTooLow(String rate, String needed) {
-    return 'Uma taxa de injeção de $rate não sustenta o circuito com este VO₂: este gás de alimentação precisa de mais de $needed.';
+  String plannerCanvas_issue_scrFlowTooLow(
+    String rate,
+    String gas,
+    String needed,
+  ) {
+    return 'Uma taxa de injeção de $rate não sustenta o circuito com este VO₂: $gas precisa de mais de $needed.';
   }
 
   @override
