@@ -120,6 +120,56 @@ class UnderwaterTests(unittest.TestCase):
         self.assertFalse(testset.underwater(scores))
 
 
+class GroupTests(unittest.TestCase):
+    def test_group_from_the_taxon_or_its_ancestors(self):
+        self.assertEqual(testset.group_of(47113, [1, 2, 47114, 47113]), "sea snails and nudibranchs")
+        self.assertEqual(testset.group_of(47178, [1, 2]), "fish")
+        self.assertEqual(testset.group_of(9999, [1, 47273, 9999]), "sharks and rays")
+
+    def test_other_animals_have_no_group(self):
+        self.assertIsNone(testset.group_of(40151, [1, 2, 355675, 40151]))
+
+    def test_groups_are_the_seven(self):
+        self.assertEqual(
+            testset.GROUPS,
+            {
+                "fish": 47178,
+                "sharks and rays": 47273,
+                "octopus": 47458,
+                "crabs": 121639,
+                "sea snails and nudibranchs": 47114,
+                "sea stars": 47668,
+                "coral": 47532,
+            },
+        )
+
+
+class TopUpTests(unittest.TestCase):
+    def pool(self, group, n, start):
+        return [dict(obs(start + i, observer=f"{group}{i}"), group=group) for i in range(n)]
+
+    def test_a_short_group_is_topped_up_to_the_target(self):
+        natural = self.pool("octopus", 10, 0)
+        pool = natural + self.pool("octopus", 400, 1000)
+        extra = testset.top_ups(pool, natural, "s")
+        self.assertEqual(len(extra), testset.TOP_UP - 10)
+        self.assertFalse({o["id"] for o in extra} & {o["id"] for o in natural})
+        self.assertTrue(all(o["group"] == "octopus" for o in extra))
+
+    def test_fish_and_full_groups_are_left_alone(self):
+        natural = self.pool("fish", 3, 0) + self.pool("crabs", testset.TOP_UP, 100)
+        pool = natural + self.pool("fish", 300, 1000) + self.pool("crabs", 300, 2000)
+        self.assertEqual(testset.top_ups(pool, natural, "s"), [])
+
+    def test_a_small_pool_gives_what_it_has(self):
+        pool = self.pool("coral", 20, 0)
+        self.assertEqual(len(testset.top_ups(pool, [], "s")), 20)
+
+    def test_top_ups_are_repeatable(self):
+        pool = self.pool("sea stars", 400, 0)
+        self.assertEqual(testset.top_ups(pool, [], "s"), testset.top_ups(list(reversed(pool)), [], "s"))
+
+
 class CsvTests(unittest.TestCase):
     def test_round_trip_keeps_every_field(self):
         row = {f: f"v-{f}" for f in testset.FIELDS}
@@ -128,6 +178,10 @@ class CsvTests(unittest.TestCase):
             path = os.path.join(tmp, "set.csv")
             testset.write_rows(path, [row])
             self.assertEqual(testset.read_rows(path), [row])
+
+    def test_fields_carry_group_sample_and_detector(self):
+        for field in ("group", "sample", "detector"):
+            self.assertIn(field, testset.FIELDS)
 
     def test_regions_cover_the_seven_dive_areas(self):
         self.assertEqual(len(testset.REGIONS), 7)

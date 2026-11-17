@@ -22,9 +22,23 @@ import region_grid  # noqa: E402
 # and indexed after.
 CUTOFF = "2024-07-01"
 LICENCES = ("cc0", "cc-by", "cc-by-sa")
-# iNaturalist taxa: ray-finned fish, and sharks and rays.
-TAXA = (47178, 47273)
+# The animal groups and their iNaturalist taxa. An observation belongs to
+# the first group that is its taxon or one of its ancestors. Gastropoda
+# holds the nudibranchs too.
+GROUPS = {
+    "fish": 47178,
+    "sharks and rays": 47273,
+    "octopus": 47458,
+    "crabs": 121639,
+    "sea snails and nudibranchs": 47114,
+    "sea stars": 47668,
+    "coral": 47532,
+}
+TAXA = tuple(GROUPS.values())
 PER_REGION = 450
+# Each group other than fish is topped up to this many photos for its own
+# numbers. Top-ups never set or gate a bar.
+TOP_UP = 150
 SEED = "accuracy-2026-11"
 
 # (south, west, north, east). Each takes in land too, and so freshwater
@@ -48,6 +62,9 @@ FIELDS = [
     "attribution",
     "page_url",
     "region",
+    "group",
+    "sample",
+    "detector",
     "lat",
     "lon",
     "created",
@@ -61,19 +78,22 @@ FIELDS = [
 ]
 
 UNDERWATER_PROMPTS = [
-    "an underwater photo of a fish",
+    "an underwater photo of a sea animal",
     "a fish swimming over a coral reef",
-    "a fish swimming in clear water, photographed by a diver",
-    "a fish among rocks and seaweed underwater",
+    "an animal on the sea floor, photographed underwater by a diver",
+    "a sea creature among rocks and seaweed underwater",
 ]
 DRY_PROMPTS = [
-    "a fish held in a person's hand",
+    "an animal held in a person's hand",
     "a dead fish lying on a boat deck",
-    "a fish on ice at a fish market",
-    "a fish in an aquarium tank",
+    "seafood on ice at a fish market",
+    "an animal in an aquarium tank",
     "a caught fish hanging from a fishing line",
-    "a drawing of a fish",
-    "a fish lying on the ground or on a table",
+    "a drawing of an animal",
+    "an animal lying on the ground or on a table",
+    "a crab or a shell on a sandy beach",
+    "a snail on a leaf or on a garden wall",
+    "an empty seashell",
 ]
 
 _BELOW_SPECIES = {"species", "subspecies", "variety", "form"}
@@ -86,6 +106,15 @@ def species_name(name, rank):
     if rank not in _BELOW_SPECIES:
         return None
     return " ".join(name.split()[:2])
+
+
+def group_of(taxon_id, ancestor_ids):
+    """The animal group an iNaturalist taxon belongs to, or None."""
+    lineage = set(ancestor_ids) | {taxon_id}
+    for name, taxon in GROUPS.items():
+        if taxon in lineage:
+            return name
+    return None
 
 
 def accepted_key(match):
@@ -121,6 +150,23 @@ def sample(pool, n, seed):
         if len(picked) == n:
             break
     return picked
+
+
+def top_ups(pool, natural, seed):
+    """Observations from `pool` that bring each group other than fish up to
+    TOP_UP photos, ordered and thinned as `sample` does; never one already
+    in `natural`."""
+    taken = {o["id"] for o in natural}
+    extra = []
+    for name in GROUPS:
+        if name == "fish":
+            continue
+        need = TOP_UP - sum(1 for o in natural if o["group"] == name)
+        if need <= 0:
+            continue
+        candidates = [o for o in pool if o["group"] == name and o["id"] not in taken]
+        extra.extend(sample(candidates, need, seed))
+    return extra
 
 
 def tune_ids(rows):
