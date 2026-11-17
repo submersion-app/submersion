@@ -254,6 +254,30 @@ void main() {
     expect(created.single.isSuitInflationCylinder, isTrue);
   });
 
+  test('a Twin Set tank makes a cylinder worn as a twin set (#4641)', () async {
+    await dive('a');
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 'd12',
+            diveId: 'a',
+            volume: const Value(24),
+            tankRole: const Value('twinSet'),
+          ),
+        );
+    final proposal = proposalForTank(
+      const TankRef(
+        diveId: 'a',
+        tank: domain.DiveTank(id: 'd12', volume: 24, role: TankRole.twinSet),
+      ),
+    );
+    final created = await CylinderFromTankService().create([
+      unchanged(proposal, 'D12'),
+    ], diverId: 'me');
+    expect(created.single.isWornAsTwinSet, isTrue);
+  });
+
   test('never overwrites an existing link', () async {
     await dive('a');
     final ref = await tank('a', 't-a');

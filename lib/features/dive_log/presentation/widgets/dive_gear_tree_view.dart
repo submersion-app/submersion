@@ -221,7 +221,7 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
           leading: CircleAvatar(
             backgroundColor: theme.colorScheme.tertiaryContainer,
             child: Icon(
-              equipmentTypeIcon(item.type),
+              equipmentItemIcon(item),
               color: theme.colorScheme.onTertiaryContainer,
               size: 20,
             ),

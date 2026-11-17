@@ -42718,6 +42718,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrChoice_worn_as_back => 'Montaje dorsal';
 
   @override
+  String get attrChoice_worn_as_twin_set => 'Bibotella';
+
+  @override
   String get attrChoice_worn_as_sidemount_left => 'Sidemount izquierdo';
 
   @override

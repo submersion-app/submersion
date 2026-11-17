@@ -46,7 +46,7 @@ class GearPassportHeader extends ConsumerWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Chip(
-              avatar: Icon(equipmentTypeIcon(equipment.type), size: 18),
+              avatar: Icon(equipmentItemIcon(equipment), size: 18),
               label: Text(equipment.type.localizedName(l10n)),
               visualDensity: VisualDensity.compact,
             ),

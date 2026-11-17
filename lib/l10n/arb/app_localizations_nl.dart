@@ -42411,6 +42411,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrChoice_worn_as_back => 'Rugmontage';
 
   @override
+  String get attrChoice_worn_as_twin_set => 'Dubbelset';
+
+  @override
   String get attrChoice_worn_as_sidemount_left => 'Sidemount links';
 
   @override

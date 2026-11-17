@@ -42810,6 +42810,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrChoice_worn_as_back => 'Montage dorsal';
 
   @override
+  String get attrChoice_worn_as_twin_set => 'Bi-bouteille';
+
+  @override
   String get attrChoice_worn_as_sidemount_left => 'Sidemount gauche';
 
   @override

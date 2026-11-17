@@ -41647,6 +41647,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrChoice_worn_as_back => 'הרכבה על הגב';
 
   @override
+  String get attrChoice_worn_as_twin_set => 'צמד בלונים';
+
+  @override
   String get attrChoice_worn_as_sidemount_left => 'סיידמאונט שמאל';
 
   @override

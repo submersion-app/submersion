@@ -12242,6 +12242,7 @@
   "attrChoice_cylinder_use_breathing_gas": "Gas respirable",
   "attrChoice_cylinder_use_suit_inflation": "Inflado del traje",
   "attrChoice_worn_as_back": "Montaje dorsal",
+  "attrChoice_worn_as_twin_set": "Bibotella",
   "attrChoice_worn_as_sidemount_left": "Sidemount izquierdo",
   "attrChoice_worn_as_sidemount_right": "Sidemount derecho",
   "attrChoice_worn_as_stage": "Stage",

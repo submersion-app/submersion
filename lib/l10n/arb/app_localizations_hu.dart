@@ -42453,6 +42453,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrChoice_worn_as_back => 'Háti rögzítés';
 
   @override
+  String get attrChoice_worn_as_twin_set => 'Ikerpalack';
+
+  @override
   String get attrChoice_worn_as_sidemount_left => 'Sidemount bal';
 
   @override

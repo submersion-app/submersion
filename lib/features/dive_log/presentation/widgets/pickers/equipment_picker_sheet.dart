@@ -142,7 +142,7 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet>
     final avatar = CircleAvatar(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: Icon(
-        equipmentTypeIcon(item.type),
+        equipmentItemIcon(item),
         color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
     );

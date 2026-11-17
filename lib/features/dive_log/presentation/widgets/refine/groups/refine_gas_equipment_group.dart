@@ -292,10 +292,7 @@ class _RefineGasEquipmentGroupState
                         children: [
                           for (final item in items)
                             FilterChip(
-                              avatar: Icon(
-                                equipmentTypeIcon(item.type),
-                                size: 18,
-                              ),
+                              avatar: Icon(equipmentItemIcon(item), size: 18),
                               label: Text(item.name),
                               selected: d.equipmentIds.contains(item.id),
                               onSelected: (selected) => widget.onChanged(

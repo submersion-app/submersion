@@ -43266,6 +43266,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrChoice_worn_as_back => 'تثبيت خلفي';
 
   @override
+  String get attrChoice_worn_as_twin_set => 'طقم مزدوج';
+
+  @override
   String get attrChoice_worn_as_sidemount_left => 'تعليق جانبي أيسر';
 
   @override

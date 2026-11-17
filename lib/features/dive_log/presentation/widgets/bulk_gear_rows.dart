@@ -40,7 +40,7 @@ BulkGearRows arrangeBulkGearRows(
           BulkMembershipItem(
             id: item.id,
             label: item.name,
-            icon: equipmentTypeIcon(item.type),
+            icon: equipmentItemIcon(item),
           ),
     ],
     headings: {
