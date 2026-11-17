@@ -77,6 +77,11 @@ Eric picked approach 1.
 6. **Making a cylinder from a dive tank.** "Make a cylinder from this tank"
    on a Twin Set dive tank creates the item already worn as a twin set,
    mirroring Suit inflation.
+7. **The cylinder pairing card.** A tank's detail page hides the "Twin set"
+   pairing card (#4242) while the item is worn as a twin set and has no
+   pairing: an item that already is the doubles is not paired with another
+   cylinder. A pairing it already has, open or past, still shows (Eric,
+   2026-11-16).
 
 ## Left to the builder
 

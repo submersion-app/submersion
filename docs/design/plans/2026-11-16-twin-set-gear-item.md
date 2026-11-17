@@ -93,3 +93,15 @@
 - [ ] Step 3: implement; the service passes `twinSet: proposal.twinSet`.
 - [ ] Step 4: run, PASS, plus `test/architecture/`.
 - [ ] Step 5: commit `feat(equipment): a cylinder made from a Twin Set tank is worn as a twin set`.
+
+### Task 5: Hide the pairing card for a twin set item
+
+**Files:**
+- Modify: `lib/features/cylinder_passports/presentation/widgets/twin_set_card.dart`
+- Test: `test/features/cylinder_passports/presentation/widgets/twin_set_card_test.dart`
+
+- [ ] Step 1: tests. A cylinder worn as `twin_set` with no pairings renders nothing (no `twinSet_title` text); with a past pairing it still renders the card.
+- [ ] Step 2: run, expect FAIL.
+- [ ] Step 3: in `build`, return `SizedBox.shrink()` when `cylinder.isWornAsTwinSet && pairings.isEmpty`.
+- [ ] Step 4: run, PASS.
+- [ ] Step 5: commit `feat(cylinder-passports): hide the pairing card for a twin set item`.
