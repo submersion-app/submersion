@@ -16,6 +16,8 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
+    show GeoPoint;
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
@@ -72,6 +74,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
+import 'package:submersion/features/species_id/presentation/widgets/identification_trigger.dart';
 
 part 'media_viewer_actions.dart';
 part 'media_viewer_bottom_metadata.dart';
@@ -566,6 +569,14 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       ),
                     if (pickingWhite) const PickWhiteHint(),
 
+                    // Looks for marine life in the photo on screen (issue
+                    // #4668); never for the neighbours built ahead.
+                    IdentificationTrigger(
+                      key: const ValueKey('media_identification_trigger'),
+                      item: currentItem,
+                      location: _photoLocation(currentItem, diveAsync.value),
+                    ),
+
                     // Overlay controls (app bar and metadata)
                     // While unlocked the bar never hides: it holds Cancel and
                     // Save.
@@ -636,6 +647,13 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                           settings: units.settings,
                           onMomentTap: (tag) => _showMoment(currentItem, tag),
                           sitting: photoSitting,
+                          onSuggestionTap: photoLocked
+                              ? null
+                              : () => showMediaSpeciesSheet(
+                                  context,
+                                  currentItem,
+                                  sitting: photoSitting,
+                                ),
                           profileLengthSeconds: profileLength,
                           // Pinning needs a profile to pin against; a dive with
                           // none has no moments to choose from.

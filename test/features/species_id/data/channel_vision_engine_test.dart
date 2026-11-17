@@ -1,0 +1,220 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/features/species_id/data/engines/channel_vision_engine.dart';
+import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
+import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
+
+import '../domain/manifest_fixture.dart';
+
+const _models = VisionModels(
+  detectorPath: '/packs/1/detector.mlpackage',
+  classifierPath: '/packs/1/classifier.mlpackage',
+  detectorInputSize: 640,
+  detectorMean: [0.485, 0.456, 0.406],
+  detectorStd: [0.229, 0.224, 0.225],
+  scoreThreshold: 0.3,
+  maxBoxes: 8,
+  cropPadding: 0.1,
+  classifierInputSize: 224,
+  classifierMean: [0.48, 0.45, 0.4],
+  classifierStd: [0.26, 0.26, 0.27],
+  embeddingSize: 3,
+  cropThumbnailSize: 320,
+);
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  const channel = MethodChannel('submersion_vision');
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
+  tearDown(() => messenger.setMockMethodCallHandler(channel, null));
+
+  ChannelVisionEngine engine([
+    TargetPlatform platform = TargetPlatform.macOS,
+  ]) => ChannelVisionEngine(platform: platform);
+
+  test('maps each availability string', () async {
+    for (final value in VisionAvailability.values) {
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        expect(call.method, 'availability');
+        return value.name;
+      });
+      expect(await engine().availability(), value);
+    }
+  });
+
+  test('a platform without a Core ML engine never asks the channel', () async {
+    var called = false;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      called = true;
+      return 'available';
+    });
+    for (final platform in [
+      TargetPlatform.android,
+      TargetPlatform.windows,
+      TargetPlatform.linux,
+    ]) {
+      expect(
+        await engine(platform).availability(),
+        VisionAvailability.unsupportedPlatform,
+      );
+      expect(engine(platform).engineName, isNull);
+    }
+    expect(called, isFalse);
+    expect(engine(TargetPlatform.iOS).engineName, VisionEngine.coreMlEngine);
+  });
+
+  test('a missing plugin is an unsupported platform, not an error', () async {
+    messenger.setMockMethodCallHandler(
+      channel,
+      (call) async => throw MissingPluginException(),
+    );
+    expect(
+      await engine().availability(),
+      VisionAvailability.unsupportedPlatform,
+    );
+  });
+
+  test('load sends every model setting', () async {
+    Map<Object?, Object?>? sent;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      expect(call.method, 'load');
+      sent = call.arguments as Map<Object?, Object?>;
+      return null;
+    });
+    await engine().load(_models);
+    expect(sent, {
+      'detectorPath': '/packs/1/detector.mlpackage',
+      'classifierPath': '/packs/1/classifier.mlpackage',
+      'detectorInputSize': 640,
+      'detectorMean': [0.485, 0.456, 0.406],
+      'detectorStd': [0.229, 0.224, 0.225],
+      'scoreThreshold': 0.3,
+      'maxBoxes': 8,
+      'cropPadding': 0.1,
+      'classifierInputSize': 224,
+      'classifierMean': [0.48, 0.45, 0.4],
+      'classifierStd': [0.26, 0.26, 0.27],
+      'embeddingSize': 3,
+      'cropThumbnailSize': 320,
+    });
+  });
+
+  test('analyze decodes the native reply into typed detections', () async {
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      expect(call.method, 'analyze');
+      expect(call.arguments, {'path': '/photos/a.jpeg'});
+      return {
+        'imageWidth': 4000,
+        'imageHeight': 3000,
+        'detections': [
+          {
+            'x': 0.1,
+            'y': 0.2,
+            'width': 0.3,
+            'height': 0.25,
+            'score': 0.9,
+            'pixelWidth': 1200,
+            'pixelHeight': 750,
+            'crop': Uint8List.fromList([1, 2, 3]),
+            'embedding': Float32List.fromList([1, 0, 0]),
+          },
+          {
+            'x': 0.5,
+            'y': 0.5,
+            'width': 0.1,
+            'height': 0.1,
+            'score': 0.4,
+            'pixelWidth': 400,
+            'pixelHeight': 300,
+            'crop': Uint8List.fromList([4]),
+            'embedding': Float32List.fromList([0, 1, 0]),
+          },
+        ],
+      };
+    });
+
+    final result = await engine().analyze(path: '/photos/a.jpeg');
+
+    expect(result.imageWidth, 4000);
+    expect(result.imageHeight, 3000);
+    expect(result.detections, hasLength(2));
+    final first = result.detections.first;
+    expect(first.x, 0.1);
+    expect(first.height, 0.25);
+    expect(first.score, 0.9);
+    expect(first.pixelWidth, 1200);
+    expect(first.cropJpeg, [1, 2, 3]);
+    expect(first.embedding, [1.0, 0.0, 0.0]);
+  });
+
+  test('analyze sends bytes when given bytes', () async {
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      expect(call.arguments, {
+        'bytes': Uint8List.fromList([9, 9]),
+      });
+      return {'imageWidth': 1, 'imageHeight': 1, 'detections': <Object?>[]};
+    });
+    final result = await engine().analyze(bytes: Uint8List.fromList([9, 9]));
+    expect(result.detections, isEmpty);
+  });
+
+  test('analyze needs exactly one of a path and bytes', () {
+    expect(() => engine().analyze(), throwsArgumentError);
+    expect(
+      () => engine().analyze(path: 'a', bytes: Uint8List(1)),
+      throwsArgumentError,
+    );
+  });
+
+  test('a native failure becomes a VisionEngineException', () async {
+    messenger.setMockMethodCallHandler(
+      channel,
+      (call) async =>
+          throw PlatformException(code: 'decode_failed', message: 'bad jpeg'),
+    );
+    await expectLater(
+      engine().analyze(path: 'x'),
+      throwsA(
+        isA<VisionEngineException>().having(
+          (e) => e.code,
+          'code',
+          'decode_failed',
+        ),
+      ),
+    );
+  });
+
+  test('excludeFromBackup and unload reach the channel', () async {
+    final calls = <MethodCall>[];
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      return null;
+    });
+    await engine().excludeFromBackup('/support/species_id/pack');
+    await engine().unload();
+    expect(calls.map((c) => c.method), ['excludeFromBackup', 'unload']);
+    expect(calls.first.arguments, {'path': '/support/species_id/pack'});
+  });
+
+  test('models are built from a manifest', () {
+    final manifest = SpeciesPackManifest.parse(manifestJson());
+    final models = VisionModels.fromManifest(
+      manifest,
+      detectorPath: 'd',
+      classifierPath: 'c',
+    );
+    expect(models.detectorInputSize, 640);
+    expect(models.scoreThreshold, 0.3);
+    expect(models.maxBoxes, 8);
+    expect(models.cropPadding, 0.10);
+    expect(models.classifierInputSize, 224);
+    expect(models.embeddingSize, 768);
+    expect(models.cropThumbnailSize, 320);
+    expect(models.classifierMean, manifest.classifier.mean);
+  });
+}

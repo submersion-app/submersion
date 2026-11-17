@@ -27729,6 +27729,113 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_photosVideos_title => '照片与视频';
 
   @override
+  String get settings_speciesId_title => '海洋生物识别';
+
+  @override
+  String get settings_speciesId_entrySubtitle => '在照片中查找鱼类并建议物种';
+
+  @override
+  String get settings_speciesId_intro => '在照片中查找鱼类并建议物种。在此设备上运行，照片绝不会离开设备。';
+
+  @override
+  String get settings_speciesId_model => '模型';
+
+  @override
+  String get settings_speciesId_modelNotDownloaded => '未下载';
+
+  @override
+  String get settings_speciesId_modelNotAvailable => '暂不可用';
+
+  @override
+  String get settings_speciesId_modelNotForDevice => '此设备不可用';
+
+  @override
+  String settings_speciesId_modelInstalled(String version) {
+    return '已安装（$version）';
+  }
+
+  @override
+  String settings_speciesId_download(String size) {
+    return '下载（$size）';
+  }
+
+  @override
+  String settings_speciesId_resume(String size) {
+    return '继续下载（$size）';
+  }
+
+  @override
+  String settings_speciesId_update(String size) {
+    return '更新（$size）';
+  }
+
+  @override
+  String get settings_speciesId_remove => '移除模型';
+
+  @override
+  String get settings_speciesId_removeConfirmTitle => '移除模型？';
+
+  @override
+  String settings_speciesId_removeConfirmBody(String size) {
+    return '这将在此设备上释放 $size。已找到的建议会保留，你可以重新下载模型。';
+  }
+
+  @override
+  String get settings_speciesId_installing => '正在安装模型...';
+
+  @override
+  String settings_speciesId_downloading(int percent) {
+    return '正在下载 $percent%';
+  }
+
+  @override
+  String get settings_speciesId_downloadConfirmTitle => '下载模型？';
+
+  @override
+  String settings_speciesId_downloadConfirmBody(String size) {
+    return '这将下载 $size 并保存在此设备上。你可以随时移除它。';
+  }
+
+  @override
+  String get settings_speciesId_downloadFailed => '下载未完成。重试即可从中断处继续。';
+
+  @override
+  String get settings_speciesId_downloadNoSpace => '此设备的可用空间不足。';
+
+  @override
+  String get settings_speciesId_needsAppUpdate => '此模型需要更新版本的 Submersion。';
+
+  @override
+  String get settings_speciesId_toggle => '打开照片时识别鱼类';
+
+  @override
+  String get settings_speciesId_kept => '此设备上保留的建议';
+
+  @override
+  String settings_speciesId_keptValue(int count, String size) {
+    return '$count（$size）';
+  }
+
+  @override
+  String get settings_speciesId_clear => '清除建议';
+
+  @override
+  String get settings_speciesId_clearConfirmTitle => '清除所有建议？';
+
+  @override
+  String get settings_speciesId_clearConfirmBody =>
+      '这将移除所有建议及其裁剪图像。你已标记的物种不受影响。';
+
+  @override
+  String get settings_speciesId_credits => '致谢与许可';
+
+  @override
+  String get settings_speciesId_unsupported => '此设备暂不支持海洋生物识别。';
+
+  @override
+  String get settings_speciesId_notEligible => '此设备内存不足，无法运行该模型。';
+
+  @override
   String get settings_section_data_tagline => '备份、同步与照片';
 
   @override
@@ -52739,6 +52846,45 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_species_chipsLabel => '物种标签';
 
   @override
+  String get media_species_suggested => '建议';
+
+  @override
+  String media_species_suggestedChip(String name, int percent) {
+    return '$name $percent%';
+  }
+
+  @override
+  String media_species_suggestedCount(String name, int count) {
+    return '$name（$count）';
+  }
+
+  @override
+  String get media_species_add => '添加';
+
+  @override
+  String get media_species_addAll => '全部添加';
+
+  @override
+  String get media_species_dismiss => '忽略建议';
+
+  @override
+  String get media_species_identifying => '正在识别鱼类...';
+
+  @override
+  String get media_species_possibleMatches => '可能的匹配';
+
+  @override
+  String get media_species_cropUnavailable => '图像不在此设备上';
+
+  @override
+  String get media_species_taggedOnPhoto => '此照片中已标记';
+
+  @override
+  String media_species_removeTag(String name) {
+    return '移除$name';
+  }
+
+  @override
   String get media_people_me => '我';
 
   @override
@@ -54462,6 +54608,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_storageUsage_category_importedFiles => '原始导入文件';
+
+  @override
+  String get settings_storageUsage_category_identificationModel => '识别模型';
+
+  @override
+  String get settings_storageUsage_category_identificationCrops => '识别裁剪图';
 
   @override
   String settings_storageUsage_totalSplit(String device, String cloud) {

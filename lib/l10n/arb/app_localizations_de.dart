@@ -29328,6 +29328,123 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_photosVideos_title => 'Fotos & Videos';
 
   @override
+  String get settings_speciesId_title => 'Meereslebewesen erkennen';
+
+  @override
+  String get settings_speciesId_entrySubtitle =>
+      'Fische in deinen Fotos finden und Arten vorschlagen';
+
+  @override
+  String get settings_speciesId_intro =>
+      'Findet Fische in deinen Fotos und schlägt vor, welche Art es ist. Läuft auf diesem Gerät. Deine Fotos verlassen es nie.';
+
+  @override
+  String get settings_speciesId_model => 'Modell';
+
+  @override
+  String get settings_speciesId_modelNotDownloaded => 'Nicht heruntergeladen';
+
+  @override
+  String get settings_speciesId_modelNotAvailable => 'Noch nicht verfügbar';
+
+  @override
+  String get settings_speciesId_modelNotForDevice =>
+      'Für dieses Gerät nicht verfügbar';
+
+  @override
+  String settings_speciesId_modelInstalled(String version) {
+    return 'Installiert ($version)';
+  }
+
+  @override
+  String settings_speciesId_download(String size) {
+    return 'Herunterladen ($size)';
+  }
+
+  @override
+  String settings_speciesId_resume(String size) {
+    return 'Download fortsetzen ($size)';
+  }
+
+  @override
+  String settings_speciesId_update(String size) {
+    return 'Aktualisieren ($size)';
+  }
+
+  @override
+  String get settings_speciesId_remove => 'Modell entfernen';
+
+  @override
+  String get settings_speciesId_removeConfirmTitle => 'Modell entfernen?';
+
+  @override
+  String settings_speciesId_removeConfirmBody(String size) {
+    return 'Dadurch werden $size auf diesem Gerät frei. Bereits gefundene Vorschläge bleiben erhalten, und du kannst das Modell erneut herunterladen.';
+  }
+
+  @override
+  String get settings_speciesId_installing => 'Modell wird installiert...';
+
+  @override
+  String settings_speciesId_downloading(int percent) {
+    return 'Wird heruntergeladen: $percent %';
+  }
+
+  @override
+  String get settings_speciesId_downloadConfirmTitle => 'Modell herunterladen?';
+
+  @override
+  String settings_speciesId_downloadConfirmBody(String size) {
+    return 'Dabei werden $size heruntergeladen und auf diesem Gerät gespeichert. Du kannst es jederzeit entfernen.';
+  }
+
+  @override
+  String get settings_speciesId_downloadFailed =>
+      'Der Download wurde nicht abgeschlossen. Versuche es erneut, um dort weiterzumachen, wo er aufgehört hat.';
+
+  @override
+  String get settings_speciesId_downloadNoSpace =>
+      'Auf diesem Gerät ist nicht genug Speicherplatz frei.';
+
+  @override
+  String get settings_speciesId_needsAppUpdate =>
+      'Dieses Modell erfordert eine neuere Version von Submersion.';
+
+  @override
+  String get settings_speciesId_toggle =>
+      'Fische beim Öffnen eines Fotos erkennen';
+
+  @override
+  String get settings_speciesId_kept =>
+      'Auf diesem Gerät gespeicherte Vorschläge';
+
+  @override
+  String settings_speciesId_keptValue(int count, String size) {
+    return '$count ($size)';
+  }
+
+  @override
+  String get settings_speciesId_clear => 'Vorschläge löschen';
+
+  @override
+  String get settings_speciesId_clearConfirmTitle => 'Alle Vorschläge löschen?';
+
+  @override
+  String get settings_speciesId_clearConfirmBody =>
+      'Dadurch werden alle Vorschläge und ihre Bildausschnitte entfernt. Von dir markierte Arten bleiben erhalten.';
+
+  @override
+  String get settings_speciesId_credits => 'Danksagungen und Lizenzen';
+
+  @override
+  String get settings_speciesId_unsupported =>
+      'Die Erkennung von Meereslebewesen ist auf diesem Gerät noch nicht verfügbar.';
+
+  @override
+  String get settings_speciesId_notEligible =>
+      'Dieses Gerät hat nicht genug Arbeitsspeicher für das Modell.';
+
+  @override
   String get settings_section_data_tagline =>
       'Sicherungen, Synchronisierung und Fotos';
 
@@ -56117,6 +56234,45 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_species_chipsLabel => 'Artenmarkierungen';
 
   @override
+  String get media_species_suggested => 'Vorschläge';
+
+  @override
+  String media_species_suggestedChip(String name, int percent) {
+    return '$name $percent %';
+  }
+
+  @override
+  String media_species_suggestedCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String get media_species_add => 'Hinzufügen';
+
+  @override
+  String get media_species_addAll => 'Alle hinzufügen';
+
+  @override
+  String get media_species_dismiss => 'Vorschlag verwerfen';
+
+  @override
+  String get media_species_identifying => 'Suche nach Fischen...';
+
+  @override
+  String get media_species_possibleMatches => 'Mögliche Treffer';
+
+  @override
+  String get media_species_cropUnavailable => 'Bild nicht auf diesem Gerät';
+
+  @override
+  String get media_species_taggedOnPhoto => 'Auf diesem Foto markiert';
+
+  @override
+  String media_species_removeTag(String name) {
+    return '$name entfernen';
+  }
+
+  @override
   String get media_people_me => 'Ich';
 
   @override
@@ -57954,6 +58110,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_storageUsage_category_importedFiles =>
       'Original-Importdateien';
+
+  @override
+  String get settings_storageUsage_category_identificationModel =>
+      'Erkennungsmodell';
+
+  @override
+  String get settings_storageUsage_category_identificationCrops =>
+      'Bildausschnitte der Erkennung';
 
   @override
   String settings_storageUsage_totalSplit(String device, String cloud) {

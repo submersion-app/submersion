@@ -13,6 +13,8 @@ import 'package:submersion/features/media/domain/entities/species_tag_chip.dart'
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_tagged_species_section.dart';
+import 'package:submersion/features/species_id/presentation/widgets/suggested_species_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -92,6 +94,7 @@ class MediaSpeciesSheet extends ConsumerWidget {
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 16),
+        SuggestedSpeciesSection(item: item, sitting: sitting),
         if (sightings == null)
           Text(l10n.media_species_noDiveHint)
         else ...[
@@ -143,6 +146,7 @@ class MediaSpeciesSheet extends ConsumerWidget {
             ],
           ),
         ],
+        MediaTaggedSpeciesSection(item: item, sitting: sitting),
         const SizedBox(height: 16),
         OutlinedButton.icon(
           key: const ValueKey('media_species_other'),
@@ -243,3 +247,10 @@ void holdPickedSpecies(EditSession<PhotoRecord> session, Species species) =>
       ),
       tagged: true,
     );
+
+/// Holds [chip] as untagged in [session] (issue #4668). Does nothing once
+/// the sitting has ended or while it is being saved.
+void holdSpeciesUntagged(
+  EditSession<PhotoRecord> session,
+  SpeciesTagChip chip,
+) => _holdToggle(session, chip, tagged: false);

@@ -14,7 +14,8 @@ enum WebUnavailableFeature {
   wearableImport(WebUnavailableReason.hardware),
   nearby(WebUnavailableReason.hardware),
   offlineMaps(WebUnavailableReason.files),
-  agentAccess(WebUnavailableReason.background);
+  agentAccess(WebUnavailableReason.background),
+  marineLifeId(WebUnavailableReason.files);
 
   const WebUnavailableFeature(this.reason);
 
@@ -35,6 +36,8 @@ const webUnavailableRoutePrefixes = <String, WebUnavailableFeature>{
   '/settings/agent-access': WebUnavailableFeature.agentAccess,
   // Runs the native dive parser over stored raw data (issue #224).
   '/settings/reparse-dives': WebUnavailableFeature.diveComputers,
+  // On-device models kept as files, run by a native engine (issue #4668).
+  '/settings/marine-life-identification': WebUnavailableFeature.marineLifeId,
 };
 
 /// Sections a browser cannot serve on a page it can, by the page's route and

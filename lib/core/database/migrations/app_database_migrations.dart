@@ -89,6 +89,7 @@ part 'helpers/dive_lab_migrations.dart';
 part 'helpers/diver_migrations.dart';
 part 'helpers/document_migrations.dart';
 part 'helpers/equipment_migrations.dart';
+part 'helpers/identification_migrations.dart';
 part 'helpers/equipment_collapsed_groups_migrations.dart';
 part 'helpers/recent_equipment_colors_migrations.dart';
 part 'helpers/country_flags_migrations.dart';

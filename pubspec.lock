@@ -2291,6 +2291,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  submersion_vision:
+    dependency: "direct main"
+    description:
+      path: "packages/submersion_vision"
+      relative: true
+    source: path
+    version: "0.1.0"
   sync_http:
     dependency: transitive
     description:

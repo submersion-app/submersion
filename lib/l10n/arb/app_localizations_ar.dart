@@ -29692,6 +29692,120 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_photosVideos_title => 'الصور والفيديوهات';
 
   @override
+  String get settings_speciesId_title => 'التعرّف على الحياة البحرية';
+
+  @override
+  String get settings_speciesId_entrySubtitle =>
+      'اعثر على الأسماك في صورك واقترح أنواعها';
+
+  @override
+  String get settings_speciesId_intro =>
+      'يعثر على الأسماك في صورك ويقترح أنواعها. يعمل على هذا الجهاز. لا تغادر صورك الجهاز أبدًا.';
+
+  @override
+  String get settings_speciesId_model => 'النموذج';
+
+  @override
+  String get settings_speciesId_modelNotDownloaded => 'لم يُنزَّل';
+
+  @override
+  String get settings_speciesId_modelNotAvailable => 'غير متاح بعد';
+
+  @override
+  String get settings_speciesId_modelNotForDevice => 'غير متاح لهذا الجهاز';
+
+  @override
+  String settings_speciesId_modelInstalled(String version) {
+    return 'مثبّت ($version)';
+  }
+
+  @override
+  String settings_speciesId_download(String size) {
+    return 'تنزيل ($size)';
+  }
+
+  @override
+  String settings_speciesId_resume(String size) {
+    return 'متابعة التنزيل ($size)';
+  }
+
+  @override
+  String settings_speciesId_update(String size) {
+    return 'تحديث ($size)';
+  }
+
+  @override
+  String get settings_speciesId_remove => 'إزالة النموذج';
+
+  @override
+  String get settings_speciesId_removeConfirmTitle => 'إزالة النموذج؟';
+
+  @override
+  String settings_speciesId_removeConfirmBody(String size) {
+    return 'سيؤدي هذا إلى تحرير $size على هذا الجهاز. يتم الاحتفاظ بالاقتراحات التي تم العثور عليها، ويمكنك تنزيل النموذج مرة أخرى.';
+  }
+
+  @override
+  String get settings_speciesId_installing => 'جارٍ تثبيت النموذج...';
+
+  @override
+  String settings_speciesId_downloading(int percent) {
+    return 'جارٍ التنزيل $percent٪';
+  }
+
+  @override
+  String get settings_speciesId_downloadConfirmTitle => 'تنزيل النموذج؟';
+
+  @override
+  String settings_speciesId_downloadConfirmBody(String size) {
+    return 'سيؤدي هذا إلى تنزيل $size والاحتفاظ به على هذا الجهاز. يمكنك إزالته في أي وقت.';
+  }
+
+  @override
+  String get settings_speciesId_downloadFailed =>
+      'لم يكتمل التنزيل. حاول مرة أخرى للمتابعة من حيث توقف.';
+
+  @override
+  String get settings_speciesId_downloadNoSpace =>
+      'لا توجد مساحة خالية كافية على هذا الجهاز.';
+
+  @override
+  String get settings_speciesId_needsAppUpdate =>
+      'يتطلب هذا النموذج إصدارًا أحدث من Submersion.';
+
+  @override
+  String get settings_speciesId_toggle => 'التعرّف على الأسماك عند فتح صورة';
+
+  @override
+  String get settings_speciesId_kept => 'الاقتراحات المحفوظة على هذا الجهاز';
+
+  @override
+  String settings_speciesId_keptValue(int count, String size) {
+    return '$count ($size)';
+  }
+
+  @override
+  String get settings_speciesId_clear => 'مسح الاقتراحات';
+
+  @override
+  String get settings_speciesId_clearConfirmTitle => 'مسح كل الاقتراحات؟';
+
+  @override
+  String get settings_speciesId_clearConfirmBody =>
+      'سيؤدي هذا إلى إزالة كل الاقتراحات وصورها المقتطعة. لن تتأثر الأنواع التي وسمتها.';
+
+  @override
+  String get settings_speciesId_credits => 'الإشادات والتراخيص';
+
+  @override
+  String get settings_speciesId_unsupported =>
+      'التعرّف على الحياة البحرية غير متاح على هذا الجهاز بعد.';
+
+  @override
+  String get settings_speciesId_notEligible =>
+      'لا يحتوي هذا الجهاز على ذاكرة كافية لتشغيل النموذج.';
+
+  @override
   String get settings_section_data_tagline =>
       'النسخ الاحتياطية والمزامنة والصور';
 
@@ -57057,6 +57171,46 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_species_chipsLabel => 'وسوم الأنواع';
 
   @override
+  String get media_species_suggested => 'مقترحة';
+
+  @override
+  String media_species_suggestedChip(String name, int percent) {
+    return '$name $percent٪';
+  }
+
+  @override
+  String media_species_suggestedCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String get media_species_add => 'إضافة';
+
+  @override
+  String get media_species_addAll => 'إضافة الكل';
+
+  @override
+  String get media_species_dismiss => 'تجاهل الاقتراح';
+
+  @override
+  String get media_species_identifying => 'جارٍ البحث عن الأسماك...';
+
+  @override
+  String get media_species_possibleMatches => 'تطابقات محتملة';
+
+  @override
+  String get media_species_cropUnavailable =>
+      'الصورة غير موجودة على هذا الجهاز';
+
+  @override
+  String get media_species_taggedOnPhoto => 'موسومة في هذه الصورة';
+
+  @override
+  String media_species_removeTag(String name) {
+    return 'إزالة $name';
+  }
+
+  @override
   String get media_people_me => 'أنا';
 
   @override
@@ -58871,6 +59025,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_storageUsage_category_importedFiles =>
       'ملفات الاستيراد الأصلية';
+
+  @override
+  String get settings_storageUsage_category_identificationModel =>
+      'نموذج التعرّف';
+
+  @override
+  String get settings_storageUsage_category_identificationCrops =>
+      'صور التعرّف المقتطعة';
 
   @override
   String settings_storageUsage_totalSplit(String device, String cloud) {

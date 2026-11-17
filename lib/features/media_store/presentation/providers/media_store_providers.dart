@@ -7,6 +7,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
@@ -53,6 +54,7 @@ import 'package:submersion/features/media_store/domain/media_upload_quality.dart
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
 /// Everything a configured media store needs at runtime. Built once per
 /// attach; disposed and rebuilt on connect/disconnect via provider
@@ -222,16 +224,28 @@ final mediaDeletionCoordinatorProvider = Provider<MediaDeletionCoordinator>((
     // memory (issue #3337). Read lazily, like the queue above.
     // A delete the user can still undo keeps the media store copies, which
     // would otherwise have to be downloaded again after the undo.
-    onDeleted: (items, {required undoable}) => purgeMediaCaches(
-      items,
-      thumbnails: ref.read(localThumbnailCacheProvider),
-      memo: ref.read(mediaTileImageMemoProvider),
-      store: undoable
-          ? null
-          : () => openMediaCacheStore(mediaCachePrefsOrNull(ref)),
-      hashStillReferenced: (hash) async =>
-          await ref.read(mediaRepositoryProvider).countRowsWithHash(hash) > 0,
-    ),
+    onDeleted: (items, {required undoable}) async {
+      await purgeMediaCaches(
+        items,
+        thumbnails: ref.read(localThumbnailCacheProvider),
+        memo: ref.read(mediaTileImageMemoProvider),
+        store: undoable
+            ? null
+            : () => openMediaCacheStore(mediaCachePrefsOrNull(ref)),
+        hashStillReferenced: (hash) async =>
+            await ref.read(mediaRepositoryProvider).countRowsWithHash(hash) > 0,
+      );
+      // What the marine life model found goes with the media, unless the
+      // delete can still be undone (issue #4668). An analysis of one of
+      // them finishes first, so it cannot write after the purge.
+      final ids = [for (final item in items) item.id];
+      if (!undoable && marineLifeIdEnabled) {
+        await ref.read(mediaIdentificationServiceProvider).settle(ids);
+      }
+      await ref
+          .read(identificationCleanupProvider)
+          .onMediaDeleted(ids, undoable: undoable);
+    },
   );
 });
 

@@ -268,6 +268,7 @@ import 'package:submersion/features/demo_mode/presentation/pages/demo_unavailabl
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/router/web_unavailable_routes.dart';
 import 'package:submersion/shared/widgets/web_unavailable_page.dart';
+import 'package:submersion/features/species_id/presentation/pages/marine_life_identification_page.dart';
 
 /// Root navigator key, so app-wide modals (e.g. the replaced-library adopt
 /// dialog surfaced from the app root) can be shown above the shell.
@@ -1738,6 +1739,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'offline-maps',
                 name: 'offlineMaps',
                 builder: (context, state) => const OfflineMapsPage(),
+              ),
+              GoRoute(
+                path: 'marine-life-identification',
+                name: 'marineLifeIdentification',
+                builder: (context, state) =>
+                    const MarineLifeIdentificationPage(),
               ),
               GoRoute(
                 path: 'wearable-import',

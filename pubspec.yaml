@@ -91,6 +91,8 @@ dependencies:
     path: packages/submersion_saf
   submersion_ocr:
     path: packages/submersion_ocr
+  submersion_vision:
+    path: packages/submersion_vision
   submersion_nl:
     path: packages/submersion_nl
   submersion_transcoder:

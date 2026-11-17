@@ -100,6 +100,10 @@ class SettingsKeys {
   /// time-in-dive markers (issue #4218).
   static const String mediaTagBadges = 'media_tag_badges';
 
+  /// Device-local: whether a photo is analysed for marine life when it is
+  /// opened in the viewer (issue #4668).
+  static const String identifyFishOnOpen = 'species_id_identify_on_open';
+
   /// Device-local: whether the fullscreen viewers fill the window or take
   /// the desktop window into OS fullscreen.
   static const String viewerFullscreenMode = 'viewer_fullscreen_mode';

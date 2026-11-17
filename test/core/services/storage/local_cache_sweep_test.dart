@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
@@ -324,6 +325,52 @@ void main() {
           (r) => r.diveId,
         ),
         ['dive-live'],
+      );
+    });
+
+    test('deletes crop embeddings whose identification is gone', () async {
+      await library
+          .into(library.mediaIdentifications)
+          .insert(
+            MediaIdentificationsCompanion.insert(
+              id: 'ident-live',
+              mediaId: 'media-1',
+              boxX: 0,
+              boxY: 0,
+              boxWidth: 0.5,
+              boxHeight: 0.5,
+              boxPixelWidth: 100,
+              boxPixelHeight: 100,
+              detectorScore: 0.9,
+              openScore: 0.4,
+              candidatesJson: '[]',
+              locationLimited: false,
+              suggestable: false,
+              decision: 'undecided',
+              createdAt: 0,
+            ),
+          );
+      for (final id in ['ident-live', 'ident-gone']) {
+        await local
+            .into(local.identificationEmbeddings)
+            .insert(
+              IdentificationEmbeddingsCompanion.insert(
+                identificationId: id,
+                classifierId: 'clf',
+                embedding: Uint8List(4),
+              ),
+            );
+      }
+
+      final report = await sweep().run(now: now);
+
+      expect(report.identificationEmbeddingRows, 1);
+      expect(report.rowsDeleted, 1);
+      expect(
+        (await local.select(local.identificationEmbeddings).get()).map(
+          (r) => r.identificationId,
+        ),
+        ['ident-live'],
       );
     });
 

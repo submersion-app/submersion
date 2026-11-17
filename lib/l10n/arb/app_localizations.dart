@@ -46699,6 +46699,186 @@ abstract class AppLocalizations {
   /// **'Photos & videos'**
   String get settings_photosVideos_title;
 
+  /// No description provided for @settings_speciesId_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Marine life identification'**
+  String get settings_speciesId_title;
+
+  /// No description provided for @settings_speciesId_entrySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Find fish in your photos and suggest what they are'**
+  String get settings_speciesId_entrySubtitle;
+
+  /// No description provided for @settings_speciesId_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Finds fish in your photos and suggests what they are. Runs on this device. Your photos never leave it.'**
+  String get settings_speciesId_intro;
+
+  /// No description provided for @settings_speciesId_model.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get settings_speciesId_model;
+
+  /// No description provided for @settings_speciesId_modelNotDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not downloaded'**
+  String get settings_speciesId_modelNotDownloaded;
+
+  /// No description provided for @settings_speciesId_modelNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available yet'**
+  String get settings_speciesId_modelNotAvailable;
+
+  /// No description provided for @settings_speciesId_modelNotForDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available for this device'**
+  String get settings_speciesId_modelNotForDevice;
+
+  /// No description provided for @settings_speciesId_modelInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed ({version})'**
+  String settings_speciesId_modelInstalled(String version);
+
+  /// No description provided for @settings_speciesId_download.
+  ///
+  /// In en, this message translates to:
+  /// **'Download ({size})'**
+  String settings_speciesId_download(String size);
+
+  /// No description provided for @settings_speciesId_resume.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue download ({size})'**
+  String settings_speciesId_resume(String size);
+
+  /// No description provided for @settings_speciesId_update.
+  ///
+  /// In en, this message translates to:
+  /// **'Update ({size})'**
+  String settings_speciesId_update(String size);
+
+  /// No description provided for @settings_speciesId_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove model'**
+  String get settings_speciesId_remove;
+
+  /// No description provided for @settings_speciesId_removeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the model?'**
+  String get settings_speciesId_removeConfirmTitle;
+
+  /// No description provided for @settings_speciesId_removeConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This frees {size} on this device. Suggestions already found are kept, and the model can be downloaded again.'**
+  String settings_speciesId_removeConfirmBody(String size);
+
+  /// No description provided for @settings_speciesId_installing.
+  ///
+  /// In en, this message translates to:
+  /// **'Installing the model...'**
+  String get settings_speciesId_installing;
+
+  /// No description provided for @settings_speciesId_downloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading {percent}%'**
+  String settings_speciesId_downloading(int percent);
+
+  /// No description provided for @settings_speciesId_downloadConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Download the model?'**
+  String get settings_speciesId_downloadConfirmTitle;
+
+  /// No description provided for @settings_speciesId_downloadConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This downloads {size} and keeps it on this device. You can remove it at any time.'**
+  String settings_speciesId_downloadConfirmBody(String size);
+
+  /// No description provided for @settings_speciesId_downloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The download did not finish. Try again to continue where it stopped.'**
+  String get settings_speciesId_downloadFailed;
+
+  /// No description provided for @settings_speciesId_downloadNoSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'There is not enough free space on this device.'**
+  String get settings_speciesId_downloadNoSpace;
+
+  /// No description provided for @settings_speciesId_needsAppUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'This model needs a newer version of Submersion.'**
+  String get settings_speciesId_needsAppUpdate;
+
+  /// No description provided for @settings_speciesId_toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Identify fish when I open a photo'**
+  String get settings_speciesId_toggle;
+
+  /// No description provided for @settings_speciesId_kept.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions kept on this device'**
+  String get settings_speciesId_kept;
+
+  /// No description provided for @settings_speciesId_keptValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} ({size})'**
+  String settings_speciesId_keptValue(int count, String size);
+
+  /// No description provided for @settings_speciesId_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear suggestions'**
+  String get settings_speciesId_clear;
+
+  /// No description provided for @settings_speciesId_clearConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all suggestions?'**
+  String get settings_speciesId_clearConfirmTitle;
+
+  /// No description provided for @settings_speciesId_clearConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes every suggestion and its cropped image. Species you have tagged are not affected.'**
+  String get settings_speciesId_clearConfirmBody;
+
+  /// No description provided for @settings_speciesId_credits.
+  ///
+  /// In en, this message translates to:
+  /// **'Credits and licences'**
+  String get settings_speciesId_credits;
+
+  /// No description provided for @settings_speciesId_unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Marine life identification is not available on this device yet.'**
+  String get settings_speciesId_unsupported;
+
+  /// No description provided for @settings_speciesId_notEligible.
+  ///
+  /// In en, this message translates to:
+  /// **'This device does not have enough memory to run the model.'**
+  String get settings_speciesId_notEligible;
+
   /// No description provided for @settings_section_data_tagline.
   ///
   /// In en, this message translates to:
@@ -88179,6 +88359,72 @@ abstract class AppLocalizations {
   /// **'Species tags'**
   String get media_species_chipsLabel;
 
+  /// No description provided for @media_species_suggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested'**
+  String get media_species_suggested;
+
+  /// No description provided for @media_species_suggestedChip.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} {percent}%'**
+  String media_species_suggestedChip(String name, int percent);
+
+  /// No description provided for @media_species_suggestedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({count})'**
+  String media_species_suggestedCount(String name, int count);
+
+  /// No description provided for @media_species_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get media_species_add;
+
+  /// No description provided for @media_species_addAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Add all'**
+  String get media_species_addAll;
+
+  /// No description provided for @media_species_dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss suggestion'**
+  String get media_species_dismiss;
+
+  /// No description provided for @media_species_identifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for fish...'**
+  String get media_species_identifying;
+
+  /// No description provided for @media_species_possibleMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Possible matches'**
+  String get media_species_possibleMatches;
+
+  /// No description provided for @media_species_cropUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Image not on this device'**
+  String get media_species_cropUnavailable;
+
+  /// No description provided for @media_species_taggedOnPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Tagged on this photo'**
+  String get media_species_taggedOnPhoto;
+
+  /// No description provided for @media_species_removeTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}'**
+  String media_species_removeTag(String name);
+
   /// No description provided for @media_people_me.
   ///
   /// In en, this message translates to:
@@ -91243,6 +91489,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Imported logbook files'**
   String get settings_storageUsage_category_importedFiles;
+
+  /// No description provided for @settings_storageUsage_category_identificationModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Identification model'**
+  String get settings_storageUsage_category_identificationModel;
+
+  /// No description provided for @settings_storageUsage_category_identificationCrops.
+  ///
+  /// In en, this message translates to:
+  /// **'Identification crops'**
+  String get settings_storageUsage_category_identificationCrops;
 
   /// No description provided for @settings_storageUsage_totalSplit.
   ///

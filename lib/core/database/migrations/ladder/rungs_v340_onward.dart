@@ -269,5 +269,12 @@ extension RungsFromV340 on AppDatabase {
     // does not move. Re-asserted in beforeOpen.
     if (from < 374) await _assertScrFlowColumns();
     if (from < 374) await reportProgress();
+
+    // v375: media_identification_runs and media_identifications (issue
+    // #4668). Table-only rung, nothing to backfill: the app fills them as
+    // photos are analysed. Never synced. Re-asserted in beforeOpen.
+    // Renumbered from 374, which main took for #4660.
+    if (from < 375) await _assertMediaIdentificationTables();
+    if (from < 375) await reportProgress();
   }
 }

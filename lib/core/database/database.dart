@@ -22,6 +22,7 @@ import 'package:submersion/core/database/tables/equipment_location_tables.dart';
 import 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 import 'package:submersion/core/database/tables/equipment_set_bundle_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
+import 'package:submersion/core/database/tables/identification_tables.dart';
 import 'package:submersion/core/database/tables/marine_life_tables.dart';
 import 'package:submersion/core/database/tables/media_people_tables.dart';
 import 'package:submersion/core/database/tables/media_tables.dart';
@@ -62,6 +63,7 @@ export 'package:submersion/core/database/tables/equipment_location_tables.dart';
 export 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 export 'package:submersion/core/database/tables/equipment_set_bundle_tables.dart';
 export 'package:submersion/core/database/tables/equipment_tables.dart';
+export 'package:submersion/core/database/tables/identification_tables.dart';
 export 'package:submersion/core/database/tables/marine_life_tables.dart';
 export 'package:submersion/core/database/tables/media_people_tables.dart';
 export 'package:submersion/core/database/tables/media_tables.dart';
@@ -136,6 +138,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     MediaPeople,
     PendingPhotoSuggestions,
     MediaRepairLog,
+    MediaIdentificationRuns,
+    MediaIdentifications,
     MediaSmartAlbums,
     Settings,
     Buddies,
@@ -328,7 +332,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 374;
+  static const int currentSchemaVersion = 375;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1735,6 +1739,11 @@ class AppDatabase extends _$AppDatabase {
     // planner_scr_injection_rate/planner_scr_vo2/planner_pscr_vo2 defaults
     // (issue #4660). Columns only, no backfill; the floor does not move.
     374,
+    // v375: media_identification_runs and media_identifications, what the
+    // on-device model found on each photo (issue #4668). Tables with no
+    // hlc, never synced, so the floor does not move. Renumbered from 374,
+    // which main took for #4660.
+    375,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

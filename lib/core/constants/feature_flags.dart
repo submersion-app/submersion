@@ -33,3 +33,18 @@ library;
 /// Lightroom" actions. If Adobe permanently rejects the integration, the
 /// Lightroom code and this flag can be deleted together in a follow-up cleanup.
 bool lightroomUiEnabled = false;
+
+/// Whether marine life identification is surfaced in the UI (issue #4668):
+/// the settings page, analysing photos as they are opened, and suggested
+/// species in the photo viewer.
+///
+/// Off for divers until both of these hold: the fish detector's weights are
+/// cleared for redistribution, and the confidence bars in the model pack
+/// come from measured accuracy rather than the provisional values. See
+/// docs/design/specs/2026-11-17-marine-life-identification-program-design.md.
+///
+/// A development build turns it on with
+/// `--dart-define=MARINE_LIFE_ID=true`. Like [lightroomUiEnabled] it hides
+/// UI only, and is mutable so widget tests can toggle it; tests that set it
+/// must reset it in `addTearDown`.
+bool marineLifeIdEnabled = const bool.fromEnvironment('MARINE_LIFE_ID');
