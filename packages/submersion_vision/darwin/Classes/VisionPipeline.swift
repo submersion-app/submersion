@@ -35,6 +35,17 @@ enum VisionError: Error {
   }
 }
 
+/// How the detector's input is prepared and its output read.
+enum DetectorFormat: String {
+  /// RF-DETR (the Community Fish Detector): the image resized straight to
+  /// the square, 300 boxes with raw scores, no overlap suppression.
+  case rfdetr
+  /// YOLO (FathomNet's Megalodon, for measuring only): the image
+  /// letterboxed into the square, one output of boxes and squashed scores
+  /// per anchor, overlapping boxes suppressed.
+  case yolo
+}
+
 /// How a crop is fitted to the classifier's square input.
 enum CropFit: String {
   /// Fitted whole inside the square, the rest filled with the mean colour,
@@ -61,6 +72,7 @@ struct VisionModelSettings: Equatable {
   let embeddingSize: Int
   let cropThumbnailSize: Int
   let cropFit: CropFit
+  let detectorFormat: DetectorFormat
 
   init(_ args: [String: Any]) throws {
     func string(_ key: String) throws -> String {
@@ -101,6 +113,15 @@ struct VisionModelSettings: Equatable {
     } else {
       cropFit = .padSquare
     }
+    // Absent means RF-DETR, the only detector a pack carries today.
+    if let format = args["detectorFormat"] {
+      guard let name = format as? String, let parsed = DetectorFormat(rawValue: name) else {
+        throw VisionError.badArguments("detectorFormat")
+      }
+      detectorFormat = parsed
+    } else {
+      detectorFormat = .rfdetr
+    }
   }
 }
 
@@ -140,7 +161,9 @@ final class VisionPipeline {
     let width = image.width
     let height = image.height
 
+    let detectStart = Date()
     let boxes = try detect(image, settings: settings, model: detector)
+    let detectMs = Date().timeIntervalSince(detectStart) * 1000
     var detections: [[String: Any]] = []
     for box in boxes {
       // Pixel box of the detection, then padded for the crop.
@@ -157,16 +180,19 @@ final class VisionPipeline {
         // No crop to show for it, so no suggestion either.
         continue
       }
+      let embedStart = Date()
       let embedding = try embed(crop, settings: settings, model: classifier)
+      let embedMs = Date().timeIntervalSince(embedStart) * 1000
       detections.append([
         "x": box.x, "y": box.y, "width": box.w, "height": box.h,
         "score": Double(box.score),
         "pixelWidth": Int(bw.rounded()), "pixelHeight": Int(bh.rounded()),
         "crop": FlutterStandardTypedData(bytes: jpeg),
         "embedding": FlutterStandardTypedData(float32: embedding.withUnsafeBufferPointer { Data(buffer: $0) }),
+        "embedMs": embedMs,
       ])
     }
-    return ["imageWidth": width, "imageHeight": height, "detections": detections]
+    return ["imageWidth": width, "imageHeight": height, "detections": detections, "detectMs": detectMs]
   }
 
   // MARK: Detection
@@ -177,6 +203,9 @@ final class VisionPipeline {
   }
 
   private func detect(_ image: CGImage, settings: VisionModelSettings, model: MLModel) throws -> [Box] {
+    if settings.detectorFormat == .yolo {
+      return try detectYolo(image, settings: settings, model: model)
+    }
     let size = settings.detectorInputSize
     // Resized straight to the square input, no letterbox, as the detector
     // was trained.
@@ -222,6 +251,75 @@ final class VisionPipeline {
     }
     found.sort { $0.score > $1.score }
     return Array(found.prefix(settings.maxBoxes))
+  }
+
+  /// Grey 114, as YOLO models are trained with.
+  private static let letterboxFill: [Float] = [114 / 255, 114 / 255, 114 / 255]
+  private static let yoloSuppressIoU = 0.7
+
+  private func detectYolo(_ image: CGImage, settings: VisionModelSettings, model: MLModel) throws -> [Box] {
+    let size = settings.detectorInputSize
+    let rect = Self.letterboxRect(width: image.width, height: image.height, size: size)
+    guard let pixels = Self.rgba(image, into: rect, canvas: size, fill: Self.letterboxFill) else {
+      throw VisionError.decodeFailed("could not draw the image")
+    }
+    let input = try Self.tensor(pixels, size: size, mean: settings.detectorMean, std: settings.detectorStd)
+    let output = try model.prediction(from: try Self.features(model, input))
+    guard let array = output.featureNames.lazy.compactMap({ output.featureValue(for: $0)?.multiArrayValue })
+      .first(where: { $0.shape.count == 3 }) else {
+      throw VisionError.inferenceFailed("detector output not found")
+    }
+    // [1, 4 + classes, anchors]: centre and size in input pixels, then
+    // scores already squashed to 0 to 1.
+    let channels = array.shape[1].intValue, anchors = array.shape[2].intValue
+    let values = Self.floats(array)
+    guard channels >= 5, values.count >= channels * anchors else {
+      throw VisionError.inferenceFailed("detector output has an unexpected shape")
+    }
+    let sx = rect.width / Double(image.width), sy = rect.height / Double(image.height)
+    var found: [Box] = []
+    for a in 0..<anchors {
+      var score: Float = 0
+      for c in 4..<channels { score = max(score, values[c * anchors + a]) }
+      guard score >= settings.scoreThreshold else { continue }
+      let cx = Double(values[a]), cy = Double(values[anchors + a])
+      let w = Double(values[2 * anchors + a]), h = Double(values[3 * anchors + a])
+      // Out of the letterbox, into the image's 0 to 1.
+      let x0 = min(max((cx - w / 2 - rect.minX) / sx / Double(image.width), 0), 1)
+      let y0 = min(max((cy - h / 2 - rect.minY) / sy / Double(image.height), 0), 1)
+      let x1 = min(max((cx + w / 2 - rect.minX) / sx / Double(image.width), 0), 1)
+      let y1 = min(max((cy + h / 2 - rect.minY) / sy / Double(image.height), 0), 1)
+      guard x1 > x0, y1 > y0 else { continue }
+      found.append(Box(x: x0, y: y0, w: x1 - x0, h: y1 - y0, score: score))
+    }
+    return Self.suppress(found, iou: Self.yoloSuppressIoU, limit: settings.maxBoxes)
+  }
+
+  /// Where an image goes in a letterboxed square, as ultralytics places it:
+  /// scaled to fit and rounded to whole pixels, centred.
+  static func letterboxRect(width: Int, height: Int, size: Int) -> CGRect {
+    let r = min(Double(size) / Double(width), Double(size) / Double(height))
+    let w = (Double(width) * r).rounded(), h = (Double(height) * r).rounded()
+    let left = ((Double(size) - w) / 2 - 0.1).rounded(), top = ((Double(size) - h) / 2 - 0.1).rounded()
+    return CGRect(x: left, y: top, width: w, height: h)
+  }
+
+  /// The best boxes, dropping any that overlaps a better one by [iou] or
+  /// more, at most [limit].
+  private static func suppress(_ boxes: [Box], iou: Double, limit: Int) -> [Box] {
+    var kept: [Box] = []
+    for box in boxes.sorted(by: { $0.score > $1.score }) {
+      let overlaps = kept.contains { k in
+        let ix = max(0, min(box.x + box.w, k.x + k.w) - max(box.x, k.x))
+        let iy = max(0, min(box.y + box.h, k.y + k.h) - max(box.y, k.y))
+        let inter = ix * iy
+        let union = box.w * box.h + k.w * k.h - inter
+        return union > 0 && inter / union >= iou
+      }
+      if !overlaps { kept.append(box) }
+      if kept.count == limit { break }
+    }
+    return kept
   }
 
   // MARK: Embedding

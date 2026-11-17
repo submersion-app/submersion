@@ -3,6 +3,9 @@
 //
 //   species_vision --manifest M --detector D --classifier C --crop-fit F < paths
 //
+// The manifest's detector block may carry "detectorFormat" ("rfdetr", the
+// default, or "yolo"), which the pipeline reads as the app would.
+//
 // Reads one image path per line on stdin and writes one JSON line per image
 // on stdout. The pipeline compiles a model package once and deletes it, so
 // pass copies, never a pack's own files.
@@ -52,7 +55,7 @@ do {
     "embeddingSize": classifier["embeddingSize"] as Any,
     "cropThumbnailSize": manifest["cropThumbnailSize"] as Any,
     "cropFit": option("--crop-fit"),
-  ])
+  ].merging(detector["detectorFormat"].map { ["detectorFormat": $0] } ?? [:]) { a, _ in a })
 } catch let error as VisionError {
   fail(error.message)
 }
@@ -77,11 +80,12 @@ while let line = readLine() {
         "score": d["score"] as Any,
         "pixelWidth": d["pixelWidth"] as Any, "pixelHeight": d["pixelHeight"] as Any,
         "embedding": floats.map { Double($0) },
+        "embedMs": d["embedMs"] as Any,
       ]
     }
     emit([
       "path": path, "width": result["imageWidth"] as Any, "height": result["imageHeight"] as Any,
-      "detections": detections,
+      "detections": detections, "detectMs": result["detectMs"] as Any,
     ])
   } catch let error as VisionError {
     emit(["path": path, "error": error.message])
