@@ -1,4 +1,3 @@
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_color_adjustment_repository.dart';
 import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
@@ -7,8 +6,7 @@ import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
-
-const _log = LoggerService('PhotoHeldWrites');
+import 'package:submersion/shared/widgets/record_editing/held_write_undo.dart';
 
 const _relinkAfterKey = 'photo:relink.after';
 const _relinkUndoKey = 'photo:relink.undo';
@@ -85,32 +83,18 @@ List<Future<void> Function()> relinkAfterCommit(
 Future<T> undoRelinkOnFailure<T>(
   EditSession<PhotoRecord> session,
   Future<T> Function() write,
-) async {
-  try {
-    return await write();
-  } catch (_) {
-    final undo = session.isDisposed
-        ? null
-        : session.recall<List<Future<void> Function()>>(_relinkUndoKey);
-    if (!session.isDisposed) {
-      session
-        ..remember(_relinkUndoKey, null)
-        ..remember(_relinkAfterKey, null);
-    }
-    for (final step in undo ?? const <Future<void> Function()>[]) {
-      try {
-        await step();
-      } catch (error, stackTrace) {
-        _log.warning(
-          'Taking back a relink that did not commit failed',
-          error: error,
-          stackTrace: stackTrace,
-        );
-      }
-    }
-    rethrow;
-  }
-}
+) => undoHeldWritesOnFailure(
+  write,
+  takeUndo: () {
+    if (session.isDisposed) return null;
+    final undo = session.recall<List<Future<void> Function()>>(_relinkUndoKey);
+    session
+      ..remember(_relinkUndoKey, null)
+      ..remember(_relinkAfterKey, null);
+    return undo;
+  },
+  what: 'a relink',
+);
 
 /// Holds adding [buddyId] to the photo's dive, the offer made after a person
 /// is tagged, until the sitting is saved (issue #4527). It adds them in the
