@@ -51,6 +51,10 @@ class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger>
   /// viewer leaves it showing.
   var _showing = true;
 
+  /// The app went to the background (not merely lost focus): a video's
+  /// scan stopped there, and resumes when it is back.
+  var _wasAway = false;
+
   /// The service asked, kept for [dispose], where `ref` may no longer be
   /// read.
   MediaIdentificationService? _service;
@@ -90,9 +94,15 @@ class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger>
   /// the video still on screen, it carries on (issue #4675).
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      _wasAway = true;
+      return;
+    }
+    if (state != AppLifecycleState.resumed || !_wasAway) return;
+    _wasAway = false;
     final item = widget.item;
-    if (state == AppLifecycleState.resumed &&
-        _showing &&
+    if (_showing &&
         _applies &&
         item.mediaType == MediaType.video &&
         _requested.contains(item.id)) {
@@ -107,6 +117,7 @@ class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger>
     if (oldWidget.item.id == item.id) {
       final location = widget.location;
       if (_applies &&
+          _showing &&
           location != null &&
           location != oldWidget.location &&
           _requested.contains(item.id)) {

@@ -30,8 +30,9 @@ final class VideoScanner {
   }
 
   /// `{width, height, durationMs, frames: [{ms, boxes: [{x, y, width,
-  /// height, score}]}]}`. Stops early with what it has when [stillWanted]
-  /// turns false (the app left the foreground).
+  /// height, score}]}]}`. Throws `notForeground` when [stillWanted] turns
+  /// false (the app left the foreground) and `decodeFailed` when the reader
+  /// fails: a chunk cut short is never returned as if it were whole.
   func detect(_ args: [String: Any], stillWanted: () -> Bool) throws -> [String: Any] {
     guard let path = args["path"] as? String,
           let startMs = (args["startMs"] as? NSNumber)?.intValue,

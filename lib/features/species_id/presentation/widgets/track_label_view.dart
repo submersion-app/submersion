@@ -29,12 +29,15 @@ class TrackLabelGeometry {
     final dot = box.center;
     final above = box.top - gap - pillHeight / 2;
     final below = above - pillHeight / 2 < video.top;
+    var centreY = below ? box.bottom + gap + pillHeight / 2 : above;
+    // A fish filling the frame's height has room neither above nor below:
+    // the pill then sits just inside the video's bottom edge.
+    if (centreY + pillHeight / 2 > video.bottom) {
+      centreY = video.bottom - pillHeight / 2;
+    }
     return TrackLabelGeometry(
       dot: dot,
-      pillCentre: Offset(
-        dot.dx,
-        below ? box.bottom + gap + pillHeight / 2 : above,
-      ),
+      pillCentre: Offset(dot.dx, centreY),
       pillBelow: below,
     );
   }

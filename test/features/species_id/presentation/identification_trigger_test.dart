@@ -137,6 +137,19 @@ void main() {
     expect(service.requested, ['v1', 'v1']);
   });
 
+  testWidgets('losing focus without going to the background asks nothing', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(testMediaItem(id: 'v1', mediaType: MediaType.video)),
+    );
+    await tester.pump(const Duration(milliseconds: 401));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(service.requested, ['v1']);
+  });
+
   group('a page over the viewer', () {
     final navigator = GlobalKey<NavigatorState>();
 
@@ -171,6 +184,36 @@ void main() {
       await tester.pumpAndSettle();
       await tester.pump(const Duration(milliseconds: 401));
       expect(service.requested, ['v1', 'v1']);
+    });
+
+    testWidgets('a location arriving while covered does not start the scan', (
+      tester,
+    ) async {
+      service.requestsWait = true;
+      final video = testMediaItem(id: 'v1', mediaType: MediaType.video);
+      Widget located(GeoPoint? at) => ProviderScope(
+        overrides: [
+          mediaIdentificationServiceProvider.overrideWithValue(service),
+          mediaTagChipsProvider.overrideWith((ref, id) async => chips),
+        ],
+        child: MaterialApp(
+          navigatorKey: navigator,
+          home: Scaffold(
+            body: IdentificationTrigger(item: video, location: at),
+          ),
+        ),
+      );
+      await tester.pumpWidget(located(null));
+      await tester.pump(const Duration(milliseconds: 401));
+      unawaited(
+        navigator.currentState!.push(
+          MaterialPageRoute<void>(builder: (_) => const Scaffold()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(located(const GeoPoint(12, -68)));
+      await tester.pump();
+      expect(service.requested, ['v1']);
     });
 
     testWidgets('a sheet over it leaves the scan running', (tester) async {

@@ -449,6 +449,30 @@ void main() {
     expect(pillRect.center.dx, closeTo(layer.left + 0.22 * 400, 0.5));
   });
 
+  testWidgets('a fish filling the frame keeps its pill inside the video', (
+    tester,
+  ) async {
+    final tall = track('a', confident: true);
+    await pump(
+      tester,
+      tracks: [
+        tall.copyWith(
+          path: [
+            for (final s in tall.path)
+              s.copyWith(box: s.box.copyWith(y: 0.02, height: 0.96)),
+          ],
+        ),
+      ],
+      playing: true,
+    );
+    final layer = tester.getRect(find.byType(VideoIdentificationLayer));
+    final videoBottom = layer.top + 87.5 + 225;
+    final pillRect = tester.getRect(
+      find.descendant(of: pill('a'), matching: find.byType(TrackPill)),
+    );
+    expect(pillRect.bottom, lessThanOrEqualTo(videoBottom + 0.5));
+  });
+
   testWidgets('labels sit inside the contain-fitted video rect', (
     tester,
   ) async {
