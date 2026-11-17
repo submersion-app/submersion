@@ -41,8 +41,12 @@ class VisibilityInput extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Each input keyed as its own row: unkeyed they would share one
+        // row's state, and Precise, left open for typing, came back open
+        // after a look at Range (issue #4527).
         switch (mode) {
           VisibilityInputMode.precise => FormRow.text(
+            key: const ValueKey('visibilityInput_precise'),
             label: label,
             controller: controller,
             suffixText: depthSymbol,
@@ -54,6 +58,7 @@ class VisibilityInput extends StatelessWidget {
             onChanged: onPreciseChanged,
           ),
           VisibilityInputMode.range => FormRow.custom(
+            key: const ValueKey('visibilityInput_range'),
             label: label,
             child: Wrap(
               alignment: WrapAlignment.end,
