@@ -182,6 +182,67 @@ void main() {
     expect(await repo.taggedSpecies('m2'), isEmpty);
   });
 
+  group('videos (issue #4675)', () {
+    test('a track round-trips with its time range, path, claim and '
+        'flags', () async {
+      final fish = track('t1', claimedSpeciesId: 'sp_x', confident: true);
+      await repo.storeRun(videoRun(), insert: [fish], deleteIds: []);
+      final stored = (await repo.forMedia('v1')).single;
+      expect(stored.startMs, 1000);
+      expect(stored.endMs, 2000);
+      expect(stored.bestMs, fish.bestMs);
+      expect(stored.claimedSpeciesId, 'sp_x');
+      expect(stored.confident, isTrue);
+      expect(stored.specific, isTrue);
+      expect(stored.path, hasLength(fish.path.length));
+      for (var k = 0; k < fish.path.length; k++) {
+        expect(stored.path[k].ms, fish.path[k].ms);
+        expect(stored.path[k].box.x, closeTo(fish.path[k].box.x, 1e-4));
+      }
+    });
+
+    test('a run keeps how far the scan got and the video length', () async {
+      await repo.storeRun(videoRun(), insert: const [], deleteIds: const []);
+      final stored = (await repo.runFor('v1'))!;
+      expect(stored.scannedMs, 10000);
+      expect(stored.videoDurationMs, 25000);
+    });
+
+    test('a photo row keeps null video fields', () async {
+      await repo.storeRun(run(), insert: [identification('a')], deleteIds: []);
+      final stored = (await repo.forMedia('m1')).single;
+      expect(stored.isTrack, isFalse);
+      expect(stored.path, isEmpty);
+      expect(stored.claimedSpeciesId, isNull);
+      expect((await repo.runFor('m1'))!.scannedMs, isNull);
+      final raw = await db
+          .customSelect('SELECT track_path FROM media_identifications')
+          .getSingle();
+      expect(raw.data['track_path'], isNull);
+    });
+
+    test('a corrupt path reads as no path', () async {
+      await repo.storeRun(videoRun(), insert: [track('t1')], deleteIds: []);
+      await db.customStatement(
+        "UPDATE media_identifications SET track_path = X'02'",
+      );
+      final stored = (await repo.forMedia('v1')).single;
+      expect(stored.isTrack, isTrue);
+      expect(stored.path, isEmpty);
+    });
+
+    test('a claim is written to its row', () async {
+      await repo.storeRun(videoRun(), insert: [track('t1')], deleteIds: []);
+      await repo.claim('t1', 'sp_y');
+      expect((await repo.forMedia('v1')).single.claimedSpeciesId, 'sp_y');
+    });
+
+    test('a claim on a missing row writes nothing', () async {
+      await repo.claim('gone', 'sp_y');
+      expect(await repo.count(), 0);
+    });
+  });
+
   test('a write ticks the change stream', () async {
     final ticks = <void>[];
     final sub = repo.watchChanges().listen(ticks.add);

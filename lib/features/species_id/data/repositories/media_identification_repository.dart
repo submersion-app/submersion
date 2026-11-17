@@ -5,8 +5,11 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
+import 'package:submersion/features/species_id/domain/services/track_path_codec.dart';
 
 /// What the marine life model found on each piece of media, and the diver's
 /// decisions on it (issue #4668). Never synced: the rows are this device's,
@@ -123,6 +126,16 @@ class MediaIdentificationRepository {
     });
   }
 
+  /// Records that the diver gave [identificationId] the species
+  /// [speciesId] from the frame (issue #4675). Writes nothing when the row
+  /// is gone: a claim must not bring back a cleared identification.
+  Future<void> claim(String identificationId, String speciesId) =>
+      (_db.update(
+        _db.mediaIdentifications,
+      )..where((r) => r.id.equals(identificationId))).write(
+        MediaIdentificationsCompanion(claimedSpeciesId: Value(speciesId)),
+      );
+
   /// Removes the runs and identifications of [mediaIds]; returns the ids of
   /// the identifications removed, for their crops and embeddings.
   Future<List<String>> deleteForMedia(List<String> mediaIds) async {
@@ -209,6 +222,8 @@ class MediaIdentificationRepository {
         imageWidth: row.imageWidth,
         imageHeight: row.imageHeight,
         detectionCount: row.detectionCount,
+        scannedMs: row.scannedMs,
+        videoDurationMs: row.videoDurationMs,
       );
 
   static MediaIdentificationRunsCompanion _runToCompanion(
@@ -223,6 +238,8 @@ class MediaIdentificationRepository {
     imageWidth: run.imageWidth,
     imageHeight: run.imageHeight,
     detectionCount: run.detectionCount,
+    scannedMs: Value(run.scannedMs),
+    videoDurationMs: Value(run.videoDurationMs),
   );
 
   static MediaIdentification _fromRow(MediaIdentificationRow row) =>
@@ -249,6 +266,13 @@ class MediaIdentificationRepository {
         decidedSpeciesId: row.decidedSpeciesId,
         decidedAt: row.decidedAt == null ? null : _time(row.decidedAt!),
         createdAt: _time(row.createdAt),
+        startMs: row.startMs,
+        endMs: row.endMs,
+        bestMs: row.bestMs,
+        path: _decodePath(row),
+        claimedSpeciesId: row.claimedSpeciesId,
+        confident: row.confident,
+        specific: row.specific,
       );
 
   static MediaIdentificationsCompanion _toCompanion(MediaIdentification i) =>
@@ -270,7 +294,32 @@ class MediaIdentificationRepository {
         decidedSpeciesId: Value(i.decidedSpeciesId),
         decidedAt: Value(i.decidedAt?.millisecondsSinceEpoch),
         createdAt: i.createdAt.millisecondsSinceEpoch,
+        startMs: Value(i.startMs),
+        endMs: Value(i.endMs),
+        bestMs: Value(i.bestMs),
+        trackPath: Value(
+          i.isTrack ? encodeTrackPath(i.startMs!, i.path) : null,
+        ),
+        claimedSpeciesId: Value(i.claimedSpeciesId),
+        confident: Value(i.confident),
+        specific: Value(i.specific),
       );
+
+  /// A path that cannot be read keeps its row with no path, which draws no
+  /// label: the rest of what was found stays usable.
+  static List<TrackSample> _decodePath(MediaIdentificationRow row) {
+    final bytes = row.trackPath;
+    final start = row.startMs;
+    if (bytes == null || start == null) return const [];
+    try {
+      return decodeTrackPath(start, bytes);
+    } on FormatException catch (e) {
+      _log.debug('Unreadable track path on ${row.id}', error: e);
+      return const [];
+    }
+  }
+
+  static final _log = LoggerService.forClass(MediaIdentificationRepository);
 
   /// A row whose JSON cannot be read keeps its place with no candidates,
   /// which the rules never suggest.
