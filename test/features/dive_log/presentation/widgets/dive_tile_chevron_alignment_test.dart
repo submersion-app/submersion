@@ -153,4 +153,40 @@ void main() {
       });
     }
   });
+
+  // The date cap must give way on a crowded narrow line rather than push the
+  // row past the card: selection checkbox, a Planned chip and the mode badge
+  // all sit on line 1 beside it.
+  for (final width in [300.0, 340.0]) {
+    testWidgets('a crowded compact line 1 fits at $width', (tester) async {
+      final planned = DiveSummary(
+        id: 'd1',
+        diveNumber: null,
+        dateTime: DateTime(2026, 3, 15, 14, 30),
+        siteName: 'Valfiorita Wreck',
+        maxDepth: 42.0,
+        bottomTime: const Duration(minutes: 39),
+        diveTypeIds: const ['wreck'],
+        sortTimestamp: 0,
+        isPlanned: true,
+      );
+      await _pumpAtWidth(
+        tester,
+        width,
+        CompactDiveListTile(
+          diveId: 'd1',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 3, 15, 14, 30),
+          siteName: 'Valfiorita Wreck',
+          maxDepth: 42.0,
+          duration: const Duration(minutes: 39),
+          summary: planned,
+          isSelectionMode: true,
+          onTap: () {},
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
