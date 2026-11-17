@@ -104,7 +104,39 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     });
   }
 
+  /// This page as the editing keys' target (Unlock, Save, Cancel), while
+  /// it offers editing.
+  RecordEditShortcutTarget? _shortcutTarget;
+  RecordEditShortcutTargets? _shortcutTargets;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!editingOffered) return;
+    final controller = editController;
+    final target = _shortcutTarget = RecordEditShortcutTarget(
+      controller: controller,
+      unlock: () {
+        final stored = ref.read(diveProvider(widget.diveId)).value;
+        if (stored != null) controller.unlock(shownDive(stored));
+      },
+      save: _saveAndReport,
+      cancel: () => cancelSitting(context, controller),
+      // The page in view: not under a page, sheet or menu, and in the list
+      // pane not giving its place to a site.
+      isCurrent: () =>
+          mounted &&
+          (ModalRoute.of(context)?.isCurrent ?? true) &&
+          (widget.embeddedSiteId?.isEmpty ?? true),
+    );
+    final targets = ref.read(recordEditShortcutTargetsProvider);
+    _shortcutTargets = targets;
+    targets.add(target);
+  }
+
   void disposeEditing() {
+    final target = _shortcutTarget;
+    if (target != null) _shortcutTargets?.remove(target);
     _tellOpenSitting(null);
     _exitBlocker?.dispose();
     _editController?.dispose();

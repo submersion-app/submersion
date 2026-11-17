@@ -2724,6 +2724,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'غوصة جديدة';
 
   @override
+  String get accessibility_shortcut_unlockRecord => 'إلغاء القفل للتعديل';
+
+  @override
+  String get accessibility_shortcut_saveChanges => 'حفظ التغييرات';
+
+  @override
   String get accessibility_shortcut_openSettings => 'فتح الإعدادات';
 
   @override

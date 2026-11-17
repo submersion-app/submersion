@@ -1500,6 +1500,14 @@
   "accessibility_shortcut_previousPlannedDive": "Previous planned dive",
   "accessibility_shortcut_nextPlannedDive": "Next planned dive",
   "accessibility_shortcut_newDive": "New dive",
+  "accessibility_shortcut_unlockRecord": "Unlock to edit",
+  "@accessibility_shortcut_unlockRecord": {
+    "description": "Keyboard shortcut label for unlocking the record page in view (a dive) to edit it"
+  },
+  "accessibility_shortcut_saveChanges": "Save changes",
+  "@accessibility_shortcut_saveChanges": {
+    "description": "Keyboard shortcut label for saving the changes made to an unlocked record page"
+  },
   "accessibility_shortcut_openSettings": "Open settings",
   "accessibility_shortcut_searchDives": "Search dives",
   "accessibility_shortcut_searchEverything": "Search everything",

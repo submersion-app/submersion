@@ -2643,6 +2643,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'Új merülés';
 
   @override
+  String get accessibility_shortcut_unlockRecord => 'Feloldás a szerkesztéshez';
+
+  @override
+  String get accessibility_shortcut_saveChanges => 'Változások mentése';
+
+  @override
   String get accessibility_shortcut_openSettings => 'Beállítások megnyitása';
 
   @override

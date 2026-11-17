@@ -2609,6 +2609,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'צלילה חדשה';
 
   @override
+  String get accessibility_shortcut_unlockRecord => 'ביטול נעילה לעריכה';
+
+  @override
+  String get accessibility_shortcut_saveChanges => 'שמירת שינויים';
+
+  @override
   String get accessibility_shortcut_openSettings => 'פתיחת הגדרות';
 
   @override

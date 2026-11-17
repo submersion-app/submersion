@@ -708,6 +708,8 @@
   "accessibility_shortcut_previousPlannedDive": "Előző tervezett merülés",
   "accessibility_shortcut_nextPlannedDive": "Következő tervezett merülés",
   "accessibility_shortcut_newDive": "Új merülés",
+  "accessibility_shortcut_unlockRecord": "Feloldás a szerkesztéshez",
+  "accessibility_shortcut_saveChanges": "Változások mentése",
   "accessibility_shortcut_openSettings": "Beállítások megnyitása",
   "accessibility_shortcut_searchDives": "Merülések keresése",
   "accessibility_shortcut_searchEverything": "Keresés mindenben",

@@ -708,6 +708,8 @@
   "accessibility_shortcut_previousPlannedDive": "Plongée planifiée précédente",
   "accessibility_shortcut_nextPlannedDive": "Plongée planifiée suivante",
   "accessibility_shortcut_newDive": "Nouvelle plongée",
+  "accessibility_shortcut_unlockRecord": "Déverrouiller pour modifier",
+  "accessibility_shortcut_saveChanges": "Enregistrer les modifications",
   "accessibility_shortcut_openSettings": "Ouvrir les réglages",
   "accessibility_shortcut_searchDives": "Rechercher des plongées",
   "accessibility_shortcut_searchEverything": "Tout rechercher",

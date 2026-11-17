@@ -2636,6 +2636,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'Nieuwe duik';
 
   @override
+  String get accessibility_shortcut_unlockRecord =>
+      'Ontgrendelen om te bewerken';
+
+  @override
+  String get accessibility_shortcut_saveChanges => 'Wijzigingen opslaan';
+
+  @override
   String get accessibility_shortcut_openSettings => 'Instellingen openen';
 
   @override

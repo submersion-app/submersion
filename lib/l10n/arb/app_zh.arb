@@ -795,6 +795,8 @@
   "accessibility_shortcut_previousPlannedDive": "上一次计划潜水",
   "accessibility_shortcut_nextPlannedDive": "下一次计划潜水",
   "accessibility_shortcut_newDive": "新建潜水",
+  "accessibility_shortcut_unlockRecord": "解锁以编辑",
+  "accessibility_shortcut_saveChanges": "保存更改",
   "accessibility_shortcut_openSettings": "打开设置",
   "accessibility_shortcut_searchDives": "搜索潜水",
   "accessibility_shortcut_searchEverything": "搜索全部",

@@ -2648,6 +2648,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'Neuer Tauchgang';
 
   @override
+  String get accessibility_shortcut_unlockRecord => 'Zum Bearbeiten entsperren';
+
+  @override
+  String get accessibility_shortcut_saveChanges => 'Änderungen speichern';
+
+  @override
   String get accessibility_shortcut_openSettings => 'Einstellungen öffnen';
 
   @override

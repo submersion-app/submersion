@@ -4072,6 +4072,18 @@ abstract class AppLocalizations {
   /// **'New dive'**
   String get accessibility_shortcut_newDive;
 
+  /// Keyboard shortcut label for unlocking the record page in view (a dive) to edit it
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to edit'**
+  String get accessibility_shortcut_unlockRecord;
+
+  /// Keyboard shortcut label for saving the changes made to an unlocked record page
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get accessibility_shortcut_saveChanges;
+
   /// Keyboard shortcut label for opening settings
   ///
   /// In en, this message translates to:

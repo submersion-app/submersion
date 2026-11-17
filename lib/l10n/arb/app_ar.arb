@@ -708,6 +708,8 @@
   "accessibility_shortcut_previousPlannedDive": "الغطسة المخططة السابقة",
   "accessibility_shortcut_nextPlannedDive": "الغطسة المخططة التالية",
   "accessibility_shortcut_newDive": "غوصة جديدة",
+  "accessibility_shortcut_unlockRecord": "إلغاء القفل للتعديل",
+  "accessibility_shortcut_saveChanges": "حفظ التغييرات",
   "accessibility_shortcut_openSettings": "فتح الإعدادات",
   "accessibility_shortcut_searchDives": "البحث في الغوصات",
   "accessibility_shortcut_searchEverything": "البحث في كل شيء",

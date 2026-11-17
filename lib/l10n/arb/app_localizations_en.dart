@@ -2620,6 +2620,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accessibility_shortcut_newDive => 'New dive';
 
   @override
+  String get accessibility_shortcut_unlockRecord => 'Unlock to edit';
+
+  @override
+  String get accessibility_shortcut_saveChanges => 'Save changes';
+
+  @override
   String get accessibility_shortcut_openSettings => 'Open settings';
 
   @override

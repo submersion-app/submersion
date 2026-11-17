@@ -2514,6 +2514,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accessibility_shortcut_newDive => '新建潜水';
 
   @override
+  String get accessibility_shortcut_unlockRecord => '解锁以编辑';
+
+  @override
+  String get accessibility_shortcut_saveChanges => '保存更改';
+
+  @override
   String get accessibility_shortcut_openSettings => '打开设置';
 
   @override

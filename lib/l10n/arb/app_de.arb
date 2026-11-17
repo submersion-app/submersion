@@ -734,6 +734,8 @@
   "accessibility_shortcut_previousPlannedDive": "Vorheriger geplanter Tauchgang",
   "accessibility_shortcut_nextPlannedDive": "Nächster geplanter Tauchgang",
   "accessibility_shortcut_newDive": "Neuer Tauchgang",
+  "accessibility_shortcut_unlockRecord": "Zum Bearbeiten entsperren",
+  "accessibility_shortcut_saveChanges": "Änderungen speichern",
   "accessibility_shortcut_openSettings": "Einstellungen öffnen",
   "accessibility_shortcut_searchDives": "Tauchgänge suchen",
   "accessibility_shortcut_searchEverything": "Alles durchsuchen",

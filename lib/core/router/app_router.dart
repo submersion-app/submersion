@@ -140,6 +140,7 @@ import 'package:submersion/features/settings/presentation/pages/link_buddy_names
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/settings_legacy_links.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
@@ -341,7 +342,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) => CallbackShortcuts(
           bindings: AppShortcuts.globalBindings(context),
-          child: Focus(autofocus: true, child: MainScaffold(child: child)),
+          child: Focus(
+            autofocus: true,
+            // Unlock, Save and Cancel for the record page in view (#4527).
+            child: RecordEditShortcuts(child: MainScaffold(child: child)),
+          ),
         ),
         routes: [
           GoRoute(
