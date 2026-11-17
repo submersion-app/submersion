@@ -128,8 +128,11 @@ final class VideoScanner {
     let generator = AVAssetImageGenerator(asset: asset)
     // Upright, as the player shows it, so the boxes from pass 1 fit.
     generator.appliesPreferredTrackTransform = true
+    // A moment's time is its frame's, rounded to the millisecond: a time
+    // rounded down by under a millisecond must still reach that frame (and
+    // not the one before it, or none before the first).
     generator.requestedTimeToleranceBefore = .zero
-    generator.requestedTimeToleranceAfter = .zero
+    generator.requestedTimeToleranceAfter = CMTime(value: 1, timescale: 1000)
     generator.maximumSize = CGSize(width: Self.embedSide, height: Self.embedSide)
     var unread = 0
     let crops = try moments.map { moment -> Any in
