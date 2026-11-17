@@ -71,7 +71,7 @@ void main() {
     bottleLabel: id,
     status: TripCylinderStatus.full,
   );
-  final reef = DiveSite(id: 'reef', name: 'Blue Corner');
+  const reef = DiveSite(id: 'reef', name: 'Blue Corner');
 
   late EditSession<Dive> session;
   late List<DiveSite?> assigned;
@@ -220,7 +220,7 @@ void main() {
   });
 
   test('a scanned site goes through the site rules', () async {
-    await apply(NewDiveRequest(prefill: DivePrefill(site: reef)));
+    await apply(const NewDiveRequest(prefill: DivePrefill(site: reef)));
     expect(assigned, [reef]);
   });
 
