@@ -117,6 +117,7 @@ final dive = Dive(
 
 /// Pumps the page on top of a home route, with only Tags and Notes shown
 /// so both are on screen, and returns the router and the fake service.
+/// [routes] join the router, for the pages a test opens from the dive.
 Future<({GoRouter router, FakeSave save})> pumpPage(
   WidgetTester tester, {
   bool unlockEditing = true,
@@ -135,6 +136,8 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
   ValueNotifier<String>? shownDiveId,
   List<DiveDataSource> sources = const [],
   bool shortcuts = false,
+  List<RouteBase> routes = const [],
+  bool siteInPane = false,
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = size;
@@ -189,6 +192,11 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
                   diveId: id,
                   embedded: embedded,
                   unlockEditing: unlockEditing,
+                  // With [siteInPane], a `site=` in the location shows that
+                  // site in the dive's place, as the list pane does.
+                  embeddedSiteId: siteInPane
+                      ? state.uri.queryParameters['site']
+                      : null,
                 );
                 // The list pane sits in the master-detail scaffold.
                 return embedded ? Scaffold(body: page) : page;
@@ -222,6 +230,8 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
           ),
         ),
       ),
+      // Whatever else a test's page opens.
+      ...routes,
     ],
   );
 
