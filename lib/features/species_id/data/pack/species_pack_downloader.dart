@@ -91,7 +91,7 @@ class SpeciesPackManifestClient {
 
 /// Downloads one pack file, verified against its manifest entry.
 ///
-/// Bytes go to `<dest>.part` and the file is renamed into place only when
+/// Bytes go to `<dest>.part`, and the file is renamed into place only when
 /// its size and SHA-256 match. A broken connection, a cancel or a full disk
 /// keeps the part, and the next attempt resumes it with a Range request; a
 /// file that fails verification is discarded.

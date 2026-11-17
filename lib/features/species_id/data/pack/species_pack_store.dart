@@ -48,8 +48,8 @@ class LoadedPack {
   final RegionTable regions;
 }
 
-/// The installed model pack: `<application support>/species_id/pack/<pack
-/// version>/`. One version is installed at a time; a newer one replaces it
+/// The installed model pack, in
+/// `<application support>/species_id/pack/<pack version>/`. One version is installed at a time; a newer one replaces it
 /// only once every file has verified. The pack directory is excluded from
 /// device backups: it is large and can be downloaded again.
 class SpeciesPackStore {
