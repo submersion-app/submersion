@@ -16634,6 +16634,7 @@
   "media_species_sheetTitleVideo": "الأنواع في هذا الفيديو",
   "media_species_scanProgress": "جارٍ البحث عن الأسماك، {percent}",
   "media_species_unnamedFish": "سمكة بلا اسم، اضغط لتسميتها",
+  "media_species_unnamedFishLocked": "سمكة بلا اسم",
   "media_species_possibleMatches": "تطابقات محتملة",
   "media_species_cropUnavailable": "الصورة غير موجودة على هذا الجهاز",
   "media_species_taggedOnPhoto": "موسومة في هذه الصورة",

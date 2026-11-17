@@ -56532,6 +56532,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Poisson sans nom, touchez pour le nommer';
 
   @override
+  String get media_species_unnamedFishLocked => 'Poisson sans nom';
+
+  @override
   String get media_species_possibleMatches => 'Correspondances possibles';
 
   @override

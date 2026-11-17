@@ -56275,6 +56275,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Unbenannter Fisch, zum Benennen tippen';
 
   @override
+  String get media_species_unnamedFishLocked => 'Unbenannter Fisch';
+
+  @override
   String get media_species_possibleMatches => 'Mögliche Treffer';
 
   @override

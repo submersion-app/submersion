@@ -55525,6 +55525,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_species_unnamedFish => 'Unnamed fish, tap to name';
 
   @override
+  String get media_species_unnamedFishLocked => 'Unnamed fish';
+
+  @override
   String get media_species_possibleMatches => 'Possible matches';
 
   @override

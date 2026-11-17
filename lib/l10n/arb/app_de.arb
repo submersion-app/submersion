@@ -16788,6 +16788,7 @@
   "media_species_sheetTitleVideo": "Arten in diesem Video",
   "media_species_scanProgress": "Suche nach Fischen, {percent}",
   "media_species_unnamedFish": "Unbenannter Fisch, zum Benennen tippen",
+  "media_species_unnamedFishLocked": "Unbenannter Fisch",
   "media_species_possibleMatches": "Mögliche Treffer",
   "media_species_cropUnavailable": "Bild nicht auf diesem Gerät",
   "media_species_taggedOnPhoto": "Auf diesem Foto markiert",

@@ -56401,6 +56401,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Pesce senza nome, tocca per dargli un nome';
 
   @override
+  String get media_species_unnamedFishLocked => 'Pesce senza nome';
+
+  @override
   String get media_species_possibleMatches => 'Possibili corrispondenze';
 
   @override

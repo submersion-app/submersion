@@ -55223,6 +55223,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_species_unnamedFish => 'דג ללא שם, הקש כדי לתת שם';
 
   @override
+  String get media_species_unnamedFishLocked => 'דג ללא שם';
+
+  @override
   String get media_species_possibleMatches => 'התאמות אפשריות';
 
   @override

@@ -16634,6 +16634,7 @@
   "media_species_sheetTitleVideo": "מינים בסרטון זה",
   "media_species_scanProgress": "מחפש דגים, {percent}",
   "media_species_unnamedFish": "דג ללא שם, הקש כדי לתת שם",
+  "media_species_unnamedFishLocked": "דג ללא שם",
   "media_species_possibleMatches": "התאמות אפשריות",
   "media_species_cropUnavailable": "התמונה לא נמצאת במכשיר זה",
   "media_species_taggedOnPhoto": "מתויגים בתמונה זו",

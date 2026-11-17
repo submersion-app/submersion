@@ -52886,6 +52886,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_species_unnamedFish => '未命名的鱼，点按以命名';
 
   @override
+  String get media_species_unnamedFishLocked => '未命名的鱼';
+
+  @override
   String get media_species_possibleMatches => '可能的匹配';
 
   @override

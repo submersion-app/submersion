@@ -33743,6 +33743,7 @@
   "media_species_scanProgress": "Looking for fish, {percent}",
   "@media_species_scanProgress": {"placeholders": {"percent": {"type": "String"}}},
   "media_species_unnamedFish": "Unnamed fish, tap to name",
+  "media_species_unnamedFishLocked": "Unnamed fish",
   "media_species_possibleMatches": "Possible matches",
   "media_species_cropUnavailable": "Image not on this device",
   "media_species_taggedOnPhoto": "Tagged on this photo",

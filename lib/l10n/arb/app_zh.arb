@@ -16634,6 +16634,7 @@
   "media_species_sheetTitleVideo": "这段视频中的物种",
   "media_species_scanProgress": "正在识别鱼类，{percent}",
   "media_species_unnamedFish": "未命名的鱼，点按以命名",
+  "media_species_unnamedFishLocked": "未命名的鱼",
   "media_species_possibleMatches": "可能的匹配",
   "media_species_cropUnavailable": "图像不在此设备上",
   "media_species_taggedOnPhoto": "此照片中已标记",

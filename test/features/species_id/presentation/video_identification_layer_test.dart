@@ -13,12 +13,17 @@ import 'package:submersion/features/media/data/repositories/media_repository.dar
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
 import 'package:submersion/features/media/data/services/species_tagging_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/domain/value_objects/photo_tag_edits.dart';
+import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/track_label_view.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_identification_layer.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_app.dart';
@@ -99,13 +104,17 @@ void main() {
   final suggestion = at(track('b', confident: false), 0.1);
   final unnamed = at(track('c', suggestable: false, confident: false), 0.7);
 
+  var playerTaps = 0;
+
   Future<void> pump(
     WidgetTester tester, {
     List<MediaIdentification>? tracks,
     List<SpeciesTagChip> chips = const [],
     bool playing = false,
     bool editable = true,
+    EditSession<PhotoRecord>? sitting,
   }) async {
+    playerTaps = 0;
     playback.value = playback.value.copyWith(isPlaying: playing);
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
@@ -126,10 +135,22 @@ void main() {
         child: Center(
           child: SizedBox.square(
             dimension: 400,
-            child: VideoIdentificationLayer(
-              playback: playback,
-              item: testMediaItem(id: 'v1', mediaType: MediaType.video),
-              editable: editable,
+            // The player under the labels, as in the viewer: a tap
+            // anywhere plays or pauses.
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => playerTaps++,
+                ),
+                VideoIdentificationLayer(
+                  playback: playback,
+                  item: testMediaItem(id: 'v1', mediaType: MediaType.video),
+                  sitting: sitting,
+                  editable: editable,
+                ),
+              ],
             ),
           ),
         ),
@@ -262,6 +283,62 @@ void main() {
     await tester.tap(pill('b'), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.text('Other species...'), findsNothing);
+    // The tap went through to the player.
+    expect(playerTaps, 1);
+  });
+
+  testWidgets('a tap away from the labels plays or pauses', (tester) async {
+    await pump(tester);
+    final layer = tester.getRect(find.byType(VideoIdentificationLayer));
+    await tester.tapAt(layer.bottomRight - const Offset(10, 120));
+    await tester.pumpAndSettle();
+    expect(playerTaps, 1);
+    expect(find.text('Other species...'), findsNothing);
+  });
+
+  testWidgets('on a locked video a dot does not offer to name the fish', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester, editable: false);
+    expect(find.bySemanticsLabel('Unnamed fish'), findsOneWidget);
+    expect(find.bySemanticsLabel('Unnamed fish, tap to name'), findsNothing);
+    semantics.dispose();
+  });
+
+  testWidgets('labels follow a sitting\'s held tags, and Cancel puts them '
+      'back', (tester) async {
+    final session = EditSession<PhotoRecord>(
+      PhotoRecord(
+        item: testMediaItem(id: 'v1', mediaType: MediaType.video),
+        species: const [],
+        people: const [],
+      ),
+    );
+    addTearDown(session.dispose);
+    await pump(
+      tester,
+      tracks: [
+        at(
+          track(
+            'c',
+            suggestable: false,
+            confident: false,
+            claimedSpeciesId: 'sp_rock_beauty',
+          ),
+          0.7,
+        ),
+      ],
+      sitting: session,
+    );
+    expect(dot('c'), findsOneWidget);
+    holdPickedSpecies(session, _rockBeauty);
+    await tester.pumpAndSettle();
+    expect(dot('c'), findsNothing);
+    expect(find.text('Rock Beauty'), findsOneWidget);
+    session.set(photoSpeciesField, SpeciesTagEdits.none);
+    await tester.pumpAndSettle();
+    expect(dot('c'), findsOneWidget);
   });
 
   testWidgets('nothing is drawn with the flag off', (tester) async {

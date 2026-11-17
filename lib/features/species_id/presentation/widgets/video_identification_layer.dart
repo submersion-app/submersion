@@ -135,7 +135,9 @@ class VideoIdentificationLayer extends ConsumerWidget {
           rect: dotTarget,
           child: _target(
             key: ValueKey('video_label_dot_${label.identificationId}'),
-            label: l10n.media_species_unnamedFish,
+            label: interactive
+                ? l10n.media_species_unnamedFish
+                : l10n.media_species_unnamedFishLocked,
             onTap: interactive
                 ? () => pickOtherSpecies(
                     context,

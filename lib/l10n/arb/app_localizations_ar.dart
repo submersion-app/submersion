@@ -57212,6 +57212,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_species_unnamedFish => 'سمكة بلا اسم، اضغط لتسميتها';
 
   @override
+  String get media_species_unnamedFishLocked => 'سمكة بلا اسم';
+
+  @override
   String get media_species_possibleMatches => 'تطابقات محتملة';
 
   @override

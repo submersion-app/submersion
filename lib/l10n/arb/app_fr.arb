@@ -16634,6 +16634,7 @@
   "media_species_sheetTitleVideo": "Espèces dans cette vidéo",
   "media_species_scanProgress": "Recherche de poissons, {percent}",
   "media_species_unnamedFish": "Poisson sans nom, touchez pour le nommer",
+  "media_species_unnamedFishLocked": "Poisson sans nom",
   "media_species_possibleMatches": "Correspondances possibles",
   "media_species_cropUnavailable": "Image absente de cet appareil",
   "media_species_taggedOnPhoto": "Identifiées sur cette photo",

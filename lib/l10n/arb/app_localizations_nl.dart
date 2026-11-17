@@ -56051,6 +56051,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Naamloze vis, tik om een naam te geven';
 
   @override
+  String get media_species_unnamedFishLocked => 'Naamloze vis';
+
+  @override
   String get media_species_possibleMatches => 'Mogelijke overeenkomsten';
 
   @override

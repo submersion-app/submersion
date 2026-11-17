@@ -15,6 +15,7 @@ void main() {
     expect(l10n.media_species_sheetTitleVideo, 'Species in this video');
     expect(l10n.media_species_scanProgress('40%'), 'Looking for fish, 40%');
     expect(l10n.media_species_unnamedFish, 'Unnamed fish, tap to name');
+    expect(l10n.media_species_unnamedFishLocked, 'Unnamed fish');
     expect(
       l10n.settings_speciesId_toggle,
       'Identify fish when I open a photo or video',

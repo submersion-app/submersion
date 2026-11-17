@@ -16634,6 +16634,7 @@
   "media_species_sheetTitleVideo": "Fajok ebben a videóban",
   "media_species_scanProgress": "Halak keresése, {percent}",
   "media_species_unnamedFish": "Névtelen hal, koppints az elnevezéshez",
+  "media_species_unnamedFishLocked": "Névtelen hal",
   "media_species_possibleMatches": "Lehetséges egyezések",
   "media_species_cropUnavailable": "A kép nincs ezen az eszközön",
   "media_species_taggedOnPhoto": "Ezen a fotón címkézve",

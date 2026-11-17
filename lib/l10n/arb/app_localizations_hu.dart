@@ -56102,6 +56102,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Névtelen hal, koppints az elnevezéshez';
 
   @override
+  String get media_species_unnamedFishLocked => 'Névtelen hal';
+
+  @override
   String get media_species_possibleMatches => 'Lehetséges egyezések';
 
   @override

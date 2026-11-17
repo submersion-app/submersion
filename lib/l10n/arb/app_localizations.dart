@@ -88425,6 +88425,12 @@ abstract class AppLocalizations {
   /// **'Unnamed fish, tap to name'**
   String get media_species_unnamedFish;
 
+  /// No description provided for @media_species_unnamedFishLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed fish'**
+  String get media_species_unnamedFishLocked;
+
   /// No description provided for @media_species_possibleMatches.
   ///
   /// In en, this message translates to:

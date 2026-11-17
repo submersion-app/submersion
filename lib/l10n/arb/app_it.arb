@@ -16634,6 +16634,7 @@
   "media_species_sheetTitleVideo": "Specie in questo video",
   "media_species_scanProgress": "Ricerca di pesci, {percent}",
   "media_species_unnamedFish": "Pesce senza nome, tocca per dargli un nome",
+  "media_species_unnamedFishLocked": "Pesce senza nome",
   "media_species_possibleMatches": "Possibili corrispondenze",
   "media_species_cropUnavailable": "Immagine non presente su questo dispositivo",
   "media_species_taggedOnPhoto": "Taggate in questa foto",

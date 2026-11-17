@@ -56393,6 +56393,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_species_unnamedFish => 'Peixe sem nome, toque para nomear';
 
   @override
+  String get media_species_unnamedFishLocked => 'Peixe sem nome';
+
+  @override
   String get media_species_possibleMatches => 'Possíveis correspondências';
 
   @override
