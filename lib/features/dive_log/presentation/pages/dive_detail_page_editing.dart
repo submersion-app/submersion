@@ -7,8 +7,8 @@ part of 'dive_detail_page.dart';
 /// the page leaves out are offered in a strip under the bar. Save writes
 /// the whole sitting at once and locks again.
 ///
-/// Offered only when [DiveDetailPage.unlockEditing] is on, and not yet in
-/// the list pane. With it off, the page builds none of this.
+/// Offered only when [DiveDetailPage.unlockEditing] is on, on the full page
+/// and in the list pane alike. With it off, the page builds none of this.
 mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   RecordEditController<Dive>? _editController;
 
@@ -19,7 +19,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   Dive? _justSaved;
 
   /// Whether this page offers unlock-to-edit.
-  bool get editingOffered => widget.unlockEditing && !widget.embedded;
+  bool get editingOffered => widget.unlockEditing;
 
   /// Created on first use, so a page that never offers editing has none.
   RecordEditController<Dive> get editController => _editController ??=
@@ -254,11 +254,61 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
   /// The lock in the locked page's top bar. [dive] is the dive as the
   /// page shows it, which just after a save is ahead of the one last read:
   /// a sitting must start from what the diver is looking at.
-  Widget lockButton(Dive dive) => IconButton(
-    icon: const Icon(Icons.lock_outline),
+  /// [compact] is the list pane's smaller header.
+  Widget lockButton(Dive dive, {bool compact = false}) => IconButton(
+    icon: Icon(Icons.lock_outline, size: compact ? 20 : null),
+    visualDensity: compact ? VisualDensity.compact : null,
     tooltip: context.l10n.recordEdit_unlockTooltip,
     onPressed: () => editController.unlock(dive),
   );
+
+  /// The list pane's header row while unlocked: Cancel, the title, [menu]
+  /// and Save, laid over the locked row.
+  Widget editingPaneRow(Dive dive, {required Widget menu}) {
+    final controller = editController;
+    return DiveDetailEmbeddedEditingHeader(
+      title: context.l10n.recordEdit_editingTitle(diveTitle(context, dive)),
+      canSave: controller.isDirty,
+      isSaving: controller.isSaving,
+      isBusy: controller.isOperating,
+      onCancel: () => cancelSitting(context, controller),
+      onSave: _saveAndReport,
+      menu: menu,
+    );
+  }
+
+  /// The list pane with editing offered: [header] over the strip and
+  /// [content], the whole of it in the sitting's scope, so the header's
+  /// banners and suggestion follow the lock as the page's do.
+  Widget editPane({
+    required Widget header,
+    required Dive shown,
+    required Widget content,
+  }) {
+    final controller = editController;
+    return RecordEditLeaveGuard<Dive>(
+      controller: controller,
+      child: RecordEditScope<Dive>(
+        controller: controller,
+        child: Column(
+          children: [
+            header,
+            Expanded(
+              child: AddStripLayout(
+                strip: AddStrip(
+                  entries: controller.isUnlocked
+                      ? _addStripEntries(shown)
+                      : const [],
+                  onAdd: controller.addCard,
+                ),
+                body: content,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   /// The cards the page is not showing for [working], in section order:
   /// hidden by the diver, or with nothing to show. A card brought in from

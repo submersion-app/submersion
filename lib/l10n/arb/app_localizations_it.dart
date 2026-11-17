@@ -10880,7 +10880,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'Sblocca questa immersione nella sua pagina per aggiungervi foto.';
+      'Sblocca questa immersione per aggiungervi foto.';
 
   @override
   String get diveLog_numbering_actions => 'Azioni';

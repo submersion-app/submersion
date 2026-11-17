@@ -178,11 +178,15 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
             // keeping its state, as the list pane does with its detail.
             builder: (context, state) => ValueListenableBuilder<String>(
               valueListenable: shownId,
-              builder: (context, id, _) => DiveDetailPage(
-                diveId: id,
-                embedded: embedded,
-                unlockEditing: unlockEditing,
-              ),
+              builder: (context, id, _) {
+                final page = DiveDetailPage(
+                  diveId: id,
+                  embedded: embedded,
+                  unlockEditing: unlockEditing,
+                );
+                // The list pane sits in the master-detail scaffold.
+                return embedded ? Scaffold(body: page) : page;
+              },
             ),
           ),
         ],

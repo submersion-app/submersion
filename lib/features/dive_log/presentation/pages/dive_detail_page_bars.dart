@@ -14,8 +14,9 @@ mixin _DiveDetailPageBars
   void _navigateToDive(String neighborId);
 
   /// History, beside the lock on a locked page with room for it.
-  Widget historyButton(Dive dive) => IconButton(
-    icon: const Icon(Icons.history),
+  Widget historyButton(Dive dive, {bool compact = false}) => IconButton(
+    icon: Icon(Icons.history, size: compact ? 20 : null),
+    visualDensity: compact ? VisualDensity.compact : null,
     tooltip: context.l10n.changeLog_history,
     onPressed: () =>
         openChangeLogHistory(context, rootTable: 'dives', rootId: dive.id),

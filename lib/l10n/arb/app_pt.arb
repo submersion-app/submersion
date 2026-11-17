@@ -3450,7 +3450,7 @@
   "diveLog_map_emptyTitle": "Nenhuma atividade de mergulho para exibir",
   "diveLog_map_errorLoading": "Erro ao carregar dados de mergulho: {error}",
   "diveLog_map_tooltip_fitAllSites": "Ajustar Todos os Pontos",
-  "diveLog_media_dropUnlockHint": "Desbloqueie este mergulho na página dele para adicionar fotos.",
+  "diveLog_media_dropUnlockHint": "Desbloqueie este mergulho para adicionar fotos.",
   "diveLog_numbering_actions": "Ações",
   "diveLog_numbering_allCorrect": "Todos os mergulhos numerados corretamente",
   "diveLog_numbering_assignMissing": "Atribuir números faltantes",

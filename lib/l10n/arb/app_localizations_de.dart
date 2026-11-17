@@ -10871,7 +10871,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'Entsperre diesen Tauchgang auf seiner eigenen Seite, um Fotos hinzuzufügen.';
+      'Entsperre diesen Tauchgang, um Fotos hinzuzufügen.';
 
   @override
   String get diveLog_numbering_actions => 'Aktionen';

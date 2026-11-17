@@ -3324,7 +3324,7 @@
   "diveLog_map_emptyTitle": "Nincs megjelenítendő merülési tevékenység",
   "diveLog_map_errorLoading": "Hiba a merülési adatok betöltésekor: {error}",
   "diveLog_map_tooltip_fitAllSites": "Összes merülőhely mutatása",
-  "diveLog_media_dropUnlockHint": "Oldd fel a merülés zárolását a saját oldalán, hogy fotókat adhass hozzá.",
+  "diveLog_media_dropUnlockHint": "Oldd fel a merülés zárolását, hogy fotókat adhass hozzá.",
   "diveLog_numbering_actions": "Műveletek",
   "diveLog_numbering_allCorrect": "Minden merülés helyesen számozott",
   "diveLog_numbering_assignMissing": "Hiányzó számok kiosztása",

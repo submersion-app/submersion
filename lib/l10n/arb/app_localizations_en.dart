@@ -10707,8 +10707,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_map_tooltip_fitAllSites => 'Fit All Sites';
 
   @override
-  String get diveLog_media_dropUnlockHint =>
-      'Unlock this dive on its own page to add photos.';
+  String get diveLog_media_dropUnlockHint => 'Unlock this dive to add photos.';
 
   @override
   String get diveLog_numbering_actions => 'Actions';

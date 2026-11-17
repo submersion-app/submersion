@@ -11039,7 +11039,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'افتح قفل هذه الغطسة من صفحتها لإضافة صور إليها.';
+      'افتح قفل هذه الغطسة لإضافة صور إليها.';
 
   @override
   String get diveLog_numbering_actions => 'الإجراءات';

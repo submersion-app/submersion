@@ -17119,10 +17119,10 @@ abstract class AppLocalizations {
   /// **'Fit All Sites'**
   String get diveLog_map_tooltip_fitAllSites;
 
-  /// Shown when photos or videos are dropped on a dive that is locked, on its page or in the list's detail pane (which cannot unlock): dives are edited only while unlocked, on their own page.
+  /// Shown when photos or videos are dropped on a dive that is locked, on its page or in the list's detail pane: a dive is changed only while unlocked.
   ///
   /// In en, this message translates to:
-  /// **'Unlock this dive on its own page to add photos.'**
+  /// **'Unlock this dive to add photos.'**
   String get diveLog_media_dropUnlockHint;
 
   /// No description provided for @diveLog_numbering_actions.

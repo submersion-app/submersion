@@ -10874,7 +10874,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'Desbloqueie este mergulho na página dele para adicionar fotos.';
+      'Desbloqueie este mergulho para adicionar fotos.';
 
   @override
   String get diveLog_numbering_actions => 'Ações';

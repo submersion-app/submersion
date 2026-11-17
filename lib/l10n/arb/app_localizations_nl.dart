@@ -10806,7 +10806,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'Ontgrendel deze duik op zijn eigen pagina om er foto\'s aan toe te voegen.';
+      'Ontgrendel deze duik om er foto\'s aan toe te voegen.';
 
   @override
   String get diveLog_numbering_actions => 'Acties';

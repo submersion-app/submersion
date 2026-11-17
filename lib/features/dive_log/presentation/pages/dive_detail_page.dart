@@ -66,6 +66,7 @@ import 'package:submersion/features/dive_log/presentation/providers/safety_revie
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_title.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_embedded_editing_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_embedded_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_overflow_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
@@ -617,19 +618,30 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
 
     // Embedded mode: Return content with a compact header bar (no Scaffold)
     if (widget.embedded) {
-      return Column(
-        children: [
-          DiveDetailEmbeddedHeader(
-            dive: dive,
-            menu: _overflowMenu(dive, _headerMenuKey),
-            onNavigate: _navigateToDive,
-            onMarkLogged: () => _runOperation(() => _markAsLogged(dive)),
-            onDownloadDraft: _downloadForDraft,
-            onSurfaceDraft: () => _runOperation(() => _surfaceDraft(dive)),
-          ),
-          Expanded(child: content),
-        ],
+      final header = DiveDetailEmbeddedHeader(
+        dive: dive,
+        menu: _overflowMenu(dive, _headerMenuKey, historyInBar: editingOffered),
+        onNavigate: _navigateToDive,
+        onMarkLogged: () => _runOperation(() => _markAsLogged(dive)),
+        onDownloadDraft: _downloadForDraft,
+        onSurfaceDraft: () => _runOperation(() => _surfaceDraft(dive)),
+        // The pane unlocks as the page does (issue #4527, plan 7).
+        editing: editingOffered ? editController : null,
+        history: editingOffered ? historyButton(dive, compact: true) : null,
+        lock: editingOffered ? lockButton(shown, compact: true) : null,
+        unlockedRow: isSittingOpen
+            ? editingPaneRow(dive, menu: _overflowMenu(dive, _appBarMenuKey))
+            : null,
       );
+      if (!editingOffered) {
+        return Column(
+          children: [
+            header,
+            Expanded(child: content),
+          ],
+        );
+      }
+      return editPane(header: header, shown: shown, content: content);
     }
 
     final appBar = _standaloneBar(dive, shown);

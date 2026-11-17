@@ -10638,7 +10638,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_media_dropUnlockHint =>
-      'בטל את נעילת הצלילה בעמוד שלה כדי להוסיף לה תמונות.';
+      'בטל את נעילת הצלילה כדי להוסיף לה תמונות.';
 
   @override
   String get diveLog_numbering_actions => 'פעולות';

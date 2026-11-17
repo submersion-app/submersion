@@ -11,7 +11,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/l10n_test_helpers.dart';
 
-const _hint = 'Unlock this dive on its own page to add photos.';
+const _hint = 'Unlock this dive to add photos.';
 
 /// A photo dropped on a dive while it is locked is refused with a hint
 /// before anything is looked up or opened (issue #4527, plan 6). The held

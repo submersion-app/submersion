@@ -45,12 +45,7 @@ class DiveDetailHeaderBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = RecordEditScope.maybeOf<Dive>(context);
-    final session = controller?.session;
-    final SiteSuggestionEditing editing = controller == null
-        ? const SiteSuggestionNoEditing()
-        : session == null
-        ? const SiteSuggestionLocked()
-        : SiteSuggestionSitting(session, layout: controller.layoutRecord);
+    final editing = siteSuggestionEditingOf(context);
     final hero = DiveDetailHeroSection(dive: shown, embedded: embedded);
     // What the banners offer acts on the whole dive at once: only on an
     // unlocked page with nothing to save (issue #4527).
