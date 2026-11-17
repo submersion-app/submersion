@@ -88,17 +88,21 @@ Widget? _pageFor(Uri location) => switch (location.pathSegments) {
   _ => null,
 };
 
-GoRouter _router(String location) => GoRouter(
+GoRouter _router(
+  String location, {
+  Widget hub = const _Hub(),
+  Widget? Function(Uri location) pageFor = _pageFor,
+}) => GoRouter(
   initialLocation: location,
   routes: [
     GoRoute(
       path: '/settings',
-      builder: (context, state) => const Scaffold(
+      builder: (context, state) => Scaffold(
         body: SettingsPaneNavigator(
           sectionId: 'data',
           queryParam: 'dataPage',
-          hub: _Hub(),
-          pageFor: _pageFor,
+          hub: hub,
+          pageFor: pageFor,
         ),
       ),
       routes: [
@@ -118,13 +122,43 @@ String _location(GoRouter router) =>
 List<String> _stack(GoRouter router) =>
     Uri.parse(_location(router)).queryParametersAll['dataPage'] ?? const [];
 
-Future<GoRouter> _pump(WidgetTester tester, String location) async {
-  final router = _router(location);
+Future<GoRouter> _pump(
+  WidgetTester tester,
+  String location, {
+  Widget hub = const _Hub(),
+  Widget? Function(Uri location) pageFor = _pageFor,
+}) async {
+  final router = _router(location, hub: hub, pageFor: pageFor);
   addTearDown(router.dispose);
   await tester.pumpWidget(MaterialApp.router(routerConfig: router));
   await tester.pumpAndSettle();
   return router;
 }
+
+/// A hub with no Material of its own whose ink (an [Ink] fill, like a
+/// coloured tile) is painted by the nearest Material above it.
+class _InkHub extends StatelessWidget {
+  const _InkHub();
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      const Text('Hub'),
+      Ink(color: Colors.teal, child: const SizedBox(height: 40)),
+    ],
+  );
+}
+
+/// [_pageFor] plus a page with ink and no Scaffold, at `/settings/ink`.
+Widget? _pageWithInk(Uri location) => switch (location.pathSegments) {
+  ['settings', 'ink'] => Column(
+    children: [
+      const Text('Page Ink'),
+      Ink(color: Colors.teal, child: const SizedBox(height: 40)),
+    ],
+  ),
+  _ => _pageFor(location),
+};
 
 void main() {
   testWidgets('opens a page in the pane and Back returns to the hub', (
@@ -398,5 +432,43 @@ void main() {
     expect(find.bySemanticsLabel('Section list'), findsOneWidget);
     expect(find.bySemanticsLabel('Page A'), findsOneWidget);
     semantics.dispose();
+  });
+
+  // Issue #4680: the pane opened straight onto a page (the Settings root's
+  // setup card does this) builds the pages under it already covered, so
+  // they are never laid out. Their ink must not reach a Material outside
+  // the pane, whose paint then fails on the unlaid page transition and
+  // leaves the whole settings page blank. macOS slides pages in, which is
+  // the transition that fails.
+  group('a pane opened onto a page (#4680)', () {
+    testWidgets(
+      'paints, with ink in the hub under it',
+      variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+      (tester) async {
+        await _pump(
+          tester,
+          '/settings?selected=data&dataPage=a',
+          hub: const _InkHub(),
+        );
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Page A'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'paints, with ink in a page further down the stack',
+      variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+      (tester) async {
+        await _pump(
+          tester,
+          '/settings?selected=data&dataPage=ink&dataPage=a',
+          pageFor: _pageWithInk,
+        );
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Page A'), findsOneWidget);
+      },
+    );
   });
 }

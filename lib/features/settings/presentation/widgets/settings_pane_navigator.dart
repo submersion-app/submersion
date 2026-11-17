@@ -210,12 +210,8 @@ class _SettingsPaneNavigatorState extends State<SettingsPaneNavigator> {
           child: Navigator(
             key: _navigatorKey,
             pages: [
-              MaterialPage<void>(
-                key: ValueKey('${widget.sectionId}-hub'),
-                child: widget.hub,
-              ),
-              for (final (location, page) in pages)
-                MaterialPage<void>(key: ValueKey(location), child: page),
+              _paneRoute('${widget.sectionId}-hub', widget.hub),
+              for (final (location, page) in pages) _paneRoute(location, page),
             ],
             // Back or Navigator.pop closed a page: drop it, and every page
             // above it, from the URL so the next build does not reopen it.
@@ -228,6 +224,22 @@ class _SettingsPaneNavigatorState extends State<SettingsPaneNavigator> {
       ),
     );
   }
+
+  /// One page of the pane, holding [child] on a Material of its own.
+  ///
+  /// Ink (a splash, a hover, an [Ink] fill) is painted by the nearest
+  /// Material above it. Without this one, a page with none of its own (the
+  /// hub, which is not a Scaffold) puts its ink on the Material outside the
+  /// pane, which paints it even while the page is covered. A pane opened
+  /// straight onto a page builds the pages under it already covered, so they
+  /// are never laid out, and painting their ink through the unlaid page
+  /// transition fails and leaves the settings page blank (issue #4680). On
+  /// its own Material, the ink is painted with the page or not at all.
+  static MaterialPage<void> _paneRoute(String key, Widget child) =>
+      MaterialPage<void>(
+        key: ValueKey(key),
+        child: Material(type: MaterialType.transparency, child: child),
+      );
 }
 
 class _SettingsPaneScope extends InheritedWidget {
