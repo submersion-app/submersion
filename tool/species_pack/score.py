@@ -169,7 +169,8 @@ class Namer:
         allowed = self._allowed(cell, overrides)
         if self.checked < 20:
             slow = naming.logits(naming.unit(list(embedding)), self.text.tolist(), self.scale)
-            assert max(abs(a - b) for a, b in zip(slow, logits)) < 1e-6, "fast logits disagree with naming.py"
+            if max(abs(a - b) for a, b in zip(slow, logits)) >= 1e-6:
+                raise SystemExit("fast logits disagree with naming.py")
             slow_mask = naming.allowed_for(
                 cell,
                 self.bits,
@@ -179,7 +180,8 @@ class Namer:
                 min_allowed=self.config["minAllowedCandidates"],
                 overrides=overrides,
             )
-            assert slow_mask == allowed, "fast region mask disagrees with naming.py"
+            if slow_mask != allowed:
+                raise SystemExit("fast region mask disagrees with naming.py")
             self.checked += 1
         top_k = self.config["topK"]
         return naming.name(logits, allowed, top_k), naming.name(logits, None, top_k)
@@ -271,6 +273,8 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
     `results_by_photo` maps a photo path to its detections, each tagged
     with the detector (`source`) that found it."""
     natural = [r for r in animals if r["sample"] == "natural"]
+    if not natural:
+        raise SystemExit("the test set has no underwater photos in its natural sample")
     fish_cells = [region_grid.cell_of(float(r["lat"]), float(r["lon"]), namer.cell_degrees) for r in natural]
 
     crops = {}

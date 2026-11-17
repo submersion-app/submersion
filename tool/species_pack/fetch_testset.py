@@ -175,11 +175,9 @@ def stage_pool(work):
 # Stage 2: the sample, its labels, habitats and pre-cutoff records.
 
 
-def _gbif_key(name, cache):
-    if name not in cache:
-        query = urllib.parse.urlencode({"name": name, "kingdom": "Animalia", "strict": "true"})
-        cache[name] = testset.accepted_key(_get(f"{GBIF}/species/match?{query}"))
-    return cache[name]
+def _gbif_key(name):
+    query = urllib.parse.urlencode({"name": name, "kingdom": "Animalia", "strict": "true"})
+    return testset.accepted_key(_get(f"{GBIF}/species/match?{query}"))
 
 
 def _habitat(key):
@@ -236,10 +234,13 @@ def stage_labels(work):
     keys_path = os.path.join(work, "gbif", "match.json")
     keys = _load(keys_path, {})
     names = sorted({testset.species_name(o["taxon_name"], o["taxon_rank"]) for o in sample})
+    todo = [n for n in names if n not in keys]
     with concurrent.futures.ThreadPoolExecutor(8) as pool:
-        for name, key in zip(names, pool.map(lambda n: _gbif_key(n, dict(keys)), names)):
-            keys[name] = key
-    _save(keys_path, keys)
+        for start in range(0, len(todo), 100):
+            chunk = todo[start : start + 100]
+            for name, key in zip(chunk, pool.map(_gbif_key, chunk)):
+                keys[name] = key
+            _save(keys_path, keys)
     unmatched = [n for n in names if keys[n] is None]
     print(f"{len(names)} species names, {len(unmatched)} with no GBIF species key")
 
