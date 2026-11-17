@@ -66819,6 +66819,12 @@ abstract class AppLocalizations {
   /// **'Back mount'**
   String get attrChoice_worn_as_back;
 
+  /// No description provided for @attrChoice_worn_as_twin_set.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set'**
+  String get attrChoice_worn_as_twin_set;
+
   /// No description provided for @attrChoice_worn_as_sidemount_left.
   ///
   /// In en, this message translates to:

@@ -12235,6 +12235,7 @@
   "attrChoice_cylinder_use_breathing_gas": "Gaz respirable",
   "attrChoice_cylinder_use_suit_inflation": "Gonflage combinaison",
   "attrChoice_worn_as_back": "Montage dorsal",
+  "attrChoice_worn_as_twin_set": "Bi-bouteille",
   "attrChoice_worn_as_sidemount_left": "Sidemount gauche",
   "attrChoice_worn_as_sidemount_right": "Sidemount droit",
   "attrChoice_worn_as_stage": "Stage",

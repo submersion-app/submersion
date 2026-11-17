@@ -62,7 +62,7 @@ class TripPackedItemRow extends ConsumerWidget {
     final subtitleText = Text(subtitle, style: TextStyle(color: tint));
 
     return ListTile(
-      leading: Icon(equipmentTypeIcon(item.type)),
+      leading: Icon(equipmentItemIcon(item)),
       title: Text(item.name),
       subtitle: hasDetail
           ? InkWell(

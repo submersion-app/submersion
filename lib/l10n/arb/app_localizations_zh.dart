@@ -40123,6 +40123,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrChoice_worn_as_back => '背挂式';
 
   @override
+  String get attrChoice_worn_as_twin_set => '双瓶';
+
+  @override
   String get attrChoice_worn_as_sidemount_left => '左侧挂';
 
   @override

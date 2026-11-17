@@ -42578,6 +42578,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrChoice_worn_as_back => 'Rückenmontage';
 
   @override
+  String get attrChoice_worn_as_twin_set => 'Doppelgerät';
+
+  @override
   String get attrChoice_worn_as_sidemount_left => 'Sidemount links';
 
   @override

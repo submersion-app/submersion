@@ -41950,6 +41950,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrChoice_worn_as_back => 'Back mount';
 
   @override
+  String get attrChoice_worn_as_twin_set => 'Twin set';
+
+  @override
   String get attrChoice_worn_as_sidemount_left => 'Sidemount, left';
 
   @override

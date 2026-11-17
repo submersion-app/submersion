@@ -317,7 +317,9 @@ class _PartTile extends StatelessWidget {
       leading: Stack(
         alignment: Alignment.bottomRight,
         children: [
-          Icon(equipmentTypeIcon(type)),
+          Icon(
+            item == null ? equipmentTypeIcon(type) : equipmentItemIcon(item),
+          ),
           Icon(Icons.circle, size: 10, color: dotColor),
         ],
       ),

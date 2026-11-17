@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_placement.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_zone.dart';
 
@@ -40,9 +41,10 @@ final Map<String, FigureZone> _zoneByKey = {
 };
 
 /// The zones a cylinder's `worn_as` choice sends it to, the named side
-/// first so a full side still lands the tank on the other one.
+/// first so a full side still lands the tank on the other one. A twin set
+/// (issue #4641) is a pair of back cylinders.
 List<FigureZone> wornAsZones(String? wornAs) => switch (wornAs) {
-  'back' => const [FigureZone.backTank],
+  'back' || kWornAsTwinSet => const [FigureZone.backTank],
   'sidemount_left' => const [
     FigureZone.sidemountLeft,
     FigureZone.sidemountRight,
