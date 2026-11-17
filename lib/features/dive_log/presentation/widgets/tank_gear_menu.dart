@@ -17,10 +17,26 @@ enum _TankGearAction { add, link, unlink }
 /// Every action writes at once, so the host shows this only where the
 /// Tanks card may write (#4527).
 class TankGearMenu extends ConsumerWidget {
-  const TankGearMenu({super.key, required this.dive, required this.tank});
+  const TankGearMenu({
+    super.key,
+    required this.dive,
+    required this.tank,
+    this.operationReason,
+    this.runAsOperation,
+  });
 
   final Dive dive;
   final DiveTank tank;
+
+  /// Why the menu is unavailable on a dive page that offers editing: each
+  /// action writes at once, a whole-record operation (issue #4527). The
+  /// button is drawn disabled with this as its tooltip.
+  final String? operationReason;
+
+  /// Runs the chosen action as the page's whole-record operation. Null
+  /// runs it directly, as off such a page.
+  final Future<void> Function(Future<bool> Function() operation)?
+  runAsOperation;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,11 +44,20 @@ class TankGearMenu extends ConsumerWidget {
     final linked = tank.equipmentId != null;
     return PopupMenuButton<_TankGearAction>(
       key: Key('tank-gear-menu-${tank.id}'),
-      tooltip: l10n.diveLog_tank_gearMenu,
+      tooltip: operationReason ?? l10n.diveLog_tank_gearMenu,
+      enabled: operationReason == null,
       // Horizontal, so the page's own overflow stays the only vertical one
       // on the dive page.
       icon: const Icon(Icons.more_horiz),
-      onSelected: (action) => _run(context, ref, action),
+      onSelected: (action) {
+        Future<bool> act() async {
+          await _run(context, ref, action);
+          return true;
+        }
+
+        final run = runAsOperation;
+        run == null ? act() : run(act);
+      },
       itemBuilder: (context) => [
         if (!linked) ...[
           PopupMenuItem(

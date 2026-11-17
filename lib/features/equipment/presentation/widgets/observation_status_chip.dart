@@ -18,11 +18,24 @@ class ObservationStatusChip extends ConsumerWidget {
   /// (issue #4527). A check-in writes, so it waits for the unlock.
   final bool readOnly;
 
+  /// Why a check-in is unavailable on a dive page that offers editing: it
+  /// writes at once, so it is a whole-record operation (issue #4527). The
+  /// chip keeps its colour and says why as its tooltip.
+  final String? operationReason;
+
+  /// Runs the check-in as the page's whole-record operation, so the page
+  /// holds still while the sheet is open and reads the dive again after.
+  /// Null opens the sheet directly, as off such a page.
+  final Future<void> Function(Future<bool> Function() operation)?
+  runAsOperation;
+
   const ObservationStatusChip({
     super.key,
     required this.equipment,
     required this.dive,
     this.readOnly = false,
+    this.operationReason,
+    this.runAsOperation,
   });
 
   @override
@@ -58,14 +71,25 @@ class ObservationStatusChip extends ConsumerWidget {
       visualDensity: VisualDensity.compact,
       // Read-only keeps the chip's colour: it still says how the gear did.
       disabledColor: color,
-      onPressed: readOnly
+      onPressed: readOnly || operationReason != null
           ? null
-          : () => showEquipmentObservationSheet(
-              context,
-              equipment: equipment,
-              dive: dive,
-            ),
+          : () {
+              Future<bool> checkIn() async {
+                await showEquipmentObservationSheet(
+                  context,
+                  equipment: equipment,
+                  dive: dive,
+                );
+                return true;
+              }
+
+              final run = runAsOperation;
+              run == null ? checkIn() : run(checkIn);
+            },
     );
+    if (operationReason case final reason?) {
+      return Tooltip(message: reason, child: button);
+    }
     if (!readOnly) return button;
     // Read-only is a state, not a dimmed button: a check made is read out
     // as text, and "Check in", an action the locked page does not offer,

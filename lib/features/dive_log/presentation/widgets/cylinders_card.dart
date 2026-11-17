@@ -47,6 +47,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 
 /// Unified card showing every cylinder on a dive: each tank drawn as a
 /// figure filled to show the gas left and the gas used, labelled with its
@@ -142,14 +143,23 @@ class CylindersCard extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final offered = edit != null;
-    final canAssign = !offered || (edit.isUnlocked && !edit.isDirty);
-    // A check-in writes at once, so in a sitting it is for a cylinder the
-    // dive is stored with: one only in the sitting may never be saved.
-    final storedGearIds = sitting == null
+    // Assign, the cylinder menu and a check-in each write at once: whole-
+    // record operations, listed but disabled until the page is unlocked
+    // with nothing to save (issue #4527, plan 7).
+    final operationReason = recordOperationReason(
+      l10n,
+      recordOperationBlockOf(edit),
+    );
+    final runAsOperation = edit == null
         ? null
-        : {for (final t in sitting.stored.tanks) ?t.equipmentId};
+        : (Future<bool> Function() operation) => edit.runOperation(operation);
+    // A check-in is for a cylinder the dive is stored with: one only in the
+    // sitting may never be saved.
+    final storedGearIds = {
+      for (final t in (sitting?.stored ?? dive).tanks) ?t.equipmentId,
+    };
     bool checkInReadOnly(DiveTank tank) =>
-        offered && !(storedGearIds?.contains(tank.equipmentId) ?? false);
+        offered && !storedGearIds.contains(tank.equipmentId);
     final rows = [
       for (final entry in dive.tanks.asMap().entries)
         _tankRow(
@@ -165,7 +175,8 @@ class CylindersCard extends ConsumerWidget {
           knownSerials: knownSerials,
           slotLabel: slotLabels[entry.value.tripCylinderId],
           showRole: showRoles,
-          canAssign: canAssign,
+          operationReason: operationReason,
+          runAsOperation: runAsOperation,
           checkInReadOnly: checkInReadOnly(entry.value),
         ),
     ];
@@ -336,7 +347,8 @@ class CylindersCard extends ConsumerWidget {
     required Set<String> knownSerials,
     required TripCylinderTankLabel? slotLabel,
     required bool showRole,
-    required bool canAssign,
+    required String? operationReason,
+    required _RunAsOperation? runAsOperation,
     required bool checkInReadOnly,
   }) {
     final l10n = context.l10n;
@@ -495,33 +507,37 @@ class CylindersCard extends ConsumerWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(l10n.transmitters_serial(serial)),
-              // Its room is kept while it is hidden, so the line is the
-              // same height locked and unlocked and nothing moves.
+              // A whole-record operation: shown at every lock state, so
+              // the line is the same height locked and unlocked, disabled
+              // with its reason until it may run (issue #4527, plan 7).
               if (!serialKnown)
-                ExcludeSemantics(
-                  excluding: !canAssign,
-                  child: IgnorePointer(
-                    ignoring: !canAssign,
-                    child: Opacity(
-                      opacity: canAssign ? 1 : 0,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          visualDensity: VisualDensity.compact,
-                          textStyle: theme.textTheme.labelMedium,
-                        ),
-                        onPressed: () => context.push(
-                          Uri(
-                            path: '/transmitters/new',
-                            // The dive lets an unregistered serial get its item.
-                            queryParameters: {
-                              'serial': serial,
-                              'dive': dive.id,
-                            },
-                          ).toString(),
-                        ),
-                        child: Text(l10n.diveLog_tank_assignTransmitter),
-                      ),
+                RecordOperationButton(
+                  reason: operationReason,
+                  onPressed: () {
+                    void assign() => context.push(
+                      Uri(
+                        path: '/transmitters/new',
+                        // The dive lets an unregistered serial get its item.
+                        queryParameters: {'serial': serial, 'dive': dive.id},
+                      ).toString(),
+                    );
+                    final run = runAsOperation;
+                    if (run == null) return assign();
+                    // The setup page replaces itself on the way, so its
+                    // answer is not awaited: the sitting starts again at
+                    // once and follows the rows the setup links.
+                    run(() async {
+                      assign();
+                      return true;
+                    });
+                  },
+                  builder: (onPressed) => TextButton(
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      textStyle: theme.textTheme.labelMedium,
                     ),
+                    onPressed: onPressed,
+                    child: Text(l10n.diveLog_tank_assignTransmitter),
                   ),
                 ),
             ],
@@ -530,7 +546,8 @@ class CylindersCard extends ConsumerWidget {
       trailing: _trailing(
         tank,
         checkInReadOnly: checkInReadOnly,
-        canAssign: canAssign,
+        operationReason: operationReason,
+        runAsOperation: runAsOperation,
       ),
     );
   }
@@ -568,22 +585,24 @@ class CylindersCard extends ConsumerWidget {
   Widget _trailing(
     DiveTank tank, {
     required bool checkInReadOnly,
-    required bool canAssign,
+    required String? operationReason,
+    required _RunAsOperation? runAsOperation,
   }) {
-    final checkIn = _checkInButton(tank, readOnly: checkInReadOnly);
+    final checkIn = _checkInButton(
+      tank,
+      readOnly: checkInReadOnly,
+      operationReason: operationReason,
+      runAsOperation: runAsOperation,
+    );
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         ?checkIn,
-        ExcludeSemantics(
-          excluding: !canAssign,
-          child: IgnorePointer(
-            ignoring: !canAssign,
-            child: Opacity(
-              opacity: canAssign ? 1 : 0,
-              child: TankGearMenu(dive: dive, tank: tank),
-            ),
-          ),
+        TankGearMenu(
+          dive: dive,
+          tank: tank,
+          operationReason: operationReason,
+          runAsOperation: runAsOperation,
         ),
       ],
     );
@@ -593,7 +612,12 @@ class CylindersCard extends ConsumerWidget {
   /// gets the check-in button at the end of its detail block; any other
   /// cylinder has none. The item loads through its own provider so the row
   /// never blocks on it.
-  Widget? _checkInButton(DiveTank tank, {required bool readOnly}) {
+  Widget? _checkInButton(
+    DiveTank tank, {
+    required bool readOnly,
+    required String? operationReason,
+    required _RunAsOperation? runAsOperation,
+  }) {
     final equipmentId = tank.equipmentId;
     if (equipmentId == null) return null;
     return Consumer(
@@ -604,6 +628,8 @@ class CylindersCard extends ConsumerWidget {
           equipment: item,
           dive: dive,
           readOnly: readOnly,
+          operationReason: readOnly ? null : operationReason,
+          runAsOperation: runAsOperation,
         );
       },
     );
@@ -641,3 +667,7 @@ class CylindersCard extends ConsumerWidget {
     };
   }
 }
+
+/// Runs a whole-record operation through the page's sitting (issue #4527).
+typedef _RunAsOperation =
+    Future<void> Function(Future<bool> Function() operation);

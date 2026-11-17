@@ -33,6 +33,8 @@ void main() {
     WidgetTester tester,
     List<EquipmentObservation> observations, {
     bool readOnly = false,
+    String? operationReason,
+    Future<void> Function(Future<bool> Function() operation)? runAsOperation,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -50,6 +52,8 @@ void main() {
               equipment: reg,
               dive: dive,
               readOnly: readOnly,
+              operationReason: operationReason,
+              runAsOperation: runAsOperation,
             ),
           ),
         ),
@@ -105,5 +109,33 @@ void main() {
     await pump(tester, [obs(ObservationStatus.issue, item: 'fins')]);
     expect(find.byIcon(Icons.add_task), findsOneWidget);
     expect(find.byIcon(Icons.warning_amber), findsNothing);
+  });
+
+  testWidgets('with a reason the chip opens nothing and says why, keeping '
+      'its colour', (tester) async {
+    await pump(tester, [
+      obs(ObservationStatus.issue),
+    ], operationReason: 'Unlock to use this');
+
+    final button = tester.widget<IconButton>(find.byType(IconButton));
+    expect(button.onPressed, isNull);
+    expect(button.disabledColor, isNotNull);
+    expect(find.byTooltip('Unlock to use this'), findsOneWidget);
+  });
+
+  testWidgets('with no reason a tap runs as the page\'s operation', (
+    tester,
+  ) async {
+    final ran = <Future<bool> Function()>[];
+    await pump(
+      tester,
+      const [],
+      runAsOperation: (operation) async => ran.add(operation),
+    );
+
+    await tester.tap(find.byType(IconButton));
+    await tester.pumpAndSettle();
+
+    expect(ran, hasLength(1));
   });
 }
