@@ -186,6 +186,15 @@ class TopUpTests(unittest.TestCase):
         self.assertEqual(testset.top_ups(pool, [], "s"), testset.top_ups(list(reversed(pool)), [], "s"))
 
 
+class UncheckedTests(unittest.TestCase):
+    def test_ids_without_a_true_or_false_verdict(self):
+        verdicts = {"a": True, "b": False, "c": None, "d": "yes"}
+        self.assertEqual(testset.unchecked(["a", "b", "c", "d", "e"], verdicts), ["c", "d", "e"])
+
+    def test_nothing_missing_is_empty(self):
+        self.assertEqual(testset.unchecked(["a"], {"a": False}), [])
+
+
 class CsvTests(unittest.TestCase):
     def test_round_trip_keeps_every_field(self):
         row = {f: f"v-{f}" for f in testset.FIELDS}

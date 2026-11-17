@@ -589,9 +589,15 @@ def stage_write(work, csv_path, force=False):
     underwater = _load(os.path.join(work, "underwater.json"), {})
     # The by-eye review overrides the filter where it was wrong.
     underwater.update(_load(os.path.join(work, "underwater_overrides.json"), {}))
-    unchecked = [o["id"] for o in sample if keys.get(_name(o)) is not None and o["id"] not in precut]
-    if unchecked:
-        raise SystemExit(f"{len(unchecked)} observations have no pre-cutoff check yet; finish the labels stage")
+    labelled = [o["id"] for o in sample if keys.get(_name(o)) is not None]
+    no_precut = testset.unchecked(labelled, precut)
+    if no_precut:
+        raise SystemExit(f"{len(no_precut)} observations have no pre-cutoff check yet; finish the labels stage")
+    # The filter is part of the sampling rule: a missing verdict would drop
+    # the photo from the set without a word.
+    no_verdict = testset.unchecked(labelled, underwater)
+    if no_verdict:
+        raise SystemExit(f"{len(no_verdict)} observations have no underwater verdict yet; finish the underwater stage")
     rows = []
     for o in sample:
         key = keys.get(_name(o))

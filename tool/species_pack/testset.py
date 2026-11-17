@@ -236,6 +236,13 @@ def underwater(scores):
     return wet >= dry
 
 
+def unchecked(ids, verdicts):
+    """The ids in `ids` with no true-or-false verdict in `verdicts`: a
+    stage that was stopped part way leaves some out, and an absent verdict
+    must stop the test set being written rather than read as "no"."""
+    return [i for i in ids if not isinstance(verdicts.get(i), bool)]
+
+
 def write_rows(path, rows):
     with open(path, "w", encoding="utf-8", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=FIELDS, lineterminator="\n")
