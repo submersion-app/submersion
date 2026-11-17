@@ -277,4 +277,13 @@ void main() {
   test('an SCR injection rate follows the volume unit', () {
     expect(conflictFieldFor('dives', 'scrInjectionRate').kind, FieldKind.rmv);
   });
+
+  test('a planned VO2 reads as the logged dive VO2 does (#4660)', () {
+    // A VO2 at RMV precision in cuft/min would show 1.3 and 1.4 L/min alike.
+    final logged = conflictFieldFor('dives', 'assumedVo2').kind;
+    expect(conflictFieldFor('divePlans', 'scrVo2').kind, logged);
+    expect(conflictFieldFor('divePlans', 'pscrVo2').kind, logged);
+    expect(conflictFieldFor('diverSettings', 'plannerScrVo2').kind, logged);
+    expect(conflictFieldFor('diverSettings', 'plannerPscrVo2').kind, logged);
+  });
 }

@@ -600,10 +600,14 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.plannerCanvas_scr_injectionRate,
     FieldKind.rmv,
   ),
-  'plannerScrVo2': ConflictField((l) => l.plannerCanvas_scr_vo2, FieldKind.rmv),
+  // VO2 reads as the logged dive's assumedVo2 does (FieldKind.number).
+  'plannerScrVo2': ConflictField(
+    (l) => l.plannerCanvas_scr_vo2,
+    FieldKind.number,
+  ),
   'plannerPscrVo2': ConflictField(
     (l) => l.plannerCanvas_pscr_vo2,
-    FieldKind.rmv,
+    FieldKind.number,
   ),
   'ppO2DecoBand1': ConflictField(
     (l) => l.settings_conflict_field_ppO2DecoBand1,
