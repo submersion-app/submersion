@@ -706,6 +706,22 @@ void main() {
       expect(run.locationCell, isNotNull);
     });
 
+    test('settleAll stops a running scan and drops queued requests before '
+        'it returns', () async {
+      engine.videoGate = Completer<void>();
+      final scanning = service.request(video());
+      await until(() => engine.detectCalls.length == 1);
+      final queued = service.request(photo('m1'));
+      final settling = service.settleAll();
+      engine.videoGate!.complete();
+      engine.videoGate = null;
+      await settling;
+      expect(engine.detectCalls, hasLength(1));
+      expect(engine.analysed, isEmpty);
+      await scanning;
+      await queued;
+    });
+
     test('a pack change waits for one chunk, not the whole video', () async {
       engine.videoGate = Completer<void>();
       final done = service.request(video());

@@ -249,6 +249,11 @@ class MediaIdentificationService {
     }
   }
 
+  /// Before every identification is cleared: drops every queued request
+  /// and waits for the one running, stopping a video's scan after its
+  /// chunk, so nothing is written back after the clear.
+  Future<void> settleAll() => settle({..._waiting.keys, ?_running?.item.id});
+
   /// Runs [change] (installing, updating or removing the pack) with no
   /// analysis under way: waits for the one running, holds queued requests,
   /// frees the models, runs [change], then forgets the cached pack and lets
