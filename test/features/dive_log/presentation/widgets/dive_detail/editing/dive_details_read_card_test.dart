@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -133,6 +134,35 @@ void main() {
         findsOneWidget,
       );
       expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    });
+
+    testWidgets('the trip link is a button of its own', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpCard(
+        tester,
+        bare.copyWith(
+          tripId: 't1',
+          trip: Trip(
+            id: 't1',
+            name: 'Red Sea',
+            startDate: DateTime(2024, 6),
+            endDate: DateTime(2024, 6, 8),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+        ),
+      );
+
+      // Its own node, named first by its action; the row's own text
+      // follows, and nothing else of the card's.
+      final link = find.bySemanticsLabel(
+        RegExp(
+          '^${RegExp.escape(l.diveLog_detail_semantics_viewTrip('Red Sea'))}',
+        ),
+      );
+      expect(link, findsOneWidget);
+      expect(tester.getSemantics(link).flagsCollection.isButton, isTrue);
+      semantics.dispose();
     });
 
     testWidgets('inside an unlocked frame it gains its pencil', (tester) async {
@@ -430,7 +460,9 @@ void main() {
       List<BuddyWithRole> buddies = const [],
       List<DiveComputer> computers = const [],
       Duration? interval,
+      bool inCard = false,
     }) async {
+      final rows = DiveDetailsDerivedRows(dive: dive);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -449,7 +481,7 @@ void main() {
             locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: DiveDetailsDerivedRows(dive: dive)),
+            home: Scaffold(body: inCard ? Card(child: rows) : rows),
           ),
         ),
       );
@@ -513,6 +545,39 @@ void main() {
         ),
         findsOneWidget,
       );
+    });
+
+    // A link row is a node of its own: in the Card it would otherwise merge
+    // into the card's, one button named for everything the card says.
+    testWidgets('in a card, the dive computer link is a button of its own', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpDerived(
+        tester,
+        bare,
+        inCard: true,
+        computers: [
+          DiveComputer(
+            id: 'pc',
+            name: 'Perdix 2',
+            serialNumber: 'A1B2',
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+        ],
+      );
+
+      // Its own node, named first by its action; the row's own text
+      // follows, and nothing else of the card's.
+      final link = find.bySemanticsLabel(
+        RegExp(
+          '^${RegExp.escape(l.diveLog_detail_semantics_viewDiveComputer('Perdix 2'))}',
+        ),
+      );
+      expect(link, findsOneWidget);
+      expect(tester.getSemantics(link).flagsCollection.isButton, isTrue);
+      semantics.dispose();
     });
 
     testWidgets('with none imported, the surface interval is worked out', (
