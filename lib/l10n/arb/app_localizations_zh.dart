@@ -50189,6 +50189,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '新 DPV 任务开始时使用的水下推进器电池备用量和步行速度。在任务内更改仅会覆盖该任务，不会更改此默认值。';
 
   @override
+  String get settings_decompression_header_plannerRebreather => '计划器循环呼吸器';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      '新的 SCR 或 pSCR 计划开始时使用的半闭式回路流量。在计划内更改仅会覆盖该计划，不会更改此默认值。';
+
+  @override
   String get settings_decompression_rates_finalAscent => '最终上升速率';
 
   @override

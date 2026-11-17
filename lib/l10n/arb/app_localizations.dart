@@ -84275,6 +84275,18 @@ abstract class AppLocalizations {
   /// **'The scooter battery reserve and walking speed a new DPV mission starts with. Changing one inside a mission overrides it there only, without changing this default.'**
   String get settings_decompression_header_plannerDpvTeam_subtitle;
 
+  /// No description provided for @settings_decompression_header_plannerRebreather.
+  ///
+  /// In en, this message translates to:
+  /// **'Planner Rebreather'**
+  String get settings_decompression_header_plannerRebreather;
+
+  /// No description provided for @settings_decompression_header_plannerRebreather_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The semi-closed loop flow a new SCR or pSCR plan starts with. Changing one inside a plan overrides it there only, without changing this default.'**
+  String get settings_decompression_header_plannerRebreather_subtitle;
+
   /// No description provided for @settings_decompression_rates_finalAscent.
   ///
   /// In en, this message translates to:

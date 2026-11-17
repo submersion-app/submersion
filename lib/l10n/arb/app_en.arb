@@ -31369,6 +31369,8 @@
   "settings_decompression_header_plannerContingency_subtitle": "The what-if deviation a new plan starts with. Changing it inside a plan overrides it there only, without changing this default.",
   "settings_decompression_header_plannerDpvTeam": "Planner DPV Team",
   "settings_decompression_header_plannerDpvTeam_subtitle": "The scooter battery reserve and walking speed a new DPV mission starts with. Changing one inside a mission overrides it there only, without changing this default.",
+  "settings_decompression_header_plannerRebreather": "Planner Rebreather",
+  "settings_decompression_header_plannerRebreather_subtitle": "The semi-closed loop flow a new SCR or pSCR plan starts with. Changing one inside a plan overrides it there only, without changing this default.",
   "settings_decompression_rates_finalAscent": "Final ascent rate",
   "settings_decompression_ascentRateThresholds": "Ascent rate thresholds",
   "settings_decompression_ascentRateThresholds_subtitle": "Warning {warning}, critical {critical}",

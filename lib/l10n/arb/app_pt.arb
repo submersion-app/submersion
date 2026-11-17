@@ -15818,6 +15818,8 @@
   "settings_decompression_header_plannerContingency_subtitle": "O desvio hipotético com que um novo plano começa. Alterá-lo dentro de um plano só o substitui lá, sem alterar este padrão.",
   "settings_decompression_header_plannerDpvTeam": "Equipe DPV do planejador",
   "settings_decompression_header_plannerDpvTeam_subtitle": "A reserva de bateria do scooter e a velocidade de caminhada com que uma nova missão DPV começa. Alterá-las dentro de uma missão só as substitui lá, sem alterar este padrão.",
+  "settings_decompression_header_plannerRebreather": "Rebreather do planeador",
+  "settings_decompression_header_plannerRebreather_subtitle": "O fluxo do circuito semifechado com que começa um novo plano SCR ou pSCR. Alterá-lo dentro de um plano substitui-o só aí, sem mudar este valor predefinido.",
   "settings_decompression_rates_finalAscent": "Velocidade de subida final",
   "settings_decompression_ascentRateThresholds": "Limites de velocidade de subida",
   "settings_decompression_ascentRateThresholds_subtitle": "Aviso {warning}, crítico {critical}",

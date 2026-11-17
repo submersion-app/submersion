@@ -53446,6 +53446,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'La riserva della batteria dello scooter e la velocità di camminata con cui inizia una nuova missione DPV. Modificarne una all\'interno di una missione la sovrascrive solo lì, senza modificare questo valore predefinito.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'Rebreather del pianificatore';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'Il flusso del circuito semichiuso con cui parte un nuovo piano SCR o pSCR. Cambiarlo dentro un piano lo sostituisce solo lì, senza modificare questo valore predefinito.';
+
+  @override
   String get settings_decompression_rates_finalAscent =>
       'Velocità di risalita finale';
 

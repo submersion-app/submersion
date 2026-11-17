@@ -52290,6 +52290,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'רזרבת הסקוטר וקצב ההליכה שאיתם מתחילה משימת DPV חדשה. שינוי בתוך משימה יחליף אותו רק שם, מבלי לשנות ברירת מחדל זו.';
 
   @override
+  String get settings_decompression_header_plannerRebreather => 'מחזר בתכנון';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'הזרימה בלולאה החצי סגורה שאיתה מתחילה תוכנית SCR או pSCR חדשה. שינוי בתוך תוכנית עוקף אותה רק שם, בלי לשנות את ברירת המחדל הזו.';
+
+  @override
   String get settings_decompression_rates_finalAscent => 'קצב עלייה סופי';
 
   @override

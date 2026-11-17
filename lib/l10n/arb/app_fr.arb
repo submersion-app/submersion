@@ -15818,6 +15818,8 @@
   "settings_decompression_header_plannerContingency_subtitle": "L'écart hypothétique avec lequel un nouveau plan démarre. Le modifier dans un plan ne l'écrase que là, sans changer cette valeur par défaut.",
   "settings_decompression_header_plannerDpvTeam": "Équipe DPV du planificateur",
   "settings_decompression_header_plannerDpvTeam_subtitle": "La réserve de batterie du scooter et la vitesse de marche avec lesquelles une nouvelle mission DPV démarre. Les modifier dans une mission ne les écrase que là, sans changer cette valeur par défaut.",
+  "settings_decompression_header_plannerRebreather": "Recycleur du planificateur",
+  "settings_decompression_header_plannerRebreather_subtitle": "Le débit de boucle semi-fermée avec lequel démarre un nouveau plan SCR ou pSCR. Le modifier dans un plan le remplace uniquement là, sans changer cette valeur par défaut.",
   "settings_decompression_rates_finalAscent": "Vitesse de remontée finale",
   "settings_decompression_ascentRateThresholds": "Seuils de vitesse de remontée",
   "settings_decompression_ascentRateThresholds_subtitle": "Alerte {warning}, critique {critical}",

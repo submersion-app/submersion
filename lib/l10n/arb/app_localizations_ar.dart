@@ -54160,6 +54160,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'احتياطي بطارية السكوتر وسرعة المشي التي تبدأ بها مهمة DPV جديدة. تغييرها داخل مهمة يستبدلها هناك فقط، دون تغيير هذا الإعداد الافتراضي.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'جهاز إعادة التنفس في المخطط';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'تدفق الدائرة شبه المغلقة الذي تبدأ به خطة SCR أو pSCR جديدة. تغييره داخل خطة يتجاوزه هناك فقط، دون تغيير هذه القيمة الافتراضية.';
+
+  @override
   String get settings_decompression_rates_finalAscent => 'معدل الصعود النهائي';
 
   @override

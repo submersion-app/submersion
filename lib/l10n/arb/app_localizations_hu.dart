@@ -53152,6 +53152,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'A robogó akkumulátor-rezerv és gyaloglási sebesség, amellyel egy új DPV-küldetés kezdődik. Egy küldetésen belüli módosítás csak ott írja felül, anélkül, hogy ezt az alapértelmezett értéket megváltoztatná.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'Tervező rebreather';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'A félig zárt hurok áramlása, amellyel egy új SCR- vagy pSCR-terv indul. Ha egy terven belül módosítod, csak ott írja felül, ezt az alapértéket nem változtatja meg.';
+
+  @override
   String get settings_decompression_rates_finalAscent =>
       'Végső felszállási sebesség';
 

@@ -53322,6 +53322,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Scooter-Akku-Reserve und Gehgeschwindigkeit, mit denen eine neue DPV-Mission startet. Eine Änderung innerhalb einer Mission überschreibt sie nur dort, ohne diesen Standardwert zu ändern.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'Planer-Rebreather';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'Der Durchfluss im halbgeschlossenen Kreislauf, mit dem ein neuer SCR- oder pSCR-Plan startet. Eine Änderung innerhalb eines Plans überschreibt ihn nur dort, ohne diesen Standardwert zu ändern.';
+
+  @override
   String get settings_decompression_rates_finalAscent => 'Finale Aufstiegsrate';
 
   @override

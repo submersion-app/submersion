@@ -15818,6 +15818,8 @@
   "settings_decompression_header_plannerContingency_subtitle": "انحراف \"ماذا لو\" الذي تبدأ به خطة جديدة. تغييره داخل خطة يستبدله هناك فقط، دون تغيير هذا الإعداد الافتراضي.",
   "settings_decompression_header_plannerDpvTeam": "فريق DPV للمخطط",
   "settings_decompression_header_plannerDpvTeam_subtitle": "احتياطي بطارية السكوتر وسرعة المشي التي تبدأ بها مهمة DPV جديدة. تغييرها داخل مهمة يستبدلها هناك فقط، دون تغيير هذا الإعداد الافتراضي.",
+  "settings_decompression_header_plannerRebreather": "جهاز إعادة التنفس في المخطط",
+  "settings_decompression_header_plannerRebreather_subtitle": "تدفق الدائرة شبه المغلقة الذي تبدأ به خطة SCR أو pSCR جديدة. تغييره داخل خطة يتجاوزه هناك فقط، دون تغيير هذه القيمة الافتراضية.",
   "settings_decompression_rates_finalAscent": "معدل الصعود النهائي",
   "settings_decompression_ascentRateThresholds": "حدود سرعة الصعود",
   "settings_decompression_ascentRateThresholds_subtitle": "تحذير {warning}، حرج {critical}",

@@ -15818,6 +15818,8 @@
   "settings_decompression_header_plannerContingency_subtitle": "סטיית ה'מה אם' שאיתה מתחילה תוכנית חדשה. שינוי בתוך תוכנית יחליף אותה רק שם, מבלי לשנות ברירת מחדל זו.",
   "settings_decompression_header_plannerDpvTeam": "צוות DPV מתכנן",
   "settings_decompression_header_plannerDpvTeam_subtitle": "רזרבת הסקוטר וקצב ההליכה שאיתם מתחילה משימת DPV חדשה. שינוי בתוך משימה יחליף אותו רק שם, מבלי לשנות ברירת מחדל זו.",
+  "settings_decompression_header_plannerRebreather": "מחזר בתכנון",
+  "settings_decompression_header_plannerRebreather_subtitle": "הזרימה בלולאה החצי סגורה שאיתה מתחילה תוכנית SCR או pSCR חדשה. שינוי בתוך תוכנית עוקף אותה רק שם, בלי לשנות את ברירת המחדל הזו.",
   "settings_decompression_rates_finalAscent": "קצב עלייה סופי",
   "settings_decompression_ascentRateThresholds": "ספי קצב עלייה",
   "settings_decompression_ascentRateThresholds_subtitle": "אזהרה {warning}, קריטי {critical}",

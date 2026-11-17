@@ -53099,6 +53099,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'De scooterbatterijreserve en looptempo waarmee een nieuwe DPV-missie begint. Een wijziging binnen een missie overschrijft dit alleen daar, zonder deze standaardwaarde te wijzigen.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'Planner-rebreather';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'Het debiet in de halfgesloten lus waarmee een nieuw SCR- of pSCR-plan begint. Een wijziging binnen een plan overschrijft het alleen daar, zonder deze standaard te wijzigen.';
+
+  @override
   String get settings_decompression_rates_finalAscent =>
       'Laatste stijgsnelheid';
 

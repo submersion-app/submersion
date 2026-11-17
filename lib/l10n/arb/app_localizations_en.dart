@@ -52634,6 +52634,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'The scooter battery reserve and walking speed a new DPV mission starts with. Changing one inside a mission overrides it there only, without changing this default.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'Planner Rebreather';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'The semi-closed loop flow a new SCR or pSCR plan starts with. Changing one inside a plan overrides it there only, without changing this default.';
+
+  @override
   String get settings_decompression_rates_finalAscent => 'Final ascent rate';
 
   @override

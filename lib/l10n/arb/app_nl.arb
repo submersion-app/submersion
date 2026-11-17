@@ -15818,6 +15818,8 @@
   "settings_decompression_header_plannerContingency_subtitle": "De wat-als-afwijking waarmee een nieuw plan begint. Een wijziging binnen een plan overschrijft dit alleen daar, zonder deze standaardwaarde te wijzigen.",
   "settings_decompression_header_plannerDpvTeam": "Planner DPV-team",
   "settings_decompression_header_plannerDpvTeam_subtitle": "De scooterbatterijreserve en looptempo waarmee een nieuwe DPV-missie begint. Een wijziging binnen een missie overschrijft dit alleen daar, zonder deze standaardwaarde te wijzigen.",
+  "settings_decompression_header_plannerRebreather": "Planner-rebreather",
+  "settings_decompression_header_plannerRebreather_subtitle": "Het debiet in de halfgesloten lus waarmee een nieuw SCR- of pSCR-plan begint. Een wijziging binnen een plan overschrijft het alleen daar, zonder deze standaard te wijzigen.",
   "settings_decompression_rates_finalAscent": "Laatste stijgsnelheid",
   "settings_decompression_ascentRateThresholds": "Grenzen voor opstijgsnelheid",
   "settings_decompression_ascentRateThresholds_subtitle": "Waarschuwing {warning}, kritiek {critical}",

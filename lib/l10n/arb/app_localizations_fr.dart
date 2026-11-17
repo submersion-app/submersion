@@ -53557,6 +53557,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'La réserve de batterie du scooter et la vitesse de marche avec lesquelles une nouvelle mission DPV démarre. Les modifier dans une mission ne les écrase que là, sans changer cette valeur par défaut.';
 
   @override
+  String get settings_decompression_header_plannerRebreather =>
+      'Recycleur du planificateur';
+
+  @override
+  String get settings_decompression_header_plannerRebreather_subtitle =>
+      'Le débit de boucle semi-fermée avec lequel démarre un nouveau plan SCR ou pSCR. Le modifier dans un plan le remplace uniquement là, sans changer cette valeur par défaut.';
+
+  @override
   String get settings_decompression_rates_finalAscent =>
       'Vitesse de remontée finale';
 
