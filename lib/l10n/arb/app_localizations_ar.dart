@@ -7373,6 +7373,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_label_permanentlyClosed => 'مغلق نهائيًا';
 
   @override
+  String get diveCenters_field_logo => 'الشعار';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'أضف الإحداثيات إلى مراكز الغوص لرؤيتها على الخريطة';
 
@@ -27369,6 +27372,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_photo => 'الصورة';
+
+  @override
+  String get settings_conflict_field_logo => 'الشعار';
 
   @override
   String get settings_conflict_field_photoBack => 'ظهر البطاقة';

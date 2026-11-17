@@ -190,6 +190,7 @@ class DiveCenterRepository {
               fillOpensAt: Value(center.fillOpensAt),
               fillClosesAt: Value(center.fillClosesAt),
               isPermanentlyClosed: Value(center.isPermanentlyClosed),
+              logo: Value(center.logo),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -313,6 +314,7 @@ class DiveCenterRepository {
           fillOpensAt: Value(center.fillOpensAt),
           fillClosesAt: Value(center.fillClosesAt),
           isPermanentlyClosed: Value(center.isPermanentlyClosed),
+          logo: Value(center.logo),
           updatedAt: Value(now),
         ),
       );
@@ -502,6 +504,7 @@ class DiveCenterRepository {
       fillOpensAt: row.fillOpensAt,
       fillClosesAt: row.fillClosesAt,
       isPermanentlyClosed: row.isPermanentlyClosed,
+      logo: row.logo,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );
@@ -528,6 +531,7 @@ class DiveCenterRepository {
       fillClosesAt: row.data['fill_closes_at'] as int?,
       isPermanentlyClosed:
           (row.data['is_permanently_closed'] as int? ?? 0) == 1,
+      logo: row.data['logo'] as Uint8List?,
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         row.data['created_at'] as int,
       ),

@@ -6878,6 +6878,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_label_permanentlyClosed => '已永久关闭';
 
   @override
+  String get diveCenters_field_logo => '徽标';
+
+  @override
   String get diveCenters_map_addCoordinatesHint => '为您的潜水中心添加坐标以在地图上显示';
 
   @override
@@ -25545,6 +25548,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_photo => '照片';
+
+  @override
+  String get settings_conflict_field_logo => '徽标';
 
   @override
   String get settings_conflict_field_photoBack => '证卡背面';

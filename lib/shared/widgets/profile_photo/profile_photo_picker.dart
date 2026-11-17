@@ -36,6 +36,8 @@ class ProfilePhotoResult {
 /// [contactPhotoLoader] is supplied by callers that can reach the address
 /// book, which keeps this shared widget free of a flutter_contacts dependency.
 ///
+/// [sheetTitle] replaces the source sheet's "Profile Photo" heading.
+///
 /// [pickImageOverride] is a test seam replacing the platform image picker,
 /// which has no Dart-side entry point a fake can be injected through. Mirrors
 /// [OcrScanPage.pickImageOverride].
@@ -44,6 +46,7 @@ Future<ProfilePhotoResult?> pickProfilePhoto({
   required bool hasPhoto,
   required bool allowContacts,
   Future<Uint8List?> Function(BuildContext context)? contactPhotoLoader,
+  String? sheetTitle,
   @visibleForTesting
   Future<({Uint8List bytes, String name})?> Function(ImageSource source)?
   pickImageOverride,
@@ -55,6 +58,7 @@ Future<ProfilePhotoResult?> pickProfilePhoto({
     context: context,
     hasPhoto: hasPhoto,
     allowContacts: allowContacts && contactPhotoLoader != null,
+    title: sheetTitle,
   );
   if (source == null || !context.mounted) return null;
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
 
 /// Single-row flat tile for the dive center list (maximum density).
 ///
@@ -61,6 +62,17 @@ class DenseDiveCenterListTile extends StatelessWidget {
                   onChanged: onCheckChanged,
                   gap: 8,
                 ),
+                // A logo only when the center has one; the dense row has no
+                // store icon to replace (#4460).
+                if (center.logo != null) ...[
+                  DiveCenterAvatar(
+                    logo: center.logo,
+                    radius: 10,
+                    shape: DiveCenterAvatarShape.roundedSquare,
+                    cornerRadius: 4,
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 // Center name (expanded)
                 Expanded(
                   child: DiveCenterNameWithTag(

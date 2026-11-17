@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
@@ -264,5 +265,128 @@ void main() {
       );
       expect(row['photo'], isNull);
     });
+    Map<String, dynamic> centerRecord(String id, {Object? logo}) => {
+      'id': id,
+      'name': 'Blue Reef',
+      'notes': '',
+      'isPermanentlyClosed': false,
+      'createdAt': 1700000000000,
+      'updatedAt': 1700000000000,
+      'logo': logo,
+    };
+
+    Uint8List blobOf(Object? value) => value is String
+        ? base64Decode(value)
+        : Uint8List.fromList((value as List).cast<int>());
+
+    test('a dive center logo is exported as a base64 string', () async {
+      final serializer = SyncDataSerializer();
+      final logo = Uint8List.fromList(List.generate(200, (i) => i % 256));
+      await serializer.upsertRecord(
+        'diveCenters',
+        centerRecord('center-b64-1', logo: logo),
+      );
+
+      final deviceId = await SyncRepository().getDeviceId();
+      await buildService().performSync();
+
+      final payload = await cloudBasePayload(cloud, deviceId);
+      final row = payload!.data.diveCenters.firstWhere(
+        (r) => r['id'] == 'center-b64-1',
+      );
+      expect(
+        row['logo'],
+        base64Encode(logo),
+        reason: 'a center logo must serialize as base64, not a byte array',
+      );
+    });
+
+    test('a dive center logo round-trips through fetchRecord', () async {
+      final serializer = SyncDataSerializer();
+      final logo = Uint8List.fromList(List.generate(64, (i) => 200 - i));
+      await serializer.upsertRecord(
+        'diveCenters',
+        centerRecord('center-b64-2', logo: logo),
+      );
+
+      final restored = await serializer.fetchRecord(
+        'diveCenters',
+        'center-b64-2',
+      );
+      expect(restored!['logo'], isA<String>());
+      expect(blobOf(restored['logo']), logo);
+    });
+
+    test('dive center logos are base64 in a batch fetch', () async {
+      final serializer = SyncDataSerializer();
+      final logo = Uint8List.fromList([5, 6, 7]);
+      await serializer.upsertRecord(
+        'diveCenters',
+        centerRecord('center-b64-3', logo: logo),
+      );
+
+      final rows = await serializer.fetchRecords('diveCenters', [
+        'center-b64-3',
+      ]);
+      expect(rows['center-b64-3']!['logo'], base64Encode(logo));
+    });
+
+    test('a batch of dive centers applies base64 logos', () async {
+      final serializer = SyncDataSerializer();
+      final logo = Uint8List.fromList([8, 9, 10]);
+      await serializer.upsertRecords('diveCenters', [
+        centerRecord('center-b64-4', logo: base64Encode(logo)),
+      ]);
+
+      final restored = await serializer.fetchRecord(
+        'diveCenters',
+        'center-b64-4',
+      );
+      expect(blobOf(restored!['logo']), logo);
+    });
+
+    test('a legacy array-encoded center logo still imports', () async {
+      final serializer = SyncDataSerializer();
+      await serializer.upsertRecord(
+        'diveCenters',
+        centerRecord('center-legacy-1', logo: [0x01, 0x02, 0x03]),
+      );
+
+      final restored = await serializer.fetchRecord(
+        'diveCenters',
+        'center-legacy-1',
+      );
+      expect(blobOf(restored!['logo']), [0x01, 0x02, 0x03]);
+    });
+
+    test(
+      "an older peer's center row without a logo keeps the local logo",
+      () async {
+        final serializer = SyncDataSerializer();
+        final logo = Uint8List.fromList([4, 4, 4]);
+        await serializer.upsertRecord(
+          'diveCenters',
+          centerRecord('center-old-peer', logo: logo),
+        );
+
+        // A peer below v373 knows no logo column, so its row omits the key.
+        final remote = centerRecord('center-old-peer')
+          ..remove('logo')
+          ..['name'] = 'Blue Reef Divers';
+        final merged = overlayOntoLocal(
+          'diveCenters',
+          remote,
+          await serializer.fetchRecord('diveCenters', 'center-old-peer'),
+        );
+        await serializer.upsertRecord('diveCenters', merged);
+
+        final restored = await serializer.fetchRecord(
+          'diveCenters',
+          'center-old-peer',
+        );
+        expect(restored!['name'], 'Blue Reef Divers');
+        expect(blobOf(restored['logo']), logo);
+      },
+    );
   });
 }

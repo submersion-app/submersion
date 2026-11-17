@@ -7147,6 +7147,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveCenters_label_permanentlyClosed => 'Permanently closed';
 
   @override
+  String get diveCenters_field_logo => 'Logo';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Add coordinates to your dive centers to see them on the map';
 
@@ -26604,6 +26607,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_photo => 'Photo';
+
+  @override
+  String get settings_conflict_field_logo => 'Logo';
 
   @override
   String get settings_conflict_field_photoBack => 'Card back';

@@ -254,5 +254,12 @@ extension RungsFromV340 on AppDatabase {
     // Renumbered from 371, which main took for #4413.
     if (from < 372) await _assertBuddyCountryColumns();
     if (from < 372) await reportProgress();
+
+    // v373: dive_centers.logo, a center's logo as a square JPEG (issue
+    // #4460). Nullable, no backfill, so the floor does not move.
+    // Re-asserted in beforeOpen. Renumbered twice: main took 371 for #4413
+    // and 372 for #4457.
+    if (from < 373) await _assertDiveCenterLogoColumn();
+    if (from < 373) await reportProgress();
   }
 }
