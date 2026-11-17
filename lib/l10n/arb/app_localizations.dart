@@ -13827,6 +13827,12 @@ abstract class AppLocalizations {
   /// **'Trip'**
   String get diveLog_edit_row_trip;
 
+  /// Value of the Trip row on the dive's Details card when the dive names a trip that could not be loaded (deleted on another device, say). The row offers a clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip not found'**
+  String get diveLog_edit_row_tripNotFound;
+
   /// No description provided for @diveLog_edit_save.
   ///
   /// In en, this message translates to:
@@ -35025,6 +35031,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Moved to another dive since you unlocked it. Cancel, then unlock it again.'**
   String get media_viewer_movedWhileEditing;
+
+  /// Shown when Save is refused because the file found with Locate file was deleted, moved or edited after it was found. Locating it again holds the file as it is now; Cancel drops the relink.
+  ///
+  /// In en, this message translates to:
+  /// **'The file you located has changed or moved since. Locate it again, or cancel.'**
+  String get media_viewer_locatedFileChanged;
 
   /// Button revealed by a tap in fullscreen mode: return to the normal viewer
   ///

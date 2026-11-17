@@ -1106,3 +1106,10 @@ Plan 2's pull request (#4550) gained two fix commits while this was being built.
 - After a saved sitting the quality scan and the tide record are not run, as after plans 1 and 2.
 - `diveSaveTouchesTrip` compares entry times while the stretch reads the dive's date column. It matters once plan 4 makes dates editable.
 - Tide, Signatures and the Environment card's satellite block are each handed the held layout by name. Once the site and the date can be edited (plan 4), more readers will need it; the general form is the spec's rule that a calculated card keeps its stored values during a sitting.
+
+### Cleared later (PR #4670)
+
+- Precise visibility comes back resting after a look at Range.
+- A `tripId` whose trip did not load reads "Trip not found" and offers the clear.
+- A saved sitting records the tide (when the site, time or water type moved, or the save gave the site its location; cleared for a dive with no sea site), and a header change refreshes the quality scan and derived metrics.
+- Still open, each needing a decision: calculated rows keeping the read card's layout, and the held layout handed to Tide, Signatures and the satellite block by name. The two unwritten tests stay unwritten: the shared guard is pinned instead.

@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/media/data/services/media_import_service.dart';
@@ -17,8 +16,7 @@ import 'package:submersion/features/media/presentation/providers/url_tab_provide
 import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
-
-const _log = LoggerService('DiveMediaSitting');
+import 'package:submersion/shared/widgets/record_editing/held_write_undo.dart';
 
 /// The held change of the Media card.
 const String mediaKey = 'media';
@@ -268,28 +266,16 @@ List<Future<void> Function()> mediaAfterCommit(EditSession<Dive> session) {
 Future<T> undoMediaOnFailure<T>(
   EditSession<Dive> session,
   Future<T> Function() write,
-) async {
-  try {
-    return await write();
-  } catch (_) {
-    final undo = session.isDisposed
-        ? null
-        : session.recall<List<Future<void> Function()>>(_undoKey);
-    if (!session.isDisposed) session.remember(_undoKey, null);
-    for (final step in undo ?? const <Future<void> Function()>[]) {
-      try {
-        await step();
-      } catch (error, stackTrace) {
-        _log.warning(
-          'Taking back a media write that did not commit failed',
-          error: error,
-          stackTrace: stackTrace,
-        );
-      }
-    }
-    rethrow;
-  }
-}
+) => undoHeldWritesOnFailure(
+  write,
+  takeUndo: () {
+    if (session.isDisposed) return null;
+    final undo = session.recall<List<Future<void> Function()>>(_undoKey);
+    session.remember(_undoKey, null);
+    return undo;
+  },
+  what: 'a media write',
+);
 
 /// [stored] as the sitting has it: unlinked ones gone, added ones in, in
 /// the order the grid shows them (taken at, oldest first).

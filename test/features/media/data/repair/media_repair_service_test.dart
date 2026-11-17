@@ -180,6 +180,74 @@ void main() {
     expect(queued.map((r) => r.read<String>('media_id')), contains('a'));
   });
 
+  // A photo's sitting draws a held relink as the repair will write it
+  // (issue #4527): one rule, so the drawing cannot drift from the write.
+  group('relinkedToFile describes the row a file relink writes', () {
+    // Every column but the bookmark, which the repair makes at Save where
+    // the platform has bookmarks and the rule cannot name before then.
+    Object? facts(MediaItem m) => (
+      m.localPath,
+      m.platformAssetId,
+      m.sourceType,
+      m.isOrphaned,
+      m.contentHash,
+      m.contentSizeBytes,
+      m.remoteUploadedAt,
+      m.remoteThumbUploadedAt,
+      m.remoteCompressedUploadedAt,
+      m.originDeviceId,
+      m.lastVerifiedAt,
+    );
+
+    Future<void> check(RepairConfidence confidence, String contents) async {
+      final (file, hash) = await tempFile('a.jpg', contents);
+      final item = (await repo.getMediaById('a'))!;
+      final candidate = RepairCandidate.file(
+        path: file.path,
+        sizeBytes: contents.length,
+        hash: hash,
+      );
+
+      final report = await service().apply([
+        RepairProposal(
+          item: item,
+          confidence: confidence,
+          candidate: candidate,
+        ),
+      ]);
+
+      expect(report.relinked, 1);
+      final repaired = (await repo.getMediaById('a'))!;
+      expect(
+        facts(
+          relinkedToFile(
+            item,
+            candidate,
+            originDeviceId: repaired.originDeviceId,
+            verifiedAt: repaired.lastVerifiedAt,
+          ),
+        ),
+        facts(repaired),
+      );
+    }
+
+    test('the same bytes', () async {
+      final (_, hash) = await tempFile('seed.jpg', 'SAME');
+      await seed('a', contentHash: hash, stampRemote: true);
+      await check(RepairConfidence.exact, 'SAME');
+    });
+
+    test('other bytes', () async {
+      await seed('a', contentHash: 'OLD-HASH', stampRemote: true);
+      await check(RepairConfidence.edited, 'NEW BYTES');
+    });
+
+    test('a row with no hash takes the file as its own', () async {
+      await seed('a', stampRemote: true);
+      await check(RepairConfidence.exact, 'ANY');
+    });
+  });
+
   // A relink held in a dive's sitting is applied inside the save's
   // transaction, which a later write can still roll back (issue #4527).
   test('applied for a sitting: the row\'s bookmark is never overwritten, and '

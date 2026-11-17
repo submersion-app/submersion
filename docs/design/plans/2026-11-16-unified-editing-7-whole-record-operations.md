@@ -801,6 +801,16 @@ The plan was built as written in one session (Eric chose "Native"), then reviewe
 - No `open_profile_editor_test.dart`: the form's `dive_edit_profile_source_test.dart` pins the source question through the helper.
 - "Edit profile keeps its place in the toolbar" replaced "the toolbar is the same width": the Profile card's own pencil arrives on unlock (plan 6) and moves the whole toolbar.
 
+### Cleared later (PR #4670)
+
+- The check-in sheet and the tank gear menu already answered "nothing written" when dismissed (pinned in #4661); so does every handler on the page.
+- "Open Full Page" is disabled while the pane is unlocked, under "Save or cancel your changes first" (Eric's choice): one sitting per dive.
+- Escape with nothing selected in the list goes on to the pane's sitting; a held Escape's repeats stay with the list.
+- A failed read after an operation never escapes: the page and the cards' controls share `recordOperationRunnerOf`, which logs it. A delete whose read fails still leaves the page (tested).
+- The strip offering again what an operation emptied is tested; the doc comment on `_refreshAfterProfileSave` was already back, and the dive page's imports are grouped.
+- The four page tests listed above are written (`dive_detail_page_unlock_pane_site_test.dart`, `dive_detail_page_unlock_pinned_profile_test.dart`, `dive_detail_page_unlock_history_test.dart`). Writing them found the pinned copy tripping `node.built` after Set as primary; the pinned box is now a semantics container of its own.
+- "One microtask later with the switch off" stays as noted: nothing visible.
+
 ### For plans 8 and 11
 
 - **Plan 8.** A new dive's sitting is clean until something is entered, so `RecordSittingExitBlocker` asks only once there is work; the pane's `?mode=new` goes through `MasterDetailScaffold._onCreate`'s ask.

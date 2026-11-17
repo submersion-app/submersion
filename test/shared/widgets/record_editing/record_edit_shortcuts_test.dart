@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/shared/selection/selectable_list_scope.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
@@ -117,15 +119,28 @@ void main() {
   });
   tearDown(() => controller.dispose());
 
-  Future<void> pump(WidgetTester tester, {VoidCallback? onEscapeBelow}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    VoidCallback? onEscapeBelow,
+    SelectionController? list,
+  }) async {
     tester.view.physicalSize = const Size(800, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    final page = _Page(controller: controller, onEscapeBelow: onEscapeBelow);
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
           builder: (context, child) => RecordEditShortcuts(child: child!),
-          home: _Page(controller: controller, onEscapeBelow: onEscapeBelow),
+          // With [list], the page sits inside a list's selection scope, as
+          // the dive list's pane does beside its list.
+          home: list == null
+              ? page
+              : SelectableListScope(
+                  controller: list,
+                  selectableIds: const ['a', 'b'],
+                  child: page,
+                ),
         ),
       ),
     );
@@ -154,6 +169,60 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
     expect(controller.isUnlocked, isFalse);
+  });
+
+  // The list pane (issue #4527): the list's own Escape leaves selection
+  // mode, and with nothing selected it lets Escape on to the sitting.
+  testWidgets('Escape inside a list with nothing selected cancels', (
+    tester,
+  ) async {
+    final list = SelectionController();
+    addTearDown(list.dispose);
+    await pump(tester, list: list);
+    await chord(tester, LogicalKeyboardKey.keyL);
+    expect(controller.isUnlocked, isTrue);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+
+    expect(controller.isUnlocked, isFalse);
+  });
+
+  testWidgets('Escape inside a list with rows selected leaves selection '
+      'and keeps the sitting', (tester) async {
+    final list = SelectionController();
+    addTearDown(list.dispose);
+    await pump(tester, list: list);
+    await chord(tester, LogicalKeyboardKey.keyL);
+    list.enterImplicit('a');
+    await tester.pumpAndSettle();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+
+    expect(list.value.isActive, isFalse);
+    expect(controller.isUnlocked, isTrue);
+  });
+
+  // Escape held down to leave selection mode repeats: the repeats are the
+  // same press, and must not go on to cancel the sitting (issue #4527).
+  testWidgets('Escape held inside a list with rows selected leaves selection '
+      'and keeps the sitting', (tester) async {
+    final list = SelectionController();
+    addTearDown(list.dispose);
+    await pump(tester, list: list);
+    await chord(tester, LogicalKeyboardKey.keyL);
+    list.enterImplicit('a');
+    await tester.pumpAndSettle();
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.escape);
+    await tester.sendKeyRepeatEvent(LogicalKeyboardKey.escape);
+    await tester.sendKeyRepeatEvent(LogicalKeyboardKey.escape);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+
+    expect(list.value.isActive, isFalse);
+    expect(controller.isUnlocked, isTrue);
   });
 
   testWidgets('Save and Escape work while a text field has focus', (

@@ -217,13 +217,15 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       ])
         b.buddy.id,
     };
-    // The dive the sitting was opened on, whatever the page shows by the
-    // time the write is asked for.
+    // A save that did not commit may have noted sites it located.
+    forgetSitesLocated(session);
     // A write that does not commit takes back what the sitting's media
     // write did outside the database (a relink's new bookmark).
     final result = await undoMediaOnFailure(
       session,
       () => service.save(
+        // The dive the sitting was opened on, whatever the page shows by
+        // the time the write is asked for.
         diveId: session.stored.id,
         // The changes, and the rebreather values a changed mode no longer
         // uses dropped.
@@ -277,6 +279,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
           session.recall<List<String>>(routeLinksSkippedKey) ?? const [],
       planLinksAdopted:
           session.recall<List<(String, String?)>>(planLinkAdoptKey) ?? const [],
+      sitesLocated: sitesLocatedInSave(session),
     );
   }
 
@@ -380,6 +383,8 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     // so none leaves the strip. One emptied and closed has left the page,
     // and is offered here again.
     final presence = editController.layoutRecord ?? working;
+    // Worked out once: the getter builds a new set each time it is read.
+    final changed = editController.session?.changedCardIds ?? const {};
     return [
       for (final section in sections)
         if (diveEditCards[section.id] case final card?)
@@ -405,6 +410,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
               cardId: card.id,
               label: section.id.localizedDisplayName(l10n),
               hidden: !section.visible,
+              changed: changed.contains(card.id),
             ),
     ];
   }

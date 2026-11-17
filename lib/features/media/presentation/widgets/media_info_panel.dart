@@ -586,6 +586,7 @@ class _LocateButton extends ConsumerWidget {
       final held = sitting;
       if (held != null) {
         final service = ref.read(mediaRepairServiceProvider);
+        final files = ref.read(mediaLinkFileSourceProvider);
         await replaceMediaLink(
           context,
           ref,
@@ -593,7 +594,7 @@ class _LocateButton extends ConsumerWidget {
           onHold: (proposal) {
             // holdRelink drops it once the sitting ended or is saving.
             if (!sittingIsOver(held, item.id)) return;
-            holdRelink(held, proposal, service: service);
+            holdRelink(held, proposal, service: service, hashFile: files.hash);
           },
         );
         return;

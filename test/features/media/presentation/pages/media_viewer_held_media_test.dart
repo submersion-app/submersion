@@ -451,7 +451,11 @@ void main() {
       await db.customStatement('DELETE FROM change_log_operations');
     });
 
-    Future<void> pump(WidgetTester tester, {MediaRepairService? repair}) async {
+    Future<void> pump(
+      WidgetTester tester, {
+      MediaRepairService? repair,
+      Future<({String hash, int sizeBytes})> Function(File file)? hash,
+    }) async {
       final items = await tester.runAsync(() => storedMedia(['p1', 'p2']));
       final diver = (await tester.runAsync(asDiver))!;
       await pumpViewerApp(
@@ -467,7 +471,7 @@ void main() {
           mediaLinkFileSourceProvider.overrideWithValue(
             MediaLinkFileSource(
               pick: () async => '/found/p1.jpg',
-              hash: (_) async => (hash: 'same', sizeBytes: 9),
+              hash: hash ?? (_) async => (hash: 'same', sizeBytes: 9),
             ),
           ),
           mediaRepairServiceProvider.overrideWithValue(
@@ -570,6 +574,29 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       await settleViewer(tester);
       expect(drawn(tester).localPath, '/found/p1.jpg');
+    });
+
+    // Copilot's review of PR #4658: the file Locate found can change or go
+    // before Save. Save is refused, and the diver is told to locate it again
+    // rather than handed the plain failure to retry.
+    testWidgets('a located file edited before Save: the save is refused and '
+        'says to locate it again', (tester) async {
+      var bytes = 'same';
+      await pump(tester, hash: (_) async => (hash: bytes, sizeBytes: 9));
+      await locate(tester);
+      bytes = 'edited since';
+
+      await saveAndWait(tester);
+
+      expect(photoController(tester).isUnlocked, isTrue);
+      expect(await storedPath(tester), '/gone/p1.jpg');
+      expect(
+        find.text(
+          'The file you located has changed or moved since. Locate it again, '
+          'or cancel.',
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a Save that fails after the relink takes its new bookmark '

@@ -191,6 +191,36 @@ void main() {
     expect(location(page.router), '/home');
   });
 
+  // The dive is read again after an operation writes; after a delete that
+  // read failing must not keep the page on a dive that is gone.
+  testWidgets('a delete whose read back fails still leaves the page', (
+    tester,
+  ) async {
+    late _SpyList list;
+    final page = await pumpPage(
+      tester,
+      reloadError: () => StateError('database closed'),
+      extra: [
+        paginatedDiveListProvider.overrideWith(
+          (ref) => list = _SpyList(ref.watch(diveRepositoryProvider), ref),
+        ),
+      ],
+    );
+    await unlock(tester);
+
+    await _openMenu(tester);
+    await tester.tap(find.text('Delete'));
+    await settle(tester);
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await settle(tester);
+    await settle(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(list.deleted, [dive.id]);
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(location(page.router), '/home');
+  });
+
   testWidgets('a delete that fails stays on the page, and nothing is thrown', (
     tester,
   ) async {

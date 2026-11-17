@@ -78,10 +78,12 @@ void main() {
     WidgetTester tester, {
     Dive? stored,
     bool unlockEditing = true,
+    Object? Function()? reloadError,
   }) async {
     final page = await pumpPage(
       tester,
       stored: stored ?? geared,
+      reloadError: reloadError,
       visible: shown,
       unlockEditing: unlockEditing,
       size: const Size(700, 2400),
@@ -143,6 +145,32 @@ void main() {
 
     await unlock(tester);
     expect(button().enabled, isTrue);
+  });
+
+  // The cards drop the Future their controls' operations return, so a
+  // failed read of the dive after one wrote must not escape from it: the
+  // page locks, as the sitting's copy is from before the write.
+  testWidgets('a card operation whose read back fails locks the page and '
+      'throws nothing', (tester) async {
+    Object? failure;
+    await open(tester, reloadError: () => failure);
+    await unlock(tester);
+    failure = StateError('database closed');
+    final chip = tester.widget<ObservationStatusChip>(
+      find.byType(ObservationStatusChip).first,
+    );
+    final controller = tester
+        .widget<RecordEditScope<Dive>>(
+          find.byWidgetPredicate((w) => w is RecordEditScope<Dive>).first,
+        )
+        .notifier!;
+
+    // As the tank menu's unlink does: it wrote, so the dive is read again.
+    chip.runAsOperation!(() async => true);
+    await settle(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(controller.isUnlocked, isFalse);
   });
 
   testWidgets('locked: Sort still opens its sheet', (tester) async {

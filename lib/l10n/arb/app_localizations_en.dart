@@ -8686,6 +8686,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_row_trip => 'Trip';
 
   @override
+  String get diveLog_edit_row_tripNotFound => 'Trip not found';
+
+  @override
   String get diveLog_edit_save => 'Save';
 
   @override
@@ -21882,6 +21885,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get media_viewer_movedWhileEditing =>
       'Moved to another dive since you unlocked it. Cancel, then unlock it again.';
+
+  @override
+  String get media_viewer_locatedFileChanged =>
+      'The file you located has changed or moved since. Locate it again, or cancel.';
 
   @override
   String get media_viewer_exitFullscreen => 'Exit full screen';

@@ -300,11 +300,14 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
       if (mounted) _lockAsGone(controller);
       return;
     }
-    // A photo moved to another dive can never be saved: say so, and how to
-    // go on, rather than invite a retry.
-    final message = error is PhotoMovedError
-        ? l10n.media_viewer_movedWhileEditing
-        : l10n.recordEdit_saveFailed;
+    // A photo moved to another dive can never be saved, nor a relink to a
+    // file that changed since it was located: say so, and how to go on,
+    // rather than invite a retry.
+    final message = switch (error) {
+      PhotoMovedError() => l10n.media_viewer_movedWhileEditing,
+      LocatedFileChangedError() => l10n.media_viewer_locatedFileChanged,
+      _ => l10n.recordEdit_saveFailed,
+    };
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 

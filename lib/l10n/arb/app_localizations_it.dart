@@ -8819,6 +8819,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_row_trip => 'Viaggio';
 
   @override
+  String get diveLog_edit_row_tripNotFound => 'Viaggio non trovato';
+
+  @override
   String get diveLog_edit_save => 'Salva';
 
   @override
@@ -22216,6 +22219,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get media_viewer_movedWhileEditing =>
       'Spostato in un\'altra immersione dopo lo sblocco. Annulla, poi sbloccalo di nuovo.';
+
+  @override
+  String get media_viewer_locatedFileChanged =>
+      'Il file trovato è stato modificato o spostato nel frattempo. Trovalo di nuovo o annulla.';
 
   @override
   String get media_viewer_exitFullscreen => 'Esci da schermo intero';

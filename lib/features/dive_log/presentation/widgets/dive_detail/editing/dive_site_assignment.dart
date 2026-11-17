@@ -25,6 +25,31 @@ const _log = LoggerService('DiveSiteAssignment');
 /// under, as a change of the header card.
 String siteLocationChangeKey(String siteId) => 'siteLocation:$siteId';
 
+const _sitesLocatedKey = 'sitesLocated';
+
+/// Notes that a held write has just stored [point] as the location of
+/// [siteId], a site with no altitude, so the altitude is looked up once the
+/// save has committed (issue #4527): the lookup goes to the network, and
+/// the write runs inside the save's transaction.
+void noteSiteLocated(EditSession<Dive> session, String siteId, GeoPoint point) {
+  if (session.isDisposed) return;
+  session.remember(_sitesLocatedKey, {
+    ...sitesLocatedInSave(session),
+    siteId: point,
+  });
+}
+
+/// The sites the last save gave a location ([noteSiteLocated]), by id.
+Map<String, GeoPoint> sitesLocatedInSave(EditSession<Dive> session) =>
+    session.isDisposed
+    ? const {}
+    : session.recall<Map<String, GeoPoint>>(_sitesLocatedKey) ?? const {};
+
+/// Forgets what an earlier save, one that did not commit, noted.
+void forgetSitesLocated(EditSession<Dive> session) {
+  if (!session.isDisposed) session.remember(_sitesLocatedKey, null);
+}
+
 /// The key a dismissed site suggestion is held under, as a change of the
 /// header card. It is about the dive, so a change of site keeps it.
 const String siteSuggestionDismissKey = 'siteSuggestionDismissed';
@@ -44,8 +69,8 @@ const _exitFollowsKey = 'exitFollowsEntry';
 /// What the previous site set in this sitting is taken back first, unless
 /// the diver changed it since; values the dive had before the sitting are
 /// never taken. An altitude a lookup filled for the previous site goes back
-/// to the stored one and its site write is released, as is a location held
-/// for that site.
+/// to what it was before the lookup, which only fills an empty one, and its
+/// site write is released, as is a location held for that site.
 ///
 /// [siteDiveTypeIds] and [resolver] run after; each drops its result if the
 /// sitting ended, is being saved, or has another site by then. The dive
@@ -96,7 +121,9 @@ void assignDiveSite(
     altitudeFillNoteKey,
   );
   if (filled != null && session.valueOf(diveAltitudeField) == filled.meters) {
-    session.set(diveAltitudeField, session.stored.altitude);
+    // A lookup fills only an empty altitude, so before it there was none.
+    // Not the stored altitude: one the diver cleared must stay cleared.
+    session.set(diveAltitudeField, null);
     session.remember(altitudeFillNoteKey, null);
   }
   if (session.valueOf(diveAltitudeField) == null) {

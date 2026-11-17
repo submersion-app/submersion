@@ -46,7 +46,9 @@ const String altitudeFillNoteKey = 'altitudeFill';
 /// is what answered, the altitude belongs on the site as well: the write is
 /// held on [session] and made by [writeSiteAltitude] when the sitting is
 /// saved, so cancelling leaves the site as it was. It is made only if the
-/// dive still has that altitude by then.
+/// dive still has that altitude by then, and [writeSiteAltitude] is the
+/// write that keeps an altitude the site gained meanwhile
+/// (`SiteRepository.fillSiteAltitudeIfEmpty`).
 ///
 /// It never replaces an altitude: one set before the call, or typed while
 /// the lookup ran, stays. A result that arrives after the sitting ended,

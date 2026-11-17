@@ -330,7 +330,18 @@ class SiteSuggestionCard extends ConsumerWidget {
               session.holdChange(
                 siteLocationChangeKey(site.id),
                 cardId: diveHeaderCardId,
-                write: () => sites.updateSiteCoordinates(site.id, point),
+                write: () async {
+                  await sites.updateSiteCoordinates(site.id, point);
+                  // Its altitude is looked up once the save commits, as the
+                  // immediate path does once a site gains its location.
+                  // Read back: a library site this profile may not edit
+                  // declines the write without saying so, and has no new
+                  // location to work an altitude or a tide out from.
+                  final stored = await sites.getSiteById(site.id);
+                  if (stored?.location == point && stored?.altitude == null) {
+                    noteSiteLocated(session, site.id, point);
+                  }
+                },
               );
             },
       onDismiss: !live

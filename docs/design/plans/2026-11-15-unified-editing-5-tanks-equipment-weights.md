@@ -1175,3 +1175,7 @@ The plan was built as written in this session (Eric chose "Native"), then review
 - A stored switch already out of range blocks Done on an opened Cylinders card, and Save of a sitting that changed anything, as the form's validator does today. A sitting with nothing to write ends on Save.
 - Exchanged readings are not in the sitting's History entry until plan 9.
 - Tests not written: the gauge mode picked in a sitting leaving deco, tissue and SAC segments until Save; the pairs in a sitting; Save as set surviving Cancel; a set used across three cards at page level (it hangs on database reads in the fake clock).
+
+### Cleared later (PR #4670)
+
+- The four tests are written: `dive_detail_page_unlock_gear_pairs_test.dart` (the gauge mode and the pairs) and `dive_detail_page_unlock_gear_sets_test.dart` (Save as set, and a set used across three cards, which waits on the real clock for the set's reads). The stored switch out of range was fixed in #4623, and exchanged readings reach History through plan 9.

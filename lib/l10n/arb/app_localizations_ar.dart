@@ -8964,6 +8964,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_row_trip => 'الرحلة';
 
   @override
+  String get diveLog_edit_row_tripNotFound => 'الرحلة غير موجودة';
+
+  @override
   String get diveLog_edit_save => 'حفظ';
 
   @override
@@ -22575,6 +22578,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get media_viewer_movedWhileEditing =>
       'نُقل إلى غطسة أخرى منذ إلغاء القفل. ألغِ، ثم ألغِ القفل مرة أخرى.';
+
+  @override
+  String get media_viewer_locatedFileChanged =>
+      'تغيّر الملف المحدد أو نُقل منذ ذلك الحين. حدّد موقعه مرة أخرى أو ألغِ.';
 
   @override
   String get media_viewer_exitFullscreen => 'الخروج من ملء الشاشة';

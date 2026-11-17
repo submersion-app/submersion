@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
@@ -112,23 +113,30 @@ void main() {
   late _PreDiveRepo preDive;
   _SpyList? list;
 
-  Future<FakeSave> pump(WidgetTester tester, {Dive? stored}) async {
+  Future<FakeSave> pump(
+    WidgetTester tester, {
+    Dive? stored,
+    Dive Function(Dive stored)? afterUnlink,
+    Set<DiveDetailSectionId> visible = const {
+      DiveDetailSectionId.notes,
+      DiveDetailSectionId.dataSources,
+    },
+  }) async {
     repo = _Repo();
     list = null;
     late FakeSave save;
     preDive = _PreDiveRepo(
       // The unlink lands as a change to the stored dive, so the fresh
       // sitting can be seen reading it.
-      () => save.stored = save.stored.copyWith(notes: 'After the operation'),
+      () => save.stored =
+          afterUnlink?.call(save.stored) ??
+          save.stored.copyWith(notes: 'After the operation'),
     );
     final page = await pumpPage(
       tester,
       stored: stored,
       sources: _sources,
-      visible: const {
-        DiveDetailSectionId.notes,
-        DiveDetailSectionId.dataSources,
-      },
+      visible: visible,
       size: const Size(700, 1600),
       extra: [
         diveRepositoryProvider.overrideWithValue(repo),
@@ -233,5 +241,41 @@ void main() {
     await settle(tester);
     expect(save.calls, isEmpty);
     expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+  });
+
+  // Review Focus 2: the fresh sitting offers again what the operation
+  // emptied, as the strip is worked out from the dive as stored now.
+  testWidgets('a card an operation emptied is offered on the strip again', (
+    tester,
+  ) async {
+    final night = Tag(
+      id: 'night',
+      name: 'Night',
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
+    );
+    await pump(
+      tester,
+      stored: dive.copyWith(tags: [night]),
+      afterUnlink: (stored) => stored.copyWith(tags: const []),
+      visible: const {
+        DiveDetailSectionId.tags,
+        DiveDetailSectionId.notes,
+        DiveDetailSectionId.dataSources,
+      },
+    );
+    await unlock(tester);
+    final tagsChip = find.byKey(
+      ValueKey('addStrip_${DiveDetailSectionId.tags.name}'),
+    );
+    expect(tagsChip, findsNothing);
+
+    await _openPageMenu(tester);
+    await tester.tap(find.text('Unlink pre-dive checklist'));
+    await settle(tester);
+    await settle(tester);
+
+    expect(_controller(tester).isUnlocked, isTrue);
+    expect(tagsChip, findsOneWidget);
   });
 }

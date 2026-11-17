@@ -53,6 +53,7 @@ class DiveEquipmentSection extends ConsumerWidget {
       context.l10n,
       recordOperationBlockOf(edit),
     );
+    final runAsOperation = recordOperationRunnerOf(edit);
     final card = CollapsibleCardSection(
       title: context.l10n.diveLog_detail_section_equipment,
       icon: Icons.backpack,
@@ -100,7 +101,7 @@ class DiveEquipmentSection extends ConsumerWidget {
             dive: dive,
             readOnly: checkInReadOnly(item.id),
             operationReason: checkInReadOnly(item.id) ? null : operationReason,
-            runAsOperation: edit?.runOperation,
+            runAsOperation: runAsOperation,
           ),
         ),
       ),

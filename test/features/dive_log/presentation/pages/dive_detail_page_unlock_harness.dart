@@ -117,6 +117,7 @@ final dive = Dive(
 
 /// Pumps the page on top of a home route, with only Tags and Notes shown
 /// so both are on screen, and returns the router and the fake service.
+/// [routes] join the router, for the pages a test opens from the dive.
 Future<({GoRouter router, FakeSave save})> pumpPage(
   WidgetTester tester, {
   bool unlockEditing = true,
@@ -128,12 +129,15 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
     DiveDetailSectionId.notes,
   },
   Completer<void>? reloadGate,
+  Object? Function()? reloadError,
   String initialLocation = '/home/dive',
   List<Override> extra = const [],
   bool imperial = false,
   ValueNotifier<String>? shownDiveId,
   List<DiveDataSource> sources = const [],
   bool shortcuts = false,
+  List<RouteBase> routes = const [],
+  bool siteInPane = false,
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = size;
@@ -188,6 +192,11 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
                   diveId: id,
                   embedded: embedded,
                   unlockEditing: unlockEditing,
+                  // With [siteInPane], a `site=` in the location shows that
+                  // site in the dive's place, as the list pane does.
+                  embeddedSiteId: siteInPane
+                      ? state.uri.queryParameters['site']
+                      : null,
                 );
                 // The list pane sits in the master-detail scaffold.
                 return embedded ? Scaffold(body: page) : page;
@@ -221,6 +230,8 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
           ),
         ),
       ),
+      // Whatever else a test's page opens.
+      ...routes,
     ],
   );
 
@@ -234,6 +245,10 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
           // Every load after the first waits on [reloadGate], so a test
           // can look at the page before the saved dive is read back.
           if (++loads > 1 && reloadGate != null) await reloadGate.future;
+          // A load after the first fails with what [reloadError] answers
+          // then, as a database read can after an operation has written.
+          final error = loads > 1 ? reloadError?.call() : null;
+          if (error != null) throw error;
           return save.stored;
         }),
         diveDataSourcesProvider(dive.id).overrideWith((ref) async => sources),

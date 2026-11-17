@@ -984,6 +984,12 @@ Tasks 1 to 12 were built as written in one session (Eric chose "Native"), then r
 - The add-to-dive snackbar covers tag mode's bar for its four seconds (as before this plan).
 - Check now, Back up now and Retry upload stay in the locked info sheet: they act on the file check and the media store copy, outside the lock (Eric's choice, restated on the PR).
 
+### Cleared later (PR #4670, after Task 13)
+
+- Save reads the located file again: one gone or edited since fails the save with `LocatedFileChangedError` and `media_viewer_locatedFileChanged`.
+- `withHeldRelink` draws the relink by the repair's own rule (`relinkedToFile`, also the repair's same-bytes check), pinned against the stored row.
+- One helper, `undoHeldWritesOnFailure`, takes back held writes for the dive's media and the photo's relink.
+
 ### For Task 13 and plan 11
 
 - **Task 13.** Locate is hidden in a sitting until it can be held. `MediaInfoPanel(sitting:)` is where its hold goes; `PhotoEditSaveService.save(alsoWrite:)` takes the relink. The Media card opening the viewer on `mediaInSitting` gets "no unlock" for a held photo for free: `canUnlock` needs a stored row.

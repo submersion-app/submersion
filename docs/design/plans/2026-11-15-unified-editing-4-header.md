@@ -1302,3 +1302,10 @@ The plan was built as written in this session, then reviewed as a whole branch b
 - The altitude take-back restores the stored altitude, not the value before the lookup: a stored altitude the diver cleared comes back.
 - The estimated exit, shown as the exit row's placeholder, reads much like a recorded exit.
 - Tests not written: the site picker opening on the dive's GPS or area, once per tap; a held location actually written by Save; a species refresh that throws; the hero's site tap while unlocked; the stored site picked back after two others.
+
+### Cleared later (PR #4670)
+
+- A location added from the suggestion has the site's altitude looked up, after the save commits (the held write notes the site; `sitesLocatedInSave`).
+- Taking back a looked-up altitude restores none, as before the lookup, so one the diver cleared stays cleared.
+- The five tests are written (`dive_detail_page_unlock_site_test.dart`); the species refresh, which only invalidates and cannot throw, is tested through the read after it.
+- Still open, needing a decision: the estimated exit placeholder's wording.

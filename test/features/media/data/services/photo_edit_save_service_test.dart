@@ -445,6 +445,11 @@ void main() {
     late MediaTransferQueueRepository queue;
     final relinkedPath = p.join(Directory.systemTemp.path, 'relinked.jpg');
 
+    /// Reads every file as holding [hash], as the found file still does at
+    /// Save unless a test says otherwise.
+    Future<({String hash, int sizeBytes})> Function(File) hashAs(String hash) =>
+        (_) async => (hash: hash, sizeBytes: 9);
+
     setUp(() {
       cacheDb = LocalCacheDatabase(
         NativeDatabase.memory(setup: registerAppSqlFunctions),
@@ -497,7 +502,12 @@ void main() {
         photoSpeciesField,
         SpeciesTagEdits.none.toggled(turtle, tagged: true, stored: const []),
       );
-      holdRelink(session, locate(session), service: repair);
+      holdRelink(
+        session,
+        locate(session),
+        service: repair,
+        hashFile: hashAs('NEW-HASH'),
+      );
       expect(session.changedCardIds, {photoFileCardId, photoSpeciesCardId});
 
       await undoRelinkOnFailure(session, () => save(session));
@@ -533,7 +543,12 @@ void main() {
         deleteBookmark: (ref) async => deleted.add(ref),
       );
       final session = await sitting('p1');
-      holdRelink(session, locate(session), service: repair);
+      holdRelink(
+        session,
+        locate(session),
+        service: repair,
+        hashFile: hashAs('NEW-HASH'),
+      );
       // A held write after the relink fails (the buddy could not be added).
       session.holdChange(
         'photo:addBuddyToDive:b1',
@@ -579,6 +594,7 @@ void main() {
           ),
         ),
         service: repair,
+        hashFile: hashAs('OTHER-HASH'),
       );
 
       await expectLater(
@@ -619,6 +635,7 @@ void main() {
           ),
         ),
         service: repair,
+        hashFile: hashAs('FOUND-HASH'),
       );
       // Another device stamps other bytes on the row meanwhile.
       await media.stampContentIdentity(
@@ -656,6 +673,7 @@ void main() {
           ),
         ),
         service: repair,
+        hashFile: hashAs('FOUND-HASH'),
       );
       // Another device stamps other bytes on the row, and the sitting has not
       // followed it yet (no rebase).
@@ -680,11 +698,85 @@ void main() {
         writeBookmark: null,
       );
       final session = await sitting('p1');
-      holdRelink(session, locate(session), service: repair);
+      holdRelink(
+        session,
+        locate(session),
+        service: repair,
+        hashFile: hashAs('NEW-HASH'),
+      );
       session.dispose();
 
       expect((await stored('p1')).item.localPath, isNull);
       expect(await operations(), isEmpty);
+    });
+
+    // Copilot's review of PR #4658: the file Locate found can change or
+    // go between Locate and Save. The diver saw that file, so Save relinks
+    // only to the bytes found, and otherwise fails with nothing written.
+    test('a file gone between Locate and Save fails the save: nothing is '
+        'written', () async {
+      final repair = MediaRepairService(
+        repository: media,
+        queue: queue,
+        createBookmark: null,
+        writeBookmark: null,
+      );
+      final session = await sittingWithHash('OLD-HASH');
+      session.set(
+        photoSpeciesField,
+        SpeciesTagEdits.none.toggled(turtle, tagged: true, stored: const []),
+      );
+      holdRelink(
+        session,
+        locate(session),
+        service: repair,
+        hashFile: (file) async =>
+            throw FileSystemException('No such file', file.path),
+      );
+
+      await expectLater(
+        undoRelinkOnFailure(session, () => save(session)),
+        throwsA(isA<LocatedFileChangedError>()),
+      );
+
+      final after = await stored('p1');
+      expect(after.item.localPath, isNull);
+      expect(after.species, isEmpty);
+      expect(relinkAfterCommit(session), isEmpty);
+      expect(await uploads(), isEmpty);
+    });
+
+    test('a file changed between Locate and Save fails the save: nothing is '
+        'written', () async {
+      final repair = MediaRepairService(
+        repository: media,
+        queue: queue,
+        createBookmark: null,
+        writeBookmark: null,
+      );
+      final session = await sittingWithHash('OLD-HASH');
+      session.set(
+        photoSpeciesField,
+        SpeciesTagEdits.none.toggled(turtle, tagged: true, stored: const []),
+      );
+      // Found as NEW-HASH, edited on disk since.
+      holdRelink(
+        session,
+        locate(session),
+        service: repair,
+        hashFile: hashAs('EDITED-SINCE'),
+      );
+
+      await expectLater(
+        undoRelinkOnFailure(session, () => save(session)),
+        throwsA(isA<LocatedFileChangedError>()),
+      );
+
+      final after = await stored('p1');
+      expect(after.item.localPath, isNull);
+      expect(after.item.contentHash, 'OLD-HASH');
+      expect(after.species, isEmpty);
+      expect(await uploads(), isEmpty);
     });
   });
 }

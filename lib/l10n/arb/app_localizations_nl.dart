@@ -8767,6 +8767,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_row_trip => 'Reis';
 
   @override
+  String get diveLog_edit_row_tripNotFound => 'Reis niet gevonden';
+
+  @override
   String get diveLog_edit_save => 'Opslaan';
 
   @override
@@ -22080,6 +22083,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get media_viewer_movedWhileEditing =>
       'Verplaatst naar een andere duik sinds je het ontgrendelde. Annuleer en ontgrendel het opnieuw.';
+
+  @override
+  String get media_viewer_locatedFileChanged =>
+      'Het gevonden bestand is sindsdien gewijzigd of verplaatst. Zoek het opnieuw of annuleer.';
 
   @override
   String get media_viewer_exitFullscreen => 'Volledig scherm verlaten';
