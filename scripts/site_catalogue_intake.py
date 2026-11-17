@@ -17,6 +17,7 @@ vocabularies the app cannot read.
 """
 
 import argparse
+import json
 import shutil
 import sys
 from pathlib import Path
@@ -34,12 +35,29 @@ INTAKE_FILES = {
 }
 
 
-def take(release_dir: Path, repo: Path = REPO) -> list[str]:
+def _generated_at(path: Path) -> str | None:
+    """A catalogue file's build stamp (ISO UTC, so it orders as text)."""
+    if not path.is_file():
+        return None
+    return (json.loads(path.read_text("utf-8")).get("metadata") or {}).get("generated_at")
+
+
+def take(release_dir: Path, repo: Path = REPO, *, allow_older: bool = False) -> list[str]:
     """Copies the release's files into [repo] and returns the repository
-    paths written. Raises ValueError, changing nothing, when any is missing."""
+    paths written. Raises ValueError, changing nothing, when any is missing,
+    or when the release was built before the shipped catalogue (a downgrade)
+    unless [allow_older] says the rollback is meant. A release built from
+    the same snapshots as the shipped one has the same stamp and is taken."""
     missing = sorted(name for name in INTAKE_FILES if not (release_dir / name).is_file())
     if missing:
         raise ValueError(f"the release is missing {', '.join(missing)}")
+    shipped = _generated_at(repo / INTAKE_FILES["site_catalogue.json"])
+    built = _generated_at(release_dir / "site_catalogue.json")
+    if not allow_older and shipped and (not built or built < shipped):
+        raise ValueError(
+            f"the release (built {built}) is older than the shipped catalogue "
+            f"(built {shipped}); take it with --allow-older only to roll back on purpose"
+        )
     for name, relative in INTAKE_FILES.items():
         target = repo / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -77,9 +95,11 @@ def main(argv=None) -> int:
     parser.add_argument("--tag", default="")
     parser.add_argument("--notes", type=Path, default=None)
     parser.add_argument("--body", type=Path, default=None)
+    parser.add_argument("--allow-older", action="store_true",
+                        help="take a release built before the shipped catalogue (a rollback)")
     arguments = parser.parse_args(argv)
     try:
-        for path in take(arguments.release_dir):
+        for path in take(arguments.release_dir, allow_older=arguments.allow_older):
             print(path)
     except ValueError as error:
         print(error)
