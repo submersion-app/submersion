@@ -332,11 +332,14 @@ holds whichever detector the maintainer picks.
 | --- | --- | --- |
 | Community Fish Detector (today) | RF-DETR nano, 640 px, fish only | none stated, intentionally |
 | Megalodon 2024 | `FathomNet/megalodon-2024-yolov11`, YOLO11x, 114 MB checkpoint | CC BY 4.0 |
-| Megalodon 2023 | `FathomNet/megalodon-2023-yolov8` (what `FathomNet/megalodon` now points to), YOLOv8x, 137 MB checkpoint | CC BY 4.0 |
+| Megalodon 2023 (not measured, see below) | `FathomNet/megalodon-2023-yolov8` (what `FathomNet/megalodon` now points to), YOLOv8x, 137 MB checkpoint | CC BY 4.0 |
 | Both together | the Community Fish Detector and Megalodon 2024, boxes merged | |
 
-Both Megalodon checkpoints are pinned by Hugging Face revision and SHA-256,
-as `models.py` pins the others. Megalodon was trained on FathomNet, mostly
+The Megalodon 2024 checkpoint is pinned by Hugging Face revision and
+SHA-256, as `models.py` pins the others. Megalodon 2023 was dropped while
+building: its checkpoint was saved with `dill` and needs a general type
+loader to open, which torch's safe loader rightly refuses **(changed while
+building)**. Megalodon was trained on FathomNet, mostly
 research and deep-sea ROV imagery; its model card expects shifts in camera,
 lighting and environment to hurt it, so a gap on reef photos is likely and is
 what this measures.
