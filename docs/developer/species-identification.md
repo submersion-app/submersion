@@ -24,10 +24,10 @@ Two things must hold before its default changes:
    FathomNet's Megalodon is CC BY 4.0 but was trained with AGPL code. The
    [measured accuracy findings](../design/findings/2026-11-17-marine-life-measured-accuracy.md)
    compare the two and recommend one.
-2. The confidence bars in the pack come from measured accuracy. A full pack
-   (about 7,600 candidates) with the Community Fish Detector is now written
-   with measured bars; a smaller development pack, or one with another
-   detector, is still marked `provisional`.
+2. The confidence bars in the pack come from measured accuracy. The pack
+   they were measured on (pack version `2026.11.17.1617`, Community Fish
+   Detector) is written with them; any other pack, a rebuilt candidate list
+   included, is marked `provisional` until the scorer is run on it.
 
 Only iPhone, iPad and Mac can run it so far. Phones and tablets need at
 least 6 GB of memory.
@@ -159,8 +159,9 @@ tool (`tool/species_pack/vision_cli/`), once per detector and crop fitting,
 names every crop with `naming.py`, chooses bars on the tune half and checks
 them on the held-out half, and writes `report.md` and `results.json` to the
 work folder. Copy the chosen bars into `NAMING_MEASURED` in
-`tool/species_pack/manifest.py`; a pack is written with them only when its
-detector, classifier and candidate count match.
+`tool/species_pack/manifest.py`, with the measured pack's version and the
+SHA-256 of its `candidates.json`, `text_embeddings.f16` and `regions.bin`; a
+pack is written with them only when it is that exact pack.
 
 The pure parts have tests that CI runs, beside the others above:
 `naming_test.py`, `bars_test.py`, `metrics_test.py`, `testset_test.py` and

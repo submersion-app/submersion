@@ -498,12 +498,14 @@ number. For each detector and each fitting, on the held-out half:
 
 - `manifest.py`: `NAMING_PROVISIONAL` stays as the values for a pack the bars
   were not measured on. A new `NAMING_MEASURED` holds the chosen bars with
-  `provisional: false`, the detector id, the classifier id, the candidate
-  count and the findings file they came from. `build_manifest` uses the
-  measured bars only when the pack's detector and classifier ids match and its
-  candidate count is within 10% of the measured one; otherwise it writes the
-  provisional bars, so a small development pack, or a pack with another
-  detector, is never labelled measured **(proposed)**.
+  `provisional: false`, the detector id, the classifier id, the crop
+  fitting, the SHA-256 of the pack's naming files (`candidates.json`,
+  `text_embeddings.f16`, `regions.bin`) and the findings file they came from.
+  `build_manifest` uses the measured bars only for that exact pack;
+  otherwise it writes the provisional bars, so a development pack, a pack
+  with another detector, or a rebuilt candidate list of any size is never
+  labelled measured until the scorer is run on it **(decided, replacing a
+  10% candidate-count rule after review)**.
 - The bars written are the Community Fish Detector's, since that is the
   detector packs carry today. Megalodon's measured bars are recorded in the
   findings, ready for the pack that adopts it.
@@ -595,8 +597,9 @@ them; no automated test runs the models.
    is below the target.
 7. Centre crop is adopted only if it is significantly better; otherwise
    pad-to-square stays.
-8. Measured bars apply only to packs within 10% of the measured candidate
-   count with the same classifier.
+8. Measured bars apply only to the exact pack measured (its detector,
+   classifier, fitting and naming files). This replaced a 10% candidate-count
+   rule, at the maintainer's choice, after review.
 9. `minCropSide`, `minAllowedCandidates` and `topK` are not tuned.
 10. The manifest gains an optional `confidentScoreNoLocation`.
 11. The builder labels the junk boxes and reviews the underwater filter, and

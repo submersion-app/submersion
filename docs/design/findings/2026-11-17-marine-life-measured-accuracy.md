@@ -13,7 +13,9 @@ interval where one is given. The bars were chosen on the other half.
 ## The answers
 
 1. **The bars for today's packs** (Community Fish Detector, centre crop),
-   now in `tool/species_pack/manifest.py` with `provisional: false`:
+   now in `tool/species_pack/manifest.py` with `provisional: false`. They
+   apply only to the pack measured: the same detector, classifier, fitting
+   and naming files, so a rebuilt candidate list waits for a new run:
 
    | Bar | Value |
    | --- | --- |
