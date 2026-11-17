@@ -184,6 +184,7 @@ class SpeciesPackManifest extends Equatable {
     required this.cropThumbnailSize,
     required this.files,
     required this.credits,
+    this.source = '',
   });
 
   static const int supportedFormatVersion = 1;
@@ -205,6 +206,10 @@ class SpeciesPackManifest extends Equatable {
   final int cropThumbnailSize;
   final List<PackFile> files;
   final List<PackCredit> credits;
+
+  /// The text this was parsed from, written to disk with an installed pack.
+  /// Not part of equality.
+  final String source;
 
   /// Throws [PackManifestException] when [source] is not a manifest this
   /// build can use.
@@ -270,6 +275,7 @@ class SpeciesPackManifest extends Equatable {
         for (final entry in _list(root, 'credits', optional: true))
           _credit(_map(entry, 'credits entry')),
       ],
+      source: source,
     );
   }
 
