@@ -45,10 +45,15 @@ void holdRelink(
       session
         ..remember(_relinkAfterKey, null)
         ..remember(_relinkUndoKey, undo);
+      // The row as it is now, read inside the save's transaction: the
+      // sitting's copy may not have caught up with a change made since.
+      final id = session.stored.item.id;
+      final current = await service.repository.getMediaById(id);
+      if (current == null) throw StateError('Media $id no longer exists');
       final report = await service.apply(
         [
           RepairProposal(
-            item: session.stored.item,
+            item: current,
             confidence: proposal.confidence,
             candidate: proposal.candidate,
           ),
@@ -57,9 +62,7 @@ void holdRelink(
         onRollback: undo,
       );
       if (report.relinked == 0) {
-        throw StateError(
-          'Media ${session.stored.item.id} could not be relinked',
-        );
+        throw StateError('Media $id could not be relinked');
       }
       session.remember(_relinkAfterKey, after);
     },

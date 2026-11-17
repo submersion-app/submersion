@@ -635,6 +635,43 @@ void main() {
       expect((await stored('p1')).item.localPath, isNull);
     });
 
+    test('the relink is checked against the row read inside the save, even '
+        'when the sitting has not caught up with it', () async {
+      final repair = MediaRepairService(
+        repository: media,
+        queue: queue,
+        createBookmark: null,
+        writeBookmark: null,
+      );
+      final session = await sittingWithHash('FOUND-HASH');
+      holdRelink(
+        session,
+        RepairProposal(
+          item: session.stored.item,
+          confidence: RepairConfidence.exact,
+          candidate: RepairCandidate.file(
+            path: relinkedPath,
+            sizeBytes: 9,
+            hash: 'FOUND-HASH',
+          ),
+        ),
+        service: repair,
+      );
+      // Another device stamps other bytes on the row, and the sitting has not
+      // followed it yet (no rebase).
+      await media.stampContentIdentity(
+        'p1',
+        contentHash: 'RESTAMPED',
+        sizeBytes: 12,
+      );
+
+      await expectLater(
+        undoRelinkOnFailure(session, () => save(session)),
+        throwsStateError,
+      );
+      expect((await stored('p1')).item.localPath, isNull);
+    });
+
     test('Cancel after Locate: nothing is written', () async {
       final repair = MediaRepairService(
         repository: media,
