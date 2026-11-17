@@ -78,6 +78,10 @@ void main() {
   var ids = 0;
   var generation = 0;
 
+  /// How many file reads succeed before the file cannot be opened; null
+  /// for every one.
+  int? readsAllowed;
+
   setUp(() async {
     library = AppDatabase(
       NativeDatabase.memory(setup: registerAppSqlFunctions),
@@ -94,6 +98,7 @@ void main() {
     imageFor = (item) => IdentificationImage.path('/photos/${item.id}.jpeg');
     ids = 0;
     generation = 0;
+    readsAllowed = null;
     service = MediaIdentificationService(
       engine: engine,
       loadPack: () async => installed,
@@ -102,8 +107,14 @@ void main() {
       crops: crops,
       resolveImage: (item) async => imageFor(item),
       resolveVideo: (item) async =>
-          <T>(Future<T> Function(String path) read) =>
-              read('/videos/${item.id}.mp4'),
+          <T>(Future<T> Function(String path) read) async {
+            final allowed = readsAllowed;
+            if (allowed != null) {
+              if (allowed <= 0) return null;
+              readsAllowed = allowed - 1;
+            }
+            return read('/videos/${item.id}.mp4');
+          },
       taggedSpecies: (_) async => tagged,
       enabled: () => enabled,
       databaseGeneration: () => generation,
@@ -513,6 +524,26 @@ void main() {
       engine.onEmbedMoments = () => service.cancelPending('v1');
       await service.request(video());
       expect(engine.embedCalls, hasLength(1));
+      final kept = (await identifications.forMedia('v1')).single;
+      expect(kept.isPending, isTrue);
+      expect((kept.startMs, kept.endMs), (8000, 9750));
+    });
+
+    test('a file that cannot be opened mid-scan keeps the fish open where '
+        'the scan stopped', () async {
+      engine.videoFrames = {
+        for (var ms = 8000; ms < 12000; ms += 250)
+          ms: [
+            const DetectedBox(
+              box: IdentificationBox(x: 0.05, y: 0.8, width: 0.1, height: 0.1),
+              score: 0.9,
+            ),
+          ],
+      };
+      // Chunk 1 reads the file; chunk 2 finds it gone.
+      readsAllowed = 1;
+      await service.request(video());
+      expect(engine.detectCalls, hasLength(1));
       final kept = (await identifications.forMedia('v1')).single;
       expect(kept.isPending, isTrue);
       expect((kept.startMs, kept.endMs), (8000, 9750));

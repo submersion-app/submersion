@@ -103,34 +103,57 @@ class MediaIdentificationRepository {
     });
   }
 
-  /// Writes [changed] over the stored rows with the same ids, and [run]
-  /// when given, in one transaction. Only rows still stored are written: a
-  /// decision that lands after the photo's rows were cleared or replaced
-  /// must not bring them back. A claim is left as stored: [changed] comes
-  /// from an earlier read, and the diver may have named the fish since
-  /// (issue #4675); only [claim] and a fresh scan write one.
-  Future<void> updateIdentifications(
+  /// Writes the decisions on [changed] (the decision, its species and
+  /// when) and nothing else, in one transaction. [changed] comes from an
+  /// earlier read: a video's scan may have moved, renamed or claimed the
+  /// same rows since (issue #4675), and those columns stay as stored. Only
+  /// rows still stored are written: a decision that lands after the rows
+  /// were cleared or replaced must not bring them back.
+  Future<void> updateDecisions(List<MediaIdentification> changed) =>
+      _db.transaction(() async {
+        for (final identification in changed) {
+          final row = _toCompanion(identification);
+          await _writeOver(
+            identification.id,
+            MediaIdentificationsCompanion(
+              decision: row.decision,
+              decidedSpeciesId: row.decidedSpeciesId,
+              decidedAt: row.decidedAt,
+            ),
+          );
+        }
+      });
+
+  /// Writes what naming found for [changed] (scores, candidates and label
+  /// flags) and [run], moved on to the pack and place they were named for,
+  /// in one transaction. Decisions, claims, boxes and paths stay as stored:
+  /// the diver may have decided since [changed] was read. Only rows still
+  /// stored are written, and [run] only while it is.
+  Future<void> updateNames(
     List<MediaIdentification> changed, {
-    MediaIdentificationRun? run,
-  }) {
-    final db = _db;
-    return db.transaction(() async {
-      for (final identification in changed) {
-        await (db.update(
-          db.mediaIdentifications,
-        )..where((r) => r.id.equals(identification.id))).write(
-          _toCompanion(
-            identification,
-          ).copyWith(claimedSpeciesId: const Value.absent()),
-        );
-      }
-      if (run != null) {
-        await db
-            .update(db.mediaIdentificationRuns)
-            .replace(_runToCompanion(run));
-      }
-    });
-  }
+    required MediaIdentificationRun run,
+  }) => _db.transaction(() async {
+    for (final identification in changed) {
+      final row = _toCompanion(identification);
+      await _writeOver(
+        identification.id,
+        MediaIdentificationsCompanion(
+          openScore: row.openScore,
+          candidatesJson: row.candidatesJson,
+          locationLimited: row.locationLimited,
+          suggestable: row.suggestable,
+          confident: row.confident,
+          specific: row.specific,
+        ),
+      );
+    }
+    await _db.update(_db.mediaIdentificationRuns).replace(_runToCompanion(run));
+  });
+
+  Future<void> _writeOver(String id, MediaIdentificationsCompanion columns) =>
+      (_db.update(
+        _db.mediaIdentifications,
+      )..where((r) => r.id.equals(id))).write(columns);
 
   /// Records that the diver gave [identificationId] the species
   /// [speciesId] from the frame (issue #4675). Writes nothing when the row

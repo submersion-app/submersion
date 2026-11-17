@@ -194,7 +194,12 @@ extension _VideoScanning on MediaIdentificationService {
         }
         _videoProgress = scan.progress;
         _changed();
-        if (!more) return false;
+        if (!more) {
+          // The end, another logbook, or a file that cannot be opened any
+          // more: in the last, the tracks open where it stopped are kept.
+          await scan.finish(naming: false);
+          return false;
+        }
       }
     } on Object catch (e) {
       // In the background, too hot, or a failure: what was stored stays,

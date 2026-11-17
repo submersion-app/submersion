@@ -207,7 +207,7 @@ void main() {
     await first.finish();
     final cut = (await identifications.forMedia('v1')).single;
     expect(cut.endMs, 9750);
-    await identifications.updateIdentifications([
+    await identifications.updateDecisions([
       cut.copyWith(
         decision: IdentificationDecision.rejected,
         decidedAt: fixtureT1,
@@ -243,7 +243,7 @@ void main() {
       );
       // The diver names the fish after the scan read the rows.
       await identifications.claim(cut.id, 'sp_named_meanwhile');
-      await identifications.updateIdentifications([
+      await identifications.updateDecisions([
         cut.copyWith(
           decision: IdentificationDecision.rejected,
           decidedAt: fixtureT1,
@@ -308,7 +308,7 @@ void main() {
       decision: IdentificationDecision.rejected,
       decidedAt: fixtureT1,
     );
-    await identifications.updateIdentifications([dismissed]);
+    await identifications.updateDecisions([dismissed]);
     await runAll(scan(carry: [dismissed]));
     final found = await identifications.forMedia('v1');
     expect(found, hasLength(1));
@@ -371,7 +371,7 @@ void main() {
       decision: IdentificationDecision.rejected,
       decidedAt: fixtureT1,
     );
-    await identifications.updateIdentifications([dismissed]);
+    await identifications.updateDecisions([dismissed]);
     final rescan = scan(carry: [dismissed]);
     await identifications.claim(old.id, 'sp_named_meanwhile');
     await runAll(rescan);
@@ -398,7 +398,6 @@ void main() {
   };
 
   test('pass 2 works in batches and stops between them when told', () async {
-    keepGoing = () => true;
     engine.videoFrames = school(5, 1000, 4000);
     final s = scan();
     keepGoing = () => engine.embedCalls.isEmpty;
@@ -412,7 +411,6 @@ void main() {
   });
 
   test('pass 2 batches cover every moment when nothing stops it', () async {
-    keepGoing = () => true;
     engine.videoFrames = school(5, 1000, 4000);
     await runAll(scan());
     expect(engine.embedCalls.map((c) => c.length), [12, 3]);
@@ -421,7 +419,6 @@ void main() {
 
   test('stopping names at most one batch of the tracks still open, and '
       'keeps the rest to name later', () async {
-    keepGoing = () => true;
     engine.videoFrames = school(6, 1000, 15000);
     final s = scan();
     expect(await s.runChunk(), isTrue);
@@ -438,7 +435,6 @@ void main() {
 
   test('fish kept to name later are named, not found again, when the scan '
       'resumes', () async {
-    keepGoing = () => true;
     engine.videoFrames = school(6, 1000, 15000);
     final first = scan();
     expect(await first.runChunk(), isTrue);
@@ -459,7 +455,6 @@ void main() {
   test(
     'a fish kept to name later that left at the stop is still named',
     () async {
-      keepGoing = () => true;
       engine.videoFrames = school(6, 1000, 10000);
       final first = scan();
       expect(await first.runChunk(), isTrue);
@@ -478,7 +473,6 @@ void main() {
 
   test('at a second stop the fish still unnamed are named first, and a '
       'named fish left over keeps its name and grows its path', () async {
-    keepGoing = () => true;
     // Two fish arrive later, so they are the shorter tracks at both stops.
     engine.videoFrames = {
       for (final e in school(6, 1000, 20000).entries)

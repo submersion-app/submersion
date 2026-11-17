@@ -70,7 +70,7 @@ void main() {
       decidedSpeciesId: 'sp_queen_parrotfish',
       decidedAt: fixtureT1,
     );
-    await repo.updateIdentifications([accepted]);
+    await repo.updateDecisions([accepted]);
     expect(await repo.forMedia('m1'), [accepted]);
   });
 
@@ -80,7 +80,7 @@ void main() {
       packVersion: '2026.12.1',
       locationCell: () => null,
     );
-    await repo.updateIdentifications([identification('a')], run: renamed);
+    await repo.updateNames([identification('a')], run: renamed);
     expect(await repo.runFor('m1'), renamed);
   });
 
@@ -93,7 +93,8 @@ void main() {
       decidedAt: fixtureT1,
     );
     await repo.deleteForMedia(['m1']);
-    await repo.updateIdentifications([dismissed], run: run());
+    await repo.updateDecisions([dismissed]);
+    await repo.updateNames([dismissed], run: run());
     expect(await repo.forMedia('m1'), isEmpty);
     expect(await repo.runFor('m1'), isNull);
   });
@@ -243,12 +244,52 @@ void main() {
         final read = track('t1');
         await repo.storeRun(videoRun(), insert: [read], deleteIds: []);
         await repo.claim('t1', 'sp_y');
-        await repo.updateIdentifications([
+        await repo.updateDecisions([
           read.copyWith(decision: IdentificationDecision.rejected),
         ]);
         final stored = (await repo.forMedia('v1')).single;
         expect(stored.decision, IdentificationDecision.rejected);
         expect(stored.claimedSpeciesId, 'sp_y');
+      },
+    );
+
+    test('a decision written from an older read keeps the path and names '
+        'a scan stored since', () async {
+      final read = track('t1', endMs: 2000);
+      await repo.storeRun(videoRun(), insert: [read], deleteIds: []);
+      final grown = track('t1', endMs: 4000).copyWith(openScore: 0.42);
+      await repo.storeRun(videoRun(), insert: [grown], deleteIds: []);
+      await repo.updateDecisions([
+        read.copyWith(decision: IdentificationDecision.rejected),
+      ]);
+      final stored = (await repo.forMedia('v1')).single;
+      expect(stored.decision, IdentificationDecision.rejected);
+      expect(stored.endMs, 4000);
+      // The codec rounds each box; the samples are what tell.
+      expect(stored.path, hasLength(grown.path.length));
+      expect(stored.path.last.ms, 4000);
+      expect(stored.openScore, 0.42);
+    });
+
+    test(
+      'names written from an older read keep a decision made since',
+      () async {
+        final read = track('t1');
+        await repo.storeRun(videoRun(), insert: [read], deleteIds: []);
+        final decided = read.copyWith(
+          decision: IdentificationDecision.accepted,
+          decidedSpeciesId: 'sp_x',
+          decidedAt: fixtureT1,
+        );
+        await repo.updateDecisions([decided]);
+        await repo.updateNames([
+          read.copyWith(openScore: 0.33, confident: false),
+        ], run: videoRun());
+        final stored = (await repo.forMedia('v1')).single;
+        expect(stored.decision, IdentificationDecision.accepted);
+        expect(stored.decidedSpeciesId, 'sp_x');
+        expect(stored.openScore, 0.33);
+        expect(stored.confident, isFalse);
       },
     );
 

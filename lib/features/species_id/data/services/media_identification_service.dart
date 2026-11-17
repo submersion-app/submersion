@@ -188,7 +188,7 @@ class MediaIdentificationService {
         now: _now().toUtc(),
       );
       if (changed.isNotEmpty && _databaseGeneration() == generation) {
-        await _identifications.updateIdentifications(changed);
+        await _identifications.updateDecisions(changed);
       }
     } on Object catch (e) {
       _log.debug('Could not reconcile identifications of $mediaId', error: e);
@@ -212,7 +212,7 @@ class MediaIdentificationService {
             ),
       ];
       if (changed.isNotEmpty && _databaseGeneration() == generation) {
-        await _identifications.updateIdentifications(changed);
+        await _identifications.updateDecisions(changed);
       }
     } on Object catch (e) {
       _log.debug('Could not dismiss suggestions of $mediaId', error: e);
@@ -447,7 +447,7 @@ class MediaIdentificationService {
         _named(undecided[k], results[k], naming),
     ];
     if (_databaseGeneration() != generation) return;
-    await _identifications.updateIdentifications(
+    await _identifications.updateNames(
       changed,
       run: run.copyWith(
         packVersion: pack.pack.manifest.packVersion,

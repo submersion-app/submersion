@@ -384,26 +384,20 @@ class VideoIdentificationScan {
           if (named(all[a]) != named(all[b])) return named(all[a]) ? 1 : -1;
           return length(all[b]).compareTo(length(all[a]));
         });
-      final kept = <int>{};
+      // Filled in [order], so it is in that order too.
+      final chosen = <int>[];
       var moments = 0;
       for (final k in order) {
         if (moments + picks[k].length > embedBatch) break;
         moments += picks[k].length;
-        kept.add(k);
+        chosen.add(k);
       }
       final now = _now().toUtc();
       left.addAll([
-        for (var k = 0; k < all.length; k++)
-          if (!kept.contains(k)) _unnamed(all[k], now),
+        for (final k in order.skip(chosen.length)) _unnamed(all[k], now),
       ]);
-      closed = [
-        for (final k in order)
-          if (kept.contains(k)) all[k],
-      ];
-      picks = [
-        for (final k in order)
-          if (kept.contains(k)) picks[k],
-      ];
+      closed = [for (final k in chosen) all[k]];
+      picks = [for (final k in chosen) picks[k]];
     }
     final moments = [
       for (final chosen in picks)
