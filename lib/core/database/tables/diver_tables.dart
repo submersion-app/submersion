@@ -684,6 +684,8 @@ class DiverSettings extends Table {
   /// Planner default CMF supply injection rate, surface L/min (v374, issue
   /// #4660; each loop default is the figure every plan used before).
   RealColumn get plannerScrInjectionRate =>
+      // Drift copies a default's expression verbatim into database.g.dart, so
+      // these three are literals mirroring ScrCalculator's defaults.
       real().withDefault(const Constant(12.0))();
 
   /// Planner default diver VO2 on a CMF loop, surface L/min.

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/constants/card_color.dart';
@@ -986,9 +987,9 @@ class AppSettings implements UnitFormatterSettings {
     this.plannerDeviationTimeMinutes = 5,
     this.plannerBatteryReserveFraction = 1.0 / 3.0,
     this.plannerWalkSpeedMps = 0.8,
-    this.plannerScrInjectionRate = 12.0,
-    this.plannerScrVo2 = 1.3,
-    this.plannerPscrVo2 = 0.72,
+    this.plannerScrInjectionRate = ScrCalculator.defaultInjectionRateLpm,
+    this.plannerScrVo2 = ScrCalculator.defaultVo2,
+    this.plannerPscrVo2 = ScrCalculator.defaultPscrVo2,
     this.plannerTurnPressureRule,
     this.plannerTurnPressureFraction,
     this.plannerAirBreakO2Seconds,

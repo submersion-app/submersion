@@ -94,6 +94,12 @@ enum PlanIssueType {
     _ => false,
   };
 
+  /// Whether the issue's grouped row is the one with the highest
+  /// [PlanIssue.threshold] rather than the worst [PlanIssue.value]: every SCR
+  /// flow issue carries the plan's one injection rate as its value, and the
+  /// row must name the supply needing the most flow (issue #4660).
+  bool get ranksByThreshold => this == scrFlowTooLow;
+
   /// Critical, yet the plan as computed still reaches the surface: a margin
   /// held back for an emergency is short, not the dive itself (#4475).
   bool get isMarginShortfall => this == minGasAscentViolation;

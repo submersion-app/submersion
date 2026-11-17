@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
@@ -106,6 +108,23 @@ void main() {
       expect(restored.scrInjectionRate, 7.5);
       expect(restored.scrVo2, 2.0);
       expect(restored.pscrVo2, 0.9);
+    });
+
+    test('drops a non-positive loop flow from a file', () {
+      final json =
+          jsonDecode(
+                planToSubplanJson(
+                  _plan(scrInjectionRate: 7.5, scrVo2: 2.0, pscrVo2: 0.9),
+                ),
+              )
+              as Map<String, dynamic>;
+      final plan = json['plan'] as Map<String, dynamic>;
+      plan['scrVo2'] = -1;
+      plan['pscrVo2'] = 0;
+      final restored = subplanFromJson(jsonEncode(json));
+      expect(restored.scrInjectionRate, 7.5);
+      expect(restored.scrVo2, isNull);
+      expect(restored.pscrVo2, isNull);
     });
 
     test('keeps unset loop flow values unset', () {

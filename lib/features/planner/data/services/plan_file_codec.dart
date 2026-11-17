@@ -446,9 +446,9 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
     setpointLow: (plan['setpointLow'] as num?)?.toDouble(),
     setpointHigh: (plan['setpointHigh'] as num?)?.toDouble(),
     setpointSwitchDepth: (plan['setpointSwitchDepth'] as num?)?.toDouble(),
-    scrInjectionRate: (plan['scrInjectionRate'] as num?)?.toDouble(),
-    scrVo2: (plan['scrVo2'] as num?)?.toDouble(),
-    pscrVo2: (plan['pscrVo2'] as num?)?.toDouble(),
+    scrInjectionRate: _positive(plan['scrInjectionRate']),
+    scrVo2: _positive(plan['scrVo2']),
+    pscrVo2: _positive(plan['pscrVo2']),
     deviationDepthDelta: (plan['deviationDepthDelta'] as num?)?.toDouble(),
     deviationTimeMinutes: (plan['deviationTimeMinutes'] as num?)?.toInt(),
     turnPressureRule: domain.TurnPressureRule.values
@@ -463,4 +463,12 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
         ? null
         : missionFromFileMap(plan['mission'] as Map<String, dynamic>, _uuid.v4),
   );
+}
+
+/// A loop flow from a plan file (issue #4660): a positive, finite number, or
+/// null so the plan follows the diver's Settings, as every other way of
+/// entering one refuses anything else.
+double? _positive(Object? value) {
+  final v = (value as num?)?.toDouble();
+  return v != null && v.isFinite && v > 0 ? v : null;
 }

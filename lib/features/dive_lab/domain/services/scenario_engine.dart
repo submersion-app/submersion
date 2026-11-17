@@ -418,8 +418,8 @@ class ScenarioEngine {
           ? Scr(
               supplyFO2: plan.segments.last.gasMix.o2 / 100,
               supplyFHe: plan.segments.last.gasMix.he / 100,
-              injectionRateLpm:
-                  request.scrInjectionRate ?? engine.config.scrInjectionRateLpm,
+              // Already the dive's rate, else the diver's (engineConfigFor).
+              injectionRateLpm: engine.config.scrInjectionRateLpm,
               vo2: engine.config.scrVo2Lpm,
             )
           : null,

@@ -36,7 +36,7 @@ class ScenarioSettings extends Equatable {
     this.defaultSacLpm = 15.0,
     this.buddyFactor = 2.0,
     this.reservePressureBar = 50.0,
-    this.defaultScrInjectionRateLpm = 12.0,
+    this.defaultScrInjectionRateLpm = ScrCalculator.defaultInjectionRateLpm,
     this.defaultScrVo2Lpm = ScrCalculator.defaultVo2,
   });
 
