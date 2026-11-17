@@ -9,6 +9,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
 import 'package:submersion/features/planner/domain/services/scr_flow_check.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_issue_text.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -117,6 +118,23 @@ void main() {
       ],
     );
     expect(scrFlowIssues(plan, _config(4.0, 1.3)), isEmpty);
+  });
+
+  test('the grouped row shows the supply that needs the most flow', () {
+    final plan = _plan(
+      tanks: [_tank('t1', _ean50), _tank('t2', _ean32)],
+      segments: [
+        _hold('s1', 't1', _ean50),
+        _hold('s2', 't2', _ean32, order: 1),
+      ],
+    );
+    final issues = scrFlowIssues(plan, _config(2.0, 1.3)).toList();
+    expect(issues, hasLength(2));
+    final grouped = groupPlanIssues(issues).single;
+    expect(grouped.count, 2);
+    // EAN32 needs more than 4.06 L/min; EAN50 only more than 2.6.
+    expect(grouped.issue.threshold, closeTo(1.3 / 0.32, 1e-9));
+    expect(grouped.issue.tankId, 't2');
   });
 
   test('a non-SCR plan raises nothing', () {

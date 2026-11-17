@@ -41,6 +41,12 @@ List<GroupedPlanIssue> groupPlanIssues(List<PlanIssue> issues) {
 }
 
 bool _isWorse(PlanIssue candidate, PlanIssue current) {
+  // Every SCR flow issue carries the same value (the plan's injection rate);
+  // the supply needing the most flow is the one the row must name, so a
+  // diver who raises the flow to it clears every supply (issue #4660).
+  if (candidate.type == PlanIssueType.scrFlowTooLow) {
+    return (candidate.threshold ?? 0) > (current.threshold ?? 0);
+  }
   final a = candidate.value;
   final b = current.value;
   if (a == null) return false;
