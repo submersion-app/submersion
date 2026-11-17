@@ -33,4 +33,16 @@ mixin _DiveDetailPageOperations
     await _runOperation(() async => deleted = await _confirmAndDelete());
     if (deleted) _leaveDeletedDive();
   }
+
+  /// Edit profile, from the Profile card: the editor saves on its own page.
+  Future<bool> _editProfile() async =>
+      (await openProfileEditor(context, ref, diveId)).saved;
+
+  /// Draw a profile, from the menu, for a dive that has none.
+  Future<bool> _drawProfile() async => (await openProfileEditor(
+    context,
+    ref,
+    diveId,
+    initialMode: 'draw',
+  )).saved;
 }

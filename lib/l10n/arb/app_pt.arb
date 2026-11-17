@@ -3330,6 +3330,7 @@
   "recordEdit_unlockToUseThis": "Desbloqueie para usar isto",
   "recordEdit_saveOrCancelFirst": "Guarde ou cancele as suas alterações primeiro",
   "recordEdit_unlockToUseThese": "Desbloqueie para usar estas ações",
+  "diveLog_profile_editProfile": "Editar perfil",
   "siteMatchReview_title": "Associar pontos",
   "siteMatchReview_diveNumber": "Mergulho #{number}",
   "siteMatchReview_empty": "Nada para associar.",

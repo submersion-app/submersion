@@ -10195,6 +10195,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Desbloquea para usar estas opciones';
 
   @override
+  String get diveLog_profile_editProfile => 'Editar perfil';
+
+  @override
   String get settings_manage_setupAssistant => 'Asistente de configuración';
 
   @override

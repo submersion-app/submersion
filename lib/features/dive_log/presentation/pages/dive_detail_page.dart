@@ -38,6 +38,7 @@ import 'package:submersion/features/dive_import/presentation/dive_resync_failure
 import 'package:submersion/features/dive_import/presentation/providers/dive_health_metrics_providers.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_resync_providers.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/open_profile_editor.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/download_target_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_header_block.dart';
@@ -393,6 +394,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       onSetPrimarySource: _setPrimarySourceOperation,
       onOpenInNotes: _scrollToNotes,
       onViewportChanged: _noteProfileViewport,
+      onEditProfile: editingOffered ? () => _runOperation(_editProfile) : null,
     );
   }
 

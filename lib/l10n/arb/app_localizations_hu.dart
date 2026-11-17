@@ -10168,6 +10168,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get recordEdit_unlockToUseThese => 'Oldd fel ezek használatához';
 
   @override
+  String get diveLog_profile_editProfile => 'Profil szerkesztése';
+
+  @override
   String get settings_manage_setupAssistant => 'Beállítási varázsló';
 
   @override

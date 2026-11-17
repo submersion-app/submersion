@@ -9967,6 +9967,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get recordEdit_unlockToUseThese => 'יש לבטל את הנעילה כדי להשתמש באלה';
 
   @override
+  String get diveLog_profile_editProfile => 'עריכת פרופיל';
+
+  @override
   String get settings_manage_setupAssistant => 'אשף ההגדרה';
 
   @override

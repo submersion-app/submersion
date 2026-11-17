@@ -86,6 +86,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
     this.viewport,
     this.onViewportChanged,
     this.editing,
+    this.onEditProfile,
   });
 
   /// This section with the same inputs, the page's zoom among them, drawn
@@ -105,6 +106,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
     viewport: viewport,
     onViewportChanged: onViewportChanged,
     editing: session,
+    onEditProfile: onEditProfile,
   );
 
   final String diveId;
@@ -144,6 +146,11 @@ class DiveDetailProfileSection extends ConsumerWidget {
   final VoidCallback onSafetyFindingDetails;
 
   final void Function(String readingId) onSetPrimarySource;
+
+  /// Opens the profile editor, which saves on its own page: a whole-record
+  /// operation on a page that offers editing (issue #4527). Null leaves the
+  /// toolbar without it (no editing offered, or the pinned copy).
+  final VoidCallback? onEditProfile;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -225,6 +232,20 @@ class DiveDetailProfileSection extends ConsumerWidget {
             ),
           ),
         ),
+        if (onEditProfile case final onEditProfile?)
+          RecordOperationButton(
+            reason: recordOperationReason(
+              context.l10n,
+              recordOperationBlockOf(scope),
+            ),
+            onPressed: onEditProfile,
+            builder: (onPressed) => IconButton(
+              icon: const Icon(Icons.edit_note),
+              tooltip: context.l10n.diveLog_profile_editProfile,
+              visualDensity: VisualDensity.compact,
+              onPressed: onPressed,
+            ),
+          ),
         IconButton(
           icon: const Icon(Icons.fullscreen),
           tooltip: context.l10n.diveLog_detail_tooltip_viewFullscreen,

@@ -6077,6 +6077,10 @@
   "@recordEdit_unlockToUseThese": {
     "description": "Caption over a menu's actions that change a whole record (delete, re-parse and the like), shown while the record's page is locked."
   },
+  "diveLog_profile_editProfile": "Edit profile",
+  "@diveLog_profile_editProfile": {
+    "description": "Tooltip of the button on a dive's Profile card that opens the profile editor, which saves the edited profile on its own page."
+  },
   "settings_manage_setupAssistant": "Setup assistant",
   "settings_manage_setupAssistant_subtitle": "Revisit units, backups, sync and photos",
   "setup_common_back": "Back",

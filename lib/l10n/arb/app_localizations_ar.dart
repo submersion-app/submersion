@@ -10347,6 +10347,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordEdit_unlockToUseThese => 'افتح القفل لاستخدام هذه';
 
   @override
+  String get diveLog_profile_editProfile => 'تعديل ملف الغوصة';
+
+  @override
   String get settings_manage_setupAssistant => 'مساعد الإعداد';
 
   @override

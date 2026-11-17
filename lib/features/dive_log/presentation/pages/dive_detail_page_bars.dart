@@ -141,6 +141,8 @@ mixin _DiveDetailPageBars
           _DiveDetailPageState,
           'plan a repetitive dive',
         );
+      case 'drawProfile':
+        _runOperation(_drawProfile);
       case 'delete':
         _deleteDive();
       case 'open':

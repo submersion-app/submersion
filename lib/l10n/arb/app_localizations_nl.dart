@@ -10126,6 +10126,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get recordEdit_unlockToUseThese => 'Ontgrendel om deze te gebruiken';
 
   @override
+  String get diveLog_profile_editProfile => 'Profiel bewerken';
+
+  @override
   String get settings_manage_setupAssistant => 'Configuratie-assistent';
 
   @override

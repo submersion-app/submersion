@@ -37,6 +37,7 @@ import 'package:submersion/features/dive_log/domain/services/tank_usage_range.da
 import 'package:submersion/features/dive_log/domain/services/detected_gas_switch_edits.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/linked_dive_times.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/open_profile_editor.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/seeded_dive_times.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
@@ -108,7 +109,6 @@ import 'package:submersion/features/nav_track/domain/dive_route_link_draft.dart'
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/cylinder_breath_starts_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/detected_gas_switches_provider.dart';
@@ -142,7 +142,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/the_dive_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/suggested_text_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/trip_section.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/pickers/computer_source_sheet.dart';
 import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
 import 'package:submersion/features/weight_presets/presentation/providers/weight_preset_providers.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
@@ -3796,62 +3795,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     host: host,
   );
 
-  /// Opens the profile editor, first asking which source's profile to start
-  /// from when more than one source has samples of its own (issue #3066).
+  /// Opens the profile editor (issue #3066), then reads the dive again.
   Future<void> _openProfileEditor(String diveId, {String? initialMode}) async {
-    final sources = await ref.read(diveDataSourcesProvider(diveId).future);
-    // Most dives have one source and can never offer a choice, so only a
-    // multi-source dive pays for hydrating every source's samples.
-    final startable = sources.length < 2
-        ? sources
-        : startableProfileSources(
-            sources,
-            await ref.read(sourceProfilesProvider(diveId).future),
-          );
-    if (!mounted) return;
-
-    // A single source needs no naming: the dive's profile is its own. With
-    // more, name the source even when it is the primary, since the dive's
-    // profile interleaves every source. Saving an edit of another source
-    // makes it primary.
-    DiveDataSource? chosen;
-    if (startable.length > 1) {
-      chosen = await showModalBottomSheet<DiveDataSource>(
-        context: context,
-        builder: (context) => ComputerSourceSelectionSheet(readings: startable),
-      );
-      if (chosen == null || !mounted) return;
-    } else if (sources.length > 1 && startable.length == 1) {
-      // Only one source has samples, and it may not be the primary: the
-      // edit is that source's, not the sample-less primary's.
-      chosen = startable.single;
-    }
-    final sourceId = chosen?.id;
-    final primaryBefore = sources.where((s) => s.isPrimary).firstOrNull?.id;
-
-    final saved = await context.pushNamed<bool>(
-      'editProfile',
-      pathParameters: {'diveId': diveId},
-      queryParameters: {'mode': ?initialMode, 'sourceId': ?sourceId},
-    );
-    if (saved != true || !mounted) return;
-    // Saving an edit of another source promotes it, and so can switching or
-    // deleting a revision in the editor, so ask which source is primary now
-    // rather than inferring it from the source chosen here.
-    final sourcesAfter = await ref
-        .read(diveRepositoryProvider)
-        .getDataSources(diveId);
-    final primaryAfter = sourcesAfter.where((s) => s.isPrimary).firstOrNull?.id;
-    if (!mounted) return;
-    await _refreshAfterProfileSave(
+    final result = await openProfileEditor(
+      context,
+      ref,
       diveId,
-      promoted: primaryAfter != primaryBefore,
+      initialMode: initialMode,
     );
+    if (!result.saved || !mounted) return;
+    await _refreshAfterProfileSave(diveId, promoted: result.promoted);
   }
 
-  /// A saved profile edit recomputed the dive's depths, and a change of
-  /// primary source also replaced the fields taken from it. Reload them so
-  /// saving this form does not write the old values back.
   Future<void> _refreshAfterProfileSave(
     String diveId, {
     required bool promoted,

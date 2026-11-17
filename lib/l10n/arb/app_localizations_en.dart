@@ -10031,6 +10031,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordEdit_unlockToUseThese => 'Unlock to use these';
 
   @override
+  String get diveLog_profile_editProfile => 'Edit profile';
+
+  @override
   String get settings_manage_setupAssistant => 'Setup assistant';
 
   @override

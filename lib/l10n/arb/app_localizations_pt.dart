@@ -10189,6 +10189,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get recordEdit_unlockToUseThese => 'Desbloqueie para usar estas ações';
 
   @override
+  String get diveLog_profile_editProfile => 'Editar perfil';
+
+  @override
   String get settings_manage_setupAssistant => 'Assistente de configuração';
 
   @override

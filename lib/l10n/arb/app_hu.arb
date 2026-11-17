@@ -3204,6 +3204,7 @@
   "recordEdit_unlockToUseThis": "Oldd fel a használatához",
   "recordEdit_saveOrCancelFirst": "Előbb mentsd el vagy vesd el a módosításokat",
   "recordEdit_unlockToUseThese": "Oldd fel ezek használatához",
+  "diveLog_profile_editProfile": "Profil szerkesztése",
   "siteMatchReview_title": "Helyek hozzárendelése",
   "siteMatchReview_diveNumber": "#{number}. merülés",
   "siteMatchReview_empty": "Nincs mit hozzárendelni.",

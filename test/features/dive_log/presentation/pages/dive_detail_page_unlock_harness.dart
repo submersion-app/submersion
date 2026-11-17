@@ -192,6 +192,26 @@ Future<({GoRouter router, FakeSave save})> pumpPage(
         builder: (context, state) =>
             Scaffold(body: Text('OTHER ${state.pathParameters['id']}')),
       ),
+      // Stands in for the profile editor, which saves on its own page.
+      GoRoute(
+        path: '/profile-editor/:diveId',
+        name: 'editProfile',
+        builder: (context, state) => Scaffold(
+          body: Column(
+            children: [
+              Text('PROFILE EDITOR ${state.uri.queryParameters['mode']}'),
+              TextButton(
+                onPressed: () => context.pop(true),
+                child: const Text('SAVE PROFILE'),
+              ),
+              TextButton(
+                onPressed: () => context.pop(false),
+                child: const Text('LEAVE PROFILE'),
+              ),
+            ],
+          ),
+        ),
+      ),
     ],
   );
 

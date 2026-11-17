@@ -3204,6 +3204,7 @@
   "recordEdit_unlockToUseThis": "Sblocca per usarlo",
   "recordEdit_saveOrCancelFirst": "Salva o annulla prima le modifiche",
   "recordEdit_unlockToUseThese": "Sblocca per usare queste azioni",
+  "diveLog_profile_editProfile": "Modifica profilo",
   "siteMatchReview_title": "Associa siti",
   "siteMatchReview_diveNumber": "Immersione #{number}",
   "siteMatchReview_empty": "Niente da associare.",

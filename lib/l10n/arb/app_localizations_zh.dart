@@ -9658,6 +9658,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recordEdit_unlockToUseThese => '解锁后才能使用这些操作';
 
   @override
+  String get diveLog_profile_editProfile => '编辑轮廓';
+
+  @override
   String get settings_manage_setupAssistant => '设置向导';
 
   @override

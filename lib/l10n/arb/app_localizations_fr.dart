@@ -10226,6 +10226,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Déverrouillez pour utiliser ces actions';
 
   @override
+  String get diveLog_profile_editProfile => 'Modifier le profil';
+
+  @override
   String get settings_manage_setupAssistant => 'Assistant de configuration';
 
   @override

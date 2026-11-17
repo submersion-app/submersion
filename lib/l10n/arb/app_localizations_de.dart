@@ -10185,6 +10185,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zum Verwenden dieser Aktionen entsperren';
 
   @override
+  String get diveLog_profile_editProfile => 'Profil bearbeiten';
+
+  @override
   String get settings_manage_setupAssistant => 'Einrichtungsassistent';
 
   @override

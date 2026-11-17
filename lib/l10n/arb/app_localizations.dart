@@ -15997,6 +15997,12 @@ abstract class AppLocalizations {
   /// **'Unlock to use these'**
   String get recordEdit_unlockToUseThese;
 
+  /// Tooltip of the button on a dive's Profile card that opens the profile editor, which saves the edited profile on its own page.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get diveLog_profile_editProfile;
+
   /// No description provided for @settings_manage_setupAssistant.
   ///
   /// In en, this message translates to:

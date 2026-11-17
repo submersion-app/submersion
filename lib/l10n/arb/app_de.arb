@@ -3356,6 +3356,7 @@
   "recordEdit_unlockToUseThis": "Zum Verwenden entsperren",
   "recordEdit_saveOrCancelFirst": "Speichere oder verwirf zuerst deine Änderungen",
   "recordEdit_unlockToUseThese": "Zum Verwenden dieser Aktionen entsperren",
+  "diveLog_profile_editProfile": "Profil bearbeiten",
   "siteMatchReview_title": "Tauchplätze zuordnen",
   "siteMatchReview_diveNumber": "Tauchgang #{number}",
   "siteMatchReview_empty": "Nichts zuzuordnen.",

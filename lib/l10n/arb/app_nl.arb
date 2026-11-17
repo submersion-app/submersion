@@ -3330,6 +3330,7 @@
   "recordEdit_unlockToUseThis": "Ontgrendel om dit te gebruiken",
   "recordEdit_saveOrCancelFirst": "Sla je wijzigingen eerst op of annuleer ze",
   "recordEdit_unlockToUseThese": "Ontgrendel om deze te gebruiken",
+  "diveLog_profile_editProfile": "Profiel bewerken",
   "siteMatchReview_title": "Stekken koppelen",
   "siteMatchReview_diveNumber": "Duik #{number}",
   "siteMatchReview_empty": "Niets om te koppelen.",
