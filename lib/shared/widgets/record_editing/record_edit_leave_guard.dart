@@ -53,6 +53,10 @@ class RecordEditLeaveGuard<T> extends StatelessWidget {
             return;
           }
           if (controller.isBusy) return;
+          // With nothing to save this guard let the pop through: a scope
+          // inside the page refused it for a step of its own (the photo
+          // viewer leaving fullscreen first), and the page stays.
+          if (!controller.isDirty) return;
           final navigator = Navigator.of(context);
           if (!await cancelSitting(context, controller)) return;
           // A page with nothing under it (the list pane's, its tab's first

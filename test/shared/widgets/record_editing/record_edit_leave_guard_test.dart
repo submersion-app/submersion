@@ -120,6 +120,50 @@ void main() {
     expect(controller.isUnlocked, isFalse);
   });
 
+  // A scope inside the page can refuse Back for a step of its own (the
+  // photo viewer leaving fullscreen first). Every scope is then told the pop
+  // did not happen; the guard did not refuse it, so it must not finish the
+  // pop itself.
+  for (final unlocked in [false, true]) {
+    testWidgets('${unlocked ? 'unlocked, no changes' : 'locked'}: a Back a '
+        'scope inside refuses stays on the page', (tester) async {
+      final controller = RecordEditController<_Rec>(onSave: (_) async {});
+      addTearDown(controller.dispose);
+      if (unlocked) controller.unlock(const _Rec());
+      var refused = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => RecordEditLeaveGuard<_Rec>(
+                    controller: controller,
+                    child: PopScope(
+                      canPop: false,
+                      onPopInvokedWithResult: (didPop, _) => refused++,
+                      child: const Scaffold(body: Text('Record')),
+                    ),
+                  ),
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(refused, 1);
+      expect(find.text('Record'), findsOneWidget);
+      expect(controller.isUnlocked, unlocked);
+    });
+  }
+
   testWidgets('unlocked with changes: back asks, and Keep editing stays', (
     tester,
   ) async {
