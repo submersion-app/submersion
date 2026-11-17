@@ -7,6 +7,7 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
+import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 
 import 'manifest_fixture.dart';
@@ -165,6 +166,53 @@ void main() {
       final done = run.copyWith(scannedMs: () => 25000);
       expect(done.scanComplete, isTrue);
       expect(run.copyWith(videoDurationMs: () => null).scanComplete, isFalse);
+    });
+
+    test('video detections and moments', () {
+      const box = IdentificationBox(x: 0.1, y: 0.2, width: 0.3, height: 0.4);
+      const other = IdentificationBox(x: 0.5, y: 0.5, width: 0.1, height: 0.1);
+      const detected = DetectedBox(box: box, score: 0.8);
+      expect(detected.copyWith(), detected);
+      expect(
+        detected.copyWith(box: other, score: 0.5),
+        const DetectedBox(box: other, score: 0.5),
+      );
+      const frame = FrameDetections(ms: 250, boxes: [detected]);
+      expect(frame.copyWith(), frame);
+      expect(
+        frame.copyWith(ms: 500, boxes: const []),
+        const FrameDetections(ms: 500, boxes: []),
+      );
+      const video = VideoDetections(
+        width: 1920,
+        height: 1080,
+        durationMs: 25000,
+        frames: [frame],
+      );
+      expect(video.copyWith(), video);
+      expect(
+        video.copyWith(width: 1080, height: 1920, durationMs: 1, frames: []),
+        const VideoDetections(
+          width: 1080,
+          height: 1920,
+          durationMs: 1,
+          frames: [],
+        ),
+      );
+      const moment = VisionMoment(ms: 250, box: box);
+      expect(moment.copyWith(), moment);
+      expect(
+        moment.copyWith(ms: 500, box: other),
+        const VisionMoment(ms: 500, box: other),
+      );
+      final crop = VisionMomentCrop(
+        pixelWidth: 80,
+        pixelHeight: 60,
+        cropJpeg: Uint8List.fromList([1]),
+        embedding: Float32List.fromList([1, 0]),
+      );
+      expect(crop.copyWith(), crop);
+      expect(crop.copyWith(pixelWidth: 10, pixelHeight: 20).pixelWidth, 10);
     });
 
     test('the manifest and its parts', () {
