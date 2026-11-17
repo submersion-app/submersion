@@ -259,7 +259,10 @@ class BuoyancyTwinAssembler {
       }
       return sum + gear;
     }
-    final legacy = dive.weightAmount ?? 0.0;
+    // A non-positive legacy scalar is no lead, as in [Dive.recordedWeightKg],
+    // so it is no droppable lead either.
+    final scalar = dive.weightAmount;
+    final legacy = scalar != null && scalar > 0 ? scalar : 0.0;
     final type = dive.weightType;
     return ((type == null || EquipmentLead.isDroppable(type)) ? legacy : 0.0) +
         gear;

@@ -226,6 +226,25 @@ void main() {
       );
       expect(BuoyancyTwinAssembler.droppableLeadKg(dive), closeTo(5.0, 1e-9));
     });
+
+    // A negative legacy scalar is no lead in the carried total (issue
+    // #4442), so it cannot be droppable lead either: the ditch check would
+    // otherwise read less than nothing.
+    test('a non-positive legacy scalar is no droppable lead', () {
+      final input = BuoyancyTwinAssembler.assemble(
+        dive: diveWith(
+          tanks: [tank('t1')],
+          equipment: [wetsuit],
+          weightAmount: -5.0,
+          weightType: WeightType.belt,
+        ),
+        tankPressures: const {},
+        model: emptyModel(),
+        bodyWeightKg: 75,
+      );
+      expect(input!.leadKg, closeTo(0.0, 1e-9));
+      expect(input.droppableLeadKg, closeTo(0.0, 1e-9));
+    });
   });
 
   group('BuoyancyTwinAssembler.droppableLeadFromPlacement', () {
