@@ -10184,6 +10184,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'Algunos valores no se pueden leer. Corrígelos antes de guardar.';
 
   @override
+  String get recordEdit_unlockToUseThis => 'Desbloquea para usar esto';
+
+  @override
+  String get recordEdit_saveOrCancelFirst =>
+      'Guarda o cancela tus cambios primero';
+
+  @override
   String get settings_manage_setupAssistant => 'Asistente de configuración';
 
   @override
@@ -22158,6 +22165,24 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_viewer_enterFullscreen => 'Pantalla completa';
+
+  @override
+  String get media_viewer_editingPhoto => 'Editando foto';
+
+  @override
+  String get media_viewer_editingVideo => 'Editando vídeo';
+
+  @override
+  String get media_viewer_photoGoneWhileEditing =>
+      'Esta foto se eliminó. Tus cambios no se guardaron.';
+
+  @override
+  String get media_viewer_videoGoneWhileEditing =>
+      'Este vídeo se eliminó. Tus cambios no se guardaron.';
+
+  @override
+  String get media_viewer_movedWhileEditing =>
+      'Se movió a otra inmersión desde que lo desbloqueaste. Cancela y vuelve a desbloquearlo.';
 
   @override
   String get media_viewer_exitFullscreen => 'Salir de pantalla completa';
@@ -56162,6 +56187,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_species_actionTooltip => 'Especies';
 
   @override
+  String get media_editCard_people => 'Personas';
+
+  @override
+  String get media_editCard_timeInDive => 'Momento en la inmersión';
+
+  @override
+  String get media_editCard_color => 'Color';
+
+  @override
+  String get media_editCard_details => 'Detalles';
+
+  @override
   String get media_species_sheetTitle => 'Especies en esta foto';
 
   @override
@@ -63248,6 +63285,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get changeLog_label_recordEditSeparator => ', ';
+
+  @override
+  String changeLog_label_photoEdit(String cards) {
+    return 'Foto editada: $cards';
+  }
 
   @override
   String get changeLog_undoIncomplete =>

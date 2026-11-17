@@ -30,6 +30,7 @@ class VideoPeopleLayer extends StatelessWidget {
       builder: (context, value, _) {
         if (!people.active) {
           return FaceBoxLayer(
+            sitting: people.sitting,
             mediaId: item.id,
             imageSize: value.size,
             visible: showOverlay && !value.isPlaying,
@@ -38,6 +39,7 @@ class VideoPeopleLayer extends StatelessWidget {
         }
         if (value.size.isEmpty) return const SizedBox.shrink();
         return PeopleTagEditor(
+          sitting: people.sitting,
           mediaId: item.id,
           imageSize: value.size,
           showAt: value.position,

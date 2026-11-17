@@ -35,6 +35,7 @@ void main() {
     WidgetTester tester, {
     required String? diveId,
     required PersonChoice choice,
+    void Function(Buddy buddy)? onAdd,
   }) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(
@@ -47,6 +48,7 @@ void main() {
                   ref,
                   diveId: diveId,
                   choice: choice,
+                  onAdd: onAdd,
                 ),
                 child: const Text('go'),
               ),
@@ -76,6 +78,24 @@ void main() {
         '${r.read<String>('buddy_id')}:${r.read<String>('role')}',
     ];
   }
+
+  // In a photo's sitting the Add is held, not written (issue #4527).
+  testWidgets('with onAdd, Add hands the buddy over and writes nothing', (
+    tester,
+  ) async {
+    final taken = <String>[];
+    await offer(
+      tester,
+      diveId: 'd1',
+      choice: BuddyChoice(buddy('alex', 'Alex')),
+      onAdd: (b) => taken.add(b.id),
+    );
+    await tester.tap(find.text('Add'));
+    await tester.pump();
+
+    expect(taken, ['alex']);
+    expect(await buddiesOnDive(tester), ['bea:buddy']);
+  });
 
   testWidgets('offers a buddy not on the dive, and Add logs them', (
     tester,

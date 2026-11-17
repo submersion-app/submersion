@@ -10174,6 +10174,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Einige Werte können nicht gelesen werden. Korrigiere sie vor dem Speichern.';
 
   @override
+  String get recordEdit_unlockToUseThis => 'Zum Verwenden entsperren';
+
+  @override
+  String get recordEdit_saveOrCancelFirst =>
+      'Speichere oder verwirf zuerst deine Änderungen';
+
+  @override
   String get settings_manage_setupAssistant => 'Einrichtungsassistent';
 
   @override
@@ -22147,6 +22154,24 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_viewer_enterFullscreen => 'Vollbild';
+
+  @override
+  String get media_viewer_editingPhoto => 'Foto wird bearbeitet';
+
+  @override
+  String get media_viewer_editingVideo => 'Video wird bearbeitet';
+
+  @override
+  String get media_viewer_photoGoneWhileEditing =>
+      'Dieses Foto wurde entfernt. Deine Änderungen wurden nicht gespeichert.';
+
+  @override
+  String get media_viewer_videoGoneWhileEditing =>
+      'Dieses Video wurde entfernt. Deine Änderungen wurden nicht gespeichert.';
+
+  @override
+  String get media_viewer_movedWhileEditing =>
+      'Seit dem Entsperren in einen anderen Tauchgang verschoben. Brich ab und entsperre erneut.';
 
   @override
   String get media_viewer_exitFullscreen => 'Vollbild beenden';
@@ -55984,6 +56009,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_species_actionTooltip => 'Arten';
 
   @override
+  String get media_editCard_people => 'Personen';
+
+  @override
+  String get media_editCard_timeInDive => 'Zeitpunkt im Tauchgang';
+
+  @override
+  String get media_editCard_color => 'Farbe';
+
+  @override
+  String get media_editCard_details => 'Details';
+
+  @override
   String get media_species_sheetTitle => 'Arten auf diesem Foto';
 
   @override
@@ -63074,6 +63111,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get changeLog_label_recordEditSeparator => ', ';
+
+  @override
+  String changeLog_label_photoEdit(String cards) {
+    return 'Foto bearbeitet: $cards';
+  }
 
   @override
   String get changeLog_undoIncomplete =>

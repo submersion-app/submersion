@@ -6065,6 +6065,14 @@
   "@recordEdit_fixInvalid": {
     "description": "Message shown when Save is refused because a field holds text that is not a valid value."
   },
+  "recordEdit_unlockToUseThis": "Unlock to use this",
+  "@recordEdit_unlockToUseThis": {
+    "description": "Why an action that changes a whole record (such as writing dive data into a photo file) is disabled: the record is locked."
+  },
+  "recordEdit_saveOrCancelFirst": "Save or cancel your changes first",
+  "@recordEdit_saveOrCancelFirst": {
+    "description": "Why an action that changes a whole record is disabled: the editing sitting has unsaved changes."
+  },
   "settings_manage_setupAssistant": "Setup assistant",
   "settings_manage_setupAssistant_subtitle": "Revisit units, backups, sync and photos",
   "setup_common_back": "Back",
@@ -13906,6 +13914,26 @@
   "media_viewer_enterFullscreen": "Full screen",
   "@media_viewer_enterFullscreen": {
     "description": "Viewer toolbar action: hide all app and viewer chrome so only the photo or video shows"
+  },
+  "media_viewer_editingPhoto": "Editing photo",
+  "@media_viewer_editingPhoto": {
+    "description": "Title of the photo viewer's top bar while a photo is unlocked for editing."
+  },
+  "media_viewer_editingVideo": "Editing video",
+  "@media_viewer_editingVideo": {
+    "description": "Title of the photo viewer's top bar while a video is unlocked for editing."
+  },
+  "media_viewer_photoGoneWhileEditing": "This photo was removed. Your changes were not saved.",
+  "@media_viewer_photoGoneWhileEditing": {
+    "description": "Shown when the photo being edited in the viewer is deleted elsewhere (another device, a sync) during the editing sitting; the sitting ends without saving."
+  },
+  "media_viewer_videoGoneWhileEditing": "This video was removed. Your changes were not saved.",
+  "@media_viewer_videoGoneWhileEditing": {
+    "description": "Shown when the video being edited in the viewer is deleted elsewhere (another device, a sync) during the editing sitting; the sitting ends without saving."
+  },
+  "media_viewer_movedWhileEditing": "Moved to another dive since you unlocked it. Cancel, then unlock it again.",
+  "@media_viewer_movedWhileEditing": {
+    "description": "Shown when Save is refused because the photo or video being edited was moved to another dive (on another device, or by a sync) after the diver unlocked it. Cancel ends the sitting; unlocking again starts one on the new dive."
   },
   "media_viewer_exitFullscreen": "Exit full screen",
   "@media_viewer_exitFullscreen": {
@@ -33556,6 +33584,22 @@
   },
   "media_info_title": "Media info",
   "media_species_actionTooltip": "Species",
+  "media_editCard_people": "People",
+  "@media_editCard_people": {
+    "description": "What a photo's editing sitting changed, in its History entry: the people tagged on it."
+  },
+  "media_editCard_timeInDive": "Time in dive",
+  "@media_editCard_timeInDive": {
+    "description": "What a photo's editing sitting changed, in its History entry: where it sits in time in its dive."
+  },
+  "media_editCard_color": "Color",
+  "@media_editCard_color": {
+    "description": "What a photo's editing sitting changed, in its History entry: its colour adjustment."
+  },
+  "media_editCard_details": "Details",
+  "@media_editCard_details": {
+    "description": "What a photo's editing sitting changed, in its History entry: a site attachment's category and display size."
+  },
   "media_species_sheetTitle": "Species in this photo",
   "media_species_sightedOnDive": "Sighted on this dive",
   "media_species_otherSpecies": "Other species...",
@@ -37474,6 +37518,15 @@
   "changeLog_label_recordEditSeparator": ", ",
   "@changeLog_label_recordEditSeparator": {
     "description": "Separator between card titles in changeLog_label_recordEdit, such as \", \" in English."
+  },
+  "changeLog_label_photoEdit": "Edited photo: {cards}",
+  "@changeLog_label_photoEdit": {
+    "description": "Change log entry title for one editing sitting on a photo or video, shown in its dive's History. cards is a list of what changed, already joined.",
+    "placeholders": {
+      "cards": {
+        "type": "String"
+      }
+    }
   },
   "changeLog_undoIncomplete": "Undo could not put everything back. The rest is in Settings > Data > Change log.",
   "@changeLog_undoIncomplete": {
