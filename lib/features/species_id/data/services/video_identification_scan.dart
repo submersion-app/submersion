@@ -319,6 +319,8 @@ class VideoIdentificationScan {
       for (final c in _carry)
         if (!carried.deleteIds.contains(c.id)) c,
     ];
+    // The rows were read above: another logbook may have opened since.
+    if (_databaseGeneration() != _generation) return false;
     final manifest = _pack.pack.manifest;
     final run = MediaIdentificationRun(
       mediaId: _item.id,

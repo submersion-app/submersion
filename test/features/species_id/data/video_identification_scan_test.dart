@@ -23,6 +23,21 @@ import 'fake_vision_engine.dart';
 import 'identification_fixtures.dart';
 import 'pack_fixture.dart';
 
+/// Calls [afterRead] after each read of a video's rows: where a logbook
+/// switch lands between a scan's read and its write.
+class _HookedRepository extends MediaIdentificationRepository {
+  _HookedRepository(AppDatabase database) : super(database: database);
+
+  void Function()? afterRead;
+
+  @override
+  Future<List<MediaIdentification>> forMedia(String mediaId) async {
+    final found = await super.forMedia(mediaId);
+    afterRead?.call();
+    return found;
+  }
+}
+
 /// Scanning a video chunk by chunk (issue #4675).
 MediaItem _video() => MediaItem(
   id: 'v1',
@@ -53,7 +68,7 @@ void main() {
   late AppDatabase library;
   late LocalCacheDatabase local;
   late Directory support;
-  late MediaIdentificationRepository identifications;
+  late _HookedRepository identifications;
   late IdentificationEmbeddingRepository embeddings;
   late IdentificationCropStore crops;
   late FakeEngine engine;
@@ -69,7 +84,7 @@ void main() {
     );
     local = LocalCacheDatabase(NativeDatabase.memory());
     support = await Directory.systemTemp.createTemp('video_scan');
-    identifications = MediaIdentificationRepository(database: library);
+    identifications = _HookedRepository(library);
     embeddings = IdentificationEmbeddingRepository(database: local);
     crops = IdentificationCropStore(supportPath: () async => support.path);
     engine = FakeEngine()..loaded = true;
@@ -570,6 +585,28 @@ void main() {
     expect(kept.isPending, isTrue);
     expect((kept.startMs, kept.endMs), (8000, 9750));
   });
+
+  test(
+    'a logbook opened while a chunk reads its rows gets nothing of it',
+    () async {
+      crossingFishThenSchool();
+      final first = scan();
+      expect(await first.runChunk(), isTrue);
+      await first.finish(naming: false);
+      final resumed = scan(
+        resumeFrom: await identifications.runFor('v1'),
+        stored: await identifications.forMedia('v1'),
+      );
+      // The chunk closes the continued fish, so its store reads the rows.
+      identifications.afterRead = () => generation++;
+      expect(await resumed.runChunk(), isFalse);
+      identifications.afterRead = null;
+      final kept = (await identifications.forMedia('v1')).single;
+      expect(kept.isPending, isTrue);
+      expect(kept.endMs, 9750);
+      expect((await identifications.runFor('v1'))!.scannedMs, 10000);
+    },
+  );
 
   test('finish runs no pass 2 once another logbook has opened', () async {
     crossingFishThenSchool();

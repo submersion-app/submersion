@@ -263,15 +263,21 @@ void main() {
       bookmarkRef: 'bm-1',
     );
     final opened = <(String?, String?)>[];
+    var resolved = 0;
 
+    /// [held]: the player on screen holds the video's playback, as the
+    /// viewer does while the video is current.
     ProviderContainer withPlayback(
       VideoPlayback playback, {
       Duration takes = Duration.zero,
+      bool held = true,
     }) {
       opened.clear();
+      resolved = 0;
       final c = ProviderContainer(
         overrides: [
           videoPlaybackProvider(item).overrideWith((ref) async {
+            resolved++;
             if (takes > Duration.zero) await Future<void>.delayed(takes);
             return playback;
           }),
@@ -286,6 +292,10 @@ void main() {
         ],
       );
       addTearDown(c.dispose);
+      if (held) {
+        final hold = c.listen(videoPlaybackProvider(item), (_, _) {});
+        addTearDown(hold.close);
+      }
       return c;
     }
 
@@ -305,6 +315,20 @@ void main() {
       );
       final reader = await c.read(videoFileReaderProvider(item).future);
       expect(await reader!((path) async => path), '/opened/videos/v1.mp4');
+    });
+
+    test('resolves nothing of its own when no player holds the video, so a '
+        'scan never fetches a file', () async {
+      final c = withPlayback(const FilePlayback('/videos/v1.mp4'), held: false);
+      expect(await c.read(videoFileReaderProvider(item).future), isNull);
+      expect(resolved, 0);
+    });
+
+    test('reads the player\'s own resolution, not a second one', () async {
+      final c = withPlayback(const FilePlayback('/videos/v1.mp4'));
+      await c.read(videoPlaybackProvider(item).future);
+      expect(await c.read(videoFileReaderProvider(item).future), isNotNull);
+      expect(resolved, 1);
     });
 
     test('is none when the video does not play from a file', () async {

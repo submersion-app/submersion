@@ -184,14 +184,22 @@ final class VideoScanner {
     return context.createCGImage(image, from: image.extent.integral)
   }
 
-  /// The rotation a video track's transform asks for, as the orientation
-  /// that turns its decoded frames upright. Mirroring is not handled.
+  /// The rotation and mirroring a video track's transform asks for, as the
+  /// orientation that turns its decoded frames the way the player shows
+  /// them (and pass 2 crops them). A mirrored transform is a rotation after
+  /// a horizontal flip: undoing the flip gives the rotation.
   private static func orientation(of t: CGAffineTransform) -> CGImagePropertyOrientation {
-    let degrees = Int((atan2(Double(t.b), Double(t.a)) * 180 / .pi).rounded())
-    switch (degrees + 360) % 360 {
-    case 90: return .right
-    case 180: return .down
-    case 270: return .left
+    let mirrored = t.a * t.d - t.b * t.c < 0
+    let (a, b) = mirrored ? (-t.a, -t.b) : (t.a, t.b)
+    let degrees = Int((atan2(Double(b), Double(a)) * 180 / .pi).rounded())
+    switch ((degrees + 360) % 360, mirrored) {
+    case (90, false): return .right
+    case (180, false): return .down
+    case (270, false): return .left
+    case (0, true): return .upMirrored
+    case (90, true): return .rightMirrored
+    case (180, true): return .downMirrored
+    case (270, true): return .leftMirrored
     default: return .up
     }
   }

@@ -69,6 +69,11 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   /// for a video streamed from the media store in a browser.
   String? _playbackPath;
 
+  /// The item the player resolved its playback for. Held while the video
+  /// is on screen, so the fish scan reads this same resolution rather than
+  /// fetching a file of its own (issue #4675).
+  MediaItem? _resolvedFor;
+
   /// Opens [_controller] and, for a streamed video, reopens it once when
   /// its link goes stale (issue #4162). Disposed with the load it belongs
   /// to, which also ends a reopen still in flight.
@@ -143,6 +148,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     // Gone, or swiped away and released while this load was in flight.
     bool stale() => !mounted || generation != _loadGeneration;
     final mediaId = widget.item.id;
+    _resolvedFor = widget.item;
     try {
       final playback = await ref.read(
         videoPlaybackProvider(widget.item).future,
@@ -269,6 +275,10 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
   @override
   Widget build(BuildContext context) {
+    final resolved = _resolvedFor;
+    if (widget.isCurrent && resolved != null) {
+      ref.listen(videoPlaybackProvider(resolved), (_, _) {});
+    }
     // A neighbour built ahead never starts loading, so it would spin forever,
     // and an indeterminate indicator one page off screen keeps scheduling
     // frames. The black gallery behind it is all there is to see.

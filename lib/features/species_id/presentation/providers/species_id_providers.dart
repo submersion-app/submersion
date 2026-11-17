@@ -134,7 +134,8 @@ final mediaIdentificationServiceProvider = Provider<MediaIdentificationService>(
 
 /// The file the player opened for a video, read one call at a time
 /// through its bookmark where it has one (issue #4675). Null when the video
-/// does not play from a file here: nothing is downloaded for a scan.
+/// does not play from a file here, or no player holds it: nothing is
+/// resolved, so nothing is downloaded, for a scan.
 ///
 /// Held while it resolves, as [resolvedFilePathProvider] is: the service
 /// reads it once, keeping no listener, and finding the file takes real IO,
@@ -143,6 +144,10 @@ final mediaIdentificationServiceProvider = Provider<MediaIdentificationService>(
 final videoFileReaderProvider =
     FutureProvider.family<VideoFileReader?, MediaItem>(
       (ref, item) async {
+        // Only the playback the player on screen holds: resolving one here
+        // could fetch a whole original the diver never played (a load that
+        // failed, a cache that let it go). A scan downloads nothing.
+        if (!ref.exists(videoPlaybackProvider(item))) return null;
         final resolving = ref.keepAlive();
         try {
           final access = ref.read(videoFileAccessProvider);
