@@ -2,11 +2,48 @@ import CoreGraphics
 import CoreML
 import Foundation
 import ImageIO
-#if os(iOS)
+// Imported only where it exists, so the accuracy tool in
+// tool/species_pack/vision_cli can compile this file on its own.
+#if canImport(Flutter)
 import Flutter
-#else
+#elseif canImport(FlutterMacOS)
 import FlutterMacOS
 #endif
+
+enum VisionError: Error {
+  case notLoaded
+  case decodeFailed(String)
+  case inferenceFailed(String)
+  case badArguments(String)
+
+  var code: String {
+    switch self {
+    case .notLoaded: return "not_loaded"
+    case .decodeFailed: return "decode_failed"
+    case .inferenceFailed: return "inference_failed"
+    case .badArguments: return "bad_arguments"
+    }
+  }
+
+  var message: String {
+    switch self {
+    case .notLoaded: return "The models are not loaded"
+    case .decodeFailed(let detail): return "Could not read the image: \(detail)"
+    case .inferenceFailed(let detail): return detail
+    case .badArguments(let name): return "Missing or invalid argument: \(name)"
+    }
+  }
+}
+
+/// How a crop is fitted to the classifier's square input.
+enum CropFit: String {
+  /// Fitted whole inside the square, the rest filled with the mean colour,
+  /// so long fish are not cut.
+  case padSquare
+  /// Shorter side fitted to the square and the centre kept, as the spike
+  /// did; the ends of a long fish are cut off.
+  case centreCrop
+}
 
 /// What the model pack says about running its two models.
 struct VisionModelSettings: Equatable {
@@ -23,6 +60,7 @@ struct VisionModelSettings: Equatable {
   let classifierStd: [Float]
   let embeddingSize: Int
   let cropThumbnailSize: Int
+  let cropFit: CropFit
 
   init(_ args: [String: Any]) throws {
     func string(_ key: String) throws -> String {
@@ -54,6 +92,15 @@ struct VisionModelSettings: Equatable {
     classifierStd = try triple("classifierStd")
     embeddingSize = try int("embeddingSize")
     cropThumbnailSize = try int("cropThumbnailSize")
+    // Absent means pad-to-square, which is all the app sends today.
+    if let fit = args["cropFit"] {
+      guard let name = fit as? String, let parsed = CropFit(rawValue: name) else {
+        throw VisionError.badArguments("cropFit")
+      }
+      cropFit = parsed
+    } else {
+      cropFit = .padSquare
+    }
   }
 }
 
@@ -181,11 +228,7 @@ final class VisionPipeline {
 
   private func embed(_ crop: CGImage, settings: VisionModelSettings, model: MLModel) throws -> [Float] {
     let size = settings.classifierInputSize
-    // The crop is fitted inside the square, the rest filled with the mean
-    // colour, so long fish are not cut.
-    let scale = min(Double(size) / Double(crop.width), Double(size) / Double(crop.height))
-    let w = Double(crop.width) * scale, h = Double(crop.height) * scale
-    let rect = CGRect(x: (Double(size) - w) / 2, y: (Double(size) - h) / 2, width: w, height: h)
+    let rect = Self.fitRect(width: crop.width, height: crop.height, size: size, fit: settings.cropFit)
     guard let pixels = Self.rgba(crop, into: rect, canvas: size, fill: settings.classifierMean) else {
       throw VisionError.decodeFailed("could not draw the crop")
     }
@@ -203,6 +246,16 @@ final class VisionPipeline {
   }
 
   // MARK: Helpers
+
+  /// Where a crop of [width] by [height] is drawn in the [size]-pixel
+  /// square: inside it for pad-to-square, covering it for centre crop.
+  /// Centred either way; the canvas clips what falls outside.
+  static func fitRect(width: Int, height: Int, size: Int, fit: CropFit) -> CGRect {
+    let sx = Double(size) / Double(width), sy = Double(size) / Double(height)
+    let scale = fit == .padSquare ? min(sx, sy) : max(sx, sy)
+    let w = Double(width) * scale, h = Double(height) * scale
+    return CGRect(x: (Double(size) - w) / 2, y: (Double(size) - h) / 2, width: w, height: h)
+  }
 
   /// A compiled model directory, compiling a model package once beside it.
   /// The package is deleted once compiled: keeping both would double the
