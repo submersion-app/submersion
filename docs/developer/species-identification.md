@@ -1,9 +1,12 @@
 # Species Identification
 
-Marine life identification finds fish in a diver's photos on the device and
-suggests what they are (issue #4668). The design is in
-[the program overview](../design/specs/2026-11-17-marine-life-identification-program-design.md)
-and [the first piece](../design/specs/2026-11-17-marine-life-identification-1-photos-design.md).
+Marine life identification finds fish in a diver's photos and videos on the
+device and suggests what they are (issues #4668 and #4675). The design is in
+[the program overview](../design/specs/2026-11-17-marine-life-identification-program-design.md),
+[the first piece](../design/specs/2026-11-17-marine-life-identification-1-photos-design.md)
+(photos) and
+[the second](../design/specs/2026-11-17-marine-life-identification-2-video-design.md)
+(video).
 
 The feature is behind a flag and off for divers. This page is for working on
 it.
@@ -31,10 +34,13 @@ least 6 GB of memory.
 
 | Part | Where |
 | --- | --- |
-| Native engine (Core ML) | `packages/submersion_vision/` |
+| Native engine (Core ML) | `packages/submersion_vision/` (video passes in `VideoScanner.swift`) |
 | Pack format, download, install | `lib/features/species_id/data/pack/` |
 | Naming and decision rules (pure Dart) | `lib/features/species_id/domain/services/` |
 | Analysis queue | `lib/features/species_id/data/services/media_identification_service.dart` |
+| A video's scan, chunk by chunk | `lib/features/species_id/data/services/video_identification_scan.dart` |
+| Tracking and labels (pure Dart) | `lib/features/species_id/domain/services/video_tracker.dart`, `track_labels.dart` |
+| Labels over a video | `lib/features/species_id/presentation/widgets/video_identification_layer.dart` |
 | Viewer trigger and suggestions | `lib/features/species_id/presentation/widgets/` |
 | Settings page | `lib/features/species_id/presentation/pages/` |
 | Pack builder | `tool/species_pack/` |
@@ -110,3 +116,38 @@ flutter run -d macos --dart-define=MARINE_LIFE_ID=true --dart-define=SPECIES_PAC
 
 Then open Settings, Data, Photos and videos, Marine life identification,
 and download the model. Opening a photo in the viewer analyses it.
+
+## Video
+
+Opening a video in the viewer scans it, after the same dwell as a photo,
+while it plays. The scan works in 10 second chunks:
+
+1. **Pass 1, native.** `detectVideo` decodes the chunk in order with
+   `AVAssetReader`, frames at most 960 pixels on the longer side, and runs
+   the detector four times a second. Boxes come back normalised to the
+   video as the player shows it (the track's rotation applied).
+2. **Tracking, Dart.** `VideoTracker` links each frame's boxes to the open
+   tracks by overlap. A track missed for more than two samples closes; one
+   seen once is dropped. Open tracks carry into the next chunk.
+3. **Pass 2, native.** For the tracks a chunk closed, `embedMoments` seeks to
+   each track's best moments (up to three, a second apart) at full size and
+   crops and embeds them, exactly as a photo's boxes are.
+4. **Naming, Dart.** A track is named once, from the average of its moments'
+   embeddings, with the same rules as a photo crop. Whether it is confident
+   and whether it looks specific enough for a dot are stored with it.
+
+Each chunk is stored with how far the scan got (`scanned_ms` on the run), so
+leaving the video, a newer request, a pack change or the app going to the
+background stops the scan between chunks and the next opening resumes it.
+Each track is one `media_identifications` row with its time range, the box at
+each sample packed into `track_path`, and any species the diver gave it from
+the frame (`claimed_species_id`).
+
+On a 4K clip on an M-series Mac, pass 1 runs at about ten times real time.
+Pass 2 costs about 85 ms a moment, so a dense school (about 500 moments in 50
+seconds) takes most of the time. Neither has been measured on a phone.
+
+What is checked by hand, since no automated test runs the real models:
+labels sit on the fish in a landscape and a portrait clip, and a diver or a
+hand in frame gets no dot.
+
