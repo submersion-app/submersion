@@ -72,7 +72,6 @@ import 'package:submersion/features/media_store/presentation/widgets/media_reupl
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
 import 'package:submersion/features/species_id/presentation/widgets/identification_trigger.dart';
 
@@ -109,18 +108,12 @@ class MediaViewerPage extends ConsumerStatefulWidget {
   /// a gear photo backs up (issue #3355); null or an empty result shows none.
   final String? Function(MediaItem)? captionFor;
 
-  /// Whether the viewer offers its own lock (issue #4527): a photo opens
-  /// locked and is changed only in a sitting. Off unless the app is built
-  /// with the switch.
-  final bool unlockEditing;
-
   const MediaViewerPage({
     super.key,
     required this.mediaList,
     required this.initialMediaId,
     this.showGoToDive = false,
     this.captionFor,
-    this.unlockEditing = kUnlockEditing,
   });
 
   @override
@@ -134,9 +127,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
         ColorAdjustViewerMixin<MediaViewerPage>,
         PeopleTagViewerMixin<MediaViewerPage>,
         PhotoViewerEditing<MediaViewerPage> {
-  @override
-  bool get unlockEditingRequested => widget.unlockEditing;
-
   /// Tag mode holds its changes in the photo's sitting.
   @override
   EditSession<PhotoRecord>? get peopleSitting => photoSitting;
@@ -146,7 +136,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   EditSession<PhotoRecord>? get colorSitting => photoSitting;
 
   @override
-  bool get colorLockOffered => unlockEditingRequested;
+  bool get colorLockOffered => true;
 
   /// Locking, by any route, closes what changes the photo.
   @override

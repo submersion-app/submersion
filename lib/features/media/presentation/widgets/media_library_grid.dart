@@ -10,7 +10,6 @@ import 'package:submersion/features/media/presentation/widgets/media_thumbnail_w
 import 'package:submersion/features/media/presentation/widgets/media_thumbnail_zoom_anchor.dart';
 import 'package:submersion/features/media/presentation/widgets/media_tile_markers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 
 /// One library thumbnail with the shared selection overlay. Used by both the
 /// flat grid and the grouped list so the two modes cannot diverge.
@@ -73,7 +72,7 @@ class MediaLibraryTile extends StatelessWidget {
         context,
         entry.item,
         // A photo is changed only in the viewer, unlocked (issue #4527).
-        readOnly: kUnlockEditing,
+        readOnly: true,
       );
     }
   }

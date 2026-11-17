@@ -32,9 +32,6 @@ const _log = LoggerService('PhotoViewerEditing', category: LogCategory.media);
 /// in a sitting is a route of its own, so its scope is a different one, and
 /// nothing here ends that sitting.
 mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
-  /// Whether the page was built with editing on (the build switch).
-  bool get unlockEditingRequested;
-
   /// Told on every lock, by whatever route, so the page closes the panels and
   /// modes that change the photo.
   void onPhotoLocked();
@@ -47,11 +44,9 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   /// and boxes on every change (taps and picks, never keystrokes).
   EditSession<PhotoRecord>? _listened;
 
-  /// Whether this viewer offers the lock: built with editing on, on a device
-  /// that can change media at all.
-  bool get editingOffered =>
-      unlockEditingRequested &&
-      ref.read(deviceCapabilitiesProvider).mediaAttach;
+  /// Whether this viewer offers the lock: on a device that can change media
+  /// at all.
+  bool get editingOffered => ref.read(deviceCapabilitiesProvider).mediaAttach;
 
   /// Created on first use, so a viewer that never offers editing has none.
   RecordEditController<PhotoRecord> get photoEditController =>
@@ -64,10 +59,10 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
 
   bool get photoUnlocked => _photoController?.isUnlocked ?? false;
 
-  /// Whether the viewer only reads: built with the lock and not unlocked. A
-  /// device that cannot unlock at all (a browser) is always here, so nothing
-  /// there falls back to writing at once.
-  bool get photoLocked => unlockEditingRequested && !photoUnlocked;
+  /// Whether the viewer only reads: not unlocked. A device that cannot
+  /// unlock at all (a browser) is always here, so nothing there falls back
+  /// to writing at once.
+  bool get photoLocked => !photoUnlocked;
 
   /// The photo the sitting is over.
   String? get _sittingId => photoSitting?.stored.item.id;

@@ -37,16 +37,14 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<void> pumpSite(WidgetTester tester, {bool unlockEditing = true}) =>
-      pumpViewerApp(
-        tester,
-        SiteMediaViewerPage(
-          siteId: 's1',
-          initialMediaId: 'a1',
-          scope: SiteViewerScope.attachments,
-          unlockEditing: unlockEditing,
-        ),
-      );
+  Future<void> pumpSite(WidgetTester tester) => pumpViewerApp(
+    tester,
+    const SiteMediaViewerPage(
+      siteId: 's1',
+      initialMediaId: 'a1',
+      scope: SiteViewerScope.attachments,
+    ),
+  );
 
   RecordEditController<PhotoRecord> controller(WidgetTester tester) =>
       RecordEditScope.maybeOf<PhotoRecord>(
@@ -138,7 +136,6 @@ void main() {
         siteId: 's1',
         initialMediaId: 'a1',
         scope: SiteViewerScope.attachments,
-        unlockEditing: true,
       ),
       size: const Size(300, 800),
     );
@@ -149,11 +146,18 @@ void main() {
     expect(find.byKey(const ValueKey('viewer_overflow')), findsOneWidget);
   });
 
-  testWidgets('switch off: as today', (tester) async {
-    await pumpSite(tester, unlockEditing: false);
+  testWidgets('a viewer built with only its site opens locked', (tester) async {
+    await pumpViewerApp(
+      tester,
+      const SiteMediaViewerPage(
+        siteId: 's1',
+        initialMediaId: 'a1',
+        scope: SiteViewerScope.attachments,
+      ),
+    );
 
-    expect(find.byKey(const ValueKey('viewer_unlock')), findsNothing);
-    expect(find.byTooltip('Adjust color'), findsOneWidget);
-    expect(find.byTooltip('Edit details'), findsOneWidget);
+    expect(find.byKey(const ValueKey('viewer_unlock')), findsOneWidget);
+    expect(find.byTooltip('Adjust color'), findsNothing);
+    expect(find.byTooltip('Edit details'), findsNothing);
   });
 }

@@ -33,7 +33,6 @@ import 'package:submersion/features/media/presentation/helpers/document_open_hel
 import 'package:submersion/features/media/presentation/helpers/photo_import_helper.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 /// Returns the OS-appropriate label for the "show file in OS file manager"
@@ -650,12 +649,6 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                           // photo held for Save opens on itself; with no row
                           // it cannot be unlocked, and reads only.
                           diveEditing: scope,
-                          // On a page with the lock, the viewer has its own
-                          // (issue #4527).
-                          unlockEditing:
-                              scope != null ||
-                              session != null ||
-                              kUnlockEditing,
                         ),
                       ),
                     );

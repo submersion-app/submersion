@@ -8,7 +8,6 @@ import 'package:submersion/features/media/presentation/editing/photo_sitting_sho
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 
 /// Dive-scoped wrapper around [MediaViewerPage]: resolves the dive's media
 /// list reactively, then hands off. Kept so the dive-detail call sites (the
@@ -18,15 +17,11 @@ class PhotoViewerPage extends ConsumerWidget {
     super.key,
     required this.diveId,
     required this.initialMediaId,
-    this.unlockEditing = kUnlockEditing,
     this.diveEditing,
   });
 
   final String diveId;
   final String initialMediaId;
-
-  /// Whether the viewer offers its own lock (issue #4527).
-  final bool unlockEditing;
 
   /// The dive page's editing, when opened from its Media card: while the
   /// dive is unlocked, the viewer pages through its photos as the sitting
@@ -66,9 +61,6 @@ class PhotoViewerPage extends ConsumerWidget {
     );
   }
 
-  Widget _viewer(List<MediaItem> mediaList) => MediaViewerPage(
-    mediaList: mediaList,
-    initialMediaId: initialMediaId,
-    unlockEditing: unlockEditing,
-  );
+  Widget _viewer(List<MediaItem> mediaList) =>
+      MediaViewerPage(mediaList: mediaList, initialMediaId: initialMediaId);
 }

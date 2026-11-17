@@ -134,7 +134,6 @@ void main() {
     MediaItem media, {
     ResolutionResult? resolution,
     Object? resolutionError,
-    bool unlockEditing = false,
   }) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(
@@ -160,11 +159,7 @@ void main() {
             locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: MediaViewerPage(
-              mediaList: [media],
-              initialMediaId: media.id,
-              unlockEditing: unlockEditing,
-            ),
+            home: MediaViewerPage(mediaList: [media], initialMediaId: media.id),
           ),
         ),
       );
@@ -175,7 +170,14 @@ void main() {
     });
   }
 
+  /// Opens the write's confirmation. Writing to the file is a whole-record
+  /// operation, so a locked photo is unlocked first (issue #4527).
   Future<void> openDialog(WidgetTester tester) async {
+    final unlock = find.byKey(const ValueKey('viewer_unlock'));
+    if (unlock.evaluate().isNotEmpty) {
+      await tester.tap(unlock);
+      await tester.pump();
+    }
     await tester.tap(find.byIcon(Icons.edit_note));
     await tester.pumpAndSettle();
   }
@@ -242,7 +244,13 @@ void main() {
     await pump(tester, item());
     await openDialog(tester);
 
-    await tester.tap(find.text('Cancel'));
+    // The dialog's Cancel, not the unlocked bar's.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Cancel'),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(nativeCalls, isEmpty);
@@ -444,7 +452,7 @@ void main() {
     testWidgets('locked: disabled, "Unlock to use this"; no dialog on tap', (
       tester,
     ) async {
-      await pump(tester, item(), unlockEditing: true);
+      await pump(tester, item());
 
       expect(action(tester).onPressed, isNull);
       expect(find.byTooltip('Unlock to use this'), findsOneWidget);
@@ -455,7 +463,7 @@ void main() {
 
     testWidgets('unlocked with no changes: confirms and writes at once; still '
         'unlocked and clean', (tester) async {
-      await pump(tester, item(), unlockEditing: true);
+      await pump(tester, item());
       await unlock(tester);
 
       await openDialog(tester);
@@ -468,7 +476,7 @@ void main() {
 
     testWidgets('unlocked with a change: disabled, "Save or cancel your '
         'changes first"', (tester) async {
-      await pump(tester, item(), unlockEditing: true);
+      await pump(tester, item());
       await unlock(tester);
 
       controller(
