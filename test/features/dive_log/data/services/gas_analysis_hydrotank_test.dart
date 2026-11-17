@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/data/services/estimated_tank_pressure_synthesizer.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -70,5 +71,18 @@ void main() {
 
     // A segment exists only with a SAC, so there is none.
     expect(segments ?? const [], isEmpty);
+  });
+
+  test('no estimated pressure curve for a Hydrotank logged by hand', () {
+    // A flat-drop-flat estimate would draw steady gas use the Hydrotank's
+    // pressure never measured.
+    final estimated = synthesizeEstimatedTankPressures(
+      existing: const {},
+      tanks: const [hydrotank, pony],
+      gasSwitches: const [],
+      diveDurationSeconds: 2700,
+    );
+
+    expect(estimated.pressures.keys, isNot(contains('hydro')));
   });
 }

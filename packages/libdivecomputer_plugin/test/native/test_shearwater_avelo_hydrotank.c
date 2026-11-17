@@ -137,6 +137,52 @@ static void test_avelo_without_t1_tags_nothing(void) {
     printf("PASS: test_avelo_without_t1_tags_nothing\n");
 }
 
+/* A T3 transmitter in Avelo mode reports through the extended sample record
+   (type 0xE1, read at log version 13 and up; this fixture's opening record 4
+   holds 17 at its byte 16). It is an ordinary cylinder, so only T1 is the
+   Hydrotank. The fixture has no 0xE1 record, so one info event (type 0x30)
+   becomes one: its T3 pressure is a big-endian word at record byte 1, in
+   units of 2 psi, here 0x0640 (3200 psi). */
+static void test_avelo_t3_stays_untagged(void) {
+    unsigned char *data = NULL;
+    unsigned int size = load_fixture(&data);
+    assert(size == 22400);
+    make_avelo(data, size);
+    int converted = 0;
+    for (unsigned int off = 0; off + RECORD_SIZE <= size; off += RECORD_SIZE) {
+        if (data[off] == 0x30) {
+            memset(data + off, 0, RECORD_SIZE);
+            data[off] = 0xE1;
+            data[off + 1] = 0x06;
+            data[off + 2] = 0x40;
+            converted = 1;
+            break;
+        }
+    }
+    assert(converted);
+
+    libdc_parsed_dive_t dive;
+    char err[256] = {0};
+    int rc = libdc_parse_raw_dive("Shearwater", "Petrel 3", 10, data, size,
+                                  &dive, err, sizeof(err));
+    free(data);
+    assert(rc == 0);
+
+    printf("  tank_count %u\n", dive.tank_count);
+    assert(dive.tank_count == 2);
+    unsigned int hydrotanks = 0;
+    for (unsigned int t = 0; t < dive.tank_count; t++) {
+        if (dive.tanks[t].usage == USAGE_HYDROTANK) {
+            hydrotanks++;
+            assert(dive.tanks[t].serial == T1_SERIAL);
+        }
+    }
+    assert(hydrotanks == 1);
+
+    release(&dive);
+    printf("PASS: test_avelo_t3_stays_untagged\n");
+}
+
 /* The same log outside Avelo mode carries no Hydrotank. */
 static void test_non_avelo_has_no_hydrotank(void) {
     libdc_parsed_dive_t dive;
@@ -156,6 +202,7 @@ int main(void) {
     printf("Running Shearwater Avelo Hydrotank tests...\n");
     test_avelo_t1_is_hydrotank();
     test_avelo_without_t1_tags_nothing();
+    test_avelo_t3_stays_untagged();
     test_non_avelo_has_no_hydrotank();
     printf("All Shearwater Avelo Hydrotank tests passed\n");
     return 0;

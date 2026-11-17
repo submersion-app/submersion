@@ -197,3 +197,30 @@
 - [ ] **Step 2:** Merge it with a merge commit (never squash or rebase).
 - [ ] **Step 3:** Bump the gitlink to that merge commit; `git merge-base --is-ancestor <old pin> <new pin>` must succeed (the CI gitlink ancestry gate).
 - [ ] **Step 4:** Rebuild the macOS app and rerun the native tests. Commit `build(libdc): pin the Avelo Hydrotank usage patch`.
+
+## Appendix: the call-site sort (as built)
+
+Every place that checked for a suit inflation bottle, sorted by what it reads. "Gas use" sites moved to `pressureMeasuresGasUse`, `gasUseTankSql` or the whole-dive guard `breathesUnmeasuredTank` / `diveBreathesUnmeasuredTankSql`; "breathing" sites keep `isBreathingGas` / `breathingTankSql`, so a Hydrotank stays in them.
+
+**Gas use (a Hydrotank's pressure counts as not measured)**
+- `multi_cylinder_consumption.dart` `referencePressureDrop`; `dive.dart` `Dive.rmvFor` (whole dive blank)
+- `gas_analysis_service.dart` cylinder SAC loop and `_calculateSegmentSac`
+- `derived_metrics_repository.dart` SAC drift blobs (none when a Hydrotank is breathed)
+- `profile_analysis_provider.dart` `combineMultiTankPressures` (SAC curve, app GTR)
+- `range_gas_consumption.dart` (range panel SAC and RMV)
+- `dive_field_extractor.dart` `_computeGasConsumed` (Gas consumed field, exports)
+- `sac_segments_availability.dart` (no false "no pressure recorded" note)
+- `trip_cylinder_repository.dart` / `trip_gas_record_builder.dart` (`measuresGasUse`)
+- `tank_editor.dart` surface-breathing minutes
+- `estimated_tank_pressure_synthesizer.dart` (no estimated line)
+- `gas_switch_time_suggestions.dart` `hasBreathingStarts`; `tank_assignment_detector.dart` inactive-drop check; `pressure_anomaly_detector.dart` rise, swap and consumption checks
+- `cylinders_card.dart` gas used, loop use, SAC, Used label; `pdf_template_detailed.dart` pressure used; `plan_source_dive_compare_strip.dart` actual gas
+- SQL: `diveSacPressureSql`, `gas_use_sql.dart` `_surfaceSeconds`, insights SAC-in-litres (dive left out), `getGasUsedPerDive`
+
+**Breathing (a Hydrotank stays in)**
+- deco and gas: `_selectOcPrimaryTank`, `buildAvailableGases`, `breathing_gas_switches.dart`, `ccr_*`, `tank_usage_range.dart`, `gas_switch_writes.dart`, `gas_switches_editor.dart`, `tank_mod.dart`, cylinders card MOD/MND and MOD note
+- planner and dive lab: `plan_breathing_tanks.dart`, `dive_planner_providers.dart`, `plan_saved_tanks_bar.dart`, `dive_snapshot.dart`, `lab_request_inputs_provider.dart`, `dive_plan_fields.dart`
+- classification and identity: `counted_cylinders.dart`, `tank_configuration_classifier.dart`, `sequential_tank_merge.dart`, `dive_consolidation_builder.dart`, `transmitter_role_detector.dart`, `trip_cylinder_tank_link.dart`
+- SQL: `breathingTankSql` in gas mix, gas class, first volume, role-consumption dive list, chart dives, trip unlinked tanks, max O2/He, `sacReferenceIdSql`
+
+**Registry**: `transmitter_registry_matcher.dart`, `transmitter_tank_fill.dart`, `transmitter_auto_registrar.dart` and `transmitter_repository.dart` `lastRoleForEquipment` never carry a dive's Hydrotank role into the per-transmitter registry.

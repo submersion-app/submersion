@@ -66,7 +66,11 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
               tank.name ?? tank.gasMix.name,
             ),
             planned: _plannedGasFor(outcome, tank.id, units),
-            actual: units.formatVolume(tank.pressureUsed! * tank.volume!),
+            // An Avelo Hydrotank's drop is no gas used (issue #4657): the
+            // plan's figure stands, with nothing to compare it with.
+            actual: tank.role.pressureMeasuresGasUse
+                ? units.formatVolume(tank.pressureUsed! * tank.volume!)
+                : '--',
           ),
       if (actualCnsEnd != null)
         _CompareRow(

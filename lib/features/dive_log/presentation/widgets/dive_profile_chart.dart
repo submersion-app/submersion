@@ -40,6 +40,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/chart_series_c
 import 'package:submersion/features/dive_log/presentation/widgets/chart_touch_recognizer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/legend_candidates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
@@ -660,17 +661,13 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     return '$base (${tank.gasMix.name})';
   }
 
-  /// The [tankTooltipLabel] fallback for [tank], the [index]th cylinder: an
-  /// unnamed Avelo Hydrotank by its role, so its pressure line, which rises
-  /// with the water pumped in, reads as the Hydrotank's (issue #4657); any
-  /// other cylinder by its number, "Tank 2".
+  /// The [tankTooltipLabel] fallback for [tank], the [index]th cylinder
+  /// (from 0), as the legend names it: see [tankFallbackTitle].
   static String tankDefaultLabel(
     AppLocalizations l10n,
     DiveTank? tank,
     int index,
-  ) => tank?.role == TankRole.hydrotank
-      ? l10n.enum_tankRole_hydrotank
-      : l10n.diveLog_tank_title(index + 1);
+  ) => tankFallbackTitle(l10n, tank, index + 1);
 
   /// Column widths for [tooltipRowText], used by this widget's own native
   /// bubble ([TooltipPresentation.nativeBubble]) to align its monospace

@@ -452,7 +452,9 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     final pressures = <String>[
       if (tank.startPressure != null || tank.endPressure != null)
         pdfPressureRange(units, tank.startPressure, tank.endPressure),
-      if (tank.pressureUsed != null)
+      // An Avelo Hydrotank's drop is the water pumped in and out, not gas
+      // used (issue #4657).
+      if (tank.pressureUsed != null && tank.role.pressureMeasuresGasUse)
         l10n.pdf_pressureUsed(units.formatPressure(tank.pressureUsed)),
     ];
 
