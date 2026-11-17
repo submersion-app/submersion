@@ -132,8 +132,8 @@ void main() {
 
   test('an SCR plan with nothing entered computes as it did before', () {
     final plan = _plan(domain.PlanMode.scr, _ean50);
-    final before = PlanEngine(
-      config: const PlanEngineConfig(scrInjectionRateLpm: 12, scrVo2Lpm: 1.3),
+    final before = const PlanEngine(
+      config: PlanEngineConfig(scrInjectionRateLpm: 12, scrVo2Lpm: 1.3),
     ).compute(plan);
     final now = PlanEngine(
       config: planEngineConfigFromSettings(const AppSettings()),
