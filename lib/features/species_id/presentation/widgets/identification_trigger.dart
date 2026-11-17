@@ -41,9 +41,15 @@ class IdentificationTrigger extends ConsumerStatefulWidget {
       _IdentificationTriggerState();
 }
 
-class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger> {
+class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger>
+    with WidgetsBindingObserver {
   final _requested = <String>{};
   Timer? _timer;
+
+  /// Whether the viewer is on screen: false while another full page covers
+  /// it (a species page), when a video's scan is stopped. A sheet over the
+  /// viewer leaves it showing.
+  var _showing = true;
 
   /// The service asked, kept for [dispose], where `ref` may no longer be
   /// read.
@@ -57,7 +63,41 @@ class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _schedule();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Routes under a full page run with tickers off; under a sheet, on.
+    final showing = TickerMode.valuesOf(context).enabled;
+    if (showing == _showing) return;
+    _showing = showing;
+    final item = widget.item;
+    if (!showing) {
+      _timer?.cancel();
+      if (marineLifeIdEnabled &&
+          ref.read(mediaIdentificationServiceProvider).cancelPending(item.id)) {
+        _requested.remove(item.id);
+      }
+    } else {
+      _schedule();
+    }
+  }
+
+  /// A video's scan stops in the background; back in the foreground with
+  /// the video still on screen, it carries on (issue #4675).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final item = widget.item;
+    if (state == AppLifecycleState.resumed &&
+        _showing &&
+        _applies &&
+        item.mediaType == MediaType.video &&
+        _requested.contains(item.id)) {
+      _ask(item);
+    }
   }
 
   @override
@@ -87,13 +127,16 @@ class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     _service?.cancelPending(widget.item.id);
     super.dispose();
   }
 
   void _schedule() {
-    if (!_applies || _requested.contains(widget.item.id)) return;
+    if (!_applies || !_showing || _requested.contains(widget.item.id)) {
+      return;
+    }
     final item = widget.item;
     _timer = Timer(widget.dwell, () {
       if (!mounted || widget.item.id != item.id) return;
