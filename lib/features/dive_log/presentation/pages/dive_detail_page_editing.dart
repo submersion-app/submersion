@@ -405,6 +405,9 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
               cardId: card.id,
               label: section.id.localizedDisplayName(l10n),
               hidden: !section.visible,
+              changed:
+                  editController.session?.changedCardIds.contains(card.id) ??
+                  false,
             ),
     ];
   }
