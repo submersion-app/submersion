@@ -233,19 +233,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
           ),
         ),
         if (onEditProfile case final onEditProfile?)
-          RecordOperationButton(
-            reason: recordOperationReason(
-              context.l10n,
-              recordOperationBlockOf(scope),
-            ),
-            onPressed: onEditProfile,
-            builder: (onPressed) => IconButton(
-              icon: const Icon(Icons.edit_note),
-              tooltip: context.l10n.diveLog_profile_editProfile,
-              visualDensity: VisualDensity.compact,
-              onPressed: onPressed,
-            ),
-          ),
+          _EditProfileButton(scope: scope, onPressed: onEditProfile),
         IconButton(
           icon: const Icon(Icons.fullscreen),
           tooltip: context.l10n.diveLog_detail_tooltip_viewFullscreen,
@@ -540,6 +528,30 @@ class _ProfileRangeStats extends ConsumerWidget {
           environment: dive.environment,
         ),
       ],
+    );
+  }
+}
+
+/// Edit profile on the Profile card's toolbar (issue #4527): a whole-record
+/// operation, so while it is unavailable its one tooltip says why, rather
+/// than a second tooltip competing with the button's own label.
+class _EditProfileButton extends StatelessWidget {
+  const _EditProfileButton({required this.scope, required this.onPressed});
+
+  final RecordEditController<Dive>? scope;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final reason = recordOperationReason(
+      context.l10n,
+      recordOperationBlockOf(scope),
+    );
+    return IconButton(
+      icon: const Icon(Icons.edit_note),
+      tooltip: reason ?? context.l10n.diveLog_profile_editProfile,
+      visualDensity: VisualDensity.compact,
+      onPressed: reason == null ? onPressed : null,
     );
   }
 }

@@ -27,7 +27,15 @@ class _FakeService extends CylinderFromTankService {
 void main() {
   late _FakeService service;
 
-  Future<void> pumpMenu(WidgetTester tester, DiveTank tank) async {
+  /// What each run of the menu as a page operation answered.
+  final ran = <bool>[];
+
+  Future<void> pumpMenu(
+    WidgetTester tester,
+    DiveTank tank, {
+    bool asOperation = false,
+  }) async {
+    ran.clear();
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     service = _FakeService();
@@ -41,6 +49,9 @@ void main() {
         child: TankGearMenu(
           dive: Dive(id: 'd', dateTime: DateTime(2026), tanks: [tank]),
           tank: tank,
+          runAsOperation: asOperation
+              ? (operation) async => ran.add(await operation())
+              : null,
         ),
       ),
     );
@@ -87,5 +98,35 @@ void main() {
     await tester.tap(find.text('Unlink cylinder'));
     await tester.pumpAndSettle();
     expect(find.text("Couldn't change the cylinder link"), findsOneWidget);
+  });
+
+  // As a page operation (issue #4527) the menu answers whether it wrote, so
+  // a sheet closed without a change does not start the sitting again.
+  testWidgets('add closed without adding answers that nothing was written', (
+    tester,
+  ) async {
+    await pumpMenu(
+      tester,
+      const DiveTank(id: 't', volume: 11.1),
+      asOperation: true,
+    );
+    await tester.tap(find.text('Add to my gear'));
+    await tester.pumpAndSettle();
+    Navigator.of(tester.element(find.text('Add 1 cylinder'))).pop();
+    await tester.pumpAndSettle();
+
+    expect(ran, [false]);
+  });
+
+  testWidgets('an unlink answers that it wrote', (tester) async {
+    await pumpMenu(
+      tester,
+      const DiveTank(id: 't', volume: 11.1, equipmentId: 'cyl'),
+      asOperation: true,
+    );
+    await tester.tap(find.text('Unlink cylinder'));
+    await tester.pumpAndSettle();
+
+    expect(ran, [true]);
   });
 }

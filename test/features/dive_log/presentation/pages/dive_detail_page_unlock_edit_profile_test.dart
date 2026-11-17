@@ -59,6 +59,10 @@ void main() {
     expect(editProfile(), findsOneWidget);
     expect(editButton(tester).onPressed, isNull);
     expect(find.byTooltip('Unlock to use this'), findsOneWidget);
+    // One tooltip, the reason: a second one, the button's own label, would
+    // compete with it on hover.
+    expect(editButton(tester).tooltip, 'Unlock to use this');
+    expect(find.byTooltip('Edit profile'), findsNothing);
   });
 
   testWidgets('unlocked and clean, Edit profile pushes the editor; its save '

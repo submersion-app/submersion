@@ -71,8 +71,9 @@ final recordEditShortcutTargetsProvider = Provider<RecordEditShortcutTargets>(
 /// Each key acts only when it has something to do there: unlock on a locked
 /// page, save with changes to save, cancel during a sitting with nothing
 /// nearer to dismiss. Otherwise the key is left to whatever else listens, so
-/// Escape still closes suggestions, a menu or a sheet over the page. Save and Cancel work while a field is being typed
-/// in; unlock, a plain chord, not then.
+/// Escape still closes suggestions, a menu or a sheet over the page. Save
+/// and Cancel work while a field is being typed in; unlock, a plain chord,
+/// not then.
 class RecordEditShortcuts extends ConsumerStatefulWidget {
   const RecordEditShortcuts({
     super.key,

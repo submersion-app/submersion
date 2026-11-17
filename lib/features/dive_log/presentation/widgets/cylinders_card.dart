@@ -150,9 +150,7 @@ class CylindersCard extends ConsumerWidget {
       l10n,
       recordOperationBlockOf(edit),
     );
-    final runAsOperation = edit == null
-        ? null
-        : (Future<bool> Function() operation) => edit.runOperation(operation);
+    final RecordOperationRunner? runAsOperation = edit?.runOperation;
     // A check-in is for a cylinder the dive is stored with: one only in the
     // sitting may never be saved.
     final storedGearIds = {
@@ -348,7 +346,7 @@ class CylindersCard extends ConsumerWidget {
     required TripCylinderTankLabel? slotLabel,
     required bool showRole,
     required String? operationReason,
-    required _RunAsOperation? runAsOperation,
+    required RecordOperationRunner? runAsOperation,
     required bool checkInReadOnly,
   }) {
     final l10n = context.l10n;
@@ -586,7 +584,7 @@ class CylindersCard extends ConsumerWidget {
     DiveTank tank, {
     required bool checkInReadOnly,
     required String? operationReason,
-    required _RunAsOperation? runAsOperation,
+    required RecordOperationRunner? runAsOperation,
   }) {
     final checkIn = _checkInButton(
       tank,
@@ -616,7 +614,7 @@ class CylindersCard extends ConsumerWidget {
     DiveTank tank, {
     required bool readOnly,
     required String? operationReason,
-    required _RunAsOperation? runAsOperation,
+    required RecordOperationRunner? runAsOperation,
   }) {
     final equipmentId = tank.equipmentId;
     if (equipmentId == null) return null;
@@ -667,7 +665,3 @@ class CylindersCard extends ConsumerWidget {
     };
   }
 }
-
-/// Runs a whole-record operation through the page's sitting (issue #4527).
-typedef _RunAsOperation =
-    Future<void> Function(Future<bool> Function() operation);

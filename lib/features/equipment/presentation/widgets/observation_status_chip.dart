@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_observat
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_observation_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 
 /// The trailing chip on a dive's gear row: nothing recorded, checked OK,
 /// or an issue. Tapping opens the check-in sheet for (item, dive).
@@ -26,8 +27,7 @@ class ObservationStatusChip extends ConsumerWidget {
   /// Runs the check-in as the page's whole-record operation, so the page
   /// holds still while the sheet is open and reads the dive again after.
   /// Null opens the sheet directly, as off such a page.
-  final Future<void> Function(Future<bool> Function() operation)?
-  runAsOperation;
+  final RecordOperationRunner? runAsOperation;
 
   const ObservationStatusChip({
     super.key,
@@ -65,13 +65,16 @@ class ObservationStatusChip extends ConsumerWidget {
             scheme.tertiary,
             l10n.equipmentObservation_chip_ok,
           );
+    final reason = operationReason;
     final button = IconButton(
       icon: Icon(icon, color: color, size: 20),
-      tooltip: tooltip,
+      // Unavailable, its one tooltip says why: a second one around the
+      // button would compete with the state on hover.
+      tooltip: reason ?? tooltip,
       visualDensity: VisualDensity.compact,
       // Read-only keeps the chip's colour: it still says how the gear did.
       disabledColor: color,
-      onPressed: readOnly || operationReason != null
+      onPressed: readOnly || reason != null
           ? null
           : () {
               Future<bool> checkIn() async {
@@ -87,9 +90,8 @@ class ObservationStatusChip extends ConsumerWidget {
               run == null ? checkIn() : run(checkIn);
             },
     );
-    if (operationReason case final reason?) {
-      return Tooltip(message: reason, child: button);
-    }
+    // The state is still read out, ahead of why it cannot be changed.
+    if (reason != null) return Semantics(label: tooltip, child: button);
     if (!readOnly) return button;
     // Read-only is a state, not a dimmed button: a check made is read out
     // as text, and "Check in", an action the locked page does not offer,

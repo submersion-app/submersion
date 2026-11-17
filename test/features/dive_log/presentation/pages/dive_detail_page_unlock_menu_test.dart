@@ -28,6 +28,13 @@ class _SpyList extends PaginatedDiveListNotifier {
   Future<void> deleteDive(String id) async => deleted.add(id);
 }
 
+class _FailingList extends PaginatedDiveListNotifier {
+  _FailingList(super.repository, super.ref);
+
+  @override
+  Future<void> deleteDive(String id) async => throw StateError('disk full');
+}
+
 final _linked = PreDiveSession(
   id: 'pre-1',
   templateName: 'Boat',
@@ -182,6 +189,32 @@ void main() {
     expect(list.deleted, [dive.id]);
     expect(find.text('Discard changes?'), findsNothing);
     expect(location(page.router), '/home');
+  });
+
+  testWidgets('a delete that fails stays on the page, and nothing is thrown', (
+    tester,
+  ) async {
+    final page = await pumpPage(
+      tester,
+      extra: [
+        paginatedDiveListProvider.overrideWith(
+          (ref) => _FailingList(ref.watch(diveRepositoryProvider), ref),
+        ),
+      ],
+    );
+    await unlock(tester);
+
+    await _openMenu(tester);
+    await tester.tap(find.text('Delete'));
+    await settle(tester);
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await settle(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(location(page.router), '/home/dive');
+    final controller = _controller(tester);
+    expect(controller.isUnlocked, isTrue);
+    expect(controller.isBusy, isFalse);
   });
 
   testWidgets('with the switch off the bar has no History icon', (

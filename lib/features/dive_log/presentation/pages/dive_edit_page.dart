@@ -3807,6 +3807,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     await _refreshAfterProfileSave(diveId, promoted: result.promoted);
   }
 
+  /// A saved profile edit recomputed the dive's depths, and a change of
+  /// primary source also replaced the fields taken from it. Reload them so
+  /// saving this form does not write the old values back.
   Future<void> _refreshAfterProfileSave(
     String diveId, {
     required bool promoted,

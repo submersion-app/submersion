@@ -21,6 +21,12 @@ enum RecordOperationBlock {
   unsaved,
 }
 
+/// Runs a whole-record operation through a page's sitting
+/// ([RecordEditController.runOperation]): what a card hands the controls on
+/// it that act on the whole record.
+typedef RecordOperationRunner =
+    Future<void> Function(Future<bool> Function() operation);
+
 /// The block for [controller], or null when the page offers no editing, so
 /// its operations act as they always have.
 RecordOperationBlock? recordOperationBlockOf(

@@ -121,6 +121,9 @@ void main() {
     expect(button.onPressed, isNull);
     expect(button.disabledColor, isNotNull);
     expect(find.byTooltip('Unlock to use this'), findsOneWidget);
+    // The reason is the button's one tooltip; the state is still read out.
+    expect(button.tooltip, 'Unlock to use this');
+    expect(find.bySemanticsLabel(RegExp('Issue')), findsOneWidget);
   });
 
   testWidgets('with no reason a tap runs as the page\'s operation', (

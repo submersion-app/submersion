@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/services/tank_cylinder_matc
 import 'package:submersion/features/equipment/presentation/providers/cylinder_proposal_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/cylinders_from_tanks_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 
 enum _TankGearAction { add, link, unlink }
 
@@ -35,8 +36,7 @@ class TankGearMenu extends ConsumerWidget {
 
   /// Runs the chosen action as the page's whole-record operation. Null
   /// runs it directly, as off such a page.
-  final Future<void> Function(Future<bool> Function() operation)?
-  runAsOperation;
+  final RecordOperationRunner? runAsOperation;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -50,11 +50,7 @@ class TankGearMenu extends ConsumerWidget {
       // on the dive page.
       icon: const Icon(Icons.more_horiz),
       onSelected: (action) {
-        Future<bool> act() async {
-          await _run(context, ref, action);
-          return true;
-        }
-
+        Future<bool> act() => _run(context, ref, action);
         final run = runAsOperation;
         run == null ? act() : run(act);
       },
@@ -77,7 +73,9 @@ class TankGearMenu extends ConsumerWidget {
     );
   }
 
-  Future<void> _run(
+  /// Runs [action] and answers whether it tried to write: a sheet or a
+  /// picker closed without a choice wrote nothing.
+  Future<bool> _run(
     BuildContext context,
     WidgetRef ref,
     _TankGearAction action,
@@ -87,17 +85,17 @@ class TankGearMenu extends ConsumerWidget {
     final service = ref.read(cylinderFromTankServiceProvider);
     switch (action) {
       case _TankGearAction.add:
-        await showCylindersFromTanksSheet(context, [
+        final added = await showCylindersFromTanksSheet(context, [
           proposalForTank(TankRef(diveId: dive.id, tank: tank)),
         ]);
-        return;
+        return (added ?? 0) > 0;
       case _TankGearAction.link:
         final item = await showOwnCylinderPicker(
           context,
           hideSpare: false,
           hint: context.l10n.diveLog_tank_linkCylinderHint,
         );
-        if (item == null) return;
+        if (item == null) return false;
         try {
           // False when the tank was linked elsewhere while the picker was
           // open: that link stands, and the diver is told this one did not.
@@ -125,5 +123,6 @@ class TankGearMenu extends ConsumerWidget {
           messenger?.showSnackBar(SnackBar(content: Text(failed)));
         }
     }
+    return true;
   }
 }
