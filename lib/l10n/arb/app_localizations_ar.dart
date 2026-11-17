@@ -29228,6 +29228,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_tripCylinderEventKind_adjustment => 'تعديل';
 
   @override
+  String get enum_navTrackLinkMode_auto => 'تلقائيًا';
+
+  @override
+  String get enum_navTrackLinkMode_manual => 'يدويًا';
+
+  @override
   String get enum_tripCylinderEventKind_fill => 'تعبئة';
 
   @override

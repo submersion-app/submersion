@@ -27286,6 +27286,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_tripCylinderEventKind_adjustment => '调整';
 
   @override
+  String get enum_navTrackLinkMode_auto => '自动';
+
+  @override
+  String get enum_navTrackLinkMode_manual => '手动';
+
+  @override
   String get enum_tripCylinderEventKind_fill => '充气';
 
   @override

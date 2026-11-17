@@ -8160,6 +8160,8 @@
   "enum_fillSource_nfc": "NFC-címke",
   "enum_fillSource_qr": "QR-kód",
   "enum_tripCylinderEventKind_adjustment": "Módosítás",
+  "enum_navTrackLinkMode_auto": "Automatikusan",
+  "enum_navTrackLinkMode_manual": "Kézzel",
   "enum_tripCylinderEventKind_fill": "Töltés",
   "enum_weatherSource_manual": "Kézi",
   "enum_weatherSource_openMeteo": "Open-Meteo",

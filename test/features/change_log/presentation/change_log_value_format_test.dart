@@ -120,6 +120,28 @@ void main() {
     );
   });
 
+  // A route's link mode is stored as its wire value ('auto', 'manual'),
+  // which no diver should read, in any language.
+  test('how a route was linked reads in the diver\'s language', () {
+    expect(
+      formatter().value('nav_tracks', 'link_mode', 'auto'),
+      'Automatically',
+    );
+    expect(formatter().value('nav_tracks', 'link_mode', 'manual'), 'Manually');
+    expect(formatter().label('nav_tracks', 'link_mode'), 'Linked');
+
+    final german = ChangeLogValueFormatter(
+      l10n: lookupAppLocalizations(const Locale('de')),
+      units: const UnitFormatter(AppSettings()),
+    );
+    expect(german.value('nav_tracks', 'link_mode', 'manual'), 'Manuell');
+  });
+
+  // A newer peer may link a route some way this build has never heard of.
+  test('a link mode this build does not know is shown as stored', () {
+    expect(formatter().value('nav_tracks', 'link_mode', 'shared'), 'shared');
+  });
+
   test('a foreign key reads as the record it points at', () {
     final text = formatter(
       references: const {

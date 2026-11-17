@@ -17115,6 +17115,14 @@
   "enum_fillSource_nfc": "NFC tag",
   "enum_fillSource_qr": "QR code",
   "enum_tripCylinderEventKind_adjustment": "Adjustment",
+  "enum_navTrackLinkMode_auto": "Automatically",
+  "@enum_navTrackLinkMode_auto": {
+    "description": "How a route came to be linked to a dive, after the label Linked: the app matched it by time"
+  },
+  "enum_navTrackLinkMode_manual": "Manually",
+  "@enum_navTrackLinkMode_manual": {
+    "description": "How a route came to be linked to a dive, after the label Linked: the diver chose the dive"
+  },
   "enum_tripCylinderEventKind_fill": "Fill",
   "enum_weatherSource_manual": "Manual",
   "enum_weatherSource_openMeteo": "Open-Meteo",

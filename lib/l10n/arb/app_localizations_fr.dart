@@ -28993,6 +28993,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_tripCylinderEventKind_adjustment => 'Ajustement';
 
   @override
+  String get enum_navTrackLinkMode_auto => 'Automatiquement';
+
+  @override
+  String get enum_navTrackLinkMode_manual => 'Manuellement';
+
+  @override
   String get enum_tripCylinderEventKind_fill => 'Gonflage';
 
   @override

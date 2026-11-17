@@ -8286,6 +8286,8 @@
   "enum_fillSource_nfc": "وسم NFC",
   "enum_fillSource_qr": "رمز QR",
   "enum_tripCylinderEventKind_adjustment": "تعديل",
+  "enum_navTrackLinkMode_auto": "تلقائيًا",
+  "enum_navTrackLinkMode_manual": "يدويًا",
   "enum_tripCylinderEventKind_fill": "تعبئة",
   "enum_weatherSource_manual": "يدوي",
   "enum_weatherSource_openMeteo": "Open-Meteo",

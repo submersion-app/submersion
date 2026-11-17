@@ -220,6 +220,54 @@ void main() {
     );
   });
 
+  // A type row records no fields when it is added, and its removal's copy
+  // is not a change of any one field, so without a name the row said only
+  // that something was added.
+  testWidgets('an added and a removed dive type each name the type', (
+    tester,
+  ) async {
+    final id = await tester.runAsync(() async {
+      await db.customStatement(
+        'INSERT INTO dive_dive_types (id, dive_id, dive_type_id, created_at) '
+        "VALUES ('old', 'dive', 'night', 1)",
+      );
+      await ChangeLogRepository().settleAll();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+      await ChangeLogScope.run(
+        db,
+        source: ChangeLogSource.manual,
+        label: RecordEditLabel.encode(
+          table: 'dives',
+          id: 'dive',
+          cardIds: ['notes'],
+        ),
+        body: () async {
+          await db.customStatement(
+            "UPDATE dives SET notes = 'Current' WHERE id = 'dive'",
+          );
+          await db.customStatement(
+            "DELETE FROM dive_dive_types WHERE id = 'old'",
+          );
+          await db.customStatement(
+            'INSERT INTO dive_dive_types (id, dive_id, dive_type_id, '
+            "created_at) VALUES ('new', 'dive', 'wreck', 2)",
+          );
+        },
+      );
+      return onlyOperation();
+    });
+
+    await pump(tester, id!);
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Dive type · Added'), findsOneWidget);
+    expect(find.text('Dive type · Deleted'), findsOneWidget);
+    expect(find.text('Wreck'), findsOneWidget);
+    expect(find.text('Night'), findsOneWidget);
+    expect(find.text('dive_type_id'), findsNothing);
+  });
+
   testWidgets('two saves to one field show as one change', (tester) async {
     final id = await tester.runAsync(() async {
       await db.customStatement(
