@@ -11447,6 +11447,99 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_ownCylinderTitle => 'Mijn flessen';
 
   @override
+  String get cylindersFromTanks_title => 'Flessen aan je uitrusting toevoegen';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'bij $count duiken',
+      one: 'bij $count duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flessen',
+      one: '$count fles',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flessen toevoegen',
+      one: '$count fles toevoegen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flessen aan je uitrusting toegevoegd',
+      one: '$count fles aan je uitrusting toegevoegd',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flessen staan niet in je uitrusting',
+      one: '$count fles staat niet in je uitrusting',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => 'Bekijken';
+
+  @override
+  String get cylindersFromTanks_name => 'Naam';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size $material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed =>
+      'De flessen konden niet worden toegevoegd';
+
+  @override
+  String get diveLog_tank_gearMenu => 'Flesopties';
+
+  @override
+  String get diveLog_tank_addToGear => 'Aan mijn uitrusting toevoegen';
+
+  @override
+  String get diveLog_tank_linkCylinder => 'Koppelen aan een eigen fles';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      'Koppelt deze fles aan die uit je uitrusting en voegt hem toe aan de uitrusting van deze duik. De fles houdt de vastgelegde grootte.';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => 'Fles ontkoppelen';
+
+  @override
+  String get diveLog_tank_linkFailed =>
+      'De koppeling van de fles kon niet worden gewijzigd';
+
+  @override
   String get diveLog_tank_regulatorLabel => 'Ademautomaat';
 
   @override

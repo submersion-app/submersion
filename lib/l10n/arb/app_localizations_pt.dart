@@ -11519,6 +11519,100 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_tank_ownCylinderTitle => 'Meus cilindros';
 
   @override
+  String get cylindersFromTanks_title =>
+      'Adicionar cilindros aos seus equipamentos';
+
+  @override
+  String cylindersFromTanks_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'em $count mergulhos',
+      one: 'em $count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_makes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cilindros',
+      one: '$count cilindro',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_add(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Adicionar $count cilindros',
+      one: 'Adicionar $count cilindro',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_added(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cilindros adicionados aos seus equipamentos',
+      one: '$count cilindro adicionado aos seus equipamentos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cylindersFromTanks_summary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cilindros não estão nos seus equipamentos',
+      one: '$count cilindro não está nos seus equipamentos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cylindersFromTanks_review => 'Revisar';
+
+  @override
+  String get cylindersFromTanks_name => 'Nome';
+
+  @override
+  String cylindersFromTanks_sizeName(String size, String material) {
+    return '$size $material';
+  }
+
+  @override
+  String get cylindersFromTanks_failed =>
+      'Não foi possível adicionar os cilindros';
+
+  @override
+  String get diveLog_tank_gearMenu => 'Opções do cilindro';
+
+  @override
+  String get diveLog_tank_addToGear => 'Adicionar aos meus equipamentos';
+
+  @override
+  String get diveLog_tank_linkCylinder => 'Vincular a um cilindro meu';
+
+  @override
+  String get diveLog_tank_linkCylinderHint =>
+      'Vincula este cilindro ao dos equipamentos e o adiciona aos equipamentos deste mergulho. O cilindro mantém o tamanho registrado.';
+
+  @override
+  String get diveLog_tank_unlinkCylinder => 'Desvincular cilindro';
+
+  @override
+  String get diveLog_tank_linkFailed =>
+      'Não foi possível alterar o vínculo do cilindro';
+
+  @override
   String get diveLog_tank_regulatorLabel => 'Regulador';
 
   @override
