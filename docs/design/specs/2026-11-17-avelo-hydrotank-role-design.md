@@ -141,12 +141,15 @@ dives". Today's re-parse keeps every stored role except one read off a
 transmitter name (`reparse_service.dart`, `roleIsComputers`), and nothing
 stored tells the importer's back-gas default from a diver's choice, so this
 needs a new rule: a parsed Hydrotank replaces a stored `backGas`. Any other
-stored role (a diver who set pony, stage and so on) is kept. A diver who sets
-a Hydrotank back to back gas by hand after this change must not have it
-flipped again by the next re-parse; the builder picks the signal that tells
-that edit apart (the change log, or a new `TankRoleSource` value written with
-the computer's Hydrotank so a later hand edit clears it, or something else),
-and says which in the plan.
+stored role (a diver who set pony, stage and so on) is kept.
+
+Known limit (maintainer's decision, 2026-11-17): a diver who sets a Hydrotank
+back to back gas by hand has it turned into a Hydrotank again by the next
+re-parse. Once edited, that row is indistinguishable from an old import (back
+gas, no role source), and the change log is per device and pruned, so it
+cannot tell them apart. On an Avelo-mode dive the T1 cylinder is the
+Hydrotank by definition, so there is almost no reason to undo it; any role
+other than back gas still sticks.
 
 **Transmitter registry (settled here):** the registry
 (`applyTransmitterRegistry`, `transmitterFillFor`) sets a role per
