@@ -20,13 +20,26 @@ final String _sidemountRolesSql = _rolesSql(sidemountRoles);
 /// an Avelo Hydrotank (issue #4657).
 final String _backmountRolesSql = _rolesSql(backmountRoles);
 
+/// The roles that hold no breathing gas, the roles whose pressure is no gas
+/// used, and the breathed roles whose pressure is no gas used, each as a SQL
+/// list built once.
+final String _notBreathingRolesSql = _rolesSql(
+  TankRole.values.where((r) => !r.isBreathingGas),
+);
+final String _unmeasuredRolesSql = _rolesSql(
+  TankRole.values.where((r) => !r.pressureMeasuresGasUse),
+);
+final String _unmeasuredBreathingRolesSql = _rolesSql(
+  TankRole.values.where((r) => r.isUnmeasuredBreathingGas),
+);
+
 /// Whether the `dive_tanks` row aliased [alias] holds breathing gas: every
 /// row but a suit inflation bottle (issue #4243). The SQL form of
 /// `TankRole.isBreathingGas`. A row with no role stays in, since
 /// `NULL <> 'x'` is NULL rather than true.
 String breathingTankSql(String alias) =>
     '($alias.tank_role IS NULL OR $alias.tank_role NOT IN '
-    '${_rolesSql(TankRole.values.where((r) => !r.isBreathingGas))})';
+    '$_notBreathingRolesSql)';
 
 /// Whether the fall in the pressure of the `dive_tanks` row aliased [alias]
 /// is gas used: every row but a suit inflation bottle and an Avelo Hydrotank,
@@ -34,7 +47,7 @@ String breathingTankSql(String alias) =>
 /// of `TankRole.pressureMeasuresGasUse`. A row with no role stays in.
 String gasUseTankSql(String alias) =>
     '($alias.tank_role IS NULL OR $alias.tank_role NOT IN '
-    '${_rolesSql(TankRole.values.where((r) => !r.pressureMeasuresGasUse))})';
+    '$_unmeasuredRolesSql)';
 
 /// Whether the `dives` row aliased [dive] breathes a cylinder whose pressure
 /// is not the gas used, an Avelo Hydrotank (issue #4657). Its total gas is
@@ -43,7 +56,7 @@ String gasUseTankSql(String alias) =>
 String diveBreathesUnmeasuredTankSql(String dive) =>
     '(EXISTS (SELECT 1 FROM dive_tanks unm_t '
     'WHERE unm_t.dive_id = $dive.id AND unm_t.tank_role IN '
-    '${_rolesSql(TankRole.values.where((r) => r.isUnmeasuredBreathingGas))}))';
+    '$_unmeasuredBreathingRolesSql))';
 
 /// The consumption volume of the `dive_tanks` row aliased [tank], in
 /// liters: its own volume, else the volume of the first other cylinder of
