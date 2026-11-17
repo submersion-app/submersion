@@ -217,8 +217,6 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
       ])
         b.buddy.id,
     };
-    // The dive the sitting was opened on, whatever the page shows by the
-    // time the write is asked for.
     // A save that did not commit may have noted sites it located.
     forgetSitesLocated(session);
     // A write that does not commit takes back what the sitting's media
@@ -226,6 +224,8 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     final result = await undoMediaOnFailure(
       session,
       () => service.save(
+        // The dive the sitting was opened on, whatever the page shows by
+        // the time the write is asked for.
         diveId: session.stored.id,
         // The changes, and the rebreather values a changed mode no longer
         // uses dropped.

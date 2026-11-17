@@ -63,7 +63,9 @@ final diveGearRefreshProvider = Provider<void Function(String diveId)>(
 /// was (issue #4527). A tide model that cannot answer leaves the record as
 /// it is: it answers null for a fetch that failed with nothing cached, or a
 /// grid this device has not got, as well as for a place it does not cover,
-/// and cannot say which.
+/// and cannot say which. A dive with no located site but a position of its
+/// own keeps its record too: a draft's tide is recorded there
+/// (`DraftConditionsService`), and nothing records it again.
 ///
 /// The saves' calls are not waited for, and a record replaces the dive's
 /// last one, so each dive's are run one after another, in the order the
@@ -93,7 +95,10 @@ final diveTideRecordProvider = Provider<Future<void> Function(Dive dive)>((
 Future<void> _recordDiveTide(Ref ref, Dive dive) async {
   final repository = ref.read(tideRecordRepositoryProvider);
   final location = dive.site?.location;
-  if (location == null || dive.effectiveWaterType == WaterType.fresh) {
+  if (dive.effectiveWaterType == WaterType.fresh) {
+    await repository.deleteTideRecordForDive(dive.id);
+  } else if (location == null) {
+    if (dive.entryLocation != null) return;
     await repository.deleteTideRecordForDive(dive.id);
   } else {
     final resolved = await ref.read(resolvedTideDataProvider(location).future);
@@ -254,7 +259,7 @@ class DiveSittingFollowUp {
     // value, so this is asked of the cards, not of before and after.
     if (changedCardIds.any(_refreshedByCardIds.contains)) {
       await _guarded(
-        'refresh what its cylinders, gear and weights feed',
+        'refresh what its header, cylinders, gear and weights feed',
         after,
         () => _gearRefresh(after.id),
       );

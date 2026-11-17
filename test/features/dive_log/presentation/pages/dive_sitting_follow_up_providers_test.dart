@@ -137,6 +137,17 @@ void main() {
       expect(tides.deleted, ['d1']);
     });
 
+    // A draft's tide is recorded at the dive's own entry position, with no
+    // site (DraftConditionsService), and nothing records it again once the
+    // draft has been tried: a save that only moved its time keeps it.
+    test('is kept for a dive with its own position and no sited one', () async {
+      final tides = await record(
+        atReef.copyWith(clearSite: true, entryLocation: point),
+      );
+      expect(tides.recorded, isEmpty);
+      expect(tides.deleted, isEmpty);
+    });
+
     test('is cleared for a dive at a site with no location', () async {
       final tides = await record(
         atReef.copyWith(
