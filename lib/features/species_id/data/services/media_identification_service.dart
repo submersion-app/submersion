@@ -93,6 +93,9 @@ class MediaIdentificationService {
   Timer? _idleTimer;
   var _disposed = false;
 
+  /// While above zero a pack change is under way: queued requests wait.
+  var _paused = 0;
+
   /// Queues [item]. Completes when it has been analysed, named again, found
   /// to need nothing, or dropped.
   ///
@@ -134,8 +137,10 @@ class MediaIdentificationService {
   Stream<void> watchActivity() => _activity.stream;
 
   /// Records accepted and rejected decisions against the photo's current
-  /// species tags.
+  /// species tags. Nothing is written if another logbook opened while the
+  /// rows and tags were being read.
   Future<void> reconcile(String mediaId) async {
+    final generation = _databaseGeneration();
     try {
       final all = await _identifications.forMedia(mediaId);
       if (all.isEmpty) return;
@@ -144,7 +149,7 @@ class MediaIdentificationService {
         await _taggedSpecies(mediaId),
         now: _now().toUtc(),
       );
-      if (changed.isNotEmpty) {
+      if (changed.isNotEmpty && _databaseGeneration() == generation) {
         await _identifications.updateIdentifications(changed);
       }
     } on Object catch (e) {
@@ -175,15 +180,29 @@ class MediaIdentificationService {
     }
   }
 
-  /// The installed pack changed or was removed: forget the cached tables and
-  /// free the models, once the analysis under way (on the old pack) is done,
-  /// so it is never left without its models.
-  Future<void> packChanged() async {
-    _pack = null;
-    await _running?.done.future;
-    _pack = null;
-    await _unloadModels();
+  /// Runs [change] (installing, updating or removing the pack) with no
+  /// analysis under way: waits for the one running, holds queued requests,
+  /// frees the models, runs [change], then forgets the cached pack and lets
+  /// the queue go on. An analysis is never left using files [change]
+  /// deletes, nor started on a pack half replaced.
+  Future<T> changePack<T>(Future<T> Function() change) async {
+    _paused++;
+    try {
+      while (_running != null) {
+        await _running!.done.future;
+      }
+      _pack = null;
+      await _unloadModels();
+      return await change();
+    } finally {
+      _pack = null;
+      _paused--;
+      _pump();
+    }
   }
+
+  /// The installed pack changed or was removed.
+  Future<void> packChanged() => changePack(() async {});
 
   Future<void> dispose() async {
     _disposed = true;
@@ -198,7 +217,9 @@ class MediaIdentificationService {
   }
 
   void _pump() {
-    if (_running != null || _waiting.isEmpty || _disposed) return;
+    if (_running != null || _waiting.isEmpty || _disposed || _paused > 0) {
+      return;
+    }
     final id = _waiting.keys.last;
     final job = _waiting.remove(id)!;
     _running = job;

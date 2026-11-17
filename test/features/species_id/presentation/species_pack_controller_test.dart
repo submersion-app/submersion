@@ -64,12 +64,19 @@ class _Store extends SpeciesPackStore {
   var installs = 0;
   var removals = 0;
 
+  /// Whether the pack is being changed with analysis held, read at each
+  /// install and removal.
+  bool Function() changing = () => false;
+  final heldAtInstall = <bool>[];
+  final heldAtRemoval = <bool>[];
+
   @override
   Future<InstalledPack?> installed() async => current;
 
   @override
   Future<InstalledPack> install(SpeciesPackManifest manifest) async {
     installs++;
+    heldAtInstall.add(changing());
     return current = InstalledPack(
       manifest: manifest,
       directory: '/pack',
@@ -81,6 +88,7 @@ class _Store extends SpeciesPackStore {
   @override
   Future<void> remove() async {
     removals++;
+    heldAtRemoval.add(changing());
     current = null;
   }
 
@@ -90,9 +98,18 @@ class _Store extends SpeciesPackStore {
 
 class _Service extends RecordingIdentificationService {
   var packChanges = 0;
+  var changing = false;
 
   @override
-  Future<void> packChanged() async => packChanges++;
+  Future<T> changePack<T>(Future<T> Function() change) async {
+    packChanges++;
+    changing = true;
+    try {
+      return await change();
+    } finally {
+      changing = false;
+    }
+  }
 }
 
 SpeciesPackManifest _manifest({String version = '2026.11.1'}) =>
@@ -114,6 +131,7 @@ void main() {
     downloader = _Downloader();
     store = _Store(root.path);
     service = _Service();
+    store.changing = () => service.changing;
     container = ProviderContainer(
       overrides: [
         visionEngineProvider.overrideWithValue(engine),
@@ -310,6 +328,14 @@ void main() {
       expect(s.updateBytes, _manifest().downloadBytesFor('coreml'));
     },
   );
+
+  test('the pack is installed and removed with analysis held', () async {
+    await controller().refresh();
+    await controller().download();
+    await controller().remove();
+    expect(store.heldAtInstall, [true]);
+    expect(store.heldAtRemoval, [true]);
+  });
 
   test('removing goes back to not installed', () async {
     await controller().refresh();

@@ -114,9 +114,12 @@ class SpeciesPackStore {
       final zip = File(p.join(stage.path, '$kind.$engine.zip'));
       final out = Directory(p.join(stage.path, kind));
       if (await out.exists()) await out.delete(recursive: true);
+      // Plain strings into the worker: nothing else of this scope.
+      final zipPath = zip.path;
+      final outPath = out.path;
       try {
         // Hundreds of megabytes: off the UI isolate.
-        await Isolate.run(() => unpackModelZip(zip.path, out.path));
+        await Isolate.run(() => unpackModelZip(zipPath, outPath));
       } on Object {
         if (await out.exists()) await out.delete(recursive: true);
         rethrow;

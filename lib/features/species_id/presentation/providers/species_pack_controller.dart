@@ -178,10 +178,7 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
       var done = 0;
       for (final file in files) {
         final dest = File(p.join(staging.path, file.name));
-        if (await dest.exists() && await dest.length() == file.size) {
-          done += file.size;
-          continue;
-        }
+        // The downloader keeps a finished file only if its hash matches.
         await downloader.downloadFile(
           url: client.fileUrl(file),
           file: file,
@@ -193,11 +190,16 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
         done += file.size;
       }
       state = const PackInstalling();
-      final service = ref.read(mediaIdentificationServiceProvider);
-      final installed = await store.install(manifest);
-      await service.packChanged();
-      await _prepare(installed);
+      // With no analysis under way: install deletes the old version.
+      final installed = await ref
+          .read(mediaIdentificationServiceProvider)
+          .changePack(() async {
+            final pack = await store.install(manifest);
+            await _prepare(pack);
+            return pack;
+          });
       ref.invalidate(installedSpeciesPackProvider);
+      // The prepared models may now be compiled ones, at other paths.
       final ready = await store.installed() ?? installed;
       state = PackInstalled(
         version: ready.manifest.packVersion,
@@ -251,8 +253,8 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
   void cancel() => _cancelled = true;
 
   Future<void> remove() async {
-    await ref.read(speciesPackStoreProvider).remove();
-    await ref.read(mediaIdentificationServiceProvider).packChanged();
+    final store = ref.read(speciesPackStoreProvider);
+    await ref.read(mediaIdentificationServiceProvider).changePack(store.remove);
     ref.invalidate(installedSpeciesPackProvider);
     await refresh();
   }

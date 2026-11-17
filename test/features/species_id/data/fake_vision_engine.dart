@@ -17,6 +17,9 @@ class FakeEngine implements VisionEngine {
   final loads = <VisionModels>[];
   var unloads = 0;
 
+  /// Every call in order: `load`, `unload`, `analyze:<path>`.
+  final events = <String>[];
+
   /// Whether models are in memory. Setting it false is what an iOS memory
   /// warning does: the native side drops them without being asked.
   var loaded = false;
@@ -33,12 +36,14 @@ class FakeEngine implements VisionEngine {
   @override
   Future<void> load(VisionModels models) async {
     loads.add(models);
+    events.add('load');
     if (loadFailure != null) throw loadFailure!;
     loaded = true;
   }
 
   @override
   Future<VisionAnalysis> analyze({String? path, Uint8List? bytes}) async {
+    events.add('analyze:${path ?? 'bytes'}');
     if (!loaded) throw const VisionEngineException('not_loaded');
     analysed.add(path ?? 'bytes');
     await gate?.future;
@@ -66,6 +71,7 @@ class FakeEngine implements VisionEngine {
   @override
   Future<void> unload() async {
     unloads++;
+    events.add('unload');
     loaded = false;
   }
 

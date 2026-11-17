@@ -67,6 +67,25 @@ void main() {
     isA<PackDownloadException>().having((e) => e.reason, 'reason', reason),
   );
 
+  test('a finished file that checks out is not downloaded again', () async {
+    await dest.writeAsBytes(_bytes);
+    var requests = 0;
+    await SpeciesPackDownloader(
+      client: _server(inspect: (_) => requests++),
+    ).downloadFile(url: _url, file: _file(), dest: dest);
+    expect(requests, 0);
+    expect(await dest.readAsBytes(), _bytes);
+  });
+
+  test('a finished file of the right size but other content is downloaded '
+      'again', () async {
+    await dest.writeAsBytes(Uint8List(1000));
+    await SpeciesPackDownloader(
+      client: _server(),
+    ).downloadFile(url: _url, file: _file(), dest: dest);
+    expect(await dest.readAsBytes(), _bytes);
+  });
+
   test('a clean download is verified and renamed into place', () async {
     final progress = <int>[];
     await SpeciesPackDownloader(client: _server()).downloadFile(

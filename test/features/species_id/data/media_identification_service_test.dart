@@ -107,6 +107,7 @@ void main() {
   var packLoads = 0;
   var generation = 0;
   Completer<void>? tagsGate;
+  var tagsAsked = 0;
 
   setUp(() async {
     library = AppDatabase(
@@ -126,6 +127,7 @@ void main() {
     packLoads = 0;
     generation = 0;
     tagsGate = null;
+    tagsAsked = 0;
     service = MediaIdentificationService(
       engine: engine,
       loadPack: () async {
@@ -137,6 +139,7 @@ void main() {
       crops: crops,
       resolveImage: (item) async => imageFor(item),
       taggedSpecies: (_) async {
+        tagsAsked++;
         await tagsGate?.future;
         return tagged;
       },
@@ -461,5 +464,40 @@ void main() {
     await Future.wait([a, change]);
     expect(await identifications.runFor('a'), isNotNull);
     expect(engine.unloads, 1);
+  });
+
+  test('a pack change holds new analyses until the change is done', () async {
+    engine.gate = Completer<void>();
+    final a = service.request(photo('a'));
+    await pumpEventQueue();
+    final b = service.request(photo('b'));
+    final change = service.changePack(() async => engine.events.add('change'));
+    engine.gate!.complete();
+    await Future.wait([a, b, change]);
+    expect(engine.events, [
+      'load',
+      'analyze:/photos/a.jpeg',
+      'unload',
+      'change',
+      'load',
+      'analyze:/photos/b.jpeg',
+    ]);
+  });
+
+  test('a logbook switch while reconciling records nothing', () async {
+    tagsGate = Completer<void>();
+    final a = service.request(photo('m1'));
+    // Reconciling has read the rows and now waits on the tags.
+    while (tagsAsked == 0) {
+      await pumpEventQueue();
+    }
+    generation++;
+    tagged = [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')];
+    tagsGate!.complete();
+    await a;
+    expect(
+      (await identifications.forMedia('m1')).single.decision,
+      IdentificationDecision.undecided,
+    );
   });
 }

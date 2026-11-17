@@ -118,6 +118,15 @@ class SpeciesPackDownloader {
     void Function(int receivedForThisFile)? onProgress,
     bool Function()? isCancelled,
   }) async {
+    // Finished by an earlier attempt: kept only if its hash still matches,
+    // so a file republished under the same version is fetched again.
+    if (await _length(dest) == file.size) {
+      if (await _digestOf(dest) == file.sha256) {
+        onProgress?.call(file.size);
+        return;
+      }
+      await _delete(dest);
+    }
     final part = File('${dest.path}.part');
     var existing = await _length(part);
     if (existing > file.size) {
