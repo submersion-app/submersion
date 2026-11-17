@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/query/names/name_index.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_reposit
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_site_assignment.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -67,6 +69,18 @@ class _RecordingEngine extends RuleEngine {
   }
 }
 
+/// Records the coordinates a held change writes instead of storing them.
+class _RecordingSites extends SiteRepository {
+  final located = <String>[];
+
+  @override
+  Future<void> updateSiteCoordinates(
+    String siteId,
+    GeoPoint location, {
+    double? altitude,
+  }) async => located.add(siteId);
+}
+
 class _StubDiveRepository implements DiveRepository {
   _StubDiveRepository({this.linkedSite});
 
@@ -116,8 +130,10 @@ void main() {
     List<String>? rulesLog,
     SiteSuggestionEditing editing = const SiteSuggestionNoEditing(),
     ValueListenable<bool>? cardShown,
+    List<Override> extra = const [],
   }) => mediaTestApp(
     overrides: [
+      ...extra,
       siteSuggestionForDiveProvider(
         'd1',
       ).overrideWith((ref) async => suggestion),
@@ -607,6 +623,33 @@ void main() {
       expect(session.changedCardIds, {diveHeaderCardId});
       expect(service.applied, isEmpty);
       expect(find.textContaining('Add location'), findsNothing);
+    });
+
+    // The immediate path looks the site's altitude up once its location is
+    // written. A held location is written at Save, inside its transaction,
+    // so it notes the site for that lookup, made after the commit
+    // (issue #4527).
+    testWidgets('a held location, once written, notes its site for the '
+        'altitude lookup', (tester) async {
+      final sites = _RecordingSites();
+      session = EditSession(bare.copyWith(site: bareSite));
+      await tester.pumpWidget(
+        await host(
+          suggestionFor(service, site: bareSite),
+          currentSite: bareSite,
+          editing: SiteSuggestionSitting(session),
+          extra: [siteRepositoryProvider.overrideWithValue(sites)],
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Add location to Typed Twice'));
+      await tester.pumpAndSettle();
+      expect(sitesLocatedInSave(session), isEmpty);
+
+      await session.runHeldWrites();
+
+      expect(sites.located, ['bare']);
+      expect(sitesLocatedInSave(session).keys, ['bare']);
     });
 
     testWidgets('dismiss is held, and the dive is not written', (tester) async {

@@ -12,6 +12,7 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/visibility_input_mode_provider.dart';
@@ -19,25 +20,31 @@ import 'package:submersion/features/dive_log/presentation/widgets/visibility_inp
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/features/signatures/presentation/providers/signature_providers.dart';
+import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart';
+import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_date_stretch_message.dart';
+import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 const _log = LoggerService('DiveSittingFollowUp');
 
-/// Has what a dive's cylinders, gear and weights feed worked out again in
-/// the background: its derived metrics (gas use, SAC), the sensor summary
-/// of its gear, and its data-quality findings (a reassign repairs one, and
-/// gear feeds the shared-gear finding), as the dive form does after every
-/// save (`dive_edit_page.dart`, after `_saveDive`). A provider, so a test
-/// can stand in for the schedulers.
+/// Has what a dive's cylinders, gear, weights and header values feed worked
+/// out again in the background: its derived metrics (gas use, SAC), the
+/// sensor summary of its gear, and its data-quality findings (a reassign
+/// repairs one, gear feeds the shared-gear finding, and times, depths and
+/// the site feed the rest), as the dive form does after every save
+/// (`dive_edit_page.dart`, after `_saveDive`). A provider, so a test can
+/// stand in for the schedulers.
 final diveGearRefreshProvider = Provider<void Function(String diveId)>(
   (ref) => (diveId) {
     scheduleQualityScan([diveId]);
@@ -45,6 +52,49 @@ final diveGearRefreshProvider = Provider<void Function(String diveId)>(
     scheduleSensorSummaryRefresh([diveId]);
   },
 );
+
+/// Records the tide for a saved dive at its site, when the site has
+/// coordinates, as the dive form does after every save
+/// (`dive_edit_page.dart`, after `_saveDive`). A freshwater dive records
+/// none. A provider, so a test can stand in for the tide model.
+final diveTideRecordProvider = Provider<Future<void> Function(Dive dive)>(
+  (ref) => (dive) async {
+    final location = dive.site?.location;
+    if (location == null) return;
+    final resolved = await ref.read(resolvedTideDataProvider(location).future);
+    if (resolved == null) return;
+    await recordDiveTide(
+      repository: ref.read(tideRecordRepositoryProvider),
+      calculator: resolved.calculator,
+      diveId: dive.id,
+      entryWallClock: dive.effectiveEntryTime,
+      location: location,
+      waterType: dive.effectiveWaterType,
+    );
+    ref.invalidate(tideRecordForDiveProvider(dive.id));
+  },
+);
+
+/// Looks up the altitude of [point] for the site [siteId], which a saved
+/// sitting has just given that location, and stores it while the site has
+/// none, as the immediate path does once a site gains its location
+/// (`SiteMatchingService.applyConfirmed`). A provider, so a test can stand
+/// in for the network.
+final diveSiteAltitudeFillProvider =
+    Provider<Future<void> Function(String siteId, GeoPoint point)>(
+      (ref) => (siteId, point) async {
+        final meters = await ref
+            .read(elevationServiceProvider)
+            .fetchElevation(
+              latitude: point.latitude,
+              longitude: point.longitude,
+            );
+        if (meters == null) return;
+        await ref
+            .read(siteRepositoryProvider)
+            .fillSiteAltitudeIfEmpty(siteId, meters);
+      },
+    );
 
 /// Tells the planner a plan's dive link changed outside it (issue #4003),
 /// so a plan open there does not put the old link back. A provider, so a
@@ -57,17 +107,29 @@ final divePlanLinkAdoptProvider =
               .adoptLink(planId, diveId),
     );
 
-/// The cards whose values feed the refresh above.
+/// The cards whose values feed the refresh above: the header's times,
+/// depths and site as well as the gear (issue #4527).
 final _gearCardIds = {
+  diveHeaderCardId,
   DiveDetailSectionId.tanks.name,
   DiveDetailSectionId.equipment.name,
   DiveDetailSectionId.weights.name,
 };
 
+/// Whether the tide recorded for a dive saved as [before] may no longer be
+/// the one for [after]: what it is worked out from moved.
+bool _tideInputsMoved(Dive before, Dive after) =>
+    before.site?.id != after.site?.id ||
+    before.site?.location != after.site?.location ||
+    before.effectiveEntryTime != after.effectiveEntryTime ||
+    before.effectiveWaterType != after.effectiveWaterType;
+
 /// What a saved editing sitting on a dive still owes once its write has
 /// gone through: a word about a trip whose dates it moved, a fresh read of
-/// the courses it changed, the visibility input to offer next time, and a
-/// fresh read of what the sites it moved the dive between have seen.
+/// the courses it changed, the visibility input to offer next time, a
+/// fresh read of what the sites it moved the dive between have seen, the
+/// dive's tide when its site, time or water type moved, and the altitude of
+/// a site it gave a location.
 ///
 /// Made before the write, because everything it needs comes from the page
 /// and the write can finish after the page has gone.
@@ -83,6 +145,8 @@ class DiveSittingFollowUp {
       _units = ref.read(unitFormatterProvider),
       _mode = _modeOrNull(ref),
       _gearRefresh = ref.read(diveGearRefreshProvider),
+      _recordTide = ref.read(diveTideRecordProvider),
+      _fillSiteAltitude = ref.read(diveSiteAltitudeFillProvider),
       _adoptPlanLink = ref.read(divePlanLinkAdoptProvider),
       _container = ProviderScope.containerOf(context, listen: false);
 
@@ -109,6 +173,8 @@ class DiveSittingFollowUp {
 
   final ProviderContainer _container;
   final void Function(String diveId) _gearRefresh;
+  final Future<void> Function(Dive dive) _recordTide;
+  final Future<void> Function(String siteId, GeoPoint point) _fillSiteAltitude;
   final void Function(String planId, String? diveId) _adoptPlanLink;
 
   /// [before] and [after] are the dive as the save found it and as it left
@@ -126,6 +192,7 @@ class DiveSittingFollowUp {
     Set<String> buddyIds = const {},
     List<String> skippedRouteIds = const [],
     List<(String, String?)> planLinksAdopted = const [],
+    Map<String, GeoPoint> sitesLocated = const {},
   }) async {
     await _guarded(
       'name the stretched trip',
@@ -154,6 +221,26 @@ class DiveSittingFollowUp {
         'refresh what its cylinders, gear and weights feed',
         after,
         () => _gearRefresh(after.id),
+      );
+    }
+    // The dive form records the tide on every save. Here it is recorded
+    // again when the site, the entry time or the water type moved, the
+    // values it is worked out from. Not waited for: working the tide out
+    // can take a while, and the save has already gone through.
+    if (_tideInputsMoved(before, after)) {
+      unawaited(_guarded('record its tide', after, () => _recordTide(after)));
+    }
+    // A location the sitting held for a site is written now, so its
+    // altitude is looked up as the immediate path does: after the commit,
+    // so the network never holds the save's transaction, and not waited
+    // for (issue #4527). [sitesLocated] is what the held writes noted.
+    for (final MapEntry(key: siteId, value: point) in sitesLocated.entries) {
+      unawaited(
+        _guarded(
+          "look up its site's altitude",
+          after,
+          () => _fillSiteAltitude(siteId, point),
+        ),
       );
     }
     await _refreshCards(

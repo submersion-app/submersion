@@ -221,6 +221,8 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     // time the write is asked for.
     // A write that does not commit takes back what the sitting's media
     // write did outside the database (a relink's new bookmark).
+    // A save that did not commit may have noted sites it located.
+    forgetSitesLocated(session);
     final result = await undoMediaOnFailure(
       session,
       () => service.save(
@@ -277,6 +279,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
           session.recall<List<String>>(routeLinksSkippedKey) ?? const [],
       planLinksAdopted:
           session.recall<List<(String, String?)>>(planLinkAdoptKey) ?? const [],
+      sitesLocated: sitesLocatedInSave(session),
     );
   }
 

@@ -25,6 +25,31 @@ const _log = LoggerService('DiveSiteAssignment');
 /// under, as a change of the header card.
 String siteLocationChangeKey(String siteId) => 'siteLocation:$siteId';
 
+const _sitesLocatedKey = 'sitesLocated';
+
+/// Notes that a held write has just stored [point] as the location of
+/// [siteId], a site with no altitude, so the altitude is looked up once the
+/// save has committed (issue #4527): the lookup goes to the network, and
+/// the write runs inside the save's transaction.
+void noteSiteLocated(EditSession<Dive> session, String siteId, GeoPoint point) {
+  if (session.isDisposed) return;
+  session.remember(_sitesLocatedKey, {
+    ...sitesLocatedInSave(session),
+    siteId: point,
+  });
+}
+
+/// The sites the last save gave a location ([noteSiteLocated]), by id.
+Map<String, GeoPoint> sitesLocatedInSave(EditSession<Dive> session) =>
+    session.isDisposed
+    ? const {}
+    : session.recall<Map<String, GeoPoint>>(_sitesLocatedKey) ?? const {};
+
+/// Forgets what an earlier save, one that did not commit, noted.
+void forgetSitesLocated(EditSession<Dive> session) {
+  if (!session.isDisposed) session.remember(_sitesLocatedKey, null);
+}
+
 /// The key a dismissed site suggestion is held under, as a change of the
 /// header card. It is about the dive, so a change of site keeps it.
 const String siteSuggestionDismissKey = 'siteSuggestionDismissed';
