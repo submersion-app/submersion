@@ -52,6 +52,26 @@ void main() {
       );
     });
 
+    test('an unfinished scan whose names are stale and cannot be renamed '
+        'starts again', () {
+      expect(
+        decide(
+          run: videoRun(scannedMs: 10000),
+          pack: '2026.12.1',
+          embeddings: false,
+        ),
+        VideoRefreshAction.rescan,
+      );
+      expect(
+        decide(run: videoRun(scannedMs: 10000), cell: 7, embeddings: false),
+        VideoRefreshAction.rescan,
+      );
+      expect(
+        decide(run: videoRun(scannedMs: 10000), embeddings: false),
+        VideoRefreshAction.resume,
+      );
+    });
+
     test('a new pack or place renames from stored embeddings', () {
       expect(decide(pack: '2026.12.1'), VideoRefreshAction.rename);
       expect(decide(cell: 7), VideoRefreshAction.rename);

@@ -24,7 +24,8 @@ enum VideoRefreshAction {
 
 /// What a video with [run] needs, given the installed pack and where the
 /// video is now. An unfinished scan resumes even when the pack or place
-/// also changed: the service names what is stored again first.
+/// also changed, as long as the stored tracks can be named again from their
+/// embeddings: the service does that first.
 VideoRefreshAction decideVideoRefresh({
   required MediaIdentificationRun? run,
   required String packVersion,
@@ -40,13 +41,12 @@ VideoRefreshAction decideVideoRefresh({
       run.classifierId != classifierId) {
     return VideoRefreshAction.rescan;
   }
+  final stale = run.packVersion != packVersion || run.locationCell != cell;
+  // Names that are stale and cannot be worked out again from embeddings
+  // mean scanning again, finished or not.
+  if (stale && !embeddingsPresent) return VideoRefreshAction.rescan;
   if (!run.scanComplete) return VideoRefreshAction.resume;
-  if (run.packVersion != packVersion || run.locationCell != cell) {
-    return embeddingsPresent
-        ? VideoRefreshAction.rename
-        : VideoRefreshAction.rescan;
-  }
-  return VideoRefreshAction.none;
+  return stale ? VideoRefreshAction.rename : VideoRefreshAction.none;
 }
 
 /// The diver's say on [decided] tracks (a decision or a claim), carried to
