@@ -233,6 +233,34 @@ void main() {
     expect(landed.queryParameters['mode'], 'edit');
   });
 
+  // The edit the address asked for is over once its sitting ends: a window
+  // widened afterwards moves the dive into the pane as it is, locked.
+  testWidgets('widened after its sitting ended, the page moves into the '
+      'pane without edit mode', (tester) async {
+    final page = await pumpPage(
+      tester,
+      openUnlocked: true,
+      size: const Size(700, 1000),
+      initialLocation: '/root-dive',
+    );
+    await settle(tester);
+    expect(saveAction(), findsOneWidget);
+    await tester.tap(
+      find.byWidgetPredicate(
+        (w) => w is AppBarTextAction && w.label == 'Cancel',
+      ),
+    );
+    await settle(tester);
+
+    tester.view.physicalSize = const Size(1400, 1000);
+    await settle(tester);
+
+    final landed = page.router.routerDelegate.currentConfiguration.uri;
+    expect(landed.path, '/dives');
+    expect(landed.queryParameters['selected'], dive.id);
+    expect(landed.queryParameters.containsKey('mode'), isFalse);
+  });
+
   // A leave that discards a sitting the diver unlocked by hand ends no
   // sitting the page opened, so it must not swallow the end of the next one.
   testWidgets('a leave after a hand-made sitting does not hide the next '

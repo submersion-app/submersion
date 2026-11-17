@@ -17,8 +17,9 @@ mixin _DiveDetailPageUnlockOpen
   /// end is told to [DiveDetailPage.onSittingEnded].
   bool _sittingOpenedUnlocked = false;
 
-  /// Set when a desktop root visit moves this page into the list pane, which
-  /// opens the dive unlocked itself: this page, about to go, does not.
+  /// Set once a desktop root visit starts moving this page into the list
+  /// pane, so it moves once; with an edit address the pane opens the dive
+  /// unlocked itself, and this page, about to go, does not.
   bool _redirectingToPane = false;
 
   /// Unlocks on [stored] after this frame, once per page, when the page was

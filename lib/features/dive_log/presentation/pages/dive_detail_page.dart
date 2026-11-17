@@ -220,9 +220,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         _DiveDetailPageCreating,
         _DiveDetailPageOperations,
         _DiveDetailPageBars {
-  /// Track if we've already initiated a redirect to prevent multiple calls
-  bool _hasRedirected = false;
-
   final GlobalKey _safetyReviewSectionKey = GlobalKey();
   final GlobalKey _notesSectionKey = GlobalKey();
   final GlobalKey _profileSectionKey = GlobalKey();
@@ -465,18 +462,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     // master-detail split. A pushed page, opened from a dive's details
     // say, stays put: the redirect's go() would erase the page under it
     // and its back arrow (#764, #3292).
-    if (!_hasRedirected &&
+    if (!_redirectingToPane &&
         !isSittingOpen &&
         shouldRedirectToMasterDetail(
           context,
           embedded: widget.embedded,
           viewMode: ref.read(diveListViewModeProvider),
         )) {
-      _hasRedirected = true;
+      // An edit address this page has not opened yet keeps asking for edit
+      // mode in the pane, which opens the dive unlocked there (issue #4527,
+      // plan 11). Once its sitting has been and gone, the dive moves as it
+      // is.
+      final mode = widget.openUnlocked && !_openedUnlocked ? '&mode=edit' : '';
       _redirectingToPane = true;
-      // An edit address keeps asking for edit mode in the pane, which opens
-      // the dive unlocked there (issue #4527, plan 11).
-      final mode = widget.openUnlocked ? '&mode=edit' : '';
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.go('/dives?selected=$diveId$mode');
