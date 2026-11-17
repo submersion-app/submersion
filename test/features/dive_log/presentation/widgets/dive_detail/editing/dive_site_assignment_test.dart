@@ -237,6 +237,23 @@ void main() {
       expect(session.isDirty, isFalse);
     });
 
+    // The take-back gives back the value before the lookup, not the stored
+    // one: a stored altitude the diver cleared must not come back.
+    test('a stored altitude the diver cleared stays cleared when the '
+        'looked-up one is taken back', () async {
+      final session = EditSession(bare.copyWith(altitude: 300))
+        ..set(diveAltitudeField, null);
+      assign(session, _highA);
+      await answer(session);
+      expect(session.valueOf(diveAltitudeField), 512);
+
+      assign(session, null);
+      await answer(session);
+
+      expect(session.valueOf(diveAltitudeField), isNull);
+      expect(session.hasHeldWrites, isFalse);
+    });
+
     test('a stored altitude is never replaced', () async {
       final session = EditSession(bare.copyWith(altitude: 300));
       assign(session, _highA);
