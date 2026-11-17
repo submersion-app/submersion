@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
@@ -10,6 +13,7 @@ import 'package:submersion/features/media/presentation/providers/species_media_p
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -25,6 +29,10 @@ String candidateDisplayName(AppLocalizations l10n, PackCandidate candidate) {
 }
 
 /// The suggestions for [mediaId] that are not already shown as tags.
+///
+/// A shown tag matches a suggestion by catalogue id or by scientific name,
+/// as stored tags do: a species added in a sitting may be one of the
+/// diver's own, which only its scientific name ties to the suggestion.
 List<SpeciesSuggestion> suggestionsShown(
   WidgetRef ref,
   String mediaId,
@@ -32,40 +40,54 @@ List<SpeciesSuggestion> suggestionsShown(
 ) {
   final suggestions = ref.watch(mediaSuggestionsProvider(mediaId)).value;
   if (suggestions == null || suggestions.isEmpty) return const [];
-  final shown = {
-    for (final chip in speciesChipsShown(ref, mediaId, sitting)) chip.speciesId,
+  final chips = speciesChipsShown(ref, mediaId, sitting);
+  if (chips.isEmpty) return suggestions;
+  final scientificNames = {
+    for (final species in ref.watch(allSpeciesProvider).value ?? const [])
+      species.id: species.scientificName,
   };
+  final shown = [
+    for (final chip in chips)
+      TaggedSpecies(
+        speciesId: chip.speciesId,
+        scientificName: scientificNames[chip.speciesId],
+      ),
+  ];
   return [
     for (final s in suggestions)
-      if (!shown.contains(s.top.candidate.catalogId)) s,
+      if (!shown.any((t) => candidateMatches(s.top.candidate, t))) s,
   ];
 }
 
-/// Tags the photo with [candidate]'s species, or holds it in [sitting].
+/// Tags the photo with each of [candidates]' species in turn, or holds
+/// them in [sitting].
+///
+/// Everything it needs is read before the first lookup: the sheet or crop
+/// view it was called from may be gone before the lookups finish.
 Future<void> addSuggestedSpecies(
   BuildContext context,
   WidgetRef ref,
   MediaItem item,
-  PackCandidate candidate,
+  List<PackCandidate> candidates,
   EditSession<PhotoRecord>? sitting,
 ) async {
+  final acceptor = ref.read(suggestionAcceptorProvider);
+  final tagging = ref.read(speciesTaggingServiceProvider);
+  final identification = ref.read(mediaIdentificationServiceProvider);
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final failed = context.l10n.common_error_tryAgain;
   try {
-    final species = await ref
-        .read(suggestionAcceptorProvider)
-        .resolve(candidate);
-    if (sitting != null) {
-      holdPickedSpecies(sitting, species);
-      return;
+    for (final candidate in candidates) {
+      final species = await acceptor.resolve(candidate);
+      if (sitting != null) {
+        holdPickedSpecies(sitting, species);
+      } else {
+        await tagging.tagPhoto(mediaId: item.id, speciesId: species.id);
+      }
     }
-    await ref
-        .read(speciesTaggingServiceProvider)
-        .tagPhoto(mediaId: item.id, speciesId: species.id);
-    await ref.read(mediaIdentificationServiceProvider).reconcile(item.id);
+    if (sitting == null) await identification.reconcile(item.id);
   } catch (_) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      SnackBar(content: Text(context.l10n.common_error_tryAgain)),
-    );
+    messenger?.showSnackBar(SnackBar(content: Text(failed)));
   }
 }
 
@@ -127,17 +149,9 @@ class SuggestedSpeciesSection extends ConsumerWidget {
                 key: const ValueKey('media_suggested_addAll'),
                 onPressed: ended
                     ? null
-                    : () async {
-                        for (final s in suggestions) {
-                          await addSuggestedSpecies(
-                            context,
-                            ref,
-                            item,
-                            s.top.candidate,
-                            sitting,
-                          );
-                        }
-                      },
+                    : () => addSuggestedSpecies(context, ref, item, [
+                        for (final s in suggestions) s.top.candidate,
+                      ], sitting),
                 child: Text(l10n.media_species_addAll),
               ),
             ),
@@ -203,13 +217,9 @@ class _SuggestionRow extends ConsumerWidget {
           TextButton(
             key: ValueKey('media_suggested_add_$key'),
             onPressed: enabled
-                ? () => addSuggestedSpecies(
-                    context,
-                    ref,
-                    item,
+                ? () => addSuggestedSpecies(context, ref, item, [
                     candidate,
-                    sitting,
-                  )
+                  ], sitting)
                 : null,
             child: Text(l10n.media_species_add),
           ),
@@ -294,15 +304,15 @@ class _CropView extends ConsumerWidget {
                   TextButton(
                     onPressed: ended
                         ? null
-                        : () async {
-                            Navigator.of(context).pop();
-                            await addSuggestedSpecies(
-                              context,
-                              ref,
-                              item,
-                              alternative.candidate,
-                              sitting,
+                        : () {
+                            // Started before the pop: it reads what it
+                            // needs at once, and outlives this view.
+                            unawaited(
+                              addSuggestedSpecies(context, ref, item, [
+                                alternative.candidate,
+                              ], sitting),
                             );
+                            Navigator.of(context).pop();
                           },
                     child: Text(l10n.media_species_add),
                   ),

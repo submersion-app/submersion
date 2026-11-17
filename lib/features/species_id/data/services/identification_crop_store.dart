@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -17,6 +18,17 @@ class IdentificationCropStore {
     : _supportPath = supportPath;
 
   final Future<String> Function() _supportPath;
+  final _changes = StreamController<String?>.broadcast();
+
+  /// Marks a photo's folder once the photo has been analysed on this
+  /// device. A dot name, so it can never be an identification's crop.
+  static const _analysedMarker = '.analysed';
+
+  /// The media id whose crops were written or deleted; null when every
+  /// crop was.
+  Stream<String?> watchChanges() => _changes.stream;
+
+  Future<void> dispose() => _changes.close();
 
   Future<Directory> root() async =>
       Directory(p.join(await _supportPath(), 'species_id', 'crops'));
@@ -37,6 +49,25 @@ class IdentificationCropStore {
     final temporary = File('${file.path}.tmp');
     await temporary.writeAsBytes(jpeg, flush: true);
     await temporary.rename(file.path);
+    _changed(mediaId);
+  }
+
+  /// Records that [mediaId] was analysed on this device. A decided
+  /// identification whose crop did not come back from that analysis then
+  /// stays without one, instead of the photo being analysed at every
+  /// opening.
+  Future<void> markAnalysed(String mediaId) async {
+    final marker = await _markerFor(mediaId);
+    await marker.parent.create(recursive: true);
+    await marker.writeAsBytes(const [], flush: true);
+  }
+
+  Future<bool> wasAnalysedHere(String mediaId) async =>
+      (await _markerFor(mediaId)).exists();
+
+  Future<File> _markerFor(String mediaId) async {
+    _checkId(mediaId);
+    return File(p.join((await root()).path, mediaId, _analysedMarker));
   }
 
   Future<bool> allPresent(
@@ -55,6 +86,7 @@ class IdentificationCropStore {
       _checkId(mediaId);
       final dir = Directory(p.join(base.path, mediaId));
       if (await dir.exists()) await dir.delete(recursive: true);
+      _changed(mediaId);
     }
   }
 
@@ -63,11 +95,17 @@ class IdentificationCropStore {
       final file = await fileFor(mediaId, id);
       if (await file.exists()) await file.delete();
     }
+    if (identificationIds.isNotEmpty) _changed(mediaId);
   }
 
   Future<void> deleteAll() async {
     final base = await root();
     if (await base.exists()) await base.delete(recursive: true);
+    _changed(null);
+  }
+
+  void _changed(String? mediaId) {
+    if (!_changes.isClosed) _changes.add(mediaId);
   }
 
   Future<int> sizeBytes() async {

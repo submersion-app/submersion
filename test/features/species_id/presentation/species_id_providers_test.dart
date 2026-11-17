@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
@@ -13,8 +14,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/data/engines/channel_vision_engine.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
+import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
+import '../../../helpers/temp_dir.dart';
 import '../data/identification_fixtures.dart';
 
 void main() {
@@ -112,6 +115,58 @@ void main() {
       await container.read(mediaSuggestionsProvider('m1').future),
       isEmpty,
     );
+  });
+
+  group('crops', () {
+    late Directory support;
+    late IdentificationCropStore crops;
+    late ProviderContainer withCrops;
+
+    setUp(() async {
+      support = await Directory.systemTemp.createTemp('crop_providers');
+      crops = IdentificationCropStore(supportPath: () async => support.path);
+      withCrops = ProviderContainer(
+        overrides: [
+          mediaIdentificationRepositoryProvider.overrideWithValue(
+            MediaIdentificationRepository(database: db),
+          ),
+          identificationCropStoreProvider.overrideWithValue(crops),
+        ],
+      );
+    });
+    tearDown(() async {
+      withCrops.dispose();
+      await deleteTempDir(support);
+    });
+
+    test('a crop written after it was looked for shows', () async {
+      const key = ('m1', 'i1');
+      final sub = withCrops.listen(
+        identificationCropFileProvider(key),
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      expect(
+        await withCrops.read(identificationCropFileProvider(key).future),
+        isNull,
+      );
+      await crops.write('m1', 'i1', Uint8List.fromList([0xFF, 0xD8]));
+      await pumpEventQueue();
+      expect(
+        await withCrops.read(identificationCropFileProvider(key).future),
+        isNotNull,
+      );
+    });
+
+    test('the crops size follows the files, not only the rows', () async {
+      await crops.write('m1', 'i1', Uint8List.fromList([1, 2, 3, 4]));
+      final sub = withCrops.listen(identificationCropBytesProvider, (_, _) {});
+      addTearDown(sub.close);
+      expect(await withCrops.read(identificationCropBytesProvider.future), 4);
+      await crops.deleteAll();
+      await pumpEventQueue();
+      expect(await withCrops.read(identificationCropBytesProvider.future), 0);
+    });
   });
 
   test('the engine is the channel engine, unsupported off Apple', () async {

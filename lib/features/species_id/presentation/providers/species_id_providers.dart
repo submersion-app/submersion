@@ -77,9 +77,13 @@ final identificationEmbeddingRepositoryProvider =
       (ref) => IdentificationEmbeddingRepository(),
     );
 
-final identificationCropStoreProvider = Provider<IdentificationCropStore>(
-  (ref) => IdentificationCropStore(supportPath: AppDirectories.support),
-);
+final identificationCropStoreProvider = Provider<IdentificationCropStore>((
+  ref,
+) {
+  final store = IdentificationCropStore(supportPath: AppDirectories.support);
+  ref.onDispose(store.dispose);
+  return store;
+});
 
 final identificationCleanupProvider = Provider<IdentificationCleanup>(
   (ref) => IdentificationCleanup(
@@ -160,12 +164,15 @@ final suggestionAcceptorProvider = Provider<SuggestionAcceptor>(
 );
 
 /// The crop file of an identification, or null when it is not on this
-/// device.
+/// device. Looked for again when the photo's crops change: an analysis
+/// stores its rows before it writes the crops.
 final identificationCropFileProvider = FutureProvider.autoDispose
     .family<File?, (String mediaId, String identificationId)>((ref, key) async {
-      final file = await ref
-          .watch(identificationCropStoreProvider)
-          .fileFor(key.$1, key.$2);
+      final store = ref.watch(identificationCropStoreProvider);
+      ref.invalidateSelfWhen(
+        store.watchChanges().where((id) => id == null || id == key.$1),
+      );
+      final file = await store.fileFor(key.$1, key.$2);
       return await file.exists() ? file : null;
     });
 
@@ -176,9 +183,10 @@ final identificationCountProvider = FutureProvider.autoDispose<int>((ref) {
   return repository.count();
 });
 
-/// What the crops take on this device.
+/// What the crops take on this device. Follows the files themselves: a
+/// clear deletes the rows before the crops.
 final identificationCropBytesProvider = FutureProvider.autoDispose<int>((ref) {
-  final repository = ref.watch(mediaIdentificationRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchChanges());
-  return ref.watch(identificationCropStoreProvider).sizeBytes();
+  final store = ref.watch(identificationCropStoreProvider);
+  ref.invalidateSelfWhen(store.watchChanges());
+  return store.sizeBytes();
 });

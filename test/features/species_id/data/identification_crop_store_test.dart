@@ -46,6 +46,27 @@ void main() {
     expect(await store.allPresent('m1', ['i1', 'i2']), isFalse);
   });
 
+  test('a photo analysed here is remembered until its folder goes', () async {
+    expect(await store.wasAnalysedHere('m1'), isFalse);
+    await store.markAnalysed('m1');
+    expect(await store.wasAnalysedHere('m1'), isTrue);
+    expect(await store.wasAnalysedHere('m2'), isFalse);
+    await store.deleteMedia(['m1']);
+    expect(await store.wasAnalysedHere('m1'), isFalse);
+  });
+
+  test('writes and deletes are announced by media id', () async {
+    final seen = <String?>[];
+    final sub = store.watchChanges().listen(seen.add);
+    await store.write('m1', 'i1', jpeg);
+    await store.delete('m1', ['i1']);
+    await store.deleteMedia(['m2']);
+    await store.deleteAll();
+    await pumpEventQueue();
+    await sub.cancel();
+    expect(seen, ['m1', 'm1', 'm2', null]);
+  });
+
   test('no identifications means nothing is missing', () async {
     expect(await store.allPresent('m1', const []), isTrue);
   });

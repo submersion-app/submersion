@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show compute;
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -46,6 +47,7 @@ class MediaIdentificationService {
     required Future<IdentificationImage?> Function(MediaItem item) resolveImage,
     required Future<List<TaggedSpecies>> Function(String mediaId) taggedSpecies,
     required bool Function() enabled,
+    int Function()? databaseGeneration,
     DateTime Function()? now,
     String Function()? newId,
     Duration idleUnload = const Duration(seconds: 60),
@@ -57,6 +59,8 @@ class MediaIdentificationService {
        _resolveImage = resolveImage,
        _taggedSpecies = taggedSpecies,
        _enabled = enabled,
+       _databaseGeneration =
+           databaseGeneration ?? (() => DatabaseService.instance.generation),
        _now = now ?? DateTime.now,
        _newId = newId ?? const Uuid().v4,
        _idleUnload = idleUnload;
@@ -69,6 +73,10 @@ class MediaIdentificationService {
   final Future<IdentificationImage?> Function(MediaItem) _resolveImage;
   final Future<List<TaggedSpecies>> Function(String) _taggedSpecies;
   final bool Function() _enabled;
+
+  /// Moves when another logbook is opened: what an analysis found for the
+  /// one it started in is then dropped, not stored in the new one.
+  final int Function() _databaseGeneration;
   final DateTime Function() _now;
   final String Function() _newId;
   final Duration _idleUnload;
@@ -87,14 +95,21 @@ class MediaIdentificationService {
 
   /// Queues [item]. Completes when it has been analysed, named again, found
   /// to need nothing, or dropped.
+  ///
+  /// A [location] that arrives after the first request (the dive was still
+  /// loading) is not lost: a queued request takes it, and one already
+  /// running is followed by another that names the photo again.
   Future<void> request(MediaItem item, {GeoPoint? location}) {
     if (_disposed) return Future<void>.value();
     final running = _running;
-    if (running != null && running.item.id == item.id) {
+    if (running != null &&
+        running.item.id == item.id &&
+        (location == null || location == running.location)) {
       return running.done.future;
     }
     final queued = _waiting.remove(item.id);
     final job = queued ?? _Job(item, location);
+    if (location != null) job.location = location;
     // Re-inserting moves it to the newest end.
     _waiting[item.id] = job;
     _changed();
@@ -102,12 +117,14 @@ class MediaIdentificationService {
     return job.done.future;
   }
 
-  /// Drops a queued request that has not started.
-  void cancelPending(String mediaId) {
+  /// Drops a queued request that has not started. Returns whether there
+  /// was one, so a caller knows the photo was never looked at.
+  bool cancelPending(String mediaId) {
     final job = _waiting.remove(mediaId);
-    if (job == null) return;
+    if (job == null) return false;
     job.done.complete();
     _changed();
+    return true;
   }
 
   bool isBusy(String mediaId) =>
@@ -135,17 +152,26 @@ class MediaIdentificationService {
     }
   }
 
-  /// The diver dismissed these suggestions; they do not come back.
+  /// The diver dismissed these suggestions; they do not come back. Never
+  /// throws.
   Future<void> reject(String mediaId, List<String> identificationIds) async {
     final ids = identificationIds.toSet();
     final now = _now().toUtc();
-    final changed = [
-      for (final i in await _identifications.forMedia(mediaId))
-        if (ids.contains(i.id) && i.decision != IdentificationDecision.rejected)
-          i.copyWith(decision: IdentificationDecision.rejected, decidedAt: now),
-    ];
-    if (changed.isNotEmpty) {
-      await _identifications.updateIdentifications(changed);
+    try {
+      final changed = [
+        for (final i in await _identifications.forMedia(mediaId))
+          if (ids.contains(i.id) &&
+              i.decision != IdentificationDecision.rejected)
+            i.copyWith(
+              decision: IdentificationDecision.rejected,
+              decidedAt: now,
+            ),
+      ];
+      if (changed.isNotEmpty) {
+        await _identifications.updateIdentifications(changed);
+      }
+    } on Object catch (e) {
+      _log.debug('Could not dismiss suggestions of $mediaId', error: e);
     }
   }
 
@@ -190,6 +216,7 @@ class MediaIdentificationService {
 
   Future<void> _process(_Job job) async {
     final item = job.item;
+    final generation = _databaseGeneration();
     try {
       if (!_enabled() || item.mediaType != MediaType.photo) return;
       if (await _engine.availability() != VisionAvailability.available) return;
@@ -209,6 +236,14 @@ class MediaIdentificationService {
         for (final i in stored)
           if (i.decision == IdentificationDecision.undecided) i,
       ];
+      // A suggestion's crop must be here. A decided identification's crop
+      // is restored by analysing once on this device (after a restore onto
+      // a new one); if that analysis could not bring it back, it stays
+      // without one rather than the photo being analysed at every opening.
+      final cropsPresent =
+          await _crops.allPresent(item.id, [for (final i in undecided) i.id]) &&
+          (undecided.length == stored.length ||
+              await _crops.wasAnalysedHere(item.id));
       final storedEmbeddings = run == null
           ? const <String, Float32List>{}
           : await _embeddings.get([
@@ -220,19 +255,25 @@ class MediaIdentificationService {
         detectorId: manifest.detector.id,
         classifierId: manifest.classifier.id,
         cell: cell,
-        cropsPresent: await _crops.allPresent(item.id, [
-          for (final i in stored) i.id,
-        ]),
+        cropsPresent: cropsPresent,
         embeddingsPresent: storedEmbeddings.length == undecided.length,
       );
       switch (action) {
         case RefreshAction.none:
           break;
         case RefreshAction.rename:
-          await _rename(pack, run!, undecided, storedEmbeddings, cell);
+          await _rename(
+            pack,
+            run!,
+            undecided,
+            storedEmbeddings,
+            cell,
+            generation,
+          );
         case RefreshAction.analyse:
-          await _analyse(pack, item, stored, cell);
+          await _analyse(pack, item, stored, cell, generation);
       }
+      if (_databaseGeneration() != generation) return;
       await reconcile(item.id);
     } on Object catch (e) {
       _log.debug('Could not identify marine life in ${item.id}', error: e);
@@ -245,6 +286,7 @@ class MediaIdentificationService {
     List<MediaIdentification> undecided,
     Map<String, Float32List> embeddings,
     int? cell,
+    int generation,
   ) async {
     final results = await _name(pack, [
       for (final i in undecided)
@@ -259,6 +301,7 @@ class MediaIdentificationService {
           suggestable: results[k].suggestable,
         ),
     ];
+    if (_databaseGeneration() != generation) return;
     await _identifications.updateIdentifications(
       changed,
       run: run.copyWith(
@@ -273,15 +316,13 @@ class MediaIdentificationService {
     MediaItem item,
     List<MediaIdentification> stored,
     int? cell,
+    int generation,
   ) async {
     final image = await _resolveImage(item);
     if (image == null) return;
-    await _ensureLoaded(pack);
     final VisionAnalysis analysis;
     try {
-      analysis = image.path != null
-          ? await _engine.analyze(path: image.path)
-          : await _engine.analyze(bytes: image.bytes);
+      analysis = await _analyseImage(pack, image);
     } finally {
       _armIdleUnload();
     }
@@ -325,6 +366,7 @@ class MediaIdentificationService {
     }
     final carried = carryDecisions(previous: stored, fresh: fresh);
     final manifest = pack.pack.manifest;
+    if (_databaseGeneration() != generation) return;
     await _identifications.storeRun(
       MediaIdentificationRun(
         mediaId: item.id,
@@ -350,6 +392,29 @@ class MediaIdentificationService {
     for (final i in carried.insert) {
       await _crops.write(item.id, i.id, byId[i.id]!.cropJpeg);
     }
+    await _crops.markAnalysed(item.id);
+  }
+
+  /// Runs the models over [image]. Models the system unloaded behind the
+  /// service's back (an iOS memory warning) are loaded again, once.
+  Future<VisionAnalysis> _analyseImage(
+    LoadedPack pack,
+    IdentificationImage image,
+  ) async {
+    Future<VisionAnalysis> attempt() async {
+      await _ensureLoaded(pack);
+      return image.path != null
+          ? _engine.analyze(path: image.path)
+          : _engine.analyze(bytes: image.bytes);
+    }
+
+    try {
+      return await attempt();
+    } on VisionEngineException catch (e) {
+      if (e.code != VisionEngineException.notLoaded) rethrow;
+      _loadedModels = null;
+      return attempt();
+    }
   }
 
   Future<void> _ensureLoaded(LoadedPack pack) async {
@@ -365,10 +430,17 @@ class MediaIdentificationService {
     _loadedModels = key;
   }
 
+  /// After a quiet spell the models and the pack's tables are freed. A
+  /// spell that ends while a photo is being looked at waits for another.
   void _armIdleUnload() {
     _idleTimer?.cancel();
     _idleTimer = Timer(_idleUnload, () {
-      if (_running != null || _waiting.isNotEmpty) return;
+      if (_disposed) return;
+      if (_running != null || _waiting.isNotEmpty) {
+        _armIdleUnload();
+        return;
+      }
+      _pack = null;
       unawaited(_unloadModels());
     });
   }
@@ -414,7 +486,7 @@ class _Job {
   _Job(this.item, this.location);
 
   final MediaItem item;
-  final GeoPoint? location;
+  GeoPoint? location;
   final done = Completer<void>();
 }
 

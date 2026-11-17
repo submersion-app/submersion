@@ -104,6 +104,9 @@ void main() {
   late IdentificationImage? Function(MediaItem item) imageFor;
   late MediaIdentificationService service;
   var ids = 0;
+  var packLoads = 0;
+  var generation = 0;
+  Completer<void>? tagsGate;
 
   setUp(() async {
     library = AppDatabase(
@@ -120,15 +123,25 @@ void main() {
     tagged = [];
     imageFor = (item) => IdentificationImage.path('/photos/${item.id}.jpeg');
     ids = 0;
+    packLoads = 0;
+    generation = 0;
+    tagsGate = null;
     service = MediaIdentificationService(
       engine: engine,
-      loadPack: () async => installed,
+      loadPack: () async {
+        packLoads++;
+        return installed;
+      },
       identifications: identifications,
       embeddings: embeddings,
       crops: crops,
       resolveImage: (item) async => imageFor(item),
-      taggedSpecies: (_) async => tagged,
+      taggedSpecies: (_) async {
+        await tagsGate?.future;
+        return tagged;
+      },
       enabled: () => enabled,
+      databaseGeneration: () => generation,
       now: () => DateTime.utc(2026, 11, 17),
       newId: () => 'id-${ids++}',
       idleUnload: const Duration(milliseconds: 50),
@@ -331,5 +344,107 @@ void main() {
     expect(engine.unloads, 0);
     await Future<void>.delayed(const Duration(milliseconds: 120));
     expect(engine.unloads, 1);
+  });
+
+  test('a quiet spell that ends while a photo is looked at again still '
+      'unloads the models, and frees the pack', () async {
+    await service.request(photo('m1'));
+    tagsGate = Completer<void>();
+    // Nothing to do for m1, but the job is still running when the idle
+    // timer fires.
+    final again = service.request(photo('m1'));
+    await Future<void>.delayed(const Duration(milliseconds: 80));
+    tagsGate!.complete();
+    await again;
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    expect(engine.unloads, 1);
+    await service.request(photo('m2'));
+    expect(packLoads, 2);
+  });
+
+  test('models the system unloaded are loaded again', () async {
+    await service.request(photo('m1'));
+    // An iOS memory warning frees them behind the service's back.
+    engine.loaded = false;
+    await service.request(photo('m2'));
+    expect(await identifications.runFor('m2'), isNotNull);
+    expect(engine.loads, hasLength(2));
+  });
+
+  test('a decided identification whose crop cannot come back does not '
+      'analyse the photo at every opening', () async {
+    await service.request(photo('m1'));
+    final first = (await identifications.forMedia('m1')).single;
+    await service.reject('m1', [first.id]);
+    // A restore onto another device: the rows came, the crops did not, and
+    // this time the detector names the fish differently.
+    await crops.deleteMedia(['m1']);
+    engine.embeddings = [
+      Float32List.fromList([0, 1, 0]),
+    ];
+    await service.request(photo('m1'));
+    expect(engine.analysed, hasLength(2));
+    await service.request(photo('m1'));
+    expect(engine.analysed, hasLength(2));
+    final kept = await identifications.forMedia('m1');
+    expect(
+      kept.map((i) => i.decision),
+      containsAll([
+        IdentificationDecision.rejected,
+        IdentificationDecision.undecided,
+      ]),
+    );
+  });
+
+  test('a queued photo uses the location given last', () async {
+    engine.gate = Completer<void>();
+    final a = service.request(photo('a'));
+    await pumpEventQueue();
+    final b = service.request(photo('b'));
+    final again = service.request(
+      photo('b'),
+      location: const GeoPoint(12.1, -68.3),
+    );
+    engine.gate!.complete();
+    await Future.wait([a, b, again]);
+    expect((await identifications.runFor('b'))!.locationCell, isNotNull);
+  });
+
+  test('a location that arrives while the photo is analysed names it '
+      'again', () async {
+    engine.gate = Completer<void>();
+    final first = service.request(photo('a'));
+    await pumpEventQueue();
+    final second = service.request(
+      photo('a'),
+      location: const GeoPoint(12.1, -68.3),
+    );
+    engine.gate!.complete();
+    await Future.wait([first, second]);
+    expect(engine.analysed, hasLength(1));
+    expect((await identifications.runFor('a'))!.locationCell, isNotNull);
+  });
+
+  test('dropping a request says whether one was waiting', () async {
+    engine.gate = Completer<void>();
+    final a = service.request(photo('a'));
+    await pumpEventQueue();
+    final b = service.request(photo('b'));
+    expect(service.cancelPending('a'), isFalse);
+    expect(service.cancelPending('b'), isTrue);
+    expect(service.cancelPending('b'), isFalse);
+    engine.gate!.complete();
+    await Future.wait([a, b]);
+  });
+
+  test('what was found is dropped when another logbook opened during the '
+      'analysis', () async {
+    engine.gate = Completer<void>();
+    final a = service.request(photo('a'));
+    await pumpEventQueue();
+    generation++;
+    engine.gate!.complete();
+    await a;
+    expect(await identifications.runFor('a'), isNull);
   });
 }

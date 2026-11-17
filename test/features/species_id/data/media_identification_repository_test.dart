@@ -84,6 +84,20 @@ void main() {
     expect(await repo.runFor('m1'), renamed);
   });
 
+  test('an update that lands after the rows were cleared brings nothing '
+      'back', () async {
+    await repo.storeRun(run(), insert: [identification('a')], deleteIds: []);
+    final dismissed = identification(
+      'a',
+      decision: IdentificationDecision.rejected,
+      decidedAt: fixtureT1,
+    );
+    await repo.deleteForMedia(['m1']);
+    await repo.updateIdentifications([dismissed], run: run());
+    expect(await repo.forMedia('m1'), isEmpty);
+    expect(await repo.runFor('m1'), isNull);
+  });
+
   test('deleting for media removes runs and identifications and returns '
       'the ids', () async {
     await repo.storeRun(run(), insert: [identification('a')], deleteIds: []);

@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
 /// Asks for the photo on screen to be analysed for marine life (issue
@@ -15,8 +16,10 @@ import 'package:submersion/features/species_id/presentation/providers/species_id
 /// The viewer mounts one for the current item only, never for the
 /// neighbouring pages the gallery builds ahead of a swipe. A photo swiped
 /// past within [dwell] is never asked for, and each photo is asked for at
-/// most once while this stays mounted. It also keeps the app's decisions
-/// in step with the photo's species tags as they change.
+/// most once while this stays mounted, unless its request was dropped
+/// before it ran. A location that arrives after the request (the dive was
+/// still loading) is passed on. It also keeps the app's decisions in step
+/// with the photo's species tags as they change.
 class IdentificationTrigger extends ConsumerStatefulWidget {
   const IdentificationTrigger({
     super.key,
@@ -40,6 +43,10 @@ class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger> {
   final _requested = <String>{};
   Timer? _timer;
 
+  /// The service asked, kept for [dispose], where `ref` may no longer be
+  /// read.
+  MediaIdentificationService? _service;
+
   bool get _applies =>
       marineLifeIdEnabled && widget.item.mediaType == MediaType.photo;
 
@@ -52,12 +59,24 @@ class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger> {
   @override
   void didUpdateWidget(IdentificationTrigger oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.item.id == widget.item.id) return;
+    final item = widget.item;
+    if (oldWidget.item.id == item.id) {
+      final location = widget.location;
+      if (_applies &&
+          location != null &&
+          location != oldWidget.location &&
+          _requested.contains(item.id)) {
+        _ask(item);
+      }
+      return;
+    }
     _timer?.cancel();
-    if (marineLifeIdEnabled) {
-      ref
-          .read(mediaIdentificationServiceProvider)
-          .cancelPending(oldWidget.item.id);
+    if (marineLifeIdEnabled &&
+        ref
+            .read(mediaIdentificationServiceProvider)
+            .cancelPending(oldWidget.item.id)) {
+      // Never looked at: ask again if the diver comes back to it.
+      _requested.remove(oldWidget.item.id);
     }
     _schedule();
   }
@@ -65,6 +84,7 @@ class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger> {
   @override
   void dispose() {
     _timer?.cancel();
+    _service?.cancelPending(widget.item.id);
     super.dispose();
   }
 
@@ -74,12 +94,14 @@ class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger> {
     _timer = Timer(widget.dwell, () {
       if (!mounted || widget.item.id != item.id) return;
       _requested.add(item.id);
-      unawaited(
-        ref
-            .read(mediaIdentificationServiceProvider)
-            .request(item, location: widget.location),
-      );
+      _ask(item);
     });
+  }
+
+  void _ask(MediaItem item) {
+    final service = ref.read(mediaIdentificationServiceProvider);
+    _service = service;
+    unawaited(service.request(item, location: widget.location));
   }
 
   @override

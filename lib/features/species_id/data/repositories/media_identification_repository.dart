@@ -96,20 +96,22 @@ class MediaIdentificationRepository {
   });
 
   /// Writes [changed] over the stored rows with the same ids, and [run]
-  /// when given, in one transaction.
+  /// when given, in one transaction. Only rows still stored are written: a
+  /// decision that lands after the photo's rows were cleared or replaced
+  /// must not bring them back.
   Future<void> updateIdentifications(
     List<MediaIdentification> changed, {
     MediaIdentificationRun? run,
   }) => _db.transaction(() async {
     for (final identification in changed) {
       await _db
-          .into(_db.mediaIdentifications)
-          .insertOnConflictUpdate(_toCompanion(identification));
+          .update(_db.mediaIdentifications)
+          .replace(_toCompanion(identification));
     }
     if (run != null) {
       await _db
-          .into(_db.mediaIdentificationRuns)
-          .insertOnConflictUpdate(_runToCompanion(run));
+          .update(_db.mediaIdentificationRuns)
+          .replace(_runToCompanion(run));
     }
   });
 

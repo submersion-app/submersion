@@ -32,7 +32,10 @@ abstract class VisionEngine {
 class VisionEngineException implements Exception {
   const VisionEngineException(this.code, [this.message]);
 
-  /// `not_loaded`, `decode_failed`, `inference_failed`, or another native
+  /// The models are not in memory: never loaded, or freed by the system.
+  static const String notLoaded = 'not_loaded';
+
+  /// [notLoaded], `decode_failed`, `inference_failed`, or another native
   /// code.
   final String code;
   final String? message;

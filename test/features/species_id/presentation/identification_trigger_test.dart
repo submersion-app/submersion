@@ -70,6 +70,45 @@ void main() {
     expect(service.requested, ['p1', 'p2']);
   });
 
+  testWidgets('a photo whose request was dropped is asked for again when it '
+      'comes back', (tester) async {
+    service.requestsWait = true;
+    for (final id in ['p1', 'p2', 'p1']) {
+      await tester.pumpWidget(host(photo(id)));
+      await tester.pump(const Duration(milliseconds: 401));
+    }
+    expect(service.requested, ['p1', 'p2', 'p1']);
+  });
+
+  testWidgets('a location that arrives later is passed on', (tester) async {
+    await tester.pumpWidget(host(photo('p1')));
+    await tester.pump(const Duration(milliseconds: 401));
+    const site = GeoPoint(12.1, -68.3);
+    await tester.pumpWidget(host(photo('p1'), location: site));
+    await tester.pumpWidget(host(photo('p1'), location: site));
+    await tester.pump(const Duration(milliseconds: 401));
+    expect(service.requested, ['p1', 'p1']);
+    expect(service.locations, [null, site]);
+  });
+
+  testWidgets('closing the viewer drops the photo\'s waiting request', (
+    tester,
+  ) async {
+    service.requestsWait = true;
+    await tester.pumpWidget(host(photo('p1')));
+    await tester.pump(const Duration(milliseconds: 401));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          mediaIdentificationServiceProvider.overrideWithValue(service),
+          mediaTagChipsProvider.overrideWith((ref, id) async => chips),
+        ],
+        child: const SizedBox.shrink(),
+      ),
+    );
+    expect(service.cancelled, ['p1']);
+  });
+
   testWidgets('a video is not asked for', (tester) async {
     await tester.pumpWidget(
       host(testMediaItem(id: 'v1', mediaType: MediaType.video)),

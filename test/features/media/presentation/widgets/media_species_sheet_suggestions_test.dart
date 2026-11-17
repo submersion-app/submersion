@@ -102,6 +102,7 @@ void main() {
     bool busy = false,
     EditSession<PhotoRecord>? sitting,
     bool settle = true,
+    List<Species> allSpecies = const [],
   }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
@@ -121,6 +122,7 @@ void main() {
           mediaIdentificationServiceProvider.overrideWithValue(service),
           suggestionAcceptorProvider.overrideWithValue(acceptor),
           identificationCropFileProvider.overrideWith((ref, key) async => null),
+          allSpeciesProvider.overrideWith((ref) async => allSpecies),
         ],
         child: MediaSpeciesSheet(item: _photo(), sitting: sitting),
       ),
@@ -189,6 +191,51 @@ void main() {
       expect(session.working.species.map((c) => c.speciesId), [
         'sp_queen_parrotfish',
       ]);
+    });
+
+    testWidgets('Add in a sitting takes the row away, also for a species '
+        'from outside the catalogue', (tester) async {
+      final session = EditSession<PhotoRecord>(
+        PhotoRecord(item: _photo(), species: const [], people: const []),
+      );
+      addTearDown(session.dispose);
+      await pump(
+        tester,
+        suggestions: [suggestion(chromis, cropId: 'i2')],
+        sitting: session,
+        // The species Add created for it.
+        allSpecies: const [
+          Species(
+            id: 'own-2',
+            commonName: 'Brown Chromis',
+            scientificName: 'Chromis multilineata',
+            category: SpeciesCategory.fish,
+          ),
+        ],
+      );
+      await tester.tap(find.byKey(const ValueKey('media_suggested_add_2')));
+      await tester.pumpAndSettle();
+      expect(session.working.species.map((c) => c.speciesId), ['own-2']);
+      expect(find.byKey(const ValueKey('media_suggested_row_2')), findsNothing);
+    });
+
+    testWidgets('Add on a possible match in the crop view tags it', (
+      tester,
+    ) async {
+      acceptor.delay = const Duration(seconds: 1);
+      await pump(tester, suggestions: [suggestion(parrotfish)]);
+      await tester.tap(find.byKey(const ValueKey('media_suggested_crop_1')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const ValueKey('media_suggested_candidate_2')),
+          matching: find.text('Add'),
+        ),
+      );
+      // Past the sheet closing and the slow lookup.
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 2));
+      expect(tagging.tagged, ['own-2']);
     });
 
     testWidgets('dismissing rejects every identification of the species', (

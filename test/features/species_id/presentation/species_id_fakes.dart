@@ -33,14 +33,23 @@ class RecordingIdentificationService extends MediaIdentificationService {
   final reconciled = <String>[];
   final rejected = <(String, List<String>)>[];
 
+  /// Requests finish at once unless this is set: then each waits in the
+  /// queue until it is dropped.
+  var requestsWait = false;
+  final _waiting = <String>{};
+
   @override
   Future<void> request(MediaItem item, {GeoPoint? location}) async {
     requested.add(item.id);
     locations.add(location);
+    if (requestsWait) _waiting.add(item.id);
   }
 
   @override
-  void cancelPending(String mediaId) => cancelled.add(mediaId);
+  bool cancelPending(String mediaId) {
+    cancelled.add(mediaId);
+    return _waiting.remove(mediaId);
+  }
 
   @override
   Future<void> reconcile(String mediaId) async => reconciled.add(mediaId);
@@ -56,9 +65,13 @@ class FakeAcceptor extends SuggestionAcceptor {
 
   final resolved = <PackCandidate>[];
 
+  /// How long a lookup takes; a real one reads the database.
+  var delay = Duration.zero;
+
   @override
   Future<Species> resolve(PackCandidate candidate) async {
     resolved.add(candidate);
+    if (delay > Duration.zero) await Future<void>.delayed(delay);
     return Species(
       id: candidate.catalogId ?? 'own-${candidate.gbifKey}',
       commonName: candidate.commonName,

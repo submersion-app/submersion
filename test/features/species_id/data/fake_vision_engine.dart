@@ -17,6 +17,10 @@ class FakeEngine implements VisionEngine {
   final loads = <VisionModels>[];
   var unloads = 0;
 
+  /// Whether models are in memory. Setting it false is what an iOS memory
+  /// warning does: the native side drops them without being asked.
+  var loaded = false;
+
   @override
   String? get engineName => VisionEngine.coreMlEngine;
 
@@ -24,10 +28,14 @@ class FakeEngine implements VisionEngine {
   Future<VisionAvailability> availability() async => available;
 
   @override
-  Future<void> load(VisionModels models) async => loads.add(models);
+  Future<void> load(VisionModels models) async {
+    loads.add(models);
+    loaded = true;
+  }
 
   @override
   Future<VisionAnalysis> analyze({String? path, Uint8List? bytes}) async {
+    if (!loaded) throw const VisionEngineException('not_loaded');
     analysed.add(path ?? 'bytes');
     await gate?.future;
     if (failure != null) throw failure!;
@@ -52,7 +60,10 @@ class FakeEngine implements VisionEngine {
   }
 
   @override
-  Future<void> unload() async => unloads++;
+  Future<void> unload() async {
+    unloads++;
+    loaded = false;
+  }
 
   @override
   Future<void> excludeFromBackup(String directory) async {}
