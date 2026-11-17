@@ -231,9 +231,10 @@ class _BulkDiveEditPageState extends ConsumerState<BulkDiveEditPage> {
   final _boatCaptainController = TextEditingController();
   final _surfaceConditionsController = TextEditingController();
   // Weight fields - multiple weight entries per dive
+  List<DiveWeight> _weights = [];
+
   // No weighting feedback here: one value rarely fits several dives, and the
   // single-dive editor is where a diver records it (#4674).
-  List<DiveWeight> _weights = [];
 
   // Tank data - list of tanks with multi-tank support
   List<DiveTank> _tanks = [];
