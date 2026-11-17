@@ -97,6 +97,6 @@ SpeciesSuggestion suggestion(
   identificationIds: ids ?? [cropId],
   alternatives: [
     NamedCandidate(candidate: candidate, score: score),
-    NamedCandidate(candidate: chromis, score: 0.05),
+    const NamedCandidate(candidate: chromis, score: 0.05),
   ],
 );

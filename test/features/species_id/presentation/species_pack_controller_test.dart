@@ -90,7 +90,7 @@ class _Service extends RecordingIdentificationService {
   Future<void> packChanged() async => packChanges++;
 }
 
-SpeciesPackManifest _manifest({String version = '2026.11.1', int format = 1}) =>
+SpeciesPackManifest _manifest({String version = '2026.11.1'}) =>
     SpeciesPackManifest.parse(manifestJson((m) => m['packVersion'] = version));
 
 void main() {
