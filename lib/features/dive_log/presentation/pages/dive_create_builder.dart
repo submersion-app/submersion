@@ -16,7 +16,6 @@ newDivePaneBuilder({bool unlockEditing = kUnlockEditing}) =>
         embedded: true,
         onCreated: onSaved,
         onCreateCancelled: onCancel,
-        unlockEditing: true,
       )
     : DiveEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel);
 
@@ -42,6 +41,5 @@ Widget newDiveRoutePage({
       tripId: tripId,
       tripCylinderId: tripCylinderId,
     ),
-    unlockEditing: true,
   );
 }

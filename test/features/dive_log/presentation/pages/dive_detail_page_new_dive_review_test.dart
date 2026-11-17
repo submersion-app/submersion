@@ -43,11 +43,15 @@ class _GatedMirror implements DiveMirrorService {
 
 /// Copies a scanned page into [dir] as the real service would, or fails.
 class _FakeImport implements MediaImportService {
-  _FakeImport(this.dir, {this.fail = false});
+  _FakeImport(this.dir, {this.fail = false, this.firstGate});
 
   final Directory dir;
   final bool fail;
+
+  /// Holds the first copy until it opens, as a large file would.
+  final Completer<void>? firstGate;
   final copies = <String>[];
+  var _calls = 0;
 
   @override
   Future<PreparedMedia> prepareLocalFileForDive({
@@ -59,7 +63,9 @@ class _FakeImport implements MediaImportService {
     String subdirectory = kScannedLogsSubdirectory,
   }) async {
     if (fail) throw const FileSystemException('gone');
-    final copy = await sourceFile.copy(p.join(dir.path, 'copy.jpg'));
+    final n = _calls++;
+    if (n == 0) await firstGate?.future;
+    final copy = await sourceFile.copy(p.join(dir.path, 'copy_$n.jpg'));
     copies.add(copy.path);
     final now = DateTime.utc(2026);
     return (
@@ -131,10 +137,9 @@ void main() {
 
     // The created dive shows locked; its lock does nothing yet.
     final lock = find.byTooltip('Unlock to edit');
-    if (lock.evaluate().isNotEmpty) {
-      await tester.tap(lock, warnIfMissed: false);
-      await settle(tester);
-    }
+    expect(lock, findsOneWidget);
+    await tester.tap(lock, warnIfMissed: false);
+    await settle(tester);
     expect(newDiveController(tester).isUnlocked, isFalse);
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await settle(tester);
@@ -212,9 +217,7 @@ void main() {
     );
   });
 
-  testWidgets('a scanned dive is not offered its strip card twice', (
-    tester,
-  ) async {
+  testWidgets('a scanned page lays out the Media card open', (tester) async {
     // The Media card a scan fills is laid out open (plan 8).
     await pumpNewDivePage(
       tester,
@@ -225,5 +228,44 @@ void main() {
       newDiveController(tester).openCardIds,
       contains(DiveDetailSectionId.media.name),
     );
+  });
+
+  testWidgets('a copy that lands after its sitting ended removes only itself', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    final import = _FakeImport(dir, firstGate: gate);
+    await pumpNewDivePage(
+      tester,
+      embedded: true,
+      request: NewDiveRequest(prefill: DivePrefill(photoPath: scan.path)),
+      extra: [mediaImportServiceProvider.overrideWithValue(import)],
+    );
+    await typeNote(tester, 'Wall');
+    final guard = ProviderScope.containerOf(
+      tester.element(find.byType(DiveDetailPage)),
+    ).read(appExitGuardProvider);
+    final leaving = guard.mayLeave();
+    await settle(tester);
+    await tester.tap(find.text('Discard'));
+    await settle(tester);
+    expect(await leaving, isTrue);
+    for (var i = 0; i < 5; i++) {
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await settle(tester);
+    }
+    // The fresh sitting has copied the page again.
+    expect(import.copies, hasLength(1));
+    final fresh = import.copies.single;
+
+    gate.complete();
+    for (var i = 0; i < 5; i++) {
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await settle(tester);
+    }
+
+    expect(import.copies, hasLength(2));
+    expect(File(import.copies.last).existsSync(), isFalse);
+    expect(File(fresh).existsSync(), isTrue);
   });
 }

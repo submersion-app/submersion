@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -89,7 +91,8 @@ class NewDiveAfterCreate {
   final Future<void> Function(String diveId) runRules;
   final Future<void> Function(String diveId) offerMirror;
 
-  /// Runs the steps for [created]. The weather is not fetched over weather
+  /// Runs the steps for [created]; the weather fetch and the tide record,
+  /// which need the network, are started and not waited for. The weather is not fetched over weather
   /// the diver entered or fetched in the sitting: the fetch writes wind,
   /// sky, rain, humidity and the description over what the dive holds, and
   /// a new dive holds none of them unless the diver put them there. A
@@ -100,8 +103,10 @@ class NewDiveAfterCreate {
     if (location != null && !hasWeather(created)) {
       await _guarded('weather', () async => fetchWeather(created, location));
     }
+    // Not awaited: the tide needs the network, and the page waits for these
+    // steps before it moves on to the dive.
     if (location != null) {
-      await _guarded('tide', () => recordTide(created, location));
+      unawaited(_guarded('tide', () => recordTide(created, location)));
     }
     if (created.isPlanned) return;
     await _guarded('rules', () => runRules(created.id));

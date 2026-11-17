@@ -65,7 +65,6 @@ Future<NewDivePage> pumpNewDivePage(
   Widget page() => DiveDetailPage.newDive(
     request: request,
     embedded: embedded,
-    unlockEditing: true,
     onCreated: embedded ? created.add : null,
     onCreateCancelled: embedded ? () => cancelled.add('cancel') : null,
   );

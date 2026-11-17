@@ -93,9 +93,13 @@ mixin _DiveDetailPageCreating
             );
         final copy = prepared.item.filePath;
         if (copy != null) {
-          _photoCopies.add(copy);
-          // Copied after the page or its sitting went: nothing holds it.
-          if (!mounted || session.isDisposed) _dropPhotoCopies();
+          if (!mounted || session.isDisposed) {
+            // Copied after the page or its sitting went: nothing holds it.
+            // Only this copy: a fresh sitting may hold one of its own.
+            File(copy).delete().ignore();
+          } else {
+            _photoCopies.add(copy);
+          }
         }
         return prepared;
       },
@@ -229,14 +233,16 @@ mixin _DiveDetailPageCreating
     final followUp = DiveSittingFollowUp.read(context, ref);
     // The diver active now, for a seed whose diver could not be read when
     // the page opened: the dive is theirs, and so is its numbering.
-    final activeDiver = ref.read(validatedCurrentDiverIdProvider.future);
+    final activeDiver = session.working.diverId == null
+        ? ref.read(validatedCurrentDiverIdProvider.future)
+        : null;
     final changedCardIds = session.changedCardIds;
     final buddyIds = {
       for (final b in [...?diveBuddiesList.current(session)]) b.buddy.id,
     };
     String? activeDiverId;
     try {
-      activeDiverId = await activeDiver;
+      if (activeDiver != null) activeDiverId = await activeDiver;
     } catch (error, stackTrace) {
       _log.warning(
         'Reading the active diver for a new dive failed',
@@ -254,8 +260,8 @@ mixin _DiveDetailPageCreating
       ),
     );
     if (mounted) setState(() => _created = result.after);
-    // The dive exists. A refresh that fails from here on is not a failed
-    // save: the diver would be handed the sitting to create it twice.
+    // The dive exists from here on. Nothing that follows may read as a
+    // failed save: the diver would be handed the sitting to create it again.
     try {
       await list.refreshAfterCreate(result.after);
     } catch (error, stackTrace) {
@@ -274,19 +280,28 @@ mixin _DiveDetailPageCreating
         stackTrace: stackTrace,
       );
     }
-    await followUp.run(
-      before: session.stored,
-      after: result.after,
-      tripDateStretches: result.tripDateStretches,
-      // A new dive's quality scan, sensor summary and derived metrics have
-      // never run: the gear refresh runs them whatever the sitting changed.
-      changedCardIds: {...changedCardIds, DiveDetailSectionId.tanks.name},
-      mediaAfterCommit: mediaAfterCommit(session),
-      buddyIds: buddyIds,
-      skippedRouteIds:
-          session.recall<List<String>>(routeLinksSkippedKey) ?? const [],
-      planLinksAdopted:
-          session.recall<List<(String, String?)>>(planLinkAdoptKey) ?? const [],
-    );
+    try {
+      await followUp.run(
+        before: session.stored,
+        after: result.after,
+        tripDateStretches: result.tripDateStretches,
+        // A new dive's quality scan, sensor summary and derived metrics have
+        // never run: the gear refresh runs them whatever the sitting changed.
+        changedCardIds: {...changedCardIds, DiveDetailSectionId.tanks.name},
+        mediaAfterCommit: mediaAfterCommit(session),
+        buddyIds: buddyIds,
+        skippedRouteIds:
+            session.recall<List<String>>(routeLinksSkippedKey) ?? const [],
+        planLinksAdopted:
+            session.recall<List<(String, String?)>>(planLinkAdoptKey) ??
+            const [],
+      );
+    } catch (error, stackTrace) {
+      _log.error(
+        'Follow-up after creating dive ${result.after.id} failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 }

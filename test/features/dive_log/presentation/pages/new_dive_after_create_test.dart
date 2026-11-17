@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -69,5 +71,20 @@ void main() {
       await after(failing: failing).run(created: logged);
       expect(steps.last, 'mirror new', reason: failing);
     }
+  });
+
+  // The tide record needs the network and is best effort, as the weather
+  // is: the page does not wait on it to move on (second review of plan 8).
+  test('a tide lookup still running does not hold up the rest', () async {
+    final tide = Completer<void>();
+    final after = NewDiveAfterCreate(
+      fetchWeather: (_, _) {},
+      recordTide: (_, _) => tide.future,
+      runRules: (id) async => steps.add('rules $id'),
+      offerMirror: (id) async => steps.add('mirror $id'),
+    );
+    await after.run(created: logged).timeout(const Duration(seconds: 1));
+    expect(steps, ['rules new', 'mirror new']);
+    tide.complete();
   });
 }
