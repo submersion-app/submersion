@@ -159,11 +159,6 @@ class VideoIdentificationLayer extends ConsumerWidget {
     final pillEdge =
         at.pillCentre.dy +
         (at.pillBelow ? -1 : 1) * TrackLabelGeometry.pillHeight / 2;
-    const pillWidth = 200.0;
-    final pillLeft = math.min(
-      math.max(at.pillCentre.dx - pillWidth / 2, video.left),
-      math.max(video.left, video.right - pillWidth),
-    );
     return [
       Positioned(
         left: at.dot.dx - 0.75,
@@ -179,12 +174,9 @@ class VideoIdentificationLayer extends ConsumerWidget {
         ),
         child: const IgnorePointer(child: TrackDot()),
       ),
-      Positioned(
-        left: pillLeft,
-        width: pillWidth,
-        top: at.pillCentre.dy - dotTarget.height / 2,
-        height: dotTarget.height,
-        child: Center(
+      Positioned.fill(
+        child: CustomSingleChildLayout(
+          delegate: _PillLayout(centre: at.pillCentre, video: video),
           child: _target(
             key: ValueKey('video_label_pill_${label.identificationId}'),
             label: name,
@@ -279,4 +271,30 @@ class VideoIdentificationLayer extends ConsumerWidget {
     final top = track.top;
     return top == null ? '' : candidateDisplayName(l10n, top.candidate);
   }
+}
+
+/// Puts a pill centred on [centre], moved in only as far as needed to stay
+/// inside [video], at most as wide as the video.
+class _PillLayout extends SingleChildLayoutDelegate {
+  const _PillLayout({required this.centre, required this.video});
+
+  final Offset centre;
+  final Rect video;
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
+      BoxConstraints.loose(Size(video.width, constraints.maxHeight));
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    final left = math.min(
+      math.max(centre.dx - childSize.width / 2, video.left),
+      math.max(video.left, video.right - childSize.width),
+    );
+    return Offset(left, centre.dy - childSize.height / 2);
+  }
+
+  @override
+  bool shouldRelayout(_PillLayout oldDelegate) =>
+      centre != oldDelegate.centre || video != oldDelegate.video;
 }

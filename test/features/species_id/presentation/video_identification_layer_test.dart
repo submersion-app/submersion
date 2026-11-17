@@ -296,6 +296,58 @@ void main() {
     expect(pillWidth, closeTo(textWidth + 27, 1));
   });
 
+  testWidgets('a pill pushed in from the edge still sits over its dot', (
+    tester,
+  ) async {
+    final nearEdge = track(
+      'a',
+      decision: IdentificationDecision.accepted,
+      decidedSpeciesId: 'sp_rock_beauty',
+    );
+    await pump(
+      tester,
+      tracks: [
+        nearEdge.copyWith(
+          path: [
+            for (final s in nearEdge.path)
+              s.copyWith(box: s.box.copyWith(x: 0, width: 0.06)),
+          ],
+        ),
+      ],
+      chips: const [_rockBeautyTag],
+      playing: true,
+    );
+    final layer = tester.getRect(find.byType(VideoIdentificationLayer));
+    final pillRect = tester.getRect(
+      find.descendant(of: pill('a'), matching: find.byType(TrackPill)),
+    );
+    final dotX = layer.left + 0.03 * 400;
+    expect(pillRect.left, lessThanOrEqualTo(dotX));
+    expect(pillRect.right, greaterThanOrEqualTo(dotX));
+    expect(pillRect.left, greaterThanOrEqualTo(layer.left));
+  });
+
+  testWidgets('a pill with room is centred on its dot', (tester) async {
+    await pump(
+      tester,
+      tracks: [
+        track(
+          'a',
+          decision: IdentificationDecision.accepted,
+          decidedSpeciesId: 'sp_rock_beauty',
+        ),
+      ],
+      chips: const [_rockBeautyTag],
+      playing: true,
+    );
+    final layer = tester.getRect(find.byType(VideoIdentificationLayer));
+    final pillRect = tester.getRect(
+      find.descendant(of: pill('a'), matching: find.byType(TrackPill)),
+    );
+    // At 1.5 s the fish is at x 0.12, 0.2 wide: its centre is 0.22.
+    expect(pillRect.center.dx, closeTo(layer.left + 0.22 * 400, 0.5));
+  });
+
   testWidgets('labels sit inside the contain-fitted video rect', (
     tester,
   ) async {
