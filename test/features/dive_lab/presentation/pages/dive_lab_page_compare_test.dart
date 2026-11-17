@@ -1,9 +1,7 @@
-import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_lab/domain/entities/compare_column.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_settings.dart';
@@ -19,7 +17,6 @@ import 'package:submersion/features/dive_lab/presentation/widgets/lab_runtime_ta
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
-import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
@@ -27,9 +24,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_overlay_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
-import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_app.dart';
-import '../../../../helpers/test_database.dart';
 import '../../domain/support/synthetic_dives.dart';
 
 const _air = GasMix(o2: 21);
@@ -255,26 +250,15 @@ void main() {
     );
     expect(tables.any((t) => identical(t.outcome, comparison.outcome)), isTrue);
   });
-
-  testWidgets('link entries sit above the share actions', (tester) async {
+  // The dive's plan link is changed on its Compare card, held until Save
+  // (issue #4527).
+  testWidgets('the menu offers no plan link', (tester) async {
     await pump(tester, inputs: _inputs(), comparison: _comparison());
     await openMenu(tester);
 
-    final link = tester.getTopLeft(find.text('Link a plan')).dy;
-    final unlink = tester.getTopLeft(find.text('Unlink plan')).dy;
-    final share = tester.getTopLeft(find.text('Share PDF slate')).dy;
-    expect(link, lessThan(share));
-    expect(unlink, lessThan(share));
-  });
-
-  testWidgets('with no link the menu offers Link and not Unlink', (
-    tester,
-  ) async {
-    await pump(tester, inputs: _inputs());
-    await openMenu(tester);
-
-    expect(find.text('Link a plan'), findsOneWidget);
+    expect(find.text('Link a plan'), findsNothing);
     expect(find.text('Unlink plan'), findsNothing);
+    expect(find.text('Share PDF slate'), findsOneWidget);
   });
 
   testWidgets('a linked dive that cannot branch shows the plan alone', (
@@ -305,9 +289,9 @@ void main() {
     expect(find.byIcon(Icons.save_outlined), findsNothing);
     expect(find.byIcon(Icons.folder_open_outlined), findsNothing);
 
-    await openMenu(tester);
-    expect(find.text('Unlink plan'), findsOneWidget);
-    expect(find.text('Share PDF slate'), findsNothing);
+    // Nothing to share or open in the planner, and the plan link is
+    // changed on the dive's Compare card: no menu at all.
+    expect(find.byIcon(Icons.more_vert), findsNothing);
   });
 
   testWidgets('a profile-less linked dive shows the plan', (tester) async {
@@ -324,8 +308,7 @@ void main() {
     await pump(tester);
 
     expect(find.byType(CompareTable), findsNothing);
-    await openMenu(tester);
-    expect(find.text('Link a plan'), findsOneWidget);
+    expect(find.byIcon(Icons.more_vert), findsNothing);
   });
 
   testWidgets('a planned dive reads Waiting for the dive', (tester) async {
@@ -339,64 +322,5 @@ void main() {
     expect(find.byType(LabChart), findsNothing);
     expect(find.text('Replay'), findsNothing);
     expect(find.byIcon(Icons.save_outlined), findsNothing);
-  });
-
-  group('unlinking', () {
-    late db.AppDatabase database;
-    late DivePlanRepository repository;
-
-    setUp(() async {
-      database = await setUpTestDatabase();
-      repository = DivePlanRepository();
-    });
-    tearDown(tearDownTestDatabase);
-
-    Future<void> untilDialog(WidgetTester tester) => pumpUntilRealAsync(
-      tester,
-      () => find.byType(AlertDialog).evaluate().isNotEmpty,
-    );
-
-    testWidgets('Unlink asks first', (tester) async {
-      await tester.runAsync(() async {
-        await database
-            .into(database.dives)
-            .insert(
-              const db.DivesCompanion(
-                id: Value('d'),
-                diveDateTime: Value(1000),
-                createdAt: Value(1000),
-                updatedAt: Value(1000),
-              ),
-            );
-        await repository.savePlan(_plan(linkedDiveId: 'd'));
-      });
-      await pump(tester, inputs: _inputs(), comparison: _comparison());
-      await openMenu(tester);
-      await tester.tap(find.text('Unlink plan'));
-      await untilDialog(tester);
-
-      expect(find.text('Unlink this plan?'), findsOneWidget);
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-
-      final kept = await tester.runAsync(() => repository.getPlan('plan-1'));
-      expect(kept!.linkedDiveId, 'd');
-
-      await openMenu(tester);
-      await tester.tap(find.text('Unlink plan'));
-      await untilDialog(tester);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Unlink'));
-
-      // The write has no result to wait on here, so real time and frames in
-      // turn; its update takes no transaction, so a read cannot block on it.
-      String? linked = 'd';
-      for (var round = 0; round < 100 && linked != null; round++) {
-        await tester.pump(const Duration(milliseconds: 50));
-        final plan = await tester.runAsync(() => repository.getPlan('plan-1'));
-        linked = plan?.linkedDiveId;
-      }
-      expect(linked, isNull);
-    });
   });
 }

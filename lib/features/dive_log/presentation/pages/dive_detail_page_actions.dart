@@ -435,14 +435,12 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
   /// Runs Remove source (issue #4393) through the flow the inbox shares.
   /// After the removal and after its Undo the dive refreshes, and a source
   /// the chart was showing or overlaying stops being asked for once gone.
-  /// [offerUndo] is false on a page that offers editing, where the removal
-  /// reverts from History instead (issue #4527).
+  /// It offers no Undo: the removal reverts from History (issue #4527).
   Future<bool> _confirmAndRemoveSource(
     Dive dive,
     String sourceId,
-    String sourceName, {
-    bool offerUndo = true,
-  }) {
+    String sourceName,
+  ) {
     final container = ProviderScope.containerOf(context, listen: false);
     void afterChange() {
       final active = container.read(activeDiveSourceProvider(dive.id).notifier);
@@ -466,7 +464,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       sourceId: sourceId,
       sourceName: sourceName,
       afterChange: afterChange,
-      offerUndo: offerUndo,
+      offerUndo: false,
     );
   }
 
@@ -666,8 +664,14 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
   }
 
   /// The page has gone with its dive: back to whoever opened it.
+  /// Set once the page leaves a deleted dive. The delete ended the sitting
+  /// just before, and a report of that end ([_DiveDetailPageUnlockOpen])
+  /// would send the list pane back to a dive that is gone.
+  bool _leftDeletedDive = false;
+
   void _leaveDeletedDive() {
     if (!mounted) return;
+    _leftDeletedDive = true;
     if (widget.embedded && widget.onDeleted != null) {
       // In embedded mode, call the callback to clear selection
       widget.onDeleted!();

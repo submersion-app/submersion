@@ -51,8 +51,11 @@ class RecordCardPencil extends StatelessWidget {
         ),
         const SizedBox(width: 4),
         // The only way into the card: the body's own taps (the site, the
-        // map) keep doing what they do while reading.
+        // map) keep doing what they do while reading. A node of its own, or
+        // a Card around the title row would merge it into one button named
+        // for everything the card says.
         Semantics(
+          container: true,
           button: true,
           label: context.l10n.recordEdit_editCardTooltip(cardTitle),
           onTap: frame.onOpen,

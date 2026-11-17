@@ -51,8 +51,7 @@ typedef LogbookPhotoPreparer =
 /// 8), each value through the function a diver's own edit uses, so it is
 /// a change with its card's dot and the rules across cards follow: a site
 /// through [assignSite], a trip and its slot through the cylinder rules.
-/// The values are mapped as the new-dive form maps them
-/// (`dive_edit_page.dart:894`).
+/// The values are mapped as the old new-dive form mapped them.
 ///
 /// The trip and the logbook photo are read afterwards and tracked, so a
 /// save waits for them; each drops its answer when the sitting has ended or

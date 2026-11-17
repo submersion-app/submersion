@@ -1321,44 +1321,38 @@ void main() {
       matching: find.byIcon(Icons.favorite_border),
     );
 
-    // Six action icons leave a phone-width app bar no room for its title, so
-    // the favorite toggle moves into the overflow menu there.
-    testWidgets('on a phone-width window, favorite lives in the overflow', (
-      tester,
-    ) async {
-      setWindowWidth(tester, 560);
-      final settings = _settingsWithVisibleSections([
-        DiveDetailSectionId.notes,
-      ]);
+    // Favourite is a field of the header card (issue #4527): never a toggle
+    // in the bar or the menu. History sits beside the lock where the bar
+    // has room, else first in the menu.
+    for (final (width, historyInBar) in [(560.0, false), (900.0, true)]) {
+      testWidgets('at ${width.toInt()} wide, no favourite toggle anywhere; '
+          'History ${historyInBar ? 'in the bar' : 'in the menu'}', (
+        tester,
+      ) async {
+        setWindowWidth(tester, width);
+        final settings = _settingsWithVisibleSections([
+          DiveDetailSectionId.notes,
+        ]);
 
-      await tester.pumpWidget(
-        _buildTestWidget(dive: _diveWithContent, settings: settings),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          _buildTestWidget(dive: _diveWithContent, settings: settings),
+        );
+        await tester.pumpAndSettle();
 
-      expect(favoriteInBar(), findsNothing);
+        expect(favoriteInBar(), findsNothing);
+        expect(
+          find.descendant(
+            of: find.byType(AppBar),
+            matching: find.byIcon(Icons.history),
+          ),
+          historyInBar ? findsOneWidget : findsNothing,
+        );
 
-      await tester.tap(find.byType(PopupMenuButton<String>));
-      await tester.pumpAndSettle();
-      expect(find.text('Add to favorites'), findsOneWidget);
-    });
-
-    testWidgets('on a wide window, favorite stays in the bar', (tester) async {
-      setWindowWidth(tester, 900);
-      final settings = _settingsWithVisibleSections([
-        DiveDetailSectionId.notes,
-      ]);
-
-      await tester.pumpWidget(
-        _buildTestWidget(dive: _diveWithContent, settings: settings),
-      );
-      await tester.pumpAndSettle();
-
-      expect(favoriteInBar(), findsOneWidget);
-
-      await tester.tap(find.byType(PopupMenuButton<String>));
-      await tester.pumpAndSettle();
-      expect(find.text('Add to favorites'), findsNothing);
-    });
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+        expect(find.text('Add to favorites'), findsNothing);
+        expect(find.text('History'), historyInBar ? findsNothing : findsOne);
+      });
+    }
   });
 }

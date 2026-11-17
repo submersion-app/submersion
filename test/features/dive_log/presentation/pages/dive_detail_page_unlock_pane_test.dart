@@ -163,12 +163,4 @@ void main() {
     await unlock(tester);
     expect(mark().onPressed, isNotNull);
   });
-
-  testWidgets('with the switch off the pane is as today', (tester) async {
-    await pumpPage(tester, embedded: true, size: pane, unlockEditing: false);
-
-    expect(find.byTooltip('Unlock to edit'), findsNothing);
-    expect(find.byTooltip('History'), findsNothing);
-    expect(find.byTooltip('Add to favorites'), findsOneWidget);
-  });
 }

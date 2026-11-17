@@ -155,7 +155,6 @@ Future<void> pumpViewer(
   WidgetTester tester, {
   List<String> ids = const ['p1', 'p2', 'p3'],
   String initial = 'p2',
-  bool unlockEditing = true,
   bool showGoToDive = false,
   Size size = const Size(1280, 800),
   bool browser = false,
@@ -167,7 +166,6 @@ Future<void> pumpViewer(
       mediaList: items!,
       initialMediaId: initial,
       showGoToDive: showGoToDive,
-      unlockEditing: unlockEditing,
     ),
     size: size,
     browser: browser,

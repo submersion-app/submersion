@@ -28,19 +28,19 @@ If the account you choose already holds a Submersion library, the sync step offe
 
 Open **Dives** and tap the **Log Dive** button (the floating button with a + icon). A sheet appears with these options:
 
-- **Log Dive Manually** opens the dive form so you can type in the details.
+- **Log Dive Manually** opens a new dive's page, ready to edit, so you can type in the details.
 - **Plan a dive** fills in the details now; you can add the dive computer's data later.
 - **Import from Computer** downloads dives from a dive computer instead. See [Dive Computer](dive-computer.md).
 - **Scan Paper Log** reads a dive from a photo of a paper logbook page.
 - **Start pre-dive checklist** runs through a checklist before you get in.
 
-Tap **Log Dive Manually** to open the dive form.
+Tap **Log Dive Manually**. The new dive's page opens unlocked, under the title **Log Dive**, with **Cancel** and **Save** in the bar.
 
-<!-- screenshot: images/first-dive/new-dive-essentials.png: new dive form, essential fields -->
+<!-- screenshot: images/first-dive/new-dive-essentials.png: a new dive's Dive card open, essential fields -->
 
 ### Fill in the essentials
 
-The form opens with **The Dive** section, which is always open and holds everything a basic record needs:
+Tap the pencil on the **Dive** card at the top of the page. Its editor holds everything a basic record needs:
 
 | Field | What to enter |
 |-------|---------------|
@@ -56,7 +56,7 @@ The form opens with **The Dive** section, which is always open and holds everyth
 
 ## Save the dive
 
-When you are done entering the essentials, tap **Save** in the app bar. The dive appears in your Dives list.
+When you are done entering the essentials, tap **Save** in the bar. The page stays on your new dive, now locked, and the dive appears in your Dives list. To change it later, open it and tap the lock (**Unlock to edit**).
 
 ## What to do next
 

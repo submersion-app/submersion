@@ -34,29 +34,10 @@ void main() {
     of: find.byType(DiveHeroHeader),
     matching: find.byIcon(Icons.edit_outlined),
   );
-
-  testWidgets('editing off: no frame and no pencil', (tester) async {
-    await pumpPage(tester, unlockEditing: false, stored: headed);
-
-    expect(
-      find.ancestor(
-        of: find.byType(DiveHeroHeader),
-        matching: find.byType(RecordCardFrame<Dive>),
-      ),
-      findsNothing,
-    );
-    expect(pencil(), findsNothing);
-  });
-
-  testWidgets('locked: no pencil, and the hero is as tall as with editing '
-      'off', (tester) async {
-    await pumpPage(tester, unlockEditing: false, stored: headed);
-    final off = tester.getSize(find.byType(DiveHeroHeader)).height;
-
+  testWidgets('locked: no pencil', (tester) async {
     await pumpPage(tester, stored: headed);
 
     expect(pencil(), findsNothing);
-    expect(tester.getSize(find.byType(DiveHeroHeader)).height, off);
   });
 
   // The Add strip coming in under the bar moves the whole page down a page
@@ -242,23 +223,6 @@ void main() {
         expect(find.text('Remove from Favorites'), findsNothing);
       },
     );
-
-    testWidgets('editing off: the bar toggles it as before', (tester) async {
-      await pumpPage(
-        tester,
-        unlockEditing: false,
-        stored: headed.copyWith(isFavorite: true),
-        size: const Size(900, 1000),
-      );
-
-      expect(
-        find.ancestor(
-          of: find.byIcon(Icons.favorite),
-          matching: find.byType(IconButton),
-        ),
-        findsOneWidget,
-      );
-    });
   });
 
   testWidgets('a header changed in a sitting is saved as the header card', (

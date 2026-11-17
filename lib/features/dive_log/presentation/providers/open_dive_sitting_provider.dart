@@ -26,9 +26,6 @@ final openDiveSittingProvider = StateProvider<OpenDiveSitting?>((ref) => null);
 
 /// What a media file dropped on a dive does.
 enum DiveDropAnswer {
-  /// Unlock-to-edit is off: linked at once, as today.
-  asToday,
-
   /// Held in the dive's open sitting until Save.
   hold,
 
@@ -39,11 +36,9 @@ enum DiveDropAnswer {
 
 /// The answer for a drop on [diveId], given the [open] sitting.
 DiveDropAnswer diveDropAnswer({
-  required bool lockable,
   required OpenDiveSitting? open,
   required String diveId,
 }) {
-  if (!lockable) return DiveDropAnswer.asToday;
   if (open == null || open.diveId != diveId) return DiveDropAnswer.refuse;
   final session = open.session;
   if (session.isDisposed || session.isFrozen) return DiveDropAnswer.refuse;

@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 
 @immutable
 class _Rec {
@@ -48,10 +47,6 @@ RecordEditController<_Rec> _controller({
 }
 
 void main() {
-  test('the switch is off unless the build turns it on', () {
-    expect(kUnlockEditing, isFalse);
-  });
-
   test('starts locked with no session', () {
     final controller = _controller();
 

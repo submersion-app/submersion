@@ -90,11 +90,7 @@ void main() {
   ) async {
     await pumpViewerApp(
       tester,
-      const PhotoViewerPage(
-        diveId: 'd1',
-        initialMediaId: 'p2',
-        unlockEditing: true,
-      ),
+      const PhotoViewerPage(diveId: 'd1', initialMediaId: 'p2'),
     );
     await tapUnlock(tester);
     final now = DateTime(2024, 1, 10);
@@ -172,11 +168,7 @@ void main() {
     final save = _GoneOnSave();
     await pumpViewerApp(
       tester,
-      const PhotoViewerPage(
-        diveId: 'd1',
-        initialMediaId: 'p2',
-        unlockEditing: true,
-      ),
+      const PhotoViewerPage(diveId: 'd1', initialMediaId: 'p2'),
       overrides: [photoEditSaveServiceProvider.overrideWithValue(save)],
     );
     await tapUnlock(tester);

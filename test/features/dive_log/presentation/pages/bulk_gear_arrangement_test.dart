@@ -6,7 +6,7 @@ import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
@@ -106,7 +106,7 @@ void main() {
             (ref) => ref.watch(_arrangement),
           ),
         ],
-        child: const DiveEditPage(bulkDiveIds: ['d1', 'd2'], embedded: true),
+        child: const BulkDiveEditPage(diveIds: ['d1', 'd2'], embedded: true),
       ),
     );
     await tester.pumpAndSettle();

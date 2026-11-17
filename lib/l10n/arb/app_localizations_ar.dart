@@ -8494,12 +8494,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_tooltip_addToFavorites => 'إضافة إلى المفضلة';
 
   @override
-  String get diveLog_detail_tooltip_edit => 'تعديل';
-
-  @override
-  String get diveLog_detail_tooltip_editDive => 'تعديل الغوصة';
-
-  @override
   String get diveLog_detail_tooltip_previousDive => 'الغطسة السابقة';
 
   @override
@@ -8569,9 +8563,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String diveLog_edit_addedGps(Object name) {
     return 'تمت إضافة GPS إلى $name';
   }
-
-  @override
-  String get diveLog_edit_appBarEdit => 'تعديل الغوصة';
 
   @override
   String get diveLog_edit_appBarNew => 'تسجيل غوصة';
@@ -8693,39 +8684,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_group_buddies => 'الرفاق';
 
   @override
-  String get diveLog_edit_group_conditions => 'الظروف';
-
-  @override
-  String get diveLog_edit_group_experience => 'التجربة';
-
-  @override
-  String get diveLog_edit_group_gasGear => 'الغاز والمعدات';
-
-  @override
-  String get diveLog_edit_group_theDive => 'الغوصة';
-
-  @override
-  String get diveLog_edit_group_trip => 'الرحلة';
-
-  @override
-  String get diveLog_edit_invite_buddies => 'إضافة رفاق';
-
-  @override
-  String get diveLog_edit_invite_conditions =>
-      'إضافة الظروف - الماء والرؤية والطقس';
-
-  @override
-  String get diveLog_edit_invite_experience =>
-      'إضافة تقييم أو مشاهدات أو ملاحظات أو وسوم';
-
-  @override
-  String get diveLog_edit_invite_gasGear =>
-      'إضافة الغاز والمعدات - الوضع والأسطوانات والمعدات والأثقال';
-
-  @override
-  String get diveLog_edit_invite_trip => 'إضافة رحلة أو مركز غوص';
-
-  @override
   String get diveLog_edit_label_airTemp => 'درجة حرارة الهواء';
 
   @override
@@ -8804,9 +8762,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_marineLifeHint => 'انقر \"إضافة\" لتسجيل المشاهدات';
 
   @override
-  String get diveLog_edit_nearbySitesFirst => 'المواقع القريبة أولاً';
-
-  @override
   String get diveLog_edit_noEquipmentSelected => 'لم يتم اختيار معدات';
 
   @override
@@ -8852,9 +8807,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_notSpecified => 'غير محدد';
 
   @override
-  String get diveLog_edit_notesHint => 'أضف ملاحظات حول هذه الغوصة...';
-
-  @override
   String get diveLog_edit_overline_gasSwitches => 'تبديلات الغاز';
 
   @override
@@ -8871,9 +8823,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_profile_draw => 'رسم ملف الغوص';
 
   @override
-  String get diveLog_edit_profile_none => 'غير مسجل';
-
-  @override
   String diveLog_edit_profile_outliers(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -8885,46 +8834,6 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'تم اكتشاف قيمة شاذة محتملة واحدة',
     );
     return '$_temp0';
-  }
-
-  @override
-  String diveLog_edit_profile_points(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count نقطة',
-      many: '$count نقطة',
-      few: '$count نقاط',
-      two: 'نقطتان',
-      one: 'نقطة واحدة',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String diveLog_edit_profile_pointsAndProfiles(
-    num pointCount,
-    num profileCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      pointCount,
-      locale: localeName,
-      other: '$pointCount نقطة',
-      many: '$pointCount نقطة',
-      few: '$pointCount نقاط',
-      two: 'نقطتان',
-      one: 'نقطة واحدة',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      profileCount,
-      locale: localeName,
-      other: '$profileCount مراجعة',
-      many: '$profileCount مراجعة',
-      few: '$profileCount مراجعات',
-      two: 'مراجعتان',
-      one: 'مراجعة واحدة',
-    );
-    return '$_temp0 · $_temp1';
   }
 
   @override
@@ -8943,9 +8852,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_row_boatCaptain => 'القبطان';
 
   @override
-  String get diveLog_edit_row_diveProfile => 'ملف الغوص';
-
-  @override
   String get diveLog_edit_row_entry => 'الدخول';
 
   @override
@@ -8956,9 +8862,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_row_site => 'الموقع';
-
-  @override
-  String get diveLog_edit_row_surfaceInterval => 'فترة السطح';
 
   @override
   String get diveLog_edit_row_trip => 'الرحلة';
@@ -9017,9 +8920,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_section_conditions => 'الظروف';
-
-  @override
-  String get diveLog_edit_section_customFields => 'الحقول المخصصة';
 
   @override
   String get diveLog_edit_section_diveCenter => 'مركز الغوص';
@@ -9125,62 +9025,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_section_weight => 'الأثقال';
 
   @override
-  String diveLog_edit_snackbar_avgDepthCalculated(Object depth) {
-    return 'تم حساب متوسط العمق: $depth';
-  }
-
-  @override
-  String diveLog_edit_snackbar_bottomTimeCalculated(Object minutes) {
-    return 'تم حساب وقت القاع: $minutes min';
-  }
-
-  @override
   String diveLog_edit_snackbar_errorSaving(Object error) {
     return 'خطأ في حفظ الغوصة: $error';
-  }
-
-  @override
-  String diveLog_edit_snackbar_maxDepthCalculated(Object depth) {
-    return 'تم حساب أقصى عمق: $depth';
-  }
-
-  @override
-  String get diveLog_edit_snackbar_noProfileData =>
-      'لا تتوفر بيانات ملف الغوصة';
-
-  @override
-  String diveLog_edit_snackbar_runtimeCalculated(Object minutes) {
-    return 'تم حساب وقت التشغيل: $minutes min';
-  }
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateAvgDepth =>
-      'تعذر حساب متوسط العمق من الملف';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculate =>
-      'تعذر حساب وقت القاع من الملف';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateMaxDepth =>
-      'تعذر حساب أقصى عمق من الملف';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateRuntime =>
-      'تعذر حساب وقت التشغيل من الملف';
-
-  @override
-  String diveLog_edit_summary_items(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count عنصر',
-      many: '$count عنصرًا',
-      few: '$count عناصر',
-      two: 'عنصران',
-      one: 'عنصر واحد',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -9199,23 +9045,6 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String diveLog_edit_summary_tanks(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count أسطوانة',
-      many: '$count أسطوانة',
-      few: '$count أسطوانات',
-      two: 'أسطوانتان',
-      one: 'أسطوانة واحدة',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get diveLog_edit_surfacePressureDefault => '1013';
 
   @override
   String get diveLog_edit_tankCard_done => 'تم';
@@ -9240,10 +9069,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_tooltip_removeWeight => 'إزالة';
-
-  @override
-  String get diveLog_edit_trainingCoursesHint =>
-      'ربط هذه الغوصة بدورة تدريبية واحدة أو أكثر';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {
@@ -9950,10 +9775,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'التعرف على النص غير متوفر. ثبّت Tesseract لمسح السجلات الورقية (مثلاً: sudo apt install tesseract-ocr).';
 
   @override
-  String get ocrImport_editPage_photoAttachFailed =>
-      'تم حفظ الغطسة، لكن فشل إرفاق الصفحة الممسوحة';
-
-  @override
   String get ocrImport_newDive_photoHoldFailed =>
       'تعذّر إرفاق الصفحة الممسوحة بهذه الغطسة';
 
@@ -10273,9 +10094,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_edit_summary_shared => 'مشترك';
-
-  @override
-  String get forms_addSection_prefix => 'إضافة:';
 
   @override
   String get forms_cancel => 'إلغاء';
@@ -36727,10 +36545,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_photos_viewAll => 'عرض الكل';
 
   @override
-  String get trips_dateStretch_failed =>
-      'تم حفظ الغوصة، لكن تعذّر تحديث تواريخ الرحلة';
-
-  @override
   String trips_dateStretch_message(String trip, String dates) {
     return 'أصبحت مدة $trip $dates';
   }
@@ -40517,12 +40331,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
       'مدعوم من Apple HealthKit';
-
-  @override
-  String get diveLog_edit_subsection_autofill => 'تعبئة تلقائية';
-
-  @override
-  String get diveLog_edit_subsection_weather => 'الطقس';
 
   @override
   String get diveLog_edit_label_windSpeed => 'سرعة الرياح';
@@ -58689,9 +58497,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_summary_gasExcluded => 'الغاز مستبعد';
 
   @override
-  String get diveLog_edit_statisticsIncludedHint => 'محتسبة في كل الإحصائيات';
-
-  @override
   String get suuntoCloud_signIn_title => 'تسجيل الدخول إلى Suunto';
 
   @override
@@ -60413,11 +60218,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get navTrack_editSheet_trackOnAnotherDive =>
       'ينتمي هذا المسار إلى غطسة أخرى. حدّثه من تلك الغطسة، أو استورد الملف كمسار جديد.';
-
-  @override
-  String navTrack_editRow_tracksSaveFailed(String error) {
-    return 'تعذر تحديث مسارات هذه الغوصة تحت الماء: $error';
-  }
 
   @override
   String get navTrack_importError_unsupportedFormat =>

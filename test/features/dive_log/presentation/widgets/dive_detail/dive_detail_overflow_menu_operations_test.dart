@@ -24,7 +24,7 @@ void main() {
 
   Future<List<String>> pumpMenu(
     WidgetTester tester, {
-    RecordOperationBlock? operations,
+    required RecordOperationBlock operations,
     bool historyInBar = false,
   }) async {
     await tester.pumpWidget(
@@ -105,8 +105,15 @@ void main() {
     await pumpMenu(tester, operations: RecordOperationBlock.none);
 
     expect(find.byKey(const ValueKey('recordOperationCaption')), findsNothing);
-    expect(enabled(tester, 'Mark as logged'), isTrue);
-    expect(enabled(tester, 'Delete'), isTrue);
+    for (final label in [
+      'Mark as logged',
+      'Resync from original file',
+      'Delete',
+      'Link pre-dive checklist',
+      'Draw a profile',
+    ]) {
+      expect(enabled(tester, label), isTrue, reason: label);
+    }
   });
 
   testWidgets('unlocked with a change: "Save or cancel your changes first"', (
@@ -128,17 +135,6 @@ void main() {
     );
 
     expect(items, isNot(contains('History')));
-  });
-
-  testWidgets('with the switch off the menu is as today', (tester) async {
-    final items = await pumpMenu(tester);
-
-    expect(find.byKey(const ValueKey('recordOperationCaption')), findsNothing);
-    expect(items, isNot(contains('|')));
-    expect(items.first, 'History');
-    expect(items, isNot(contains('Draw a profile')));
-    expect(enabled(tester, 'Delete'), isTrue);
-    expect(enabled(tester, 'Mark as logged'), isTrue);
   });
 }
 

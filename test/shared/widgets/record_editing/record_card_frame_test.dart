@@ -628,5 +628,25 @@ void main() {
 
       semantics.dispose();
     });
+
+    // The header is a button of its own: in the Card it would otherwise
+    // merge into the card's node, and the whole card would be one button
+    // named for everything it says (issue #4527).
+    testWidgets('unlocked, the header button leaves the card body its own', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      final controller = _controller()..unlock(const _Rec());
+      await tester.pumpWidget(_host(controller));
+
+      final row = tester.getSemantics(find.text('Notes'));
+      expect(row.label, isNot(contains('READ')));
+      expect(
+        tester.getSemantics(find.text('READ')).flagsCollection.isButton,
+        isFalse,
+      );
+
+      semantics.dispose();
+    });
   });
 }

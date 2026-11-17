@@ -227,7 +227,7 @@ class DiveDetailsDerivedRows extends ConsumerWidget {
         ),
       if (display.showsRmv && rmv == null && sac != null) ...[
         if (!display.showsSac) sacRow(),
-        DiveVolumeHint(diveId: dive.id, volumeSymbol: units.volumeSymbol),
+        DiveVolumeHint(volumeSymbol: units.volumeSymbol),
       ],
     ];
     if (rows.isEmpty) return const SizedBox.shrink();
@@ -289,7 +289,9 @@ class DiveDetailsDerivedRows extends ConsumerWidget {
   /// Build a tappable row for a linked dive computer that navigates to
   /// the device detail page.
   Widget _buildLinkedComputerRow(BuildContext context, DiveComputer computer) {
+    // A node of its own: in the Card it would merge into the card's.
     return Semantics(
+      container: true,
       button: true,
       label: context.l10n.diveLog_detail_semantics_viewDiveComputer(
         computer.displayName,

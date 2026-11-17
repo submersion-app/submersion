@@ -149,8 +149,11 @@ class RecordCardHeader extends StatelessWidget {
     }
 
     // An InkWell gives the row a tap action but no role, and the row is
-    // the card's only way in: it is announced as the button it is.
+    // the card's only way in: it is announced as the button it is. A node
+    // of its own, or the Card around it would merge the card's whole body
+    // into this button.
     return Semantics(
+      container: true,
       button: true,
       child: InkWell(
         onTap: frame.onOpen,

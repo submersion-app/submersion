@@ -131,24 +131,6 @@ void main() {
     expect(controller.session, same(before));
     expect(controller.isOperating, isFalse);
   });
-
-  testWidgets('with the switch off the banner acts as today', (tester) async {
-    final planned = dive.copyWith(isPlanned: true);
-    final repo = _Repo();
-    final page = await pumpPage(
-      tester,
-      unlockEditing: false,
-      stored: planned,
-      extra: [diveRepositoryProvider.overrideWithValue(repo)],
-    );
-    repo.save = page.save;
-
-    await tester.tap(find.widgetWithText(TextButton, 'Mark as logged'));
-    await settle(tester);
-
-    expect(repo.promoted, [dive.id]);
-  });
-
   Future<void> openSourceMenu(WidgetTester tester) async {
     final sourceMenu = find
         .descendant(

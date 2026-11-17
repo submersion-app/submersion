@@ -6,7 +6,6 @@ import 'package:submersion/core/accessibility/not_while_typing_activator.dart';
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 
 /// Unlock the record page in view (Cmd/Ctrl+L).
 class UnlockRecordIntent extends Intent {
@@ -75,18 +74,12 @@ final recordEditShortcutTargetsProvider = Provider<RecordEditShortcutTargets>(
 /// and Cancel work while a field is being typed in; unlock, a plain chord,
 /// not then.
 class RecordEditShortcuts extends ConsumerStatefulWidget {
-  const RecordEditShortcuts({
-    super.key,
-    required this.child,
-    this.listInHelp = kUnlockEditing,
-  });
+  const RecordEditShortcuts({super.key, required this.child});
 
-  final Widget child;
-
-  /// Lists Unlock and Save in the keyboard shortcuts help while mounted:
-  /// only where the pages can be unlocked. Escape is listed already, as
+  /// The app, below the editing keys. While mounted, Unlock and Save are
+  /// listed in the keyboard shortcuts help; Escape is listed already, as
   /// "Close / Cancel".
-  final bool listInHelp;
+  final Widget child;
 
   @override
   ConsumerState<RecordEditShortcuts> createState() =>
@@ -101,7 +94,6 @@ class _RecordEditShortcutsState extends ConsumerState<RecordEditShortcuts> {
   @override
   void initState() {
     super.initState();
-    if (!widget.listInHelp) return;
     ShortcutCatalog.instance.registerAll([
       ShortcutEntry(
         label: _unlockLabel,
@@ -118,11 +110,9 @@ class _RecordEditShortcutsState extends ConsumerState<RecordEditShortcuts> {
 
   @override
   void dispose() {
-    if (widget.listInHelp) {
-      ShortcutCatalog.instance
-        ..unregisterLabel(_unlockLabel)
-        ..unregisterLabel(_saveLabel);
-    }
+    ShortcutCatalog.instance
+      ..unregisterLabel(_unlockLabel)
+      ..unregisterLabel(_saveLabel);
     super.dispose();
   }
 

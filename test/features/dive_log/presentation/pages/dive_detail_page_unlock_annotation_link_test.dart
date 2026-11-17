@@ -52,19 +52,4 @@ void main() {
       },
     );
   }
-
-  testWidgets('switch off: the link opens the time sheet, as today', (
-    tester,
-  ) async {
-    await pumpPage(
-      tester,
-      stored: linked,
-      visible: const {DiveDetailSectionId.notes},
-      unlockEditing: false,
-    );
-    await tester.tapOnText(find.textRange.ofSubstring('Turtle here'));
-    await settle(tester);
-
-    expect(find.byType(BottomSheet), findsOneWidget);
-  });
 }

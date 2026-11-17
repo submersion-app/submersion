@@ -8185,12 +8185,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_tooltip_addToFavorites => 'הוספה למועדפים';
 
   @override
-  String get diveLog_detail_tooltip_edit => 'עריכה';
-
-  @override
-  String get diveLog_detail_tooltip_editDive => 'עריכת צלילה';
-
-  @override
   String get diveLog_detail_tooltip_previousDive => 'הצלילה הקודמת';
 
   @override
@@ -8260,9 +8254,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String diveLog_edit_addedGps(Object name) {
     return 'GPS נוסף ל-$name';
   }
-
-  @override
-  String get diveLog_edit_appBarEdit => 'עריכת צלילה';
 
   @override
   String get diveLog_edit_appBarNew => 'רישום צלילה';
@@ -8380,39 +8371,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_group_buddies => 'שותפים';
 
   @override
-  String get diveLog_edit_group_conditions => 'תנאים';
-
-  @override
-  String get diveLog_edit_group_experience => 'חוויה';
-
-  @override
-  String get diveLog_edit_group_gasGear => 'גז וציוד';
-
-  @override
-  String get diveLog_edit_group_theDive => 'הצלילה';
-
-  @override
-  String get diveLog_edit_group_trip => 'טיול';
-
-  @override
-  String get diveLog_edit_invite_buddies => 'הוספת שותפים';
-
-  @override
-  String get diveLog_edit_invite_conditions =>
-      'הוספת תנאים - מים, ראות, מזג אוויר';
-
-  @override
-  String get diveLog_edit_invite_experience =>
-      'הוספת דירוג, תצפיות, הערות או תגיות';
-
-  @override
-  String get diveLog_edit_invite_gasGear =>
-      'הוספת גז וציוד - מצב, מיכלים, ציוד, משקולות';
-
-  @override
-  String get diveLog_edit_invite_trip => 'הוספת טיול או מרכז צלילה';
-
-  @override
   String get diveLog_edit_label_airTemp => 'טמפ\' אוויר';
 
   @override
@@ -8491,9 +8449,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_marineLifeHint => 'הקש \"הוספה\" לרישום תצפיות';
 
   @override
-  String get diveLog_edit_nearbySitesFirst => 'אתרים קרובים תחילה';
-
-  @override
   String get diveLog_edit_noEquipmentSelected => 'לא נבחר ציוד';
 
   @override
@@ -8536,9 +8491,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_notSpecified => 'לא צוין';
 
   @override
-  String get diveLog_edit_notesHint => 'הוסף הערות לצלילה זו...';
-
-  @override
   String get diveLog_edit_overline_gasSwitches => 'החלפות גז';
 
   @override
@@ -8555,9 +8507,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_profile_draw => 'שרטוט פרופיל';
 
   @override
-  String get diveLog_edit_profile_none => 'לא הוקלט';
-
-  @override
   String diveLog_edit_profile_outliers(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -8566,37 +8515,6 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'זוהתה חריגה אפשרית אחת',
     );
     return '$_temp0';
-  }
-
-  @override
-  String diveLog_edit_profile_points(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count נקודות',
-      one: 'נקודה אחת',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String diveLog_edit_profile_pointsAndProfiles(
-    num pointCount,
-    num profileCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      pointCount,
-      locale: localeName,
-      other: '$pointCount נקודות',
-      one: 'נקודה אחת',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      profileCount,
-      locale: localeName,
-      other: '$profileCount גרסאות',
-      one: 'גרסה אחת',
-    );
-    return '$_temp0 · $_temp1';
   }
 
   @override
@@ -8615,9 +8533,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_row_boatCaptain => 'רב החובל';
 
   @override
-  String get diveLog_edit_row_diveProfile => 'פרופיל צלילה';
-
-  @override
   String get diveLog_edit_row_entry => 'כניסה';
 
   @override
@@ -8628,9 +8543,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_row_site => 'אתר';
-
-  @override
-  String get diveLog_edit_row_surfaceInterval => 'זמן פני השטח';
 
   @override
   String get diveLog_edit_row_trip => 'טיול';
@@ -8686,9 +8598,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_section_conditions => 'תנאים';
-
-  @override
-  String get diveLog_edit_section_customFields => 'שדות מותאמים';
 
   @override
   String get diveLog_edit_section_diveCenter => 'מועדון צלילה';
@@ -8793,59 +8702,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_section_weight => 'משקולות';
 
   @override
-  String diveLog_edit_snackbar_avgDepthCalculated(Object depth) {
-    return 'עומק ממוצע חושב: $depth';
-  }
-
-  @override
-  String diveLog_edit_snackbar_bottomTimeCalculated(Object minutes) {
-    return 'זמן תחתית חושב: $minutes min';
-  }
-
-  @override
   String diveLog_edit_snackbar_errorSaving(Object error) {
     return 'שגיאה בשמירת צלילה: $error';
-  }
-
-  @override
-  String diveLog_edit_snackbar_maxDepthCalculated(Object depth) {
-    return 'עומק מרבי חושב: $depth';
-  }
-
-  @override
-  String get diveLog_edit_snackbar_noProfileData =>
-      'אין נתוני פרופיל צלילה זמינים';
-
-  @override
-  String diveLog_edit_snackbar_runtimeCalculated(Object minutes) {
-    return 'זמן ריצה חושב: $minutes min';
-  }
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateAvgDepth =>
-      'לא ניתן לחשב עומק ממוצע מהפרופיל';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculate =>
-      'לא ניתן לחשב זמן תחתית מהפרופיל';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateMaxDepth =>
-      'לא ניתן לחשב עומק מרבי מהפרופיל';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateRuntime =>
-      'לא ניתן לחשב זמן ריצה מהפרופיל';
-
-  @override
-  String diveLog_edit_summary_items(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count פריטים',
-      one: 'פריט אחד',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -8861,20 +8719,6 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String diveLog_edit_summary_tanks(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count מיכלים',
-      one: 'מיכל אחד',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get diveLog_edit_surfacePressureDefault => '1013';
 
   @override
   String get diveLog_edit_tankCard_done => 'סיום';
@@ -8900,10 +8744,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_tooltip_removeWeight => 'הסרה';
-
-  @override
-  String get diveLog_edit_trainingCoursesHint =>
-      'קישור צלילה זו לקורס הכשרה אחד או יותר';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {
@@ -9594,10 +9434,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'זיהוי טקסט אינו זמין. התקינו את Tesseract כדי לסרוק יומנים מנייר (לדוגמה: sudo apt install tesseract-ocr).';
 
   @override
-  String get ocrImport_editPage_photoAttachFailed =>
-      'הצלילה נשמרה, אך צירוף העמוד הסרוק נכשל';
-
-  @override
   String get ocrImport_newDive_photoHoldFailed =>
       'לא ניתן היה לצרף את העמוד הסרוק לצלילה זו';
 
@@ -9894,9 +9730,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_edit_summary_shared => 'משותף';
-
-  @override
-  String get forms_addSection_prefix => 'הוספה:';
 
   @override
   String get forms_cancel => 'ביטול';
@@ -35408,10 +35241,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_photos_viewAll => 'הצג הכל';
 
   @override
-  String get trips_dateStretch_failed =>
-      'הצלילה נשמרה, אך לא ניתן היה לעדכן את תאריכי הטיול';
-
-  @override
   String trips_dateStretch_message(String trip, String dates) {
     return '$trip נמשך כעת $dates';
   }
@@ -39021,12 +38850,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
       'מופעל על ידי Apple HealthKit';
-
-  @override
-  String get diveLog_edit_subsection_autofill => 'מילוי אוטומטי';
-
-  @override
-  String get diveLog_edit_subsection_weather => 'מזג אוויר';
 
   @override
   String get diveLog_edit_label_windSpeed => 'מהירות רוח';
@@ -56680,9 +56503,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_summary_gasExcluded => 'הגז הוחרג';
 
   @override
-  String get diveLog_edit_statisticsIncludedHint => 'נכללת בכל הסטטיסטיקות';
-
-  @override
   String get suuntoCloud_signIn_title => 'התחברות ל-Suunto';
 
   @override
@@ -58334,11 +58154,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get navTrack_editSheet_trackOnAnotherDive =>
       'המסלול הזה שייך לצלילה אחרת. יש לעדכן אותו מאותה צלילה, או לייבא את הקובץ כמסלול חדש.';
-
-  @override
-  String navTrack_editRow_tracksSaveFailed(String error) {
-    return 'לא ניתן לעדכן את המסלולים התת-ימיים של צלילה זו: $error';
-  }
 
   @override
   String get navTrack_importError_unsupportedFormat =>

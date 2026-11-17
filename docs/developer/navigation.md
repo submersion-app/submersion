@@ -85,9 +85,9 @@ Each primary route has nested routes for CRUD:
 ```
 
 /dives
-├── /dives/new           → Create dive
-├── /dives/:diveId       → View dive detail
-└── /dives/:diveId/edit  → Edit dive
+├── /dives/new           → New dive (the dive page, unlocked)
+├── /dives/:diveId       → View dive detail (?mode=edit opens it unlocked)
+└── /dives/:diveId/edit  → Redirects to /dives/:diveId?mode=edit
 
 ```text
 ### Route Example
@@ -103,21 +103,22 @@ GoRoute(
     GoRoute(
       path: 'new',
       name: 'newDive',
-      builder: (context, state) => const DiveEditPage(),
+      builder: (context, state) => newDivePage(state),
     ),
     GoRoute(
       path: ':diveId',
       name: 'diveDetail',
       builder: (context, state) => DiveDetailPage(
         diveId: state.pathParameters['diveId']!,
+        openUnlocked: state.uri.queryParameters['mode'] == 'edit',
       ),
       routes: [
+        // The old edit address opens the record page unlocked.
         GoRoute(
           path: 'edit',
           name: 'editDive',
-          builder: (context, state) => DiveEditPage(
-            diveId: state.pathParameters['diveId'],
-          ),
+          redirect: (context, state) =>
+              '/dives/${state.pathParameters['diveId']}?mode=edit',
         ),
       ],
     ),
@@ -138,10 +139,10 @@ GoRoute(
 |------|------|--------|
 | `/dives` | dives | DiveListPage |
 | `/dives/activity` | diveActivity | DiveActivityMapPage |
-| `/dives/new` | newDive | DiveEditPage |
+| `/dives/new` | newDive | DiveDetailPage.newDive |
 | `/dives/search` | diveSearch | DiveSearchPage |
 | `/dives/:diveId` | diveDetail | DiveDetailPage |
-| `/dives/:diveId/edit` | editDive | DiveEditPage |
+| `/dives/:diveId/edit` | editDive | Redirect to `/dives/:diveId?mode=edit` |
 | `/dives/:diveId/edit-profile` | editProfile | ProfileEditorPage |
 
 ### Sites
@@ -405,12 +406,12 @@ For edit screens that need to return data:
 
 ```dart
 // In edit page
-context.pop(savedDive);
+context.pop(savedBuddy);
 
 // In calling page
-final result = await context.push<Dive>('/dives/new');
+final result = await context.push<Buddy>('/buddies/new');
 if (result != null) {
-  // Handle saved dive
+  // Handle saved buddy
 }
 ```text
 ## NoTransitionPage

@@ -23,13 +23,16 @@ final _card = EditCard<String>(
 
 /// A card that draws its own title row, with the pencil at its end, the way
 /// the dive page's header block does (issue #4527, plan 4).
-Widget _host(RecordEditController<String>? controller) {
-  const row = Row(
+Widget _host(RecordEditController<String>? controller, {bool inCard = false}) {
+  const titleRow = Row(
     children: [
       Expanded(child: Text('Blue Corner')),
       RecordCardPencil(cardTitle: 'Dive'),
     ],
   );
+  // The dive page's header block draws its title row inside a Card, which
+  // gathers its texts into one node for a screen reader.
+  final Widget row = inCard ? const Card(child: titleRow) : titleRow;
   return MaterialApp(
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -96,6 +99,28 @@ void main() {
       find.bySemanticsLabel(l10n.recordEdit_unsavedChanges),
       findsOneWidget,
     );
+  });
+
+  // Inside a Card the pencil keeps a node of its own: merged into the
+  // card's, it would be one button named for everything the card says, and
+  // a screen reader could not reach the card's way in (issue #4527).
+  testWidgets('inside a card it is still a button of its own', (tester) async {
+    final handle = tester.ensureSemantics();
+    final controller = _controller()..unlock('Blue Corner');
+    await tester.pumpWidget(_host(controller, inCard: true));
+
+    final pencil = find.bySemanticsLabel('Edit Dive');
+    expect(pencil, findsOneWidget);
+    expect(
+      tester.getSemantics(pencil),
+      matchesSemantics(label: 'Edit Dive', isButton: true, hasTapAction: true),
+    );
+    // The card's own text stays its own, not part of a button.
+    expect(
+      tester.getSemantics(find.text('Blue Corner')),
+      isNot(matchesSemantics(isButton: true)),
+    );
+    handle.dispose();
   });
 
   testWidgets('it is announced as a button named for the card', (tester) async {

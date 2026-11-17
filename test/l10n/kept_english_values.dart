@@ -100,7 +100,6 @@ const Map<String, String> keptEnglishValues = {
   'diveLog_detail_weatherSourceOpenMeteo@nl': _sameWord,
   'diveLog_detail_weatherSourceOpenMeteo@pt': _sameWord,
   'diveLog_edit_label_weightName@de': _sameWord,
-  'diveLog_edit_summary_items@nl': _dutchItem,
   'diveLog_equipmentSetPicker_itemsSummary@nl': _dutchItem,
   'diveLog_export_uddfDescription@de': _technology,
   'diveLog_export_uddfDescription@it': _technology,

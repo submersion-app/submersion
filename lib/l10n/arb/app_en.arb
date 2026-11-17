@@ -4998,8 +4998,6 @@
   "diveLog_detail_tagCount": "{count} {count, plural, =1{tag} other{tags}}",
   "diveLog_detail_tideCalculated": "Calculated from tide model",
   "diveLog_detail_tooltip_addToFavorites": "Add to favorites",
-  "diveLog_detail_tooltip_edit": "Edit",
-  "diveLog_detail_tooltip_editDive": "Edit dive",
   "diveLog_detail_tooltip_previousDive": "Previous dive",
   "diveLog_detail_tooltip_nextDive": "Next dive",
   "diveLog_detail_tooltip_removeFromFavorites": "Remove from favorites",
@@ -5021,7 +5019,6 @@
   "diveLog_edit_addTank": "Add Tank",
   "diveLog_edit_addWeightEntry": "Add Weight Entry",
   "diveLog_edit_addedGps": "Added GPS to {name}",
-  "diveLog_edit_appBarEdit": "Edit Dive",
   "diveLog_edit_appBarNew": "Log Dive",
   "diveLog_edit_cancel": "Cancel",
   "diveLog_edit_clearAllEquipment": "Clear All",
@@ -5099,46 +5096,6 @@
   "@diveLog_edit_group_buddies": {
     "description": "Form group: dive buddies"
   },
-  "diveLog_edit_group_conditions": "Conditions",
-  "@diveLog_edit_group_conditions": {
-    "description": "Form group: water, environment and weather"
-  },
-  "diveLog_edit_group_experience": "Experience",
-  "@diveLog_edit_group_experience": {
-    "description": "Form group: rating, marine life, notes, tags"
-  },
-  "diveLog_edit_group_gasGear": "Gas & Gear",
-  "@diveLog_edit_group_gasGear": {
-    "description": "Form group: mode, tanks, equipment, weight"
-  },
-  "diveLog_edit_group_theDive": "The Dive",
-  "@diveLog_edit_group_theDive": {
-    "description": "Form group: core dive facts"
-  },
-  "diveLog_edit_group_trip": "Trip",
-  "@diveLog_edit_group_trip": {
-    "description": "Form group: trip and dive center"
-  },
-  "diveLog_edit_invite_buddies": "Add buddies",
-  "@diveLog_edit_invite_buddies": {
-    "description": "Empty-state invitation for the Buddies group"
-  },
-  "diveLog_edit_invite_conditions": "Add conditions - water, visibility, weather",
-  "@diveLog_edit_invite_conditions": {
-    "description": "Empty-state invitation for the Conditions group"
-  },
-  "diveLog_edit_invite_experience": "Add rating, sightings, notes or tags",
-  "@diveLog_edit_invite_experience": {
-    "description": "Empty-state invitation for the Experience group"
-  },
-  "diveLog_edit_invite_gasGear": "Add gas & gear - mode, tanks, equipment, weight",
-  "@diveLog_edit_invite_gasGear": {
-    "description": "Empty-state invitation for the Gas & Gear group"
-  },
-  "diveLog_edit_invite_trip": "Add trip or dive center",
-  "@diveLog_edit_invite_trip": {
-    "description": "Empty-state invitation for the Trip group"
-  },
   "diveLog_edit_label_airTemp": "Air Temp",
   "diveLog_edit_label_altitude": "Altitude",
   "diveLog_edit_label_avgDepth": "Avg Depth",
@@ -5173,7 +5130,6 @@
   "diveLog_edit_hint_weightName": "e.g. Top pocket",
   "@diveLog_edit_hint_weightName": {"description": "Example name shown in the empty weight name field"},
   "diveLog_edit_marineLifeHint": "Tap \"Add\" to record sightings",
-  "diveLog_edit_nearbySitesFirst": "Nearby sites first",
   "diveLog_edit_noEquipmentSelected": "No equipment selected",
   "diveLog_edit_noMarineLife": "No species logged",
   "diveLog_edit_suggestions_title": "Suggested for {siteName}",
@@ -5221,7 +5177,6 @@
     "description": "Chip that collapses the expanded suggested species list back to the first few"
   },
   "diveLog_edit_notSpecified": "Not specified",
-  "diveLog_edit_notesHint": "Add notes about this dive...",
   "diveLog_edit_overline_gasSwitches": "Gas switches",
   "diveLog_edit_overline_tanks": "Tanks",
   "@diveLog_edit_overline_tanks": {
@@ -5233,36 +5188,11 @@
   "@diveLog_edit_profile_draw": {
     "description": "Dive profile row placeholder when no profile exists; tapping opens the draw editor"
   },
-  "diveLog_edit_profile_none": "Not recorded",
-  "@diveLog_edit_profile_none": {
-    "description": "Dive profile row value on a new dive with no profile data"
-  },
   "diveLog_edit_profile_outliers": "{count, plural, one{1 potential outlier detected} other{{count} potential outliers detected}}",
   "@diveLog_edit_profile_outliers": {
     "description": "Chip under the dive profile row offering outlier cleanup",
     "placeholders": {
       "count": {
-        "type": "num"
-      }
-    }
-  },
-  "diveLog_edit_profile_points": "{count, plural, one{1 point} other{{count} points}}",
-  "@diveLog_edit_profile_points": {
-    "description": "Dive profile row value: number of recorded profile samples",
-    "placeholders": {
-      "count": {
-        "type": "num"
-      }
-    }
-  },
-  "diveLog_edit_profile_pointsAndProfiles": "{pointCount, plural, one{1 point} other{{pointCount} points}} · {profileCount, plural, one{1 revision} other{{profileCount} revisions}}",
-  "@diveLog_edit_profile_pointsAndProfiles": {
-    "description": "Dive profile row value: recorded profile samples and number of available profile revisions",
-    "placeholders": {
-      "pointCount": {
-        "type": "num"
-      },
-      "profileCount": {
         "type": "num"
       }
     }
@@ -5278,10 +5208,6 @@
   "diveLog_edit_row_diveOperator": "Operator",
   "diveLog_edit_row_boatName": "Boat",
   "diveLog_edit_row_boatCaptain": "Captain",
-  "diveLog_edit_row_diveProfile": "Dive profile",
-  "@diveLog_edit_row_diveProfile": {
-    "description": "Row label: dive profile (points count / draw affordance)"
-  },
   "diveLog_edit_row_entry": "Entry",
   "@diveLog_edit_row_entry": {
     "description": "Row label: entry date and time"
@@ -5297,10 +5223,6 @@
   "diveLog_edit_row_site": "Site",
   "@diveLog_edit_row_site": {
     "description": "Row label: dive site picker"
-  },
-  "diveLog_edit_row_surfaceInterval": "Surface interval",
-  "@diveLog_edit_row_surfaceInterval": {
-    "description": "Row label: surface interval since previous dive"
   },
   "diveLog_edit_row_trip": "Trip",
   "@diveLog_edit_row_trip": {
@@ -5322,7 +5244,6 @@
   "diveLog_edit_saveAsSetDialog_title": "Save as Equipment Set",
   "diveLog_edit_saveAsSetDialog_validation": "Please enter a set name",
   "diveLog_edit_section_conditions": "Conditions",
-  "diveLog_edit_section_customFields": "Custom Fields",
   "diveLog_edit_section_diveCenter": "Dive Center",
   "diveLog_edit_section_equipment": "Equipment",
   "diveLog_edit_section_marineLife": "Species",
@@ -5433,25 +5354,7 @@
   },
   "diveLog_edit_section_trip": "Trip",
   "diveLog_edit_section_weight": "Weight",
-  "diveLog_edit_snackbar_avgDepthCalculated": "Avg depth calculated: {depth}",
-  "diveLog_edit_snackbar_bottomTimeCalculated": "Bottom time calculated: {minutes} min",
   "diveLog_edit_snackbar_errorSaving": "Error saving dive: {error}",
-  "diveLog_edit_snackbar_maxDepthCalculated": "Max depth calculated: {depth}",
-  "diveLog_edit_snackbar_noProfileData": "No dive profile data available",
-  "diveLog_edit_snackbar_runtimeCalculated": "Runtime calculated: {minutes} min",
-  "diveLog_edit_snackbar_unableToCalculateAvgDepth": "Unable to calculate average depth from profile",
-  "diveLog_edit_snackbar_unableToCalculate": "Unable to calculate bottom time from profile",
-  "diveLog_edit_snackbar_unableToCalculateMaxDepth": "Unable to calculate max depth from profile",
-  "diveLog_edit_snackbar_unableToCalculateRuntime": "Unable to calculate runtime from profile",
-  "diveLog_edit_summary_items": "{count, plural, one{1 item} other{{count} items}}",
-  "@diveLog_edit_summary_items": {
-    "description": "Collapsed summary fragment: equipment count",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "diveLog_edit_summary_notes": "notes",
   "@diveLog_edit_summary_notes": {
     "description": "Collapsed summary fragment indicating notes exist"
@@ -5465,16 +5368,6 @@
       }
     }
   },
-  "diveLog_edit_summary_tanks": "{count, plural, one{1 tank} other{{count} tanks}}",
-  "@diveLog_edit_summary_tanks": {
-    "description": "Collapsed summary fragment: tank count",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "diveLog_edit_surfacePressureDefault": "1013",
   "diveLog_edit_tankCard_done": "Done",
   "@diveLog_edit_tankCard_done": {
     "description": "Collapse the tank editor back to the card"
@@ -5493,10 +5386,6 @@
   "diveLog_edit_tooltip_removeEquipment": "Remove equipment",
   "diveLog_edit_tooltip_removeSighting": "Remove sighting",
   "diveLog_edit_tooltip_removeWeight": "Remove",
-  "diveLog_edit_trainingCoursesHint": "Link this dive to one or more training courses",
-  "@diveLog_edit_trainingCoursesHint": {
-    "description": "Hint above the course chips in the dive editor"
-  },
   "diveLog_edit_tripSuggested": "Suggested: {name}",
   "diveLog_edit_tripUse": "Use",
   "diveLog_edit_newRecordNotAdded": "Saved, but it couldn't be added to this dive. Pick it from the list.",
@@ -5770,7 +5659,6 @@
   "ocrImport_scanPage_takePhoto": "Take Photo",
   "ocrImport_scanPage_nothingRead": "Couldn't read much from this page - fields left blank",
   "ocrImport_scanPage_engineMissing": "Text recognition is not available. Install Tesseract to scan paper logs (for example: sudo apt install tesseract-ocr).",
-  "ocrImport_editPage_photoAttachFailed": "The dive was saved, but attaching the scanned page failed",
   "ocrImport_newDive_photoHoldFailed": "The scanned page could not be attached to this dive",
   "@ocrImport_newDive_photoHoldFailed": {
     "description": "Shown when a new dive opened from a logbook scan cannot hold the scanned page photo; the dive has not been saved yet"
@@ -5984,10 +5872,6 @@
   "diveSites_edit_summary_shared": "shared",
   "@diveSites_edit_summary_shared": {
     "description": "Collapsed summary fragment indicating the site is shared"
-  },
-  "forms_addSection_prefix": "Add:",
-  "@forms_addSection_prefix": {
-    "description": "Prefix of the trailing row listing unused optional form sections, e.g. '+ Add: Course / Custom fields'"
   },
   "forms_cancel": "Cancel",
   "@forms_cancel": {
@@ -7086,34 +6970,6 @@
   "@diveLog_edit_saveAsSetDialog_success": {
     "placeholders": {
       "name": {
-        "type": "Object"
-      }
-    }
-  },
-  "@diveLog_edit_snackbar_avgDepthCalculated": {
-    "placeholders": {
-      "depth": {
-        "type": "Object"
-      }
-    }
-  },
-  "@diveLog_edit_snackbar_bottomTimeCalculated": {
-    "placeholders": {
-      "minutes": {
-        "type": "Object"
-      }
-    }
-  },
-  "@diveLog_edit_snackbar_maxDepthCalculated": {
-    "placeholders": {
-      "depth": {
-        "type": "Object"
-      }
-    }
-  },
-  "@diveLog_edit_snackbar_runtimeCalculated": {
-    "placeholders": {
-      "minutes": {
         "type": "Object"
       }
     }
@@ -21110,7 +20966,6 @@
   "trips_photos_sectionTitle": "Photos",
   "trips_photos_tooltip_scan": "Scan device gallery",
   "trips_photos_viewAll": "View All",
-  "trips_dateStretch_failed": "Dive saved, but the trip's dates couldn't be updated",
   "trips_dateStretch_message": "{trip} now runs {dates}",
   "@trips_dateStretch_message": {
     "placeholders": {
@@ -24257,8 +24112,6 @@
   },
   "settings_dataSources_appleHealth_privacy": "Your health data is stored locally on this device and is never shared with third parties. Submersion only reads data from Apple HealthKit and does not write any data back to HealthKit.",
   "settings_dataSources_appleHealth_poweredBy": "Powered by Apple HealthKit",
-  "diveLog_edit_subsection_autofill": "Auto-fill",
-  "diveLog_edit_subsection_weather": "Weather",
   "diveLog_edit_label_windSpeed": "Wind Speed",
   "diveLog_edit_label_windDirection": "Wind Direction",
   "diveLog_edit_label_cloudCover": "Cloud Cover",
@@ -34696,10 +34549,6 @@
   "@diveLog_edit_summary_gasExcluded": {
     "description": "Collapsed Statistics group summary when only gas statistics are excluded"
   },
-  "diveLog_edit_statisticsIncludedHint": "Counted in every statistic",
-  "@diveLog_edit_statisticsIncludedHint": {
-    "description": "Collapsed Statistics group hint when the dive is not excluded"
-  },
   "suuntoCloud_signIn_title": "Sign in to Suunto",
   "suuntoCloud_signIn_description": "Sign in with your app.suunto.com account to import your dives directly. Your password is never stored; only the resulting session is cached.",
   "suuntoCloud_signIn_emailLabel": "Email",
@@ -35694,14 +35543,6 @@
   "navTrack_editSheet_removeTrackTooltip": "Remove track",
   "navTrack_editSheet_trackOnAnotherDive": "This track belongs to another dive. Update it from that dive, or import the file as a new track.",
   "@navTrack_editSheet_trackOnAnotherDive": {"description": "Dive Edit route sheet: the stored track a re-imported file would update is linked to another dive"},
-  "navTrack_editRow_tracksSaveFailed": "Could not update this dive's underwater tracks: {error}",
-  "@navTrack_editRow_tracksSaveFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "navTrack_importError_unsupportedFormat": "This file is not a Seacraft ENC navigation log.",
   "navTrack_importError_unreadable": "This file could not be read as a Seacraft ENC navigation log.",
   "navTrack_importError_trackTooShort": "This recording has too few samples to be a usable underwater track.",

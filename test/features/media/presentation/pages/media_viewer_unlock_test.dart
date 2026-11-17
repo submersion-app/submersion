@@ -66,11 +66,8 @@ void main() {
           body: TextButton(
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) => MediaViewerPage(
-                  mediaList: items!,
-                  initialMediaId: initial,
-                  unlockEditing: true,
-                ),
+                builder: (_) =>
+                    MediaViewerPage(mediaList: items!, initialMediaId: initial),
               ),
             ),
             child: const Text('Open'),
@@ -105,11 +102,7 @@ void main() {
           if (from == 'a dive') {
             await pumpViewerApp(
               tester,
-              const PhotoViewerPage(
-                diveId: 'd1',
-                initialMediaId: 'p2',
-                unlockEditing: true,
-              ),
+              const PhotoViewerPage(diveId: 'd1', initialMediaId: 'p2'),
             );
           } else {
             await pumpViewer(tester, showGoToDive: true);
@@ -155,11 +148,7 @@ void main() {
       );
       await pumpViewerApp(
         tester,
-        MediaViewerPage(
-          mediaList: [held],
-          initialMediaId: 'not-stored',
-          unlockEditing: true,
-        ),
+        MediaViewerPage(mediaList: [held], initialMediaId: 'not-stored'),
       );
 
       expect(find.byKey(const ValueKey('viewer_unlock')), findsNothing);
@@ -171,15 +160,20 @@ void main() {
       expect(find.byKey(const ValueKey('viewer_unlock')), findsNothing);
     });
 
-    testWidgets('switch off: no lock, and every write action as today', (
+    testWidgets('a viewer built with only its photos opens locked', (
       tester,
     ) async {
-      await pumpViewer(tester, unlockEditing: false);
+      final items = await tester.runAsync(
+        () => storedMedia(const ['p1', 'p2', 'p3']),
+      );
+      await pumpViewerApp(
+        tester,
+        MediaViewerPage(mediaList: items!, initialMediaId: 'p2'),
+      );
 
-      expect(find.byKey(const ValueKey('viewer_unlock')), findsNothing);
-      expect(find.byKey(const ValueKey('viewer_species')), findsOneWidget);
-      expect(find.byKey(const ValueKey('viewer_adjust_color')), findsOneWidget);
-      expect(find.byTooltip('Close photo viewer'), findsOneWidget);
+      expect(find.byKey(const ValueKey('viewer_unlock')), findsOneWidget);
+      expect(find.byKey(const ValueKey('viewer_species')), findsNothing);
+      expect(find.byKey(const ValueKey('viewer_adjust_color')), findsNothing);
     });
   });
 
@@ -301,7 +295,6 @@ void main() {
               mediaList: items!,
               initialMediaId: 'p2',
               showGoToDive: true,
-              unlockEditing: true,
             ),
           ),
           GoRoute(
@@ -426,11 +419,7 @@ void main() {
         'its photo', (tester) async {
       await pumpViewerApp(
         tester,
-        const PhotoViewerPage(
-          diveId: 'd1',
-          initialMediaId: 'p2',
-          unlockEditing: true,
-        ),
+        const PhotoViewerPage(diveId: 'd1', initialMediaId: 'p2'),
       );
       await tapUnlock(tester);
       await change(tester);
@@ -448,11 +437,7 @@ void main() {
         'sitting stays on it (Eric, 2026-11-16)', (tester) async {
       await pumpViewerApp(
         tester,
-        const PhotoViewerPage(
-          diveId: 'd1',
-          initialMediaId: 'p2',
-          unlockEditing: true,
-        ),
+        const PhotoViewerPage(diveId: 'd1', initialMediaId: 'p2'),
       );
       await tapUnlock(tester);
       await change(tester);
@@ -483,11 +468,7 @@ void main() {
       );
       await pumpViewerApp(
         tester,
-        const PhotoViewerPage(
-          diveId: 'd1',
-          initialMediaId: 'p2',
-          unlockEditing: true,
-        ),
+        const PhotoViewerPage(diveId: 'd1', initialMediaId: 'p2'),
       );
       await tapUnlock(tester);
       await tester.runAsync(() => MediaRepository().unlinkFromDive(['p2']));
@@ -505,11 +486,7 @@ void main() {
         'message; nothing written', (tester) async {
       await pumpViewerApp(
         tester,
-        const PhotoViewerPage(
-          diveId: 'd1',
-          initialMediaId: 'p2',
-          unlockEditing: true,
-        ),
+        const PhotoViewerPage(diveId: 'd1', initialMediaId: 'p2'),
       );
       await tapUnlock(tester);
       await change(tester);
@@ -751,7 +728,6 @@ void main() {
                     builder: (_) => MediaViewerPage(
                       mediaList: items!,
                       initialMediaId: 'p2',
-                      unlockEditing: true,
                     ),
                   ),
                 ),

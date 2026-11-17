@@ -44,6 +44,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_ca
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/unlock_for_operation.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers shared by gas-segment tests
@@ -1920,7 +1921,9 @@ void main() {
       expect(chart.safetyFindings, isNotNull);
       expect(chart.safetyFindings!.map((f) => f.id), ['f-lane']);
       expect(chart.onSafetyFindingTap, isNotNull);
-      expect(chart.onSafetyFindingDismiss, isNotNull);
+      // A locked page dismisses nothing: that is held in the open Safety
+      // review card (issue #4527).
+      expect(chart.onSafetyFindingDismiss, isNull);
       expect(chart.onSafetyFindingDetails, isNotNull);
     });
 
@@ -2080,7 +2083,10 @@ void main() {
             locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: DiveDetailPage(diveId: dive.id, embedded: true),
+            // In a Scaffold, as the list pane is (the unlocked strip needs one).
+            home: Scaffold(
+              body: DiveDetailPage(diveId: dive.id, embedded: true),
+            ),
           ),
         ),
       );
@@ -2098,6 +2104,8 @@ void main() {
       tester,
     ) async {
       await pumpChips(tester);
+      // A check-in is a whole-record operation (issue #4527).
+      await unlockForOperation(tester);
       await tester.ensureVisible(find.byType(ObservationStatusChip).first);
       await tester.tap(find.byType(ObservationStatusChip).first);
       await tester.pumpAndSettle();

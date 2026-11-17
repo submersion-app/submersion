@@ -8235,12 +8235,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_detail_tooltip_addToFavorites => 'Add to favorites';
 
   @override
-  String get diveLog_detail_tooltip_edit => 'Edit';
-
-  @override
-  String get diveLog_detail_tooltip_editDive => 'Edit dive';
-
-  @override
   String get diveLog_detail_tooltip_previousDive => 'Previous dive';
 
   @override
@@ -8311,9 +8305,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String diveLog_edit_addedGps(Object name) {
     return 'Added GPS to $name';
   }
-
-  @override
-  String get diveLog_edit_appBarEdit => 'Edit Dive';
 
   @override
   String get diveLog_edit_appBarNew => 'Log Dive';
@@ -8430,39 +8421,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_group_buddies => 'Buddies';
 
   @override
-  String get diveLog_edit_group_conditions => 'Conditions';
-
-  @override
-  String get diveLog_edit_group_experience => 'Experience';
-
-  @override
-  String get diveLog_edit_group_gasGear => 'Gas & Gear';
-
-  @override
-  String get diveLog_edit_group_theDive => 'The Dive';
-
-  @override
-  String get diveLog_edit_group_trip => 'Trip';
-
-  @override
-  String get diveLog_edit_invite_buddies => 'Add buddies';
-
-  @override
-  String get diveLog_edit_invite_conditions =>
-      'Add conditions - water, visibility, weather';
-
-  @override
-  String get diveLog_edit_invite_experience =>
-      'Add rating, sightings, notes or tags';
-
-  @override
-  String get diveLog_edit_invite_gasGear =>
-      'Add gas & gear - mode, tanks, equipment, weight';
-
-  @override
-  String get diveLog_edit_invite_trip => 'Add trip or dive center';
-
-  @override
   String get diveLog_edit_label_airTemp => 'Air Temp';
 
   @override
@@ -8541,9 +8499,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_marineLifeHint => 'Tap \"Add\" to record sightings';
 
   @override
-  String get diveLog_edit_nearbySitesFirst => 'Nearby sites first';
-
-  @override
   String get diveLog_edit_noEquipmentSelected => 'No equipment selected';
 
   @override
@@ -8586,9 +8541,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_notSpecified => 'Not specified';
 
   @override
-  String get diveLog_edit_notesHint => 'Add notes about this dive...';
-
-  @override
   String get diveLog_edit_overline_gasSwitches => 'Gas switches';
 
   @override
@@ -8605,9 +8557,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_profile_draw => 'Draw a profile';
 
   @override
-  String get diveLog_edit_profile_none => 'Not recorded';
-
-  @override
   String diveLog_edit_profile_outliers(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -8616,37 +8565,6 @@ class AppLocalizationsEn extends AppLocalizations {
       one: '1 potential outlier detected',
     );
     return '$_temp0';
-  }
-
-  @override
-  String diveLog_edit_profile_points(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count points',
-      one: '1 point',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String diveLog_edit_profile_pointsAndProfiles(
-    num pointCount,
-    num profileCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      pointCount,
-      locale: localeName,
-      other: '$pointCount points',
-      one: '1 point',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      profileCount,
-      locale: localeName,
-      other: '$profileCount revisions',
-      one: '1 revision',
-    );
-    return '$_temp0 · $_temp1';
   }
 
   @override
@@ -8665,9 +8583,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_row_boatCaptain => 'Captain';
 
   @override
-  String get diveLog_edit_row_diveProfile => 'Dive profile';
-
-  @override
   String get diveLog_edit_row_entry => 'Entry';
 
   @override
@@ -8678,9 +8593,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_edit_row_site => 'Site';
-
-  @override
-  String get diveLog_edit_row_surfaceInterval => 'Surface interval';
 
   @override
   String get diveLog_edit_row_trip => 'Trip';
@@ -8739,9 +8651,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_edit_section_conditions => 'Conditions';
-
-  @override
-  String get diveLog_edit_section_customFields => 'Custom Fields';
 
   @override
   String get diveLog_edit_section_diveCenter => 'Dive Center';
@@ -8847,59 +8756,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_section_weight => 'Weight';
 
   @override
-  String diveLog_edit_snackbar_avgDepthCalculated(Object depth) {
-    return 'Avg depth calculated: $depth';
-  }
-
-  @override
-  String diveLog_edit_snackbar_bottomTimeCalculated(Object minutes) {
-    return 'Bottom time calculated: $minutes min';
-  }
-
-  @override
   String diveLog_edit_snackbar_errorSaving(Object error) {
     return 'Error saving dive: $error';
-  }
-
-  @override
-  String diveLog_edit_snackbar_maxDepthCalculated(Object depth) {
-    return 'Max depth calculated: $depth';
-  }
-
-  @override
-  String get diveLog_edit_snackbar_noProfileData =>
-      'No dive profile data available';
-
-  @override
-  String diveLog_edit_snackbar_runtimeCalculated(Object minutes) {
-    return 'Runtime calculated: $minutes min';
-  }
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateAvgDepth =>
-      'Unable to calculate average depth from profile';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculate =>
-      'Unable to calculate bottom time from profile';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateMaxDepth =>
-      'Unable to calculate max depth from profile';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateRuntime =>
-      'Unable to calculate runtime from profile';
-
-  @override
-  String diveLog_edit_summary_items(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count items',
-      one: '1 item',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -8915,20 +8773,6 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String diveLog_edit_summary_tanks(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count tanks',
-      one: '1 tank',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get diveLog_edit_surfacePressureDefault => '1013';
 
   @override
   String get diveLog_edit_tankCard_done => 'Done';
@@ -8954,10 +8798,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_edit_tooltip_removeWeight => 'Remove';
-
-  @override
-  String get diveLog_edit_trainingCoursesHint =>
-      'Link this dive to one or more training courses';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {
@@ -9655,10 +9495,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Text recognition is not available. Install Tesseract to scan paper logs (for example: sudo apt install tesseract-ocr).';
 
   @override
-  String get ocrImport_editPage_photoAttachFailed =>
-      'The dive was saved, but attaching the scanned page failed';
-
-  @override
   String get ocrImport_newDive_photoHoldFailed =>
       'The scanned page could not be attached to this dive';
 
@@ -9958,9 +9794,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveSites_edit_summary_shared => 'shared';
-
-  @override
-  String get forms_addSection_prefix => 'Add:';
 
   @override
   String get forms_cancel => 'Cancel';
@@ -35688,10 +35521,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_photos_viewAll => 'View All';
 
   @override
-  String get trips_dateStretch_failed =>
-      'Dive saved, but the trip\'s dates couldn\'t be updated';
-
-  @override
   String trips_dateStretch_message(String trip, String dates) {
     return '$trip now runs $dates';
   }
@@ -39323,12 +39152,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
       'Powered by Apple HealthKit';
-
-  @override
-  String get diveLog_edit_subsection_autofill => 'Auto-fill';
-
-  @override
-  String get diveLog_edit_subsection_weather => 'Weather';
 
   @override
   String get diveLog_edit_label_windSpeed => 'Wind Speed';
@@ -56996,10 +56819,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_summary_gasExcluded => 'Gas excluded';
 
   @override
-  String get diveLog_edit_statisticsIncludedHint =>
-      'Counted in every statistic';
-
-  @override
   String get suuntoCloud_signIn_title => 'Sign in to Suunto';
 
   @override
@@ -58659,11 +58478,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get navTrack_editSheet_trackOnAnotherDive =>
       'This track belongs to another dive. Update it from that dive, or import the file as a new track.';
-
-  @override
-  String navTrack_editRow_tracksSaveFailed(String error) {
-    return 'Could not update this dive\'s underwater tracks: $error';
-  }
 
   @override
   String get navTrack_importError_unsupportedFormat =>

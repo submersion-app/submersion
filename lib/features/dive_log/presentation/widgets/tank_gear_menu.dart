@@ -22,7 +22,7 @@ class TankGearMenu extends ConsumerWidget {
     super.key,
     required this.dive,
     required this.tank,
-    this.operationReason,
+    required this.operationReason,
     this.runAsOperation,
   });
 

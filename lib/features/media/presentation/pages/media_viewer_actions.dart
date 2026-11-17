@@ -54,9 +54,8 @@ extension _ViewerActions on _MediaViewerPageState {
     unawaited(controller.pause().then((_) => controller.seekTo(at)));
   }
 
-  /// Opens the Set-time dialog for [item] and applies the diver's choice
-  /// (issue #1090). The viewer re-reads the row on the media tick the write
-  /// raises, so the chips, the mini profile and the face all move at once.
+  /// Opens the Set-time dialog for [item] and holds the diver's choice in
+  /// the photo's sitting until Save (issues #1090, #4527).
   Future<void> _setTimeInDive(
     MediaItem item,
     List<DiveProfilePoint> profile,
@@ -80,13 +79,10 @@ extension _ViewerActions on _MediaViewerPageState {
       settings: ref.read(settingsProvider),
       automatic: automatic,
     );
-    if (choice == null || !mounted) return;
-    if (held != null) return holdTimeChoice(held, item.id, choice, automatic);
-    // Built with the lock, a time is only ever held: a sitting that ended
-    // while the dialog was open, or a device that cannot unlock, writes
-    // nothing.
-    if (unlockEditingRequested) return;
-    await pinner.apply(item, choice);
+    // A time is only ever held: a sitting that ended while the dialog was
+    // open, or a device that cannot unlock, writes nothing.
+    if (choice == null || !mounted || held == null) return;
+    return holdTimeChoice(held, item.id, choice, automatic);
   }
 
   /// Computes and saves the missing [MediaEnrichment] rows for [diveId], the

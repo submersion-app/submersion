@@ -13,6 +13,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/unlock_for_operation.dart';
 
 void main() {
   late DiveRepository repository;
@@ -113,6 +114,7 @@ void main() {
     await pumpDetail(tester, dive: planned);
 
     // The banner's button is the quickest path; the menu item shares it.
+    await unlockForOperation(tester);
     await tester.tap(find.widgetWithText(TextButton, 'Mark as logged'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
@@ -135,6 +137,7 @@ void main() {
     await pumpDetail(tester, dive: planned);
     final button = find.widgetWithText(TextButton, 'Mark as logged');
 
+    await unlockForOperation(tester);
     await tester.tap(button);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));

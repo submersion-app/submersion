@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/providers/color_correction_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_panel.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import 'color_adjust_test_support.dart';
 
-/// Issue #3520: the Adjust color panel in the viewers.
+/// Issue #3520: the Adjust color panel in the viewers. Every change is held
+/// in the photo's sitting until Save (issue #4527).
 void main() {
   late FakeColorRepository repo;
 
@@ -20,7 +24,15 @@ void main() {
     bool diverAuto = false,
     bool pickWhiteAvailable = true,
     Axis layout = Axis.horizontal,
+    bool withSitting = true,
   }) async {
+    final item = colorItem(diveId: diveId, adjustment: adjustment);
+    final sitting = withSitting
+        ? EditSession<PhotoRecord>(
+            PhotoRecord(item: item, species: const [], people: const []),
+          )
+        : null;
+    if (sitting != null) addTearDown(sitting.dispose);
     final container = colorContainer(repo, diverAuto: diverAuto);
     addTearDown(container.dispose);
     tester.view.physicalSize = const Size(800, 1600);
@@ -33,7 +45,8 @@ void main() {
         container,
         SingleChildScrollView(
           child: ColorAdjustPanel(
-            item: colorItem(diveId: diveId, adjustment: adjustment),
+            item: item,
+            sitting: sitting,
             onDone: () => done++,
             onPickWhite: () => picked++,
             pickWhiteAvailable: pickWhiteAvailable,
@@ -43,10 +56,15 @@ void main() {
       ),
     );
     await tester.pump();
-    return ProviderContainerHandle(container, () => done, () => picked);
+    return ProviderContainerHandle(
+      container,
+      () => done,
+      () => picked,
+      sitting,
+    );
   }
 
-  testWidgets('dragging Warmth draws live and saves once on release', (
+  testWidgets('dragging Warmth draws live and is held on release', (
     tester,
   ) async {
     final h = await pump(tester);
@@ -60,9 +78,8 @@ void main() {
 
     await gesture.up();
     await tester.pumpAndSettle();
-    expect(repo.saves, hasLength(1));
-    expect(repo.saves.single.$1, 'm1');
-    expect(repo.saves.single.$2!.warmth, greaterThan(0));
+    expect(repo.saves, isEmpty);
+    expect(h.held!.warmth, greaterThan(0));
   });
 
   testWidgets('Strength is disabled with no automatic fix or white point', (
@@ -89,32 +106,37 @@ void main() {
     );
   });
 
-  testWidgets('Auto on while the diver switch is off saves an override', (
+  testWidgets('Auto on while the diver switch is off holds an override', (
     tester,
   ) async {
-    await pump(tester);
+    final h = await pump(tester);
     await tester.tap(find.widgetWithText(FilterChip, 'Auto'));
     await tester.pumpAndSettle();
-    expect(repo.saves.single.$2, const ColorAdjustment(autoOverride: true));
+    expect(h.held, const ColorAdjustment(autoOverride: true));
   });
 
   testWidgets('Auto back to the diver default clears the override', (
     tester,
   ) async {
-    await pump(
+    final h = await pump(
       tester,
       adjustment: const ColorAdjustment(autoOverride: true, warmth: 0.2),
     );
     await tester.tap(find.widgetWithText(FilterChip, 'Auto'));
     await tester.pumpAndSettle();
-    expect(repo.saves.single.$2, const ColorAdjustment(warmth: 0.2));
+    expect(h.held, const ColorAdjustment(warmth: 0.2));
   });
 
-  testWidgets('Reset saves no adjustment', (tester) async {
-    await pump(tester, adjustment: const ColorAdjustment(warmth: 0.5));
+  testWidgets('Reset holds no adjustment', (tester) async {
+    final h = await pump(
+      tester,
+      adjustment: const ColorAdjustment(warmth: 0.5),
+    );
     await tester.tap(find.text('Reset'));
     await tester.pumpAndSettle();
-    expect(repo.saves.single, ('m1', null));
+    expect(h.held, isNull);
+    expect(h.sitting!.isDirty, isTrue);
+    expect(repo.saves, isEmpty);
   });
 
   testWidgets('Apply to this dive is hidden for media on no dive', (
@@ -164,18 +186,33 @@ void main() {
     expect(find.byKey(const Key('color_slider_brightness')), findsOneWidget);
   });
 
-  testWidgets('a failed save says so', (tester) async {
-    repo.failSave = true;
-    await pump(tester, adjustment: const ColorAdjustment(warmth: 0.5));
+  // A photo's colour changes only in its sitting: with none (it ended, or
+  // a device that cannot unlock) the panel writes nothing and draws nothing.
+  testWidgets('with no sitting a change is neither written nor drawn', (
+    tester,
+  ) async {
+    final h = await pump(
+      tester,
+      adjustment: const ColorAdjustment(warmth: 0.5),
+      withSitting: false,
+    );
     await tester.tap(find.text('Reset'));
     await tester.pumpAndSettle();
-    expect(find.text("Couldn't save the color adjustment"), findsOneWidget);
+    expect(repo.saves, isEmpty);
+    expect(
+      h.container.read(colorAdjustmentDraftNotifierProvider('m1')),
+      isNull,
+    );
   });
 }
 
 class ProviderContainerHandle {
-  ProviderContainerHandle(this.container, this.done, this.picked);
+  ProviderContainerHandle(this.container, this.done, this.picked, this.sitting);
   final ProviderContainer container;
   final int Function() done;
   final int Function() picked;
+  final EditSession<PhotoRecord>? sitting;
+
+  /// The colour the sitting holds.
+  ColorAdjustment? get held => sitting!.valueOf(photoColorField);
 }

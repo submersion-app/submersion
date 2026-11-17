@@ -7939,12 +7939,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_tooltip_addToFavorites => '添加到收藏';
 
   @override
-  String get diveLog_detail_tooltip_edit => '编辑';
-
-  @override
-  String get diveLog_detail_tooltip_editDive => '编辑潜水';
-
-  @override
   String get diveLog_detail_tooltip_previousDive => '上一次潜水';
 
   @override
@@ -8010,9 +8004,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String diveLog_edit_addedGps(Object name) {
     return '已为 $name 添加 GPS';
   }
-
-  @override
-  String get diveLog_edit_appBarEdit => '编辑潜水';
 
   @override
   String get diveLog_edit_appBarNew => '记录潜水';
@@ -8127,36 +8118,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_group_buddies => '潜伴';
 
   @override
-  String get diveLog_edit_group_conditions => '环境条件';
-
-  @override
-  String get diveLog_edit_group_experience => '潜水体验';
-
-  @override
-  String get diveLog_edit_group_gasGear => '气体与装备';
-
-  @override
-  String get diveLog_edit_group_theDive => '本次潜水';
-
-  @override
-  String get diveLog_edit_group_trip => '行程';
-
-  @override
-  String get diveLog_edit_invite_buddies => '添加潜伴';
-
-  @override
-  String get diveLog_edit_invite_conditions => '添加环境条件 - 水况、能见度、天气';
-
-  @override
-  String get diveLog_edit_invite_experience => '添加评分、生物目击、笔记或标签';
-
-  @override
-  String get diveLog_edit_invite_gasGear => '添加气体与装备 - 模式、气瓶、装备、配重';
-
-  @override
-  String get diveLog_edit_invite_trip => '添加行程或潜水中心';
-
-  @override
   String get diveLog_edit_label_airTemp => '气温';
 
   @override
@@ -8235,9 +8196,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_marineLifeHint => '点击「添加」记录目击';
 
   @override
-  String get diveLog_edit_nearbySitesFirst => '优先显示附近潜水点';
-
-  @override
   String get diveLog_edit_noEquipmentSelected => '未选择装备';
 
   @override
@@ -8278,9 +8236,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_notSpecified => '未指定';
 
   @override
-  String get diveLog_edit_notesHint => '添加关于此次潜水的备注...';
-
-  @override
   String get diveLog_edit_overline_gasSwitches => '气体切换';
 
   @override
@@ -8296,9 +8251,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_profile_draw => '绘制潜水曲线';
 
   @override
-  String get diveLog_edit_profile_none => '未记录';
-
-  @override
   String diveLog_edit_profile_outliers(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -8306,34 +8258,6 @@ class AppLocalizationsZh extends AppLocalizations {
       other: '检测到 $count 个可能的异常点',
     );
     return '$_temp0';
-  }
-
-  @override
-  String diveLog_edit_profile_points(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count 个点',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String diveLog_edit_profile_pointsAndProfiles(
-    num pointCount,
-    num profileCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      pointCount,
-      locale: localeName,
-      other: '$pointCount 个点',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      profileCount,
-      locale: localeName,
-      other: '$profileCount 次修订',
-    );
-    return '$_temp0 · $_temp1';
   }
 
   @override
@@ -8352,9 +8276,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_row_boatCaptain => '船长';
 
   @override
-  String get diveLog_edit_row_diveProfile => '潜水曲线';
-
-  @override
   String get diveLog_edit_row_entry => '入水';
 
   @override
@@ -8365,9 +8286,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_row_site => '潜点';
-
-  @override
-  String get diveLog_edit_row_surfaceInterval => '水面间隔';
 
   @override
   String get diveLog_edit_row_trip => '行程';
@@ -8422,9 +8340,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_section_conditions => '条件';
-
-  @override
-  String get diveLog_edit_section_customFields => '自定义字段';
 
   @override
   String get diveLog_edit_section_diveCenter => '潜水中心';
@@ -8526,54 +8441,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_section_weight => '配重';
 
   @override
-  String diveLog_edit_snackbar_avgDepthCalculated(Object depth) {
-    return '已计算平均深度：$depth';
-  }
-
-  @override
-  String diveLog_edit_snackbar_bottomTimeCalculated(Object minutes) {
-    return '已计算底部时间：$minutes 分钟';
-  }
-
-  @override
   String diveLog_edit_snackbar_errorSaving(Object error) {
     return '保存潜水出错：$error';
-  }
-
-  @override
-  String diveLog_edit_snackbar_maxDepthCalculated(Object depth) {
-    return '已计算最大深度：$depth';
-  }
-
-  @override
-  String get diveLog_edit_snackbar_noProfileData => '无可用的潜水轮廓数据';
-
-  @override
-  String diveLog_edit_snackbar_runtimeCalculated(Object minutes) {
-    return '已计算运行时间：$minutes 分钟';
-  }
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateAvgDepth => '无法从轮廓计算平均深度';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculate => '无法从轮廓计算底部时间';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateMaxDepth => '无法从轮廓计算最大深度';
-
-  @override
-  String get diveLog_edit_snackbar_unableToCalculateRuntime => '无法从轮廓计算运行时间';
-
-  @override
-  String diveLog_edit_summary_items(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count 件装备',
-      one: '1 件装备',
-    );
-    return '$_temp0';
   }
 
   @override
@@ -8589,20 +8458,6 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String diveLog_edit_summary_tanks(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count 个气瓶',
-      one: '1 个气瓶',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get diveLog_edit_surfacePressureDefault => '1013';
 
   @override
   String get diveLog_edit_tankCard_done => '完成';
@@ -8626,9 +8481,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_tooltip_removeWeight => '移除';
-
-  @override
-  String get diveLog_edit_trainingCoursesHint => '将此次潜水关联到一个或多个培训课程';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {
@@ -9301,9 +9153,6 @@ class AppLocalizationsZh extends AppLocalizations {
       '文本识别不可用。请安装 Tesseract 以扫描纸质日志（例如：sudo apt install tesseract-ocr）。';
 
   @override
-  String get ocrImport_editPage_photoAttachFailed => '潜水已保存，但附加扫描页面失败';
-
-  @override
   String get ocrImport_newDive_photoHoldFailed => '无法将扫描页面附加到此潜水';
 
   @override
@@ -9588,9 +9437,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_edit_summary_shared => '已共享';
-
-  @override
-  String get forms_addSection_prefix => '添加：';
 
   @override
   String get forms_cancel => '取消';
@@ -34168,9 +34014,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_photos_viewAll => '查看全部';
 
   @override
-  String get trips_dateStretch_failed => '潜水已保存，但无法更新旅行日期';
-
-  @override
   String trips_dateStretch_message(String trip, String dates) {
     return '$trip 的日期现为 $dates';
   }
@@ -37614,12 +37457,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_poweredBy =>
       '提供支持按 Apple HealthKit';
-
-  @override
-  String get diveLog_edit_subsection_autofill => '自动填充';
-
-  @override
-  String get diveLog_edit_subsection_weather => '天气';
 
   @override
   String get diveLog_edit_label_windSpeed => '风速';
@@ -54294,9 +54131,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_summary_gasExcluded => '已排除气体';
 
   @override
-  String get diveLog_edit_statisticsIncludedHint => '计入所有统计';
-
-  @override
   String get suuntoCloud_signIn_title => '登录 Suunto';
 
   @override
@@ -55878,11 +55712,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get navTrack_editSheet_trackOnAnotherDive =>
       '此轨迹属于另一次潜水。请在那次潜水中更新它，或将文件作为新轨迹导入。';
-
-  @override
-  String navTrack_editRow_tracksSaveFailed(String error) {
-    return '无法更新此潜水的水下轨迹：$error';
-  }
 
   @override
   String get navTrack_importError_unsupportedFormat =>

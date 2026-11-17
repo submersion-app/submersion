@@ -326,6 +326,35 @@ void main() {
       expect(find.byType(InkWell), findsNothing);
     });
 
+    // A screen reader, and the web smoke test, find a switch by its name:
+    // the row's label is the switch's, as a SwitchListTile's is.
+    testWidgets('toggle row names its switch', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _wrap(
+          FormRow.toggle(
+            label: 'Planned dive',
+            helpText: 'No dive number until it is logged.',
+            value: false,
+            onChanged: (_) {},
+          ),
+        ),
+      );
+      expect(
+        tester.getSemantics(find.byType(Switch)),
+        matchesSemantics(
+          label: 'Planned dive\nNo dive number until it is logged.',
+          hasToggledState: true,
+          hasEnabledState: true,
+          isEnabled: true,
+          isFocusable: true,
+          hasTapAction: true,
+          hasFocusAction: true,
+        ),
+      );
+      handle.dispose();
+    });
+
     testWidgets('toggle row flips switch', (tester) async {
       var on = false;
       await tester.pumpWidget(

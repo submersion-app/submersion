@@ -261,7 +261,9 @@ class _TrainingSignatureCard extends ConsumerWidget {
         ?.firstOrNull
         ?.instructorName;
 
+    // A node of its own: in the Card it would merge into the card's.
     return Semantics(
+      container: true,
       button: true,
       label: context.l10n.diveLog_detail_captureSignature,
       child: InkWell(

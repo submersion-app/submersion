@@ -57,11 +57,7 @@ void main() {
     await tester.runAsync(() async {
       await tester.pumpWidget(
         await peopleTagHost(
-          MediaViewerPage(
-            mediaList: [shown],
-            initialMediaId: shown.id,
-            unlockEditing: true,
-          ),
+          MediaViewerPage(mediaList: [shown], initialMediaId: shown.id),
           overrides: overrides,
         ),
       );

@@ -148,7 +148,9 @@ class DiveDetailsSection extends ConsumerWidget {
 
   Widget _buildTripRow(BuildContext context) {
     final trip = dive.trip!;
+    // A node of its own: in the Card it would merge into the card's.
     return Semantics(
+      container: true,
       button: true,
       label: context.l10n.diveLog_detail_semantics_viewTrip(trip.name),
       child: InkWell(
@@ -164,7 +166,9 @@ class DiveDetailsSection extends ConsumerWidget {
 
   Widget _buildDiveCenterRow(BuildContext context) {
     final logo = dive.diveCenter!.logo;
+    // A node of its own: in the Card it would merge into the card's.
     return Semantics(
+      container: true,
       button: true,
       label: context.l10n.diveLog_detail_semantics_viewDiveCenter(
         dive.diveCenter!.name,
