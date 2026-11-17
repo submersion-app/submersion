@@ -70,15 +70,29 @@ class _RecordingEngine extends RuleEngine {
 }
 
 /// Records the coordinates a held change writes instead of storing them.
+/// Records the locations asked of it and stores them, unless [declines]:
+/// a shared library site this profile may not edit takes no write, and
+/// says nothing.
 class _RecordingSites extends SiteRepository {
+  _RecordingSites({this.declines = false});
+
+  final bool declines;
   final located = <String>[];
+  final _stored = <String, GeoPoint>{};
 
   @override
   Future<void> updateSiteCoordinates(
     String siteId,
     GeoPoint location, {
     double? altitude,
-  }) async => located.add(siteId);
+  }) async {
+    located.add(siteId);
+    if (!declines) _stored[siteId] = location;
+  }
+
+  @override
+  Future<DiveSite?> getSiteById(String id) async =>
+      DiveSite(id: id, name: id, location: _stored[id]);
 }
 
 class _StubDiveRepository implements DiveRepository {
@@ -650,6 +664,32 @@ void main() {
 
       expect(sites.located, ['bare']);
       expect(sitesLocatedInSave(session).keys, ['bare']);
+    });
+
+    // Copilot's review of PR #4670: a library site this profile may not
+    // edit declines the location without a word, and a site that did not
+    // take it has no altitude or tide to work out there.
+    testWidgets('a held location the site declined notes nothing', (
+      tester,
+    ) async {
+      final sites = _RecordingSites(declines: true);
+      session = EditSession(bare.copyWith(site: bareSite));
+      await tester.pumpWidget(
+        await host(
+          suggestionFor(service, site: bareSite),
+          currentSite: bareSite,
+          editing: SiteSuggestionSitting(session),
+          extra: [siteRepositoryProvider.overrideWithValue(sites)],
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Add location to Typed Twice'));
+      await tester.pumpAndSettle();
+
+      await session.runHeldWrites();
+
+      expect(sites.located, ['bare']);
+      expect(sitesLocatedInSave(session), isEmpty);
     });
 
     testWidgets('dismiss is held, and the dive is not written', (tester) async {

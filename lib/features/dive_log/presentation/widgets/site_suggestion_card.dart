@@ -334,7 +334,11 @@ class SiteSuggestionCard extends ConsumerWidget {
                   await sites.updateSiteCoordinates(site.id, point);
                   // Its altitude is looked up once the save commits, as the
                   // immediate path does once a site gains its location.
-                  if (site.altitude == null) {
+                  // Read back: a library site this profile may not edit
+                  // declines the write without saying so, and has no new
+                  // location to work an altitude or a tide out from.
+                  final stored = await sites.getSiteById(site.id);
+                  if (stored?.location == point && stored?.altitude == null) {
                     noteSiteLocated(session, site.id, point);
                   }
                 },

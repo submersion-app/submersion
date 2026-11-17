@@ -388,6 +388,18 @@ class _SpySiteRepository extends SiteRepository {
     GeoPoint location, {
     double? altitude,
   }) async => coordinates.add((siteId, location));
+
+  /// A site as the written coordinates left it, as the held write reads it
+  /// back.
+  @override
+  Future<DiveSite?> getSiteById(String id) async {
+    final written = coordinates.where((c) => c.$1 == id);
+    return DiveSite(
+      id: id,
+      name: id,
+      location: written.isEmpty ? null : written.last.$2,
+    );
+  }
 }
 
 /// Answers elevation lookups by latitude, and counts them.
