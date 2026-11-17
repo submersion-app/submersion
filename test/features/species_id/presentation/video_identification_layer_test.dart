@@ -17,6 +17,7 @@ import 'package:submersion/features/media/domain/entities/species_tag_chip.dart'
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/track_label_view.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_identification_layer.dart';
 
 import '../../../helpers/mock_providers.dart';
@@ -268,6 +269,31 @@ void main() {
     await pump(tester);
     expect(pill('a'), findsNothing);
     expect(dot('c'), findsNothing);
+  });
+
+  testWidgets('a pill is as wide as its name, not the space it has', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      tracks: [
+        track(
+          'a',
+          decision: IdentificationDecision.accepted,
+          decidedSpeciesId: 'sp_rock_beauty',
+        ),
+      ],
+      chips: const [_rockBeautyTag],
+      playing: true,
+    );
+    final pillWidth = tester
+        .getSize(
+          find.descendant(of: pill('a'), matching: find.byType(TrackPill)),
+        )
+        .width;
+    final textWidth = tester.getSize(find.text('Rock Beauty')).width;
+    // 12 of padding and 1.5 of border each side.
+    expect(pillWidth, closeTo(textWidth + 27, 1));
   });
 
   testWidgets('labels sit inside the contain-fitted video rect', (

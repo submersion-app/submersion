@@ -90,7 +90,6 @@ class TrackPill extends StatelessWidget {
     return Container(
       height: TrackLabelGeometry.pillHeight,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: filled ? scheme.primary : Colors.black.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(TrackLabelGeometry.pillHeight / 2),
@@ -99,14 +98,18 @@ class TrackPill extends StatelessWidget {
           width: 1.5,
         ),
       ),
-      child: Text(
-        name,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: filled ? scheme.onPrimary : Colors.white,
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
+      // As wide as the name, not the room the pill is given.
+      child: Center(
+        widthFactor: 1,
+        child: Text(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: filled ? scheme.onPrimary : Colors.white,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
