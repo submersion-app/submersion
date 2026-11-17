@@ -22326,6 +22326,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
 
   @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'O₂ do circuito com $gas: $atVo2 com este VO₂, $resting em repouso, $hardWork em esforço intenso';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'fluxo insuficiente';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'Queda de ppO₂ no circuito: $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -64701,6 +64719,20 @@ class AppLocalizationsPt extends AppLocalizations {
       'A parte de cada expiração que um rebreather semifechado passivo descarta. Define quanto o oxigénio do circuito fica abaixo do gás de alimentação.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'Taxa de injeção';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'O fluxo à superfície que o bico de um rebreather de fluxo mássico constante injeta no circuito, definido pelo bico e pelo gás de alimentação. Retire-o da documentação do equipamento ou de um teste de fluxo medido.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String get info_term_vo2_body =>
+      'O oxigénio que o corpo do mergulhador consome, em litros de superfície por minuto: cerca de 0,25 em repouso, 1,3 a nadar e 2,0 em esforço intenso. Mais esforço deixa menos oxigénio num circuito semifechado.';
+
+  @override
   String get info_term_turnFraction_label => 'Fração de retorno';
 
   @override
@@ -65121,6 +65153,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'Introduza o rácio de descarte indicado pelo fabricante do rebreather.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'Como o rebreather semifechado de fluxo mássico constante é modelado no plano.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'Introduza a taxa de injeção do seu bico para este gás de alimentação e o VO₂ que espera; um campo vazio segue as Definições. Compare o oxigénio do circuito mostrado com a documentação do seu equipamento.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

@@ -22311,6 +22311,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
 
   @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'O₂ del circuito con $gas: $atVo2 con este VO₂, $resting en reposo, $hardWork con esfuerzo intenso';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'caudal insuficiente';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'Caída de ppO₂ en el circuito: $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -64761,6 +64779,20 @@ class AppLocalizationsEs extends AppLocalizations {
       'La parte de cada exhalación que descarta un reciclador semicerrado pasivo. Fija cuánto baja el oxígeno del circuito respecto al gas de suministro.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'Caudal de inyección';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'El caudal en superficie que la boquilla de un recirculador de flujo másico constante aporta al circuito, fijado por la boquilla y el gas de suministro. Tómalo de la documentación del equipo o de una prueba de caudal medida.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String get info_term_vo2_body =>
+      'El oxígeno que consume el cuerpo del buceador, en litros de superficie por minuto: unos 0,25 en reposo, 1,3 nadando y 2,0 con esfuerzo intenso. Más esfuerzo deja menos oxígeno en un circuito semicerrado.';
+
+  @override
   String get info_term_turnFraction_label => 'Fracción de retorno';
 
   @override
@@ -65181,6 +65213,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'Introduce la relación de descarte que indica el fabricante del reciclador.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'Cómo se modela en el plan el recirculador semicerrado de flujo másico constante.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'Introduce el caudal de inyección de tu boquilla para este gas de suministro y el VO₂ que esperas; un campo vacío sigue los Ajustes. Comprueba el oxígeno del circuito mostrado con la documentación de tu equipo.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

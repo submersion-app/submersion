@@ -21216,6 +21216,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
 
   @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return '$gas 回路氧浓度：此 VO₂ 下 $atVo2，静息 $resting，高强度 $hardWork';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => '流量过低';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return '回路 ppO₂ 下降：$drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -60737,6 +60755,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get info_term_pscrRatio_body => '被动式半闭路循环呼吸器每次呼气排出的比例。它决定回路中的氧比供气低多少。';
 
   @override
+  String get info_term_scrInjectionRate_label => '注入流量';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      '恒定质量流量循环呼吸器喷嘴向回路供入的水面流量，由喷嘴和供气决定。请参照设备说明书或实测流量检查。';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String get info_term_vo2_body =>
+      '潜水员身体消耗的氧气，以每分钟水面升数计：静息约 0.25，游动 1.3，高强度 2.0。运动越强，半闭式回路中剩余的氧气越少。';
+
+  @override
   String get info_term_turnFraction_label => '折返比例';
 
   @override
@@ -61097,6 +61129,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get info_plannerSetup_pscr_howToUse => '输入循环呼吸器制造商给出的排放比例。';
+
+  @override
+  String get info_plannerSetup_scr_summary => '计划中如何对恒定质量流量半闭式循环呼吸器建模。';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      '输入喷嘴对该供气的注入流量和预计的 VO₂；留空则沿用设置。请将显示的回路氧浓度与设备说明书核对。';
 
   @override
   String get info_plannerSetup_contingencies_summary => '应急计划的范围以及气体计划的折返规则。';

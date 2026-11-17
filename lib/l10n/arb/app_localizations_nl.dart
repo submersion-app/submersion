@@ -22186,6 +22186,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
 
   @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'Lus-O₂ met $gas: $atVo2 bij deze VO₂, $resting in rust, $hardWork bij zware inspanning';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'debiet te laag';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'ppO₂-daling in de lus: $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -64324,6 +64342,20 @@ class AppLocalizationsNl extends AppLocalizations {
       'Het deel van elke uitademing dat een passieve halfgesloten rebreather afvoert. Dat bepaalt hoe ver de zuurstof in de lus onder het voedingsgas zakt.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'Injectiedebiet';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'Het oppervlaktedebiet dat de nozzle van een rebreather met constante massastroom in de lus voert, bepaald door de nozzle en het toevoergas. Neem het over uit de documentatie van het toestel of een gemeten debietcontrole.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String get info_term_vo2_body =>
+      'De zuurstof die het lichaam van een duiker verbruikt, in oppervlakteliters per minuut: ongeveer 0,25 in rust, 1,3 al zwemmend en 2,0 bij zware inspanning. Meer inspanning laat minder zuurstof in een halfgesloten lus.';
+
+  @override
   String get info_term_turnFraction_label => 'Keerfractie';
 
   @override
@@ -64744,6 +64776,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'Vul de afvoerverhouding in die de fabrikant van de rebreather opgeeft.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'Hoe de halfgesloten rebreather met constante massastroom in het plan wordt gemodelleerd.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'Vul het injectiedebiet van je nozzle voor dit toevoergas in en de VO₂ die je verwacht; een leeg veld volgt de Instellingen. Vergelijk de getoonde luszuurstof met de documentatie van je toestel.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

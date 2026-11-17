@@ -22323,6 +22323,24 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
 
   @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'O₂ del circuito con $gas: $atVo2 con questo VO₂, $resting a riposo, $hardWork sotto sforzo intenso';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'portata troppo bassa';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'Calo di ppO₂ nel circuito: $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -64721,6 +64739,20 @@ class AppLocalizationsIt extends AppLocalizations {
       'La quota di ogni espirazione che un rebreather semichiuso passivo scarica. Stabilisce quanto l\'ossigeno del circuito scende sotto il gas di alimentazione.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'Portata di iniezione';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'Il flusso in superficie che l\'ugello di un rebreather a flusso di massa costante immette nel circuito, determinato dall\'ugello e dal gas di alimentazione. Ricavalo dalla documentazione dell\'apparecchio o da una prova di flusso misurata.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String get info_term_vo2_body =>
+      'L\'ossigeno consumato dal corpo del subacqueo, in litri di superficie al minuto: circa 0,25 a riposo, 1,3 nuotando e 2,0 sotto sforzo intenso. Più sforzo lascia meno ossigeno in un circuito semichiuso.';
+
+  @override
   String get info_term_turnFraction_label => 'Frazione di inversione';
 
   @override
@@ -65142,6 +65174,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'Inserisci il rapporto di scarico indicato dal produttore del rebreather.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'Come viene modellato nel piano il rebreather semichiuso a flusso di massa costante.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'Inserisci la portata di iniezione del tuo ugello per questo gas di alimentazione e il VO₂ previsto; un campo vuoto segue le Impostazioni. Confronta l\'ossigeno del circuito mostrato con la documentazione del tuo apparecchio.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

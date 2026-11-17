@@ -22380,6 +22380,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
 
   @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'O₂ de la boucle avec $gas : $atVo2 à ce VO₂, $resting au repos, $hardWork en effort intense';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'débit trop faible';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'Chute de ppO₂ dans la boucle : $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -64862,6 +64880,20 @@ class AppLocalizationsFr extends AppLocalizations {
       'La part de chaque expiration qu\'un recycleur semi-fermé passif rejette. Elle fixe l\'écart entre l\'oxygène de la boucle et le gaz d\'alimentation.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'Débit d\'injection';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'Le débit en surface que la buse d\'un recycleur à débit massique constant injecte dans la boucle, fixé par la buse et le gaz d\'alimentation. Reprenez-le de la documentation de l\'appareil ou d\'un contrôle de débit mesuré.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String get info_term_vo2_body =>
+      'L\'oxygène consommé par le corps du plongeur, en litres surface par minute : environ 0,25 au repos, 1,3 en nageant et 2,0 en effort intense. Plus d\'effort laisse moins d\'oxygène dans une boucle semi-fermée.';
+
+  @override
   String get info_term_turnFraction_label => 'Fraction de demi-tour';
 
   @override
@@ -65282,6 +65314,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'Saisissez le ratio de rejet indiqué par le fabricant du recycleur.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'Comment le recycleur semi-fermé à débit massique constant est modélisé dans le plan.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'Saisissez le débit d\'injection de votre buse pour ce gaz d\'alimentation et le VO₂ attendu ; un champ vide suit les Réglages. Comparez l\'oxygène de boucle affiché à la documentation de votre appareil.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

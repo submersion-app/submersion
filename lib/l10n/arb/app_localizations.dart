@@ -35218,6 +35218,29 @@ abstract class AppLocalizations {
   /// **'VO₂ (pSCR)'**
   String get plannerCanvas_pscr_vo2;
 
+  /// No description provided for @plannerCanvas_scr_loopSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop O₂ on {gas}: {atVo2} at this VO₂, {resting} at rest, {hardWork} at hard work'**
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  );
+
+  /// No description provided for @plannerCanvas_scr_flowTooLow.
+  ///
+  /// In en, this message translates to:
+  /// **'flow too low'**
+  String get plannerCanvas_scr_flowTooLow;
+
+  /// No description provided for @plannerCanvas_pscr_dropSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop ppO₂ drop: {drop} bar'**
+  String plannerCanvas_pscr_dropSummary(String drop);
+
   /// No description provided for @plannerCanvas_chip_cns.
   ///
   /// In en, this message translates to:
@@ -101510,6 +101533,30 @@ abstract class AppLocalizations {
   /// **'The share of each exhaled breath a passive semi-closed rebreather discards. It sets how far the loop oxygen falls below the supply gas.'**
   String get info_term_pscrRatio_body;
 
+  /// No description provided for @info_term_scrInjectionRate_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Injection rate'**
+  String get info_term_scrInjectionRate_label;
+
+  /// No description provided for @info_term_scrInjectionRate_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The surface flow a constant mass flow rebreather\'s nozzle feeds into the loop, set by the nozzle and the supply gas. Take it from the unit\'s documentation or a measured flow check.'**
+  String get info_term_scrInjectionRate_body;
+
+  /// No description provided for @info_term_vo2_label.
+  ///
+  /// In en, this message translates to:
+  /// **'VO₂'**
+  String get info_term_vo2_label;
+
+  /// No description provided for @info_term_vo2_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The oxygen a diver\'s body uses, in surface litres per minute: about 0.25 at rest, 1.3 swimming and 2.0 at hard work. More work leaves less oxygen in a semi-closed loop.'**
+  String get info_term_vo2_body;
+
   /// No description provided for @info_term_turnFraction_label.
   ///
   /// In en, this message translates to:
@@ -102157,6 +102204,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter the discard ratio given by the rebreather\'s maker.'**
   String get info_plannerSetup_pscr_howToUse;
+
+  /// No description provided for @info_plannerSetup_scr_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How the constant mass flow semi-closed rebreather is modelled in the plan.'**
+  String get info_plannerSetup_scr_summary;
+
+  /// No description provided for @info_plannerSetup_scr_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your nozzle\'s injection rate for this supply gas and the VO₂ you expect; an empty box follows Settings. Check the loop oxygen shown against your unit\'s documentation.'**
+  String get info_plannerSetup_scr_howToUse;
 
   /// No description provided for @info_plannerSetup_contingencies_summary.
   ///

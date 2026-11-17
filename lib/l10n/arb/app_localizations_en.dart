@@ -21990,6 +21990,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
 
   @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'Loop O₂ on $gas: $atVo2 at this VO₂, $resting at rest, $hardWork at hard work';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'flow too low';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'Loop ppO₂ drop: $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -63714,6 +63732,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'The share of each exhaled breath a passive semi-closed rebreather discards. It sets how far the loop oxygen falls below the supply gas.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'Injection rate';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'The surface flow a constant mass flow rebreather\'s nozzle feeds into the loop, set by the nozzle and the supply gas. Take it from the unit\'s documentation or a measured flow check.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String get info_term_vo2_body =>
+      'The oxygen a diver\'s body uses, in surface litres per minute: about 0.25 at rest, 1.3 swimming and 2.0 at hard work. More work leaves less oxygen in a semi-closed loop.';
+
+  @override
   String get info_term_turnFraction_label => 'Turn fraction';
 
   @override
@@ -64134,6 +64166,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'Enter the discard ratio given by the rebreather\'s maker.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'How the constant mass flow semi-closed rebreather is modelled in the plan.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'Enter your nozzle\'s injection rate for this supply gas and the VO₂ you expect; an empty box follows Settings. Check the loop oxygen shown against your unit\'s documentation.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>

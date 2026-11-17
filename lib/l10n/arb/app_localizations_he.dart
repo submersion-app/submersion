@@ -21835,6 +21835,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_pscr_vo2 => 'VO₂ (pSCR)';
 
   @override
+  String plannerCanvas_scr_loopSummary(
+    String gas,
+    String atVo2,
+    String resting,
+    String hardWork,
+  ) {
+    return 'חמצן בלולאה עם $gas: $atVo2 ב-VO₂ הזה, $resting במנוחה, $hardWork במאמץ קשה';
+  }
+
+  @override
+  String get plannerCanvas_scr_flowTooLow => 'זרימה נמוכה מדי';
+
+  @override
+  String plannerCanvas_pscr_dropSummary(String drop) {
+    return 'ירידת ppO₂ בלולאה: $drop bar';
+  }
+
+  @override
   String plannerCanvas_chip_cns(String value) {
     return 'CNS $value%';
   }
@@ -63383,6 +63401,20 @@ class AppLocalizationsHe extends AppLocalizations {
       'החלק מכל נשיפה שמכשיר מחזור חצי-סגור פסיבי משליך. הוא קובע כמה החמצן בלולאה נמוך מגז האספקה.';
 
   @override
+  String get info_term_scrInjectionRate_label => 'קצב הזרקה';
+
+  @override
+  String get info_term_scrInjectionRate_body =>
+      'הזרימה בפני השטח שהנחיר של מחזר בזרימת מסה קבועה מזרים ללולאה, הנקבעת לפי הנחיר וגז האספקה. קח אותה מתיעוד היחידה או מבדיקת זרימה מדודה.';
+
+  @override
+  String get info_term_vo2_label => 'VO₂';
+
+  @override
+  String get info_term_vo2_body =>
+      'החמצן שגוף הצולל צורך, בליטרים בפני השטח לדקה: כ-0.25 במנוחה, 1.3 בשחייה ו-2.0 במאמץ קשה. מאמץ רב יותר משאיר פחות חמצן בלולאה חצי סגורה.';
+
+  @override
   String get info_term_turnFraction_label => 'שבר החזרה';
 
   @override
@@ -63801,6 +63833,14 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get info_plannerSetup_pscr_howToUse =>
       'הזינו את יחס ההשלכה שיצרן מכשיר המחזור מציין.';
+
+  @override
+  String get info_plannerSetup_scr_summary =>
+      'כיצד המחזר החצי סגור בזרימת מסה קבועה ממודל בתוכנית.';
+
+  @override
+  String get info_plannerSetup_scr_howToUse =>
+      'הזן את קצב ההזרקה של הנחיר שלך לגז האספקה הזה ואת ה-VO₂ הצפוי; שדה ריק עוקב אחר ההגדרות. השווה את החמצן המוצג בלולאה לתיעוד היחידה שלך.';
 
   @override
   String get info_plannerSetup_contingencies_summary =>
