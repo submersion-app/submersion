@@ -27,7 +27,10 @@ void main() {
       expect(text, contains('assets/data/site_catalogue.json'));
       // The licence itself, and where the database is offered.
       expect(text, contains('https://opendatacommons.org/licenses/odbl/1-0/'));
-      expect(text, contains('https://github.com/submersion-app/submersion'));
+      expect(
+        text,
+        contains('https://github.com/submersion-app/site-catalogue'),
+      );
     },
   );
 
@@ -101,7 +104,8 @@ void main() {
       text,
       contains('gathered from published sources and are marked "Not verified"'),
     );
-    expect(text, contains('scripts/site_catalogue/research/sites.json'));
+    expect(text, contains('https://github.com/submersion-app/site-catalogue'));
+    expect(text, contains('(research/sites.json)'));
   });
 
   test('every entry states its licence, the project\'s own sites '
@@ -122,7 +126,7 @@ void main() {
       text,
       contains(
         'Sites added by the Submersion project '
-        '(scripts/dive_sites_curated.json), under the Open Database '
+        '(curated/dive_sites_curated.json), under the Open Database '
         'License 1.0.',
       ),
     );

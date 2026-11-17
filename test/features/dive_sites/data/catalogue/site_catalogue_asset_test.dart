@@ -32,6 +32,15 @@ class _FileBundle extends AssetBundle {
 /// The sources that ship on their own terms, outside the ODbL database.
 const _ownTermsSources = {'njdep', 'hi_dar', 'tpwd', 'nc_dmf'};
 
+// Floors under the shipped catalogue's size. Each catalogue release
+// reaches the app by an intake PR; these catch a release that lost a
+// source, without pinning counts every release changes. The catalogue
+// of 2026-11-17 holds 20,988 records: 16,999 register records and
+// 3,989 dive sites.
+const _minSites = 20000;
+const _minRegisters = 16000;
+const _minDiveSites = 3900;
+
 void main() {
   final catalogueFile = File(p.join('assets', 'data', 'site_catalogue.json'));
   final versionFile = File(p.join('assets', 'data', 'site_catalogue.version'));
@@ -47,7 +56,7 @@ void main() {
   test('the metadata names the format, the notice and the sources', () {
     final metadata = doc['metadata'] as Map<String, dynamic>;
 
-    expect(metadata['format'], 2);
+    expect(metadata['format'], kSupportedCatalogueFormat);
     expect(metadata['notice'], contains('Open Database License'));
     expect(
       metadata['notice'],
@@ -147,7 +156,9 @@ void main() {
     final sources = (doc['metadata'] as Map<String, dynamic>)['sources'] as Map;
     final ids = <String>{};
 
-    expect(sites, hasLength(20988));
+    // A release whose record count collapses (a source dropped upstream)
+    // fails here, in its intake PR.
+    expect(sites.length, greaterThanOrEqualTo(_minSites));
     for (final site in sites) {
       final id = site['id'] as String;
       expect(ids.add(id), isTrue, reason: 'duplicate id $id');
@@ -193,17 +204,14 @@ void main() {
       }
     }
     final registers = sites.where((s) => s['kind'] == 'register').length;
-    // 17,000 less the five Massachusetts reefs (2026-11-15), then four
-    // more from the sources' refresh with the first researched batch
-    // (2026-11-16), whose 57 sites are among the dive sites.
-    expect(registers, 16999);
-    expect(sites.length - registers, 3989);
+    expect(registers, greaterThanOrEqualTo(_minRegisters));
+    expect(sites.length - registers, greaterThanOrEqualTo(_minDiveSites));
   });
 
   test('no dive site a diver may hold was lost to a register', () {
     // Every curated site ships, and none of them as a register record.
     final curated = sites.where((s) => s['source'] == 'curated').toList();
-    expect(curated, hasLength(55));
+    expect(curated.length, greaterThanOrEqualTo(55));
     expect(curated.map((s) => s['kind']), everyElement(isNull));
     // One wreck, three sources: it ships once, as the dive site.
     final thistlegorm = sites
@@ -378,7 +386,7 @@ void main() {
       const CatalogueBounds(south: -90, west: -180, north: 90, east: 180),
       limit: 1000000,
     );
-    expect(located.sites, hasLength(20988));
+    expect(located.sites, hasLength(sites.length));
     expect(located.truncated, isFalse);
     // Salt Pier, by name and by place.
     final found = await catalogue.search('salt pier');
