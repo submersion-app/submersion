@@ -64797,8 +64797,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get info_term_vo2_label => 'VO₂';
 
   @override
-  String get info_term_vo2_body =>
-      'El oxígeno que consume el cuerpo del buceador, en litros de superficie por minuto: unos 0,25 en reposo, 1,3 nadando y 2,0 con esfuerzo intenso. Más esfuerzo deja menos oxígeno en un circuito semicerrado.';
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'El oxígeno que consume el cuerpo del buceador, medido como gas en superficie: unos $rest en reposo, $swim nadando y $hard con esfuerzo intenso. Más esfuerzo deja menos oxígeno en un circuito semicerrado.';
+  }
 
   @override
   String get info_term_turnFraction_label => 'Fracción de retorno';

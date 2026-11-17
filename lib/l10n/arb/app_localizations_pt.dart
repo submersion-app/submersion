@@ -64737,8 +64737,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get info_term_vo2_label => 'VO₂';
 
   @override
-  String get info_term_vo2_body =>
-      'O oxigénio que o corpo do mergulhador consome, em litros de superfície por minuto: cerca de 0,25 em repouso, 1,3 a nadar e 2,0 em esforço intenso. Mais esforço deixa menos oxigénio num circuito semifechado.';
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'O oxigénio que o corpo do mergulhador consome, medido como gás à superfície: cerca de $rest em repouso, $swim a nadar e $hard em esforço intenso. Mais esforço deixa menos oxigénio num circuito semifechado.';
+  }
 
   @override
   String get info_term_turnFraction_label => 'Fração de retorno';

@@ -60772,8 +60772,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get info_term_vo2_label => 'VO₂';
 
   @override
-  String get info_term_vo2_body =>
-      '潜水员身体消耗的氧气，以每分钟水面升数计：静息约 0.25，游动 1.3，高强度 2.0。运动越强，半闭式回路中剩余的氧气越少。';
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return '潜水员身体消耗的氧气，按水面气体计：静息约 $rest，游动 $swim，高强度 $hard。运动越强，半闭式回路中剩余的氧气越少。';
+  }
 
   @override
   String get info_term_turnFraction_label => '折返比例';

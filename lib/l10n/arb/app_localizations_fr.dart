@@ -64898,8 +64898,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get info_term_vo2_label => 'VO₂';
 
   @override
-  String get info_term_vo2_body =>
-      'L\'oxygène consommé par le corps du plongeur, en litres surface par minute : environ 0,25 au repos, 1,3 en nageant et 2,0 en effort intense. Plus d\'effort laisse moins d\'oxygène dans une boucle semi-fermée.';
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'L\'oxygène consommé par le corps du plongeur, mesuré en gaz de surface : environ $rest au repos, $swim en nageant et $hard en effort intense. Plus d\'effort laisse moins d\'oxygène dans une boucle semi-fermée.';
+  }
 
   @override
   String get info_term_turnFraction_label => 'Fraction de demi-tour';

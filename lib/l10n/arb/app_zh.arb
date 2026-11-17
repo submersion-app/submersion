@@ -18900,7 +18900,7 @@
   "info_term_scrInjectionRate_label": "注入流量",
   "info_term_scrInjectionRate_body": "恒定质量流量循环呼吸器喷嘴向回路供入的水面流量，由喷嘴和供气决定。请参照设备说明书或实测流量检查。",
   "info_term_vo2_label": "VO₂",
-  "info_term_vo2_body": "潜水员身体消耗的氧气，以每分钟水面升数计：静息约 0.25，游动 1.3，高强度 2.0。运动越强，半闭式回路中剩余的氧气越少。",
+  "info_term_vo2_body": "潜水员身体消耗的氧气，按水面气体计：静息约 {rest}，游动 {swim}，高强度 {hard}。运动越强，半闭式回路中剩余的氧气越少。",
   "info_term_turnFraction_label": "折返比例",
   "info_term_turnFraction_body": "计划折返前使用的初始气体比例。三分之一是洞穴及其他顶部封闭潜水的常用规则。",
   "info_term_dpv_label": "DPV（水下推进器）",

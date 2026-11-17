@@ -18900,7 +18900,7 @@
   "info_term_scrInjectionRate_label": "Injectiedebiet",
   "info_term_scrInjectionRate_body": "Het oppervlaktedebiet dat de nozzle van een rebreather met constante massastroom in de lus voert, bepaald door de nozzle en het toevoergas. Neem het over uit de documentatie van het toestel of een gemeten debietcontrole.",
   "info_term_vo2_label": "VO₂",
-  "info_term_vo2_body": "De zuurstof die het lichaam van een duiker verbruikt, in oppervlakteliters per minuut: ongeveer 0,25 in rust, 1,3 al zwemmend en 2,0 bij zware inspanning. Meer inspanning laat minder zuurstof in een halfgesloten lus.",
+  "info_term_vo2_body": "De zuurstof die het lichaam van een duiker verbruikt, gemeten als oppervlaktegas: ongeveer {rest} in rust, {swim} al zwemmend en {hard} bij zware inspanning. Meer inspanning laat minder zuurstof in een halfgesloten lus.",
   "info_term_turnFraction_label": "Keerfractie",
   "info_term_turnFraction_body": "Het deel van het startgas dat het plan gebruikt voordat het omkeert. Een derde is de gangbare regel in grotten en andere overheadduiken.",
   "info_term_dpv_label": "DPV (onderwaterscooter)",

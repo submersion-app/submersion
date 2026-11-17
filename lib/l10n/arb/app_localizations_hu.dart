@@ -64398,8 +64398,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get info_term_vo2_label => 'VO₂';
 
   @override
-  String get info_term_vo2_body =>
-      'A búvár szervezete által felhasznált oxigén, felszíni literben percenként: nyugalomban nagyjából 0,25, úszás közben 1,3, nagy terhelésnél 2,0. Több munka kevesebb oxigént hagy a félig zárt hurokban.';
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'A búvár szervezete által felhasznált oxigén, felszíni gázként mérve: nyugalomban nagyjából $rest, úszás közben $swim, nagy terhelésnél $hard. Több munka kevesebb oxigént hagy a félig zárt hurokban.';
+  }
 
   @override
   String get info_term_turnFraction_label => 'Visszafordulási hányad';

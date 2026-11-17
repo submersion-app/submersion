@@ -18900,7 +18900,7 @@
   "info_term_scrInjectionRate_label": "Caudal de inyección",
   "info_term_scrInjectionRate_body": "El caudal en superficie que la boquilla de un recirculador de flujo másico constante aporta al circuito, fijado por la boquilla y el gas de suministro. Tómalo de la documentación del equipo o de una prueba de caudal medida.",
   "info_term_vo2_label": "VO₂",
-  "info_term_vo2_body": "El oxígeno que consume el cuerpo del buceador, en litros de superficie por minuto: unos 0,25 en reposo, 1,3 nadando y 2,0 con esfuerzo intenso. Más esfuerzo deja menos oxígeno en un circuito semicerrado.",
+  "info_term_vo2_body": "El oxígeno que consume el cuerpo del buceador, medido como gas en superficie: unos {rest} en reposo, {swim} nadando y {hard} con esfuerzo intenso. Más esfuerzo deja menos oxígeno en un circuito semicerrado.",
   "info_term_turnFraction_label": "Fracción de retorno",
   "info_term_turnFraction_body": "La parte del gas inicial que el plan usa antes de dar la vuelta. Un tercio es la regla habitual en cuevas y otros entornos cerrados.",
   "info_term_dpv_label": "DPV (propulsor)",

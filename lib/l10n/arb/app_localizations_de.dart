@@ -64621,8 +64621,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get info_term_vo2_label => 'VO₂';
 
   @override
-  String get info_term_vo2_body =>
-      'Der Sauerstoff, den der Körper eines Tauchers verbraucht, in Oberflächenlitern pro Minute: etwa 0,25 in Ruhe, 1,3 beim Schwimmen und 2,0 bei schwerer Arbeit. Mehr Arbeit lässt weniger Sauerstoff in einem halbgeschlossenen Kreislauf.';
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'Der Sauerstoff, den der Körper eines Tauchers verbraucht, gemessen als Oberflächengas: etwa $rest in Ruhe, $swim beim Schwimmen und $hard bei schwerer Arbeit. Mehr Arbeit lässt weniger Sauerstoff in einem halbgeschlossenen Kreislauf.';
+  }
 
   @override
   String get info_term_turnFraction_label => 'Umkehranteil';

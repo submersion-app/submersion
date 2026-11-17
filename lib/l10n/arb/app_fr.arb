@@ -18900,7 +18900,7 @@
   "info_term_scrInjectionRate_label": "Débit d'injection",
   "info_term_scrInjectionRate_body": "Le débit en surface que la buse d'un recycleur à débit massique constant injecte dans la boucle, fixé par la buse et le gaz d'alimentation. Reprenez-le de la documentation de l'appareil ou d'un contrôle de débit mesuré.",
   "info_term_vo2_label": "VO₂",
-  "info_term_vo2_body": "L'oxygène consommé par le corps du plongeur, en litres surface par minute : environ 0,25 au repos, 1,3 en nageant et 2,0 en effort intense. Plus d'effort laisse moins d'oxygène dans une boucle semi-fermée.",
+  "info_term_vo2_body": "L'oxygène consommé par le corps du plongeur, mesuré en gaz de surface : environ {rest} au repos, {swim} en nageant et {hard} en effort intense. Plus d'effort laisse moins d'oxygène dans une boucle semi-fermée.",
   "info_term_turnFraction_label": "Fraction de demi-tour",
   "info_term_turnFraction_body": "La part du gaz de départ que le plan utilise avant de faire demi-tour. Un tiers est la règle courante en grotte et autres milieux fermés.",
   "info_term_dpv_label": "DPV (propulseur)",

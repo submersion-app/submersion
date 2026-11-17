@@ -65689,8 +65689,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get info_term_vo2_label => 'VO₂';
 
   @override
-  String get info_term_vo2_body =>
-      'الأكسجين الذي يستهلكه جسم الغواص، باللتر السطحي في الدقيقة: نحو 0.25 في الراحة و1.3 أثناء السباحة و2.0 عند الجهد الشديد. يترك الجهد الأكبر أكسجينًا أقل في الدائرة شبه المغلقة.';
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'الأكسجين الذي يستهلكه جسم الغواص، مقيسًا كغاز سطحي: نحو $rest في الراحة و$swim أثناء السباحة و$hard عند الجهد الشديد. يترك الجهد الأكبر أكسجينًا أقل في الدائرة شبه المغلقة.';
+  }
 
   @override
   String get info_term_turnFraction_label => 'نسبة الالتفاف';

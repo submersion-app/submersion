@@ -64757,8 +64757,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get info_term_vo2_label => 'VO₂';
 
   @override
-  String get info_term_vo2_body =>
-      'L\'ossigeno consumato dal corpo del subacqueo, in litri di superficie al minuto: circa 0,25 a riposo, 1,3 nuotando e 2,0 sotto sforzo intenso. Più sforzo lascia meno ossigeno in un circuito semichiuso.';
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'L\'ossigeno consumato dal corpo del subacqueo, misurato come gas in superficie: circa $rest a riposo, $swim nuotando e $hard sotto sforzo intenso. Più sforzo lascia meno ossigeno in un circuito semichiuso.';
+  }
 
   @override
   String get info_term_turnFraction_label => 'Frazione di inversione';

@@ -38024,7 +38024,20 @@
   "info_term_scrInjectionRate_label": "Injection rate",
   "info_term_scrInjectionRate_body": "The surface flow a constant mass flow rebreather's nozzle feeds into the loop, set by the nozzle and the supply gas. Take it from the unit's documentation or a measured flow check.",
   "info_term_vo2_label": "VO₂",
-  "info_term_vo2_body": "The oxygen a diver's body uses, in surface litres per minute: about 0.25 at rest, 1.3 swimming and 2.0 at hard work. More work leaves less oxygen in a semi-closed loop.",
+  "info_term_vo2_body": "The oxygen a diver's body uses, measured as surface gas: about {rest} at rest, {swim} swimming and {hard} at hard work. More work leaves less oxygen in a semi-closed loop.",
+  "@info_term_vo2_body": {
+    "placeholders": {
+      "rest": {
+        "type": "String"
+      },
+      "swim": {
+        "type": "String"
+      },
+      "hard": {
+        "type": "String"
+      }
+    }
+  },
   "info_term_turnFraction_label": "Turn fraction",
   "info_term_turnFraction_body": "The share of the starting gas the plan uses before turning back. A third is the common rule for caves and other overhead dives.",
   "info_term_dpv_label": "DPV (scooter)",

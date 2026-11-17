@@ -18900,7 +18900,7 @@
   "info_term_scrInjectionRate_label": "Adagolási sebesség",
   "info_term_scrInjectionRate_body": "Az a felszíni áramlás, amelyet egy állandó tömegáramú rebreather fúvókája a hurokba juttat, a fúvóka és a tápgáz határozza meg. Vedd a készülék dokumentációjából vagy egy mért áramláspróbából.",
   "info_term_vo2_label": "VO₂",
-  "info_term_vo2_body": "A búvár szervezete által felhasznált oxigén, felszíni literben percenként: nyugalomban nagyjából 0,25, úszás közben 1,3, nagy terhelésnél 2,0. Több munka kevesebb oxigént hagy a félig zárt hurokban.",
+  "info_term_vo2_body": "A búvár szervezete által felhasznált oxigén, felszíni gázként mérve: nyugalomban nagyjából {rest}, úszás közben {swim}, nagy terhelésnél {hard}. Több munka kevesebb oxigént hagy a félig zárt hurokban.",
   "info_term_turnFraction_label": "Visszafordulási hányad",
   "info_term_turnFraction_body": "A kezdeti gáz azon része, amelyet a terv a visszafordulás előtt felhasznál. Az egyharmad a szokásos szabály barlangban és más zárt terekben.",
   "info_term_dpv_label": "DPV (robogó)",

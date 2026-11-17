@@ -64360,8 +64360,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get info_term_vo2_label => 'VO₂';
 
   @override
-  String get info_term_vo2_body =>
-      'De zuurstof die het lichaam van een duiker verbruikt, in oppervlakteliters per minuut: ongeveer 0,25 in rust, 1,3 al zwemmend en 2,0 bij zware inspanning. Meer inspanning laat minder zuurstof in een halfgesloten lus.';
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'De zuurstof die het lichaam van een duiker verbruikt, gemeten als oppervlaktegas: ongeveer $rest in rust, $swim al zwemmend en $hard bij zware inspanning. Meer inspanning laat minder zuurstof in een halfgesloten lus.';
+  }
 
   @override
   String get info_term_turnFraction_label => 'Keerfractie';

@@ -154,8 +154,11 @@ SCR VO2, pSCR VO2, all in the diver's volume unit per minute.
 `assumedVo2` (the resolved values); for a pSCR plan, `scrType = pascr` and
 `assumedVo2` (the resolved pSCR VO2). Other modes write null. The
 "unchanged" comparison (`matches`) compares the same resolved values (builder's
-call). This adds no new "Update planned dives" churn: a changed diver default
-changes the loop FO2 and so the deco profile, which `matches` already compares.
+call). Planned entries logged before this change carry no loop values, so each
+SCR or pSCR planned entry reads as behind once and "Update planned dives"
+offers to fill them in. After that, a changed diver default adds no churn of
+its own: it changes the loop FO2 and so the deco profile, which `matches`
+already compares.
 
 ### Dive Lab
 

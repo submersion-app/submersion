@@ -101566,8 +101566,8 @@ abstract class AppLocalizations {
   /// No description provided for @info_term_vo2_body.
   ///
   /// In en, this message translates to:
-  /// **'The oxygen a diver\'s body uses, in surface litres per minute: about 0.25 at rest, 1.3 swimming and 2.0 at hard work. More work leaves less oxygen in a semi-closed loop.'**
-  String get info_term_vo2_body;
+  /// **'The oxygen a diver\'s body uses, measured as surface gas: about {rest} at rest, {swim} swimming and {hard} at hard work. More work leaves less oxygen in a semi-closed loop.'**
+  String info_term_vo2_body(String rest, String swim, String hard);
 
   /// No description provided for @info_term_turnFraction_label.
   ///

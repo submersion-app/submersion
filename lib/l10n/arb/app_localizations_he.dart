@@ -63418,8 +63418,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get info_term_vo2_label => 'VO₂';
 
   @override
-  String get info_term_vo2_body =>
-      'החמצן שגוף הצולל צורך, בליטרים בפני השטח לדקה: כ-0.25 במנוחה, 1.3 בשחייה ו-2.0 במאמץ קשה. מאמץ רב יותר משאיר פחות חמצן בלולאה חצי סגורה.';
+  String info_term_vo2_body(String rest, String swim, String hard) {
+    return 'החמצן שגוף הצולל צורך, נמדד כגז בפני השטח: כ-$rest במנוחה, $swim בשחייה ו-$hard במאמץ קשה. מאמץ רב יותר משאיר פחות חמצן בלולאה חצי סגורה.';
+  }
 
   @override
   String get info_term_turnFraction_label => 'שבר החזרה';

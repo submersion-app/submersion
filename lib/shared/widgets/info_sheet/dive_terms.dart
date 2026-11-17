@@ -1,6 +1,7 @@
 import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/gas_density.dart';
+import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -453,7 +454,11 @@ String _body(AppLocalizations l10n, UnitFormatter units, DiveTerm term) {
     DiveTerm.setpointSwitchDepth => l10n.info_term_setpointSwitchDepth_body,
     DiveTerm.pscrRatio => l10n.info_term_pscrRatio_body,
     DiveTerm.scrInjectionRate => l10n.info_term_scrInjectionRate_body,
-    DiveTerm.vo2 => l10n.info_term_vo2_body,
+    DiveTerm.vo2 => l10n.info_term_vo2_body(
+      _vo2(units, ScrCalculator.restingVo2),
+      _vo2(units, ScrCalculator.defaultVo2),
+      _vo2(units, ScrCalculator.hardWorkVo2),
+    ),
     DiveTerm.turnFraction => l10n.info_term_turnFraction_body,
     DiveTerm.dpv => l10n.info_term_dpv_body,
     DiveTerm.ceilingViolation => l10n.info_term_ceilingViolation_body,
@@ -467,3 +472,9 @@ String _body(AppLocalizations l10n, UnitFormatter units, DiveTerm term) {
     DiveTerm.ascentGasSet => l10n.info_term_ascentGasSet_body,
   };
 }
+
+/// A VO2 in the diver's volume unit per minute, one place finer than an RMV
+/// (0.25 L/min is 0.009 cuft/min).
+String _vo2(UnitFormatter units, double litersPerMinute) =>
+    '${formatFixedForDisplay(units.convertRmv(litersPerMinute), units.rmvDecimals + 1)} '
+    '${units.rmvSymbol}';
