@@ -127,6 +127,14 @@ extension _VideoScanning on MediaIdentificationService {
     List<MediaIdentification> carry, {
     List<MediaIdentification> stored = const [],
   }) async {
+    // One worker holds the candidate table for the whole scan; without it
+    // each chunk's naming copies the table into a new isolate.
+    CropNamingWorker? worker;
+    try {
+      worker = await CropNamingWorker.start(pack, cell);
+    } on Object catch (e) {
+      _log.debug('Naming without a worker isolate', error: e);
+    }
     final scan = VideoIdentificationScan(
       engine: _engine,
       pack: pack,
@@ -136,7 +144,7 @@ extension _VideoScanning on MediaIdentificationService {
       item: job.item,
       cell: cell,
       reader: reader,
-      name: (crops) => nameCrops(pack, crops, cell),
+      name: worker?.name ?? (crops) => nameCrops(pack, crops, cell),
       now: _now,
       newId: _newId,
       databaseGeneration: _databaseGeneration,
@@ -197,6 +205,7 @@ extension _VideoScanning on MediaIdentificationService {
       return false;
     } finally {
       _armIdleUnload();
+      await worker?.close();
     }
   }
 }

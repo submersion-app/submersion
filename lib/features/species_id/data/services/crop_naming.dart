@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show compute;
@@ -8,28 +10,131 @@ import 'package:submersion/features/species_id/domain/entities/species_pack_mani
 import 'package:submersion/features/species_id/domain/services/region_grid.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 
+typedef NamingCrops = List<({Float32List embedding, int shorterSide})>;
+
 /// Names crops off the UI isolate: with thousands of candidates it is
 /// millions of multiplications a crop.
 Future<List<NamingResult>> nameCrops(
   LoadedPack pack,
-  List<({Float32List embedding, int shorterSide})> crops,
+  NamingCrops crops,
   int? cell,
 ) async {
   if (crops.isEmpty) return const [];
+  return compute(_nameAll, _jobFor(pack, crops, cell));
+}
+
+/// Names a video scan's crops in a worker isolate that keeps the candidate
+/// table (issue #4675). The table is tens of megabytes with thousands of
+/// candidates: [nameCrops] copies it into a new isolate every call, this
+/// copies it once for the whole scan.
+class CropNamingWorker {
+  CropNamingWorker._(this._isolate, this._requests, this._exit) {
+    _exit.listen((_) {
+      _stopped = true;
+      if (!_exited.isCompleted) _exited.complete();
+      for (final waiting in _waiting) {
+        if (!waiting.isCompleted) {
+          waiting.completeError(StateError('The naming worker stopped'));
+        }
+      }
+    });
+  }
+
+  final Isolate _isolate;
+  final SendPort _requests;
+
+  /// Tells of the worker exiting or failing.
+  final ReceivePort _exit;
+  final _waiting = <Completer<List<NamingResult>>>{};
+  final _exited = Completer<void>();
+  var _stopped = false;
+
+  static Future<CropNamingWorker> start(LoadedPack pack, int? cell) async {
+    final ready = ReceivePort();
+    final exit = ReceivePort();
+    try {
+      final isolate = await Isolate.spawn(
+        _serve,
+        (ready.sendPort, _jobFor(pack, const [], cell)),
+        onExit: exit.sendPort,
+        onError: exit.sendPort,
+      );
+      final requests = await ready.first as SendPort;
+      return CropNamingWorker._(isolate, requests, exit);
+    } on Object {
+      exit.close();
+      rethrow;
+    } finally {
+      ready.close();
+    }
+  }
+
+  /// Throws [StateError] once the worker has stopped, rather than waiting
+  /// for an answer that will not come.
+  Future<List<NamingResult>> name(NamingCrops crops) async {
+    if (crops.isEmpty) return const [];
+    if (_stopped) throw StateError('The naming worker stopped');
+    final reply = ReceivePort();
+    final answer = Completer<List<NamingResult>>();
+    _waiting.add(answer);
+    reply.first.then((message) {
+      if (answer.isCompleted) return;
+      if (message is List<NamingResult>) {
+        answer.complete(message);
+      } else {
+        answer.completeError(StateError('Naming failed: $message'));
+      }
+    });
+    try {
+      _requests.send((crops, reply.sendPort));
+      return await answer.future;
+    } finally {
+      _waiting.remove(answer);
+      reply.close();
+    }
+  }
+
+  Future<void> close() async {
+    if (!_stopped) _isolate.kill(priority: Isolate.immediate);
+    await _exited.future;
+    _exit.close();
+  }
+}
+
+void _serve((SendPort, _NamingJob) start) {
+  final (ready, job) = start;
+  final namer = _namerFor(job);
+  final requests = ReceivePort();
+  ready.send(requests.sendPort);
+  requests.listen((message) {
+    final (crops, reply) = message as (NamingCrops, SendPort);
+    try {
+      reply.send([
+        for (final crop in crops)
+          namer.name(
+            embedding: crop.embedding,
+            boxShorterSide: crop.shorterSide,
+            cell: job.cell,
+          ),
+      ]);
+    } on Object catch (e) {
+      reply.send('$e');
+    }
+  });
+}
+
+_NamingJob _jobFor(LoadedPack pack, NamingCrops crops, int? cell) {
   final manifest = pack.pack.manifest;
-  return compute(
-    _nameAll,
-    _NamingJob(
-      candidates: pack.candidates,
-      textEmbeddings: pack.textEmbeddings,
-      embeddingSize: manifest.classifier.embeddingSize,
-      logitScale: manifest.classifier.logitScale,
-      naming: manifest.naming,
-      regions: pack.regions,
-      neighbourCells: manifest.region.neighbourCells,
-      crops: crops,
-      cell: cell,
-    ),
+  return _NamingJob(
+    candidates: pack.candidates,
+    textEmbeddings: pack.textEmbeddings,
+    embeddingSize: manifest.classifier.embeddingSize,
+    logitScale: manifest.classifier.logitScale,
+    naming: manifest.naming,
+    regions: pack.regions,
+    neighbourCells: manifest.region.neighbourCells,
+    crops: crops,
+    cell: cell,
   );
 }
 
@@ -53,20 +158,12 @@ class _NamingJob {
   final NamingConfig naming;
   final RegionTable regions;
   final int neighbourCells;
-  final List<({Float32List embedding, int shorterSide})> crops;
+  final NamingCrops crops;
   final int? cell;
 }
 
 List<NamingResult> _nameAll(_NamingJob job) {
-  final namer = SpeciesNamer(
-    candidates: job.candidates,
-    textEmbeddings: job.textEmbeddings,
-    embeddingSize: job.embeddingSize,
-    logitScale: job.logitScale,
-    config: job.naming,
-    regions: job.regions,
-    neighbourCells: job.neighbourCells,
-  );
+  final namer = _namerFor(job);
   return [
     for (final crop in job.crops)
       namer.name(
@@ -76,3 +173,13 @@ List<NamingResult> _nameAll(_NamingJob job) {
       ),
   ];
 }
+
+SpeciesNamer _namerFor(_NamingJob job) => SpeciesNamer(
+  candidates: job.candidates,
+  textEmbeddings: job.textEmbeddings,
+  embeddingSize: job.embeddingSize,
+  logitScale: job.logitScale,
+  config: job.naming,
+  regions: job.regions,
+  neighbourCells: job.neighbourCells,
+);
