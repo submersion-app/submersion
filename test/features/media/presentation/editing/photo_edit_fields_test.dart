@@ -262,4 +262,75 @@ void main() {
     expect(drawn.lastVerifiedAt, isNull);
     expect(drawn.contentSizeBytes, 9);
   });
+
+  test('a held relink to other bytes is drawn with their hash, as not yet '
+      'backed up, and as linked on this device', () {
+    final stored = _item().copyWith(
+      sourceType: MediaSourceType.localFile,
+      localPath: '/gone/m1.jpg',
+      contentHash: 'OLD',
+      remoteUploadedAt: _at,
+      remoteThumbUploadedAt: _at,
+      remoteCompressedUploadedAt: _at,
+      originDeviceId: 'other-device',
+    );
+    final session = EditSession<PhotoRecord>(
+      PhotoRecord(item: stored, species: const [], people: const []),
+    );
+    addTearDown(session.dispose);
+    session
+      ..remember(
+        photoRelinkProposalKey,
+        RepairProposal(
+          item: stored,
+          confidence: RepairConfidence.edited,
+          candidate: const RepairCandidate.file(
+            path: '/found/m1.jpg',
+            sizeBytes: 9,
+            hash: 'NEW',
+          ),
+        ),
+      )
+      ..holdChange(photoRelinkKey, cardId: photoFileCardId, write: () async {});
+
+    final drawn = withHeldRelink(session, stored, thisDevice: 'this-device');
+
+    expect(drawn.contentHash, 'NEW');
+    expect(drawn.remoteUploadedAt, isNull);
+    expect(drawn.remoteThumbUploadedAt, isNull);
+    expect(drawn.remoteCompressedUploadedAt, isNull);
+    expect(drawn.originDeviceId, 'this-device');
+  });
+
+  test('a held relink to the same bytes keeps what the store holds', () {
+    final stored = _item().copyWith(
+      sourceType: MediaSourceType.localFile,
+      localPath: '/gone/m1.jpg',
+      contentHash: 'SAME',
+      remoteUploadedAt: _at,
+    );
+    final session = EditSession<PhotoRecord>(
+      PhotoRecord(item: stored, species: const [], people: const []),
+    );
+    addTearDown(session.dispose);
+    session
+      ..remember(
+        photoRelinkProposalKey,
+        RepairProposal(
+          item: stored,
+          confidence: RepairConfidence.exact,
+          candidate: const RepairCandidate.file(
+            path: '/found/m1.jpg',
+            sizeBytes: 9,
+            hash: 'SAME',
+          ),
+        ),
+      )
+      ..holdChange(photoRelinkKey, cardId: photoFileCardId, write: () async {});
+
+    final drawn = withHeldRelink(session, stored);
+
+    expect(drawn.contentHash, 'SAME');
+    expect(drawn.remoteUploadedAt, _at);
+  });
 }

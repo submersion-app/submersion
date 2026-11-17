@@ -6,7 +6,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
-import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 
 /// Dive-scoped wrapper around [MediaViewerPage]: resolves the dive's media
@@ -18,7 +18,7 @@ class PhotoViewerPage extends ConsumerWidget {
     required this.diveId,
     required this.initialMediaId,
     this.unlockEditing = kUnlockEditing,
-    this.diveSitting,
+    this.diveEditing,
   });
 
   final String diveId;
@@ -27,11 +27,13 @@ class PhotoViewerPage extends ConsumerWidget {
   /// Whether the viewer offers its own lock (issue #4527).
   final bool unlockEditing;
 
-  /// The dive's sitting, when opened from its Media card in one: the viewer
-  /// pages through the dive's photos as the sitting has them (added ones
-  /// in, unlinked ones out). It does not end with the viewer: the photo's
-  /// lock is its own.
-  final EditSession<Dive>? diveSitting;
+  /// The dive page's editing, when opened from its Media card: while the
+  /// dive is unlocked, the viewer pages through its photos as the sitting
+  /// has them (added ones in, unlinked ones out), and through the stored
+  /// ones again once the sitting ends. The sitting does not end with the
+  /// viewer: the photo's lock is its own. The controller is followed, not
+  /// the session, since a session that ends tells no one.
+  final RecordEditController<Dive>? diveEditing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,9 +42,9 @@ class PhotoViewerPage extends ConsumerWidget {
       // One shape whether or not the dive's sitting is open, so the viewer
       // keeps its place, and its own sitting, when that one ends under it.
       data: (stored) => ListenableBuilder(
-        listenable: diveSitting ?? const _NoSitting(),
+        listenable: diveEditing ?? const _NoSitting(),
         builder: (context, _) {
-          final session = diveSitting;
+          final session = diveEditing?.session;
           return _viewer(
             session == null || session.isDisposed
                 ? stored

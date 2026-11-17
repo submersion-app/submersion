@@ -182,12 +182,28 @@ RepairProposal? heldRelink(EditSession<PhotoRecord> session) =>
 ///
 /// Drawn as found, not orphaned: the stored row's orphan flag is the old
 /// file's, and drawing the new file must not clear it before Save. Its last
-/// check and its size were the old file's too.
-MediaItem withHeldRelink(EditSession<PhotoRecord> session, MediaItem item) {
+/// check and its size were the old file's too. As the repair writes it, a
+/// file is linked on this device ([thisDevice], unknown when null), and
+/// other bytes than the stored ones carry their own hash and are not yet in
+/// the store.
+MediaItem withHeldRelink(
+  EditSession<PhotoRecord> session,
+  MediaItem item, {
+  String? thisDevice,
+}) {
   final candidate = heldRelink(session)?.candidate;
   final path = candidate?.path;
   if (candidate == null || path == null) return item;
+  final hash = candidate.hash;
+  final otherBytes = hash != null && hash != item.contentHash;
   return item.copyWith(
+    originDeviceId: thisDevice,
+    contentHash: otherBytes ? hash : item.contentHash,
+    remoteUploadedAt: otherBytes ? null : item.remoteUploadedAt,
+    remoteThumbUploadedAt: otherBytes ? null : item.remoteThumbUploadedAt,
+    remoteCompressedUploadedAt: otherBytes
+        ? null
+        : item.remoteCompressedUploadedAt,
     localPath: path,
     // The row's bookmark names the old file; a new one is made at Save.
     bookmarkRef: null,

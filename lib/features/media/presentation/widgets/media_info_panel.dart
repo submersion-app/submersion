@@ -108,7 +108,16 @@ class MediaInfoPanel extends ConsumerWidget {
         open != null &&
         sittingMedia(open.session).replaced.containsKey(stored.id);
     // In a sitting the origin is the file a held relink found.
-    final live = inSitting ? withHeldRelink(session!, stored) : stored;
+    final live = inSitting
+        ? withHeldRelink(
+            session!,
+            stored,
+            thisDevice: ref.watch(currentDeviceIdProvider).value,
+          )
+        : stored;
+    // A relink held for Save queues the upload its bytes need when it is
+    // written; one asked for now would send the stored (old) file.
+    final relinkHeld = inSitting && heldRelink(session!) != null;
     final provenance = ref.watch(mediaProvenanceProvider(live));
     final units = ref.watch(unitFormatterProvider);
 
@@ -146,7 +155,7 @@ class MediaInfoPanel extends ConsumerWidget {
           item: live,
           backup: provenance.backup,
           units: units,
-          canUpload: !rowless,
+          canUpload: !rowless && !relinkHeld,
         ),
         const SizedBox(height: 12),
         _ServingSection(item: live),

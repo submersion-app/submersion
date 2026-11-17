@@ -321,7 +321,7 @@ void main() {
         find.byType(PhotoViewerPage),
       );
       expect(viewer.initialMediaId, 'n1');
-      expect(viewer.diveSitting, same(session));
+      expect(viewer.diveEditing, same(controller));
       expect(viewer.unlockEditing, isTrue);
     });
 

@@ -649,7 +649,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                           // The photos as the dive's sitting has them, so a
                           // photo held for Save opens on itself; with no row
                           // it cannot be unlocked, and reads only.
-                          diveSitting: session,
+                          diveEditing: scope,
                           // On a page with the lock, the viewer has its own
                           // (issue #4527).
                           unlockEditing:

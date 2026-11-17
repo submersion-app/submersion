@@ -212,7 +212,7 @@ void main() {
       await settleViewer(tester);
       expect(find.text('Media info'), findsWidgets);
       expect(find.text('Check now'), findsNothing);
-      expect(find.text('Back up now'), findsNothing);
+      expect(find.text('Copy now'), findsNothing);
       expect(await tester.runAsync(() => eventCount(db)), events);
     });
 
@@ -232,6 +232,23 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('viewer_info')));
       await settleViewer(tester);
       expect(find.text('Check now'), findsOneWidget);
+    });
+
+    testWidgets('when the dive\'s sitting ends, the viewer pages through the '
+        'stored photos again', (tester) async {
+      final dive = await pumpCard(tester);
+      await openTile(tester, 'p2');
+      int total() => tester
+          .widget<MediaViewerToolbar>(find.byType(MediaViewerToolbar))
+          .totalCount;
+      // The three stored photos and the one held.
+      expect(total(), 4);
+
+      dive.lock();
+      await settleViewer(tester);
+
+      expect(total(), 3);
+      expect(onScreen(tester), 'p2');
     });
 
     testWidgets('the viewer keeps its place and its own sitting when the '

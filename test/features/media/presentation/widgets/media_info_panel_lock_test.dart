@@ -333,6 +333,42 @@ void main() {
       expect(find.text('Locate file...'), findsNothing);
     });
 
+    testWidgets('while a relink is held, the upload is not offered: Save '
+        'queues it', (tester) async {
+      final item = missingFile();
+      final sitting = EditSession<PhotoRecord>(
+        PhotoRecord(item: item, species: const [], people: const []),
+      );
+      addTearDown(sitting.dispose);
+      await pump(
+        tester,
+        item,
+        extra: [
+          pickerAnswering(Future.value('/found/reef.jpg')),
+          mediaRepairServiceProvider.overrideWithValue(_NeverApplied()),
+        ],
+        sitting: sitting,
+      );
+      expect(find.text('Copy now'), findsOneWidget);
+
+      await tester.tap(find.text('Locate file...'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Copy now'), findsNothing);
+    });
+
+    testWidgets('a photo with no stored row offers no upload', (tester) async {
+      await pumpInfoPanel(
+        tester,
+        missingFile(),
+        recorder: recorder,
+        readRow: () async => null,
+      );
+
+      expect(find.text('Copy now'), findsNothing);
+      expect(find.text('Check now'), findsNothing);
+    });
+
     testWidgets('locked: Locate is not offered', (tester) async {
       final item = missingFile();
       await pump(tester, item, readOnly: true);
