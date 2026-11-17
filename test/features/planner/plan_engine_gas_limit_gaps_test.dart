@@ -15,13 +15,14 @@ domain.DivePlan _plan({
   double backVolume = 11.1,
   domain.TurnPressureRule? turnRule = domain.TurnPressureRule.thirds,
   domain.PlanMode mode = domain.PlanMode.oc,
+  TankRole backRole = TankRole.backGas,
 }) {
   final back = DiveTank(
     id: 'back',
     volume: backVolume,
     startPressure: backStartPressure,
     gasMix: _air,
-    role: TankRole.backGas,
+    role: backRole,
   );
   const deco = DiveTank(
     id: 'deco',
@@ -75,6 +76,21 @@ void main() {
     expect(back.minGasBar, isNotNull);
     expect(back.turnPressureGap, isNull);
     expect(back.minGasGap, isNull);
+  });
+
+  test('an Avelo Hydrotank main supply gets the same turn pressure and '
+      'minimum gas as back gas (#4657)', () {
+    // Before the Hydrotank role an Avelo plan's cylinder was back gas; the
+    // new role must not drop the plan's gas limits.
+    final back = _usage(engine.compute(_plan()), 'back');
+    final hydro = _usage(
+      engine.compute(_plan(backRole: TankRole.hydrotank)),
+      'back',
+    );
+    expect(hydro.turnPressureBar, back.turnPressureBar);
+    expect(hydro.minGasBar, back.minGasBar);
+    expect(hydro.turnPressureBar, isNotNull);
+    expect(hydro.minGasBar, isNotNull);
   });
 
   test('no turn rule names the missing rule, min gas still computes', () {
