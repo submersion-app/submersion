@@ -27,6 +27,7 @@ themselves live in testset.py, which is tested in CI. Developer-run only.
 
 import argparse
 import concurrent.futures
+import hashlib
 import json
 import os
 import re
@@ -248,9 +249,11 @@ def stage_labels(work):
     habitats = _load(habitat_path, {})
     wanted = sorted({str(k) for k in keys.values() if k is not None} - set(habitats))
     with concurrent.futures.ThreadPoolExecutor(8) as pool:
-        for key, habitat in zip(wanted, pool.map(_habitat, wanted)):
-            habitats[key] = habitat
-    _save(habitat_path, habitats)
+        for start in range(0, len(wanted), 100):
+            chunk = wanted[start : start + 100]
+            for key, habitat in zip(chunk, pool.map(_habitat, chunk)):
+                habitats[key] = habitat
+            _save(habitat_path, habitats)
 
     precut_path = os.path.join(work, "gbif", "recorded_before_cutoff.json")
     precut = _load(precut_path, {})
@@ -319,13 +322,20 @@ def _sheet(paths, captions, out, *, columns=10, size=160):
 
 def stage_underwater(work):
     import torch
-    from PIL import Image
+    from PIL import Image, ImageOps
 
     import models
 
     path = os.path.join(work, "underwater.json")
     verdicts = _load(path, {})
-    sample = [o for o in _load(os.path.join(work, "sample.json"), []) if o["id"] not in verdicts]
+    # Only observations the test set can keep: write drops those whose name
+    # matched no GBIF species key.
+    keys = _load(os.path.join(work, "gbif", "match.json"), {})
+    sample = [
+        o
+        for o in _load(os.path.join(work, "sample.json"), [])
+        if o["id"] not in verdicts and keys.get(_name(o)) is not None
+    ]
     if sample:
         model, preprocess, tokenizer = models._classifier()
         device = "mps" if torch.backends.mps.is_available() else "cpu"
@@ -337,7 +347,11 @@ def stage_underwater(work):
             for start in range(0, len(sample), 32):
                 batch = sample[start : start + 32]
                 images = torch.stack(
-                    [preprocess(Image.open(_photo_path(work, "inaturalist", o["id"])).convert("RGB")) for o in batch]
+                    [
+                        # Upright, as the app and the scorer see it.
+                        preprocess(ImageOps.exif_transpose(Image.open(_photo_path(work, "inaturalist", o["id"]))).convert("RGB"))
+                        for o in batch
+                    ]
                 ).to(device)
                 e = model.encode_image(images)
                 e = e / e.norm(dim=-1, keepdim=True)
@@ -349,8 +363,6 @@ def stage_underwater(work):
     kept = [i for i, v in sorted(verdicts.items()) if v]
     dropped = [i for i, v in sorted(verdicts.items()) if not v]
     print(f"underwater: {len(kept)} kept, {len(dropped)} dropped")
-    import hashlib
-
     for name, ids in (("kept", kept), ("dropped", dropped)):
         picked = sorted(ids, key=lambda i: hashlib.sha256(i.encode()).hexdigest())[:100]
         _sheet(
@@ -426,8 +438,6 @@ def _commons_files(category):
 
 
 def stage_commons(work):
-    import hashlib
-
     path = os.path.join(work, "commons.json")
     chosen = _load(path, None)
     if chosen is None:

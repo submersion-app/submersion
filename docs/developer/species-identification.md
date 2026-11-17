@@ -162,9 +162,10 @@ tool (`tool/species_pack/vision_cli/`), once per detector and crop fitting,
 names every crop with `naming.py`, chooses bars on the tune half and checks
 them on the held-out half, and writes `report.md` and `results.json` to the
 work folder. Copy the chosen bars into `NAMING_MEASURED` in
-`tool/species_pack/manifest.py`, with the measured pack's version and the
-SHA-256 of its `candidates.json`, `text_embeddings.f16` and `regions.bin`; a
-pack is written with them only when it is that exact pack.
+`tool/species_pack/manifest.py`, with the `detectorId`, `classifierId` and
+`contents` (the SHA-256 of the pack's `candidates.json`,
+`text_embeddings.f16` and `regions.bin`) that `results.json` records; a pack
+is written with them only when it is that exact pack.
 
 The pure parts have tests that CI runs, beside the others above:
 `naming_test.py`, `bars_test.py`, `metrics_test.py`, `testset_test.py` and

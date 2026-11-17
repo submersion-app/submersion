@@ -28,6 +28,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import bars as bar_search  # noqa: E402
 import boxes as box_math  # noqa: E402
+import manifest as pack_manifest  # noqa: E402
 import megalodon  # noqa: E402
 import metrics  # noqa: E402
 import naming  # noqa: E402
@@ -622,7 +623,16 @@ def main(argv=None):
     cfd = runner.manifest["detector"]["id"]
     mega = megalodon.CHECKPOINTS[MEGALODON]["id"]
 
-    results = {"pack": runner.version, "candidates": len(namer.candidates), "evaluations": {}, "speed": {}}
+    results = {
+        "pack": runner.version,
+        "candidates": len(namer.candidates),
+        # What NAMING_MEASURED in manifest.py needs to name this exact pack.
+        "detectorId": cfd,
+        "classifierId": runner.manifest["classifier"]["id"],
+        "contents": pack_manifest.contents_of(runner.manifest["files"]),
+        "evaluations": {},
+        "speed": {},
+    }
     kept = {}
     for fit in FITS:
         runs = {}
