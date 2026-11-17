@@ -26,7 +26,12 @@ class DiveDetailHeaderBlock extends StatelessWidget {
     required this.onMarkLogged,
     required this.onDownloadDraft,
     required this.onSurfaceDraft,
+    this.creating = false,
   });
+
+  /// A new dive not yet created (issue #4527, plan 8): no banner and no
+  /// site suggestion, which act on a stored dive.
+  final bool creating;
 
   /// The dive as stored. The banners read it: what they offer acts on the
   /// dive as a whole, not on a sitting.
@@ -62,7 +67,7 @@ class DiveDetailHeaderBlock extends StatelessWidget {
         // renders one here; otherwise the banner would appear twice.
         // Collapses to nothing when there is no suggestion, so no
         // spacing of its own is needed.
-        if (!embedded) ...[
+        if (!embedded && !creating) ...[
           if (stored.isPlanned)
             PlannedDiveBanner(
               diveId: stored.id,

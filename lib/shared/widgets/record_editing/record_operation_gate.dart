@@ -34,7 +34,9 @@ RecordOperationBlock? recordOperationBlockOf(
 ) {
   if (controller == null) return null;
   if (!controller.isUnlocked) return RecordOperationBlock.locked;
-  if (controller.isDirty || controller.isBusy) {
+  // A record being created is not stored yet: there is nothing for an
+  // operation to act on until it is saved (issue #4527, plan 8).
+  if (controller.isDirty || controller.isBusy || controller.isCreating) {
     return RecordOperationBlock.unsaved;
   }
   return RecordOperationBlock.none;

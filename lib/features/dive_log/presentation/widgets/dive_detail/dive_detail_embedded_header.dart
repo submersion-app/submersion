@@ -27,7 +27,12 @@ class DiveDetailEmbeddedHeader extends ConsumerWidget {
     this.lock,
     this.history,
     this.unlockedRow,
+    this.creating = false,
   });
+
+  /// A new dive not yet created (issue #4527, plan 8): no banner and no
+  /// site suggestion, which act on a stored dive.
+  final bool creating;
 
   final Dive dive;
 
@@ -199,13 +204,13 @@ class DiveDetailEmbeddedHeader extends ConsumerWidget {
               Positioned.fill(child: unlockedRow),
             ],
           ),
-        if (dive.isPlanned)
+        if (dive.isPlanned && !creating)
           PlannedDiveBanner(
             diveId: dive.id,
             onMarkLogged: onMarkLogged,
             operationReason: operationReason,
           ),
-        if (dive.isDraft)
+        if (dive.isDraft && !creating)
           DraftDiveBanner(
             dive: dive,
             onMarkComplete: onMarkLogged,
@@ -213,14 +218,15 @@ class DiveDetailEmbeddedHeader extends ConsumerWidget {
             onSurfaced: onSurfaceDraft,
             operationReason: operationReason,
           ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: SiteSuggestionCard(
-            diveId: dive.id,
-            currentSite: dive.site,
-            editing: siteSuggestionEditingOf(context),
+        if (!creating)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SiteSuggestionCard(
+              diveId: dive.id,
+              currentSite: dive.site,
+              editing: siteSuggestionEditingOf(context),
+            ),
           ),
-        ),
       ],
     );
   }

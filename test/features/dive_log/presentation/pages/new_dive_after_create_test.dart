@@ -1,0 +1,74 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/pages/new_dive_after_create.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+
+/// What a new dive is owed once it exists, as the new-dive form runs it
+/// after its write (issue #4527, plan 8).
+void main() {
+  final entry = DateTime.utc(2026, 11, 17, 9, 30);
+  const point = GeoPoint(7.1, 134.2);
+  const reef = DiveSite(id: 'reef', name: 'Blue Corner', location: point);
+  final logged = Dive(id: 'new', dateTime: entry, entryTime: entry, site: reef);
+
+  late List<String> steps;
+
+  NewDiveAfterCreate after({Object? failing}) => NewDiveAfterCreate(
+    fetchWeather: (dive, location) {
+      steps.add('weather ${dive.id} ${location.latitude}');
+      if (failing == 'weather') throw StateError('weather');
+    },
+    recordTide: (dive, location) async {
+      steps.add('tide ${dive.id}');
+      if (failing == 'tide') throw StateError('tide');
+    },
+    runRules: (id) async {
+      steps.add('rules $id');
+      if (failing == 'rules') throw StateError('rules');
+    },
+    offerMirror: (id) async => steps.add('mirror $id'),
+  );
+
+  setUp(() => steps = []);
+
+  test('weather, tide, rules and the mirror question, in that order', () async {
+    await after().run(created: logged, changedCardIds: {'header'});
+    expect(steps, ['weather new 7.1', 'tide new', 'rules new', 'mirror new']);
+  });
+
+  test('no weather when the sitting changed the Environment card', () async {
+    await after().run(
+      created: logged,
+      changedCardIds: {'header', 'environment'},
+    );
+    expect(steps, ['tide new', 'rules new', 'mirror new']);
+  });
+
+  test('no weather and no tide for a dive with no site position', () async {
+    await after().run(
+      created: logged.copyWith(
+        site: const DiveSite(id: 's', name: 'Pool'),
+      ),
+      changedCardIds: {'header'},
+    );
+    expect(steps, ['rules new', 'mirror new']);
+  });
+
+  test('a planned dive runs no rules and asks no mirror question', () async {
+    await after().run(
+      created: logged.copyWith(isPlanned: true),
+      changedCardIds: {'header'},
+    );
+    expect(steps, ['weather new 7.1', 'tide new']);
+  });
+
+  test('a step that throws does not stop the next', () async {
+    for (final failing in ['weather', 'tide', 'rules']) {
+      steps = [];
+      await after(
+        failing: failing,
+      ).run(created: logged, changedCardIds: {'header'});
+      expect(steps.last, 'mirror new', reason: failing);
+    }
+  });
+}

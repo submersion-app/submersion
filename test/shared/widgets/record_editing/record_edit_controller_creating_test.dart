@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 
 @immutable
 class _Rec {
@@ -118,5 +119,13 @@ void main() {
     c.unlock(const _Rec());
     c.retake(const _Rec(notes: 'x'));
     expect(c.session!.isNew, isTrue);
+  });
+
+  // Nothing is stored to act on until a new record is saved (plan 8).
+  test('a record being created offers no whole-record operation', () {
+    final c = RecordEditController<_Rec>(onSave: (_) async {}, creating: true);
+    addTearDown(c.dispose);
+    c.unlock(const _Rec());
+    expect(recordOperationBlockOf(c), RecordOperationBlock.unsaved);
   });
 }
