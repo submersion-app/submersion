@@ -127,4 +127,30 @@ void main() {
     await session.runHeldWrites();
     expect(await service.getBuddySignaturesForDive('d1'), isEmpty);
   });
+
+  // Code review (#4527): a signature sync moved to another dive while the
+  // sitting was open is that dive's now.
+  test('a signature sync moved to another dive before Save is not deleted '
+      'by a Save that removed it', () async {
+    await db.customStatement(
+      'INSERT INTO dives (id, dive_date_time, created_at, updated_at) '
+      "VALUES ('d2', 0, 0, 0)",
+    );
+    await service.saveSignature(
+      diveId: 'd1',
+      imageBytes: png,
+      signerName: 'Ines',
+    );
+    final session = await started();
+    final stored = diveSignaturesList.current(session)!.single;
+    removeSignature(session, stored.id);
+    await db.customStatement("UPDATE media SET dive_id = 'd2' WHERE id = ?", [
+      stored.id,
+    ]);
+
+    await session.runHeldWrites();
+    expect((await service.getAllSignaturesForDive('d2')).map((s) => s.id), [
+      stored.id,
+    ]);
+  });
 }

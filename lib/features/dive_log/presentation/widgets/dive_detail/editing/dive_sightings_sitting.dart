@@ -22,13 +22,19 @@ final diveSightingsList = SittingList<Dive, Sighting>(
     final repository = SpeciesRepository();
     final loadedById = {for (final s in loaded) s.id: s};
     final currentIds = {for (final s in current) s.id};
+    // Only rows still on this dive: one a sync moved to another dive since
+    // the sitting read it is that dive's now (issue #4527).
+    final onDive = {
+      for (final s in await repository.getSightingsForDive(dive.id)) s.id,
+    };
     for (final sighting in loaded) {
-      if (!currentIds.contains(sighting.id)) {
+      if (!currentIds.contains(sighting.id) && onDive.contains(sighting.id)) {
         await repository.deleteSighting(sighting.id);
       }
     }
     for (final sighting in current) {
       final before = loadedById[sighting.id];
+      if (before != null && !onDive.contains(sighting.id)) continue;
       if (before == null) {
         await repository.addSighting(
           diveId: dive.id,

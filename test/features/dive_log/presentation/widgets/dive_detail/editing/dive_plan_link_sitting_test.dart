@@ -124,6 +124,31 @@ void main() {
       expect(await linkedTo('plan-old'), isNull);
     },
   );
+
+  // Code review (#4527): unlinking clears every plan on the plan's dive as
+  // it is now, so one sync moved elsewhere must be left alone.
+  test('a plan sync moved to another dive before Save stays linked there '
+      'when the sitting unlinked it', () async {
+    await db
+        .into(db.dives)
+        .insert(
+          const DivesCompanion(
+            id: Value('dive-2'),
+            diveDateTime: Value(2000),
+            createdAt: Value(2000),
+            updatedAt: Value(2000),
+          ),
+        );
+    final session = await started();
+    setPlanLink(session, null);
+    await db.customStatement(
+      "UPDATE dive_plans SET linked_dive_id = 'dive-2' WHERE id = ?",
+      ['plan-old'],
+    );
+
+    await session.runHeldWrites();
+    expect(await linkedTo('plan-old'), 'dive-2');
+  });
 }
 
 class _Flaky extends DivePlanRepository {

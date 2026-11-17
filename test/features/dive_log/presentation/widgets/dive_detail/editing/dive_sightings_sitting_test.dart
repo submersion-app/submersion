@@ -108,4 +108,52 @@ void main() {
     );
     expect(session.isDirty, isFalse);
   });
+
+  // Code review (#4527): a sighting sync moved to another dive while the
+  // sitting was open is that dive's now, whatever the sitting did to it.
+  group('a sighting sync moved to another dive before Save', () {
+    Future<(EditSession<Dive>, Sighting)> movedAway() async {
+      await db.customStatement(
+        'INSERT INTO dives (id, dive_date_time, created_at, updated_at) '
+        "VALUES ('d2', 0, 0, 0)",
+      );
+      final session = await started();
+      final turtle = diveSightingsList
+          .current(session)!
+          .firstWhere((s) => s.speciesId == 'turtle');
+      return (session, turtle);
+    }
+
+    Future<void> moveToD2(String id) => db.customStatement(
+      "UPDATE sightings SET dive_id = 'd2' WHERE id = ?",
+      [id],
+    );
+
+    test('is not deleted by a Save that removed it', () async {
+      final (session, turtle) = await movedAway();
+      diveSightingsList.set(session, [
+        for (final s in diveSightingsList.current(session)!)
+          if (s.id != turtle.id) s,
+      ]);
+      await moveToD2(turtle.id);
+
+      await session.runHeldWrites();
+      expect((await repo.getSightingsForDive('d2')).map((s) => s.id), [
+        turtle.id,
+      ]);
+    });
+
+    test('is not overwritten by a Save that changed it', () async {
+      final (session, turtle) = await movedAway();
+      diveSightingsList.set(session, [
+        for (final s in diveSightingsList.current(session)!)
+          s.id == turtle.id ? s.copyWith(notes: 'Resting') : s,
+      ]);
+      await moveToD2(turtle.id);
+
+      await session.runHeldWrites();
+      final moved = (await repo.getSightingsForDive('d2')).single;
+      expect(moved.notes, isNot('Resting'));
+    });
+  });
 }

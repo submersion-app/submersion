@@ -75,10 +75,22 @@ void _set(EditSession<Dive> session, _Held next) {
     cardId: DiveDetailSectionId.documents.name,
     write: () async {
       final held = _held(session);
+      final diveId = session.stored.id;
       await repository.setDiveOwner([
         for (final d in held.attach) d.id,
-      ], session.stored.id);
-      await repository.setDiveOwner(held.detach.toList(), null);
+      ], diveId);
+      // Only ones still filed under this dive: a document a sync moved to
+      // another owner since the sitting read it stays there.
+      final onDive = {
+        for (final d in await repository.getForOwner(
+          DocumentOwner(DocumentOwnerKind.dive, diveId),
+        ))
+          d.id,
+      };
+      await repository.setDiveOwner([
+        for (final id in held.detach)
+          if (onDive.contains(id)) id,
+      ], null);
     },
   );
 }

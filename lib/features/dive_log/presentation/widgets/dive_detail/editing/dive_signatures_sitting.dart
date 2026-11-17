@@ -22,8 +22,13 @@ final diveSignaturesList = SittingList<Dive, Signature>(
     final service = SignatureStorageService();
     final currentIds = {for (final s in current) s.id};
     final loadedIds = {for (final s in loaded) s.id};
+    // Only ones still on this dive: a signature a sync moved to another
+    // dive since the sitting read it is that dive's now (issue #4527).
+    final onDive = {
+      for (final s in await service.getAllSignaturesForDive(dive.id)) s.id,
+    };
     for (final signature in loaded) {
-      if (!currentIds.contains(signature.id)) {
+      if (!currentIds.contains(signature.id) && onDive.contains(signature.id)) {
         await service.deleteSignature(signature.id);
       }
     }

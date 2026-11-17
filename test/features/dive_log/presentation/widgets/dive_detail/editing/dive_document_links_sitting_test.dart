@@ -110,4 +110,27 @@ void main() {
       ]);
     },
   );
+
+  // Code review (#4527): a document sync filed under another dive while the
+  // sitting was open is that dive's now.
+  test('a document sync moved to another dive before Save stays there when '
+      'the sitting removed it', () async {
+    await db.customStatement(
+      'INSERT INTO dives (id, diver_id, dive_date_time, created_at, '
+      "updated_at) VALUES ('dive-2', 'd1', 0, 0, 0)",
+    );
+    final stored = await repo.save(doc(onDive), []);
+    final session = started();
+    detachDocument(session, stored.id);
+    await db.customStatement(
+      "UPDATE documents SET dive_id = 'dive-2' WHERE id = ?",
+      [stored.id],
+    );
+
+    await session.runHeldWrites();
+    expect(
+      await ownerOf(stored.id),
+      const DocumentOwner(DocumentOwnerKind.dive, 'dive-2'),
+    );
+  });
 }

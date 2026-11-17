@@ -109,7 +109,11 @@ Future<void> _write(
     adopted
       ..add((to, diveId))
       ..addAll([for (final id in result.displacedPlanIds) (id, null)]);
-  } else if (from != null) {
+  } else if (from != null &&
+      (await repository.getPlan(from))?.linkedDiveId == diveId) {
+    // Only while the plan is still this dive's: unlinking clears every plan
+    // on the plan's dive as it is now, and one a sync moved to another dive
+    // is that dive's (issue #4527).
     for (final id in await repository.unlinkPlan(from)) {
       adopted.add((id, null));
     }
