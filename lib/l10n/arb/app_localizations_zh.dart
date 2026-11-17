@@ -3320,6 +3320,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_field_phoneHint => '+1 (555) 123-4567';
 
   @override
+  String get buddies_field_country => '国家/地区';
+
+  @override
+  String get buddies_field_countryHint => '例如：意大利';
+
+  @override
   String buddies_label_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -44108,6 +44114,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_buddyField_phone => '电话';
 
   @override
+  String get enum_buddyField_country => '国家/地区';
+
+  @override
   String get enum_buddyField_certificationLevel => '认证等级';
 
   @override
@@ -44127,6 +44136,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => '电话';
+
+  @override
+  String get enum_buddyField_country_short => '国家/地区';
 
   @override
   String get enum_buddyField_certificationLevel_short => '等级';
@@ -55807,6 +55819,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_buddies_phone => '电话';
+
+  @override
+  String get query_buddies_country => '国家/地区';
 
   @override
   String get query_centers_affiliations => '所属机构';

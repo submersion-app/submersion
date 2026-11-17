@@ -3490,6 +3490,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_field_phoneHint => '+31 6 12345678';
 
   @override
+  String get buddies_field_country => 'Land';
+
+  @override
+  String get buddies_field_countryHint => 'bijv. Italië';
+
+  @override
   String buddies_label_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -46510,6 +46516,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_buddyField_phone => 'Telefoon';
 
   @override
+  String get enum_buddyField_country => 'Land';
+
+  @override
   String get enum_buddyField_certificationLevel => 'Certificeringsniveau';
 
   @override
@@ -46529,6 +46538,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => 'Tel.';
+
+  @override
+  String get enum_buddyField_country_short => 'Land';
 
   @override
   String get enum_buddyField_certificationLevel_short => 'Niveau';
@@ -59136,6 +59148,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_buddies_phone => 'Telefoon';
+
+  @override
+  String get query_buddies_country => 'Land';
 
   @override
   String get query_centers_affiliations => 'Aangesloten bij';

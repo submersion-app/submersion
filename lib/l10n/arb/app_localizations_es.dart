@@ -3516,6 +3516,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_field_phoneHint => '+1 (555) 123-4567';
 
   @override
+  String get buddies_field_country => 'País';
+
+  @override
+  String get buddies_field_countryHint => 'p. ej., Italia';
+
+  @override
   String buddies_label_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -46838,6 +46844,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_buddyField_phone => 'Teléfono';
 
   @override
+  String get enum_buddyField_country => 'País';
+
+  @override
   String get enum_buddyField_certificationLevel => 'Nivel de certificación';
 
   @override
@@ -46857,6 +46866,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get enum_buddyField_phone_short => 'Tel.';
+
+  @override
+  String get enum_buddyField_country_short => 'País';
 
   @override
   String get enum_buddyField_certificationLevel_short => 'Nivel';
@@ -59562,6 +59574,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get query_buddies_phone => 'Teléfono';
+
+  @override
+  String get query_buddies_country => 'País';
 
   @override
   String get query_centers_affiliations => 'Afiliaciones';

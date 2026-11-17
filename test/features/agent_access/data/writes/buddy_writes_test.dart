@@ -64,6 +64,7 @@ void main() {
       'name': 'Ana',
       'email': 'ana@example.com',
       'phone': '+1 777',
+      'country': 'Malta',
       'social_handle': '@ana',
       'notes': 'Rescue diver',
       'is_favorite': true,
@@ -92,5 +93,47 @@ void main() {
     await writes.delete('b1', kDiverA);
 
     expect(await h.one('buddies', 'b1'), isNull);
+  });
+
+  group('country (issue #4457)', () {
+    test('create stores the country and the code read from it', () async {
+      final id = await writes.create(kDiverB, {
+        'name': 'Rui',
+        'country': 'Portugal',
+      });
+
+      final doc = (await h.one('buddies', id, diverId: kDiverB))!;
+      expect(doc['country'], 'Portugal');
+      expect(doc['country_code'], 'PT');
+    });
+
+    test('an update that sets the country derives the code', () async {
+      await writes.update(
+        'b1',
+        kDiverA,
+        const RecordUpdate(values: {'country': 'Italy'}),
+      );
+
+      final doc = (await h.one('buddies', 'b1'))!;
+      expect(doc['country'], 'Italy');
+      expect(doc['country_code'], 'IT');
+    });
+
+    test('clearing the country clears the code', () async {
+      await writes.update(
+        'b1',
+        kDiverA,
+        const RecordUpdate(values: {'country': 'Italy'}),
+      );
+      await writes.update(
+        'b1',
+        kDiverA,
+        const RecordUpdate(values: {'country': null}),
+      );
+
+      final doc = (await h.one('buddies', 'b1'))!;
+      expect(doc['country'], isNull);
+      expect(doc['country_code'], isNull);
+    });
   });
 }
