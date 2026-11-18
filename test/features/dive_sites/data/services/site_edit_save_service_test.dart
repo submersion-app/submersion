@@ -1,0 +1,139 @@
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/core/database/database.dart' hide DiveSite;
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/services/site_edit_save_service.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
+
+import '../../../../core/database/change_log/change_log_support.dart';
+import '../../../../helpers/test_database.dart';
+
+/// Records the acting diver each update is made for.
+class _RecordingSites extends SiteRepository {
+  final actingDiverIds = <String?>[];
+
+  @override
+  Future<void> updateSite(
+    DiveSite site, {
+    SiteClassification? classification,
+    String? actingDiverId,
+  }) {
+    actingDiverIds.add(actingDiverId);
+    return super.updateSite(
+      site,
+      classification: classification,
+      actingDiverId: actingDiverId,
+    );
+  }
+}
+
+/// A site's editing sitting is saved in one transaction and one change log
+/// operation, and writes only what the diver changed onto the site as it is
+/// stored at that moment (issue #4527, phase 2).
+void main() {
+  late AppDatabase db;
+  late SiteRepository sites;
+  late SiteEditSaveService service;
+  final changeLog = ChangeLogRepository();
+
+  Future<DiveSite> stored() async => (await sites.getSiteById('s1'))!;
+
+  Future<List<Map<String, Object?>>> operations() async {
+    await changeLog.settleAll();
+    final rows = await db
+        .customSelect('SELECT source, label FROM change_log_operations')
+        .get();
+    return [for (final row in rows) row.data];
+  }
+
+  /// The sitting's change: the notes, applied to whatever is stored.
+  DiveSite Function(DiveSite) notes(String text) =>
+      (site) => site.copyWith(notes: text);
+
+  setUp(() async {
+    db = await setUpTestDatabase();
+    addTearDown(SyncCoordinator.reset);
+    sites = SiteRepository();
+    service = SiteEditSaveService(sites);
+    await insertDiver(db, 'me');
+    await sites.createSite(
+      const DiveSite(id: 's1', diverId: 'me', name: 'Lake', notes: 'Calm'),
+    );
+    // What setup wrote is not a sitting.
+    await changeLog.settleAll();
+    await db.customStatement('DELETE FROM change_log_operations');
+  });
+
+  tearDown(tearDownTestDatabase);
+
+  test('writes the notes as one History entry', () async {
+    final result = await service.save(
+      siteId: 's1',
+      apply: notes('Choppy'),
+      changedCardIds: const ['notes'],
+    );
+
+    expect((await stored()).notes, 'Choppy');
+    expect(result?.after.notes, 'Choppy');
+    final ops = await operations();
+    expect(ops, hasLength(1));
+    expect(ops.single['label'], 'record_edit:dive_sites:s1:notes');
+  });
+
+  test('a field the sitting did not touch keeps its newer value', () async {
+    // Renamed on another device while the diver edited the notes.
+    await sites.updateSite((await stored()).copyWith(name: 'Pond'));
+
+    await service.save(
+      siteId: 's1',
+      apply: notes('Choppy'),
+      changedCardIds: const ['notes'],
+    );
+
+    final site = await stored();
+    expect(site.name, 'Pond');
+    expect(site.notes, 'Choppy');
+  });
+
+  test('unchanged returns null and writes nothing', () async {
+    final result = await service.save(
+      siteId: 's1',
+      apply: (site) => site,
+      changedCardIds: const ['notes'],
+    );
+
+    expect(result, isNull);
+    expect(await operations(), isEmpty);
+  });
+
+  test('a site that has gone throws', () async {
+    await sites.deleteSite('s1');
+    await changeLog.settleAll();
+    await db.customStatement('DELETE FROM change_log_operations');
+
+    await expectLater(
+      service.save(
+        siteId: 's1',
+        apply: notes('Choppy'),
+        changedCardIds: const ['notes'],
+      ),
+      throwsStateError,
+    );
+    expect(await operations(), isEmpty);
+  });
+
+  test('passes the acting diver to the repository', () async {
+    final recording = _RecordingSites();
+    await SiteEditSaveService(recording).save(
+      siteId: 's1',
+      apply: notes('Choppy'),
+      changedCardIds: const ['notes'],
+      actingDiverId: 'me',
+    );
+
+    expect(recording.actingDiverIds, ['me']);
+  });
+}
