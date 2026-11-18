@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Unit tests for manifest.py and the pure parts of candidates.py."""
+"""Unit tests for manifest.py and candidates.py (GBIF replaced by a stub)."""
 
+import contextlib
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import tempfile
 import unittest
+import urllib.parse
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -282,26 +285,90 @@ class SurveyQueryTests(unittest.TestCase):
             [("media_type", "StillImage"), ("basis_of_record", "HUMAN_OBSERVATION")],
         )
 
-    def test_photo_cache_keeps_its_name(self):
-        # Earlier builds' work folders answer the photo query from here.
-        path = candidates.facet_cache_path("w", "photographed", [3, 1], candidates.PHOTO_FILTERS, 50, 1000)
+    def test_photo_cache_is_not_an_earlier_paged_page(self):
+        # Earlier builds paged the photo facet 1,000 at a time and cached
+        # page 0 here; that page must not answer the whole query.
+        path = candidates.facet_cache_path("w", "photographed", [3, 1], candidates.PHOTO_FILTERS, 50, 20000)
         digest = hashlib.sha256(b"1,3").hexdigest()[:12]
-        self.assertEqual(path, os.path.join("w", "facets", f"species_{digest}_50_1000.json"))
+        self.assertNotEqual(path, os.path.join("w", "facets", f"species_{digest}_50_0.json"))
 
     def test_survey_cache_differs_from_the_photo_cache(self):
-        photo = candidates.facet_cache_path("w", "photographed", [1], candidates.PHOTO_FILTERS, 50, 0)
-        survey = candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 0)
+        photo = candidates.facet_cache_path("w", "photographed", [1], candidates.PHOTO_FILTERS, 50, 20000)
+        survey = candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 20000)
         self.assertNotEqual(photo, survey)
 
-    def test_survey_cache_changes_with_its_filters(self):
-        a = candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 0)
-        b = candidates.facet_cache_path("w", "surveyed", [1], [("depth", "0,30")], 50, 0)
-        self.assertNotEqual(a, b)
+    def test_cache_changes_with_filters_taxa_floor_and_limit(self):
+        base = candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 20000)
+        for other in (
+            candidates.facet_cache_path("w", "surveyed", [1], [("depth", "0,30")], 50, 20000),
+            candidates.facet_cache_path("w", "surveyed", [1, 2], candidates.SURVEY_FILTERS, 50, 20000),
+            candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 25, 20000),
+            candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 1000),
+        ):
+            self.assertNotEqual(base, other)
 
-    def test_survey_cache_changes_with_its_taxa(self):
-        a = candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 0)
-        b = candidates.facet_cache_path("w", "surveyed", [1, 2], candidates.SURVEY_FILTERS, 50, 0)
-        self.assertNotEqual(a, b)
+
+class SpeciesFacetTests(unittest.TestCase):
+    """The facet queries, with GBIF replaced by a stub that records each
+    request and answers with `counts`."""
+
+    def fetch(self, fn, counts, **kwargs):
+        calls = []
+
+        def fake_get_json(url, cache_path):
+            calls.append((url, cache_path))
+            return {"facets": [{"field": "SPECIES_KEY", "counts": counts}]}
+
+        real = candidates._get_json
+        candidates._get_json = fake_get_json
+        self.addCleanup(setattr, candidates, "_get_json", real)
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            found = fn([7, 3], "w", **kwargs)
+        return found, calls, stderr.getvalue()
+
+    @staticmethod
+    def params(url):
+        return urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)
+
+    def test_photographed_species_come_from_one_request(self):
+        # GBIF's facet paging repeats and skips species at page boundaries,
+        # so the whole facet is asked for at once.
+        counts = [{"name": "11", "count": 90}, {"name": "12", "count": 60}]
+        found, calls, _ = self.fetch(candidates.fetch_photographed_species, counts, min_images=50)
+        self.assertEqual(found, [(11, 90), (12, 60)])
+        self.assertEqual(len(calls), 1)
+        q = self.params(calls[0][0])
+        self.assertEqual(q["media_type"], ["StillImage"])
+        self.assertEqual(q["basis_of_record"], ["HUMAN_OBSERVATION"])
+        self.assertEqual(q["facetMincount"], ["50"])
+        self.assertEqual(q["facetLimit"], ["20000"])
+        self.assertNotIn("facetOffset", q)
+        self.assertEqual(sorted(q["taxon_key"]), ["3", "7"])
+        self.assertIn(os.path.join("w", "facets", "photographed_"), calls[0][1])
+
+    def test_surveyed_species_ask_for_present_shallow_records(self):
+        counts = [{"name": "21", "count": 900}]
+        found, calls, _ = self.fetch(candidates.fetch_surveyed_species, counts, min_records=50)
+        self.assertEqual(found, [(21, 900)])
+        self.assertEqual(len(calls), 1)
+        q = self.params(calls[0][0])
+        self.assertEqual(q["occurrence_status"], ["PRESENT"])
+        self.assertEqual(q["depth"], ["0,40"])
+        self.assertEqual(q["basis_of_record"], ["HUMAN_OBSERVATION"])
+        self.assertNotIn("media_type", q)
+        self.assertNotIn("facetOffset", q)
+        self.assertIn(os.path.join("w", "facets", "surveyed_"), calls[0][1])
+
+    def test_a_full_answer_warns_that_species_may_be_missing(self):
+        counts = [{"name": "1", "count": 9}, {"name": "2", "count": 8}]
+        _, _, err = self.fetch(candidates.fetch_surveyed_species, counts, min_records=5, limit=2)
+        self.assertIn("2", err)
+        self.assertIn("limit", err)
+
+    def test_a_short_answer_does_not_warn(self):
+        _, _, err = self.fetch(candidates.fetch_surveyed_species, [{"name": "1", "count": 9}], min_records=5, limit=2)
+        self.assertEqual(err, "")
 
 
 class WantedKeysTests(unittest.TestCase):
@@ -327,7 +394,6 @@ class WantedKeysTests(unittest.TestCase):
 
     def test_a_key_repeated_within_a_ranking_counts_once(self):
         self.assertEqual(candidates.wanted_keys([(1, 90), (1, 90)], [(3, 9), (3, 9)], set(), 10), [1, 3])
-
 
 
 class PackVersionTests(unittest.TestCase):
