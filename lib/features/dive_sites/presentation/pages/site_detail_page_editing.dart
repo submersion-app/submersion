@@ -50,6 +50,7 @@ mixin _SiteDetailPageEditing
     DiveSite site,
     Set<SiteDetailSectionId> shownForSitting,
     Set<SiteDetailSectionId> heldOpen,
+    DiveSite? presence,
   })
   _editingInBuild() {
     if (!hostsEditing) {
@@ -59,6 +60,7 @@ mixin _SiteDetailPageEditing
         site: widget.site,
         shownForSitting: const {},
         heldOpen: const {},
+        presence: null,
       );
     }
     final offered = _offersEditingNow(watch: true);
@@ -74,6 +76,8 @@ mixin _SiteDetailPageEditing
       site: shownRecord(widget.site),
       shownForSitting: _sectionsShownForSitting(),
       heldOpen: _sectionsOpenForSitting(),
+      // While an editor is open, the record the page lays itself out from.
+      presence: maybeEditController?.layoutRecord,
     );
   }
 
@@ -125,10 +129,10 @@ mixin _SiteDetailPageEditing
     }
   }
 
-  /// The cards the diver hid that can be edited, in section order: a card
-  /// with nothing to show is never left out (Description and Notes say so).
-  /// One brought in from the strip stays on the page while it is open or
-  /// has something in it.
+  /// The cards the page is not showing that can be edited, in section
+  /// order: hidden by the diver, or with nothing to show. One brought in
+  /// from the strip stays on the page while it is open or has something in
+  /// it; emptied and closed, it is offered here again.
   @override
   List<AddStripEntry> addStripEntries(DiveSite working) {
     final sections = ref.watch(
@@ -139,16 +143,22 @@ mixin _SiteDetailPageEditing
     final open = controller.openCardIds;
     final added = controller.addedCardIds;
     final changed = controller.session?.changedCardIds ?? const <String>{};
+    final session = controller.session;
+    // As the page lays itself out: while an editor is open no card comes in,
+    // so none leaves the strip either.
+    final presence = controller.layoutRecord ?? working;
     return [
       for (final section in sections)
         if (siteEditCards[section.id] case final card?
-            when !section.visible &&
-                !open.contains(card.id) &&
-                !added.contains(card.id))
+            when !open.contains(card.id) &&
+                !added.contains(card.id) &&
+                (!section.visible ||
+                    (card.isEmptyDuring(presence, session) &&
+                        (session == null || card.isOfferedWhenEmpty(session)))))
           AddStripEntry(
             cardId: card.id,
             label: section.id.localizedDisplayName(l10n),
-            hidden: true,
+            hidden: !section.visible,
             changed: changed.contains(card.id),
           ),
     ];
@@ -179,6 +189,22 @@ mixin _SiteDetailPageEditing
     );
   }
 
+  /// A card held on the page while an editor is open although the sitting
+  /// has emptied it: its title alone, until the editors close and it leaves
+  /// for the Add strip (issue #4527).
+  Widget _heldEmptyCard(BuildContext context, SiteDetailSectionId id) {
+    final card = siteEditCards[id]!;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: RecordCardHeader(
+          title: card.title(context),
+          leading: card.leading?.call(context),
+        ),
+      ),
+    );
+  }
+
   /// The hidden sections the sitting has brought onto the page.
   Set<SiteDetailSectionId> _sectionsShownForSitting() {
     final controller = maybeEditController;
@@ -193,14 +219,44 @@ mixin _SiteDetailPageEditing
   /// [builder] framed as its card while the page offers editing, so
   /// unlocking never remounts it; as it is otherwise, and for a section
   /// with no card.
+  ///
+  /// A card that can be edited is on the page while it is open, and
+  /// otherwise when [builder] has something to show (decided from the
+  /// record the page lays itself out from, `_sectionCards`'s `presence`).
+  /// Open with nothing to show, it gets an empty body, which the frame
+  /// replaces with its editor. A card worked out from other values fades
+  /// while unlocked.
   WidgetBuilder? _framed(
     SiteDetailSectionId id,
     WidgetBuilder? builder, {
     required bool editing,
   }) {
+    if (!editing) return builder;
     final card = siteEditCards[id];
-    if (!editing || builder == null || card == null) return builder;
+    if (card == null) {
+      if (builder == null || !kSiteCalculatedSections.contains(id)) {
+        return builder;
+      }
+      return (context) => RecordCardFade<DiveSite>(
+        reason: RecordCardFadeReason.calculated,
+        child: builder(context),
+      );
+    }
+    final isOpen = maybeEditController?.openCardIds.contains(card.id) ?? false;
+    if (!isOpen && builder == null) return null;
+    final body = builder ?? (_) => const SizedBox.shrink();
     return (context) =>
-        RecordCardFrame<DiveSite>(card: card, child: builder(context));
+        RecordCardFrame<DiveSite>(card: card, child: body(context));
   }
 }
+
+/// The site cards worked out from other data (the dives logged here, the
+/// tide and terrain at the position, the reef's state): nothing to edit, so
+/// they fade while the page is unlocked.
+const kSiteCalculatedSections = {
+  SiteDetailSectionId.diveStatistics,
+  SiteDetailSectionId.divePhotos,
+  SiteDetailSectionId.tide,
+  SiteDetailSectionId.seascape,
+  SiteDetailSectionId.reefHealth,
+};

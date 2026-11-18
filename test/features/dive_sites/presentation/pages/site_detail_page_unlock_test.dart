@@ -171,6 +171,9 @@ void main() {
         matching: find.text(l.diveSites_detail_section_notes),
       );
       expect(chip, findsOneWidget);
+      // The strip scrolls: empty cards are offered beside the hidden one.
+      await tester.ensureVisible(chip);
+      await tester.pumpAndSettle();
       await tester.tap(chip);
       await tester.pumpAndSettle();
 

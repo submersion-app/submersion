@@ -88,6 +88,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_edit_
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
@@ -290,6 +291,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
               sections,
               editing: edit.hosts,
               shownForSitting: edit.shownForSitting,
+              presence: edit.presence,
             ),
             alsoShown: edit.shownForSitting,
             heldOpen: edit.heldOpen,
@@ -379,11 +381,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     List<SiteDetailSectionConfig> sections, {
     bool editing = false,
     Set<SiteDetailSectionId> shownForSitting = const {},
+    DiveSite? presence,
   }) {
+    // Whether a card the diver edits has anything to show is read from the
+    // record the page lays itself out from while an editor is open, so no
+    // card comes or goes above it; what it shows is [site] (issue #4527).
+    final laidOut = presence ?? site;
     WidgetBuilder watching(Widget Function(BuildContext, WidgetRef) build) =>
         (_) => Consumer(builder: (context, ref, _) => build(context, ref));
 
-    final hasHazards = site.hazards != null && site.hazards!.isNotEmpty;
+    final hasHazards = laidOut.hazards != null && laidOut.hazards!.isNotEmpty;
     final cards = <SiteDetailSectionId, WidgetBuilder? Function()>{
       // The count and the aggregates derived from the dives at this site.
       SiteDetailSectionId.diveStatistics: () => watching(
@@ -427,11 +434,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           : null,
       SiteDetailSectionId.depth: () =>
           watching((context, ref) => _buildDepthSection(context, ref, site)),
-      SiteDetailSectionId.altitude: () => site.altitude != null
-          ? watching(
+      SiteDetailSectionId.altitude: () => laidOut.altitude == null
+          ? null
+          : site.altitude == null
+          ? (context) => _heldEmptyCard(context, SiteDetailSectionId.altitude)
+          : watching(
               (context, ref) => _buildAltitudeSection(context, ref, site),
-            )
-          : null,
+            ),
       // Diver-placed annotations. Placement happens on the map, so the add
       // action opens the fullscreen scape armed to place.
       SiteDetailSectionId.features: () => site.hasCoordinates
@@ -492,14 +501,19 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           (ref.watch(tagsForSiteProvider(site.id)).value ?? const []).isEmpty
           ? null
           : (_) => SiteTagsCard(siteId: site.id),
-      SiteDetailSectionId.difficulty: () => site.difficulty != null
-          ? (context) => _buildDifficultySection(context, site)
-          : null,
+      SiteDetailSectionId.difficulty: () => laidOut.difficulty == null
+          ? null
+          : site.difficulty == null
+          ? (context) => _heldEmptyCard(context, SiteDetailSectionId.difficulty)
+          : (context) => _buildDifficultySection(context, site),
       SiteDetailSectionId.rating: () =>
           (context) => _buildRatingSection(context, site),
-      SiteDetailSectionId.hazards: () =>
-          hasHazards ? (context) => _buildHazardsSection(context, site) : null,
-      SiteDetailSectionId.access: () => _hasAccessInfo(site)
+      SiteDetailSectionId.hazards: () => !hasHazards
+          ? null
+          : site.hazards?.isNotEmpty != true
+          ? (context) => _heldEmptyCard(context, SiteDetailSectionId.hazards)
+          : (context) => _buildHazardsSection(context, site),
+      SiteDetailSectionId.access: () => _hasAccessInfo(laidOut)
           ? (context) => _buildAccessSection(context, site)
           : null,
       SiteDetailSectionId.notes: () =>
