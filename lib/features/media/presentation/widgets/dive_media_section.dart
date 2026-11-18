@@ -6,7 +6,6 @@ import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/presentation/helpers/lightroom_scan_helper.dart';
 import 'package:submersion/features/media/presentation/helpers/media_link_replacer.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
@@ -152,12 +151,12 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     super.dispose();
   }
 
+  /// The open card's Lightroom scan: what it finds is held in the sitting
+  /// until Save (issue #4527).
   Future<void> _scanLightroom(BuildContext context) async {
-    final dive = await ref
-        .read(diveRepositoryProvider)
-        .getDiveById(widget.diveId);
-    if (dive == null || !context.mounted) return;
-    await runLightroomScan(context, ref, [dive]);
+    final editing = widget.editing;
+    if (editing == null) return;
+    await runLightroomScanInSitting(context, ref, editing);
   }
 
   // coverage:ignore-start
