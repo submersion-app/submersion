@@ -113,6 +113,21 @@ void main() {
     await settle(tester);
   }
 
+  testWidgets('the locked page offers no feature edit on its card', (
+    tester,
+  ) async {
+    await pump(tester);
+
+    // The card shows the feature, but neither adds one nor edits it: on a
+    // page that edits in place, only the Features editor does.
+    expect(find.byKey(const ValueKey('siteFeatureRow-f1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('siteFeatureAddButton')), findsNothing);
+    final editor = find.byWidgetPredicate(
+      (w) => w is SiteFeaturesSection && w.onAddFeature == null,
+    );
+    expect(editor, findsOneWidget);
+  });
+
   testWidgets('opened from a locked page it offers no Edit', (tester) async {
     await pump(tester);
 
