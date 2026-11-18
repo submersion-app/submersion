@@ -176,7 +176,10 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
       // An edit address the page has not opened yet keeps asking for edit
       // mode in the pane, which opens the site unlocked there (issue
       // #4527). Moved later (a window widened), the site moves as it is.
-      final mode = widget.openUnlocked && firstBuild ? '&mode=edit' : '';
+      // With the switch off the pane's edit mode is the old form: not asked.
+      final mode = widget.unlockEditing && widget.openUnlocked && firstBuild
+          ? '&mode=edit'
+          : '';
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.go('/sites?selected=${widget.siteId}$mode');
@@ -311,7 +314,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     final embedded = widget.embedded;
     // Unlock-to-edit in place (issue #4527, phase 2), behind the switch.
     final edit = _editingInBuild();
-    if (edit.hosts) openUnlockedOnce(widget.site);
+    // Only where the page offers editing now: a reader's stale edit link
+    // opens the site locked. A role still loading unlocks once it allows.
+    if (edit.offered) openUnlockedOnce(widget.site);
     final site = edit.site;
     final sections = ref.watch(
       settingsProvider.select((s) => s.siteDetailSections),

@@ -122,6 +122,45 @@ void main() {
     });
   });
 
+  // With the switch off an edit address is as before: a site in view mode,
+  // on desktop moved into the pane without asking for edit mode, which
+  // there would open the old form.
+  testWidgets('with the switch off, mode=edit on desktop moves into the pane '
+      'as it is', (tester) async {
+    final page = await pumpSitePage(
+      tester,
+      unlockEditing: false,
+      openUnlocked: true,
+      size: const Size(1400, 1000),
+      initialLocation: '/root-site',
+    );
+
+    final landed = page.router!.routerDelegate.currentConfiguration.uri;
+    expect(landed.path, '/sites');
+    expect(landed.queryParameters.containsKey('mode'), isFalse);
+  });
+
+  // A stale edit link on a site this profile only reads opens it locked,
+  // not unlocked and then withdrawn.
+  testWidgets('a reader asked to open unlocked stays locked', (tester) async {
+    await pumpSitePage(
+      tester,
+      openUnlocked: true,
+      site: harnessSite.copyWith(sharedLibraryId: 'L'),
+      extra: [
+        libraryRoleProvider(
+          'L',
+        ).overrideWith((ref) async => SharedLibraryRole.reader),
+        libraryConnectedHereProvider('L').overrideWith((ref) async => true),
+        siteLibraryStateProvider('s1').overrideWith((ref) async => null),
+        libraryMemberNamesProvider('L').overrideWith((ref) async => const {}),
+      ],
+    );
+
+    expect(find.byType(RecordEditBar), findsNothing);
+    expect(find.text(l.diveSites_edit_editingWithdrawn), findsNothing);
+  });
+
   // History beside the lock where the bar has room, else in the menu, as
   // on a dive (issue #4527).
   group('History', () {
