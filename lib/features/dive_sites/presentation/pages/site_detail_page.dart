@@ -109,12 +109,14 @@ import 'package:submersion/shared/widgets/record_editing/record_card_header.dart
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
 import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart';
 
 part 'site_detail_page_bars.dart';
 part 'site_detail_page_editing.dart';
 part 'site_detail_page_fullscreen_scape.dart';
+part 'site_detail_page_operations.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
@@ -274,7 +276,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         RecordEditHost<_SiteDetailContent, DiveSite>,
         _SiteDetailPageEditing,
         RecordOpenUnlocked<_SiteDetailContent, DiveSite>,
-        _SiteDetailFullscreen {
+        _SiteDetailFullscreen,
+        _SiteDetailPageOperations {
   @override
   bool openUnlockedOf(_SiteDetailContent widget) => widget.openUnlocked;
 
@@ -393,6 +396,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         shown: site,
         lockedBar: appBar,
         content: _withFeaturePlacement(context, body),
+        // The menu stays while unlocked, as a dive's: its whole-record
+        // actions run from it with nothing to save.
+        unlockedActions: [
+          _siteMenu(context, site, historyItem: true, hosts: true),
+        ],
       );
     }
     return Scaffold(appBar: appBar, body: body);
@@ -657,11 +665,14 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     return const [];
   }
 
+  /// The library's entries; [operationsEnabled] false disables the ones
+  /// that act on the whole site ([kSiteRecordActions]).
   List<PopupMenuEntry<String>> _libraryMenuItems(
     BuildContext context,
     WidgetRef ref,
-    DiveSite site,
-  ) {
+    DiveSite site, {
+    bool operationsEnabled = true,
+  }) {
     final l10n = context.l10n;
     final access = _libraryAccess(ref, site, watch: false);
     PopupMenuItem<String> item(
@@ -671,6 +682,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       Color? color,
     }) => PopupMenuItem(
       value: value,
+      enabled: operationsEnabled || !kSiteRecordActions.contains(value),
       child: ListTile(
         leading: Icon(icon, color: color),
         title: Text(
@@ -818,7 +830,24 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     );
   }
 
+  /// What a menu entry does: a whole-record action as an operation
+  /// ([_runSiteOperation]), anything else at once.
   Future<void> _handleMenuAction(
+    BuildContext context,
+    WidgetRef ref,
+    String action,
+    DiveSite site,
+  ) {
+    if (!kSiteRecordActions.contains(action)) {
+      return _handleSiteAction(context, ref, action, site);
+    }
+    return _runSiteOperation(() async {
+      await _handleSiteAction(context, ref, action, site);
+      return true;
+    });
+  }
+
+  Future<void> _handleSiteAction(
     BuildContext context,
     WidgetRef ref,
     String action,

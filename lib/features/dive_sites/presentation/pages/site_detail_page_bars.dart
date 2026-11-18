@@ -45,26 +45,105 @@ extension _SiteDetailBars on _SiteDetailContentState {
             onPressed: () => context.push('/sites/${widget.siteId}/edit'),
           ),
         ..._libraryButtons(context, ref, site),
-        SiteDetailPropertiesMenu(
-          controller: _displayOptionsMenu,
-          child: PopupMenuButton<String>(
-            onSelected: (value) => _handleMenuAction(context, ref, value, site),
-            itemBuilder: (context) => [
-              if (!historyInBar)
-                changeLogHistoryMenuItem(
-                  context,
-                  rootTable: 'dive_sites',
-                  rootId: site.id,
-                ),
-              openInConnectionsMenuItem(context),
-              duplicateSiteMenuItem(context),
-              displayOptionsMenuItem(context, 'displayOptions'),
-              ..._libraryMenuItems(context, ref, site),
-            ],
-          ),
-        ),
+        _siteMenu(context, site, historyItem: !historyInBar, hosts: hosts),
       ],
     );
+  }
+
+  /// The full page's menu, on the locked bar and, on a page that [hosts]
+  /// editing, on the unlocked one too, as a dive's: the whole-record
+  /// actions run from it while unlocked with nothing to save. Today's page
+  /// offers Delete, Unhide and Remove only once it hosts editing.
+  Widget _siteMenu(
+    BuildContext context,
+    DiveSite site, {
+    required bool historyItem,
+    required bool hosts,
+  }) {
+    final ownership = hosts ? _watchOwnership(ref, site) : null;
+    return SiteDetailPropertiesMenu(
+      controller: _displayOptionsMenu,
+      child: PopupMenuButton<String>(
+        onSelected: (value) => _handleMenuAction(context, ref, value, site),
+        itemBuilder: (context) => _siteMenuItems(
+          context,
+          ref,
+          site,
+          historyItem: historyItem,
+          ownership: ownership,
+        ),
+      ),
+    );
+  }
+
+  /// The site's menu entries. [historyItem] puts History first, where the
+  /// bar has no room for it; [ownership] adds Delete, Unhide or Remove.
+  /// The whole-record ones are disabled under a caption saying why while
+  /// they cannot run.
+  List<PopupMenuEntry<String>> _siteMenuItems(
+    BuildContext context,
+    WidgetRef ref,
+    DiveSite site, {
+    required bool historyItem,
+    _SiteOwnership? ownership,
+  }) {
+    final block = siteOperationBlock;
+    final enabled = block == null || block == RecordOperationBlock.none;
+    final reason = recordOperationReason(context.l10n, block, plural: true);
+    PopupMenuItem<String> item(
+      String value,
+      IconData icon,
+      String title, {
+      Color? color,
+    }) => PopupMenuItem(
+      value: value,
+      enabled: enabled,
+      child: ListTile(
+        leading: Icon(icon, color: color),
+        title: Text(
+          title,
+          style: color == null ? null : TextStyle(color: color),
+        ),
+        contentPadding: EdgeInsets.zero,
+      ),
+    );
+    final own = ownership;
+    return [
+      if (historyItem)
+        changeLogHistoryMenuItem(
+          context,
+          rootTable: 'dive_sites',
+          rootId: site.id,
+        ),
+      openInConnectionsMenuItem(context),
+      duplicateSiteMenuItem(context),
+      displayOptionsMenuItem(context, 'displayOptions'),
+      if (reason != null) recordOperationCaption<String>(context, reason),
+      ..._libraryMenuItems(context, ref, site, operationsEnabled: enabled),
+      if (own != null)
+        // Delete for the owner; another profile only removes the shared
+        // site from itself (issue #2594); neither while the profile is
+        // unknown (issue #2682).
+        if (own.canDestroy == true)
+          item(
+            'delete',
+            Icons.delete,
+            context.l10n.diveSites_detail_deleteMenu_label,
+            color: Colors.red,
+          )
+        else if (own.hidden)
+          item(
+            'unhide',
+            Icons.visibility_outlined,
+            context.l10n.sharedItems_unhideAction,
+          )
+        else if (own.canDestroy == false && own.reachesHere)
+          item(
+            'remove',
+            Icons.visibility_off_outlined,
+            context.l10n.sharedItems_removeAction,
+          ),
+    ];
   }
 
   Widget _buildEmbeddedHeader(
@@ -73,27 +152,7 @@ extension _SiteDetailBars on _SiteDetailContentState {
     DiveSite site,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    // Watched, as the trip page does, so the menu follows the profile once
-    // it has loaded (issue #2594); null until then (issue #2682).
-    final canDestroy = canDestroySharedItemOnceKnown(
-      ref.watch(validatedCurrentDiverIdProvider),
-      ownerId: site.diverId,
-      isLibrarySite: site.isLibrarySite,
-    );
-    // A site this profile already removed offers Unhide (issue #2679).
-    final hidden = watchHiddenHere(
-      ref,
-      SharedItemKind.site,
-      site.id,
-      canDestroy: canDestroy != false,
-    );
-    // Remove only while the site reaches this profile (issue #2151).
-    final reachesHere = watchReachesHere(
-      ref,
-      SharedItemKind.site,
-      site.id,
-      libraryId: site.sharedLibraryId,
-    );
+    final ownership = _watchOwnership(ref, site);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -178,50 +237,13 @@ extension _SiteDetailBars on _SiteDetailContentState {
               icon: const Icon(Icons.more_vert, size: 20),
               onSelected: (value) =>
                   _handleMenuAction(context, ref, value, site),
-              itemBuilder: (context) => [
-                changeLogHistoryMenuItem(
-                  context,
-                  rootTable: 'dive_sites',
-                  rootId: site.id,
-                ),
-                openInConnectionsMenuItem(context),
-                duplicateSiteMenuItem(context),
-                displayOptionsMenuItem(context, 'displayOptions'),
-                ..._libraryMenuItems(context, ref, site),
-                // Delete for the owner; another profile only removes the
-                // shared site from itself (issue #2594); neither while the
-                // profile is unknown (issue #2682).
-                if (canDestroy == true)
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: ListTile(
-                      leading: const Icon(Icons.delete, color: Colors.red),
-                      title: Text(
-                        context.l10n.diveSites_detail_deleteMenu_label,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  )
-                else if (hidden)
-                  PopupMenuItem(
-                    value: 'unhide',
-                    child: ListTile(
-                      leading: const Icon(Icons.visibility_outlined),
-                      title: Text(context.l10n.sharedItems_unhideAction),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  )
-                else if (canDestroy == false && reachesHere)
-                  PopupMenuItem(
-                    value: 'remove',
-                    child: ListTile(
-                      leading: const Icon(Icons.visibility_off_outlined),
-                      title: Text(context.l10n.sharedItems_removeAction),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-              ],
+              itemBuilder: (context) => _siteMenuItems(
+                context,
+                ref,
+                site,
+                historyItem: true,
+                ownership: ownership,
+              ),
             ),
           ),
         ],
