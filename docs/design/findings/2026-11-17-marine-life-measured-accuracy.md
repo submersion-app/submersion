@@ -4,13 +4,14 @@ Findings of the measured accuracy piece
 ([design](../specs/2026-11-17-marine-life-identification-measured-accuracy-design.md),
 [plan](../plans/2026-11-17-marine-life-identification-measured-accuracy.md)).
 Refs #4668. First measured on 2026-11-17 against pack `2026.11.17.1617`
-(7,646 candidates), then again against pack `2026.11.17.2349` (9,011
+(7,646 candidates), then again against pack `2026.11.18.0030` (9,151
 candidates), whose list also takes the species divers record often in
-shallow surveys but rarely photograph (#4683,
+shallow surveys but rarely photograph, and the photographed species the
+earlier build's GBIF paging had skipped (#4683,
 [design](../specs/2026-11-17-marine-life-survey-candidates-design.md)).
 Both use BioCLIP 2 (`bioclip-2-vitl14-2957b32`), 16-bit Core ML on an
 Apple M5 Pro, through the app's own Swift pipeline. The numbers below are
-for the 9,011 pack unless they say otherwise; "The candidate list with
+for the 9,151 pack unless they say otherwise; "The candidate list with
 surveyed species" compares the two.
 
 Every number below is from the held-out half of the test set, with a 95%
@@ -33,7 +34,10 @@ interval where one is given. The bars were chosen on the other half.
 
    At these bars, **87.1% of suggested names are right** (83.1 to 90.2%,
    348 suggestions), against the 85% target, and a suggestion is made for
-   37% of the animals the detector boxes.
+   37% of the animals the detector boxes. The observed rate meets the
+   target; the interval now dips below it (with the 7,646 list it was 85.8
+   to 92.5%). The held-out gate switches a bar off only when the whole
+   interval is below the target, so these bars stand.
 2. **No confident names.** No bar could show 95% on the tune half for the
    Community Fish Detector, so, as decided, the app names nothing at that
    level. Proving 95% on the one-sided lower bound needs either more photos
@@ -42,31 +46,40 @@ interval where one is given. The bars were chosen on the other half.
 3. **Crop fitting: centre crop, for the Community Fish Detector.** Of the
    held-out animals, 104 were named right only with centre crop and 41 only
    with pad-to-square (paired test p = 0.0000002). For Megalodon the two do
-   not differ (57 against 42, p = 0.16), so pad-to-square stays for it. The
+   not differ (57 against 41, p = 0.13), so pad-to-square stays for it. The
    fitting is now a manifest setting the app follows, so each pack carries
    the one its bars were measured with.
 4. **Detector: the fish detector alone or the pair, if the fish detector's
    terms are acceptable; otherwise Megalodon.** The rule chose the pair with
-   the 7,646 list and the fish detector alone with the 9,011 list, but the
-   measurement does not separate the two: the difference between them is
-   within noise. Megalodon's place behind the fish detector does look real.
-   Details under "Detectors".
+   the 7,646 list and the fish detector alone with the 9,151 list, but the
+   measurement does not separate the two: the pair names 304 animals right
+   and the fish detector 303 (p = 1.0). Megalodon's place behind the fish
+   detector does look real. Details under "Detectors".
 
 ## The candidate list with surveyed species
 
-The 7,646 list held the catalogue species and every species with 50 or more
+The 7,646 list held the catalogue species and the species with 50 or more
 photographed human observations on GBIF, so species divers record often but
-rarely photograph (Creole Wrasse) could never be suggested. The 9,011 list
-adds 1,365 species with 50 or more present human observations at 0 to 40 m,
-photographed or not, and drops none: the first 7,646 candidates, their name
-embeddings and their places are byte for byte those of the earlier pack.
-Among each region's 300 most surveyed shallow species, the share on the list
-rose from 88% to 100% in the Caribbean, 77% to 100% in the Indo-Pacific and
-63% to 92% in the Mediterranean (the design has the measurement).
+rarely photograph (Creole Wrasse) could never be suggested. It also missed
+157 photographed species: the builder paged GBIF's species facet 1,000 at a
+time, and GBIF's paging repeats species at page boundaries and skips others.
+The 9,151 list asks for each facet in one request, and adds:
+
+- 156 photographed species the paging had skipped (Brook Lamprey with 1,315
+  photographed records, Belica 1,268; one more was a catalogue species
+  already), and
+- 1,349 species with 50 or more present human observations at 0 to 40 m,
+  photographed or not: 774 fish, 343 invertebrates, 184 corals, 28 rays and
+  20 sharks, Creole Wrasse and Pacific Cornetfish among them.
+
+It drops none of the 7,646. Among each region's 300 most surveyed shallow
+species, the share on the list rose from 88% to 100% in the Caribbean, 77%
+to 100% in the Indo-Pacific and 63% to 92% in the Mediterranean (Red Sea, top
+100: 91% to 94%; California, top 100: 91% to 100%).
 
 Fish detector, centre crop, each pack at its own measured bars:
 
-| | 7,646 candidates | 9,011 candidates |
+| | 7,646 candidates | 9,151 candidates |
 | --- | --- | --- |
 | `minOpenScore`, suggest, suggest with no location | 0.34, 0.72, 0.79 | 0.39, 0.64, 0.79 |
 | Suggested names right | 89.6% (85.8 to 92.5, 318) | 87.1% (83.1 to 90.2, 348) |
@@ -79,17 +92,17 @@ Fish detector, centre crop, each pack at its own measured bars:
 The fish detector did not get better: its top-1 accuracy with location is
 54.2% on both lists. The 18 more animals named right come from its
 re-measured suggest bar (0.72 to 0.64), which buys coverage (33.8% to
-36.9%) with precision (89.6% to 87.1%), still above the 85% target. That is
-a move along the same curve, not a gain.
+36.9%) with precision (89.6% to 87.1%), still above the 85% target as
+observed. That is a move along the same curve, not a gain.
 
 What this test set measures is the fix's cost, not its benefit. It is drawn
-from photographed iNaturalist observations, so the surveyed-only species
-the fix adds are nearly absent from it: 12 photos of 9 such species, across
-both halves. All four Swarthy Parrotfish photos are now suggested right; the
-other eight got no suggestion, and none a wrong one. The cost is the
-precision above: the 1,365 new names compete with the old ones. The benefit
-is the coverage of what divers survey: 88% to 100% in the Caribbean, 77% to
-100% in the Indo-Pacific and 63% to 92% in the Mediterranean.
+from photographed iNaturalist observations, so the species the fix adds are
+nearly absent from it: 13 photos of 10 such species, across both halves.
+All four Swarthy Parrotfish photos are now suggested right; the other nine
+got no suggestion, and none a wrong one. The cost is the precision above:
+the 1,505 new names compete with the old ones. The benefit is the coverage
+of what divers survey: 88% to 100% in the Caribbean, 77% to 100% in the
+Indo-Pacific and 63% to 92% in the Mediterranean.
 
 ## The test set
 
@@ -148,12 +161,12 @@ licence and attribution. The photos are not committed;
 
 | Run | `minOpenScore` | suggest | suggest, no location | confident | suggested right | coverage | junk named |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Fish detector, pad-to-square | 0.39 | 0.69 | 0.69 | never | 88.2% (83.9 to 91.5) | 28.9% | 0 of 35 |
+| Fish detector, pad-to-square | 0.39 | 0.69 | 0.68 | never | 88.6% (84.2 to 91.8) | 28.8% | 0 of 35 |
 | Fish detector, centre crop | 0.39 | 0.64 | 0.79 | never | 87.1% (83.1 to 90.2) | 36.9% | 1 of 35 |
-| Megalodon, pad-to-square | 0.21 | 0.75 | 0.70 | never | 92.4% (88.6 to 95.0) | 31.1% | 0 of 30 |
-| Megalodon, centre crop | 0.27 | 0.80 | 0.80 | 0.95 (no location: never) | 94.4% (91.1 to 96.5) | 32.2% | 0 of 30 |
-| Both, pad-to-square | 0.39 | 0.72 | 0.68 | never | 91.1% (87.3 to 93.8) | 28.9% | 0 of 62 |
-| Both, centre crop | 0.49 | 0.73 | 0.81 | never | 90.3% (86.6 to 93.0) | 31.6% | 1 of 62 |
+| Megalodon, pad-to-square | 0.21 | 0.75 | 0.70 | never | 92.3% (88.5 to 94.9) | 30.9% | 0 of 30 |
+| Megalodon, centre crop | 0.27 | 0.80 | 0.80 | 0.95 (no location: never) | 94.7% (91.4 to 96.8) | 32.0% | 0 of 30 |
+| Both, pad-to-square | 0.39 | 0.72 | 0.68 | never | 91.0% (87.2 to 93.7) | 28.7% | 0 of 62 |
+| Both, centre crop | 0.44 | 0.74 | 0.81 | never | 89.7% (86.0 to 92.5) | 32.4% | 1 of 62 |
 
 "Coverage" is the share of boxed animals given a suggestion, with location.
 No bar was switched off by the held-out gate (which also switches off a bar
@@ -177,11 +190,10 @@ Top-1 and top-3 accuracy of the largest box, among photos with a box:
 | Run | top-1 / top-3 with location | top-1 / top-3 without |
 | --- | --- | --- |
 | Fish detector, centre crop | 54.2% / 68.8% | 45.5% / 59.9% |
-| Megalodon, pad-to-square | 54.5% / 69.8% | 46.9% / 61.9% |
-| Both, pad-to-square | 51.9% / 67.5% | 42.3% / 58.9% |
-| Both, centre crop | 56.7% / 71.6% | 48.1% / 63.1% |
+| Megalodon, pad-to-square | 54.4% / 69.8% | 46.7% / 61.9% |
+| Both, centre crop | 56.7% / 71.5% | 48.1% / 63.1% |
 
-Limiting candidates to the place adds about 8 to 10 points of top-1
+Limiting candidates to the place adds about 8 to 9 points of top-1
 accuracy.
 
 ### By what kind of crop
@@ -206,19 +218,19 @@ The share of held-out photos (natural and top-up) in which the detector
 returned any box, and the share whose largest box was named right (top-1,
 no bars), each at its chosen fitting:
 
-| Group | Fish detector (centre crop) | Megalodon (pad-to-square) | Both (pad-to-square) |
+| Group | Fish detector (centre crop) | Megalodon (pad-to-square) | Both (centre crop) |
 | --- | --- | --- | --- |
-| fish (820) | 95%, 53% | 80%, 42% | 98%, 50% |
-| sharks and rays (67) | 91%, 63% | 78%, 48% | 96%, 57% |
-| octopus (72) | 62%, 22% | 79%, 40% | 90%, 42% |
-| crabs (26) | 50%, 19% | 65%, 38% | 77%, 38% |
-| sea snails and nudibranchs (146) | 60%, 23% | 90%, 51% | 95%, 49% |
-| sea stars (56) | 68%, 32% | 84%, 61% | 91%, 61% |
-| coral (78) | 40%, 5% | 83%, 35% | 92%, 35% |
+| fish (820) | 95%, 53% | 80%, 42% | 98%, 55% |
+| sharks and rays (67) | 91%, 63% | 78%, 48% | 96%, 58% |
+| octopus (72) | 62%, 22% | 79%, 40% | 90%, 47% |
+| crabs (26) | 50%, 19% | 65%, 38% | 77%, 42% |
+| sea snails and nudibranchs (146) | 60%, 23% | 90%, 50% | 95%, 51% |
+| sea stars (56) | 68%, 32% | 84%, 61% | 91%, 66% |
+| coral (78) | 40%, 5% | 83%, 35% | 92%, 44% |
 
 Which photos have a box does not depend on the candidate list; the shares
-named right moved by at most 5 points from the 7,646 list (the pair was
-measured at centre crop then, where it names a few points more).
+named right moved by at most 5 points from the 7,646 list, each detector at
+the same fitting.
 
 The fish detector finds fish better; Megalodon finds everything else much
 better. Megalodon's model card warns that reef photos are unlike its
@@ -232,26 +244,26 @@ chosen fitting:
 | Detector | Named right | Against |
 | --- | --- | --- |
 | Fish detector (centre crop) | 303 of 1,076 | |
-| Megalodon (pad-to-square) | 254 of 1,076 | fish detector: 87 only Megalodon, 136 only the fish detector, p = 0.0013 |
-| Both (pad-to-square) | 275 of 1,076 | fish detector: 84 only the pair, 112 only the fish detector, p = 0.054; Megalodon: p = 0.055 |
+| Megalodon (pad-to-square) | 252 of 1,076 | fish detector: 85 only Megalodon, 136 only the fish detector, p = 0.0007 |
+| Both (centre crop) | 304 of 1,076 | fish detector: 66 only the pair, 65 only the fish detector, p = 1.0; Megalodon: 107 against 55, p = 0.00005 |
 
-With the 7,646 list these were 285, 268 and 317 (the pair at centre crop),
-and the pair beat each detector alone (p = 0.0035 and 0.0002).
+With the 7,646 list these were 285, 268 and 317, and the pair beat each
+detector alone (p = 0.0035 and 0.0002).
 
 - **The fish detector's 285 to 303 is not an improvement.** Its top-1
   accuracy with location is 54.2% on both lists; the extra names come from
   its lower suggest bar, which trades precision for coverage (see "The
   candidate list with surveyed species").
-- **The pair's 317 to 275 is mostly its fitting rule flipping.** Its
-  centre crop test gives p = 0.064 (82 named right only with centre crop,
-  59 only with pad-to-square), just past the 0.05 cut-off, so the rule took
-  pad-to-square. At centre crop the pair names 298 against the fish
-  detector's 303, and the fish detector against the pair at its chosen
-  fitting is p = 0.054. On this evidence the measurement does not separate
-  the fish detector alone from the pair.
+- **The fish detector and the pair are not separated.** They name 303 and
+  304, with 65 and 66 photos only one of them names right (p = 1.0). The
+  pair's own fitting choice is close too: centre crop against
+  pad-to-square gives p = 0.008 here, but p = 0.064 on an intermediate
+  build of this list (9,011 candidates, before the paging fix), where the
+  rule took pad-to-square and the pair named 275. On this evidence the
+  measurement does not separate the fish detector alone from the pair.
 - **Megalodon's drop looks real.** It fell from a tie with the fish
-  detector (p = 0.28) to behind it (p = 0.0013), and its top-1 with
-  location fell from 55.7% to 54.5%.
+  detector (p = 0.28) to behind it (p = 0.0007), and its top-1 with
+  location fell from 55.7% to 54.4%.
 
 ### False boxes
 
@@ -270,7 +282,7 @@ keep divers from being named.
 
 From the scoring runs over all 2,612 photos with the 7,646 list (centre
 crop for the fish detector, pad-to-square for Megalodon); the candidate
-list is not part of these runs, and the 9,011 run's medians were within
+list is not part of these runs, and the 9,151 run's medians were within
 about 1 ms of these. Peak memory includes the 608 MB
 classifier. Running both adds Megalodon's
 detection time and about 110 MB of model to the fish detector's. Megalodon
@@ -282,22 +294,22 @@ RF-DETR nano.
 By the rule fixed before the run (most animals named right at the 85%
 target, junk within 2%, close results to the simpler and explicitly
 licensed choice), which `score.py` applies and records in `results.json`,
-the 7,646 list gave the pair and the 9,011 list gives the fish detector
-alone. The two recommendations are within noise of each other (above), so
-this is not a change of conclusion:
+the 7,646 list gave the pair and the 9,151 list gives the fish detector
+alone, the simpler of two that tie. The two recommendations are within
+noise of each other (above), so this is not a change of conclusion:
 
 - **The fish detector alone or the pair**, if the fish detector's terms
-  are acceptable. The fish detector alone names 303 at its bars, the pair
-  275 to 298 depending on its fitting; neither separates from the other.
-  The pair finds something in 92 to 98% of photos in every group, so its
-  advantage is in the groups other than fish, at the cost of a second model
-  in the download and about 15 ms more per photo. Neither escapes the fish
-  detector's licence question.
+  are acceptable. They name 303 and 304 animals right at their bars. The
+  pair finds something in 77 to 98% of photos per group, against 40 to 95%
+  for the fish detector, and its largest box is named right more often in
+  every group but sharks and rays, by far in octopus, crabs, snails, sea
+  stars and coral. That costs a second model in the download and about
+  15 ms more per photo. Neither escapes the fish detector's licence question.
 - **Otherwise, Megalodon alone.** It is explicitly licensed, and names
   octopus, crabs, snails and sea stars about twice as often as the fish
   detector and coral about seven times as often; it finds fish less often
-  (80% of fish photos against 95%), and with the 9,011 list names fewer
-  animals right overall (254 against 303, p = 0.0013), where with the 7,646
+  (80% of fish photos against 95%), and with the 9,151 list names fewer
+  animals right overall (252 against 303, p = 0.0007), where with the 7,646
   list the two tied (p = 0.28).
 
 The choice is the maintainer's.
@@ -357,19 +369,19 @@ Stated, not settled:
   now takes species divers record often in shallow surveys but rarely
   photograph (Creole Wrasse), from GBIF records at 0 to 40 m; records
   without a depth do not count, so a species surveyed only by programmes
-  that publish no depth still misses out. About a quarter of the 1,365 added
-  species come mostly from catch surveys (trawl, seine, longline), so some
-  candidates are fish divers rarely meet.
+  that publish no depth still misses out. About a quarter of the 1,349
+  surveyed-only species come mostly from catch surveys (trawl, seine,
+  longline), so some candidates are fish divers rarely meet.
 - The test set is drawn from photographed iNaturalist observations, so
-  only 12 of its photos are of surveyed-only species. It measures the
-  longer list's cost (precision 89.6% to 87.1%), not its benefit; the
+  only 13 of its photos are of species the longer list adds. It measures
+  the longer list's cost (precision 89.6% to 87.1%), not its benefit; the
   benefit, naming the species divers survey but rarely photograph, is
   measured by coverage of each region's survey records.
 - The rule's detector output differs between the lists (the pair with
-  7,646, the fish detector alone with 9,011), within noise: the pair's
-  fitting test sits near its cut-off (p = 0.064), and the fish detector
-  against the pair is p = 0.054. A larger test set would be needed to tell
-  them apart.
+  7,646, the fish detector alone with 9,151), within noise: the two name
+  304 and 303 (p = 1.0), and the pair's fitting test moved from p = 0.064
+  to 0.008 between two builds of nearly the same list. A larger test set
+  would be needed to tell them apart.
 
 ## Reproducing
 

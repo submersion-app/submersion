@@ -100,12 +100,28 @@ floor.
   bullet is updated.
 - The developer guide lists the new option and the new default.
 
+## Decided during review
+
+The whole-branch review found that GBIF's species facet, paged 1,000 at a
+time with `facetOffset`, repeats species at page boundaries and skips
+others: 7,485 distinct photographed species where one request returns
+7,642, and 4 surveyed species lost (Pacific Cornetfish among them). Both
+lists had the gap, the 7,646 pack included. Eric chose to fix both routes
+in this piece: each facet is one request (`facetLimit` set to the limit,
+with a warning if GBIF returns that many), under new cache names. This
+changes the photo route, which the non-goals above had kept as it was, and
+the pack is rebuilt and scored again with the fix. The numbers above were
+measured with the paged facets; the rebuilt list has 9,151 candidates: the
+7,646, 156 photographed species the paging had skipped, and 1,349
+surveyed-only species.
+
 ## Builder's calls
 
 - The merge of the two rankings is a pure function with tests in the
   existing candidates tests (`manifest_test.py` holds them today), so CI
   runs them without network access.
-- The survey facet keeps its own cache file names, so a work folder from
-  an earlier build is reused for the photo query.
-- The photo query is unchanged (no absence filter; iNaturalist records are
-  all presence).
+- The survey facet has its own cache file names. (The photo query's names
+  changed too with the paging fix above, so an earlier work folder's photo
+  pages are not reused.)
+- The photo query's filters are unchanged (no absence filter; iNaturalist
+  records are all presence).
