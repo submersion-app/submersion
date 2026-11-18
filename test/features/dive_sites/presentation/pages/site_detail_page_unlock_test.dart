@@ -328,10 +328,10 @@ void main() {
     },
   );
 
-  testWidgets('the pane offers no lock yet', (tester) async {
+  testWidgets('the pane offers the lock', (tester) async {
     await pumpSitePage(tester, embedded: true);
 
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
   });
 
   testWidgets('a library site this profile only reads offers no lock', (

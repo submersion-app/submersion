@@ -375,9 +375,23 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     );
 
     if (embedded) {
+      final header = _buildEmbeddedHeader(
+        context,
+        ref,
+        site,
+        offered: edit.offered,
+      );
+      // The pane holds the sitting as the full page does (issue #4527).
+      if (edit.hosts) {
+        return editPane(
+          header: header,
+          shown: site,
+          content: _withFeaturePlacement(context, body),
+        );
+      }
       return Column(
         children: [
-          _buildEmbeddedHeader(context, ref, site),
+          header,
           Expanded(child: body),
         ],
       );

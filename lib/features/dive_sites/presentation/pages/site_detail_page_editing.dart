@@ -6,9 +6,9 @@ const _editLog = LoggerService('SiteDetailPage');
 /// site's own on top of [RecordEditHost], which holds what every record page
 /// shares (the lock, the bar, the strip, the leave check, the keys).
 ///
-/// Offered behind [kUnlockSiteEditing], on the full page, for a site this
-/// profile may edit. The list pane and a library reader's suggestions come
-/// in later plans.
+/// Offered behind [kUnlockSiteEditing], on the full page and in both list
+/// panes, for a site this profile may edit. A library reader's suggestions
+/// come in a later plan.
 mixin _SiteDetailPageEditing
     on
         ConsumerState<_SiteDetailContent>,
@@ -23,10 +23,11 @@ mixin _SiteDetailPageEditing
   @override
   String recordIdOf(DiveSite record) => record.id;
 
-  /// The switch on, on the full page: the page keeps the editing shape
-  /// for its whole life, so a role that loads or changes never remounts it.
+  /// The switch on, on the full page and in a pane alike: the page keeps
+  /// the editing shape for its whole life, so a role that loads or changes
+  /// never remounts it.
   @override
-  bool get hostsEditing => widget.unlockEditing && !widget.embedded;
+  bool get hostsEditing => widget.unlockEditing;
 
   /// [hostsEditing], for a site this profile may edit now. [watch] in
   /// `build`, a read anywhere else.

@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dive_sites/presentation/editing/unlock_site_editing_flag.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 
 /// Where the old site edit address (`/sites/<id>/edit`) goes (issue #4527,
 /// phase 2): with [unlockEditing], the site page opened unlocked; null,
@@ -22,3 +24,42 @@ String? siteEditRedirect(BuildContext context, GoRouterState state) =>
       state.pathParameters['siteId']!,
       state.uri.queryParameters,
     );
+
+/// The site list pane's edit mode (`&mode=edit`) with the switch on: the
+/// site page opened unlocked, back to the site in view mode ([onCancel])
+/// once its sitting ends, as `unlockedDivePane` is for a dive.
+Widget unlockedSitePane(
+  BuildContext context,
+  String id,
+  VoidCallback onCancel, {
+  VoidCallback? onDeleted,
+}) => SiteDetailPage(
+  siteId: id,
+  embedded: true,
+  openUnlocked: true,
+  onSittingEnded: onCancel,
+  onDeleted: onDeleted,
+);
+
+/// The site list's edit pane, as the master-detail scaffold's
+/// `editBuilder`: [unlockedSitePane] with [unlockEditing], else the edit
+/// form as before.
+Widget siteEditPane(
+  BuildContext context,
+  String id,
+  void Function(String savedId) onSaved,
+  VoidCallback onCancel, {
+  VoidCallback? onDeleted,
+  bool unlockEditing = kUnlockSiteEditing,
+}) {
+  if (unlockEditing) {
+    return unlockedSitePane(context, id, onCancel, onDeleted: onDeleted);
+  }
+  return SiteEditPage(
+    siteId: id,
+    embedded: true,
+    onSaved: onSaved,
+    onCancel: onCancel,
+    onDeleted: onDeleted,
+  );
+}

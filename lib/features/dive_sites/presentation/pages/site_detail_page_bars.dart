@@ -146,15 +146,33 @@ extension _SiteDetailBars on _SiteDetailContentState {
     ];
   }
 
+  /// The list pane's header row. [offered] is whether the lock shows;
+  /// while the site is unlocked the shared pane header (Cancel, the title,
+  /// the menu and Save) is laid over it ([RecordPaneRow]).
   Widget _buildEmbeddedHeader(
     BuildContext context,
     WidgetRef ref,
-    DiveSite site,
-  ) {
+    DiveSite site, {
+    bool offered = false,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     final ownership = _watchOwnership(ref, site);
+    final menu = SiteDetailPropertiesMenu(
+      controller: _displayOptionsMenu,
+      child: PopupMenuButton<String>(
+        icon: const Icon(Icons.more_vert, size: 20),
+        onSelected: (value) => _handleMenuAction(context, ref, value, site),
+        itemBuilder: (context) => _siteMenuItems(
+          context,
+          ref,
+          site,
+          historyItem: true,
+          ownership: ownership,
+        ),
+      ),
+    );
 
-    return Container(
+    final locked = Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: colorScheme.surface,
@@ -200,6 +218,7 @@ extension _SiteDetailBars on _SiteDetailContentState {
               onPressed: () =>
                   _showFullscreenMap(context, ref, site, initialScape3d: true),
             ),
+          if (offered) lockButton(site, compact: true),
           if (_canEditSite(ref, site))
             IconButton(
               icon: const Icon(Icons.edit, size: 20),
@@ -231,23 +250,13 @@ extension _SiteDetailBars on _SiteDetailContentState {
               },
             ),
           ..._libraryButtons(context, ref, site),
-          SiteDetailPropertiesMenu(
-            controller: _displayOptionsMenu,
-            child: PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, size: 20),
-              onSelected: (value) =>
-                  _handleMenuAction(context, ref, value, site),
-              itemBuilder: (context) => _siteMenuItems(
-                context,
-                ref,
-                site,
-                historyItem: true,
-                ownership: ownership,
-              ),
-            ),
-          ),
+          menu,
         ],
       ),
+    );
+    return RecordPaneRow(
+      locked: locked,
+      unlocked: isSittingOpen ? editingPaneRow(widget.site, menu: menu) : null,
     );
   }
 }
