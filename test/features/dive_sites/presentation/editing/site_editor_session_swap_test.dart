@@ -69,6 +69,31 @@ void main() {
     expect(find.textContaining('5.'), findsWidgets);
   });
 
+  testWidgets("the old sitting's unreadable position is not carried over", (
+    tester,
+  ) async {
+    final first = EditSession<DiveSite>(
+      const DiveSite(id: 's1', name: 'A', location: GeoPoint(1, 2)),
+    );
+    final second = EditSession<DiveSite>(
+      const DiveSite(id: 's1', name: 'A', location: GeoPoint(3, 4)),
+    );
+    addTearDown(first.dispose);
+    addTearDown(second.dispose);
+    Widget rows(EditSession<DiveSite> s) =>
+        SiteCoordinateRows(session: s, format: CoordinateFormat.decimalDegrees);
+
+    await pump(tester, rows(first));
+    await tester.enterText(find.byType(TextField).first, '95');
+    await tester.pump();
+    expect(find.text(l.diveSites_edit_gps_latitude_validation), findsWidgets);
+
+    await pump(tester, rows(second));
+
+    // The new sitting's position reads: no error from the old one remains.
+    expect(find.text(l.diveSites_edit_gps_latitude_validation), findsNothing);
+  });
+
   testWidgets('the altitude suggestion follows a new sitting', (tester) async {
     final first = EditSession<DiveSite>(
       const DiveSite(id: 's1', name: 'A', location: GeoPoint(10, 2)),
